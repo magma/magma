@@ -21,6 +21,7 @@ from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 from lte.protos.policydb_pb2 import FlowMatch
 from s1ap_utils import GTPBridgeUtils
 
+
 class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
     SPGW_TABLE = 0
     GTP_PORT = 32768
@@ -55,7 +56,6 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
         # APN list to be configured
         apn_list = [internet]
 
-
         req = self._s1ap_wrapper.ue_req
         self._s1ap_wrapper.configAPN(
             "IMSI" + "".join([str(i) for i in req.imsi]), apn_list, default=False
@@ -79,14 +79,14 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
         # UL Flow description #1
         ulFlow1 = {
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-            "tcp_dst_port": 5001, # TCP Server Port
+            "tcp_dst_port": 5001,  # TCP Server Port
             "direction": FlowMatch.UPLINK,  # Direction
         }
 
         # DL Flow description #1
         dlFlow1 = {
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-            "tcp_dst_port": 7001, # TCP UE Port
+            "tcp_dst_port": 7001,  # TCP UE Port
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
 
@@ -294,12 +294,16 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             },
         )
         print(uplink_flow_a)
-        tcp_bytes = (uplink_flow_a[0]['byte_count'] - uplink_flow_b[0]['byte_count'])
-        tcp_time = (uplink_flow_a[0]['duration_sec'] - uplink_flow_b[0]['duration_sec'])
-        tcp_rate = 8*tcp_bytes/tcp_time
+        tcp_bytes = (
+            uplink_flow_a[0]['byte_count'] -
+            uplink_flow_b[0]['byte_count'])
+        tcp_time = (
+            uplink_flow_a[0]['duration_sec'] -
+            uplink_flow_b[0]['duration_sec'])
+        tcp_rate = 8 * tcp_bytes / tcp_time
         print("TCP UL Rate from OVS: %.2fbps" % tcp_rate)
         # Allow for a 10% error margin
-        assert 0.9*tcp_rate < max_bw_ul, "UL Rate for TCP flow violates UL rate policy for UE"
+        assert 0.9 * tcp_rate < max_bw_ul, "UL Rate for TCP flow violates UL rate policy for UE"
 
         # Get DL Flow Rule for TCP flows for verifying rate limits enforced
         print("**********************Get downlink TCP flow for UE before DL traffic test:")
@@ -337,12 +341,16 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             },
         )
         print(downlink_flow_a)
-        tcp_bytes = (downlink_flow_a[0]['byte_count'] - downlink_flow_b[0]['byte_count'])
-        tcp_time = (downlink_flow_a[0]['duration_sec'] - downlink_flow_b[0]['duration_sec'])
-        tcp_rate = 8*tcp_bytes/tcp_time
+        tcp_bytes = (
+            downlink_flow_a[0]['byte_count'] -
+            downlink_flow_b[0]['byte_count'])
+        tcp_time = (
+            downlink_flow_a[0]['duration_sec'] -
+            downlink_flow_b[0]['duration_sec'])
+        tcp_rate = 8 * tcp_bytes / tcp_time
         print("TCP DL Rate from OVS: %.2fbps" % tcp_rate)
         # Allow for a 10% error margin
-        assert 0.9*tcp_rate < max_bw_dl, "DL Rate for TCP flow violates DL rate policy for UE"
+        assert 0.9 * tcp_rate < max_bw_dl, "DL Rate for TCP flow violates DL rate policy for UE"
         time.sleep(2)  # sleep for 2 seconds before detaching
 
         print(

@@ -46,6 +46,7 @@ RS = "magma.state.state_replicator._resync"
 SS = "magma.state.state_replicator._send_to_state_service"
 SV = "magma.state.state_replicator._state_versions"
 
+
 def get_mock_snowflake():
     return "aaa-bbb"
 
@@ -250,7 +251,7 @@ class StateReplicatorTests(TestCase):
             self.assertEqual(3, len(self.state_replicator._state_versions))
             mem_key1 = make_mem_key('id1', NID_TYPE)
             mem_key2 = make_mem_key('aaa-bbb:id1',
-                                                          IDList_TYPE)
+                                    IDList_TYPE)
             mem_key3 = make_mem_key('id1', FOO_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
@@ -312,7 +313,7 @@ class StateReplicatorTests(TestCase):
             self.assertEqual(2, len(self.state_replicator._state_versions))
             mem_key1 = make_mem_key('id1', NID_TYPE)
             mem_key2 = make_mem_key('aaa-bbb:id1',
-                                                          IDList_TYPE)
+                                    IDList_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(2,
@@ -350,7 +351,7 @@ class StateReplicatorTests(TestCase):
             self.assertEqual(True, self.state_replicator._has_resync_completed)
             self.assertEqual(1, len(self.state_replicator._state_versions))
             mem_key = make_mem_key('aaa-bbb:id1',
-                                                         IDList_TYPE)
+                                   IDList_TYPE)
             self.assertEqual(2, self.state_replicator._state_versions[mem_key])
 
         # Cancel the replicator's loop so there are no other activities

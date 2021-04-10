@@ -30,7 +30,7 @@ def write_stderr(s):
 
 
 def main():
-    while 1:
+    while True:
         # transition from ACKNOWLEDGED to READY
         write_stdout('READY\n')
 

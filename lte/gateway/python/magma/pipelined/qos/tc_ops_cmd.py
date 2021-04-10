@@ -51,7 +51,7 @@ class TcOpsCmd(TcOpsBase):
     def __init__(self):
         LOG.info("initialized")
 
-    def create_htb(self, iface: str, qid: str, max_bw: str, rate:str,
+    def create_htb(self, iface: str, qid: str, max_bw: str, rate: str,
                    parent_qid: str = None) -> int:
         tc_cmd = "tc class add dev {intf} parent {parent_qid} "
         tc_cmd += "classid 1:{qid} htb rate {rate} ceil {maxbw} prio 2"
@@ -61,16 +61,27 @@ class TcOpsCmd(TcOpsBase):
         return run_cmd([tc_cmd], True)
 
     def del_htb(self, iface: str, qid: str) -> int:
-        del_cmd = "tc class del dev {intf} classid 1:{qid}".format(intf=iface, qid=qid)
+        del_cmd = "tc class del dev {intf} classid 1:{qid}".format(
+            intf=iface, qid=qid)
         return run_cmd([del_cmd], True)
 
-    def create_filter(self, iface: str, mark: str, qid: str, proto: int = 3) -> int:
+    def create_filter(
+            self,
+            iface: str,
+            mark: str,
+            qid: str,
+            proto: int = 3) -> int:
         filter_cmd = "tc filter add dev {intf} protocol ip parent 1: prio 1 "
         filter_cmd += "handle {mark} fw flowid 1:{qid}"
         filter_cmd = filter_cmd.format(intf=iface, mark=mark, qid=qid)
         return run_cmd([filter_cmd], True)
 
-    def del_filter(self, iface: str, mark: str, qid: str, proto: int = 3) -> int:
+    def del_filter(
+            self,
+            iface: str,
+            mark: str,
+            qid: str,
+            proto: int = 3) -> int:
         filter_cmd = "tc filter del dev {intf} protocol ip parent 1: prio 1 "
         filter_cmd += "handle {mark} fw flowid 1:{qid}"
         filter_cmd = filter_cmd.format(intf=iface, mark=mark, qid=qid)

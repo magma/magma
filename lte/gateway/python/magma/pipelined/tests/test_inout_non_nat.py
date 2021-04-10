@@ -195,11 +195,13 @@ class InOutNonNatTest(unittest.TestCase):
         while gw_info_map[vlan].mac is None or gw_info_map[vlan].mac == '':
             threading.Event().wait(.5)
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             max_sleep_time=40,
-                                             datapath=cls.inout_controller._datapath,
-                                             try_snapshot=True)
+        snapshot_verifier = SnapshotVerifier(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+            max_sleep_time=40,
+            datapath=cls.inout_controller._datapath,
+            try_snapshot=True)
         with snapshot_verifier:
             pass
         self.assertEqual(gw_info_map[vlan].mac, 'b2:a0:cc:85:80:7a')
@@ -220,11 +222,13 @@ class InOutNonNatTest(unittest.TestCase):
             threading.Event().wait(.5)
 
         logging.info("done waiting for vlan: %s", vlan)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             max_sleep_time=40,
-                                             datapath=cls.inout_controller._datapath,
-                                             try_snapshot=True)
+        snapshot_verifier = SnapshotVerifier(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+            max_sleep_time=40,
+            datapath=cls.inout_controller._datapath,
+            try_snapshot=True)
 
         with snapshot_verifier:
             pass
@@ -253,11 +257,13 @@ class InOutNonNatTest(unittest.TestCase):
             threading.Event().wait(.5)
 
         logging.info("done waiting for vlan: %s", vlan1)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             max_sleep_time=40,
-                                             datapath=cls.inout_controller._datapath,
-                                             try_snapshot=True)
+        snapshot_verifier = SnapshotVerifier(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+            max_sleep_time=40,
+            datapath=cls.inout_controller._datapath,
+            try_snapshot=True)
 
         with snapshot_verifier:
             pass
@@ -288,11 +294,13 @@ class InOutNonNatTest(unittest.TestCase):
             threading.Event().wait(.5)
 
         logging.info("done waiting for vlan: %s", vlan1)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             max_sleep_time=20,
-                                             datapath=cls.inout_controller._datapath,
-                                             try_snapshot=True)
+        snapshot_verifier = SnapshotVerifier(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+            max_sleep_time=20,
+            datapath=cls.inout_controller._datapath,
+            try_snapshot=True)
 
         with snapshot_verifier:
             pass
@@ -328,10 +336,12 @@ class InOutNonNatTest(unittest.TestCase):
             threading.Event().wait(.5)
 
         logging.info("done waiting for vlan: %s", vlan1)
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager,
-                                             max_sleep_time=20,
-                                             datapath=cls.inout_controller._datapath)
+        snapshot_verifier = SnapshotVerifier(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+            max_sleep_time=20,
+            datapath=cls.inout_controller._datapath)
 
         with snapshot_verifier:
             pass
@@ -401,11 +411,12 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
 
     def testFlowSnapshotMatch(self):
         fake_inout_setup(self.inout_controller)
-        snapshot_verifier = SnapshotVerifier(self,
-                                             self.BRIDGE,
-                                             self.service_manager,
-                                             max_sleep_time=20,
-                                             datapath=InOutTestNonNATBasicFlows.inout_controller._datapath)
+        snapshot_verifier = SnapshotVerifier(
+            self,
+            self.BRIDGE,
+            self.service_manager,
+            max_sleep_time=20,
+            datapath=InOutTestNonNATBasicFlows.inout_controller._datapath)
 
         with snapshot_verifier:
             pass

@@ -33,6 +33,7 @@ from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.subscriberdb_client import SubscriberDBStaticIPValueError
 import time
 
+
 class StaticIPAllocationTests(unittest.TestCase):
     """
     Test class for the Mobilityd Static IP Allocator
@@ -46,9 +47,10 @@ class StaticIPAllocationTests(unittest.TestCase):
 
         store = MobilityStore(fakeredis.FakeStrictRedis(), False, 3980)
         ip_allocator = IpAllocatorPool(store)
-        ipv4_allocator = IPAllocatorStaticWrapper(store,
-                                                  subscriberdb_rpc_stub=MockedSubscriberDBStub(),
-                                                  ip_allocator=ip_allocator)
+        ipv4_allocator = IPAllocatorStaticWrapper(
+            store,
+            subscriberdb_rpc_stub=MockedSubscriberDBStub(),
+            ip_allocator=ip_allocator)
         ipv6_allocator = IPv6AllocatorPool(store,
                                            session_prefix_alloc_mode='RANDOM')
         self._allocator = IPAddressManager(ipv4_allocator,

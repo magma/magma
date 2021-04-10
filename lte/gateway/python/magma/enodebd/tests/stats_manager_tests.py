@@ -30,6 +30,7 @@ class StatsManagerTest(TestCase):
     """
     Tests for eNodeB statistics manager
     """
+
     def setUp(self) -> None:
         service = EnodebConfigBuilder.get_service_config()
         self.enb_acs_manager = StateMachineManager(service)
@@ -88,7 +89,11 @@ class StatsManagerTest(TestCase):
             metrics.STAT_PDCP_USER_PLANE_BYTES_UL.collect()
         pdcp_user_plane_bytes_dl = \
             metrics.STAT_PDCP_USER_PLANE_BYTES_DL.collect()
-        self.assertEqual(pdcp_user_plane_bytes_ul[0].samples[0][1], {'enodeb': '1234'})
-        self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][1], {'enodeb': '1234'})
+        self.assertEqual(
+            pdcp_user_plane_bytes_ul[0].samples[0][1], {
+                'enodeb': '1234'})
+        self.assertEqual(
+            pdcp_user_plane_bytes_dl[0].samples[0][1], {
+                'enodeb': '1234'})
         self.assertEqual(pdcp_user_plane_bytes_ul[0].samples[0][2], 1000)
         self.assertEqual(pdcp_user_plane_bytes_dl[0].samples[0][2], 500)

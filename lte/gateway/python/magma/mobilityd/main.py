@@ -56,9 +56,10 @@ def _get_ipv4_allocator(store: MobilityStore, allocator_type: int,
             ip_allocator=ip_allocator)
 
     if multi_apn:
-        ip_allocator = IPAllocatorMultiAPNWrapper(store=store,
-                                                  subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-                                                  ip_allocator=ip_allocator)
+        ip_allocator = IPAllocatorMultiAPNWrapper(
+            store=store,
+            subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+            ip_allocator=ip_allocator)
 
     logging.info("Using allocator: %s static ip: %s multi_apn %s",
                  allocator_type,
@@ -121,7 +122,7 @@ def main():
 
     # Init IPv6 allocator, for now only IP_POOL mode is supported for IPv6
     ipv6_prefix_allocation_type = mconfig.ipv6_prefix_allocation_type or \
-                                  DEFAULT_IPV6_PREFIX_ALLOC_MODE
+        DEFAULT_IPV6_PREFIX_ALLOC_MODE
     ipv6_allocator = IPv6AllocatorPool(
         store=store, session_prefix_alloc_mode=ipv6_prefix_allocation_type)
 

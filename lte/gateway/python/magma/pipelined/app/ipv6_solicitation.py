@@ -194,8 +194,13 @@ class IPV6SolicitationController(MagmaController):
         if not ret:
             self.logger.error("Datapath disconnected, couldn't send RA")
 
-    def _send_neighbor_advertisement(self, target_ipv6: str, tun_id: int,
-                                     tun_ipv4_dst: str, output_port, direction):
+    def _send_neighbor_advertisement(
+            self,
+            target_ipv6: str,
+            tun_id: int,
+            tun_ipv4_dst: str,
+            output_port,
+            direction):
         """
         Generates the Neighbor Advertisement response packet
         """

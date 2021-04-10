@@ -79,7 +79,8 @@ class TestEnbPartialReset(unittest.TestCase):
                 reset_req.r.partialRst.ueS1apIdPairList[indx].mmeUeS1apId
             )
         print("ue_ids", ue_ids)
-        self._s1ap_wrapper.s1_util.issue_cmd(s1ap_types.tfwCmd.RESET_REQ, reset_req)
+        self._s1ap_wrapper.s1_util.issue_cmd(
+            s1ap_types.tfwCmd.RESET_REQ, reset_req)
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
         # Trigger detach request

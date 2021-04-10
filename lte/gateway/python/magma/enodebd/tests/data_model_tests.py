@@ -32,7 +32,6 @@ class BaicellsTrDataModelTest(TestCase):
         result = data_model.is_parameter_present(ParameterName.DEVICE)
         self.assertTrue(result, "Should have the device parameter")
 
-
     def test_get_parameter(self):
         param_info =\
             BaicellsTrDataModel.get_parameter(ParameterName.GPS_STATUS)

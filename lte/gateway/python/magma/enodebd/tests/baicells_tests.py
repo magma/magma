@@ -36,7 +36,7 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # Send an Inform message
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
@@ -58,7 +58,7 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # User uses the CLI tool to get eNodeB to reboot
         acs_state_machine.reboot_asap()
@@ -87,7 +87,7 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
         """ Check GPS coordinates are processed and stored correctly """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
@@ -155,7 +155,7 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
@@ -196,7 +196,7 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = Tr069MessageBuilder.get_inform()
@@ -262,7 +262,7 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_multi_enb_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_multi_enb_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = Tr069MessageBuilder.get_inform()
@@ -340,7 +340,7 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = Tr069MessageBuilder.get_inform()
@@ -563,7 +563,7 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',
@@ -661,7 +661,7 @@ class BaicellsHandlerTests(EnodebHandlerTestCase):
     def test_fault_after_set_parameters(self) -> None:
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = Tr069MessageBuilder.get_inform('48BF74',

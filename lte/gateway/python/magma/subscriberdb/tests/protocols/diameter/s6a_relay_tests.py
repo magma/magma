@@ -45,7 +45,8 @@ class S6AApplicationTests(unittest.TestCase):
             'proxy_cloud_connections': True,
         }
 
-        self._base_manager = base.BaseApplication(self.REALM, self.HOST, self.HOST_ADDR)
+        self._base_manager = base.BaseApplication(
+            self.REALM, self.HOST, self.HOST_ADDR)
         self._proxy_client = Mock()
         self._s6a_manager = s6a_relay.S6ARelayApplication(
             Mock(),
@@ -83,21 +84,37 @@ class S6AApplicationTests(unittest.TestCase):
         self._server.connection_made(self._transport)
 
     @staticmethod
-    def _auth_req(user_name, visited_plmn_id, num_request_vectors, immediate_response_preferred, resync_info):
+    def _auth_req(
+            user_name,
+            visited_plmn_id,
+            num_request_vectors,
+            immediate_response_preferred,
+            resync_info):
         msg = message.Message()
         msg.header.application_id = s6a.S6AApplication.APP_ID
         msg.header.command_code = s6a.S6AApplicationCommands.AUTHENTICATION_INFORMATION
         msg.header.request = True
-        msg.append_avp(avp.AVP('Session-Id',
-            'enb-Lenovo-Product.openair4G.eur;1475864727;1;apps6a'))
+        msg.append_avp(
+            avp.AVP(
+                'Session-Id',
+                'enb-Lenovo-Product.openair4G.eur;1475864727;1;apps6a'))
         msg.append_avp(avp.AVP('Auth-Session-State', 1))
         msg.append_avp(avp.AVP('User-Name', user_name))
         msg.append_avp(avp.AVP('Visited-PLMN-Id', visited_plmn_id))
-        msg.append_avp(avp.AVP('Requested-EUTRAN-Authentication-Info', [
-            avp.AVP('Number-Of-Requested-Vectors', num_request_vectors),
-            avp.AVP('Immediate-Response-Preferred', 1 if immediate_response_preferred else 0),
-            avp.AVP('Re-Synchronization-Info', resync_info),
-        ]))
+        msg.append_avp(
+            avp.AVP(
+                'Requested-EUTRAN-Authentication-Info',
+                [
+                    avp.AVP(
+                        'Number-Of-Requested-Vectors',
+                        num_request_vectors),
+                    avp.AVP(
+                        'Immediate-Response-Preferred',
+                        1 if immediate_response_preferred else 0),
+                    avp.AVP(
+                        'Re-Synchronization-Info',
+                        resync_info),
+                ]))
         return msg
 
     @staticmethod
@@ -106,8 +123,10 @@ class S6AApplicationTests(unittest.TestCase):
         msg.header.application_id = s6a.S6AApplication.APP_ID
         msg.header.command_code = s6a.S6AApplicationCommands.UPDATE_LOCATION
         msg.header.request = True
-        msg.append_avp(avp.AVP('Session-Id',
-                               'enb-Lenovo-Product.openair4G.eur;1475864727;1;apps6a'))
+        msg.append_avp(
+            avp.AVP(
+                'Session-Id',
+                'enb-Lenovo-Product.openair4G.eur;1475864727;1;apps6a'))
         msg.append_avp(avp.AVP('Auth-Session-State', 1))
         msg.append_avp(avp.AVP('User-Name', user_name))
         msg.append_avp(avp.AVP('Visited-PLMN-Id', visited_plmn_id))
@@ -121,7 +140,8 @@ class S6AApplicationTests(unittest.TestCase):
         """
         # Mock out Collect.future
         result = Mock()
-        self._proxy_client.AuthenticationInformation.future.side_effect = [result]
+        self._proxy_client.AuthenticationInformation.future.side_effect = [
+            result]
 
         user_name = '1'
         visited_plmn_id = b'(Y'
@@ -129,7 +149,12 @@ class S6AApplicationTests(unittest.TestCase):
         immediate_response_preferred = True
         resync_info = b'123456789'
 
-        req = self._auth_req(user_name, visited_plmn_id, num_request_vectors, immediate_response_preferred, resync_info)
+        req = self._auth_req(
+            user_name,
+            visited_plmn_id,
+            num_request_vectors,
+            immediate_response_preferred,
+            resync_info)
         # Encode request message into buffer
         req_buf = bytearray(req.length)
         req.encode(req_buf, 0)
@@ -160,7 +185,12 @@ class S6AApplicationTests(unittest.TestCase):
         num_request_vectors = 2
         immediate_response_preferred = True
         resync_info = b'123456789'
-        req = self._auth_req(user_name, visited_plmn_id, num_request_vectors, immediate_response_preferred, resync_info)
+        req = self._auth_req(
+            user_name,
+            visited_plmn_id,
+            num_request_vectors,
+            immediate_response_preferred,
+            resync_info)
 
         # response
         rand = b'rand'
@@ -173,8 +203,9 @@ class S6AApplicationTests(unittest.TestCase):
                 avp.AVP('XRES', xres),
                 avp.AVP('AUTN', autn),
                 avp.AVP('KASME', kasme)])] * num_request_vectors
-                            )
-        resp = self._server._s6a_manager._gen_response(state_id, req, avp.ResultCode.DIAMETER_SUCCESS, [auth_info])
+        )
+        resp = self._server._s6a_manager._gen_response(
+            state_id, req, avp.ResultCode.DIAMETER_SUCCESS, [auth_info])
         resp_buf = bytearray(resp.length)
         resp.encode(resp_buf, 0)
 
@@ -186,13 +217,14 @@ class S6AApplicationTests(unittest.TestCase):
                     xres=xres,
                     autn=autn,
                     kasme=kasme
-                ) ] * num_request_vectors
+                )] * num_request_vectors
         )
         result_future = unittest.mock.Mock()
         result_future.exception.side_effect = [None]
         result_future.result.side_effect = [result]
 
-        self._server._s6a_manager._relay_auth_answer(state_id, req, result_future, 0)
+        self._server._s6a_manager._relay_auth_answer(
+            state_id, req, result_future, 0)
         self._writes.assert_called_once_with(resp_buf)
         self._writes.reset_mock()
 
@@ -207,11 +239,19 @@ class S6AApplicationTests(unittest.TestCase):
         immediate_response_preferred = True
         resync_info = b'123456789'
 
-        result_info = avp.AVP('Experimental-Result', [
-            avp.AVP('Vendor-Id', 10415),
-            avp.AVP('Experimental-Result-Code', avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN)])
-        req = self._auth_req(user_name, visited_plmn_id, num_request_vectors, immediate_response_preferred, resync_info)
-        resp = self._server._s6a_manager._gen_response(state_id, req, avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN, [result_info])
+        result_info = avp.AVP('Experimental-Result',
+                              [avp.AVP('Vendor-Id',
+                                       10415),
+                               avp.AVP('Experimental-Result-Code',
+                                       avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN)])
+        req = self._auth_req(
+            user_name,
+            visited_plmn_id,
+            num_request_vectors,
+            immediate_response_preferred,
+            resync_info)
+        resp = self._server._s6a_manager._gen_response(
+            state_id, req, avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN, [result_info])
         resp_buf = bytearray(resp.length)
         resp.encode(resp_buf, 0)
 
@@ -222,7 +262,8 @@ class S6AApplicationTests(unittest.TestCase):
         result_future.exception.side_effect = [None]
         result_future.result.side_effect = [result]
 
-        self._server._s6a_manager._relay_auth_answer(state_id, req, result_future, 0)
+        self._server._s6a_manager._relay_auth_answer(
+            state_id, req, result_future, 0)
         self._writes.assert_called_once_with(resp_buf)
         self._writes.reset_mock()
 
@@ -237,8 +278,14 @@ class S6AApplicationTests(unittest.TestCase):
         immediate_response_preferred = True
         resync_info = b'123456789'
 
-        req = self._auth_req(user_name, visited_plmn_id, num_request_vectors, immediate_response_preferred, resync_info)
-        resp = self._server._s6a_manager._gen_response(state_id, req, avp.ResultCode.DIAMETER_UNABLE_TO_COMPLY, [])
+        req = self._auth_req(
+            user_name,
+            visited_plmn_id,
+            num_request_vectors,
+            immediate_response_preferred,
+            resync_info)
+        resp = self._server._s6a_manager._gen_response(
+            state_id, req, avp.ResultCode.DIAMETER_UNABLE_TO_COMPLY, [])
         resp_buf = bytearray(resp.length)
         resp.encode(resp_buf, 0)
 
@@ -249,7 +296,8 @@ class S6AApplicationTests(unittest.TestCase):
         result_future.exception.side_effect = [grpc_error]
         result_future.result.side_effect = [None]
 
-        self._server._s6a_manager._relay_auth_answer(state_id, req, result_future, 0)
+        self._server._s6a_manager._relay_auth_answer(
+            state_id, req, result_future, 0)
         self._writes.assert_called_once_with(resp_buf)
         self._writes.reset_mock()
 
@@ -278,7 +326,8 @@ class S6AApplicationTests(unittest.TestCase):
         )
 
         self._server.data_received(req_buf)
-        self.assertEqual(self._proxy_client.UpdateLocation.future.call_count, 1)
+        self.assertEqual(
+            self._proxy_client.UpdateLocation.future.call_count, 1)
         req, _ = self._proxy_client.UpdateLocation.future.call_args
         self.assertEqual(repr(exp_request), repr(req[0]))
 
@@ -311,39 +360,57 @@ class S6AApplicationTests(unittest.TestCase):
                      'dl': 2000 * i},
                  } for i in range(2)]
 
-        resp_avps = [avp.AVP('ULA-Flags', 1),
-                     avp.AVP('Subscription-Data', [
-            avp.AVP('MSISDN', b'333608050011'),
-            avp.AVP('Access-Restriction-Data', 47),
-            avp.AVP('Subscriber-Status', 0),
-            avp.AVP('Network-Access-Mode', 2),
-            avp.AVP('AMBR', [
-                avp.AVP('Max-Requested-Bandwidth-UL', total_ambr['ul']),
-                avp.AVP('Max-Requested-Bandwidth-DL', total_ambr['dl']),
-            ]),
-            avp.AVP('APN-Configuration-Profile', [
-                avp.AVP('Context-Identifier', default_context_id),
-                avp.AVP('All-APN-Configurations-Included-Indicator', 1 if all_apns_included else 0),
-                *[avp.AVP('APN-Configuration', [
-                    avp.AVP('Context-Identifier', apn['context_id']),
-                    avp.AVP('PDN-Type', 0),
-                    avp.AVP('Service-Selection', apn['service_selection']),
-                    avp.AVP('EPS-Subscribed-QoS-Profile', [
-                        avp.AVP('QoS-Class-Identifier', apn['qos_profile']['class_id']),
-                        avp.AVP('Allocation-Retention-Priority', [
-                            avp.AVP('Priority-Level', apn['qos_profile']['priority_level']),
-                            avp.AVP('Pre-emption-Capability', apn['qos_profile']['preemption_capability']),
-                            avp.AVP('Pre-emption-Vulnerability', apn['qos_profile']['preemption_vulnerability']),
-                        ]),
-                    ]),
-                    avp.AVP('AMBR', [
-                        avp.AVP('Max-Requested-Bandwidth-UL', apn['ambr']['ul']),
-                        avp.AVP('Max-Requested-Bandwidth-DL', apn['ambr']['dl']),
-                    ]),
-                ]) for apn in apns]
-            ]),
-        ])]
-        resp = self._server._s6a_manager._gen_response(state_id, req, avp.ResultCode.DIAMETER_SUCCESS, resp_avps)
+        resp_avps = [avp.AVP('ULA-Flags',
+                             1),
+                     avp.AVP('Subscription-Data',
+                             [avp.AVP('MSISDN',
+                                      b'333608050011'),
+                              avp.AVP('Access-Restriction-Data',
+                                      47),
+                                 avp.AVP('Subscriber-Status',
+                                         0),
+                                 avp.AVP('Network-Access-Mode',
+                                         2),
+                                 avp.AVP('AMBR',
+                                         [avp.AVP('Max-Requested-Bandwidth-UL',
+                                          total_ambr['ul']),
+                                          avp.AVP('Max-Requested-Bandwidth-DL',
+                                                  total_ambr['dl']),
+                                          ]),
+                                 avp.AVP('APN-Configuration-Profile',
+                                         [avp.AVP('Context-Identifier',
+                                          default_context_id),
+                                          avp.AVP('All-APN-Configurations-Included-Indicator',
+                                          1 if all_apns_included else 0),
+                                          *[avp.AVP('APN-Configuration',
+                                                    [avp.AVP('Context-Identifier',
+                                                             apn['context_id']),
+                                                     avp.AVP('PDN-Type',
+                                                             0),
+                                                     avp.AVP('Service-Selection',
+                                                             apn['service_selection']),
+                                                        avp.AVP('EPS-Subscribed-QoS-Profile',
+                                                                [avp.AVP('QoS-Class-Identifier',
+                                                                         apn['qos_profile']['class_id']),
+                                                                 avp.AVP('Allocation-Retention-Priority',
+                                                                         [avp.AVP('Priority-Level',
+                                                                                  apn['qos_profile']['priority_level']),
+                                                                          avp.AVP('Pre-emption-Capability',
+                                                                                  apn['qos_profile']['preemption_capability']),
+                                                                             avp.AVP('Pre-emption-Vulnerability',
+                                                                                     apn['qos_profile']['preemption_vulnerability']),
+                                                                          ]),
+                                                                 ]),
+                                                        avp.AVP('AMBR',
+                                                                [avp.AVP('Max-Requested-Bandwidth-UL',
+                                                                         apn['ambr']['ul']),
+                                                                 avp.AVP('Max-Requested-Bandwidth-DL',
+                                                                         apn['ambr']['dl']),
+                                                                 ]),
+                                                     ]) for apn in apns]]),
+                              ])]
+        resp = self._server._s6a_manager._gen_response(
+            state_id, req, avp.ResultCode.DIAMETER_SUCCESS, resp_avps)
         resp_buf = bytearray(resp.length)
         resp.encode(resp_buf, 0)
 
@@ -352,11 +419,11 @@ class S6AApplicationTests(unittest.TestCase):
             default_context_id=default_context_id,
             total_ambr=UpdateLocationAnswer.AggregatedMaximumBitrate(
                 max_bandwidth_ul=total_ambr['ul'],
-                max_bandwidth_dl=total_ambr['dl']
-            ),
+                max_bandwidth_dl=total_ambr['dl']),
             msisdn=b'333608050011',
             all_apns_included=all_apns_included,
-            apn=[UpdateLocationAnswer.APNConfiguration(
+            apn=[
+                UpdateLocationAnswer.APNConfiguration(
                     context_id=apn['context_id'],
                     service_selection=apn['service_selection'],
                     qos_profile=UpdateLocationAnswer.APNConfiguration.QoSProfile(
@@ -370,13 +437,13 @@ class S6AApplicationTests(unittest.TestCase):
                         max_bandwidth_dl=apn['ambr']['dl'],
                     ),
                     pdn=UpdateLocationAnswer.APNConfiguration.IPV4,
-                ) for apn in apns]
-        )
+                ) for apn in apns])
         result_future = unittest.mock.Mock()
         result_future.exception.side_effect = [None]
         result_future.result.side_effect = [result]
 
-        self._server._s6a_manager._relay_update_location_answer(state_id, req, result_future, 0)
+        self._server._s6a_manager._relay_update_location_answer(
+            state_id, req, result_future, 0)
         self._writes.assert_called_once_with(resp_buf)
         self._writes.reset_mock()
 
@@ -394,10 +461,13 @@ class S6AApplicationTests(unittest.TestCase):
         req_buf = bytearray(req.length)
         req.encode(req_buf, 0)
 
-        result_info = avp.AVP('Experimental-Result', [
-            avp.AVP('Vendor-Id', 10415),
-            avp.AVP('Experimental-Result-Code', avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN)])
-        resp = self._server._s6a_manager._gen_response(state_id, req, avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN, [result_info])
+        result_info = avp.AVP('Experimental-Result',
+                              [avp.AVP('Vendor-Id',
+                                       10415),
+                               avp.AVP('Experimental-Result-Code',
+                                       avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN)])
+        resp = self._server._s6a_manager._gen_response(
+            state_id, req, avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN, [result_info])
         resp_buf = bytearray(resp.length)
         resp.encode(resp_buf, 0)
 
@@ -408,7 +478,8 @@ class S6AApplicationTests(unittest.TestCase):
         result_future.exception.side_effect = [None]
         result_future.result.side_effect = [result]
 
-        self._server._s6a_manager._relay_update_location_answer(state_id, req, result_future, 0)
+        self._server._s6a_manager._relay_update_location_answer(
+            state_id, req, result_future, 0)
         self._writes.assert_called_once_with(resp_buf)
         self._writes.reset_mock()
 
@@ -426,7 +497,8 @@ class S6AApplicationTests(unittest.TestCase):
         req_buf = bytearray(req.length)
         req.encode(req_buf, 0)
 
-        resp = self._server._s6a_manager._gen_response(state_id, req, avp.ResultCode.DIAMETER_UNABLE_TO_COMPLY, [])
+        resp = self._server._s6a_manager._gen_response(
+            state_id, req, avp.ResultCode.DIAMETER_UNABLE_TO_COMPLY, [])
         resp_buf = bytearray(resp.length)
         resp.encode(resp_buf, 0)
 
@@ -437,7 +509,8 @@ class S6AApplicationTests(unittest.TestCase):
         result_future.exception.side_effect = [grpc_error]
         result_future.result.side_effect = [None]
 
-        self._server._s6a_manager._relay_update_location_answer(state_id, req, result_future, 0)
+        self._server._s6a_manager._relay_update_location_answer(
+            state_id, req, result_future, 0)
         self._writes.assert_called_once_with(resp_buf)
         self._writes.reset_mock()
 

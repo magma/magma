@@ -27,6 +27,7 @@ MEDIUM_PRIORITY = 100
 MAXIMUM_PRIORITY = 65535
 OVS_COOKIE_MATCH_ALL = 0xffffffff
 
+
 def add_drop_flow(datapath, table, match, actions=None, instructions=None,
                   priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
                   idle_timeout=0, hard_timeout=0):
@@ -139,8 +140,8 @@ def add_flow(datapath, table, match, actions=None, instructions=None,
     if actions is None:
         actions = []
     reset_scratch_reg_actions = [
-             parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
-             for reg in SCRATCH_REGS]
+        parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
+        for reg in SCRATCH_REGS]
     actions = actions + reset_scratch_reg_actions
 
     inst = __get_instructions_for_actions(ofproto, parser,
@@ -161,12 +162,21 @@ def add_flow(datapath, table, match, actions=None, instructions=None,
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 
-def add_resubmit_next_service_flow(datapath, table, match, actions=None,
-                                   instructions=None,
-                                   priority=MINIMUM_PRIORITY, retries=3,
-                                   cookie=0x0, idle_timeout=0, hard_timeout=0,
-                                   copy_table=None, reset_default_register:bool = True,
-                                   resubmit_table=None):
+
+def add_resubmit_next_service_flow(
+        datapath,
+        table,
+        match,
+        actions=None,
+        instructions=None,
+        priority=MINIMUM_PRIORITY,
+        retries=3,
+        cookie=0x0,
+        idle_timeout=0,
+        hard_timeout=0,
+        copy_table=None,
+        reset_default_register: bool = True,
+        resubmit_table=None):
     """
     Add a flow to a table that resubmits to another service.
     All scratch registers will be reset before resubmitting.
@@ -331,8 +341,8 @@ def get_add_output_flow_msg(datapath, table, match, actions=None,
 
     if output_reg is not None:
         output_action = parser.NXActionOutputReg2(ofs_nbits=ofs_nbits(0, 31),
-                                                   src=output_reg,
-                                                   max_len=1234)
+                                                  src=output_reg,
+                                                  max_len=1234)
     else:
         if max_len is None:
             output_action = parser.OFPActionOutput(output_port)
@@ -360,7 +370,7 @@ def get_add_resubmit_next_service_flow_msg(datapath, table, match,
                                            priority=MINIMUM_PRIORITY,
                                            cookie=0x0, idle_timeout=0,
                                            hard_timeout=0, copy_table=None,
-                                           reset_default_register:bool=True,
+                                           reset_default_register: bool = True,
                                            resubmit_table=None):
     """
     Get an add flow modification message that resubmits to another service
@@ -495,8 +505,13 @@ def set_barrier(datapath):
     messages.send_msg(datapath, parser.OFPBarrierRequest(datapath))
 
 
-def get_delete_flow_msg(datapath, table, match, actions=None, instructions=None,
-                        **kwargs):
+def get_delete_flow_msg(
+        datapath,
+        table,
+        match,
+        actions=None,
+        instructions=None,
+        **kwargs):
     """
     Get an delete flow message that deletes a specified flow
 
@@ -515,10 +530,10 @@ def get_delete_flow_msg(datapath, table, match, actions=None, instructions=None,
     ryu_match = parser.OFPMatch(**match.ryu_match)
 
     return parser.OFPFlowMod(datapath=datapath, command=ofproto.OFPFC_DELETE,
-                            match=ryu_match, instructions=inst,
-                            table_id=table, out_group=ofproto.OFPG_ANY,
-                            out_port=ofproto.OFPP_ANY,
-                            **kwargs)
+                             match=ryu_match, instructions=inst,
+                             table_id=table, out_group=ofproto.OFPG_ANY,
+                             out_port=ofproto.OFPP_ANY,
+                             **kwargs)
 
 
 def delete_flow(datapath, table, match, actions=None, instructions=None,
@@ -540,7 +555,13 @@ def delete_flow(datapath, table, match, actions=None, instructions=None,
     Raises:
         MagmaOFError: if the flow can't be deleted
     """
-    msg = get_delete_flow_msg(datapath, table, match, actions, instructions, **kwargs)
+    msg = get_delete_flow_msg(
+        datapath,
+        table,
+        match,
+        actions,
+        instructions,
+        **kwargs)
     logger.debug('flowmod: %s (table %s)', msg, table)
     messages.send_msg(datapath, msg, retries=retries)
 

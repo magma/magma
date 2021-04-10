@@ -133,9 +133,7 @@ class CloudManager(object):
             DEFAULT_GATEWAY_CONFIG,
         )
         self.gateways_api.networks_network_id_gateways_gateway_id_configs_cellular_post(
-            network_id, gateway_id,
-            DEFAULT_GATEWAY_CELLULAR_CONFIG,
-        )
+            network_id, gateway_id, DEFAULT_GATEWAY_CELLULAR_CONFIG, )
 
     def clean_up(self):
         """
@@ -239,12 +237,10 @@ class CloudManager(object):
         """
         if config_type == CloudManager.GatewayConfigType.MAGMAD:
             self.gateways_api.networks_network_id_gateways_gateway_id_configs_put(
-                network_id, gateway_id, value,
-            )
+                network_id, gateway_id, value, )
         elif config_type == CloudManager.GatewayConfigType.CELLULAR:
             self.gateways_api.networks_network_id_gateways_gateway_id_configs_cellular_put(
-                network_id, gateway_id, value,
-            )
+                network_id, gateway_id, value, )
         else:
             raise ValueError(
                 'Gateway config type {} not recognized/supported'.format(
@@ -321,15 +317,13 @@ class CloudManager(object):
         ret = {}
         for network_id in network_ids:
             ret[network_id] = self.gateways_api.networks_network_id_gateways_get(
-                network_id,
-            )
+                network_id, )
         return ret
 
     def get_gateway_status(self, network_id, gateway_id):
         """ Get gateway status """
         resp = self.gateways_api.networks_network_id_gateways_gateway_id_status_get(
-            network_id, gateway_id,
-        )
+            network_id, gateway_id, )
         return resp
 
     def get_gateway_sw_version(self, network_id, gateway_id):

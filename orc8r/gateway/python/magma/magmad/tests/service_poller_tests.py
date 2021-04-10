@@ -29,6 +29,7 @@ class ServicePollerTests(unittest.TestCase):
     """
     Tests for the ServicePoller
     """
+
     def setUp(self):
         ServiceRegistry.add_service('test1', '0.0.0.0', 0)
         ServiceRegistry.add_service('test2', '0.0.0.0', 0)

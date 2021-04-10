@@ -203,6 +203,7 @@ def reset_sctpd_for_stateful():
         sys.exit(0)
     restart_sctpd()
 
+
 STATELESS_FUNC_DICT = {
     "check": check_stateless_agw,
     "enable": enable_stateless_agw,

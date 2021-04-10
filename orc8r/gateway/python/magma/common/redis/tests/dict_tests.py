@@ -22,6 +22,7 @@ class RedisDictTests(TestCase):
     """
     Tests for the RedisHashDict and RedisFlatDict containers
     """
+
     def setUp(self):
         client = fakeredis.FakeStrictRedis()
         # Use arbitrary orc8r proto to test with

@@ -215,8 +215,8 @@ def generate(ofp_name, ofpp_name):
         def serialize(self, buf, offset):
             data = self.serialize_body()
             payload_offset = (
-                    ofp.OFP_ACTION_EXPERIMENTER_HEADER_SIZE +
-                    struct.calcsize(NXAction._fmt_str)
+                ofp.OFP_ACTION_EXPERIMENTER_HEADER_SIZE +
+                struct.calcsize(NXAction._fmt_str)
             )
             self.len = utils.round_up(payload_offset + len(data), 8)
             super(NXAction, self).serialize(buf, offset)
@@ -1358,7 +1358,8 @@ def generate(ofp_name, ofpp_name):
             offset = 6
             buf_len = len(buf)
             while buf_len > offset:
-                (type_, length) = struct.unpack_from(cls._PACK_STR, buf, offset)
+                (type_, length) = struct.unpack_from(
+                    cls._PACK_STR, buf, offset)
                 offset += 4
                 try:
                     subcls = NXActionController2Prop._TYPES[type_]
@@ -2182,8 +2183,8 @@ def generate(ofp_name, ofpp_name):
             self.msisdn = msisdn.encode('ascii')
             self.apn_mac_addr = apn_mac_addr
             self.apn_name = apn_name.encode('ascii')
-            self.pdp_start_epoch = pdp_start_epoch.to_bytes(8, byteorder='little')
-
+            self.pdp_start_epoch = pdp_start_epoch.to_bytes(
+                8, byteorder='little')
 
         @classmethod
         def parser(cls, buf):
@@ -3059,7 +3060,12 @@ def generate(ofp_name, ofpp_name):
 
         def serialize_body(self):
             data = bytearray()
-            msg_pack_into(self._fmt_str, data, 0, self.hdr_size, self.new_pkt_type)
+            msg_pack_into(
+                self._fmt_str,
+                data,
+                0,
+                self.hdr_size,
+                self.new_pkt_type)
             return data
 
     class NXActionEncapNsh(NXAction):
@@ -3094,7 +3100,12 @@ def generate(ofp_name, ofpp_name):
 
         def serialize_body(self):
             data = bytearray()
-            msg_pack_into(self._fmt_str, data, 0, self.hdr_size, self.new_pkt_type)
+            msg_pack_into(
+                self._fmt_str,
+                data,
+                0,
+                self.hdr_size,
+                self.new_pkt_type)
             return data
 
     class NXActionDecNshTtl(NXAction):

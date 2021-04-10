@@ -21,8 +21,11 @@ class MeterClass:
     @staticmethod
     def add_meter(datapath, meter_id: int, rate: int, burst_size: int,
                   retries=3):
-        LOG.debug("adding meter_id: %d rate: %d burst_size: %d", meter_id, rate,
-                 burst_size)
+        LOG.debug(
+            "adding meter_id: %d rate: %d burst_size: %d",
+            meter_id,
+            rate,
+            burst_size)
         bands = []
         ofproto, parser = datapath.ofproto, datapath.ofproto_parser
         dropband = parser.OFPMeterBandDrop(rate=rate, burst_size=burst_size)

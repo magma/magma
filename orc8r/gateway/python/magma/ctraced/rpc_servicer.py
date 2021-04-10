@@ -52,7 +52,7 @@ class CtraceDRpcServicer(CallTraceServiceServicer):
         _request: EndTraceRequest,
         _context,
     ) -> EndTraceResponse:
-        res = self._trace_mgr.end_trace() # type: EndTraceResult
+        res = self._trace_mgr.end_trace()  # type: EndTraceResult
         response = EndTraceResponse(
             success=True,
             trace_content=res.data,

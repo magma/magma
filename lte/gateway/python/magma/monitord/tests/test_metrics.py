@@ -21,6 +21,7 @@ class MetricTests(unittest.TestCase):
     """
     Tests for the Service303 metrics interface
     """
+
     def test_metrics_defined(self):
         """ Test that all metrics are defined in proto enum """
         subscriber_icmp_latency_ms.labels('IMSI00000001').observe(10.33)

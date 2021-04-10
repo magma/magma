@@ -79,9 +79,10 @@ def main():
     grpc_msg_size = metrics_config.get('max_grpc_msg_size_mb', 4)
     metrics_post_processor_fn = metrics_config.get('post_processing_fn')
 
-    metric_scrape_targets = map(lambda x: ScrapeTarget(x['url'], x['name'],
-                                                       x['interval']),
-                                metrics_config.get('metric_scrape_targets', []))
+    metric_scrape_targets = map(
+        lambda x: ScrapeTarget(
+            x['url'], x['name'], x['interval']), metrics_config.get(
+            'metric_scrape_targets', []))
 
     # Create local metrics collector
     metrics_collector = MetricsCollector(
@@ -91,10 +92,8 @@ def main():
         grpc_timeout=grpc_timeout,
         grpc_max_msg_size_mb=grpc_msg_size,
         loop=service.loop,
-        post_processing_fn=
-        get_metrics_postprocessor_fn(metrics_post_processor_fn),
-        scrape_targets=metric_scrape_targets
-    )
+        post_processing_fn=get_metrics_postprocessor_fn(metrics_post_processor_fn),
+        scrape_targets=metric_scrape_targets)
 
     # Poll and sync the metrics collector loops
     metrics_collector.run()

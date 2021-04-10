@@ -23,10 +23,13 @@ admin_cert = (
 # Disable warnings about SSL verification since its a local VM
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 def cloud_get(url: str):
     resp = requests.get(url, verify=False, cert=admin_cert)
     if resp.status_code != 200:
-        raise Exception("Received a %d response: %s" % (resp.status_code, resp.text))
+        raise Exception(
+            "Received a %d response: %s" %
+            (resp.status_code, resp.text))
         return
     return resp.json()
 
@@ -40,7 +43,9 @@ def cloud_delete(url: str):
     )
 
     if resp.status_code not in [200, 201, 204]:
-        raise Exception("Received a %d response: %s" % (resp.status_code, resp.text))
+        raise Exception(
+            "Received a %d response: %s" %
+            (resp.status_code, resp.text))
 
 
 def deregister_all_gateways(url: str, network_id: str):
@@ -80,6 +85,7 @@ def main():
 
     partner = args.partner.strip()
     deregister_all_gateways(args.url, partner)
+
 
 if __name__ == "__main__":
     main()

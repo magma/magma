@@ -31,11 +31,25 @@ from magma.pipelined.policy_converters import (
 # Current classification will finalize if found in APP_PROTOS, if found in
 # PARENT_PROTOS we will also add the SERVICE_IDS id to the final classification
 PARENT_PROTOS = {"facebook": 10, "google_gen": 20, "viber": 30, "imo": 40}
-APP_PROTOS = {"facebook_messenger": 1, "instagram": 2, "youtube": 3,
-              "gmail": 4, "google_docs": 5, "netflix": 6,
-              "apple": 7, "microsoft": 8, 'reddit': 9, 'whatsapp': 101,
-              "google_play": 102, "appstore": 103, "amazon": 104, "wechat": 105,
-              "tiktok": 106, "twitter": 107, "wikipedia": 108, "yahoo": 109}
+APP_PROTOS = {
+    "facebook_messenger": 1,
+    "instagram": 2,
+    "youtube": 3,
+    "gmail": 4,
+    "google_docs": 5,
+    "netflix": 6,
+    "apple": 7,
+    "microsoft": 8,
+    'reddit': 9,
+    'whatsapp': 101,
+    "google_play": 102,
+    "appstore": 103,
+    "amazon": 104,
+    "wechat": 105,
+    "tiktok": 106,
+    "twitter": 107,
+    "wikipedia": 108,
+    "yahoo": 109}
 SERVICE_IDS = {"other": 0, "chat": 1, "audio": 2, "video": 3}
 DEFAULT_DPI_ID = 0
 # Max register value
@@ -129,11 +143,11 @@ class DPIController(MagmaController):
         # No reason to create a flow here
         if flow_state != FlowRequest.FLOW_CREATED:
             flows.add_flow(self._datapath, self._classify_app_tbl_num,
-                ul_match, actions, priority=flows.DEFAULT_PRIORITY,
-                idle_timeout=self._idle_timeout)
+                           ul_match, actions, priority=flows.DEFAULT_PRIORITY,
+                           idle_timeout=self._idle_timeout)
             flows.add_flow(self._datapath, self._classify_app_tbl_num,
-                dl_match, actions, priority=flows.DEFAULT_PRIORITY,
-                idle_timeout=self._idle_timeout)
+                           dl_match, actions, priority=flows.DEFAULT_PRIORITY,
+                           idle_timeout=self._idle_timeout)
 
     def remove_classify_flow(self, flow_match):
         try:
@@ -232,7 +246,7 @@ def get_app_id(app: str, service_type: str) -> int:
     if (len(app_match) == 1):
         app_id = APP_PROTOS[app_match[0]]
         LOG.debug("Classified %s-%s as %d", app, service_type,
-                            app_id)
+                  app_id)
         return app_id
     parent_match = [app for app in tokens if app in PARENT_PROTOS]
 

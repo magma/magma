@@ -31,6 +31,7 @@ from spyne.protocol.xml import XmlDocument
 
 class Tr069Interface(Interface):
     """ Modified base interface class. """
+
     def reset_interface(self):
         super(Tr069Interface, self).reset_interface()
         # Replace default namespace prefix (may not strictly be
@@ -47,6 +48,7 @@ class Tr069Interface(Interface):
 
 class Tr069Application(Application):
     """ Modified spyne application. """
+
     def __init__(self, services, tns, name=None, in_protocol=None,
                  out_protocol=None, config=None):
         super(Tr069Application, self).__init__(
@@ -117,7 +119,7 @@ class Tr069Soap11(Soap11):
                 if len(detail_children):
                     if len(detail_children) > 1:
                         logger.warning("Multiple detail elements found in SOAP"
-                                        " fault - using first one")
+                                       " fault - using first one")
                     ctx.in_body_doc = detail_children[0]
                     ctx.method_request_string = ctx.in_body_doc.tag
                     self.validate_body(ctx, message)

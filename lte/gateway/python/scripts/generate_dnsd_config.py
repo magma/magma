@@ -61,8 +61,9 @@ def get_context():
         mconfig = DnsD()
     ip = get_ip_from_if_cidr(cfg['enodeb_interface'])
     if int(ip.split('/')[1]) < 16:
-        logging.fatal("Large interface netmasks hang dnsmasq, consider using a "
-                      "netmask in range /16 - /24")
+        logging.fatal(
+            "Large interface netmasks hang dnsmasq, consider using a "
+            "netmask in range /16 - /24")
         raise Exception("Interface %s netmask is to large."
                         % cfg['enodeb_interface'])
 

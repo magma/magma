@@ -170,11 +170,11 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
         """
         if isinstance(message, models.Inform):
             logger.debug('ACS in (%s) state. Received an Inform message',
-                          self.state.state_description())
+                         self.state.state_description())
             self._reset_state_machine(self.service)
         elif isinstance(message, models.Fault):
             logger.debug('ACS in (%s) state. Received a Fault <%s>',
-                          self.state.state_description(), message.FaultString)
+                         self.state.state_description(), message.FaultString)
             self.transition(self.unexpected_fault_state_name)
         else:
             raise ConfigurationError('Cannot handle unexpected TR069 msg')
@@ -224,20 +224,21 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
 
         if is_mme_unexpectedly_dc:
             logger.warning('eNodeB is connected to AGw, is configured, '
-                            'and has AdminState enabled for transmit. '
-                            'MME connection to eNB is missing.')
+                           'and has AdminState enabled for transmit. '
+                           'MME connection to eNB is missing.')
             if self.mme_timer is None:
                 logger.warning('eNodeB will be rebooted if MME connection '
-                                'is not established in: %s seconds.',
-                                self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
+                               'is not established in: %s seconds.',
+                               self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
                 metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(1)
                 self.mme_timer = \
                     StateMachineTimer(self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
             elif self.mme_timer.is_done():
                 logger.warning('eNodeB has not established MME connection '
-                                'within %s seconds - rebooting!',
-                                self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
-                metrics.STAT_ENODEB_REBOOTS.labels(cause='MME disconnect').inc()
+                               'within %s seconds - rebooting!',
+                               self.MME_DISCONNECT_ENODEB_REBOOT_TIMER)
+                metrics.STAT_ENODEB_REBOOTS.labels(
+                    cause='MME disconnect').inc()
                 metrics.STAT_ENODEB_REBOOT_TIMER_ACTIVE.set(0)
                 self.mme_timer = None
                 self.reboot_asap()
@@ -255,12 +256,12 @@ class BasicEnodebAcsStateMachine(EnodebAcsStateMachine):
     def _dump_debug_info(self) -> None:
         if self.device_cfg is not None:
             logger.error('Device configuration: %s',
-                          self.device_cfg.get_debug_info())
+                         self.device_cfg.get_debug_info())
         else:
             logger.error('Device configuration: None')
         if self.desired_cfg is not None:
             logger.error('Desired configuration: %s',
-                          self.desired_cfg.get_debug_info())
+                         self.desired_cfg.get_debug_info())
         else:
             logger.error('Desired configuration: None')
 

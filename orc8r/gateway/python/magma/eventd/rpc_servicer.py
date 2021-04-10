@@ -25,6 +25,7 @@ from .event_validator import EventValidator
 
 RETRY_ON_FAILURE = 'retry_on_failure'
 
+
 class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
     """
     gRPC based server for EventD.

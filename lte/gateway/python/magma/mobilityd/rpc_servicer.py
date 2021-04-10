@@ -218,13 +218,17 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         removed_block_msgs = []
         for block in removed_blocks:
             if block.version == 4:
-                removed_block_msgs.append(IPBlock(version=IPAddress.IPV4,
-                                                  net_address=block.network_address.packed,
-                                                  prefix_len=block.prefixlen))
+                removed_block_msgs.append(
+                    IPBlock(
+                        version=IPAddress.IPV4,
+                        net_address=block.network_address.packed,
+                        prefix_len=block.prefixlen))
             elif block.version == 6:
-                removed_block_msgs.append(IPBlock(version=IPAddress.IPV6,
-                                                  net_address=block.network_address.packed,
-                                                  prefix_len=block.prefixlen))
+                removed_block_msgs.append(
+                    IPBlock(
+                        version=IPAddress.IPV6,
+                        net_address=block.network_address.packed,
+                        prefix_len=block.prefixlen))
 
         resp = RemoveIPBlockResponse()
         resp.ip_blocks.extend(removed_block_msgs)
@@ -374,15 +378,17 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                                      MessageToJson(message))
             # add indentation
             padding = 2 * ' '
-            log_msg =''.join( "{}{}".format(padding, line)
+            log_msg = ''.join("{}{}".format(padding, line)
                               for line in log_msg.splitlines(True))
 
             log_msg = "GRPC message:\n{}".format(log_msg)
             logging.info(log_msg)
 
+
 class IPVersionNotSupportedError(Exception):
     """ Exception thrown when an IP version is not supported """
     pass
+
 
 class UnknownIPAllocatorError(Exception):
     """ Exception thrown when an IP version is not supported """

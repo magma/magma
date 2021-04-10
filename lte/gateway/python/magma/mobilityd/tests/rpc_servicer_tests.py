@@ -380,7 +380,7 @@ class RpcTests(unittest.TestCase):
         mac1 = "22:22:c6:d0:02:3c"
         ipaddr1 = ipaddress.ip_address("10.1.1.11")
         gwinfo_msg = GWInfo(ip=IPAddress(version=IPAddress.IPV4,
-                                          address=ipaddr1.packed),
+                                         address=ipaddr1.packed),
                             mac=mac1, vlan="1")
 
         self._stub.SetGatewayInfo(gwinfo_msg)

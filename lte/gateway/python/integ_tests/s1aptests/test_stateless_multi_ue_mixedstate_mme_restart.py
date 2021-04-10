@@ -26,7 +26,7 @@ import ctypes
 class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-           stateless_mode=MagmadUtil.stateless_cmds.ENABLE)
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE)
         self.dl_flow_rules = {}
 
     def tearDown(self):
@@ -97,7 +97,7 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
         )
         esm_info_response = s1ap_types.ueEsmInformationRsp_t()
         esm_info_response.ue_Id = ue_id
-        esm_info_response.tId = tId # esm_info_req.tId
+        esm_info_response.tId = tId  # esm_info_req.tId
         esm_info_response.pdnAPN_pr.pres = 1
         s = "magma.ipv4"
         esm_info_response.pdnAPN_pr.len = len(s)
@@ -173,7 +173,8 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
         for i in range(num_ues_idle):
             print(
                 "************************* Sending UE context release request ",
-                "for UE id ", ue_ids[i])
+                "for UE id ",
+                ue_ids[i])
             # Send UE context release request to move UE to idle mode
             ue_cntxt_rel_req = s1ap_types.ueCntxtRelReq_t()
             ue_cntxt_rel_req.ue_Id = ue_ids[i]
@@ -201,10 +202,9 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
                 if attach_steps[step] == self.exec_sec_mode_complete_step:
                     tId[req.ue_id] = attach_steps[step](req.ue_id)
                 elif attach_steps[step] == self.exec_esm_inf_req_step:
-                    attach_steps[step](req.ue_id,tId[req.ue_id])
+                    attach_steps[step](req.ue_id, tId[req.ue_id])
                 else:
                     attach_steps[step](req.ue_id)
-
 
         # Restart mme
         self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
@@ -213,14 +213,18 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
         for i in range(num_ues_attaching):
             # resume attach for attaching UEs
             print("************************* Resuming Attach procedure "
-                  "UE id ", ue_ids[i+num_attached_ues])
-            for step in range(stateof_ues_in_attachproc_before_restart[i],num_of_steps):
+                  "UE id ", ue_ids[i + num_attached_ues])
+            for step in range(
+                    stateof_ues_in_attachproc_before_restart[i],
+                    num_of_steps):
                 if attach_steps[step] == self.exec_sec_mode_complete_step:
-                    tId[ue_ids[i+num_attached_ues]] = attach_steps[step](ue_ids[i+num_attached_ues])
+                    tId[ue_ids[i + num_attached_ues]
+                        ] = attach_steps[step](ue_ids[i + num_attached_ues])
                 elif attach_steps[step] == self.exec_esm_inf_req_step:
-                    attach_steps[step](ue_ids[i+num_attached_ues], tId[ue_ids[i+num_attached_ues]])
+                    attach_steps[step](
+                        ue_ids[i + num_attached_ues], tId[ue_ids[i + num_attached_ues]])
                 else:
-                    attach_steps[step](ue_ids[i+num_attached_ues])
+                    attach_steps[step](ue_ids[i + num_attached_ues])
 
         # Verify steady state flows in Table-0
         # Idle users will have paging rules installed
@@ -278,7 +282,6 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
             self.assertEqual(
                 response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
             )
-
 
 
 if __name__ == "__main__":

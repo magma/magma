@@ -22,6 +22,7 @@ from orc8r.protos import common_pb2
 from orc8r.protos.ctraced_pb2 import StartTraceRequest, EndTraceRequest
 from orc8r.protos.ctraced_pb2_grpc import CallTraceServiceStub
 
+
 @grpc_wrapper
 def start_call_trace(client, args):
     client.StartCallTrace(StartTraceRequest())
@@ -39,7 +40,7 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         formatter_class=argparse.RawTextHelpFormatter,
-        description = textwrap.dedent('''\
+        description=textwrap.dedent('''\
             Management CLI for ctraced
             --------------------------
             Use to start and end call traces.

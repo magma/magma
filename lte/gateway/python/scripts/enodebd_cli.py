@@ -67,6 +67,7 @@ def reboot_enodeb(client, args):
     req.device_serial = args.device_serial
     client.Reboot(req)
 
+
 @grpc_wrapper
 def reboot_all_enodeb(client, args):
     client.RebootAll(Void())
@@ -109,7 +110,9 @@ def get_all_status(client, args):
     def print_enb_status(enb_status):
         print('--- eNodeB Serial:', enb_status.device_serial, '---')
         _print_str_status_line('IP Address', enb_status.ip_address)
-        _print_prop_status_line('eNodeB Connected via TR-069', enb_status.connected)
+        _print_prop_status_line(
+            'eNodeB Connected via TR-069',
+            enb_status.connected)
         _print_prop_status_line('eNodeB Configured', enb_status.configured)
         _print_prop_status_line('Opstate Enabled', enb_status.opstate_enabled)
         _print_prop_status_line('RF TX on', enb_status.rf_tx_on)
@@ -250,6 +253,7 @@ def main():
 
     # Execute the subcommand function
     args.func(args, EnodebdStub, 'enodebd')
+
 
 if __name__ == "__main__":
     main()

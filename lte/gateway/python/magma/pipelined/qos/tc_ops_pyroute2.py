@@ -30,6 +30,7 @@ class TcOpsPyRoute2(TcOpsBase):
     """
     Create TC scheduler and corresponding filter
     """
+
     def __init__(self):
         self._ipr = IPRoute()
         self._iface_if_index = {}
@@ -67,7 +68,12 @@ class TcOpsPyRoute2(TcOpsBase):
             return ex.code
         return 0
 
-    def create_filter(self, iface: str, mark: str, qid: str, proto: int = PROTOCOL) -> int:
+    def create_filter(
+            self,
+            iface: str,
+            mark: str,
+            qid: str,
+            proto: int = PROTOCOL) -> int:
         LOG.debug("Create Filter iface %s qid %s", iface, qid)
 
         try:
@@ -87,7 +93,12 @@ class TcOpsPyRoute2(TcOpsBase):
             return ex.code
         return 0
 
-    def del_filter(self, iface: str, mark: str, qid: str, proto: int = PROTOCOL) -> int:
+    def del_filter(
+            self,
+            iface: str,
+            mark: str,
+            qid: str,
+            proto: int = PROTOCOL) -> int:
         LOG.debug("Del Filter iface %s qid %s", iface, qid)
 
         try:

@@ -223,7 +223,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._service_manager.session_rule_version_mapper.save_version(
                 request.sid.id, ipv4, policy.rule.id, policy.version)
 
-    def _remove_version(self, request: DeactivateFlowsRequest, ip_address: str):
+    def _remove_version(
+            self,
+            request: DeactivateFlowsRequest,
+            ip_address: str):
         def cleanup_dict(imsi, ip_address, rule_id, version):
             self._service_manager.session_rule_version_mapper \
                 .remove(imsi, ip_address, rule_id, version)
@@ -270,8 +273,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut.set_result(ret)
 
     def _install_flows_gx(self, request: ActivateFlowsRequest,
-                         ip_address: IPAddress
-                         ) -> ActivateFlowsResult:
+                          ip_address: IPAddress
+                          ) -> ActivateFlowsResult:
         """
         Ensure that the RuleModResult is only successful if the flows are
         successfully added in both the enforcer app and enforcement_stats.
@@ -283,7 +286,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
+            request.sid.id,
+            request.msisdn,
+            request.uplink_tunnel,
+            ip_address,
+            request.apn_ambr,
             request.policies)
 
         failed_policies_results = \
@@ -293,7 +300,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             _filter_failed_policies(request, failed_policies_results)
 
         enforcement_res = self._activate_rules_in_enforcement(
-            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
+            request.sid.id,
+            request.msisdn,
+            request.uplink_tunnel,
+            ip_address,
+            request.apn_ambr,
             policies)
 
         # Include the failed rules from enforcement_stats in the response.
@@ -315,7 +326,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
+            request.sid.id,
+            request.msisdn,
+            request.uplink_tunnel,
+            ip_address,
+            request.apn_ambr,
             request.policies)
 
         failed_policies_results = \
@@ -324,21 +339,26 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         policies = \
             _filter_failed_policies(request, failed_policies_results)
 
-        gy_res = self._activate_rules_in_gy(request.sid.id, request.msisdn, request.uplink_tunnel,
-                                            ip_address, request.apn_ambr,
-                                            policies)
+        gy_res = self._activate_rules_in_gy(
+            request.sid.id,
+            request.msisdn,
+            request.uplink_tunnel,
+            ip_address,
+            request.apn_ambr,
+            policies)
 
         # Include the failed rules from enforcement_stats in the response.
         gy_res.policy_results.extend(failed_policies_results)
         return gy_res
 
-    def _activate_rules_in_enforcement_stats(self, imsi: str,
-                                             msisdn: bytes,
-                                             uplink_tunnel: int,
-                                             ip_addr: IPAddress,
-                                             apn_ambr: AggregatedMaximumBitrate,
-                                             policies: List[VersionedPolicy]
-                                             ) -> ActivateFlowsResult:
+    def _activate_rules_in_enforcement_stats(
+            self,
+            imsi: str,
+            msisdn: bytes,
+            uplink_tunnel: int,
+            ip_addr: IPAddress,
+            apn_ambr: AggregatedMaximumBitrate,
+            policies: List[VersionedPolicy]) -> ActivateFlowsResult:
         if not self._service_manager.is_app_enabled(
                 EnforcementStatsController.APP_NAME):
             return ActivateFlowsResult()
@@ -590,7 +610,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return FlowResponse()
 
     def _add_ue_mac_flow(self, request, fut: 'Future(FlowResponse)'):
-        res = self._ue_mac_app.add_ue_mac_flow(request.sid.id, request.mac_addr)
+        res = self._ue_mac_app.add_ue_mac_flow(
+            request.sid.id, request.mac_addr)
 
         fut.set_result(res)
 
@@ -628,7 +649,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._loop.call_soon_threadsafe(
                 self._vlan_learn_app.remove_subscriber_flow, request.sid.id)
 
-        if self._service_manager.is_app_enabled(TunnelLearnController.APP_NAME):
+        if self._service_manager.is_app_enabled(
+                TunnelLearnController.APP_NAME):
             self._loop.call_soon_threadsafe(
                 self._tunnel_learn_app.remove_subscriber_flow, request.mac_addr)
 
@@ -692,7 +714,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         resp = FlowResponse()
         self._loop.call_soon_threadsafe(
-            self._check_quota_app.update_subscriber_quota_state, request.updates)
+            self._check_quota_app.update_subscriber_quota_state,
+            request.updates)
         return resp
 
     # --------------------------
@@ -722,8 +745,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         dbl_indent = indent + indent
         indented_text = dbl_indent + \
             str(grpc_request).replace('\n', '\n' + dbl_indent)
-        log_msg = 'Got RPC payload:\n{0}{1} {{\n{2}\n{0}}}'.format(indent,
-            grpc_request.DESCRIPTOR.name, indented_text.rstrip())
+        log_msg = 'Got RPC payload:\n{0}{1} {{\n{2}\n{0}}}'.format(
+            indent, grpc_request.DESCRIPTOR.name, indented_text.rstrip())
 
         grpc_msg_queue.put(log_msg)
         if grpc_msg_queue.qsize() > 100:
@@ -737,7 +760,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Setup the 5G Session flows for the subscriber
         """
-        #if 5G Services are not enabled return UNAVAILABLE
+        # if 5G Services are not enabled return UNAVAILABLE
         if not self._service_manager.is_ng_app_enabled(
                 NGServiceController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -746,55 +769,65 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()
         self._log_grpc_payload(request)
-        self._loop.call_soon_threadsafe(\
-                      self.ng_update_session_flows, request, fut)
+        self._loop.call_soon_threadsafe(
+            self.ng_update_session_flows, request, fut)
         try:
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("SetupQuotaFlows processing timed out")
             return UPFSessionContextState()
 
-    def ng_update_session_flows(self, request: SessionSet,
-                                fut: 'Future(UPFSessionContextState)') -> UPFSessionContextState:
+    def ng_update_session_flows(
+            self,
+            request: SessionSet,
+            fut: 'Future(UPFSessionContextState)') -> UPFSessionContextState:
         """
         Install PDR, FAR and QER flows for the 5G Session send by SMF
         """
-        logging.debug('Update 5G Session Flow for SessionID:%s, SessionVersion:%d',
-                      request.subscriber_id, request.session_version)
+        logging.debug(
+            'Update 5G Session Flow for SessionID:%s, SessionVersion:%d',
+            request.subscriber_id,
+            request.session_version)
 
         # Convert message containing PDR to Named Tuple Rules.
         process_pdr_rules = OrderedDict()
-        response = self._ng_servicer_app.ng_session_message_handler(request, process_pdr_rules)
+        response = self._ng_servicer_app.ng_session_message_handler(
+            request, process_pdr_rules)
 
         # Failure in message processing return failure
         if response.cause_info.cause_ie == CauseIE.REQUEST_ACCEPTED:
             for _, pdr_entries in process_pdr_rules.items():
                 # Create the Tunnel
-                ret = self._ng_tunnel_update(pdr_entries, request.subscriber_id)
-                if ret == False:
+                ret = self._ng_tunnel_update(
+                    pdr_entries, request.subscriber_id)
+                if not ret:
                     offending_ie = OffendingIE(identifier=pdr_entries.pdr_id,
                                                version=pdr_entries.pdr_version)
 
-                    #Session information is filled already
+                    # Session information is filled already
                     response.cause_info.cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
                     response.failure_rule_id.pdr.extend([offending_ie])
                     break
 
         fut.set_result(response)
 
-    def _ng_tunnel_update(self, pdr_entry: PDRRuleEntry, subscriber_id: str) -> bool:
+    def _ng_tunnel_update(
+            self,
+            pdr_entry: PDRRuleEntry,
+            subscriber_id: str) -> bool:
         if pdr_entry.pdr_state == PdrState.Value('INSTALL'):
-            ret = self._classifier_app.add_tunnel_flows(\
-                           pdr_entry.precedence, pdr_entry.local_f_teid,\
-                           pdr_entry.far_action.o_teid, pdr_entry.ue_ip_addr,\
-                           pdr_entry.far_action.gnb_ip_addr, encode_imsi(subscriber_id))
+            ret = self._classifier_app.add_tunnel_flows(
+                pdr_entry.precedence, pdr_entry.local_f_teid,
+                pdr_entry.far_action.o_teid, pdr_entry.ue_ip_addr,
+                pdr_entry.far_action.gnb_ip_addr, encode_imsi(subscriber_id))
 
         elif pdr_entry.pdr_state in \
-             [PdrState.Value('REMOVE'), PdrState.Value('IDLE')]:
-            ret = self._classifier_app.delete_tunnel_flows(\
-                           pdr_entry.local_f_teid, pdr_entry.ue_ip_addr)
+                [PdrState.Value('REMOVE'), PdrState.Value('IDLE')]:
+            ret = self._classifier_app.delete_tunnel_flows(
+                pdr_entry.local_f_teid, pdr_entry.ue_ip_addr)
 
         return ret
+
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],

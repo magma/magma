@@ -47,17 +47,17 @@ def _simple_get(args):
 
 
 def _simple_add(args):
-        fields = {"dpid": datapath, "table_id": args.table_start,
-                  "priority": args.priority, "instructions":
-                  [{"type": "GOTO_TABLE", "table_id": args.table_end}]}
-        if args.cookie:
-            fields["cookie"] = args.cookie
-        if args.reg1:
-            reg1 = int(args.reg1, 0)
-            fields["instructions"].append({"type": "APPLY_ACTIONS", "actions":
-                                          [{"type": "SET_FIELD", "field":
-                                            "reg1", "value": reg1}]})
-        add_flowentry(fields)
+    fields = {"dpid": datapath, "table_id": args.table_start,
+              "priority": args.priority, "instructions":
+              [{"type": "GOTO_TABLE", "table_id": args.table_end}]}
+    if args.cookie:
+        fields["cookie"] = args.cookie
+    if args.reg1:
+        reg1 = int(args.reg1, 0)
+        fields["instructions"].append({"type": "APPLY_ACTIONS", "actions":
+                                      [{"type": "SET_FIELD", "field":
+                                        "reg1", "value": reg1}]})
+    add_flowentry(fields)
 
 
 def _simple_send(args):

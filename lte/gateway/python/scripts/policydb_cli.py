@@ -88,7 +88,9 @@ def uninstall_rules(client: PolicyDBStub, args):
     try:
         client.DisableStaticRules(message)
     except grpc.RpcError as err:
-        print('Failed to disable static rules and/or base names: %s' % str(err))
+        print(
+            'Failed to disable static rules and/or base names: %s' %
+            str(err))
         print(DEBUG_MSG)
 
 

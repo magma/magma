@@ -79,8 +79,8 @@ class BridgeTools:
         Gets the ofport name ofport number of a interface
         """
         try:
-            port_num = subprocess.check_output(["ovs-vsctl", "get", "interface",
-                                                interface_name, "ofport"])
+            port_num = subprocess.check_output(
+                ["ovs-vsctl", "get", "interface", interface_name, "ofport"])
         except subprocess.CalledProcessError as e:
             raise DatapathLookupError(
                 'Error: ovs-vsctl interface({}) of port lookup: {}'.format(
@@ -314,6 +314,8 @@ class BridgeTools:
                 if table_num in selected_tables or not selected_tables:
                     yield flow
 
-        return [parse_flow(flow) for flow in
-                filter_apps(cls.get_flows_for_bridge(bridge_name,
+        return [
+            parse_flow(flow) for flow in filter_apps(
+                cls.get_flows_for_bridge(
+                    bridge_name,
                     include_stats=include_stats))]

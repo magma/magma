@@ -28,6 +28,7 @@ class IdManager(object):
     """
     Simple utility class to manage IDs
     """
+
     def __init__(self, start_idx, max_idx):
         self._start_idx = start_idx
         self._max_idx = max_idx

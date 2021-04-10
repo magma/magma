@@ -11,6 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from tools.fab.vagrant import setup_env_vagrant
+from tools.fab.hosts import ansible_setup, split_hoststring, vagrant_setup
+import tools.fab.pkg as pkg
+import tools.fab.dev_utils as dev_utils
 from distutils.util import strtobool
 
 import sys
@@ -18,10 +22,6 @@ from fabric.api import cd, env, execute, local, run, settings
 from fabric.operations import get
 
 sys.path.append('../../orc8r')
-import tools.fab.dev_utils as dev_utils
-import tools.fab.pkg as pkg
-from tools.fab.hosts import ansible_setup, split_hoststring, vagrant_setup
-from tools.fab.vagrant import setup_env_vagrant
 
 """
 Magma Gateway packaging tool:
@@ -102,7 +102,6 @@ def package(vcs='hg', all_deps="False",
 
         run('./release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s --os %s' %
             (hash, build_type, cert_file, proxy_config, os))
-
 
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')
@@ -257,17 +256,17 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 def run_integ_tests(tests=None):
     """
     Function is required to run tests only in pre-configured Jenkins env.
-    
+
     In case of no tests specified with command executed like follows:
     $ fab run_integ_tests
-    
+
     default tests set will be executed as a result of the execution of following
     command in test machine:
-    $ make integ_test 
-    
+    $ make integ_test
+
     In case of selecting specific test like follows:
     $ fab run_integ_tests:tests=s1aptests/test_attach_detach.py
-    
+
     The specific test will be executed as a result of the execution of following
     command in test machine:
     $ make integ_test TESTS=s1aptests/test_attach_detach.py
@@ -276,8 +275,9 @@ def run_integ_tests(tests=None):
     gateway_ip = '192.168.60.142'
     if tests:
         tests = "TESTS=" + tests
-    
+
     execute(_run_integ_tests, gateway_ip, tests)
+
 
 def get_test_summaries(
         gateway_host=None,
@@ -435,12 +435,13 @@ def _start_trfserver():
     port = env.hosts[0].split(':')[1]
     key = env.key_filename
     # set tty on cbreak mode as background ssh process breaks indentation
-    local('ssh -f -i %s -o UserKnownHostsFile=/dev/null'
-          ' -o StrictHostKeyChecking=no -tt %s -p %s'
-          ' sh -c "sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off; '
-          'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
-          'stty cbreak'
-          % (key, host, port))
+    local(
+        'ssh -f -i %s -o UserKnownHostsFile=/dev/null'
+        ' -o StrictHostKeyChecking=no -tt %s -p %s'
+        ' sh -c "sudo ethtool --offload eth1 rx off tx off; sudo ethtool --offload eth2 rx off tx off; '
+        'nohup sudo /usr/local/bin/traffic_server.py 192.168.60.144 62462 > /dev/null 2>&1";'
+        'stty cbreak' %
+        (key, host, port))
 
 
 def _make_integ_tests():
@@ -485,6 +486,7 @@ def _run_integ_tests(gateway_ip='192.168.60.142', tests=None):
           ' export GATEWAY_IP=%s;'
           ' make integ_test %s\''
           % (key, host, port, gateway_ip, tests))
+
 
 def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
     if not addr:

@@ -69,7 +69,10 @@ class CertUtilsTest(TestCase):
         with TemporaryDirectory(prefix='/tmp/test_cert_utils') as temp_dir:
             cert = _create_dummy_cert()
             cert_file = os.path.join(temp_dir, 'test.cert')
-            cu.write_cert(cert.public_bytes(serialization.Encoding.DER), cert_file)
+            cu.write_cert(
+                cert.public_bytes(
+                    serialization.Encoding.DER),
+                cert_file)
             cert_load = cu.load_cert(cert_file)
         self.assertEqual(cert, cert_load)
 

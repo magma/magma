@@ -32,9 +32,11 @@ from .spyne_mods import Tr069Application, Tr069Soap11
 # to avoid incorrectly detecting eNodeB timeout.
 SOCKET_TIMEOUT = 240
 
+
 class tr069_WSGIRequestHandler(WSGIRequestHandler):
     timeout = 10
     # pylint: disable=attribute-defined-outside-init
+
     def handle_single(self):
         """Handle a single HTTP request"""
         self.raw_requestline = self.rfile.readline(65537)
@@ -66,7 +68,8 @@ class tr069_WSGIRequestHandler(WSGIRequestHandler):
         try:
             handler.run(self.server.get_app())
         except BrokenPipeError:
-            self.log_error("eNodeB has unexpectedly closed the TCP connection.")
+            self.log_error(
+                "eNodeB has unexpectedly closed the TCP connection.")
 
     def handle(self):
         self.protocol_version = "HTTP/1.1"
@@ -122,13 +125,14 @@ def tr069_server(state_machine_manager: StateMachineManager) -> None:
     try:
         ip_address = get_ip_from_if(config['tr069']['interface'])
     except (ValueError, KeyError) as e:
-        # Interrupt main thread since process should not continue without TR-069
+        # Interrupt main thread since process should not continue without
+        # TR-069
         _thread.interrupt_main()
         raise e
 
     socket.setdefaulttimeout(SOCKET_TIMEOUT)
     logger.info('Starting TR-069 server on %s:%s',
-                 ip_address, config['tr069']['port'])
+                ip_address, config['tr069']['port'])
     server = make_server(ip_address,
                          config['tr069']['port'], wsgi_app,
                          WSGIServer, tr069_WSGIRequestHandler)

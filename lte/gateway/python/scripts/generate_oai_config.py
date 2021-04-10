@@ -17,17 +17,16 @@ Pre-run script for services to generate a nghttpx config from a jinja template
 and the config/mconfig for the service.
 """
 
+
 import logging
 import os
 import socket
-
 from create_oai_certs import generate_mme_certs
 from generate_service_config import generate_template_config
 from lte.protos.mconfig.mconfigs_pb2 import MME
 from magma.common.misc_utils import get_ip_from_if, get_ip_from_if_cidr
 from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import get_service_config_value
-
 CONFIG_OVERRIDE_DIR = "/var/opt/magma/tmp"
 DEFAULT_DNS_IP_PRIMARY_ADDR = "8.8.8.8"
 DEFAULT_DNS_IP_SECONDARY_ADDR = "8.8.4.4"
@@ -177,6 +176,7 @@ def _get_apn_correction_map_list(service_mconfig):
         return service_mconfig.apn_correction_map_list
     return get_service_config_value("mme", "apn_correction_map_list", None)
 
+
 def _get_federated_mode_map(service_mconfig):
     if service_mconfig.federated_mode_map and \
             service_mconfig.federated_mode_map.enabled and \
@@ -184,10 +184,12 @@ def _get_federated_mode_map(service_mconfig):
         return service_mconfig.federated_mode_map.mapping
     return {}
 
+
 def _get_restricted_plmns(service_mconfig):
     if service_mconfig.restricted_plmns:
         return service_mconfig.restricted_plmns
     return {}
+
 
 def _get_context():
     """
@@ -220,12 +222,12 @@ def _get_context():
                                                   "use_stateless", ""),
         "attached_enodeb_tacs": _get_attached_enodeb_tacs(mme_service_config),
         "enable_nat": _get_enable_nat(mme_service_config),
-        "federated_mode_map" : _get_federated_mode_map(mme_service_config),
-        "restricted_plmns" : _get_restricted_plmns(mme_service_config)
+        "federated_mode_map": _get_federated_mode_map(mme_service_config),
+        "restricted_plmns": _get_restricted_plmns(mme_service_config)
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or \
-                        _get_iface_ip("spgw", "s1u_iface_name")
+        _get_iface_ip("spgw", "s1u_iface_name")
 
     # set ovs params
     for key in (

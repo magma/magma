@@ -22,6 +22,7 @@ from termcolor import colored
 
 class AGWHealthCLI:
     """ Command line interface for Health-Checking specific to Access Gateway"""
+
     def __init__(self):
         self._health_checker = AGWHealth()
 

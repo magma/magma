@@ -87,14 +87,14 @@ class S6ARelayApplication(S6AApplication):
             self.grpc_timeout,
         )
         future.add_done_callback(lambda answer:
-            self._loop.call_soon_threadsafe(
-                self._relay_auth_answer,
-                state_id,
-                msg,
-                answer,
-                retries_left,
-            )
-        )
+                                 self._loop.call_soon_threadsafe(
+                                     self._relay_auth_answer,
+                                     state_id,
+                                     msg,
+                                     answer,
+                                     retries_left,
+                                 )
+                                 )
 
     def _relay_auth_answer(self, state_id, msg, answer_future, retries_left):
         user_name = msg.find_avp(*avp.resolve('User-Name')).value
@@ -130,12 +130,15 @@ class S6ARelayApplication(S6AApplication):
                 S6A_AUTH_FAILURE_TOTAL.labels(
                     code=error_code).inc()
             else:
-                auth_info = avp.AVP('Authentication-Info', [
-                    avp.AVP('E-UTRAN-Vector', [
-                        avp.AVP('RAND', vector.rand),
-                        avp.AVP('XRES', vector.xres),
-                        avp.AVP('AUTN', vector.autn),
-                        avp.AVP('KASME', vector.kasme)]) for vector in answer.eutran_vectors ])
+                auth_info = avp.AVP(
+                    'Authentication-Info', [
+                        avp.AVP(
+                            'E-UTRAN-Vector', [
+                                avp.AVP(
+                                    'RAND', vector.rand), avp.AVP(
+                                    'XRES', vector.xres), avp.AVP(
+                                    'AUTN', vector.autn), avp.AVP(
+                                    'KASME', vector.kasme)]) for vector in answer.eutran_vectors])
 
                 resp = self._gen_response(state_id, msg,
                                           avp.ResultCode.DIAMETER_SUCCESS,
@@ -157,7 +160,8 @@ class S6ARelayApplication(S6AApplication):
         # Validate the message
         if not self.validate_message(state_id, msg):
             return
-        return self._send_location_request_with_retries(state_id, msg, self.retry_count)
+        return self._send_location_request_with_retries(
+            state_id, msg, self.retry_count)
 
     def _send_location_request_with_retries(self, state_id, msg, retries_left):
         user_name = msg.find_avp(*avp.resolve('User-Name')).value
@@ -172,16 +176,21 @@ class S6ARelayApplication(S6AApplication):
         )
         future = self._client.UpdateLocation.future(request, self.grpc_timeout)
         future.add_done_callback(lambda answer:
-            self._loop.call_soon_threadsafe(
-                self._relay_update_location_answer,
-                state_id,
-                msg,
-                answer,
-                retries_left
-            )
-        )
+                                 self._loop.call_soon_threadsafe(
+                                     self._relay_update_location_answer,
+                                     state_id,
+                                     msg,
+                                     answer,
+                                     retries_left
+                                 )
+                                 )
 
-    def _relay_update_location_answer(self, state_id, msg, answer_future, retries_left):
+    def _relay_update_location_answer(
+            self,
+            state_id,
+            msg,
+            answer_future,
+            retries_left):
         err = answer_future.exception()
         if err and retries_left > 0:
             # TODO: retry only on network failure and not application failures
@@ -204,47 +213,67 @@ class S6ARelayApplication(S6AApplication):
             answer = answer_future.result()
             error_code = answer.error_code
             if error_code:
-                result_info = avp.AVP('Experimental-Result', [
-                                      avp.AVP('Vendor-Id', 10415),
-                                      avp.AVP('Experimental-Result-Code', error_code)])
+                result_info = avp.AVP(
+                    'Experimental-Result',
+                    [
+                        avp.AVP(
+                            'Vendor-Id',
+                            10415),
+                        avp.AVP(
+                            'Experimental-Result-Code',
+                            error_code)])
                 resp = self._gen_response(
                     state_id, msg, error_code, [result_info])
             else:
 
                 # Stubbed out Subscription Data from OAI
-                subscription_data = avp.AVP('Subscription-Data', [
-                    avp.AVP('MSISDN', answer.msisdn),
-                    avp.AVP('Access-Restriction-Data', 47),
-                    avp.AVP('Subscriber-Status', 0),
-                    avp.AVP('Network-Access-Mode', 2),
-                    avp.AVP('AMBR', [
-                        avp.AVP('Max-Requested-Bandwidth-UL', answer.total_ambr.max_bandwidth_ul),
-                        avp.AVP('Max-Requested-Bandwidth-DL', answer.total_ambr.max_bandwidth_dl),
-                    ]),
-                    avp.AVP('APN-Configuration-Profile', [
-                        avp.AVP('Context-Identifier', answer.default_context_id),
-                        avp.AVP('All-APN-Configurations-Included-Indicator', 1 if answer.all_apns_included else 0),
-                        *[avp.AVP('APN-Configuration', [
-                            avp.AVP('Context-Identifier', apn.context_id),
-                            avp.AVP('PDN-Type', apn.pdn),
-                            avp.AVP('Service-Selection', apn.service_selection),
-                            avp.AVP('EPS-Subscribed-QoS-Profile', [
-                                avp.AVP('QoS-Class-Identifier', apn.qos_profile.class_id),
-                                avp.AVP('Allocation-Retention-Priority', [
-                                    avp.AVP('Priority-Level', apn.qos_profile.priority_level),
-                                    avp.AVP('Pre-emption-Capability', 1 if apn.qos_profile.preemption_capability else 0),
-                                    avp.AVP('Pre-emption-Vulnerability', 1 if apn.qos_profile.preemption_vulnerability else 0),
-                                ]),
-                            ]),
-                            avp.AVP('AMBR', [
-                                avp.AVP('Max-Requested-Bandwidth-UL',
-                                        apn.ambr.max_bandwidth_ul),
-                                avp.AVP('Max-Requested-Bandwidth-DL',
-                                        apn.ambr.max_bandwidth_dl),
-                            ]),
-                        ]) for apn in answer.apn]
-                    ]),
-                ])
+                subscription_data = avp.AVP('Subscription-Data',
+                                            [avp.AVP('MSISDN',
+                                                     answer.msisdn),
+                                             avp.AVP('Access-Restriction-Data',
+                                                     47),
+                                                avp.AVP('Subscriber-Status',
+                                                        0),
+                                                avp.AVP('Network-Access-Mode',
+                                                        2),
+                                                avp.AVP('AMBR',
+                                                        [avp.AVP('Max-Requested-Bandwidth-UL',
+                                                         answer.total_ambr.max_bandwidth_ul),
+                                                         avp.AVP('Max-Requested-Bandwidth-DL',
+                                                         answer.total_ambr.max_bandwidth_dl),
+                                                         ]),
+                                                avp.AVP('APN-Configuration-Profile',
+                                                        [avp.AVP('Context-Identifier',
+                                                         answer.default_context_id),
+                                                         avp.AVP('All-APN-Configurations-Included-Indicator',
+                                                         1 if answer.all_apns_included else 0),
+                                                         *[avp.AVP('APN-Configuration',
+                                                                   [avp.AVP('Context-Identifier',
+                                                                            apn.context_id),
+                                                                    avp.AVP('PDN-Type',
+                                                                            apn.pdn),
+                                                                    avp.AVP('Service-Selection',
+                                                                            apn.service_selection),
+                                                                    avp.AVP('EPS-Subscribed-QoS-Profile',
+                                                                            [avp.AVP('QoS-Class-Identifier',
+                                                                                     apn.qos_profile.class_id),
+                                                                             avp.AVP('Allocation-Retention-Priority',
+                                                                                     [avp.AVP('Priority-Level',
+                                                                                              apn.qos_profile.priority_level),
+                                                                                      avp.AVP('Pre-emption-Capability',
+                                                                                              1 if apn.qos_profile.preemption_capability else 0),
+                                                                                      avp.AVP('Pre-emption-Vulnerability',
+                                                                                              1 if apn.qos_profile.preemption_vulnerability else 0),
+                                                                                      ]),
+                                                                             ]),
+                                                                       avp.AVP('AMBR',
+                                                                               [avp.AVP('Max-Requested-Bandwidth-UL',
+                                                                                        apn.ambr.max_bandwidth_ul),
+                                                                                avp.AVP('Max-Requested-Bandwidth-DL',
+                                                                                        apn.ambr.max_bandwidth_dl),
+                                                                                ]),
+                                                                    ]) for apn in answer.apn]]),
+                                             ])
 
                 ula_flags = avp.AVP('ULA-Flags', 1)
                 resp = self._gen_response(state_id, msg,

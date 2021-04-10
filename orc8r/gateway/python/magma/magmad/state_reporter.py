@@ -41,6 +41,7 @@ class StateReporterErrorHandler:
     trigger a bootstrap if it finds the certificate is bad or there are
     permission issues.
     """
+
     def __init__(self,
                  loop: asyncio.AbstractEventLoop,
                  config: Any,
@@ -115,6 +116,7 @@ class StateReporter(SDWatchdogTask):
     In this context, check-in refers to the act of connecting and reporting
     states to the cloud.
     """
+
     def __init__(self, config: Any, mconfig: Any,
                  loop: asyncio.AbstractEventLoop,
                  bootstrap_manager: BootstrapManager,

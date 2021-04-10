@@ -21,6 +21,7 @@ from magma.monitord.icmp_monitoring import ICMPMonitoring
 
 LOCALHOST = '127.0.0.1'
 
+
 class ICMPMonitoringTests(unittest.TestCase):
     """
     Test class for the ICMPMonitor class
@@ -32,7 +33,7 @@ class ICMPMonitoringTests(unittest.TestCase):
 
     async def _ping_local(self):
         return await self._monitor._ping_targets([LOCALHOST],
-                                                     self.subscribers)
+                                                 self.subscribers)
 
     def setUp(self):
         """

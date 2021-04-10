@@ -21,8 +21,11 @@ import logging
 
 
 class NetworkInfo:
-    def __init__(self, gw_ip: Optional[str] = None, gw_mac: Optional[str] = None,
-                 vlan: int = 0):
+    def __init__(
+            self,
+            gw_ip: Optional[str] = None,
+            gw_mac: Optional[str] = None,
+            vlan: int = 0):
         gw_ip_parsed = None
         try:
             gw_ip_parsed = ipaddress.ip_address(gw_ip)
@@ -82,7 +85,8 @@ class SubscriberDbClient:
                                     vlan=apn_config.resource.vlan_id)
 
         except ValueError as ex:
-            logging.warning("static Ip: Invalid or missing data for sid %s: ", sid)
+            logging.warning(
+                "static Ip: Invalid or missing data for sid %s: ", sid)
             logging.debug(ex)
             raise SubscriberDBStaticIPValueError(sid)
 
@@ -109,20 +113,22 @@ class SubscriberDbClient:
                                        vlan=apn_config.resource.vlan_id)
 
             except ValueError as ex:
-                logging.warning("vlan: Invalid or missing data for sid %s", sid)
+                logging.warning(
+                    "vlan: Invalid or missing data for sid %s", sid)
                 logging.debug(ex)
                 raise SubscriberDBMultiAPNValueError(sid)
 
             except grpc.RpcError as err:
-                msg = "GetSubscriberData while reading vlan-id error[%s] %s" % \
-                    (err.code(), err.details())
+                msg = "GetSubscriberData while reading vlan-id error[%s] %s" % (
+                    err.code(), err.details())
                 logging.error(msg)
                 raise SubscriberDBConnectionError(msg)
 
         return NetworkInfo()
 
     # use same API to retrieve IP address and related config.
-    def _find_ip_and_apn_config(self, sid: str) -> (Optional[APNConfiguration]):
+    def _find_ip_and_apn_config(self,
+                                sid: str) -> (Optional[APNConfiguration]):
         if '.' in sid:
             imsi, apn_name_part = sid.split('.', maxsplit=1)
             apn_name, _ = apn_name_part.split(',', maxsplit=1)

@@ -15,16 +15,17 @@ limitations under the License.
 from unittest import TestCase
 
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.device_config.configuration_init import (_get_enb_config,
-                                                            _set_bandwidth,
-                                                            _set_earfcn_freq_band_mode,
-                                                            _set_management_server,
-                                                            _set_misc_static_params,
-                                                            _set_pci,
-                                                            _set_perf_mgmt,
-                                                            _set_plmnids_tac,
-                                                            _set_s1_connection,
-                                                            _set_tdd_subframe_config)
+from magma.enodebd.device_config.configuration_init import (
+    _get_enb_config,
+    _set_bandwidth,
+    _set_earfcn_freq_band_mode,
+    _set_management_server,
+    _set_misc_static_params,
+    _set_pci,
+    _set_perf_mgmt,
+    _set_plmnids_tac,
+    _set_s1_connection,
+    _set_tdd_subframe_config)
 from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.devices.baicells import BaicellsTrDataModel
@@ -69,7 +70,7 @@ class EnodebConfigurationFactoryTest(TestCase):
         subframe = 0
         special_subframe = 0
         _set_tdd_subframe_config(self.device_cfg, self.cfg, subframe,
-                                              special_subframe)
+                                 special_subframe)
         self.assertTrue(ParameterName.SUBFRAME_ASSIGNMENT not in
                         self.cfg.get_parameter_names())
 

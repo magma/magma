@@ -153,7 +153,15 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         if self._clean_restart:
             self.delete_all_flows(datapath)
 
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
+    def _install_flow_for_rule(
+            self,
+            imsi,
+            msisdn: bytes,
+            uplink_tunnel: int,
+            ip_addr,
+            apn_ambr,
+            rule,
+            version):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -171,13 +179,15 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 rule.id, imsi, err)
             return RuleModResult.FAILURE
 
-        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
+        msgs = self._get_rule_match_flow_msgs(
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
 
         try:
             chan = self._msg_hub.send(msgs, self._datapath)
         except MagmaDPDisconnectedError:
-            self.logger.error("Datapath disconnected, failed to install rule %s"
-                              "for imsi %s", rule, imsi)
+            self.logger.error(
+                "Datapath disconnected, failed to install rule %s"
+                "for imsi %s", rule, imsi)
             return RuleModResult.FAILURE
         for _ in range(len(msgs)):
             try:
@@ -198,7 +208,15 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._msg_hub.handle_error(ev)
 
     # pylint: disable=protected-access,unused-argument
-    def _get_rule_match_flow_msgs(self, imsi, _, __, ip_addr, ambr, rule, version):
+    def _get_rule_match_flow_msgs(
+            self,
+            imsi,
+            _,
+            __,
+            ip_addr,
+            ambr,
+            rule,
+            version):
         """
         Returns flow add messages used for rule matching.
         """
@@ -232,7 +250,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             ])
         else:
             inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = DROP_FLOW_STATS
-            outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = DROP_FLOW_STATS
+            outbound_rule_match._match_kwargs[SCRATCH_REGS[1]
+                                              ] = DROP_FLOW_STATS
             msgs.extend([
                 flows.get_add_drop_flow_msg(
                     self._datapath,
@@ -270,13 +289,19 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def _get_default_flow_msgs_for_subscriber(self, imsi, ip_addr):
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
         match_out = _generate_rule_match(imsi, ip_addr, 0, 0,
-                                              Direction.OUT)
+                                         Direction.OUT)
 
         return [
-            flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_in,
-                                        priority=Utils.DROP_PRIORITY),
-            flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
-                                        priority=Utils.DROP_PRIORITY)]
+            flows.get_add_drop_flow_msg(
+                self._datapath,
+                self.tbl_num,
+                match_in,
+                priority=Utils.DROP_PRIORITY),
+            flows.get_add_drop_flow_msg(
+                self._datapath,
+                self.tbl_num,
+                match_out,
+                priority=Utils.DROP_PRIORITY)]
 
     def _install_redirect_flow(self, imsi, ip_addr, rule, version):
         pass
@@ -374,7 +399,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     current_usage = self._update_usage_from_flow_stat(
                         current_usage, stat)
                 except ConnectionError:
-                    self.logger.error('Failed processing stats, redis unavailable')
+                    self.logger.error(
+                        'Failed processing stats, redis unavailable')
                     self.unhandled_stats_msgs.append(stats_msgs)
                     return
 
@@ -383,7 +409,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             delta_usage = self._delta_usage_maps(current_usage,
                                                  self.last_usage_for_delta)
         except ConnectionError:
-            self.logger.error('Failed processing delta stats, redis unavailable')
+            self.logger.error(
+                'Failed processing delta stats, redis unavailable')
             self.unhandled_stats_msgs.append(stats_msgs)
             return
         self.total_usage = current_usage
@@ -543,7 +570,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     stat_sid, rule_version, e)
 
         self.last_usage_for_delta = self._delta_usage_maps(self.total_usage,
-            deleted_flow_usage)
+                                                           deleted_flow_usage)
 
     def _old_flow_stats(self, stats_msgs):
         """
@@ -561,10 +588,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 ipv4_addr_str = _get_ipv4(stat)
                 ipv4_addr = None
                 if ipv4_addr_str:
-                    ipv4_addr = IPAddress(version=IPAddress.IPV4,
-                                          address=ipv4_addr_str.encode('utf-8'))
+                    ipv4_addr = IPAddress(
+                        version=IPAddress.IPV4,
+                        address=ipv4_addr_str.encode('utf-8'))
                 rule_version = _get_version(stat)
-                if rule_id == "" or rule_version == None:
+                if rule_id == "" or rule_version is None:
                     continue
 
                 current_ver = \

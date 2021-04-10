@@ -44,19 +44,22 @@ from orc8r.protos.common_pb2 import Void
 from ryu.lib import hub
 
 
-class SMFAssociationServerTest(session_manager_pb2_grpc.SetInterfaceForUserPlaneServicer):
+class SMFAssociationServerTest(
+        session_manager_pb2_grpc.SetInterfaceForUserPlaneServicer):
 
-     def __init__ (self, loop):
-         self._loop = loop
+    def __init__(self, loop):
+        self._loop = loop
 
-     def add_to_server(self, server):
+    def add_to_server(self, server):
         """
         Add the servicer to a gRPC server
         """
-        session_manager_pb2_grpc.add_SetInterfaceForUserPlaneServicer_to_server(self, server)
+        session_manager_pb2_grpc.add_SetInterfaceForUserPlaneServicer_to_server(
+            self, server)
 
-     def SetUPFNodeState(self, request, context):
-         return (Void())
+    def SetUPFNodeState(self, request, context):
+        return (Void())
+
 
 class RpcTests(unittest.TestCase):
     """
@@ -91,19 +94,19 @@ class RpcTests(unittest.TestCase):
         channel = grpc.insecure_channel('0.0.0.0:{}'.format(port))
         sessiod_interface_stub = SetInterfaceForUserPlaneStub(channel)
 
-        config_mock ={
-                   'enodeb_iface': 'eth1',
-                   'clean_restart': True,
-                   '5G_feature_set': {'enable': True},
-                   '5G_feature_set': {'node_identifier': '192.168.220.1'},
-                   'bridge_name': self.BRIDGE,
-               }
+        config_mock = {
+            'enodeb_iface': 'eth1',
+            'clean_restart': True,
+            '5G_feature_set': {'enable': True},
+            '5G_feature_set': {'node_identifier': '192.168.220.1'},
+            'bridge_name': self.BRIDGE,
+        }
 
-        self._ng_node_mgr = NodeStateManager(loop_mock, sessiod_interface_stub, config_mock)
+        self._ng_node_mgr = NodeStateManager(
+            loop_mock, sessiod_interface_stub, config_mock)
 
     def tearDown(self):
         self._rpc_server.stop(0)
-
 
     def mock_sessiond_failure_case(self, node_message):
         return False
@@ -126,10 +129,12 @@ class RpcTests(unittest.TestCase):
 
         # Change the mock function to see if the send is passing
         upf_node_assoc_message = node_mgr.get_node_assoc_message()
-        node_mgr._send_association_request_message(upf_node_assoc_message.associaton_state)
+        node_mgr._send_association_request_message(
+            upf_node_assoc_message.associaton_state)
         TestCase().assertEqual(node_mgr._assoc_message_count, 1)
 
         # Stop the rpc server and check if send is failing
         self._rpc_server.stop(0)
-        node_mgr._send_association_request_message(upf_node_assoc_message.associaton_state)
+        node_mgr._send_association_request_message(
+            upf_node_assoc_message.associaton_state)
         TestCase().assertEqual(node_mgr._assoc_message_count, 1)

@@ -38,6 +38,7 @@ def load_override_config(_, args):
 # Log level commands
 LOG_LEVEL_KEY = 'log_level'
 
+
 @grpc_wrapper
 def get_log_level(_, args):
     cfg = service_configs.load_service_config(args.service)

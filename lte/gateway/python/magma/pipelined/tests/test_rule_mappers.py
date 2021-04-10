@@ -22,7 +22,8 @@ from magma.pipelined.rule_mappers import SessionRuleToVersionMapper
 
 class RuleMappersTest(unittest.TestCase):
     def setUp(self):
-        # mock the get_default_client function used to return a fakeredis object
+        # mock the get_default_client function used to return a fakeredis
+        # object
         func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())
         with mock.patch(
                 'magma.pipelined.rule_mappers.get_default_client',
@@ -56,8 +57,8 @@ class RuleMappersTest(unittest.TestCase):
             2)
 
         # Test updating version for all rules of a subscriber
-        self._session_rule_version_mapper.update_all_ue_versions(imsi,
-            convert_ipv4_str_to_ip_proto(ip_addr))
+        self._session_rule_version_mapper.update_all_ue_versions(
+            imsi, convert_ipv4_str_to_ip_proto(ip_addr))
 
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
@@ -103,6 +104,7 @@ class RuleMappersTest(unittest.TestCase):
             self._session_rule_version_mapper.get_version(
                 imsi, None, rule_ids[1]),
             2)
+
 
 if __name__ == "__main__":
     unittest.main()

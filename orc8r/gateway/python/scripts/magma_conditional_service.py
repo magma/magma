@@ -102,7 +102,9 @@ def main():
             writePIDCmd = ""
             if args.forking_pid_file:
                 writePIDCmd = "( echo $! > %s )" % args.forking_pid_file
-            logging.info(info, "(forking, pid_file=%s)" % args.forking_pid_file)
+            logging.info(
+                info, "(forking, pid_file=%s)" %
+                args.forking_pid_file)
             # TODO: use os.fork(), when it works on all devices.
             forkArgs = [
                 "/bin/sh", "-c",

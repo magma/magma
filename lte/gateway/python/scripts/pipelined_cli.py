@@ -48,20 +48,32 @@ from orc8r.protos.common_pb2 import Void
 @grpc_wrapper
 def set_smf_session(client, args):
 
-    cls_sess = CreateSessionUtil(args.subscriber_id, args.session_id, args.version)
+    cls_sess = CreateSessionUtil(
+        args.subscriber_id,
+        args.session_id,
+        args.version)
 
-    cls_sess.CreateSession(args.subscriber_id, args.pdr_state, args.in_teid, args.out_teid,
-                           args.ue_ip_addr, args.gnb_ip_addr,
-                           args.del_rule_id, args.add_rule_id, args.ipv4_dst,
-                           args.allow, args.priority)
+    cls_sess.CreateSession(
+        args.subscriber_id,
+        args.pdr_state,
+        args.in_teid,
+        args.out_teid,
+        args.ue_ip_addr,
+        args.gnb_ip_addr,
+        args.del_rule_id,
+        args.add_rule_id,
+        args.ipv4_dst,
+        args.allow,
+        args.priority)
 
-    print (cls_sess._set_session)
+    print(cls_sess._set_session)
     response = client.SetSMFSessions(cls_sess._set_session)
-    print (response)
+    print(response)
 
 # --------------------------
 # Enforcement App
 # --------------------------
+
 
 @grpc_wrapper
 def activate_flows(client, args):
@@ -163,7 +175,7 @@ def stress_test_grpc(client, args):
     print("WARNING: DO NOT USE ON PRODUCTION SETUPS")
     UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
                                    'rule_id'])
-    delta_time = 1/args.attaches_per_sec
+    delta_time = 1 / args.attaches_per_sec
     print("Attach every ~{0} seconds".format(delta_time))
 
     if args.disable_qos:
@@ -188,7 +200,7 @@ def stress_test_grpc(client, args):
             imsi = imsi + 1
         return ue_set
 
-    for i in range (0, args.test_iterations):
+    for i in range(0, args.test_iterations):
         print("Starting iteration {0} of attach/detach requests".format(i))
         ue_dict = _gen_ue_set(args.num_of_ues)
         print("Starting attaches")
@@ -220,14 +232,20 @@ def stress_test_grpc(client, args):
                 _print_rule_mod_results(response.dynamic_rule_results)
 
             grpc_end_timestamp = datetime.now()
-            call_duration = (grpc_end_timestamp - grpc_start_timestamp).total_seconds()
+            call_duration = (
+                grpc_end_timestamp -
+                grpc_start_timestamp).total_seconds()
             if call_duration < delta_time:
                 time.sleep(delta_time - call_duration)
 
         duration = (datetime.now() - timestamp).total_seconds()
         print("Finished {0} attaches in {1} seconds".format(len(ue_dict),
                                                             duration))
-        print("Actual attach rate = {0} UEs per sec".format(round(len(ue_dict)/duration)))
+        print(
+            "Actual attach rate = {0} UEs per sec".format(
+                round(
+                    len(ue_dict) /
+                    duration)))
 
         time.sleep(args.time_between_detach)
 
@@ -246,7 +264,9 @@ def stress_test_grpc(client, args):
                 _print_rule_mod_results(response.dynamic_rule_results)
 
             grpc_end_timestamp = datetime.now()
-            call_duration = (grpc_end_timestamp - grpc_start_timestamp).total_seconds()
+            call_duration = (
+                grpc_end_timestamp -
+                grpc_start_timestamp).total_seconds()
             if call_duration < delta_time:
                 time.sleep(delta_time - call_duration)
 
@@ -254,7 +274,8 @@ def stress_test_grpc(client, args):
         print("Finished {0} detaches in {1} seconds".format(len(ue_dict),
                                                             duration))
         print("Actual detach rate = {0} UEs per sec",
-              round(len(ue_dict)/duration))
+              round(len(ue_dict) / duration))
+
 
 def create_ng_services_parser(apps):
     """
@@ -265,29 +286,44 @@ def create_ng_services_parser(apps):
 
     subcmd = subparsers.add_parser('set_smf_session',
                                    help='SMF set Session Emulator')
-    subcmd.add_argument('--subscriber_id', help='Subscriber Identity', default='IMSI12345')
-    subcmd.add_argument('--session_id', help='Session Identity', type=int, default=100)
-    subcmd.add_argument('--version', help='Session Version', type=int, default=2)
+    subcmd.add_argument(
+        '--subscriber_id',
+        help='Subscriber Identity',
+        default='IMSI12345')
+    subcmd.add_argument(
+        '--session_id',
+        help='Session Identity',
+        type=int,
+        default=100)
+    subcmd.add_argument(
+        '--version',
+        help='Session Version',
+        type=int,
+        default=2)
     subcmd.add_argument('--pdr_state', help='ADD / IDLE / REMOVE the PDR',
                         default="ADD")
     subcmd.add_argument('--in_teid', help='Match incoming teid from access',
-                         type=int, default=0)
+                        type=int, default=0)
     subcmd.add_argument('--out_teid', help='Put outgoing teid towards access',
-                         type=int, default=0)
+                        type=int, default=0)
     subcmd.add_argument('--ue_ip_addr', help='UE IP address ',
-                         default='')
+                        default='')
     subcmd.add_argument('--gnb_ip_addr', help='IP address of GNB Node',
-                         default='')
+                        default='')
     subcmd.add_argument('--del_rule_id', help='rule id to add', default='')
     subcmd.add_argument('--add_rule_id', help='rule id to add', default='')
     subcmd.add_argument('--ipv4_dst', help='ipv4 dst for rule', default='')
-    subcmd.add_argument('--allow', help='YES/NO for allow and deny', default='YES')
+    subcmd.add_argument(
+        '--allow',
+        help='YES/NO for allow and deny',
+        default='YES')
     subcmd.add_argument('--priority', help='priority for rule',
                         type=int, default=0)
     subcmd.add_argument('--hard_timeout', help='hard timeout for rule',
                         type=int, default=0)
 
     subcmd.set_defaults(func=set_smf_session)
+
 
 def create_enforcement_parser(apps):
     """
@@ -347,7 +383,8 @@ def create_enforcement_parser(apps):
                                    help='Get policy usage stats')
     subcmd.set_defaults(func=get_policy_usage)
 
-    subcmd = subparsers.add_parser('stress_test_grpc',
+    subcmd = subparsers.add_parser(
+        'stress_test_grpc',
         help='Sends a set of Activate grpc requests, followed by Deactivates')
     subcmd.add_argument('--attaches_per_sec',
                         help='Number of grpc Attach requests per second',
@@ -366,6 +403,7 @@ def create_enforcement_parser(apps):
 # -------------
 # UE MAC APP
 # -------------
+
 
 @grpc_wrapper
 def add_ue_mac_flow(client, args):
@@ -551,6 +589,7 @@ def create_debug_parser(apps):
 # --------------------------
 # Pipelined base CLI
 # --------------------------
+
 
 def create_parser():
     """

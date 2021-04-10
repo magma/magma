@@ -53,7 +53,7 @@ PlatformInfo = NamedTuple(
     'PlatformInfo',
     [('vpn_ip', str), ('packages', List[Dict[str, Any]]),
      ('kernel_version', str), ('kernel_versions_installed', List[str]),
-     ('config_info',  Dict[str, Any])])
+     ('config_info', Dict[str, Any])])
 
 MachineInfo = NamedTuple(
     'MachineInfo',
@@ -95,6 +95,7 @@ class KernelVersionsPoller(Job):
     store the result. get_kernel_versions_installed can be called to get the
     latest list.
     """
+
     def __init__(self, service):
         super().__init__(
             interval=service.mconfig.checkin_interval,
@@ -122,6 +123,7 @@ class GatewayStatusFactory:
     the gateway status object. The object mimics the swagger spec for
     GatewayStatus defined in the orc8r.
     """
+
     def __init__(self, service: MagmaService,
                  service_poller: ServicePoller,
                  kernel_version_poller: Optional[KernelVersionsPoller]):
@@ -162,7 +164,7 @@ class GatewayStatusFactory:
         has_required_service_meta = \
             self._meta_has_required_services(meta_services)
         return json.dumps(gw_status._asdict(), default=str), \
-               has_required_service_meta
+            has_required_service_meta
 
     def _fill_in_meta(
         self, gw_status: GatewayStatus

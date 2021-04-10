@@ -26,8 +26,9 @@ DEFAULT_TIMEOUT_SECS = 20
 PingCommandParams = namedtuple('PingCommandParams',
                                ['host_or_ip', 'num_packets', 'timeout_secs'])
 
-PingInterfaceCommandParams = namedtuple('PingInterfaceCommandParams',
-                               ['host_or_ip', 'num_packets', 'interface', 'timeout_secs'])
+PingInterfaceCommandParams = namedtuple(
+    'PingInterfaceCommandParams', [
+        'host_or_ip', 'num_packets', 'interface', 'timeout_secs'])
 
 PingCommandResult = namedtuple('PingCommandResult',
                                ['error', 'host_or_ip', 'num_packets', 'stats'])

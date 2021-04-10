@@ -104,7 +104,7 @@ def create_parser():
     dlink = subparsers.add_parser('dlink',
                                   help='Trace packet coming from UPLINK')
     dlink.add_argument('-p', '--in_port', default='eth2',
-                        help='In port name')
+                       help='In port name')
 
     uplink.add_argument('tun_src', help='Tunnel src ip', default='')
     uplink.add_argument('-tun_dst', help='Tunnel dst ip',
@@ -131,8 +131,18 @@ def create_parser():
         tcp.add_argument('-tf', '--tcp_flags', help='Specify TCP flags',
                          default='')
         icmp = proto_sp.add_parser('icmp', help='Specify icmp packet')
-        icmp.add_argument('-t', '--type', type=int, help='ICMP type', default=0)
-        icmp.add_argument('-c', '--code', type=int, help='ICMP code', default=0)
+        icmp.add_argument(
+            '-t',
+            '--type',
+            type=int,
+            help='ICMP type',
+            default=0)
+        icmp.add_argument(
+            '-c',
+            '--code',
+            type=int,
+            help='ICMP code',
+            default=0)
         tcp.set_defaults(func=_trace_tcp_pkt)
         icmp.set_defaults(func=_trace_icmp_pkt)
 

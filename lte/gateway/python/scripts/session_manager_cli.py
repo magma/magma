@@ -48,7 +48,10 @@ def send_create_session(client, args):
     except grpc.RpcError as e:
         print("gRPC failed with %s: %s" % (e.code(), e.details()))
 
-    req = LocalCreateSessionRequest(sid=SubscriberID(id=sub1.imsi), ue_ipv4=sub1.ip)
+    req = LocalCreateSessionRequest(
+        sid=SubscriberID(
+            id=sub1.imsi),
+        ue_ipv4=sub1.ip)
     print("Sending LocalCreateSessionRequest with following fields:\n %s" % req)
     try:
         client.CreateSession(req)
@@ -87,7 +90,8 @@ def create_account_in_OCS(imsi):
 
 @grpc_wrapper
 def send_policy_rar(client, args):
-    sessiond_chan = ServiceRegistry.get_rpc_channel("sessiond", ServiceRegistry.LOCAL)
+    sessiond_chan = ServiceRegistry.get_rpc_channel(
+        "sessiond", ServiceRegistry.LOCAL)
     sessiond_client = SessionProxyResponderStub(sessiond_chan)
     flow_list_str = args.flow_rules.split(";")
     flow_match_list = []
@@ -167,10 +171,14 @@ def send_policy_rar(client, args):
     else:
         # parameter missing, use default values
         policy_qos = FlowQos(
-            qci=int(args.qci),
+            qci=int(
+                args.qci),
             max_req_bw_ul=100000,
             max_req_bw_dl=100000,
-            arp=QosArp(priority_level=1, pre_capability=1, pre_vulnerability=0),
+            arp=QosArp(
+                priority_level=1,
+                pre_capability=1,
+                pre_vulnerability=0),
         )
 
     policy_rule = PolicyRule(
@@ -191,19 +199,21 @@ def send_policy_rar(client, args):
             imsi=args.imsi,
             rules_to_remove=[],
             rules_to_install=[],
-            dynamic_rules_to_install=[DynamicRuleInstall(policy_rule=policy_rule)],
+            dynamic_rules_to_install=[
+                DynamicRuleInstall(
+                    policy_rule=policy_rule)],
             event_triggers=[],
             revalidation_time=None,
             usage_monitoring_credits=[],
             qos_info=qos,
-        )
-    )
+        ))
     print(reauth_result)
 
 
 @grpc_wrapper
 def send_abort_session(client, args):
-    abort_session_chan = ServiceRegistry.get_rpc_channel("abort_session_service", ServiceRegistry.LOCAL)
+    abort_session_chan = ServiceRegistry.get_rpc_channel(
+        "abort_session_service", ServiceRegistry.LOCAL)
     abort_session_client = AbortSessionResponderStub(abort_session_chan)
 
     asr = AbortSessionRequest(
@@ -239,7 +249,8 @@ def create_parser():
     create_session_parser = subparsers.add_parser(
         "policy_rar", help="Send Policy Reauthorization Request to sessiond"
     )
-    create_session_parser.add_argument("imsi", help="e.g., IMSI001010000088888")
+    create_session_parser.add_argument(
+        "imsi", help="e.g., IMSI001010000088888")
     create_session_parser.add_argument(
         "session_id", help="e.g., IMSI001010000088888-910385"
     )
@@ -251,12 +262,10 @@ def create_parser():
         "qci", help="e.g., 9 for default, 1 for VoIP data, 5 for IMS signaling"
     )
     create_session_parser.add_argument(
-        "flow_rules",
-        help="List of 6-tuples: "
-             "[direction,protocol,src_ip,src_port,dst_ip,dst_port] "
-             "separated by ';',e.g., "
-             "UL,6,192.168.50.1,0,192.168.40.2,12345;DL,1,8.8.8.8,0,192.168.50.1,0",
-    )
+        "flow_rules", help="List of 6-tuples: "
+        "[direction,protocol,src_ip,src_port,dst_ip,dst_port] "
+        "separated by ';',e.g., "
+        "UL,6,192.168.50.1,0,192.168.40.2,12345;DL,1,8.8.8.8,0,192.168.50.1,0", )
     create_session_parser.add_argument(
         "qos",
         help="QoS-tuple: [max_req_bw_ul,max_req_bw_dl,gbr_ul,gbr_dl,arp_prio,"
@@ -269,8 +278,10 @@ def create_parser():
         "abort_session_service",
         help="Send an AbortSessionRequest to SessionD service",
     )
-    abort_session_parser.add_argument("session_id", help="e.g., 001010000088888")
-    abort_session_parser.add_argument("user_name", help="e.g., IMSI010000088888")
+    abort_session_parser.add_argument(
+        "session_id", help="e.g., 001010000088888")
+    abort_session_parser.add_argument(
+        "user_name", help="e.g., IMSI010000088888")
     abort_session_parser.set_defaults(func=send_abort_session)
 
     return parser

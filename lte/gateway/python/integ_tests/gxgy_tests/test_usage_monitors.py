@@ -34,8 +34,8 @@ class UsageMonitorTest(unittest.TestCase):
         cls.test_util = TestUtil()
         # default rule
         policy = create_uplink_rule("monitor_rule", 0, '45.10.0.1',
-                                             m_key="mkey1",
-                                             tracking=PolicyRule.ONLY_PCRF)
+                                    m_key="mkey1",
+                                    tracking=PolicyRule.ONLY_PCRF)
         cls.test_util.static_rules[policy.id] = policy
         hub.sleep(2)  # wait for static rule to sync
 
@@ -49,7 +49,11 @@ class UsageMonitorTest(unittest.TestCase):
         traffic to match the policy, verify monitoring update is sent, terminate
         subscriber
         """
-        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
+        sub1 = SubContextConfig(
+            'IMSI001010000088888',
+            '192.168.128.74',
+            default_ambr_config,
+            4)
         quota = 1024  # bytes
 
         self.test_util.controller.mock_create_session = Mock(
@@ -81,7 +85,8 @@ class UsageMonitorTest(unittest.TestCase):
             ),
         )
 
-        self.assertEqual(self.test_util.controller.mock_create_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_create_session.call_count, 1)
 
         packets = get_packets_for_flows(
             sub1, self.test_util.static_rules["monitor_rule"].flow_list)
@@ -91,27 +96,33 @@ class UsageMonitorTest(unittest.TestCase):
             self.test_util.get_packet_sender([sub1], packets, packet_count),
         )
         self.assertIsNotNone(get_from_queue(monitor_complete))
-        self.assertEqual(self.test_util.controller.mock_update_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_update_session.call_count, 1)
 
         self.test_util.sessiond.EndSession(SubscriberID(id=sub1.imsi))
-        self.assertEqual(self.test_util.controller.mock_terminate_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_terminate_session.call_count, 1)
 
     def test_mixed_monitors_and_updates(self):
         """
         Test a mix of usage monitors, session monitors, and charging credits to
         PCRF and OCS.
         """
-        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
+        sub1 = SubContextConfig(
+            'IMSI001010000088888',
+            '192.168.128.74',
+            default_ambr_config,
+            4)
         quota = 1024  # bytes
 
         pcrf_rule = create_uplink_rule("pcrf_rule", 0, '46.10.0.1',
-                                                m_key="key1",
-                                                tracking=PolicyRule.ONLY_PCRF)
+                                       m_key="key1",
+                                       tracking=PolicyRule.ONLY_PCRF)
         ocs_rule = create_uplink_rule("ocs_rule", 1, '47.10.0.1',
-                                               tracking=PolicyRule.ONLY_OCS)
+                                      tracking=PolicyRule.ONLY_OCS)
         both_rule = create_uplink_rule("both_rule", 2, '48.10.0.1',
-                                                m_key="key2",
-                                                tracking=PolicyRule.OCS_AND_PCRF)
+                                       m_key="key2",
+                                       tracking=PolicyRule.OCS_AND_PCRF)
 
         self.test_util.controller.mock_create_session = Mock(
             return_value=session_manager_pb2.CreateSessionResponse(
@@ -171,8 +182,10 @@ class UsageMonitorTest(unittest.TestCase):
             ),
         )
 
-        self.assertEqual(self.test_util.controller.mock_create_session.call_count, 1)
-        flows = [rule.flow_list[0] for rule in [pcrf_rule, ocs_rule, both_rule]]
+        self.assertEqual(
+            self.test_util.controller.mock_create_session.call_count, 1)
+        flows = [rule.flow_list[0]
+                 for rule in [pcrf_rule, ocs_rule, both_rule]]
         packets = get_packets_for_flows(sub1, flows)
         packet_count = int(quota / len(packets[0])) + 1
         self.test_util.thread.run_in_greenthread(
@@ -195,7 +208,8 @@ class UsageMonitorTest(unittest.TestCase):
             monitoring_keys.remove(monitor.update.monitoring_key)
 
         self.test_util.sessiond.EndSession(SubscriberID(id=sub1.imsi))
-        self.assertEqual(self.test_util.controller.mock_terminate_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_terminate_session.call_count, 1)
 
 
 if __name__ == "__main__":

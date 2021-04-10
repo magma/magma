@@ -78,18 +78,21 @@ def main():
                                 service.mconfig.sgi_management_iface_ip_addr)
     service.config['sgi_management_iface_ip_addr'] = sgi_ip
 
-    sgi_gateway_ip = service.config.get('sgi_management_iface_gw',
-                                        service.mconfig.sgi_management_iface_gw)
+    sgi_gateway_ip = service.config.get(
+        'sgi_management_iface_gw',
+        service.mconfig.sgi_management_iface_gw)
     service.config['sgi_management_iface_gw'] = sgi_gateway_ip
 
     if 'virtual_mac' not in service.config:
-        service.config['virtual_mac'] = get_if_hwaddr(service.config.get('bridge_name'))
+        service.config['virtual_mac'] = get_if_hwaddr(
+            service.config.get('bridge_name'))
 
     # this is not read from yml file.
     service.config['uplink_port'] = OFPP_LOCAL
     uplink_port_name = service.config.get('ovs_uplink_port_name', None)
     if enable_nat is False and uplink_port_name is not None:
-        service.config['uplink_port'] = BridgeTools.get_ofport(uplink_port_name)
+        service.config['uplink_port'] = BridgeTools.get_ofport(
+            uplink_port_name)
 
     # header enrichment related configuration.
     service.config['proxy_port_name'] = PROXY_PORT_NAME

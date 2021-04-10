@@ -47,7 +47,7 @@ class VlanLearnTest(unittest.TestCase):
         super(VlanLearnTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([],
-            ['ue_mac', 'vlan_learn'])
+                                                     ['ue_mac', 'vlan_learn'])
 
         vlan_learn_controller_reference = Future()
         testing_controller_reference = Future()

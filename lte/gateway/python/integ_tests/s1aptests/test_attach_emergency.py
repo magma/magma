@@ -39,8 +39,10 @@ class TestAttachEmergency(unittest.TestCase):
 
         # Assert cause
         self.assertEqual(msg.ueState, expected_ue_state)
-        print("************************* Emergency attach rejection successful",
-              "UE id ", req.ue_id)
+        print(
+            "************************* Emergency attach rejection successful",
+            "UE id ",
+            req.ue_id)
         # Context release, remove from queue
         self._s1ap_wrapper._s1_util.get_response()
 

@@ -22,6 +22,7 @@ from magma.subscriberdb.metrics import (S6A_AUTH_SUCCESS_TOTAL,
                                         S6A_AUTH_FAILURE_TOTAL,
                                         S6A_LUR_TOTAL)
 
+
 @unique
 class S6AApplicationCommands(IntEnum):
     # Command codes defined in this application used in msg header
@@ -92,7 +93,7 @@ class S6AApplication(abc.Application):
             return
 
         if msg.header.command_code == \
-            S6AApplicationCommands.AUTHENTICATION_INFORMATION:
+                S6AApplicationCommands.AUTHENTICATION_INFORMATION:
             self._send_auth(state_id, msg)
         elif msg.header.command_code == S6AApplicationCommands.UPDATE_LOCATION:
             self._send_location_request(state_id, msg)

@@ -43,8 +43,9 @@ class ReAuthHandler():
         success.
         """
         if not self._is_valid_rar(rar):
-            logging.error('Invalid RAR: Either installing already installed '
-                          'rules, or uninstalling rules that are not installed')
+            logging.error(
+                'Invalid RAR: Either installing already installed '
+                'rules, or uninstalling rules that are not installed')
             return False
         try:
             resp = self._sessiond_stub.PolicyReAuth(rar)

@@ -40,8 +40,9 @@ def log_event(event: Event) -> None:
         client.LogEvent(event, DEFAULT_GRPC_TIMEOUT)
     except grpc.RpcError as err:
         if err.code() == grpc.StatusCode.UNAVAILABLE:
-            logging.debug("LogEvent will not occur unless eventd configuration "
-                          "is set up.")
+            logging.debug(
+                "LogEvent will not occur unless eventd configuration "
+                "is set up.")
         else:
             logging.error(
                 "LogEvent error for event: %s, [%s] %s",

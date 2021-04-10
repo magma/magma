@@ -253,8 +253,6 @@ class StateMachineManagerTests(TestCase):
         self.assertTrue(isinstance(resp1, models.DummyInput),
                         'Should end provisioninng session with empty response')
 
-
-
     def _get_manager(self) -> StateMachineManager:
         service = EnodebAcsStateMachineBuilder.build_magma_service()
         return StateMachineManager(service)

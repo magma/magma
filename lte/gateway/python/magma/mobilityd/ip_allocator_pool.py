@@ -122,8 +122,8 @@ class IpAllocatorPool(IPAllocator):
             for state in (IPState.FREE, IPState.RELEASED, IPState.REAPED):
                 self._store.ip_state_map.remove_ip_from_state(ip, state)
             if force:
-                self._store.ip_state_map.remove_ip_from_state(ip,
-                                                              IPState.ALLOCATED)
+                self._store.ip_state_map.remove_ip_from_state(
+                    ip, IPState.ALLOCATED)
             else:
                 assert not self._store.ip_state_map.test_ip_state(ip,
                                                                   IPState.ALLOCATED), \
@@ -173,8 +173,9 @@ class IpAllocatorPool(IPAllocator):
             logging.error("Listing an unknown IP block: %s", ipblock)
             raise IPBlockNotFoundError(ipblock)
 
-        res = [ip for ip in ipblock \
-               if self._store.ip_state_map.test_ip_state(ip, IPState.ALLOCATED)]
+        res = [
+            ip for ip in ipblock if self._store.ip_state_map.test_ip_state(
+                ip, IPState.ALLOCATED)]
         return res
 
     def alloc_ip_address(self, sid: str, vlan: int) -> IPDesc:

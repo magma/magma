@@ -54,7 +54,6 @@ class TestAttachDetachRarTcpDataWithHE(unittest.TestCase):
         GTP_PORT = gtp_br_util.get_gtp_port_no()
         utils = HeaderEnrichmentUtils()
 
-
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
             print(
@@ -171,7 +170,8 @@ class TestAttachDetachRarTcpDataWithHE(unittest.TestCase):
             print(
                 "********************** Sending RAR for ", imsi)
             he_domain1 = "192.168.128.1"
-            assert utils.he_count_record_of_imsi_to_domain(imsi, he_domain1) == 0
+            assert utils.he_count_record_of_imsi_to_domain(
+                imsi, he_domain1) == 0
 
             self._sessionManager_util.send_ReAuthRequest(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
@@ -265,7 +265,8 @@ class TestAttachDetachRarTcpDataWithHE(unittest.TestCase):
             time.sleep(5)
             with self._s1ap_wrapper.configUplinkTest(req, duration=1) as test:
                 test.verify()
-            assert utils.he_count_record_of_imsi_to_domain(imsi, he_domain1) == 1
+            assert utils.he_count_record_of_imsi_to_domain(
+                imsi, he_domain1) == 1
 
             print(
                 "********************** Deleting dedicated bearer for IMSI",
@@ -308,7 +309,9 @@ class TestAttachDetachRarTcpDataWithHE(unittest.TestCase):
                 len(flows), 2, "There should only be 2 default table 0 flows"
             )
             time.sleep(20)
-            assert utils.he_count_record_of_imsi_to_domain(imsi, he_domain1) == 0
+            assert utils.he_count_record_of_imsi_to_domain(
+                imsi, he_domain1) == 0
+
 
 if __name__ == "__main__":
     unittest.main()

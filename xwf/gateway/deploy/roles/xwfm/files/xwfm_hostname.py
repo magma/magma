@@ -26,6 +26,7 @@ admin_cert = (
 # Disable warnings about SSL verification since its a local VM
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+
 def cloud_get(url: str):
     resp = requests.get(url, verify=False, cert=admin_cert)
     if resp.status_code != 200:
@@ -46,7 +47,7 @@ def get_gateway_id(url: str, network_id: str, hw_id: str):
             if hw_id == gw['device']['hardware_id']:
                 gw_id = gw['id'].split("_")[2]
                 return gw_id
-    return str(len(gateways)+1)
+    return str(len(gateways) + 1)
 
 
 def create_parser():

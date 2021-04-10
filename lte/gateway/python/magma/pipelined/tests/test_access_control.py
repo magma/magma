@@ -68,7 +68,7 @@ class AccessControlTestLTE(unittest.TestCase):
         super(AccessControlTestLTE, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([],
-            ['access_control'])
+                                                     ['access_control'])
         cls._tbl_num = cls.service_manager.get_table_num(
             AccessControlController.APP_NAME)
 

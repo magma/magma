@@ -101,7 +101,7 @@ class StreamerClient(threading.Thread):
         while True:
             try:
                 channel = ServiceRegistry.get_rpc_channel(
-                        'streamer', ServiceRegistry.CLOUD)
+                    'streamer', ServiceRegistry.CLOUD)
                 client = StreamerStub(channel)
                 self.process_all_streams(client)
             except Exception as exp:  # pylint: disable=broad-except

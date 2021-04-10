@@ -52,7 +52,6 @@ def main():
         service.config.get('print_grpc_payload', False))
     subscriberdb_servicer.add_to_server(service.rpc_server)
 
-
     # Start a background thread to stream updates from the cloud
     if service.config['enable_streaming']:
         callback = SubscriberDBStreamerCallback(store, service.loop)
@@ -87,10 +86,10 @@ def main():
             # Setup the Diameter/s6a MME
             s6a_server = service.loop.create_server(
                 lambda: S6aServer(base_manager,
-                              s6a_manager,
-                              service.config['mme_realm'],
-                              service.config['mme_host_name'],
-                              loop=service.loop),
+                                  s6a_manager,
+                                  service.config['mme_realm'],
+                                  service.config['mme_host_name'],
+                                  loop=service.loop),
                 service.config['host_address'], service.config['mme_port'])
             asyncio.ensure_future(s6a_server, loop=service.loop)
     asyncio.ensure_future(serve(), loop=service.loop)

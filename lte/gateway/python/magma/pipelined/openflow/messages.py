@@ -103,7 +103,7 @@ class MsgChannel(object):
     def __init__(self) -> None:
         self._queue = hub.Queue()
 
-    def get(self, timeout: int=DEFAULT_TIMEOUT_SEC) -> MsgReply:
+    def get(self, timeout: int = DEFAULT_TIMEOUT_SEC) -> MsgReply:
         try:
             return self._queue.get(block=True, timeout=timeout)
         except hub.QueueEmpty:
@@ -125,6 +125,7 @@ class MessageHub(object):
     `handle_barrier` from all ofp_event.EventOFPBarrierReply events and
     `handle_error` from all ofp_event.EventOFPErrorMsg events.
     """
+
     def __init__(self, msg_hub_logger):
         self._switches = {}
         self.logger = msg_hub_logger
@@ -132,9 +133,9 @@ class MessageHub(object):
     def send(self,
              msg_list: List[MsgBase],
              datapath: Datapath,
-             txn_id: Any=None,
-             timeout: int=DEFAULT_TIMEOUT_SEC,
-             channel: Optional[MsgChannel]=None) -> MsgChannel:
+             txn_id: Any = None,
+             timeout: int = DEFAULT_TIMEOUT_SEC,
+             channel: Optional[MsgChannel] = None) -> MsgChannel:
         """
         Send a message to OVS and track the result asynchronously. Multiple
         messages can be tracked using a transaction id (txn_id).
@@ -251,28 +252,43 @@ class MessageHub(object):
             return False
         for j in range(0, len(flow.instructions)):
             # TODO add support for OFPInstructionMeter and others
-            if type(flow.instructions[j]) != dp.ofproto_parser.OFPInstructionActions:
+            if not isinstance(
+                    flow.instructions[j],
+                    dp.ofproto_parser.OFPInstructionActions):
                 continue
-            if type(msg.instructions[j]) != dp.ofproto_parser.OFPInstructionActions:
+            if not isinstance(
+                    msg.instructions[j],
+                    dp.ofproto_parser.OFPInstructionActions):
                 continue
             # Strip _nxm to handle nicira as eth_dst_nxm is same as eth_dst
-            reg_loads_flow = {i.dst.replace('_nxm', ''): i.value for i in flow.instructions[j].actions
-                              if type(i) == dp.ofproto_parser.NXActionRegLoad2}
-            reg_loads_msg = {i.dst.replace('_nxm', ''): i.value for i in msg.instructions[j].actions
-                             if type(i) == dp.ofproto_parser.NXActionRegLoad2}
+            reg_loads_flow = {
+                i.dst.replace(
+                    '_nxm',
+                    ''): i.value for i in flow.instructions[j].actions if isinstance(
+                    i,
+                    dp.ofproto_parser.NXActionRegLoad2)}
+            reg_loads_msg = {
+                i.dst.replace(
+                    '_nxm',
+                    ''): i.value for i in msg.instructions[j].actions if isinstance(
+                    i,
+                    dp.ofproto_parser.NXActionRegLoad2)}
 
             reg_loads_match = reg_loads_msg == reg_loads_flow
 
-            resubmits_flow = [i.table_id for i in flow.instructions[j].actions
-                              if type(i) == dp.ofproto_parser.NXActionResubmitTable]
-            resubmits_msg = [i.table_id for i in msg.instructions[j].actions
-                             if type(i) == dp.ofproto_parser.NXActionResubmitTable]
+            resubmits_flow = [
+                i.table_id for i in flow.instructions[j].actions if isinstance(
+                    i, dp.ofproto_parser.NXActionResubmitTable)]
+            resubmits_msg = [
+                i.table_id for i in msg.instructions[j].actions if isinstance(
+                    i, dp.ofproto_parser.NXActionResubmitTable)]
             resubmits_match = sorted(resubmits_flow) == sorted(resubmits_msg)
 
-            outputs_flow = [i.port for i in flow.instructions[j].actions
-                            if type(i) == dp.ofproto_parser.OFPActionOutput]
+            outputs_flow = [
+                i.port for i in flow.instructions[j].actions if isinstance(
+                    i, dp.ofproto_parser.OFPActionOutput)]
             outputs_msg = [i.port for i in msg.instructions[j].actions
-                           if type(i) == dp.ofproto_parser.OFPActionOutput]
+                           if isinstance(i, dp.ofproto_parser.OFPActionOutput)]
             outputs_match = sorted(outputs_flow) == sorted(outputs_msg)
 
         match_flow = {key: flow.match.get(key) for key in MATCH_ATTRIBUTES
@@ -292,7 +308,7 @@ class MessageHub(object):
         flow_match = strip_common(match_flow) == strip_common(match_msg)
 
         return flow_match and reg_loads_match and resubmits_match and \
-               outputs_match
+            outputs_match
 
     def _get_msg_index_in_flow_list(self, dp, msg, flow_list):
         for i in range(len(flow_list)):

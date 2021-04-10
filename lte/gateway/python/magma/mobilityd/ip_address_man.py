@@ -394,8 +394,8 @@ class IPAddressManager:
                 self._try_set_recycle_timer()  # start the timer to recycle
             elif version == IPAddress.IPV6:
                 # For IPv6, no recycling logic
-                ip_desc = self._store.ipv6_state_map.mark_ip_state(ip,
-                                                                   IPState.FREE)
+                ip_desc = self._store.ipv6_state_map.mark_ip_state(
+                    ip, IPState.FREE)
                 self.ipv6_allocator.release_ip(ip_desc)
                 del self._store.sid_ips_map[ip_desc.sid]
 
@@ -430,7 +430,8 @@ class IPAddressManager:
 
             # Set timer for the next round of recycling
             self._recycle_timer = None
-            if not self._store.ip_state_map.is_ip_state_map_empty(IPState.RELEASED):
+            if not self._store.ip_state_map.is_ip_state_map_empty(
+                    IPState.RELEASED):
                 self._try_set_recycle_timer()
 
     def _try_set_recycle_timer(self):

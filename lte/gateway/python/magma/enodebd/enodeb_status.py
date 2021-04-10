@@ -21,8 +21,8 @@ from lte.protos.mconfig import mconfigs_pb2
 from magma.common import serialization_utils
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.device_config.configuration_util import (find_enb_by_cell_id,
-                                                            get_enb_rf_tx_desired)
+from magma.enodebd.device_config.configuration_util import (
+    find_enb_by_cell_id, get_enb_rf_tx_desired)
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.s1ap_client import get_all_enb_state
@@ -110,7 +110,7 @@ def update_status_metrics(status: EnodebStatus) -> None:
         val = enodeb_status.get(key, None)
         if val is None:
             return 0
-        if type(val) is not bool:
+        if not isinstance(val, bool):
             logger.error('Could not cast metric value %s to int', val)
             return 0
         return int(val)  # val should be either True or False
@@ -472,7 +472,7 @@ def _get_gps_status_as_bool(enodeb: EnodebAcsStateMachine) -> bool:
 
 
 def _get_and_cache_gps_coords(enodeb: EnodebAcsStateMachine) -> Tuple[
-    str, str]:
+        str, str]:
     """
     Read the GPS coordinates of the enB from its configuration or the
     cached coordinate file if the preceding read fails. If reading from

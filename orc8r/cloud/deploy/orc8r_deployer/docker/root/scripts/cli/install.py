@@ -25,6 +25,7 @@ from .common import (
     print_info_msg,
 )
 
+
 @click.group(invoke_without_command=True)
 @click.pass_context
 def install(ctx):
@@ -34,9 +35,13 @@ def install(ctx):
     constants = ctx.obj
 
     tf_init = ["terraform", "init"]
-    tf_orc8r = [ "terraform", "apply", "-target=module.orc8r", "-auto-approve"]
-    tf_secrets = [ "terraform", "apply", "-target=module.orc8r-app.null_resource.orc8r_seed_secrets", "-auto-approve"]
-    tf_orc8r_app = [ "terraform", "apply", "-auto-approve"]
+    tf_orc8r = ["terraform", "apply", "-target=module.orc8r", "-auto-approve"]
+    tf_secrets = [
+        "terraform",
+        "apply",
+        "-target=module.orc8r-app.null_resource.orc8r_seed_secrets",
+        "-auto-approve"]
+    tf_orc8r_app = ["terraform", "apply", "-auto-approve"]
 
     if ctx.invoked_subcommand is None:
         if click.confirm('Do you want to run installation prechecks?'):
@@ -54,21 +59,24 @@ def install(ctx):
 
                 # set the kubectl after bringing up the infra
                 if tf_cmd == tf_orc8r or tf_orc8r_app:
-                    kubeconfigs = glob.glob(constants['project_dir'] + "/kubeconfig_*")
+                    kubeconfigs = glob.glob(
+                        constants['project_dir'] + "/kubeconfig_*")
                     if len(kubeconfigs) != 1:
                         if len(kubeconfigs) == 0:
                             print_success_msg('No kubeconfig found!!!')
                         else:
-                            print_error_msg("multiple kubeconfigs found %s!!!" % repr(kubeconfigs))
+                            print_error_msg(
+                                "multiple kubeconfigs found %s!!!" %
+                                repr(kubeconfigs))
                         return
                     kubeconfig = kubeconfigs[0]
                     os.environ['KUBECONFIG'] = kubeconfig
-                    print_info_msg(f'For accessing kubernetes cluster, set `export KUBECONFIG={kubeconfig}`')
+                    print_info_msg(
+                        f'For accessing kubernetes cluster, set `export KUBECONFIG={kubeconfig}`')
                 print_success_msg(f"Command {cmd} ran successfully")
 
             else:
                 print_warning_msg(f"Skipping Command {cmd}")
-
 
 
 @install.command()
@@ -78,13 +86,13 @@ def precheck(ctx):
     Performs various checks to ensure successful installation
     """
     rc = run_playbook([
-            "ansible-playbook",
-            "-v",
-            "-e",
-            "@/root/config.yml",
-            "-t",
-            "install_precheck",
-            "%s/main.yml" % ctx.obj["playbooks"]])
+        "ansible-playbook",
+        "-v",
+        "-e",
+        "@/root/config.yml",
+        "-t",
+        "install_precheck",
+        "%s/main.yml" % ctx.obj["playbooks"]])
     if rc != 0:
         print_error_msg("Install prechecks failed!!!")
         sys.exit(1)

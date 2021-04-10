@@ -53,6 +53,7 @@ TrafficTestDriver sends TrafficResponse (RESULTS) after tests have completed.
 class TrafficServerInstance(object):
     ''' Information about the server instance for a single uplink/downlink
     traffic channel '''
+
     def __init__(self, ip, port, mac):
         ''' Create a traffic server instance with the given values
 
@@ -77,6 +78,7 @@ class TrafficServerInstance(object):
 class TrafficTestInstance(object):
     ''' Information about the test instance for a single uplink/downlink
     traffic channel '''
+
     def __init__(self, is_uplink, is_udp, duration, ip, port):
         ''' Create a traffic test instance with the given values
 
@@ -107,6 +109,7 @@ class TrafficTestInstance(object):
 
 class TrafficMessage(object):
     ''' Message superclass between client and server '''
+
     def __init__(self, message, identifier, payload):
         ''' Create a TrafficMessage of the given type with the specified
         payload
@@ -169,6 +172,7 @@ TrafficRequestType = enum.unique(enum.Enum(
 
 class TrafficRequest(TrafficMessage):
     ''' Request object sent from client to server '''
+
     def __init__(self, message, identifier=None, payload=None):
         ''' Create a TrafficRequest of the given type with the specified
         payload
@@ -190,6 +194,7 @@ TrafficResponseType = enum.unique(enum.Enum(
 
 class TrafficResponse(TrafficMessage):
     ''' Response object sent from server to client '''
+
     def __init__(self, message, identifier=None, payload=None):
         ''' Create a TrafficResponse of the given type with the specified
         payload

@@ -20,6 +20,7 @@ from jinja2 import Environment, FileSystemLoader
 from prettytable import PrettyTable
 import click
 
+
 def get_input(text, default_val):
     if default_val:
         resp = click.prompt(text, default=default_val)
@@ -30,6 +31,7 @@ def get_input(text, default_val):
     resp = resp.strip("\'").strip("\"")
     return resp
 
+
 def get_json(fn: str) -> dict:
     try:
         with open(fn) as f:
@@ -38,9 +40,11 @@ def get_json(fn: str) -> dict:
         pass
     return {}
 
+
 def put_json(fn: str, cfgs: dict):
     with open(fn, 'w') as outfile:
         json.dump(cfgs, outfile)
+
 
 def add_pretty_table(fields, items):
     table = PrettyTable()
@@ -52,6 +56,7 @@ def add_pretty_table(fields, items):
         table.add_row(item)
     return table
 
+
 def render_j2_template(src_dir, dst_fn, cfg):
     env = Environment(loader=FileSystemLoader(searchpath=src_dir))
     fn = os.path.basename(dst_fn)
@@ -62,6 +67,7 @@ def render_j2_template(src_dir, dst_fn, cfg):
     except Exception as err:
         click.echo(f"Error: {fn} rendering {err!r} file ")
 
+
 class ConfigManager(object):
     '''
     ConfigManager manages the orcl configuration. It reads the variable
@@ -70,12 +76,14 @@ class ConfigManager(object):
     Currently the variables are used to configure aws cli and
     terraform.
     '''
+
     def _get_config_fn(self, component: str):
         config_dir = self.constants['config_dir']
         return f"{config_dir}/{component}.tfvars.json"
 
     def set(self, component: str, key: str, value: str):
-        click.echo(f"Setting key {key} value {value} for component {component}")
+        click.echo(
+            f"Setting key {key} value {value} for component {component}")
         cfgs = get_json(self._get_config_fn(component))
         config_vars = self.config_vars[component]
 
@@ -89,13 +97,17 @@ class ConfigManager(object):
         put_json(self._get_config_fn(component), cfgs)
 
     def configure(self, component: str):
-        click.echo(click.style(f"\nConfiguring {component} deployment variables ", underline=True))
+        click.echo(
+            click.style(
+                f"\nConfiguring {component} deployment variables ",
+                underline=True))
         cfgs = self.configs[component]
         # TODO: use a different yaml loader to ensure we load inorder
         # sort the variables to group the inputs together
         config_vars = self.config_vars[component].items()
         for config_key, config_info in sorted(config_vars, key=lambda s: s[0]):
-            config_description = config_info.get('Description', config_key).strip('.')
+            config_description = config_info.get(
+                'Description', config_key).strip('.')
             defaultValue = config_info.get('Default')
             # add defaults to the json configs to ensure we can run prechecks
             if defaultValue:
@@ -107,9 +119,9 @@ class ConfigManager(object):
 
             v = cfgs.get(config_key)
             if v:
-                inp = get_input(f"{config_key}({config_description})" , v)
+                inp = get_input(f"{config_key}({config_description})", v)
             else:
-                inp = get_input(f"{config_key}({config_description})" , v)
+                inp = get_input(f"{config_key}({config_description})", v)
 
             # strip quotes from input
             if inp:
@@ -117,7 +129,7 @@ class ConfigManager(object):
             else:
                 if v is None:
                     if click.confirm("press 'y' to set empty string and "
-                        "'n' to skip", prompt_suffix=': '):
+                                     "'n' to skip", prompt_suffix=': '):
                         cfgs[config_key] = ""
 
         self.configs[component] = cfgs
@@ -157,7 +169,6 @@ class ConfigManager(object):
             self.constants['vars_tf'],
             self.tf_vars)
 
-
     def check(self, component: str) -> bool:
         ''' check if all mandatory options of a specific component is set '''
         cfgs = self.configs[component]
@@ -168,14 +179,16 @@ class ConfigManager(object):
                 missing_cfgs.append(k)
                 valid = False
         if missing_cfgs:
-            click.echo(f"Missing {missing_cfgs!r} configs for {component} component")
+            click.echo(
+                f"Missing {missing_cfgs!r} configs for {component} component")
         else:
-            click.echo(f"All mandatory configs for {component} has been configured")
+            click.echo(
+                f"All mandatory configs for {component} has been configured")
         return valid
 
     def info(self, component: str):
         ''' pretty click.echo vars yml '''
-        click.echo (f"{component} Configuration Options")
+        click.echo(f"{component} Configuration Options")
         fields = ["Name", "Description", "Type", "Required", "Used By"]
         items = []
         for k, v in self.config_vars[component].items():
@@ -190,7 +203,7 @@ class ConfigManager(object):
 
     def show(self, component: str):
         ''' pretty click.echo existing configuration '''
-        click.echo (f"{component} Configuration")
+        click.echo(f"{component} Configuration")
         items = [[k, v] for k, v in self.configs[component].items()]
         fields = ["Name", "Configuration"]
 

@@ -20,7 +20,8 @@ from s1ap_utils import MagmadUtil
 import random
 
 
-class TestAttachAndMmeRestartLoopDetachAndMmeRestartLoopMultiUe(unittest.TestCase):
+class TestAttachAndMmeRestartLoopDetachAndMmeRestartLoopMultiUe(
+        unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE
@@ -29,7 +30,8 @@ class TestAttachAndMmeRestartLoopDetachAndMmeRestartLoopMultiUe(unittest.TestCas
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue(self):
+    def test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue(
+            self):
         """
         Multi UE attach-detach with MME restart. Steps to be followed:
         1-Attach

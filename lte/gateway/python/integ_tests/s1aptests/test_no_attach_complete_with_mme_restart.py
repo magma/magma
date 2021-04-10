@@ -107,10 +107,10 @@ class TestNoAttachCompleteWithMmeRestart(unittest.TestCase):
         response = self._s1ap_wrapper.s1_util.get_response()
 
         while response.msg_type == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND:
-            print (
-                    "Received Attach Accept retransmission from before restart",
-                    "Ignoring..."
-                  )
+            print(
+                "Received Attach Accept retransmission from before restart",
+                "Ignoring..."
+            )
             response = self._s1ap_wrapper.s1_util.get_response()
 
         self.assertEqual(

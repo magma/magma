@@ -20,12 +20,14 @@ from magma.subscriberdb.metrics import (DIAMETER_CEX_TOTAL,
                                         DIAMETER_WATCHDOG_TOTAL,
                                         DIAMETER_DISCONECT_TOTAL)
 
+
 @unique
 class BaseApplicationCommands(IntEnum):
     # Command codes defined in this application used in msg header
     CAPABILITIES_EXCHANGE = 257
     DEVICE_WATCHDOG = 280
     DISCONNECT_PEER = 282
+
 
 class BaseApplication(abc.Application):
     """
@@ -48,10 +50,10 @@ class BaseApplication(abc.Application):
     REQUIRED_FIELDS = {
         BaseApplicationCommands.CAPABILITIES_EXCHANGE:
             ['Host-IP-Address',
-            'Inband-Security-Id',
-            'Vendor-Id',
-            'Supported-Vendor-Id',
-            'Vendor-Specific-Application-Id'],
+             'Inband-Security-Id',
+             'Vendor-Id',
+             'Supported-Vendor-Id',
+             'Vendor-Specific-Application-Id'],
         BaseApplicationCommands.DEVICE_WATCHDOG:
             [],
         BaseApplicationCommands.DISCONNECT_PEER:
@@ -86,7 +88,7 @@ class BaseApplication(abc.Application):
             logging.error("Missing AVP for diameter command %d",
                           msg.header.command_code)
             resp = self._gen_response(state_id, msg,
-                                 avp.ResultCode.DIAMETER_MISSING_AVP)
+                                      avp.ResultCode.DIAMETER_MISSING_AVP)
             self.writer.send_msg(resp)
             return False
         return True
@@ -194,7 +196,8 @@ class BaseApplication(abc.Application):
             None
         """
         if self.validate_message(state_id, msg):
-            resp = self._gen_response(state_id, msg, avp.ResultCode.DIAMETER_SUCCESS)
+            resp = self._gen_response(
+                state_id, msg, avp.ResultCode.DIAMETER_SUCCESS)
             DIAMETER_WATCHDOG_TOTAL.inc()
             self.writer.send_msg(resp)
 
@@ -211,6 +214,7 @@ class BaseApplication(abc.Application):
         """
         logging.info('Received disconnect request, state id: %d', state_id)
         if self.validate_message(state_id, msg):
-            resp = self._gen_response(state_id, msg, avp.ResultCode.DIAMETER_SUCCESS)
+            resp = self._gen_response(
+                state_id, msg, avp.ResultCode.DIAMETER_SUCCESS)
             DIAMETER_DISCONECT_TOTAL.inc()
             self.writer.send_msg(resp)

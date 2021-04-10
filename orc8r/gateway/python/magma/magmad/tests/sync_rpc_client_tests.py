@@ -26,6 +26,7 @@ class SyncRPCClientTests(TestCase):
     """
     Tests for the SyncRPCClient
     """
+
     def setUp(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)

@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import tools.fab.dev_utils as dev_utils
 import sys
 
 sys.path.append('../../orc8r')
-import tools.fab.dev_utils as dev_utils
 
 
 def register_vm():

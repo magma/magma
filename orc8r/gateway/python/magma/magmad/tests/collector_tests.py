@@ -175,8 +175,8 @@ class MetricsCollectorTests(unittest.TestCase):
             len(self._collector._samples_for_service[service_name]),
             3)
         uptime_list = [
-              fam for fam in self._collector._samples_for_service[service_name]
-              if fam.name == str(metricsd_pb2.process_uptime_seconds)]
+            fam for fam in self._collector._samples_for_service[service_name]
+            if fam.name == str(metricsd_pb2.process_uptime_seconds)]
         self.assertEqual(len(uptime_list), 1)
         self.assertEqual(len(uptime_list[0].metric), 1)
         self.assertGreater(uptime_list[0].metric[0].gauge.value, 0)
@@ -349,6 +349,7 @@ class MetricsCollectorTests(unittest.TestCase):
             sample_name = randrange(10000)
             samples.append(MetricFamily(name=str(sample_name)))
         return samples
+
 
 if __name__ == "__main__":
     unittest.main()

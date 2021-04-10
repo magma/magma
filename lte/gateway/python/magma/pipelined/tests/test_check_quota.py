@@ -42,7 +42,7 @@ class UEMacAddressTest(unittest.TestCase):
 
     @classmethod
     @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:11:22:33:44:55'}]])
+                         return_value=[[{'addr': '00:11:22:33:44:55'}]])
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
         """
@@ -54,8 +54,8 @@ class UEMacAddressTest(unittest.TestCase):
         """
         super(UEMacAddressTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([],
-            ['ue_mac', 'arpd', 'check_quota'])
+        cls.service_manager = create_service_manager(
+            [], ['ue_mac', 'arpd', 'check_quota'])
         check_quota_controller_reference = Future()
         testing_controller_reference = Future()
         arp_controller_reference = Future()
@@ -183,6 +183,7 @@ class UEMacAddressTest(unittest.TestCase):
 
         with snapshot_verifier:
             wait_after_send(self.testing_controller)
+
 
 if __name__ == "__main__":
     unittest.main()

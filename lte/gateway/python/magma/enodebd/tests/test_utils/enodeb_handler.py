@@ -20,6 +20,7 @@ class EnodebHandlerTestCase(TestCase):
     """
     Sets up test class with a set of patches needed for eNodeB handlers
     """
+
     def setUp(self):
         self.patches = {
             enb_mock.GET_IP_FROM_IF_PATH:

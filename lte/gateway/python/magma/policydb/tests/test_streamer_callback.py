@@ -58,7 +58,7 @@ class ApnRuleMappingsStreamerCallbackTest(unittest.TestCase):
                 action=FlowDescription.Action.Value(
                     "PERMIT"),
             ),
-        ] # type: List[FlowDescription]
+        ]  # type: List[FlowDescription]
         no_tracking_type = PolicyRule.TrackingType.Value("NO_TRACKING")
         expected = SessionRules(
             rules_per_subscriber=[
@@ -117,10 +117,9 @@ class ApnRuleMappingsStreamerCallbackTest(unittest.TestCase):
         }
         stub = MockLocalSessionManagerStub()
 
-        stub_call_args = [] # type: List[SessionRules]
+        stub_call_args = []  # type: List[SessionRules]
         side_effect = get_SetSessionRules_side_effect(stub_call_args)
         stub.SetSessionRules = Mock(side_effect=side_effect)
-
 
         callback = ApnRuleMappingsStreamerCallback(
             stub,

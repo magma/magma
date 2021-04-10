@@ -28,6 +28,7 @@ from .verify import verify
 from .certs import certs
 from .cleanup import cleanup
 
+
 def init():
     constants = None
     try:
@@ -45,6 +46,7 @@ def init():
             sys.exit(1)
     return constants
 
+
 @click.group()
 @click.version_option()
 @click.pass_context
@@ -53,6 +55,7 @@ def cli(ctx):
     Orchestrator Deployment CLI
     """
     ctx.obj = init()
+
 
 cli.add_command(configure)
 cli.add_command(certs)

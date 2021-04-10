@@ -19,14 +19,17 @@ from lte.protos.session_manager_pb2_grpc import SetInterfaceForUserPlaneStub
 
 DEFAULT_GRPC_TIMEOUT = 5
 
-def send_node_state_association_request(node_state_info: UPFNodeState,
-                                        setinterface_stub: SetInterfaceForUserPlaneStub):
+
+def send_node_state_association_request(
+        node_state_info: UPFNodeState,
+        setinterface_stub: SetInterfaceForUserPlaneStub):
     """
     Make RPC call to send Node Association Setup/Release request to
     sessionD (SMF)
     """
     try:
-        setinterface_stub.SetUPFNodeState(node_state_info, DEFAULT_GRPC_TIMEOUT)
+        setinterface_stub.SetUPFNodeState(
+            node_state_info, DEFAULT_GRPC_TIMEOUT)
         return True
     except grpc.RpcError as err:
         logging.error(
@@ -35,8 +38,10 @@ def send_node_state_association_request(node_state_info: UPFNodeState,
             err.details())
         return False
 
-def send_periodic_session_update(upf_session_config_state: UPFSessionConfigState,
-                                 setinterface_stub: SetInterfaceForUserPlaneStub):
+
+def send_periodic_session_update(
+        upf_session_config_state: UPFSessionConfigState,
+        setinterface_stub: SetInterfaceForUserPlaneStub):
     """
     Make RPC call to send periodic messages to smf about sessions state.
     """

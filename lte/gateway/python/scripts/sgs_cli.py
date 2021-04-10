@@ -115,7 +115,8 @@ def create_parser():
         'mme_name',
         help='MME name is a 55-character FQDN, specified in 3GPP TS 23.003',
     )
-    imsi_detach_indication_parser.set_defaults(func=send_imsi_detach_indication)
+    imsi_detach_indication_parser.set_defaults(
+        func=send_imsi_detach_indication)
 
     return parser
 

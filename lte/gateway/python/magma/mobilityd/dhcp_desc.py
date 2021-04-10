@@ -65,7 +65,8 @@ class DHCPDescriptor:
         self.state_requested = state_requested
         self.server_ip = server_ip
         self.xid = xid
-        self.lease_expiration_time = datetime.now() + timedelta(seconds=lease_expiration_time)
+        self.lease_expiration_time = datetime.now(
+        ) + timedelta(seconds=lease_expiration_time)
         self.router_ip = router_ip
         if self.state == DHCPState.ACK:
             new_deadline = datetime.now() + timedelta(seconds=(lease_expiration_time / 2))

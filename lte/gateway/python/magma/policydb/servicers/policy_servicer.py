@@ -69,7 +69,8 @@ class PolicyRpcServicer(PolicyDBServicer):
             context.set_details('Failed to update rule assignments in orc8r')
             return Void()
 
-        rules_to_install = self._get_rules(request.rule_ids, request.base_names)
+        rules_to_install = self._get_rules(
+            request.rule_ids, request.base_names)
         rar = PolicyReAuthRequest(
             # Leave session id empty, re-auth for all sessions
             imsi=request.imsi,
@@ -81,8 +82,9 @@ class PolicyRpcServicer(PolicyDBServicer):
         success = self._reauth_handler.handle_policy_re_auth(rar)
         if not success:
             context.set_code(grpc.StatusCode.UNKNOWN)
-            context.set_details('Failed to enable all static rules for '
-                                'subscriber. Partial update may have succeeded')
+            context.set_details(
+                'Failed to enable all static rules for '
+                'subscriber. Partial update may have succeeded')
         return Void()
 
     def DisableStaticRules(
@@ -114,8 +116,9 @@ class PolicyRpcServicer(PolicyDBServicer):
         success = self._reauth_handler.handle_policy_re_auth(rar)
         if not success:
             context.set_code(grpc.StatusCode.UNKNOWN)
-            context.set_details('Failed to enable all static rules for '
-                                'subscriber. Partial update may have succeeded')
+            context.set_details(
+                'Failed to enable all static rules for '
+                'subscriber. Partial update may have succeeded')
         return Void()
 
     def _get_rules(

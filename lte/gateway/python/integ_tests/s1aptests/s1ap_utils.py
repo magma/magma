@@ -306,8 +306,8 @@ class S1ApUtil(object):
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
             assert (
-                    context_setup.msg_type
-                    == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                context_setup.msg_type
+                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             )
 
         logging.debug(
@@ -350,14 +350,14 @@ class S1ApUtil(object):
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = reason_type
         assert (
-                self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
-                == 0
+            self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+            == 0
         )
         if reason_type == s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value:
             response = self.get_response()
             assert (
-                    s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
-                    == response.msg_type
+                s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
+                == response.msg_type
             )
 
         # Now wait for the context release response
@@ -409,8 +409,8 @@ class S1ApUtil(object):
                 },
             )
             assert (
-                    len(total_dl_ovs_flows_created)
-                    == total_num_dl_flows_to_be_verified
+                len(total_dl_ovs_flows_created)
+                == total_num_dl_flows_to_be_verified
             )
 
             # Now verify the rules for every flow
@@ -447,7 +447,7 @@ class S1ApUtil(object):
                                 5
                             )  # sleep for 5 seconds before retrying
                         assert (
-                                len(downlink_flows) >= num_dl_flows
+                            len(downlink_flows) >= num_dl_flows
                         ), "Downlink flow missing for UE"
                         assert downlink_flows[0]["match"][ip_dst] == ue_ip_addr
                         actions = downlink_flows[0]["instructions"][0][
@@ -516,7 +516,7 @@ class S1ApUtil(object):
                     break
                 time.sleep(5)  # sleep for 5 seconds before retrying
             assert (
-                    len(paging_flows) == num_paging_flows_to_be_verified
+                len(paging_flows) == num_paging_flows_to_be_verified
             ), "Paging flow missing for UE"
 
             # TODO - Verify that the action is to send to controller
@@ -590,7 +590,6 @@ class SubscriberUtil(object):
         self._imei_idx += 1
         print("Using IMEI %s" % imei)
         return imei
-
 
     def _get_s1ap_sub(self, sid, imei):
         """
@@ -822,29 +821,29 @@ class MagmadUtil(object):
             print("MME configuration is updated successfully")
         elif ret_code == 1:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: Invalid command"
+                "Failed to "
+                + action
+                + " MME configuration. Error: Invalid command"
             )
         elif ret_code == 2:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: MME configuration file is "
-                    + "missing"
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration file is "
+                + "missing"
             )
         elif ret_code == 3:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: MME configuration's backup file "
-                    + "is missing"
+                "Failed to "
+                + action
+                + " MME configuration. Error: MME configuration's backup file "
+                + "is missing"
             )
         else:
             assert False, (
-                    "Failed to "
-                    + action
-                    + " MME configuration. Error: Unknown error"
+                "Failed to "
+                + action
+                + " MME configuration. Error: Unknown error"
             )
 
     def config_apn_correction(self, cmd):
@@ -903,7 +902,7 @@ class MagmadUtil(object):
             "sudo service sctpd restart"
         )
         for j in range(30):
-            print("Waiting for", 30-j, "seconds for restart to complete")
+            print("Waiting for", 30 - j, "seconds for restart to complete")
             time.sleep(1)
 
     def print_redis_state(self):
@@ -1019,7 +1018,7 @@ class SpgwUtil(object):
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
-                    id="rar_rule_"+rule_id,
+                    id="rar_rule_" + rule_id,
                     qos=FlowQos(
                         qci=qci_val,
                         gbr_ul=10000000,
@@ -1355,7 +1354,12 @@ class SessionManagerUtil(object):
                 )
             )
 
-    def get_policy_rule(self, policy_id, qos=None, flow_match_list=None, he_urls=None):
+    def get_policy_rule(
+            self,
+            policy_id,
+            qos=None,
+            flow_match_list=None,
+            he_urls=None):
         if qos is not None:
             policy_qos = FlowQos(
                 qci=qos["qci"],
@@ -1387,7 +1391,13 @@ class SessionManagerUtil(object):
 
         return policy_rule
 
-    def send_ReAuthRequest(self, imsi, policy_id, flow_list, qos, he_urls=None):
+    def send_ReAuthRequest(
+            self,
+            imsi,
+            policy_id,
+            flow_list,
+            qos,
+            he_urls=None):
         """
         Sends Policy RAR message to session manager
         """
@@ -1396,7 +1406,8 @@ class SessionManagerUtil(object):
         res = None
         self.get_flow_match(flow_list, flow_match_list)
 
-        policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list, he_urls)
+        policy_rule = self.get_policy_rule(
+            policy_id, qos, flow_match_list, he_urls)
 
         qos = QoSInformation(qci=qos["qci"])
 
@@ -1409,10 +1420,10 @@ class SessionManagerUtil(object):
             )
         except grpc.RpcError as err:
             print("error: GetDirectoryFieldRequest error for id: "
-                  "%s! [%s] %s" % (imsi, err.code(),err.details())
-            )
+                  "%s! [%s] %s" % (imsi, err.code(), err.details())
+                  )
 
-        if res == None:
+        if res is None:
             print("error: Couldn't find sessionid. Directoryd content:")
             self._print_directoryd_content()
 
@@ -1453,9 +1464,12 @@ class SessionManagerUtil(object):
 
     def _print_directoryd_content(self):
         try:
-            allRecordsResponse = self._directorydstub.GetAllDirectoryRecords(Void(), DEFAULT_GRPC_TIMEOUT)
+            allRecordsResponse = self._directorydstub.GetAllDirectoryRecords(
+                Void(), DEFAULT_GRPC_TIMEOUT)
         except grpc.RpcError as e:
-            print("error: couldnt print directoryd content. gRPC failed with %s: %s" % (e.code(), e.details()))
+            print(
+                "error: couldnt print directoryd content. gRPC failed with %s: %s" %
+                (e.code(), e.details()))
             return
         if allRecordsResponse is None:
             print("No records were found at directoryd")
@@ -1488,10 +1502,10 @@ class SessionManagerUtil(object):
             "allow_list_" + imsi, None, default_flow_match_list)
 
         rule_set = RuleSet(
-            apply_subscriber_wide = True,
-            apn = "",
-            static_rules = [],
-            dynamic_rules = [
+            apply_subscriber_wide=True,
+            apn="",
+            static_rules=[],
+            dynamic_rules=[
                 DynamicRuleInstall(policy_rule=policy_rule),
                 DynamicRuleInstall(policy_rule=default_policy_rule)
             ],
@@ -1499,10 +1513,10 @@ class SessionManagerUtil(object):
 
         self._local_session_manager_stub.SetSessionRules(
             SessionRules(
-                rules_per_subscriber = [
+                rules_per_subscriber=[
                     RulesPerSubscriber(
-                        imsi = imsi,
-                        rule_set = [rule_set],
+                        imsi=imsi,
+                        rule_set=[rule_set],
                     )
                 ]
             )
@@ -1574,9 +1588,11 @@ class HeaderEnrichmentUtils:
 
     def restart_envoy_service(self):
         print("restarting envoy")
-        self.magma_utils.exec_command_output("sudo service magma@envoy_controller restart")
+        self.magma_utils.exec_command_output(
+            "sudo service magma@envoy_controller restart")
         time.sleep(5)
-        self.magma_utils.exec_command_output("sudo service magma_dp@envoy restart")
+        self.magma_utils.exec_command_output(
+            "sudo service magma_dp@envoy restart")
         time.sleep(20)
         print("restarting envoy done")
 
@@ -1612,4 +1628,3 @@ class HeaderEnrichmentUtils:
                             cnt = cnt + 1
 
         return cnt
-

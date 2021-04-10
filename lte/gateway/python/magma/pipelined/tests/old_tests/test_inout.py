@@ -73,5 +73,3 @@ class InoutTest(BaseMagmaTest.MagmaControllerTest):
 
         expected = "nw_src=%s actions=set_field:0x10->metadata,resubmit(,1)" % in_net
         self.assertTrue(expected in flow_string)
-
-

@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import tools.fab.types as types
 import sys
 from typing import Dict, List
 
@@ -18,7 +19,6 @@ from fabric.api import hide, lcd, local
 
 sys.path.append('../../orc8r')
 import tools.fab.dev_utils as dev_utils  # NOQA
-import tools.fab.types as types
 
 NETWORK_ID = 'feg_test'
 
@@ -261,13 +261,14 @@ class FederationNetworkConfigs:
 
 
 class FederationNetwork:
-    def __init__(self,
-                 id: str = NETWORK_ID,
-                 name: str = 'Testing',
-                 description: str = 'Test federation network',
-                 federation: FederationNetworkConfigs = FederationNetworkConfigs(),
-                 dns: types.NetworkDNSConfig = types.NetworkDNSConfig(),
-                 subscriber_config: SubConfig = SubConfig()):
+    def __init__(
+            self,
+            id: str = NETWORK_ID,
+            name: str = 'Testing',
+            description: str = 'Test federation network',
+            federation: FederationNetworkConfigs = FederationNetworkConfigs(),
+            dns: types.NetworkDNSConfig = types.NetworkDNSConfig(),
+            subscriber_config: SubConfig = SubConfig()):
         self.id = id
         self.name = name
         self.description = description
@@ -277,12 +278,15 @@ class FederationNetwork:
 
 
 class FederationGateway:
-    def __init__(self,
-                 id: str, name: str, description: str,
-                 device: types.GatewayDevice,
-                 magmad: types.MagmadGatewayConfigs,
-                 tier: str = 'default',
-                 federation: FederationNetworkConfigs = FederationNetworkConfigs()):
+    def __init__(
+            self,
+            id: str,
+            name: str,
+            description: str,
+            device: types.GatewayDevice,
+            magmad: types.MagmadGatewayConfigs,
+            tier: str = 'default',
+            federation: FederationNetworkConfigs = FederationNetworkConfigs()):
         self.id = id
         self.name = name
         self.description = description
@@ -292,7 +296,8 @@ class FederationGateway:
         self.federation = federation
 
 
-def _register_federation_network(payload: FederationNetwork = FederationNetwork()):
+def _register_federation_network(
+        payload: FederationNetwork = FederationNetwork()):
     nid = payload.id
     if not dev_utils.does_network_exist(nid):
         dev_utils.cloud_post('feg', payload)

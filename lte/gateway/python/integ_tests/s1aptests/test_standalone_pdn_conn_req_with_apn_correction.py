@@ -26,7 +26,7 @@ class TestStandAlonePdnConnReqWithApnCorrection(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-                apn_correction=MagmadUtil.apn_correction_cmds.ENABLE)
+            apn_correction=MagmadUtil.apn_correction_cmds.ENABLE)
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
@@ -69,14 +69,15 @@ class TestStandAlonePdnConnReqWithApnCorrection(unittest.TestCase):
         req.pdnAPN_pr.pres = 1
         s = 'internet.mnc012.mcc345.gprs'
         req.pdnAPN_pr.len = len(s)
-        req.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(*[ctypes.c_ubyte(ord(c)) for c in s[:100]])
+        req.pdnAPN_pr.pdn_apn = (
+            ctypes.c_ubyte * 100)(*[ctypes.c_ubyte(ord(c)) for c in s[:100]])
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
         # Receive PDN Connectivity Reject
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value)
-        #self.assertEqual(
+        # self.assertEqual(
         #    response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_FAIL_IND.value)
 
         print("Received PDN CONNECTIVITY REJECT")
@@ -88,7 +89,7 @@ class TestStandAlonePdnConnReqWithApnCorrection(unittest.TestCase):
 
         # Disable APN correction
         self._s1ap_wrapper.magmad_util.config_apn_correction(
-                MagmadUtil.apn_correction_cmds.DISABLE)
+            MagmadUtil.apn_correction_cmds.DISABLE)
         self._s1ap_wrapper.magmad_util.restart_services(['mme'])
         for j in range(10):
             print("Waiting mme restart for", j, "seconds")

@@ -59,8 +59,9 @@ UNATTENDED_UPGRADE_STATUS = Gauge('unattended_upgrade_status',
 
 
 SERVICE_RESTART_STATUS = Counter('service_restart_status',
-                               'Count of service restarts',
-                               ['service_name', 'status'])
+                                 'Count of service restarts',
+                                 ['service_name', 'status'])
+
 
 def _get_ping_params(config):
     ping_params = []

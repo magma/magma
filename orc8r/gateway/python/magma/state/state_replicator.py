@@ -35,16 +35,19 @@ DEFAULT_SYNC_INTERVAL = 60
 DEFAULT_GRPC_TIMEOUT = 10
 GARBAGE_COLLECTION_ITERATION_INTERVAL = 2
 
+
 class StateReplicator(SDWatchdogTask):
     """
     StateReplicator periodically fetches all configured state from Redis,
     reporting any updates to the Orchestrator State service.
     """
+
     def __init__(self,
                  service: MagmaService,
                  garbage_collector: GarbageCollector,
                  grpc_client_manager: GRPCClientManager):
-        sync_interval = service.config.get('sync_interval', DEFAULT_SYNC_INTERVAL)
+        sync_interval = service.config.get(
+            'sync_interval', DEFAULT_SYNC_INTERVAL)
         super().__init__(sync_interval, service.loop)
         self._service = service
         # Garbage collector to propagate deletions back to Orchestrator
@@ -133,15 +136,18 @@ class StateReplicator(SDWatchdogTask):
                 device_id = make_scoped_device_id(key, redis_dict.state_scope)
 
                 in_mem_key = make_mem_key(device_id, redis_dict.redis_type)
-                if redis_state == None:
-                    logging.debug("Content of key %s is empty, skipping", in_mem_key)
+                if redis_state is None:
+                    logging.debug(
+                        "Content of key %s is empty, skipping", in_mem_key)
                     continue
 
                 redis_version = redis_dict.get_version(key)
                 self._state_keys_from_current_iteration.add(in_mem_key)
                 if in_mem_key in self._state_versions and \
                         self._state_versions[in_mem_key] == redis_version:
-                    logging.debug("key %s already read on this iteration, skipping", in_mem_key)
+                    logging.debug(
+                        "key %s already read on this iteration, skipping",
+                        in_mem_key)
                     continue
 
                 try:
@@ -156,10 +162,11 @@ class StateReplicator(SDWatchdogTask):
                                   key, device_id, e)
                     continue
 
-                state_proto = State(type=redis_dict.redis_type,
-                      deviceID=device_id,
-                      value=serialized_json_state.encode("utf-8"),
-                      version=redis_version)
+                state_proto = State(
+                    type=redis_dict.redis_type,
+                    deviceID=device_id,
+                    value=serialized_json_state.encode("utf-8"),
+                    version=redis_version)
 
                 logging.debug("key with version, %s contains: %s", in_mem_key,
                               serialized_json_state)
@@ -211,5 +218,3 @@ class StateReplicator(SDWatchdogTask):
         for key in deleted_keys:
             del self._state_versions[key]
         self._state_keys_from_current_iteration = set()
-
-

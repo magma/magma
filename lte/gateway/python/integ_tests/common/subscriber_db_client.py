@@ -33,7 +33,8 @@ from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
 from magma.subscriberdb.sid import SIDUtils
 
 KEY = '000102030405060708090A0B0C0D0E0F'
-#OP='11111111111111111111111111111111' -> OPc='24c05f7c2f2b368de10f252f25f6cfc2'
+# OP='11111111111111111111111111111111' ->
+# OPc='24c05f7c2f2b368de10f252f25f6cfc2'
 OPC = '24c05f7c2f2b368de10f252f25f6cfc2'
 RETRY_COUNT = 4
 RETRY_INTERVAL = 1  # seconds
@@ -215,6 +216,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
         # On gateway, changes propagate immediately
         return
 
+
 class SubscriberDbCassandra(SubscriberDbClient):
     """
     Handle subscriber action by making calls to Cassandra database of OAI HSS
@@ -230,7 +232,7 @@ class SubscriberDbCassandra(SubscriberDbClient):
         print("*********Init SubscriberDbCassandra***********")
         add_mme_cmd = "$HOME/openair-cn/scripts/data_provisioning_mme --id 3 "\
             "--mme-identity " + self.MME_IDENTITY + " --realm magma.com "\
-            "--ue-reachability 1 -C "+ self.CASSANDRA_SERVER_IP
+            "--ue-reachability 1 -C " + self.CASSANDRA_SERVER_IP
         self._run_remote_cmd(add_mme_cmd)
 
     def _run_remote_cmd(self, cmd_str):
@@ -240,8 +242,8 @@ class SubscriberDbCassandra(SubscriberDbClient):
             id_file=self.IDENTITY_FILE, args=ssh_args, user=self.HSS_USER,
             host=self.HSS_IP, cmd=cmd_str)
         output, error = subprocess.Popen(ssh_cmd, shell=True,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE).communicate()
+                                         stdout=subprocess.PIPE,
+                                         stderr=subprocess.PIPE).communicate()
         print("Output: ", output)
         print("Error: ", error)
         return output, error
@@ -252,8 +254,8 @@ class SubscriberDbCassandra(SubscriberDbClient):
         # Insert into users
         add_usr_cmd = "$HOME/openair-cn/scripts/data_provisioning_users "\
             "--apn oai.ipv4 --apn2 internet --key " + KEY + \
-            " --imsi-first " + sid + " --mme-identity "+ self.MME_IDENTITY +\
-            " --no-of-users 1 --realm magma.com --opc "+ OPC + \
+            " --imsi-first " + sid + " --mme-identity " + self.MME_IDENTITY +\
+            " --no-of-users 1 --realm magma.com --opc " + OPC + \
             " --cassandra-cluster " + self.CASSANDRA_SERVER_IP
         self._run_remote_cmd(add_usr_cmd)
 

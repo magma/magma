@@ -24,7 +24,9 @@ from magma.common.redis.serializers import (
 )
 from magma.pipelined.imsi import encode_imsi
 
-SubscriberRuleKey = namedtuple('SubscriberRuleKey', 'key_type imsi ip_addr rule_id')
+SubscriberRuleKey = namedtuple(
+    'SubscriberRuleKey',
+    'key_type imsi ip_addr rule_id')
 
 
 class RuleIDToNumMapper:
@@ -139,7 +141,12 @@ class SessionRuleToVersionMapper:
                 version = 0
         return version
 
-    def remove(self, imsi: str, ip_addr: IPAddress, rule_id: str, version: int):
+    def remove(
+            self,
+            imsi: str,
+            ip_addr: IPAddress,
+            rule_id: str,
+            version: int):
         """
         Removed the element from redis if the passed version matches the
         current one

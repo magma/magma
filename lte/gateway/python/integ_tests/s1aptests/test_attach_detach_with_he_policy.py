@@ -107,7 +107,8 @@ class TestAttachDetachWithHE(unittest.TestCase):
             imsi = "IMSI" + "".join([str(i) for i in req.imsi])
 
             he_domain1 = "192.168.129.42"
-            assert utils.he_count_record_of_imsi_to_domain(imsi, he_domain1) == 0
+            assert utils.he_count_record_of_imsi_to_domain(
+                imsi, he_domain1) == 0
 
             print(
                 "********************** Sending RAR for ", imsi)
@@ -148,7 +149,8 @@ class TestAttachDetachWithHE(unittest.TestCase):
 
             assert len(uplink_flows) > 1, "HE flow missing for UE"
 
-            assert utils.he_count_record_of_imsi_to_domain(imsi, he_domain1) == 1
+            assert utils.he_count_record_of_imsi_to_domain(
+                imsi, he_domain1) == 1
 
             print(
                 "********************** Deleting dedicated bearer for IMSI",
@@ -191,7 +193,8 @@ class TestAttachDetachWithHE(unittest.TestCase):
                 len(flows), 2, "There should only be 2 default table 0 flows"
             )
             time.sleep(20)
-            assert utils.he_count_record_of_imsi_to_domain(imsi, he_domain1) == 0
+            assert utils.he_count_record_of_imsi_to_domain(
+                imsi, he_domain1) == 0
 
 
 if __name__ == "__main__":

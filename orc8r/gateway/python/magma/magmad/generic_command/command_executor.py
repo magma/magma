@@ -24,6 +24,7 @@ class CommandExecutor(ABC):
     """
     Abstract class for command executors
     """
+
     def __init__(
             self,
             config: Dict[str, Any],

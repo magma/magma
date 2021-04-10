@@ -115,8 +115,13 @@ def _ip_desc_from_proto(proto):
     state = _desc_state_proto_to_str(proto.state)
     sid = proto.sid.id
     ip_type = _desc_type_proto_to_str(proto.type)
-    return ip_descriptor.IPDesc(ip=ip, ip_block=ip_block, state=state,
-                                sid=sid, ip_type=ip_type, vlan_id=proto.vlan_id)
+    return ip_descriptor.IPDesc(
+        ip=ip,
+        ip_block=ip_block,
+        state=state,
+        sid=sid,
+        ip_type=ip_type,
+        vlan_id=proto.vlan_id)
 
 
 def serialize_ip_block(block):

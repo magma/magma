@@ -62,9 +62,15 @@ class IPFIXController(MagmaController):
     def _get_ipfix_config(self, config_dict: Dict,
                           mconfig) -> NamedTuple:
         if 'ipfix' not in config_dict or not config_dict['ipfix']['enabled']:
-            return self.IPFIXConfig(enabled=False, probability=0,
-                collector_ip='', collector_port=0, collector_set_id=0,
-                obs_domain_id=0, obs_point_id=0, cache_timeout=0,
+            return self.IPFIXConfig(
+                enabled=False,
+                probability=0,
+                collector_ip='',
+                collector_port=0,
+                collector_set_id=0,
+                obs_domain_id=0,
+                obs_point_id=0,
+                cache_timeout=0,
                 sampling_port=0)
         collector_ip = mconfig.ipdr_export_dst.ip
         collector_port = mconfig.ipdr_export_dst.port
@@ -75,16 +81,28 @@ class IPFIXController(MagmaController):
                 collector_port = config_dict['ipfix']['collector_port']
             else:
                 self.logger.error("Missing mconfig IPDR dest IP")
-                return self.IPFIXConfig(enabled=False, probability=0,
-                    collector_ip='', collector_port=0, collector_set_id=0,
-                    obs_domain_id=0, obs_point_id=0, cache_timeout=0,
+                return self.IPFIXConfig(
+                    enabled=False,
+                    probability=0,
+                    collector_ip='',
+                    collector_port=0,
+                    collector_set_id=0,
+                    obs_domain_id=0,
+                    obs_point_id=0,
+                    cache_timeout=0,
                     sampling_port=0)
 
         if collector_port == 0:
             self.logger.error("Missing mconfig IPDR dest port")
-            return self.IPFIXConfig(enabled=False, probability=0,
-                collector_ip='', collector_port=0, collector_set_id=0,
-                obs_domain_id=0, obs_point_id=0, cache_timeout=0,
+            return self.IPFIXConfig(
+                enabled=False,
+                probability=0,
+                collector_ip='',
+                collector_port=0,
+                collector_set_id=0,
+                obs_domain_id=0,
+                obs_point_id=0,
+                cache_timeout=0,
                 sampling_port=0)
 
         if self._dpi_enabled or self._conntrackd_enabled:
@@ -138,8 +156,11 @@ class IPFIXController(MagmaController):
             self.ipfix_config.cache_timeout
         )
         try:
-            p = subprocess.Popen(action_str, shell=True,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                action_str,
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE)
             _, err = p.communicate()
             err_str = err.decode('utf-8')
             if err_str:
@@ -191,7 +212,7 @@ class IPFIXController(MagmaController):
             return
 
         if not self.ipfix_config.enabled:
-            #TODO logging higher than debug here will provide too much noise
+            # TODO logging higher than debug here will provide too much noise
             # possible fix is making ipfix a dynamic service enabled from orc8r
             self.logger.debug('IPFIX export dst not setup for adding flows')
             return

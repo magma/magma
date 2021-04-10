@@ -29,6 +29,7 @@ SubContextConfig = namedtuple('ContextConfig', ['imsi', 'ip', 'ambr',
                                                 'table_id'])
 default_ambr_config = None
 
+
 def try_grpc_call_with_retries(grpc_call, retry_count=5, retry_interval=1):
     """ Attempt a grpc call and retry if unavailable """
     for i in range(retry_count):

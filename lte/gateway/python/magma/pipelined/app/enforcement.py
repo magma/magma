@@ -87,7 +87,8 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
+        self._qos_mgr = QosManager.get_qos_manager(
+            datapath, self.loop, self._config)
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -151,7 +152,15 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
 
         return {self.tbl_num: [msg]}
 
-    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
+    def _get_rule_match_flow_msgs(
+            self,
+            imsi,
+            msisdn: bytes,
+            uplink_tunnel: int,
+            ip_addr,
+            apn_ambr,
+            rule,
+            version):
         """
         Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -169,11 +178,26 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         flow_adds = []
         for flow in rule.flow_list:
             try:
-                flow_adds.extend(self._get_classify_rule_flow_msgs(
-                    imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, flow, rule_num, priority,
-                    rule.qos, rule.hard_timeout, rule.id, rule.app_name,
-                    rule.app_service_type, self.next_main_table,
-                    version, self._qos_mgr, self._enforcement_stats_tbl, rule.he.urls))
+                flow_adds.extend(
+                    self._get_classify_rule_flow_msgs(
+                        imsi,
+                        msisdn,
+                        uplink_tunnel,
+                        ip_addr,
+                        apn_ambr,
+                        flow,
+                        rule_num,
+                        priority,
+                        rule.qos,
+                        rule.hard_timeout,
+                        rule.id,
+                        rule.app_name,
+                        rule.app_service_type,
+                        self.next_main_table,
+                        version,
+                        self._qos_mgr,
+                        self._enforcement_stats_tbl,
+                        rule.he.urls))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(
@@ -182,7 +206,15 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
                 raise err
         return flow_adds
 
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
+    def _install_flow_for_rule(
+            self,
+            imsi,
+            msisdn: bytes,
+            uplink_tunnel: int,
+            ip_addr,
+            apn_ambr,
+            rule,
+            version):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -204,15 +236,17 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
 
         flow_adds = []
         try:
-            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
+            flow_adds = self._get_rule_match_flow_msgs(
+                imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
         except FlowMatchError:
             return RuleModResult.FAILURE
 
         try:
             chan = self._msg_hub.send(flow_adds, self._datapath)
         except MagmaDPDisconnectedError:
-            self.logger.error("Datapath disconnected, failed to install rule %s"
-                              "for imsi %s", rule, imsi)
+            self.logger.error(
+                "Datapath disconnected, failed to install rule %s"
+                "for imsi %s", rule, imsi)
             return RuleModResult.FAILURE
         return self._wait_for_rule_responses(imsi, ip_addr, rule, chan)
 

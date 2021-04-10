@@ -131,8 +131,7 @@ class TestAttachDelayUeContextRelComplete(unittest.TestCase):
         uectxtrel_req = s1ap_types.ueCntxtRelReq_t()
         uectxtrel_req.ue_Id = req.ue_id
         uectxtrel_req.cause.causeVal = (
-            gpp_types.CauseRadioNetwork.RELEASE_DUE_TO_EUTRAN_GENERATED_REASON.value
-        )
+            gpp_types.CauseRadioNetwork.RELEASE_DUE_TO_EUTRAN_GENERATED_REASON.value)
 
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, uectxtrel_req

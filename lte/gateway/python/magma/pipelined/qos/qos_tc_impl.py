@@ -63,7 +63,8 @@ class TrafficClass:
 
         qid_hex = hex(qid)
         parent_qid_hex = '1:' + hex(parent_qid)
-        err = TrafficClass.tc_ops.create_htb(intf, qid_hex, max_bw, rate, parent_qid_hex)
+        err = TrafficClass.tc_ops.create_htb(
+            intf, qid_hex, max_bw, rate, parent_qid_hex)
         if err < 0 or skip_filter:
             return err
 
@@ -87,18 +88,24 @@ class TrafficClass:
             with open(fn) as f:
                 speed = f.read().strip()
         except OSError:
-            LOG.error('unable to read speed from %s defaulting to %s', fn, speed)
+            LOG.error(
+                'unable to read speed from %s defaulting to %s',
+                fn,
+                speed)
 
-        # qdisc does not support replace, so check it before creating the HTB qdisc.
+        # qdisc does not support replace, so check it before creating the HTB
+        # qdisc.
         qdisc_type = TrafficClass._get_qdisc_type(intf)
         if qdisc_type != "htb":
-            qdisc_cmd = "tc qdisc add dev {intf} root handle 1: htb".format(intf=intf)
+            qdisc_cmd = "tc qdisc add dev {intf} root handle 1: htb".format(
+                intf=intf)
             cmd_list.append(qdisc_cmd)
             LOG.info("Created root qdisc")
 
         parent_q_cmd = "tc class replace dev {intf} parent 1: classid 1:{root_qid} htb "
         parent_q_cmd += "rate {speed}Mbit ceil {speed}Mbit"
-        parent_q_cmd = parent_q_cmd.format(intf=intf, root_qid=qid_hex, speed=speed)
+        parent_q_cmd = parent_q_cmd.format(
+            intf=intf, root_qid=qid_hex, speed=speed)
         cmd_list.append(parent_q_cmd)
         tc_cmd = "tc class replace dev {intf} parent 1:{root_qid} classid 1:1 htb "
         tc_cmd += "rate {rate} ceil {speed}Mbit"
@@ -163,7 +170,8 @@ class TrafficClass:
         tc_cmd = "tc class show dev {} classid 1:{}".format(intf, qid_hex)
         args = argSplit(tc_cmd)
         try:
-            # output: class htb 1:3 parent 1:2 prio 2 rate 250Kbit ceil 500Kbit burst 1600b cburst 1600b
+            # output: class htb 1:3 parent 1:2 prio 2 rate 250Kbit ceil 500Kbit
+            # burst 1600b cburst 1600b
             raw_output = subprocess.check_output(args)
             output = raw_output.decode('utf-8')
             # return all config from 'rate' onwards
@@ -180,7 +188,8 @@ class TrafficClass:
         tc_cmd = "tc qdisc show dev {}".format(intf)
         args = argSplit(tc_cmd)
         try:
-            # output: qdisc htb 1: root refcnt 2 r2q 10 default 0 direct_packets_stat 314 direct_qlen 1000
+            # output: qdisc htb 1: root refcnt 2 r2q 10 default 0
+            # direct_packets_stat 314 direct_qlen 1000
             raw_output = subprocess.check_output(args)
             output = raw_output.decode('utf-8')
             config = output.split()
@@ -238,8 +247,11 @@ class TCManager(object):
 
     def setup(self, ):
         # initialize new qdisc
-        TrafficClass.init_qdisc(self._uplink, enable_pyroute2=self._enable_pyroute2)
-        TrafficClass.init_qdisc(self._downlink, enable_pyroute2=self._enable_pyroute2)
+        TrafficClass.init_qdisc(self._uplink,
+                                enable_pyroute2=self._enable_pyroute2)
+        TrafficClass.init_qdisc(
+            self._downlink,
+            enable_pyroute2=self._enable_pyroute2)
 
     def get_action_instruction(self, qid: int):
         # return an action and an instruction corresponding to this qid
@@ -295,7 +307,11 @@ class TCManager(object):
             for qid_tuple in qid_list:
                 qid, pqid = qid_tuple
                 if qid < self._start_idx or qid > (self._max_idx - 1):
-                    LOG.debug("qid %d out of range: (%d - %d)", qid, self._start_idx, self._max_idx)
+                    LOG.debug(
+                        "qid %d out of range: (%d - %d)",
+                        qid,
+                        self._start_idx,
+                        self._max_idx)
                     continue
                 apn_qid = pqid if pqid != self._max_idx else 0
                 st[qid] = {
@@ -315,4 +331,3 @@ class TCManager(object):
         config1 = TrafficClass.get_class_rate(intf, qid1)
         config2 = TrafficClass.get_class_rate(intf, qid2)
         return config1 == config2
-

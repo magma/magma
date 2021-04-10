@@ -25,32 +25,34 @@ from magma.enodebd.device_config.enodeb_configuration import \
     EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.logger import EnodebdLogger as logger
-from magma.enodebd.state_machines.acs_state_utils import (get_all_objects_to_add,
-                                                          get_all_objects_to_delete,
-                                                          get_all_param_values_to_set,
-                                                          get_params_to_get,
-                                                          parse_get_parameter_values_response)
+from magma.enodebd.state_machines.acs_state_utils import (
+    get_all_objects_to_add,
+    get_all_objects_to_delete,
+    get_all_param_values_to_set,
+    get_params_to_get,
+    parse_get_parameter_values_response)
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_impl import \
     BasicEnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_states import (AcsMsgAndTransition,
-                                                         AcsReadMsgResult,
-                                                         AddObjectsState,
-                                                         BaicellsSendRebootState,
-                                                         DeleteObjectsState,
-                                                         EndSessionState,
-                                                         EnodebAcsState,
-                                                         ErrorState,
-                                                         GetParametersState,
-                                                         GetRPCMethodsState,
-                                                         SendGetTransientParametersState,
-                                                         SetParameterValuesState,
-                                                         WaitEmptyMessageState,
-                                                         WaitGetParametersState,
-                                                         WaitInformMRebootState,
-                                                         WaitInformState,
-                                                         WaitRebootResponseState,
-                                                         WaitSetParameterValuesState)
+from magma.enodebd.state_machines.enb_acs_states import (
+    AcsMsgAndTransition,
+    AcsReadMsgResult,
+    AddObjectsState,
+    BaicellsSendRebootState,
+    DeleteObjectsState,
+    EndSessionState,
+    EnodebAcsState,
+    ErrorState,
+    GetParametersState,
+    GetRPCMethodsState,
+    SendGetTransientParametersState,
+    SetParameterValuesState,
+    WaitEmptyMessageState,
+    WaitGetParametersState,
+    WaitInformMRebootState,
+    WaitInformState,
+    WaitRebootResponseState,
+    WaitSetParameterValuesState)
 from magma.enodebd.tr069 import models
 
 
@@ -149,6 +151,7 @@ class BaicellsQafbWaitGetTransientParametersState(EnodebAcsState):
     Periodically read eNodeB status. Note: keep frequency low to avoid
     backing up large numbers of read operations if enodebd is busy
     """
+
     def __init__(
             self,
             acs: EnodebAcsStateMachine,
@@ -179,8 +182,8 @@ class BaicellsQafbWaitGetTransientParametersState(EnodebAcsState):
 
         # Update device configuration
         for name in name_to_val:
-            magma_value = \
-                self.acs.data_model.transform_for_magma(name, name_to_val[name])
+            magma_value = self.acs.data_model.transform_for_magma(
+                name, name_to_val[name])
             self.acs.device_cfg.set_parameter(name, magma_value)
 
         return AcsReadMsgResult(True, self.get_next_state())
@@ -217,6 +220,7 @@ class BaicellsQafbGetObjectParametersState(EnodebAcsState):
     in the data model, rather than replying with a Fault message like most
     eNB devices.
     """
+
     def __init__(
             self,
             acs: EnodebAcsStateMachine,
@@ -347,7 +351,8 @@ class BaicellsQAFBTrDataModel(DataModel):
         ParameterName.DEVICE: TrParam(DEVICE_PATH, True, TrParameterType.OBJECT, False),
         ParameterName.FAP_SERVICE: TrParam(FAPSERVICE_PATH, True, TrParameterType.OBJECT, False),
 
-        # Qualcomm units do not expose MME_Status (We assume that the eNB is broadcasting state is connected to the MME)
+        # Qualcomm units do not expose MME_Status (We assume that the eNB is
+        # broadcasting state is connected to the MME)
         ParameterName.MME_STATUS: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.X_QUALCOMM_FAPControl.OpState', True, TrParameterType.BOOLEAN, False),
         ParameterName.GPS_LAT: TrParam(DEVICE_PATH + 'FAP.GPS.latitude', True, TrParameterType.STRING, False),
         ParameterName.GPS_LONG: TrParam(DEVICE_PATH + 'FAP.GPS.longitude', True, TrParameterType.STRING, False),
@@ -375,7 +380,9 @@ class BaicellsQAFBTrDataModel(DataModel):
         ParameterName.MME_IP: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkServerList', True, TrParameterType.STRING, False),
         ParameterName.MME_PORT: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkPort', True, TrParameterType.INT, False),
         # This parameter is standard but doesn't exist
-        # ParameterName.NUM_PLMNS: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNListNumberOfEntries', True, TrParameterType.INT, False),
+        # ParameterName.NUM_PLMNS: TrParam(FAPSERVICE_PATH +
+        # 'CellConfig.LTE.EPC.PLMNListNumberOfEntries', True,
+        # TrParameterType.INT, False),
         ParameterName.TAC: TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.TAC', True, TrParameterType.INT, False),
         ParameterName.IP_SEC_ENABLE: TrParam('boardconf.ipsec.ipsecConfig.onBoot', False, TrParameterType.BOOLEAN, False),
 
@@ -394,12 +401,28 @@ class BaicellsQAFBTrDataModel(DataModel):
         ParameterName.CELL_BARRED: transform_for_enb.invert_cell_barred,
     }
     for i in range(1, NUM_PLMNS_IN_CONFIG + 1):
-        TRANSFORMS_FOR_ENB[ParameterName.PLMN_N_CELL_RESERVED % i] = transform_for_enb.cell_reserved
-        PARAMETERS[ParameterName.PLMN_N % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.' % i, True, TrParameterType.STRING, False)
-        PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True, TrParameterType.STRING, False)
-        PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False)
-        PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False)
-        PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False)
+        TRANSFORMS_FOR_ENB[ParameterName.PLMN_N_CELL_RESERVED %
+                           i] = transform_for_enb.cell_reserved
+        PARAMETERS[ParameterName.PLMN_N %
+                   i] = TrParam(FAPSERVICE_PATH +
+                                'CellConfig.1.LTE.EPC.PLMNList.%d.' %
+                                i, True, TrParameterType.STRING, False)
+        PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED %
+                   i] = TrParam(FAPSERVICE_PATH +
+                                'CellConfig.1.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' %
+                                i, True, TrParameterType.STRING, False)
+        PARAMETERS[ParameterName.PLMN_N_ENABLE %
+                   i] = TrParam(FAPSERVICE_PATH +
+                                'CellConfig.1.LTE.EPC.PLMNList.%d.Enable' %
+                                i, True, TrParameterType.BOOLEAN, False)
+        PARAMETERS[ParameterName.PLMN_N_PRIMARY %
+                   i] = TrParam(FAPSERVICE_PATH +
+                                'CellConfig.1.LTE.EPC.PLMNList.%d.IsPrimary' %
+                                i, True, TrParameterType.BOOLEAN, False)
+        PARAMETERS[ParameterName.PLMN_N_PLMNID %
+                   i] = TrParam(FAPSERVICE_PATH +
+                                'CellConfig.1.LTE.EPC.PLMNList.%d.PLMNID' %
+                                i, True, TrParameterType.STRING, False)
 
     TRANSFORMS_FOR_ENB[ParameterName.ADMIN_STATE] = transform_for_enb.admin_state
     TRANSFORMS_FOR_MAGMA = {
@@ -438,7 +461,7 @@ class BaicellsQAFBTrDataModel(DataModel):
         excluded_params = [str(ParameterName.DEVICE),
                            str(ParameterName.FAP_SERVICE)]
         names = list(filter(lambda x: (not str(x).startswith('PLMN'))
-                                      and (str(x) not in excluded_params),
+                            and (str(x) not in excluded_params),
                             cls.PARAMETERS.keys()))
         return names
 

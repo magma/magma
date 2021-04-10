@@ -80,7 +80,10 @@ class MconfigManager(Generic[T]):
         pass
 
     @abc.abstractmethod
-    def load_service_mconfig(self, service_name: str, mconfig_struct: Any) -> Any:
+    def load_service_mconfig(
+            self,
+            service_name: str,
+            mconfig_struct: Any) -> Any:
         """
         Load a specific service's managed configuration.
 
@@ -153,7 +156,10 @@ class MconfigManagerImpl(MconfigManager[GatewayConfigs]):
         except (OSError, json.JSONDecodeError, json_format.ParseError) as e:
             raise LoadConfigError('Error loading mconfig') from e
 
-    def load_service_mconfig(self, service_name: str, mconfig_struct: Any) -> Any:
+    def load_service_mconfig(
+            self,
+            service_name: str,
+            mconfig_struct: Any) -> Any:
         mconfig = self.load_mconfig()
         if service_name not in mconfig.configs_by_key:
             raise LoadConfigError(

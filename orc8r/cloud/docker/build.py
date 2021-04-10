@@ -89,7 +89,9 @@ def main() -> None:
         _down(args)
     elif args.precommit:
         _run(['build', 'test'])
-        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make precommit'])
+        _run(['run', '--rm'] +
+             _get_mnt_vols(mods) +
+             ['test', 'make precommit'])
         _down(args)
     elif args.coverage:
         _run(['up', '-d', 'postgres_test'])

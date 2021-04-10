@@ -41,6 +41,7 @@ class TestSetup(object):
         integ_test:         bool:           set true when running tests in
                                             integ setting
     """
+
     def __init__(self, apps, references, config, mconfig, loop,
                  service_manager, integ_test=False, rpc_stubs=None):
         self.apps = apps
@@ -126,6 +127,7 @@ class PipelinedController(Enum):
     NGServiceController = Controller(
         'magma.pipelined.app.ng_services', 'ng_services'
     )
+
 
 def assert_pipelined_not_running():
     """

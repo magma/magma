@@ -25,31 +25,32 @@ from magma.enodebd.device_config.enodeb_configuration import \
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.exceptions import Tr069Error
 from magma.enodebd.logger import EnodebdLogger as logger
-from magma.enodebd.state_machines.acs_state_utils import (get_all_objects_to_add,
-                                                          get_all_objects_to_delete)
+from magma.enodebd.state_machines.acs_state_utils import (
+    get_all_objects_to_add, get_all_objects_to_delete)
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_impl import \
     BasicEnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_states import (AcsMsgAndTransition,
-                                                         AcsReadMsgResult,
-                                                         AddObjectsState,
-                                                         DeleteObjectsState,
-                                                         EndSessionState,
-                                                         EnodebAcsState,
-                                                         ErrorState,
-                                                         GetParametersState,
-                                                         GetRPCMethodsState,
-                                                         SendGetTransientParametersState,
-                                                         SendRebootState,
-                                                         SetParameterValuesNotAdminState,
-                                                         WaitEmptyMessageState,
-                                                         WaitGetObjectParametersState,
-                                                         WaitGetParametersState,
-                                                         WaitGetTransientParametersState,
-                                                         WaitInformMRebootState,
-                                                         WaitInformState,
-                                                         WaitRebootResponseState,
-                                                         WaitSetParameterValuesState)
+from magma.enodebd.state_machines.enb_acs_states import (
+    AcsMsgAndTransition,
+    AcsReadMsgResult,
+    AddObjectsState,
+    DeleteObjectsState,
+    EndSessionState,
+    EnodebAcsState,
+    ErrorState,
+    GetParametersState,
+    GetRPCMethodsState,
+    SendGetTransientParametersState,
+    SendRebootState,
+    SetParameterValuesNotAdminState,
+    WaitEmptyMessageState,
+    WaitGetObjectParametersState,
+    WaitGetParametersState,
+    WaitGetTransientParametersState,
+    WaitInformMRebootState,
+    WaitInformState,
+    WaitRebootResponseState,
+    WaitSetParameterValuesState)
 from magma.enodebd.tr069 import models
 
 
@@ -129,6 +130,7 @@ class CaviumGetObjectParametersState(EnodebAcsState):
     object parameters. Instead, get the parent object PLMN_LIST
     which will include any children if they exist.
     """
+
     def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
         super().__init__()
         self.acs = acs
@@ -173,7 +175,12 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
     Cavium requires that we disable 'Admin Enable' before configuring
     most parameters
     """
-    def __init__(self, acs: EnodebAcsStateMachine, admin_value: bool, when_done: str):
+
+    def __init__(
+            self,
+            acs: EnodebAcsStateMachine,
+            admin_value: bool,
+            when_done: str):
         super().__init__()
         self.acs = acs
         self.admin_value = admin_value
@@ -192,11 +199,11 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
         param_name = ParameterName.ADMIN_STATE
         # if we want the cell to be down don't force it up
         desired_admin_value = \
-                self.acs.desired_cfg.get_parameter(param_name) \
-                and self.admin_value
+            self.acs.desired_cfg.get_parameter(param_name) \
+            and self.admin_value
         admin_value = \
-                self.acs.data_model.transform_for_enb(param_name,
-                                                      desired_admin_value)
+            self.acs.data_model.transform_for_enb(param_name,
+                                                  desired_admin_value)
         admin_path = self.acs.data_model.get_parameter(param_name).path
         param_values = {admin_path: admin_value}
 
@@ -235,13 +242,15 @@ class CaviumWaitDisableAdminEnableState(EnodebAcsState):
         self.admin_value = admin_value
 
     def read_msg(self, message: Any) -> Optional[str]:
-        if type(message) == models.Fault:
+        if isinstance(message, models.Fault):
             logger.error('Received Fault in response to SetParameterValues')
             if message.SetParameterValuesFault is not None:
                 for fault in message.SetParameterValuesFault:
                     logger.error(
                         'SetParameterValuesFault Param: %s, Code: %s, String: %s',
-                        fault.ParameterName, fault.FaultCode, fault.FaultString)
+                        fault.ParameterName,
+                        fault.FaultCode,
+                        fault.FaultString)
             raise Tr069Error(
                 'Received Fault in response to SetParameterValues '
                 '(faultstring = %s)' % message.FaultString)
@@ -252,18 +261,18 @@ class CaviumWaitDisableAdminEnableState(EnodebAcsState):
                              'Status=%d' % message.Status)
         param_name = ParameterName.ADMIN_STATE
         desired_admin_value = \
-                self.acs.desired_cfg.get_parameter(param_name) \
-                and self.admin_value
+            self.acs.desired_cfg.get_parameter(param_name) \
+            and self.admin_value
         magma_value = \
-                self.acs.data_model.transform_for_magma(param_name,
-                                                        desired_admin_value)
+            self.acs.data_model.transform_for_magma(param_name,
+                                                    desired_admin_value)
         self.acs.device_cfg.set_parameter(param_name, magma_value)
 
         if len(get_all_objects_to_delete(self.acs.desired_cfg,
-                                      self.acs.device_cfg)) > 0:
+                                         self.acs.device_cfg)) > 0:
             return AcsReadMsgResult(True, self.del_obj_transition)
         elif len(get_all_objects_to_add(self.acs.desired_cfg,
-                                      self.acs.device_cfg)) > 0:
+                                        self.acs.device_cfg)) > 0:
             return AcsReadMsgResult(True, self.add_obj_transition)
         else:
             return AcsReadMsgResult(True, self.done_transition)
@@ -331,7 +340,12 @@ class CaviumTrDataModel(DataModel):
         ParameterName.IP_SEC_ENABLE: TrParam(
             DEVICE_PATH + 'IPsec.Enable', False, TrParameterType.BOOLEAN, False),
         ParameterName.PERIODIC_INFORM_INTERVAL:
-            TrParam(DEVICE_PATH + 'ManagementServer.PeriodicInformInterval', False, TrParameterType.UNSIGNED_INT, False),
+            TrParam(
+            DEVICE_PATH +
+            'ManagementServer.PeriodicInformInterval',
+            False,
+            TrParameterType.UNSIGNED_INT,
+            False),
 
         # Management server parameters
         ParameterName.PERIODIC_INFORM_ENABLE: TrParam(
@@ -355,24 +369,33 @@ class CaviumTrDataModel(DataModel):
             FAPSERVICE_PATH + 'PerfMgmt.Config.1.Password',
             False, TrParameterType.STRING, False),
 
-        #PLMN Info
+        # PLMN Info
         ParameterName.PLMN_LIST: TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.', False, TrParameterType.OBJECT, False),
     }
 
     NUM_PLMNS_IN_CONFIG = 6
     for i in range(1, NUM_PLMNS_IN_CONFIG + 1):
-        PARAMETERS[ParameterName.PLMN_N % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.' % i, True, TrParameterType.OBJECT, False)
-        PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED % i] = TrParam(
-            FAPSERVICE_PATH
-            + 'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True, TrParameterType.BOOLEAN, False)
-        PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False)
-        PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False)
-        PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False)
+        PARAMETERS[ParameterName.PLMN_N %
+                   i] = TrParam(FAPSERVICE_PATH +
+                                'CellConfig.LTE.EPC.PLMNList.%d.' %
+                                i, True, TrParameterType.OBJECT, False)
+        PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED %
+                   i] = TrParam(FAPSERVICE_PATH +
+                                'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' %
+                                i, True, TrParameterType.BOOLEAN, False)
+        PARAMETERS[ParameterName.PLMN_N_ENABLE %
+                   i] = TrParam(FAPSERVICE_PATH +
+                                'CellConfig.LTE.EPC.PLMNList.%d.Enable' %
+                                i, True, TrParameterType.BOOLEAN, False)
+        PARAMETERS[ParameterName.PLMN_N_PRIMARY %
+                   i] = TrParam(FAPSERVICE_PATH +
+                                'CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' %
+                                i, True, TrParameterType.BOOLEAN, False)
+        PARAMETERS[ParameterName.PLMN_N_PLMNID %
+                   i] = TrParam(FAPSERVICE_PATH +
+                                'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' %
+                                i, True, TrParameterType.STRING, False)
 
     TRANSFORMS_FOR_ENB = {
         ParameterName.DL_BANDWIDTH: transform_for_enb.bandwidth,
@@ -416,7 +439,7 @@ class CaviumTrDataModel(DataModel):
         excluded_params = [str(ParameterName.DEVICE),
                            str(ParameterName.FAP_SERVICE)]
         names = list(filter(lambda x: (not str(x).startswith('PLMN'))
-                                      and (str(x) not in excluded_params),
+                            and (str(x) not in excluded_params),
                             cls.PARAMETERS.keys()))
         return names
 

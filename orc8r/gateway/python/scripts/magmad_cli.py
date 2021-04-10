@@ -116,6 +116,7 @@ def config_stateless(client, args):
     client.ConfigureStateless(
         magmad_pb2.ConfigureStatelessRequest(config_cmd=config_arg))
 
+
 def create_parser():
     """
     Creates the argparse parser with all the arguments.
@@ -132,8 +133,9 @@ def create_parser():
                                         help='Stop all magma services')
     parser_reboot = subparsers.add_parser('reboot',
                                           help='Reboot the gateway device')
-    parser_restart = subparsers.add_parser('restart_services',
-                                           help='Restart specified magma services')
+    parser_restart = subparsers.add_parser(
+        'restart_services',
+        help='Restart specified magma services')
     parser_ping = subparsers.add_parser(
         'ping',
         help='Ping a host from the gateway')
@@ -141,17 +143,15 @@ def create_parser():
         'traceroute',
         help='traceroute a host from the gateway')
     parser_get_id = subparsers.add_parser('get_gateway_id',
-                                           help='Get gateway hardware ID')
-    parser_generic_command = subparsers.add_parser('generic_command',
-                                                   help='Execute generic command')
+                                          help='Get gateway hardware ID')
+    parser_generic_command = subparsers.add_parser(
+        'generic_command', help='Execute generic command')
     parser_tail_logs = subparsers.add_parser('tail_logs',
                                              help='Tail logs')
-    parser_stateless_check = subparsers.add_parser('check_stateless',
-                                             help=\
-                                            'Check AGW stateless mode')
-    parser_stateless_config = subparsers.add_parser('config_stateless',
-                                             help=\
-                                            'Change AGW stateless mode')
+    parser_stateless_check = subparsers.add_parser(
+        'check_stateless', help='Check AGW stateless mode')
+    parser_stateless_config = subparsers.add_parser(
+        'config_stateless', help='Change AGW stateless mode')
 
     parser_ping.add_argument('hosts', nargs='+', type=str,
                              help='Hosts (URLs or IPs) to ping')
@@ -173,7 +173,7 @@ def create_parser():
     parser_tail_logs.add_argument('service', type=str, nargs='?',
                                   help='Service')
     parser_stateless_config.add_argument('switch', type=str,
-            help='Enable/Disable')
+                                         help='Enable/Disable')
 
     # Add function callbacks
     parser_start.set_defaults(func=start_services)

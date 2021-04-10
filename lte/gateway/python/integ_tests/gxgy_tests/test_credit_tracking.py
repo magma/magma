@@ -75,7 +75,8 @@ class CreditTrackingTest(unittest.TestCase):
                 ue_ipv4=sub1.ip,
             ),
         )
-        self.assertEqual(self.test_util.controller.mock_create_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_create_session.call_count, 1)
 
         packets = get_packets_for_flows(
             sub1, self.test_util.static_rules["simple_match"].flow_list)
@@ -85,10 +86,12 @@ class CreditTrackingTest(unittest.TestCase):
             self.test_util.get_packet_sender([sub1], packets, packet_count),
         )
         self.assertIsNotNone(get_from_queue(update_complete))
-        self.assertEqual(self.test_util.controller.mock_update_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_update_session.call_count, 1)
 
         self.test_util.sessiond.EndSession(SubscriberID(id=sub1.imsi))
-        self.assertEqual(self.test_util.controller.mock_terminate_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_terminate_session.call_count, 1)
 
     def test_input_output(self):
         """
@@ -134,7 +137,8 @@ class CreditTrackingTest(unittest.TestCase):
                 ue_ipv4=sub1.ip,
             ),
         )
-        self.assertEqual(self.test_util.controller.mock_create_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_create_session.call_count, 1)
 
         packets = get_packets_for_flows(
             sub1, self.test_util.static_rules["simple_match"].flow_list)
@@ -144,10 +148,12 @@ class CreditTrackingTest(unittest.TestCase):
             self.test_util.get_packet_sender([sub1], packets, packet_count),
         )
         self.assertIsNone(get_from_queue(update_complete))
-        self.assertEqual(self.test_util.controller.mock_update_session.call_count, 0)
+        self.assertEqual(
+            self.test_util.controller.mock_update_session.call_count, 0)
 
         self.test_util.sessiond.EndSession(SubscriberID(id=sub1.imsi))
-        self.assertEqual(self.test_util.controller.mock_terminate_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_terminate_session.call_count, 1)
 
         # now attach with tx (uplink packets)
         self.test_util.controller.mock_create_session = Mock(
@@ -180,9 +186,11 @@ class CreditTrackingTest(unittest.TestCase):
             self.test_util.get_packet_sender([sub1], packets, packet_count),
         )
         self.assertIsNotNone(get_from_queue(update_complete))
-        self.assertEqual(self.test_util.controller.mock_update_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_update_session.call_count, 1)
         self.test_util.sessiond.EndSession(SubscriberID(id=sub1.imsi))
-        self.assertEqual(self.test_util.controller.mock_terminate_session.call_count, 2)
+        self.assertEqual(
+            self.test_util.controller.mock_terminate_session.call_count, 2)
 
     def test_out_of_credit(self):
         """
@@ -232,7 +240,8 @@ class CreditTrackingTest(unittest.TestCase):
                 ue_ipv4=sub1.ip,
             ),
         )
-        self.assertEqual(self.test_util.controller.mock_create_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_create_session.call_count, 1)
 
         packets = get_packets_for_flows(
             sub1, self.test_util.static_rules["simple_match"].flow_list)
@@ -242,7 +251,8 @@ class CreditTrackingTest(unittest.TestCase):
 
         self.test_util.thread.run_in_greenthread(send_packets)
         self.assertIsNotNone(get_from_queue(update_complete))
-        self.assertEqual(self.test_util.controller.mock_update_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_update_session.call_count, 1)
 
         # use up last credits
         self.test_util.thread.run_in_greenthread(send_packets)
@@ -258,7 +268,8 @@ class CreditTrackingTest(unittest.TestCase):
             ),
         )
         get_from_queue(update_complete)
-        self.assertEqual(self.test_util.controller.mock_update_session.call_count, 2)
+        self.assertEqual(
+            self.test_util.controller.mock_update_session.call_count, 2)
         # wait for 1 update to trigger credit request, another to trigger
         # rule activation
         # TODO Add future to track when flows are added/deleted
@@ -267,7 +278,8 @@ class CreditTrackingTest(unittest.TestCase):
         self.assertGreater(pkt_diff, 0)
 
         self.test_util.sessiond.EndSession(SubscriberID(id=sub1.imsi))
-        self.assertEqual(self.test_util.controller.mock_terminate_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_terminate_session.call_count, 1)
 
     def test_multiple_subscribers(self):
         """
@@ -331,7 +343,8 @@ class CreditTrackingTest(unittest.TestCase):
                 ),
             )
         self.assertEqual(
-            self.test_util.controller.mock_create_session.call_count, len(subs))
+            self.test_util.controller.mock_create_session.call_count,
+            len(subs))
 
         # send packets towards all 3 rules
         flows = [rule.flow_list[0] for rule in [rule1, rule2, rule3]]
@@ -355,7 +368,8 @@ class CreditTrackingTest(unittest.TestCase):
         for sub in subs:
             self.test_util.sessiond.EndSession(SubscriberID(id=sub.imsi))
         self.assertEqual(
-            self.test_util.controller.mock_terminate_session.call_count, len(subs))
+            self.test_util.controller.mock_terminate_session.call_count,
+            len(subs))
 
 
 if __name__ == "__main__":

@@ -125,7 +125,9 @@ class Gateway:
 def cloud_get(url: str):
     resp = requests.get(url, verify=False, cert=admin_cert)
     if resp.status_code != 200:
-        raise Exception("Received a %d response: %s" % (resp.status_code, resp.text))
+        raise Exception(
+            "Received a %d response: %s" %
+            (resp.status_code, resp.text))
         return
     return resp.json()
 
@@ -140,7 +142,9 @@ def cloud_post(url: str, data: str):
     )
 
     if resp.status_code not in [200, 201, 204]:
-        raise Exception("Received a %d response: %s" % (resp.status_code, resp.text))
+        raise Exception(
+            "Received a %d response: %s" %
+            (resp.status_code, resp.text))
 
 
 def create_network_if_not_exists(url: str, network_id: str):
@@ -155,8 +159,11 @@ def create_network_if_not_exists(url: str, network_id: str):
 
         # create tier
         tier_payload = Tier(
-            id="default", name="default", version="0.0.0-0", images=[], gateways=[]
-        )
+            id="default",
+            name="default",
+            version="0.0.0-0",
+            images=[],
+            gateways=[])
         cloud_post(
             url + f"/networks/{network_id}/tiers",
             jsonpickle.pickler.encode(tier_payload),
@@ -173,7 +180,11 @@ def get_next_gateway_id(url: str, network_id: str, hw_id: str) -> (bool, str):
     return False, str(nbr)
 
 
-def register_gateway(url: str, network_id: str, hardware_id: str, tier_id: str):
+def register_gateway(
+        url: str,
+        network_id: str,
+        hardware_id: str,
+        tier_id: str):
     """
     Register XwF-M Gateway in the requested network.
     """
@@ -183,22 +194,24 @@ def register_gateway(url: str, network_id: str, hardware_id: str, tier_id: str):
     else:
         grePeer = AllowedGREPeers(ip="192.168.128.2", key=100)
         data = Gateway(
-	    name=socket.gethostname().strip(),
-	    description=f"XWFM Gateway {gid}",
-	    tier="default",
+            name=socket.gethostname().strip(),
+            description=f"XWFM Gateway {gid}",
+            tier="default",
             id=f"fbc_gw_{gid}",
             device=GatewayDevice(
                 hardware_id=hardware_id, key=ChallengeKey(key_type="ECHO")
-	    ),
-	    magmad=MagmadGatewayConfigs(
-	        autoupgrade_enabled=True,
-	        autoupgrade_poll_interval=60,
-	        checkin_interval=60,
-	        checkin_timeout=30,
-	    ),
-	    carrier_wifi=CarrierWiFiConfig(grePeers=[grePeer]),
+            ),
+            magmad=MagmadGatewayConfigs(
+                autoupgrade_enabled=True,
+                autoupgrade_poll_interval=60,
+                checkin_interval=60,
+                checkin_timeout=30,
+            ),
+            carrier_wifi=CarrierWiFiConfig(grePeers=[grePeer]),
         )
-        cloud_post(url + f"/cwf/{network_id}/gateways", jsonpickle.pickler.encode(data))
+        cloud_post(
+            url + f"/cwf/{network_id}/gateways",
+            jsonpickle.pickler.encode(data))
 
 
 def create_parser():

@@ -108,7 +108,7 @@ def _get_param_values_by_path(
         path = param_value.Name
         value = param_value.Value.Data
         logger.debug('(Inform msg) Received parameter: %s = %s', path,
-                      value)
+                     value)
         param_values_by_path[path] = value
     return param_values_by_path
 
@@ -131,6 +131,7 @@ def are_tr069_params_equal(param_a: Any, param_b: Any, type_: str) -> bool:
     if cmp_a.lower() in ['true', 'false']:
         cmp_a, cmp_b = map(lambda s: s.lower(), (cmp_a, cmp_b))
     return cmp_a == cmp_b
+
 
 def get_all_objects_to_add(
     desired_cfg: EnodebConfiguration,

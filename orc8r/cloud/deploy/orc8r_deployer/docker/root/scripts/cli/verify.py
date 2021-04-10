@@ -21,6 +21,7 @@ from .common import (
     print_error_msg,
     print_success_msg)
 
+
 @click.group()
 @click.pass_context
 def verify(ctx):
@@ -28,6 +29,7 @@ def verify(ctx):
     Run post deployment checks on orc8r
     """
     pass
+
 
 @verify.command('sanity')
 @click.pass_context
@@ -44,7 +46,9 @@ def verify_sanity(ctx):
             if len(kubeconfigs) == 0:
                 print_success_msg('No kubeconfig found!!!')
             else:
-                print_error_msg("multiple kubeconfigs found %s!!!" % repr(kubeconfigs))
+                print_error_msg(
+                    "multiple kubeconfigs found %s!!!" %
+                    repr(kubeconfigs))
             return
         kubeconfig = kubeconfigs[0]
 
@@ -52,13 +56,13 @@ def verify_sanity(ctx):
     os.environ["K8S_AUTH_KUBECONFIG"] = kubeconfig
 
     rc = run_playbook([
-            "ansible-playbook",
-            "-v",
-            "-e",
-            "@/root/config.yml",
-            "-t",
-            "verify_sanity",
-            "%s/main.yml" % constants["playbooks"]])
+        "ansible-playbook",
+        "-v",
+        "-e",
+        "@/root/config.yml",
+        "-t",
+        "verify_sanity",
+        "%s/main.yml" % constants["playbooks"]])
     if rc != 0:
         print_error_msg("Post deployment verification checks failed!!!")
         sys.exit(1)

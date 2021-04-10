@@ -23,6 +23,7 @@ from magma.subscriberdb.store.sqlite import SqliteStore
 
 from magma.subscriberdb.sid import SIDUtils
 
+
 class StoreTests(unittest.TestCase):
     """
     Test class for the CachedStore subscriber storage
@@ -31,7 +32,7 @@ class StoreTests(unittest.TestCase):
     def setUp(self):
         cache_size = 3
         self._tmpfile = tempfile.TemporaryDirectory()
-        sqlite = SqliteStore(self._tmpfile.name +'/')
+        sqlite = SqliteStore(self._tmpfile.name + '/')
         self._store = CachedStore(sqlite, cache_size)
 
     def tearDown(self):
@@ -148,10 +149,13 @@ class StoreTests(unittest.TestCase):
 
         subs = self._store.get_subscriber_data(sid1)
         self.assertEqual(subs.lte.auth_key, b'5678')  # config updated
-        self.assertEqual(subs.state.lte_auth_next_seq, 1000)  # state left intact
+        self.assertEqual(
+            subs.state.lte_auth_next_seq,
+            1000)  # state left intact
 
         with self.assertRaises(SubscriberNotFoundError):
-            self._store.get_subscriber_data(sid2)  # sub2 was removed during resync
+            # sub2 was removed during resync
+            self._store.get_subscriber_data(sid2)
 
     def test_lru_cache_invl(self):
         """

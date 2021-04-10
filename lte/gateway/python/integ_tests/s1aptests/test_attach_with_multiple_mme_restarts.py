@@ -19,6 +19,7 @@ import s1ap_types
 import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
+
 class TestAttachWithMultipleMmeRestarts(unittest.TestCase):
 
     def setUp(self):
@@ -60,7 +61,9 @@ class TestAttachWithMultipleMmeRestarts(unittest.TestCase):
         sqn_recvd = s1ap_types.ueSqnRcvd_t()
         sqn_recvd.pres = 0
         auth_res.sqnRcvd = sqn_recvd
-        print("************************* Sending Auth Response ue-id", auth_res.ue_Id)
+        print(
+            "************************* Sending Auth Response ue-id",
+            auth_res.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
         )

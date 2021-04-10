@@ -26,6 +26,7 @@ class ShellCommandExecutor(CommandExecutor):
     The shell command executor stores shell commands from the service config
     into its dispatch table
     """
+
     def __init__(
             self,
             config: Dict[str, Any],

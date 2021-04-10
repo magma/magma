@@ -29,6 +29,7 @@ from orc8r.protos.service303_pb2 import ServiceStatus
 
 class EnodebdRpcServicer(EnodebdServicer):
     """ gRPC based server for enodebd """
+
     def __init__(self, state_machine_manager: StateMachineManager) -> None:
         self.state_machine_manager = state_machine_manager
 

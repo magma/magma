@@ -52,11 +52,17 @@ class ArpController(MagmaController):
         'dpset': dpset.DPSet,
     }
 
-    ArpdConfig = namedtuple(
-        'ArpdConfig',
-        ['virtual_iface', 'virtual_mac', 'ue_ip_blocks', 'cwf_check_quota_ip',
-         'cwf_bridge_mac', 'mtr_ip', 'mtr_mac', 'enable_nat', 'dp_router_enabled'],
-    )
+    ArpdConfig = namedtuple('ArpdConfig',
+                            ['virtual_iface',
+                             'virtual_mac',
+                             'ue_ip_blocks',
+                             'cwf_check_quota_ip',
+                             'cwf_bridge_mac',
+                             'mtr_ip',
+                             'mtr_mac',
+                             'enable_nat',
+                             'dp_router_enabled'],
+                            )
 
     def __init__(self, *args, **kwargs):
         super(ArpController, self).__init__(*args, **kwargs)
@@ -78,7 +84,8 @@ class ArpController(MagmaController):
 
         enable_nat = config_dict.get('enable_nat', True)
         # if NAT is disabled, enable router by default.
-        dp_router_enabled = config_dict.get('dp_router_enabled', not enable_nat)
+        dp_router_enabled = config_dict.get(
+            'dp_router_enabled', not enable_nat)
 
         setup_type = config_dict.get('setup_type', None)
 
@@ -146,13 +153,15 @@ class ArpController(MagmaController):
             # UE_FLOW_PRIORITY    : Router IP
             # UE_FLOW_PRIORITY -1 : drop flow for untagged arp requests
             # DEFAULT_PRIORITY    : ARP responder for all tagged IPs. Table
-            #                       zero would tag ARP requests for valid UE IPs.
+            # zero would tag ARP requests for valid UE IPs.
             self.logger.info("APR: Non-Nat special mac %s",
                              self.config.virtual_mac)
 
             if self.config.dp_router_enabled:
-                self._install_router_arp_for_conf_ip_blocks(datapath, flows.UE_FLOW_PRIORITY)
-                self._install_router_arp_flows_from_mobility(datapath, flows.UE_FLOW_PRIORITY)
+                self._install_router_arp_for_conf_ip_blocks(
+                    datapath, flows.UE_FLOW_PRIORITY)
+                self._install_router_arp_flows_from_mobility(
+                    datapath, flows.UE_FLOW_PRIORITY)
 
             self._install_drop_rule_for_untagged_arps(datapath)
 
@@ -185,8 +194,11 @@ class ArpController(MagmaController):
                     "%s is in directoryd, but not an active UE", rec.id)
                 continue
             if rec.fields['ipv4_addr'] and rec.fields['mac_addr']:
-                self.logger.debug("Restoring arp for IMSI %s, ip %s mac %s",
-                                  rec.id, rec.fields['ipv4_addr'], rec.fields['mac_addr'])
+                self.logger.debug(
+                    "Restoring arp for IMSI %s, ip %s mac %s",
+                    rec.id,
+                    rec.fields['ipv4_addr'],
+                    rec.fields['mac_addr'])
                 self.add_ue_arp_flows(self._datapath,
                                       rec.fields['ipv4_addr'],
                                       rec.fields['mac_addr'])
@@ -220,10 +232,14 @@ class ArpController(MagmaController):
             - For ARP response: pass to next table.
         """
         self.set_incoming_arp_flows_res(datapath, ip_block, flow_priority)
-        self.set_incoming_arp_flows_req(datapath, ip_block, src_mac, flow_priority)
+        self.set_incoming_arp_flows_req(
+            datapath, ip_block, src_mac, flow_priority)
 
-    def set_incoming_arp_flows_res(self, datapath, ip_block,
-                                   flow_priority: int = flows.UE_FLOW_PRIORITY):
+    def set_incoming_arp_flows_res(
+            self,
+            datapath,
+            ip_block,
+            flow_priority: int = flows.UE_FLOW_PRIORITY):
         parser = datapath.ofproto_parser
 
         arp_resp_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
@@ -237,8 +253,12 @@ class ArpController(MagmaController):
                                              priority=flow_priority,
                                              resubmit_table=self.next_table)
 
-    def set_incoming_arp_flows_req(self, datapath, ip_block, src_mac,
-                                   flow_priority: int = flows.UE_FLOW_PRIORITY):
+    def set_incoming_arp_flows_req(
+            self,
+            datapath,
+            ip_block,
+            src_mac,
+            flow_priority: int = flows.UE_FLOW_PRIORITY):
         parser = datapath.ofproto_parser
         ofproto = datapath.ofproto
 
@@ -322,7 +342,9 @@ class ArpController(MagmaController):
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            direction=Direction.OUT)
         actions = [
-            parser.NXActionRegLoad2(dst='eth_dst', value=self.config.virtual_mac),
+            parser.NXActionRegLoad2(
+                dst='eth_dst',
+                value=self.config.virtual_mac),
         ]
         flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
                                              actions,
@@ -337,8 +359,10 @@ class ArpController(MagmaController):
         self.logger.info('Setting local eth_dst to %s for ip %s',
                          self.config.virtual_iface, self.config.mtr_ip)
         parser = datapath.ofproto_parser
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           ipv4_dst=self.config.mtr_ip, direction=Direction.OUT)
+        match = MagmaMatch(
+            eth_type=ether_types.ETH_TYPE_IP,
+            ipv4_dst=self.config.mtr_ip,
+            direction=Direction.OUT)
         actions = [
             parser.NXActionRegLoad2(dst='eth_dst', value=self.config.mtr_mac),
         ]
@@ -368,9 +392,13 @@ class ArpController(MagmaController):
         # Set so packet skips enforcement and send to egress
         actions = [load_passthrough(parser)]
 
-        flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
-                                             actions=actions, priority=flows.UE_FLOW_PRIORITY - 1,
-                                             resubmit_table=self.next_table)
+        flows.add_resubmit_next_service_flow(
+            datapath,
+            self.table_num,
+            match,
+            actions=actions,
+            priority=flows.UE_FLOW_PRIORITY - 1,
+            resubmit_table=self.next_table)
 
     def _install_router_arp_flows_from_mobility(self, datapath, priority):
         resp = mobilityd_list_ip_blocks()
@@ -391,7 +419,8 @@ class ArpController(MagmaController):
 
     def _install_router_arp_for_conf_ip_blocks(self, datapath, priority):
         for ip_block in self.config.ue_ip_blocks:
-            self._install_subnet_first_host_arp_flows(datapath, ip_block, priority)
+            self._install_subnet_first_host_arp_flows(
+                datapath, ip_block, priority)
 
     def _install_subnet_first_host_arp_flows(self, datapath, subnet, priority):
         block = ipaddress.ip_network(subnet)

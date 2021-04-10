@@ -29,7 +29,7 @@ from orc8r.protos import magmad_pb2, magmad_pb2_grpc
 from magma.common.rpc_utils import return_void, set_grpc_err
 from magma.common.service import MagmaService
 from magma.common.stateless_agw import check_stateless_agw, \
-enable_stateless_agw, disable_stateless_agw
+    enable_stateless_agw, disable_stateless_agw
 from magma.configuration.mconfig_managers import MconfigManager
 from magma.magmad.generic_command.command_executor import \
     CommandExecutor
@@ -113,6 +113,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         If no services specified, restart all services.
         """
         self._print_grpc(request)
+
         async def run_restart():
             await asyncio.sleep(1)
             await self._service_manager.restart_services(request.services)
@@ -132,7 +133,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         self._print_grpc(request)
         if request.configs_by_key is None or \
-            len(request.configs_by_key) == 0:
+                len(request.configs_by_key) == 0:
             self._mconfig_manager.delete_stored_mconfig()
         else:
             # TODO: support streaming mconfig manager impl
@@ -165,7 +166,8 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         Get gateway hardware ID
         """
-        return magmad_pb2.GetGatewayIdResponse(gateway_id=snowflake.snowflake())
+        return magmad_pb2.GetGatewayIdResponse(
+            gateway_id=snowflake.snowflake())
 
     def GenericCommand(self, request, context):
         """
@@ -271,9 +273,8 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         status = check_stateless_agw()
         logging.debug("AGW mode is %s",
-                magmad_pb2.CheckStatelessResponse.AGWMode.Name(status))
+                      magmad_pb2.CheckStatelessResponse.AGWMode.Name(status))
         return magmad_pb2.CheckStatelessResponse(agw_mode=status)
-
 
     @return_void
     def ConfigureStateless(self, request, context):
@@ -289,7 +290,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         elif request.config_cmd == magmad_pb2.ConfigureStatelessRequest.DISABLE:
             logging.info("RPC: config command disable")
             disable_stateless_agw()
-
 
     @staticmethod
     def __ping_specified_hosts(ping_param_protos):
@@ -361,7 +361,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                                      MessageToJson(message))
             # add indentation
             padding = 2 * ' '
-            log_msg =''.join( "{}{}".format(padding, line)
+            log_msg = ''.join("{}{}".format(padding, line)
                               for line in log_msg.splitlines(True))
 
             log_msg = "GRPC message:\n{}".format(log_msg)

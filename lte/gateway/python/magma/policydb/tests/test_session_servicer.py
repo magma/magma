@@ -130,9 +130,9 @@ class SessionRpcServicerTest(unittest.TestCase):
                 ),
                 apn='apn1',
             ),
-            rat_specific_context = RatSpecificContext(
-                lte_context = LTESessionContext(
-                    imsi_plmn_id = '00101',
+            rat_specific_context=RatSpecificContext(
+                lte_context=LTESessionContext(
+                    imsi_plmn_id='00101',
                 ),
             ),
         )
@@ -158,9 +158,9 @@ class SessionRpcServicerTest(unittest.TestCase):
                 ),
                 apn='apn2',
             ),
-            rat_specific_context = RatSpecificContext(
-                lte_context = LTESessionContext(
-                    imsi_plmn_id = '00101',
+            rat_specific_context=RatSpecificContext(
+                lte_context=LTESessionContext(
+                    imsi_plmn_id='00101',
                 ),
             ),
         )
@@ -186,9 +186,9 @@ class SessionRpcServicerTest(unittest.TestCase):
                 ),
                 apn='apn1',
             ),
-            rat_specific_context = RatSpecificContext(
-                lte_context = LTESessionContext(
-                    imsi_plmn_id = '00101',
+            rat_specific_context=RatSpecificContext(
+                lte_context=LTESessionContext(
+                    imsi_plmn_id='00101',
                 ),
             ),
         )
@@ -236,8 +236,11 @@ class SessionRpcServicerTest(unittest.TestCase):
         msg.session_id = 'session_id_123'
         resp = self.servicer.TerminateSession(msg, None)
         self.assertEqual(resp.sid, 'abc', 'SID should be same as request')
-        self.assertEqual(resp.session_id, 'session_id_123', 'session ID should '
-                         'be same as request')
+        self.assertEqual(
+            resp.session_id,
+            'session_id_123',
+            'session ID should '
+            'be same as request')
 
     def _rm_whitespace(self, inp: str) -> str:
         return inp.replace(' ', '').replace('\n', '')

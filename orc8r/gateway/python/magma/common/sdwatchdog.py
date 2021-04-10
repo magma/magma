@@ -41,8 +41,8 @@ class SDWatchdog(object):
     def __init__(
             self,
             tasks: Optional[List[SDWatchdogTask]],
-            update_status: bool=False,  # update systemd status field
-            period: float=30) -> None:
+            update_status: bool = False,  # update systemd status field
+            period: float = 30) -> None:
         """
         coroutine that will check each task's time_last_completed_loop to
         ensure that it was updated every in the last timeout_s seconds.

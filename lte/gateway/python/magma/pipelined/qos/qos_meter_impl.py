@@ -60,12 +60,17 @@ class MeterManager(object):
         return None, parser.OFPInstructionMeter(meter_id, ofproto.OFPIT_METER)
 
     # pylint:disable=unused-argument
-    def add_qos(self, _, qos_info: QosInfo, parent=None, skip_filter=False) -> int:
+    def add_qos(
+            self,
+            _,
+            qos_info: QosInfo,
+            parent=None,
+            skip_filter=False) -> int:
         if self._qos_impl_broken:
             raise RuntimeError(BROKEN_KERN_ERROR_MSG)
 
         if parent:
-            #TODO add ovs meter logic to handle APN AMBR
+            # TODO add ovs meter logic to handle APN AMBR
             pass
 
         meter_id = self._id_manager.allocate_idx()
@@ -76,7 +81,12 @@ class MeterManager(object):
         return meter_id
 
     # pylint:disable=unused-argument
-    def remove_qos(self, meter_id: int, d, recovery_mode=False, skip_filter=False):
+    def remove_qos(
+            self,
+            meter_id: int,
+            d,
+            recovery_mode=False,
+            skip_filter=False):
         LOG.debug("Removing meter %d d %d recovery_mode %s", meter_id,
                   d, recovery_mode)
         if meter_id < self._start_idx or meter_id > (self._max_idx - 1):

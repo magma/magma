@@ -77,7 +77,8 @@ def deactivate_he_urls_for_ue(ip: IPAddress, rule_id: str) -> bool:
     client = EnvoyControllerStub(chan)
 
     try:
-        he_info = DeactivateUEHeaderEnrichmentRequest(ue_ip=ip, rule_id=rule_id)
+        he_info = DeactivateUEHeaderEnrichmentRequest(
+            ue_ip=ip, rule_id=rule_id)
         ret = client.DeactivateUEHeaderEnrichment(he_info, timeout=TIMEOUT_SEC)
         return ret.result == DeactivateUEHeaderEnrichmentResult.SUCCESS
     except grpc.RpcError as err:
@@ -87,4 +88,3 @@ def deactivate_he_urls_for_ue(ip: IPAddress, rule_id: str) -> bool:
             err.details())
 
     return False
-

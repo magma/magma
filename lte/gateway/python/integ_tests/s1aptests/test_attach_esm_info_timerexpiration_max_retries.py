@@ -86,12 +86,11 @@ class TestEsmInformationMaxRetries(unittest.TestCase):
         for i in range(num_of_expires):
             # Esm Information Request indication
             print(
-                "Received Esm Information Request ue-id", sec_mode_complete.ue_Id
-            )
+                "Received Esm Information Request ue-id",
+                sec_mode_complete.ue_Id)
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value
-            )
+            self.assertEqual(response.msg_type,
+                             s1ap_types.tfwCmd.UE_ESM_INFORMATION_REQ.value)
             esm_info_req = response.cast(s1ap_types.ueEsmInformationReq_t)
 
         # Sleep for 5 seconds to trigger last max retry count timer expiry

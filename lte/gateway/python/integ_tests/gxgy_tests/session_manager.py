@@ -17,7 +17,8 @@ from lte.protos.session_manager_pb2 import ChargingCredit, CreditUnit, \
 from ryu.lib import hub
 
 
-class MockSessionManager(session_manager_pb2_grpc.CentralSessionControllerServicer):
+class MockSessionManager(
+        session_manager_pb2_grpc.CentralSessionControllerServicer):
     def __init__(self, *args, **kwargs):
         super(MockSessionManager, self).__init__(*args, **kwargs)
         self.mock_create_session = None
@@ -53,10 +54,13 @@ def get_from_queue(q, retries=10, sleep_time=0.5):
     return None
 
 
-def get_standard_update_response(update_complete, monitor_complete, quota,
-                                 is_final=False,
-                                 success=True,
-                                 monitor_action=UsageMonitoringCredit.CONTINUE):
+def get_standard_update_response(
+        update_complete,
+        monitor_complete,
+        quota,
+        is_final=False,
+        success=True,
+        monitor_action=UsageMonitoringCredit.CONTINUE):
     """
     Create a CreditUpdateResponse with some useful defaults
     Args:

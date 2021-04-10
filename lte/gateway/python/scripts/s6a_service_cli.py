@@ -40,7 +40,8 @@ def create_parser():
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
     parser_delete_subscriber = subparsers.add_parser('delete',
                                                      help='Delete Subscriber')
-    # usage: ./python/scripts/s6a_service_cli.py delete IMSI12345 IMSI23456 IMSI34567
+    # usage: ./python/scripts/s6a_service_cli.py delete IMSI12345 IMSI23456
+    # IMSI34567
     parser_delete_subscriber.add_argument('imsi_list', nargs='+',
                                           help='imsis to delete')
 

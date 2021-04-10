@@ -30,6 +30,7 @@ class MockSessionProxyResponderStub:
     This Mock SessionProxyResponderStub will always respond with a success to
     a received RAR
     """
+
     def __init__(self):
         pass
 
@@ -41,6 +42,7 @@ class MockSessionProxyResponderStub:
 
 class MockPolicyAssignmentControllerStub:
     """ Always succeeds by not raising an error """
+
     def __init__(self):
         pass
 
@@ -53,6 +55,7 @@ class MockPolicyAssignmentControllerStub:
 
 class MockPolicyAssignmentControllerStub2:
     """ Always fails """
+
     def __init__(self):
         pass
 
@@ -78,8 +81,8 @@ class PolicyRpcServicerTest(unittest.TestCase):
                                        MockSessionProxyResponderStub())
 
         servicer = PolicyRpcServicer(reauth_handler,
-                                           rules_by_basename,
-                                           MockPolicyAssignmentControllerStub())
+                                     rules_by_basename,
+                                     MockPolicyAssignmentControllerStub())
 
         # Bind the rpc server to a free port
         thread_pool = futures.ThreadPoolExecutor(max_workers=10)

@@ -191,7 +191,7 @@ def extract_enums(in_fname, out_fname):
         identifier('name') + Optional(_equal + integer('value')))
     enum_list = Group(enum_value + ZeroOrMore(_comma + enum_value))
     enum = _enum + Optional(identifier('enum_prefix')) + _lcurl + \
-           enum_list('list') + _rcurl + Optional(identifier('enum_postfix'))
+        enum_list('list') + _rcurl + Optional(identifier('enum_postfix'))
     enum.ignore(cppStyleComment)
 
     for item, _, _ in enum.scanString(sample):  # item, start, stop
@@ -255,7 +255,7 @@ def extract_inner_struct(parsed_struct, out_fname):
     params = _extract_inner_params(parsed_struct)
     _write_class(out_fname, parsed_struct.inner_struct, params, "Structure")
     return parsed_struct.inner_struct, parsed_struct.inner_param_name, None, \
-           parsed_struct.length
+        parsed_struct.length
 
 
 def extract_inner_union(parsed_union, out_fname):
@@ -273,12 +273,12 @@ def extract_inner_union(parsed_union, out_fname):
     union_type_name = parsed_union.inner_param_name.title()
     _write_class(out_fname, union_type_name, params, "Union")
     return union_type_name, parsed_union.inner_param_name, None, \
-           parsed_union.length
+        parsed_union.length
 
 
 def extract_simple_param(parsed_struct):
     return parsed_struct[0].param_type, parsed_struct[0].param_name, \
-           parsed_struct[0].ptr, parsed_struct[0].length
+        parsed_struct[0].ptr, parsed_struct[0].length
 
 
 def normalize_param(param_type, param_name, ptr, length):
@@ -304,7 +304,7 @@ def normalize_param(param_type, param_name, ptr, length):
     else:
         # Assert we know about this struct or const
         assert p_type in c_struct or p_type in defines or \
-               p_type in anon_types or p_type in enums, \
+            p_type in anon_types or p_type in enums, \
             "{} not in {} or {} or {} or {}".format(p_type, c_struct, defines,
                                                     anon_types, enums)
     if ptr:
@@ -364,8 +364,8 @@ def extract_structs(in_fname, out_fname):
                                    anonymous_union_param('anon_union')))
 
     struct = _struct + Optional(identifier('struct_prefix')) + _lcurl + \
-             struct_list('list') + _rcurl + \
-             Optional(identifier('struct_postfix')) + _semi_colon
+        struct_list('list') + _rcurl + \
+        Optional(identifier('struct_postfix')) + _semi_colon
     struct.ignore(cppStyleComment)
 
     for item, _, _ in struct.scanString(sample):  # item, start, stop

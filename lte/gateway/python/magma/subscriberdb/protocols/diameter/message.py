@@ -26,6 +26,7 @@ FLAG_RETRANSMITTED = 0x10
 
 def flag_getter(mask):
     """Convenience method for reading command flags"""
+
     def func(self):
         return self.command_flags & mask != 0
     return func
@@ -33,6 +34,7 @@ def flag_getter(mask):
 
 def flag_setter(mask):
     """Convenience method for setting command flags"""
+
     def func(self, value):
         self.command_flags &= ~mask
         if value:
@@ -276,7 +278,7 @@ class Message(object):
             an iterator on all AVPs that match
         """
         return filter(lambda element: element.vendor == vendor and
-                                      element.code == code, self._avps)
+                      element.code == code, self._avps)
 
     def find_avp(self, vendor, code):
         """

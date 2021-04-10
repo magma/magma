@@ -173,7 +173,7 @@ async def download_update(
             MAGMA_GITHUB_URL)
     else:
         git_clone_cmd = "git -C {} clone {}".format(MAGMA_GITHUB_PATH,
-            MAGMA_GITHUB_URL)
+                                                    MAGMA_GITHUB_URL)
 
     await run_command(git_clone_cmd, shell=True, check=True)
 

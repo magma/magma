@@ -99,6 +99,7 @@ class TrafficTestServerDispatcher(socketserver.TCPServer):
     create with the iperf3 module must run on the main thread, else it will run
     into a seg fault in the iperf3 binary.
     '''
+
     def __init__(self, daemon, host, port, loglevel):
         ''' Initialize the TrafficTestServerDispatcher
 
@@ -315,6 +316,7 @@ class TrafficTestServer(socketserver.StreamRequestHandler):
     allowing for message passing between the dispatcher and each server for
     events like shutdown.
     '''
+
     def __init__(self, connection, *args):
         ''' Create a server with some additional arguments
 
@@ -611,7 +613,7 @@ class TrafficTestDriver(object):
             threads += (thread,)
             thread.start()
         self._server.log.debug('Driver %d has started %d iperf3 servers',
-                                id(self), len(self._iperfs))
+                               id(self), len(self._iperfs))
 
         # Send STARTED message to let client know that we've spun everything up
         self._server.send_resp(

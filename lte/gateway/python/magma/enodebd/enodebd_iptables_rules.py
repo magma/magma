@@ -61,7 +61,11 @@ async def check_and_apply_iptables_rules(port: str,
                                          enodebd_public_ip: str,
                                          enodebd_ip: str) -> None:
     command = 'sudo iptables -t nat -L'
-    output = subprocess.run(command, shell=True, stdout=subprocess.PIPE, check=True)
+    output = subprocess.run(
+        command,
+        shell=True,
+        stdout=subprocess.PIPE,
+        check=True)
     command_output = output.stdout.decode('utf-8').strip()
     prerouting_rules = _get_prerouting_rules(command_output)
     if not prerouting_rules:
@@ -85,10 +89,7 @@ def check_rules(prerouting_rules: List[str],
                 private_ip: str) -> None:
     unexpected_rules = []
     pattern = r'DNAT\s+tcp\s+--\s+anywhere\s+{pub_ip}\s+tcp\s+dpt:{dport} to:{ip}'.format(
-                pub_ip=enodebd_public_ip,
-                dport=port,
-                ip=private_ip,
-    )
+        pub_ip=enodebd_public_ip, dport=port, ip=private_ip, )
     for rule in prerouting_rules:
         match = re.search(pattern, rule)
         if not match:

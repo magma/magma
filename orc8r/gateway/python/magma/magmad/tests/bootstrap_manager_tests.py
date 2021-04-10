@@ -126,9 +126,9 @@ class BootstrapManagerTest(TestCase):
         self.channel = grpc.insecure_channel('0.0.0.0:{}'.format(port))
 
         self.manager.SHORT_BOOTSTRAP_RETRY_INTERVAL = datetime.timedelta(
-                seconds=0)
+            seconds=0)
         self.manager.LONG_BOOTSTRAP_RETRY_INTERVAL = datetime.timedelta(
-                seconds=0)
+            seconds=0)
 
     def tearDown(self):
         self._rpc_server.stop(None)
@@ -392,9 +392,9 @@ class BootstrapManagerTest(TestCase):
     def test__schedule_next_bootstrap(self):
         self.manager._loop = MagicMock()
         self.manager.LONG_BOOTSTRAP_RETRY_INTERVAL = datetime.timedelta(
-                seconds=1)
+            seconds=1)
         self.manager.SHORT_BOOTSTRAP_RETRY_INTERVAL = datetime.timedelta(
-                seconds=0)
+            seconds=0)
         self.manager._state = bm.BootstrapState.BOOTSTRAPPING
 
         self.manager._schedule_next_bootstrap(False)
@@ -460,7 +460,8 @@ class BootstrapManagerTest(TestCase):
         challenge = b'challenge'
 
         # success case
-        private_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
+        private_key = ec.generate_private_key(
+            ec.SECP256R1(), default_backend())
         load_key_mock.return_value = private_key
         r, s = self.manager._ecdsa_sha256_response(challenge)
         r = int.from_bytes(r, 'big')

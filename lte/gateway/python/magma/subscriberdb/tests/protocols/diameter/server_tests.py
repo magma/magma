@@ -117,9 +117,9 @@ class WriterTests(unittest.TestCase):
         self._transport.write = Mock(side_effect=convert_memview_to_bytes)
 
         self.writer = server.Writer("mai.facebook.com",
-                                     "hss.mai.facebook.com",
-                                     "127.0.0.1",
-                                     self._transport)
+                                    "hss.mai.facebook.com",
+                                    "127.0.0.1",
+                                    self._transport)
 
     def test_send_msg(self):
         """Test that the writer will encode a message and write

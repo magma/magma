@@ -24,6 +24,7 @@ from magma.subscriberdb.streamer_callback import SubscriberDBStreamerCallback
 
 from magma.common.service_registry import ServiceRegistry
 
+
 class MockFuture(object):
     is_error = True
 
@@ -50,7 +51,7 @@ class SubscriberDBStreamerCallbackTests(unittest.TestCase):
     def setUp(self):
         # Create sqlite3 database for testing
         self._tmpfile = tempfile.TemporaryDirectory()
-        store = SqliteStore(self._tmpfile.name +'/')
+        store = SqliteStore(self._tmpfile.name + '/')
         self._streamer_callback = \
             SubscriberDBStreamerCallback(store, loop=asyncio.new_event_loop())
         ServiceRegistry.add_service('test', '0.0.0.0', 0)

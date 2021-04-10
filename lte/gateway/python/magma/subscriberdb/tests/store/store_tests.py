@@ -21,6 +21,7 @@ from magma.subscriberdb.store.sqlite import SqliteStore
 
 from magma.subscriberdb.sid import SIDUtils
 
+
 class StoreTests(unittest.TestCase):
     """
     Test class for subscriber storage
@@ -29,7 +30,7 @@ class StoreTests(unittest.TestCase):
     def setUp(self):
         # Create sqlite3 database for testing
         self._tmpfile = tempfile.TemporaryDirectory()
-        self._store = SqliteStore(self._tmpfile.name +'/')
+        self._store = SqliteStore(self._tmpfile.name + '/')
 
     def tearDown(self):
         self._tmpfile.cleanup()

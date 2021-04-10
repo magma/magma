@@ -102,7 +102,7 @@ class ConfigManager(StreamerClient.Callback):
 
         def did_mconfig_change(serv_name):
             return mconfig.configs_by_key.get(serv_name) != \
-                   self._mconfig.configs_by_key.get(serv_name)
+                self._mconfig.configs_by_key.get(serv_name)
 
         # Reload magmad configs locally
         if did_mconfig_change('magmad'):

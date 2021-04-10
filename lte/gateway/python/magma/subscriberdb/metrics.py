@@ -16,11 +16,13 @@ from prometheus_client import Counter
 
 # Counters for Diameter/S6a application
 S6A_AUTH_SUCCESS_TOTAL = Counter('s6a_auth_success',
-                                  'Total successful S6a auth requests')
-S6A_AUTH_FAILURE_TOTAL = Counter('s6a_auth_failure',
-                                  'Total failed S6a auth requests with reason', ['code'])
+                                 'Total successful S6a auth requests')
+S6A_AUTH_FAILURE_TOTAL = Counter(
+    's6a_auth_failure',
+    'Total failed S6a auth requests with reason',
+    ['code'])
 S6A_LUR_TOTAL = Counter('s6a_location_update',
-                         'Total S6a location update requests')
+                        'Total S6a location update requests')
 
 DIAMETER_AUTHENTICATION_REJECTED = 4001
 DIAMETER_ERROR_USER_UNKNOWN = 5001

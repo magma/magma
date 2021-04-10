@@ -90,7 +90,7 @@ class ArpTableTest(unittest.TestCase):
     MTR_MAC = "FF:EE:DD:CC:49:4b"
 
     @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:11:22:33:44:55'}]])
+                         return_value=[[{'addr': '00:11:22:33:44:55'}]])
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUp(self, *_):
         """
@@ -104,7 +104,8 @@ class ArpTableTest(unittest.TestCase):
         #super(ArpTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([], ['arpd'])
-        cls._tbl_num = cls.service_manager.get_table_num(ArpController.APP_NAME)
+        cls._tbl_num = cls.service_manager.get_table_num(
+            ArpController.APP_NAME)
 
         arp.mobilityd_list_ip_blocks = mocked_mobilityd_list_ip_blocks
         arp_controller_reference = Future()
@@ -220,10 +221,12 @@ class ArpTableTest(unittest.TestCase):
             .set_arp_src('22:22:22:22:22:22', '1.1.1.1') \
             .build()
 
-        uplink_args = RyuForwardFlowArgsBuilder(self._tbl_num) \
-            .set_eth_match(eth_dst='11:11:11:11:11:1', eth_src=self.OTHER_MAC) \
-            .set_reg_value(DIRECTION_REG, Direction.OUT) \
-            .build_requests()
+        uplink_args = RyuForwardFlowArgsBuilder(
+            self._tbl_num) .set_eth_match(
+            eth_dst='11:11:11:11:11:1',
+            eth_src=self.OTHER_MAC) .set_reg_value(
+            DIRECTION_REG,
+            Direction.OUT) .build_requests()
         isolator = RyuDirectTableIsolator(uplink_args, self.testing_controller)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
@@ -274,7 +277,7 @@ class ArpTableTestRouterIP(unittest.TestCase):
     MTR_MAC = "FF:EE:DD:CC:49:4b"
 
     @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:11:22:33:44:55'}]])
+                         return_value=[[{'addr': '00:11:22:33:44:55'}]])
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUp(self, *_):
         """
@@ -290,7 +293,8 @@ class ArpTableTestRouterIP(unittest.TestCase):
 
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([], ['arpd'])
-        cls._tbl_num = cls.service_manager.get_table_num(ArpController.APP_NAME)
+        cls._tbl_num = cls.service_manager.get_table_num(
+            ArpController.APP_NAME)
 
         arp.mobilityd_list_ip_blocks = mocked_mobilityd_list_ip_blocks
         arp_controller_reference = Future()

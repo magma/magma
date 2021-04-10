@@ -90,7 +90,7 @@ def os_release():
     with open('/etc/os-release', 'r') as f:
         for line in f:
             try:
-                k,v = line.rstrip().split('=')
+                k, v = line.rstrip().split('=')
                 release_info[k] = v.strip('"')
             except Exception:
                 pass
@@ -104,7 +104,9 @@ def json_equal(a, b):
     return compare
 
 
-def _higher_version(version_a: Optional[str], version_b: Optional[str]) -> bool:
+def _higher_version(
+        version_a: Optional[str],
+        version_b: Optional[str]) -> bool:
     """ Return true if :version_a: > :version_b:, false otherwise. """
     a = pkg_resources.parse_version(str(version_a))
     b = pkg_resources.parse_version(str(version_b))
@@ -122,7 +124,7 @@ def _md5sum(filename: str) -> str:
         return d.hexdigest()
 
 
-def _wget(url: str, dest: Optional[str]=None) -> str:
+def _wget(url: str, dest: Optional[str] = None) -> str:
     """
     It's like calling wget. Downloads file to current working directory if
     dest=None, otherwise puts it in dest (must be a directory).
@@ -145,7 +147,7 @@ def _wget(url: str, dest: Optional[str]=None) -> str:
     return local_path
 
 
-def gen_sys_package_name(py_pkgname: str, use_py2: bool=False) -> str:
+def gen_sys_package_name(py_pkgname: str, use_py2: bool = False) -> str:
     """
     Generate the system package name for a Python package. In general, this
     will be `python3-pkgname` for py3 and `python-pkgname` for py2, but some
@@ -175,8 +177,8 @@ def gen_sys_package_name(py_pkgname: str, use_py2: bool=False) -> str:
 
 @lru_cache(maxsize=128)
 def get_package(pkgname: str,
-                version: Optional[str]=None,
-                use_latest_if_needed: bool=False) -> str:
+                version: Optional[str] = None,
+                use_latest_if_needed: bool = False) -> str:
     """
     Downloads and verifies a package from PyPI into
     /tmp/pyreq-{pkgname}/{version}. If the version number is not specified, we
@@ -390,7 +392,9 @@ def get_latest_pkg_version(pkgname: str) -> Any:
 
 
 @lru_cache(maxsize=128)
-def get_latest_apt_pkg_version(pkgname: str, py2: bool=False) -> Optional[str]:
+def get_latest_apt_pkg_version(
+        pkgname: str,
+        py2: bool = False) -> Optional[str]:
     """
     Check what's available in our apt repo and use that if available.
     """
@@ -433,7 +437,9 @@ def gen_fpm_dep_string_from_lockfile(lockfile_str: str) -> str:
 
 def _format_dep(syspkg: str,
                 op: Optional[str],
-                ver: Optional[str]) -> Tuple[str, Optional[str], Optional[str]]:
+                ver: Optional[str]) -> Tuple[str,
+                                             Optional[str],
+                                             Optional[str]]:
     if op and '<' not in op:
         # TODO: might have issues with '~=' ops using this method
         op = '>='
@@ -454,17 +460,24 @@ class Lockfile(object):
     To remove a root package or derived dependency, manually remove it from the source lockfile
     """
     _default_release = 'stretch'
-    def __init__(self, data: Optional[str]=None, reference_lockfile: Optional[Any]=None):
+
+    def __init__(
+            self,
+            data: Optional[str] = None,
+            reference_lockfile: Optional[Any] = None):
         # parameter `reference_lockfile` should be an instance of `Lockfile`
         # not fully annotated due to circular dependency
         release_info = os_release()
         if 'VERSION_CODENAME' not in release_info:
-            log.warning('missing expected key VERSION_CODENAME in /etc/os-release')
+            log.warning(
+                'missing expected key VERSION_CODENAME in /etc/os-release')
             log.warning('dependencies may not be generated correctly')
-        self._release = release_info.get('VERSION_CODENAME', self._default_release)
+        self._release = release_info.get(
+            'VERSION_CODENAME', self._default_release)
 
         if reference_lockfile is None:
-            reference_lockfile = "./release/magma.lockfile.{}".format(self._release)
+            reference_lockfile = "./release/magma.lockfile.{}".format(
+                self._release)
 
         def lower_keys(d: Dict[str, Any]):
             return {k.lower(): v for k, v in d.items()}
@@ -484,7 +497,8 @@ class Lockfile(object):
             self._override = {}
 
         if self._release != self._default_release and self._release not in self._override:
-            self._override[self._release] = {'root_packages': {}, 'dependencies': {}}
+            self._override[self._release] = {
+                'root_packages': {}, 'dependencies': {}}
 
     def __str__(self):
         output = {}
@@ -496,13 +510,15 @@ class Lockfile(object):
     def root_packages(self):
         output = copy.copy(self._root_packages)
         if self._release != self._default_release:
-            output.update(copy.copy(self._override[self._release]['root_packages']))
+            output.update(
+                copy.copy(self._override[self._release]['root_packages']))
         return output
 
     def dependencies(self):
         output = copy.copy(self._dependencies)
         if self._release != self._default_release:
-            output.update(copy.copy(self._override[self._release]['dependencies']))
+            output.update(
+                copy.copy(self._override[self._release]['dependencies']))
         return output
 
     def add_root_package(self, pkgname, pkginfo):
@@ -512,7 +528,8 @@ class Lockfile(object):
         else:
             default_info = self._root_packages.get(pkgname)
             if default_info and json_equal(default_info, pkginfo):
-                # incoming pkginfo is the same as default_info -- no need to override
+                # incoming pkginfo is the same as default_info -- no need to
+                # override
                 pass
             else:
                 self._override[self._release]['root_packages'][pkgname] = pkginfo
@@ -525,7 +542,8 @@ class Lockfile(object):
         else:
             default_info = self._dependencies.get(pkgname)
             if default_info and json_equal(default_info, depinfo):
-                # incoming pkginfo is the same as default_info -- no need to override
+                # incoming pkginfo is the same as default_info -- no need to
+                # override
                 pass
             else:
                 self._override[self._release]['dependencies'][pkgname] = depinfo
@@ -557,12 +575,12 @@ def _cleanup(pkgname: str) -> None:
 
 
 def py_to_deb(pkgname: str,
-              pip_distributions: Dict[str, pkg_resources.Distribution]=None,
-              build_output: Optional[str]=None,
-              version: Optional[str]=None,
-              op: str="==",
-              more_args: Optional[str]=None,
-              py2: bool=False) -> int:
+              pip_distributions: Dict[str, pkg_resources.Distribution] = None,
+              build_output: Optional[str] = None,
+              version: Optional[str] = None,
+              op: str = "==",
+              more_args: Optional[str] = None,
+              py2: bool = False) -> int:
     """
     Generates a Debian package from a Python package downloaded from PyPI
     (using fpm).
@@ -615,7 +633,11 @@ def py_to_deb(pkgname: str,
         candidates = glob.glob(build_output + '/' + syspkg_name + '_*.deb')
 
         if _existing_build(version, candidates):
-            log.info('found existing build of ' + syspkg_name + ' in ' + str(candidates))
+            log.info(
+                'found existing build of ' +
+                syspkg_name +
+                ' in ' +
+                str(candidates))
             return 0
         log.info('attempting to build ' + syspkg_name + ' ' + str(version))
 
@@ -682,9 +704,9 @@ def _existing_build(version: Optional[str], candidates: List[str]) -> bool:
 
 @lru_cache(maxsize=128)
 def get_pkg_deps(pkgname: str,
-                 version: Optional[str]=None,
-                 use_latest_if_needed: bool=False,
-                 clean: bool=True) -> List[str]:
+                 version: Optional[str] = None,
+                 use_latest_if_needed: bool = False,
+                 clean: bool = True) -> List[str]:
     """
     Get the direct dependencies for a package.
 
@@ -714,8 +736,8 @@ def get_pkg_deps(pkgname: str,
 
 def _pkg_version_available(pkg: str,
                            ver: str,
-                           py2: bool=False,
-                           pypi_only: bool=False) -> bool:
+                           py2: bool = False,
+                           pypi_only: bool = False) -> bool:
     """
     Returns True if the package version is available, False otherwise.
     """
@@ -736,16 +758,18 @@ def _pkg_version_available(pkg: str,
     # if we didn't find an *equivalent* match, we return false.
     return False
 
+
 @contextlib.contextmanager
 def tmpvirtualenv():
     load_virtualenvwrapper = 'source /usr/share/virtualenvwrapper/virtualenvwrapper.sh'
 
-    initcmd = [load_virtualenvwrapper,
-               'mktmpenv -p /usr/bin/python3 --system-site-packages 2>&1 > /dev/null',
-               'echo $VIRTUAL_ENV']
+    initcmd = [
+        load_virtualenvwrapper,
+        'mktmpenv -p /usr/bin/python3 --system-site-packages 2>&1 > /dev/null',
+        'echo $VIRTUAL_ENV']
 
     def runcmd(cmd: Union[List[str], str],
-               capture: int=None) -> subprocess.CompletedProcess:
+               capture: int = None) -> subprocess.CompletedProcess:
         # run cmd in separate shell
         # cmd must be
         # * a single string representing a valid command
@@ -766,8 +790,8 @@ def tmpvirtualenv():
     envname = envpath.split(os.path.sep)[-1].strip()
 
     def venv(cmd: Union[List[str], str],
-             cd: Optional[str]=None,
-             capture: int=None) -> subprocess.CompletedProcess:
+             cd: Optional[str] = None,
+             capture: int = None) -> subprocess.CompletedProcess:
 
         if not active:
             raise RuntimeError('tmpvirtualenv context already destroyed')
@@ -793,10 +817,10 @@ def tmpvirtualenv():
 
 def gen_pip_distributions(
         root_requirements: List[pkg_resources.Requirement],
-        existing_versions: Optional[Dict[str, str]]=None,
-        pypi_only: bool=True,
-        py2: bool=False,
-        venv: Optional[callable]=None) -> Dict[str, pkg_resources.Distribution]:
+        existing_versions: Optional[Dict[str, str]] = None,
+        pypi_only: bool = True,
+        py2: bool = False,
+        venv: Optional[callable] = None) -> Dict[str, pkg_resources.Distribution]:
     """
     Recursively get the dependency tree for a given package.
 
@@ -804,7 +828,8 @@ def gen_pip_distributions(
     list.
     """
     if not venv:
-        raise ValueError('must supply valid virtualenv command (see tmpvirtualenv)')
+        raise ValueError(
+            'must supply valid virtualenv command (see tmpvirtualenv)')
     if not existing_versions:
         existing_versions = {}
     selected_versions = copy.copy(existing_versions)
@@ -840,7 +865,6 @@ def gen_pip_distributions(
     if release_info.get('VERSION_CODENAME', '') == 'stretch':
         extra_args.append('--use-feature=2020-resolver')
 
-
     # install all packages to populate pkg_resources.working_set
     venv('pip install ' + " ".join(extra_args + args))
 
@@ -859,8 +883,8 @@ def gen_pip_distributions(
 
 
 def gen_dep_sources(dep_set: Dict[str, Optional[str]],
-                    pypi_only: bool=True,
-                    py2: bool=False) -> Dict[str, str]:
+                    pypi_only: bool = True,
+                    py2: bool = False) -> Dict[str, str]:
     """
     Given a populated dep_sources, figure out where we can get
     them from. We'll actually check if the versions are satisfiable.
@@ -898,8 +922,8 @@ def gen_dep_sources(dep_set: Dict[str, Optional[str]],
 def lockfile(root_packages: Dict[str, Dict[str, str]],
              dep_set: Dict[str, Optional[str]],
              dep_source: Dict[str, str],
-             py2: bool=False,
-             reference_lockfile: Optional[Lockfile]=None) -> str:
+             py2: bool = False,
+             reference_lockfile: Optional[Lockfile] = None) -> str:
     """
     Based on the root packages, produces a json description of
     the actual packages we depend on.
@@ -914,11 +938,10 @@ def lockfile(root_packages: Dict[str, Dict[str, str]],
     for pkgname, pkginfo in root_packages.items():
         lf.add_root_package(pkgname, pkginfo)
 
-
     for k in sorted(dep_set.keys()):
         item = {
             "version": dep_set[k],
-            "source":  dep_source[k],
+            "source": dep_source[k],
             "root": (k in root_package_names),
             "sysdep": gen_sys_package_name(k, py2)
         }
@@ -929,7 +952,7 @@ def lockfile(root_packages: Dict[str, Dict[str, str]],
 
 def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
               dep_source: Dict[str, str],
-              build_output: Optional[str]=None) -> None:
+              build_output: Optional[str] = None) -> None:
     for p in pip_distributions:
         # contents of PIP_BLACKLIST were excluded from dep_source
         if p not in PIP_BLACKLIST and dep_source.get(p) == "pypi":
@@ -957,7 +980,8 @@ def expand_deps(input_deps: List[str]) -> List[pkg_resources.Requirement]:
         else:
             explicit.append(item)
 
-    input_deps = explicit + sum([get_setup_deps(item) for item in setup_py], [])
+    input_deps = explicit + sum([get_setup_deps(item)
+                                for item in setup_py], [])
 
     # parse dependencies from command line
     for d in input_deps:
@@ -995,7 +1019,8 @@ def main(args):
     input_root_requirements = expand_deps(args.deps)
     root_requirements = []
     if args.dump_root_deps:
-        print("'" + "' '".join(sorted([str(r) for r in input_root_requirements])) + "'")
+        print("'" + "' '".join(sorted([str(r)
+              for r in input_root_requirements])) + "'")
         sys.exit(0)
 
     existing_versions = {}  # type: Dict[str, str]
@@ -1013,7 +1038,7 @@ def main(args):
             with open(args.lockfile, 'r') as r:
                 lf = Lockfile(data=r.read())
         except FileNotFoundError:
-            log.error("file not found: {}".format(args.lockfile));
+            log.error("file not found: {}".format(args.lockfile))
             pass
     else:
         lf = Lockfile()
@@ -1029,7 +1054,8 @@ def main(args):
 
     log.debug(deps)
 
-    repo_pkgs = [gen_sys_package_name(p.key, args.use_py2) for p in repo_installable]
+    repo_pkgs = [gen_sys_package_name(p.key, args.use_py2)
+                 for p in repo_installable]
     if args.install_from_repo:
         try:
             subprocess.call(shlex.split('sudo apt install -y '
@@ -1039,15 +1065,16 @@ def main(args):
             raise
 
     with tmpvirtualenv() as venv:
-        pip_distributions = gen_pip_distributions(root_requirements,
-                                                  existing_versions=existing_versions,
-                                                  pypi_only=args.force_pypi,
-                                                  py2=args.use_py2,
-                                                  venv=venv)
+        pip_distributions = gen_pip_distributions(
+            root_requirements,
+            existing_versions=existing_versions,
+            pypi_only=args.force_pypi,
+            py2=args.use_py2,
+            venv=venv)
 
         required_distributions = {}
-        to_traverse = [pip_distributions[k] for k in [req.key for req in input_root_requirements]
-                       if k not in repo_installable]
+        to_traverse = [pip_distributions[k] for k in [
+            req.key for req in input_root_requirements] if k not in repo_installable]
         while to_traverse:
             dist = to_traverse.pop()
             required_distributions[dist.key] = dist
@@ -1057,12 +1084,16 @@ def main(args):
                 if prereq_dist:
                     to_traverse.append(prereq_dist)
                 else:
-                    log.error('{} required but not detected'.format(prereq_dist))
+                    log.error(
+                        '{} required but not detected'.format(prereq_dist))
 
     dep_set = {p.key: p.version for p in required_distributions.values()
                if p.key not in PIP_BLACKLIST}
 
-    dep_source = gen_dep_sources(dep_set, pypi_only=args.force_pypi, py2=args.use_py2)
+    dep_source = gen_dep_sources(
+        dep_set,
+        pypi_only=args.force_pypi,
+        py2=args.use_py2)
 
     root_versions = {req.key: {'version': pip_distributions[req.key].version}
                      for req in input_root_requirements}
@@ -1074,13 +1105,18 @@ def main(args):
                                           reference_lockfile=lf))
 
     if args.build:
-        build_all(pip_distributions, dep_source, build_output=args.build_output)
+        build_all(
+            pip_distributions,
+            dep_source,
+            build_output=args.build_output)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stderr, level=logging.WARNING,
-                        format='{asctime} [{levelname:5}] {name}:{funcName}:{lineno} {msg}',
-                        style='{}'[0])
+    logging.basicConfig(
+        stream=sys.stderr,
+        level=logging.WARNING,
+        format='{asctime} [{levelname:5}] {name}:{funcName}:{lineno} {msg}',
+        style='{}'[0])
     parser = argparse.ArgumentParser("pydep")
     subparsers = parser.add_subparsers(help="Sub-commands")
     dep_p = subparsers.add_parser("finddep",
@@ -1096,11 +1132,16 @@ if __name__ == "__main__":
                        action='store_true', help="Preserve temporary files")
     dep_p.add_argument('-b', '--build', dest='build',
                        action='store_true', help="Build dependency packages")
-    dep_p.add_argument('-l', '--lockfile', dest='lockfile',
-                       default="pydep.lockfile",
-                       help="Write dependencies to a lockfile (default: pydep.lockfile)")
-    dep_p.add_argument('--install-from-repo', action='store_true',
-                       help='Install packages from configured repo sources (requires sudo)')
+    dep_p.add_argument(
+        '-l',
+        '--lockfile',
+        dest='lockfile',
+        default="pydep.lockfile",
+        help="Write dependencies to a lockfile (default: pydep.lockfile)")
+    dep_p.add_argument(
+        '--install-from-repo',
+        action='store_true',
+        help='Install packages from configured repo sources (requires sudo)')
     dep_p.add_argument('--pypi', dest='force_pypi', action='store_true',
                        help="Force using PyPI, ignoring system packages.")
     dep_p.add_argument('deps', nargs='+',

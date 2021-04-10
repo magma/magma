@@ -120,7 +120,8 @@ def flow_match_to_actions(datapath, match):
     '''
     parser = datapath.ofproto_parser
     _check_pkt_protocol(match)
-    # Eth type and ip proto are read only, can't set them here (set on pkt init)
+    # Eth type and ip proto are read only, can't set them here (set on pkt
+    # init)
     actions = [
         parser.OFPActionSetField(ipv4_src=getattr(match, 'ipv4_src', '1.1.1.1')),
         parser.OFPActionSetField(ipv4_dst=getattr(match, 'ipv4_dst', '1.2.3.4')),

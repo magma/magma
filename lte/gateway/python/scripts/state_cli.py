@@ -39,13 +39,14 @@ def _deserialize_session_json(serialized_json_str: bytes) -> str:
     Helper function to deserialize sessiond:sessions hash list values
     :param serialized_json_str
     """
-    res = _deserialize_generic_json(str(serialized_json_str, 'utf-8', 'ignore'))
+    res = _deserialize_generic_json(
+        str(serialized_json_str, 'utf-8', 'ignore'))
     dumped = json.dumps(res, indent=2, sort_keys=True)
     return dumped
 
 
 def _deserialize_generic_json(
-        element: Union[str, dict, list])-> Union[str, dict, list]:
+        element: Union[str, dict, list]) -> Union[str, dict, list]:
     """
     Helper function to deserialize dictionaries or list with nested
     json strings
@@ -55,10 +56,10 @@ def _deserialize_generic_json(
         # try to deserialize as json string
         try:
             element = ast.literal_eval(element)
-        except:
+        except BaseException:
             try:
                 element = jsonpickle.decode(element)
-            except:
+            except BaseException:
                 return element
 
     if isinstance(element, dict):

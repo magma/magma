@@ -18,6 +18,7 @@ from .common import (
     print_error_msg,
     print_success_msg)
 
+
 @click.group()
 @click.pass_context
 def certs(ctx):
@@ -25,6 +26,7 @@ def certs(ctx):
     Manage certs in orc8r deployment
     """
     pass
+
 
 @certs.command()
 @click.pass_context

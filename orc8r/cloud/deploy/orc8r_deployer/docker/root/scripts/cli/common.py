@@ -15,10 +15,12 @@ import subprocess
 import click
 from ansible.cli.playbook import PlaybookCLI
 
+
 def run_playbook(args):
     pb_cli = PlaybookCLI(args)
     pb_cli.parse()
     return pb_cli.run()
+
 
 def run_command(cmd):
     with subprocess.Popen(cmd, stdout=subprocess.PIPE) as p:
@@ -27,14 +29,18 @@ def run_command(cmd):
         return p.wait()
     return 1
 
+
 def print_error_msg(msg):
     click.echo(click.style(msg, fg='red'))
+
 
 def print_success_msg(msg):
     click.echo(click.style(msg, fg='green'))
 
+
 def print_warning_msg(msg):
     click.echo(click.style(msg, fg='yellow'))
+
 
 def print_info_msg(msg):
     click.echo(click.style(msg, fg='blue'))

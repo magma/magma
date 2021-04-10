@@ -158,14 +158,15 @@ class _TableManager:
 
     def __init__(self):
         self._table_ranges = {
-            ControllerType.SPECIAL:  TableRange(self.GTP_TABLE_NUM,
-                                                self.GTP_TABLE_NUM + 1),
-            ControllerType.PHYSICAL: TableRange(self.INGRESS_TABLE_NUM + 1,
-                                                self.PHYSICAL_TO_LOGICAL_TABLE_NUM),
-            ControllerType.LOGICAL:
-                TableRange(self.PHYSICAL_TO_LOGICAL_TABLE_NUM + 1,
-                           self.EGRESS_TABLE_NUM)
-        }
+            ControllerType.SPECIAL: TableRange(
+                self.GTP_TABLE_NUM,
+                self.GTP_TABLE_NUM + 1),
+            ControllerType.PHYSICAL: TableRange(
+                self.INGRESS_TABLE_NUM + 1,
+                self.PHYSICAL_TO_LOGICAL_TABLE_NUM),
+            ControllerType.LOGICAL: TableRange(
+                self.PHYSICAL_TO_LOGICAL_TABLE_NUM + 1,
+                self.EGRESS_TABLE_NUM)}
         self._scratch_range = TableRange(self.SCRATCH_TABLE_START_NUM,
                                          self.SCRATCH_TABLE_LIMIT_NUM)
         self._tables_by_app = {
@@ -220,11 +221,15 @@ class _TableManager:
         app = self._tables_by_app[app_name]
         if app.type == ControllerType.SPECIAL:
             if app_name == INGRESS:
-                return self._table_ranges[ControllerType.PHYSICAL].get_next_table(app.main_table)
+                return self._table_ranges[ControllerType.PHYSICAL].get_next_table(
+                    app.main_table)
             elif app_name == PHYSICAL_TO_LOGICAL:
-                return self._table_ranges[ControllerType.LOGICAL].get_next_table(app.main_table)
+                return self._table_ranges[ControllerType.LOGICAL].get_next_table(
+                    app.main_table)
             else:
-                raise TableNumException('No next table found for %s' % app_name)
+                raise TableNumException(
+                    'No next table found for %s' %
+                    app_name)
         return self._table_ranges[app.type].get_next_table(app.main_table)
 
     def is_app_enabled(self, app_name: str) -> bool:
@@ -251,7 +256,8 @@ class _TableManager:
         resp = OrderedDict(sorted(self._tables_by_app.items(),
                                   key=lambda kv: (kv[1].main_table, kv[0])))
         # Include table 0 when it is managed by the EPC, for completeness.
-        if not any(table in ['ue_mac', 'xwf_passthru', 'classifier'] for table in self._tables_by_app):
+        if not any(table in ['ue_mac', 'xwf_passthru', 'classifier']
+                   for table in self._tables_by_app):
             resp['mme'] = Tables(main_table=0, type=None)
             resp.move_to_end('mme', last=False)
         return resp
@@ -443,8 +449,8 @@ class ServiceManager:
         if '5G_feature_set' not in magma_service.config:
             self._5G_flag_enable = False
         else:
-          ng_flag = magma_service.config.get('5G_feature_set')
-          self._5G_flag_enable = ng_flag['enable']
+            ng_flag = magma_service.config.get('5G_feature_set')
+            self._5G_flag_enable = ng_flag['enable']
 
         # inout is a mandatory app and it occupies:
         #   table 1(for ingress)
@@ -471,7 +477,9 @@ class ServiceManager:
             if app.name in self.STATIC_APP_WITH_NO_TABLE:
                 continue
             # UE MAC service must be registered with Table 0
-            if app.name in [self.UE_MAC_ADDRESS_SERVICE_NAME, self.XWF_PASSTHRU_NAME]:
+            if app.name in [
+                    self.UE_MAC_ADDRESS_SERVICE_NAME,
+                    self.XWF_PASSTHRU_NAME]:
                 self._table_manager.register_apps_for_table0_service([app])
                 continue
             if self._5G_flag_enable:
@@ -514,9 +522,7 @@ class ServiceManager:
                 # pipelined service.
                 # Fix: update the relevant network's network_services settings.
                 logging.warning(
-                    'Mconfig contains unsupported network_services service: %s',
-                    service,
-                )
+                    'Mconfig contains unsupported network_services service: %s', service, )
                 continue
             dynamic_services.append(service)
 
@@ -566,8 +572,8 @@ class ServiceManager:
         }
 
         if self._5G_flag_enable:
-            contexts['rpc_stubs'].update({'sessiond_setinterface': \
-                                            SetInterfaceForUserPlaneStub(sessiond_chan)})
+            contexts['rpc_stubs'].update(
+                {'sessiond_setinterface': SetInterfaceForUserPlaneStub(sessiond_chan)})
 
         # Instantiate and schedule apps
         for app in manager.instantiate_apps(**contexts):
@@ -622,7 +628,7 @@ class ServiceManager:
         Returns:
             Whether or not the app is enabled
         """
-        if  self._5G_flag_enable == False:
+        if not self._5G_flag_enable:
             return False
 
         return self._table_manager.is_ng_app_enabled(app_name)

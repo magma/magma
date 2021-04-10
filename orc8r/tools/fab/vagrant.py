@@ -27,7 +27,10 @@ def __ensure_in_vagrant_dir():
     return
 
 
-def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False):
+def setup_env_vagrant(
+        machine='magma',
+        apply_to_env=True,
+        force_provision=False):
     """ Host config for local Vagrant VM.
 
     Sets the environment to point at the local vagrant machine. Used
@@ -38,7 +41,7 @@ def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False)
 
     # Ensure that VM is running
     isUp = local('vagrant status %s' % machine, capture=True) \
-               .find('running') < 0
+        .find('running') < 0
     if isUp:
         # The machine isn't running. Most likely it's just not up. Let's
         # first try the simple thing of bringing it up, and if that doesn't
@@ -92,7 +95,7 @@ def teardown_vagrant(machine):
 
     # Destroy if vm if it exists
     created = local('vagrant status %s' % machine, capture=True) \
-                  .find('not created') < 0
+        .find('not created') < 0
 
     if created:
         local('vagrant destroy -f %s' % machine)

@@ -23,6 +23,7 @@ from .common import (
     print_error_msg,
     print_success_msg)
 
+
 def setup_aws_creds():
     session = Session()
     creds = session.get_credentials()
@@ -47,7 +48,7 @@ def cleanup(ctx):
     """
     Removes resources deployed for orc8r
     """
-    tf_destroy = [ "terraform", "destroy", "-auto-approve"]
+    tf_destroy = ["terraform", "destroy", "-auto-approve"]
 
     if ctx.invoked_subcommand is None:
         cmd = " ".join(tf_destroy)
@@ -56,14 +57,18 @@ def cleanup(ctx):
         click.echo(f"Running {cmd}")
         rc = run_command(tf_destroy)
         if rc != 0:
-            print_error_msg("Destroy Failed!!! Attempt cleaning up individual resources using 'orcl cleanup raw' subcommand")
+            print_error_msg(
+                "Destroy Failed!!! Attempt cleaning up individual resources using 'orcl cleanup raw' subcommand")
             return
+
 
 @cleanup.command()
 @click.pass_context
-@click.option('--dryrun', default=False, is_flag=True, help='Show resources to be cleaned up during raw cleanup')
+@click.option('--dryrun', default=False, is_flag=True,
+              help='Show resources to be cleaned up during raw cleanup')
 @click.option('--state', help='Provide state file containing resource information e.g. terraform.tfstate or terraform.tfstate.backup')
-@click.option('--values', multiple=True, help='Key value pairs. for e.g. cluster_name,orc8r. Can be used multiple times')
+@click.option('--values', multiple=True,
+              help='Key value pairs. for e.g. cluster_name,orc8r. Can be used multiple times')
 def raw(ctx, dryrun, state, values):
     """
     Individually cleans up resources deployed for orc8r
@@ -78,7 +83,7 @@ def raw(ctx, dryrun, state, values):
 
     extra_vars = json.dumps(ctx.obj)
     cleanup_playbook = "%s/cleanup.yml" % ctx.obj["playbooks"]
-    playbook_args = [ "ansible-playbook", "-v", "-e", extra_vars]
+    playbook_args = ["ansible-playbook", "-v", "-e", extra_vars]
 
     # Few boto dependent modules in ansible require these values to be
     # setup as environment variables. Hence setting these up.

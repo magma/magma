@@ -37,6 +37,7 @@ def get_context(ip: str):
             MockContext.transport = MockTransport
             return MockContext
 
+
 def main():
     """
     Top-level function for enodebd
@@ -93,6 +94,7 @@ def call_repeatedly(loop, interval, function, *args, **kwargs):
                     *args, **kwargs)
     # Call function
     function(*args, **kwargs)
+
 
 if __name__ == "__main__":
     main()

@@ -21,6 +21,7 @@ from magma.common.job import Job
 from magma.magmad.service_poller import ServicePoller
 from magma.magmad.service_manager import ServiceManager
 
+
 class ServiceHealthWatchdog(Job):
     """
     Periodically collects service grpc timeout stats and restarts the services

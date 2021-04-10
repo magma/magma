@@ -88,16 +88,16 @@ class MetricsCollector(object):
         """
         if service_name in self._samples_for_service and \
            self._samples_for_service[service_name]:
-            chan = ServiceRegistry.get_rpc_channel('metricsd',
-                                                   ServiceRegistry.CLOUD,
-                                                   grpc_options=self._grpc_options)
+            chan = ServiceRegistry.get_rpc_channel(
+                'metricsd', ServiceRegistry.CLOUD, grpc_options=self._grpc_options)
             client = MetricsControllerStub(chan)
             if self.post_processing_fn:
                 # If services wants to, let it run a postprocessing function
                 # If we throw an exception here, we'll have no idea whether
                 # something was postprocessed or not, so I guess try and make it
                 # idempotent?  #m sevchicken
-                self.post_processing_fn(self._samples_for_service[service_name])
+                self.post_processing_fn(
+                    self._samples_for_service[service_name])
 
             samples = self._samples_for_service[service_name]
             sample_chunks = self._chunk_samples(samples)
@@ -109,8 +109,8 @@ class MetricsCollector(object):
                 future = client.Collect.future(metrics_container,
                                                self.grpc_timeout)
                 future.add_done_callback(self._make_sync_done_func(
-                                            service_name, idx)
-                                        )
+                    service_name, idx)
+                )
             self._samples_for_service[service_name].clear()
         self._loop.call_later(self.sync_interval, self.sync, service_name)
 
@@ -125,7 +125,7 @@ class MetricsCollector(object):
                           err.details())
         else:
             logging.debug("Metrics upload success for service %s (chunk %d)",
-              service_name, chunk)
+                          service_name, chunk)
 
     def collect(self, service_name):
         """
@@ -178,14 +178,14 @@ class MetricsCollector(object):
 
     def _make_sync_done_func(self, service_name, chunk):
         return lambda future: self._loop.call_soon_threadsafe(
-                               self.sync_done, service_name, chunk,
-                               future)
+            self.sync_done, service_name, chunk,
+            future)
 
     def _chunk_samples(self, samples):
         # Add 1kiB fpr gRPC overhead
         sample_size_bytes = sys.getsizeof(samples) + 1000
         buckets = math.ceil(
-          sample_size_bytes / self.grpc_max_msg_size_bytes)
+            sample_size_bytes / self.grpc_max_msg_size_bytes)
         sample_length = len(samples)
         chunk_size = sample_length // buckets
 

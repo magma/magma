@@ -228,7 +228,7 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
         if (sleep_time >= max_sleep_time):
             raise WaitTimeExceeded(
                 "Waiting on pkts exceeded the max({}) sleep time".
-                    format(max_sleep_time)
+                format(max_sleep_time)
             )
 
 
@@ -340,7 +340,7 @@ def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
         if (sleep_time >= max_sleep_time):
             raise WaitTimeExceeded(
                 "Waiting on enforcement stats exceeded the max({}) sleep time".
-                    format(max_sleep_time)
+                format(max_sleep_time)
             )
 
 
@@ -417,9 +417,8 @@ def _get_current_bridge_snapshot(bridge_name, service_manager,
     # For now, snapshots are created from the flow dump output using ovs and
     # parsed using regex. Once the ryu api works for unit tests, we can
     # directly parse the api response and avoid the regex.
-    flows = BridgeTools.get_annotated_flows_for_bridge(bridge_name,
-                                                       table_assignments,
-                                                       include_stats=include_stats)
+    flows = BridgeTools.get_annotated_flows_for_bridge(
+        bridge_name, table_assignments, include_stats=include_stats)
     return [_parse_flow(flow) for flow in flows]
 
 
@@ -525,7 +524,8 @@ def wait_for_snapshots(test_case: TestCase,
             flows.set_barrier(datapath)
         hub.sleep(wait_time)
 
-        new_snapshot = _get_current_bridge_snapshot(bridge_name, service_manager)
+        new_snapshot = _get_current_bridge_snapshot(
+            bridge_name, service_manager)
         if try_snapshot:
             snapshot_file, expected_ = expected_snapshot(test_case,
                                                          bridge_name,
@@ -542,7 +542,7 @@ def wait_for_snapshots(test_case: TestCase,
         if sleep_time >= max_sleep_time:
             raise WaitTimeExceeded(
                 "Waiting on pkts exceeded the max({}) sleep time".
-                    format(max_sleep_time)
+                format(max_sleep_time)
             )
 
 
@@ -594,7 +594,8 @@ class SnapshotVerifier:
                                datapath=self._datapath,
                                try_snapshot=self._try_snapshot)
         except WaitTimeExceeded as e:
-            ofctl_cmd = "sudo ovs-ofctl dump-flows %s".format(self._bridge_name)
+            ofctl_cmd = "sudo ovs-ofctl dump-flows %s".format(
+                self._bridge_name)
             p = subprocess.Popen([ofctl_cmd],
                                  stdout=subprocess.PIPE,
                                  shell=True)

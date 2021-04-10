@@ -99,7 +99,7 @@ class Service303Util(object):
     @staticmethod
     def _is_metric_type_supported(metric_type):
         return metric_type == metrics_proto.GAUGE \
-               or metric_type == metrics_proto.COUNTER
+            or metric_type == metrics_proto.COUNTER
 
     def get_metric_value(self,
                          metric_name,
@@ -239,7 +239,8 @@ class Service303Util(object):
 
 
 # Container for storing metric values
-MetricValue = collections.namedtuple('MetricValue', 'service name labels value')
+MetricValue = collections.namedtuple(
+    'MetricValue', 'service name labels value')
 
 
 def verify_gateway_metrics(test):
@@ -252,6 +253,7 @@ def verify_gateway_metrics(test):
         TEST_METRICS: A list of MetricValue where the value is the expected
             increase in the gauge/counter
     """
+
     def wrapper(self):
         services = self.gateway_services
         initial = _get_metric_counts(services, self.TEST_METRICS)

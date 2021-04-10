@@ -183,14 +183,19 @@ class EnforcementStatsTest(unittest.TestCase):
         ]
         policies = [
             VersionedPolicy(
-                rule=PolicyRule(id='tx_match', priority=3, flow_list=flow_list1),
+                rule=PolicyRule(
+                    id='tx_match',
+                    priority=3,
+                    flow_list=flow_list1),
                 version=1,
             ),
             VersionedPolicy(
-                rule=PolicyRule(id='rx_match', priority=5, flow_list=flow_list2),
+                rule=PolicyRule(
+                    id='rx_match',
+                    priority=5,
+                    flow_list=flow_list2),
                 version=1,
-            )
-        ]
+            )]
         enf_stat_name = [imsi + '|tx_match' + '|' + sub_ip,
                          imsi + '|rx_match' + '|' + sub_ip]
         self.service_manager.session_rule_version_mapper.save_version(
@@ -400,7 +405,7 @@ class EnforcementStatsTest(unittest.TestCase):
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
-                .build_requests(),
+            .build_requests(),
             self.testing_controller
         )
 
@@ -635,7 +640,7 @@ class EnforcementStatsTest(unittest.TestCase):
                              'rule1', 2)
             self.enforcement_controller.deactivate_rules(
                 imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.rule.id])
-            policy.version=2
+            policy.version = 2
             self.enforcement_controller.activate_rules(
                 imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
                 [policy])
@@ -657,7 +662,7 @@ class EnforcementStatsTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name].rule_version, 2)
         self.assertEqual(stats[enf_stat_name].bytes_rx, 0)
         # TODO Figure out why this one fails.
-        #self.assertEqual(stats[enf_stat_name].bytes_tx,
+        # self.assertEqual(stats[enf_stat_name].bytes_tx,
         #                 num_pkts_tx_match * len(packet))
         self.assertEqual(len(stats), 2)
 

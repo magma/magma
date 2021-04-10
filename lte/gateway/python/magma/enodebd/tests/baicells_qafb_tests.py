@@ -32,7 +32,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # User uses the CLI tool to get eNodeB to reboot
         acs_state_machine.reboot_asap()
@@ -68,7 +68,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = \
@@ -105,7 +105,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
     def test_provision(self) -> None:
         acs_state_machine = \
             EnodebAcsStateMachineBuilder \
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = \
@@ -135,7 +135,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
         # Send back typical values for the regular parameters
         req = Tr069MessageBuilder.\
             get_qafb_regular_param_values_response(admin_state=False,
-                                              earfcndl=39150)
+                                                   earfcndl=39150)
         resp = acs_state_machine.handle_tr069_message(req)
 
         # SM will be requesting object parameter values
@@ -163,7 +163,7 @@ class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):
         """
         acs_state_machine = \
             EnodebAcsStateMachineBuilder\
-                .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
+            .build_acs_state_machine(EnodebDeviceName.BAICELLS_QAFB)
 
         # Send an Inform message, wait for an InformResponse
         inform_msg = \

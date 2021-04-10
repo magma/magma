@@ -22,6 +22,7 @@ class MockSessionProxyResponderStub:
     This Mock SessionProxyResponderStub will always respond with a success to
     a received RAR
     """
+
     def __init__(self):
         pass
 

@@ -17,7 +17,8 @@ import subprocess
 import sys
 
 cmd = 'git diff --name-only `git merge-base origin/master HEAD`'
-listModifiedFiles = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+listModifiedFiles = subprocess.check_output(
+    cmd, shell=True, universal_newlines=True)
 mmeIsImpacted = False
 
 for line in listModifiedFiles.split('\n'):
@@ -33,7 +34,9 @@ for line in listModifiedFiles.split('\n'):
     res = re.search('lte/gateway/docker/mme', line)
     if res is not None:
         mmeIsImpacted = True
-    res = re.search('ci-scripts/JenkinsFile-OAI-Container-GitHub|ci-scripts/generateHtmlReport-OAI-pipeline.py|ci-scripts/check_pr_modified_files_for_oai_pipeline.py', line)
+    res = re.search(
+        'ci-scripts/JenkinsFile-OAI-Container-GitHub|ci-scripts/generateHtmlReport-OAI-pipeline.py|ci-scripts/check_pr_modified_files_for_oai_pipeline.py',
+        line)
     if res is not None:
         mmeIsImpacted = True
     res = re.search('ci-scripts/docker/Dockerfile.mme.ci.ubuntu18', line)

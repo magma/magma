@@ -59,16 +59,18 @@ class GenericHealthChecker:
     def get_error_summary(self, service_names):
         configs = {service_name: load_service_mconfig_as_json(service_name)
                    for service_name in service_names}
-        res = {service_name: Errors(log_level=configs[service_name]['logLevel'],
-                                    error_count=0)
-               for service_name in service_names}
+        res = {
+            service_name: Errors(
+                log_level=configs[service_name]['logLevel'],
+                error_count=0) for service_name in service_names}
 
         syslog_path = '/var/log/syslog'
         if not os.access(syslog_path, os.R_OK):
-            raise PermissionError('syslog is not readable. '
-                                  'Try `sudo chmod a+r {}`. '
-                                  'Or execute the command with sudo '
-                                  'permissions: `venvsudo`'.format(syslog_path))
+            raise PermissionError(
+                'syslog is not readable. '
+                'Try `sudo chmod a+r {}`. '
+                'Or execute the command with sudo '
+                'permissions: `venvsudo`'.format(syslog_path))
         with open(syslog_path, 'r') as f:
             for line in f:
                 for service_name in service_names:
@@ -95,7 +97,9 @@ class GenericHealthChecker:
         services_errors = self.get_error_summary(service_names=service_names)
 
         for service_name in service_names:
-            unit = Unit('magma@{}.service'.format(service_name), _autoload=True)
+            unit = Unit(
+                'magma@{}.service'.format(service_name),
+                _autoload=True)
             active_state = ActiveState.dbus2state[unit.Unit.ActiveState]
             sub_state = str(unit.Unit.SubState, 'utf-8')
             if active_state == ActiveState.ACTIVE:

@@ -87,7 +87,8 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
+        self._qos_mgr = QosManager.get_qos_manager(
+            datapath, self.loop, self._config)
 
     def deactivate_rules(self, imsi, ip_addr, rule_ids):
         """
@@ -157,7 +158,15 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         self._qos_mgr.remove_subscriber_qos(imsi, num)
         self._remove_he_flows(ip_addr, rule_id)
 
-    def _install_flow_for_rule(self, imsi, msisdn:bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
+    def _install_flow_for_rule(
+            self,
+            imsi,
+            msisdn: bytes,
+            uplink_tunnel: int,
+            ip_addr,
+            apn_ambr,
+            rule,
+            version):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -179,7 +188,8 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
 
         flow_adds = []
         try:
-            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
+            flow_adds = self._get_rule_match_flow_msgs(
+                imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
         except FlowMatchError:
             return RuleModResult.FAILURE
 
@@ -261,7 +271,15 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
 
         return {self.tbl_num: [msg]}
 
-    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
+    def _get_rule_match_flow_msgs(
+            self,
+            imsi,
+            msisdn: bytes,
+            uplink_tunnel: int,
+            ip_addr,
+            apn_ambr,
+            rule,
+            version):
         """
         Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -279,11 +297,25 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         flow_adds = []
         for flow in rule.flow_list:
             try:
-                flow_adds.extend(self._get_classify_rule_flow_msgs(
-                    imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, flow, rule_num, priority,
-                    rule.qos, rule.hard_timeout, rule.id, rule.app_name,
-                    rule.app_service_type, self.next_service_table,
-                    version, self._qos_mgr, self._enforcement_stats_tbl))
+                flow_adds.extend(
+                    self._get_classify_rule_flow_msgs(
+                        imsi,
+                        msisdn,
+                        uplink_tunnel,
+                        ip_addr,
+                        apn_ambr,
+                        flow,
+                        rule_num,
+                        priority,
+                        rule.qos,
+                        rule.hard_timeout,
+                        rule.id,
+                        rule.app_name,
+                        rule.app_service_type,
+                        self.next_service_table,
+                        version,
+                        self._qos_mgr,
+                        self._enforcement_stats_tbl))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(

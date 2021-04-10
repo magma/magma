@@ -30,7 +30,8 @@ def create_parser():
         "To display the Datapath actions of the supplied IMSI",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
-    parser.add_argument("-i", "--imsi", required=True, help="IMSI of the subscriber")
+    parser.add_argument("-i", "--imsi", required=True,
+                        help="IMSI of the subscriber")
     parser.add_argument(
         "-d",
         "--direction",
@@ -39,14 +40,26 @@ def create_parser():
         help="Direction - DL/UL",
     )
     parser.add_argument(
-        "-I", "--ip", nargs="?", const="8.8.8.8", default="8.8.8.8", help="External IP"
-    )
+        "-I",
+        "--ip",
+        nargs="?",
+        const="8.8.8.8",
+        default="8.8.8.8",
+        help="External IP")
     parser.add_argument(
-        "-P", "--port", nargs="?", const="80", default="80", help="External Port"
-    )
+        "-P",
+        "--port",
+        nargs="?",
+        const="80",
+        default="80",
+        help="External Port")
     parser.add_argument(
-        "-UP", "--ue_port", nargs="?", const="3372", default="3372", help="UE Port"
-    )
+        "-UP",
+        "--ue_port",
+        nargs="?",
+        const="3372",
+        default="3372",
+        help="UE Port")
     parser.add_argument(
         "-p",
         "--protocol",
@@ -67,7 +80,8 @@ def find_ue_ip(imsi: str):
     cmd = ["mobility_cli.py", "get_subscriber_table"]
     output = subprocess.check_output(cmd)
     output_str = str(output, "utf-8").strip()
-    pattern = "IMSI.*?" + imsi + ".*?([0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3})"
+    pattern = "IMSI.*?" + imsi + \
+        ".*?([0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3})"
     match = re.search(pattern, output_str)
     if match:
         return match.group(1)
@@ -161,12 +175,13 @@ def output_datapath_actions(
     print("Running: " + " ".join(cmd))
     output = subprocess.check_output(cmd)
     output_str = str(output, "utf-8").strip()
-    pattern = "Datapath\sactions:(.*)"
+    pattern = "Datapath\\sactions:(.*)"
     match = re.search(pattern, output_str)
     if match:
         return match.group(1).strip()
     else:
         return
+
 
 def get_ingress_tunid(ue_ip: str, in_port: str):
     cmd = ["sudo", "ovs-ofctl", "dump-flows", "gtp_br0", "table=0"]
@@ -184,6 +199,7 @@ def get_ingress_tunid(ue_ip: str, in_port: str):
         return match[0]
     return
 
+
 def get_egress_tunid_and_port(ue_ip: str, ingress_tun: str):
     cmd = ["sudo", "ovs-ofctl", "dump-flows", "gtp_br0", "table=0"]
     output = subprocess.check_output(cmd)
@@ -197,6 +213,7 @@ def get_egress_tunid_and_port(ue_ip: str, ingress_tun: str):
     if match:
         return {"tun_id": match[0][0], "in_port": match[0][1]}
     return
+
 
 def main():
     parser = create_parser()

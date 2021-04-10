@@ -148,7 +148,10 @@ class UpgradeIntent(
         Else returns empty string.
         """
         available_versions = version_info.all_versions
-        preference = [version for version in (self.stable, self.canary) if version]
+        preference = [
+            version for version in (
+                self.stable,
+                self.canary) if version]
         for version in preference:
             if version not in available_versions:
                 return version
@@ -392,8 +395,9 @@ async def ensure_downloaded(
     else:
         gauge.set(1)
         logging.info(
-            "Skipping download, image %r is already in %s", image_name, image_path
-        )
+            "Skipping download, image %r is already in %s",
+            image_name,
+            image_path)
 
 
 def image_local_path(image_name: ImageNameT) -> pathlib.Path:

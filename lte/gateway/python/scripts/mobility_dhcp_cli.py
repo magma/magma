@@ -17,18 +17,18 @@ limitations under the License.
 CLI for dhclient
 """
 
+
+
+
 import argparse
 import ipaddress
 import random
 import sys
 from ipaddress import ip_address, ip_network
-
 from magma.mobilityd import mobility_store as store
 from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
 from magma.mobilityd.mac import MacAddress
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
-
-
 class DhcpClientCLI:
     def __init__(self):
         """
@@ -66,8 +66,17 @@ class DhcpClientCLI:
         ipaddr = ip_address(args.ip)
         subnet = ip_network(args.subnet, strict=False)
         dhcp_ip = ip_address(args.dhcp)
-        desc = DHCPDescriptor(args.mac, str(ipaddr), state, subnet, dhcp_ip, None,
-                              args.lease, random.randint(0, 50000))
+        desc = DHCPDescriptor(
+            args.mac,
+            str(ipaddr),
+            state,
+            subnet,
+            dhcp_ip,
+            None,
+            args.lease,
+            random.randint(
+                0,
+                50000))
         mac = MacAddress(args.mac)
         self.dhcp_client_state[mac.as_redis_key()] = desc
         print("Added mac %s with DHCP rec %s" % str(mac), desc)

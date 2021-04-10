@@ -194,7 +194,10 @@ class RestartResilienceTest(unittest.TestCase):
         ]
         policies = [
             VersionedPolicy(
-                rule=PolicyRule(id='ipv6_rule', priority=2, flow_list=flow_list),
+                rule=PolicyRule(
+                    id='ipv6_rule',
+                    priority=2,
+                    flow_list=flow_list),
                 version=1,
             ),
         ]
@@ -229,7 +232,6 @@ class RestartResilienceTest(unittest.TestCase):
 
         with snapshot_verifier:
             pass
-
 
     def test_enforcement_restart(self):
         """
@@ -279,16 +281,20 @@ class RestartResilienceTest(unittest.TestCase):
         ]
         policies1 = [
             VersionedPolicy(
-                rule=PolicyRule(id='sub1_rule_temp', priority=2, flow_list=flow_list1),
+                rule=PolicyRule(
+                    id='sub1_rule_temp',
+                    priority=2,
+                    flow_list=flow_list1),
                 version=1,
-            )
-        ]
+            )]
         policies2 = [
             VersionedPolicy(
-                rule=PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2),
+                rule=PolicyRule(
+                    id='sub2_rule_keep',
+                    priority=3,
+                    flow_list=flow_list2),
                 version=1,
-            )
-        ]
+            )]
         enf_stat_name = [imsi1 + '|sub1_rule_temp' + '|' + sub2_ip,
                          imsi2 + '|sub2_rule_keep' + '|' + sub2_ip]
 
@@ -350,11 +356,17 @@ class RestartResilienceTest(unittest.TestCase):
         ]
         policies = [
             VersionedPolicy(
-                rule=PolicyRule(id='sub2_new_rule', priority=2, flow_list=flow_list1),
+                rule=PolicyRule(
+                    id='sub2_new_rule',
+                    priority=2,
+                    flow_list=flow_list1),
                 version=1,
             ),
             VersionedPolicy(
-                rule=PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2),
+                rule=PolicyRule(
+                    id='sub2_rule_keep',
+                    priority=3,
+                    flow_list=flow_list2),
                 version=1,
             ),
         ]
@@ -424,22 +436,28 @@ class RestartResilienceTest(unittest.TestCase):
         flow_list1 = [FlowDescription(
             match=FlowMatch(
                 ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
-        direction=FlowMatch.UPLINK),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         flow_list2 = [FlowDescription(
             match=FlowMatch(
                 ip_src=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
-        direction=FlowMatch.DOWNLINK),
+                direction=FlowMatch.DOWNLINK),
             action=FlowDescription.PERMIT)
         ]
         policies = [
             VersionedPolicy(
-                rule=PolicyRule(id='tx_match', priority=3, flow_list=flow_list1),
+                rule=PolicyRule(
+                    id='tx_match',
+                    priority=3,
+                    flow_list=flow_list1),
                 version=1,
             ),
             VersionedPolicy(
-                rule=PolicyRule(id='rx_match', priority=5, flow_list=flow_list2),
+                rule=PolicyRule(
+                    id='rx_match',
+                    priority=5,
+                    flow_list=flow_list2),
                 version=1,
             ),
         ]
@@ -494,7 +512,6 @@ class RestartResilienceTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name[1]].rule_id, "rx_match")
         self.assertEqual(stats[enf_stat_name[1]].bytes_tx, 0)
         self.assertEqual(stats[enf_stat_name[1]].bytes_rx, 5120)
-
 
         # downlink packets will discount ethernet header by default
         # so, only count the IP portion

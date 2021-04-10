@@ -162,7 +162,6 @@ class AutoConfigServer(ServiceBase):
         resp = AutoConfigServer._handle_tr069_message(ctx, request)
         return resp
 
-
     @rpc(models.Inform,
          _returns=models.InformResponse,
          _body_style="bare",
@@ -320,7 +319,6 @@ def on_method_return_string(ctx):
     temp_str = "=\'!!!TEMP_MOD!!!:"
     ctx.out_string[0] = ctx.out_string[0].replace(
         orig_str.encode('ascii'), temp_str.encode('ascii'))
-
 
     ctx.out_string[0] = ctx.out_string[0].replace(b'cwmp:', b'')
     ctx.out_string[0] = ctx.out_string[0].replace(b'!!!TEMP_MOD!!!:', b'cwmp:')

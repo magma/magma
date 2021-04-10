@@ -14,6 +14,7 @@ limitations under the License.
 from typing import List
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
 
+
 def get_allow_all_policy_rule(
     subscriber_id: str,
     apn: str,

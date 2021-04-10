@@ -25,6 +25,7 @@ from magma.subscriberdb.store.sqlite import SqliteStore
 
 from magma.subscriberdb.sid import SIDUtils
 
+
 def _dummy_auth_tuple():
     rand = b'ni\x89\xbel\xeeqTT7p\xae\x80\xb1\xef\r'
     sres = b'\xd4\xac\x8bS'
@@ -37,12 +38,12 @@ def _dummy_eutran_vector():
     xres = b'\x2d\xaf\x87\x3d\x73\xf3\x10\xc6'
     autn = b'o\xbf\xa3\x80\x1fW\x80\x00{\xdeY\x88n\x96\xe4\xfe'
     kasme = (b'\x87H\xc1\xc0\xa2\x82o\xa4\x05\xb1\xe2~\xa1\x04CJ\xe5V\xc7e'
-            b'\xe8\xf0a\xeb\xdb\x8a\xe2\x86\xc4F\x16\xc2')
+             b'\xe8\xf0a\xeb\xdb\x8a\xe2\x86\xc4F\x16\xc2')
     return (rand, xres, autn, kasme)
 
 
 def _dummy_resync_vector():
-    mac_s = 8*b'\x00'
+    mac_s = 8 * b'\x00'
     sqn = 2**28 + 1 << 5
     return (sqn, mac_s)
 
@@ -82,8 +83,8 @@ class ProcessorTests(unittest.TestCase):
     def setUp(self):
         # Create sqlite3 database for testing
         self._tmpfile = tempfile.TemporaryDirectory()
-        store = SqliteStore(self._tmpfile.name +'/')
-        op = 16*b'\x11'
+        store = SqliteStore(self._tmpfile.name + '/')
+        op = 16 * b'\x11'
         amf = b'\x80\x00'
         self._sub_profiles = {
             'superfast': SubscriberDB.SubscriptionProfile(
@@ -99,26 +100,34 @@ class ProcessorTests(unittest.TestCase):
         (rand, sres, gsm_key) = _dummy_auth_tuple()
         gsm = GSMSubscription(state=GSMSubscription.ACTIVE,
                               auth_tuples=[rand + sres + gsm_key])
-        lte_key = 16*b'\x00'
+        lte_key = 16 * b'\x00'
         lte = LTESubscription(state=LTESubscription.ACTIVE,
                               auth_key=lte_key)
         lte_opc = LTESubscription(state=LTESubscription.ACTIVE,
                                   auth_key=lte_key,
                                   auth_opc=Milenage.generate_opc(lte_key, op))
         lte_opc_short = LTESubscription(state=LTESubscription.ACTIVE,
-                                  auth_key=lte_key,
-                                  auth_opc=b'\x00')
+                                        auth_key=lte_key,
+                                        auth_opc=b'\x00')
         state = SubscriberState(lte_auth_next_seq=1)
-        sub1 = SubscriberData(sid=SIDUtils.to_pb('IMSI11111'), gsm=gsm, lte=lte,
-                              state=state, sub_profile='superfast')
-        sub2 = SubscriberData(sid=SIDUtils.to_pb('IMSI22222'), # No auth keys
-                              gsm=GSMSubscription(state=GSMSubscription.ACTIVE),
+        sub1 = SubscriberData(
+            sid=SIDUtils.to_pb('IMSI11111'),
+            gsm=gsm,
+            lte=lte,
+            state=state,
+            sub_profile='superfast')
+        sub2 = SubscriberData(sid=SIDUtils.to_pb('IMSI22222'),  # No auth keys
+                              gsm=GSMSubscription(
+                                  state=GSMSubscription.ACTIVE),
                               lte=LTESubscription(state=LTESubscription.ACTIVE))
-        sub3 = SubscriberData(sid=SIDUtils.to_pb('IMSI33333')) # No subscribtion
+        sub3 = SubscriberData(
+            sid=SIDUtils.to_pb('IMSI33333'))  # No subscribtion
         sub4 = SubscriberData(sid=SIDUtils.to_pb('IMSI44444'), lte=lte_opc,
                               state=state)
-        sub5 = SubscriberData(sid=SIDUtils.to_pb('IMSI55555'), lte=lte_opc_short,
-                              state=state)
+        sub5 = SubscriberData(
+            sid=SIDUtils.to_pb('IMSI55555'),
+            lte=lte_opc_short,
+            state=state)
         store.add_subscriber(sub1)
         store.add_subscriber(sub2)
         store.add_subscriber(sub3)
@@ -177,7 +186,7 @@ class ProcessorTests(unittest.TestCase):
         """
         eutran_vector = _dummy_eutran_vector()
         self.assertEqual(self._processor.generate_lte_auth_vector('11111',
-                         3*b'\x00'),
+                         3 * b'\x00'),
                          eutran_vector)
 
     def test_lte_auth_success_opc(self):
@@ -186,7 +195,7 @@ class ProcessorTests(unittest.TestCase):
         """
         eutran_vector = _dummy_eutran_vector()
         self.assertEqual(self._processor.generate_lte_auth_vector('44444',
-                         3*b'\x00'),
+                         3 * b'\x00'),
                          eutran_vector)
 
     def test_lte_auth_fail_opc_short(self):
@@ -194,28 +203,28 @@ class ProcessorTests(unittest.TestCase):
         Test if we get the a crypto error if the OPc is too short
         """
         with self.assertRaises(CryptoError):
-            self._processor.generate_lte_auth_vector('55555', 3*b'\x00')
+            self._processor.generate_lte_auth_vector('55555', 3 * b'\x00')
 
     def test_lte_auth_imsi_unknown(self):
         """
         Test if we get SubscriberNotFoundError exception
         """
         with self.assertRaises(SubscriberNotFoundError):
-            self._processor.generate_lte_auth_vector('12345', 3*b'\x00')
+            self._processor.generate_lte_auth_vector('12345', 3 * b'\x00')
 
     def test_lte_auth_key_missing(self):
         """
         Test if we get CryptoError if auth key is missing
         """
         with self.assertRaises(CryptoError):
-            self._processor.generate_lte_auth_vector('22222', 3*b'\x00')
+            self._processor.generate_lte_auth_vector('22222', 3 * b'\x00')
 
     def test_lte_auth_no_subscription(self):
         """
         Test if we get CryptoError if there is no LTE subscription
         """
         with self.assertRaises(CryptoError):
-            self._processor.generate_lte_auth_vector('33333', 3*b'\x00')
+            self._processor.generate_lte_auth_vector('33333', 3 * b'\x00')
 
     def test_lte_resync_seq_overflow_protect(self):
         """
@@ -223,8 +232,8 @@ class ProcessorTests(unittest.TestCase):
         2 **28 if the ue_seq number is higher than the network seq number
         """
         self._processor.set_next_lte_auth_seq('11111', 0)
-        auts = 14*b'\x00'
-        self._processor.resync_lte_auth_seq('11111', 16*b'\x00', auts)
+        auts = 14 * b'\x00'
+        self._processor.resync_lte_auth_seq('11111', 16 * b'\x00', auts)
         self.assertEqual(self._processor.get_next_lte_auth_seq('11111'),
                          2 ** 28 + 2)
 
@@ -234,10 +243,10 @@ class ProcessorTests(unittest.TestCase):
         next SQN and the MAC_S is correct. We start with a SEQ of 1 and a SEQ_MS
         of 2**28+1 to get a final SEQ of 2**28 + 2
         """
-        auts = 14*b'\x00'
-        self._processor.resync_lte_auth_seq('11111', 16*b'\x00', auts)
+        auts = 14 * b'\x00'
+        self._processor.resync_lte_auth_seq('11111', 16 * b'\x00', auts)
         self.assertEqual(self._processor.get_next_lte_auth_seq('11111'),
-            2**28 + 2)
+                         2**28 + 2)
 
     def test_lte_resync_seq_equal(self):
         """
@@ -245,8 +254,8 @@ class ProcessorTests(unittest.TestCase):
         has. We start with a SEQ of 2**28 + 1 and SEQ_MS is equal so we add 1.
         """
         self._processor.set_next_lte_auth_seq('11111', 2**28 + 1)
-        auts = 14*b'\x00'
-        self._processor.resync_lte_auth_seq('11111', 16*b'\x00', auts)
+        auts = 14 * b'\x00'
+        self._processor.resync_lte_auth_seq('11111', 16 * b'\x00', auts)
         self.assertEqual(self._processor.get_next_lte_auth_seq('11111'),
                          2**28 + 2)
 
@@ -261,12 +270,12 @@ class ProcessorTests(unittest.TestCase):
         """
         self._processor.set_next_lte_auth_seq('11111',
                                               2**28 + 3)
-        auts = 14*b'\x00'
+        auts = 14 * b'\x00'
         with self.assertRaises(CryptoError):
             # seq_ms is stubbed to be 2**28 + 1, and we've set seq_network
             # to be 2**28 + 3. seq_ms will be incremented to 2**28 + 2,
             # meaning we still _don't_ allow a resync.
-            self._processor.resync_lte_auth_seq('11111', 16*b'\x00', auts)
+            self._processor.resync_lte_auth_seq('11111', 16 * b'\x00', auts)
         self.assertEqual(self._processor.get_next_lte_auth_seq('11111'),
                          2**28 + 3)
 
@@ -274,9 +283,9 @@ class ProcessorTests(unittest.TestCase):
         """
         Test if we ignore the seq update when the MAC_S is incorrect
         """
-        auts = 14*b'\x01'
+        auts = 14 * b'\x01'
         with self.assertRaises(CryptoError):
-            self._processor.resync_lte_auth_seq('11111', 16*b'\x00', auts)
+            self._processor.resync_lte_auth_seq('11111', 16 * b'\x00', auts)
         self.assertEqual(self._processor.get_next_lte_auth_seq('11111'), 1)
 
     def test_lte_resync_imsi_unknown(self):
@@ -284,21 +293,24 @@ class ProcessorTests(unittest.TestCase):
         Test if we get SubscriberNotFoundError exception
         """
         with self.assertRaises(SubscriberNotFoundError):
-            self._processor.resync_lte_auth_seq('12345', 16*b'\x00', 14*b'\x00')
+            self._processor.resync_lte_auth_seq(
+                '12345', 16 * b'\x00', 14 * b'\x00')
 
     def test_lte_resync_key_missing(self):
         """
         Test if we get CryptoError if auth key is missing
         """
         with self.assertRaises(CryptoError):
-            self._processor.resync_lte_auth_seq('22222', 16*b'\x00', 14*b'\x00')
+            self._processor.resync_lte_auth_seq(
+                '22222', 16 * b'\x00', 14 * b'\x00')
 
     def test_lte_resync_no_subscription(self):
         """
         Test if we get CryptoError if there is no LTE subscription
         """
         with self.assertRaises(CryptoError):
-            self._processor.resync_lte_auth_seq('33333', 16*b'\x00', 3*b'\x00')
+            self._processor.resync_lte_auth_seq(
+                '33333', 16 * b'\x00', 3 * b'\x00')
 
     def test_sub_profile(self):
         """

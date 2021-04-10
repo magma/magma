@@ -80,14 +80,14 @@ def build_desired_config(
 
     # Attempt to load device configuration from YANG before service mconfig
     enb_config = _get_enb_yang_config(device_config) or \
-                 _get_enb_config(mconfig, device_config)
+        _get_enb_config(mconfig, device_config)
 
     _set_earfcn_freq_band_mode(device_config, cfg_desired, data_model,
                                enb_config.earfcndl)
     if enb_config.subframe_assignment is not None:
         _set_tdd_subframe_config(device_config, cfg_desired,
-            enb_config.subframe_assignment,
-            enb_config.special_subframe_pattern)
+                                 enb_config.subframe_assignment,
+                                 enb_config.special_subframe_pattern)
     _set_pci(cfg_desired, enb_config.pci)
     _set_plmnids_tac(cfg_desired, enb_config.plmnid_list, enb_config.tac)
     _set_bandwidth(cfg_desired, data_model, enb_config.bandwidth_mhz)
@@ -158,6 +158,7 @@ def _get_enb_yang_config(
         mme_address=mme_address,
         mme_port=mme_port)
     return single_enodeb_config
+
 
 def _get_enb_config(
     mconfig: mconfigs_pb2.EnodebD,
@@ -313,8 +314,8 @@ def _set_s1_connection(
      - MME IP
      - MME port (defalts to 36412 as per TR-196 recommendation)
     """
-    config_assert(type(mme_ip) == str, 'Invalid MME IP type')
-    config_assert(type(mme_port) == int, 'Invalid MME Port type')
+    config_assert(isinstance(mme_ip, str), 'Invalid MME IP type')
+    config_assert(isinstance(mme_port, int), 'Invalid MME Port type')
     cfg.set_parameter(ParameterName.MME_IP, mme_ip)
     cfg.set_parameter(ParameterName.MME_PORT, mme_port)
 
@@ -382,10 +383,10 @@ def _set_plmnids_tac(
     Input 'plmnids' is comma-separated list of PLMNIDs
     """
     # Convert int PLMNID to string
-    if type(plmnids) == int:
+    if isinstance(plmnids, int):
         plmnid_str = str(plmnids)
     else:
-        config_assert(type(plmnids) == str, 'PLMNID must be string')
+        config_assert(isinstance(plmnids, str), 'PLMNID must be string')
         plmnid_str = plmnids
 
     # Multiple PLMNIDs will be supported using comma-separated list.
@@ -405,7 +406,7 @@ def _set_plmnids_tac(
                   'PLMNID must be length <=6 (%s)' % plmnid_list[0])
 
     # We just need one PLMN element in the config. Delete all others.
-    for i in range(1, 2):#data_model.get_num_plmns() + 1):
+    for i in range(1, 2):  # data_model.get_num_plmns() + 1):
         object_name = ParameterName.PLMN_N % i
         enable_plmn = i == 1
         cfg.add_object(object_name)
@@ -469,8 +470,8 @@ def _set_earfcn_freq_band_mode(
     band_capabilities = band_capability_list.split(',')
     if str(band) not in band_capabilities:
         logger.warning('Band %d not in capabilities list (%s). Continuing'
-                        ' with config because capabilities list may not be'
-                        ' correct', band, band_capabilities)
+                       ' with config because capabilities list may not be'
+                       ' correct', band, band_capabilities)
 
     cfg.set_parameter(ParameterName.EARFCNDL, earfcndl)
     if duplex_mode == DuplexMode.FDD:
@@ -485,7 +486,7 @@ def _set_earfcn_freq_band_mode(
         logger.debug('Set EARFCNDL=%d, Band=%d', earfcndl, band)
     else:
         logger.debug('Set EARFCNDL=%d, EARFCNUL=%d, Band=%d',
-                      earfcndl, earfcnul, band)
+                     earfcndl, earfcnul, band)
 
 
 def _set_param_if_present(

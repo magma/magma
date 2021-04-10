@@ -55,7 +55,8 @@ def create_parser():
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')
-    parser_metrics = subparsers.add_parser('metrics', help='Get service metrics')
+    parser_metrics = subparsers.add_parser(
+        'metrics', help='Get service metrics')
     parser_stop = subparsers.add_parser('stop', help='Stop service')
     parser_info = subparsers.add_parser('info', help='Get service info')
 

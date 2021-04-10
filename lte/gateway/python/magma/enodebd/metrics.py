@@ -66,7 +66,8 @@ STAT_ERAB_REL_REQ_USER_INAC = Gauge(
     'erab_release_requests_user_inactivity',
     'ERAB release requests due to user inactivity')
 STAT_ERAB_REL_REQ_NORMAL = Gauge(
-    'erab_release_requests_normal', 'ERAB release requests due to normal cause')
+    'erab_release_requests_normal',
+    'ERAB release requests due to normal cause')
 STAT_ERAB_REL_REQ_RES_NOT_AVAIL = Gauge(
     'erab_release_requests_radio_resources_not_available',
     'ERAB release requests due to radio resources not available')
@@ -88,4 +89,6 @@ STAT_ERAB_REL_REQ_OAM_INTV = Gauge(
 STAT_PDCP_USER_PLANE_BYTES_UL = Gauge(
     'pdcp_user_plane_bytes_ul', 'User plane uplink bytes at PDCP', ['enodeb'])
 STAT_PDCP_USER_PLANE_BYTES_DL = Gauge(
-    'pdcp_user_plane_bytes_dl', 'User plane downlink bytes at PDCP', ['enodeb'])
+    'pdcp_user_plane_bytes_dl',
+    'User plane downlink bytes at PDCP',
+    ['enodeb'])

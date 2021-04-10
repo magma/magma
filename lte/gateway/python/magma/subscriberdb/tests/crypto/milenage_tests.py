@@ -20,6 +20,7 @@ class MilenageRandomTests(unittest.TestCase):
     """
     Test class RAND method
     """
+
     def test_rand(self):
         """Tests the random generator"""
         rand = Milenage.generate_rand()
@@ -142,7 +143,7 @@ class MilenageTests(unittest.TestCase):
         self.assertEqual(crypto.generate_opc(k, op), op_c)
         auts = crypto.generate_auts(k, op_c, rand, sqn)
         self.assertEqual(crypto.generate_resync(auts, k, op_c, rand),
-                          (sqn, mac_s))
+                         (sqn, mac_s))
 
     def test_eutran_vector(self):
         """Can we compute the vector that OAI generates?"""

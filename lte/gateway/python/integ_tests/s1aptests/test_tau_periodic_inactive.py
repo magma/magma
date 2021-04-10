@@ -40,8 +40,10 @@ class TestTauPeriodicInactive(unittest.TestCase):
               ue_id)
         # Now actually complete the attach
         self._s1ap_wrapper.s1_util.attach(
-            ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND, s1ap_types.ueAttachAccept_t)
+            ue_id,
+            s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
+            s1ap_types.ueAttachAccept_t)
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 

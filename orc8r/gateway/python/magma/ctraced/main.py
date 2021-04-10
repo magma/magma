@@ -19,6 +19,7 @@ from .trace_manager import TraceManager
 from orc8r.protos.ctraced_pb2_grpc import CallTraceControllerStub
 from orc8r.protos.mconfig.mconfigs_pb2 import CtraceD
 
+
 def main():
     """ main() for ctraced """
     service = MagmaService('ctraced', CtraceD())

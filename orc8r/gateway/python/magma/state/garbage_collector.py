@@ -31,6 +31,7 @@ class GarbageCollector:
     garbage and deletes that state from the Orchestrator State service. If the
     RPC call succeeds, it then deletes the state from Redis
     """
+
     def __init__(self,
                  service: MagmaService,
                  grpc_client_manager: GRPCClientManager):

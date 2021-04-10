@@ -32,6 +32,7 @@ class StateMachineManager:
     Delegates tr069 message handling to a dedicated state machine for the
     device.
     """
+
     def __init__(
         self,
         service: MagmaService,
@@ -52,15 +53,15 @@ class StateMachineManager:
                 self._update_device_mapping(client_ip, tr069_message)
             except UnrecognizedEnodebError as err:
                 logger.warning('Received TR-069 Inform message from an '
-                                'unrecognized device. '
-                                'Ending TR-069 session with empty HTTP '
-                                'response. Error: (%s)', err)
+                               'unrecognized device. '
+                               'Ending TR-069 session with empty HTTP '
+                               'response. Error: (%s)', err)
                 return models.DummyInput()
 
         handler = self._get_handler(client_ip)
         if handler is None:
             logger.warning('Received non-Inform TR-069 message from unknown '
-                            'eNB. Ending session with empty HTTP response.')
+                           'eNB. Ending session with empty HTTP response.')
             return models.DummyInput()
 
         return handler.handle_tr069_message(tr069_message)
@@ -128,16 +129,18 @@ class StateMachineManager:
             prev_serial = self._ip_serial_mapping.get_serial(client_ip)
             if enb_serial != prev_serial:
                 logger.info('eNodeB change on IP <%s>, from %s to %s',
-                             client_ip, prev_serial, enb_serial)
-                self._ip_serial_mapping.set_ip_and_serial(client_ip, enb_serial)
+                            client_ip, prev_serial, enb_serial)
+                self._ip_serial_mapping.set_ip_and_serial(
+                    client_ip, enb_serial)
                 self._state_machine_by_ip[client_ip] = None
         elif self._ip_serial_mapping.has_serial(enb_serial):
             # Same eNB, different IP
             prev_ip = self._ip_serial_mapping.get_ip(enb_serial)
             if client_ip != prev_ip:
                 logger.info('eNodeB <%s> changed IP from %s to %s',
-                             enb_serial, prev_ip, client_ip)
-                self._ip_serial_mapping.set_ip_and_serial(client_ip, enb_serial)
+                            enb_serial, prev_ip, client_ip)
+                self._ip_serial_mapping.set_ip_and_serial(
+                    client_ip, enb_serial)
                 handler = self._state_machine_by_ip[prev_ip]
                 self._state_machine_by_ip[client_ip] = handler
                 del self._state_machine_by_ip[prev_ip]
@@ -159,8 +162,11 @@ class StateMachineManager:
                 hasattr(tr069_message.DeviceId, 'SerialNumber'):
             return tr069_message.DeviceId.SerialNumber
 
-        if not hasattr(tr069_message, 'ParameterList') or \
-                not hasattr(tr069_message.ParameterList, 'ParameterValueStruct'):
+        if not hasattr(
+                tr069_message,
+                'ParameterList') or not hasattr(
+                tr069_message.ParameterList,
+                'ParameterValueStruct'):
             return None
 
         # Parse the parameters
@@ -195,6 +201,7 @@ class StateMachineManager:
 
 class IpToSerialMapping:
     """ Bidirectional map between <eNodeB IP> and <eNodeB serial ID> """
+
     def __init__(self) -> None:
         self.ip_by_enb_serial = {}
         self.enb_serial_by_ip = {}

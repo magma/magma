@@ -46,8 +46,7 @@ class GxGyTestUtil(object):
         )
 
         self.proxy_responder = session_manager_pb2_grpc.SessionProxyResponderStub(
-            ServiceRegistry.get_rpc_channel("sessiond", ServiceRegistry.LOCAL),
-        )
+            ServiceRegistry.get_rpc_channel("sessiond", ServiceRegistry.LOCAL), )
 
         # Mock session controller server
         cloud_port = load_service_config("sessiond")["local_controller_port"]

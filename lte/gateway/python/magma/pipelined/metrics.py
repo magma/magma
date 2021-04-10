@@ -49,11 +49,11 @@ NETWORK_IFACE_STATUS = Gauge(
 )
 
 GTP_PORT_USER_PLANE_UL_BYTES = Gauge('gtp_port_user_plane_ul_bytes',
-                                       'GTP port user plane uplink bytes',
-                                       ['ip_addr'],
-                                       )
+                                     'GTP port user plane uplink bytes',
+                                     ['ip_addr'],
+                                     )
 
 GTP_PORT_USER_PLANE_DL_BYTES = Gauge('gtp_port_user_plane_dl_bytes',
-                                       'GTP port user plane downlink bytes',
-                                       ['ip_addr'],
-                                       )
+                                     'GTP port user plane downlink bytes',
+                                     ['ip_addr'],
+                                     )

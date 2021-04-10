@@ -36,8 +36,10 @@ class TestAttachServiceMultiUe(unittest.TestCase):
         reqs = tuple(self._s1ap_wrapper.ue_req for _ in range(num_ues))
 
         for req in reqs:
-            print("************************* Running End to End attach for UE ",
-                  "id ", req.ue_id)
+            print(
+                "************************* Running End to End attach for UE ",
+                "id ",
+                req.ue_id)
             # Now actually complete the attach
             self._s1ap_wrapper._s1_util.attach(
                 req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,

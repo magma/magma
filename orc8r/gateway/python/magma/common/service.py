@@ -46,6 +46,7 @@ from .service_registry import ServiceRegistry
 
 MAX_DEFAULT_WORKER = 10
 
+
 async def loop_exit():
     """
     Stop the loop in an async context
@@ -127,9 +128,12 @@ class MagmaService(Service303Servicer):
 
         if self._config and 'grpc_workers' in self._config:
             self._server = grpc.server(
-                futures.ThreadPoolExecutor(max_workers=self._config['grpc_workers']))
+                futures.ThreadPoolExecutor(
+                    max_workers=self._config['grpc_workers']))
         else:
-            self._server = grpc.server(futures.ThreadPoolExecutor(max_workers=MAX_DEFAULT_WORKER))
+            self._server = grpc.server(
+                futures.ThreadPoolExecutor(
+                    max_workers=MAX_DEFAULT_WORKER))
         add_Service303Servicer_to_server(self, self._server)
 
     @property

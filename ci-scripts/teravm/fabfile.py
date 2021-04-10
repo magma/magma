@@ -101,7 +101,12 @@ def upgrade_teravm_latest(
     latest_tag = _get_latest_agw_tag(setup, key_filename)
     latest_hash = _parse_hash_from_tag(latest_tag)
 
-    return  upgrade_teravm(setup, latest_hash, key_filename, upgrade_agw, upgrade_feg)
+    return upgrade_teravm(
+        setup,
+        latest_hash,
+        key_filename,
+        upgrade_agw,
+        upgrade_feg)
 
 
 def upgrade_teravm(
@@ -165,20 +170,18 @@ def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
         try:
             if hash is None or hash.lower() == "latest":
                 # install latest on the repository
-                sudo("apt install -f -y --allow-downgrades -o Dpkg::Options::=\"--force-confnew\" magma")
+                sudo(
+                    "apt install -f -y --allow-downgrades -o Dpkg::Options::=\"--force-confnew\" magma")
             else:
                 sudo(
                     "version=$("
                     "apt-cache madison magma | grep {hash} | awk 'NR==1{{print $3}}');"
                     "apt install -f -y --allow-downgrades -o Dpkg::Options::=\"--force-confnew\" magma=$version".format(
-                        hash=hash
-                    )
-                )
+                        hash=hash))
         except Exception:
             err = (
                 "Error during install of version {} on AGW. "
-                "Maybe the version doesn't exist. Not installing.\n".format(hash)
-            )
+                "Maybe the version doesn't exist. Not installing.\n".format(hash))
             fastprint(err)
             sys.exit(1)
 
@@ -305,10 +308,12 @@ def _set_magma_apt_repo():
     with settings(abort_exception=FabricException):
         try:
             # add repo to source file (same as add-apt-repo
-            repo_apt_string = "deb {} {}".format(AGW_APT_SOURCE, AGW_APT_BRANCH)
+            repo_apt_string = "deb {} {}".format(
+                AGW_APT_SOURCE, AGW_APT_BRANCH)
             ignore_comments = "/^[[:space:]]*#/!"
             sudo("touch {}".format(AGW_ATP_FILE))
-            # Replace non commented lines with the wrong repo, or add it if missing
+            # Replace non commented lines with the wrong repo, or add it if
+            # missing
             sudo(
                 "grep -q '{source}' {sFile} && "
                 "sed -i '{ign_com}s,.*{source}.*,{repo},g' {sFile} || "
@@ -342,10 +347,12 @@ def _parse_stats(teravm_raw_result):
                 verdicts[verdict].append(line)
     return verdicts
 
+
 def _prettyprint_stats(verdict):
     for result, test_list in verdict.items():
         for result in test_list:
-            fastprint("%s\n" %(result))
+            fastprint("%s\n" % (result))
+
 
 def _check_disk_space(threshold=80, drive_prefix="/dev/sd"):
     over_threshold = {}
@@ -384,7 +391,7 @@ def _get_latest_agw_tag(setup, key_filename):
         sys.exit(1)
     sudo("apt update")
     tag = sudo(
-            "apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'")
+        "apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'")
     fastprint("Latest tag of AGW is %s \n" % tag)
 
     return tag
@@ -429,4 +436,3 @@ def _prep_bool_arg(arg):
 
 class FabricException(Exception):
     pass
-

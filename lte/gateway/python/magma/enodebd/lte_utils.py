@@ -26,6 +26,7 @@ class LTEBandInfo:
             - EARFCN spacing within a band is always 0.1MHz
             - 1:1 mapping between EARFCNDL and EARFCNUL (for FDD)
     """
+
     def __init__(self, duplex_mode, earfcndl, start_freq_dl_mhz,
                  start_earfcnul=None, start_freq_ul_mhz=None):
         """
@@ -41,12 +42,12 @@ class LTEBandInfo:
                               (MHz) (or None if band is TDD)
         """
         # Validate inputs
-        assert type(earfcndl) == list or type(earfcndl) == range
-        assert type(start_freq_dl_mhz) == int
-        assert type(duplex_mode) == DuplexMode
+        assert isinstance(earfcndl, list) or isinstance(earfcndl, range)
+        assert isinstance(start_freq_dl_mhz, int)
+        assert isinstance(duplex_mode, DuplexMode)
         if duplex_mode == DuplexMode.FDD:
-            assert type(start_earfcnul) == int
-            assert type(start_freq_ul_mhz) == int
+            assert isinstance(start_earfcnul, int)
+            assert isinstance(start_freq_ul_mhz, int)
         else:
             assert start_earfcnul is None
             assert start_freq_ul_mhz is None

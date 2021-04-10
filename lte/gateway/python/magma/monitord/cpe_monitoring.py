@@ -67,8 +67,8 @@ class CpeMonitoringModule:
         """
 
         try:
-            mobilityd_chan = ServiceRegistry.get_rpc_channel('mobilityd',
-                                                             ServiceRegistry.LOCAL)
+            mobilityd_chan = ServiceRegistry.get_rpc_channel(
+                'mobilityd', ServiceRegistry.LOCAL)
             mobilityd_stub = MobilityServiceStub(mobilityd_chan)
             response = await grpc_async_wrapper(
                 mobilityd_stub.GetSubscriberIPTable.future(Void(),

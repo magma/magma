@@ -60,8 +60,15 @@ class RedirectionManager:
         ['imsi', 'ip_addr', 'rule', 'rule_num', 'rule_version', 'priority'],
     )
 
-    def __init__(self, bridge_ip, logger, main_tbl_num, stats_table, next_table,
-                 scratch_table_num, session_rule_version_mapper):
+    def __init__(
+            self,
+            bridge_ip,
+            logger,
+            main_tbl_num,
+            stats_table,
+            next_table,
+            scratch_table_num,
+            session_rule_version_mapper):
         self._bridge_ip = bridge_ip
         self.logger = logger
         self.main_tbl_num = main_tbl_num
@@ -328,11 +335,12 @@ class RedirectionManager:
 
         parser = datapath.ofproto_parser
         # TODO use subscriber ip_addr to generate internal IP and release
-        # internal IP when subscriber disconnects or redirection flow is removed
+        # internal IP when subscriber disconnects or redirection flow is
+        # removed
         internal_ip = self._internal_ip_allocator.next_ip()
 
         self._save_redirect_entry(internal_ip, rule.redirect)
-        #TODO check if we actually need this, dns might already be allowed
+        # TODO check if we actually need this, dns might already be allowed
         self._install_dns_flows(datapath, imsi, rule, rule_num, rule_version,
                                 priority)
 
@@ -563,7 +571,7 @@ class RedirectionManager:
         matches = []
         uplink_ip_match = {}
         downlink_ip_match = {}
-        if ue_ip != None:
+        if ue_ip is not None:
             uplink_ip_match['ipv4_src'] = ue_ip
             downlink_ip_match['ipv4_dst'] = ue_ip
         for ip in ips:

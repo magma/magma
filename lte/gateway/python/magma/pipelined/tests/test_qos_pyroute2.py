@@ -42,7 +42,7 @@ class TcSetypTest(unittest.TestCase):
             ln = ln.strip()
             if not ln:
                 continue
-            #print(ln)
+            # print(ln)
             tokens = ln.split(" ")
 
             if len(tokens) > 10 and tokens[9] == qid:

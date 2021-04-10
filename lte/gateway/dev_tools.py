@@ -11,14 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import tools.fab.types as types
+import tools.fab.dev_utils as dev_utils
 import sys
 from typing import Any, List
 
 import urllib3
 
 sys.path.append('../../orc8r')
-import tools.fab.dev_utils as dev_utils
-import tools.fab.types as types
 
 
 LTE_NETWORK_TYPE = 'lte'

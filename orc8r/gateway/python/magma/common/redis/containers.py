@@ -261,7 +261,7 @@ class RedisFlatDict(MutableMapping[str, T]):
             return composite_key in self.cache
 
         return bool(self.redis.exists(composite_key)) and \
-               not self.is_garbage(key)
+            not self.is_garbage(key)
 
     def __getitem__(self, key: str) -> T:
         """Return the item of dictionary with key *key:type*. Raises a

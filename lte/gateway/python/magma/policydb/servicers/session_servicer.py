@@ -157,7 +157,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             return []
 
         sub_apn_policies = self._apn_rules_by_sid[imsi]
-        assigned_static_rules = [] # type: List[StaticRuleInstall]
+        assigned_static_rules = []  # type: List[StaticRuleInstall]
         # Add global rules
         global_rules = self._get_global_static_rules(sub_apn_policies)
         assigned_static_rules += \

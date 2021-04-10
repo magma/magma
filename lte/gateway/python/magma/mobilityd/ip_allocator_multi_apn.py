@@ -74,7 +74,8 @@ class IPAllocatorMultiAPNWrapper(IPAllocator):
         """ Check if subscriber has APN configuration and vlan.
         once we have APN specific info use IP allocator to assign an IP.
         """
-        network_info = self._subscriber_client.get_subscriber_apn_network_info(sid)
+        network_info = self._subscriber_client.get_subscriber_apn_network_info(
+            sid)
         # Update GW info from subscriber DB data.
         # This could be overwritten by DHCP response.
         self._store.dhcp_gw_info.update_mac(network_info.gw_ip,
