@@ -89,7 +89,7 @@ function configure_restricted_plmn {
 
 function configure_blocked_imei {
   # Remove default blocked imei(s) from MME configuration file
-  sed -i -e '/BLOCKED_IMEI_LIST/{n;N;N;N;d}' \
+  sed -i -e '/BLOCKED_IMEI_LIST/{n;N;N;N;N;N;N;N;N;N;N;d}' \
     "$mme_config_file"
 
   # Configure blocked imei(s) in MME configuration file
