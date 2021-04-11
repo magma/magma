@@ -1797,11 +1797,8 @@ static int emm_send_attach_accept(emm_context_t* emm_context) {
     //----------------------------------------
     REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__14);
     emm_sap.u.emm_as.u.establish.eps_network_feature_support =
-        calloc(1, sizeof(eps_network_feature_support_t));
-    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
-        _emm_data.conf.eps_network_feature_support[0];
-    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
-        _emm_data.conf.eps_network_feature_support[1];
+        (eps_network_feature_support_t*) &_emm_data.conf
+            .eps_network_feature_support;
 
     /*
      * Delete any preexisting UE radio capabilities, pursuant to
@@ -1810,8 +1807,7 @@ static int emm_send_attach_accept(emm_context_t* emm_context) {
     // Note: this is safe from double-free errors because it sets to NULL
     // after freeing, which free treats as a no-op.
     bdestroy_wrapper(&ue_mm_context_p->ue_radio_capability);
-    free_wrapper(
-        (void**) &emm_sap.u.emm_as.u.establish.eps_network_feature_support);
+
     /*
      * Setup EPS NAS security data
      */
@@ -1972,14 +1968,9 @@ static int emm_attach_accept_retx(emm_context_t* emm_context) {
         "message\n",
         ue_id);
     emm_sap.u.emm_as.u.establish.eps_network_feature_support =
-        calloc(1, sizeof(eps_network_feature_support_t));
+        (eps_network_feature_support_t*) &_emm_data.conf
+            .eps_network_feature_support;
     emm_sap.u.emm_as.u.data.new_guti = &emm_context->_guti;
-    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
-        _emm_data.conf.eps_network_feature_support[0];
-    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
-        _emm_data.conf.eps_network_feature_support[1];
-    free_wrapper(
-        (void**) &emm_sap.u.emm_as.u.establish.eps_network_feature_support);
 
     /*
      * Setup EPS NAS security data
