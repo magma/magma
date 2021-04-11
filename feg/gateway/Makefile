@@ -5,7 +5,8 @@ MAGMA_ROOT = /home/$USER/magma
 endif
 export MAGMA_ROOT
 
-COVER_DIR := $(MAGMA_ROOT)/feg/gateway/coverage
+COVER_DIR:=$(MAGMA_ROOT)/feg/gateway/coverage
+COVER_FILE:=$(COVER_DIR)/feg.gocov
 export COVER_DIR
 
 
@@ -63,6 +64,14 @@ run_local_hss:
 
 precommit: fmt test vet
 
+cover: tools
+	mkdir -p $(COVER_DIR)
+	go-acc ./... --covermode count --output $(COVER_FILE)
+	# skip some unnecessary files for coverage
+	awk '!/\.pb\.go|_swaggergen\.go|\/mocks\/|\/tools\/|\/blobstore\/ent\//' $(COVER_FILE) > $(COVER_FILE).tmp && \
+		mv $(COVER_FILE).tmp $(COVER_FILE)
+
+# Tool dependencies
 TOOL_DEPS:= \
 	github.com/ory/go-acc \
 	github.com/wadey/gocovmerge
@@ -70,12 +79,4 @@ tools:: $(TOOL_DEPS)
 $(TOOL_DEPS): %:
 	go install $*
 
-cover: tools cover_pre
 
-COVER_FILE=$(COVER_DIR)/feg.gocov
-cover: tools cover_pre
-	go-acc ./... --covermode count --output $(COVER_FILE)
-	# skip some unnecessary files for coverage
-	awk '!/\.pb\.go|_swaggergen\.go|\/mocks\/|\/tools\/|\/blobstore\/ent\//' $(COVER_FILE) > $(COVER_FILE).tmp && mv $(COVER_FILE).tmp $(COVER_FILE)
-cover_pre:
-	mkdir -p $(COVER_DIR)
