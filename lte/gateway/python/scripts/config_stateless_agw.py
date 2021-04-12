@@ -17,7 +17,6 @@ Script to trigger pre and post start commands for the Sctpd systemd unit
 
 import argparse
 import os
-import shlex
 import subprocess
 import sys
 import time
@@ -54,8 +53,8 @@ def check_stateless_services():
     num_stateful = 0
     for service, config, value in STATELESS_SERVICE_CONFIGS:
         if (
-            check_stateless_service_config(service, config, value)
-            == return_codes.STATEFUL
+                check_stateless_service_config(service, config, value)
+                == return_codes.STATEFUL
         ):
             num_stateful += 1
 
@@ -202,6 +201,7 @@ def reset_sctpd_for_stateful():
         print("AGW is stateless, no need to restart Sctpd")
         sys.exit(0)
     restart_sctpd()
+
 
 STATELESS_FUNC_DICT = {
     "check": check_stateless_agw,
