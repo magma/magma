@@ -104,7 +104,7 @@ int main(int argc, char* argv[]) {
    */
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(mme_config_embedded_spgw_parse_opt_line(
-      argc, argv, &mme_config, &spgw_config));
+      argc, argv, &mme_config, &amf_config, &spgw_config));
 #else
   CHECK_INIT_RETURN(mme_config_parse_opt_line(argc, argv, &mme_config));
 #endif

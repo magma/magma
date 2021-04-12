@@ -46,12 +46,14 @@
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
 #include "log.h"
+#include "amf_config.h"
 #include "service303.h"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
 #define MIN_GUMMEI 1
 #define MAX_GUMMEI 5
 #define MIN_TAI_SUPPORTED 1
+#define MAX_TAI_SUPPORTED 16
 #define MAX_MCC_LENGTH 3
 #define MAX_MNC_LENGTH 3
 #define MIN_MNC_LENGTH 2
@@ -108,6 +110,12 @@
 #define MME_CONFIG_STRING_S1AP_CONFIG "S1AP"
 #define MME_CONFIG_STRING_S1AP_OUTCOME_TIMER "S1AP_OUTCOME_TIMER"
 #define MME_CONFIG_STRING_S1AP_PORT "S1AP_PORT"
+
+#define MME_CONFIG_STRING_TAC_LIST "TAC_LIST"
+#define MME_CONFIG_STRING_GUAMFI_LIST "GUAMFI_LIST"
+#define MME_CONFIG_STRING_AMF_REGION_ID "AMF_REGION_ID"
+#define MME_CONFIG_STRING_AMF_SET_ID "AMF_SET_ID"
+#define MME_CONFIG_STRING_AMF_POINTER "AMF_POINTER"
 
 #define MME_CONFIG_STRING_GUMMEI_LIST "GUMMEI_LIST"
 #define MME_CONFIG_STRING_MME_CODE "MME_CODE"
@@ -384,8 +392,9 @@ int mme_config_find_mnc_length(
     const char mnc_digit1P, const char mnc_digit2P, const char mnc_digit3P);
 
 void mme_config_init(mme_config_t*);
-int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* mme_config);
-int mme_config_parse_file(mme_config_t*);
+int mme_config_parse_opt_line(
+    int argc, char* argv[], mme_config_t* mme_config, amf_config_t* amf_config);
+int mme_config_parse_file(mme_config_t*, amf_config_t*);
 void mme_config_display(mme_config_t*);
 
 void mme_config_exit(void);

@@ -51,7 +51,7 @@ static void usage(char* exe_path) {
 
 int mme_config_embedded_spgw_parse_opt_line(
     int argc, char* argv[], mme_config_t* mme_config_p,
-    spgw_config_t* spgw_config_p) {
+    amf_config_t* amf_config_p, spgw_config_t* spgw_config_p) {
   int c;
 
   mme_config_init(mme_config_p);
@@ -125,7 +125,7 @@ int mme_config_embedded_spgw_parse_opt_line(
         bfromcstr("/usr/local/etc/oai/spgw.conf");
   }
 
-  if (mme_config_parse_file(mme_config_p) != 0) {
+  if (mme_config_parse_file(mme_config_p, &amf_config) != 0) {
     return RETURNerror;
   }
 
