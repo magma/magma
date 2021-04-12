@@ -41,11 +41,13 @@ class MagmaPyLintTest(unittest.TestCase):
             ],
             show_categories=["warning", "error", "fatal"],
         )
-
+        # TODO look up directories in magma/orc8r/gateway/python/magma
         directories = [
             'common',
             'configuration',
+            # 'ctraced',
             'directoryd',
+            'eventd',
             'magmad',
             'state',
         ]
