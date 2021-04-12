@@ -39,5 +39,5 @@
 
 /* Prevent overlap with fixed sidebar*/
 .swagger-ui {
-  margin-left: 5%;
+  margin-left: 200px;
 }
