@@ -722,15 +722,8 @@ static int amf_auth_request(
         LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
-  char temp_imsi[IMSI_BCD_DIGITS_MAX + 1] = "208950000000031";
-  strcpy(air_t.imsi, temp_imsi);
   air_t.imsi_length             = IMSI_LENGTH;
-  air_t.visited_plmn.mcc_digit1 = 0x2;
-  air_t.visited_plmn.mcc_digit2 = 0x0;
-  air_t.visited_plmn.mcc_digit3 = 0x8;
-  air_t.visited_plmn.mnc_digit1 = 0x9;
-  air_t.visited_plmn.mnc_digit2 = 0x5;
-  air_t.visited_plmn.mnc_digit3 = 0x0;
+  memcpy(&air_t.visited_plmn, &ue_context->amf_context.imsi, sizeof(air_t.visited_plmn));
   air_t.nb_of_vectors           = 1;
   air_t.re_synchronization      = 0;
   s6a_auth_info_ans_t aia_t;
