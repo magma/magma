@@ -41,14 +41,17 @@ class MagmaPyLintTest(unittest.TestCase):
             ],
             show_categories=["warning", "error", "fatal"],
         )
-
+        # TODO look up directories in magma/lte/gateway/python/magma
         directories = [
             'enodebd',
+            # 'health',
             # 'mobilityd',
+            # 'monitord',
             'pipelined',
             # 'pkt_tester',
             'policydb',
             # 'redirectd',
+            # 'smsd',
             'subscriberdb',
         ]
         parent_path = os.path.dirname(os.path.dirname(__file__))
