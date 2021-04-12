@@ -211,14 +211,8 @@ func createSession(cmd *commands.Command, args []string) int {
 			BrDl: 888,
 		},
 		Uli: &protos.UserLocationInformation{
-			Lac:    1,
-			Ci:     2,
-			Sac:    3,
-			Rac:    4,
-			Tac:    5,
-			Eci:    6,
-			MeNbi:  7,
-			EMeNbi: 8,
+			Tac: 5,
+			Eci: 6,
 		},
 		IndicationFlag: nil,
 		TimeZone: &protos.TimeZone{
@@ -257,6 +251,14 @@ func createSession(cmd *commands.Command, args []string) int {
 			BearerId:  bearerId,
 			CAgwTeid:  uint32(AGWTeidC),
 			CPgwFteid: csRes.CPgwFteid,
+			ServingNetwork: &protos.ServingNetwork{
+				Mcc: "310",
+				Mnc: "14",
+			},
+			Uli: &protos.UserLocationInformation{
+				Tac: 5,
+				Eci: 6,
+			},
 		}
 		printGRPCMessage("Sending GRPC message: ", dsReq)
 		dsRes, err := cli.DeleteSession(dsReq)
