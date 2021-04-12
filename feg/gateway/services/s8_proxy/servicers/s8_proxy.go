@@ -173,7 +173,7 @@ func validateCreateSessionRequest(csr *protos.CreateSessionRequestPgw) error {
 }
 
 func validateDeleteSessionRequest(dsr *protos.DeleteSessionRequestPgw) error {
-	if dsr.CPgwFteid == nil || dsr.Imsi == "" || dsr.Uli == nil || dsr.ServingNetwork == nil {
+	if dsr.Imsi == "" || dsr.Uli == nil || dsr.ServingNetwork == nil {
 		return fmt.Errorf("DeleteSessionRequest missing fields %+v", dsr)
 	}
 	return nil
