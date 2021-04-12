@@ -16,15 +16,14 @@ import argparse
 import os
 from pprint import PrettyPrinter
 
+from magma.common.rpc_utils import grpc_wrapper
 from magma.common.service_registry import ServiceRegistry
+from magma.configuration import service_configs
 from orc8r.protos.common_pb2 import Void
-from orc8r.protos.service303_pb2 import ReloadConfigResponse
-from orc8r.protos.service303_pb2_grpc import Service303Stub
 from orc8r.protos.magmad_pb2 import RestartServicesRequest
 from orc8r.protos.magmad_pb2_grpc import MagmadStub
-
-from magma.common.rpc_utils import grpc_wrapper
-from magma.configuration import service_configs
+from orc8r.protos.service303_pb2 import ReloadConfigResponse
+from orc8r.protos.service303_pb2_grpc import Service303Stub
 
 pp = PrettyPrinter(width=1)
 

@@ -13,9 +13,8 @@ limitations under the License.
 Module for executing `traceroute` commands via subprocess
 """
 
-from collections import namedtuple
-
 import asyncio
+from collections import namedtuple
 
 from magma.magmad.check import subprocess_workflow
 

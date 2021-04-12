@@ -14,9 +14,9 @@ Util module for executing multiple `ping` commands via subprocess.
 """
 
 import asyncio
+import re
 from collections import namedtuple
 
-import re
 from magma.magmad.check import subprocess_workflow
 
 DEFAULT_NUM_PACKETS = 4
@@ -27,7 +27,7 @@ PingCommandParams = namedtuple('PingCommandParams',
                                ['host_or_ip', 'num_packets', 'timeout_secs'])
 
 PingInterfaceCommandParams = namedtuple('PingInterfaceCommandParams',
-                               ['host_or_ip', 'num_packets', 'interface', 'timeout_secs'])
+                                        ['host_or_ip', 'num_packets', 'interface', 'timeout_secs'])
 
 PingCommandResult = namedtuple('PingCommandResult',
                                ['error', 'host_or_ip', 'num_packets', 'stats'])

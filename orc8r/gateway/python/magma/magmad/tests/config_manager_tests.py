@@ -102,7 +102,7 @@ class ConfigManagerTest(TestCase):
             updates = [
                 DataUpdate(value=''.encode('utf-8'), key='some key'),
                 DataUpdate(value=update_str.encode('utf-8'),
-                    key='last key'),
+                           key='last key'),
             ]
             config_manager.process_update(CONFIG_STREAM_NAME, updates, False)
 

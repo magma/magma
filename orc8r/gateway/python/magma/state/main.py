@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from orc8r.protos.mconfig import mconfigs_pb2
-from orc8r.protos.state_pb2_grpc import StateServiceStub
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
-from .garbage_collector import GarbageCollector
-from .state_replicator import StateReplicator
+from magma.state.garbage_collector import GarbageCollector
+from magma.state.state_replicator import StateReplicator
+from orc8r.protos.mconfig import mconfigs_pb2
+from orc8r.protos.state_pb2_grpc import StateServiceStub
 
 
 def main():

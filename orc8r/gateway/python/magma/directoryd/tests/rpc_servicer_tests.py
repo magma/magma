@@ -11,15 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from concurrent import futures
-import grpc
 from unittest import TestCase, mock
+
+import fakeredis
+import grpc
 from magma.common.redis.mocks.mock_redis import MockUnavailableRedis
 from magma.directoryd.rpc_servicer import GatewayDirectoryServiceRpcServicer
 from orc8r.protos.common_pb2 import Void
-from orc8r.protos.directoryd_pb2 import UpdateRecordRequest, \
-    DeleteRecordRequest, GetDirectoryFieldRequest
+from orc8r.protos.directoryd_pb2 import (
+    DeleteRecordRequest,
+    GetDirectoryFieldRequest,
+    UpdateRecordRequest,
+)
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
-import fakeredis
 
 # Allow access to protected variables for unit testing
 # pylint: disable=protected-access
