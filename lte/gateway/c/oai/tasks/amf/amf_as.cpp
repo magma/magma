@@ -722,10 +722,12 @@ static int amf_auth_request(
         LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
-  air_t.imsi_length             = IMSI_LENGTH;
-  memcpy(&air_t.visited_plmn, &ue_context->amf_context.imsi, sizeof(air_t.visited_plmn));
-  air_t.nb_of_vectors           = 1;
-  air_t.re_synchronization      = 0;
+  air_t.imsi_length = IMSI_LENGTH;
+  memcpy(
+      &air_t.visited_plmn, &ue_context->amf_context.imsi,
+      sizeof(air_t.visited_plmn));
+  air_t.nb_of_vectors      = 1;
+  air_t.re_synchronization = 0;
   s6a_auth_info_ans_t aia_t;
   memset(&aia_t, 0, sizeof(s6a_auth_info_ans_t));
   auto imsi_len = air_t.imsi_length;
@@ -1053,6 +1055,10 @@ uint16_t amf_as_establish_cnf(
   switch (msg->nas_info) {
     case AMF_AS_NAS_INFO_REGISTERD:
       size = amf_reg_acceptmsg(msg, &nas_msg);
+      nas_msg.header.security_header_type =
+          SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+      /* TODO amf_as_set_header() is incorrectly setting the security header
+       * type for Registration Accept. Fix it in that function*/
       break;
     case AMF_AS_NAS_INFO_TAU:
     case AMF_AS_NAS_INFO_NONE:  // Response to SR

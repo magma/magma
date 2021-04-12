@@ -544,8 +544,9 @@ void amf_app_handle_pdu_session_response(
   // AmfHeader
   encode_msg.extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  encode_msg.spare_half_octet.spare     = 0x00;
-  encode_msg.sec_header_type.sec_hdr    = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  encode_msg.spare_half_octet.spare = 0x00;
+  encode_msg.sec_header_type.sec_hdr =
+      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
   encode_msg.message_type.msg_type      = DLNASTRANSPORT;
   encode_msg.payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
 
