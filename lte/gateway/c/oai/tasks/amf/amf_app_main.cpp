@@ -98,6 +98,18 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       amf_app_handle_resource_release_response(
           NGAP_PDUSESSIONRESOURCE_REL_RSP(received_message_p));
       break;
+    /* Handle UE context Release Requests */
+    case NGAP_UE_CONTEXT_RELEASE_REQ:
+      /* This is non-nas message and handled directly from NGAP sent to AMF
+       * on RRC-Inactive mode to change UE's CM-connected to CM-idle state.
+       */
+      OAILOG_DEBUG(
+          LOG_AMF_APP,
+          " NGAP UE context release message to AMF"
+          " when gNB experiences RRC-Inactive \n");
+      amf_app_handle_cm_idle_on_ue_context_release(
+          NGAP_UE_CONTEXT_RELEASE_REQ(received_message_p));
+      break;
     /* Handle Terminate message */
     case TERMINATE_MESSAGE:
       OAILOG_DEBUG(LOG_AMF_APP, "TERMINATE_MESSAGE received\n");

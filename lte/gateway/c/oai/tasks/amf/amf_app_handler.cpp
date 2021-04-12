@@ -26,6 +26,7 @@ extern "C" {
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_asDefs.h"
 #include "amf_sap.h"
+#include "amf_recv.h"
 #include "amf_app_state_manager.h"
 #include "M5gNasMessage.h"
 #include "dynamic_memory_check.h"
@@ -669,4 +670,83 @@ void amf_app_handle_resource_release_response(
         LOG_AMF_APP, " Failure message not handled and dropping the message\n");
   }
 }
+
+/* This function gets invoked based on the message NGAP_UE_CONTEXT_RELEASE_REQ
+ * from gNB/NGAP in UL for handling CM-idle state of UE/IMSI/SUPI.
+ * Action logic:
+ * - Fetch AMF context, match the no of PDU sessions in message with no of
+ *   PDU sessions in AMF_context and cause NGAP_RADIO_NR_GENERATED_REASON
+ *   it means gNB RRC-Inactive triggered and UE state must be changed from
+ *   CM-connected to CM-Idle state.
+ *   Then send message to SMF to change all respective PDU session state
+ *   to inactive state.
+ * - Retrive the required field of UE, like IMSI and fill gRPC notification
+ *   proto structure.
+ * - In AMF move the UE/IMSI state to CM-idle
+ *   Go over all PDU sessions and change the state to in-active.
+ * */
+void amf_app_handle_cm_idle_on_ue_context_release(
+    itti_ngap_ue_context_release_req_t cm_idle_req) {
+  OAILOG_DEBUG(
+      LOG_AMF_APP, " Handling UL UE context release for CM-idle for ue id %d\n",
+      cm_idle_req.amf_ue_ngap_id);
+  /* Currently only one PDU session is considered.
+   * for multiple PDU session context (smf_context_t) will be part of vector
+   * and no. of PDU sessions can be derived from this vector and compared
+   * with NGAP message in future.
+   * Now only need to check the cause and proceed further.
+   * note: check if UE in connected state else already in idle state
+   * nothing to do.
+   */
+  int rc = RETURNerror;
+  amf_ue_ngap_id_t ue_id;
+  ue_m5gmm_context_s* ue_context = nullptr;
+  amf_context_t* amf_context     = nullptr;
+  smf_context_t* smf_ctx         = nullptr;
+  ue_id                          = cm_idle_req.amf_ue_ngap_id;
+
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  // TODO: This has been taken care in new PR
+  // with multi UE feature
+  if (!ue_context) {
+    ue_context = &ue_m5gmm_global_context;
+  }
+  // if UE on REGISTERED_IDLE, so no need to do anyting
+  if (ue_context->mm_state == REGISTERED_CONNECTED) {
+    // UE in connected state and need to check if cause is proper
+    if (cm_idle_req.relCause == NGAP_RADIO_NR_GENERATED_REASON) {
+      // Change the respective UE/PDU session state to idle/inactive.
+      ue_context->mm_state == REGISTERED_IDLE;
+      // Handling of smf_context as vector
+      // TODO: This has been taken care in new PR
+      // with multi UE feature
+      smf_ctx                    = &ue_context->amf_context.smf_context;
+      smf_ctx->pdu_session_state = INACTIVE;
+
+      // construct the proto structure and send message to SMF
+      rc = amf_smf_notification_send(ue_id, ue_context);
+
+    } else {
+      OAILOG_DEBUG(
+          LOG_AMF_APP,
+          " UE in REGISTERED_CONNECTED state, but cause from NGAP"
+          " is wrong for UE ID %d and return\n",
+          cm_idle_req.amf_ue_ngap_id);
+      return;
+    }
+  } else {
+    /* TODO: Single or multiple PDU session state change notification
+     * should be taken care here. amf_smf_notification_send will be used
+     * with one more parameter as boolean for idle mode or single PDU
+     * session state change. Currently nothing to do
+     */
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        " UE in REGISTERED_IDLE or CM-idle state, nothing to do"
+        " for UE ID %d\n",
+        cm_idle_req.amf_ue_ngap_id);
+    return;
+  }
+}
+
 }  // namespace magma5g
