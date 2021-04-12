@@ -65,13 +65,14 @@ void GTPApplication::event_callback(
     delete_downlink_arp_flow(del_tunnel_event, messenger, uplink_port_num_);
     delete_downlink_arp_flow(del_tunnel_event, messenger, mtr_port_num_);
   } else if (ev.get_type() == EVENT_ADD_GTP_S8_TUNNEL) {
-
     auto add_tunnel_event = static_cast<const AddGTPTunnelEvent&>(ev);
     auto imsi = IMSIEncoder::compact_imsi(add_tunnel_event.get_imsi());
 
-    OAILOG_DEBUG_UE(LOG_GTPV1U, imsi, "s8: add: TEID: s1-in %u s1-out %u s8-in %u s8-out %u\n",
-    add_tunnel_event.get_in_tei(), add_tunnel_event.get_out_tei(),
-    add_tunnel_event.get_pgw_in_tei(), add_tunnel_event.get_pgw_out_tei());
+    OAILOG_DEBUG_UE(
+        LOG_GTPV1U, imsi,
+        "s8: add: TEID: s1-in %u s1-out %u s8-in %u s8-out %u\n",
+        add_tunnel_event.get_in_tei(), add_tunnel_event.get_out_tei(),
+        add_tunnel_event.get_pgw_in_tei(), add_tunnel_event.get_pgw_out_tei());
 
     add_uplink_s8_tunnel_flow(add_tunnel_event, messenger);
     int pgw_port = add_tunnel_event.get_pgw_gtp_portno();
