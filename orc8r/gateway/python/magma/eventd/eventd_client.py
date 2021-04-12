@@ -18,7 +18,6 @@ from magma.common.service_registry import ServiceRegistry
 from orc8r.protos.eventd_pb2 import Event
 from orc8r.protos.eventd_pb2_grpc import EventServiceStub
 
-
 EVENTD_SERVICE_NAME = "eventd"
 DEFAULT_GRPC_TIMEOUT = 10
 

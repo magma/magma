@@ -24,6 +24,7 @@ In order for that to be possible, upgrading must be broken into stages:
 4) Upgrade
 """
 
+import abc
 import asyncio
 import http.client
 import logging
@@ -33,7 +34,6 @@ import time
 import typing
 import urllib.request  # TODO: Figure out how to get aiohttp
 
-import abc
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.upgrade.upgrader import Upgrader
@@ -148,7 +148,8 @@ class UpgradeIntent(
         Else returns empty string.
         """
         available_versions = version_info.all_versions
-        preference = [version for version in (self.stable, self.canary) if version]
+        preference = [version for version in (
+            self.stable, self.canary) if version]
         for version in preference:
             if version not in available_versions:
                 return version

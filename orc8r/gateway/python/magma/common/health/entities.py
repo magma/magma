@@ -129,12 +129,12 @@ class HealthSummary:
             Restart summary:
             {}
         """).format(self.version, self.platform,
-                   'Service', 'Status', 'SubState', 'Running for', 'Log level',
-                   'Errors since last restart',
-                   '\n'.join([str(h) for h in self.services_health]),
-                   self.internet_health, self.dns_health,
-                   '\n'.join(['{:20} {}'.format(name, restarts)
+                    'Service', 'Status', 'SubState', 'Running for', 'Log level',
+                    'Errors since last restart',
+                    '\n'.join([str(h) for h in self.services_health]),
+                    self.internet_health, self.dns_health,
+                    '\n'.join(['{:20} {}'.format(name, restarts)
                               for name, restarts
                               in self.unexpected_restarts.items()])
-                   if any_restarts
-                   else "No restarts since the gateway started")
+                    if any_restarts
+                    else "No restarts since the gateway started")

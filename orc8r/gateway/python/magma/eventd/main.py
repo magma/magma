@@ -13,8 +13,8 @@ limitations under the License.
 
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
-from .rpc_servicer import EventDRpcServicer
-from .event_validator import EventValidator
+from magma.eventd.event_validator import EventValidator
+from magma.eventd.rpc_servicer import EventDRpcServicer
 from orc8r.protos.mconfig.mconfigs_pb2 import EventD
 
 

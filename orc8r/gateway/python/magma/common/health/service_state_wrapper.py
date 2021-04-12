@@ -12,9 +12,12 @@ limitations under the License.
 """
 
 from magma.common.redis.client import get_default_client
-from magma.common.redis.serializers import get_proto_deserializer, \
-    get_proto_serializer, RedisSerde
 from magma.common.redis.containers import RedisFlatDict
+from magma.common.redis.serializers import (
+    RedisSerde,
+    get_proto_deserializer,
+    get_proto_serializer,
+)
 from orc8r.protos.service_status_pb2 import ServiceExitStatus
 
 

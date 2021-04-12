@@ -12,17 +12,18 @@ limitations under the License.
 """
 import asyncio
 import unittest.mock
-from unittest import TestCase
-import grpc
 from concurrent import futures
-import orc8r.protos.state_pb2_grpc as state_pb2_grpc
-from orc8r.protos.state_pb2 import ReportStatesResponse, ReportStatesRequest
+from unittest import TestCase
 from unittest.mock import MagicMock
-from orc8r.protos.service303_pb2 import GetOperationalStatesResponse, State
+
+import grpc
+import orc8r.protos.state_pb2_grpc as state_pb2_grpc
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.service_registry import ServiceRegistry
+from magma.magmad.gateway_status import GatewayStatusFactory, SystemStatus
 from magma.magmad.state_reporter import StateReporter
-from magma.magmad.gateway_status import SystemStatus, GatewayStatusFactory
+from orc8r.protos.service303_pb2 import GetOperationalStatesResponse, State
+from orc8r.protos.state_pb2 import ReportStatesRequest, ReportStatesResponse
 from orc8r.protos.state_pb2_grpc import StateServiceStub
 
 # Allow access to protected variables for unit testing

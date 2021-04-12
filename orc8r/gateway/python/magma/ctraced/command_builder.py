@@ -25,6 +25,7 @@ class TraceBuilder:
     TODO(andreilee): Support tracing for subscriber
     TODO(andreilee): Support tracing by 3gpp protocol
     """
+
     def __init__(self):
         super().__init__()
 
@@ -116,6 +117,7 @@ class TraceBuilder:
             "-Y", display_filters,
             "-w", output_filename
         ]
+
 
 def get_trace_builder(tool_name: str) -> TraceBuilder:
     """Factory method for TraceBuilder.
