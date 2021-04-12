@@ -89,7 +89,6 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	assert.Equal(t, sentQos.Qci, receivedAtPGWQos.Qci)
 
 	// check QOS received at Response (should be the same as the sent)
-
 	assert.NotEmpty(t, csRes.BearerContext.Qos)
 	receivedQOS := csRes.BearerContext.Qos
 
@@ -100,9 +99,13 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	assert.Equal(t, sentQos.Mbr.BrUl, receivedQOS.Mbr.BrUl)
 	assert.Equal(t, sentQos.Qci, receivedQOS.Qci)
 
+	// check PCO
+	assert.NotEmpty(t, csRes.ProtocolConfigurationOptions)
+	assert.Equal(t, csReq.ProtocolConfigurationOptions, csRes.ProtocolConfigurationOptions)
+
 	// ------------------------
 	// ---- Delete Session ----
-	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid)
+	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)
 
 	dsRes, err := s8p.DeleteSession(context.Background(), cdReq)
 	assert.NoError(t, err)
@@ -214,7 +217,7 @@ func TestS8ProxyDeleteSessionAfterClientRestars(t *testing.T) {
 
 	// ------------------------
 	// ---- Delete Session ----
-	dsReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid)
+	dsReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)
 
 	// session should be deleted
 	dsRes, err := s8p.DeleteSession(context.Background(), dsReq)
@@ -237,10 +240,7 @@ func TestS8ProxyDeleteInexistentSession(t *testing.T) {
 		Imsi:     "000000000000015",
 		BearerId: 4,
 		CAgwTeid: 88,
-		CPgwFteid: &protos.Fteid{
-			Ipv4Address: pgwAddrs,
-			Teid:        87,
-		},
+		CPgwTeid: 87,
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "222",
 			Mnc: "333",
@@ -268,7 +268,8 @@ func TestS8ProxyDeleteWithMissingParamaters(t *testing.T) {
 	// ------------------------
 	// ---- Delete Session inexistent session ----
 	// create a bad create session request
-	dsReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), nil)
+	dsReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), 10)
+	dsReq.Uli = nil
 	_, err := s8p.DeleteSession(context.Background(), dsReq)
 	assert.Error(t, err)
 }
@@ -399,11 +400,11 @@ func TestS8proxyManyCreateAndDeleteSession(t *testing.T) {
 		go func() {
 			defer wg.Done()
 			cdReq := &protos.DeleteSessionRequestPgw{
-				PgwAddrs:  pgwActualAddrs,
-				Imsi:      csReqShadow.Imsi,
-				BearerId:  csResShadow.BearerContext.Id,
-				CAgwTeid:  csResShadow.CAgwTeid,
-				CPgwFteid: csResShadow.CPgwFteid,
+				PgwAddrs: pgwActualAddrs,
+				Imsi:     csReqShadow.Imsi,
+				BearerId: csResShadow.BearerContext.Id,
+				CAgwTeid: csResShadow.CAgwTeid,
+				CPgwTeid: csResShadow.CPgwFteid.Teid,
 				ServingNetwork: &protos.ServingNetwork{
 					Mcc: "222",
 					Mnc: "333",
@@ -507,7 +508,7 @@ func TestS8proxyCreateSessionNillPAA(t *testing.T) {
 	// mock PGW so 0.0.0.0 will be good enough
 	assert.Equal(t, "0.0.0.0", session.GetDefaultBearer().SubscriberIP)
 
-	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid)
+	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)
 	dsRes, err := s8p.DeleteSession(context.Background(), cdReq)
 	assert.NoError(t, err)
 	assert.Empty(t, dsRes.GtpError)
@@ -528,10 +529,47 @@ func TestS8proxyCreateSessionNillPAA(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "::", session.GetDefaultBearer().SubscriberIP)
 
-	cdReq = getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid)
+	cdReq = getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)
 	dsRes, err = s8p.DeleteSession(context.Background(), cdReq)
 	assert.NoError(t, err)
 	assert.Empty(t, dsRes.GtpError)
+}
+
+func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	defer mockPgw.Close()
+
+	// Test empty list of PCO containers
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+	csReq.ProtocolConfigurationOptions.ProtoOrContainerId = nil
+
+	// Send and receive Create Session Request
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
+
+	// check PCO
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes.ProtocolConfigurationOptions)
+	assert.Equal(t, csReq.ProtocolConfigurationOptions, csRes.ProtocolConfigurationOptions)
+
+	// Test no PCO at all
+	// ------------------------
+	// ---- Delete Session ----
+	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)
+	_, err = s8p.DeleteSession(context.Background(), cdReq)
+	assert.NoError(t, err)
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq = getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+	csReq.ProtocolConfigurationOptions.IsValid = false
+	csRes, err = s8p.CreateSession(context.Background(), csReq)
+
+	// check PCO
+	assert.NoError(t, err)
+	assert.Nil(t, csRes.ProtocolConfigurationOptions)
 }
 
 func TestS8proxyEcho(t *testing.T) {
@@ -626,6 +664,27 @@ func getDefaultCreateSessionRequest(pgwAddrs string) *protos.CreateSessionReques
 			MeNbi:  7,
 			EMeNbi: 8,
 		},
+		ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
+			IsValid:        true,
+			ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
+			ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
+				{
+					Id:       uint32(gtpv2.ProtoIDIPCP),
+					Length:   16, // len not required, just added to compare with the result which includes length
+					Contents: []byte{0x01, 0x00, 0x00, 0x10, 0x03, 0x06, 0x01, 0x01, 0x01, 0x01, 0x81, 0x06, 0x02, 0x02, 0x02, 0x02},
+				},
+				{
+					Id:       uint32(gtpv2.ProtoIDPAP),
+					Length:   12, // len not required, just added to compare with the result which includes length
+					Contents: []byte{0x01, 0x00, 0x00, 0x0c, 0x03, 0x66, 0x6f, 0x6f, 0x03, 0x62, 0x61, 0x72},
+				},
+				{
+					Id:       uint32(gtpv2.ContIDMSSupportOfNetworkRequestedBearerControlIndicator),
+					Length:   0, // len not required, just added to compare with the result which includes length
+					Contents: nil,
+				},
+			},
+		},
 		IndicationFlag: nil,
 		TimeZone: &protos.TimeZone{
 			DeltaSeconds:       int32(offset),
@@ -685,6 +744,24 @@ func getMultipleCreateSessionRequest(nRequest int, pgwAddrs string) []*protos.Cr
 				BrUl: 999,
 				BrDl: 888,
 			},
+			ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
+				IsValid:        true,
+				ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
+				ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
+					{
+						Id:       uint32(gtpv2.ProtoIDIPCP),
+						Contents: []byte{0x01, 0x00, 0x00, 0x10, 0x03, 0x06, 0x01, 0x01, 0x01, 0x01, 0x81, 0x06, 0x02, 0x02, 0x02, 0x02},
+					},
+					{
+						Id:       uint32(gtpv2.ProtoIDPAP),
+						Contents: []byte{0x01, 0x00, 0x00, 0x0c, 0x03, 0x66, 0x6f, 0x6f, 0x03, 0x62, 0x61, 0x72},
+					},
+					{
+						Id:       uint32(gtpv2.ContIDMSSupportOfNetworkRequestedBearerControlIndicator),
+						Contents: nil,
+					},
+				},
+			},
 			Uli: &protos.UserLocationInformation{
 				Lac:    1,
 				Ci:     2,
@@ -706,13 +783,13 @@ func getMultipleCreateSessionRequest(nRequest int, pgwAddrs string) []*protos.Cr
 	return res
 }
 
-func getDeleteSessionRequest(pgwAddrs string, cPgwFteid *protos.Fteid) *protos.DeleteSessionRequestPgw {
+func getDeleteSessionRequest(pgwAddrs string, cPgwTeid uint32) *protos.DeleteSessionRequestPgw {
 	res := &protos.DeleteSessionRequestPgw{
-		PgwAddrs:  pgwAddrs,
-		Imsi:      IMSI1,
-		BearerId:  BEARER,
-		CAgwTeid:  AGWTeidC,
-		CPgwFteid: cPgwFteid,
+		PgwAddrs: pgwAddrs,
+		Imsi:     IMSI1,
+		BearerId: BEARER,
+		CAgwTeid: AGWTeidC,
+		CPgwTeid: cPgwTeid,
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "222",
 			Mnc: "333",
