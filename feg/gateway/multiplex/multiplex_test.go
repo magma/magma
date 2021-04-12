@@ -37,17 +37,17 @@ type multiplexorScenario struct {
 var (
 	// Scenarios to test multiplex.Context IMSI parer
 	muxSelectorTestScenarios = []muxSelectorsScenario{
-		muxSelectorsScenario{"IMSI123456789012345-54321", "IMSI123456789012345", 123456789012345, false},
-		muxSelectorsScenario{"IMSI999999999999999-54321", "IMSI999999999999999", 999999999999999, false},
-		muxSelectorsScenario{"IMSI000000000000010-54321", "IMSI000000000000010", 10, false},
-		muxSelectorsScenario{"IMSI1234AAAAA012345-54321", "IMSI1234AAAAA012345", 0, true},
+		{"IMSI123456789012345-54321", "IMSI123456789012345", 123456789012345, false},
+		{"IMSI999999999999999-54321", "IMSI999999999999999", 999999999999999, false},
+		{"IMSI000000000000010-54321", "IMSI000000000000010", 10, false},
+		{"IMSI1234AAAAA012345-54321", "IMSI1234AAAAA012345", 0, true},
 	}
 	// Scenarios to test StaticMultiplexByIMSI
 	staticMultiplexByIMSIScenario = []multiplexorScenario{
-		multiplexorScenario{"IMSI123456789012345-54321", 5, 0, false},
-		multiplexorScenario{"IMSI999999999999999-54321", 7, 5, false},
-		multiplexorScenario{"IMSI000000000000010-54321", 6, 4, false},
-		multiplexorScenario{"IMSI1234AAAAA012345-54321", -1, -1, true},
+		{"IMSI123456789012345-54321", 5, 0, false},
+		{"IMSI999999999999999-54321", 7, 5, false},
+		{"IMSI000000000000010-54321", 6, 4, false},
+		{"IMSI1234AAAAA012345-54321", -1, -1, true},
 	}
 )
 

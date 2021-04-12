@@ -306,7 +306,7 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 					Host:             "magma-fedgw.magma.com",
 				},
 				Servers: []*fegmcfg.DiamClientConfig{
-					&fegmcfg.DiamClientConfig{
+					{
 						Protocol:         "tcp",
 						Address:          "gx.server1",
 						Retransmits:      0x3,
@@ -331,7 +331,7 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 					Host:             "magma-fedgw.magma.com",
 				},
 				Servers: []*fegmcfg.DiamClientConfig{
-					&fegmcfg.DiamClientConfig{
+					{
 						Protocol:         "tcp",
 						Address:          "gy.server1",
 						Retransmits:      0x3,

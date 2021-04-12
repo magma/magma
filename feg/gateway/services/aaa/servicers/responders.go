@@ -210,7 +210,7 @@ func (srv *accountingService) TerminateRegistration(
 	return res, err
 }
 
-// CancelLocation fulfils S6a's CLR and disconnect UE from AAA if successful
+// CancelLocation fulfills S6a's CLR and disconnect UE from AAA if successful
 func (srv *accountingService) CancelLocation(
 	_ context.Context, req *fegprotos.CancelLocationRequest) (*fegprotos.CancelLocationAnswer, error) {
 
@@ -226,7 +226,7 @@ func (srv *accountingService) CancelLocation(
 	return res, nil
 }
 
-// Reset fulfils S6a's RSR and disconnect UE from AAA if successful
+// Reset fulfills S6a's RSR and disconnect UE from AAA if successful
 func (srv *accountingService) Reset(_ context.Context, req *fegprotos.ResetRequest) (*fegprotos.ResetAnswer, error) {
 	res := &fegprotos.ResetAnswer{}
 	if req == nil {
@@ -265,9 +265,7 @@ func (srv *accountingService) Reset(_ context.Context, req *fegprotos.ResetReque
 }
 
 func (srv *accountingService) s6aDisconnectUser(imsi string) fegprotos.ErrorCode {
-	if strings.HasPrefix(imsi, ImsiPrefix) {
-		imsi = imsi[len(ImsiPrefix):]
-	}
+	imsi = strings.TrimPrefix(imsi, ImsiPrefix)
 	sid := srv.sessions.FindSession(imsi)
 	if len(sid) == 0 {
 		glog.Errorf("radius session for S6a IMSI: %s is not found", imsi)

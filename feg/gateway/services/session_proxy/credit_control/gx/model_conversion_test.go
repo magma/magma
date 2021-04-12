@@ -113,24 +113,24 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 		Imsi:          "IMSI001010000000001",
 		RulesToRemove: []string{"remove1", "remove2", "remove3", "remove42", "remove43", "remove44"},
 		RulesToInstall: []*protos.StaticRuleInstall{
-			&protos.StaticRuleInstall{
+			{
 				RuleId: "install1",
 			},
-			&protos.StaticRuleInstall{
+			{
 				RuleId: "install2",
 			},
-			&protos.StaticRuleInstall{
+			{
 				RuleId: "install3",
 			},
-			&protos.StaticRuleInstall{
+			{
 				RuleId: "install42",
 			},
-			&protos.StaticRuleInstall{
+			{
 				RuleId: "install43",
 			},
 		},
 		DynamicRulesToInstall: []*protos.DynamicRuleInstall{
-			&protos.DynamicRuleInstall{
+			{
 				PolicyRule: &protos.PolicyRule{
 					Id:            "dynamic1",
 					RatingGroup:   42,

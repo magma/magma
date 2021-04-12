@@ -93,7 +93,7 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 				if cause != gtpv2.CauseRequestAccepted {
 					csRes.GtpError = &protos.GtpError{
 						Cause: uint32(cause),
-						Msg:   fmt.Sprintf("Bearer could not be created"),
+						Msg:   "Bearer could not be created",
 					}
 					// error is in GtpError
 					return csRes, nil

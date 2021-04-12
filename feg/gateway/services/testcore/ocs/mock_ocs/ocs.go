@@ -236,7 +236,7 @@ func (srv *OCSDiamServer) GetCredits(
 func (srv *OCSDiamServer) ClearSubscribers(_ context.Context, void *orcprotos.Void) (*orcprotos.Void, error) {
 	glog.V(2).Infof("Accounts (%d) will be deleted from OCS:", len(srv.accounts))
 	for imsi, subs := range srv.accounts {
-		glog.V(2).Infof("\tRemaing credit for IMSI: %s", imsi)
+		glog.V(2).Infof("\tRemaining credit for IMSI: %s", imsi)
 		for key, credits := range subs.ChargingCredit {
 			glog.V(2).Infof("\t - key %d, Total:%d Tx:%d Rx:%d",
 				key,
