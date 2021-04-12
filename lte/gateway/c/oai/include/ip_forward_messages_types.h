@@ -80,8 +80,6 @@ typedef struct {
 
 typedef struct {
   teid_t context_teid;  ///< Tunnel Endpoint Identifier S11
-  SGIStatus_t status;   ///< Status of  endpoint creation (Failed = 0xFF or
-                        ///< Success = 0x0)
   uint8_t num_bearers_modified;
   bearer_cxt_t bearer_contexts_to_be_modified[BEARERS_PER_UE];
   uint8_t num_bearers_removed;
