@@ -63,7 +63,7 @@ void AsyncSmfServiceClient::set_smf_notification_rpc(
     std::function<void(Status, SmContextVoid)> callback) {
   auto local_resp = new magma::AsyncLocalResponse<SmContextVoid>(
       std::move(callback), RESPONSE_TIMEOUT);
-  local_resp->set_response_reader(std::move(stub2_->AsyncSetSmfNotification(
+  local_resp->set_response_reader(std::move(stub_->AsyncSetSmfNotification(
       local_resp->get_context(), notify, &queue_)));
 }
 

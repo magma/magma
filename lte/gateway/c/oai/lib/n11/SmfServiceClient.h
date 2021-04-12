@@ -43,7 +43,6 @@ class AsyncSmfServiceClient : public magma::GRPCReceiver,
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
   std::unique_ptr<magma::lte::AmfPduSessionSmContext::Stub> stub_;
-  std::unique_ptr<magma::lte::AmfSmfSmNotification::Stub> stub2_;
   void set_smf_session_rpc(
       const magma::lte::SetSMSessionContext& request,
       std::function<void(Status, magma::lte::SmContextVoid)> callback);
