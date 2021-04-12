@@ -192,7 +192,7 @@ typedef enum nas5g_error_code_s {
  * the UE.
  */
 typedef struct nas5g_establish_rsp_s {
-  amf_ue_ngap_id_t ue_id;     /* UE lower layer identifier   */
+  amf_ue_ngap_id_t ue_id;      /* UE lower layer identifier   */
   s_tmsi_m5_t s_tmsi;          /* UE identity                 */
   nas5g_error_code_t err_code; /* Transaction status          */
   bstring nas_msg;             /* NAS message to transfer     */
@@ -210,7 +210,7 @@ typedef struct nas5g_establish_rsp_s {
  * AS transfers the initial answer message to the NAS.
  */
 typedef struct nas5g_establish_cnf_s {
-  amf_ue_ngap_id_t ue_id;     /* UE lower layer identifier   */
+  amf_ue_ngap_id_t ue_id;      /* UE lower layer identifier   */
   nas5g_error_code_t err_code; /* Transaction status          */
   bstring nas_msg;             /* NAS message to transfer     */
   uint32_t ul_nas_count;
@@ -235,7 +235,7 @@ typedef enum m5g_release_cause_s {
  * NAS requests the termination of the connection with the UE.
  */
 typedef struct nas5g_release_req_s {
-  amf_ue_ngap_id_t ue_id;   /* UE lower layer identifier    */
+  amf_ue_ngap_id_t ue_id;    /* UE lower layer identifier    */
   s_tmsi_m5_t s_tmsi;        /* UE identity                  */
   m5g_release_cause_t cause; /* Release cause                */
 } nas5g_release_req_t;
@@ -261,8 +261,8 @@ typedef struct nas5g_release_ind_s {
  */
 typedef struct m5g_ul_info_transfer_req_s {
   amf_ue_ngap_id_t ue_id; /* UE lower layer identifier        */
-  s_tmsi_m5_t s_tmsi;      /* UE identity              */
-  bstring nas_msg;         /* Uplink NAS message           */
+  s_tmsi_m5_t s_tmsi;     /* UE identity              */
+  bstring nas_msg;        /* Uplink NAS message           */
 } m5g_ul_info_transfer_req_t;
 
 /*
@@ -271,7 +271,7 @@ typedef struct m5g_ul_info_transfer_req_s {
  * successfully sent to the network or not.
  */
 typedef struct m5g_ul_info_transfer_cnf_s {
-  amf_ue_ngap_id_t ue_id;     /* UE lower layer identifier        */
+  amf_ue_ngap_id_t ue_id;      /* UE lower layer identifier        */
   nas5g_error_code_t err_code; /* Transaction status               */
 } m5g_ul_info_transfer_cnf_t;
 /*
@@ -281,7 +281,7 @@ typedef struct m5g_ul_info_transfer_cnf_s {
  */
 typedef struct m5g_ul_info_transfer_ind_s {
   amf_ue_ngap_id_t ue_id; /* UE lower layer identifier        */
-  bstring nas_msg;         /* Uplink NAS message           */
+  bstring nas_msg;        /* Uplink NAS message           */
 } m5g_ul_info_transfer_ind_t;
 
 /*
@@ -290,7 +290,7 @@ typedef struct m5g_ul_info_transfer_ind_s {
  * operates at the UE side.
  */
 typedef struct m5g_dl_info_transfer_req_s {
-  amf_ue_ngap_id_t ue_id;     /* UE lower layer identifier        */
+  amf_ue_ngap_id_t ue_id;      /* UE lower layer identifier        */
   s_tmsi_m5_t s_tmsi;          /* UE identity              */
   bstring nas_msg;             /* Uplink NAS message           */
   nas5g_error_code_t err_code; /* Transaction status               */
@@ -323,7 +323,7 @@ typedef m5g_ul_info_transfer_ind_t m5g_dl_info_transfer_ind_t;
  */
 typedef struct activate_pdusession_context_req_s {
   amf_ue_ngap_id_t ue_id; /* UE lower layer identifier        */
-  psi_t psi;               /* Pdu session id    */
+  psi_t psi;              /* Pdu session id    */
   bitrate_t mbr_dl;
   bitrate_t mbr_ul;
   bitrate_t gbr_dl;
