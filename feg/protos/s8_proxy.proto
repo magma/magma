@@ -150,6 +150,8 @@ message DeleteSessionRequestPgw {
     uint32 bearer_id = 3;
     uint32 c_agw_teid = 4;          // AGW control plane TEID
     Fteid c_pgw_fteid = 5;
+    ServingNetwork serving_network = 6;
+    UserLocationInformation uli = 7;
 }
 
 message DeleteSessionResponsePgw{

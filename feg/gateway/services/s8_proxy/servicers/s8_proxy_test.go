@@ -241,6 +241,20 @@ func TestS8ProxyDeleteInexistentSession(t *testing.T) {
 			Ipv4Address: pgwAddrs,
 			Teid:        87,
 		},
+		ServingNetwork: &protos.ServingNetwork{
+			Mcc: "222",
+			Mnc: "333",
+		},
+		Uli: &protos.UserLocationInformation{
+			Lac:    1,
+			Ci:     2,
+			Sac:    3,
+			Rac:    4,
+			Tac:    5,
+			Eci:    6,
+			MeNbi:  7,
+			EMeNbi: 8,
+		},
 	}
 	_, err := s8p.DeleteSession(context.Background(), dsReq)
 	assert.Error(t, err)
@@ -390,6 +404,20 @@ func TestS8proxyManyCreateAndDeleteSession(t *testing.T) {
 				BearerId:  csResShadow.BearerContext.Id,
 				CAgwTeid:  csResShadow.CAgwTeid,
 				CPgwFteid: csResShadow.CPgwFteid,
+				ServingNetwork: &protos.ServingNetwork{
+					Mcc: "222",
+					Mnc: "333",
+				},
+				Uli: &protos.UserLocationInformation{
+					Lac:    1,
+					Ci:     2,
+					Sac:    3,
+					Rac:    4,
+					Tac:    5,
+					Eci:    6,
+					MeNbi:  7,
+					EMeNbi: 8,
+				},
 			}
 
 			_, err := s8p.DeleteSession(context.Background(), cdReq)
@@ -685,6 +713,20 @@ func getDeleteSessionRequest(pgwAddrs string, cPgwFteid *protos.Fteid) *protos.D
 		BearerId:  BEARER,
 		CAgwTeid:  AGWTeidC,
 		CPgwFteid: cPgwFteid,
+		ServingNetwork: &protos.ServingNetwork{
+			Mcc: "222",
+			Mnc: "333",
+		},
+		Uli: &protos.UserLocationInformation{
+			Lac:    1,
+			Ci:     2,
+			Sac:    3,
+			Rac:    4,
+			Tac:    5,
+			Eci:    6,
+			MeNbi:  7,
+			EMeNbi: 8,
+		},
 	}
 	return res
 }

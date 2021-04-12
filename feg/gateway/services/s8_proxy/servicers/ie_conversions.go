@@ -81,7 +81,7 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSe
 		// TODO: Hardcoded values
 		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 		ie.NewAPNRestriction(gtpv2.APNRestrictionNoExistingContextsorRestriction),
-		// TODO: set charging characteristics
+		ie.NewChargingCharacteristics(0),
 	}
 
 	msg := message.NewCreateSessionRequest(0, 0, ies...)
@@ -89,11 +89,22 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSe
 	return msg, nil
 }
 
-func buildDeleteSessionRequestMsg(req *protos.DeleteSessionRequestPgw) message.Message {
+func buildDeleteSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.DeleteSessionRequestPgw) (message.Message, error) {
+	// TODO: look for a better way to find the local ip (avoid pinging on each request)
+	// (obtain the IP that is going to send the packet first)
+	ip, err := gtp.GetLocalOutboundIP(cPgwUDPAddr)
+	if err != nil {
+		return nil, err
+	}
+	// Control plane TEID
+	cFegFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPC, req.CAgwTeid, ip.String(), "").WithInstance(0)
+
 	ies := []*ie.IE{
 		ie.NewEPSBearerID(uint8(req.BearerId)),
+		cFegFTeid,
+		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
 	}
-	return message.NewDeleteSessionRequest(req.CPgwFteid.Teid, 0, ies...)
+	return message.NewDeleteSessionRequest(req.CPgwFteid.Teid, 0, ies...), nil
 }
 
 func getPDNAddressAllocation(req *protos.CreateSessionRequestPgw) *ie.IE {
