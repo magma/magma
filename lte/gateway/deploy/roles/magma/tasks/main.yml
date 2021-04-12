@@ -136,6 +136,10 @@
   file: src='{{ c_build }}/connection_tracker/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
   when: full_provision
 
+- name: Create symlink for li agent binary
+  file: src='{{ c_build }}/li_agent/liagentd' path=/usr/local/bin/liagentd state=link force=yes follow=no
+  when: full_provision
+
 - name: Create symlink for corefile collection script
   file: src='{{ magma_root }}/lte/gateway/deploy/roles/magma/files/coredump' path=/usr/local/bin/coredump state=link force=yes follow=no
   when: full_provision

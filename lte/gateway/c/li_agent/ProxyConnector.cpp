@@ -52,9 +52,7 @@ ProxyConnector::ProxyConnector(
   ssl_ = GetSSLSocket();
 }
 
-void ProxyConnector::LoadCertificates(
-    SSL_CTX* ctx)
-{
+void ProxyConnector::LoadCertificates(SSL_CTX* ctx) {
   /* set the local certificate from CertFile */
   if (SSL_CTX_use_certificate_file(ctx, cert_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
@@ -93,15 +91,17 @@ int ProxyConnector::OpenConnection() {
 
   sd = socket(AF_INET, SOCK_STREAM, 0);
   // bzero(&addr, sizeof(addr));
-  serv_addr.sin_family = AF_INET;
-  serv_addr.sin_port   = htons(proxy_port_);
+  serv_addr.sin_family      = AF_INET;
+  serv_addr.sin_addr.s_addr = INADDR_ANY;
+  serv_addr.sin_port        = htons(proxy_port_);
 
   if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
     printf("\nInvalid address/ Address not supported \n");
     return -1;
   }
-  // addr.sin_addr.s_addr = *(long*)(host->h_addr);
-  if (connect(sd, (struct sockaddr*) &serv_addr, sizeof(serv_addr)) != 0) {
+  if (connect(sd, (struct sockaddr*) &serv_addr, sizeof(struct sockaddr_in)) !=
+      0) {
+    MLOG(MERROR) << "Can't connect to the proxy, exiting";
     close(sd);
     abort();
   }

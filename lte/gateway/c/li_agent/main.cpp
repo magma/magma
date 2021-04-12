@@ -84,6 +84,12 @@ int main(void) {
   std::string cert_file      = config["cert_file"].as<std::string>();
   std::string key_file       = config["key_file"].as<std::string>();
 
+  // TODO: Ignore SigPipe as SSL_write throws that occasionally, investigate
+  sigset_t blockedSignal;
+  sigemptyset(&blockedSignal);
+  sigaddset(&blockedSignal, SIGPIPE);
+  pthread_sigmask(SIG_BLOCK, &blockedSignal, NULL);
+
   magma::service303::MagmaService server(LIAGENTD, LIAGENTD_VERSION);
   server.Start();
 

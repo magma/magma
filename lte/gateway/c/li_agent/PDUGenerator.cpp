@@ -32,6 +32,7 @@
 const PDU::PDUType LIX3PDU::pdu_flag = PDU::USER_DEFINED_PDU;
 #define LI_X3_LINK_TYPE 0x08ae
 #define BASE_HEADER_LEN 40  // 40 octets is the min header length
+#define IP_PAYLOAD_FORMAT 5
 
 void print_bytes(void* ptr, int size) {
   unsigned char* p = (unsigned char*) ptr;
@@ -81,16 +82,13 @@ bool extract_ip_addr(
     const u_char* packet, std::string* src_ip, std::string* dst_ip) {
   const struct ether_header* ethernetHeader;
   const struct ip* ipHeader;
-  // char sourceIP[INET_ADDRSTRLEN];
-  // char destIP[INET_ADDRSTRLEN];
 
   ethernetHeader = (struct ether_header*) packet;
   if (ntohs(ethernetHeader->ether_type) != ETHERTYPE_IP) {
     ipHeader = (struct ip*) (packet + sizeof(struct ether_header));
     inet_ntop(AF_INET, &(ipHeader->ip_src), (char*) src_ip, INET_ADDRSTRLEN);
     inet_ntop(AF_INET, &(ipHeader->ip_dst), (char*) dst_ip, INET_ADDRSTRLEN);
-    // src_ip.assign(sourceIP, INET_ADDRSTRLEN);
-    // dst_ip.assign(destIP, INET_ADDRSTRLEN);
+
     return true;
   } else {
     return false;
@@ -107,10 +105,8 @@ bool PDUGenerator::send_packet(
   pdu.pdu_type = 2;
   pdu.header_length =
       sizeof(struct pdu_info) + sizeof(struct conditional_attributes);
-  // pdu.header_length = BASE_HEADER_LEN + sizeof(struct
-  // conditional_attributes);
   pdu.payload_length    = phdr->len;
-  pdu.payload_format    = 5;  // 5 for ipv4 packets
+  pdu.payload_format    = IP_PAYLOAD_FORMAT;
   pdu.payload_direction = 1;  // TODO set 2/3, 2 is to target, 3 is from target
 
   std::vector<uint8_t> data(
@@ -124,12 +120,14 @@ bool PDUGenerator::send_packet(
   auto request = directoryd_client_->get_directoryd_xid_field(
       src_ip, [this, src_ip](Status status, DirectoryField resp) {
         if (!status.ok()) {
+          printf("Could not fetch subscriber with ip - %s", src_ip.c_str());
           MLOG(MERROR) << "Could not fetch subscriber with ip - " << src_ip;
         } else {
           printf("REsp value %s", resp.value().c_str());
         }
       });
   if (!request) {
+    printf("Could not query directoryd for ip - %s", src_ip.c_str());
     MLOG(MERROR) << "Could not query directoryd for ip - " << src_ip;
   }
 
@@ -139,19 +137,15 @@ bool PDUGenerator::send_packet(
 
   /* Append the packet to the header */
   std::vector<uint8_t> pkt_data((uint8_t*) pdata, (uint8_t*) pdata + phdr->len);
-
   append_to_vector(&data, &pkt_data);
+
+  /* Debugging the generated packet */
   printf("len is %lu\n", sizeof(struct pdu_info));
   printf("cond is %lu\n", sizeof(struct conditional_attributes));
   printf("pdu is %u\n", pdu.payload_length);
   printf("data is %lu\n", data.size());
-
   print_bytes(data.data(), sizeof(struct pdu_info));
-  // Random mac header
-  // EthernetII eth_(pkt_dst_mac_, pkt_src_mac_);
-  // eth_ /= LIX3PDU(data.data(),  pdu.header_length + pdu.payload_length);
 
-  // sender.send(eth_, iface_);
   proxy_connector_->SendData(
       data.data(), pdu.header_length + pdu.payload_length);
 
