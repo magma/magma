@@ -14,6 +14,7 @@ limitations under the License.
 import unittest
 import s1ap_types
 import time
+import ipaddress
 
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
@@ -41,12 +42,14 @@ class TestAttachDetachDedicatedLooped(unittest.TestCase):
                 req.ue_id,
             )
             # Now actually complete the attach
-            self._s1ap_wrapper._s1_util.attach(
+            attach = self._s1ap_wrapper._s1_util.attach(
                 req.ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+            addr = attach.esmInfo.pAddr.addrInfo
+            default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -60,8 +63,12 @@ class TestAttachDetachDedicatedLooped(unittest.TestCase):
                     "***************** Adding dedicated bearer to IMSI",
                     "".join([str(i) for i in req.imsi]),
                 )
+
+                # Create default flow list
+                flow_list = self._spgw_util.create_default_flows()
                 self._spgw_util.create_bearer(
-                    "IMSI" + "".join([str(i) for i in req.imsi]), 5
+                    "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
+                    flow_list
                 )
 
                 response = self._s1ap_wrapper.s1_util.get_response()
@@ -76,14 +83,26 @@ class TestAttachDetachDedicatedLooped(unittest.TestCase):
                     req.ue_id, act_ded_ber_ctxt_req.bearerId
                 )
 
-                time.sleep(1)
+                print("Sleeping for 5 seconds")
+                time.sleep(5)
+
+                dl_flow_rules = {
+                    default_ip: [flow_list],
+                }
+                # 1 UL flow for default bearer + 1 for dedicated bearer
+                num_ul_flows = 2
+                # Verify if flow rules are created
+                self._s1ap_wrapper.s1_util.verify_flow_rules(
+                    num_ul_flows, dl_flow_rules
+                )
+
                 print(
                     "*************** Deleting dedicated bearer for IMSI",
                     "".join([str(i) for i in req.imsi]),
                 )
                 self._spgw_util.delete_bearer(
                     "IMSI" + "".join([str(i) for i in req.imsi]),
-                    5,
+                    attach.esmInfo.epsBearerId,
                     act_ded_ber_ctxt_req.bearerId,
                 )
 

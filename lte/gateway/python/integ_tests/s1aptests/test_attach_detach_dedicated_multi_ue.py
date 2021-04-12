@@ -14,6 +14,7 @@ limitations under the License.
 import unittest
 import s1ap_types
 import time
+import ipaddress
 
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
@@ -32,6 +33,8 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
         num_ues = 4
         ue_ids = []
         bearer_ids = []
+        default_ips = []
+        flow_lists = []
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         for _ in range(num_ues):
@@ -42,12 +45,15 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
                 req.ue_id,
             )
             # Now actually complete the attach
-            self._s1ap_wrapper._s1_util.attach(
+            attach = self._s1ap_wrapper._s1_util.attach(
                 req.ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+
+            addr = attach.esmInfo.pAddr.addrInfo
+            default_ips.append(ipaddress.ip_address(bytes(addr[:4])))
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -60,8 +66,10 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
+            flow_lists.append(self._spgw_util.create_default_flows())
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5
+                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
+                flow_lists[i]
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -80,6 +88,18 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
             )
             bearer_ids.append(act_ded_ber_ctxt_req.bearerId)
 
+        for i in range(num_ues):
+            dl_flow_rules = {
+                default_ips[i]: [flow_lists[i]],
+            }
+            # 4 default + 4 dedicated bearer UL flows for 4 UEs
+            num_ul_flows = 8
+            # Verify if flow rules are created
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
+            )
+
+        print("Sleeping for 1 second")
         time.sleep(1)
         self._s1ap_wrapper._ue_idx = 0
         for i in range(num_ues):
@@ -89,7 +109,7 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             self._spgw_util.delete_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5, bearer_ids[i]
+                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId, bearer_ids[i]
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -106,7 +126,7 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
                 req.ue_id, bearer_ids[i]
             )
-
+        print("Sleeping for 2 seconds")
         time.sleep(2)
         for ue in ue_ids:
             print("********************** Running UE detach for UE id ", ue)

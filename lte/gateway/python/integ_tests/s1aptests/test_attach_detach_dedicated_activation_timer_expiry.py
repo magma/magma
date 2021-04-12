@@ -14,6 +14,7 @@ limitations under the License.
 import unittest
 import s1ap_types
 import time
+import ipaddress
 
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
@@ -46,12 +47,15 @@ class TestAttachDetachDedicatedActTmrExp(unittest.TestCase):
                 req.ue_id,
             )
             # Now actually complete the attach
-            self._s1ap_wrapper._s1_util.attach(
+            attach = self._s1ap_wrapper._s1_util.attach(
                 req.ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+
+            addr = attach.esmInfo.pAddr.addrInfo
+            default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -61,16 +65,46 @@ class TestAttachDetachDedicatedActTmrExp(unittest.TestCase):
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
+
+            # Create default flow list
+            flow_list = self._spgw_util.create_default_flows()
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5
+                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
+                flow_list
             )
 
-            response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
-            )
             # Do not send ACT_DED_BER_ACC
-            time.sleep(45)
+            # Wait for timer to expire
+            for i in range(5):
+                response = self._s1ap_wrapper.s1_util.get_response()
+                self.assertEqual(
+                    response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                )
+                act_ded_ber_ctxt_req = response.cast(
+                    s1ap_types.UeActDedBearCtxtReq_t
+                )
+
+                print(
+                    "********************** Received UE_ACT_DED_BER_REQ with ebi ",
+                    act_ded_ber_ctxt_req.bearerId,
+                )
+                print("************************* Timeout", i + 1)
+
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
+
+            dl_flow_rules = {
+                default_ip: [],
+            }
+            # 1 UL flow for default bearer
+            num_ul_flows = 1
+            # Verify if flow rules are created
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
+            )
+
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
             print(
                 "********************** Running UE detach for UE id ",
                 req.ue_id,
