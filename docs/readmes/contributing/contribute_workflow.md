@@ -43,6 +43,8 @@ See the [opinionated workflow](#opinionated-workflow) section below for a low-fr
         - [Open in IntelliJ](https://sourcegraph.com/extensions/sourcegraph/open-in-intellij): Sourcegraph extension to open a file in your dev machine's IntelliJ instance
 - IntelliJ
     - [Native support for GitHub code reviews](https://www.youtube.com/watch?v=MoXxF3aWW8k&ab_channel=IntelliJIDEAbyJetBrains)
+- Slack 
+    - [Scheduled Reminders](https://docs.github.com/en/github/setting-up-and-managing-your-github-user-account/managing-your-scheduled-reminders): GitHub integration to enable PR/Issue related notifications via Slack messages
 
 ## Opinionated workflow
 

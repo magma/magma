@@ -194,6 +194,31 @@ Orc8r's cloud code has some basic [CI lint checks](https://github.com/magma/magm
 - When import aliasing is required, prefer to alias with `snake_case` rather than `camelCase`
 - Prefer readable code over rigid adherence to max line lengths. Capping around 140 characters feels about right.
 
+### Python
+
+In general, we follow the [PEP 8 style guide](https://www.python.org/dev/peps/pep-0008/). 
+
+**Type Annotation**
+
+- All new code should be fully type-annotated. 
+  - For reference, please look at this [type hints cheat sheet for Python 3](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html). 
+
+**Linter**
+
+- For mandatory lint checks, we have a unit test that runs [Pylint](https://pypi.org/project/pylint/) on all gateway services. 
+  - On CI, this gets run as part of the `lte-test` job
+  - TODO: @marie link to AGW unit test instructions
+- Additionally, we have a [reviewdog](https://github.com/reviewdog/reviewdog) based lint checker with [wemake-python-styleguide](https://wemake-python-stylegui.de/en/latest/) enabled to aid the code review process. 
+
+**Formatters**
+
+- We recommend [autopep8](https://pypi.org/project/autopep8/) as it conforms to [pep8](https://www.python.org/dev/peps/pep-0008/). 
+  - We do *not* recommend other formatters such as [black](https://black.readthedocs.io/en/stable/installation_and_usage.html), as it diverges from pep8 on basic things like line numbers, etc.   
+
+**Logging**
+- Use the [logging](https://docs.python.org/3/library/logging.html) module for all logging 
+
+
 ### Shell
 
 - Shell script names should be suffixed with the proper file extension
