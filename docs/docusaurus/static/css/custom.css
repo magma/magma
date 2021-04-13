@@ -77,3 +77,14 @@ h1 {
     color: #ffffff;
     font-size: .9em;
 }
+
+/* Code block formatting with custom line-height
+ * for improved text graphics embedding.
+ */
+.hljs {
+    display: block;
+    overflow-x: auto;
+    padding: 0.5em;
+    background: #F0F0F0;
+    line-height: normal;
+}
