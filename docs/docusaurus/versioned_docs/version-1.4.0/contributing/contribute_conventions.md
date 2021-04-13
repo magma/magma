@@ -1,7 +1,8 @@
 ---
-id: contribute_conventions
+id: version-1.4.0-contribute_conventions
 title: Contributing Conventions
 hide_title: true
+original_id: contribute_conventions
 ---
 
 # Contributing Conventions
