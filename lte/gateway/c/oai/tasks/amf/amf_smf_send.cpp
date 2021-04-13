@@ -156,14 +156,13 @@ void set_amf_smf_context(
       message->integrity_prot_max_data_rate;
   smf_ctx->smf_proc_data.pdu_session_type = message->pdu_session_type;
   smf_ctx->smf_proc_data.ssc_mode         = message->ssc_mode;
-  // In upcoming PR these hard-coded values are removed.
-  uint8_t buff_ip[] = {0x0a, 0x20, 0x74, 0x01};
-  memcpy(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, buff_ip, sizeof(buff_ip));
-  uint8_t buff_teid[] = {0x01, 0x00, 0x00, 0x00};
-  memcpy(
-      smf_ctx->gtp_tunnel_id.gnb_gtp_teid, buff_teid,
-      sizeof(buff_teid));  // TODO: harcoded for now, will be addressed in
-                           // upcoming gteid/ip PR
+  smf_ctx->pdu_session_version            = 0;  // Initializing pdu version to 0
+  memset(
+      smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
+      sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
+  memset(
+      smf_ctx->gtp_tunnel_id.gnb_gtp_teid, '\0',
+      sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid));
 }
 
 /***************************************************************************

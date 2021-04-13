@@ -30,6 +30,7 @@ message RuleRecord {
   string ue_ipv6 = 6;
   uint64 dropped_tx = 7;
   uint64 dropped_rx = 8;
+  uint64 rule_version = 9;
 }
 
 message RuleRecordTable {
@@ -1031,8 +1032,8 @@ service SetInterfaceForUserPlane {
 
 //SET API for 3 procedures request from AMF to SMF
 service AmfPduSessionSmContext {
- rpc SetAmfSessionContext (SetSMSessionContext) returns (SmContextVoid);
- rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid);    //AMF to SMF
+  rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
+  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid) {}    //AMF to SMF
 }
 
 // RPC service and method

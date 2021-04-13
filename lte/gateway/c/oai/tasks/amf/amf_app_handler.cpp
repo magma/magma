@@ -42,7 +42,7 @@ static void amf_directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
   directoryd_report_location(imsi_str);
-  OAILOG_INFO_UE(LOG_AMF_APP, imsi, " Reported UE location to directoryd\n");
+  OAILOG_DEBUG_UE(LOG_AMF_APP, imsi, " Reported UE location to directoryd\n");
 }
 
 //------------------------------------------------------------------------------
@@ -619,7 +619,7 @@ void amf_app_handle_pdu_session_response(
 
 /* Handling PDU Session Resource Setup Response sent from gNB*/
 void amf_app_handle_resource_setup_response(
-    itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp) {
+    itti_ngap_pdusessionresource_setup_rsp_t session_setup_resp) {
   /* Check if failure message is not NULL and if NULL,
    * it is successful message from gNB.
    * Nothing to in this case. If failure message comes from gNB
@@ -630,7 +630,7 @@ void amf_app_handle_resource_setup_response(
    */
   OAILOG_DEBUG(
       LOG_AMF_APP, " handling uplink PDU session setup response message\n");
-  if (session_seup_resp.pduSessionResource_setup_list.no_of_items > 0) {
+  if (session_setup_resp.pduSessionResource_setup_list.no_of_items > 0) {
     /* This is success case and we need not to send message to SMF
      * and drop the message here
      */
@@ -638,6 +638,75 @@ void amf_app_handle_resource_setup_response(
         LOG_AMF_APP,
         " this is success case and no need to hadle anything and drop "
         "the message\n");
+    amf_ue_ngap_id_t ue_id;
+    amf_smf_establish_t amf_smf_grpc_ies;
+    ue_m5gmm_context_s* ue_context = nullptr;
+    amf_context_t* amf_context     = nullptr;
+    smf_context_t* smf_ctx         = nullptr;
+    char imsi[IMSI_BCD_DIGITS_MAX + 1];
+
+    ue_id = session_setup_resp.amf_ue_ngap_id;
+
+    ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+    // Handling of ue context
+    if (!ue_context) {
+      ue_context = &ue_m5gmm_global_context;
+    }
+    smf_ctx = &ue_context->amf_context.smf_context;
+    OAILOG_DEBUG(LOG_AMF_APP, "filling gNB TEID info in smf context \n");
+    // Store gNB ip and TEID in respective smf_context
+    memset(
+        &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
+        sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
+    memcpy(
+        &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
+        &session_setup_resp.pduSessionResource_setup_list.item[0]
+             .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID,
+        4);
+    OAILOG_DEBUG(LOG_AMF_APP, "filling gNB TEID info in gtp_ip_address \n");
+    memcpy(
+        &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
+        &session_setup_resp.pduSessionResource_setup_list.item[0]
+             .PDU_Session_Resource_Setup_Response_Transfer.tunnel
+             .transportLayerAddress,
+        4);  // time being 4 byte is copying.
+    OAILOG_DEBUG(LOG_AMF_APP, "printing both teid and ip_address of gNB\n");
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "IP address %02x %02x %02x %02x  and TEID %02x %02x %02x %02x \n",
+        smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[0],
+        smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[1],
+        smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[2],
+        smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[3],
+        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[0],
+        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[1],
+        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[0],
+        smf_ctx->gtp_tunnel_id.gnb_gtp_teid[3]);
+    // Incrementing the  pdu session version
+    smf_ctx->pdu_session_version++;
+    /*Copy respective gNB fields to amf_smf_establish_t compartible to gRPC
+     * message*/
+    memset(
+        &amf_smf_grpc_ies.gnb_gtp_teid_ip_addr, '\0',
+        sizeof(amf_smf_grpc_ies.gnb_gtp_teid_ip_addr));
+    memset(
+        &amf_smf_grpc_ies.gnb_gtp_teid, '\0',
+        sizeof(amf_smf_grpc_ies.gnb_gtp_teid));
+    memcpy(
+        &amf_smf_grpc_ies.gnb_gtp_teid_ip_addr,
+        &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, 4);
+    memcpy(
+        &amf_smf_grpc_ies.gnb_gtp_teid, &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
+        4);
+    amf_smf_grpc_ies.pdu_session_id =
+        smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+    IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+    /* Prepare and send gNB setup response message to SMF through gRPC
+     * 2nd time PDU session establish message
+     */
+    create_session_grpc_req_on_gnb_setup_rsp(
+        &amf_smf_grpc_ies, imsi, smf_ctx->pdu_session_version);
+
   } else {
     // TODO: implement failure message from gNB. messagge to send to SMF
     OAILOG_DEBUG(
