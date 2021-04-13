@@ -89,8 +89,7 @@ int ProxyConnector::OpenConnection() {
   int sd;
   struct sockaddr_in serv_addr;
 
-  sd = socket(AF_INET, SOCK_STREAM, 0);
-  // bzero(&addr, sizeof(addr));
+  sd                        = socket(AF_INET, SOCK_STREAM, 0);
   serv_addr.sin_family      = AF_INET;
   serv_addr.sin_addr.s_addr = INADDR_ANY;
   serv_addr.sin_port        = htons(proxy_port_);
@@ -109,16 +108,14 @@ int ProxyConnector::OpenConnection() {
 }
 
 SSL* ProxyConnector::GetSSLSocket() {
-  SSL_CTX* ctx;
-  int proxy;
   SSL* ssl;
   SSL_library_init();
 
-  ctx = InitCTX();
-  LoadCertificates(ctx);
-  proxy = OpenConnection();
-  ssl   = SSL_new(ctx);   /* create new SSL connection state */
-  SSL_set_fd(ssl, proxy); /* attach the socket descriptor */
+  ctx_ = InitCTX();
+  LoadCertificates(ctx_);
+  proxy_ = OpenConnection();
+  ssl    = SSL_new(ctx_);
+  SSL_set_fd(ssl, proxy_);
   if (SSL_connect(ssl) == -1) {
     ERR_print_errors_fp(stderr);
     return NULL;
@@ -127,27 +124,16 @@ SSL* ProxyConnector::GetSSLSocket() {
 }
 
 int ProxyConnector::SendData(void* data, uint32_t size) {
-  char buf[1024];
-  int bytes;
-
-  // char *msg = "Hello???";
-  printf("Connected with %s encryption\n", SSL_get_cipher(ssl_));
-
-  SSL_write(ssl_, data, size);                   /* encrypt & send message */
-  bytes      = SSL_read(ssl_, buf, sizeof(buf)); /* get reply & decrypt */
-  buf[bytes] = 0;
-  printf("Received: \"%s\"\n", buf);
+  SSL_write(ssl_, data, size);
 
   return 0;
 }
 
-// CLEANUP
-/*
-
-    SSL_free(ssl);
-    close(proxy);
-    SSL_CTX_free(ctx);
-*/
+void ProxyConnector::cleanup() {
+  SSL_free(ssl_);
+  close(proxy_);
+  SSL_CTX_free(ctx_);
+}
 
 }  // namespace lte
 }  // namespace magma

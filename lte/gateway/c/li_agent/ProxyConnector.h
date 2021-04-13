@@ -24,6 +24,7 @@ class ProxyConnector {
       const std::string& cert_file, const std::string& key_file);
 
   int SendData(void* data, uint32_t size);
+  void cleanup(void);
 
  private:
   SSL* GetSSLSocket();
@@ -36,6 +37,8 @@ class ProxyConnector {
   const std::string& cert_file_;
   const std::string& key_file_;
   SSL* ssl_;
+  SSL_CTX* ctx_;
+  int proxy_;
 };
 
 }  // namespace lte

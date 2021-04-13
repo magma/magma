@@ -59,12 +59,12 @@ int InterfaceMonitor::init_iface_pcap_monitor() {
                  << ", exiting";
     return 1;
   }
-  std::cout << "Successfully started live pcap sniffing" << std::endl;
+  MLOG(MINFO) << "Successfully started live pcap sniffing";
 
   ret = pcap_loop(pcap, -1, packet_handler, (u_char*) pkt_gen_.get());
 
   if (ret == -1) {
-    MLOG(MINFO) << "Could not capture packets";
+    MLOG(MERROR) << "Could not capture packets";
     if (pcap != nullptr) {
       pcap_close(pcap);
     }

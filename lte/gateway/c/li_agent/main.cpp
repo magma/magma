@@ -77,6 +77,12 @@ int main(void) {
   magma::set_verbosity(get_log_verbosity(config, mconfig));
   MLOG(MINFO) << "Starting LI Agent service";
 
+  // TODO: Ignore SigPipe as SSL_write throws that occasionally, investigate
+  sigset_t blockedSignal;
+  sigemptyset(&blockedSignal);
+  sigaddset(&blockedSignal, SIGPIPE);
+  pthread_sigmask(SIG_BLOCK, &blockedSignal, NULL);
+
   auto directoryd_client = std::make_shared<magma::AsyncDirectorydClient>();
   std::thread directoryd_response_handling_thread([&]() {
     MLOG(MINFO) << "Started DirectoryD response thread";
@@ -91,12 +97,6 @@ int main(void) {
   std::string cert_file      = config["cert_file"].as<std::string>();
   std::string key_file       = config["key_file"].as<std::string>();
 
-  // TODO: Ignore SigPipe as SSL_write throws that occasionally, investigate
-  sigset_t blockedSignal;
-  sigemptyset(&blockedSignal);
-  sigaddset(&blockedSignal, SIGPIPE);
-  pthread_sigmask(SIG_BLOCK, &blockedSignal, NULL);
-
   magma::service303::MagmaService server(LIAGENTD, LIAGENTD_VERSION);
   server.Start();
 
@@ -109,6 +109,9 @@ int main(void) {
       interface_name, pkt_generator);
 
   interface_watcher->init_iface_pcap_monitor();
+
+  proxy_connector->cleanup();
+  directoryd_response_handling_thread.join();
 
   return 0;
 }

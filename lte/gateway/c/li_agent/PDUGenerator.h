@@ -19,6 +19,14 @@
 #include "DirectorydClient.h"
 #include "ProxyConnector.h"
 
+#define XID_LENGTH 16
+#define LI_X3_LINK_TYPE 0x08ae
+#define PDU_VERSION 2
+#define PDU_TYPE 2
+#define IP_PAYLOAD_FORMAT 5
+#define DIRECTION_TO_TARGET 2
+#define DIRECTION_FROM_TARGET 3
+
 struct pdu_info {
   uint16_t version;
   uint16_t pdu_type;
@@ -26,7 +34,7 @@ struct pdu_info {
   uint32_t payload_length;
   uint16_t payload_format;
   uint16_t payload_direction;
-  uint8_t xid[16];
+  uint8_t xid[XID_LENGTH];
 };
 
 struct conditional_attributes {
@@ -100,11 +108,10 @@ class PDUGenerator {
       std::shared_ptr<AsyncDirectorydClient> directoryd_client,
       const std::string& pkt_dst_mac, const std::string& pkt_src_mac);
 
-  std::vector<uint8_t> get_conditional_attr(void);
-
   /**
    * Send packet
-   * @param flow_information - flow_information
+   * @param phdr - packet header
+   * @param pdata - packet data
    * @return true if the operation was successful
    */
   bool send_packet(const struct pcap_pkthdr* phdr, const u_char* pdata);
@@ -116,6 +123,11 @@ class PDUGenerator {
   Tins::NetworkInterface iface_;
   std::shared_ptr<AsyncDirectorydClient> directoryd_client_;
   std::shared_ptr<ProxyConnector> proxy_connector_;
+
+  void set_conditional_attr(
+      const struct pcap_pkthdr* phdr,
+      struct conditional_attributes* attributes);
+  void* generate_pkt(const struct pcap_pkthdr* phdr, const u_char* pdata);
 };
 
 }  // namespace lte
