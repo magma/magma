@@ -232,16 +232,17 @@ ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
   if (ue_context_p) {
     OAILOG_TRACE(
         LOG_AMF_APP,
-        "UE  " AMF_UE_NGAP_ID_FMT " fetched MM state %s, ECM state %s\n ",
+        "UE  " AMF_UE_NGAP_ID_FMT " fetched AMF state %s with state %s\n ",
         amf_ue_ngap_id,
-        (ue_context_p->mm_state == UE_UNREGISTERED) ?
+        (ue_context_p->mm_state == UNREGISTERED) ?
             "UE_UNREGISTERED" :
-            (ue_context_p->mm_state == UE_REGISTERED) ? "UE_REGISTERED" :
-                                                        "UNKNOWN",
-        (ue_context_p->ecm_state == ECM_IDLE) ?
-            "ECM_IDLE" :
-            (ue_context_p->ecm_state == ECM_CONNECTED) ? "ECM_CONNECTED" :
-                                                         "UNKNOWN");
+            (ue_context_p->mm_state == REGISTERED_CONNECTED) ? "UE_REGISTERED" :
+                                                               "UNKNOWN",
+        (ue_context_p->mm_state == REGISTERED_IDLE) ?
+            "REGISTERED_IDLE" :
+            (ue_context_p->mm_state == REGISTERED_CONNECTED) ?
+            "REGISTERED_CONNECTED" :
+            "UNKNOWN");
   }
   return ue_context_p;
 }

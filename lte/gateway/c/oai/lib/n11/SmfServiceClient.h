@@ -30,6 +30,8 @@ class SmfServiceClient {
   virtual ~SmfServiceClient() {}
   virtual bool set_smf_session(
       const magma::lte::SetSMSessionContext& request) = 0;
+  virtual bool set_smf_notification(
+      const magma::lte::SetSmNotificationContext& notify) = 0;
 };
 
 /**
@@ -44,11 +46,15 @@ class AsyncSmfServiceClient : public magma::GRPCReceiver,
   void set_smf_session_rpc(
       const magma::lte::SetSMSessionContext& request,
       std::function<void(Status, magma::lte::SmContextVoid)> callback);
+  void set_smf_notification_rpc(
+      const magma::lte::SetSmNotificationContext& notify,
+      std::function<void(Status, magma::lte::SmContextVoid)> callback);
 
  public:
   AsyncSmfServiceClient();
   AsyncSmfServiceClient(std::shared_ptr<grpc::Channel> smf_srv_channel);
   bool set_smf_session(const magma::lte::SetSMSessionContext& request);
+  bool set_smf_notification(const magma::lte::SetSmNotificationContext& notify);
 };
 
 }  // namespace magma5g

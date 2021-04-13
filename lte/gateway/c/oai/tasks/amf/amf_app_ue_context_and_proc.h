@@ -218,8 +218,19 @@ typedef struct smf_proc_data_s {
   SSCModeMsg ssc_mode;
 } smf_proc_data_t;
 
+/*PDU session states*/
+typedef enum {
+  CREATING,
+  CREATE,
+  ACTIVE,
+  INACTIVE,
+  PENDING_RELEASE,
+  RELEASED
+} SMSessionFSMState;
+
 // PDU session context part of AMFContext
 typedef struct smf_context_s {
+  SMSessionFSMState pdu_session_state;
   uint32_t n_active_pdus;
   bool is_emergency;
   uint8_t dl_ambr_unit;
@@ -289,8 +300,9 @@ typedef struct amf_ue_context_s {
 } amf_ue_context_t;
 
 enum m5gmm_state_t {
-  UE_UNREGISTERED = 0,
-  UE_REGISTERED,
+  UNREGISTERED = 0,
+  REGISTERED_IDLE,
+  REGISTERED_CONNECTED,
 };
 
 enum m5gcm_state_t {
@@ -704,4 +716,6 @@ int pdu_session_resource_release_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id);
 void amf_app_handle_resource_release_response(
     itti_ngap_pdusessionresource_rel_rsp_t session_rel_resp);
+void amf_app_handle_cm_idle_on_ue_context_release(
+    itti_ngap_ue_context_release_req_t cm_idle_req);
 }  // namespace magma5g

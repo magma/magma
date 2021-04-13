@@ -25,6 +25,7 @@ extern "C" {
 #include "M5gNasMessage.h"
 #include "common_defs.h"
 #include "amf_app_ue_context_and_proc.h"
+#include "SmfServiceClient.h"
 
 namespace magma5g {
 #define IMSI_LEN 15
@@ -281,4 +282,55 @@ int amf_smf_send(
   }
   return rc;
 }
+
+/***************************************************************************
+**                                                                        **
+** Name:    amf_smf_notification_send()                                   **
+**                                                                        **
+** Description:                                                           **
+** This function for UE idle event notification to SMF or single PDU      **
+** session state change to Inactive state and notify to SMF.              **
+** 4 types of events are used in proto.                                   **
+** PDU_SESSION_INACTIVE_NOTIFY => use for single PDU session notify       **
+** UE_IDLE_MODE_NOTIFY     => use for idle mode support                   **
+** UE_PAGING_NOTIFY                                                       **
+** UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY                                     **
+**                                                                        **
+***************************************************************************/
+int amf_smf_notification_send(
+    amf_ue_ngap_id_t ue_id, ue_m5gmm_context_s* ue_context) {
+  OAILOG_DEBUG(
+      LOG_AMF_APP, " Preparing and sending idle notification to SMF \n");
+  int rc = RETURNerror;
+  /* Get gRPC structure of notification to be filled common and
+   * rat type elements.
+   * Only need  to be filled IMSI and ue_state_idle of UE
+   */
+  magma::lte::SetSmNotificationContext notify_req;
+  auto* req_common       = notify_req.mutable_common_context();
+  auto* req_rat_specific = notify_req.mutable_rat_specific_notification();
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+
+  req_common->mutable_sid()->mutable_id()->assign(imsi);
+  req_rat_specific->set_notify_ue_event(
+      magma::lte::NotifyUeEvents::UE_IDLE_MODE_NOTIFY);
+
+  OAILOG_DEBUG(
+      LOG_AMF_APP,
+      " Notification gRPC filled with IMSI %s and "
+      "ue_state_idle is set to true \n",
+      imsi);
+
+  auto smf_srv_client = std::make_shared<magma5g::AsyncSmfServiceClient>();
+  std::thread smf_srv_client_response_handling_thread(
+      [&]() { smf_srv_client->rpc_response_loop(); });
+  smf_srv_client_response_handling_thread.detach();
+
+  OAILOG_DEBUG(
+      LOG_AMF_APP, " Sending filled idle notification to SMF by gRPC \n");
+  smf_srv_client->set_smf_notification(notify_req);
+  return RETURNok;
+}
+
 }  // namespace magma5g

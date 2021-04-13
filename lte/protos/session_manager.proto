@@ -97,11 +97,12 @@ enum NotifyUeEvents {
 message RatSpecificNotification {
   uint32 pdu_session_id = 1;
   RequestType request_type = 2;
-  PduSessionType pdu_session_type = 3;
-  M5GSMCapability m5g_sm_capability = 4;
-  M5GSMCause m5gsm_cause = 5;
-  // Idle/paging/periodic_reg events and UE state notification
-  NotifyUeEvents notify_ue_event = 6;
+  AccessType access_type = 3;
+  PduSessionType pdu_session_type = 4;
+  M5GSMCapability m5g_sm_capability = 5;
+  M5GSMCause m5gsm_cause = 6;
+  //Idle/paging/periodic_reg events and UE state notification
+  NotifyUeEvents notify_ue_event = 7;
 }
 
 message SetSmNotificationContext {
@@ -698,8 +699,12 @@ enum RequestType {
    EXISTING_EMERGENCY_PDU_SESSION = 3;
    MODIFICATION_REQUEST = 4;
 }
-
-// DnnSelectionMode
+//AccessType
+enum AccessType {
+  M_3GPP_ACCESS_3GPP = 0;
+  NON_3GPP_ACCESS = 1;
+}
+//DnnSelectionMode
 enum DnnSelectionMode {
     VERIFIED = 0;
     UE_DNN_NOT_VERIFIED = 1;
@@ -1024,12 +1029,13 @@ service SetInterfaceForUserPlane {
     rpc SendPagingRequest(UPFPagingInfo) returns (SmContextVoid) {}
 }
 
-// SET API for 3 procedures request from AMF to SMF
+//SET API for 3 procedures request from AMF to SMF
 service AmfPduSessionSmContext {
-  rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
-  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid) {}    // AMF to SMF
+ rpc SetAmfSessionContext (SetSMSessionContext) returns (SmContextVoid);
+ rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid);    //AMF to SMF
 }
-// SET API RPC service and method request from SMF to AMF
+
+// RPC service and method
 service SmfPduSessionSmContext {
  rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    // SMF to AMF
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid) {}
