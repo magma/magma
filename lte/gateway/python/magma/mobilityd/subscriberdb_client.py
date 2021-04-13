@@ -12,12 +12,12 @@ limitations under the License.
 """
 
 import ipaddress
+import logging
 from typing import Optional
-from lte.protos.subscriberdb_pb2 import APNConfiguration
-from magma.subscriberdb.sid import SIDUtils
 
 import grpc
-import logging
+from lte.protos.subscriberdb_pb2 import APNConfiguration
+from magma.subscriberdb.sid import SIDUtils
 
 
 class NetworkInfo:

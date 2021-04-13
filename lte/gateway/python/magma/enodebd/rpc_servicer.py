@@ -14,14 +14,23 @@ limitations under the License.
 from typing import Any
 
 import grpc
-from lte.protos.enodebd_pb2 import (AllEnodebStatus, EnodebIdentity,
-                                    GetParameterRequest, GetParameterResponse,
-                                    SetParameterRequest, SingleEnodebStatus)
-from lte.protos.enodebd_pb2_grpc import (EnodebdServicer,
-                                         add_EnodebdServicer_to_server)
+from lte.protos.enodebd_pb2 import (
+    AllEnodebStatus,
+    EnodebIdentity,
+    GetParameterRequest,
+    GetParameterResponse,
+    SetParameterRequest,
+    SingleEnodebStatus,
+)
+from lte.protos.enodebd_pb2_grpc import (
+    EnodebdServicer,
+    add_EnodebdServicer_to_server,
+)
 from magma.common.rpc_utils import return_void
-from magma.enodebd.enodeb_status import (get_service_status,
-                                         get_single_enb_status)
+from magma.enodebd.enodeb_status import (
+    get_service_status,
+    get_single_enb_status,
+)
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from orc8r.protos.service303_pb2 import ServiceStatus

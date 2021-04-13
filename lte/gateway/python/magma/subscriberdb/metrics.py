@@ -13,7 +13,6 @@ limitations under the License.
 
 from prometheus_client import Counter
 
-
 # Counters for Diameter/S6a application
 S6A_AUTH_SUCCESS_TOTAL = Counter('s6a_auth_success',
                                   'Total successful S6a auth requests')
