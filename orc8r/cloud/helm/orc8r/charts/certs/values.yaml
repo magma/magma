@@ -14,6 +14,7 @@ create: true
 
 domainName: localhost
 
+# Only the private key from the bootstrapper certificate will be used.
 bootstrapper:
   # 1 year = 8760h
   duration: 8760h
@@ -36,11 +37,6 @@ nms:
   # 10 year = 87600h
   duration: 87600h
   renewBefore: 24h
-
-  # You can use one of the following Let's Encrypt issuers.
-  # letsencrypt-prod-issuer
-  # letsencrypt-staging-issuer
-  # NOTE: this won't work with wildcard domain.
   customIssuer:
 
 controller:
