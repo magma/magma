@@ -197,6 +197,9 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 			qosPVI = 1
 		}
 
+		// Protocol Configuration Options (nil if not existent)
+		pco := csReqFromSGW.PCO
+
 		// send
 		csRspFromPGW := message.NewCreateSessionResponse(
 			sgwTEIDc, msg.Sequence(),
@@ -204,6 +207,7 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 			pgwFTEIDc,
 			ie.NewPDNAddressAllocation(bearer.SubscriberIP),
 			ie.NewAPNRestriction(gtpv2.APNRestrictionPublic2),
+			pco,
 			ie.NewBearerContext(
 				ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
 				ie.NewEPSBearerID(bearer.EBI),
