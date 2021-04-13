@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -339,7 +338,7 @@ func TestS8proxyValidateCreateSession(t *testing.T) {
 
 func TestS8proxyManyCreateAndDeleteSession(t *testing.T) {
 	// set up client ans server
-	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	s8p, mockPgw := startSgwAndPgw(t, 5*time.Second)
 	defer mockPgw.Close()
 
 	// ------------------------
@@ -349,41 +348,52 @@ func TestS8proxyManyCreateAndDeleteSession(t *testing.T) {
 	csReqs := getMultipleCreateSessionRequest(nRequest, pgwActualAddrs)
 
 	// routines will write on specific index
-	errors := make([]error, nRequest)
 	csResps := make([]*protos.CreateSessionResponsePgw, nRequest)
-	var wg sync.WaitGroup
+	errs := make(chan error, len(csReqs))
 	// PGW denies service
 	for i, csReq := range csReqs {
-		wg.Add(1)
 		csReqShadow := csReq
 		index := i
 		go func() {
-			defer wg.Done()
-			csResps[index], errors[index] = s8p.CreateSession(context.Background(), csReqShadow)
+			// we should report as an error either if there is a grpc issue or a gtp issue
+			var errCSR error
+			csResps[index], errCSR = s8p.CreateSession(context.Background(), csReqShadow)
+			if errCSR != nil {
+				errs <- fmt.Errorf("GRPC error during CreatSessionRequest %s", errCSR)
+				return
+			}
+
+			if csResps[index].GtpError != nil {
+				errs <- fmt.Errorf("GTP error during CreatSession %s", csResps[index].GtpError.Msg)
+				return
+			}
+			errs <- nil
 		}()
 	}
-	wg.Wait()
-
-	// Check all sessions were created
-	assert.Equal(t, nRequest, len(errors))
-	for _, err := range errors {
-		assert.NoError(t, err, "Some sessions return error: %s", err)
+	// wait for all create session to complete
+	for i := 0; i < len(csReqs); i++ {
+		err := <-errs
+		if err != nil {
+			t.Fatal(fmt.Errorf("Error Creating Sessions: %s", err))
+		}
 	}
+
 	// Check no gtpClient sessions were left created
 	for _, csReq := range csReqs {
 		_, err := s8p.gtpClient.GetSessionByIMSI(csReq.Imsi)
-		assert.Error(t, err)
+		if err == nil {
+			t.Fatal(fmt.Errorf(
+				"Found a session that should have been deleted after Create Session, %s", csReq.Imsi))
+		}
 	}
 
+	// ------------------------
 	// ---- Delete Sessions ----
-	errors = make([]error, nRequest)
+	errs = make(chan error, len(csReqs))
 	for i, csReq := range csReqs {
-		wg.Add(1)
 		csReqShadow := csReq
 		csResShadow := csResps[i]
-		index := i
 		go func() {
-			defer wg.Done()
 			cdReq := &protos.DeleteSessionRequestPgw{
 				PgwAddrs:  pgwActualAddrs,
 				Imsi:      csReqShadow.Imsi,
@@ -392,21 +402,34 @@ func TestS8proxyManyCreateAndDeleteSession(t *testing.T) {
 				CPgwFteid: csResShadow.CPgwFteid,
 			}
 
-			_, err := s8p.DeleteSession(context.Background(), cdReq)
-			errors[index] = err
+			var errDSR error
+			dsResps, errDSR := s8p.DeleteSession(context.Background(), cdReq)
+			if errDSR != nil {
+				errs <- fmt.Errorf("GRPC error during DeleteSession %s", errDSR)
+				return
+			}
+			if dsResps.GtpError != nil {
+				errs <- fmt.Errorf("GTP error during DeleteSession %s", dsResps.GtpError.Msg)
+				return
+			}
+			errs <- nil
 		}()
 	}
-	wg.Wait()
-
-	assert.Equal(t, nRequest, len(errors))
-	for _, err := range errors {
-		assert.NoError(t, err)
+	// wait for all delete request to complete
+	for i := 0; i < len(csReqs); i++ {
+		err := <-errs
+		if err != nil {
+			t.Fatal(fmt.Errorf("Error Deleting Sessions: %s", err))
+		}
 	}
 
 	// check sessions are deleted
 	for _, csReq := range csReqs {
 		_, err := s8p.gtpClient.GetSessionByIMSI(csReq.Imsi)
-		assert.Error(t, err)
+		if err == nil {
+			t.Fatal(fmt.Errorf(
+				"Found a session that should have been deleted after Delete Session, %s", csReq.Imsi))
+		}
 	}
 }
 
