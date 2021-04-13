@@ -11,23 +11,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import asyncio
-from unittest import TestCase, mock
-from unittest.mock import patch
-import grpc
-import fakeredis
 from concurrent import futures
+from unittest import TestCase, mock
+from unittest.mock import MagicMock, patch
+
+import fakeredis
+import grpc
 import orc8r.protos.state_pb2_grpc as state_pb2_grpc
-from unittest.mock import MagicMock
-from magma.common.redis.containers import RedisFlatDict
-from magma.common.redis.serializers import get_proto_deserializer, \
-    get_proto_serializer, get_json_deserializer, get_json_serializer, \
-    RedisSerde
-from magma.state.garbage_collector import GarbageCollector
 from magma.common.grpc_client_manager import GRPCClientManager
+from magma.common.redis.containers import RedisFlatDict
+from magma.common.redis.serializers import (
+    RedisSerde,
+    get_json_deserializer,
+    get_json_serializer,
+    get_proto_deserializer,
+    get_proto_serializer,
+)
+from magma.state.garbage_collector import GarbageCollector
+from orc8r.protos.common_pb2 import NetworkID, Void
 from orc8r.protos.service303_pb2 import LogVerbosity
 from orc8r.protos.state_pb2_grpc import StateServiceStub
-from orc8r.protos.common_pb2 import NetworkID, Void
-
 
 NID_TYPE = 'network_id'
 LOG_TYPE = 'log_verbosity'

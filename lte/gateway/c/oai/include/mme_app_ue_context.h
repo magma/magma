@@ -239,6 +239,7 @@ typedef struct pdn_context_s {
 
   protocol_configuration_options_t* pco;
   bool ue_rej_act_def_ber_req;
+  bool route_s11_messages_to_s8_task;
 } pdn_context_t;
 
 typedef enum {

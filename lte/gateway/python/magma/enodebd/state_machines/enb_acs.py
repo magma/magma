@@ -17,10 +17,10 @@ from typing import Any, Type
 from magma.common.service import MagmaService
 from magma.enodebd.data_models.data_model import DataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.device_config.enodeb_config_postprocessor import \
-    EnodebConfigurationPostProcessor
-from magma.enodebd.device_config.enodeb_configuration import \
-    EnodebConfiguration
+from magma.enodebd.device_config.enodeb_config_postprocessor import (
+    EnodebConfigurationPostProcessor,
+)
+from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.state_machines.acs_state_utils import are_tr069_params_equal
 

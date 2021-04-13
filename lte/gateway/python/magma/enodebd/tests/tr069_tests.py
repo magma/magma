@@ -15,8 +15,9 @@ from datetime import datetime, timedelta, timezone
 from unittest import TestCase, mock
 from unittest.mock import Mock, patch
 
-from magma.enodebd.tests.test_utils.enb_acs_builder import \
-    EnodebAcsStateMachineBuilder
+from magma.enodebd.tests.test_utils.enb_acs_builder import (
+    EnodebAcsStateMachineBuilder,
+)
 from magma.enodebd.tr069 import models
 from magma.enodebd.tr069.rpc_methods import AutoConfigServer
 from magma.enodebd.tr069.spyne_mods import Tr069Application, Tr069Soap11

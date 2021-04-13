@@ -15,17 +15,21 @@ limitations under the License.
 import asyncio
 from unittest import TestCase, main, mock
 
-from orc8r.protos.sync_rpc_service_pb2 import GatewayRequest, GatewayResponse, \
-    SyncRPCResponse, SyncRPCRequest
-
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.sync_rpc_client import SyncRPCClient
+from orc8r.protos.sync_rpc_service_pb2 import (
+    GatewayRequest,
+    GatewayResponse,
+    SyncRPCRequest,
+    SyncRPCResponse,
+)
 
 
 class SyncRPCClientTests(TestCase):
     """
     Tests for the SyncRPCClient
     """
+
     def setUp(self):
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)

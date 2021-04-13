@@ -98,6 +98,8 @@ int get_msisdn_from_session_req(
 
 char convert_digit_to_char(char digit);
 
+int get_imeisv_from_session_req(
+    const itti_s11_create_session_request_t* saved_req, char* imeisv);
 #ifdef __cplusplus
 }
 #endif

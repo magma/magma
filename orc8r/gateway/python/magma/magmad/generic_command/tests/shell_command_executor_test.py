@@ -14,8 +14,9 @@ import asyncio
 import unittest
 from unittest import mock
 
-from magma.magmad.generic_command.shell_command_executor import \
-    get_shell_commands_from_config
+from magma.magmad.generic_command.shell_command_executor import (
+    get_shell_commands_from_config,
+)
 
 
 class ShellCommandExecutorTest(unittest.TestCase):

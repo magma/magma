@@ -72,6 +72,29 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 		return
 	}
 
+	// Protocol Configuration Options (PCO) optional
+	if pgwPcoIE := csResGtp.PCO; pgwPcoIE != nil {
+		pgwPcoField, err2 := pgwPcoIE.ProtocolConfigurationOptions()
+		if err2 != nil {
+			err2 = fmt.Errorf("Couldn't get PGW  Protocol Configuration Options: %s ", err2)
+			return
+		}
+		var containers []*protos.PcoProtocolOrContainerId
+		for _, containerField := range pgwPcoField.ProtocolOrContainers {
+			containers = append(containers,
+				&protos.PcoProtocolOrContainerId{
+					Id:       uint32(containerField.ID),
+					Length:   uint32(len(containerField.Contents)),
+					Contents: containerField.Contents,
+				})
+		}
+		csRes.ProtocolConfigurationOptions = &protos.ProtocolConfigurationOptions{
+			ConfigProtocol:     uint32(pgwPcoField.ConfigurationProtocol),
+			ProtoOrContainerId: containers,
+			IsValid:            true,
+		}
+	}
+
 	// TODO: handle more than one bearer
 	if brCtxIE := csResGtp.BearerContextsCreated; brCtxIE != nil {
 		bearerCtx := &protos.BearerContext{}

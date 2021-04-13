@@ -16,9 +16,12 @@ limitations under the License.
 import argparse
 import logging
 
-from integ_tests.s1aptests.ovs.rest_api import (add_flowentry,
-                                                delete_flowentry, get_datapath,
-                                                get_flows)
+from integ_tests.s1aptests.ovs.rest_api import (
+    add_flowentry,
+    delete_flowentry,
+    get_datapath,
+    get_flows,
+)
 from scapy.all import IP, Ether, sendp
 
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)

@@ -12,9 +12,9 @@ limitations under the License.
 """
 
 import abc
-from enum import IntEnum, unique
 import socket
 import struct
+from enum import IntEnum, unique
 
 from . import exception
 
