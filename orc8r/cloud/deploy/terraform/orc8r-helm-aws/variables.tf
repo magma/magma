@@ -265,3 +265,20 @@ variable "deploy_openvpn" {
   type        = bool
   default     = false
 }
+
+##############################################################################
+# Other dependency variables
+##############################################################################
+
+variable "prometheus_configurer_version" {
+  description = "Image version for prometheus configurer."
+  type        = string
+  default     = "1.0.4"
+}
+
+variable "alertmanager_configurer_version" {
+  description = "Image version for alertmanager configurer."
+  type        = string
+  default     = "1.0.4"
+}
+

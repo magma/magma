@@ -80,6 +80,9 @@ resource "helm_release" "orc8r" {
     alertmanager_hostname     = format("%s-alertmanager", var.helm_deployment_name)
     alertmanager_url          = format("%s-alertmanager:9093", var.helm_deployment_name)
     prometheus_url            = format("%s-prometheus:9090", var.helm_deployment_name)
+
+    prometheus_configurer_version = var.prometheus_configurer_version
+    alertmanager_configurer_version = var.alertmanager_configurer_version
   })]
 
   set_sensitive {
