@@ -41,6 +41,7 @@
     - lighttpd
     - sessiond
     - connectiond
+    - liagentd
   when: full_provision
 
 - name: Copy sctpd service file

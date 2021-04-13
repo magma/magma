@@ -14,6 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
+#include <thread>
 
 #include "MagmaService.h"
 #include "MConfigLoader.h"
@@ -74,7 +75,13 @@ int main(void) {
   auto mconfig = load_mconfig();
   auto config  = magma::ServiceConfigLoader{}.load_service_config(LIAGENTD);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
-  MLOG(MINFO) << "Starting Connection Tracker";
+  MLOG(MINFO) << "Starting LI Agent service";
+
+  auto directoryd_client = std::make_shared<magma::AsyncDirectorydClient>();
+  std::thread directoryd_response_handling_thread([&]() {
+    MLOG(MINFO) << "Started DirectoryD response thread";
+    directoryd_client->rpc_response_loop();
+  });
 
   std::string interface_name = config["interface_name"].as<std::string>();
   std::string pkt_dst_mac    = config["pkt_dst_mac"].as<std::string>();
@@ -96,7 +103,7 @@ int main(void) {
   auto proxy_connector = std::make_shared<magma::lte::ProxyConnector>(
       proxy_addr, proxy_port, cert_file, key_file);
   auto pkt_generator = std::make_shared<magma::lte::PDUGenerator>(
-      proxy_connector, pkt_dst_mac, pkt_src_mac);
+      proxy_connector, directoryd_client, pkt_dst_mac, pkt_src_mac);
 
   auto interface_watcher = std::make_shared<magma::lte::InterfaceMonitor>(
       interface_name, pkt_generator);

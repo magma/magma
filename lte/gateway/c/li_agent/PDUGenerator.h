@@ -33,13 +33,6 @@ struct conditional_attributes {
   uint64_t timestamp;
 };
 
-/*
-uint64_t correlation_id;
-uint8_t* conditional_attributes;
-uint8_t* payload;
-uint8_t* payload_len;
-*/
-
 using namespace Tins;
 class LIX3PDU : public Tins::PDU {
  public:
@@ -104,6 +97,7 @@ class PDUGenerator {
  public:
   PDUGenerator(
       std::shared_ptr<ProxyConnector> proxy_connector,
+      std::shared_ptr<AsyncDirectorydClient> directoryd_client,
       const std::string& pkt_dst_mac, const std::string& pkt_src_mac);
 
   std::vector<uint8_t> get_conditional_attr(void);

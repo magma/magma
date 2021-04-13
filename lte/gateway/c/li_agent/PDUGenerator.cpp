@@ -31,6 +31,8 @@
 
 const PDU::PDUType LIX3PDU::pdu_flag = PDU::USER_DEFINED_PDU;
 #define LI_X3_LINK_TYPE 0x08ae
+#define PDU_VERSION 2
+#define PDU_TYPE 2
 #define BASE_HEADER_LEN 40  // 40 octets is the min header length
 #define IP_PAYLOAD_FORMAT 5
 
@@ -57,14 +59,15 @@ using namespace Tins;
 
 PDUGenerator::PDUGenerator(
     std::shared_ptr<ProxyConnector> proxy_connector,
+    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
     const std::string& pkt_dst_mac, const std::string& pkt_src_mac)
     : pkt_dst_mac_(pkt_dst_mac),
       pkt_src_mac_(pkt_src_mac),
+      directoryd_client_(directoryd_client),
       proxy_connector_(proxy_connector) {
   MLOG(MINFO) << "Using interface for pkt generation";
   // TODO Don't know why but changing ethernet-> IP produces an error, resolve
   Allocators::register_allocator<EthernetII, LIX3PDU>(LI_X3_LINK_TYPE);
-  directoryd_client_ = std::make_shared<magma::AsyncDirectorydClient>();
 }
 
 std::vector<uint8_t> PDUGenerator::get_conditional_attr(void) {
@@ -79,16 +82,17 @@ std::vector<uint8_t> PDUGenerator::get_conditional_attr(void) {
 }
 
 bool extract_ip_addr(
-    const u_char* packet, std::string* src_ip, std::string* dst_ip) {
+    const u_char* packet, std::string& src_ip, std::string& dst_ip) {
   const struct ether_header* ethernetHeader;
   const struct ip* ipHeader;
+  char sourceIP[INET_ADDRSTRLEN];
+  char destIP[INET_ADDRSTRLEN];
 
   ethernetHeader = (struct ether_header*) packet;
-  if (ntohs(ethernetHeader->ether_type) != ETHERTYPE_IP) {
+  if (ntohs(ethernetHeader->ether_type) == ETHERTYPE_IP) {
     ipHeader = (struct ip*) (packet + sizeof(struct ether_header));
-    inet_ntop(AF_INET, &(ipHeader->ip_src), (char*) src_ip, INET_ADDRSTRLEN);
-    inet_ntop(AF_INET, &(ipHeader->ip_dst), (char*) dst_ip, INET_ADDRSTRLEN);
-
+    src_ip = inet_ntop(AF_INET, &(ipHeader->ip_src), sourceIP, INET_ADDRSTRLEN);
+    dst_ip = inet_ntop(AF_INET, &(ipHeader->ip_dst), destIP, INET_ADDRSTRLEN);
     return true;
   } else {
     return false;
@@ -101,8 +105,8 @@ bool PDUGenerator::send_packet(
 
   struct pdu_info pdu;
 
-  pdu.version  = 2;
-  pdu.pdu_type = 2;
+  pdu.version  = PDU_VERSION;
+  pdu.pdu_type = PDU_TYPE;
   pdu.header_length =
       sizeof(struct pdu_info) + sizeof(struct conditional_attributes);
   pdu.payload_length    = phdr->len;
@@ -112,18 +116,25 @@ bool PDUGenerator::send_packet(
   std::vector<uint8_t> data(
       (uint8_t*) &pdu, (uint8_t*) &pdu + sizeof(struct pdu_info));
 
-  // TODO extract both IPs, check both in directoryd
   std::string src_ip;
   std::string dst_ip;
-  extract_ip_addr(pdata, &src_ip, &dst_ip);
+  if (!extract_ip_addr(pdata, src_ip, dst_ip)) {
+    MLOG(MERROR) << "Could not extract IP for packet, skipping";
+    return true;
+  }
 
+  MLOG(MINFO) << "Processing packet with src ip " << src_ip << " dst ip "
+              << dst_ip;
+
+  // TODO check both src/dst in directoryd
   auto request = directoryd_client_->get_directoryd_xid_field(
       src_ip, [this, src_ip](Status status, DirectoryField resp) {
         if (!status.ok()) {
           printf("Could not fetch subscriber with ip - %s", src_ip.c_str());
           MLOG(MERROR) << "Could not fetch subscriber with ip - " << src_ip;
         } else {
-          printf("REsp value %s", resp.value().c_str());
+          MLOG(MERROR) << "REPLY for- " << resp.value().c_str();
+          printf("Resp value %s", resp.value().c_str());
         }
       });
   if (!request) {
