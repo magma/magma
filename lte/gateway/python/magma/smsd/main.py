@@ -11,9 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from lte.protos.sms_orc8r_pb2_grpc import (SmsDStub,
-                                           SMSOrc8rGatewayServiceStub,
-                                           SMSOrc8rServiceStub)
+from lte.protos.sms_orc8r_pb2_grpc import (
+    SmsDStub,
+    SMSOrc8rGatewayServiceStub,
+    SMSOrc8rServiceStub,
+)
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry

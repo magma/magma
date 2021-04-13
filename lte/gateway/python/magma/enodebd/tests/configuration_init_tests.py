@@ -15,18 +15,19 @@ limitations under the License.
 from unittest import TestCase
 
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.device_config.configuration_init import (_get_enb_config,
-                                                            _set_bandwidth,
-                                                            _set_earfcn_freq_band_mode,
-                                                            _set_management_server,
-                                                            _set_misc_static_params,
-                                                            _set_pci,
-                                                            _set_perf_mgmt,
-                                                            _set_plmnids_tac,
-                                                            _set_s1_connection,
-                                                            _set_tdd_subframe_config)
-from magma.enodebd.device_config.enodeb_configuration import \
-    EnodebConfiguration
+from magma.enodebd.device_config.configuration_init import (
+    _get_enb_config,
+    _set_bandwidth,
+    _set_earfcn_freq_band_mode,
+    _set_management_server,
+    _set_misc_static_params,
+    _set_pci,
+    _set_perf_mgmt,
+    _set_plmnids_tac,
+    _set_s1_connection,
+    _set_tdd_subframe_config,
+)
+from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.baicells import BaicellsTrDataModel
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.tests.test_utils.config_builder import EnodebConfigBuilder

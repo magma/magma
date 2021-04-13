@@ -12,8 +12,7 @@ limitations under the License.
 """
 from abc import ABC, abstractmethod
 
-from magma.enodebd.device_config.enodeb_configuration import \
-    EnodebConfiguration
+from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 
 
 class EnodebConfigurationPostProcessor(ABC):

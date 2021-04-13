@@ -11,16 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from enum import IntEnum, unique
 import logging
+from enum import IntEnum, unique
+
+from magma.subscriberdb.crypto.utils import CryptoError
+from magma.subscriberdb.metrics import (
+    S6A_AUTH_FAILURE_TOTAL,
+    S6A_AUTH_SUCCESS_TOTAL,
+    S6A_LUR_TOTAL,
+)
+from magma.subscriberdb.protocols.diameter import avp, message
+from magma.subscriberdb.store.base import SubscriberNotFoundError
 
 from . import abc
-from magma.subscriberdb.protocols.diameter import avp, message
-from magma.subscriberdb.crypto.utils import CryptoError
-from magma.subscriberdb.store.base import SubscriberNotFoundError
-from magma.subscriberdb.metrics import (S6A_AUTH_SUCCESS_TOTAL,
-                                        S6A_AUTH_FAILURE_TOTAL,
-                                        S6A_LUR_TOTAL)
+
 
 @unique
 class S6AApplicationCommands(IntEnum):

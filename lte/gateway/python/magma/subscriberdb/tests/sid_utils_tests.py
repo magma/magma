@@ -14,7 +14,6 @@ limitations under the License.
 import unittest
 
 from lte.protos.subscriberdb_pb2 import SubscriberID
-
 from magma.subscriberdb.sid import SIDUtils
 
 

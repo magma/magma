@@ -11,9 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from lte.protos.session_manager_pb2 import PolicyReAuthRequest, \
-    PolicyReAuthAnswer, ReAuthResult, SessionRules
+from lte.protos.session_manager_pb2 import (
+    PolicyReAuthAnswer,
+    PolicyReAuthRequest,
+    ReAuthResult,
+    SessionRules,
+)
 from orc8r.protos.common_pb2 import Void
+
 
 class MockLocalSessionManagerStub:
     """

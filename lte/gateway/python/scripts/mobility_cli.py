@@ -17,9 +17,14 @@ import argparse
 import ipaddress
 import sys
 
-from lte.protos.mobilityd_pb2 import (AllocateIPRequest, GWInfo, IPAddress,
-                                      IPBlock, ReleaseIPRequest,
-                                      RemoveIPBlockRequest)
+from lte.protos.mobilityd_pb2 import (
+    AllocateIPRequest,
+    GWInfo,
+    IPAddress,
+    IPBlock,
+    ReleaseIPRequest,
+    RemoveIPBlockRequest,
+)
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.rpc_utils import grpc_wrapper
 from magma.subscriberdb.sid import SIDUtils
