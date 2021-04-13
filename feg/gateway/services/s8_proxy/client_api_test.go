@@ -82,14 +82,8 @@ func TestS8ProxyClient(t *testing.T) {
 			BrDl: 888,
 		},
 		Uli: &protos.UserLocationInformation{
-			Lac:    1,
-			Ci:     2,
-			Sac:    3,
-			Rac:    4,
-			Tac:    5,
-			Eci:    6,
-			MeNbi:  7,
-			EMeNbi: 8,
+			Tac: 5,
+			Eci: 6,
 		},
 		IndicationFlag: nil,
 		TimeZone: &protos.TimeZone{
@@ -117,11 +111,19 @@ func TestS8ProxyClient(t *testing.T) {
 	//------------------------
 	//---- Delete session ----
 	dsReq := &protos.DeleteSessionRequestPgw{
-		PgwAddrs:  actualPgwAddress,
-		Imsi:      IMSI1,
-		BearerId:  BEARER,
-		CAgwTeid:  AGWTeidC,
-		CPgwFteid: csRes.CPgwFteid,
+		PgwAddrs: actualPgwAddress,
+		Imsi:     IMSI1,
+		BearerId: BEARER,
+		CAgwTeid: AGWTeidC,
+		CPgwTeid: csRes.CPgwFteid.Teid,
+		ServingNetwork: &protos.ServingNetwork{
+			Mcc: "222",
+			Mnc: "333",
+		},
+		Uli: &protos.UserLocationInformation{
+			Tac: 5,
+			Eci: 6,
+		},
 	}
 	_, err = s8_proxy.DeleteSession(dsReq)
 	assert.NoError(t, err)
