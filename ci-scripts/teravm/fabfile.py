@@ -174,6 +174,9 @@ def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
                         hash=hash
                     )
                 )
+            # restart sctpd to force clean start
+            sudo("service sctpd restart")
+
         except Exception:
             err = (
                 "Error during install of version {} on AGW. "
