@@ -53,21 +53,18 @@ ProxyConnector::ProxyConnector(
 }
 
 void ProxyConnector::LoadCertificates(SSL_CTX* ctx) {
-  /* set the local certificate from CertFile */
   if (SSL_CTX_use_certificate_file(ctx, cert_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
     ERR_print_errors_fp(stderr);
     abort();
   }
-  /* set the private key from KeyFile (may be the same as CertFile) */
   if (SSL_CTX_use_PrivateKey_file(ctx, key_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
     ERR_print_errors_fp(stderr);
     abort();
   }
-  /* verify private key */
   if (!SSL_CTX_check_private_key(ctx)) {
-    fprintf(stderr, "Private key does not match the public certificate\n");
+    MLOG(MERROR) << "Private key does not match the public certificate";
     abort();
   }
 }
@@ -94,8 +91,9 @@ int ProxyConnector::OpenConnection() {
   serv_addr.sin_addr.s_addr = INADDR_ANY;
   serv_addr.sin_port        = htons(proxy_port_);
 
+  // TODO change to proxy addr
   if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
-    printf("\nInvalid address/ Address not supported \n");
+    MLOG(MERROR) << "Invalid address/ Address not supported";
     return -1;
   }
   if (connect(sd, (struct sockaddr*) &serv_addr, sizeof(struct sockaddr_in)) !=
@@ -124,6 +122,7 @@ SSL* ProxyConnector::GetSSLSocket() {
 }
 
 int ProxyConnector::SendData(void* data, uint32_t size) {
+  // TODO we probably want to deal with write edge cases here
   SSL_write(ssl_, data, size);
 
   return 0;
