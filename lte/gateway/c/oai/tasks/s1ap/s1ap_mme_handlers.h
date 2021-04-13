@@ -173,4 +173,8 @@ int s1ap_mme_generate_ue_context_release_command(
 
 int s1ap_mme_remove_stale_ue_context(
     enb_ue_s1ap_id_t enb_ue_s1ap_id, uint32_t enb_id);
+
+int s1ap_send_mme_ue_context_release(
+    s1ap_state_t* state, ue_description_t* ue_ref_p,
+    enum s1cause s1_release_cause, S1ap_Cause_t ie_cause, imsi64_t imsi64);
 #endif /* FILE_S1AP_MME_HANDLERS_SEEN */

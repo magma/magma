@@ -12,7 +12,6 @@ limitations under the License.
 """
 
 import abc
-
 from contextlib import contextmanager
 
 

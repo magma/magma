@@ -11,14 +11,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import importlib
+import logging
 
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict
-from magma.common.redis.serializers import get_proto_deserializer, \
-    get_proto_serializer, get_json_deserializer, get_json_serializer, \
-    RedisSerde
+from magma.common.redis.serializers import (
+    RedisSerde,
+    get_json_deserializer,
+    get_json_serializer,
+    get_proto_deserializer,
+    get_proto_serializer,
+)
 
 PROTO_FORMAT = 0
 JSON_FORMAT = 1
@@ -29,6 +33,7 @@ class StateDict(RedisFlatDict):
     StateDict is a RedisFlatDict that holds state metadata and reads/writes
     state to Redis.
     """
+
     def __init__(self, serde: RedisSerde, state_scope: str, state_format: int):
         super().__init__(get_default_client(), serde)
         # Scope determines the deviceID to report the state with
@@ -58,8 +63,8 @@ def get_proto_redis_dicts(config):
                                get_proto_serializer(),
                                get_proto_deserializer(msg))
             redis_dict = StateDict(serde,
-                               proto_cfg['state_scope'],
-                               PROTO_FORMAT)
+                                   proto_cfg['state_scope'],
+                                   PROTO_FORMAT)
             redis_dicts.append(redis_dict)
 
         except (ImportError, AttributeError) as err:
@@ -86,8 +91,8 @@ def get_json_redis_dicts(config):
                            get_json_serializer(),
                            get_json_deserializer())
         redis_dict = StateDict(serde,
-                           json_cfg['state_scope'],
-                           JSON_FORMAT)
+                               json_cfg['state_scope'],
+                               JSON_FORMAT)
         redis_dicts.append(redis_dict)
 
     return redis_dicts

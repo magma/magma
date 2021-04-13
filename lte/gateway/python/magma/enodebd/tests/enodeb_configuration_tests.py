@@ -14,10 +14,10 @@ limitations under the License.
 # pylint: disable=protected-access
 
 from unittest import TestCase
-from magma.enodebd.devices.experimental.cavium import CaviumTrDataModel
+
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.device_config.enodeb_configuration import \
-    EnodebConfiguration
+from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
+from magma.enodebd.devices.experimental.cavium import CaviumTrDataModel
 
 
 class EnodebConfigurationTest(TestCase):

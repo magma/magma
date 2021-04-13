@@ -13,12 +13,12 @@ limitations under the License.
 
 # pylint: disable=protected-access
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.tr069 import models
-from magma.enodebd.tests.test_utils.tr069_msg_builder import \
-    Tr069MessageBuilder
-from magma.enodebd.tests.test_utils.enb_acs_builder import \
-    EnodebAcsStateMachineBuilder
+from magma.enodebd.tests.test_utils.enb_acs_builder import (
+    EnodebAcsStateMachineBuilder,
+)
 from magma.enodebd.tests.test_utils.enodeb_handler import EnodebHandlerTestCase
+from magma.enodebd.tests.test_utils.tr069_msg_builder import Tr069MessageBuilder
+from magma.enodebd.tr069 import models
 
 
 class BaicellsQAFBHandlerTests(EnodebHandlerTestCase):

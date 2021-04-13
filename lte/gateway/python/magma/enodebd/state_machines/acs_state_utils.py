@@ -11,15 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from magma.enodebd.logger import EnodebdLogger as logger
-from typing import Any, Optional, Dict, List
+from typing import Any, Dict, List, Optional
+
 from magma.enodebd.data_models.data_model import DataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.device_config.enodeb_configuration import \
-    EnodebConfiguration
-from magma.enodebd.devices.device_utils import get_device_name, \
-    EnodebDeviceName
+from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
+from magma.enodebd.devices.device_utils import EnodebDeviceName, get_device_name
 from magma.enodebd.exceptions import ConfigurationError
+from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.tr069 import models
 
 

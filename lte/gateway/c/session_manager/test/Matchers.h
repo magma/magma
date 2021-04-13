@@ -102,9 +102,9 @@ MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {
          req.monitor_usages().size() == monitorCount;
 }
 
-MATCHER_P5(
+MATCHER_P6(
     CheckSessionInfos, imsi_list, ip_address_list, ipv6_address_list, cfg,
-    rule_ids_lists, "") {
+    rule_ids_lists, versions_lists, "") {
   auto infos = static_cast<const std::vector<SessionState::SessionInfo>>(arg);
 
   if (infos.size() != imsi_list.size()) {
@@ -131,6 +131,13 @@ MATCHER_P5(
       if (info.gx_rules.rules[r_index].id() != expected_gx_rules[r_index])
         return false;
     }
+
+    std::vector<uint32_t> expected_versions = versions_lists[i];
+    for (size_t r_index = 0; i < info.gx_rules.versions.size(); i++) {
+      if (info.gx_rules.versions[r_index] != expected_versions[r_index])
+        return false;
+    }
+
     // check ambr field if config has qos_info
     if (cfg.rat_specific_context.has_lte_context() &&
         cfg.rat_specific_context.lte_context().has_qos_info()) {
@@ -241,13 +248,12 @@ MATCHER_P6(
     CheckActivateFlowsForTunnIds, imsi, ipv4, ipv6, enb_teid, agw_teid,
     rule_count, "") {
   auto request = static_cast<const ActivateFlowsRequest*>(arg);
-  std::cerr << "Got dynamic size : " << request->dynamic_rules_size()
-            << std::endl;
+  std::cerr << "Got " << request->policies_size() << " rules" << std::endl;
   auto res = request->sid().id() == imsi && request->ip_addr() == ipv4 &&
              request->ipv6_addr() == ipv6 &&
              request->uplink_tunnel() == agw_teid &&
              request->downlink_tunnel() == enb_teid &&
-             request->dynamic_rules_size() == rule_count;
+             request->policies_size() == rule_count;
   return res;
 }
 

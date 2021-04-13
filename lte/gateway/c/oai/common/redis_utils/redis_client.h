@@ -57,10 +57,20 @@ class RedisClient {
    * Writes a protobuf object to redis
    * @param key
    * @param proto_msg
+   * @param version
    * @return response code of operation
    */
-  int write_proto(
-      const std::string& key, const google::protobuf::Message& proto_msg);
+  int write_proto_str(
+      const std::string& key, const std::string& proto_msg, uint64_t version);
+
+  /**
+   * Converts protobuf Message and parses it to string
+   * @param proto_msg
+   * @param str_to_serialize
+   */
+  int serialize(
+      const google::protobuf::Message& proto_msg,
+      std::string& str_to_serialize);
 
   /**
    * Reads value from redis mapped to key and returns proto object
@@ -95,14 +105,6 @@ class RedisClient {
    */
   bool key_exists(const std::string& key);
 
-  /**
-   * Converts protobuf Message and parses it to string
-   * @param proto_msg
-   * @param str_to_serialize
-   */
-  int serialize(
-      const google::protobuf::Message& proto_msg,
-      std::string& str_to_serialize);
   /**
    * Takes a string and parses it to protobuf Message
    * @param proto_msg

@@ -11,33 +11,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import ipaddress
+import logging
 import subprocess
-import time
 import threading
+import time
 import unittest
 import warnings
 from concurrent.futures import Future
-import logging
 from typing import List
-from ryu.lib import hub
 
-from lte.protos.mobilityd_pb2 import IPAddress, GWInfo, IPBlock
-
-from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
-    PipelinedController,
-)
+from lte.protos.mobilityd_pb2 import GWInfo, IPAddress, IPBlock
+from magma.pipelined.app import inout
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
 from magma.pipelined.tests.pipelined_test_util import (
+    SnapshotVerifier,
+    create_service_manager,
+    fake_inout_setup,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    create_service_manager,
-    SnapshotVerifier,
-    fake_inout_setup
 )
+from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-
-from magma.pipelined.app import inout
 
 gw_info_map = {}
 gw_info_lock = threading.RLock()  # re-entrant locks

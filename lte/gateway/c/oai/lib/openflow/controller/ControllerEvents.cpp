@@ -144,6 +144,8 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       pgw_ip_(INADDR_ZERO),
       in_tei_(in_tei),
       out_tei_(out_tei),
+      pgw_in_tei_(0),
+      pgw_out_tei_(0),
       imsi_(imsi),
       dl_flow_valid_(false),
       dl_flow_(),
@@ -162,6 +164,8 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       pgw_ip_(INADDR_ZERO),
       in_tei_(in_tei),
       out_tei_(out_tei),
+      pgw_in_tei_(0),
+      pgw_out_tei_(0),
       imsi_(imsi),
       dl_flow_valid_(true),
       dl_flow_(*dl_flow),
@@ -173,7 +177,8 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
 AddGTPTunnelEvent::AddGTPTunnelEvent(
     const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
     const struct in_addr enb_ip, const struct in_addr pgw_ip,
-    const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
+    const uint32_t in_tei, const uint32_t out_tei, const uint32_t pgw_in_tei,
+    const uint32_t pgw_out_tei, const char* imsi,
     const struct ip_flow_dl* dl_flow, const uint32_t dl_flow_precedence,
     uint32_t enb_gtp_port, uint32_t pgw_gtp_port)
     : ue_info_(ue_ip, ue_ipv6, vlan),
@@ -181,6 +186,8 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       pgw_ip_(pgw_ip),
       in_tei_(in_tei),
       out_tei_(out_tei),
+      pgw_in_tei_(pgw_in_tei),
+      pgw_out_tei_(pgw_out_tei),
       imsi_(imsi),
       dl_flow_valid_(false),
       dl_flow_(),
@@ -192,13 +199,16 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
 AddGTPTunnelEvent::AddGTPTunnelEvent(
     const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
     const struct in_addr enb_ip, const struct in_addr pgw_ip,
-    const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
-    uint32_t enb_gtp_port, uint32_t pgw_gtp_port)
+    const uint32_t in_tei, const uint32_t out_tei, const uint32_t pgw_in_tei,
+    const uint32_t pgw_out_tei, const char* imsi, uint32_t enb_gtp_port,
+    uint32_t pgw_gtp_port)
     : ue_info_(ue_ip, vlan),
       enb_ip_(enb_ip),
       pgw_ip_(pgw_ip),
       in_tei_(in_tei),
       out_tei_(out_tei),
+      pgw_in_tei_(pgw_in_tei),
+      pgw_out_tei_(pgw_out_tei),
       imsi_(imsi),
       dl_flow_valid_(false),
       dl_flow_(),
@@ -229,6 +239,14 @@ const uint32_t AddGTPTunnelEvent::get_in_tei() const {
 
 const uint32_t AddGTPTunnelEvent::get_out_tei() const {
   return out_tei_;
+}
+
+const uint32_t AddGTPTunnelEvent::get_pgw_in_tei() const {
+  return pgw_in_tei_;
+}
+
+const uint32_t AddGTPTunnelEvent::get_pgw_out_tei() const {
+  return pgw_out_tei_;
 }
 
 const std::string& AddGTPTunnelEvent::get_imsi() const {

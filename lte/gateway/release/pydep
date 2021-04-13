@@ -463,6 +463,9 @@ class Lockfile(object):
             log.warning('dependencies may not be generated correctly')
         self._release = release_info.get('VERSION_CODENAME', self._default_release)
 
+        if reference_lockfile is None:
+            reference_lockfile = "./release/magma.lockfile.{}".format(self._release)
+
         def lower_keys(d: Dict[str, Any]):
             return {k.lower(): v for k, v in d.items()}
 
@@ -1010,6 +1013,7 @@ def main(args):
             with open(args.lockfile, 'r') as r:
                 lf = Lockfile(data=r.read())
         except FileNotFoundError:
+            log.error("file not found: {}".format(args.lockfile));
             pass
     else:
         lf = Lockfile()

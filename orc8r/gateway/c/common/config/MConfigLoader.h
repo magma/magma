@@ -12,7 +12,13 @@
  */
 #pragma once
 
-#include <google/protobuf/message.h>
+#include <iosfwd>  // for ifstream
+#include <string>  // for string
+namespace google {
+namespace protobuf {
+class Message;
+}
+}  // namespace google
 
 namespace magma {
 

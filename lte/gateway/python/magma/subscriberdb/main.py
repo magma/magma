@@ -13,6 +13,7 @@ limitations under the License.
 import asyncio
 import logging
 
+from lte.protos.mconfig import mconfigs_pb2
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
@@ -20,12 +21,11 @@ from magma.common.streamer import StreamerClient
 from .processor import Processor
 from .protocols.diameter.application import base, s6a
 from .protocols.diameter.server import S6aServer
-from .rpc_servicer import SubscriberDBRpcServicer
-from .subscription_profile import get_default_sub_profile
-from .streamer_callback import SubscriberDBStreamerCallback
-from .store.sqlite import SqliteStore
 from .protocols.s6a_proxy_servicer import S6aProxyRpcServicer
-from lte.protos.mconfig import mconfigs_pb2
+from .rpc_servicer import SubscriberDBRpcServicer
+from .store.sqlite import SqliteStore
+from .streamer_callback import SubscriberDBStreamerCallback
+from .subscription_profile import get_default_sub_profile
 
 
 def main():
@@ -70,7 +70,9 @@ def main():
 
         if service.config['s6a_over_grpc']:
             logging.info('Running s6a over grpc')
-            s6a_proxy_servicer = S6aProxyRpcServicer(processor)
+            s6a_proxy_servicer = S6aProxyRpcServicer(
+                processor,
+                service.config.get('print_grpc_payload', False))
             s6a_proxy_servicer.add_to_server(service.rpc_server)
         else:
             logging.info('Running s6a over DIAMETER')

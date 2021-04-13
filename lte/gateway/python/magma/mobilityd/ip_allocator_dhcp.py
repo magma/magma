@@ -13,21 +13,25 @@ limitations under the License.
 Allocates IP address as per DHCP server in the uplink network.
 """
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import logging
 from copy import deepcopy
 from ipaddress import ip_address, ip_network
-from typing import List
 from threading import Condition
+from typing import List
 
-from magma.mobilityd.ip_descriptor import IPState, IPDesc, IPType
+from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 
-from .ip_allocator_base import IPAllocator, NoAvailableIPError
 from .dhcp_client import DHCPClient
+from .dhcp_desc import DHCPDescriptor, DHCPState
+from .ip_allocator_base import IPAllocator, NoAvailableIPError
 from .mac import MacAddress, create_mac_from_sid
-from .dhcp_desc import DHCPState, DHCPDescriptor
 from .mobility_store import MobilityStore
 
 DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY = 10

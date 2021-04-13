@@ -13,24 +13,25 @@ limitations under the License.
 import threading
 from typing import List
 
-from ryu.controller import ofp_event
-from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from ryu.lib.packet import packet
-from ryu.lib.packet import ether_types, dhcp
-from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
-
-from lte.protos.pipelined_pb2 import FlowResponse, SetupFlowsResult, \
-    UEMacFlowRequest
-from magma.pipelined.app.base import MagmaController, ControllerType
+from lte.protos.pipelined_pb2 import (
+    FlowResponse,
+    SetupFlowsResult,
+    UEMacFlowRequest,
+)
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.inout import INGRESS
-from magma.pipelined.directoryd_client import update_record
-from magma.pipelined.imsi import encode_imsi, decode_imsi
-from magma.pipelined.openflow import flows
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.directoryd_client import update_record
+from magma.pipelined.imsi import decode_imsi, encode_imsi
+from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, load_passthrough
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
+from ryu.lib.packet import dhcp, ether_types, packet
+from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
 
 class UEMacAddressController(MagmaController):

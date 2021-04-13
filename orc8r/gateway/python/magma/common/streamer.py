@@ -11,22 +11,21 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import abc
 import logging
 import threading
 import time
 from typing import Any, List
 
-import abc
 import grpc
 import snowflake
 from google.protobuf import any_pb2
 from magma.common import serialization_utils
 from magma.common.metrics import STREAMER_RESPONSES
+from magma.common.service_registry import ServiceRegistry
 from magma.configuration.service_configs import get_service_config_value
 from orc8r.protos.streamer_pb2 import DataUpdate, StreamRequest
 from orc8r.protos.streamer_pb2_grpc import StreamerStub
-
-from .service_registry import ServiceRegistry
 
 
 class StreamerClient(threading.Thread):
@@ -101,7 +100,7 @@ class StreamerClient(threading.Thread):
         while True:
             try:
                 channel = ServiceRegistry.get_rpc_channel(
-                        'streamer', ServiceRegistry.CLOUD)
+                    'streamer', ServiceRegistry.CLOUD)
                 client = StreamerStub(channel)
                 self.process_all_streams(client)
             except Exception as exp:  # pylint: disable=broad-except

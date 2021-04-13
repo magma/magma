@@ -18,7 +18,7 @@
         "title": "Codeowners Workflow"
       },
       "contributing/contribute_conventions": {
-        "title": "Code Conventions"
+        "title": "Contributing Conventions"
       },
       "contributing/contribute_onboarding": {
         "title": "Developer Onboarding"
@@ -57,6 +57,9 @@
       "feg/deploy_intro": {
         "title": "Introduction"
       },
+      "feg/docker_setup": {
+        "title": "FeG Docker Setup"
+      },
       "feg/legacy/docker_setup": {
         "title": "FeG Docker Setup"
       },
@@ -66,6 +69,9 @@
       "feg/legacy/readme": {
         "title": "Federated Gateway (FeG)",
         "sidebar_label": "Overview"
+      },
+      "feg/session_proxy": {
+        "title": "feg/session_proxy"
       },
       "howtos/call_tracing": {
         "title": "Call Tracing"
@@ -81,6 +87,18 @@
       },
       "howtos/thanos": {
         "title": "Thanos"
+      },
+      "howtos/troubleshooting/agw_unable_to_checkin": {
+        "title": "Access Gateway Unable to Check-in to Orchestrator"
+      },
+      "howtos/troubleshooting/generate_admin_operator_certificates": {
+        "title": "Generate and update admin_operator certificates"
+      },
+      "howtos/troubleshooting/update_certificates": {
+        "title": "Update rootCA and controller SSL certificates"
+      },
+      "howtos/troubleshooting/user_unable_to_attach": {
+        "title": "User is unable to attach to Magma"
       },
       "howtos/config_agw_bridged": {
         "title": "AGW Bridged Mode"
@@ -330,6 +348,12 @@
       },
       "proposals/p011_victoriametrics": {
         "title": "VictoriaMetrics as Magma's TSDB"
+      },
+      "proposals/p012_resource-tagging": {
+        "title": "proposals/p012_resource-tagging"
+      },
+      "proposals/p013_Ubuntu_upgrade": {
+        "title": "AGW Ubuntu upgrade"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
@@ -804,6 +828,18 @@
       "version-1.4.0/basics/version-1.4.0-quick_start_guide": {
         "title": "Quick Start Guide"
       },
+      "version-1.4.0/contributing/version-1.4.0-contribute_codeowners": {
+        "title": "Codeowners Workflow"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_conventions": {
+        "title": "Contributing Conventions"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_onboarding": {
+        "title": "Developer Onboarding"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_workflow": {
+        "title": "Development Workflow"
+      },
       "version-1.4.0/debugging_tools/version-1.4.0-show_tech": {
         "title": "Show Tech"
       },
@@ -982,8 +1018,8 @@
       "Deploy": "Deploy",
       "Upgrade": "Upgrade",
       "Debug": "Debug",
+      "Contribute": "Contribute",
       "Technical Reference": "Technical Reference",
-      "Contributing": "Contributing",
       "Proposals": "Proposals",
       "FAQ": "FAQ",
       "Basics": "Basics",

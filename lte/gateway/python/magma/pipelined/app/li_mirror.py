@@ -10,16 +10,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from magma.pipelined.openflow import flows
-from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.app.base import MagmaController, ControllerType
+from lte.protos.mconfig import mconfigs_pb2
 from magma.configuration.mconfig_managers import load_service_mconfig
-
+from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction
-from lte.protos.mconfig import mconfigs_pb2
-
 from ryu.lib import hub
 from ryu.lib.packet import ether_types
 

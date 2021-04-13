@@ -46,6 +46,16 @@
           "nms/alerts",
           "nms/tips_and_tricks"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Troubleshooting",
+        "ids": [
+          "howtos/troubleshooting/agw_unable_to_checkin",
+          "howtos/troubleshooting/user_unable_to_attach",
+          "howtos/troubleshooting/update_certificates",
+          "howtos/troubleshooting/generate_admin_operator_certificates"
+        ]
       }
     ],
     "Architecture": [
@@ -146,6 +156,12 @@
         ]
       }
     ],
+    "Contribute": [
+      "contributing/contribute_onboarding",
+      "contributing/contribute_workflow",
+      "contributing/contribute_conventions",
+      "contributing/contribute_codeowners"
+    ],
     "Technical Reference": [
       {
         "type": "subcategory",
@@ -177,12 +193,6 @@
           "nms/dev_components"
         ]
       }
-    ],
-    "Contributing": [
-      "contributing/contribute_onboarding",
-      "contributing/contribute_workflow",
-      "contributing/contribute_conventions",
-      "contributing/contribute_codeowners"
     ],
     "Proposals": [
       "proposals/p001_vpn_config_from_api",

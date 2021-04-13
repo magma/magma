@@ -23,6 +23,7 @@ class MetricTests(unittest.TestCase):
     def test_metrics_defined(self):
         """ Test that all metrics are defined in proto enum """
         import magma.mobilityd.metrics
+
         # Avoid lint error about unused imports
         magma.mobilityd.metrics.IP_ALLOCATED_TOTAL.inc(1)
 

@@ -16,10 +16,11 @@ limitations under the License.
 import argparse
 
 import grpc
-from feg.protos.s6a_proxy_pb2 import AuthenticationInformationRequest, \
-    UpdateLocationRequest
+from feg.protos.s6a_proxy_pb2 import (
+    AuthenticationInformationRequest,
+    UpdateLocationRequest,
+)
 from feg.protos.s6a_proxy_pb2_grpc import S6aProxyStub
-
 from magma.common.rpc_utils import cloud_grpc_wrapper
 
 RESYNC_INFO_BYTES = 30
