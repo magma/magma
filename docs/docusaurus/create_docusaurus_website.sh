@@ -12,15 +12,24 @@
 
 set -e
 
+function exit_timeout() {
+  echo ''
+  docker-compose logs docusaurus
+  echo ''
+  echo "Timed out after ${1}s waiting for Docusaurus container to build. See logs above for more info."
+  exit 1
+}
+
 # spin until localhost:3000 returns HTTP code 200.
 function spin() {
-  nsec=${1-10}
+  maxsec=120
   spin='-\|/'
   i=0
   while [[ "$(curl -s -o /dev/null -w '%{http_code}' localhost:3000)" != "200" ]]; do
+    [[ $i == "$maxsec" ]] && exit_timeout $i
     i=$(( i + 1 ))
     j=$(( i % 4 ))
-    printf "\r${spin:$j:1}"
+    printf "\r%s" "${spin:$j:1}"
     sleep 1
   done
   printf "\r \n"
