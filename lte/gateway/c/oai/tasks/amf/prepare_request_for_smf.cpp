@@ -94,8 +94,8 @@ namespace magma5g {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message, 
-		char* imsi, uint32_t version) {
+int create_session_grpc_req_on_gnb_setup_rsp(
+    amf_smf_establish_t* message, char* imsi, uint32_t version) {
   int rc = RETURNerror;
   magma::lte::SetSMSessionContext req;
 
@@ -107,26 +107,24 @@ int create_session_grpc_req_on_gnb_setup_rsp(amf_smf_establish_t* message,
   auto* req_common = req.mutable_common_context();
   auto* req_rat_specific =
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
-  //IMSI retrieved from amf context
+  // IMSI retrieved from amf context
   req_common->mutable_sid()->mutable_id()->assign(imsi);  // string id
   req_common->mutable_sid()->set_type(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
   // PDU session state to CREATING
   req_common->set_sm_session_state(magma::lte::SMSessionFSMState::CREATING_0);
-  //Version Added
+  // Version Added
   req_common->set_sm_session_version(version);
-
-  req_rat_specific->set_pdu_session_id(
-      (const char*) (&(message->pdu_session_id)));
+  req_rat_specific->set_pdu_session_id((message->pdu_session_id));
   req_rat_specific->set_rquest_type(magma::lte::RequestType::INITIAL_REQUEST);
   req_rat_specific->mutable_gnode_endpoint()->mutable_teid()->assign(
       (char*) message->gnb_gtp_teid);
   req_rat_specific->mutable_gnode_endpoint()->mutable_end_ipv4_addr()->assign(
       (char*) message->gnb_gtp_teid_ip_addr);
 
-  OAILOG_DEBUG(LOG_AMF_APP,
-            "Sending PDU session Establishment 2nd Request to SMF");
+  OAILOG_DEBUG(
+      LOG_AMF_APP, "Sending PDU session Establishment 2nd Request to SMF");
   smf_srv_client->set_smf_session(req);
   OAILOG_DEBUG(LOG_AMF_APP, "sent Establish Request 2nd time to SMF");
 

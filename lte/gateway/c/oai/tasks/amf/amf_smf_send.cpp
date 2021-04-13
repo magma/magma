@@ -156,11 +156,13 @@ void set_amf_smf_context(
       message->integrity_prot_max_data_rate;
   smf_ctx->smf_proc_data.pdu_session_type = message->pdu_session_type;
   smf_ctx->smf_proc_data.ssc_mode         = message->ssc_mode;
-  smf_ctx->pdu_session_version = 0; //Initializing pdu version to 0
-  memset(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0', 
-		  sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
-  memset(smf_ctx->gtp_tunnel_id.gnb_gtp_teid, '\0', 
-		  sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid)); 
+  smf_ctx->pdu_session_version            = 0;  // Initializing pdu version to 0
+  memset(
+      smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr, '\0',
+      sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
+  memset(
+      smf_ctx->gtp_tunnel_id.gnb_gtp_teid, '\0',
+      sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid));
 }
 
 /***************************************************************************
