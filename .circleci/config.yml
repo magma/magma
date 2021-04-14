@@ -955,7 +955,6 @@ jobs:
           artifact_name: LTE AGW
           version_path: versions/magma_version
       - run:
-          name: aruns playbooks 
             command:|
               ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
               ansible-playbook ami-init.yaml
