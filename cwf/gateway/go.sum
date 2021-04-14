@@ -581,6 +581,7 @@ github.com/wmnsk/go-gtp v0.7.15/go.mod h1:v1psjZ7skpPSDegH23Amg9rNufs0BoXNM+GBtW
 github.com/wmnsk/go-gtp v0.7.17/go.mod h1:IQ5tTgk1EDaKLLAum2vzYheKX9JeRngM1fm9ohdXAac=
 github.com/wmnsk/go-gtp v0.7.19/go.mod h1:qdjTIBWIWjsNJdGs1EpmbcLjakUDPP7nRcEfKr2g1GQ=
 github.com/wmnsk/go-gtp v0.7.20/go.mod h1:qdjTIBWIWjsNJdGs1EpmbcLjakUDPP7nRcEfKr2g1GQ=
+github.com/wmnsk/go-gtp v0.7.21/go.mod h1:qdjTIBWIWjsNJdGs1EpmbcLjakUDPP7nRcEfKr2g1GQ=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xlab/treeprint v0.0.0-20180616005107-d6fb6747feb6/go.mod h1:ce1O1j6UtZfjr22oyGxGLbauSBp2YVXpARAosm7dHBg=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=
