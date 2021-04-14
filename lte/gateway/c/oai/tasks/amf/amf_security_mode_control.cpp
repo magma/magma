@@ -201,7 +201,7 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
     amf_data_sec_ctrl.amf_as_set_security_data(
         &amf_sap.u.amf_as.u.security.sctx, &amf_ctx->_security,
         smc_proc->is_new, false);
-    rc = amf_sap_sec.amf_sap_send(&amf_sap);
+    rc = amf_sap_send(&amf_sap);
     if (rc != RETURNerror) {
       OAILOG_INFO(
           LOG_AMF_APP,
@@ -218,7 +218,6 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-#endif
 
 /* Timer Expiry Handler for SECURITY COMMAND MODE Timer 3560 */
 static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {

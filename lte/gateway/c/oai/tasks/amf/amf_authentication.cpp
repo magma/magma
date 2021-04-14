@@ -36,8 +36,6 @@ namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 amf_as_data_t amf_data_sec_auth;
-amf_sap_c amf_sap_auth;
-nas_proc nas_proc_autn;
 static int authenthication_t3560_handler(
     zloop_t* loop, int timer_id, void* output);
 /****************************************************************************
@@ -526,7 +524,10 @@ int amf_proc_authentication_complete(
 
   if (auth_proc) {
     /*  Stop Timer T3560 */
-    OAILOG_ERROR(LOG_NAS_EMM, "Timer:  Stopping Authentication Timer T3560 with id = %d\n", auth_proc->T3560.id);
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "Timer:  Stopping Authentication Timer T3560 with id = %d\n",
+        auth_proc->T3560.id);
     stop_timer(&amf_app_task_zmq_ctx, auth_proc->T3560.id);
     OAILOG_ERROR(LOG_NAS_EMM, "Timer: After Stopping T3560 Timer\n");
 
@@ -602,19 +603,21 @@ int amf_send_authentication_request(
     amf_data_sec_auth.amf_as_set_security_data(
         &amf_sap.u.amf_as.u.security.sctx, &amf_ctx->_security, false, true);
 
-    rc = amf_sap_auth.amf_sap_send(&amf_sap);
+    rc = amf_sap_send(&amf_sap);
 
     if (rc != RETURNerror) {
-     OAILOG_ERROR(LOG_NAS_EMM, "Timer:Start Authenthication Timer T3560\n");
-     auth_proc->T3560.id = start_timer(
-         &amf_app_task_zmq_ctx, AUTHENTICATION_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE, authenthication_t3560_handler,
-            NULL);
-     OAILOG_INFO(LOG_AMF_APP, "Timer: Authenthication timer T3560 started \n");
-     OAILOG_INFO(LOG_AMF_APP, "Timer: Authenthication timer T3560 id is %d\n", auth_proc->T3560.id);
-}
-    if (rc != RETURNerror) {
-      }
+      OAILOG_ERROR(LOG_NAS_EMM, "Timer:Start Authenthication Timer T3560\n");
+      auth_proc->T3560.id = start_timer(
+          &amf_app_task_zmq_ctx, AUTHENTICATION_TIMER_EXPIRY_MSECS,
+          TIMER_REPEAT_ONCE, authenthication_t3560_handler, NULL);
+      OAILOG_INFO(LOG_AMF_APP, "Timer: Authenthication timer T3560 started \n");
+      OAILOG_INFO(
+          LOG_AMF_APP, "Timer: Authenthication timer T3560 id is %d\n",
+          auth_proc->T3560.id);
     }
+    if (rc != RETURNerror) {
+    }
+  }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -641,7 +644,7 @@ static int authenthication_t3560_handler(
     // OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
-  nas_amf_auth_proc_t* auth_proc =
+  nas5g_amf_auth_proc_t* auth_proc =
       get_nas5g_common_procedure_authentication(amf_ctx);
   amf_ue_ngap_id_t ue_id;
 
@@ -683,7 +686,7 @@ static int authenthication_t3560_handler(
       OAILOG_ERROR(
           LOG_AMF_APP,
           "Timer: T3560 Calling amf_send_authentication_request again\n");
-      authentication.amf_send_authentication_request(amf_ctx, auth_proc);
+      amf_send_authentication_request(amf_ctx, auth_proc);
     } else {
       OAILOG_ERROR(
           LOG_AMF_APP,

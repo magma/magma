@@ -27,6 +27,8 @@ int amf_handle_registration_request(
 int amf_handle_service_request(
     amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
     const amf_nas_message_decode_status_t decode_status);
+int amf_registration_run_procedure(amf_context_t* amf_context);
+>>>>>>> compilation errors fixed
 int amf_handle_identity_response(
     amf_ue_ngap_id_t ue_id, M5GSMobileIdentityMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status);
@@ -53,8 +55,14 @@ int amf_registration_success_authentication_cb(amf_context_t* amf_context);
 int amf_registration_success_security_cb(amf_context_t* amf_context);
 int amf_proc_registration_reject(
     const amf_ue_ngap_id_t ue_id, amf_cause_t amf_cause);
+int amf_registration_reject(
+    amf_context_t* amf_context, nas_amf_registration_proc_t* nas_base_proc);
+
 int amf_send_registration_accept_dl_nas(
     const amf_as_data_t* msg, RegistrationAcceptMsg* amf_msg);
+int amf_proc_registration_complete(
+    amf_ue_ngap_id_t ue_id, bstring smf_msg_p, int amf_cause,
+    const amf_nas_message_decode_status_t status);
 
 void amf_app_handle_cm_idle_on_ue_context_release(
     itti_ngap_ue_context_release_req_t cm_idle_req);

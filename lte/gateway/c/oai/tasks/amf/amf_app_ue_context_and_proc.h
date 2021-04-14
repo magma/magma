@@ -61,6 +61,10 @@ extern "C" {
 
 namespace magma5g {
 #define NAS5G_TIMER_INACTIVE_ID (-1)
+#define SECURITY_MODE_TIMER_EXPIRY_MSECS 6000
+#define AUTHENTICATION_TIMER_EXPIRY_MSECS 6000
+#define REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS 6000
+#define IDENTITY_TIMER_EXPIRY_MSECS 6000
 struct amf_procedures_t;
 /*
  * Timer identifier returned when in inactive state (timer is stopped or has
@@ -587,6 +591,26 @@ int amf_proc_identification_complete(
     const amf_ue_ngap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
     imeisv_t* const imeisv, uint32_t* const tmsi);
 
+typedef struct nas_amf_auth_proc_s {
+  nas_amf_common_proc_t amf_com_proc;
+  nas5g_timer_t T3560; /* Authentication timer         */
+#define AUTHENTICATION_COUNTER_MAX 5
+  unsigned int retransmission_count;
+#define EMM_AUTHENTICATION_SYNC_FAILURE_MAX 2
+  unsigned int sync_fail_count; /* counter of successive AUTHENTICATION FAILURE
+                                   messages 1133                       from the
+                                   UE with AMF cause #21 "synch failure" */
+  unsigned int mac_fail_count;
+  amf_ue_ngap_id_t ue_id;
+  bool is_cause_is_registered;  //  could also be done by seeking parent
+                                //  procedure
+  ksi_t ksi;
+  uint8_t rand[AUTH_RAND_SIZE]; /* Random challenge number  */
+  uint8_t autn[AUTH_AUTN_SIZE]; /* Authentication token     */
+  imsi_t* unchecked_imsi;
+  int amf_cause;
+} nas_amf_auth_proc_t;
+
 typedef struct nas5g_cn_proc_s {
   nas5g_base_proc_t base_proc;
   cn5g_proc_type_t type;
@@ -668,6 +692,9 @@ struct amf_procedures_t {
 
 struct nas_amf_registration_proc_t {
   nas_amf_specific_proc_t amf_spec_proc;
+#define REGISTRATION_COUNTER_MAX 5
+  unsigned int retransmission_count;
+  struct nas5g_timer_s T3550;  // AMF message retransmission timer
   bstring amf_msg_out;  // SMF message to be sent within the Registration Accept
                         // message
   amf_registration_request_ies_t* ies;
@@ -770,4 +797,6 @@ int pdu_state_handle_message(
     m5gmm_state_t, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s*, amf_smf_t, char*,
     itti_n11_create_pdu_session_response_t*, uint32_t);
+nas_amf_ident_proc_t* get_5g_nas_common_procedure_identification(
+    const amf_context_t* ctxt);
 }  // namespace magma5g

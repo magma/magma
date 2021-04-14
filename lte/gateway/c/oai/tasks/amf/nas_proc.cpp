@@ -34,7 +34,7 @@ extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 extern ue_m5gmm_context_s ue_m5gmm_global_context;
 AmfMsg amf_msg_obj;
 static int identification_t3570_handler(zloop_t* loop, int timer_id, void* arg);
-int nas_proc::nas_proc_establish_ind(
+int nas_proc_establish_ind(
     const amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,
     const tai_t originating_tai, const ecgi_t ecgi,
     const m5g_rrc_establishment_cause_t as_cause, const s_tmsi_m5_t s_tmsi,
@@ -189,7 +189,7 @@ nas_amf_ident_proc_t* nas5g_new_identification_procedure(
   ident_proc->amf_com_proc.amf_proc.type = NAS_AMF_PROC_TYPE_COMMON;
   ident_proc->T3570.sec                  = amf_config.nas_config.t3570_sec;
   ident_proc->T3570.id                   = AMF_APP_TIMER_INACTIVE_ID;
-  ident_proc->amf_com_proc.type = AMF_COMM_PROC_IDENT;
+  ident_proc->amf_com_proc.type          = AMF_COMM_PROC_IDENT;
   nas_amf_common_procedure_t* wrapper    = new nas_amf_common_procedure_t;
   if (wrapper) {
     wrapper->proc = &ident_proc->amf_com_proc;
@@ -307,7 +307,7 @@ static int identification_t3570_handler(
 }
 
 //-------------------------------------------------------------------------------------
-int identification::amf_proc_identification(
+int amf_proc_identification(
     amf_context_t* const amf_context, nas_amf_proc_t* const amf_proc,
     const identity_type2_t type, success_cb_t success, failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
