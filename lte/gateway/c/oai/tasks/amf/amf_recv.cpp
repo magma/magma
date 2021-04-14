@@ -77,7 +77,7 @@ int amf_handle_registration_request(
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
-     OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
   }
 
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
@@ -87,48 +87,47 @@ int amf_handle_registration_request(
      * mobility type suppose to be SUCI
      * This is SUCI message identity type is SUPI as IMSI type
      * Extract the SUPI from SUCI directly as scheme is NULL */
-  if (msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity ==
-      M5GSMobileIdentityMsg_IMSI) {
-    // Only considering protection scheme as NULL else return error.
-    if (msg->m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id ==
-        MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
-      /*
-       * Extract the SUPI or IMSI from SUCI as scheme output is not encrypted
-       */
-      params->imsi = new (imsi_t);
-      /* Copying PLMN to local supi which is imsi*/
-      supi_imsi.plmn.mcc_digit1 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit1;
-      supi_imsi.plmn.mcc_digit2 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2;
-      supi_imsi.plmn.mcc_digit3 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit3;
-      supi_imsi.plmn.mnc_digit1 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit1;
-      supi_imsi.plmn.mnc_digit2 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit2;
-      supi_imsi.plmn.mnc_digit3 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit3;
-      // copy 5 octet scheme_output to msin of supi_imsi
-      memcpy(
-          &supi_imsi.msin,
-          &msg->m5gs_mobile_identity.mobile_identity.imsi.scheme_output,
-          MSIN_MAX_LENGTH);
-      // Copy entire supi_imsi to param->imsi->u.value
-      memcpy(&params->imsi->u.value, &supi_imsi, IMSI_BCD8_SIZE);
-      OAILOG_DEBUG(
-          LOG_AMF_APP, "Value of SUPI/IMSI from params->imsi->u.value\n");
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "SUPI as IMSI derived : %02x%02x%02x%02x%02x%02x%02x%02x \n",
-          params->imsi->u.value[0], params->imsi->u.value[1],
-          params->imsi->u.value[2], params->imsi->u.value[3],
-          params->imsi->u.value[4], params->imsi->u.value[5],
-          params->imsi->u.value[6], params->imsi->u.value[7]);
+    if (msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity ==
+        M5GSMobileIdentityMsg_IMSI) {
+      // Only considering protection scheme as NULL else return error.
+      if (msg->m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id ==
+          MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
+        /*
+         * Extract the SUPI or IMSI from SUCI as scheme output is not encrypted
+         */
+        params->imsi = new (imsi_t);
+        /* Copying PLMN to local supi which is imsi*/
+        supi_imsi.plmn.mcc_digit1 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit1;
+        supi_imsi.plmn.mcc_digit2 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2;
+        supi_imsi.plmn.mcc_digit3 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit3;
+        supi_imsi.plmn.mnc_digit1 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit1;
+        supi_imsi.plmn.mnc_digit2 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit2;
+        supi_imsi.plmn.mnc_digit3 =
+            msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit3;
+        // copy 5 octet scheme_output to msin of supi_imsi
+        memcpy(
+            &supi_imsi.msin,
+            &msg->m5gs_mobile_identity.mobile_identity.imsi.scheme_output,
+            MSIN_MAX_LENGTH);
+        // Copy entire supi_imsi to param->imsi->u.value
+        memcpy(&params->imsi->u.value, &supi_imsi, IMSI_BCD8_SIZE);
+        OAILOG_DEBUG(
+            LOG_AMF_APP, "Value of SUPI/IMSI from params->imsi->u.value\n");
+        OAILOG_DEBUG(
+            LOG_AMF_APP,
+            "SUPI as IMSI derived : %02x%02x%02x%02x%02x%02x%02x%02x \n",
+            params->imsi->u.value[0], params->imsi->u.value[1],
+            params->imsi->u.value[2], params->imsi->u.value[3],
+            params->imsi->u.value[4], params->imsi->u.value[5],
+            params->imsi->u.value[6], params->imsi->u.value[7]);
+      }
     }
-  }
-}   // end of AMF_REGISTRATION_TYPE_INITIAL
-
+  }  // end of AMF_REGISTRATION_TYPE_INITIAL
 
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERODIC_UPDATING) {
     /*
@@ -146,9 +145,8 @@ int amf_handle_registration_request(
         " is_amf_ctx_new = %d and identity type = %d ",
         is_amf_ctx_new,
         msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
-    //if ((!is_amf_ctx_new) &&
-    if (
-        (msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
+    // if ((!is_amf_ctx_new) &&
+    if ((msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
          M5GSMobileIdentityMsg_GUTI)) {
       /* Copying PLMN to local supi which is imsi*/
       supi_imsi.plmn.mcc_digit1 =
@@ -173,7 +171,7 @@ int amf_handle_registration_request(
       /* Update this new GUTI in amf_context and map
        * unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map
        */
-      ue_context->amf_context._m5_guti.m_tmsi = amf_guti.m_tmsi;
+      ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
 
       imsi64_t imsi64                = ue_context->amf_context.imsi64;
       guti_and_amf_id.amf_guti       = amf_guti;
@@ -191,9 +189,8 @@ int amf_handle_registration_request(
           "map and ue contxt, sending accept message in DL\n");
 
       // Call the registration accept API to send accept messaeg in DL
-      //rc = amf_registration_procedure::amf_send_registration_accept(
-      rc = amf_send_registration_accept(
-          &ue_context->amf_context);
+      // rc = amf_registration_procedure::amf_send_registration_accept(
+      rc = amf_send_registration_accept(&ue_context->amf_context);
     } else {
       // UE context is new and/or UE identity type is not GUTI
       // add log message.
@@ -210,8 +207,8 @@ int amf_handle_registration_request(
    * This will initiate identity req in DL.
    */
   if (is_amf_ctx_new) {
-     rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
-     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+    rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   return rc;
 }
@@ -391,8 +388,8 @@ int amf_handle_authentication_response(
  * params@ imsi
  * return guti structure on success ,Null on failure
  */
-ue_m5gmm_context_s * lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
-//  imsi64_t imsi64 = amf_imsi_to_imsi64(imsi);
+ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
+  //  imsi64_t imsi64 = amf_imsi_to_imsi64(imsi);
 
   /*Check imsi found
    *
@@ -402,12 +399,13 @@ ue_m5gmm_context_s * lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
   if (found_imsi == amf_supi_guti_map.end()) {
     // it is new entry to map
     OAILOG_ERROR(LOG_NAS_AMF, "UE_ID context not found in ue-context_map\n");
-        return NULL;
+    return NULL;
 
   } else {
     // Overwrite the second element.
-  return amf_ue_context_exists_amf_ue_ngap_id(found_imsi->second.amf_ue_ngap_id);
-//return found_imsi->second;
+    return amf_ue_context_exists_amf_ue_ngap_id(
+        found_imsi->second.amf_ue_ngap_id);
+    // return found_imsi->second;
   }
 }
 
