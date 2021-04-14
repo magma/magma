@@ -875,14 +875,13 @@ static int amf_as_security_req(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
 }
 
-
-int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
-                                  amf_context_t *amf_ctx, bstring nas_msg) {
+int initial_context_setup_request(
+    amf_ue_ngap_id_t ue_id, amf_context_t* amf_ctx, bstring nas_msg) {
   /*This message is sent by the AMF to NG-RAN node to request the setup of a UE
    * context before Registration Accept is sent to UE*/
 
-  Ngap_initial_context_setup_request_t *req = nullptr;
-  MessageDef *message_p = nullptr;
+  Ngap_initial_context_setup_request_t* req = nullptr;
+  MessageDef* message_p                     = nullptr;
   message_p =
       itti_alloc_new_message(TASK_AMF_APP, NGAP_INITIAL_CONTEXT_SETUP_REQ);
   if (message_p == NULL) {
@@ -913,10 +912,10 @@ int initial_context_setup_request(amf_ue_ngap_id_t ue_id,
       (amf_ctx->ue_sec_capability.ia3 & 0001) << 13;
   req->ue_security_capabilities.m5g_integrity_protection_algo =
       htons(req->ue_security_capabilities.m5g_integrity_protection_algo);
-  req->Security_Key = (unsigned char *)&amf_ctx->_security.kgnb;
+  req->Security_Key = (unsigned char*) &amf_ctx->_security.kgnb;
   amf_ctx->_m5_guti.guamfi.amf_regionid = 0x1;
-  amf_ctx->_m5_guti.guamfi.amf_set_id = 0x0;
-  amf_ctx->_m5_guti.guamfi.amf_pointer = 0x0;
+  amf_ctx->_m5_guti.guamfi.amf_set_id   = 0x0;
+  amf_ctx->_m5_guti.guamfi.amf_pointer  = 0x0;
   memcpy(&req->Ngap_guami, &amf_ctx->_m5_guti.guamfi, sizeof(guamfi_t));
 
   if (nas_msg) {
@@ -1026,15 +1025,16 @@ uint16_t amf_as_establish_cnf(
     OAILOG_DEBUG(LOG_AMF_APP, "NAS encoding success\n");
     m5gmm_state_t state =
         PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->mm_state;
-    nas_amf_registration_proc_t *registration_proc =
+    nas_amf_registration_proc_t* registration_proc =
         nas_procedure_as.get_nas_specific_procedure_registration(amf_ctx);
 
     if ((state != REGISTERED_CONNECTED) &&
         !(registration_proc->registration_accept_sent)) {
       /*GNB key, generated in AMF from KAMF and shared with gNB as part of
        * InitialContextSetupRequest*/
-      derive_5gkey_gnb(amf_security_context->kamf, as_msg->nas_ul_count,
-                       amf_security_context->kgnb);
+      derive_5gkey_gnb(
+          amf_security_context->kamf, as_msg->nas_ul_count,
+          amf_security_context->kgnb);
       OAILOG_DEBUG(LOG_AMF_APP, "prep and send initial_context_setup_request");
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
       registration_proc->registration_accept_sent++;
@@ -1042,8 +1042,9 @@ uint16_t amf_as_establish_cnf(
     }
     registration_proc->registration_accept_sent++;
 
-    OAILOG_INFO(LOG_AMF_APP, "registration_accept_sent: %d",
-                registration_proc->registration_accept_sent);
+    OAILOG_INFO(
+        LOG_AMF_APP, "registration_accept_sent: %d",
+        registration_proc->registration_accept_sent);
 
     as_msg->err_code = M5G_AS_SUCCESS;
     ret_val          = AS_NAS_ESTABLISH_CNF_;

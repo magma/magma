@@ -199,8 +199,8 @@ void amf_ue_context_update_coll_keys(
             amf_ue_ngap_id);
       }
       ue_context_p->amf_context.m5_guti = *guti_p;
-    }  
-}
+    }
+  }
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
