@@ -66,8 +66,8 @@ class TestOvsGtp(unittest.TestCase):
             src_of_port: The openflow port number of the src port
             dst_of_port: The destination port number of the dst port
         """
-        from ovstest import util  # pylint: disable=import-error
         from magma.pkt_tester.topology_builder import OvsException
+        from ovstest import util  # pylint: disable=import-error
 
         # Set bridge to secure (to prevent learning)
         ret_val, out, err = util.start_process(["ovs-vsctl", "set-fail-mode",

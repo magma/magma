@@ -16,14 +16,15 @@ import logging
 import socket
 from contextlib import closing
 from typing import Any, Dict
+
 import grpc
 import jsonschema
-
 from magma.common.rpc_utils import return_void
-from orc8r.protos import eventd_pb2_grpc, eventd_pb2
-from .event_validator import EventValidator
+from magma.eventd.event_validator import EventValidator
+from orc8r.protos import eventd_pb2, eventd_pb2_grpc
 
 RETRY_ON_FAILURE = 'retry_on_failure'
+
 
 class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
     """

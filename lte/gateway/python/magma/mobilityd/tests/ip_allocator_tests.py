@@ -11,25 +11,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import ipaddress
-import unittest
 import time
+import unittest
 
 from magma.common.redis.client import get_default_client
-
-from magma.mobilityd.ip_address_man import IPAddressManager, \
-    IPNotInUseError, MappingNotFoundError
-from magma.mobilityd.ip_allocator_pool import IPBlockNotFoundError, \
-    NoAvailableIPError
-from magma.mobilityd.ip_allocator_pool import \
-    IpAllocatorPool
-from magma.mobilityd.ipv6_allocator_pool import \
-    IPv6AllocatorPool
+from magma.mobilityd.ip_address_man import (
+    IPAddressManager,
+    IPNotInUseError,
+    MappingNotFoundError,
+)
+from magma.mobilityd.ip_allocator_pool import (
+    IpAllocatorPool,
+    IPBlockNotFoundError,
+    NoAvailableIPError,
+)
+from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool
 from magma.mobilityd.mobility_store import MobilityStore
 
 # If the preallocated IP addresses in ip_address_man.py code

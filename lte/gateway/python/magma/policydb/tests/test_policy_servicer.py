@@ -11,15 +11,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import grpc
 import unittest
 import unittest.mock
 from concurrent import futures
-from lte.protos.policydb_pb2 import ChargingRuleNameSet, \
-    EnableStaticRuleRequest, DisableStaticRuleRequest
+
+import grpc
+from lte.protos.policydb_pb2 import (
+    ChargingRuleNameSet,
+    DisableStaticRuleRequest,
+    EnableStaticRuleRequest,
+)
 from lte.protos.policydb_pb2_grpc import PolicyDBStub
-from lte.protos.session_manager_pb2 import PolicyReAuthRequest, \
-    PolicyReAuthAnswer, ReAuthResult
+from lte.protos.session_manager_pb2 import (
+    PolicyReAuthAnswer,
+    PolicyReAuthRequest,
+    ReAuthResult,
+)
 from magma.policydb.reauth_handler import ReAuthHandler
 from magma.policydb.servicers.policy_servicer import PolicyRpcServicer
 from orc8r.protos.common_pb2 import Void

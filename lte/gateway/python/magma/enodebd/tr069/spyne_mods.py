@@ -21,7 +21,6 @@ modifications are required because:
 """
 
 from lxml import etree
-
 from magma.enodebd.logger import EnodebdLogger as logger
 from spyne.application import Application
 from spyne.interface._base import Interface

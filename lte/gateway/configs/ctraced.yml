@@ -17,7 +17,7 @@ trace_directory: /var/opt/magma/tmp/trace
 
 # Interface to capture on
 trace_interfaces:
-  - eth0
+  - any
 
 # Options available:
 #   - tshark

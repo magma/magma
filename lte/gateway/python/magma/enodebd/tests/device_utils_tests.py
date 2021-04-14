@@ -15,9 +15,11 @@ limitations under the License.
 
 from unittest import TestCase
 
-from magma.enodebd.devices.device_utils import (EnodebDeviceName,
-                                                _parse_sw_version,
-                                                get_device_name)
+from magma.enodebd.devices.device_utils import (
+    EnodebDeviceName,
+    _parse_sw_version,
+    get_device_name,
+)
 from magma.enodebd.exceptions import UnrecognizedEnodebError
 
 

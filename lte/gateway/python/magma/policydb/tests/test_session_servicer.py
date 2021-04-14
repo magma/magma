@@ -12,18 +12,35 @@ limitations under the License.
 """
 
 import unittest
-from lte.protos.mconfig import mconfigs_pb2
-from lte.protos.policydb_pb2 import RatingGroup, AssignedPolicies,\
-    ChargingRuleNameSet, SubscriberPolicySet, ApnPolicySet, PolicyRule,\
-    FlowDescription, FlowMatch
-from lte.protos.session_manager_pb2 import CreateSessionRequest, \
-    UpdateSessionRequest, CreditUsageUpdate, SessionTerminateRequest, \
-    CreditUpdateResponse, CreditLimitType, RatSpecificContext, \
-    LTESessionContext, CommonSessionContext
-from lte.protos.subscriberdb_pb2 import SubscriberData, LTESubscription, \
-    SubscriberID
-from magma.policydb.servicers.session_servicer import SessionRpcServicer
 
+from lte.protos.mconfig import mconfigs_pb2
+from lte.protos.policydb_pb2 import (
+    ApnPolicySet,
+    AssignedPolicies,
+    ChargingRuleNameSet,
+    FlowDescription,
+    FlowMatch,
+    PolicyRule,
+    RatingGroup,
+    SubscriberPolicySet,
+)
+from lte.protos.session_manager_pb2 import (
+    CommonSessionContext,
+    CreateSessionRequest,
+    CreditLimitType,
+    CreditUpdateResponse,
+    CreditUsageUpdate,
+    LTESessionContext,
+    RatSpecificContext,
+    SessionTerminateRequest,
+    UpdateSessionRequest,
+)
+from lte.protos.subscriberdb_pb2 import (
+    LTESubscription,
+    SubscriberData,
+    SubscriberID,
+)
+from magma.policydb.servicers.session_servicer import SessionRpcServicer
 
 CSR_STATIC_RULES = '[rule_id: "redirect"]'
 CSR_STATIC_RULES_2 = '[rule_id: "p6"]'

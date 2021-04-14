@@ -14,7 +14,6 @@ limitations under the License.
 import asyncio
 import errno
 import ssl
-
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 

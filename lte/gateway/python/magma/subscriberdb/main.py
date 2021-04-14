@@ -13,6 +13,7 @@ limitations under the License.
 import asyncio
 import logging
 
+from lte.protos.mconfig import mconfigs_pb2
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
@@ -20,12 +21,11 @@ from magma.common.streamer import StreamerClient
 from .processor import Processor
 from .protocols.diameter.application import base, s6a
 from .protocols.diameter.server import S6aServer
-from .rpc_servicer import SubscriberDBRpcServicer
-from .subscription_profile import get_default_sub_profile
-from .streamer_callback import SubscriberDBStreamerCallback
-from .store.sqlite import SqliteStore
 from .protocols.s6a_proxy_servicer import S6aProxyRpcServicer
-from lte.protos.mconfig import mconfigs_pb2
+from .rpc_servicer import SubscriberDBRpcServicer
+from .store.sqlite import SqliteStore
+from .streamer_callback import SubscriberDBStreamerCallback
+from .subscription_profile import get_default_sub_profile
 
 
 def main():
