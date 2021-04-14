@@ -717,6 +717,7 @@ void amf_proc_create_procedure_registration_request(
     ue_m5gmm_context_s* ue_ctx, amf_registration_request_ies_t* ies);
 amf_procedures_t* nas_new_amf_procedures(amf_context_t* amf_context);
 int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx);
+int amf_send_registration_accept(amf_context_t* amf_context);
 
 // UE originated deregistration procedures
 int amf_proc_deregistration_request(
