@@ -1145,7 +1145,7 @@ fossa-analyze:
 
   ### DOCUSAURUS
 
-docusaurus_build_and_deploy:
+  docusaurus_build_and_deploy:
     docker:
       - image: circleci/node:8.11.1
     environment:
