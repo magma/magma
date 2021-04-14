@@ -33,7 +33,7 @@ class TestModifyConfigForNonSanity(unittest.TestCase):
         print("Enabling Ha service")
         ret_codes.append(
             self._magmad_util.config_ha_service(
-                MagmadUtil.enable_disable_options.ENABLE
+                MagmadUtil.ha_service_cmds.ENABLE
             )
         )
 
@@ -41,7 +41,7 @@ class TestModifyConfigForNonSanity(unittest.TestCase):
         print("Enabling IPv6 solicitation service")
         ret_codes.append(
             self._magmad_util.config_ipv6_solicitation(
-                MagmadUtil.enable_disable_options.ENABLE
+                MagmadUtil.ipv6_config_cmds.ENABLE
             )
         )
 
