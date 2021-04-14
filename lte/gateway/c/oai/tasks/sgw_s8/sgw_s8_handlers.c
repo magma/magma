@@ -424,6 +424,11 @@ static int sgw_s8_send_create_session_response(
      */
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
         .cause.cause_value = session_rsp_p->cause;
+    if (session_rsp_p->pco.num_protocol_or_container_id) {
+      copy_protocol_configuration_options(
+          &create_session_response_p->pco, &session_rsp_p->pco);
+      clear_protocol_configuration_options(&session_rsp_p->pco);
+    }
   } else {
     create_session_response_p->bearer_contexts_marked_for_removal
         .num_bearer_context = 1;
@@ -842,7 +847,7 @@ void sgw_s8_handle_s11_delete_session_request(
       sgw_context_p->imsi64, sgw_context_p->imsi,
       sgw_context_p->s_gw_teid_S11_S4,
       sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp,
-      sgw_context_p->pdn_connection.default_bearer);
+      sgw_context_p->pdn_connection.default_bearer, delete_session_req_p);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
