@@ -24,6 +24,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"magma/feg/cloud/go/protos"
@@ -62,6 +63,8 @@ var (
 	eutranVectors  int = 3
 	utranVectors   int = 0
 	useMconfig     bool
+	imsiRange      uint64 = 1
+	rate           int    = 0
 )
 
 type s6aCli interface {
@@ -119,6 +122,9 @@ func init() {
 	f.IntVar(&utranVectors, "utran_num", utranVectors, "Number of UTRAN vectors to request")
 	f.BoolVar(&useMconfig, "use_mconfig", false,
 		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
+	f.Uint64Var(&imsiRange, "range", imsiRange, "Send multiple request with consecutive imsis")
+	f.IntVar(&rate, "rate", rate, "Request per second (to be used with range)")
+
 }
 
 // AIR Handler
@@ -232,28 +238,72 @@ func air(cmd *commands.Command, args []string) int {
 		}
 		peerAddr = proxyAddr
 	}
-	req := &protos.AuthenticationInformationRequest{
-		UserName:                      imsi,
-		VisitedPlmn:                   plmnId[:],
-		NumRequestedEutranVectors:     uint32(eutranVectors),
-		ImmediateResponsePreferred:    true,
-		NumRequestedUtranGeranVectors: uint32(utranVectors),
+
+	errChann := make(chan error)
+	airErrors := make([]error, 0)
+	done := make(chan struct{})
+	lenOfImsi := len(imsi)
+	wg := sync.WaitGroup{}
+	// run all the producers in parallel
+	fmt.Printf("Start sending requests %d\n", imsiRange)
+	for i := uint64(0); i < imsiRange; i++ {
+		wg.Add(1)
+		iShadow := i
+		// wait to adjust the rate
+		if rate > 0 && i != 0 && i%uint64(rate) == 0 {
+			fmt.Printf("\nWait 1 sec to send next group of %d request\n\n", rate)
+			time.Sleep(time.Second)
+		}
+		go func() {
+			defer wg.Done()
+			req := &protos.AuthenticationInformationRequest{
+				UserName:                      fmt.Sprintf("%0*d", lenOfImsi, imsiNum+iShadow),
+				VisitedPlmn:                   plmnId[:],
+				NumRequestedEutranVectors:     uint32(eutranVectors),
+				ImmediateResponsePreferred:    true,
+				NumRequestedUtranGeranVectors: uint32(utranVectors),
+			}
+			// AIR
+			json, err := orcprotos.MarshalIntern(req)
+			fmt.Printf("Sending AIR to %s:\n%s\n%+#v\n\n", peerAddr, json, *req)
+			r, err := cli.AuthenticationInformation(req)
+			if err != nil || r == nil {
+				err2 := fmt.Errorf("GRPC AIR Error: %v", err)
+				log.Print(err2)
+				errChann <- err2
+				return
+			}
+			json, err = orcprotos.MarshalIntern(r)
+			if err != nil {
+				err2 := fmt.Errorf("Marshal Error %v for result: %+v", err, *r)
+				errChann <- err2
+				return
+			}
+			fmt.Printf("Received AIA:\n%s\n%+v\n", json, *r)
+		}()
 	}
-	// AIR
-	json, err := orcprotos.MarshalIntern(req)
-	fmt.Printf("Sending AIR to %s:\n%s\n%+#v\n\n", peerAddr, json, *req)
-	r, err := cli.AuthenticationInformation(req)
-	if err != nil || r == nil {
-		log.Printf("GRPC AIR Error: %v", err)
-		return 8
-	}
-	json, err = orcprotos.MarshalIntern(r)
-	if err != nil {
-		log.Printf("Marshal Error %v for result: %+v", err, *r)
+
+	// go routine to collect the errors
+	go func() {
+		for err2 := range errChann {
+			airErrors = append(airErrors, err2)
+		}
+		done <- struct{}{}
+	}()
+
+	// wait untill all air request are done
+	wg.Wait()
+	close(errChann)
+	// wait until all the errors are processed
+	<-done
+	close(done)
+
+	// check if errors
+	if len(airErrors) != 0 {
+		log.Printf("Errors found: %d request failed out of %d\n", len(airErrors), imsiRange)
 		return 9
 	}
-	fmt.Printf("Received AIA:\n%s\n%+v\n", json, *r)
-
+	log.Printf("\nAll request (%d) got a response\n", imsiRange)
 	return 0
 }
 

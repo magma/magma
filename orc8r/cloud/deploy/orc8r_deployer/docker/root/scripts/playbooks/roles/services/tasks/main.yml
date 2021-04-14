@@ -1,0 +1,35 @@
+- name: Check if required services variables are set
+  ansible.builtin.command: "orcl configure check -c service"
+  register: result
+  failed_when: result.rc != 0
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Open configuration file
+  shell: "cat {{ config_dir }}/service.tfvars.json"
+  register: result
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Set Service Configs
+  set_fact:
+    service_configs: "{{ result.stdout | from_json }}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Validate Orc8r deployment type
+  assert:
+    that: service_configs.orc8r_deployment_type in ['fwa', 'ffwa', 'all']
+    fail_msg: 'orc8r_deployment_type can only be one of these options [fwa, ffwa, all]'
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Image tasks
+  import_tasks: docker.yml
+
+- name: Helm tasks
+  import_tasks: helm.yml

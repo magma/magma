@@ -188,7 +188,7 @@ nms:
       mysql_host: ${orc8r_db_host}
       mysql_port: ${orc8r_db_port}
       mysql_user: ${orc8r_db_user}
-      mysql_pass: ${orc8r_db_password}
+      mysql_pass: ${orc8r_db_pass}
       grafana_address: ${user_grafana_hostname}
 
   nginx:

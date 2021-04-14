@@ -106,6 +106,24 @@ MME :
         {% endfor %}
     );
 
+    # List of blocked IMEIs
+    # By default this list is empty
+    # Stored in a hash table on mme side
+    # Length of IMEI=15 digits, length of IMEISV=16 digits
+    BLOCKED_IMEI_LIST = (
+        # Sample IMEI: TAC(8 digits) + SNR (6 digits)
+        #{ IMEI_TAC="99000482"; SNR="351037"}
+        # Sample IMEI without SNR: TAC(8 digits)
+        #{ IMEI_TAC="99000482";}
+        # ImeiConfig values can be found at magma/lte/protos/mconfig/mconfigs.proto
+        {% for imei_config in restrictedImeis -%}
+        {
+          IMEI_TAC   = "{{ imei_config.tac }}"
+          SNR        = "{{ imei_config.snr }}"
+        }{% if not loop.last %},{% endif %}
+        {% endfor %}
+    );
+
     CSFB :
     {
         NON_EPS_SERVICE_CONTROL = "{{ non_eps_service_control }}";

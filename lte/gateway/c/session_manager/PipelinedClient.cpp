@@ -62,10 +62,6 @@ magma::DeactivateFlowsRequest create_deactivate_req(
   req.set_uplink_tunnel(teids.agw_teid());
   req.set_remove_default_drop_flows(remove_default_drop_rules);
   req.mutable_request_origin()->set_type(origin_type);
-  auto ids = req.mutable_rule_ids();
-  for (const auto& rule : to_process.rules) {
-    ids->Add()->assign(rule.id());
-  }
   auto mut_versioned_rules = req.mutable_policies();
   for (uint index = 0; index < to_process.rules.size(); ++index) {
     auto versioned_policy = mut_versioned_rules->Add();
@@ -92,11 +88,6 @@ magma::ActivateFlowsRequest create_activate_req(
   req.mutable_request_origin()->set_type(origin_type);
   if (ambr) {
     req.mutable_apn_ambr()->CopyFrom(*ambr);
-  }
-  // TODO depracate dynamic rules fields
-  auto mut_dyn_rules = req.mutable_dynamic_rules();
-  for (const auto& dyn_rule : to_process.rules) {
-    mut_dyn_rules->Add()->CopyFrom(dyn_rule);
   }
   auto mut_versioned_rules = req.mutable_policies();
   for (uint index = 0; index < to_process.rules.size(); ++index) {

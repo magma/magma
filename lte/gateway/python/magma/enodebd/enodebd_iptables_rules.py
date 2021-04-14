@@ -20,8 +20,11 @@ import shlex
 import subprocess
 from typing import List
 
-from magma.common.misc_utils import (IpPreference, get_if_ip_with_netmask,
-                                     get_ip_from_if)
+from magma.common.misc_utils import (
+    IpPreference,
+    get_if_ip_with_netmask,
+    get_ip_from_if,
+)
 from magma.configuration.service_configs import load_service_config
 from magma.enodebd.logger import EnodebdLogger as logger
 

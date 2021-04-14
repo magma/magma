@@ -48,5 +48,4 @@
         magma_repo: /home/{{ ansible_user }}/magma-packages
         magma_deps: /home/{{ ansible_user }}/magma-deps
     - role: fluent_bit
-    - role: envoy
     - role: pyvenv

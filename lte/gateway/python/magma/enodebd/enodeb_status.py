@@ -21,8 +21,10 @@ from lte.protos.mconfig import mconfigs_pb2
 from magma.common import serialization_utils
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.device_config.configuration_util import (find_enb_by_cell_id,
-                                                            get_enb_rf_tx_desired)
+from magma.enodebd.device_config.configuration_util import (
+    find_enb_by_cell_id,
+    get_enb_rf_tx_desired,
+)
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.s1ap_client import get_all_enb_state

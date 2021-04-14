@@ -16,7 +16,6 @@ import unittest
 
 from magma.magmad.check.kernel_check import kernel_versions
 
-
 # Allow access to protected variables for unit testing
 # pylint: disable=protected-access
 

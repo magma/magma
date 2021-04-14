@@ -11,23 +11,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import netifaces
-import aiodns
 import asyncio
 import ipaddress
 from collections import namedtuple
-from redis import RedisError
 from urllib.parse import urlsplit
-from memoize import Memoizer
 
+import aiodns
+import netifaces
 from magma.configuration.service_configs import get_service_config_value
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
-    Direction, SCRATCH_REGS, REG_ZERO_VAL, RULE_VERSION_REG, RULE_NUM_REG
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    IMSI_REG,
+    REG_ZERO_VAL,
+    RULE_NUM_REG,
+    RULE_VERSION_REG,
+    SCRATCH_REGS,
+    Direction,
+)
 from magma.redirectd.redirect_store import RedirectDict
-
+from memoize import Memoizer
+from redis import RedisError
 from ryu.lib.packet import ether_types
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL

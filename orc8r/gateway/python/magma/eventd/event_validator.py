@@ -15,9 +15,9 @@ import json
 import logging
 from contextlib import closing
 from typing import Any, Dict
+
 import pkg_resources
 import yaml
-
 from bravado_core.spec import Spec
 from bravado_core.validate import validate_object as bravado_validate
 
@@ -28,10 +28,12 @@ MODULE = 'module'
 FILENAME = 'filename'
 DEFINITIONS = 'definitions'
 
+
 class EventValidator(object):
     """
     gRPC based server for EventD.
     """
+
     def __init__(self, config: Dict[str, Any]):
         self.event_registry = config[EVENT_REGISTRY]
         self.specs_by_filename = self._load_specs_from_registry()
@@ -62,7 +64,6 @@ class EventValidator(object):
             self.specs_by_filename[filename][BRAVADO_SPEC],
             self.specs_by_filename[filename][SWAGGER_SPEC][event_type],
             event)
-
 
     def _load_specs_from_registry(self) -> Dict[str, Any]:
         """

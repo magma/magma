@@ -1,0 +1,17 @@
+- name: Verify image credentials
+  docker_login:
+    registry: "{{service_configs.docker_registry}}"
+    username: "{{service_configs.docker_user}}"
+    password: "{{service_configs.docker_pass}}"
+    reauthorize: yes
+  tags: install_precheck
+
+- name: Attempting to pull the images
+  docker_image:
+    tag: "{{service_configs.orc8r_tag}}"
+    name: "{{service_configs.docker_registry}}/{{item}}"
+    force_source: true
+    source: pull
+  tags: install_precheck
+  with_items:
+  - "{{vars.ORC8R_IMAGES}}"

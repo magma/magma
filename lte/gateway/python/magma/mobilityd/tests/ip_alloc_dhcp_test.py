@@ -17,22 +17,19 @@ import subprocess
 import sys
 import threading
 import unittest.mock
-
 from ipaddress import ip_network
+
 from magma.common.redis.client import get_default_client
-
-from magma.mobilityd.ip_address_man import IPAddressManager, \
-    MappingNotFoundError
+from magma.mobilityd.ip_address_man import (
+    IPAddressManager,
+    MappingNotFoundError,
+)
 from magma.mobilityd.ip_allocator_dhcp import IPAllocatorDHCP
-from magma.pipelined.bridge_util import BridgeTools
-from magma.mobilityd.ip_descriptor import IPDesc, IPType, IPState
-
+from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
+from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool
 from magma.mobilityd.mac import create_mac_from_sid
-
-from magma.mobilityd.ipv6_allocator_pool import \
-    IPv6AllocatorPool
-
 from magma.mobilityd.mobility_store import MobilityStore
+from magma.pipelined.bridge_util import BridgeTools
 
 LOG = logging.getLogger('mobilityd.dhcp.test')
 LOG.isEnabledFor(logging.DEBUG)

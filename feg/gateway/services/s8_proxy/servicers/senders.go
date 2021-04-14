@@ -38,6 +38,8 @@ func (s *S8Proxy) sendAndReceiveCreateSession(
 		cPgwUDPAddr.String(), csReq.String())
 	glog.V(2).Infof("Send Create Session Request (gtp) to %s:\n%s",
 		cPgwUDPAddr.String(), csReqMsg.(*message.CreateSessionRequest).String())
+	//glog.V(4).Infof("Send Create Session Request (gtp) to %s:\n%s",
+	//	cPgwUDPAddr.String(), message.Prettify(csReqMsg))
 
 	grpcMessage, err := s.gtpClient.SendMessageAndExtractGrpc(csReq.Imsi, csReq.CAgwTeid, cPgwUDPAddr, csReqMsg)
 	if err != nil {
@@ -63,6 +65,8 @@ func (s *S8Proxy) sendAndReceiveDeleteSession(req *protos.DeleteSessionRequestPg
 		dsReqMsg)
 	glog.V(2).Infof("Send Delete Session Request (gtp) to %s:\n%s",
 		cPgwUDPAddr.String(), dsReqMsg.(*message.DeleteSessionRequest).String())
+	//glog.V(4).Infof("Send Delete Session Request (gtp) to %s:\n%s",
+	//	cPgwUDPAddr.String(), message.Prettify(dsReqMsg))
 	grpcMessage, err := s.gtpClient.SendMessageAndExtractGrpc(req.Imsi, req.CAgwTeid, cPgwUDPAddr, dsReqMsg)
 	if err != nil {
 		return nil, fmt.Errorf("no response message to DeleteSessionRequest: %s", err)

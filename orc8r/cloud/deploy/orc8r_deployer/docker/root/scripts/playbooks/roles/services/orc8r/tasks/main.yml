@@ -1,0 +1,82 @@
+- name: Gather kubernetes pod status for orc8r namespace
+  ansible.builtin.shell: kubectl get pods -o json -n "{{orc8r_namespace}}"
+  register: kubectl_output
+  tags: verify_sanity
+
+- name: Check if any pods are unhealthy
+  assert:
+    that:
+      - "{{pod_status | length == 0}}"
+    fail_msg:  "found pods {{pod_status}} not in running state"
+  vars:
+    status_query: "items[?status.phase != 'Running'].metadata.name"
+    pod_status: "{{kubectl_output.stdout | from_json | json_query(status_query)}}"
+  tags: verify_sanity
+
+- name: Get the logs for pods in unhealthy state
+  ansible.builtin.shell: kubectl -n "{{orc8r_namespace}}" logs --tail=50 "{{item}}"
+  register: result
+  vars:
+    status_query: "items[?status.phase != 'Running'].metadata.name"
+    pod_status: "{{kubectl_output.stdout | from_json | json_query(status_query)}}"
+  with_items: "{{pod_status}}"
+  tags: verify_sanity
+
+- name: Dump the logs for pods in unhealthy state
+  debug: msg="Logs for {{item.item}} \n {{item.stdout_lines}}"
+  with_items: "{{result.results}}"
+  tags: verify_sanity
+
+- name: Get orchestrator pod name
+  ansible.builtin.shell: kubectl get pod -n "{{orc8r_namespace}}"  -l app.kubernetes.io/component=orchestrator -o json
+  register: result
+  tags: verify_sanity
+
+- name: Set orchestrator pod name
+  set_fact:
+    orc_pod: "{{result.stdout | from_json | json_query(pod_query)}}"
+  vars:
+    pod_query: "items[0].metadata.name"
+
+  tags:
+    - 'verify_sanity'
+
+- name: Get NMS pod name
+  ansible.builtin.shell: kubectl get pod -n "{{orc8r_namespace}}"  -l app.kubernetes.io/component=magmalte -o json
+  register: result
+  tags: verify_sanity
+
+- name: Set orchestrator pod name
+  set_fact:
+    nms_pod: "{{result.stdout | from_json | json_query(pod_query)}}"
+    api_host: "{{lookup('flattened', result.stdout | from_json | json_query(api_host_query))}}"
+    api_cert: "{{lookup('flattened', result.stdout | from_json | json_query(api_cert_query))}}"
+    api_key: "{{lookup('flattened', result.stdout | from_json | json_query(api_key_query))}}"
+  vars:
+    pod_query: "items[0].metadata.name"
+    api_host_query: "items[0].spec.containers[*].env[?name == 'API_HOST'].value"
+    api_cert_query: "items[0].spec.containers[*].env[?name == 'API_CERT_FILENAME'].value"
+    api_key_query: "items[0].spec.containers[*].env[?name == 'API_PRIVATE_KEY_FILENAME'].value"
+  tags:
+    - 'verify_sanity'
+
+- name: Add admin cert to orchestrator pod
+  ansible.builtin.shell: kubectl -n "{{orc8r_namespace}}" exec "{{orc_pod}}" -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
+  register: result
+  failed_when: result.rc != 0 and 'AlreadyExists' not in result.stderr
+  tags: verify_sanity
+
+
+- name: List admin certs in orchestrator pod
+  ansible.builtin.shell: kubectl -n "{{orc8r_namespace}}" exec "{{orc_pod}}" -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc list-certs
+  register: result
+  failed_when: result.rc != 0 or 'admin_operator' not in result.stdout
+  tags: verify_sanity
+
+- name: Get all configured networks from NMS pod
+  ansible.builtin.shell: kubectl -n "{{orc8r_namespace}}" exec "{{nms_pod}}" -- curl --cert "{{api_cert}}" --key "{{api_key}}" -k -X GET https://"{{api_host}}"/"{{item}}"
+  register:  result
+  tags: verify_sanity
+  with_items:
+    - magma/v1/networks
+    - magma/v1/lte

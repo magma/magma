@@ -23,6 +23,7 @@ class MetricTests(unittest.TestCase):
     def test_metrics_defined(self):
         """ Test that all metrics are defined in proto enum """
         import magma.enodebd.metrics
+
         # Avoid lint error about unused imports
         magma.enodebd.metrics.STAT_ENODEB_CONNECTED.set(1)
 

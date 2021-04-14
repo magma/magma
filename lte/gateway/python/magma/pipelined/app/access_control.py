@@ -14,12 +14,11 @@ limitations under the License.
 import ipaddress
 from collections import namedtuple
 
-from ryu.lib.packet import ether_types
-
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction
-from magma.pipelined.app.base import MagmaController, ControllerType
+from ryu.lib.packet import ether_types
 
 
 class AccessControlController(MagmaController):

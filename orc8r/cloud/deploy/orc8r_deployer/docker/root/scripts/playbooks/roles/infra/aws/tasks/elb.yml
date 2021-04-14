@@ -1,0 +1,33 @@
+- name: Collect all elb information
+  ec2_elb_info:
+    region: "{{ region_name }}"
+  register: elb_info
+  ignore_errors: true
+  when: region_name
+  tags:
+    - cleanup_dryrun
+    - cleanup
+
+- name: Debug elb information
+  debug:
+    msg: "{{item}}"
+  ignore_errors: true
+  when: region_name and vpc and item.vpc_id == vpc.id
+  with_items:
+    - "{{ elb_info.elbs }}"
+  tags:
+    - cleanup_dryrun
+    - cleanup
+
+- name: Delete all elbs
+  ec2_elb_lb:
+    state: absent
+    name: "{{ item.name }}"
+    region: "{{ region_name }}"
+    wait: yes
+  when: region_name and vpc and item.vpc_id == vpc.id
+  ignore_errors: true
+  with_items:
+    - "{{ elb_info.elbs }}"
+  tags:
+    - cleanup

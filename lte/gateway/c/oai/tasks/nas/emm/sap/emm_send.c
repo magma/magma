@@ -1308,6 +1308,8 @@ int emm_send_identity_request(
     emm_msg->identitytype = IDENTITY_TYPE_2_TMSI;
   } else if (msg->ident_type == IDENTITY_TYPE_2_IMEI) {
     emm_msg->identitytype = IDENTITY_TYPE_2_IMEI;
+  } else if (msg->ident_type == IDENTITY_TYPE_2_IMEISV) {
+    emm_msg->identitytype = IDENTITY_TYPE_2_IMEISV;
   } else {
     /*
      * All other values are interpreted as "IMSI"
