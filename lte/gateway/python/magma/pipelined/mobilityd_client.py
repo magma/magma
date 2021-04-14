@@ -10,15 +10,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import logging
 from typing import List
 
 import grpc
-import logging
-
+from lte.protos.mobilityd_pb2 import GWInfo, IPAddress
+from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos.common_pb2 import Void
-from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-from lte.protos.mobilityd_pb2 import IPAddress, GWInfo
 
 SERVICE_NAME = "mobilityd"
 IPV4_ADDR_KEY = "ipv4_addr"

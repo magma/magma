@@ -15,8 +15,11 @@ limitations under the License.
 
 import unittest
 
-from magma.subscriberdb.protocols.diameter import message, avp
-from magma.subscriberdb.protocols.diameter.exception import CodecException, TooShortException
+from magma.subscriberdb.protocols.diameter import avp, message
+from magma.subscriberdb.protocols.diameter.exception import (
+    CodecException,
+    TooShortException,
+)
 
 
 class MessageHeaderCodecTests(unittest.TestCase):

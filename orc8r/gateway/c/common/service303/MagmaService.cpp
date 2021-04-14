@@ -10,30 +10,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <string>
-#include <csignal>
-#include <ctime>
-#include <chrono>
-#include <ratio>
-
-#include <iostream>
-
-#include <orc8r/protos/service303.grpc.pb.h>
-#include <orc8r/protos/service303.pb.h>
-#include <orc8r/protos/common.pb.h>
 
 #include "MagmaService.h"
-#include "MetricsRegistry.h"
-#include "MetricsSingleton.h"
-#include "ProcFileUtils.h"
-#include "ServiceRegistrySingleton.h"
-#include "magma_logging.h"
+#include <google/protobuf/map.h>                   // for Map
+#include <grpcpp/impl/codegen/completion_queue.h>  // for ServerCompletionQueue
+#include <grpcpp/security/server_credentials.h>    // for InsecureServerCred...
+#include <orc8r/protos/common.pb.h>                // for FATAL, LogLevel
+#include <orc8r/protos/service303.pb.h>            // for ServiceInfo, Reloa...
+#include <stdarg.h>                                // for va_list
+#include <chrono>                                  // for seconds, duration
+#include <csignal>                                 // for raise, SIGTERM
+#include <ctime>                                   // for time
+#include <string>                                  // for string, stoi
+#include <type_traits>                             // for enable_if<>::type
+#include <unordered_map>                           // for operator==
+#include <utility>                                 // for move
+#include <vector>                                  // for vector
+#include "MetricsRegistry.h"                       // for Registry
+#include "MetricsSingleton.h"                      // for MetricsSingleton
+#include "ProcFileUtils.h"                         // for ProcFileUtils::mem...
+#include "ServiceRegistrySingleton.h"              // for ServiceRegistrySin...
+#include "magma_logging.h"                         // for set_verbosity
+#include "orc8r/protos/metrics.pb.h"               // for MetricFamily
+#include "orc8r/protos/metricsd.pb.h"              // for MetricsContainer
+#include "registry.h"                              // for Registry
+namespace grpc {
+class ServerContext;
+}
+namespace grpc {
+class Service;
+}
 
-using grpc::Channel;
 using grpc::InsecureServerCredentials;
-using grpc::Server;
-using grpc::ServerBuilder;
-using grpc::ServerContext;
 using grpc::Status;
 using io::prometheus::client::MetricFamily;
 using magma::orc8r::GetOperationalStatesResponse;

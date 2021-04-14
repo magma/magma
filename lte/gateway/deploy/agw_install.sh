@@ -12,11 +12,29 @@ MAGMA_VERSION="${MAGMA_VERSION:-v1.4}"
 CLOUD_INSTALL="cloud"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
 
+
+
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
   echo "You're executing the script as $WHOAMI instead of root.. exiting"
   exit 1
 fi
+
+wget https://raw.githubusercontent.com/magma/magma/"$MAGMA_VERSION"/lte/gateway/deploy/agw_pre_check.sh
+if [[ -f ./agw_pre_check.sh ]]; then
+  chmod 644 agw_pre_check.sh && bash agw_pre_check.sh
+  while true; do
+      read -p "Do you accept those modifications and want to proceed with magma installation?(y/n)" yn
+      case $yn in
+          [Yy]* ) break;;
+          [Nn]* ) exit;;
+          * ) echo "Please answer yes or no.";;
+      esac
+  done
+else
+  echo "agw_precheck.sh is not available in your version"
+fi
+
 
 echo "Checking if Debian is installed"
 if ! grep -q 'Debian' /etc/issue; then
@@ -98,7 +116,7 @@ if [ -n "${REPO_HOST}" ]; then
     fi
 fi
 
-if [ "${REPO_PROTO}" == 'https' ]; then
+if [[ "${REPO_PROTO}" == 'https' ]]; then
     echo "Ensure HTTPS apt transport method is installed"
     apt install -y apt-transport-https
 fi
@@ -165,7 +183,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
       ANSIBLE_VARS="${ANSIBLE_VARS} ovs_use_pkgrepo=no"
   fi
   echo "Triggering ovs_deploy playbook"
-  if [ $1 == "$CLOUD_INSTALL" ]; then
+  if [[ $1 == "$CLOUD_INSTALL" ]]; then
       su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml --skip-tags \"skipfirstinstall\""
       su - $MAGMA_USER -c "ansible-playbook -e '${ANSIBLE_VARS}' -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml"
       service openvswitch-switch restart

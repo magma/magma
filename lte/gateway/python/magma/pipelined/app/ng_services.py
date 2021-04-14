@@ -10,9 +10,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from .base import MagmaController, ControllerType
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.ng_manager.node_state_manager import NodeStateManager
 from magma.pipelined.ng_manager.session_state_manager import SessionStateManager
+
 
 class NGServiceController(MagmaController):
     """

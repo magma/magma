@@ -1,0 +1,57 @@
+---
+
+- name: locate VPC
+  ec2_vpc_net_info:
+    filters:
+      "tag:Name": "{{ orc8rVpc }}"
+  register: valVpc
+
+
+- name: set vpc cidr fact
+  set_fact: 
+    factVpcCidr: "{{ valVpc.vpcs[0].cidr_block }}"
+
+- name: set vpc id fact
+  set_fact: 
+    factVpcId: "{{ valVpc.vpcs[0].vpc_id }}"
+
+- name: collect all interfaces for this VPC
+  ec2_eni_info:
+    filters: 
+      vpc-id: "{{ factVpcId }}"
+  register: valEni
+
+- name: find subnets of this VPC
+  ec2_vpc_subnet_info:
+    filters:
+      vpc-id: "{{ factVpcId }}"
+  register: valSubnets
+
+
+- name: loop and delete subnets
+  ec2_vpc_subnet:
+    state: absent
+    vpc_id: "{{ item.vpc_id }}"
+    cidr: "{{ item.cidr_block }}"
+  when: item.default_for_az == false
+  with_items:
+    - "{{ valSubnets.subnets }}"
+
+- name: gather all route tables for this subnet
+  ec2_vpc_route_table_info:
+    filters:
+      vpc_id: "{{ factVpcId }}"
+  register: valRtb
+
+- name: print all routing table info
+  debug:
+    msg: "{{ valRtb }}"
+
+
+- name: delete all route tables for this VPC
+  command: aws ec2 delete-route-table --route-table-id "{{ item.id }}"
+  when: item.associations[0] is not defined 
+  with_items:
+    - "{{ valRtb.route_tables }}"
+
+

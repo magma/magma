@@ -12,13 +12,14 @@ limitations under the License.
 """
 
 from typing import Type
+
 from magma.enodebd.devices.baicells import BaicellsHandler
 from magma.enodebd.devices.baicells_old import BaicellsOldHandler
 from magma.enodebd.devices.baicells_qafa import BaicellsQAFAHandler
 from magma.enodebd.devices.baicells_qafb import BaicellsQAFBHandler
 from magma.enodebd.devices.baicells_rts import BaicellsRTSHandler
-from magma.enodebd.devices.experimental.cavium import CaviumHandler
 from magma.enodebd.devices.device_utils import EnodebDeviceName
+from magma.enodebd.devices.experimental.cavium import CaviumHandler
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 
 # This exists only to break a circular dependency. Otherwise there's no

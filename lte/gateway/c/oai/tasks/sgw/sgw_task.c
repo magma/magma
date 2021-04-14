@@ -85,8 +85,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S11_MODIFY_BEARER_REQUEST: {
       sgw_handle_modify_bearer_request(
-          spgw_state, &received_message_p->ittiMsg.s11_modify_bearer_request,
-          imsi64);
+          &received_message_p->ittiMsg.s11_modify_bearer_request, imsi64);
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
@@ -155,7 +154,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case GX_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
       int32_t rc = spgw_handle_nw_initiated_bearer_deactv_req(
-          spgw_state,
           &received_message_p->ittiMsg.gx_nw_init_deactv_bearer_request,
           imsi64);
       if (rc != RETURNok) {
@@ -251,12 +249,10 @@ int spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
 //------------------------------------------------------------------------------
 static void spgw_app_exit(void) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Cleaning SGW\n");
-
-  destroy_task_context(&spgw_app_task_zmq_ctx);
   put_spgw_state();
   gtpv1u_exit();
   spgw_state_exit();
-
+  destroy_task_context(&spgw_app_task_zmq_ctx);
   OAILOG_DEBUG(LOG_SPGW_APP, "Finished cleaning up SGW\n");
   OAI_FPRINTF_INFO("TASK_SPGW_APP terminated\n");
   pthread_exit(NULL);

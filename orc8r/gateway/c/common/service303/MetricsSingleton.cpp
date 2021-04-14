@@ -10,19 +10,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "MetricsSingleton.h"
 
-using magma::service303::MetricsRegistry;
+#include "MetricsSingleton.h"
+#include <vector>               // for vector
+#include "counter.h"            // for Counter
+#include "counter_builder.h"    // for BuildCounter, CounterBuilder
+#include "gauge.h"              // for Gauge
+#include "gauge_builder.h"      // for GaugeBuilder, BuildGauge
+#include "histogram.h"          // for Histogram, Histogram::BucketBoundaries
+#include "histogram_builder.h"  // for BuildHistogram, HistogramBuilder
+#include "registry.h"           // for Registry
+
 using magma::service303::MetricsSingleton;
 using prometheus::BuildCounter;
 using prometheus::BuildGauge;
 using prometheus::BuildHistogram;
 using prometheus::Registry;
 
-MetricsSingleton* MetricsSingleton::instance_ = NULL;
+MetricsSingleton* MetricsSingleton::instance_ = nullptr;
 
 MetricsSingleton& MetricsSingleton::Instance() {
-  if (instance_ == NULL) {
+  if (instance_ == nullptr) {
     instance_ = new MetricsSingleton();
   }
   return *instance_;

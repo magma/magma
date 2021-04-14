@@ -97,7 +97,9 @@ typedef teid_t s1u_teid_t;
 // IMSI
 
 typedef uint64_t imsi64_t;
+typedef uint64_t imei64_t;
 #define IMSI_64_FMT "%" SCNu64
+#define IMEI_64_FMT "%" SCNu64
 #define IMSI_64_FMT_DYN_LEN "%.*lu"
 #define INVALID_IMSI64 (imsi64_t) 0
 

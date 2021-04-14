@@ -13,12 +13,11 @@ limitations under the License.
 
 import asyncio
 import logging
-
 import random
-from magma.subscriberdb.protocols.diameter.application import s6a, base
 
-from . import exception
-from . import message
+from magma.subscriberdb.protocols.diameter.application import base, s6a
+
+from . import exception, message
 
 
 class S6aServer(asyncio.Protocol):

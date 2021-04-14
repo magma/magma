@@ -96,7 +96,7 @@ document.
   the directory and `short-name` is a short name (a few dash-separated words
   at most).
   Follow the Magma Github contribution process from the
-  [Magma Contributing Wiki](https://github.com/magma/magma/wiki/Contributing).
+  [Magma Contributing Conventions](https://docs.magmacore.org/docs/next/contributing/contribute_conventions).
 
 - The design doc should follow [the template](TEMPLATE.md).
 

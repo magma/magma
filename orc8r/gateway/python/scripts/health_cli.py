@@ -12,14 +12,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
 import subprocess
 
-import os
 import fire as fire
-from termcolor import colored
-
 from magma.common.health.docker_health_service import DockerHealthChecker
 from magma.common.health.health_service import GenericHealthChecker
+from termcolor import colored
 
 
 def is_docker():

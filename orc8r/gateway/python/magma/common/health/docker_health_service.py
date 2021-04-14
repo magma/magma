@@ -17,8 +17,8 @@ from datetime import datetime
 
 import dateutil.parser
 import docker
+from magma.common.health.entities import Errors, ServiceHealth, Version
 from magma.common.health.health_service import GenericHealthChecker
-from magma.common.health.entities import Errors, Version, ServiceHealth
 
 
 class DockerHealthChecker(GenericHealthChecker):
@@ -55,7 +55,8 @@ class DockerHealthChecker(GenericHealthChecker):
                 active_state=container.status,
                 sub_state=container.status,
                 time_running=str(time_running).split('.', 1)[0],
-                errors=self.get_error_summary([container.name])[container.name],
+                errors=self.get_error_summary([container.name])[
+                    container.name],
             ))
         return services_health_summary
 

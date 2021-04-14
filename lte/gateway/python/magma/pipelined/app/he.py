@@ -10,29 +10,39 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import logging
 from collections import namedtuple
 from threading import Lock
 from typing import List
 
-from ryu.lib.packet import ether_types
-from ryu.lib.packet.in_proto import IPPROTO_TCP
-
-from .base import MagmaController, ControllerType
+from lte.protos.mobilityd_pb2 import IPAddress
+from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
+from magma.pipelined.encoding import encode_str, encrypt_str, get_hash
+from magma.pipelined.envoy_client import (
+    activate_he_urls_for_ue,
+    deactivate_he_urls_for_ue,
+)
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import load_direction, Direction, \
-    load_passthrough, set_proxy_tag, set_in_port, load_imsi, \
-    PROXY_TAG_TO_PROXY, set_tun_id
-from magma.pipelined.envoy_client import activate_he_urls_for_ue, \
-    deactivate_he_urls_for_ue
-from magma.pipelined.encoding import encrypt_str, get_hash, encode_str
-
-from lte.protos.mobilityd_pb2 import IPAddress
-from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
-from magma.pipelined.policy_converters import get_ue_ip_match_args, \
-    get_eth_type, convert_ipv4_str_to_ip_proto, ipv4_address_to_str
-
-import logging
+from magma.pipelined.openflow.registers import (
+    PROXY_TAG_TO_PROXY,
+    Direction,
+    load_direction,
+    load_imsi,
+    load_passthrough,
+    set_in_port,
+    set_proxy_tag,
+    set_tun_id,
+)
+from magma.pipelined.policy_converters import (
+    convert_ipv4_str_to_ip_proto,
+    get_eth_type,
+    get_ue_ip_match_args,
+    ipv4_address_to_str,
+)
+from ryu.lib.packet import ether_types
+from ryu.lib.packet.in_proto import IPPROTO_TCP
 
 PROXY_PORT_NAME = 'proxy_port'
 HTTP_PORT = 80
@@ -384,6 +394,7 @@ class HeaderEnrichmentController(MagmaController):
                               cookie=rule_num, cookie_mask=flows.OVS_COOKIE_MATCH_ALL)
 
         success = deactivate_he_urls_for_ue(ue_addr, rule_id)
+        logging.debug("Del HE proxy: %s", success)
         if success:
             if rule_num == -1:
                 self._ue_rule_counter.delete(ue_ip_str)

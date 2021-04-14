@@ -28,7 +28,11 @@ using magma::lte::oai::UeDescription;
 namespace magma {
 namespace lte {
 
-S1apStateManager::S1apStateManager() : max_enbs_(0), max_ues_(0) {}
+S1apStateManager::S1apStateManager()
+    : max_ues_(0),
+      max_enbs_(0),
+      s1ap_imsi_map_hash_(0),
+      s1ap_imsi_map_(nullptr) {}
 
 S1apStateManager::~S1apStateManager() {
   free_state();
@@ -194,7 +198,15 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
   }
   oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
   S1apStateConverter::s1ap_imsi_map_to_proto(s1ap_imsi_map_, &imsi_proto);
-  redis_client->write_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
+  std::string proto_msg;
+  redis_client->serialize(imsi_proto, proto_msg);
+  std::size_t new_hash = std::hash<std::string>{}(proto_msg);
+
+  // s1ap_imsi_map is not state service synced, so version will not be updated
+  if (new_hash != this->s1ap_imsi_map_hash_) {
+    redis_client->write_proto_str(S1AP_IMSI_MAP_TABLE_NAME, proto_msg, 0);
+    this->s1ap_imsi_map_hash_ = new_hash;
+  }
 }
 
 }  // namespace lte

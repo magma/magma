@@ -1,0 +1,30 @@
+- name: Get AWS IAM roles information
+  ansible.builtin.shell: aws iam list-roles || /bin/true
+  register: result
+  when: platform_configs.deploy_elasticsearch
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Check if AWSServiceRoleForAmazonElasticsearchService is present already
+  assert:
+    that:
+      - "{{ platform_configs.deploy_elasticsearch_service_linked_role not in (true, 'true') or item.RoleName != 'AWSServiceRoleForAmazonElasticsearchService' }}"
+    msg:
+      - "IAM role AWSServiceRoleForAmazonElasticsearchService already exists"
+      - "Configure deploy_elasticsearch_service_linked_role to be false"
+      - "For e.g: orcl configure set -c platform -k deploy_elasticsearch_service_linked_role -v false"
+  when: platform_configs.deploy_elasticsearch
+  with_items: "{{(result.stdout | from_json).Roles}}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Cleanup elastic search instance
+  command: aws es delete-elasticsearch-domain --domain-name "{{ orc8r_es_domain }}"
+  ignore_errors: true
+  when: orc8r_es_domain
+  tags:
+    - cleanup
+
+

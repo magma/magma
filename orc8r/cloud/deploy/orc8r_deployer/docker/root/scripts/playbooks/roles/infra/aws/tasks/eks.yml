@@ -1,0 +1,56 @@
+- name: Get EKS cluster information
+  ansible.builtin.shell: aws eks describe-cluster --name {{ infra_configs.cluster_name | quote }} || /bin/true
+  register: result
+  tags: upgrade_precheck
+
+- name: Check if deployed EKS cluster version is greater than version specified in values
+  assert:
+    that: "{{ infra_configs.cluster_version is version((result.stdout | from_json).cluster.version, '>=') }}"
+    msg:
+      - "deployed version higher than to be configured version"
+      - "Configure the cluster_version to be >= {{(result.stdout | from_json).cluster.version}}"
+      - "For e.g: orcl configure set -c infra -k cluster_version -v {{(result.stdout | from_json).cluster.version}}"
+  when: '"ResourceNotFoundException" not in result.stderr'
+  tags: upgrade_precheck
+
+- name: Cleanup eks cluster
+  aws_eks_cluster:
+    name: "{{ orc8r_cluster_name }}"
+    wait: yes
+    state: absent
+  ignore_errors: true
+  tags:
+    - cleanup
+
+- name: Get autoscaling groups
+  ec2_asg_info:
+    tags:
+      k8s.io/cluster-autoscaler/orc8r: "{{ orc8r_cluster_name }}"
+  register: asg_cluster_info
+  ignore_errors: true
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Debug autoscaling groups
+  debug:
+    msg: "{{ asg_cluster_info }}"
+  ignore_errors: true
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Set autoscaling group fact
+  set_fact:
+    asg_name: "{{ asg_cluster_info.results[0].auto_scaling_group_name }}"
+  ignore_errors: true
+  when: asg_cluster_info.results | length
+  tags:
+    - cleanup
+
+- name: Delete autoscaling group
+  command: aws autoscaling delete-auto-scaling-group --auto-scaling-group-name "{{ asg_name }}" --force-delete
+  ignore_errors: true
+  when: asg_cluster_info.results | length
+  tags:
+    - cleanup

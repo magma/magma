@@ -14,7 +14,7 @@
 # This script builds Magma based on the current state of your repo. It needs to
 # be run inside the VM.
 
-set -e
+set -ex
 shopt -s extglob
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
@@ -30,6 +30,7 @@ BUILD_TYPE=Debug
 COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
 CERT_FILE="$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 CONTROL_PROXY_FILE="$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
+OS="debian"
 
 while [[ $# -gt 0 ]]
 do
@@ -55,11 +56,16 @@ case $key in
     CONTROL_PROXY_FILE="$2"
     shift
     ;;
+    --os)
+    OS="$2"
+    shift
+    ;;
     *)
     echo "Error: unknown cmdline option:" $key
     echo "Usage: $0 [-v|--version V] [-i|--iteration I] [-h|--hash HASH]
     [-t|--type Debug|RelWithDebInfo] [-c|--cert <path to cert .pem file>]
-    [-p|--proxy <path to control_proxy config .yml file]>"
+    [-p|--proxy <path to control_proxy config .yml file]>
+    [-u|--build-buntu build packages for ubuntu>"
     exit 1
     ;;
 esac
@@ -74,6 +80,19 @@ case $BUILD_TYPE in
     *)
     echo "Error: unknown type option:" $BUILD_TYPE
     echo "Usage: [-t|--type Debug|RelWithDebInfo]"
+    exit 1
+    ;;
+esac
+
+case $OS in
+    debian)
+    ;;
+    ubuntu)
+    echo "Ubuntu package build"
+    ;;
+    *)
+    echo "Error: unknown OS option:" $OS
+    echo "Usage: [--os debian|ubuntu]"
     exit 1
     ;;
 esac
@@ -132,18 +151,32 @@ OAI_DEPS=(
     "liblfds710"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
-    "oai-gtp >= 4.9-5"
     )
 
+if [[ "$OS"  == "debian" ]]; then
+    OAI_DEPS+=("oai-gtp >= 4.9-9")
+fi
+
 # OVS runtime dependencies
-OVS_DEPS=(
-    "magma-libfluid >= 0.1.0.5"
-    "libopenvswitch >= 2.8.10"
-    "openvswitch-switch >= 2.8.10"
-    "openvswitch-common >= 2.8.10"
-    "python-openvswitch >= 2.8.10"
-    "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
-    )
+if [[ "$OS" == "debian" ]]; then
+    OVS_DEPS=(
+        "magma-libfluid >= 0.1.0.6"
+        "libopenvswitch >= 2.8.10"
+        "openvswitch-switch >= 2.8.10"
+        "openvswitch-common >= 2.8.10"
+        "python-openvswitch >= 2.8.10"
+        "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
+        )
+else
+    OVS_DEPS=(
+        "magma-libfluid >= 0.1.0.6"
+        "libopenvswitch >= 2.14"
+        "openvswitch-switch >= 2.14"
+        "openvswitch-common >= 2.14"
+        "python3-openvswitch >= 2.14"
+        "openvswitch-datapath-dkms >= 2.14"
+        )
+fi
 
 # generate string for FPM
 SYSTEM_DEPS=""
@@ -254,7 +287,7 @@ FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
 # adjust mtime of a setup.py to force update
 # (e.g. `touch ${PY_LTE}/setup.py`)
 pushd "${RELEASE_DIR}" || exit 1
-make -e magma.lockfile
+make os_release=$OS -e magma.lockfile
 popd
 
 cd ${PY_ORC8R}
@@ -262,15 +295,15 @@ make protos
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
 
-ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
 cd ${PY_LTE}
 make protos
 make swagger
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
-${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py
-LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile.$OS setup.py
+LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
 # now the binaries are built, we can package up everything else and build the
 # magma package.
@@ -364,7 +397,7 @@ $(glob_files "${ANSIBLE_FILES}/magma_modules_load" /etc/modules-load.d/magma.con
 $(glob_files "${ANSIBLE_FILES}/configure_envoy_namespace.sh" /usr/local/bin/ ) \
 $(glob_files "${ANSIBLE_FILES}/envoy.yaml" /var/opt/magma/ ) \
 $(glob_files "${ANSIBLE_FILES}/logrotate_oai.conf" /etc/logrotate.d/oai) \
-$(glob_files "${ANSIBLE_FILES}/logrotate_rsyslog.conf" /etc/logrotate.d/rsyslog) \
+$(glob_files "${ANSIBLE_FILES}/logrotate_rsyslog.conf" /etc/logrotate.d/rsyslog.magma) \
 $(glob_files "${ANSIBLE_FILES}/local-cdn/*" /var/www/local-cdn/) \
 ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \

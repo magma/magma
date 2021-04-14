@@ -1,0 +1,117 @@
+################################################################
+# Builder Image (We are using a base image to speed up process)
+################################################################
+FROM magma-dev-mme:ci-base-image as magma-mme-builder
+
+ARG FEATURES=mme_oai
+ENV MAGMA_ROOT=/magma
+ENV BUILD_TYPE=Debug
+ENV C_BUILD=/build/c
+ENV TZ=Europe/Paris
+
+# Remove any old CI artifact
+RUN rm -Rf $MAGMA_ROOT $C_BUILD && mkdir -p $C_BUILD
+
+# Copy Code to Test
+COPY ./ $MAGMA_ROOT
+
+# Build MME executables
+RUN export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
+    cd $MAGMA_ROOT/lte/gateway && \
+    echo $FEATURES && \
+    make build_oai && \
+    make build_sctpd
+
+################################################################
+# Target Image
+################################################################
+FROM registry.access.redhat.com/ubi8/ubi:latest as magma-mme
+ENV MAGMA_ROOT=/magma
+ENV C_BUILD=/build/c
+
+# Install a few tools (may not be necessary later on)
+ENV TZ=Europe/Paris
+RUN yum update -y && \
+    yum -y install --enablerepo="ubi-8-codeready-builder" \
+      libubsan \
+      libasan \
+      psmisc \
+      psmisc \
+      openssl \
+      net-tools \
+      tzdata && \
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
+    echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf && \
+    yum clean all -y && \
+    rm -rf /var/cache/yum
+
+# Copy runtime-used shared libraries from builder
+WORKDIR /lib64
+COPY --from=magma-mme-builder /lib64/libsctp.so.1 .
+COPY --from=magma-mme-builder /lib64/libconfig.so.9 .
+COPY --from=magma-mme-builder /lib64/libboost_program_options.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libboost_filesystem.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libboost_system.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libboost_regex.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libgflags.so.2.1 .
+COPY --from=magma-mme-builder /lib64/libglog.so.0 .
+COPY --from=magma-mme-builder /lib64/libczmq.so.3 .
+COPY --from=magma-mme-builder /lib64/libicudata.so.60 .
+COPY --from=magma-mme-builder /lib64/libicui18n.so.60 .
+COPY --from=magma-mme-builder /lib64/libicuuc.so.60 .
+COPY --from=magma-mme-builder /lib64/libidn.so.11 .
+
+WORKDIR /usr/local/lib
+COPY --from=magma-mme-builder /usr/local/lib/libnettle.so.4 .
+COPY --from=magma-mme-builder /usr/local/lib/libgnutls.so.28 .
+COPY --from=magma-mme-builder /usr/local/lib/libgrpc.so .
+COPY --from=magma-mme-builder /usr/local/lib/libgrpc++.so .
+COPY --from=magma-mme-builder /usr/local/lib/libgpr.so .
+COPY --from=magma-mme-builder /usr/local/lib/libyaml-cpp.so.0.6 .
+COPY --from=magma-mme-builder /usr/local/lib/libcares.so.2 .
+COPY --from=magma-mme-builder /usr/local/lib/libaddress_sorting.so  .
+COPY --from=magma-mme-builder /usr/local/lib/libunwind.so.8 .
+COPY --from=magma-mme-builder /usr/local/lib/libfdproto.so.6 .
+COPY --from=magma-mme-builder /usr/local/lib/libfdcore.so.6 .
+COPY --from=magma-mme-builder /usr/local/lib/libprotobuf.so.17 .
+COPY --from=magma-mme-builder /usr/local/lib/libhogweed.so.2 .
+COPY --from=magma-mme-builder /usr/local/lib/libzmq.so.5 .
+
+WORKDIR /usr/local/lib64
+COPY --from=magma-mme-builder /usr/local/lib64/libdouble-conversion.so.3 .
+
+# Copy all fdx files from freeDiameter installation
+WORKDIR /usr/local/lib/freeDiameter
+COPY --from=magma-mme-builder /usr/local/lib/freeDiameter/* ./
+
+# Refresh library cache
+RUN ldconfig -v
+
+# Copy pre-built binaries for MME and SCTPD
+WORKDIR /magma-mme/bin
+COPY --from=magma-mme-builder $C_BUILD/oai/oai_mme/mme oai_mme
+COPY --from=magma-mme-builder $C_BUILD/sctpd/sctpd .
+
+# Create running dirs
+WORKDIR /var/opt/magma/configs
+# Adding mme configuration for stateful run
+RUN echo "use_stateless: false" > mme.yml
+WORKDIR /usr/local/etc/redis
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
+
+WORKDIR /etc/magma
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/redis.yml .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
+
+# Adding means to re-generate certificates
+WORKDIR /magma-mme/scripts
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
+RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
+RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
+
+WORKDIR /magma-mme
+RUN openssl rand -out /root/.rnd 128
+
+# For the moment, let have a dummy command
+CMD ["sleep", "infinity"]

@@ -28,6 +28,7 @@ extern "C" {
 #endif
 
 #include "ServiceConfigLoader.h"
+#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 
 using google::protobuf::Message;
 
@@ -84,26 +85,11 @@ std::string RedisClient::read(const std::string& key) {
   return db_read_reply.as_string();
 }
 
-int RedisClient::write_proto(const std::string& key, const Message& proto_msg) {
-  std::string inner_val;
-  if (serialize(proto_msg, inner_val) != RETURNok) {
-    return RETURNerror;
-  }
-
-  // Read the existing key for current version if it exists.
-  // Bump the version number of the wrapper and set its wrapped message.
+int RedisClient::write_proto_str(
+    const std::string& key, const std::string& proto_msg, uint64_t version) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
-  try {
-    if (key_exists(key)) {
-      if (read_redis_state(key, wrapper_proto) != RETURNok) {
-        return RETURNerror;
-      }
-    }
-  } catch (const std::runtime_error& e) {
-    return RETURNerror;
-  }
-  wrapper_proto.set_serialized_msg(inner_val);
-  wrapper_proto.set_version(wrapper_proto.version() + 1);
+  wrapper_proto.set_serialized_msg(proto_msg);
+  wrapper_proto.set_version(version);
 
   std::string str_value;
   if (serialize(wrapper_proto, str_value) != RETURNok) {

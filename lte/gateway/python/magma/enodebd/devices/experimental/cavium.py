@@ -16,28 +16,45 @@ from typing import Any, Callable, Dict, List, Optional, Type
 from magma.common.service import MagmaService
 from magma.enodebd.data_models import transform_for_enb, transform_for_magma
 from magma.enodebd.data_models.data_model import DataModel, TrParam
-from magma.enodebd.data_models.data_model_parameters import ParameterName, \
-    TrParameterType
-from magma.enodebd.device_config.enodeb_config_postprocessor import \
-    EnodebConfigurationPostProcessor
-from magma.enodebd.device_config.enodeb_configuration import \
-    EnodebConfiguration
+from magma.enodebd.data_models.data_model_parameters import (
+    ParameterName,
+    TrParameterType,
+)
+from magma.enodebd.device_config.enodeb_config_postprocessor import (
+    EnodebConfigurationPostProcessor,
+)
+from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.exceptions import Tr069Error
 from magma.enodebd.logger import EnodebdLogger as logger
-from magma.enodebd.state_machines.acs_state_utils import \
-    get_all_objects_to_add, get_all_objects_to_delete
+from magma.enodebd.state_machines.acs_state_utils import (
+    get_all_objects_to_add,
+    get_all_objects_to_delete,
+)
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_impl import \
-    BasicEnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_states import AcsMsgAndTransition, \
-    AcsReadMsgResult, AddObjectsState, DeleteObjectsState, EndSessionState, \
-    EnodebAcsState, ErrorState, GetParametersState, GetRPCMethodsState, \
-    SendGetTransientParametersState, SendRebootState, \
-    SetParameterValuesNotAdminState, WaitEmptyMessageState, \
-    WaitGetObjectParametersState, WaitGetParametersState, \
-    WaitGetTransientParametersState, WaitInformMRebootState, WaitInformState, \
-    WaitRebootResponseState, WaitSetParameterValuesState
+from magma.enodebd.state_machines.enb_acs_impl import BasicEnodebAcsStateMachine
+from magma.enodebd.state_machines.enb_acs_states import (
+    AcsMsgAndTransition,
+    AcsReadMsgResult,
+    AddObjectsState,
+    DeleteObjectsState,
+    EndSessionState,
+    EnodebAcsState,
+    ErrorState,
+    GetParametersState,
+    GetRPCMethodsState,
+    SendGetTransientParametersState,
+    SendRebootState,
+    SetParameterValuesNotAdminState,
+    WaitEmptyMessageState,
+    WaitGetObjectParametersState,
+    WaitGetParametersState,
+    WaitGetTransientParametersState,
+    WaitInformMRebootState,
+    WaitInformState,
+    WaitRebootResponseState,
+    WaitSetParameterValuesState,
+)
 from magma.enodebd.tr069 import models
 
 

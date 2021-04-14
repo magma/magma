@@ -14,14 +14,12 @@ limitations under the License.
 """
 
 import argparse
-import grpc
 
-from magma.common.rpc_utils import grpc_wrapper
-from lte.protos.ha_service_pb2 import (
-    StartAgwOffloadRequest,
-    StartAgwOffloadResponse
-)
+import grpc
+from lte.protos.ha_service_pb2 import StartAgwOffloadRequest
 from lte.protos.ha_service_pb2_grpc import HaServiceStub
+from magma.common.rpc_utils import grpc_wrapper
+
 
 @grpc_wrapper
 def send_offload_trigger(client, args):

@@ -269,33 +269,39 @@ class HtmlReport():
     cwd = os.getcwd()
     nb_errors = 0
     nb_warnings = 0
+    nb_notes = 0
 
     if os.path.isfile(cwd + '/archives/' + logFileName):
       if nfType == 'OAI-COMMON':
-        section_start_pattern = 'ninja -C  /build/c/magma_common'
-        section_end_pattern = 'cmake  /magma/lte/gateway/c/oai -DCMAKE_BUILD_TYPE=Debug  -DS6A_OVER_GRPC=False -GNinja'
+        section_start_pattern = '/build/c/magma_common'
+        section_end_pattern = 'mkdir -p  /build/c/oai'
       if nfType == 'OAI-MME':
-        section_start_pattern = 'ninja -C  /build/c/oai'
-        section_end_pattern = 'cmake  /magma/orc8r/gateway/c/common -DCMAKE_BUILD_TYPE=Debug   -GNinja'
+        section_start_pattern = '/build/c/oai'
+        section_end_pattern = 'mkdir -p  /build/c/magma_common'
       if nfType == 'SCTPD':
-        section_start_pattern = 'ninja -C  /build/c/sctpd'
+        section_start_pattern = '/build/c/sctpd'
         section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
       section_status = False
+      section_done = False
       with open(cwd + '/archives/' + logFileName, 'r') as logfile:
         for line in logfile:
           result = re.search(section_start_pattern, line)
-          if result is not None:
+          if (result is not None) and not section_done and (re.search('cmake', line) is not None):
             section_status = True
           result = re.search(section_end_pattern, line)
-          if result is not None:
+          if (result is not None) and not section_done and section_status:
             section_status = False
+            section_done = True
           if section_status:
             result = re.search('error:', line)
             if result is not None:
               nb_errors += 1
-              result = re.search('warning:', line)
-              if result is not None:
-                nb_warnings += 1
+            result = re.search('warning:', line)
+            if result is not None:
+              nb_warnings += 1
+            result = re.search('note:', line)
+            if result is not None:
+              nb_notes += 1
         logfile.close()
       if nb_warnings == 0 and nb_errors == 0:
         cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
@@ -305,7 +311,11 @@ class HtmlReport():
         cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
       if nb_errors > 0:
         cell_msg += str(nb_errors) + ' errors found in compile log\n'
-      cell_msg += str(nb_warnings) + ' warnings found in compile log</b></pre></td>\n'
+      cell_msg += str(nb_warnings) + ' warnings found in compile log\n'
+      if nb_notes > 0:
+        cell_msg += str(nb_notes) + ' notes found in compile log\n'
+
+      cell_msg += '</b></pre></td>\n'
     else:
       cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
       cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'

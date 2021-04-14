@@ -14,20 +14,21 @@ import ipaddress
 import logging
 from typing import Optional
 
+from lte.protos.mconfig import mconfigs_pb2
+from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from magma.common.redis.client import get_default_client
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.mobilityd.ip_address_man import IPAddressManager
 from magma.mobilityd.ip_allocator_base import OverlappedIPBlocksError
 from magma.mobilityd.ip_allocator_dhcp import IPAllocatorDHCP
+from magma.mobilityd.ip_allocator_multi_apn import IPAllocatorMultiAPNWrapper
 from magma.mobilityd.ip_allocator_pool import IpAllocatorPool
 from magma.mobilityd.ip_allocator_static import IPAllocatorStaticWrapper
-from magma.mobilityd.ip_allocator_multi_apn import IPAllocatorMultiAPNWrapper
 from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool
-from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
 from magma.mobilityd.mobility_store import MobilityStore
-from lte.protos.mconfig import mconfigs_pb2
-from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
+from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
 
 DEFAULT_IPV6_PREFIX_ALLOC_MODE = 'RANDOM'
 
@@ -90,6 +91,9 @@ def _get_ip_block(ip_block_str: str) -> Optional[ipaddress.ip_network]:
 def main():
     """ main() for MobilityD """
     service = MagmaService('mobilityd', mconfigs_pb2.MobilityD())
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     # Load service configs and mconfig
     config = service.config

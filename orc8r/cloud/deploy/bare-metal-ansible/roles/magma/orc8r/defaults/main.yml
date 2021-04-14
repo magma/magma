@@ -23,7 +23,7 @@ orc8r_nms_db_host: mariadb.{{ mariadb_namespace | default("mariadb") }}
 orc8r_nms_db_pass: "{{ lookup('password', credentials_dir + '/orc8r_nms_db_pass.creds length=24 chars=hexdigits') | lower }}"
 orc8r_nms_db_name: nms
 
-orc8r_nms_admin_email: "admin@{{ dns_domain }}"
+orc8r_nms_admin_email: "admin@{{ orc8r_domain }}"
 orc8r_nms_admin_pass: "{{ lookup('password', credentials_dir + '/orc8r_nms_admin_pass.creds length=24 chars=hexdigits') | lower }}"
 
 

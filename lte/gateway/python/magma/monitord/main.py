@@ -10,14 +10,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+import logging
+
 from lte.protos.mconfig import mconfigs_pb2
+from lte.protos.mobilityd_pb2 import IPAddress
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration import load_service_config
+from magma.monitord.cpe_monitoring import CpeMonitoringModule
 from magma.monitord.icmp_monitoring import ICMPMonitoring
 from magma.monitord.icmp_state import serialize_subscriber_states
-from magma.monitord.cpe_monitoring import CpeMonitoringModule
-import logging
-from lte.protos.mobilityd_pb2 import IPAddress
 
 
 def _get_serialized_subscriber_states(cpe_monitor: CpeMonitoringModule):
@@ -28,6 +31,9 @@ def main():
     """ main() for monitord service"""
     manual_ping_targets = {}
     service = MagmaService('monitord', mconfigs_pb2.MonitorD())
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     # Monitoring thread loop
     mtr_interface = load_service_config("monitord")["mtr_interface"]

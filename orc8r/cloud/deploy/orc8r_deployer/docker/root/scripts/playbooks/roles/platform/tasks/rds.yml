@@ -1,0 +1,39 @@
+- name: Get RDS information
+  ansible.builtin.shell: aws rds describe-db-instances || /bin/true
+  register: result
+  tags: upgrade_precheck
+
+- name: Check if deployed RDS db instance version is greater than version specified in values
+  assert:
+    that: "{{ platform_configs.orc8r_db_engine_version is version(item.EngineVersion, '>=') }}"
+    msg:
+      - "deployed version higher than to be configured version"
+      - "Configure the db engine version to be >= {{item.EngineVersion}}"
+      - "For e.g: orcl configure set -c infra -k orc8r_db_engine_version -v {{item.EngineVersion}}"
+  when: item.DBInstanceIdentifier == platform_configs.orc8r_db_identifier
+  with_items: "{{(result.stdout | from_json).DBInstances}}"
+  tags: upgrade_precheck
+
+- name: Delete rds instances
+  command: aws rds delete-db-instance --db-instance-identifier "{{ item }}" --skip-final-snapshot
+  when: item
+  with_items:
+    - "{{ orc8r_db_id }}"
+    # - "{{ nms_db_id }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Wait for database deletion before deleting subnet group
+  command: aws rds wait db-instance-deleted --db-instance-identifier "{{ item }}"
+  when: item
+  with_items:
+    - "{{ orc8r_db_id }}"
+    # - "{{ nms_db_id }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Delete rds subnet group
+  command: aws rds delete-db-subnet-group --db-subnet-group-name "{{ orc8r_db_subnet }}"
+  ignore_errors: true
+  when: orc8r_db_subnet
+  tags: cleanup

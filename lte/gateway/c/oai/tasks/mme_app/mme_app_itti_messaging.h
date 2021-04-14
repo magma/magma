@@ -37,8 +37,10 @@
 #include "itti_types.h"
 #include "mme_app_desc.h"
 #include "mme_app_ue_context.h"
+#include "mme_app_procedures.h"
 #include "s1ap_messages_types.h"
 #include "mme_app_defs.h"
+#include "mme_app_timer.h"
 
 void mme_app_itti_ue_context_release(
     struct ue_mm_context_s* ue_context_p, enum s1cause cause);
@@ -94,16 +96,11 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
    * and abort corresponding NAS procedure
    * such as SERVICE REQUEST and Send Service Reject to eNB
    */
-  nas_itti_timer_arg_t timer_callback_fun = {0};
-  timer_callback_fun.nas_timer_callback =
-      mme_app_handle_ue_context_modification_timer_expiry;
-  timer_callback_fun.nas_timer_callback_arg =
-      (void*) &(ue_context_p->mme_ue_s1ap_id);
-  if (timer_setup(
-          ue_context_p->ue_context_modification_timer.sec, 0, TASK_MME_APP,
-          INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_fun,
-          sizeof(timer_callback_fun),
-          &(ue_context_p->ue_context_modification_timer.id)) < 0) {
+  if ((ue_context_p->ue_context_modification_timer.id = mme_app_start_timer(
+           ue_context_p->ue_context_modification_timer.sec * 1000,
+           TIMER_REPEAT_ONCE,
+           mme_app_handle_ue_context_modification_timer_expiry,
+           ue_context_p->mme_ue_s1ap_id)) == -1) {
     OAILOG_ERROR(
         LOG_MME_APP,
         "Failed to start UE context modification timer for UE id  %d \n",
@@ -119,6 +116,11 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
+void mme_app_send_s1ap_e_rab_modification_confirm(
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    const enb_ue_s1ap_id_t enb_ue_s1ap_id,
+    const mme_app_s1ap_proc_modify_bearer_ind_t* const proc);
+
 void nas_itti_sgsap_uplink_unitdata(
     const char* const imsi, uint8_t imsi_len, bstring nas_msg, imeisv_t* imeisv,
     MobileStationClassmark2* mobilestationclassmark2, tai_t* tai, ecgi_t* ecgi,
@@ -129,5 +131,4 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
 
 void mme_app_itti_sgsap_ue_activity_ind(
     const char* imsi, const unsigned int imsi_len);
-
 #endif /* FILE_MME_APP_ITTI_MESSAGING_SEEN */

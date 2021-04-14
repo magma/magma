@@ -12,22 +12,26 @@ limitations under the License.
 """
 
 
-import grpc
 import logging
-from redis.exceptions import RedisError, LockError
 from typing import Dict, List
 
-from orc8r.protos.directoryd_pb2 import DirectoryField, AllDirectoryRecords
-from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceServicer, \
-    add_GatewayDirectoryServiceServicer_to_server
+import grpc
+from google.protobuf.json_format import MessageToJson
 from magma.common.misc_utils import get_gateway_hwid
-from magma.common.rpc_utils import return_void
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict
-from magma.common.redis.serializers import RedisSerde, get_json_serializer, \
-    get_json_deserializer
-
-from google.protobuf.json_format import MessageToJson
+from magma.common.redis.serializers import (
+    RedisSerde,
+    get_json_deserializer,
+    get_json_serializer,
+)
+from magma.common.rpc_utils import return_void
+from orc8r.protos.directoryd_pb2 import AllDirectoryRecords, DirectoryField
+from orc8r.protos.directoryd_pb2_grpc import (
+    GatewayDirectoryServiceServicer,
+    add_GatewayDirectoryServiceServicer_to_server,
+)
+from redis.exceptions import LockError, RedisError
 
 DIRECTORYD_REDIS_TYPE = "directory_record"
 LOCATION_MAX_LEN = 5
@@ -56,7 +60,6 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
         self._redis_dict = RedisFlatDict(get_default_client(), serde)
         self._print_grpc_payload = print_grpc_payload
 
-
         if self._print_grpc_payload:
             logging.info("Printing GRPC messages")
 
@@ -84,8 +87,8 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             with self._redis_dict.lock(request.id):
                 hwid = get_gateway_hwid()
                 record = self._redis_dict.get(request.id) or \
-                         DirectoryRecord(location_history=[hwid],
-                                         identifiers={})
+                    DirectoryRecord(location_history=[hwid],
+                                    identifiers={})
 
                 if record.location_history[0] != hwid:
                     record.location_history = [hwid] + record.location_history
@@ -102,7 +105,6 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details("Could not connect to redis: %s" % e)
 
-
     @return_void
     def DeleteRecord(self, request, context):
         """ Delete the directory record for an ID
@@ -115,7 +117,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
         if len(request.id) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details("ID argument cannot be empty in "
-                            "DeleteRecordRequest")
+                                "DeleteRecordRequest")
             return
 
         # Lock Redis for requested key until delete is complete
@@ -143,7 +145,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
         if len(request.id) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details("ID argument cannot be empty in "
-                               "GetDirectoryFieldRequest")
+                                "GetDirectoryFieldRequest")
             return
         if len(request.field_key) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
@@ -177,7 +179,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             return DirectoryField()
 
         response = DirectoryField(key=request.field_key,
-                              value=record.identifiers[request.field_key])
+                                  value=record.identifiers[request.field_key])
         self._print_grpc(response)
         return response
 
@@ -231,7 +233,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                                      MessageToJson(message))
             # add indentation
             padding = 2 * ' '
-            log_msg =''.join( "{}{}".format(padding, line)
+            log_msg = ''.join("{}{}".format(padding, line)
                               for line in log_msg.splitlines(True))
 
             log_msg = "GRPC message:\n{}".format(log_msg)

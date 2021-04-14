@@ -14,10 +14,11 @@ limitations under the License.
 import logging
 import threading
 
+from lte.protos.mconfig import mconfigs_pb2
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration.service_configs import get_service_config_value
 from magma.redirectd.redirect_server import run_flask
-from lte.protos.mconfig import mconfigs_pb2
 
 
 def main():
@@ -25,6 +26,9 @@ def main():
     main() for redirectd. Starts the server threads.
     """
     service = MagmaService('redirectd', mconfigs_pb2.RedirectD())
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     redirect_ip = get_service_config_value(
         'pipelined',

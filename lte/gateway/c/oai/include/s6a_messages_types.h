@@ -64,6 +64,8 @@ typedef struct s6a_update_location_req_s {
   unsigned skip_subscriber_data : 1;
 #define INITIAL_ATTACH (0x1)
   unsigned initial_attach : 1;
+#define DUAL_REGIS_5G_IND (0x1)
+  unsigned dual_regis_5g_ind : 1;
 
   char imsi[IMSI_BCD_DIGITS_MAX + 1];  // username
   uint8_t imsi_length;                 // username
@@ -154,6 +156,7 @@ typedef struct s6a_purge_ue_ans_s {
 
 typedef struct s6a_reset_req_s {
   /* RESET ALL. Partial Reset TBD*/
+  uint8_t unused;
 } s6a_reset_req_t;
 
 #endif /* FILE_S6A_MESSAGES_TYPES_SEEN */

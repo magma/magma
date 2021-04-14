@@ -29,11 +29,6 @@ module orc8r {
   orc8r_db_engine_version = var.orc8r_db_configuration.engine_version
   orc8r_db_instance_class = var.orc8r_db_configuration.instance_class
   orc8r_db_password       = var.orc8r_db_password
-  nms_db_identifier       = var.nms_db_configuration.identifier
-  nms_db_storage_gb       = var.nms_db_configuration.storage_gb
-  nms_db_engine_version   = var.nms_db_configuration.engine_version
-  nms_db_instance_class   = var.nms_db_configuration.instance_class
-  nms_db_password         = var.nms_db_password
 
   secretsmanager_orc8r_secret = var.secretsmanager_secret_name
 
@@ -118,15 +113,11 @@ module orc8r-app {
   existing_tiller_service_account_name = "tiller"
   helm_deployment_name                 = var.new_deployment_name
 
-  orc8r_db_host = module.orc8r.orc8r_db_host
-  orc8r_db_name = module.orc8r.orc8r_db_name
-  orc8r_db_user = module.orc8r.orc8r_db_user
-  orc8r_db_pass = module.orc8r.orc8r_db_pass
-
-  nms_db_host = module.orc8r.nms_db_host
-  nms_db_name = module.orc8r.nms_db_name
-  nms_db_user = module.orc8r.nms_db_user
-  nms_db_pass = module.orc8r.nms_db_pass
+  orc8r_db_host    = module.orc8r.orc8r_db_host
+  orc8r_db_dialect = module.orc8r.orc8r_db_dialect
+  orc8r_db_name    = module.orc8r.orc8r_db_name
+  orc8r_db_user    = module.orc8r.orc8r_db_user
+  orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
   docker_registry = var.docker_registry
   docker_user     = var.docker_user

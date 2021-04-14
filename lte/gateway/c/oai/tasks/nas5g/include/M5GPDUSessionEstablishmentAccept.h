@@ -20,7 +20,8 @@
 #include "M5GSSCMode.h"
 #include "M5GQOSRules.h"
 #include "M5GSessionAMBR.h"
-
+#include "M5GPDUAddress.h"
+#include "M5GDNN.h"
 using namespace std;
 namespace magma5g {
 // PDUSessionEstablishmentAccept Message Class
@@ -35,6 +36,8 @@ class PDUSessionEstablishmentAcceptMsg {
   SSCModeMsg ssc_mode;
   QOSRulesMsg qos_rules;
   SessionAMBRMsg session_ambr;
+  PDUAddressMsg pdu_address;
+  DNNMsg dnn;
 
   PDUSessionEstablishmentAcceptMsg();
   ~PDUSessionEstablishmentAcceptMsg();

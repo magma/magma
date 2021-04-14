@@ -30,6 +30,9 @@ upstream_dns_servers:
 # docker_insecure_registries:
 #   - private_registry:5000
 
+docker_cgroup_driver: systemd
+kubelet_cgroup_driver: systemd
+
 ## Kubernetes LoadBalancer
 ## Enabling a loadbalancer is optional, but provides HA for external access to Kubernetes API
 ## loadbalancer_apiserver and vrrp_nic need to be set if you want to enable this feature.

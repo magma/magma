@@ -81,6 +81,7 @@
           "version-1.4.0-lte/enodebd",
           "version-1.4.0-lte/config_apn",
           "version-1.4.0-lte/ha_setup",
+          "version-1.4.0-lte/agw_140_upgrade",
           "version-1.4.0-lte/agw_130_upgrade",
           "version-1.4.0-lte/agw_120_upgrade",
           "version-1.4.0-lte/agw_110_upgrade"
@@ -119,6 +120,12 @@
           "version-1.4.0-feg/federated_FWA_setup_guide"
         ]
       }
+    ],
+    "Contribute": [
+      "version-1.4.0-contributing/contribute_onboarding",
+      "version-1.4.0-contributing/contribute_workflow",
+      "version-1.4.0-contributing/contribute_conventions",
+      "version-1.4.0-contributing/contribute_codeowners"
     ],
     "FAQ": [
       "version-1.4.0-faq/faq_magma"

@@ -15,11 +15,15 @@ import unittest
 import unittest.mock
 
 import metrics_pb2
-from orc8r.protos import metricsd_pb2
-from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram, \
-    Summary
-
 from magma.common import metrics_export
+from orc8r.protos import metricsd_pb2
+from prometheus_client import (
+    CollectorRegistry,
+    Counter,
+    Gauge,
+    Histogram,
+    Summary,
+)
 
 
 class Service303MetricTests(unittest.TestCase):
@@ -45,9 +49,9 @@ class Service303MetricTests(unittest.TestCase):
         counter1 = metrics_pb2.Counter(value=1.23)
         counter2 = metrics_pb2.Counter(value=2.34)
         metric1 = metrics_pb2.Metric(counter=counter1,
-                                                timestamp_ms=1234000)
+                                     timestamp_ms=1234000)
         metric2 = metrics_pb2.Metric(counter=counter2,
-                                                timestamp_ms=1234000)
+                                     timestamp_ms=1234000)
         family = metrics_pb2.MetricFamily(
             name=str(metricsd_pb2.process_max_fds),
             type=metrics_pb2.COUNTER)
@@ -62,7 +66,7 @@ class Service303MetricTests(unittest.TestCase):
         with unittest.mock.patch('time.time') as mock_time:
             mock_time.side_effect = lambda: 1234
             self.assertCountEqual(list(metrics_export.get_metrics(self.registry))[0].metric,
-                             family.metric)
+                                  family.metric)
 
     def test_gauge(self):
         """Test that we can track gauges in Service303"""
@@ -95,12 +99,13 @@ class Service303MetricTests(unittest.TestCase):
         with unittest.mock.patch('time.time') as mock_time:
             mock_time.side_effect = lambda: 1234
             self.assertCountEqual(list(metrics_export.get_metrics(self.registry))[0].metric,
-                             family.metric)
+                                  family.metric)
 
     def test_summary(self):
         """Test that we can track summaries in Service303"""
         # Add a summary with a label to the regisry
-        c = Summary('process_max_fds', 'A summary', ['result'], registry=self.registry)
+        c = Summary('process_max_fds', 'A summary', [
+                    'result'], registry=self.registry)
         c.labels('success').observe(1.23)
         c.labels('failure').observe(2.34)
 
@@ -125,7 +130,7 @@ class Service303MetricTests(unittest.TestCase):
         with unittest.mock.patch('time.time') as mock_time:
             mock_time.side_effect = lambda: 1234
             self.assertCountEqual(list(metrics_export.get_metrics(self.registry))[0].metric,
-                             family.metric)
+                                  family.metric)
 
     def test_histogram(self):
         """Test that we can track histogram in Service303"""
@@ -181,6 +186,7 @@ class Service303MetricTests(unittest.TestCase):
         # Order not guaranteed=
         self.assertEqual(metric_labels[0].name, str(metricsd_pb2.result))
         self.assertEqual(metric_labels[0].value, 'success')
+
 
 if __name__ == "__main__":
     unittest.main()

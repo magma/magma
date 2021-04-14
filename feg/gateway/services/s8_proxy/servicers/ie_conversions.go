@@ -71,41 +71,71 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSe
 		getPDNAddressAllocation(req),
 		getRatType(req.RatType),
 		getSelectionModeType(req.SelectionMode),
+		getProtocolConfigurationOptions(req.ProtocolConfigurationOptions),
 		ie.NewMSISDN(string(req.Msisdn[:])),
 		ie.NewMobileEquipmentIdentity(req.Mei),
 		ie.NewServingNetwork(req.ServingNetwork.Mcc, req.ServingNetwork.Mnc),
 		ie.NewAccessPointName(req.Apn),
 		ie.NewAggregateMaximumBitRate(uint32(req.Ambr.BrUl), uint32(req.Ambr.BrDl)),
 		ie.NewUETimeZone(offset, daylightSavingTime),
-
 		// TODO: Hardcoded values
 		ie.NewIndicationFromOctets(0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
 		ie.NewAPNRestriction(gtpv2.APNRestrictionNoExistingContextsorRestriction),
-		// TODO: set charging characteristics
+		ie.NewChargingCharacteristics(0),
 	}
-
 	msg := message.NewCreateSessionRequest(0, 0, ies...)
-
 	return msg, nil
 }
 
-func buildDeleteSessionRequestMsg(req *protos.DeleteSessionRequestPgw) message.Message {
+func buildDeleteSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.DeleteSessionRequestPgw) (message.Message, error) {
+	// TODO: look for a better way to find the local ip (avoid pinging on each request)
+	// (obtain the IP that is going to send the packet first)
+	ip, err := gtp.GetLocalOutboundIP(cPgwUDPAddr)
+	if err != nil {
+		return nil, err
+	}
+	// Control plane TEID
+	cFegFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPC, req.CAgwTeid, ip.String(), "").WithInstance(0)
+
 	ies := []*ie.IE{
 		ie.NewEPSBearerID(uint8(req.BearerId)),
+		cFegFTeid,
+		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
 	}
-	return message.NewDeleteSessionRequest(req.CPgwFteid.Teid, 0, ies...)
+	return message.NewDeleteSessionRequest(req.CPgwTeid, 0, ies...), nil
 }
 
 func getPDNAddressAllocation(req *protos.CreateSessionRequestPgw) *ie.IE {
-	var res *ie.IE
+	var (
+		res        *ie.IE
+		ipv4       string
+		ipv6       string
+		ipv6Prefix uint8
+	)
+	// extract ips of default values
+	if req.Paa == nil || req.Paa.Ipv4Address == "" {
+		ipv4 = "0.0.0.0"
+	} else {
+		ipv4 = req.Paa.Ipv4Address
+	}
+
+	if req.Paa == nil || req.Paa.Ipv6Address == "" {
+		ipv6 = "::"
+		ipv6Prefix = 0
+	} else {
+		ipv6 = req.Paa.Ipv6Address
+		ipv6Prefix = uint8(req.Paa.Ipv6Prefix)
+	}
+
+	// create the IE based on the type
 	if req.PdnType == protos.PDNType_IPV4 {
-		res = ie.NewPDNAddressAllocation(req.Paa.Ipv4Address)
+		res = ie.NewPDNAddressAllocation(ipv4)
 	}
 	if req.PdnType == protos.PDNType_IPV6 {
-		res = ie.NewPDNAddressAllocationIPv6(req.Paa.Ipv6Address, uint8(req.Paa.Ipv6Prefix))
+		res = ie.NewPDNAddressAllocationIPv6(ipv6, ipv6Prefix)
 	}
 	if req.PdnType == protos.PDNType_IPV4V6 {
-		res = ie.NewPDNAddressAllocationDual(req.Paa.Ipv4Address, req.Paa.Ipv6Address, uint8(req.Paa.Ipv6Prefix))
+		res = ie.NewPDNAddressAllocationDual(ipv4, ipv6, ipv6Prefix)
 	}
 	return res
 }
@@ -211,4 +241,15 @@ func getSelectionModeType(selMode protos.SelectionModeType) *ie.IE {
 		panic(fmt.Sprintf("RatType %d does not exist", selMode))
 	}
 	return ie.NewSelectionMode(rType)
+}
+
+func getProtocolConfigurationOptions(pco *protos.ProtocolConfigurationOptions) *ie.IE {
+	if pco == nil || !pco.IsValid {
+		return nil
+	}
+	var options []*ie.PCOContainer
+	for _, container := range pco.ProtoOrContainerId {
+		options = append(options, ie.NewPCOContainer(uint16(container.Id), container.Contents))
+	}
+	return ie.NewProtocolConfigurationOptions(uint8(pco.ConfigProtocol), options...)
 }

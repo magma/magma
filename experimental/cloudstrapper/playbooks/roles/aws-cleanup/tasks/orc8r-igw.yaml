@@ -1,0 +1,30 @@
+---
+
+- name: locate VPC
+  ec2_vpc_net_info:
+    filters:
+      "tag:Name": "{{ orc8rVpc }}"
+  register: valVpc
+
+
+- name: set vpc cidr fact
+  set_fact: 
+    factVpcCidr: "{{ valVpc.vpcs[0].cidr_block }}"
+
+- name: set vpc id fact
+  set_fact: 
+    factVpcId: "{{ valVpc.vpcs[0].vpc_id }}"
+
+- name: gather all internet gateways attached to this VPC
+  ec2_vpc_igw_info:
+    filters: 
+      "tag:Name": "{{ orc8rIgw }}"
+      "attachment.state": "available"
+  register: valInetGw
+
+- name: detach internet gateway from VPC
+  command: aws ec2 detach-internet-gateway --internet-gateway-id "{{ valInetGw.internet_gateways[0].internet_gateway_id }}" --vpc-id "{{ factVpcId }}"
+
+- name: delete all inet  gateways for this VPC
+  command: aws ec2 delete-internet-gateway --internet-gateway-id "{{ valInetGw.internet_gateways[0].internet_gateway_id }}"
+

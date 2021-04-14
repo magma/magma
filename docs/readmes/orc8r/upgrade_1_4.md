@@ -92,7 +92,7 @@ a separate terminal tab and manually scale the Prometheus deployment. You can
 re-run the Terraform command if it times out.
 
 ```bash
-kubectl -n orc8r scale deployment orc8r-prometheus --replicas=0 && kubectl -n orc8r scale deployment orc8r-prometheus --replicas=1
+kubectl --namespace orc8r scale deployment orc8r-prometheus --replicas=0 && kubectl --namespace orc8r scale deployment orc8r-prometheus --replicas=1
 ```
 
 After the Terraform command completes, all application components should be

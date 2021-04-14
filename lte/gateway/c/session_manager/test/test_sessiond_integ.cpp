@@ -95,12 +95,12 @@ class SessiondTest : public ::testing::Test {
     spgw_client       = std::make_shared<MockSpgwServiceClient>();
     directoryd_client = std::make_shared<MockDirectorydClient>();
     events_reporter   = std::make_shared<MockEventsReporter>();
-    auto rule_store   = std::make_shared<StaticRuleStore>();
+    rule_store        = std::make_shared<StaticRuleStore>();
     session_store     = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
-    insert_static_rule(rule_store, 1, "rule1");
-    insert_static_rule(rule_store, 1, "rule2");
-    insert_static_rule(rule_store, 2, "rule3");
+    insert_static_rule(1, "rule1");
+    insert_static_rule(1, "rule2");
+    insert_static_rule(2, "rule3");
 
     session_reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
     auto default_mconfig = get_default_mconfig();
@@ -206,9 +206,7 @@ class SessiondTest : public ::testing::Test {
     delete evb;
   }
 
-  void insert_static_rule(
-      std::shared_ptr<StaticRuleStore> rule_store, uint32_t charging_key,
-      const std::string& rule_id) {
+  void insert_static_rule(uint32_t charging_key, const std::string& rule_id) {
     auto mkey = "";
     PolicyRule rule;
     create_policy_rule(rule_id, mkey, charging_key, &rule);
@@ -291,6 +289,7 @@ class SessiondTest : public ::testing::Test {
   std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockEventsReporter> events_reporter;
   std::shared_ptr<SessionStore> session_store;
+  std::shared_ptr<StaticRuleStore> rule_store;
   SessionMap session_map;
 };
 

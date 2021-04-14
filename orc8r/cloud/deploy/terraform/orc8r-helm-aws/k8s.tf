@@ -25,7 +25,7 @@ resource "kubernetes_namespace" "monitoring" {
 
 # external dns maps route53 to ingress resources
 resource "helm_release" "external_dns" {
-  name       = "external-dns"
+  name       = var.external_dns_deployment_name
   repository = local.stable_helm_repo
   chart      = "external-dns"
   version    = "2.19.1"

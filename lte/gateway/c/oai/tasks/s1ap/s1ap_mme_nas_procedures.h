@@ -70,7 +70,8 @@ void s1ap_handle_conn_est_cnf(
 
 int s1ap_generate_downlink_nas_transport(
     s1ap_state_t* state, const enb_ue_s1ap_id_t enb_ue_s1ap_id,
-    const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload, imsi64_t imsi64);
+    const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload, imsi64_t imsi64,
+    bool* is_state_same);
 
 void s1ap_handle_mme_ue_id_notification(
     s1ap_state_t* state,

@@ -1,0 +1,11 @@
+version: "3.7"
+
+services:
+  docusaurus:
+    volumes:
+      - ./../docusaurus:/app/website
+      - ./../readmes:/app/docs
+    ports:
+      - 3000:3000/tcp
+      - 35729:35729/tcp
+    image: magma_docusaurus

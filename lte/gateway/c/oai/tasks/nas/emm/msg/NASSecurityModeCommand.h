@@ -22,6 +22,7 @@
 #include "MessageType.h"
 #include "NasSecurityAlgorithms.h"
 #include "NasKeySetIdentifier.h"
+#include "UeAdditionalSecurityCapability.h"
 #include "UeSecurityCapability.h"
 #include "Nonce.h"
 #include "3gpp_23.003.h"
@@ -39,7 +40,8 @@
   (NAS_SECURITY_ALGORITHMS_MAXIMUM_LENGTH +                                    \
    NAS_KEY_SET_IDENTIFIER_MAXIMUM_LENGTH +                                     \
    UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH + IMEISV_REQUEST_IE_MAX_LENGTH +      \
-   NONCE_MAXIMUM_LENGTH + NONCE_MAXIMUM_LENGTH)
+   NONCE_MAXIMUM_LENGTH + NONCE_MAXIMUM_LENGTH +                               \
+   UE_ADDITIONAL_SECURITY_CAPABILITY_MAXIMUM_LENGTH)
 
 /* If an optional value is present and should be encoded, the corresponding
  * Bit mask should be set to 1.
@@ -47,12 +49,15 @@
 #define SECURITY_MODE_COMMAND_IMEISV_REQUEST_PRESENT (1 << 0)
 #define SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_PRESENT (1 << 1)
 #define SECURITY_MODE_COMMAND_NONCEMME_PRESENT (1 << 2)
+#define SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECU_CAPABILITY_PRESENT   \
+  (1 << 3)
 
 typedef enum security_mode_command_iei_tag {
   SECURITY_MODE_COMMAND_IMEISV_REQUEST_IEI =
       GMM_IMEISV_REQUEST_IEI,                        /* 0xC0 = 192 */
   SECURITY_MODE_COMMAND_REPLAYED_NONCEUE_IEI = 0x55, /* 0x55 = 85 */
   SECURITY_MODE_COMMAND_NONCEMME_IEI         = 0x56, /* 0x56 = 86 */
+  SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI = 0x6F,
 } security_mode_command_iei;
 
 /*
@@ -69,6 +74,7 @@ typedef struct security_mode_command_msg_tag {
   message_type_t messagetype;
   NasSecurityAlgorithms selectednassecurityalgorithms;
   NasKeySetIdentifier naskeysetidentifier;
+  ue_additional_security_capability_t replayedueadditionalsecuritycapabilities;
   ue_security_capability_t replayeduesecuritycapabilities;
   /* Optional fields */
   uint32_t presencemask;

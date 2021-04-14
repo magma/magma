@@ -1,0 +1,22 @@
+---
+
+- name: list autoscaling groups
+  ec2_asg_info:
+    tags:
+      Name: "{{ orc8rAsgClusterTagName }}"
+  register: valAsgCluster
+
+- name: debug
+  debug:
+    msg: "{{ valAsgCluster }}"
+
+- name: set autoscaling group fact
+  set_fact:
+    factAsgCluster: "{{ valAsgCluster.results[0].auto_scaling_group_name }}"
+
+- name: delete autoscaling group
+  command: aws autoscaling delete-auto-scaling-group --auto-scaling-group-name "{{ factAsgCluster }}" --force-delete
+  #  ec2_asg:
+  #  name: "{{ factAsgCluster }}"
+  #  state: absent
+

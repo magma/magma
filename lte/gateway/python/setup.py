@@ -95,6 +95,7 @@ setup(
         'spyne>=2.12.16',
         'scapy==2.4.4',
         'flask>=1.0.2',
+        'sentry_sdk>=1.0.0',
         'aioeventlet>=0.4',
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',
@@ -114,7 +115,7 @@ setup(
         'hpack>=3.0',
         'freezegun>=0.3.15',
         'pycryptodome>=3.9.9',
-        'pyroute2>=0.5.14'
+        'pyroute2==0.5.14'
     ],
     extras_require={
         'dev': [

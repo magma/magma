@@ -10,24 +10,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import netifaces
 import ipaddress
-from typing import NamedTuple, Dict, List
+from typing import Dict, List, NamedTuple
 
-from ryu.lib.packet import ether_types
-from ryu.ofproto.inet import IPPROTO_TCP
-from ryu.controller.controller import Datapath
-from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-
-from lte.protos.pipelined_pb2 import SubscriberQuotaUpdate, SetupFlowsResult
-from magma.pipelined.app.base import MagmaController, ControllerType
-from magma.pipelined.app.inout import INGRESS, EGRESS
+import netifaces
+from lte.protos.pipelined_pb2 import SetupFlowsResult, SubscriberQuotaUpdate
+from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.app.inout import EGRESS, INGRESS
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
-    DIRECTION_REG
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    IMSI_REG,
+    Direction,
+)
+from ryu.controller.controller import Datapath
+from ryu.lib.packet import ether_types
+from ryu.ofproto.inet import IPPROTO_TCP
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 
 class CheckQuotaController(MagmaController):

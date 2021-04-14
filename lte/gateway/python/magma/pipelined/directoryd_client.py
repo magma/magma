@@ -10,16 +10,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import grpc
 import logging
 
-from ryu.lib import hub
-
+import grpc
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos.common_pb2 import Void
-from orc8r.protos.directoryd_pb2 import UpdateRecordRequest, \
-    GetDirectoryFieldRequest
+from orc8r.protos.directoryd_pb2 import (
+    GetDirectoryFieldRequest,
+    UpdateRecordRequest,
+)
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
+from ryu.lib import hub
 
 DIRECTORYD_SERVICE_NAME = "directoryd"
 DEFAULT_GRPC_TIMEOUT = 10

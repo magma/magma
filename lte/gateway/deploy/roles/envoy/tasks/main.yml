@@ -30,7 +30,7 @@
 
 - name: Add Getenvoy.io repo
   apt_repository:
-    repo: "deb [arch=amd64] https://dl.bintray.com/tetrate/getenvoy-deb stretch stable"
+    repo: "deb [arch=amd64] https://dl.bintray.com/tetrate/getenvoy-deb/dists stretch stable"
     state: present
   register: envoy_getenvoy_debian_repo
   when: preburn

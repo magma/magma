@@ -15,11 +15,15 @@ limitations under the License.
 
 import argparse
 import sys
+
 import grpc
 from magma.common.rpc_utils import grpc_wrapper
 from orc8r.protos.common_pb2 import Void
-from orc8r.protos.directoryd_pb2 import UpdateRecordRequest, \
-    DeleteRecordRequest, GetDirectoryFieldRequest
+from orc8r.protos.directoryd_pb2 import (
+    DeleteRecordRequest,
+    GetDirectoryFieldRequest,
+    UpdateRecordRequest,
+)
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
 

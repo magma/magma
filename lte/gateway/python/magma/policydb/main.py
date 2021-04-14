@@ -12,10 +12,14 @@ limitations under the License.
 """
 
 import logging
+
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.policydb_pb2_grpc import PolicyAssignmentControllerStub
-from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub,\
-    SessionProxyResponderStub
+from lte.protos.session_manager_pb2_grpc import (
+    LocalSessionManagerStub,
+    SessionProxyResponderStub,
+)
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.common.streamer import StreamerClient
@@ -26,12 +30,19 @@ from magma.policydb.reauth_handler import ReAuthHandler
 from magma.policydb.rule_map_store import RuleAssignmentsDict
 from magma.policydb.servicers.policy_servicer import PolicyRpcServicer
 from magma.policydb.servicers.session_servicer import SessionRpcServicer
-from .streamer_callback import ApnRuleMappingsStreamerCallback,\
-    PolicyDBStreamerCallback, RatingGroupsStreamerCallback
+
+from .streamer_callback import (
+    ApnRuleMappingsStreamerCallback,
+    PolicyDBStreamerCallback,
+    RatingGroupsStreamerCallback,
+)
 
 
 def main():
     service = MagmaService('policydb', mconfigs_pb2.PolicyDB())
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     apn_rules_dict = ApnRuleAssignmentsDict()
     assignments_dict = RuleAssignmentsDict()
