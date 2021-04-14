@@ -12,11 +12,15 @@ limitations under the License.
 """
 
 import unittest
-
 from unittest.mock import Mock
 
-from magma.subscriberdb.protocols.diameter import avp, server, message
-from magma.subscriberdb.protocols.diameter.application import base, s6a, s6a_relay
+from magma.subscriberdb.protocols.diameter import avp, message, server
+from magma.subscriberdb.protocols.diameter.application import (
+    base,
+    s6a,
+    s6a_relay,
+)
+
 from .common import MockTransport
 
 

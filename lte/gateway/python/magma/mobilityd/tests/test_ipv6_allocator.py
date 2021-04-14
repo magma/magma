@@ -11,19 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-from __future__ import unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import ipaddress
 import unittest
-import fakeredis
 
+import fakeredis
+from magma.mobilityd.ip_address_man import IPNotInUseError
 from magma.mobilityd.ip_descriptor import IPDesc
 from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool
-from magma.mobilityd.ip_address_man import IPNotInUseError
-
 from magma.mobilityd.mobility_store import MobilityStore
 
 

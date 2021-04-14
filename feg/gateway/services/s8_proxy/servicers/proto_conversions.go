@@ -26,22 +26,14 @@ import (
 // the message is proper it also returns the session. In case it there is an error it returns
 // the cause of error
 func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessionResponsePgw, err error) {
+	//glog.V(4).Infof("Received Create Session Response (gtp):\n%s", message.Prettify(msg))
 	csResGtp := msg.(*message.CreateSessionResponse)
 	glog.V(2).Infof("Received Create Session Response (gtp):\n%s", csResGtp.String())
-
 	csRes = &protos.CreateSessionResponsePgw{}
 	// check Cause value first.
 	if causeIE := csResGtp.Cause; causeIE != nil {
-		cause, err2 := causeIE.Cause()
-		if err2 != nil {
-			err = fmt.Errorf("Couldn't check cause of csRes: %s", err2)
-			return
-		}
-		if cause != gtpv2.CauseRequestAccepted {
-			csRes.GtpError = &protos.GtpError{
-				Cause: uint32(cause),
-				Msg:   fmt.Sprintf("Message with sequence # %d not accepted", msg.Sequence()),
-			}
+		csRes.GtpError, err = handleCause(causeIE, msg)
+		if err != nil || csRes.GtpError != nil {
 			return
 		}
 		// If we get here, the message will be processed
@@ -78,6 +70,29 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 	} else {
 		csRes.GtpError = errorIeMissing(ie.FullyQualifiedTEID)
 		return
+	}
+
+	// Protocol Configuration Options (PCO) optional
+	if pgwPcoIE := csResGtp.PCO; pgwPcoIE != nil {
+		pgwPcoField, err2 := pgwPcoIE.ProtocolConfigurationOptions()
+		if err2 != nil {
+			err2 = fmt.Errorf("Couldn't get PGW  Protocol Configuration Options: %s ", err2)
+			return
+		}
+		var containers []*protos.PcoProtocolOrContainerId
+		for _, containerField := range pgwPcoField.ProtocolOrContainers {
+			containers = append(containers,
+				&protos.PcoProtocolOrContainerId{
+					Id:       uint32(containerField.ID),
+					Length:   uint32(len(containerField.Contents)),
+					Contents: containerField.Contents,
+				})
+		}
+		csRes.ProtocolConfigurationOptions = &protos.ProtocolConfigurationOptions{
+			ConfigProtocol:     uint32(pgwPcoField.ConfigurationProtocol),
+			ProtoOrContainerId: containers,
+			IsValid:            true,
+		}
 	}
 
 	// TODO: handle more than one bearer
@@ -117,6 +132,14 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 				if err != nil {
 					return
 				}
+
+			case ie.BearerQoS:
+				// save for testing purposes
+				bearerCtx.Qos, err = handleQOStoProto(childIE)
+				if err != nil {
+					return
+				}
+				bearerCtx.ValidQos = true
 			}
 		}
 		csRes.BearerContext = bearerCtx
@@ -132,24 +155,19 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 // the cause of error
 func parseDelteSessionResponse(msg message.Message) (
 	dsRes *protos.DeleteSessionResponsePgw, err error) {
+	//glog.V(4).Infof("Received Delete Session Response (gtp):\n%s", (msg))
 	cdResGtp := msg.(*message.DeleteSessionResponse)
 	glog.V(2).Infof("Received Delete Session Response (gtp):\n%s", cdResGtp.String())
 
 	dsRes = &protos.DeleteSessionResponsePgw{}
 	// check Cause value first.
 	if causeIE := cdResGtp.Cause; causeIE != nil {
-		cause, err2 := causeIE.Cause()
-		if err2 != nil {
-			err = fmt.Errorf("Couldn't check cause of delete session response: %s", err2)
+
+		dsRes.GtpError, err = handleCause(causeIE, msg)
+		if err != nil || dsRes.GtpError != nil {
 			return
 		}
-		if cause != gtpv2.CauseRequestAccepted {
-			dsRes.GtpError = &protos.GtpError{
-				Cause: uint32(cause),
-				Msg:   fmt.Sprintf("DeleteSessionRequest with sequence # %d not accepted", msg.Sequence()),
-			}
-			return
-		}
+		// If we get here, the message will be processed
 	} else {
 		dsRes.GtpError = errorIeMissing(ie.Cause)
 		return
@@ -162,6 +180,29 @@ func errorIeMissing(missingIE uint8) *protos.GtpError {
 	return &protos.GtpError{
 		Cause: uint32(gtpv2.CauseMandatoryIEMissing),
 		Msg:   errMsg.Error(),
+	}
+}
+
+func handleCause(causeIE *ie.IE, msg message.Message) (*protos.GtpError, error) {
+	cause, err := causeIE.Cause()
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't check cause of %s: %s", msg.MessageTypeName(), err)
+	}
+
+	switch cause {
+	case gtpv2.CauseRequestAccepted:
+		return nil, nil
+	default:
+		gtpErrorString := fmt.Sprintf("%s with sequence # %d not accepted. Cause: %d", msg.MessageTypeName(), msg.Sequence(), cause)
+		offendingIE, _ := causeIE.OffendingIE()
+		if offendingIE != nil {
+			gtpErrorString = fmt.Sprintf("%s %s: %d %s", gtpErrorString, " With Offending IE", offendingIE.Type, offendingIE)
+		}
+		glog.Warning(gtpErrorString)
+		return &protos.GtpError{
+			Cause: uint32(cause),
+			Msg:   gtpErrorString,
+		}, nil
 	}
 }
 
@@ -220,4 +261,58 @@ func handlePDNAddressAllocation(paaIE *ie.IE) (*protos.PdnAddressAllocation, pro
 		pdnType = protos.PDNType_NonIP
 	}
 	return &paa, pdnType, nil
+}
+
+func handleQOStoProto(qosIE *ie.IE) (*protos.QosInformation, error) {
+	qos := &protos.QosInformation{}
+
+	// priority level
+	pl, err := qosIE.PriorityLevel()
+	if err != nil {
+		return nil, err
+	}
+	qos.PriorityLevel = uint32(pl)
+
+	// qci label
+	qci, err := qosIE.QCILabel()
+	if err != nil {
+		return nil, err
+	}
+	qos.Qci = uint32(qci)
+
+	// Preemption Capability
+	if qosIE.PreemptionCapability() {
+		qos.PreemptionCapability = 1
+	}
+
+	// Preemption Vulnerability
+	if qosIE.PreemptionVulnerability() {
+		qos.PreemptionVulnerability = 1
+	}
+
+	// maximum bitrate
+	mAmbr := &protos.Ambr{}
+	mAmbr.BrUl, err = qosIE.MBRForUplink()
+	if err != nil {
+		return nil, err
+	}
+	mAmbr.BrDl, err = qosIE.MBRForDownlink()
+	if err != nil {
+		return nil, err
+	}
+	qos.Mbr = mAmbr
+
+	// granted bitrate
+	gAmbr := &protos.Ambr{}
+	gAmbr.BrUl, err = qosIE.GBRForUplink()
+	if err != nil {
+		return nil, err
+	}
+	gAmbr.BrDl, err = qosIE.GBRForDownlink()
+	if err != nil {
+		return nil, err
+	}
+	qos.Gbr = gAmbr
+
+	return qos, nil
 }

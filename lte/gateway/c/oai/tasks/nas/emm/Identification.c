@@ -46,7 +46,7 @@
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
 extern int check_plmn_restriction(imsi_t imsi);
-
+extern int validate_imei(imeisv_t* imeisv);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
@@ -244,9 +244,18 @@ int emm_proc_identification_complete(
          */
         emm_ctx_set_valid_imei(emm_ctx, imei);
       } else if (imeisv) {
-        /*
-         * Update the IMEISV
-         */
+        // Validate IMEI
+        int emm_cause = validate_imei(imeisv);
+        if (emm_cause != EMM_CAUSE_SUCCESS) {
+          OAILOG_ERROR(
+              LOG_NAS_EMM,
+              "EMMAS-SAP - Sending Attach Reject for ue_id =" MME_UE_S1AP_ID_FMT
+              " , emm_cause =(%d)\n",
+              ue_id, emm_cause);
+          rc = emm_proc_attach_reject(ue_id, emm_cause);
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+        }
+        // Update the IMEISV
         emm_ctx_set_valid_imeisv(emm_ctx, imeisv);
       } else if (tmsi) {
         /*

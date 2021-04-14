@@ -12,14 +12,20 @@ limitations under the License.
 """
 
 import _thread
-from magma.enodebd.logger import EnodebdLogger as logger
 import socket
-from wsgiref.simple_server import ServerHandler, WSGIRequestHandler, \
-    WSGIServer, make_server
-from spyne.server.wsgi import WsgiApplication
+from wsgiref.simple_server import (
+    ServerHandler,
+    WSGIRequestHandler,
+    WSGIServer,
+    make_server,
+)
+
 from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.service_configs import load_service_config
+from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
+from spyne.server.wsgi import WsgiApplication
+
 from .models import CWMP_NS
 from .rpc_methods import AutoConfigServer
 from .spyne_mods import Tr069Application, Tr069Soap11

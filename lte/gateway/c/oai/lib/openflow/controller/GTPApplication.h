@@ -63,7 +63,7 @@ class GTPApplication : public Application {
    */
   void add_downlink_tunnel_flow(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      uint32_t port_number, bool passthrough);
+      uint32_t port_number, bool passthrough, bool from_pgw);
 
   /*
    * Add downlink tunnel flow for S8
@@ -181,17 +181,17 @@ class GTPApplication : public Application {
 
   void add_downlink_tunnel_flow_action(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      of13::FlowMod downlink_fm, bool passthrough);
+      of13::FlowMod downlink_fm, bool passthrough, bool from_pgw);
 
   void add_downlink_tunnel_flow_ipv4(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      uint32_t port_number, bool passthrough);
+      uint32_t port_number, bool passthrough, bool from_pgw);
   void add_downlink_tunnel_flow_ipv6(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      uint32_t port_number, bool passthrough);
+      uint32_t port_number, bool passthrough, bool from_pgw);
   void add_downlink_tunnel_flow_ded_brr(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      uint32_t port_number, bool passthrough);
+      uint32_t port_number, bool passthrough, bool from_pgw);
 
   void delete_downlink_tunnel_flow_ipv4(
       const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,

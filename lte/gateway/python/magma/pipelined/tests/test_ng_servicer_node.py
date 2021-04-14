@@ -12,36 +12,35 @@ limitations under the License.
 """
 
 import logging
-import warnings
-from typing import List
 import subprocess
 import unittest
-from unittest import TestCase
 import unittest.mock
+import warnings
 from collections import OrderedDict
 from concurrent.futures import Future
-from unittest.mock import MagicMock
+from typing import List
+from unittest import TestCase
+from unittest.mock import MagicMock, Mock
 
+from lte.protos import (
+    pipelined_pb2,
+    pipelined_pb2_grpc,
+    session_manager_pb2_grpc,
+)
+from lte.protos.session_manager_pb2 import UPFAssociationState
+from magma.pipelined.app.ng_services import NGServiceController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import (
-                TestSetup,
-                PipelinedController,
-            )
-
+    PipelinedController,
+    TestSetup,
+)
 from magma.pipelined.tests.pipelined_test_util import (
+    create_service_manager,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    create_service_manager,
-    wait_after_send
+    wait_after_send,
 )
-from magma.pipelined.app.ng_services import NGServiceController
-from lte.protos import pipelined_pb2_grpc
-from lte.protos import pipelined_pb2
-from lte.protos import session_manager_pb2_grpc
-from lte.protos.session_manager_pb2 import (
-                UPFAssociationState)
 
-from unittest.mock import Mock, MagicMock
 
 def mocked_send_node_state_message_success (node_message):
     return True

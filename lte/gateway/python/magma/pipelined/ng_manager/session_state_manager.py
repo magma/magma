@@ -11,26 +11,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import (
-    NamedTuple,
-    Optional)
-
 from enum import Enum
-from magma.pipelined.set_interface_client import (
-    send_periodic_session_update)
-
-from magma.pipelined.ng_manager.session_state_manager_util import (
-    pdr_create_rule_entry)
-
-from lte.protos.session_manager_pb2 import (
-    UPFSessionConfigState,
-    UPFSessionState)
+from typing import NamedTuple, Optional
 
 from lte.protos.pipelined_pb2 import (
+    CauseIE,
+    OffendingIE,
     PdrState,
     UPFSessionContextState,
-    OffendingIE,
-    CauseIE)
+)
+from lte.protos.session_manager_pb2 import (
+    UPFSessionConfigState,
+    UPFSessionState,
+)
+from magma.pipelined.ng_manager.session_state_manager_util import (
+    pdr_create_rule_entry,
+)
+from magma.pipelined.set_interface_client import send_periodic_session_update
 
 # Help to build failure report
 MsgParseOutput = NamedTuple(

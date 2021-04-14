@@ -1,0 +1,109 @@
+- name: Get all txt resource record sets
+  community.aws.route53:
+    command: get
+    zone: "{{hosted_zone.name}}"
+    record: "{{item[0]}}.{{hosted_zone.name}}"
+    type: "TXT"
+  register: current_dns_records
+  ignore_errors: true
+  with_items:  ['bootstrapper-controller', 'controller', '*.nms', 'fluentd', 'api']
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Debug all txt resource record sets
+  debug: msg="{{current_dns_records}}"
+  tags:
+    - cleanup_dryrun
+    - cleanup
+
+# HACK - deleting a record fails due to some oddities in value. Hence
+# setting to a empty value and deleting it.
+- name: Change all txt resource record sets
+  community.aws.route53:
+    state: present
+    overwrite: true
+    zone: "{{ hosted_zone.name }}"
+    record: "{{item.item}}.{{hosted_zone.name}}"
+    ttl: "{{ item.set.ttl | default('300') }}"
+    type: "TXT"
+    value: "{{ value | to_json }}"
+    wait: yes
+  loop: "{{ current_dns_records.results }}"
+  ignore_errors: true
+  vars:
+    value: ""
+  tags: cleanup
+
+- name: Delete all txt resource record sets
+  community.aws.route53:
+    state: absent
+    overwrite: true
+    zone: "{{ hosted_zone.name }}"
+    record: "{{item.item}}.{{hosted_zone.name}}"
+    ttl: "{{ item.set.ttl | default('300') }}"
+    type: "TXT"
+    value: "{{ value | to_json }}"
+    wait: yes
+  vars:
+    value: ""
+  loop: "{{ current_dns_records.results }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Get all alias resource record sets
+  community.aws.route53:
+    command: get
+    zone: "{{hosted_zone.name}}"
+    record: "{{item[0]}}.{{hosted_zone.name}}"
+    type: "A"
+  register: current_dns_records
+  ignore_errors: true
+  with_items:  ['bootstrapper-controller', 'controller', '*.nms', 'fluentd', 'api']
+  tags:
+    - cleanup
+    - cleanup_dryrun
+
+- name: Debug all alias resource record sets
+  debug: msg="{{current_dns_records}}"
+  tags:
+    - cleanup_dryrun
+    - cleanup
+
+# HACK - deleting a record fails due to some oddities in value. Hence
+# setting to a empty value and deleting it.
+- name: Change all alias resource record sets
+  community.aws.route53:
+    state: present
+    overwrite: true
+    zone: "{{ hosted_zone.name }}"
+    record: "{{item.item}}.{{hosted_zone.name}}"
+    ttl: "{{ item.set.ttl | default('300') }}"
+    type: "A"
+    value: 0.0.0.0
+    wait: yes
+  loop: "{{ current_dns_records.results }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Delete all alias resource record sets
+  community.aws.route53:
+    state: absent
+    overwrite: true
+    zone: "{{ hosted_zone.name }}"
+    record: "{{item.item}}.{{hosted_zone.name}}"
+    ttl: "{{ item.set.ttl | default('300') }}"
+    type: "A"
+    value: 0.0.0.0
+    wait: yes
+  loop: "{{ current_dns_records.results }}"
+  ignore_errors: true
+  tags: cleanup
+
+- name: Delete hosted zones for orc8r domain
+  community.aws.route53_zone:
+    zone: "{{hosted_zone.name}}"
+    hosted_zone_id: "{{hosted_zone.zone_id}}"
+    state: absent
+  ignore_errors: true
+  tags: cleanup

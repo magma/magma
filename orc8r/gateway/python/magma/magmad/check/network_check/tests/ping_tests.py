@@ -157,7 +157,7 @@ class PingParseTests(unittest.TestCase):
         self.assertEqual(expected, actual)
 
     def test_parse_deadline_reached_no_results(self):
-        output=textwrap.dedent('''
+        output = textwrap.dedent('''
         PING google.com (172.217.3.206) 56(84) bytes of data.
 
         --- google.com ping statistics ---

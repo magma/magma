@@ -36,7 +36,8 @@
 #include "3gpp_23.003.h"
 
 #define TMSI_SIZE 4
-#define MAX_IMEISV_SIZE 15
+#define MAX_IMEISV_SIZE 16
+#define MAX_IMEI_SIZE 15
 #define MAX_MME_NAME_LENGTH 255
 #define MAX_VLR_NAME_LENGTH 255
 #define SGS_ASSOC_ACTIVE 1

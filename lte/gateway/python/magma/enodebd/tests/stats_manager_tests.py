@@ -11,19 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import pkg_resources
 from unittest import TestCase, mock
 from xml.etree import ElementTree
+
+import pkg_resources
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.devices.device_utils import EnodebDeviceName
+from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from magma.enodebd.stats_manager import StatsManager
-from magma.enodebd.tests.test_utils.enb_acs_builder import \
-    EnodebAcsStateMachineBuilder
-from magma.enodebd.state_machines.enb_acs_manager import \
-    StateMachineManager
-from magma.enodebd.tests.test_utils.config_builder import \
-    EnodebConfigBuilder
+from magma.enodebd.tests.test_utils.config_builder import EnodebConfigBuilder
+from magma.enodebd.tests.test_utils.enb_acs_builder import (
+    EnodebAcsStateMachineBuilder,
+)
 
 
 class StatsManagerTest(TestCase):

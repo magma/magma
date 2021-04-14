@@ -33,6 +33,7 @@
 #include "mme_config.h"
 #include "amf_config.h"
 #include "shared_ts_log.h"
+#include "sentry_wrapper.h"
 #include "common_defs.h"
 
 #include "intertask_interface_init.h"
@@ -116,6 +117,10 @@ int main(int argc, char* argv[]) {
   }
   free_wrapper((void**) &pid_file_name);
 
+  // Initialize Sentry error collection (Currently only supported on
+  // Ubuntu 20.04)
+  initialize_sentry();
+
   /*
    * Calling each layer init function
    */
@@ -174,7 +179,7 @@ int main(int argc, char* argv[]) {
 #if EMBEDDED_SGW
   free_spgw_config(&spgw_config);
 #endif
-
+  shutdown_sentry();
   main_exit();
   pid_file_unlock();
 

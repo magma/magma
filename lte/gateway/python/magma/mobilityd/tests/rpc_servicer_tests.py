@@ -18,23 +18,28 @@ import unittest.mock
 from concurrent import futures
 
 import grpc
-from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
-    ListAddedIPBlocksResponse, ListAllocatedIPsResponse, ReleaseIPRequest, \
-    RemoveIPBlockRequest, RemoveIPBlockResponse, SubscriberIPTableEntry, \
-    IPLookupRequest, GWInfo
+from lte.protos.mobilityd_pb2 import (
+    AllocateIPRequest,
+    GWInfo,
+    IPAddress,
+    IPBlock,
+    IPLookupRequest,
+    ListAddedIPBlocksResponse,
+    ListAllocatedIPsResponse,
+    ReleaseIPRequest,
+    RemoveIPBlockRequest,
+    RemoveIPBlockResponse,
+    SubscriberIPTableEntry,
+)
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.redis.client import get_default_client
 from magma.mobilityd.ip_address_man import IPAddressManager
+from magma.mobilityd.ip_allocator_pool import IpAllocatorPool
+from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool
+from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
 from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
-
-from magma.mobilityd.mobility_store import MobilityStore
-
-from magma.mobilityd.ip_allocator_pool import \
-    IpAllocatorPool
-from magma.mobilityd.ipv6_allocator_pool import \
-    IPv6AllocatorPool
 
 
 class RpcTests(unittest.TestCase):

@@ -140,6 +140,7 @@ export type ActionTableProps<T> = {
   data: Array<T> | (ActionQuery => {}),
   options: ActionTableOptions,
   detailPanel?: Array<{}>,
+  onChangeRowsPerPage?: (pageSize: number) => void,
 };
 
 export function PaperComponent(props: {}) {
@@ -266,6 +267,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
         columns={props.columns}
         icons={tableIcons}
         data={props.data}
+        onChangeRowsPerPage={props.onChangeRowsPerPage}
         actions={
           props.menuItems?.length
             ? [

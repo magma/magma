@@ -14,18 +14,20 @@ limitations under the License.
 """
 import glob
 import ipaddress
-
 import math
 from os import path
 
 from lte.protos.enodebd_pb2_grpc import EnodebdStub
-from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from lte.protos.mobilityd_pb2 import IPAddress
-from orc8r.protos.common_pb2 import Void
+from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
-from magma.health.entities import AGWHealthSummary, RegistrationSuccessRate, \
-    CoreDumps
+from magma.health.entities import (
+    AGWHealthSummary,
+    CoreDumps,
+    RegistrationSuccessRate,
+)
+from orc8r.protos.common_pb2 import Void
 
 
 class AGWHealth:

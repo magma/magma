@@ -13,16 +13,16 @@ limitations under the License.
 """
 
 import argparse
-import netifaces
 import os
 import sys
 
-from magma.common.service_registry import ServiceRegistry
-from magma.subscriberdb.sid import SIDUtils
-from magma.configuration import environment
-from magma.pipelined.imsi import encode_imsi
+import netifaces
 from lte.protos.session_manager_pb2 import LocalCreateSessionRequest
 from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
+from magma.common.service_registry import ServiceRegistry
+from magma.configuration import environment
+from magma.pipelined.imsi import encode_imsi
+from magma.subscriberdb.sid import SIDUtils
 
 
 def sample_commands():

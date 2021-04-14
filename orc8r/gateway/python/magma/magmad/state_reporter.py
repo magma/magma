@@ -12,24 +12,25 @@ limitations under the License.
 """
 # pylint: disable=broad-except
 
-import logging
-from typing import Optional, List, Dict, Any
-import snowflake
-import grpc
 import asyncio
+import logging
+from typing import Any, Dict, List, Optional
+
+import grpc
+import snowflake
+from magma.common.cert_validity import cert_is_invalid
+from magma.common.grpc_client_manager import GRPCClientManager
+from magma.common.rpc_utils import grpc_async_wrapper
+from magma.common.sdwatchdog import SDWatchdogTask
+from magma.common.service import get_service303_client
+from magma.common.service_registry import ServiceRegistry
+from magma.magmad.bootstrap_manager import BootstrapManager
+from magma.magmad.gateway_status import GatewayStatusFactory
+from magma.magmad.metrics import CHECKIN_STATUS
+from magma.magmad.service_poller import ServiceInfo
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.service303_pb2 import State
 from orc8r.protos.state_pb2 import ReportStatesRequest
-from magma.common.grpc_client_manager import GRPCClientManager
-from magma.common.rpc_utils import grpc_async_wrapper
-from magma.common.cert_validity import cert_is_invalid
-from magma.common.sdwatchdog import SDWatchdogTask
-from magma.common.service_registry import ServiceRegistry
-from magma.magmad.service_poller import ServiceInfo
-from magma.common.service import get_service303_client
-from magma.magmad.bootstrap_manager import BootstrapManager
-from magma.magmad.metrics import CHECKIN_STATUS
-from magma.magmad.gateway_status import GatewayStatusFactory
 
 States = List[State]
 
@@ -41,6 +42,7 @@ class StateReporterErrorHandler:
     trigger a bootstrap if it finds the certificate is bad or there are
     permission issues.
     """
+
     def __init__(self,
                  loop: asyncio.AbstractEventLoop,
                  config: Any,
@@ -115,6 +117,7 @@ class StateReporter(SDWatchdogTask):
     In this context, check-in refers to the act of connecting and reporting
     states to the cloud.
     """
+
     def __init__(self, config: Any, mconfig: Any,
                  loop: asyncio.AbstractEventLoop,
                  bootstrap_manager: BootstrapManager,

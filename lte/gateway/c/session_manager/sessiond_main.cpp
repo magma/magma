@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+#include <cstdlib>
 #include <iostream>
 
 #include <lte/protos/mconfig/mconfigs.pb.h>
@@ -41,6 +42,38 @@
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
+#endif
+
+// TODO remove this flag once we are on Ubuntu 20.04 by default in 1.6
+#if SENTRY_ENABLED
+#include "sentry.h"
+
+#define COMMIT_HASH_ENV "COMMIT_HASH"
+#define CONTROL_PROXY_SERVICE_NAME "control_proxy"
+#define SENTRY_URL "sentry_url"
+
+void initialize_sentry() {
+  auto control_proxy_config =
+      magma::ServiceConfigLoader{}.load_service_config(CONTROL_PROXY_SERVICE_NAME);
+  if (control_proxy_config[SENTRY_URL].IsDefined()) {
+    const std::string sentry_dns =
+        control_proxy_config[SENTRY_URL].as<std::string>();
+    sentry_options_t* options = sentry_options_new();
+    sentry_options_set_dsn(options, sentry_dns.c_str());
+
+    if (const char* commit_hash_p = std::getenv(COMMIT_HASH_ENV)) {
+      sentry_options_set_release(options, commit_hash_p);
+    }
+
+    sentry_init(options);
+    sentry_capture_event(sentry_value_new_message_event(
+        SENTRY_LEVEL_INFO, "", "Starting SessionD with Sentry!"));
+  }
+}
+
+void shutdown_sentry() {
+  sentry_shutdown();
+}
 #endif
 
 static magma::mconfig::SessionD get_default_mconfig() {
@@ -170,6 +203,10 @@ long get_quota_exhaust_termination_time(const YAML::Node& config) {
 int main(int argc, char* argv[]) {
 #ifdef DEBUG
   __gcov_flush();
+#endif
+
+#ifdef SENTRY_ENABLED
+  initialize_sentry();
 #endif
 
   magma::init_logging(argv[0]);
@@ -423,5 +460,8 @@ int main(int argc, char* argv[]) {
   }
   delete session_store;
 
+#ifdef SENTRY_ENABLED
+  shutdown_sentry();
+#endif
   return 0;
 }

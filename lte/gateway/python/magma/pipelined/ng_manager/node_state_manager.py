@@ -12,17 +12,19 @@ limitations under the License.
 """
 
 import logging
-import netifaces
-from typing import NamedTuple, Dict
+from typing import Dict, NamedTuple
 
+import netifaces
+from google.protobuf.timestamp_pb2 import Timestamp
 from lte.protos.session_manager_pb2 import (
-    UPFNodeState,
     UPFAssociationState,
     UPFFeatureSet,
-    UserPlaneIPResourceSchema)
-
-from google.protobuf.timestamp_pb2 import Timestamp
-from magma.pipelined.set_interface_client import send_node_state_association_request
+    UPFNodeState,
+    UserPlaneIPResourceSchema,
+)
+from magma.pipelined.set_interface_client import (
+    send_node_state_association_request,
+)
 from ryu.lib import hub
 
 EXP_BASE = 3

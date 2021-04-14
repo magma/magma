@@ -14,10 +14,10 @@ limitations under the License.
 # pylint:disable=protected-access
 
 import unittest
-
 from unittest.mock import Mock
 
-from magma.subscriberdb.protocols.diameter import server, message
+from magma.subscriberdb.protocols.diameter import message, server
+
 from .common import MockTransport
 
 

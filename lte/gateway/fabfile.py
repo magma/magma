@@ -92,7 +92,7 @@ def package(vcs='hg', all_deps="False",
         run('mkdir -p ~/magma-deps')
         print("Generating lte/setup.py and orc8r/setup.py magma dependency packages")
         run('./release/pydep finddep --install-from-repo -b --build-output ~/magma-deps'
-            + (' -l ./release/magma.lockfile')
+            + (' -l ./release/magma.lockfile.%s' % os)
             + ' python/setup.py'
             + (' %s/setup.py' % ORC8R_AGW_PYTHON_ROOT))
 

@@ -14,11 +14,12 @@ limitations under the License.
 """
 
 import argparse
-import grpc
 
-from magma.common.rpc_utils import grpc_wrapper
+import grpc
 from lte.protos.sms_orc8r_pb2 import SMODownlinkUnitdata
 from lte.protos.sms_orc8r_pb2_grpc import SMSOrc8rGatewayServiceStub
+from magma.common.rpc_utils import grpc_wrapper
+
 
 @grpc_wrapper
 def send_downlink_unitdata(client, args):

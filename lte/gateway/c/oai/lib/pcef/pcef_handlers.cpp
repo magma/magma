@@ -313,7 +313,7 @@ int get_msisdn_from_session_req(
   return len;
 }
 
-static int get_imeisv_from_session_req(
+int get_imeisv_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* imeisv) {
   if (saved_req->mei.present & MEI_IMEISV) {
     // IMEISV as defined in 3GPP TS 23.003 MEI_IMEISV

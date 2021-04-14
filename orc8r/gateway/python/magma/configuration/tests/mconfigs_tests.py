@@ -97,5 +97,6 @@ class MconfigsTest(unittest.TestCase):
             value=directoryd_mconfig.SerializeToString(),
         )
 
-        actual = mconfigs.unpack_mconfig_any(magmad_any, mconfigs_pb2.DirectoryD())
+        actual = mconfigs.unpack_mconfig_any(
+            magmad_any, mconfigs_pb2.DirectoryD())
         self.assertEqual(directoryd_mconfig, actual)

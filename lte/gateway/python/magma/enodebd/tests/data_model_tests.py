@@ -14,8 +14,9 @@ limitations under the License.
 # pylint: disable=protected-access
 
 from unittest import TestCase
-from magma.enodebd.devices.baicells import BaicellsTrDataModel
+
 from magma.enodebd.data_models.data_model_parameters import ParameterName
+from magma.enodebd.devices.baicells import BaicellsTrDataModel
 
 
 class BaicellsTrDataModelTest(TestCase):

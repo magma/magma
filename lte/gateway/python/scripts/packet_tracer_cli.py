@@ -13,8 +13,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import subprocess
 import argparse
+import subprocess
 
 from magma.configuration.service_configs import load_service_config
 
