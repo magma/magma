@@ -50,8 +50,33 @@ Status AmfServiceImpl::SetAmfNotification(
   OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSmNotificationContext request\n");
   // ToDo processing ITTI,ZMQ
 
+  itti_n11_received_notification_t itti_msg;
+  auto& notify_common = notif->common_context();
+  auto& req_m5g       = notif->rat_specific_notification();
+
+  // CommonSessionContext
+  strcpy(itti_msg.imsi, notify_common.sid().id().c_str());
+  itti_msg.sm_session_fsm_state =
+      (SMSessionFSMState_response) notify_common.sm_session_state();
+  itti_msg.sm_session_version = notify_common.sm_session_version();
+
+  // RatSpecificContextAccess
+  itti_msg.pdu_session_id   = req_m5g.pdu_session_id();
+  itti_msg.request_type     = (RequestType_received) req_m5g.request_type();
+  itti_msg.pdu_session_type = (pdu_session_type_t) req_m5g.pdu_session_type();
+  itti_msg.m5g_sm_capability.reflective_qos =
+      req_m5g.m5g_sm_capability().reflective_qos();
+  itti_msg.m5g_sm_capability.multi_homed_ipv6_pdu_session =
+      req_m5g.m5g_sm_capability().multi_homed_ipv6_pdu_session();
+  itti_msg.m5gsm_cause = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
+
+  // pdu_change
+  itti_msg.notify_ue_evnt = (notify_ue_event) req_m5g.notify_ue_event();
+
+  send_n11_notification_received_itti(&itti_msg);
   return Status::OK;
 }
+
 // Set message from SessionD received
 Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,

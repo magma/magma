@@ -178,8 +178,6 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
   new_p->m5_implicit_detach_timer.id        = AMF_APP_TIMER_INACTIVE_ID;
   new_p->m5_initial_context_setup_rsp_timer = (amf_app_timer_t){
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE};
-  new_p->m5_paging_response_timer = (amf_app_timer_t){
-      AMF_APP_TIMER_INACTIVE_ID, AMF_APP_PAGING_RESPONSE_TIMER_VALUE};
   new_p->m5_ulr_response_timer = (amf_app_timer_t){
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_ULR_RESPONSE_TIMER_VALUE};
   new_p->m5_ue_context_modification_timer = (amf_app_timer_t){

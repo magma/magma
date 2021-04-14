@@ -354,3 +354,47 @@ typedef struct cause_s {
 typedef struct pdu_session_resource_release_command_transfer_s {
   cause_t cause;
 } pdu_session_resource_release_command_transfer;
+
+#define N11_NOTIFICATION_RECEIVED(mSGpTR)                                      \
+  (mSGpTR)->ittiMsg.n11_notification_received
+
+// RequestType
+typedef enum RequestType_received_s {
+  INITIAL_REQUEST                = 0,
+  EXISTING_PDU_SESSION           = 1,
+  INITIAL_EMERGENCY_REQUEST      = 2,
+  EXISTING_EMERGENCY_PDU_SESSION = 3,
+  MODIFICATION_REQUEST           = 4,
+} RequestType_received;
+
+// M5GSMCapability
+typedef struct M5GSMCapability_received_s {
+  bool reflective_qos;
+  bool multi_homed_ipv6_pdu_session;
+} M5GSMCapability_received;
+
+typedef enum {
+  PDU_SESSION_INACTIVE_NOTIFY,         // AMF <=> SMF
+  UE_IDLE_MODE_NOTIFY,                 // AMF  => SMF
+  UE_PAGING_NOTIFY,                    // SMF  => AMF
+  UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY,  // AMF  => SMF
+  PDU_SESSION_STATE_NOTIFY,            // SMF <=> AMF
+  UE_SERVICE_REQUEST_ON_PAGING,        // AMF <=> SMF
+} notify_ue_event;
+
+typedef struct itti_n11_received_notification_s {
+  // common context
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  SMSessionFSMState_response sm_session_fsm_state;
+  uint32_t sm_session_version;
+  // rat specific
+  uint32_t pdu_session_id;
+  RequestType_received request_type;
+  // PduSessionType_response pdu_session_type;
+  M5GSMCapability_received m5g_sm_capability;
+  m5g_sm_cause_t m5gsm_cause;
+  pdu_session_type_t pdu_session_type;
+  // M5GSMCause_response m5gsm_cause;
+  // Idle/paging/periodic_reg events and UE state notification
+  notify_ue_event notify_ue_evnt;
+} itti_n11_received_notification_t;

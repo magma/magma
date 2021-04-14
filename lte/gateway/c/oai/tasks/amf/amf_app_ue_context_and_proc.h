@@ -36,6 +36,7 @@ extern "C" {
 #include "amf_data.h"
 #include "amf_smfDefs.h"
 #include "AmfMessage.h"
+#include "amf_app_messages_types.h"
 #include "M5GRegistrationRequest.h"
 #include "ngap_messages_types.h"
 
@@ -58,6 +59,7 @@ extern "C" {
 #include "M5GDLNASTransport.h"
 
 namespace magma5g {
+#define NAS5G_TIMER_INACTIVE_ID (-1)
 struct amf_procedures_t;
 /*
  * Timer identifier returned when in inactive state (timer is stopped or has
@@ -73,6 +75,14 @@ struct amf_procedures_t;
 #define NAS5G_SECURITY_ALGORITHMS_MINIMUM_LENGTH 1
 #define NAS5G_SECURITY_ALGORITHMS_MAXIMUM_LENGTH 2
 #define NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH 253
+
+#define IDENTITY_TIMER_EXPIRY_MSECS 6000
+#define AUTHENTICATION_TIMER_EXPIRY_MSECS 6000
+#define SECURITY_MODE_TIMER_EXPIRY_MSECS 6000
+#define REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS 6000
+#define PAGING_TIMER_EXPIRY_MSECS 4000
+
+#define MAX_PAGING_RETRY_COUNT 1
 
 // Header length boundaries of 5GS Mobility Management messages
 #define AMF_HEADER_LENGTH sizeof(amf_msg_header)
@@ -249,6 +259,12 @@ typedef struct smf_context_s {
   pdu_session_resource_to_release_list pdu_resource_release_rsp;
 } smf_context_t;
 
+typedef struct paging_context_s {
+#define MAX_PAGING_RETRY_COUNT 1
+  amf_app_timer_t m5_paging_response_timer;
+  uint8_t paging_retx_count;
+} paging_context_t;
+
 /*
  * Structure of the AMF context established by core for a particular UE
  * --------------------------------------------------------------------
@@ -344,8 +360,8 @@ typedef struct ue_m5gmm_context_s {
   // UE Context Modification Procedure Guard timer
   amf_app_timer_t m5_ue_context_modification_timer;
 
-  // Timer for retrying paging messages
-  amf_app_timer_t m5_paging_response_timer;
+  /* Paging Structure */
+  paging_context_t paging_context;
   amf_app_timer_t m5_ulr_response_timer;
 } ue_m5gmm_context_t;
 
@@ -370,6 +386,7 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void);
 amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id);
 ue_m5gmm_context_s* amf_ue_context_exists_amf_ue_ngap_id(
     const amf_ue_ngap_id_t amf_ue_ngap_id);
+ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64);
 int amf_context_upsert_imsi(amf_context_t* elm) __attribute__((nonnull));
 
 // Set valid imsi
