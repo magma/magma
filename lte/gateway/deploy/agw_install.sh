@@ -20,19 +20,21 @@ if [ "$WHOAMI" != "root" ]; then
   exit 1
 fi
 
-wget https://raw.githubusercontent.com/magma/magma/"$MAGMA_VERSION"/lte/gateway/deploy/agw_pre_check.sh
-if [[ -f ./agw_pre_check.sh ]]; then
-  chmod 644 agw_pre_check.sh && bash agw_pre_check.sh
-  while true; do
-      read -p "Do you accept those modifications and want to proceed with magma installation?(y/n)" yn
-      case $yn in
-          [Yy]* ) break;;
-          [Nn]* ) exit;;
-          * ) echo "Please answer yes or no.";;
-      esac
-  done
-else
-  echo "agw_precheck.sh is not available in your version"
+if [ "$SKIP_PRECHECK" != "$SUCCESS_MESSAGE" ]; then
+  wget https://raw.githubusercontent.com/magma/magma/"$MAGMA_VERSION"/lte/gateway/deploy/agw_pre_check.sh
+  if [[ -f ./agw_pre_check.sh ]]; then
+    chmod 644 agw_pre_check.sh && bash agw_pre_check.sh
+    while true; do
+        read -p "Do you accept those modifications and want to proceed with magma installation?(y/n)" yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+  else
+    echo "agw_precheck.sh is not available in your version"
+  fi
 fi
 
 
@@ -139,6 +141,7 @@ Environment=REPO_HOST=${REPO_HOST}
 Environment=REPO_DIST=${REPO_DIST}
 Environment=REPO_COMPONENT=${REPO_COMPONENT}
 Environment=REPO_KEY=${REPO_KEY}
+Environment=SKIP_PRECHECK=${SUCCESS_MESSAGE}
 Environment=REPO_KEY_FINGERPRINT=${REPO_KEY_FINGERPRINT}
 Type=oneshot
 ExecStart=/bin/bash ${AGW_SCRIPT_PATH}
