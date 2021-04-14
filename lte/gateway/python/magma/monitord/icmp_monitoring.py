@@ -15,9 +15,11 @@ import logging
 from typing import Dict, List, Optional
 
 from magma.common.job import Job
-from magma.magmad.check.network_check.ping import PingInterfaceCommandParams, \
-    ping_interface_async
-from magma.magmad.check.network_check.ping import PingCommandResult
+from magma.magmad.check.network_check.ping import (
+    PingCommandResult,
+    PingInterfaceCommandParams,
+    ping_interface_async,
+)
 
 NUM_PACKETS = 4
 DEFAULT_POLLING_INTERVAL = 60

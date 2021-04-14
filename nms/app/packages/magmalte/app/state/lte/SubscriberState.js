@@ -13,10 +13,10 @@
  * @flow strict-local
  * @format
  */
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-
-import {getLabelUnit} from '../../views/subscriber/SubscriberUtils';
+import type {ActionQuery} from '../../components/ActionTable';
 import type {Metrics} from '../../components/context/SubscriberContext';
+import type {SubscriberContextType} from '../../components/context/SubscriberContext';
+import type {SubscriberRowType} from '../../views/subscriber/SubscriberOverview';
 import type {
   mutable_subscriber,
   network_id,
@@ -24,12 +24,20 @@ import type {
   subscriber_state,
 } from '@fbcnms/magma-api';
 
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+
+import {getLabelUnit} from '../../views/subscriber/SubscriberUtils';
+
+const MAX_PAGE_ROW_COUNT = 1000;
+
 type FetchProps = {
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
   networkId: string,
   id?: string,
   subscriberMap?: {[string]: subscriber},
   sessionState?: {[string]: subscriber_state},
+  token?: string,
+  pageSize?: number,
 };
 type InitSubscriberStateProps = {
   networkId: network_id,
@@ -39,7 +47,7 @@ type InitSubscriberStateProps = {
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
 export async function FetchSubscribers(props: FetchProps) {
-  const {networkId, enqueueSnackbar, id} = props;
+  const {networkId, enqueueSnackbar, id, token, pageSize} = props;
   if (id !== null && id !== undefined) {
     try {
       return await MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId({
@@ -50,18 +58,18 @@ export async function FetchSubscribers(props: FetchProps) {
       enqueueSnackbar?.('failed fetching subscriber information', {
         variant: 'error',
       });
-      return;
     }
   } else {
     try {
-      return await MagmaV1API.getLteByNetworkIdSubscribers({
+      return await MagmaV1API.getLteByNetworkIdSubscribersV2({
         networkId,
+        pageSize: pageSize ?? 10,
+        pageToken: token ?? '',
       });
     } catch (e) {
       enqueueSnackbar?.('failed fetching subscriber information', {
         variant: 'error',
       });
-      return;
     }
   }
 }
@@ -128,6 +136,7 @@ export async function fetchSubscriberMetrics(props: FetchProps) {
   await Promise.all(requests);
   return subscriberMetrics;
 }
+
 export default async function InitSubscriberState(
   props: InitSubscriberStateProps,
 ) {
@@ -140,7 +149,7 @@ export default async function InitSubscriberState(
   } = props;
   const subscribers = await FetchSubscribers({networkId, enqueueSnackbar});
   if (subscribers) {
-    setSubscriberMap(subscribers);
+    setSubscriberMap(subscribers.subscribers);
   }
 
   const state = await FetchSubscriberState({networkId, enqueueSnackbar});
@@ -237,4 +246,90 @@ export function getSubscriberGatewayMap(subscribers: {[string]: subscriber}) {
     }
   });
   return gatewayMap;
+}
+
+export type SubscriberQueryType = {
+  networkId: string,
+  query: ActionQuery,
+  pageSize: number,
+  tokenList: Array<string>,
+  setTokenList: (Array<string>) => void,
+  ctx: SubscriberContextType,
+  subscriberMetrics?: {[string]: Metrics},
+};
+/**
+ * Used with material-table remote data feature to get paginated subscribers.
+ * Returns a promise holding subscriber rows data, the current page and the subscribers total count.
+ *
+ * @param {string} networkId ID of the network.
+ * @param {ActionQuery} query Subscriber query holding page number, page size, total count, order and filters.
+ * @param {number} pageSize Size of subscriber page. (default is 10)
+ * @param {Array<string>} tokenList List of page tokens used to get next/previous page.
+ * @param {(Array<string>) => void} setTokenList Set token list.
+ * @param {SubscriberContextType} ctx Subscriber context to set subscriber state.
+ * @param {{[string]: Metrics}} subscriberMetrics Metrics used for subscriber Current Usage and Daily Average.
+ * @return Promise holding subscriber rows data, the current page and the totalCount.
+ */
+export async function handleSubscriberQuery(props: SubscriberQueryType) {
+  const {
+    networkId,
+    query,
+    pageSize,
+    tokenList,
+    setTokenList,
+    ctx,
+    subscriberMetrics,
+  } = props;
+  return new Promise(async (resolve, reject) => {
+    try {
+      const page =
+        MAX_PAGE_ROW_COUNT < query.page * query.pageSize
+          ? MAX_PAGE_ROW_COUNT / query.pageSize
+          : query.page;
+      const subscriberResponse = await FetchSubscribers({
+        networkId,
+        token: tokenList[page] ?? tokenList[tokenList.length - 1],
+        pageSize,
+      });
+      const newTokenList = tokenList;
+      // add next page token in token list to get next subscriber page.
+      if (subscriberResponse) {
+        if (!newTokenList.includes(subscriberResponse.next_page_token)) {
+          newTokenList.push(subscriberResponse.next_page_token);
+        }
+        setTokenList([...newTokenList]);
+        // set subscriber state with current subscriber rows.
+        ctx.setState?.('', undefined, {
+          state: subscriberResponse.subscribers,
+          sessionState: {},
+        });
+      }
+      const tableData: Array<SubscriberRowType> = subscriberResponse
+        ? Object.keys(subscriberResponse.subscribers).map((imsi: string) => {
+            const subscriberInfo = subscriberResponse.subscribers[imsi] || {};
+            const metrics = subscriberMetrics?.[`${imsi}`];
+            return {
+              name: subscriberInfo.name ?? imsi,
+              imsi: imsi,
+              service: subscriberInfo.lte?.state || '',
+              currentUsage: metrics?.currentUsage ?? '0',
+              dailyAvg: metrics?.dailyAvg ?? '0',
+              lastReportedTime:
+                subscriberInfo.monitoring?.icmp?.last_reported_time === 0
+                  ? new Date(
+                      subscriberInfo.monitoring?.icmp?.last_reported_time,
+                    )
+                  : '-',
+            };
+          })
+        : [];
+      resolve({
+        data: tableData,
+        page: page,
+        totalCount: MAX_PAGE_ROW_COUNT,
+      });
+    } catch (e) {
+      reject(e?.message ?? 'error retrieving subscribers');
+    }
+  });
 }

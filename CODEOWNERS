@@ -39,6 +39,6 @@ lte/gateway/Vagrantfile @mattymo @119Vik @tmdzk
 xwf/ @AyliD @aharonnovo @r-i-g
 feg/radius @AyliD @aharonnovo @r-i-g @themarwhal @mpgermano @uri200 @emakeev
 
-nms/ @karthiksubraveti @andreilee @Scott8440 @HannaFar
+nms/ @karthiksubraveti @andreilee @HannaFar
 
 CODEOWNERS @amarpad @electronjoe

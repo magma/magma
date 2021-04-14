@@ -30,7 +30,7 @@ class TestOutOfOrderErabSetupRspDedicatedBearer(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_outoforder_erab_setup_rsp_dedicated_bearer(self):
-        """ Attach a single UE + add dedicated bearer + send erab setup rsp
+        """Attach a single UE + add dedicated bearer + send erab setup rsp
         message out of order for the dedicated bearer"""
         num_ue = 1
 
@@ -168,7 +168,7 @@ class TestOutOfOrderErabSetupRspDedicatedBearer(unittest.TestCase):
             "********************** Sending RAR for IMSI",
             "".join([str(i) for i in req.imsi]),
         )
-        self._sessionManager_util.create_ReAuthRequest(
+        self._sessionManager_util.send_ReAuthRequest(
             "IMSI" + "".join([str(i) for i in req.imsi]),
             policy_id,
             flow_list,

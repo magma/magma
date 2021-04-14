@@ -14,8 +14,7 @@ import asyncio
 import unittest
 from unittest import mock
 
-from magma.magmad.generic_command.command_executor import \
-    CommandExecutor
+from magma.magmad.generic_command.command_executor import CommandExecutor
 
 
 class FakeCommandExecutor(CommandExecutor):

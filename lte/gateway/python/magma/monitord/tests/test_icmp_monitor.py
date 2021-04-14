@@ -16,8 +16,8 @@ import asyncio
 import unittest
 
 from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
-from magma.monitord.icmp_monitoring import ICMPMonitoring
 from magma.monitord.cpe_monitoring import CpeMonitoringModule
+from magma.monitord.icmp_monitoring import ICMPMonitoring
 
 LOCALHOST = '127.0.0.1'
 

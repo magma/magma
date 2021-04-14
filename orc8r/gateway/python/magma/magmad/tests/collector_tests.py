@@ -12,24 +12,27 @@ limitations under the License.
 """
 import asyncio
 import calendar
-from random import randrange
 import time
 import unittest
 import unittest.mock
+from random import randrange
 
-import prometheus_client
 import metrics_pb2
+import prometheus_client
 from magma.common.service_registry import ServiceRegistry
-from magma.magmad.metrics_collector import MetricsCollector
+# Allow access to protected variables for unit testing
+# pylint: disable=protected-access
+from magma.magmad.metrics_collector import (
+    MetricsCollector,
+    _counter_to_proto,
+    _gauge_to_proto,
+    _histogram_to_proto,
+    _summary_to_proto,
+    _untyped_to_proto,
+)
 from metrics_pb2 import Metric, MetricFamily
 from orc8r.protos import metricsd_pb2
 from orc8r.protos.metricsd_pb2 import MetricsContainer
-
-# Allow access to protected variables for unit testing
-# pylint: disable=protected-access
-from magma.magmad.metrics_collector import \
-    _counter_to_proto, _summary_to_proto, _gauge_to_proto, _untyped_to_proto, \
-    _histogram_to_proto
 
 
 class MockFuture(object):
@@ -175,8 +178,8 @@ class MetricsCollectorTests(unittest.TestCase):
             len(self._collector._samples_for_service[service_name]),
             3)
         uptime_list = [
-              fam for fam in self._collector._samples_for_service[service_name]
-              if fam.name == str(metricsd_pb2.process_uptime_seconds)]
+            fam for fam in self._collector._samples_for_service[service_name]
+            if fam.name == str(metricsd_pb2.process_uptime_seconds)]
         self.assertEqual(len(uptime_list), 1)
         self.assertEqual(len(uptime_list[0].metric), 1)
         self.assertGreater(uptime_list[0].metric[0].gauge.value, 0)
@@ -349,6 +352,7 @@ class MetricsCollectorTests(unittest.TestCase):
             sample_name = randrange(10000)
             samples.append(MetricFamily(name=str(sample_name)))
         return samples
+
 
 if __name__ == "__main__":
     unittest.main()

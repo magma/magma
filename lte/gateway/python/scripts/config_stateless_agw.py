@@ -19,9 +19,7 @@ import argparse
 import os
 import subprocess
 import sys
-import shlex
 import time
-
 from enum import Enum
 
 from magma.common.redis.client import get_default_client
@@ -57,8 +55,8 @@ def check_stateless_services():
     num_stateful = 0
     for service, config, value in STATELESS_SERVICE_CONFIGS:
         if (
-            check_stateless_service_config(service, config, value)
-            == return_codes.STATEFUL
+                check_stateless_service_config(service, config, value)
+                == return_codes.STATEFUL
         ):
             num_stateful += 1
 
@@ -158,6 +156,14 @@ def disable_stateless_agw():
     sys.exit(check_stateless_services().value)
 
 
+def ovs_reset_bridges():
+    subprocess.call("ifdown uplink_br0".split())
+    subprocess.call("ifdown gtp_br0".split())
+    subprocess.call("service openvswitch-switch restart".split())
+    subprocess.call("ifup uplink_br0".split())
+    subprocess.call("ifup gtp_br0".split())
+
+
 def sctpd_pre_start():
     if check_stateless_services() == return_codes.STATEFUL:
         # switching from stateless to stateful
@@ -166,8 +172,7 @@ def sctpd_pre_start():
         # Clean up all mobilityd, MME, pipelined and sessiond Redis keys
         clear_redis_state()
         # Clean up OVS flows
-        subprocess.call("service openvswitch-switch restart".split())
-
+        ovs_reset_bridges()
     sys.exit(0)
 
 
@@ -198,6 +203,7 @@ def reset_sctpd_for_stateful():
         print("AGW is stateless, no need to restart Sctpd")
         sys.exit(0)
     restart_sctpd()
+
 
 STATELESS_FUNC_DICT = {
     "check": check_stateless_agw,

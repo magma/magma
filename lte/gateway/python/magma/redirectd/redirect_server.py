@@ -14,10 +14,9 @@ limitations under the License.
 import logging
 from collections import namedtuple
 
-from magma.redirectd.redirect_store import RedirectDict
-
 import wsgiserver
-from flask import Flask, redirect, request, render_template
+from flask import Flask, redirect, render_template, request
+from magma.redirectd.redirect_store import RedirectDict
 
 """ Use 404 when subscriber not found, 302 for 'Found' redirect """
 HTTP_NOT_FOUND = 404

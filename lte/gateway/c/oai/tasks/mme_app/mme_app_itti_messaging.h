@@ -131,5 +131,4 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
 
 void mme_app_itti_sgsap_ue_activity_ind(
     const char* imsi, const unsigned int imsi_len);
-
 #endif /* FILE_MME_APP_ITTI_MESSAGING_SEEN */

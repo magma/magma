@@ -23,9 +23,9 @@ def exec_and_parse_subprocesses(params, arg_list_func, result_parser_func):
     """
     Execute processes via `subprocess`, block while waiting for results, then
     parse the output with the supplied parsing callback.
-    
+
     Use exec_and_parse_subprocesses_async for a non-blocking async workflow.
-    
+
     Args:
         params (iterable):
             params for the process calls as an iterable
@@ -59,12 +59,12 @@ def exec_and_parse_subprocesses_async(params, arg_list_func, result_parser_func,
     """
     Asynchronously execute and parse results from subprocesses. NOTE: This
     workflow can only be used from the main thread!
-    
+
     Use exec_and_parse_subprocesses if you are not running in the main thread
     or if you need a non-async blocking workflow.
-    
+
     See exec_and_parse_subprocess for additional args and return documentation.
-    
+
     Args:
         loop: event loop to execute within (optional)
     """

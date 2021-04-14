@@ -10,10 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import logging
 import os
 import shutil
-import logging
-
 from time import time
 from typing import Dict, List, NamedTuple, Optional
 
@@ -21,7 +20,6 @@ from magma.common.health.service_state_wrapper import ServiceStateWrapper
 from magma.common.job import Job
 from magma.magmad.check import subprocess_workflow
 from orc8r.protos.service_status_pb2 import ServiceExitStatus
-
 from redis.exceptions import ConnectionError
 
 SystemdServiceParams = NamedTuple('SystemdServiceParams', [('service', str)])

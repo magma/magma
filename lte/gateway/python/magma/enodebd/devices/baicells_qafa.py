@@ -16,24 +16,38 @@ from typing import Any, Callable, Dict, List, Optional, Type
 from magma.common.service import MagmaService
 from magma.enodebd.data_models import transform_for_enb, transform_for_magma
 from magma.enodebd.data_models.data_model import DataModel, TrParam
-from magma.enodebd.data_models.data_model_parameters import ParameterName, \
-    TrParameterType
-from magma.enodebd.device_config.enodeb_config_postprocessor import \
-    EnodebConfigurationPostProcessor
-from magma.enodebd.device_config.enodeb_configuration import \
-    EnodebConfiguration
-from magma.enodebd.devices.baicells_qafb import \
-    BaicellsQafbGetObjectParametersState, \
-    BaicellsQafbWaitGetTransientParametersState
+from magma.enodebd.data_models.data_model_parameters import (
+    ParameterName,
+    TrParameterType,
+)
+from magma.enodebd.device_config.enodeb_config_postprocessor import (
+    EnodebConfigurationPostProcessor,
+)
+from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
+from magma.enodebd.devices.baicells_qafb import (
+    BaicellsQafbGetObjectParametersState,
+    BaicellsQafbWaitGetTransientParametersState,
+)
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.state_machines.enb_acs_impl import \
-    BasicEnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_states import AddObjectsState, \
-    BaicellsSendRebootState, DeleteObjectsState, EndSessionState, \
-    EnodebAcsState, ErrorState, GetParametersState, GetRPCMethodsState, \
-    SendGetTransientParametersState, SetParameterValuesState, \
-    WaitEmptyMessageState, WaitGetParametersState, WaitInformMRebootState, \
-    WaitInformState, WaitRebootResponseState, WaitSetParameterValuesState
+from magma.enodebd.state_machines.enb_acs_impl import BasicEnodebAcsStateMachine
+from magma.enodebd.state_machines.enb_acs_states import (
+    AddObjectsState,
+    BaicellsSendRebootState,
+    DeleteObjectsState,
+    EndSessionState,
+    EnodebAcsState,
+    ErrorState,
+    GetParametersState,
+    GetRPCMethodsState,
+    SendGetTransientParametersState,
+    SetParameterValuesState,
+    WaitEmptyMessageState,
+    WaitGetParametersState,
+    WaitInformMRebootState,
+    WaitInformState,
+    WaitRebootResponseState,
+    WaitSetParameterValuesState,
+)
 
 
 class BaicellsQAFAHandler(BasicEnodebAcsStateMachine):

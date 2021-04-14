@@ -73,12 +73,15 @@ Follow these conventions when making changes to the Magma codebase.
     - Consider breaking dense code paragraphs out into private functions.
 - Save comments for code blocks that require non-obvious context, e.g. answering why an idiosyncratic or non-obvious decision was made
 
-### Style conventions
+### Follow style conventions
 
 - Use [Go-style doc comments](https://golang.org/doc/effective_go#commentary), where the doc comment is prefixed by the name of the object being documented
 - Use [Americanized spellings](https://en.wikipedia.org/wiki/Wikipedia:List_of_spelling_variants)
     - marshaling, marshaled
     - canceling, canceled, cancellation
+- Use alphabetized [metasyntactic variables](https://en.wikipedia.org/wiki/Metasyntactic_variable)
+    - Good: `apple, banana, cherry, date, egg`
+    - Bad: `foo, bar, baz, quz, soap`
 - Prefer underscores over hyphens
     - File, directory names
     - YAML, JSON
@@ -169,6 +172,7 @@ Orc8r's cloud code has some basic [CI lint checks](https://github.com/magma/magm
     - Example: [`orc8r/cloud/go/services/state/indexer/indexer_test.go`](https://github.com/magma/magma/blob/51843e3245e0b785a738d991f62657c2cac328b6/orc8r/cloud/go/services/state/indexer/indexer_test.go#L14)
     - In almost all cases, the code-under-test should be re-writable into something that can be tested from an external test package
     - Only use same-package tests when absolutely necessary, and in that case put them in a separate test file
+- When returning an error, all other returns should contain their [zero value](https://yourbasic.org/golang/default-zero-value/)
 
 **Logging**
 - Use [the `golang/glog` package](https://pkg.go.dev/github.com/golang/glog) for all logging

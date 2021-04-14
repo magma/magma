@@ -18,17 +18,17 @@ from concurrent.futures import Future
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.pipelined_pb2 import SubscriberQuotaUpdate
 from lte.protos.subscriberdb_pb2 import SubscriberID
-from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
-    PipelinedController,
-)
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
 from magma.pipelined.tests.pipelined_test_util import (
     SnapshotVerifier,
+    create_service_manager,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    create_service_manager,
-    wait_after_send
+    wait_after_send,
 )
 
 

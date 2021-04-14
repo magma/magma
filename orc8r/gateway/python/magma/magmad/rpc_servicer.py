@@ -10,33 +10,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import queue
-import signal
-
-import grpc
-
-import os
 import asyncio
 import logging
+import os
+import queue
+import signal
 from typing import List
 
+import grpc
 import snowflake
 from google.protobuf import json_format
+from google.protobuf.json_format import MessageToJson
 from google.protobuf.struct_pb2 import Struct
-from magma.common.service_registry import ServiceRegistry
-from orc8r.protos import magmad_pb2, magmad_pb2_grpc
-
 from magma.common.rpc_utils import return_void, set_grpc_err
 from magma.common.service import MagmaService
-from magma.common.stateless_agw import check_stateless_agw, \
-enable_stateless_agw, disable_stateless_agw
+from magma.common.service_registry import ServiceRegistry
+from magma.common.stateless_agw import (
+    check_stateless_agw,
+    disable_stateless_agw,
+    enable_stateless_agw,
+)
 from magma.configuration.mconfig_managers import MconfigManager
-from magma.magmad.generic_command.command_executor import \
-    CommandExecutor
-from magma.magmad.service_manager import ServiceManager
 from magma.magmad.check.network_check import ping, traceroute
-
-from google.protobuf.json_format import MessageToJson
+from magma.magmad.generic_command.command_executor import CommandExecutor
+from magma.magmad.service_manager import ServiceManager
+from orc8r.protos import magmad_pb2, magmad_pb2_grpc
 
 
 class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
@@ -113,6 +111,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         If no services specified, restart all services.
         """
         self._print_grpc(request)
+
         async def run_restart():
             await asyncio.sleep(1)
             await self._service_manager.restart_services(request.services)
@@ -132,7 +131,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         self._print_grpc(request)
         if request.configs_by_key is None or \
-            len(request.configs_by_key) == 0:
+                len(request.configs_by_key) == 0:
             self._mconfig_manager.delete_stored_mconfig()
         else:
             # TODO: support streaming mconfig manager impl
@@ -271,9 +270,8 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         status = check_stateless_agw()
         logging.debug("AGW mode is %s",
-                magmad_pb2.CheckStatelessResponse.AGWMode.Name(status))
+                      magmad_pb2.CheckStatelessResponse.AGWMode.Name(status))
         return magmad_pb2.CheckStatelessResponse(agw_mode=status)
-
 
     @return_void
     def ConfigureStateless(self, request, context):
@@ -289,7 +287,6 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         elif request.config_cmd == magmad_pb2.ConfigureStatelessRequest.DISABLE:
             logging.info("RPC: config command disable")
             disable_stateless_agw()
-
 
     @staticmethod
     def __ping_specified_hosts(ping_param_protos):
@@ -361,7 +358,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                                      MessageToJson(message))
             # add indentation
             padding = 2 * ' '
-            log_msg =''.join( "{}{}".format(padding, line)
+            log_msg = ''.join("{}{}".format(padding, line)
                               for line in log_msg.splitlines(True))
 
             log_msg = "GRPC message:\n{}".format(log_msg)

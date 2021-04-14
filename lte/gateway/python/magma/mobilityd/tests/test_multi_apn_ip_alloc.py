@@ -12,32 +12,30 @@ limitations under the License.
 """
 
 import ipaddress
-import unittest
 import logging
+import unittest
 from typing import Optional
 
 from lte.protos.subscriberdb_pb2 import (
+    APNConfiguration,
     LTESubscription,
+    Non3GPPUserProfile,
     SubscriberData,
     SubscriberState,
-    Non3GPPUserProfile,
-    APNConfiguration,
 )
-
 from magma.common.redis.client import get_default_client
+from magma.mobilityd.ip_address_man import (
+    IPAddressManager,
+    IPNotInUseError,
+    MappingNotFoundError,
+)
+from magma.mobilityd.ip_allocator_multi_apn import IPAllocatorMultiAPNWrapper
+from magma.mobilityd.ip_allocator_pool import IpAllocatorPool
+from magma.mobilityd.ip_allocator_static import IPAllocatorStaticWrapper
 from magma.mobilityd.ip_descriptor import IPDesc, IPType
-from magma.mobilityd.ip_address_man import IPAddressManager, \
-    IPNotInUseError, MappingNotFoundError
-from magma.subscriberdb.sid import SIDUtils
+from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool
 from magma.mobilityd.mobility_store import MobilityStore
-from magma.mobilityd.ip_allocator_pool import \
-    IpAllocatorPool
-from magma.mobilityd.ip_allocator_multi_apn import \
-    IPAllocatorMultiAPNWrapper
-from magma.mobilityd.ipv6_allocator_pool import \
-    IPv6AllocatorPool
-from magma.mobilityd.ip_allocator_static import \
-    IPAllocatorStaticWrapper
+from magma.subscriberdb.sid import SIDUtils
 
 
 class MockedSubscriberDBStub:

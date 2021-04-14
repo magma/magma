@@ -12,6 +12,7 @@ limitations under the License.
 """
 from magma.common.misc_utils import get_gateway_hwid
 
+
 def make_mem_key(device_id: str, state_type: str) -> str:
     """
     Create a key of the format <id>:<type>

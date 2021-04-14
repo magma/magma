@@ -14,11 +14,13 @@ import asyncio
 import logging
 import shlex
 from functools import partial
+from typing import Any, Dict
 
-from typing import Dict, Any
-
-from magma.magmad.generic_command.command_executor import \
-    CommandExecutor, ExecutorFuncT, ParamValueT
+from magma.magmad.generic_command.command_executor import (
+    CommandExecutor,
+    ExecutorFuncT,
+    ParamValueT,
+)
 
 
 class ShellCommandExecutor(CommandExecutor):
@@ -26,6 +28,7 @@ class ShellCommandExecutor(CommandExecutor):
     The shell command executor stores shell commands from the service config
     into its dispatch table
     """
+
     def __init__(
             self,
             config: Dict[str, Any],

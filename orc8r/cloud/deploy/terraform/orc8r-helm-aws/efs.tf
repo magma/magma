@@ -13,7 +13,7 @@
 
 # k8s requires provisioner to treat efs as a persistent volume
 resource "helm_release" "efs_provisioner" {
-  name       = "efs-provisioner"
+  name       = var.efs_provisioner_name
   repository = local.stable_helm_repo
   chart      = "efs-provisioner"
   version    = "0.11.0"
@@ -27,7 +27,7 @@ resource "helm_release" "efs_provisioner" {
     path: /pv-volume
     provisionerName: aws-efs
     storageClass:
-      name: efs
+      name: ${var.efs_storage_class_name}
   podAnnotations:
     iam-assumable-role: ${var.efs_provisioner_role_arn}
   VALUES

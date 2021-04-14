@@ -10,19 +10,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import logging
 import shlex
 import subprocess
-import logging
 
-from magma.pipelined.openflow import flows
-from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.app.base import MagmaController, ControllerType
+from lte.protos.pipelined_pb2 import FlowRequest
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import DPI_REG
-from magma.pipelined.policy_converters import FlowMatchError, \
-    flow_match_to_magma_match, flip_flow_match
-from lte.protos.pipelined_pb2 import FlowRequest
+from magma.pipelined.policy_converters import (
+    FlowMatchError,
+    flip_flow_match,
+    flow_match_to_magma_match,
+)
 
 # TODO might move to config file
 # Current classification will finalize if found in APP_PROTOS, if found in

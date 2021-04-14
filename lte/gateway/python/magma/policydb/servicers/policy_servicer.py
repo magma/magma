@@ -11,15 +11,23 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import grpc
 import logging
 from typing import List
-from lte.protos.policydb_pb2 import EnableStaticRuleRequest, \
-    DisableStaticRuleRequest
-from lte.protos.policydb_pb2_grpc import PolicyAssignmentControllerStub, \
-    PolicyDBServicer, add_PolicyDBServicer_to_server
-from lte.protos.session_manager_pb2 import PolicyReAuthRequest, \
-    StaticRuleInstall
+
+import grpc
+from lte.protos.policydb_pb2 import (
+    DisableStaticRuleRequest,
+    EnableStaticRuleRequest,
+)
+from lte.protos.policydb_pb2_grpc import (
+    PolicyAssignmentControllerStub,
+    PolicyDBServicer,
+    add_PolicyDBServicer_to_server,
+)
+from lte.protos.session_manager_pb2 import (
+    PolicyReAuthRequest,
+    StaticRuleInstall,
+)
 from magma.policydb.basename_store import BaseNameDict
 from magma.policydb.reauth_handler import ReAuthHandler
 from orc8r.protos.common_pb2 import Void

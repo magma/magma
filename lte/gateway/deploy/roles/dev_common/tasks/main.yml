@@ -238,6 +238,7 @@
       - libpcap-dev
       - libtins-dev
       - libmnl-dev
+      - libcurl4-openssl-dev
   retries: 5
   when: preburn
 
@@ -264,6 +265,40 @@
       - libprotobuf-lite17
       - libprotoc17
       - libssl-dev
+
+###############################################
+# Download and build sentry-native
+###############################################
+
+- name: Install Sentry Native SDK
+  vars:
+    sentry_native_version: "0.4.8"
+  get_url:
+    url: "https://github.com/getsentry/sentry-native/releases/download/{{ sentry_native_version }}/sentry-native.zip"
+    dest: "{{ tmp_directory }}/sentry-native.zip"
+  when: preburn and ansible_distribution == "Ubuntu"
+
+- name: Create a directory for Sentry Native
+  file:
+    path: "{{ tmp_directory }}/sentry-native"
+    state: directory
+  when: preburn and ansible_distribution == "Ubuntu"
+
+- name: Unpack Sentry Native SDK
+  unarchive:
+    src: "{{ tmp_directory }}/sentry-native.zip"
+    dest: "{{ tmp_directory }}/sentry-native"
+    remote_src: yes
+  when: preburn and ansible_distribution == "Ubuntu"
+
+- name: Build and Install Sentry Native SDK
+  shell: |
+    cd {{ tmp_directory }}/sentry-native && \
+    cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
+    cmake --build build --parallel && \
+    cmake --install build --prefix install --config RelWithDebInfo && \
+    cd build && make install
+  when: preburn and ansible_distribution == "Ubuntu"
 
 ###############################################
 # Download and build swagger-codegen
@@ -318,6 +353,13 @@
     M2_HOME: "{{ mvn_dir }}"
     CODEGEN_ROOT: "{{ codegen_root }}"
   when: preburn
+
+- name: Download gHZ binary from artifactory
+  get_url:
+    url: https://artifactory.magmacore.org:443/artifactory/blob-prod/ghz
+    dest: /usr/local/bin/ghz
+    mode: 0755
+  when: full_provision
 
 - name: Fix kernel commandline for interface naming.
   shell: |

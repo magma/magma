@@ -16,13 +16,12 @@ and the config/mconfig for the service.
 """
 
 import logging
-
 import os
+
+from generate_service_config import generate_template_config
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.environment import is_dev_mode, is_docker_network_mode
 from magma.configuration.service_configs import get_service_config_value
-
-from generate_service_config import generate_template_config
 
 CONFIG_OVERRIDE_DIR = '/var/opt/magma/tmp'
 

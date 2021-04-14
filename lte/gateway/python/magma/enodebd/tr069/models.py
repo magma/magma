@@ -14,8 +14,13 @@ limitations under the License.
 
 from spyne.model import ComplexModel
 from spyne.model.complex import XmlAttribute, XmlData
-from spyne.model.primitive import Boolean, DateTime, Integer, String, \
-    UnsignedInteger
+from spyne.model.primitive import (
+    Boolean,
+    DateTime,
+    Integer,
+    String,
+    UnsignedInteger,
+)
 from spyne.util.odict import odict
 
 # Namespaces

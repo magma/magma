@@ -11,9 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from magma.enodebd.logger import EnodebdLogger as logger
 import re
+
 from magma.enodebd.exceptions import UnrecognizedEnodebError
+from magma.enodebd.logger import EnodebdLogger as logger
 
 
 class EnodebDeviceName():

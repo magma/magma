@@ -138,6 +138,8 @@ static int emm_attach_success_authentication_cb(emm_context_t* emm_context);
 static int emm_attach_failure_authentication_cb(emm_context_t* emm_context);
 static int emm_attach_success_security_cb(emm_context_t* emm_context);
 static int emm_attach_failure_security_cb(emm_context_t* emm_context);
+static int emm_attach_identification_after_smc_success_cb(
+    emm_context_t* emm_context);
 
 /*
    Abnormal case attach procedures
@@ -332,6 +334,8 @@ int emm_proc_attach_request(
       nas_proc_implicit_detach_ue_ind(guti_ue_mm_ctx->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
+    // Allocate new context and process the new request as fresh attach request
+    clear_emm_ctxt = true;
   }
   if (ies->imsi) {
     imsi_ue_mm_ctx =
@@ -1301,6 +1305,40 @@ static int emm_attach_success_security_cb(emm_context_t* emm_context) {
   OAILOG_INFO(LOG_NAS_EMM, "ATTACH - Security procedure success!\n");
   nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_context);
+  if (!attach_proc) {
+    OAILOG_ERROR_UE(
+        LOG_NAS_EMM, emm_context->_imsi64,
+        "EMM-PROC  - attach_proc is NULL \n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+  }
+
+  if (emm_context->initiate_identity_after_smc) {
+    emm_context->initiate_identity_after_smc = false;
+    OAILOG_DEBUG_UE(
+        LOG_NAS_EMM, emm_context->_imsi64, "Trigger identity procedure\n");
+    rc = emm_proc_identification(
+        emm_context, (nas_emm_proc_t*) attach_proc, IDENTITY_TYPE_2_IMEISV,
+        emm_attach_identification_after_smc_success_cb,
+        emm_attach_failure_identification_cb);
+
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
+  rc = emm_attach(emm_context);
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+}
+
+//------------------------------------------------------------------------------
+static int emm_attach_identification_after_smc_success_cb(
+    emm_context_t* emm_context) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int rc = RETURNerror;
+
+  OAILOG_INFO(
+      LOG_NAS_EMM,
+      "ATTACH - Identity procedure after smc procedure success!\n");
+  nas_emm_attach_proc_t* attach_proc =
+      get_nas_specific_procedure_attach(emm_context);
 
   if (attach_proc) {
     rc = emm_attach(emm_context);
@@ -1761,11 +1799,8 @@ static int emm_send_attach_accept(emm_context_t* emm_context) {
     //----------------------------------------
     REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__14);
     emm_sap.u.emm_as.u.establish.eps_network_feature_support =
-        calloc(1, sizeof(eps_network_feature_support_t));
-    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
-        _emm_data.conf.eps_network_feature_support[0];
-    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
-        _emm_data.conf.eps_network_feature_support[1];
+        (eps_network_feature_support_t*) &_emm_data.conf
+            .eps_network_feature_support;
 
     /*
      * Delete any preexisting UE radio capabilities, pursuant to
@@ -1774,8 +1809,7 @@ static int emm_send_attach_accept(emm_context_t* emm_context) {
     // Note: this is safe from double-free errors because it sets to NULL
     // after freeing, which free treats as a no-op.
     bdestroy_wrapper(&ue_mm_context_p->ue_radio_capability);
-    free_wrapper(
-        (void**) &emm_sap.u.emm_as.u.establish.eps_network_feature_support);
+
     /*
      * Setup EPS NAS security data
      */
@@ -1936,14 +1970,9 @@ static int emm_attach_accept_retx(emm_context_t* emm_context) {
         "message\n",
         ue_id);
     emm_sap.u.emm_as.u.establish.eps_network_feature_support =
-        calloc(1, sizeof(eps_network_feature_support_t));
+        (eps_network_feature_support_t*) &_emm_data.conf
+            .eps_network_feature_support;
     emm_sap.u.emm_as.u.data.new_guti = &emm_context->_guti;
-    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b1 =
-        _emm_data.conf.eps_network_feature_support[0];
-    emm_sap.u.emm_as.u.establish.eps_network_feature_support->b2 =
-        _emm_data.conf.eps_network_feature_support[1];
-    free_wrapper(
-        (void**) &emm_sap.u.emm_as.u.establish.eps_network_feature_support);
 
     /*
      * Setup EPS NAS security data
