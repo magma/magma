@@ -26,12 +26,13 @@ import (
 func (mPgw *MockPgw) getHandleDeleteSessionRequest() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
 
-		fmt.Println("mock PGW received a DeleteSessionRequest")
+
 
 		var err error
 		dsReqFromSGW := msg.(*message.DeleteSessionRequest)
 
 		pgwTeidC := dsReqFromSGW.TEID()
+		fmt.Println("++++ mock PGW received a DeleteSessionRequest for this TEID", pgwTeidC)
 		session, err := c.GetSessionByTEID(pgwTeidC, sgwAddr)
 		mPgw.LastTEIDc = pgwTeidC
 		if err != nil {

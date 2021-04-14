@@ -29,7 +29,7 @@ import (
 
 func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
-		fmt.Println("mock PGW received a CreateSessionRequest")
+
 
 		session := gtpv2.NewSession(sgwAddr, &gtpv2.Subscriber{Location: &gtpv2.Location{}})
 		bearer := session.GetDefaultBearer()
@@ -187,6 +187,7 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 				return err
 			}
 		}
+		fmt.Printf("---- mock PGW received a CreateSessionRequest sTeid %d pTeid %d\n", sgwTEIDc, pgwFTEIDc.MustTEID())
 
 		qosPCI := uint8(0)
 		if bearer.QoSProfile.PCI {

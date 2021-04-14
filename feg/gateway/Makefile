@@ -24,6 +24,8 @@ install_envoy_controller:
 
 test:
 	go test ./...
+	#go test ./... -v -args -v 2 -alsologtostderr
+	#cd services/s8_proxy/servicers/ && go test -run TestS8proxyManyCreateAndDeleteSession -args -v 10 -alsologtostderr && cd ../../..
 	go test -tags link_local_service,with_builtin_radius magma/feg/gateway/services/eap/... magma/feg/gateway/services/aaa/...
 
 buildenv: stop
