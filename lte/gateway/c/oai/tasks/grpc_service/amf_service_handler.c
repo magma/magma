@@ -46,4 +46,3 @@ int send_n11_notification_received_itti(
   message_p->ittiMsg.n11_notification_received = *itti_msg;
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
 }
-

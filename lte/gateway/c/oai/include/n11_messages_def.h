@@ -18,4 +18,3 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     N11_NOTIFICATION_RECEIVED, itti_n11_received_notification_t,
     n11_notification_received)
-

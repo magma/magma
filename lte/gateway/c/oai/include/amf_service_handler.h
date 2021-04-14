@@ -25,4 +25,3 @@ int send_n11_create_pdu_session_resp_itti(
  */
 int send_n11_notification_received_itti(
     itti_n11_received_notification_t* itti_msg);
-

@@ -390,12 +390,11 @@ typedef struct itti_n11_received_notification_s {
   // rat specific
   uint32_t pdu_session_id;
   RequestType_received request_type;
-  //PduSessionType_response pdu_session_type;
+  // PduSessionType_response pdu_session_type;
   M5GSMCapability_received m5g_sm_capability;
   m5g_sm_cause_t m5gsm_cause;
   pdu_session_type_t pdu_session_type;
-  //M5GSMCause_response m5gsm_cause;
+  // M5GSMCause_response m5gsm_cause;
   // Idle/paging/periodic_reg events and UE state notification
   notify_ue_event notify_ue_evnt;
 } itti_n11_received_notification_t;
-

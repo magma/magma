@@ -293,8 +293,8 @@ int amf_handle_authentication_response(
  * params@ imsi
  * return guti structure on success ,Null on failure
  */
-ue_m5gmm_context_s * lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
-//  imsi64_t imsi64 = amf_imsi_to_imsi64(imsi);
+ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
+  //  imsi64_t imsi64 = amf_imsi_to_imsi64(imsi);
 
   /*Check imsi found
    *
@@ -304,12 +304,13 @@ ue_m5gmm_context_s * lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
   if (found_imsi == amf_supi_guti_map.end()) {
     // it is new entry to map
     OAILOG_ERROR(LOG_NAS_AMF, "UE_ID context not found in ue-context_map\n");
-        return NULL;
+    return NULL;
 
   } else {
     // Overwrite the second element.
-  return amf_ue_context_exists_amf_ue_ngap_id(found_imsi->second.amf_ue_ngap_id);
-//return found_imsi->second;
+    return amf_ue_context_exists_amf_ue_ngap_id(
+        found_imsi->second.amf_ue_ngap_id);
+    // return found_imsi->second;
   }
 }
 

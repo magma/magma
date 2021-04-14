@@ -61,10 +61,9 @@ Status AmfServiceImpl::SetAmfNotification(
   itti_msg.sm_session_version = notify_common.sm_session_version();
 
   // RatSpecificContextAccess
-  itti_msg.pdu_session_id = req_m5g.pdu_session_id();
-  itti_msg.request_type   = (RequestType_received) req_m5g.request_type();
-  itti_msg.pdu_session_type =
-      (pdu_session_type_t) req_m5g.pdu_session_type();
+  itti_msg.pdu_session_id   = req_m5g.pdu_session_id();
+  itti_msg.request_type     = (RequestType_received) req_m5g.request_type();
+  itti_msg.pdu_session_type = (pdu_session_type_t) req_m5g.pdu_session_type();
   itti_msg.m5g_sm_capability.reflective_qos =
       req_m5g.m5g_sm_capability().reflective_qos();
   itti_msg.m5g_sm_capability.multi_homed_ipv6_pdu_session =

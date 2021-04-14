@@ -128,12 +128,12 @@ int amf_insert_ue_context(
         (0 != ue_context_p->amf_context.m5_guti.m_tmsi) ||
         (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn
                   .mcc_digit1) ||  // MCC 000 does not exist in ITU table
-        (0 != ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit2) ||
-        (0 != ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit3)) {
+        (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
+        (0 != ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3)) {
       h_rc = obj_hashtable_uint64_ts_insert(
           amf_ue_context_p->guti_ue_context_htbl,
-          (const void* const) & ue_context_p->amf_context._m5_guti,
-          sizeof(ue_context_p->amf_context._m5_guti),
+          (const void* const) & ue_context_p->amf_context.m5_guti,
+          sizeof(ue_context_p->amf_context.m5_guti),
           ue_context_p->amf_ue_ngap_id);
 
       if (HASH_TABLE_OK != h_rc) {
@@ -361,8 +361,8 @@ void amf_remove_ue_context(
            .mcc_digit3)) {  // MCC 000 does not exist in ITU table
     hash_rc = obj_hashtable_uint64_ts_remove(
         amf_ue_context_p->guti_ue_context_htbl,
-        (const void* const) & ue_context_p->amf_context._m5_guti,
-        sizeof(ue_context_p->amf_context._m5_guti));
+        (const void* const) & ue_context_p->amf_context.m5_guti,
+        sizeof(ue_context_p->amf_context.m5_guti));
     if (HASH_TABLE_OK != hash_rc)
       OAILOG_ERROR(
           LOG_AMF_APP,

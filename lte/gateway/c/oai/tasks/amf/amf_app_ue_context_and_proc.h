@@ -58,7 +58,6 @@ extern "C" {
 #include "M5GULNASTransport.h"
 #include "M5GDLNASTransport.h"
 
-
 namespace magma5g {
 #define NAS5G_TIMER_INACTIVE_ID (-1)
 struct amf_procedures_t;
@@ -287,7 +286,7 @@ typedef struct amf_context_s {
   imsi64_t saved_imsi64; /* Useful for 5.4.2.7.c */
   imei_t imei;           /* The IMEI provided by the UE                     */
   imeisv_t imeisv;       /* The IMEISV provided by the UE                   */
-  guti_m5_t _m5_guti;     /* The GUTI assigned to the UE                     */
+  guti_m5_t m5_guti;     /* The GUTI assigned to the UE                     */
   guti_m5_t m5_old_guti; /* The GUTI assigned to the UE                     */
   ksi_t ksi;             /*key set identifier  */
   drx_parameter_t drx_parameter;
