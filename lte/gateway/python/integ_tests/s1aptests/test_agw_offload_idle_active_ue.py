@@ -71,7 +71,7 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
         # Send offloading request
         self.assertTrue(
             self._ha_util.offload_agw(
-                "IMSI".join([str(i) for i in req.imsi]),
+                "".join(["IMSI"] + [str(i) for i in req.imsi]),
                 enb_list[0][0],
             ),
         )
@@ -86,7 +86,7 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
         # Send offloading request
         self.assertTrue(
             self._ha_util.offload_agw(
-                "IMSI".join([str(i) for i in req.imsi]),
+                "".join(["IMSI"] + [str(i) for i in req.imsi]),
                 enb_list[0][0],
             ),
         )
