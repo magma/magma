@@ -11,20 +11,24 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
 import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import HaUtil
 
 
 class TestAgwOffloadIdleActiveUe(unittest.TestCase):
+    """Unittest: TestAgwOffloadIdleActiveUe"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._ha_util = HaUtil()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_agw_offload_idle_active_ue(self):
@@ -62,26 +66,29 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         print(
-            "*************************  Offloading UE at state ECM-CONNECTED"
+            "*************************  Offloading UE at state ECM-CONNECTED",
         )
         # Send offloading request
         self.assertTrue(
             self._ha_util.offload_agw(
-                "IMSI" + "".join([str(i) for i in req.imsi]), enb_list[0][0]
-            )
+                "IMSI".join([str(i) for i in req.imsi]),
+                enb_list[0][0],
+            ),
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         print("*************************  Offloading UE at state ECM-IDLE")
         # Send offloading request
         self.assertTrue(
             self._ha_util.offload_agw(
-                "IMSI" + "".join([str(i) for i in req.imsi]), enb_list[0][0]
-            )
+                "IMSI".join([str(i) for i in req.imsi]),
+                enb_list[0][0],
+            ),
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -94,37 +101,45 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
         ser_req.ueMtmsi.pres = False
         ser_req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req
+            s1ap_types.tfwCmd.UE_SERVICE_REQUEST,
+            ser_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type,
+            s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         # Send service request again:
         # This time auto-release should not happen
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req
+            s1ap_types.tfwCmd.UE_SERVICE_REQUEST,
+            ser_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type,
+            s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
 
         print("************************* SLEEPING for 2 sec")
         time.sleep(2)
 
         print(
-            "************************* Running UE detach for UE id ", req.ue_id
+            "************************* Running UE detach for UE id ",
+            req.ue_id,
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+            req.ue_id,
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+            wait_for_s1_ctxt_release=True,
         )
 
 

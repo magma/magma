@@ -11,23 +11,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import math
+import time
 import unittest
 
 import gpp_types
-import math
 import s1ap_types
-import time
-
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import HaUtil
 
 
 class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
+    """Unittest: TestAgwOffloadMixedIdleActiveMultiUe"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._ha_util = HaUtil()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_agw_offload_mixed_idle_active_multiue(self):
@@ -76,11 +79,13 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
                 gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
             )
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_cntxt_rel_req
+                s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST,
+                ue_cntxt_rel_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
             )
 
         print("*************************  Send Offload Request to AGW")
@@ -90,7 +95,7 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
         # All UEs should eventually receive Context Release Request
         # The first half should get it immediately
         # The second half should first get paging
-        for i in range(num_ues):
+        for _ in range(num_ues):
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertIn(
                 response.msg_type,
@@ -111,16 +116,19 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
             ser_req.ueMtmsi.pres = False
             ser_req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req
+                s1ap_types.tfwCmd.UE_SERVICE_REQUEST,
+                ser_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                response.msg_type,
+                s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
             )
 
         for i in range(num_ues):
@@ -131,18 +139,22 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
             ser_req.ueMtmsi.pres = False
             ser_req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req
+                s1ap_types.tfwCmd.UE_SERVICE_REQUEST,
+                ser_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                response.msg_type,
+                s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
             )
 
         # Now detach the UEs normally
         for ue in ue_ids:
             print("************************* Running UE detach for UE id ", ue)
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+                ue,
+                s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+                wait_for_s1_ctxt_release=True,
             )
 
 
