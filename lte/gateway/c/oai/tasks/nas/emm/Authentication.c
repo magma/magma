@@ -103,7 +103,7 @@ static void nas_itti_auth_info_req(
     const mme_ue_s1ap_id_t ue_idP, const imsi_t* const imsiP,
     const bool is_initial_reqP, plmn_t* const visited_plmnP,
     const uint8_t num_vectorsP, const_bstring const auts_pP,
-    const uint8_t en_dc);
+    const uint8_t dcnr);
 
 static void s6a_auth_info_rsp_timer_expiry_handler(
     void* args, imsi64_t* imsi64);
@@ -369,7 +369,7 @@ static int start_authentication_information_procedure(
 
   nas_itti_auth_info_req(
       ue_id, &emm_context->_imsi, is_initial_req, &visited_plmn,
-      MAX_EPS_AUTH_VECTORS, auts, emm_context->_ms_network_capability.en_dc);
+      MAX_EPS_AUTH_VECTORS, auts, emm_context->_ue_network_capability.dcnr);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
@@ -1454,7 +1454,7 @@ static void nas_itti_auth_info_req(
     const mme_ue_s1ap_id_t ue_id, const imsi_t* const imsiP,
     const bool is_initial_reqP, plmn_t* const visited_plmnP,
     const uint8_t num_vectorsP, const_bstring const auts_pP,
-    const uint8_t en_dc) {
+    const uint8_t dcnr) {
   OAILOG_FUNC_IN(LOG_NAS);
   MessageDef* message_p              = NULL;
   s6a_auth_info_req_t* auth_info_req = NULL;
@@ -1511,7 +1511,7 @@ static void nas_itti_auth_info_req(
       auth_info_req->supportedfeatures.nr_as_secondary_rat);
 #endif
 
-  if (en_dc) {
+  if (dcnr) {
     auth_info_req->supportedfeatures.nr_as_secondary_rat = 1;
   } else {
     auth_info_req->supportedfeatures.nr_as_secondary_rat = 0;

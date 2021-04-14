@@ -116,7 +116,7 @@ int mme_app_send_s6a_update_location_req(
    * by checking  dcnr flag in ue network capability.
    */
 
-  if (ue_context_p->emm_context._ms_network_capability.en_dc) {
+  if (ue_context_p->emm_context._ue_network_capability.dcnr) {
     s6a_ulr_p->dual_regis_5g_ind = 1;
   } else {
     s6a_ulr_p->dual_regis_5g_ind = 0;
