@@ -936,7 +936,7 @@ jobs:
           build: 'False'
           deploy: 'False'
 
-lte-agw-deploy:
+  lte-agw-deploy:
     machine:
       image: ubuntu-1604:201903-01
     steps:
@@ -951,12 +951,11 @@ lte-agw-deploy:
           artifact_name: LTE AGW
           version_path: versions/magma_version
 
-lte-agw-aws:
+  lte-agw-aws:
     environment:
                 AWS_ACCESS_KEY_ID: '$AWS_FB_CRED'
                 AWS_SECRET_ACCESS_KEY: '$AWS_FB_SECRET'
     machine:
-#      image: ubuntu-1604:201903-01
       image: ami-0e7b52505c766bf98
     steps:
       - build/determinator:
@@ -973,6 +972,7 @@ lte-agw-aws:
             command:|
               ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
               ansible-playbook ami-init.yaml
+      - magma_slack_notify
 
   ## CWF OPERATOR
 
@@ -1030,7 +1030,7 @@ lte-agw-aws:
 
   ### NMS
 
-  nms-flow-test:
+nms-flow-test:
     executor: node
     steps:
       - checkout
@@ -1048,7 +1048,7 @@ lte-agw-aws:
           command: yarn run flow
       - magma_slack_notify
 
-  eslint:
+eslint:
     executor: node
     steps:
       - checkout
@@ -1061,7 +1061,7 @@ lte-agw-aws:
           command: yarn run eslint ./
       - magma_slack_notify
 
-  nms-yarn-test:
+nms-yarn-test:
     executor: node
     steps:
       - checkout
@@ -1074,7 +1074,7 @@ lte-agw-aws:
           command: yarn test:ci
       - magma_slack_notify
 
-  nms-e2e-test:
+nms-e2e-test:
     machine:
       image: ubuntu-1604:201903-01
     environment:
@@ -1100,7 +1100,7 @@ lte-agw-aws:
           path: /tmp/nms_artifacts
       - magma_slack_notify
 
-  nms-build:
+nms-build:
     machine:
       image: ubuntu-1604:201903-01
     environment:
@@ -1127,7 +1127,7 @@ lte-agw-aws:
 
   ### FOSSA
 
-  fossa-analyze:
+fossa-analyze:
     docker:
       - image: circleci/buildpack-deps:xenial
     working_directory: /tmp/magma
@@ -1145,7 +1145,7 @@ lte-agw-aws:
 
   ### DOCUSAURUS
 
-  docusaurus_build_and_deploy:
+docusaurus_build_and_deploy:
     docker:
       - image: circleci/node:8.11.1
     environment:
@@ -1172,9 +1172,6 @@ lte-agw-aws:
             cd website && yarn install
             CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=mamga-docusaurus-bot yarn run publish-gh-pages
       - magma_slack_notify
-
-  ### XWF
-
   xwfm-test:
     parameters:
       notify_magma_ci:
@@ -1258,7 +1255,7 @@ lte-agw-aws:
       - magma_slack_notify
 
 workflows:
-  version: 2
+  version: 2.1
 
   cloud:
     jobs:
