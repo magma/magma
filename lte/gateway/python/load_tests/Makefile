@@ -2,7 +2,7 @@ include $(MAGMA_ROOT)/orc8r/gateway/python/python.mk
 include defs.mk
 
 load_test_file = $(firstword $(subst :, ,$1))
-method = $(or $(word 2,$(subst :, ,$1))
+method = $(or $(word 2,$(subst :, ,$1)))
 
 define execute_test
 	echo "Running load test: $(1)"
