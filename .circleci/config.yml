@@ -937,8 +937,9 @@ jobs:
           deploy: 'False'
 
   lte-agw-deploy:
-      enviroment: AWS_ACCESS_KEY_ID=“$AWS_FB_CRED”
-                AWS_SECRET_ACCESS_KEY=“$AWS_FB_SECRET”
+    enviroment: |
+                AWS_ACCESS_KEY_ID: '$AWS_FB_CRED'
+                AWS_SECRET_ACCESS_KEY: '$AWS_FB_SECRET'
     machine:
 #      image: ubuntu-1604:201903-01
       image: ami-0e7b52505c766bf98
