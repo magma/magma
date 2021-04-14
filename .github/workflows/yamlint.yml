@@ -14,3 +14,4 @@ jobs:
           level: warning
           filter_mode: added  # Any added or changed content.
           reporter: github-pr-review  # Comments on PR with review comments.
+          yamllint_flags: "-d .github/workflows/yamllint_config.yml ."
