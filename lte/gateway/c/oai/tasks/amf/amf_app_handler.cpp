@@ -139,8 +139,8 @@ void amf_ue_context_update_coll_keys(
     // context is migrated to map in the upcoming multi-UE PR
     OAILOG_ERROR(
         LOG_AMF_APP,
-        "Insertion of Hash entry failed for  amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
-            PRIX32 " \n",
+        "Insertion of Hash entry failed for  "
+        "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
         amf_ue_ngap_id);
   }
 
@@ -163,8 +163,8 @@ void amf_ue_context_update_coll_keys(
     // context is migrated to map in the upcoming multi-UE PR
     OAILOG_ERROR(
         LOG_AMF_APP,
-        "Insertion of Hash entry failed for  amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT
-            PRIX32 " \n",
+        "Insertion of Hash entry failed for  "
+        "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
         amf_ue_ngap_id);
   }
 
@@ -227,16 +227,17 @@ static bool amf_app_construct_guti(
   // Create GUTI by using PLMN Id and AMF-Group Id of serving AMF
   OAILOG_DEBUG(
       LOG_AMF_APP,
-      "Construct GUTI using S-TMSI received form UE and AMG Group Id and PLMN "
+      "Construct GUTI using S-TMSI received form UE and AMG Group Id and "
+      "PLMN "
       "id from AMF Conf: %u, %u \n",
       s_tmsi_p->m_tmsi, s_tmsi_p->amf_pointer);
   amf_config_read_lock(&amf_config_handler);
   /*
    * Check number of MMEs in the pool.
-   * At present it is assumed that one AMF is supported in AMF pool but in case
-   * there are more than one AMF configured then search the serving AMF using
-   * AMF code. Assumption is that within one PLMN only one pool of AMF will be
-   * configured
+   * At present it is assumed that one AMF is supported in AMF pool but in
+   * case there are more than one AMF configured then search the serving AMF
+   * using AMF code. Assumption is that within one PLMN only one pool of AMF
+   * will be configured
    */
   if (amf_config_handler.guamfi.nb > 1) {
     OAILOG_DEBUG(LOG_AMF_APP, "More than one AMFs are configured.");
@@ -469,9 +470,9 @@ int amf_app_handle_uplink_nas_message(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-/* Recieved the session created reponse message from SMF. Populate and Send PDU
- * Session Resource Setup Request message to gNB and  PDU Session Establishment
- * Accept Message to UE*/
+/* Recieved the session created reponse message from SMF. Populate and Send
+ * PDU Session Resource Setup Request message to gNB and  PDU Session
+ * Establishment Accept Message to UE*/
 void amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
