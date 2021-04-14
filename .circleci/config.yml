@@ -936,8 +936,23 @@ jobs:
           build: 'False'
           deploy: 'False'
 
-  lte-agw-deploy:
-    enviroment:
+lte-agw-deploy:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - build/determinator:
+          <<: *lte_build_verify
+      - magma_integ_test:
+          stack: lte
+          test: 'False'
+          build: 'True'
+          deploy: 'True'
+      - notify-magma:
+          artifact_name: LTE AGW
+          version_path: versions/magma_version
+
+lte-agw-aws:
+    environment:
                 AWS_ACCESS_KEY_ID: '$AWS_FB_CRED'
                 AWS_SECRET_ACCESS_KEY: '$AWS_FB_SECRET'
     machine:
@@ -1277,6 +1292,13 @@ workflows:
             - lte-test
             - mme_test
             - lte-integ-test
+      - lte-agw-aws:
+          <<: *only_master
+          requires:
+            - lte-test
+            - mme_test
+            - lte-integ-test
+      
       - c-cpp-codecov
 
   feg:
