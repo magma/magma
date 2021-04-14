@@ -56,7 +56,7 @@ int amf_handle_service_request(
   if (ue_context == NULL) {
      OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
   }
-  tmsi_stored = ue_context->amf_context._m5_guti.m_tmsi;
+  tmsi_stored = ue_context->amf_context.m5_guti.m_tmsi;
   // Check TMSI and then check MAC
       OAILOG_INFO(
           LOG_NAS_AMF, " TMSI stored in AMF CONTEXT %08" PRIx32 "\n",

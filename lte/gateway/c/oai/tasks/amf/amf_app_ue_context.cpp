@@ -364,17 +364,17 @@ void amf_remove_ue_context(
   }
 
   // filled guti
-  if ((ue_context_p->amf_context._m5_guti.guamfi.amf_set_id) ||
-      (ue_context_p->amf_context._m5_guti.guamfi.amf_regionid) ||
-      (ue_context_p->amf_context._m5_guti.m_tmsi) ||
-      (ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit1) ||
-      (ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit2) ||
-      (ue_context_p->amf_context._m5_guti.guamfi.plmn
+  if ((ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
+      (ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
+      (ue_context_p->amf_context.m5_guti.m_tmsi) ||
+      (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
+      (ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
+      (ue_context_p->amf_context.m5_guti.guamfi.plmn
            .mcc_digit3)) {  // MCC 000 does not exist in ITU table
     hash_rc = obj_hashtable_uint64_ts_remove(
         amf_ue_context_p->guti_ue_context_htbl,
-        (const void* const) & ue_context_p->amf_context._m5_guti,
-        sizeof(ue_context_p->amf_context._m5_guti));
+        (const void* const) & ue_context_p->amf_context.m5_guti,
+        sizeof(ue_context_p->amf_context.m5_guti));
     if (HASH_TABLE_OK != hash_rc)
       OAILOG_ERROR(
           LOG_AMF_APP,

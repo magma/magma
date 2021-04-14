@@ -172,20 +172,20 @@ void amf_ue_context_update_coll_keys(
 
   if (guti_p) {
     if ((guti_p->guamfi.amf_set_id !=
-         ue_context_p->amf_context._m5_guti.guamfi.amf_set_id) ||
+         ue_context_p->amf_context.m5_guti.guamfi.amf_set_id) ||
         (guti_p->guamfi.amf_set_id !=
-         ue_context_p->amf_context._m5_guti.guamfi.amf_regionid) ||
-        (guti_p->m_tmsi != ue_context_p->amf_context._m5_guti.m_tmsi) ||
+         ue_context_p->amf_context.m5_guti.guamfi.amf_regionid) ||
+        (guti_p->m_tmsi != ue_context_p->amf_context.m5_guti.m_tmsi) ||
         (guti_p->guamfi.plmn.mcc_digit1 !=
-         ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit1) ||
+         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1) ||
         (guti_p->guamfi.plmn.mcc_digit2 !=
-         ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit2) ||
+         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2) ||
         (guti_p->guamfi.plmn.mcc_digit3 !=
-         ue_context_p->amf_context._m5_guti.guamfi.plmn.mcc_digit3) ||
+         ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3) ||
         (ue_context_p->amf_ue_ngap_id != amf_ue_ngap_id)) {
       h_rc = obj_hashtable_uint64_ts_remove(
           amf_ue_context_p->guti_ue_context_htbl,
-          &ue_context_p->amf_context._m5_guti, sizeof(*guti_p));
+          &ue_context_p->amf_context.m5_guti, sizeof(*guti_p));
       if (INVALID_AMF_UE_NGAP_ID != amf_ue_ngap_id) {
         h_rc = obj_hashtable_uint64_ts_insert(
             amf_ue_context_p->guti_ue_context_htbl, (const void* const) guti_p,
@@ -202,7 +202,7 @@ void amf_ue_context_update_coll_keys(
             "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
             amf_ue_ngap_id);
       }
-      ue_context_p->amf_context._m5_guti = *guti_p;
+      ue_context_p->amf_context.m5_guti = *guti_p;
     }
   }
   OAILOG_FUNC_OUT(LOG_AMF_APP);
@@ -948,8 +948,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         amf_ctx->m5_guti.guamfi.amf_pointer;
     OAILOG_INFO(
         LOG_AMF_APP,
-        " Filling NGAP structure for Downlink amf_ctx dec "
-        "m_tmsi=%d",
+        "Filling NGAP structure for Downlink amf_ctx dec m_tmsi=%d",
         amf_ctx->m5_guti.m_tmsi);
     ngap_paging_notify->UEPagingIdentity.m_tmsi = amf_ctx->m5_guti.m_tmsi;
     OAILOG_INFO(
@@ -1036,22 +1035,22 @@ int amf_app_handle_notification_received(
       memset(ngap_paging_notify, 0, sizeof(itti_ngap_paging_request_t));
       OAILOG_INFO(LOG_AMF_APP, "Filling NGAP structure for Downlink");
       ngap_paging_notify->UEPagingIdentity.amf_set_id =
-          amf_ctx->_m5_guti.guamfi.amf_set_id;
+          amf_ctx->m5_guti.guamfi.amf_set_id;
       ngap_paging_notify->UEPagingIdentity.amf_pointer =
-          amf_ctx->_m5_guti.guamfi.amf_pointer;
-      ngap_paging_notify->UEPagingIdentity.m_tmsi = amf_ctx->_m5_guti.m_tmsi;
+          amf_ctx->m5_guti.guamfi.amf_pointer;
+      ngap_paging_notify->UEPagingIdentity.m_tmsi = amf_ctx->m5_guti.m_tmsi;
       ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit1 =
-          amf_ctx->_m5_guti.guamfi.plmn.mcc_digit1;
+          amf_ctx->m5_guti.guamfi.plmn.mcc_digit1;
       ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit2 =
-          amf_ctx->_m5_guti.guamfi.plmn.mcc_digit2;
+          amf_ctx->m5_guti.guamfi.plmn.mcc_digit2;
       ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit3 =
-          amf_ctx->_m5_guti.guamfi.plmn.mcc_digit3;
+          amf_ctx->m5_guti.guamfi.plmn.mcc_digit3;
       ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit1 =
-          amf_ctx->_m5_guti.guamfi.plmn.mnc_digit1;
+          amf_ctx->m5_guti.guamfi.plmn.mnc_digit1;
       ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit2 =
-          amf_ctx->_m5_guti.guamfi.plmn.mnc_digit2;
+          amf_ctx->m5_guti.guamfi.plmn.mnc_digit2;
       ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mnc_digit3 =
-          amf_ctx->_m5_guti.guamfi.plmn.mnc_digit3;
+          amf_ctx->m5_guti.guamfi.plmn.mnc_digit3;
       ngap_paging_notify->TAIListForPaging.no_of_items     = 1;
       ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
       OAILOG_INFO(LOG_AMF_APP, "sending downlink message to NGAP");

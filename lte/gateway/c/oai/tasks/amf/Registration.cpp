@@ -567,7 +567,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
       /* GUTI have already updated in amf_context during Identification
        * response complete, now assign to amf_sap
        */
-      amf_sap.u.amf_as.u.establish.guti = amf_context->_m5_guti;
+      amf_sap.u.amf_as.u.establish.guti = amf_context->m5_guti;
 
       /*
        * Get the activate default 5GMM PDu Session context request message to
