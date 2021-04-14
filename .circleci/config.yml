@@ -1030,7 +1030,7 @@ jobs:
 
   ### NMS
 
-nms-flow-test:
+  nms-flow-test:
     executor: node
     steps:
       - checkout
@@ -1048,7 +1048,7 @@ nms-flow-test:
           command: yarn run flow
       - magma_slack_notify
 
-eslint:
+  eslint:
     executor: node
     steps:
       - checkout
@@ -1074,7 +1074,7 @@ nms-yarn-test:
           command: yarn test:ci
       - magma_slack_notify
 
-nms-e2e-test:
+  nms-e2e-test:
     machine:
       image: ubuntu-1604:201903-01
     environment:
@@ -1100,7 +1100,7 @@ nms-e2e-test:
           path: /tmp/nms_artifacts
       - magma_slack_notify
 
-nms-build:
+  nms-build:
     machine:
       image: ubuntu-1604:201903-01
     environment:
@@ -1127,7 +1127,7 @@ nms-build:
 
   ### FOSSA
 
-fossa-analyze:
+  fossa-analyze:
     docker:
       - image: circleci/buildpack-deps:xenial
     working_directory: /tmp/magma
