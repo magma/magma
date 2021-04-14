@@ -59,7 +59,6 @@ extern "C" {
 #include "M5GULNASTransport.h"
 #include "M5GDLNASTransport.h"
 
-
 namespace magma5g {
 #define NAS5G_TIMER_INACTIVE_ID (-1)
 struct amf_procedures_t;
@@ -288,7 +287,7 @@ typedef struct amf_context_s {
   imsi64_t saved_imsi64; /* Useful for 5.4.2.7.c */
   imei_t imei;           /* The IMEI provided by the UE                     */
   imeisv_t imeisv;       /* The IMEISV provided by the UE                   */
-  guti_m5_t _m5_guti;     /* The GUTI assigned to the UE                     */
+  guti_m5_t _m5_guti;    /* The GUTI assigned to the UE                     */
   guti_m5_t m5_old_guti; /* The GUTI assigned to the UE                     */
   ksi_t ksi;             /*key set identifier  */
   drx_parameter_t drx_parameter;
@@ -750,8 +749,8 @@ void amf_app_handle_resource_release_response(
     itti_ngap_pdusessionresource_rel_rsp_t session_rel_resp);
 void amf_app_handle_cm_idle_on_ue_context_release(
     itti_ngap_ue_context_release_req_t cm_idle_req);
-//Handle UE CONTEXT RELEASE COMMAND in DL to NGAP
+// Handle UE CONTEXT RELEASE COMMAND in DL to NGAP
 void ue_context_release_command(
-     amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
-     Ngcause ng_cause);
+    amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    Ngcause ng_cause);
 }  // namespace magma5g

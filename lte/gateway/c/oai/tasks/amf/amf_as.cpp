@@ -946,10 +946,10 @@ uint16_t amf_as_establish_cnf(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
   }
 
-  as_msg->nas_msg          = msg->nas_msg;
-  as_msg->presencemask     = msg->presencemask;
-  as_msg->m5g_service_type = msg->service_type;
-  amf_context_t* amf_ctx   = NULL;
+  as_msg->nas_msg                              = msg->nas_msg;
+  as_msg->presencemask                         = msg->presencemask;
+  as_msg->m5g_service_type                     = msg->service_type;
+  amf_context_t* amf_ctx                       = NULL;
   amf_security_context_t* amf_security_context = NULL;
   amf_ctx                                      = amf_context_get(msg->ue_id);
   if (amf_ctx) {

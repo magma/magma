@@ -102,15 +102,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /* This case handles Notification Received for Paging or other events
        * or success messages are coming from NGAP
        */
-      OAILOG_INFO(
-          LOG_AMF_APP, "N11_NOTIFICATION_RECEIVED received\n");
+      OAILOG_INFO(LOG_AMF_APP, "N11_NOTIFICATION_RECEIVED received\n");
       imsi64 = itti_get_associated_imsi(received_message_p);
       OAILOG_INFO(
           LOG_AMF_APP,
           "imsi ===============> %lu PAGING NOTIFICATION =======> "
           "message_type = %d \n",
           imsi64, ITTI_MSG_ID(received_message_p));
-      //amf_defs.amf_app_handle_notification_received(
+      // amf_defs.amf_app_handle_notification_received(
       amf_app_handle_notification_received(
           &N11_NOTIFICATION_RECEIVED(received_message_p));
       break;

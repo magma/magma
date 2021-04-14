@@ -79,8 +79,7 @@ int amf_handle_service_request(
       // Set event type as service request
       notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
       // construct the proto structure and send message to SMF
-      rc = amf_smf_notification_send(
-          ue_id, ue_context, notify_ue_event_type);
+      rc = amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
     }  // MAC matched
     else {
       OAILOG_INFO(
@@ -100,7 +99,6 @@ int amf_handle_service_request(
   }
   return rc;
 }
-
 
 /* Identifies 5GS Registration type and processes the Message accordingly */
 int amf_handle_registration_request(
@@ -157,7 +155,7 @@ int amf_handle_registration_request(
      * This is SUCI message identity type is SUPI as IMSI type
      * Extract the SUPI from SUCI directly as scheme is NULL */
     if (msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity ==
-        M5GSMobileIdentityMsg_IMSI) {
+        M5GSMobileIdentityMsg_SUCI_IMSI) {
       // Only considering protection scheme as NULL else return error.
       if (msg->m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id ==
           MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
@@ -257,7 +255,6 @@ int amf_handle_registration_request(
           "map and ue contxt, sending accept message in DL\n");
 
       // Call the registration accept API to send accept messaeg in DL
-      // rc = amf_registration_procedure::amf_send_registration_accept(
       rc = amf_send_registration_accept(&ue_context->amf_context);
     } else {
       // UE context is new and/or UE identity type is not GUTI
