@@ -34,7 +34,6 @@ class TestAgwOffloadIdleActiveUe(unittest.TestCase):
         parameter 'use_ha' in configuration file /etc/magma/mme.yml to 'true'
         on magma-dev VM and restart MME to enable the Ha service
         """
-
         # column is a enb parameter,  row is a number of enbs
         # column description:
         #     1.Cell Id, 2.Tac, 3.EnbType, 4.PLMN Id 5. PLMN length
