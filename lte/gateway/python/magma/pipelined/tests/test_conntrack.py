@@ -132,7 +132,8 @@ class ConntrackTest(unittest.TestCase):
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+                                             self.service_manager,
+                                             include_stats=False)
 
         current_path = \
             str(pathlib.Path(__file__).parent.absolute())

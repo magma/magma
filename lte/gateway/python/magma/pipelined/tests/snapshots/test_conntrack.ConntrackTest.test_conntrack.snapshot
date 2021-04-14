@@ -1,5 +1,5 @@
- cookie=0x0, table=ue_mac(main_table), n_packets=20, n_bytes=2323, priority=65535,ip,nw_src=145.254.160.237 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x1->NXM_NX_REG1[],resubmit(,conntrack(main_table))
- cookie=0x0, table=ue_mac(main_table), n_packets=23, n_bytes=22768, priority=65535,ip,nw_dst=145.254.160.237 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],resubmit(,conntrack(main_table))
- cookie=0x0, table=conntrack(main_table), n_packets=43, n_bytes=25091, priority=10,ct_state=-trk,ip actions=ct(table=conntrack(scratch_table_0),zone=897),resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
- cookie=0x0, table=conntrack(main_table), n_packets=0, n_bytes=0, priority=0,ip actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
- cookie=0x0, table=conntrack(scratch_table_0), n_packets=3, n_bytes=926, priority=10,ct_state=+new+trk,ip actions=ct(commit,table=203,zone=897)
+ priority=65535,ip,nw_src=145.254.160.237 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x1->NXM_NX_REG1[],resubmit(,conntrack(main_table))
+ priority=65535,ip,nw_dst=145.254.160.237 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],resubmit(,conntrack(main_table))
+ table=conntrack(main_table), priority=10,ct_state=-trk,ip actions=ct(table=conntrack(scratch_table_0),zone=897),resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=conntrack(main_table), priority=0,ip actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=conntrack(scratch_table_0), priority=10,ct_state=+new+trk,ip actions=ct(commit,table=203,zone=897)

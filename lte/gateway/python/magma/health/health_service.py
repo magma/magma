@@ -22,8 +22,11 @@ from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
-from magma.health.entities import (AGWHealthSummary, CoreDumps,
-                                   RegistrationSuccessRate)
+from magma.health.entities import (
+    AGWHealthSummary,
+    CoreDumps,
+    RegistrationSuccessRate,
+)
 from orc8r.protos.common_pb2 import Void
 
 

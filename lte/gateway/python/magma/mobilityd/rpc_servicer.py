@@ -16,24 +16,43 @@ import logging
 
 import grpc
 from google.protobuf.json_format import MessageToJson
-from lte.protos.mobilityd_pb2 import AllocateIPAddressResponse, \
-    AllocateIPRequest, IPAddress, IPBlock, ListAddedIPBlocksResponse, \
-    ListAllocatedIPsResponse, ListGWInfoResponse, RemoveIPBlockResponse, \
-    SubscriberIPTable
-from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
-    add_MobilityServiceServicer_to_server
+from lte.protos.mobilityd_pb2 import (
+    AllocateIPAddressResponse,
+    AllocateIPRequest,
+    IPAddress,
+    IPBlock,
+    ListAddedIPBlocksResponse,
+    ListAllocatedIPsResponse,
+    ListGWInfoResponse,
+    RemoveIPBlockResponse,
+    SubscriberIPTable,
+)
+from lte.protos.mobilityd_pb2_grpc import (
+    MobilityServiceServicer,
+    add_MobilityServiceServicer_to_server,
+)
 from lte.protos.subscriberdb_pb2 import SubscriberID
-
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
-from .ip_address_man import IPAddressManager, IPNotInUseError, \
-    MappingNotFoundError
-from .ip_allocator_base import DuplicateIPAssignmentError, \
-    DuplicatedIPAllocationError, IPBlockNotFoundError, NoAvailableIPError, \
-    OverlappedIPBlocksError
+
+from .ip_address_man import (
+    IPAddressManager,
+    IPNotInUseError,
+    MappingNotFoundError,
+)
+from .ip_allocator_base import (
+    DuplicatedIPAllocationError,
+    DuplicateIPAssignmentError,
+    IPBlockNotFoundError,
+    NoAvailableIPError,
+    OverlappedIPBlocksError,
+)
 from .ipv6_allocator_pool import MaxCalculationError
-from .subscriberdb_client import SubscriberDBConnectionError, \
-    SubscriberDBMultiAPNValueError, SubscriberDBStaticIPValueError
+from .subscriberdb_client import (
+    SubscriberDBConnectionError,
+    SubscriberDBMultiAPNValueError,
+    SubscriberDBStaticIPValueError,
+)
 
 
 class MobilityServiceRpcServicer(MobilityServiceServicer):

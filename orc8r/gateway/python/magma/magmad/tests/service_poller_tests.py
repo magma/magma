@@ -13,12 +13,12 @@ limitations under the License.
 import asyncio
 import unittest
 import unittest.mock
-import grpc
 
-from orc8r.protos.common_pb2 import Void
-from orc8r.protos.service303_pb2 import ServiceInfo
+import grpc
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.service_poller import ServicePoller
+from orc8r.protos.common_pb2 import Void
+from orc8r.protos.service303_pb2 import ServiceInfo
 
 # Allow access to protected variables for unit testing
 # pylint: disable=protected-access
@@ -29,6 +29,7 @@ class ServicePollerTests(unittest.TestCase):
     """
     Tests for the ServicePoller
     """
+
     def setUp(self):
         ServiceRegistry.add_service('test1', '0.0.0.0', 0)
         ServiceRegistry.add_service('test2', '0.0.0.0', 0)

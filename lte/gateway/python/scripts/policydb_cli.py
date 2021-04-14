@@ -17,9 +17,13 @@ import argparse
 
 import grpc
 from lte.protos.mobilityd_pb2 import IPAddress
-from lte.protos.policydb_pb2 import (DisableStaticRuleRequest,
-                                     EnableStaticRuleRequest, FlowDescription,
-                                     FlowMatch, PolicyRule)
+from lte.protos.policydb_pb2 import (
+    DisableStaticRuleRequest,
+    EnableStaticRuleRequest,
+    FlowDescription,
+    FlowMatch,
+    PolicyRule,
+)
 from lte.protos.policydb_pb2_grpc import PolicyDBStub
 from magma.common.rpc_utils import grpc_wrapper
 from magma.policydb.rule_store import PolicyRuleDict

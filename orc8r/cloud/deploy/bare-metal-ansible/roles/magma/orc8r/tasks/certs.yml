@@ -4,13 +4,13 @@
   register: admin_operator_stat
 
 - name: orc8r | create self signed certs if necessary
-  script: self_sign_certs.sh {{ dns_domain }}
+  script: self_sign_certs.sh {{ orc8r_domain }}
   args:
     chdir: "{{ orc8r_certs_dir }}"
   when: not admin_operator_stat.stat.exists
 
 - name: orc8r | create application certs if necessary
-  script: create_application_certs.sh {{ dns_domain }}
+  script: create_application_certs.sh {{ orc8r_domain }}
   args:
     chdir: "{{ orc8r_certs_dir }}"
   register: create_app_certs

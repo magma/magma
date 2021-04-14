@@ -12,27 +12,27 @@ limitations under the License.
 """
 
 import errno
-import grpc
 import logging
 import os
 import pathlib
 import subprocess
 import threading
 import time
-from typing import List
-from subprocess import SubprocessError
-from .command_builder import get_trace_builder
 from collections import namedtuple
+from subprocess import SubprocessError
+from typing import List
 
+import grpc
+from magma.ctraced.command_builder import get_trace_builder
 from orc8r.protos.ctraced_pb2 import ReportEndedTraceRequest
 from orc8r.protos.ctraced_pb2_grpc import CallTraceControllerStub
 
 _TRACE_FILE_NAME = "call_trace"
 _TRACE_FILE_NAME_POSTPROCESSED = "call_trace_postprocessed"
 _TRACE_FILE_EXT = "pcapng"
-_TRACE_FILE_WRITE_TIMEOUT = 20 # 20 seconds for TShark to write a trace to disk
+_TRACE_FILE_WRITE_TIMEOUT = 20  # 20 seconds for TShark to write a trace to disk
 _MAX_FILESIZE = 4000  # ~ 4 MiB for a trace
-_POSTPROCESSING_TIMEOUT = 10 # 10 seconds for TShark to apply display filters
+_POSTPROCESSING_TIMEOUT = 10  # 10 seconds for TShark to apply display filters
 
 EndTraceResult = namedtuple('EndTraceResult', ['success', 'data'])
 
@@ -44,23 +44,24 @@ class TraceManager:
 
     Only a single trace can be captured at a time.
     """
+
     def __init__(self, config, ctraced_stub: CallTraceControllerStub):
         self._trace_id = ""
-        self._is_active = False # is call trace being captured
-        self._is_stopping_trace = False # is manual stop initiated
+        self._is_active = False  # is call trace being captured
+        self._is_stopping_trace = False  # is manual stop initiated
         self._proc = None
         self._trace_directory = config.get("trace_directory",
                                            "/var/opt/magma/trace")  # type: str
         # Specify southbound interfaces
         self._trace_interfaces = config.get("trace_interfaces",
-                                           ["eth0"])  # type: List[str]
+                                            ["eth0"])  # type: List[str]
 
         # Should specify absolute path of trace filename if trace is active
         self._trace_filename = ""  # type: str
         self._trace_filename_postprocessed = ""  # type: str
 
         # TShark display filters are saved to postprocess packet capture files
-        self._display_filters = "" # type: str
+        self._display_filters = ""  # type: str
 
         self._tool_name = config.get("trace_tool", "tshark")  # type: str
         self._trace_builder = get_trace_builder(self._tool_name)
@@ -130,7 +131,7 @@ class TraceManager:
         if not succeeded:
             return EndTraceResult(False, None)
 
-        data = self._get_final_trace_data() # type: bytes
+        data = self._get_final_trace_data()  # type: bytes
 
         self._cleanup_trace()
         logging.info("TraceManager: Call trace has ended")
@@ -157,8 +158,8 @@ class TraceManager:
         #                  process can be running, and may have been started
         #                  by something external as well.
 
-
         # TODO(andreilee): Make sure that a fast failure is detected
+
         def run_tracing_in_thread(on_exit, command: List[str]):
             try:
                 self._proc = subprocess.Popen(
@@ -209,7 +210,7 @@ class TraceManager:
             self._report_trace_failure()
             return
 
-        data = self._get_final_trace_data() # type: bytes
+        data = self._get_final_trace_data()  # type: bytes
 
         self._cleanup_trace()
         logging.info("TraceManager: Reporting call trace timeout")
@@ -348,7 +349,7 @@ class TraceManager:
         while (not self._does_trace_file_exist() and
                time_pending < _TRACE_FILE_WRITE_TIMEOUT):
             logging.debug("TraceManager: Waiting 1s for trace file to be "
-                         "written...")
+                          "written...")
             time.sleep(1)
             time_pending += 1
         if time_pending >= _TRACE_FILE_WRITE_TIMEOUT:

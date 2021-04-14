@@ -334,6 +334,8 @@ int emm_proc_attach_request(
       nas_proc_implicit_detach_ue_ind(guti_ue_mm_ctx->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
     }
+    // Allocate new context and process the new request as fresh attach request
+    clear_emm_ctxt = true;
   }
   if (ies->imsi) {
     imsi_ue_mm_ctx =
