@@ -13,9 +13,13 @@ limitations under the License.
 
 import unittest
 
-from magma.pipelined.encoding import encrypt_str, get_hash, encode_str, \
-    decrypt_str
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
+from magma.pipelined.encoding import (
+    decrypt_str,
+    encode_str,
+    encrypt_str,
+    get_hash,
+)
 
 
 class EncodingTest(unittest.TestCase):

@@ -10,16 +10,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import grpc
 import logging
 
+import grpc
 from magma.common.grpc_client_manager import GRPCClientManager
-from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.redis.containers import RedisFlatDict
+from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.service import MagmaService
 from magma.state.keys import make_scoped_device_id
-from magma.state.redis_dicts import get_json_redis_dicts, \
-    get_proto_redis_dicts
+from magma.state.redis_dicts import get_json_redis_dicts, get_proto_redis_dicts
 from orc8r.protos.state_pb2 import DeleteStatesRequest, StateID
 
 DEFAULT_GRPC_TIMEOUT = 10
@@ -31,6 +30,7 @@ class GarbageCollector:
     garbage and deletes that state from the Orchestrator State service. If the
     RPC call succeeds, it then deletes the state from Redis
     """
+
     def __init__(self,
                  service: MagmaService,
                  grpc_client_manager: GRPCClientManager):

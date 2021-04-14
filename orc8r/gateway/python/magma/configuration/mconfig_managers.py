@@ -10,19 +10,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import abc
 import contextlib
 import json
-from typing import Any, Generic, TypeVar
-
-import abc
 import os
+from typing import Any, Generic, TypeVar
 
 import magma.configuration.events as magma_configuration_events
 from google.protobuf import json_format
 from magma.common import serialization_utils
 from magma.configuration.exceptions import LoadConfigError
-from magma.configuration.mconfigs import filter_configs_by_key, \
-    unpack_mconfig_any
+from magma.configuration.mconfigs import (
+    filter_configs_by_key,
+    unpack_mconfig_any,
+)
 from orc8r.protos.mconfig_pb2 import GatewayConfigs, GatewayConfigsMetadata
 
 T = TypeVar('T')

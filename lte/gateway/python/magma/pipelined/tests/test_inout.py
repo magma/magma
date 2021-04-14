@@ -15,17 +15,17 @@ import unittest
 import warnings
 from concurrent.futures import Future
 
-from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
-    PipelinedController,
-)
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
 from magma.pipelined.tests.pipelined_test_util import (
+    assert_bridge_snapshot_match,
+    create_service_manager,
+    fake_inout_setup,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    create_service_manager,
-    assert_bridge_snapshot_match,
-    fake_inout_setup,
 )
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 

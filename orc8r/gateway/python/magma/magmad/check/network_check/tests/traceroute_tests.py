@@ -35,7 +35,7 @@ class TracerouteArgFactoryTests(unittest.TestCase):
 
         actual = traceroute._get_traceroute_command_args_list(
             traceroute.TracerouteParams(
-                host_or_ip='google.com',max_hops=None, bytes_per_packet=None))
+                host_or_ip='google.com', max_hops=None, bytes_per_packet=None))
         self.assertEqual(
             ['traceroute', '-m', '30', 'google.com', '60'],
             actual)

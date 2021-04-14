@@ -18,7 +18,7 @@ import time
 from unittest import TestCase
 from unittest.mock import MagicMock
 
-from magma.magmad.service_manager import ServiceState, ServiceManager
+from magma.magmad.service_manager import ServiceManager, ServiceState
 
 # Allow access to protected variables for unit testing
 # pylint: disable=protected-access

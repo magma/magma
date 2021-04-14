@@ -10,18 +10,23 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from magma.common.redis.containers import RedisHashDict, RedisFlatDict
-from magma.common.redis.serializers import get_proto_deserializer, \
-    get_proto_serializer, RedisSerde
-from orc8r.protos.service303_pb2 import LogVerbosity
 from unittest import TestCase, main
+
 import fakeredis
+from magma.common.redis.containers import RedisFlatDict, RedisHashDict
+from magma.common.redis.serializers import (
+    RedisSerde,
+    get_proto_deserializer,
+    get_proto_serializer,
+)
+from orc8r.protos.service303_pb2 import LogVerbosity
 
 
 class RedisDictTests(TestCase):
     """
     Tests for the RedisHashDict and RedisFlatDict containers
     """
+
     def setUp(self):
         client = fakeredis.FakeStrictRedis()
         # Use arbitrary orc8r proto to test with

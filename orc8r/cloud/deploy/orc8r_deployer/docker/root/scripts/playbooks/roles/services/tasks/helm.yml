@@ -1,0 +1,90 @@
+- name: Set helm repo credentials
+  set_fact:
+    helm_cred_options: ""
+  when: service_configs.helm_user
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Verify the Helm repo
+  ansible.builtin.shell: "helm repo add test {{service_configs.helm_repo}} {% if service_configs.helm_user != '' %} --username {{service_configs.helm_user}} --password {{service_configs.helm_pass}}  {% endif %}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Get all charts present in the Helm repo
+  ansible.builtin.shell: helm search repo test -o json
+  register: helm_chart_info
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Get chart name and version from Helm list
+  set_fact:
+    chart_version_map: "{{ chart_version_map | default({})  | combine({item.name.split('/')[1]: item.version}) }}"
+  with_items: "{{ helm_chart_info.stdout }}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Set chart version map
+  set_fact:
+    exp_chart_version_map: "{{ exp_chart_version_map | default({})  | combine({item.name: item.version}) }}"
+  with_items:
+    - { name: orc8r, version: "{{service_configs.orc8r_chart_version}}"}
+    - { name: lte-orc8r, version: "{{service_configs.lte_orc8r_chart_version}}" }
+    - { name: feg-orc8r, version: "{{service_configs.feg_orc8r_chart_version}}" }
+    - { name: cwf-orc8r, version: "{{service_configs.cwf_orc8r_chart_version}}" }
+    - { name: fbinternal-orc8r, version: "{{service_configs.fbinternal_orc8r_chart_version}}" }
+    - { name: wifi-orc8r, version: "{{service_configs.wifi_orc8r_chart_version}}" }
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Deployment to module mapping
+  set_fact:
+    deployment_module_map: "{{ deployment_module_map | default({})  | combine({item.name: item.modules}) }}"
+  with_items:
+    - { name: fwa, modules: ['orc8r', 'lte-orc8r']}
+    - { name: ffwa, modules: ['orc8r', 'lte-orc8r', 'feg-orc8r'] }
+    - { name: all, modules: ['orc8r', 'lte-orc8r', 'feg-orc8r', 'cwf-orc8r', 'fbinternal-orc8r', 'wifi-orc8r'] }
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Validate if necessary charts are present for deployment
+  assert:
+    that: item in chart_version_map
+    fail_msg: "{{item}} chart not found"
+  with_items: "{{deployment_module_map[service_configs.orc8r_deployment_type]}}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Validate if chart versions present match the expected version
+  assert:
+    that: chart_version_map[item] == exp_chart_version_map[item]
+    fail_msg: "{{item}} chart version mismatch expected version {{exp_chart_version_map[item]}} found version {{chart_version_map[item]}}"
+  with_items: "{{deployment_module_map[service_configs.orc8r_deployment_type]}}"
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Remove the test repo
+  ansible.builtin.shell: helm repo remove test
+  ignore_errors: yes
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
+- name: Get list of installed charts
+  ansible.builtin.shell: helm list -o json -n "{{orc8r_namespace}}"
+  register: deployed_chart_info
+  tags: verify_sanity
+
+- name: Verify if charts have been deployed
+  assert:
+    that: item.status == "deployed"
+    fail_msg: "chart {{item.name}} status {{item.status}} not deployed successfully"
+  tags: verify_sanity
+  with_items: "{{deployed_chart_info.stdout}}"

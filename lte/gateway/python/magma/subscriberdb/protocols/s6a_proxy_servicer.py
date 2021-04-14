@@ -13,13 +13,11 @@ limitations under the License.
 
 import logging
 
+from feg.protos import s6a_proxy_pb2, s6a_proxy_pb2_grpc
+from google.protobuf.json_format import MessageToJson
 from magma.subscriberdb import metrics
 from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.store.base import SubscriberNotFoundError
-
-from feg.protos import s6a_proxy_pb2, s6a_proxy_pb2_grpc
-
-from google.protobuf.json_format import MessageToJson
 
 
 class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):

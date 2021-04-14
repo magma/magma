@@ -15,9 +15,9 @@ limitations under the License.
 
 import argparse
 
-from magma.common.rpc_utils import grpc_wrapper
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
+from magma.common.rpc_utils import grpc_wrapper
 
 
 @grpc_wrapper

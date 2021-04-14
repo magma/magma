@@ -10,11 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from magma.enodebd.logger import EnodebdLogger as logger
 import textwrap
 from typing import Optional, Union
-from magma.enodebd.exceptions import ConfigurationError
 
+from magma.enodebd.exceptions import ConfigurationError
+from magma.enodebd.logger import EnodebdLogger as logger
 
 DUPLEX_MAP = {
     '01': 'TDDMode',

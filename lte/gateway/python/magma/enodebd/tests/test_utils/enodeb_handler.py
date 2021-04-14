@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 from unittest import TestCase, mock
+
 import magma.enodebd.tests.test_utils.mock_functions as enb_mock
 
 

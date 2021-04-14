@@ -11,13 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import copy
+import logging
 import re
 
 from ovstest import util  # pylint: disable=import-error
 from ovstest import vswitch  # pylint: disable=import-error
-
 
 logger = logging.getLogger(__name__)  # pylint: disable=invalid-name
 

@@ -12,37 +12,55 @@ limitations under the License.
 """
 
 import unittest
-from concurrent.futures import Future
-
 import warnings
+from concurrent.futures import Future
 from typing import List
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule,\
-    HeaderEnrichment
-from lte.protos.pipelined_pb2 import VersionedPolicy
-from magma.pipelined.app.enforcement import EnforcementController
 from lte.protos.mobilityd_pb2 import IPAddress
-from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.policy_converters import flow_match_to_magma_match
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
-from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
-    TCPPacketBuilder, IPv6PacketBuilder
-from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
-from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto, \
-    convert_ipv6_bytes_to_ip_proto
-from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
-    PktsToSend, SubTest, create_service_manager, start_ryu_app_thread, \
-    stop_ryu_app_thread, wait_after_send, SnapshotVerifier, \
-    fake_controller_setup
-
+from lte.protos.pipelined_pb2 import VersionedPolicy
+from lte.protos.policydb_pb2 import (
+    FlowDescription,
+    FlowMatch,
+    HeaderEnrichment,
+    PolicyRule,
+)
 from magma.pipelined.app import he
+from magma.pipelined.app.enforcement import EnforcementController
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.policy_converters import (
+    convert_ipv4_str_to_ip_proto,
+    convert_ipv6_bytes_to_ip_proto,
+    flow_match_to_magma_match,
+)
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery as FlowQuery
+from magma.pipelined.tests.app.packet_builder import (
+    IPPacketBuilder,
+    IPv6PacketBuilder,
+    TCPPacketBuilder,
+)
+from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    FlowTest,
+    FlowVerifier,
+    PktsToSend,
+    SnapshotVerifier,
+    SubTest,
+    create_service_manager,
+    fake_controller_setup,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+)
 
 
 def mocked_activate_he_urls_for_ue(ip: IPAddress, rule_id, urls: List[str], imsi: str, msisdn: str):
@@ -113,6 +131,7 @@ class EnforcementTableTest(unittest.TestCase):
                 'proxy_port_name': cls.VETH,
                 'enable_nat': True,
                 'ovs_gtp_port_number': 10,
+                'setup_type': 'LTE',
             },
             mconfig=PipelineD(),
             loop=None,

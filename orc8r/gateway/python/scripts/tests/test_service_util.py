@@ -15,6 +15,7 @@ limitations under the License.
 
 import os
 from unittest import TestCase
+
 from magma.common.health.service_state_wrapper import ServiceStateWrapper
 from orc8r.protos.service_status_pb2 import ServiceExitStatus
 from scripts.service_util import update_stats

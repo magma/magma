@@ -13,10 +13,21 @@ limitations under the License.
 
 import abc
 import logging
-logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from scapy.all import Ether, IP, IPv6, ARP, TCP, UDP, ICMP, DHCP, BOOTP, \
-    wrpcap, rdpcap
 
+logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
+from scapy.all import (
+    ARP,
+    BOOTP,
+    DHCP,
+    ICMP,
+    IP,
+    TCP,
+    UDP,
+    Ether,
+    IPv6,
+    rdpcap,
+    wrpcap,
+)
 
 '''
 

@@ -14,14 +14,19 @@ limitations under the License.
 """
 
 import argparse
+
 import grpc
-from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule, \
-    EnableStaticRuleRequest, DisableStaticRuleRequest
 from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.policydb_pb2 import (
+    DisableStaticRuleRequest,
+    EnableStaticRuleRequest,
+    FlowDescription,
+    FlowMatch,
+    PolicyRule,
+)
 from lte.protos.policydb_pb2_grpc import PolicyDBStub
 from magma.common.rpc_utils import grpc_wrapper
 from magma.policydb.rule_store import PolicyRuleDict
-
 
 DEBUG_MSG = 'You may want to check that a connection can be made to ' \
             'orc8r to update the assignments of rules/basenames to ' \

@@ -15,13 +15,12 @@ import logging
 from typing import List
 
 import grpc
+import lte.protos.sms_orc8r_pb2 as sms_orc8r_pb2
+import lte.protos.sms_orc8r_pb2_grpc as sms_orc8r_pb2_grpc
+from lte.protos.mconfig.mconfigs_pb2 import MME
 from magma.common.job import Job
-
 from magma.common.rpc_utils import grpc_async_wrapper, return_void
 from magma.configuration.mconfig_managers import load_service_mconfig
-from lte.protos.mconfig.mconfigs_pb2 import MME
-import lte.protos.sms_orc8r_pb2_grpc as sms_orc8r_pb2_grpc
-import lte.protos.sms_orc8r_pb2 as sms_orc8r_pb2
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
