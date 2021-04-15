@@ -19,6 +19,7 @@ extern "C" {
 #include "log.h"
 #include "conversions.h"
 #include "3gpp_24.008.h"
+#include "secu_defs.h"
 #ifdef __cplusplus
 }
 #endif
@@ -34,6 +35,7 @@ extern "C" {
 #include "M5GDLNASTransport.h"
 #include "S6aClient.h"
 #include "proto_msg_to_itti_msg.h"
+#include "ngap_messages_types.h"
 
 using namespace magma;
 typedef uint32_t amf_ue_ngap_id_t;
@@ -43,6 +45,7 @@ typedef uint32_t amf_ue_ngap_id_t;
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
 /*forward declaration*/
+extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause);
 static int amf_as_security_req(
     const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg);
@@ -906,6 +909,57 @@ static int amf_as_security_req(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
 }
 
+int initial_context_setup_request(
+    amf_ue_ngap_id_t ue_id, amf_context_t* amf_ctx, bstring nas_msg) {
+  /*This message is sent by the AMF to NG-RAN node to request the setup of a UE
+   * context before Registration Accept is sent to UE*/
+
+  Ngap_initial_context_setup_request_t* req = nullptr;
+  MessageDef* message_p                     = nullptr;
+  message_p =
+      itti_alloc_new_message(TASK_AMF_APP, NGAP_INITIAL_CONTEXT_SETUP_REQ);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "Failed to allocate memory for NGAP_INITIAL_CONTEXT_SETUP_REQ\n");
+    return RETURNerror;
+  }
+  req = &message_p->ittiMsg.ngap_initial_context_setup_request;
+  memset(req, 0, sizeof(Ngap_initial_context_setup_request_t));
+  req->amf_ue_ngap_id = ue_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id =
+      PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->gnb_ue_ngap_id;
+  req->ran_ue_ngap_id = gnb_ue_ngap_id;
+  req->ue_security_capabilities.m5g_encryption_algo |=
+      (amf_ctx->ue_sec_capability.ea1 & 0001) << 15;
+  req->ue_security_capabilities.m5g_encryption_algo |=
+      (amf_ctx->ue_sec_capability.ea2 & 0001) << 14;
+  req->ue_security_capabilities.m5g_encryption_algo |=
+      (amf_ctx->ue_sec_capability.ea3 & 0001) << 13;
+  req->ue_security_capabilities.m5g_encryption_algo =
+      htons(req->ue_security_capabilities.m5g_encryption_algo);
+  req->ue_security_capabilities.m5g_integrity_protection_algo |=
+      (amf_ctx->ue_sec_capability.ia1 & 0001) << 15;
+  req->ue_security_capabilities.m5g_integrity_protection_algo |=
+      (amf_ctx->ue_sec_capability.ia2 & 0001) << 14;
+  req->ue_security_capabilities.m5g_integrity_protection_algo |=
+      (amf_ctx->ue_sec_capability.ia3 & 0001) << 13;
+  req->ue_security_capabilities.m5g_integrity_protection_algo =
+      htons(req->ue_security_capabilities.m5g_integrity_protection_algo);
+  req->Security_Key = (unsigned char*) &amf_ctx->_security.kgnb;
+  memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
+
+  if (nas_msg) {
+    req->nas_pdu = nas_msg;
+  } else {
+    OAILOG_INFO(LOG_AMF_APP, "invalid nas_msg for registration accept");
+    return RETURNerror;
+  }
+
+  send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+  return RETURNok;
+}
+
 /****************************************************************************
  **                                                                        **
  ** Name:             amf_as_establish_cnf()                               **
@@ -1000,6 +1054,29 @@ uint16_t amf_as_establish_cnf(
 
   if (bytes > 0) {
     OAILOG_DEBUG(LOG_AMF_APP, "NAS encoding success\n");
+    m5gmm_state_t state =
+        PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->mm_state;
+    nas_amf_registration_proc_t* registration_proc =
+        get_nas_specific_procedure_registration(amf_ctx);
+
+    if ((state != REGISTERED_CONNECTED) &&
+        !(registration_proc->registration_accept_sent)) {
+      /*GNB key, generated in AMF from KAMF and shared with gNB as part of
+       * InitialContextSetupRequest*/
+      derive_5gkey_gnb(
+          amf_security_context->kamf, as_msg->nas_ul_count,
+          amf_security_context->kgnb);
+      OAILOG_DEBUG(LOG_AMF_APP, "prep and send initial_context_setup_request");
+      initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
+      registration_proc->registration_accept_sent++;
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
+    }
+    registration_proc->registration_accept_sent++;
+
+    OAILOG_INFO(
+        LOG_AMF_APP, "registration_accept_sent: %d",
+        registration_proc->registration_accept_sent);
+
     as_msg->err_code = M5G_AS_SUCCESS;
     ret_val          = AS_NAS_ESTABLISH_CNF_;
   } else {

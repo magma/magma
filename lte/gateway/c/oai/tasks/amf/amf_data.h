@@ -62,6 +62,8 @@ typedef struct amf_security_context_s {
   int vector_index;                     /* Pointer on vector */
   uint8_t knas_enc[AUTH_KNAS_ENC_SIZE]; /* NAS cyphering key               */
   uint8_t knas_int[AUTH_KNAS_INT_SIZE]; /* NAS integrity key               */
+  uint8_t kamf[AUTH_KAMF_SIZE];         /* AMF key               */
+  uint8_t kgnb[AUTH_KGNB_SIZE];         /* GNB key               */
   count_t dl_count;
   count_t ul_count;
   selected_algorithms_t selected_algorithms;

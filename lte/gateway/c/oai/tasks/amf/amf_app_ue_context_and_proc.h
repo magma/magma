@@ -291,6 +291,7 @@ typedef struct amf_context_s {
   guti_m5_t m5_old_guti; /* The GUTI assigned to the UE                     */
   ksi_t ksi;             /*key set identifier  */
   drx_parameter_t drx_parameter;
+  UESecurityCapabilityMsg ue_sec_capability;
   m5g_auth_vector_t
       _vector[MAX_EPS_AUTH_VECTORS]; /* 5GMM authentication vector */
   amf_security_context_t
@@ -687,6 +688,7 @@ struct nas_amf_registration_proc_t {
   amf_ue_ngap_id_t ue_id;
   ksi_t ksi;
   int amf_cause;
+  int registration_accept_sent;
 };
 // NAS security related IEs
 class nas_amf_smc_proc_t {
