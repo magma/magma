@@ -36,9 +36,9 @@ class TestAgwOffloadMixedIdleActiveMultiUe(unittest.TestCase):
     def test_agw_offload_mixed_idle_active_multiue(self):
         """Test case to offload 100 UEs in both active and idle states
 
-        NOTE: Ha service must be enabled for running this test case. Set the
+        NOTE: HA service must be enabled for running this test case. Set the
         parameter 'use_ha' in configuration file /etc/magma/mme.yml to 'true'
-        on magma-dev VM and restart MME to enable the Ha service
+        on magma-dev VM and restart MME to enable the HA service
         """
         num_ues = 100
         # column is a enb parameter,  row is a number of enbs
