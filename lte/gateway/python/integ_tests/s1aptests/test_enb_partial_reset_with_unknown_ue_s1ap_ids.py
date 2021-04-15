@@ -77,11 +77,10 @@ class TestEnbPartialResetWithUnknownUeS1apIds(unittest.TestCase):
         random_inc_val = 20
         for indx in range(reset_req.r.partialRst.numOfConn):
             reset_req.r.partialRst.ueS1apIdPairList[indx].ueId = ue_ids[indx]
-            """Known Issue: if enbUeS1apId is getting changed, Detach Request
-            is not sent from s1ap tester.
-            Due to other high priority tasks, working on this issue is
-            de-prioritized
-            """
+            # Known Issue: If enbUeS1apId is changed, Detach Request is not
+            # sent from S1APTester. Due to other high priority tasks, working
+            # on this issue is de-prioritized. After the issue gets resolved,
+            # uncomment the following code to set unknown enbUeS1apId
 
             # reset_req.r.partialRst.ueS1apIdPairList[indx].enbUeS1apId = (
             #     ue_ids[indx] + random_inc_val
