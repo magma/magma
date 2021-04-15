@@ -44,7 +44,6 @@ static int amf_registration_failure_identification_cb(
 static int amf_start_registration_proc_security(
     amf_context_t* amf_context, nas_amf_registration_proc_t* registration_proc);
 static int amf_registration(amf_context_t* amf_context);
-static int amf_send_registration_accept(amf_context_t* amf_context);
 static int amf_registration_failure_security_cb(amf_context_t* amf_context);
 
 static int amf_registration_reject(

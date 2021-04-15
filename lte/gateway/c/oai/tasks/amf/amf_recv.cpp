@@ -278,7 +278,6 @@ int amf_handle_registration_request(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   return rc;
-=======
   /* This is SUCI message identity type is SUPI as IMSI type
    * Extract the SUPI from SUCI directly as scheme is NULL */
   if (msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity ==

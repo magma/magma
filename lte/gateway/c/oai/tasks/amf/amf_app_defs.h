@@ -38,12 +38,8 @@ int amf_app_handle_uplink_nas_message(
     amf_app_desc_t* amf_app_desc_p, bstring msg);
 void amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp);
-<<<<<<< HEAD
 int amf_app_handle_notification_received(
     itti_n11_received_notification_t* notification);
-=======
 int amf_app_handle_pdu_session_accept(
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id);
-
->>>>>>> AMF State machine Feature Support
 }  // namespace magma5g
