@@ -91,7 +91,7 @@ type ColumnType =
   | 'time'
   | 'currency';
 
-export type ActionTableColumn = {
+type ActionTableColumn = {
   title: string,
   type?: ColumnType,
   field: string,

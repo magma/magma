@@ -18,7 +18,6 @@ import Dialog from '@material-ui/core/Dialog';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import Link from '@material-ui/core/Link';
-import NetworkContext from '../../components/context/NetworkContext';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import ReactJson from 'react-json-view';
@@ -28,13 +27,11 @@ import SubscriberDetail from './SubscriberDetail';
 import SubscriberStateTable from './SubscriberStateTable';
 import SubscriberTable from './SubscriberTable';
 import TopBar from '../../components/TopBar';
-import type {NetworkContextType} from '../../components/context/NetworkContext';
-import type {mutable_subscriber, subscriber} from '@fbcnms/magma-api';
 
-import {FEG_LTE, LTE} from '@fbcnms/types/network';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
+import type {mutable_subscriber, subscriber} from '@fbcnms/magma-api';
 
 const TITLE = 'Subscribers';
 
@@ -44,6 +41,10 @@ export default function SubscriberDashboard() {
     <Switch>
       <Route
         path={relativePath('/overview/config/:subscriberId')}
+        component={SubscriberDetail}
+      />
+      <Route
+        path={relativePath('/overview/sessions/:subscriberId')}
         component={SubscriberDetail}
       />
 
@@ -73,32 +74,24 @@ type Props = {
 
 export function SubscribersOverview() {
   const {relativePath, relativeUrl} = useRouter();
-  const networkCtx = useContext(NetworkContext);
-  const tabs = [
-    {
-      label: 'Sessions',
-      to: '/sessions',
-      icon: PeopleIcon,
-    },
-  ];
 
   return (
     <>
       <TopBar
         header={TITLE}
-        tabs={
-          networkCtx.networkType !== LTE
-            ? tabs
-            : [
-                {
-                  label: 'Config',
-                  to: '/config',
-                  icon: SettingsIcon,
-                  filters: <AddSubscriberButton onClose={() => {}} />,
-                },
-                ...tabs,
-              ]
-        }
+        tabs={[
+          {
+            label: 'Config',
+            to: '/config',
+            icon: SettingsIcon,
+            filters: <AddSubscriberButton onClose={() => {}} />,
+          },
+          {
+            label: 'Sessions',
+            to: '/sessions',
+            icon: PeopleIcon,
+          },
+        ]}
       />
       <Switch>
         <Route path={relativePath('/config')} component={SubscriberTable} />
@@ -137,38 +130,24 @@ export function JsonDialog(props: Props) {
 type RenderLinkType = {
   subscriberConfig: subscriber,
   currRow: SubscriberRowType,
-  networkCtx: NetworkContextType,
 };
 
 export function RenderLink(props: RenderLinkType) {
   const {relativeUrl, history} = useRouter();
-  const {subscriberConfig, currRow, networkCtx} = props;
+  const {subscriberConfig, currRow} = props;
   const imsi = currRow.imsi;
   return (
     <div>
-      {subscriberConfig ? (
-        <Link
-          variant="body2"
-          component="button"
-          onClick={() =>
-            // Link to event tab if FEG_LTE network
-            history.push(
-              relativeUrl(
-                '/' +
-                  imsi +
-                  `${
-                    networkCtx.networkType === FEG_LTE && !subscriberConfig
-                      ? '/event'
-                      : ''
-                  }`,
-              ),
-            )
-          }>
-          {imsi}
-        </Link>
-      ) : (
-        <>{imsi}</>
-      )}
+      <Link
+        variant="body2"
+        component="button"
+        onClick={() =>
+          history.push(
+            relativeUrl('/' + imsi + `${!subscriberConfig ? '/event' : ''}`),
+          )
+        }>
+        {imsi}
+      </Link>
     </div>
   );
 }
