@@ -20,9 +20,11 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/nprobe"
+	"magma/lte/cloud/go/services/nprobe/encoding"
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	eventdC "magma/orc8r/cloud/go/services/eventd/eventd_client"
+	eventdM "magma/orc8r/cloud/go/services/eventd/obsidian/models"
 
 	"github.com/golang/glog"
 	"github.com/olivere/elastic/v7"
@@ -38,6 +40,7 @@ const (
 // them to a remote collector server.
 type NProbeManager struct {
 	ElasticClient *elastic.Client
+	OperatorID    uint32
 }
 
 // NewNProbeManager creates and returns a new nprobe manager
@@ -48,6 +51,7 @@ func NewNProbeManager(config nprobe.Config) (*NProbeManager, error) {
 	}
 	return &NProbeManager{
 		ElasticClient: client,
+		OperatorID:    config.OperatorID,
 	}, nil
 }
 
@@ -68,32 +72,45 @@ func getNetworkProbeTasks(networkID string) (map[string]*models.NetworkProbeTask
 	return ret, nil
 }
 
-func (np *NProbeManager) processNProbeTask(networkID string, task *models.NetworkProbeTask) error {
-	// TBD - get the latest state of the task, collect latest events
-	// then process them to create iri records.
-	targetID := task.TaskDetails.TargetID
-	timeSinceReported := time.Time(task.TaskDetails.Timestamp)
+func getEvents(networkID, targetID string, start_time *time.Time, client *elastic.Client) ([]eventdM.Event, error) {
 	queryParams := eventdC.MultiStreamEventQueryParams{
 		NetworkID: networkID,
 		Streams:   nprobe.GetESStreams(),
 		Events:    nprobe.GetESEventTypes(),
 		Tags:      []string{targetID, targetID[4:]},
-		Start:     &timeSinceReported,
+		Start:     start_time,
 		Size:      querySize,
 	}
-	// TBD - process events
-	_, err := eventdC.GetMultiStreamEvents(context.Background(), queryParams, np.ElasticClient)
+	return eventdC.GetMultiStreamEvents(context.Background(), queryParams, client)
+}
+
+func (np *NProbeManager) processNProbeTask(networkID string, task *models.NetworkProbeTask) error {
+	// TBD - get the latest state of the task, collect latest events
+	// then process them to create iri records.
+	targetID := string(task.TaskDetails.TargetID)
+	timeSinceReported := time.Time(task.TaskDetails.Timestamp)
+	events, err := getEvents(networkID, targetID, &timeSinceReported, np.ElasticClient)
 	if err != nil {
 		glog.Errorf("Failed to collect events for targetID %s: %s\n", targetID, err)
 		return err
 	}
 
+	// TBD -  retrieve seq nbr from subscriber state and export records
+	var seqNbr uint32 = 0
+	for _, event := range events {
+		_, err := encoding.MakeRecord(&event, task, np.OperatorID, seqNbr)
+		if err != nil {
+			glog.Errorf("Failed to collect events for targetID %s: %s\n", targetID, err)
+			continue
+		}
+		seqNbr++
+	}
 	return nil
 }
 
 // ProcessNProbeTasks runs in loop and retrieves all nprobe tasks and process them.
 // For each task, it collects latest events, creates the corresponding IRI record then
-// export them to a remote destination..
+// export them to a remote destination.
 func (np *NProbeManager) ProcessNProbeTasks() error {
 	networks, err := configurator.ListNetworksOfType(LteNetwork)
 	if err != nil {
@@ -112,7 +129,7 @@ func (np *NProbeManager) ProcessNProbeTasks() error {
 			err = np.processNProbeTask(networkID, task)
 			if err != nil {
 				glog.Errorf("Failed to process events for targetID %s: %s\n", task.TaskDetails.TargetID, err)
-				continue
+				return err
 			}
 		}
 	}
