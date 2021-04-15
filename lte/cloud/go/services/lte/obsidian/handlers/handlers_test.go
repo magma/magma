@@ -3291,7 +3291,7 @@ func TestAPNResource(t *testing.T) {
 		ParamValues:            []string{"n0", "gw1"},
 		Handler:                postGateway,
 		ExpectedStatus:         500, // TODO(8/21/20): this should really be a 400
-		ExpectedErrorSubstring: "an entity (apn_resource-res0) already exists",
+		ExpectedErrorSubstring: "an entity 'apn_resource-res0' already exists",
 	}
 	tests.RunUnitTest(t, e, tc)
 
