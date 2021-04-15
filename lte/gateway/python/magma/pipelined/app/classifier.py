@@ -16,24 +16,21 @@ import subprocess
 from collections import namedtuple
 
 from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.pipelined_pb2 import PdrState
+from lte.protos.session_manager_pb2 import UPFPagingInfo
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.inout import INGRESS
-from magma.pipelined.openflow import flows
+from magma.pipelined.openflow import flows, messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import TUN_PORT_REG, Direction
-from magma.pipelined.policy_converters import get_eth_type, get_ue_ip_match_args
+from magma.pipelined.policy_converters import (get_eth_type,
+                                               get_ue_ip_match_args)
 from magma.pipelined.utils import Utils
-from ryu.lib.packet import ether_types, packet, ipv4
-from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from lte.protos.session_manager_pb2 import UPFPagingInfo
-from magma.pipelined.app.enforcement_stats import _get_sid, _get_ipv4, _get_tunnel_id
-from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
+from ryu.lib.packet import ether_types, ipv4, packet
 from ryu.ofproto import ofproto_v1_0_parser
-from magma.pipelined.openflow import messages
-from magma.pipelined.openflow.exceptions import MagmaOFError
-from lte.protos.pipelined_pb2 import PdrState
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
@@ -48,12 +45,11 @@ class Classifier(MagmaController):
     APP_NAME = "classifier"
     APP_TYPE = ControllerType.SPECIAL
     SESSIOND_RPC_TIMEOUT = 5
-    CLASSIFIER_CONTROLLER_ID = 5
     ClassifierConfig = namedtuple(
             'ClassifierConfig',
             ['gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port',
              'internal_sampling_fwd_tbl', 'multi_tunnel_flag',
-             'internal_conntrack_port', 'internal_conntrack_fwd_tbl', 'paging_timeout'],
+             'internal_conntrack_port', 'internal_conntrack_fwd_tbl', 'paging_timeout', 'classifier_controller_id'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -99,6 +95,7 @@ class Classifier(MagmaController):
             internal_conntrack_fwd_tbl=
                                config_dict['ovs_internal_conntrack_fwd_tbl_number'],
             paging_timeout = config_dict['paging_timeout'],
+            classifier_controller_id = config_dict['classifier_controller_id'],
 
         )
 
@@ -174,7 +171,7 @@ class Classifier(MagmaController):
 
     def _set_classifier_controller_id(self):
         req = ofproto_v1_0_parser.NXTSetControllerId(self._datapath,
-                                                     controller_id=self.CLASSIFIER_CONTROLLER_ID)
+                                                     controller_id=self.config.classifier_controller_id)
         messages.send_msg(self._datapath, req)
 
     def _install_default_tunnel_flows(self):
@@ -198,51 +195,16 @@ class Classifier(MagmaController):
                                              reset_default_register=False,
                                              resubmit_table=self.config.internal_conntrack_fwd_tbl)
 
-    def _send_message_interface(self, ue_ip_add:str):
+    def _send_message_interface(self, ue_ip_add: str, local_f_teid: int):
         """
         Send the flow statictics request to ryu controller for
         fetching the flow information from ovs table 14 for
         corresponding UE address.
         """
-        ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_src=ue_ip_add)
-        ryu_match = parser.OFPMatch(**match.ryu_match)
-        req = parser.OFPFlowStatsRequest(self._datapath, table_id=14,
-                out_group=ofproto.OFPG_ANY,
-                out_port=ofproto.OFPP_ANY,match=ryu_match)
-        try:
-            messages.send_msg(self._datapath, req)
-            self.paging_flag = 1
-        except MagmaOFError as e:
-            self.logger.warning("Couldn't poll datapath stats: %s", e)
-            self.paging_flag = 0
-
-    @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
-    def _flow_info_reply_handler(self, ev):
-        if self.paging_flag:
-            flow_info = ev.msg.body
-            self.paging_flag = 0
-            if ev.msg.flags == OFPMPF_REPLY_MORE:
-                # Wait for more multi-part responses thats received for the
-                # single stats request.
-                return
-            if flow_info:
-                self.loop.call_soon_threadsafe(
-                                       self._handle_flow_info, flow_info)
-
-    def _handle_flow_info(self, flow_info):
-        for stat in flow_info:
-            sid = _get_sid(stat)
-            ipv4_addr = _get_ipv4(stat)
-            tunnel_id = _get_tunnel_id(stat)
-
-        if (sid is not None and ipv4_addr is not None and tunnel_id is not None):
-            paging_message=UPFPagingInfo(subscriber_id = sid, local_f_teid=tunnel_id,
-                                         ue_ip_addr=ipv4_addr)
-
-            future = self._sessiond_setinterface.SendPagingReuest.future(
+        paging_message=UPFPagingInfo(local_f_teid=local_f_teid, ue_ip_addr=ue_ip_add)
+        future = self._sessiond_setinterface.SendPagingReuest.future(
                             paging_message, self.SESSIOND_RPC_TIMEOUT)
-            future.add_done_callback(
+        future.add_done_callback(
                               lambda future: self.loop.call_soon_threadsafe(
                               self._paging_msg_sent_callback, future))
 
@@ -256,7 +218,8 @@ class Classifier(MagmaController):
 
     def add_tunnel_flows(self, precedence:int, i_teid:int,
                          o_teid:int, ue_ip_adr:IPAddress,
-                         enodeb_ip_addr:str, sid:int = None) -> bool:
+                         enodeb_ip_addr:str, sid:int = None,
+                         ng_flag: bool = True) -> bool:
 
         parser = self._datapath.ofproto_parser
         priority = Utils.get_of_priority(precedence)
@@ -295,8 +258,9 @@ class Classifier(MagmaController):
 
                 actions = [parser.OFPActionSetField(tunnel_id=o_teid),
                            parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr),
-                           parser.OFPActionSetField(tun_flags=TUNNEL_OAM_FLAG),
                            parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=gtp_portno)]
+                if ng_flag:
+                    actions.append(parser.OFPActionSetField(tun_flags=TUNNEL_OAM_FLAG))
                 if sid:
                     actions.append(parser.OFPActionSetField(metadata=sid))
 
@@ -455,13 +419,12 @@ class Classifier(MagmaController):
     @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
     def _packet_in_handler(self, ev):
         msg = ev.msg
-
         pkt = packet.Packet(msg.data)
         pkt_ipv4 = pkt.get_protocol(ipv4.ipv4)
 
         dst = pkt_ipv4.dst
         # For sending notification to SMF using GRPC
-        self._send_message_interface(dst)
+        self._send_message_interface(dst, msg.cookie)
         # Add flow for paging with hard time.
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_dst=dst)
 
@@ -469,19 +432,23 @@ class Classifier(MagmaController):
                        priority=flows.PAGING_PRIORITY + 1,
                        hard_timeout= self.config.paging_timeout)
 
-    def _install_paging_flow(self, ue_ip_addr:IPAddress, controller_id:int=0):
+    def _install_paging_flow(self, ue_ip_addr:IPAddress, local_f_teid:int, ng_flag: bool = True):
         ofproto = self._datapath.ofproto
         parser = self._datapath.ofproto_parser
         ip_match_out = get_ue_ip_match_args(ue_ip_addr, Direction.IN)
         match = MagmaMatch(eth_type=get_eth_type(ue_ip_addr), **ip_match_out)
 
         # Pass Controller ID value as a ACTION
-        actions = [parser.NXActionController(0, controller_id,
-                                             ofproto.OFPR_ACTION_SET)]
+        if ng_flag:
+            actions = [parser.NXActionController(0, self.config.classifier_controller_id,
+                                                 ofproto.OFPR_ACTION_SET)]
+        else:
+            actions = [parser.NXActionController(0, 0, ofproto.OFPR_ACTION_SET)]
 
         flows.add_output_flow(self._datapath, self.tbl_num,
                               match=match, actions=actions,
                               priority=flows.PAGING_PRIORITY,
+                              cookie=local_f_teid,
                               output_port=ofproto.OFPP_CONTROLLER,
                               max_len=ofproto.OFPCML_NO_BUFFER)
 
@@ -492,21 +459,20 @@ class Classifier(MagmaController):
 
     def gtp_handler(self, pdr_state, precedence:int, local_f_teid:int,
                      o_teid:int, ue_ip_addr:IPAddress, gnb_ip_addr:str,
-                     sid:int = None, controller_id:int = 0):
+                     sid:int = None, ng_flag: bool = True):
 
         if pdr_state == PdrState.Value('INSTALL'):
             self.remove_paging_flow(ue_ip_addr)
             self.add_tunnel_flows(precedence, local_f_teid,
                                   o_teid, ue_ip_addr,
-                                  gnb_ip_addr, sid)
+                                  gnb_ip_addr, sid, ng_flag)
 
         elif pdr_state == PdrState.Value('IDLE'):
             self.delete_tunnel_flows(local_f_teid, ue_ip_addr)
-            self._install_paging_flow(ue_ip_addr, controller_id)
+            self._install_paging_flow(ue_ip_addr, local_f_teid, ng_flag)
 
         elif pdr_state == PdrState.Value('REMOVE'):
             self.delete_tunnel_flows(local_f_teid, ue_ip_addr)
             self.remove_paging_flow(ue_ip_addr)
 
         return True
-

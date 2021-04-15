@@ -12,38 +12,35 @@ limitations under the License.
 """
 import unittest
 import warnings
-from unittest.mock import MagicMock
 from concurrent.futures import Future
+from unittest.mock import MagicMock
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from magma.pipelined.app.ue_mac import UEMacAddressController
-from magma.pipelined.app.inout import INGRESS, EGRESS
-from magma.pipelined.app.ue_mac import UEMacAddressController
-from magma.pipelined.tests.app.packet_builder import EtherPacketBuilder, \
-    UDPPacketBuilder, ARPPacketBuilder, DHCPPacketBuilder
-from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
-    PipelinedController,
-)
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
-from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.pipelined_test_util import (
-    start_ryu_app_thread,
-    stop_ryu_app_thread,
-    create_service_manager,
-    wait_after_send,
-    FlowVerifier,
-    FlowTest,
-    SnapshotVerifier,
-)
-from ryu.lib import hub
-from scapy.contrib.gtp import GTP_U_Header
-from scapy.all import *
-from magma.pipelined.app.classifier import Classifier
 from lte.protos.mobilityd_pb2 import IPAddress
+from magma.pipelined.app.classifier import Classifier
+from magma.pipelined.app.inout import EGRESS, INGRESS
+from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.tests.app.flow_query import \
+    RyuDirectFlowQuery as FlowQuery
+from magma.pipelined.tests.app.packet_builder import (ARPPacketBuilder,
+                                                      DHCPPacketBuilder,
+                                                      EtherPacketBuilder,
+                                                      UDPPacketBuilder)
+from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
+from magma.pipelined.tests.app.start_pipelined import (PipelinedController,
+                                                       TestSetup)
+from magma.pipelined.tests.pipelined_test_util import (FlowTest, FlowVerifier,
+                                                       SnapshotVerifier,
+                                                       create_service_manager,
+                                                       start_ryu_app_thread,
+                                                       stop_ryu_app_thread,
+                                                       wait_after_send)
+from ryu.lib import hub
+from scapy.all import *
+from scapy.contrib.gtp import GTP_U_Header
+
 
 class PagingTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -98,6 +95,7 @@ class PagingTest(unittest.TestCase):
                 'ovs_internal_conntrack_fwd_tbl_number': 202,
                 'clean_restart': True,
                 'paging_timeout': 30,
+                'classifier_controller_id': 5,
             },
             mconfig=PipelineD(),
             loop=None,
@@ -126,7 +124,7 @@ class PagingTest(unittest.TestCase):
 
         ue_ip_addr = "192.168.128.30"
         self.classifier_controller._install_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                        self.CLASSIFIER_CONTROLLER_ID) 
+                                                        200, True) 
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -141,7 +139,7 @@ class PagingTest(unittest.TestCase):
         self.classifier_controller._remove_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)#, include_stats=False)
+                                             self.service_manager)
         with snapshot_verifier:
             pass
 
@@ -155,7 +153,7 @@ class PagingTest(unittest.TestCase):
 
         ue_ip_addr = "192.168.128.30"
         self.classifier_controller._install_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                        self.CLASSIFIER_CONTROLLER_ID)
+                                                        200, True)
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         eth = Ether(dst=self.MAC_1, src=self.MAC_2)

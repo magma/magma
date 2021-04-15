@@ -17,34 +17,22 @@ from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
 from lte.protos.session_manager_pb2 import RuleRecord, RuleRecordTable
-from magma.pipelined.app.base import (
-    ControllerType,
-    MagmaController,
-    global_epoch,
-)
-from magma.pipelined.app.policy_mixin import (
-    DROP_FLOW_STATS,
-    IGNORE_STATS,
-    PROCESS_STATS,
-    PolicyMixin,
-)
+from magma.pipelined.app.base import (ControllerType, MagmaController,
+                                      global_epoch)
+from magma.pipelined.app.policy_mixin import (DROP_FLOW_STATS, IGNORE_STATS,
+                                              PROCESS_STATS, PolicyMixin)
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.imsi import decode_imsi, encode_imsi
 from magma.pipelined.openflow import flows, messages
-from magma.pipelined.openflow.exceptions import (
-    MagmaDPDisconnectedError,
-    MagmaOFError,
-)
+from magma.pipelined.openflow.exceptions import (MagmaDPDisconnectedError,
+                                                 MagmaOFError)
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
-from magma.pipelined.openflow.registers import (
-    DIRECTION_REG,
-    IMSI_REG,
-    RULE_VERSION_REG,
-    SCRATCH_REGS,
-    Direction,
-)
-from magma.pipelined.policy_converters import get_eth_type, get_ue_ip_match_args
+from magma.pipelined.openflow.registers import (DIRECTION_REG, IMSI_REG,
+                                                RULE_VERSION_REG, SCRATCH_REGS,
+                                                Direction)
+from magma.pipelined.policy_converters import (get_eth_type,
+                                               get_ue_ip_match_args)
 from magma.pipelined.utils import Utils
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
@@ -716,8 +704,3 @@ def _get_policy_type(match):
     if SCRATCH_REGS[1] not in match:
         return None
     return match[SCRATCH_REGS[1]]
-
-def _get_tunnel_id(flow):
-    if 'tunnel_id' not in flow.match:
-        return None
-    return flow.match['tunnel_id']

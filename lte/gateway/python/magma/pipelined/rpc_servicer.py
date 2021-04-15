@@ -21,28 +21,16 @@ from typing import List, Tuple
 import grpc
 from lte.protos import pipelined_pb2_grpc
 from lte.protos.mobilityd_pb2 import IPAddress
-from lte.protos.pipelined_pb2 import (
-    ActivateFlowsRequest,
-    ActivateFlowsResult,
-    AllTableAssignments,
-    CauseIE,
-    DeactivateFlowsRequest,
-    DeactivateFlowsResult,
-    FlowResponse,
-    OffendingIE,
-    PdrState,
-    RequestOriginType,
-    RuleModResult,
-    SessionSet,
-    SetupFlowsResult,
-    SetupPolicyRequest,
-    SetupQuotaRequest,
-    SetupUEMacRequest,
-    TableAssignment,
-    SessionSet,
-    UPFSessionContextState,
-    VersionedPolicy,
-)
+from lte.protos.pipelined_pb2 import (ActivateFlowsRequest,
+                                      ActivateFlowsResult, AllTableAssignments,
+                                      CauseIE, DeactivateFlowsRequest,
+                                      DeactivateFlowsResult, FlowResponse,
+                                      OffendingIE, RequestOriginType,
+                                      RuleModResult, SessionSet,
+                                      SetupFlowsResult, SetupPolicyRequest,
+                                      SetupQuotaRequest, SetupUEMacRequest,
+                                      TableAssignment, UPFSessionContextState,
+                                      VersionedPolicy)
 from lte.protos.session_manager_pb2 import RuleRecordTable
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
 from magma.pipelined.app.check_quota import CheckQuotaController
@@ -55,19 +43,13 @@ from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.imsi import encode_imsi
-from magma.pipelined.ipv6_prefix_store import (
-    get_ipv6_interface_id,
-    get_ipv6_prefix,
-)
-from magma.pipelined.metrics import (
-    ENFORCEMENT_RULE_INSTALL_FAIL,
-    ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
-)
+from magma.pipelined.ipv6_prefix_store import (get_ipv6_interface_id,
+                                               get_ipv6_prefix)
+from magma.pipelined.metrics import (ENFORCEMENT_RULE_INSTALL_FAIL,
+                                     ENFORCEMENT_STATS_RULE_INSTALL_FAIL)
 from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
-from magma.pipelined.policy_converters import (
-    convert_ipv4_str_to_ip_proto,
-    convert_ipv6_bytes_to_ip_proto,
-)
+from magma.pipelined.policy_converters import (convert_ipv4_str_to_ip_proto,
+                                               convert_ipv6_bytes_to_ip_proto)
 
 grpc_msg_queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 15
@@ -802,7 +784,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                                 pdr_entry.ue_ip_addr,
                                                 pdr_entry.far_action.gnb_ip_addr,
                                                 encode_imsi(subscriber_id),
-                                                self._classifier_app.CLASSIFIER_CONTROLLER_ID)
+                                                True)
 
         return ret
 
