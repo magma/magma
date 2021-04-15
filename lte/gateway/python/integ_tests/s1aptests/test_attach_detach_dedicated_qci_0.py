@@ -13,6 +13,7 @@ limitations under the License.
 
 import time
 import unittest
+import ipaddress
 
 import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
@@ -46,23 +47,31 @@ class TestAttachDetachDedicatedQci0(unittest.TestCase):
                 req.ue_id,
             )
             # Now actually complete the attach
-            self._s1ap_wrapper._s1_util.attach(
+            attach = self._s1ap_wrapper._s1_util.attach(
                 req.ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+            addr = attach.esmInfo.pAddr.addrInfo
+            default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
 
+            print("Sleeping for 5 seconds")
             time.sleep(2)
             imsi = "".join([str(i) for i in req.imsi])
             print(
                 "********************** Adding dedicated bearer to IMSI",
                 imsi,
             )
-            self._spgw_util.create_bearer("IMSI" + imsi, 5, 0)
+            # Create default flow list
+            flow_list = self._spgw_util.create_default_flows()
+            self._spgw_util.create_bearer(
+                "IMSI" + imsi, attach.esmInfo.epsBearerId,
+                flow_list, qci_val=0
+            )
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
@@ -83,7 +92,18 @@ class TestAttachDetachDedicatedQci0(unittest.TestCase):
                 erab_setup_failed_for_bearers.failedErablist[0].qci
             )
 
+            print("Sleeping for 5 seconds")
             time.sleep(5)
+            # Verify that flow rules are created only for default bearer
+            dl_flow_rules = {
+                default_ip: [],
+            }
+            # 1 UL flow for default bearer
+            num_ul_flows = 1
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
+            )
+
             print(
                 "********************** Running UE detach for UE id ",
                 req.ue_id
