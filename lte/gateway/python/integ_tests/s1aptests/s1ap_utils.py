@@ -891,16 +891,16 @@ class MagmadUtil(object):
         Enable/disable the ipv6_solicitation service in pipelined configuration
 
         Args:
-          cmd: Specify whether ipv6_solicitation should be enabled or not
-            enable: Enable ipv6_solicitation service,
-                    do nothing if already enabled
-            disable: Disable ipv6_solicitation service,
-                     do nothing if already disabled
+            cmd: Specify whether ipv6_solicitation should be enabled or not
+                 - enable: Enable ipv6_solicitation service,
+                           do nothing if already enabled
+                 - disable: Disable ipv6_solicitation service,
+                            do nothing if already disabled
 
         Returns:
-          -1 : Failed to configure
-          0 : Already configured
-          1 : Configured successfully. Need to restart the service
+            -1: Failed to configure
+            0: Already configured
+            1: Configured successfully. Need to restart the service
         """
         ipv6_update_config_cmd = ""
         ipv6_config_status_cmd = (
@@ -914,7 +914,7 @@ class MagmadUtil(object):
                 return 0
             else:
                 ipv6_update_config_cmd = (
-                    "sed -i \\\"/startup_flows/a \ \ 'ipv6_solicitation',\\\" "
+                    r"sed -i \"/startup_flows/a \ \ 'ipv6_solicitation',\" "
                     "/etc/magma/pipelined.yml"
                 )
         else:
@@ -927,27 +927,26 @@ class MagmadUtil(object):
                 )
 
         ret_code = self.exec_command("sudo " + ipv6_update_config_cmd)
-
         if ret_code == 0:
             print("IPv6 solicitation service configured successfully")
             return 1
-        else:
-            print("IPv6 solicitation service configuration failed")
-            return -1
+
+        print("IPv6 solicitation service configuration failed")
+        return -1
 
     def config_ha_service(self, cmd):
         """
         Modify the mme configuration by enabling/disabling use of Ha service
 
         Args:
-          cmd: Specify whether Ha service is enabled for use or not
-            enable: Enable Ha service, do nothing if already enabled
-            disable: Disable Ha service, do nothing if already disabled
+            cmd: Specify whether Ha service is enabled for use or not
+                 - enable: Enable Ha service, do nothing if already enabled
+                 - disable: Disable Ha service, do nothing if already disabled
 
         Returns:
-          -1 : Failed to configure
-          0 : Already configured
-          1 : Configured successfully. Need to restart the service
+            -1: Failed to configure
+            0: Already configured
+            1: Configured successfully. Need to restart the service
         """
         ha_config_cmd = ""
         if cmd.name == MagmadUtil.ha_service_cmds.ENABLE.name:
@@ -980,13 +979,12 @@ class MagmadUtil(object):
                 )
 
         ret_code = self.exec_command("sudo " + ha_config_cmd)
-
         if ret_code == 0:
             print("Ha service configured successfully")
             return 1
-        else:
-            print("Ha service configuration failed")
-            return -1
+
+        print("Ha service configuration failed")
+        return -1
 
     def restart_mme_and_wait(self):
         print("Restarting mme service on gateway")
