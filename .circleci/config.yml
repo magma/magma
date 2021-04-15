@@ -955,11 +955,17 @@ jobs:
     environment:
       AWS_ACCESS_KEY_ID: "$AWS_FB_CRED"
       AWS_SECRET_ACCESS_KEY: "$AWS_FB_SECRET"
+      MAGMA_ROOT: /home/circleci/project  
     machine:
       image: ubuntu-1604:201903-01
     steps:
+      - checkout
+      - python/set_version
+  
       - run:
           command: |
+            cd ${MAGMA_ROOT}/
+            python3 build.py --tests --up
             ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
             ansible-playbook ami-init.yaml
       - magma_slack_notify
