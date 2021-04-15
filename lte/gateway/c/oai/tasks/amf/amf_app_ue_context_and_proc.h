@@ -681,6 +681,7 @@ struct nas_amf_registration_proc_t {
   amf_ue_ngap_id_t ue_id;
   ksi_t ksi;
   int amf_cause;
+  int registration_accept_sent;
 };
 // NAS security related IEs
 class nas_amf_smc_proc_t {

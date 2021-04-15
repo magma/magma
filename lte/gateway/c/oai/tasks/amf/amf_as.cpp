@@ -19,6 +19,7 @@ extern "C" {
 #include "log.h"
 #include "conversions.h"
 #include "3gpp_24.008.h"
+#include "secu_defs.h"
 #ifdef __cplusplus
 }
 #endif
@@ -913,10 +914,7 @@ int initial_context_setup_request(
   req->ue_security_capabilities.m5g_integrity_protection_algo =
       htons(req->ue_security_capabilities.m5g_integrity_protection_algo);
   req->Security_Key = (unsigned char*) &amf_ctx->_security.kgnb;
-  amf_ctx->_m5_guti.guamfi.amf_regionid = 0x1;
-  amf_ctx->_m5_guti.guamfi.amf_set_id   = 0x0;
-  amf_ctx->_m5_guti.guamfi.amf_pointer  = 0x0;
-  memcpy(&req->Ngap_guami, &amf_ctx->_m5_guti.guamfi, sizeof(guamfi_t));
+  memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
 
   if (nas_msg) {
     req->nas_pdu = nas_msg;
@@ -1026,7 +1024,7 @@ uint16_t amf_as_establish_cnf(
     m5gmm_state_t state =
         PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->mm_state;
     nas_amf_registration_proc_t* registration_proc =
-        nas_procedure_as.get_nas_specific_procedure_registration(amf_ctx);
+        get_nas_specific_procedure_registration(amf_ctx);
 
     if ((state != REGISTERED_CONNECTED) &&
         !(registration_proc->registration_accept_sent)) {

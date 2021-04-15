@@ -84,4 +84,6 @@ int nas_stream_encrypt_eea2(
 int nas_stream_encrypt_eia2(
     nas_stream_cipher_t* const stream_cipher, uint8_t const out[4]);
 
+int derive_5gkey_gnb(const uint8_t* kamf, uint32_t ul_count, uint8_t* kgnb);
+
 #endif /* FILE_SECU_DEFS_SEEN */
