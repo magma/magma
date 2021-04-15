@@ -34,12 +34,13 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 	if causeIE := csResGtp.Cause; causeIE != nil {
 		csRes.GtpError, err = handleCause(causeIE, msg)
 		if err != nil || csRes.GtpError != nil {
-			return
+			// return either GtpError or err
+			return csRes, err
 		}
 		// If we get here, the message will be processed
 	} else {
 		csRes.GtpError = errorIeMissing(ie.Cause)
-		return
+		return csRes, nil
 	}
 
 	// get C AGW Teid (is the same used on Create Session Request by MME)
@@ -49,11 +50,12 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 	if paaIE := csResGtp.PAA; paaIE != nil {
 		csRes.Paa, csRes.PdnType, err = handlePDNAddressAllocation(paaIE)
 		if err != nil {
-			return
+			return nil, err
 		}
 	} else {
 		csRes.GtpError = errorIeMissing(ie.PDNAddressAllocation)
-		return
+		// error is in GtpError
+		return csRes, nil
 	}
 
 	// Pgw control plane fteid
@@ -61,11 +63,12 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 		csRes.CPgwFteid, _, err = handleFTEID(pgwCFteidIE)
 		if err != nil {
 			err = fmt.Errorf("Couldn't get PGW control plane FTEID: %s ", err)
-			return
+			return nil, err
 		}
 	} else {
 		csRes.GtpError = errorIeMissing(ie.FullyQualifiedTEID)
-		return
+		// error is in GtpError
+		return csRes, nil
 	}
 
 	// Protocol Configuration Options (PCO) optional
@@ -73,7 +76,7 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 		csRes.ProtocolConfigurationOptions, err = handlePCO(pgwPcoIE)
 		if err != nil {
 			err = fmt.Errorf("Couldn't get Protocol Configuration Options: %s ", err)
-			return
+			return nil, err
 		}
 	}
 
@@ -83,50 +86,49 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 		for _, childIE := range brCtxIE.ChildIEs {
 			switch childIE.Type {
 			case ie.Cause:
-				cause, err2 := childIE.Cause()
-				if err2 != nil {
-					err = err2
-					return
+				cause, err := childIE.Cause()
+				if err != nil {
+					return nil, err
 				}
 				if cause != gtpv2.CauseRequestAccepted {
 					csRes.GtpError = &protos.GtpError{
 						Cause: uint32(cause),
 						Msg:   fmt.Sprintf("Bearer could not be created"),
 					}
-					return
+					// error is in GtpError
+					return csRes, nil
 				}
 			case ie.EPSBearerID:
-				ebi, err2 := childIE.EPSBearerID()
-				if err2 != nil {
-					err = err2
-					return
+				ebi, err := childIE.EPSBearerID()
+				if err != nil {
+					return nil, err
 				}
 				bearerCtx.Id = uint32(ebi)
 			case ie.FullyQualifiedTEID:
-				uFteid, _, err2 := handleFTEID(childIE)
-				if err2 != nil {
-					err = err2
-					return
+				uFteid, _, err := handleFTEID(childIE)
+				if err != nil {
+					return nil, err
 				}
 				bearerCtx.UserPlaneFteid = uFteid
 			case ie.ChargingID:
 				bearerCtx.ChargingId, err = childIE.ChargingID()
 				if err != nil {
-					return
+					return nil, err
 				}
 
 			case ie.BearerQoS:
 				// save for testing purposes
 				bearerCtx.Qos, err = handleQOStoProto(childIE)
 				if err != nil {
-					return
+					return nil, err
 				}
 			}
 		}
 		csRes.BearerContext = bearerCtx
 	} else {
 		csRes.GtpError = errorIeMissing(ie.BearerContext)
-		return
+		// error is in GtpError
+		return csRes, nil
 	}
 	return csRes, nil
 }
@@ -135,23 +137,26 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 // the message is proper it also returns the session. In case it there is an error it returns
 // the cause of error
 func parseDeleteSessionResponse(msg message.Message) (
-	dsRes *protos.DeleteSessionResponsePgw, err error) {
+	*protos.DeleteSessionResponsePgw, error) {
 	//glog.V(4).Infof("Received Delete Session Response (gtp):\n%s", (msg))
 	cdResGtp := msg.(*message.DeleteSessionResponse)
 	glog.V(2).Infof("Received Delete Session Response (gtp):\n%s", cdResGtp.String())
 
-	dsRes = &protos.DeleteSessionResponsePgw{}
+	dsRes := &protos.DeleteSessionResponsePgw{}
+	var err error
 	// check Cause value first.
 	if causeIE := cdResGtp.Cause; causeIE != nil {
 
 		dsRes.GtpError, err = handleCause(causeIE, msg)
 		if err != nil || dsRes.GtpError != nil {
-			return
+			// return either GtpError or err
+			return dsRes, err
 		}
 		// If we get here, the message will be processed
 	} else {
 		dsRes.GtpError = errorIeMissing(ie.Cause)
-		return
+		// error is in GtpError
+		return dsRes, nil
 	}
 	return dsRes, nil
 }
