@@ -11,24 +11,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import ctypes
+import time
 import unittest
 
 import s1ap_types
-import time
-
 from integ_tests.s1aptests import s1ap_wrapper
-import ctypes
 
 
 class TestAttachEsmInfoTimerExpirationMaxRetries(unittest.TestCase):
+    """Unittest: TestAttachEsmInfoTimerExpirationMaxRetries"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_esm_info_timerexpiration_max_retries(self):
-        """ Testing of sending Esm Information procedure """
+        """Testing of sending Esm Information procedure"""
         num_ues = 1
         # The maximum no. of allowed transmissions of ESM information request
         # as per 3gpp spec 24.301 is 3. Since MME does not send the PDN
@@ -55,12 +58,14 @@ class TestAttachEsmInfoTimerExpirationMaxRetries(unittest.TestCase):
 
         print("Sending Attach Request ue-id", attach_req.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST,
+            attach_req,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         print("Received auth req ind ")
 
@@ -71,12 +76,14 @@ class TestAttachEsmInfoTimerExpirationMaxRetries(unittest.TestCase):
         auth_res.sqnRcvd = sqn_recvd
         print("Sending Auth Response ue-id", auth_res.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP,
+            auth_res,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
         print("Received Security Mode Command ue-id", auth_res.ue_Id)
 
@@ -85,7 +92,8 @@ class TestAttachEsmInfoTimerExpirationMaxRetries(unittest.TestCase):
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = 1
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE,
+            sec_mode_complete,
         )
 
         for i in range(max_retries):
@@ -108,7 +116,8 @@ class TestAttachEsmInfoTimerExpirationMaxRetries(unittest.TestCase):
 
         # Sending Esm Information Response
         print(
-            "Sending Esm Information Response ue-id", sec_mode_complete.ue_Id
+            "Sending Esm Information Response ue-id",
+            sec_mode_complete.ue_Id,
         )
         esm_info_response = s1ap_types.ueEsmInformationRsp_t()
         esm_info_response.ue_Id = 1
@@ -117,26 +126,30 @@ class TestAttachEsmInfoTimerExpirationMaxRetries(unittest.TestCase):
         s = "magma.ipv4"
         esm_info_response.pdnAPN_pr.len = len(s)
         esm_info_response.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(
-            *[ctypes.c_ubyte(ord(c)) for c in s[:100]]
+            *[ctypes.c_ubyte(ord(c)) for c in s[:100]],
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ESM_INFORMATION_RSP, esm_info_response
+            s1ap_types.tfwCmd.UE_ESM_INFORMATION_RSP,
+            esm_info_response,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type,
+            s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
         )
 
         # Trigger Attach Complete
         attach_complete = s1ap_types.ueAttachComplete_t()
         attach_complete.ue_Id = 1
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete
+            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE,
+            attach_complete,
         )
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -149,12 +162,14 @@ class TestAttachEsmInfoTimerExpirationMaxRetries(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST,
+            detach_req,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
 
