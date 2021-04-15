@@ -18,8 +18,11 @@ from integ_tests.s1aptests.s1ap_utils import MagmadUtil
 
 
 class TestModifyConfigForNonSanity(unittest.TestCase):
+    """Unittest: TestModifyConfigForNonSanity"""
+
     def test_modify_config_for_non_sanity(self):
-        """
+        """Modify configurations for Non-Sanity Test Cases
+
         Some non-sanity test cases need changes in default configuration. This
         test script modifies the  configuration files with required values so
         that all the test cases of non-sanity test suite can be verified
@@ -33,16 +36,16 @@ class TestModifyConfigForNonSanity(unittest.TestCase):
         print("Enabling Ha service")
         ret_codes.append(
             self._magmad_util.config_ha_service(
-                MagmadUtil.ha_service_cmds.ENABLE
-            )
+                MagmadUtil.ha_service_cmds.ENABLE,
+            ),
         )
 
         # It is assumed that oai-gtp_4.9-9_amd64.deb pkg is already installed
         print("Enabling IPv6 solicitation service")
         ret_codes.append(
             self._magmad_util.config_ipv6_solicitation(
-                MagmadUtil.ipv6_config_cmds.ENABLE
-            )
+                MagmadUtil.ipv6_config_cmds.ENABLE,
+            ),
         )
 
         if 1 in ret_codes:

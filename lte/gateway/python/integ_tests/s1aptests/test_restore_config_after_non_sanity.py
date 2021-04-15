@@ -18,8 +18,11 @@ from integ_tests.s1aptests.s1ap_utils import MagmadUtil
 
 
 class TestRestoreConfigAfterNonSanity(unittest.TestCase):
+    """Unittest: TestRestoreConfigAfterNonSanity"""
+
     def test_restore_config_after_non_sanity(self):
-        """
+        """Restore configurations after Non-Sanity Test Cases Execution
+
         This test script restores the configuration to default values after
         non-sanity test case execution, if the config files have been modified
         using the test script s1aptests/test_modify_config_for_non_sanity.py
@@ -33,15 +36,15 @@ class TestRestoreConfigAfterNonSanity(unittest.TestCase):
         print("Disabling Ha service")
         ret_codes.append(
             self._magmad_util.config_ha_service(
-                MagmadUtil.ha_service_cmds.DISABLE
-            )
+                MagmadUtil.ha_service_cmds.DISABLE,
+            ),
         )
 
         print("Disabling IPv6 solicitation service")
         ret_codes.append(
             self._magmad_util.config_ipv6_solicitation(
-                MagmadUtil.ipv6_config_cmds.DISABLE
-            )
+                MagmadUtil.ipv6_config_cmds.DISABLE,
+            ),
         )
 
         if 1 in ret_codes:

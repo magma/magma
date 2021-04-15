@@ -193,7 +193,7 @@ class S1ApUtil(object):
         return self._msg.get(True)
 
     def populate_pco(
-        self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
+            self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
     ):
         """
         Populates the PCO values.
@@ -748,9 +748,7 @@ class MagmadUtil(object):
         print("Corrupted %s on redis" % key)
 
     def restart_all_services(self):
-        """
-        Restart all magma services on magma_dev VM
-        """
+        """Restart all magma services on magma_dev VM"""
         self.exec_command(
             "sudo service magma@* stop ; sudo service magma@magmad start"
         )
@@ -894,35 +892,33 @@ class MagmadUtil(object):
 
         Args:
           cmd: Specify whether ipv6_solicitation should be enabled or not
-            enable: Enable ipv6_solicitation service, do nothing if already enabled
-            disable: Disable ipv6_solicitation service, do nothing if already disabled
-
-        Args:
-          cmd: Specify how to configure apn correction mode on AGW,
-          should be one of
-            enable: Enable apn correction feature, do nothing if already enabled
-            disable: Disable apn correction feature, do nothing if already disabled
+            enable: Enable ipv6_solicitation service,
+                    do nothing if already enabled
+            disable: Disable ipv6_solicitation service,
+                     do nothing if already disabled
 
         Returns:
           -1 : Failed to configure
           0 : Already configured
           1 : Configured successfully. Need to restart the service
         """
-
         ipv6_update_config_cmd = ""
         ipv6_config_status_cmd = (
             "grep 'ipv6_solicitation' /etc/magma/pipelined.yml | wc -l"
         )
-        retVal = self.exec_command_output(ipv6_config_status_cmd).rstrip()
+        ret_code = self.exec_command_output(ipv6_config_status_cmd).rstrip()
 
         if cmd.name == MagmadUtil.ipv6_config_cmds.ENABLE.name:
-            if retVal != "0":
+            if ret_code != "0":
                 print("IPv6 solicitation service is already enabled")
                 return 0
             else:
-                ipv6_update_config_cmd = "sed -i \\\"/startup_flows/a \ \ 'ipv6_solicitation',\\\" /etc/magma/pipelined.yml"
+                ipv6_update_config_cmd = (
+                    "sed -i \\\"/startup_flows/a \ \ 'ipv6_solicitation',\\\" "
+                    "/etc/magma/pipelined.yml"
+                )
         else:
-            if retVal == "0":
+            if ret_code == "0":
                 print("IPv6 solicitation service is already disabled")
                 return 0
             else:
@@ -953,30 +949,35 @@ class MagmadUtil(object):
           0 : Already configured
           1 : Configured successfully. Need to restart the service
         """
-
         ha_config_cmd = ""
         if cmd.name == MagmadUtil.ha_service_cmds.ENABLE.name:
             ha_config_status_cmd = (
                 "grep 'use_ha: true' /etc/magma/mme.yml | wc -l"
             )
-            retVal = self.exec_command_output(ha_config_status_cmd).rstrip()
+            ret_code = self.exec_command_output(ha_config_status_cmd).rstrip()
 
-            if retVal != "0":
+            if ret_code != "0":
                 print("Ha service is already enabled")
                 return 0
             else:
-                ha_config_cmd = "sed -i 's/use_ha: false/use_ha: true/g' /etc/magma/mme.yml"
+                ha_config_cmd = (
+                    "sed -i 's/use_ha: false/use_ha: true/g' "
+                    "/etc/magma/mme.yml"
+                )
         else:
             ha_config_status_cmd = (
                 "grep 'use_ha: false' /etc/magma/mme.yml | wc -l"
             )
-            retVal = self.exec_command_output(ha_config_status_cmd).rstrip()
+            ret_code = self.exec_command_output(ha_config_status_cmd).rstrip()
 
-            if retVal != "0":
+            if ret_code != "0":
                 print("Ha service is already disabled")
                 return 0
             else:
-                ha_config_cmd = "sed -i 's/use_ha: true/use_ha: false/g' /etc/magma/mme.yml"
+                ha_config_cmd = (
+                    "sed -i 's/use_ha: true/use_ha: false/g' "
+                    "/etc/magma/mme.yml"
+                )
 
         ret_code = self.exec_command("sudo " + ha_config_cmd)
 
