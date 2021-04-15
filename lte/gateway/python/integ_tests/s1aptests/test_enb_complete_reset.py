@@ -11,22 +11,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
 
 
 class TestEnbCompleteReset(unittest.TestCase):
+    """Unittest: TestEnbCompleteReset"""
+
     def setUp(self):
+        """Initialize before test case execution"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup after test case execution"""
         self._s1ap_wrapper.cleanup()
 
     def test_enb_complete_reset(self):
         """ENB Complete Reset:
+
         1) Attach 32 UEs
         2) Send complete reset
         3) Detach all the 32 UEs
@@ -68,7 +73,8 @@ class TestEnbCompleteReset(unittest.TestCase):
         reset_req.r = s1ap_types.R()
         reset_req.r.completeRst = s1ap_types.CompleteReset()
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.RESET_REQ, reset_req
+            s1ap_types.tfwCmd.RESET_REQ,
+            reset_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
@@ -79,7 +85,9 @@ class TestEnbCompleteReset(unittest.TestCase):
         for ue in ue_ids:
             print("************************* Calling detach for UE id ", ue)
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+                ue,
+                s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+                wait_for_s1_ctxt_release=True,
             )
 
 
