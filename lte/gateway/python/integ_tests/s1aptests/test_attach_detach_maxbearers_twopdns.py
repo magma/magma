@@ -128,10 +128,10 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                     "********************** Adding dedicated bearer to ims"
                     " PDN"
                 )
-                flow_list2.append(self._spgw_util.create_default_flows())
+                flow_list2.append(self._spgw_util.create_default_flows(port_idx=i))
                 self._spgw_util.create_bearer(
                     "IMSI" + "".join([str(i) for i in req.imsi]), act_def_bearer_req.m.pdnInfo.epsBearerId,
-                    flow_list2[i],
+                    flow_list2[i],qci_val = i+1
                 )
                 response = self._s1ap_wrapper.s1_util.get_response()
                 self.assertEqual(
@@ -156,7 +156,7 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
             # for secondary pdn
             dl_flow_rules = {
                 default_ip: [flow_list1],
-                sec_ip: [flow_list2[0], flow_list2[1],flow_list2[2],flow_list2[3],flow_list2[4],flow_list2[5],flow_list2[6],flow_list2[7]],
+                sec_ip: flow_list2,
             }
             # 2 UL flows for default and seconday pdn + 9 for dedicated bearers
             num_ul_flows = 11

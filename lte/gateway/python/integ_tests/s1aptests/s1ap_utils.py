@@ -1014,8 +1014,11 @@ class SpgwUtil(object):
         """
         self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
 
-    def create_default_flows(self):
-        """ Creates default flow rules. 4 for UL and 4 for DL """
+    def create_default_flows(self, port_idx=0):
+        """ Creates default flow rules. 4 for UL and 4 for DL
+            port_idx: to generate different tcp_dst_port values
+                      so that different DL flows are created
+                      in case of multiple dedicated bearers"""
         # UL Flow description #1
         ulFlow1 = {
             "ipv4_dst": "0.0.0.0/0",  # IPv4 destination address
@@ -1051,7 +1054,7 @@ class SpgwUtil(object):
         # DL Flow description #1
         dlFlow1 = {
             "ipv4_src": "192.168.129.42",  # IPv4 source address
-            "tcp_src_port": 5001,  # TCP source port
+            "tcp_src_port": 5001+port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1059,7 +1062,7 @@ class SpgwUtil(object):
         # DL Flow description #2
         dlFlow2 = {
             "ipv4_src": "",  # IPv4 source address
-            "tcp_src_port": 5002,  # TCP source port
+            "tcp_src_port": 5002+port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1067,7 +1070,7 @@ class SpgwUtil(object):
         # DL Flow description #3
         dlFlow3 = {
             "ipv4_src": "192.168.129.64/26",  # IPv4 source address
-            "tcp_src_port": 5003,  # TCP source port
+            "tcp_src_port": 5003+port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }
@@ -1075,7 +1078,7 @@ class SpgwUtil(object):
         # DL Flow description #4
         dlFlow4 = {
             "ipv4_src": "192.168.129.42/16",  # IPv4 source address
-            "tcp_src_port": 5004,  # TCP source port
+            "tcp_src_port": 5004+port_idx,  # TCP source port
             "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
             "direction": FlowMatch.DOWNLINK,  # Direction
         }

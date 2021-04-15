@@ -16,6 +16,7 @@ import time
 
 import s1ap_types
 import s1ap_wrapper
+import ipaddress
 
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
@@ -58,12 +59,14 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
             "******************* Running End to End attach for UE id ", ue_id,
         )
         # Attach
-        self._s1ap_wrapper.s1_util.attach(
+        attach = self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -78,6 +81,8 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
         act_sec_pdn = response.cast(s1ap_types.uePdnConRsp_t)
+        addr = act_sec_pdn.m.pdnInfo.pAddr.addrInfo
+        sec_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         print(
             "******************* Sending Activate default EPS bearer "
@@ -90,11 +95,12 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
             "******************* Adding dedicated bearer to IMSI",
             "".join([str(i) for i in req.imsi]),
         )
+        # Create default flow list
+        flow_list = self._spgw_util.create_default_flows()
         self._spgw_util.create_bearer(
-            "IMSI" + "".join([str(i) for i in req.imsi]),
-            act_sec_pdn.m.pdnInfo.epsBearerId,
+            "IMSI" + "".join([str(i) for i in req.imsi]), act_sec_pdn.m.pdnInfo.epsBearerId,
+            flow_list,
         )
-
         # Receive Activate dedicated EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -108,6 +114,16 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
 
         print("Sleeping for 5 seconds")
         time.sleep(5)
+        # Verify if flow rules are created
+        dl_flow_rules = {
+            default_ip: [],
+            sec_ip: [flow_list],
+        }
+        # 2 UL flows for default and seconday pdns + 1 for dedicated bearer
+        num_ul_flows = 3
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
         print(
             "******************* Deleting default bearer for IMSI",
             "".join([str(i) for i in req.imsi]),
@@ -139,9 +155,17 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
         self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
             ue_id, deactv_bearer_req.bearerId
         )
-
         print("Sleeping for 5 seconds")
         time.sleep(5)
+        # Verify if flow rules are deleted for secondary pdn
+        dl_flow_rules = {
+            default_ip: [],
+        }
+        # 1 UL flow for default pdn
+        num_ul_flows = 1
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
         print(
             "******************* Running UE detach (switch-off) for ",
             "UE id ",

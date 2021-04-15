@@ -47,7 +47,6 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
-
         addr = attach.esmInfo.pAddr.addrInfo
         default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
@@ -61,10 +60,10 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
-            flow_lists.append(self._spgw_util.create_default_flows())
+            flow_lists.append(self._spgw_util.create_default_flows(port_idx = i))
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
-                flow_lists[i]
+                flow_lists[i],qci_val=i+1
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -89,7 +88,7 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
         time.sleep(5)
         # flow_lists for 3 dedicated bearers
         dl_flow_rules = {
-            default_ip: [flow_lists[0],flow_lists[1],flow_lists[2]],
+            default_ip: flow_lists,
         }
         # 1 default UL flow + 3 dedicated bearer UL flows
         num_ul_flows = 4

@@ -14,6 +14,7 @@ limitations under the License.
 import unittest
 import s1ap_types
 import time
+import ipaddress
 
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
@@ -31,6 +32,7 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
         """ attach/detach + multiple dedicated bearer test with a single UE """
         num_dedicated_bearers = 10
         bearer_ids = []
+        flow_lists = []
         self._s1ap_wrapper.configUEDevice(1)
 
         req = self._s1ap_wrapper.ue_req
@@ -39,12 +41,14 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
             req.ue_id,
         )
         # Now actually complete the attach
-        self._s1ap_wrapper._s1_util.attach(
+        attach = self._s1ap_wrapper._s1_util.attach(
             req.ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -55,8 +59,10 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
+            flow_lists.append(self._spgw_util.create_default_flows(port_idx = i))
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5, rule_id=str(i)
+                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
+                flow_lists[i],rule_id=str(i)
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -76,7 +82,19 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
                 act_ded_ber_ctxt_req.bearerId,
             )
 
-        time.sleep(2)
+        # Verify if flow rules are created
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # flow_lists for 11 dedicated bearers
+        dl_flow_rules = {
+            default_ip: flow_lists
+        }
+        # 1 default UL flow + 11 dedicated bearer UL flows
+        num_ul_flows = 11
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
+
         print(
             "********************** Deleting dedicated bearer for IMSI",
             "".join([str(i) for i in req.imsi]),
@@ -102,8 +120,18 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
                 "with bearer id",
                 bearer_ids[i],
             )
+        # Verify if flow rules are deleted for dedicated bearers
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        dl_flow_rules = {
+            default_ip: []
+        }
+        # 1 default UL flow
+        num_ul_flows = 1
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
 
-        time.sleep(2)
         print("********************** Running UE detach for UE id ", req.ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
