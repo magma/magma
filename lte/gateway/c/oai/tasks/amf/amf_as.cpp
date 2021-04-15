@@ -119,7 +119,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  ue_m5gmm_context->mm_state = UE_UNREGISTERED;
+  ue_m5gmm_context->mm_state = UNREGISTERED;
 
   // Decode initial NAS message
   decoder_rc = nas5g_message_decode(

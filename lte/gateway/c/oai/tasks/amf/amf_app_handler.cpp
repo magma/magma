@@ -683,7 +683,7 @@ void amf_app_handle_resource_setup_response(
     smf_context_t* smf_ctx         = nullptr;
     char imsi[IMSI_BCD_DIGITS_MAX + 1];
 
-    ue_id = session_setup_resp.amf_ue_ngap_id;
+    ue_id = session_seup_resp.amf_ue_ngap_id;
 
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     // Handling of ue context
@@ -698,13 +698,13 @@ void amf_app_handle_resource_setup_response(
         sizeof(smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr));
     memcpy(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
-        &session_setup_resp.pduSessionResource_setup_list.item[0]
+        &session_seup_resp.pduSessionResource_setup_list.item[0]
              .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID,
         4);
     OAILOG_DEBUG(LOG_AMF_APP, "filling gNB TEID info in gtp_ip_address \n");
     memcpy(
         &smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
-        &session_setup_resp.pduSessionResource_setup_list.item[0]
+        &session_seup_resp.pduSessionResource_setup_list.item[0]
              .PDU_Session_Resource_Setup_Response_Transfer.tunnel
              .transportLayerAddress,
         4);  // time being 4 byte is copying.

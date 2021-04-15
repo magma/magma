@@ -301,6 +301,7 @@ typedef struct amf_context_s {
                     with a native non-current 5GMM security context.*/
   int amf_cause; /* AMF failure cause code                          */
   amf_fsm_state_t amf_fsm_state;
+  smf_context_t smf_context;  // Keeps PDU session related info
   void* t3422_arg;
   std::vector<smf_context_t> smf_ctxt_vector;  // smf contents
   drx_parameter_t current_drx_parameter; /* stored TAU Request IE Requirement
