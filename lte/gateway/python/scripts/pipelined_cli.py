@@ -210,18 +210,21 @@ def stress_test_grpc(client, args):
             request = ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(ue.imsi_str),
                 ip_addr=ue.ipv4_src,
-                dynamic_rules=[PolicyRule(
-                    id=ue.rule_id,
-                    priority=10,
-                    flow_list=[
-                        FlowDescription(match=FlowMatch(
-                            ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
-                            direction=FlowMatch.UPLINK)),
-                        FlowDescription(match=FlowMatch(
-                            ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
-                            direction=FlowMatch.DOWNLINK)),
+                policies=[VersionedPolicy(
+                    rule=PolicyRule(
+                        id=ue.rule_id,
+                        priority=10,
+                        flow_list=[
+                            FlowDescription(match=FlowMatch(
+                                ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
+                                direction=FlowMatch.UPLINK)),
+                            FlowDescription(match=FlowMatch(
+                                ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
+                                direction=FlowMatch.DOWNLINK)),
+                        ],
+                    ),
+                    version=1)
                     ],
-                )],
                 request_origin=RequestOriginType(type=RequestOriginType.GX),
                 apn_ambr=apn_ambr,
             )
@@ -249,7 +252,11 @@ def stress_test_grpc(client, args):
             request = DeactivateFlowsRequest(
                 sid=SIDUtils.to_pb(ue.imsi_str),
                 ip_addr=ue.ipv4_src,
-                rule_ids=[ue.rule_id],
+                policies=[
+                    VersionedPolicyID(
+                        rule_id=ue.rule_id,
+                        version=1)
+                ],
                 request_origin=RequestOriginType(type=RequestOriginType.GX),
                 remove_default_drop_flows=True)
             response = client.DeactivateFlows(request)

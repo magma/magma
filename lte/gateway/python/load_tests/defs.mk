@@ -12,4 +12,6 @@
 
 # Add the load tests to be run
 LOAD_TESTS=loadtest_mobilityd.py:allocate \
-loadtest_mobilityd.py:release
+loadtest_mobilityd.py:release \
+loadtest_pipelined.py:activate_flows \
+loadtest_pipelined.py:deactivate_flows
