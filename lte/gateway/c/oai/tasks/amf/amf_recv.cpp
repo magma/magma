@@ -146,7 +146,7 @@ int amf_handle_registration_request(
   if (ue_context == NULL) {
     OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
   }
-  
+
   if (ue_context) {
     memcpy(
         &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
@@ -225,7 +225,6 @@ int amf_handle_registration_request(
         msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
     if ((msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
          M5GSMobileIdentityMsg_GUTI)) {
-
       /* Copying PLMN to local supi which is imsi*/
       supi_imsi.plmn.mcc_digit1 =
           msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit1;
