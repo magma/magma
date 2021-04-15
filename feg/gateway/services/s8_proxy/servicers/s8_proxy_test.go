@@ -91,7 +91,6 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	assert.NotEmpty(t, csRes.BearerContext.Qos)
 	receivedQOS := csRes.BearerContext.Qos
 
-	assert.True(t, csRes.BearerContext.ValidQos)
 	assert.Equal(t, sentQos.Gbr.BrDl, receivedQOS.Gbr.BrDl)
 	assert.Equal(t, sentQos.Gbr.BrUl, receivedQOS.Gbr.BrUl)
 	assert.Equal(t, sentQos.Mbr.BrDl, receivedQOS.Mbr.BrDl)
@@ -574,8 +573,7 @@ func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
 
 	// check PCO
 	assert.NoError(t, err)
-	assert.NotEmpty(t, csRes.ProtocolConfigurationOptions)
-	assert.Equal(t, csReq.ProtocolConfigurationOptions, csRes.ProtocolConfigurationOptions)
+	assert.Empty(t, csRes.ProtocolConfigurationOptions)
 
 	// Test no PCO at all
 	// ------------------------
@@ -587,7 +585,7 @@ func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
 	// ------------------------
 	// ---- Create Session ----
 	csReq = getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
-	csReq.ProtocolConfigurationOptions.IsValid = false
+	csReq.ProtocolConfigurationOptions = nil
 	csRes, err = s8p.CreateSession(context.Background(), csReq)
 
 	// check PCO
@@ -688,7 +686,6 @@ func getDefaultCreateSessionRequest(pgwAddrs string) *protos.CreateSessionReques
 			EMeNbi: 8,
 		},
 		ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
-			IsValid:        true,
 			ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
 			ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
 				{
@@ -768,7 +765,6 @@ func getMultipleCreateSessionRequest(nRequest int, pgwAddrs string) []*protos.Cr
 				BrDl: 888,
 			},
 			ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
-				IsValid:        true,
 				ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
 				ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
 					{
