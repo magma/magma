@@ -998,8 +998,7 @@ int amf_app_handle_notification_received(
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
   int rc                                         = RETURNok;
 
-  OAILOG_INFO(
-      LOG_AMF_APP, " PAGING NOTIFICATION received from SMF\n");
+  OAILOG_INFO(LOG_AMF_APP, " PAGING NOTIFICATION received from SMF\n");
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(notification->imsi, &imsi64);
 

@@ -54,16 +54,13 @@ int amf_handle_service_request(
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context == NULL) {
-     OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
+    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
   }
   tmsi_stored = ue_context->amf_context.m5_guti.m_tmsi;
   // Check TMSI and then check MAC
-      OAILOG_INFO(
-          LOG_NAS_AMF, " TMSI stored in AMF CONTEXT %08" PRIx32 "\n",
-          tmsi_stored);
-      OAILOG_INFO(
-          LOG_NAS_AMF, " TMSI received %08" PRIx32 "\n",
-          tmsi_rcv);
+  OAILOG_INFO(
+      LOG_NAS_AMF, " TMSI stored in AMF CONTEXT %08" PRIx32 "\n", tmsi_stored);
+  OAILOG_INFO(LOG_NAS_AMF, " TMSI received %08" PRIx32 "\n", tmsi_rcv);
 
   if (tmsi_rcv == tmsi_stored) {
     OAILOG_INFO(
@@ -461,7 +458,6 @@ int amf_handle_authentication_response(
  **                                                                        **
  ***************************************************************************/
 ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
-
   /*Check imsi found
    *
    */
