@@ -58,6 +58,13 @@ int s1ap_mme_handle_s1_setup_request(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
+int s1ap_mme_handle_handover_required(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
+
+int s1ap_mme_handle_handover_request(
+    s1ap_state_t* state, const itti_mme_app_handover_request_t* ho_request_p);
+
 int s1ap_mme_handle_path_switch_request(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);

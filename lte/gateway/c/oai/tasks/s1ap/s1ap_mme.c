@@ -255,6 +255,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           imsi64);
     } break;
 
+    case MME_APP_HANDOVER_REQUEST: {
+      s1ap_mme_handle_handover_request(
+          state, &MME_APP_HANDOVER_REQUEST(received_message_p));
+    } break;
+
     case TIMER_HAS_EXPIRED: {
       if (!timer_exists(
               received_message_p->ittiMsg.timer_has_expired.timer_id)) {

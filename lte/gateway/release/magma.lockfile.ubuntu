@@ -560,7 +560,7 @@
           "root": true,
           "source": "apt",
           "sysdep": "python3-aioh2",
-          "version": "0.2.2"
+          "version": "0.2.3"
         },
         "aiohttp": {
           "root": true,
@@ -582,7 +582,7 @@
         },
         "attrs": {
           "root": false,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-attrs",
           "version": "19.3.0"
         },
@@ -869,7 +869,7 @@
           "version": "234"
         },
         "pytz": {
-          "root": true,
+          "root": false,
           "source": "apt",
           "sysdep": "python3-pytz",
           "version": "2020.1"
@@ -942,9 +942,9 @@
         },
         "spyne": {
           "root": true,
-          "source": "pypi",
+          "source": "apt",
           "sysdep": "python3-spyne",
-          "version": "2.13.16"
+          "version": "2.13.15"
         },
         "strict-rfc3339": {
           "root": true,
@@ -1012,7 +1012,7 @@
           "version": "2.0.0"
         },
         "aioh2": {
-          "version": "0.2.2"
+          "version": "0.2.3"
         },
         "aiohttp": {
           "version": "3.6.2"
@@ -1105,7 +1105,7 @@
           "version": "0.0.3"
         },
         "spyne": {
-          "version": "2.13.16"
+          "version": "2.13.15"
         },
         "strict-rfc3339": {
           "version": "0.7"
