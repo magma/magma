@@ -14,9 +14,9 @@ import ipaddress
 import socket
 import subprocess
 from collections import namedtuple
+
 from lte.protos.mobilityd_pb2 import IPAddress
-from lte.protos.pipelined_pb2 import PdrState
-from lte.protos.session_manager_pb2 import UPFPagingInfo
+from lte.protos.pipelined_pb2 import IPFlowDL, PdrState, UESessionState
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.openflow import flows, messages
@@ -31,11 +31,8 @@ from ryu.lib.packet import ether_types, ipv4, packet
 from ryu.ofproto import ofproto_v1_0_parser
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
-from lte.protos.pipelined_pb2 import (
-    UESessionState,
-    IPFlowDL,
-    PdrState
-)
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
+
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
 
@@ -276,6 +273,7 @@ class Classifier(MagmaController):
     def add_tunnel_flows(self, precedence: int, i_teid: int,
                          o_teid: int, ue_ip_adr: IPAddress,
                          enodeb_ip_addr: str, sid: int = None,
+                         ng_flag: bool = True,
                          unused_ue_ipv6_address: IPAddress = None,
                          unused_apn:str = None, unused_vlan:int = 0,
                          ip_flow_dl:IPFlowDL = None,
@@ -351,7 +349,6 @@ class Classifier(MagmaController):
         actions = []
         actions = [parser.OFPActionSetField(tunnel_id=o_teid),
                    parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr),
-                   parser.OFPActionSetField(tun_flags=TUNNEL_OAM_FLAG),
                    parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=gtp_port)]
         if sid:
             actions.append(parser.OFPActionSetField(metadata=sid))
@@ -404,7 +401,7 @@ class Classifier(MagmaController):
         flows.delete_flow(self._datapath, self.tbl_num, match)
 
 
-    def _resume_tunnel_flows(self, precedence: int, i_teid: int,
+    def _resume_tunnel_flows(self, i_teid: int,
                               ue_ip_adr: IPAddress,
                               ip_flow_dl: IPFlowDL = None):
         # resume uplink Tunnel
@@ -451,11 +448,11 @@ class Classifier(MagmaController):
 					     reset_default_register=False,
 					     resubmit_table=self.next_table)
 
-    def _discard_tunnel_flows(self, precedence: int, i_teid: int,
+    def _discard_tunnel_flows(self, i_teid: int,
                               ue_ip_adr: IPAddress,
                               ip_flow_dl: IPFlowDL = None):
 
-        # discard uplink Tunnel
+        # discard flow for gtp port
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
         flows.delete_flow(self._datapath, self.tbl_num, match,
@@ -479,7 +476,6 @@ class Classifier(MagmaController):
     
     def _discard_tunnel_ip_flow_dl(self, ip_flow_dl: IPFlowDL):
 
-        priority = Utils.get_of_priority(ip_flow_dl.precedence)
         match = self._get_ip_flow_dl_match(ip_flow_dl, self._uplink_port)
         flows.delete_flow(self._datapath, self.tbl_num, match, priority=Utils.DISCARD_RULE_PRIORITY)
 
@@ -556,15 +552,16 @@ class Classifier(MagmaController):
 
     def gtp_handler(self, session_state, precedence: int, local_f_teid: int,
                     o_teid: int, ue_ip_addr: IPAddress, gnb_ip_addr: str,
-                    sid: int = None, ue_ipv6_address: IPAddress = None,
-                    apn: str = None, vlan: int = 0, ip_flow_dl: IPFlowDL = None):
+                    sid: int = None, ng_flag: bool = True,
+                    ue_ipv6_address: IPAddress = None, apn: str = None,
+                    vlan: int = 0, ip_flow_dl: IPFlowDL = None):
 
         if (session_state == PdrState.Value('INSTALL')
              or session_state == UESessionState.ACTIVE):
             self.add_tunnel_flows(precedence, local_f_teid,
                                   o_teid, ue_ip_addr,
-                                  gnb_ip_addr, sid, ue_ipv6_address,apn,
-                                  vlan, ip_flow_dl)
+                                  gnb_ip_addr, sid, ng_flag, ue_ipv6_address,
+                                  apn, vlan, ip_flow_dl)
 
         elif (session_state == PdrState.Value('IDLE')
                or session_state == UESessionState.INSTALL_IDLE):
@@ -578,11 +575,11 @@ class Classifier(MagmaController):
             self.remove_paging_flow(ue_ip_addr)
 
         elif (session_state == UESessionState.RESUME_DATA):
-            self._resume_tunnel_flows(precedence, local_f_teid,
+            self._resume_tunnel_flows(local_f_teid,
                                       ue_ip_addr, ip_flow_dl)
 
         elif (session_state == UESessionState.SUSPENDED_DATA):
-            self._discard_tunnel_flows(precedence, local_f_teid,
+            self._discard_tunnel_flows(local_f_teid,
                                        ue_ip_addr, ip_flow_dl)
 
         return True

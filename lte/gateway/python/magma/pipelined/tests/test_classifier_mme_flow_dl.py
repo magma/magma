@@ -11,33 +11,26 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import os
-import warnings
 import ipaddress
+import os
 import socket
+import unittest
+import warnings
 from concurrent.futures import Future
-from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
-    PipelinedController,
-)
-from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.pipelined_test_util import (
-    start_ryu_app_thread,
-    stop_ryu_app_thread,
-    create_service_manager,
-    assert_bridge_snapshot_match,
-)
-from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
-     stop_ryu_app_thread, create_service_manager, wait_after_send, \
-     SnapshotVerifier
-from magma.pipelined.app.classifier import Classifier
+
 from lte.protos.mobilityd_pb2 import IPAddress
-from lte.protos.pipelined_pb2 import (
-    UESessionSet,
-    UESessionState,
-    IPFlowDL
-)
+from lte.protos.pipelined_pb2 import IPFlowDL, UESessionSet, UESessionState
+from magma.pipelined.app.classifier import Classifier
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.app.start_pipelined import (PipelinedController,
+                                                       TestSetup)
+from magma.pipelined.tests.pipelined_test_util import (SnapshotVerifier,
+                                                       assert_bridge_snapshot_match,
+                                                       create_service_manager,
+                                                       start_ryu_app_thread,
+                                                       stop_ryu_app_thread,
+                                                       wait_after_send)
+
 
 class ClassifierMmeTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -80,6 +73,8 @@ class ClassifierMmeTest(unittest.TestCase):
                 'mtr_ip': cls.MTR_IP,
                 'ovs_internal_sampling_port_number': 15578,
                 'ovs_internal_sampling_fwd_tbl_number': 201,
+                'ovs_internal_conntrack_port_number': 15579,
+                'ovs_internal_conntrack_fwd_tbl_number': 202,
                 'clean_restart': False,
                 'ovs_multi_tunnel': True,
             },

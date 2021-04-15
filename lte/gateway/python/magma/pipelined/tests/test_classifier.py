@@ -20,6 +20,7 @@ from concurrent.futures import Future
 from unittest.mock import MagicMock
 
 from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.pipelined_pb2 import IPFlowDL
 from magma.pipelined.app.classifier import Classifier
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import (PipelinedController,
@@ -31,9 +32,12 @@ from magma.pipelined.tests.pipelined_test_util import (SnapshotVerifier,
                                                        stop_ryu_app_thread,
                                                        wait_after_send)
 
+<<<<<<< HEAD
 from lte.protos.pipelined_pb2 import (
     IPFlowDL
 )
+=======
+>>>>>>> Support for flowdl in classifier for gtp tunnel #5505
 
 class ClassifierTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -274,12 +278,12 @@ class ClassifierTest(unittest.TestCase):
         ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller._delete_all_flows()
         ue_ip_addr = "192.168.128.80"
-        self.classifier_controller._discard_tunnel_flows(65525, 3,
+        self.classifier_controller._discard_tunnel_flows(3,
                                                          IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                          ip_flow_dl=ip_flow_dl)
 
         ue_ip_addr = "192.168.128.82"
-        self.classifier_controller._discard_tunnel_flows(65525, 4,
+        self.classifier_controller._discard_tunnel_flows(4,
                                                          IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                          ip_flow_dl=ip_flow_dl)
 
@@ -292,7 +296,7 @@ class ClassifierTest(unittest.TestCase):
         ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller._delete_all_flows()
         ue_ip_addr = "2001::4"
-        self.classifier_controller._discard_tunnel_flows(65525, 3,
+        self.classifier_controller._discard_tunnel_flows(3,
                                                          IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
                                                          ip_flow_dl=ip_flow_dl)
 
@@ -308,11 +312,11 @@ class ClassifierTest(unittest.TestCase):
         self.test_detach_default_tunnel_flows()
         ip_flow_dl = IPFlowDL(set_params=0)
         ue_ip_addr = "192.168.128.80"
-        self.classifier_controller._resume_tunnel_flows(65525, 3,
+        self.classifier_controller._resume_tunnel_flows(3,
                                                         IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                         ip_flow_dl=ip_flow_dl)
         ue_ip_addr = "192.168.128.82"
-        self.classifier_controller._resume_tunnel_flows(65525, 4,
+        self.classifier_controller._resume_tunnel_flows(4,
                                                         IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                         ip_flow_dl=ip_flow_dl)
 
@@ -328,7 +332,7 @@ class ClassifierTest(unittest.TestCase):
         self.test_detach_default_tunnel_flows()
         ip_flow_dl = IPFlowDL(set_params=0)
         ue_ip_addr = "2001::4"
-        self.classifier_controller._resume_tunnel_flows(65525, 3,
+        self.classifier_controller._resume_tunnel_flows(3,
                                                         IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
                                                         ip_flow_dl=ip_flow_dl)
 
