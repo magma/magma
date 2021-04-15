@@ -50,7 +50,6 @@ metricsd:
   collect_interval: 120 # How frequently to collect metrics samples in seconds
   sync_interval: 120 # How frequently to sync to cloud in seconds
   grpc_timeout: 10 # Timeout in seconds
-  queue_length: 300 # Number of failed samples to enqueue for resend
   # List of services for metricsd to poll
   services:
     - magmad

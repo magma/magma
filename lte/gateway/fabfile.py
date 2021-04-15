@@ -121,6 +121,15 @@ def package(vcs='hg', all_deps="False",
             run('cp /var/cache/apt/archives/*.deb ~/magma-packages')
 
 
+def openvswitch(destroy_vm='False', destdir='~/magma-packages/'):
+    destroy_vm = bool(strtobool(destroy_vm))
+    # If a host list isn't specified, default to the magma vagrant vm
+    if not env.hosts:
+        vagrant_setup('magma', destroy_vm=destroy_vm)
+    with cd('~/magma/lte/gateway'):
+        run('./release/build-ovs.sh ' + destdir)
+
+
 def depclean():
     '''Remove all generated packaged for dependencies'''
     # If a host list isn't specified, default to the magma vagrant vm
@@ -334,7 +343,7 @@ def get_test_logs(gateway_host=None,
 def _dist_upgrade():
     """ Upgrades OS packages on dev box """
     run('sudo apt-get update')
-    run('sudo apt-get -y dist-upgrade')
+    run('sudo DEBIAN_FRONTEND=noninteractive apt-get -y dist-upgrade')
 
 
 def _build_magma():

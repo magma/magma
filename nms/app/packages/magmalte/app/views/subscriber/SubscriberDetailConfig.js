@@ -14,7 +14,7 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {mutable_subscriber} from '@fbcnms/magma-api';
+import type {mutable_subscriber, subscriber} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
@@ -97,7 +97,10 @@ export function SubscriberJsonConfig() {
 
 export default function SubscriberDetailConfig() {
   const classes = useStyles();
-  const {history, relativeUrl} = useRouter();
+  const {match, history, relativeUrl} = useRouter();
+  const subscriberId = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  const subscriberInfo = ctx.state?.[subscriberId];
 
   function ConfigFilter() {
     return (
@@ -128,7 +131,7 @@ export default function SubscriberDetailConfig() {
                 label="Subscriber"
                 filter={() => EditSubscriberButton({editTable: 'subscriber'})}
               />
-              <SubscriberInfoConfig />
+              <SubscriberInfoConfig subscriberInfo={subscriberInfo} />
             </Grid>
 
             <Grid item xs={12} md={6}>
@@ -138,14 +141,14 @@ export default function SubscriberDetailConfig() {
                   EditSubscriberButton({editTable: 'trafficPolicy'})
                 }
               />
-              <SubscriberConfigTrafficPolicy />
+              <SubscriberConfigTrafficPolicy subscriberInfo={subscriberInfo} />
             </Grid>
             <Grid item xs={12} md={6}>
               <CardTitleRow
                 label="APN Static IPs"
                 filter={() => EditSubscriberButton({editTable: 'staticIps'})}
               />
-              <SubscriberApnStaticIpsTable />
+              <SubscriberApnStaticIpsTable subscriberInfo={subscriberInfo} />
             </Grid>
           </Grid>
         </Grid>
@@ -154,12 +157,11 @@ export default function SubscriberDetailConfig() {
   );
 }
 
-function SubscriberConfigTrafficPolicy() {
-  const {match} = useRouter();
-  const subscriberId = nullthrows(match.params.subscriberId);
-  const ctx = useContext(SubscriberContext);
-  const subscriberInfo = ctx.state?.[subscriberId];
-
+function SubscriberConfigTrafficPolicy({
+  subscriberInfo,
+}: {
+  subscriberInfo: subscriber,
+}) {
   function CollapseItems(props) {
     const data: DataRows[] = [
       [
@@ -177,30 +179,27 @@ function SubscriberConfigTrafficPolicy() {
       {
         category: 'Active APNs',
         value: subscriberInfo.active_apns?.length || 0,
-        collapse:
-          subscriberInfo.active_apns?.map(data => (
-            <CollapseItems data={data} />
-          )) || false,
+        collapse: subscriberInfo.active_apns?.map(data => (
+          <CollapseItems key={data} data={data} />
+        )) || <></>,
       },
     ],
     [
       {
         category: 'Base Names',
         value: subscriberInfo.active_base_names?.length || 0,
-        collapse:
-          subscriberInfo.active_base_names?.map(data => (
-            <CollapseItems data={data} />
-          )) || false,
+        collapse: subscriberInfo.active_base_names?.map(data => (
+          <CollapseItems key={data} data={data} />
+        )) || <></>,
       },
     ],
     [
       {
         category: 'Active Policies',
         value: subscriberInfo.active_policies?.length || 0,
-        collapse:
-          subscriberInfo.active_policies?.map(data => (
-            <CollapseItems data={data} />
-          )) || false,
+        collapse: subscriberInfo.active_policies?.map(data => (
+          <CollapseItems key={data} data={data} />
+        )) || <></>,
       },
     ],
   ];
@@ -208,12 +207,7 @@ function SubscriberConfigTrafficPolicy() {
   return <DataGrid data={trafficPolicyData} />;
 }
 
-function SubscriberInfoConfig() {
-  const {match} = useRouter();
-  const subscriberId = nullthrows(match.params.subscriberId);
-  const ctx = useContext(SubscriberContext);
-  const subscriberInfo = ctx.state?.[subscriberId];
-
+function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: subscriber}) {
   const [authKey, _setAuthKey] = useState(subscriberInfo.lte.auth_key);
   const [authOPC, _setAuthOPC] = useState(subscriberInfo.lte.auth_opc ?? false);
   const [dataPlan, _setDataPlan] = useState(subscriberInfo.lte.sub_profile);
@@ -252,11 +246,12 @@ function SubscriberInfoConfig() {
   return <DataGrid data={kpiData} />;
 }
 
-function SubscriberApnStaticIpsTable() {
+function SubscriberApnStaticIpsTable({
+  subscriberInfo,
+}: {
+  subscriberInfo: subscriber,
+}) {
   const {history, match} = useRouter();
-  const subscriberId = nullthrows(match.params.subscriberId);
-  const ctx = useContext(SubscriberContext);
-  const subscriberInfo = ctx.state?.[subscriberId];
   const staticIps = subscriberInfo.config.static_ips || {};
   type SubscriberApnStaticIpsRowType = {
     apnName: string,
@@ -286,7 +281,7 @@ function SubscriberApnStaticIpsTable() {
               onClick={() => {
                 history.push(
                   match.url.replace(
-                    `subscribers/overview/${subscriberId}/config`,
+                    `subscribers/overview/${subscriberInfo.id}/config`,
                     `traffic/apn`,
                   ),
                 );

@@ -526,9 +526,6 @@ proc_tid_t _pdn_connectivity_delete(
         LOG_NAS_ESM, "ESM-PROC  - PDN connection identifier is not valid\n");
   }
   if (pti != ESM_PT_UNASSIGNED) {
-    // Decrement the number of PDN connections
-    ue_mm_context->nb_active_pdn_contexts -= 1;
-
     // Release allocated PDN connection data
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_in_use);
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_oi_replacement);

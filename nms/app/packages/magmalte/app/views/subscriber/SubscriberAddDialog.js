@@ -42,7 +42,11 @@ import Tabs from '@material-ui/core/Tabs';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {AltFormField, PasswordInput} from '../../components/FormField';
+import {
+  AltFormField,
+  LinearProgressWithLabel,
+  PasswordInput,
+} from '../../components/FormField';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {colors, typography} from '../../theme/default';
@@ -121,8 +125,42 @@ type SubscriberInfo = {
   state: 'INACTIVE' | 'ACTIVE',
   dataPlan: string,
   apns: Array<string>,
-  policies: Array<string>,
+  policies?: Array<string>,
 };
+
+const SUB_NAME_OFFSET = 0;
+const SUB_IMSI_OFFSET = 1;
+const SUB_AUTH_KEY_OFFSET = 2;
+const SUB_AUTH_OPC_OFFSET = 3;
+const SUB_STATE_OFFSET = 4;
+const SUB_DATAPLAN_OFFSET = 5;
+const SUB_APN_OFFSET = 6;
+const SUB_POLICY_OFFSET = 7;
+const SUB_MAX_FIELDS = 8;
+
+function parseSubscriber(line: string) {
+  const items = line.split(',').map(item => item.trim());
+  if (items.length > SUB_MAX_FIELDS) {
+    throw new Error(
+      `Too many fields to parse, expected ${SUB_MAX_FIELDS} fields, received ${items.length} fields`,
+    );
+  }
+
+  return {
+    name: items[SUB_NAME_OFFSET],
+    imsi: items[SUB_IMSI_OFFSET],
+    authKey: items[SUB_AUTH_KEY_OFFSET],
+    authOpc: items[SUB_AUTH_OPC_OFFSET],
+    state: items[SUB_STATE_OFFSET] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+    dataPlan: items[SUB_DATAPLAN_OFFSET],
+    apns: items[SUB_APN_OFFSET].split('|')
+      .map(item => item.trim())
+      .filter(Boolean),
+    policies: items?.[SUB_POLICY_OFFSET]?.split('|')
+      .map(item => item.trim())
+      .filter(Boolean),
+  };
+}
 
 function parseSubscriberFile(fileObj: File) {
   const reader = new FileReader();
@@ -152,23 +190,7 @@ function parseSubscriberFile(fileObj: File) {
           .split('\n')
           .map(item => item.trim())
           .filter(Boolean)) {
-          const items = line.split(',').map(item => item.trim());
-          if (items.length != 7) {
-            reject('failed parsing ' + line);
-            return;
-          }
-          subscribers.push({
-            name: items[0],
-            imsi: items[1],
-            authKey: items[2],
-            authOpc: items[3],
-            state: items[4] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
-            dataPlan: items[5],
-            apns: items[6]
-              .split('|')
-              .map(item => item.trim())
-              .filter(Boolean),
-          });
+          subscribers.push(parseSubscriber(line));
         }
       } catch (e) {
         reject('Failed parsing the file ' + fileObj.name + '. ' + e?.message);
@@ -180,13 +202,19 @@ function parseSubscriberFile(fileObj: File) {
   });
 }
 
-export default function AddSubscriberButton() {
+export default function AddSubscriberButton(props: {onClose: () => void}) {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      <AddSubscriberDialog open={open} onClose={() => setOpen(false)} />
+      <AddSubscriberDialog
+        open={open}
+        onClose={() => {
+          setOpen(false);
+          props.onClose();
+        }}
+      />
       <Button onClick={() => setOpen(true)} className={classes.appBarBtn}>
         {'Add Subscriber'}
       </Button>
@@ -476,6 +504,8 @@ function AddSubscriberDetails(props: DialogProps) {
   const policyCtx = useContext(PolicyContext);
   const [error, setError] = useState('');
   const [subscribers, setSubscribers] = useState<Array<SubscriberInfo>>([]);
+  const successCountRef = useRef(0);
+
   const fileInput = useRef(null);
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -490,6 +520,7 @@ function AddSubscriberDetails(props: DialogProps) {
     new Set(Object.keys(policyCtx.state || {})).add('default'),
   );
   const saveSubscribers = async () => {
+    successCountRef.current = 0;
     for (const subscriber of subscribers) {
       try {
         const err = validateSubscriberInfo(subscriber, ctx.state);
@@ -518,21 +549,35 @@ function AddSubscriberDetails(props: DialogProps) {
             sub_profile: subscriber.dataPlan,
           },
         });
-        enqueueSnackbar('Subscriber(s) saved successfully', {
-          variant: 'success',
-        });
+        successCountRef.current = successCountRef.current + 1;
       } catch (e) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
         setError('error saving ' + subscriber.imsi + ' : ' + errMsg);
         return;
       }
     }
+    enqueueSnackbar(
+      ` Subscriber${
+        successCountRef.current > 0 ? 's ' : ''
+      } saved successfully`,
+      {
+        variant: 'success',
+      },
+    );
     props.onClose();
   };
 
   return (
     <>
       <DialogContent>
+        {successCountRef.current > 0 && subscribers.length > 0 && (
+          <LinearProgressWithLabel
+            value={Math.round(
+              (successCountRef.current * 100) / subscribers.length,
+            )}
+            text={`${successCountRef.current}/${subscribers.length}`}
+          />
+        )}
         {error !== '' && <FormLabel error>{error}</FormLabel>}
         <input
           type="file"

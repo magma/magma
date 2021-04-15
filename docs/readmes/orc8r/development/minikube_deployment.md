@@ -80,7 +80,7 @@ $ cp -r ../../../../.cache/test_certs/* charts/secrets/.secrets/certs/.
 Create the kubernetes secrets
 
 ```
-helm template orc8r-secrets charts/secrets \
+helm template orc8r charts/secrets \
     --namespace magma \
     --set-string secret.certs.enabled=true \
     --set-file secret.certs.files."rootCA\.pem"=charts/secrets/.secrets/certs/rootCA.pem \

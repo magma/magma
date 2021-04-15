@@ -47,9 +47,10 @@ Teids teids2;
 class LocalEnforcerTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
-    reporter             = std::make_shared<MockSessionReporter>();
-    rule_store           = std::make_shared<StaticRuleStore>();
-    session_store        = std::make_shared<SessionStore>(rule_store);
+    reporter      = std::make_shared<MockSessionReporter>();
+    rule_store    = std::make_shared<StaticRuleStore>();
+    session_store = std::make_shared<SessionStore>(
+        rule_store, std::make_shared<MeteringReporter>());
     pipelined_client     = std::make_shared<MockPipelinedClient>();
     directoryd_client    = std::make_shared<MockDirectorydClient>();
     spgw_client          = std::make_shared<MockSpgwServiceClient>();
@@ -2827,6 +2828,32 @@ TEST_F(LocalEnforcerTest, test_rar_dynamic_rule_modification) {
   EXPECT_TRUE(dynamic_rules.get_rule("d-rule1", &policy_out));
   EXPECT_EQ(2, policy_out.rating_group());
   EXPECT_TRUE(session_store->update_sessions(session_ucs));
+}
+
+// Test the case where PipelineD sends a data usage report for a session that
+// does not exist anymore. We expect SessionD to send a deactivate flows request
+// to PipelineD.
+TEST_F(LocalEnforcerTest, test_dead_session_in_usage_report) {
+  // no sessions exist at this point
+  // We expect to empty calls for both Gx + Gy
+  EXPECT_CALL(
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
+                             IMSI1, IP1, testing::_, testing::_, CheckCount(0),
+                             CheckCount(0), RequestOriginType::GX))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  EXPECT_CALL(
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
+                             IMSI1, IP1, testing::_, testing::_, CheckCount(0),
+                             CheckCount(0), RequestOriginType::GY))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record(IMSI1, IP1, "rule1", 16, 32, record_list->Add());
+  auto update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->aggregate_records(session_map, table, update);
 }
 
 int main(int argc, char** argv) {

@@ -22,6 +22,12 @@ class TestSctpShutdownAfterMultiUeAttach(unittest.TestCase):
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
+        print(
+            "Restart sctpd service to clear Redis state as test case doesn't"
+            " intend to initiate detach procedure"
+        )
+        self._s1ap_wrapper.magmad_util.restart_sctpd()
+        self._s1ap_wrapper.magmad_util.print_redis_state()
 
     def test_sctp_shutdown_after_multi_ue_attach(self):
         """ Attah multiple UEs and send sctp shutdown without detach """

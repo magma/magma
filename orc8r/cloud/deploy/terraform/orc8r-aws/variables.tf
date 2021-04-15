@@ -56,6 +56,12 @@ variable "cluster_name" {
   default     = "orc8r"
 }
 
+variable "cluster_version" {
+  description = "Kubernetes version for the EKS cluster."
+  type        = string
+  default     = "1.17"
+}
+
 variable "eks_worker_group_key" {
   description = "If specified, the worker nodes for EKS will use this EC2 keypair."
   type        = string
@@ -82,7 +88,7 @@ variable "eks_worker_groups" {
   default = [
     {
       name                 = "wg-1"
-      instance_type        = "t3.xlarge"
+      instance_type        = "t3.large"
       asg_desired_capacity = 3
       asg_min_size         = 1
       asg_max_size         = 3

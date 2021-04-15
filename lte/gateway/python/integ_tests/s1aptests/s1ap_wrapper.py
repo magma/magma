@@ -62,6 +62,9 @@ class TestWrapper(object):
         """
         Initialize the various classes required by the tests and setup.
         """
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
+        print("Start time", current_time)
         self._s1_util = S1ApUtil()
         self._enBConfig()
 
@@ -418,12 +421,7 @@ class TestWrapper(object):
         self._sub_util.cleanup()
         self._trf_util.cleanup()
         self._mobility_util.cleanup()
-
-        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
-        state_cli_cmd = "state_cli.py keys IMSI*"
-        redis_state = self._magmad_util.exec_command_output(
-                magtivate_cmd + " && " + state_cli_cmd)
-        print("Redis state is [\n", redis_state, "]")
+        self._magmad_util.print_redis_state()
 
         # Cloud cleanup needs to happen after cleanup for
         # subscriber util and mobility util

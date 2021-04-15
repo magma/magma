@@ -300,6 +300,58 @@ int s1ap_mme_generate_s1_setup_failure(
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
+bool get_stale_enb_connection_with_enb_id(
+    __attribute__((unused)) const hash_key_t keyP, void* const elementP,
+    void* parameterP, void** resultP) {
+  enb_description_t* new_enb_association = (enb_description_t*) parameterP;
+  enb_description_t* ht_enb_association  = (enb_description_t*) elementP;
+
+  // No need to clean the newly created eNB association
+  if (ht_enb_association == new_enb_association) {
+    return false;
+  }
+
+  // Match old and new association with respect to eNB id
+  if (ht_enb_association->enb_id == new_enb_association->enb_id) {
+    *resultP = elementP;
+    return true;
+  }
+
+  return false;
+}
+
+void clean_stale_enb_state(
+    s1ap_state_t* state, enb_description_t* new_enb_association) {
+  enb_description_t* stale_enb_association = NULL;
+
+  hashtable_ts_apply_callback_on_elements(
+      &state->enbs, get_stale_enb_connection_with_enb_id, new_enb_association,
+      (void**) &stale_enb_association);
+  if (stale_enb_association == NULL) {
+    // No stale eNB connection found;
+    return;
+  }
+
+  OAILOG_INFO(
+      LOG_S1AP, "Found stale eNB at association id %d",
+      stale_enb_association->sctp_assoc_id);
+  // Remove the S1 context for UEs associated with old eNB association
+  hashtable_key_array_t* keys =
+      hashtable_uint64_ts_get_keys(&stale_enb_association->ue_id_coll);
+  if (keys != NULL) {
+    ue_description_t* ue_ref = NULL;
+    for (int i = 0; i < keys->num_keys; i++) {
+      ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t) keys->keys[i]);
+      s1ap_remove_ue(state, ue_ref);
+    }
+    FREE_HASHTABLE_KEY_ARRAY(keys);
+  }
+
+  // Remove the old eNB association
+  s1ap_remove_enb(state, stale_enb_association);
+  OAILOG_DEBUG(LOG_S1AP, "Removed stale eNB and all associated UEs.");
+}
+
 int s1ap_mme_handle_s1_setup_request(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
@@ -386,12 +438,31 @@ int s1ap_mme_handle_s1_setup_request(
     OAILOG_WARNING(
         LOG_S1AP, "Ignoring s1setup from eNB in state %s on assoc id %u",
         s1_enb_state2str(enb_association->s1_state), assoc_id);
+    OAILOG_DEBUG(
+        LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",
+        enb_association->nb_ue_associated,
+        enb_association->ue_id_coll.num_elements);
     rc = s1ap_mme_generate_s1_setup_failure(
         assoc_id, S1ap_Cause_PR_transport,
         S1ap_CauseTransport_transport_resource_unavailable,
         S1ap_TimeToWait_v20s);
     increment_counter(
         "s1_setup", 1, 2, "result", "failure", "cause", "invalid_state");
+    // Check if the UE counters for eNB are equal.
+    // If not, the eNB will never switch to INIT state, particularly in
+    // stateless mode.
+    // Exit the process so that health checker can clean-up all Redis
+    // state and restart all stateless services.
+    AssertFatal(
+        enb_association->nb_ue_associated ==
+            enb_association->ue_id_coll.num_elements,
+        "Num UEs associated with eNB (%u) is more than the UEs with valid "
+        "mme_ue_s1ap_id (%zu). This is a deadlock state potentially caused by "
+        "misbehaving eNB; restarting MME. In stateless mode, health management "
+        "service will eventually detect multiple MME restarts due to this "
+        "deadlock state and force sctpd and hence all services to restart.",
+        enb_association->nb_ue_associated,
+        enb_association->ue_id_coll.num_elements);
     OAILOG_FUNC_RETURN(LOG_S1AP, rc);
   }
   log_queue_item_t* context = NULL;
@@ -517,6 +588,9 @@ int s1ap_mme_handle_s1_setup_request(
         ie_enb_name->value.choice.ENBname.size);
     enb_association->enb_name[ie_enb_name->value.choice.ENBname.size] = '\0';
   }
+
+  // Clean any stale eNB association (from Redis) for this enb_id
+  clean_stale_enb_state(state, enb_association);
 
   s1ap_dump_enb(enb_association);
   rc = s1ap_generate_s1_setup_response(state, enb_association);
@@ -906,7 +980,9 @@ int s1ap_mme_handle_initial_context_setup_response(
   }
 
   // Failed bearers
-  itti_mme_app_initial_context_setup_rsp_t* initial_context_setup_rsp = NULL;
+  itti_mme_app_initial_context_setup_rsp_t* initial_context_setup_rsp =
+      &(MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p));
+  initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items = 0;
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_InitialContextSetupResponseIEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_E_RABFailedToSetupListBearerSURes, false);
@@ -923,8 +999,9 @@ int s1ap_mme_handle_initial_context_setup_response(
           .item[initial_context_setup_rsp->e_rab_failed_to_setup_list
                     .no_of_items]
           .cause = erab_item->cause;
-      initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items++;
     }
+    initial_context_setup_rsp->e_rab_failed_to_setup_list.no_of_items =
+        s1ap_e_rab_list->list.count;
   }
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
@@ -1188,6 +1265,7 @@ int s1ap_mme_generate_ue_context_release_command(
     case S1AP_INVALID_MME_UE_S1AP_ID:
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_unknown_mme_ue_s1ap_id;
+      break;
     case S1AP_NAS_MME_OFFLOADING:
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;
@@ -2173,8 +2251,9 @@ int s1ap_handle_sctp_disconnection(
   OAILOG_INFO(
       LOG_S1AP,
       "SCTP disconnection request for association id %u, Reset Flag = "
-      "%u. Connected UEs = %u \n",
-      assoc_id, reset, enb_association->nb_ue_associated);
+      "%u. Connected UEs = %u Num elements = %zu\n",
+      assoc_id, reset, enb_association->nb_ue_associated,
+      enb_association->ue_id_coll.num_elements);
 
   // First check if we can just reset the eNB state if there are no UEs
   if (!enb_association->nb_ue_associated) {
@@ -2198,11 +2277,27 @@ int s1ap_handle_sctp_disconnection(
 
       OAILOG_INFO(LOG_S1AP, "Removing eNB with association id %u \n", assoc_id);
       s1ap_remove_enb(state, enb_association);
-      update_mme_app_stats_connected_enb_sub();
     }
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
+  if (reset) {
+    // Check if the UE counters for eNB are equal.
+    // If not, the eNB will never switch to INIT state, particularly in
+    // stateless mode.
+    // Exit the process so that health checker can clean-up all Redis
+    // state and restart all stateless services.
+    AssertFatal(
+        enb_association->nb_ue_associated ==
+            enb_association->ue_id_coll.num_elements,
+        "Num UEs associated with eNB (%u) is more than the UEs with valid "
+        "mme_ue_s1ap_id (%zu). This is a deadlock state potentially caused by "
+        "misbehaving eNB; restarting MME. In stateless mode, health management "
+        "service will eventually detect multiple MME restarts due to this "
+        "deadlock state and force sctpd and hence all services to restart.",
+        enb_association->nb_ue_associated,
+        enb_association->ue_id_coll.num_elements);
+  }
   /*
    * Send S1ap deregister indication to MME app in batches of UEs where
    * UE count in each batch <= S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE
@@ -2264,7 +2359,8 @@ int s1ap_handle_new_association(
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
     }
     enb_association->sctp_assoc_id = sctp_new_peer_p->assoc_id;
-    hashtable_rc_t hash_rc         = hashtable_ts_insert(
+    enb_association->enb_id = 0xFFFFFFFF;  // home or macro eNB is 28 or 20bits.
+    hashtable_rc_t hash_rc  = hashtable_ts_insert(
         &state->enbs, (const hash_key_t) enb_association->sctp_assoc_id,
         (void*) enb_association);
     if (HASH_TABLE_OK != hash_rc) {

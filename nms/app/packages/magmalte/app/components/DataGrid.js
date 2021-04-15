@@ -191,7 +191,7 @@ function DataCollapse(data: Data) {
               : dataEntryValue
           }
           titleTypographyProps={{
-            variant: 'body3',
+            variant: 'caption',
             className: classes.dataLabel,
             title: data.category,
           }}

@@ -1,9 +1,9 @@
 ---
 id: deploy_intro
-title: Introduction
+title: Deployment Introduction
 hide_title: true
 ---
-# Introduction
+# Deployment Introduction
 
 This section walks through building, installing, and upgrading a production
 Orchestrator deployment.
@@ -68,3 +68,13 @@ Terraform module source
 - `1.4.21` Helm chart version
 - Additional notes
     - `9.6` PostgreSQL target release, newer versions will likely work as well
+
+
+## Deployment Types
+Orc8r deployment type specifies the Orc8r modules which will be included to
+manage magma gateways. It supports following deployment types.
+
+* Fixed wireless deployment (FWA) - Enables management of only *AGW*.
+* Federated Fixed wireless (FFWA) - Enables management of *AGWs and FEGs*
+* ALL - Enables Management of *AGWs, FEGs and CWAGs*.
+

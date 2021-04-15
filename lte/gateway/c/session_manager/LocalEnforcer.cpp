@@ -234,14 +234,16 @@ void LocalEnforcer::aggregate_records(
   // Insert the IMSI+SessionID for sessions we received a rule record into a set
   // for easy access
   std::unordered_set<ImsiAndSessionID> sessions_with_reporting_flows;
-  for (const RuleRecord& record : records.records()) {
+  // In some failure cases, PipelineD may still hold onto flows for sessions
+  // that do not exist in SessionD. In this case, send DeactivateFlowsRequest
+  std::vector<RuleRecord> dead_sessions_to_cleanup;
+  for (const RuleRecord record : records.records()) {
     const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
     // TODO IPv6 add ipv6 to search criteria
     SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
-      MLOG(MERROR) << "Could not find session for " << imsi << " and " << ip
-                   << " during record aggregation";
+      dead_sessions_to_cleanup.push_back(record);
       continue;
     }
     auto& session          = **session_it;
@@ -260,6 +262,26 @@ void LocalEnforcer::aggregate_records(
   }
   complete_termination_for_released_sessions(
       session_map, sessions_with_reporting_flows, session_update);
+  cleanup_dead_sessions(dead_sessions_to_cleanup);
+}
+
+void LocalEnforcer::cleanup_dead_sessions(
+    std::vector<RuleRecord>& dead_sessions_to_cleanup) {
+  if (dead_sessions_to_cleanup.size() == 0) {
+    return;
+  }
+  for (const RuleRecord& record : dead_sessions_to_cleanup) {
+    MLOG(MINFO) << "Removing all flows for " << record.sid() << ", "
+                << record.ue_ipv4()
+                << " since the UE no longer exists in SessionD";
+    Teids empty_teids;  // Teids are not used in 1.4
+    pipelined_client_->deactivate_flows_for_rules_for_termination(
+        record.sid(), record.ue_ipv4(), record.ue_ipv6(), empty_teids, {}, {},
+        RequestOriginType::GX);
+    pipelined_client_->deactivate_flows_for_rules_for_termination(
+        record.sid(), record.ue_ipv4(), record.ue_ipv6(), empty_teids, {}, {},
+        RequestOriginType::GY);
+  }
 }
 
 void LocalEnforcer::complete_termination_for_released_sessions(
@@ -1200,6 +1222,9 @@ void LocalEnforcer::complete_termination(
   reporter_->report_terminate_session(termination_req, logging_cb);
   events_reporter_->session_terminated(imsi, session);
 
+  // clear all metrics associated with this session
+  session->clear_session_metrics();
+
   // Delete the session from SessionMap
   session_uc.is_session_ended = true;
   session_map[imsi].erase(*session_it);
@@ -1894,23 +1919,29 @@ void LocalEnforcer::handle_activate_ue_flows_callback(
     MLOG(MDEBUG) << "Pipelined add ue enf flow succeeded for " << imsi;
     return;
   }
-
   MLOG(MERROR) << "Could not activate rules for " << imsi
-               << ", rpc failed: " << status.error_message() << ", retrying...";
-
-  evb_->runInEventBaseThread([=] {
-    evb_->timer().scheduleTimeoutFn(
-        std::move([=] {
-          pipelined_client_->activate_flows_for_rules(
-              imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, static_rules,
-              dynamic_rules, [imsi](Status status, ActivateFlowsResult resp) {
-                if (!status.ok()) {
-                  MLOG(MERROR) << "Could not activate flows for UE " << imsi
-                               << ": " << status.error_message();
-                }
-              });
-        }),
-        retry_timeout_);
+               << ", rpc failed: " << status.error_message()
+               << ", scheduling session termination..";
+  evb_->runInEventBaseThread([this, imsi, ip_addr] {
+    SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip_addr);
+    auto session_map = session_store_.read_sessions({imsi});
+    auto session_it  = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "Could not find session for " << imsi << " and "
+                   << ip_addr
+                   << " when trying to terminate after PipelineD GRPC failure";
+      return;
+    }
+    auto& session                = **session_it;
+    const std::string session_id = session->get_session_id();
+    auto update = SessionStore::get_default_session_update(session_map);
+    bool success =
+        find_and_terminate_session(session_map, imsi, session_id, update);
+    if (!success) {
+      MLOG(MERROR) << "Failed to start termination for " << session_id
+                   << " after PipelineD GRPC failure";
+    }
+    session_store_.update_sessions(update);
   });
 }
 
