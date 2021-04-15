@@ -159,8 +159,8 @@ func (manager *RuleManager) GetInstalledRulesByIMSI() map[string][]string {
 // RemoveInstalledRules removes previously installed rules from PCRF and policyDB
 func (manager *RuleManager) RemoveInstalledRules() error {
 	rulesIDsByIMSI := manager.GetInstalledRulesByIMSI()
-	for imsi, ruleIDs := range rulesIDsByIMSI {
-		err := deactivateSubscriberFlows(imsi, ruleIDs)
+	for imsi, _ := range rulesIDsByIMSI {
+		err := deactivateAllFlowsPerSub(imsi)
 		if err != nil {
 			return err
 		}

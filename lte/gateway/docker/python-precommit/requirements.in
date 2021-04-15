@@ -1,0 +1,5 @@
+# requirements.in
+isort
+wemake-python-styleguide
+autopep8
+add-trailing-comma

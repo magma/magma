@@ -53,8 +53,8 @@ extern "C" void __gcov_flush(void);
 #define SENTRY_URL "sentry_url"
 
 void initialize_sentry() {
-  auto control_proxy_config =
-      magma::ServiceConfigLoader{}.load_service_config(CONTROL_PROXY_SERVICE_NAME);
+  auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
+      CONTROL_PROXY_SERVICE_NAME);
   if (control_proxy_config[SENTRY_URL].IsDefined()) {
     const std::string sentry_dns =
         control_proxy_config[SENTRY_URL].as<std::string>();
