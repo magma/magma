@@ -1691,7 +1691,7 @@ func TestCreateMesh(t *testing.T) {
 		ParamValues:    []string{nID},
 		Handler:        createMesh,
 		ExpectedStatus: 500,
-		ExpectedError:  "an entity (mesh-m1) already exists",
+		ExpectedError:  "an entity 'mesh-m1' already exists",
 	}
 	tests.RunUnitTest(t, e, tc)
 }

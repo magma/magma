@@ -160,6 +160,7 @@
       "contributing/contribute_onboarding",
       "contributing/contribute_workflow",
       "contributing/contribute_conventions",
+      "contributing/contribute_ci_checks",
       "contributing/contribute_codeowners"
     ],
     "Technical Reference": [
@@ -168,6 +169,7 @@
         "label": "Access Gateway",
         "ids": [
           "lte/dev_notes",
+          "lte/dev_unit_testing",
           "lte/tr069",
           "lte/s1ap_tests",
           "lte/eventd"

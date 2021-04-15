@@ -21,6 +21,8 @@ import CardTitleRow from '../../components/layout/CardTitleRow';
 import GatewayPoolsContext from '../../components/context/GatewayPoolsContext';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -97,19 +99,19 @@ function GatewayPoolsTableRaw(props: WithAlert) {
       <>
         {gateways.length > 0 ? (
           gateways.map(gw => (
-            <>
-              <Link
-                variant="body2"
-                component="button"
-                onClick={() => {
-                  history.push(
-                    match.url.replace(`pools`, `gateway/${gw.gateway_id}`),
-                  );
-                }}>
-                {gw.gateway_id}
-              </Link>
-              <br />
-            </>
+            <List dense>
+              <ListItem>
+                <Link
+                  variant="body2"
+                  onClick={() => {
+                    history.push(
+                      match.url.replace(`pools`, `gateway/${gw.gateway_id}`),
+                    );
+                  }}>
+                  {gw.gateway_id}
+                </Link>
+              </ListItem>
+            </List>
           ))
         ) : (
           <> - </>

@@ -1,0 +1,43 @@
+Copyright 2021 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+{{- if .Values.create }}
+
+Your release is named {{ .Release.Name }}.
+
+These certificates are installed by cert-manager:
+
+{{ .Release.Name }}-admin-operator-tls
+{{ .Release.Name }}-bootstrapper-tls
+{{ .Release.Name }}-controller-tls
+{{ .Release.Name }}-certifier-tls
+{{ .Release.Name }}-fluentd-tls
+{{ .Release.Name }}-root-tls
+{{ .Release.Name }}-nms-tls
+
+Get private key for bootstrapper:
+
+kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-bootstrapper-tls \
+  -o jsonpath='{.data.tls\.key}' | base64 -d 
+
+Check pkcs12 certificate:
+
+kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-admin-operator-tls \
+  -o jsonpath='{.data.keystore\.p12}' | base64 -d | \
+  openssl pkcs12 -nodes -passin pass:"{{ .Values.adminOperator.pkcs12.password }}" -in -
+
+Check x509 certificate:
+
+kubectl -n {{ .Release.Namespace }} get secrets {{ .Release.Name }}-nms-tls \
+  -o jsonpath='{.data.tls\.crt}' | base64 -d | \
+  openssl x509 -text -noout -in -
+
+{{- end }}
