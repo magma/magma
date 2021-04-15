@@ -14,34 +14,41 @@ limitations under the License.
 package npmanager
 
 import (
+	"context"
+	"time"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/nprobe"
-	"magma/lte/cloud/go/services/nprobe/collector"
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
-	eventd "magma/orc8r/cloud/go/services/eventd/obsidian/models"
+	eventdC "magma/orc8r/cloud/go/services/eventd/eventd_client"
 
 	"github.com/golang/glog"
+	"github.com/olivere/elastic/v7"
 )
 
-const LteNetwork = "lte"
+const (
+	LteNetwork = "lte"
+	querySize  = 50
+)
 
 // NProbeManager provides the main functionality for the nprobe
 // service. It collects ES events, encode records and export
 // them to a remote collector server.
 type NProbeManager struct {
-	Collector *collector.EventsCollector
+	ElasticClient *elastic.Client
 }
 
 // NewNProbeManager creates and returns a new nprobe manager
-func NewNProbeManager(
-	collector *collector.EventsCollector,
-	config nprobe.Config,
-) *NProbeManager {
-	return &NProbeManager{
-		Collector: collector,
+func NewNProbeManager(config nprobe.Config) (*NProbeManager, error) {
+	client, err := eventdC.GetElasticClient()
+	if err != nil {
+		return nil, err
 	}
+	return &NProbeManager{
+		ElasticClient: client,
+	}, nil
 }
 
 func getNetworkProbeTasks(networkID string) (map[string]*models.NetworkProbeTask, error) {
@@ -61,39 +68,32 @@ func getNetworkProbeTasks(networkID string) (map[string]*models.NetworkProbeTask
 	return ret, nil
 }
 
-func (np *NProbeManager) collectEvents(
-	networkID string,
-	targetID string,
-	timeSinceReported int64,
-) ([]eventd.Event, error) {
-	tags := []string{targetID, targetID[4:]}
-	events, err := np.Collector.GetMultiStreamsEvents(networkID, timeSinceReported, tags)
-	if err != nil {
-		return []eventd.Event{}, err
-	}
-	return events, nil
-}
-
-func (np *NProbeManager) processNProbeTask(
-	networkID string,
-	task *models.NetworkProbeTask,
-) error {
-	// TBD - get the latest state of the task then
-	// process the latest events to create records
-	// and export them
-	timeSinceReported := int64(0)
+func (np *NProbeManager) processNProbeTask(networkID string, task *models.NetworkProbeTask) error {
+	// TBD - get the latest state of the task, collect latest events
+	// then process them to create iri records.
 	targetID := task.TaskDetails.TargetID
-	_, err := np.collectEvents(networkID, targetID, timeSinceReported)
+	timeSinceReported := time.Time(task.TaskDetails.Timestamp)
+	queryParams := eventdC.MultiStreamEventQueryParams{
+		NetworkID: networkID,
+		Streams:   nprobe.GetESStreams(),
+		Events:    nprobe.GetESEventTypes(),
+		Tags:      []string{targetID, targetID[4:]},
+		Start:     &timeSinceReported,
+		Size:      querySize,
+	}
+	// TBD - process events
+	_, err := eventdC.GetMultiStreamEvents(context.Background(), queryParams, np.ElasticClient)
 	if err != nil {
 		glog.Errorf("Failed to collect events for targetID %s: %s\n", targetID, err)
 		return err
 	}
+
 	return nil
 }
 
-// ProcessNProbeTasks retrieves the list of all nprobe tasks and process them.
-// It collects all required events, creates the corresponding records then
-// export them to a remote server
+// ProcessNProbeTasks runs in loop and retrieves all nprobe tasks and process them.
+// For each task, it collects latest events, creates the corresponding IRI record then
+// export them to a remote destination..
 func (np *NProbeManager) ProcessNProbeTasks() error {
 	networks, err := configurator.ListNetworksOfType(LteNetwork)
 	if err != nil {

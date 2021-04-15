@@ -19,7 +19,6 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/nprobe"
-	"magma/lte/cloud/go/services/nprobe/collector"
 	manager "magma/lte/cloud/go/services/nprobe/nprobe_manager"
 	"magma/lte/cloud/go/services/nprobe/obsidian/handlers"
 
@@ -47,12 +46,11 @@ func main() {
 	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(nprobe.ServiceName))
 
 	serviceConfig := nprobe.GetServiceConfig()
-	eventsCollector, err := collector.NewEventsCollector()
+	nProbeManager, err := manager.NewNProbeManager(serviceConfig)
 	if err != nil {
-		glog.Fatalf("Failed to create new EventsCollector: %v", err)
+		glog.Fatalf("Failed to create new NProbeManager: %v", err)
 	}
 
-	nProbeManager := manager.NewNProbeManager(eventsCollector, serviceConfig)
 	// Run LI service in Loop
 	go func() {
 		for {

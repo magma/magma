@@ -36,6 +36,7 @@ require (
 	github.com/influxdata/tdigest v0.0.1
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lib/pq v1.2.0
+	github.com/olivere/elastic/v7 v7.0.6
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/common v0.9.1
