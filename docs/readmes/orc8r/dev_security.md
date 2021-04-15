@@ -170,18 +170,24 @@ openssl s_client \
 Debug southbound interface (gRPC)
 
 ```bash
+# Emulate a full gateway bootstrap
+#
+# Places generated session secrets at /tmp/magma_protos/gateway.{key,crt}
+${MAGMA_ROOT}/orc8r/tools/scripts/bootstrap.bash YOUR_PROVISIONED_GATEWAY_HWID
+
 # Emulate gateway request to bootstrapper service's GetChallenge endpoint (unprotected)
 grpcurl \
     -insecure \
     -authority bootstrapper-controller.magma.test \
     -proto /tmp/magma_protos/orc8r/protos/bootstrapper.proto \
     -import-path /tmp/magma_protos/ \
+    -d '{"id": "YOUR_PROVISIONED_GATEWAY_HWID"}' \
     localhost:7444 \
     magma.orc8r.Bootstrapper/GetChallenge
 
 # Emulate gateway request to state service's ReportStates endpoint (protected)
 #
-# gateway.{key,crt} copied from target gateway.
+# gateway.{key,crt} copied from target gateway
 grpcurl \
     -insecure \
     -key /tmp/magma_protos/gateway.key \
@@ -194,7 +200,7 @@ grpcurl \
 
 # Emulate gateway request to state service's GetStates endpoint (protected)
 #
-# gateway.{key,crt} copied from target gateway.
+# gateway.{key,crt} copied from target gateway
 #
 # Note: this is an Orc8r-internal endpoint. To run this outside an Orc8r
 # application container, you may have to temporarily mutate some access

@@ -79,4 +79,11 @@ int s1ap_mme_itti_s1ap_path_switch_request(
     const tai_t* const tai, const uint16_t encryption_algorithm_capabilitie,
     uint16_t integrity_algorithm_capabilities, imsi64_t imsi64);
 
+int s1ap_mme_itti_s1ap_handover_required(
+    const sctp_assoc_id_t assoc_id, uint32_t enb_id,
+    const S1ap_Cause_t const cause,
+    const S1ap_HandoverType_t const handover_type,
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    const bstring const src_tgt_container, imsi64_t imsi64);
+
 #endif /* FILE_S1AP_MME_ITTI_MESSAGING_SEEN */
