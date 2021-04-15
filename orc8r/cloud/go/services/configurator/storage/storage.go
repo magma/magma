@@ -16,6 +16,7 @@ package storage
 import (
 	"context"
 	"fmt"
+	"sort"
 
 	"magma/orc8r/cloud/go/storage"
 
@@ -136,6 +137,18 @@ func (m *EntityID) FromTypeAndKey(tk storage.TypeAndKey) *EntityID {
 	return m
 }
 
+func SortIDs(ids []*EntityID) {
+	sort.Slice(ids, func(i, j int) bool {
+		return ids[i].ToTypeAndKey().IsLessThan(ids[j].ToTypeAndKey())
+	})
+}
+
+func SortEntities(ents []*NetworkEntity) {
+	sort.Slice(ents, func(i, j int) bool {
+		return ents[i].GetTypeAndKey().String() < ents[j].GetTypeAndKey().String()
+	})
+}
+
 func (m *NetworkEntity) GetID() *EntityID {
 	return &EntityID{Type: m.Type, Key: m.Key}
 }
@@ -148,15 +161,44 @@ func (m NetworkEntity) GetGraphEdges() []*GraphEdge {
 	myID := m.GetID()
 	existingAssocs := map[storage.TypeAndKey]bool{}
 
-	ret := make([]*GraphEdge, 0, len(m.Associations))
+	edges := make([]*GraphEdge, 0, len(m.Associations))
 	for _, assoc := range m.Associations {
 		if _, exists := existingAssocs[assoc.ToTypeAndKey()]; exists {
 			continue
 		}
-		ret = append(ret, &GraphEdge{From: myID, To: assoc})
+		edges = append(edges, &GraphEdge{From: myID, To: assoc})
 		existingAssocs[assoc.ToTypeAndKey()] = true
 	}
-	return ret
+
+	return edges
+}
+
+type EntitiesByPK map[string]*NetworkEntity
+
+type EntitiesByTK map[storage.TypeAndKey]*NetworkEntity
+
+func (e EntitiesByTK) ByPK() EntitiesByPK {
+	byPK := make(map[string]*NetworkEntity, len(e))
+	for _, ent := range e {
+		byPK[ent.Pk] = ent
+	}
+	return byPK
+}
+
+func (e EntitiesByTK) PKs() []string {
+	pks := make([]string, 0, len(e))
+	for _, ent := range e {
+		pks = append(pks, ent.Pk)
+	}
+	return pks
+}
+
+func (e EntitiesByTK) Ents() []*NetworkEntity {
+	ents := make([]*NetworkEntity, 0, len(e))
+	for _, ent := range e {
+		ents = append(ents, ent)
+	}
+	return ents
 }
 
 // IsLoadAllEntities return true if the EntityLoadFilter is specifying to load
@@ -171,7 +213,6 @@ var FullEntityLoadCriteria = EntityLoadCriteria{
 	LoadConfig:         true,
 	LoadAssocsToThis:   true,
 	LoadAssocsFromThis: true,
-	LoadPermissions:    true,
 }
 
 func (m *EntityUpdateCriteria) GetID() *EntityID {
