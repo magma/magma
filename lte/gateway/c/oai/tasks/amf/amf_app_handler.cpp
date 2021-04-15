@@ -200,8 +200,8 @@ void amf_ue_context_update_coll_keys(
             LOG_AMF_APP,
             "Insertion of Hash entry failed for  "
             "amf_ue_ngap_id " AMF_UE_NGAP_ID_FMT PRIX32 " \n",
-            amf_ue_ngap_id);      
-}
+            amf_ue_ngap_id);
+      }
       ue_context_p->amf_context.m5_guti = *guti_p;
     }
   }

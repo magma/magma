@@ -795,16 +795,13 @@ static int amf_security_mode_command(
   if (ue_context) {
     amf_security_context_t* amf_security_context =
         &ue_context->amf_context._security;
-    nas_msg.security_protected.plain.amf.securitymodecommandmsg
-        .nas_sec_algorithms.tca =
+    amf_msg->nas_sec_algorithms.tca =
         amf_security_context->selected_algorithms.encryption;
-    nas_msg.security_protected.plain.amf.securitymodecommandmsg
-        .nas_sec_algorithms.tia =
+    amf_msg->nas_sec_algorithms.tia =
         amf_security_context->selected_algorithms.integrity;
     // relay UE security capabilities saved to amf_context back to UE
     memcpy(
-        &(nas_msg.security_protected.plain.amf.securitymodecommandmsg
-              .ue_sec_capability),
+        &(amf_msg->ue_sec_capability),
         &(ue_context->amf_context.ue_sec_capability),
         sizeof(UESecurityCapabilityMsg));
   } else {
