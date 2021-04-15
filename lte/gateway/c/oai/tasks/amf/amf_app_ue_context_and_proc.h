@@ -737,4 +737,8 @@ void amf_app_handle_resource_release_response(
     itti_ngap_pdusessionresource_rel_rsp_t session_rel_resp);
 void amf_app_handle_cm_idle_on_ue_context_release(
     itti_ngap_ue_context_release_req_t cm_idle_req);
+// Handle UE CONTEXT RELEASE COMMAND in DL to NGAP
+void ue_context_release_command(
+    amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    Ngcause ng_cause);
 }  // namespace magma5g

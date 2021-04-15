@@ -297,9 +297,8 @@ int amf_smf_send(
 **                                                                        **
 ***************************************************************************/
 int amf_smf_notification_send(
-    amf_ue_ngap_id_t ue_id, ue_m5gmm_context_s* ue_context) {
-  OAILOG_DEBUG(
-      LOG_AMF_APP, " Preparing and sending idle notification to SMF \n");
+    amf_ue_ngap_id_t ue_id, ue_m5gmm_context_s* ue_context,
+    notify_ue_event notify_event_type) {
   int rc = RETURNerror;
   /* Get gRPC structure of notification to be filled common and
    * rat type elements.
