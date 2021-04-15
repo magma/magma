@@ -18,20 +18,16 @@ import json
 import argparse
 import random
 import subprocess
-import time
 from collections import namedtuple
-from datetime import datetime
 
 from google.protobuf import json_format
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
     DeactivateFlowsRequest,
-    DeactivateFlowsResult,
     RequestOriginType,
     VersionedPolicy,
     VersionedPolicyID,
 )
-from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import (
     FlowMatch,
     FlowDescription,
