@@ -37,25 +37,11 @@ from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.qos.common import QosManager
 from magma.subscriberdb.sid import SIDUtils
+from scripts.pipelined_cli import _gen_ue_set, UEInfo
 
 PROTO_DIR = 'lte/protos'
 IMPORT_PATH = '/home/vagrant/magma'
 RESULTS_PATH = '/var/tmp'
-
-UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
-                               'rule_id'])
-
-def _gen_ue_set(num_of_ues):
-    imsi = 123000000
-    ue_set = set()
-    for _ in range(0, num_of_ues):
-        imsi_str = "IMSI" + str(imsi)
-        ipv4_src = ".".join(str(random.randint(0, 255)) for _ in range(4))
-        ipv4_dst = ".".join(str(random.randint(0, 255)) for _ in range(4))
-        rule_id = "allow." + imsi_str
-        ue_set.add(UEInfo(imsi_str, ipv4_src, ipv4_dst, rule_id))
-        imsi = imsi + 1
-    return ue_set
 
 def _build_activate_flows_data(ue_dict, disable_qos):
     activate_flow_reqs = []
@@ -132,7 +118,7 @@ def _get_ghz_cmd_params(req_type: str, num_reqs: int):
     cmd_list = ['ghz', '--insecure', '--proto',
                 '%s/pipelined.proto' % PROTO_DIR,
                 '-i', IMPORT_PATH, '--total', str(num_reqs),
-                '--call', req_name, '-D', file_name, '-O', 'html',
+                '--call', req_name, '-D', file_name, '-O', 'json',
                 '-o', '%s/result_%s.json' % (RESULTS_PATH, req_type),
                 '0.0.0.0:50063']
 
