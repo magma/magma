@@ -439,6 +439,8 @@ union mobility_msg_u {
   RegistrationAcceptMsg registrationacceptmsg;
   RegistrationCompleteMsg registrationcompletemsg;
   RegistrationRejectMsg registrationrejectmsg;
+  ServiceRequestMsg service_request;
+  ServiceAcceptMsg service_accept;
   IdentityRequestMsg identityrequestmsg;
   IdentityResponseMsg identityresponsemsg;
   AuthenticationRequestMsg authenticationrequestmsg;
@@ -728,6 +730,7 @@ amf_procedures_t* nas_new_amf_procedures(amf_context_t* amf_context);
 int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx);
 int amf_send_registration_accept(amf_context_t* amf_context);
 
+int amf_send_registration_accept(amf_context_t* amf_context);
 // UE originated deregistration procedures
 int amf_proc_deregistration_request(
     amf_ue_ngap_id_t ue_id, amf_deregistration_request_ies_t* params);

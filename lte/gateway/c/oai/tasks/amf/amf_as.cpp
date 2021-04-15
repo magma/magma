@@ -153,6 +153,10 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
           &amf_msg->msg.registrationrequestmsg, msg->is_initial,
           msg->is_amf_ctx_new, *amf_cause, decode_status);
       break;
+    case M5G_SERVICE_REQUEST:  // SERVICE_REQUEST:
+      rc = amf_handle_service_request(
+          msg->ue_id, &amf_msg->msg.service_request, decode_status);
+      break;
     case M5G_IDENTITY_RESPONSE:
       rc = amf_handle_identity_response(
           msg->ue_id, &amf_msg->msg.identityresponsemsg.m5gs_mobile_identity,
@@ -996,12 +1000,10 @@ uint16_t amf_as_establish_cnf(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
   }
 
-  as_msg->s_tmsi.amf_pointer = msg->pds_id.guti->guamfi.amf_pointer;
-  as_msg->s_tmsi.m_tmsi      = msg->pds_id.guti->m_tmsi;
-  as_msg->nas_msg            = msg->nas_msg;
-  as_msg->presencemask       = msg->presencemask;
-  as_msg->m5g_service_type   = msg->service_type;
-  amf_context_t* amf_ctx     = NULL;
+  as_msg->nas_msg                              = msg->nas_msg;
+  as_msg->presencemask                         = msg->presencemask;
+  as_msg->m5g_service_type                     = msg->service_type;
+  amf_context_t* amf_ctx                       = NULL;
   amf_security_context_t* amf_security_context = NULL;
   amf_ctx                                      = amf_context_get(msg->ue_id);
   if (amf_ctx) {

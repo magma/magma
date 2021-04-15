@@ -32,6 +32,71 @@ extern "C" {
 namespace magma5g {
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 
+int amf_handle_service_request(
+    amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
+    const amf_nas_message_decode_status_t decode_status) {
+  int rc                         = RETURNok;
+  ue_m5gmm_context_s* ue_context = nullptr;
+  tmsi_t tmsi_rcv;
+  tmsi_t tmsi_stored;
+  notify_ue_event notify_ue_event_type;
+
+  OAILOG_INFO(
+      LOG_AMF_APP,
+      "Received TMSI in message : %02x%02x%02x%02x%02x%02x%02x%02x",
+      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[0],
+      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[1],
+      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[2],
+      msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[3]);
+  memcpy(
+      &tmsi_rcv, &msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi,
+      sizeof(tmsi_t));
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context == NULL) {
+    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
+  }
+  tmsi_stored = ue_context->amf_context.m5_guti.m_tmsi;
+  // Check TMSI and then check MAC
+  OAILOG_INFO(
+      LOG_NAS_AMF, " TMSI stored in AMF CONTEXT %08" PRIx32 "\n", tmsi_stored);
+  OAILOG_INFO(LOG_NAS_AMF, " TMSI received %08" PRIx32 "\n", tmsi_rcv);
+
+  if (tmsi_rcv == tmsi_stored) {
+    OAILOG_INFO(
+        LOG_NAS_AMF,
+        "TMSI matched for the UE id %d "
+        " receved TMSI %08X stored TMSI %08X \n",
+        ue_id, tmsi_rcv, tmsi_stored);
+    // Calculate MAC and compare if matches send message to SMF
+    if (decode_status.mac_matched) {
+      OAILOG_INFO(
+          LOG_NAS_AMF, "MAC in security header matched for the UE id %d ",
+          ue_id);
+      // Set event type as service request
+      notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
+      // construct the proto structure and send message to SMF
+      rc = amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
+    }  // MAC matched
+    else {
+      OAILOG_INFO(
+          LOG_NAS_AMF,
+          "MAC in security header not matched for the UE id %d "
+          "and prepare for reject message on DL",
+          ue_id);
+    }
+  } else {
+    OAILOG_INFO(
+        LOG_NAS_AMF,
+        "TMSI not matched for the UE id %d "
+        "and prepare for reject message ion DL"
+        " receved TMSI %08X stored TMSI %08X\n",
+        ue_id, tmsi_rcv, tmsi_stored);
+    // Send prepare and send reject message.
+  }
+  return rc;
+}
+
 /* Identifies 5GS Registration type and processes the Message accordingly */
 int amf_handle_registration_request(
     amf_ue_ngap_id_t ue_id, tai_t* originating_tai, ecgi_t* originating_ecgi,
@@ -43,7 +108,6 @@ int amf_handle_registration_request(
   // Local imsi to be put in imsi defined in 3gpp_23.003.h
   supi_as_imsi_t supi_imsi;
   amf_guti_m5g_t amf_guti;
-  // guti_m5_t* amf_ctx_guti;
   guti_and_amf_id_t guti_and_amf_id;
   /*
    * Handle message checking error
@@ -77,18 +141,18 @@ int amf_handle_registration_request(
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
+    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
   }
 
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
-    OAILOG_INFO(LOG_NAS_AMF, "AMF_TEST: New REGITRATION_REQUEST processing\n");
+    OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST processing\n");
     /*
      * Get the AMF mobile identity. For new registration
      * mobility type suppose to be SUCI
      * This is SUCI message identity type is SUPI as IMSI type
      * Extract the SUPI from SUCI directly as scheme is NULL */
     if (msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity ==
-        M5GSMobileIdentityMsg_IMSI) {
+        M5GSMobileIdentityMsg_SUCI_IMSI) {
       // Only considering protection scheme as NULL else return error.
       if (msg->m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id ==
           MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
@@ -141,11 +205,10 @@ int amf_handle_registration_request(
      */
     OAILOG_INFO(
         LOG_NAS_AMF,
-        "AMF_TEST:: AMF_REGISTRATION_TYPE_PERODIC_UPDATING processing"
+        "AMF_REGISTRATION_TYPE_PERODIC_UPDATING processing"
         " is_amf_ctx_new = %d and identity type = %d ",
         is_amf_ctx_new,
         msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
-    // if ((!is_amf_ctx_new) &&
     if ((msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
          M5GSMobileIdentityMsg_GUTI)) {
       /* Copying PLMN to local supi which is imsi*/
@@ -189,7 +252,6 @@ int amf_handle_registration_request(
           "map and ue contxt, sending accept message in DL\n");
 
       // Call the registration accept API to send accept messaeg in DL
-      // rc = amf_registration_procedure::amf_send_registration_accept(
       rc = amf_send_registration_accept(&ue_context->amf_context);
     } else {
       // UE context is new and/or UE identity type is not GUTI
@@ -253,7 +315,7 @@ int amf_handle_identity_response(
   /* This is SUCI message identity type is SUPI as IMSI type
    * Extract the SUPI from SUCI directly as scheme is NULL */
   if (msg->mobile_identity.imsi.type_of_identity ==
-      M5GSMobileIdentityMsg_IMSI) {
+      M5GSMobileIdentityMsg_SUCI_IMSI) {
     // Only considering protection scheme as NULL else return error.
     if (msg->mobile_identity.imsi.protect_schm_id ==
         MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
@@ -396,6 +458,9 @@ int amf_handle_authentication_response(
  **                                                                        **
  ***************************************************************************/
 ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
+  /*Check imsi found
+   *
+   */
   std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
       amf_supi_guti_map.find(imsi64);
   if (found_imsi == amf_supi_guti_map.end()) {
