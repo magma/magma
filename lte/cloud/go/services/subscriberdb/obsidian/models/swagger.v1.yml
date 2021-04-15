@@ -373,7 +373,14 @@ definitions:
     required:
       - next_page_token
       - subscribers
+      - total_count
     properties:
+      total_count:
+        type: integer
+        format: int64
+        description: estimated total number of subscriber entries
+        example: 10
+        x-nullable: false
       next_page_token:
         $ref: '#/definitions/next_page_token'
       subscribers:
