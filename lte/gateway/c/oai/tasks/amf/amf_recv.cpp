@@ -383,29 +383,26 @@ int amf_handle_authentication_response(
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-
-/* Lookup the guti structure basd on imsi  in amf_supi_guti_map
- * params@ imsi
- * return guti structure on success ,Null on failure
- */
+/****************************************************************************
+ **                                                                        **
+ ** Name:    lookup_ue_ctxt_by_imsi()                                      **
+ **                                                                        **
+ ** Description: Lookup the guti structure based on imsi in                **
+ **              amf_supi_guti_map                                         **
+ **                                                                        **
+ ** Inputs:  imsi64: imsi value                                            **
+ **                                                                        **
+ ** Outputs: ue_m5gmm_context_s: pointer to ue context                     **
+ **                                                                        **
+ ***************************************************************************/
 ue_m5gmm_context_s* lookup_ue_ctxt_by_imsi(imsi64_t imsi64) {
-  //  imsi64_t imsi64 = amf_imsi_to_imsi64(imsi);
-
-  /*Check imsi found
-   *
-   */
   std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
       amf_supi_guti_map.find(imsi64);
   if (found_imsi == amf_supi_guti_map.end()) {
-    // it is new entry to map
-    OAILOG_ERROR(LOG_NAS_AMF, "UE_ID context not found in ue-context_map\n");
     return NULL;
-
   } else {
-    // Overwrite the second element.
     return amf_ue_context_exists_amf_ue_ngap_id(
         found_imsi->second.amf_ue_ngap_id);
-    // return found_imsi->second;
   }
 }
 

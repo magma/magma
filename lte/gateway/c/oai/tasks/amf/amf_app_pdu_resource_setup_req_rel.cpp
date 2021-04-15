@@ -66,14 +66,8 @@ void ambr_calculation_pdu_session(
  * itti_message is sent to NGAP.
  */
 int pdu_session_resource_setup_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id) {
-  if (!ue_context) {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "UE Context is NULL in PDU resource setup request");
-    return RETURNerror;
-  }
-  smf_context_t* smf_context = NULL;
-  smf_context                = &ue_context->amf_context.smf_context;
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    smf_context_t* smf_context) {
   pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req;
   itti_ngap_pdusession_resource_setup_req_t* ngap_pdu_ses_setup_req = nullptr;
   MessageDef* message_p                                             = nullptr;
@@ -141,12 +135,8 @@ int pdu_session_resource_setup_request(
 
 /* Resource release request to gNB through NGAP */
 int pdu_session_resource_release_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id) {
-  if (!ue_context) {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "UE Context is NULL in  PDU resource release request");
-    return RETURNerror;
-  }
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    smf_context_t* smf_ctx) {
   itti_ngap_pdusessionresource_rel_req_t* ngap_pdu_ses_release_req = nullptr;
   MessageDef* message_p                                            = nullptr;
   pdu_session_resource_release_command_transfer amf_pdu_ses_rel_transfer_req;
@@ -174,8 +164,8 @@ int pdu_session_resource_release_request(
   ngap_pdu_ses_release_req->pduSessionResourceToRelReqList.no_of_items = 1;
   ngap_pdu_ses_release_req->pduSessionResourceToRelReqList.item[0]
       .Pdu_Session_ID =
-      (Ngap_PDUSessionID_t) ue_context->amf_context.smf_context.smf_proc_data
-          .pdu_session_identity.pdu_session_id;
+      (Ngap_PDUSessionID_t)
+          smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
   amf_pdu_ses_rel_transfer_req.cause.cause_group.u_group.nas.cause =
       NORMAL_RELEASE;
   amf_pdu_ses_rel_transfer_req.cause.cause_group.cause_group_type = NAS_GROUP;

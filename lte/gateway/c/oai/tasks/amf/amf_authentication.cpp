@@ -33,9 +33,7 @@ extern "C" {
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
-extern ue_m5gmm_context_s
-    ue_m5gmm_global_context;  // TODO This has been taken care in upcoming
-                              // PR with multi UE feature
+
 amf_as_data_t amf_data_sec_auth;
 
 /****************************************************************************
@@ -505,10 +503,10 @@ int amf_proc_authentication_complete(
       "Authentication  procedures complete for "
       "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
       ue_id);
-  ue_m5gmm_context_s* ue_mm_context =
-      &ue_m5gmm_global_context;  // This has been taken care in upcoming PR with
-                                 // multi UE feature
+  ue_m5gmm_context_s* ue_mm_context = NULL;
+
   amf_context_t* amf_ctx = NULL;
+  ue_mm_context          = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (!ue_mm_context) {
     OAILOG_WARNING(
