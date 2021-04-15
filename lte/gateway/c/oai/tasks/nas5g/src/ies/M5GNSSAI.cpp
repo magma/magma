@@ -52,26 +52,7 @@ int NSSAIMsg::EncodeNSSAIMsg(
 
 int NSSAIMsg::DecodeNSSAIMsg(
     NSSAIMsg* NSSAI, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint8_t decoded = 0;
-  uint8_t ielen   = 0;
-#if 0
-  /*
-   * Checking IEI and pointer
-   */
-  CHECK_PDU_POINTER_AND_LENGTH_DECODER(buffer, NSSAI_MIN_LENGTH, len);
-
-  if (iei > 0) {
-    CHECK_IEI_DECODER(iei, (unsigned char) *buffer);
-    *buffer = iei;
-    decoded++;
-  }
-
-  IES_DECODE_U8(buffer, decoded, ielen);
-
-  if (!memcpy(&NSSAI->nssaival, (buffer + decoded), ielen)) return decoded;
-
-  decoded = decoded + ielen;
-#endif
-  return (decoded);
+  // will be implemented post MVC
+  return (0);
 };
 }  // namespace magma5g
