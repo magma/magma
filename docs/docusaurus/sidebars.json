@@ -92,6 +92,7 @@
         "label": "Access Gateway",
         "ids": [
           "lte/deploy_install",
+          "lte/deploy_install_ubuntu",
           "lte/deploy_config_agw",
           "lte/deploy_config_enodebd",
           "lte/deploy_config_apn",
