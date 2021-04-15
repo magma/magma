@@ -37,25 +37,27 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 		var err error
 		csReqFromSGW := msg.(*message.CreateSessionRequest)
 		if imsiIE := csReqFromSGW.IMSI; imsiIE != nil {
-			imsi, err := imsiIE.IMSI()
-			if err != nil {
-				return err
+			imsi, err2 := imsiIE.IMSI()
+			if err2 != nil {
+				return err2
 			}
 			session.IMSI = imsi
 
 			// remove previous session for the same subscriber if exists.
-			sess, err := c.GetSessionByIMSI(imsi)
-			if err != nil {
-				switch err.(type) {
+			sess, err2 := c.GetSessionByIMSI(imsi)
+			if err2 != nil {
+				switch err2.(type) {
 				case *gtpv2.UnknownIMSIError:
 					// whole new session. just ignore.
 				default:
-					return errors.Wrap(err, "got something unexpected")
+					return errors.Wrap(err2, "got something unexpected")
 				}
 			} else {
+				fmt.Printf("Existing IMSI during Create Session Request on PGW (%s). Deleting previous session\n", imsi)
 				c.RemoveSession(sess)
 			}
 		} else {
+			fmt.Println("Missing IE (IMSI) on Create Session Request that PGW received")
 			return &gtpv2.RequiredIEMissingError{Type: ie.IMSI}
 		}
 		if msisdnIE := csReqFromSGW.MSISDN; msisdnIE != nil {
@@ -195,6 +197,9 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 			qosPVI = 1
 		}
 
+		// Protocol Configuration Options (nil if not existent)
+		pco := csReqFromSGW.PCO
+
 		// send
 		csRspFromPGW := message.NewCreateSessionResponse(
 			sgwTEIDc, msg.Sequence(),
@@ -202,6 +207,7 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 			pgwFTEIDc,
 			ie.NewPDNAddressAllocation(bearer.SubscriberIP),
 			ie.NewAPNRestriction(gtpv2.APNRestrictionPublic2),
+			pco,
 			ie.NewBearerContext(
 				ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
 				ie.NewEPSBearerID(bearer.EBI),

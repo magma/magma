@@ -13,13 +13,15 @@ limitations under the License.
 import logging
 import re
 
-from magma.magmad.upgrade.upgrader import Upgrader, UpgraderFactory
 from magma.common.misc_utils import call_process
+from magma.magmad.upgrade.upgrader import Upgrader, UpgraderFactory
+
 
 class MagmaUpgraderFactory(UpgraderFactory):
     """
     Upgrader factory implementation for Magma.
     """
+
     def create_upgrader(self, magmad_service, loop):
         return MagmaUpgrader(magmad_service.version, loop)
 
@@ -28,6 +30,7 @@ class MagmaUpgrader(Upgrader):
     """
     Upgrader implementation for Magma.
     """
+
     def __init__(self, cur_version, loop):
         super().__init__()
         self.cur_version = cur_version
@@ -39,9 +42,9 @@ class MagmaUpgrader(Upgrader):
                 'Upgrading magma to version %s', target_version,
             )
             call_process('apt-get update',
-                          _get_apt_update_complete_callback(target_version,
-                                                            self.loop),
-                          self.loop)
+                         _get_apt_update_complete_callback(target_version,
+                                                           self.loop),
+                         self.loop)
         else:
             logging.info(
                 'Service is currently on package version %s, '
@@ -100,6 +103,7 @@ def _get_apt_update_complete_callback(target_version, loop):
         )
     return callback
 
+
 def _get_upgrade_dry_run_complete_callback(target_version, loop):
     def callback(returncode):
         if returncode != 0:
@@ -135,5 +139,3 @@ def get_autoupgrade_command(version, *, dry_run=False):
         options_joined=' '.join(options),
         version=version,
     )
-
-

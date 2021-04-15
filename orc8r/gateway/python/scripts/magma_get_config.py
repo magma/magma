@@ -40,8 +40,9 @@ def main():
     args = parser.parse_args()
 
     # import after parsing command line because import is sluggish
-    from magma.configuration.mconfig_managers \
-        import load_service_mconfig_as_json
+    from magma.configuration.mconfig_managers import (
+        load_service_mconfig_as_json,
+    )
 
     # set up logging
     logging.basicConfig(

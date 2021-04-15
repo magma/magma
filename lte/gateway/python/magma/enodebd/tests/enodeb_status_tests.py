@@ -16,16 +16,20 @@ from unittest import TestCase
 
 from lte.protos.enodebd_pb2 import SingleEnodebStatus
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.enodeb_status import (get_all_enb_status, get_enb_status,
-                                         get_service_status_old,
-                                         get_single_enb_status)
+from magma.enodebd.enodeb_status import (
+    get_all_enb_status,
+    get_enb_status,
+    get_service_status_old,
+    get_single_enb_status,
+)
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
-from magma.enodebd.tests.test_utils.enb_acs_builder import \
-    EnodebAcsStateMachineBuilder
-from magma.enodebd.tests.test_utils.spyne_builder import \
-    get_spyne_context_with_ip
-from magma.enodebd.tests.test_utils.tr069_msg_builder import \
-    Tr069MessageBuilder
+from magma.enodebd.tests.test_utils.enb_acs_builder import (
+    EnodebAcsStateMachineBuilder,
+)
+from magma.enodebd.tests.test_utils.spyne_builder import (
+    get_spyne_context_with_ip,
+)
+from magma.enodebd.tests.test_utils.tr069_msg_builder import Tr069MessageBuilder
 
 
 class EnodebStatusTests(TestCase):

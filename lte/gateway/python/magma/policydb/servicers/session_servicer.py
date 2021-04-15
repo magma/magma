@@ -13,16 +13,28 @@ limitations under the License.
 
 import logging
 from typing import List, Set
+
 from lte.protos.mconfig import mconfigs_pb2
-from lte.protos.policydb_pb2 import RatingGroup, ApnPolicySet,\
-    SubscriberPolicySet
-from lte.protos.session_manager_pb2 import CreateSessionRequest, \
-    CreateSessionResponse, UpdateSessionRequest, SessionTerminateResponse, \
-    UpdateSessionResponse, StaticRuleInstall, DynamicRuleInstall,\
-    CreditUpdateResponse, CreditLimitType
-from lte.protos.session_manager_pb2_grpc import \
-    CentralSessionControllerServicer, \
-    add_CentralSessionControllerServicer_to_server
+from lte.protos.policydb_pb2 import (
+    ApnPolicySet,
+    RatingGroup,
+    SubscriberPolicySet,
+)
+from lte.protos.session_manager_pb2 import (
+    CreateSessionRequest,
+    CreateSessionResponse,
+    CreditLimitType,
+    CreditUpdateResponse,
+    DynamicRuleInstall,
+    SessionTerminateResponse,
+    StaticRuleInstall,
+    UpdateSessionRequest,
+    UpdateSessionResponse,
+)
+from lte.protos.session_manager_pb2_grpc import (
+    CentralSessionControllerServicer,
+    add_CentralSessionControllerServicer_to_server,
+)
 from magma.policydb.apn_rule_map_store import ApnRuleAssignmentsDict
 from magma.policydb.basename_store import BaseNameDict
 from magma.policydb.default_rules import get_allow_all_policy_rule

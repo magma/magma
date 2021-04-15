@@ -57,4 +57,3 @@ extern "C" int match_fed_mode_map(const char* imsi, log_proto_t module) {
   OAILOG_FUNC_RETURN(
       module, magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER);
 }
-

@@ -11,10 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import sys
-import psutil
 import logging
+import sys
+
 import grpc
+import psutil
 from magma.common.service_registry import ServiceRegistry
 
 

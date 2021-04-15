@@ -499,11 +499,11 @@ describe('<AddEditGatewayButton />', () => {
     await wait();
 
     pci = getByTestId('pci').firstChild;
-    if (pci instanceof HTMLInputElement) {
-      expect(pci.disabled).toBe(true);
-    } else {
-      throw 'invalid type';
-    }
+    expect(pci).toBeDisabled();
+
+    const registeredEnodeb = getByTestId('registeredEnodeb').firstChild;
+    expect(registeredEnodeb).not.toHaveAttribute('aria-disabled');
+
     fireEvent.click(getByText('Save And Continue'));
     await wait();
     expect(

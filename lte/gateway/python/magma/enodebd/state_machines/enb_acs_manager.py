@@ -19,8 +19,9 @@ from magma.enodebd.devices.device_map import get_device_handler_from_name
 from magma.enodebd.devices.device_utils import EnodebDeviceName
 from magma.enodebd.exceptions import UnrecognizedEnodebError
 from magma.enodebd.logger import EnodebdLogger as logger
-from magma.enodebd.state_machines.acs_state_utils import \
-    get_device_name_from_inform
+from magma.enodebd.state_machines.acs_state_utils import (
+    get_device_name_from_inform,
+)
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.tr069 import models
 from spyne import ComplexModelBase

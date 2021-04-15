@@ -1787,6 +1787,114 @@
       }
     }
   },
+  "subscribers_v2": {
+    "subscribers": 
+      {
+        "IMSI001010002220018": {
+          "name": "IMSI001010002220018",
+          "active_apns": [
+            "internet"
+          ],
+          "config": {
+            "lte": {
+              "auth_algo": "MILENAGE",
+              "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+              "state": "ACTIVE",
+              "sub_profile": "default"
+            }
+          },
+          "id": "IMSI001010002220018",
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        },
+        "IMSI001010002220019": {
+          "active_apns": [
+            "internet"
+          ],
+          "config": {
+            "lte": {
+              "auth_algo": "MILENAGE",
+              "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+              "state": "ACTIVE",
+              "sub_profile": "default"
+            }
+          },
+          "id": "IMSI001010002220019",
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        },
+        "IMSI001010002220020": {
+          "active_apns": [
+            "internet"
+          ],
+          "config": {
+            "lte": {
+              "auth_algo": "MILENAGE",
+              "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+              "state": "ACTIVE",
+              "sub_profile": "default"
+            }
+          },
+          "id": "IMSI001010002220020",
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        },
+        "IMSI001010002220021": {
+          "active_apns": [
+            "internet"
+          ],
+          "config": {
+            "lte": {
+              "auth_algo": "MILENAGE",
+              "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+              "state": "ACTIVE",
+              "sub_profile": "default"
+            }
+          },
+          "id": "IMSI001010002220021",
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        },
+        "IMSI001010002220022": {
+          "name": "IMSI001010002220022",
+          "active_apns": [
+            "internet"
+          ],
+          "config": {
+            "lte": {
+              "auth_algo": "MILENAGE",
+              "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+              "state": "ACTIVE",
+              "sub_profile": "default"
+            }
+          },
+          "id": "IMSI001010002220022",
+          "lte": {
+            "auth_algo": "MILENAGE",
+            "auth_key": "i69HPy+P0JSHzMvXCXxoYg==",
+            "state": "ACTIVE",
+            "sub_profile": "default"
+          }
+        }
+      },
+    "next_page_token": ""
+  },
   "subscriber_state":{
     "IMSI001010002220018": {
       "directory": {

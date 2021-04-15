@@ -11,12 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import grpc
 import logging
 from typing import Set
+
+import grpc
 from lte.protos.policydb_pb2 import InstalledPolicies
-from lte.protos.session_manager_pb2 import PolicyReAuthRequest, \
-    PolicyReAuthAnswer, ReAuthResult
+from lte.protos.session_manager_pb2 import (
+    PolicyReAuthAnswer,
+    PolicyReAuthRequest,
+    ReAuthResult,
+)
 from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
 from magma.policydb.rule_map_store import RuleAssignmentsDict
 

@@ -75,8 +75,10 @@ class TestTopologyBuilder(unittest.TestCase):
         """
         Simple validator for port methods.
         """
-        from magma.pkt_tester.topology_builder import TopologyBuilder
-        from magma.pkt_tester.topology_builder import UseAfterFreeException
+        from magma.pkt_tester.topology_builder import (
+            TopologyBuilder,
+            UseAfterFreeException,
+        )
         self._topology_builder = TopologyBuilder()
         bridge = self._topology_builder.create_bridge(self.TEST_BRIDGE_NAME)
 
@@ -103,8 +105,10 @@ class TestTopologyBuilder(unittest.TestCase):
         """
         Simple validator for iface methods
         """
-        from magma.pkt_tester.topology_builder import TopologyBuilder
-        from magma.pkt_tester.topology_builder import UseAfterFreeException
+        from magma.pkt_tester.topology_builder import (
+            TopologyBuilder,
+            UseAfterFreeException,
+        )
         self._topology_builder = TopologyBuilder()
         ip_address = self.TEST_IP_PREFIX + "2"
         iface_name = self.TEST_INT_PREFIX + "0"
@@ -126,8 +130,10 @@ class TestTopologyBuilder(unittest.TestCase):
         """
         Simple validator for bridge methods
         """
-        from magma.pkt_tester.topology_builder import TopologyBuilder
-        from magma.pkt_tester.topology_builder import UseAfterFreeException
+        from magma.pkt_tester.topology_builder import (
+            TopologyBuilder,
+            UseAfterFreeException,
+        )
         self._topology_builder = TopologyBuilder()
         bridge = self._topology_builder.create_bridge(self.TEST_BRIDGE_NAME)
 

@@ -472,7 +472,7 @@ void send_s8_delete_session_request(
   dsr_req.Clear();
   dsr_req.set_imsi((char*) imsi.digit, imsi.length);
   dsr_req.set_bearer_id(bearer_id);
-  dsr_req.mutable_c_pgw_fteid()->set_teid(pgw_s5_teid);
+  dsr_req.set_c_pgw_teid(pgw_s5_teid);
   dsr_req.set_c_agw_teid(sgw_s11_teid);
   magma::S8Client::s8_delete_session_request(
       dsr_req,

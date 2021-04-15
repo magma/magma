@@ -47,11 +47,13 @@ See the [Community](https://www.magmacore.org/community/) page for entry points.
 
 Start by joining the community on Slack: [magmacore workspace](https://join.slack.com/t/magmacore/shared_invite/zt-g76zkofr-g6~jYiS3KRzC9qhAISUC2A).
 
+Direct specific questions to the [GitHub Discussions page](https://github.com/magma/magma/discussions). Your question might already have an answer!
+
 ## Contributing
 
 Start with the project's contributing conventions
 
-- [Contributing Conventions](https://docs.magmacore.org/docs/next/contributing/contribute_conventions)
+- [Contributing conventions](https://docs.magmacore.org/docs/next/contributing/contribute_conventions)
   for conventions on contributing to the project
 
 If you're new to the project, also consider reading

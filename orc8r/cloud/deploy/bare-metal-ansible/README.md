@@ -19,7 +19,7 @@ We assume `MAGMA_ROOT` is set as described in the
 This walkthrough assumes you already have the following
 
 - a registered domain name
-- a physical or virutal server with at least 4 vCPU, 16 RAM, and 100Gb free storage
+- a physical or virtual server with at least 4 vCPU, 16 RAM, and 100Gb free storage
 
 ## Preparing for the install
 

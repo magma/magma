@@ -21,15 +21,17 @@ from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 from magma.enodebd.data_models.data_model import DataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.device_config.enodeb_config_postprocessor import \
-    EnodebConfigurationPostProcessor
-from magma.enodebd.device_config.enodeb_configuration import \
-    EnodebConfiguration
+from magma.enodebd.device_config.enodeb_config_postprocessor import (
+    EnodebConfigurationPostProcessor,
+)
+from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger as logger
-from magma.enodebd.lte_utils import (DuplexMode,
-                                     map_earfcndl_to_band_earfcnul_mode,
-                                     map_earfcndl_to_duplex_mode)
+from magma.enodebd.lte_utils import (
+    DuplexMode,
+    map_earfcndl_to_band_earfcnul_mode,
+    map_earfcndl_to_duplex_mode,
+)
 
 # LTE constants
 DEFAULT_S1_PORT = 36412

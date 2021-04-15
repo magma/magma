@@ -33,6 +33,7 @@ import (
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/jsonpb"
 	protobuf_proto "github.com/golang/protobuf/proto"
+	"github.com/wmnsk/go-gtp/gtpv2"
 )
 
 var (
@@ -211,14 +212,26 @@ func createSession(cmd *commands.Command, args []string) int {
 			BrDl: 888,
 		},
 		Uli: &protos.UserLocationInformation{
-			Lac:    1,
-			Ci:     2,
-			Sac:    3,
-			Rac:    4,
-			Tac:    5,
-			Eci:    6,
-			MeNbi:  7,
-			EMeNbi: 8,
+			Tac: 5,
+			Eci: 6,
+		},
+		ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
+			IsValid:        true,
+			ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
+			ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
+				{
+					Id:       uint32(gtpv2.ProtoIDIPCP),
+					Contents: []byte{0x01, 0x00, 0x00, 0x10, 0x03, 0x06, 0x01, 0x01, 0x01, 0x01, 0x81, 0x06, 0x02, 0x02, 0x02, 0x02},
+				},
+				{
+					Id:       uint32(gtpv2.ProtoIDPAP),
+					Contents: []byte{0x01, 0x00, 0x00, 0x0c, 0x03, 0x66, 0x6f, 0x6f, 0x03, 0x62, 0x61, 0x72},
+				},
+				{
+					Id:       uint32(gtpv2.ContIDMSSupportOfNetworkRequestedBearerControlIndicator),
+					Contents: nil,
+				},
+			},
 		},
 		IndicationFlag: nil,
 		TimeZone: &protos.TimeZone{
@@ -252,11 +265,19 @@ func createSession(cmd *commands.Command, args []string) int {
 
 		fmt.Println("\n *** Delete Session Test ***")
 		dsReq := &protos.DeleteSessionRequestPgw{
-			PgwAddrs:  pgwServerAddr,
-			Imsi:      imsi,
-			BearerId:  bearerId,
-			CAgwTeid:  uint32(AGWTeidC),
-			CPgwFteid: csRes.CPgwFteid,
+			PgwAddrs: pgwServerAddr,
+			Imsi:     imsi,
+			BearerId: bearerId,
+			CAgwTeid: uint32(AGWTeidC),
+			CPgwTeid: csRes.CPgwFteid.Teid,
+			ServingNetwork: &protos.ServingNetwork{
+				Mcc: "310",
+				Mnc: "14",
+			},
+			Uli: &protos.UserLocationInformation{
+				Tac: 5,
+				Eci: 6,
+			},
 		}
 		printGRPCMessage("Sending GRPC message: ", dsReq)
 		dsRes, err := cli.DeleteSession(dsReq)
