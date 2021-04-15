@@ -216,7 +216,6 @@ void amf_remove_ue_context(
         ue_context_p->amf_ue_ngap_id);
     ue_context_map.erase(found_ue_id);
   }
-
 }
 }  // end  namespace magma5g
 #endif
