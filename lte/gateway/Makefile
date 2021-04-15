@@ -70,7 +70,9 @@ TEST_FLAG = -DBUILD_TESTS=1
 
 all: build
 
-build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
+build: build_python build_c_cpp build_envoy_controller  ## Build all
+
+build_c_cpp: build_common build_oai build_sctpd build_session_manager build_connection_tracker build_li_agent
 
 smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
