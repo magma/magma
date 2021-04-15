@@ -17,6 +17,7 @@ import time
 import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
+import ipaddress
 
 
 class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
@@ -31,7 +32,7 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
         """ Attach a single UE and send standalone PDN Connectivity
         Request + add 9 dedicated bearers + detach"""
         num_ues = 1
-
+        flow_list2 = []
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         # 1 oai PDN + 1 dedicated bearer, 1 ims pdn + 8 dedicated bearers
@@ -64,12 +65,14 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                 ue_id,
             )
             # Attach
-            self._s1ap_wrapper.s1_util.attach(
+            attach = self._s1ap_wrapper.s1_util.attach(
                 ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+            addr = attach.esmInfo.pAddr.addrInfo
+            default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -79,8 +82,11 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                 "********************** Adding dedicated bearer to magma.ipv4"
                 " PDN"
             )
+            # Create default flow list
+            flow_list1 = self._spgw_util.create_default_flows()
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5
+                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
+                flow_list1,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -94,6 +100,7 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                 req.ue_id, act_ded_ber_req_oai_apn.bearerId
             )
 
+            print("Sleeping for 5 seconds")
             time.sleep(5)
             # Send PDN Connectivity Request
             apn = "ims"
@@ -104,6 +111,8 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                 response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
             )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+            addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+            sec_ip = ipaddress.ip_address(bytes(addr[:4]))
 
             print(
                 "********************** Sending Activate default EPS bearer "
@@ -111,18 +120,19 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                 ue_id,
             )
 
+            print("Sleeping for 5 seconds")
             time.sleep(5)
-            for _ in range(loop):
+            for i in range(loop):
                 # Add dedicated bearer to 2nd PDN
                 print(
                     "********************** Adding dedicated bearer to ims"
                     " PDN"
                 )
+                flow_list2.append(self._spgw_util.create_default_flows())
                 self._spgw_util.create_bearer(
-                    "IMSI" + "".join([str(i) for i in req.imsi]),
-                    act_def_bearer_req.m.pdnInfo.epsBearerId,
+                    "IMSI" + "".join([str(i) for i in req.imsi]), act_def_bearer_req.m.pdnInfo.epsBearerId,
+                    flow_list2[i],
                 )
-
                 response = self._s1ap_wrapper.s1_util.get_response()
                 self.assertEqual(
                     response.msg_type,
@@ -138,7 +148,21 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                     "************ Added dedicated bearer",
                     act_ded_ber_req_ims_apn.bearerId,
                 )
+                print("Sleeping for 2 seconds")
                 time.sleep(2)
+
+            # Verify if flow rules are created
+            # 1 dedicated bearer for default pdn and 8 dedicated bearers
+            # for secondary pdn
+            dl_flow_rules = {
+                default_ip: [flow_list1],
+                sec_ip: [flow_list2[0], flow_list2[1],flow_list2[2],flow_list2[3],flow_list2[4],flow_list2[5],flow_list2[6],flow_list2[7]],
+            }
+            # 2 UL flows for default and seconday pdn + 9 for dedicated bearers
+            num_ul_flows = 11
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
+            )
 
             print(
                 "************************ Running UE detach (switch-off) for ",

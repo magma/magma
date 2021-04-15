@@ -72,13 +72,12 @@ class TestAttachDetachDedicatedInvalidlbi(unittest.TestCase):
             }
             # 1 UL flow for default bearer
             num_ul_flows = 1
-            # Verify if flow rules are created
             self._s1ap_wrapper.s1_util.verify_flow_rules(
                 num_ul_flows, dl_flow_rules
             )
 
-            print("Sleeping for 5 seconds")
-            time.sleep(5)
+            print("Sleeping for 2 seconds")
+            time.sleep(2)
             print("********************** Running UE detach for UE id ",
                   req.ue_id)
             # Now detach the UE

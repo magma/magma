@@ -16,6 +16,7 @@ import time
 
 import s1ap_types
 import s1ap_wrapper
+import ipaddress
 
 
 class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
@@ -67,6 +68,9 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach_accept.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
+
         # Set the bearer index to 1
         bearer_idx[attach_accept.esmInfo.epsBearerId] = 1
         # Wait on EMM Information from MME
@@ -81,12 +85,29 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+        addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+        sec_ip = ipaddress.ip_address(bytes(addr[:4]))
+
         # Set the bearer index to 1
         bearer_idx[act_def_bearer_req.m.pdnInfo.epsBearerId] = 1
         print(
             "************************* Sending Activate default EPS bearer "
             "context accept for UE id ",
             ue_id,
+        )
+
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify if flow rules are created
+        # Flow list is empty as there are no dedicated bearers
+        dl_flow_rules = {
+            default_ip: [],
+            sec_ip: [],
+        }
+        # 2 UL flows for default and seconday pdns
+        num_ul_flows = 2
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
         )
 
         print("********************* Sleeping for 5 seconds")
@@ -115,6 +136,20 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
         )
 
         print("************************* Received PDN disconnect reject")
+
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify that flow rules are not deleted
+        # Flow list is empty as there are no dedicated bearers
+        dl_flow_rules = {
+            default_ip: [],
+            sec_ip: [],
+        }
+        # 2 UL flows for default and seconday pdns
+        num_ul_flows = 2
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
 
         print(
             "************************* Running UE detach (switch-off) for ",

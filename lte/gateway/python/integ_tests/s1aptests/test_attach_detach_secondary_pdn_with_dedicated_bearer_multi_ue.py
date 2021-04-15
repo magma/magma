@@ -17,7 +17,7 @@ import time
 import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
-
+import ipaddress
 
 class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
     def setUp(self):
@@ -33,6 +33,9 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
         num_ues = 4
         ue_ids = []
         bearer_ids = []
+        default_ips = []
+        sec_ips = []
+        flow_list = []
 
         self._s1ap_wrapper.configUEDevice(num_ues)
         for _ in range(num_ues):
@@ -61,12 +64,14 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
                 ue_id,
             )
             # Attach
-            self._s1ap_wrapper.s1_util.attach(
+            attach = self._s1ap_wrapper.s1_util.attach(
                 ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+            addr = attach.esmInfo.pAddr.addrInfo
+            default_ips.append(ipaddress.ip_address(bytes(addr[:4])))
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -85,6 +90,8 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
                 response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
             )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+            addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+            sec_ips.append(ipaddress.ip_address(bytes(addr[:4])))
 
             print(
                 "********************** Sending Activate default EPS bearer "
@@ -101,11 +108,11 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
             time.sleep(2)
             # Add dedicated bearer to IMS PDN
             print("********************** Adding dedicated bearer to IMS PDN")
+            flow_list.append(self._spgw_util.create_default_flows())
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]),
-                act_def_bearer_req.m.pdnInfo.epsBearerId,
+                "IMSI" + "".join([str(i) for i in req.imsi]), act_def_bearer_req.m.pdnInfo.epsBearerId,
+                flow_list[i],
             )
-
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
                 response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
@@ -124,6 +131,18 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
 
         print("********************* Sleeping for 5 seconds")
         time.sleep(5)
+        for i in range(num_ues):
+            # Verify if flow rules are created
+            dl_flow_rules = {
+                default_ips[i]: [],
+                sec_ips[i]: [flow_list[i]],
+            }
+            # 8 UL flows for default and secondary pdns + 4 UL flows for dedicated bearers
+            num_ul_flows = 12
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
+            )
+
         self._s1ap_wrapper._ue_idx = 0
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -159,6 +178,17 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
             )
         print("********************* Sleeping for 5 seconds")
         time.sleep(2)
+        for i in range(num_ues):
+            # Verify that flow rules for secondary pdn are deleted
+            dl_flow_rules = {
+                default_ips[i]: [],
+            }
+            # 4 UL flows for default bearers
+            num_ul_flows = 4
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
+            )
+
         # Now detach the UE
         for ue in ue_ids:
             print(

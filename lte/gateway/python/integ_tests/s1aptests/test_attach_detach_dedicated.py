@@ -59,8 +59,8 @@ class TestAttachDetachDedicated(unittest.TestCase):
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
 
-            print("Sleeping for 5 seconds")
-            time.sleep(5)
+            print("Sleeping for 2 seconds")
+            time.sleep(2)
             print(
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
@@ -85,18 +85,17 @@ class TestAttachDetachDedicated(unittest.TestCase):
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
-
+            # Verify if flow rules are created
             dl_flow_rules = {
                 default_ip: [flow_list],
             }
-            # 1 UL flow default bearer + 1 for dedicated bearer
+            # 1 UL flow for default bearer + 1 for dedicated bearer
             num_ul_flows = 2
-            # Verify if flow rules are created
             self._s1ap_wrapper.s1_util.verify_flow_rules(
                 num_ul_flows, dl_flow_rules
             )
-            print("Sleeping for 5 seconds")
-            time.sleep(5)
+            print("Sleeping for 2 seconds")
+            time.sleep(2)
             print(
                 "********************** Deleting dedicated bearer for IMSI",
                 "".join([str(i) for i in req.imsi]),
@@ -117,6 +116,16 @@ class TestAttachDetachDedicated(unittest.TestCase):
             deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
                 req.ue_id, deactv_bearer_req.bearerId
+            )
+
+            # Verify if the rule for dedicated bearer is deleted
+            dl_flow_rules = {
+                default_ip: [],
+            }
+            # 1 UL flow for default bearer
+            num_ul_flows = 1
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
             )
 
             print("Sleeping for 5 seconds")

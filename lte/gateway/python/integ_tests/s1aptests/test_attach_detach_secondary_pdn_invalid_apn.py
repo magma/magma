@@ -15,7 +15,8 @@ import unittest
 
 import s1ap_types
 import s1ap_wrapper
-
+import ipaddress
+import time
 
 class TestSecondaryPdnConnReqInvalidAPN(unittest.TestCase):
     def setUp(self):
@@ -36,12 +37,15 @@ class TestSecondaryPdnConnReqInvalidAPN(unittest.TestCase):
             ue_id,
         )
         # Attach
-        self._s1ap_wrapper.s1_util.attach(
+        attach = self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -53,6 +57,19 @@ class TestSecondaryPdnConnReqInvalidAPN(unittest.TestCase):
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+        )
+
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify if flow rules are created
+        # No dedicated bearers, so flowlist is empty
+        dl_flow_rules = {
+            default_ip: [],
+        }
+        # Secondary pdn creation failed so only 1 UL flow for default bearer
+        num_ul_flows = 1
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
         )
 
         print(

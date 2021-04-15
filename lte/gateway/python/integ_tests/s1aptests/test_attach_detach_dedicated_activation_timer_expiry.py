@@ -74,31 +74,29 @@ class TestAttachDetachDedicatedActTmrExp(unittest.TestCase):
             )
 
             # Do not send ACT_DED_BER_ACC
-            # Wait for timer to expire
-            for i in range(5):
-                response = self._s1ap_wrapper.s1_util.get_response()
-                self.assertEqual(
-                    response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
-                )
-                act_ded_ber_ctxt_req = response.cast(
-                    s1ap_types.UeActDedBearCtxtReq_t
-                )
+            # TODO:Receive retransmissions
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            )
+            act_ded_ber_ctxt_req = response.cast(
+                s1ap_types.UeActDedBearCtxtReq_t
+            )
 
-                print(
-                    "********************** Received UE_ACT_DED_BER_REQ with ebi ",
-                    act_ded_ber_ctxt_req.bearerId,
-                )
-                print("************************* Timeout", i + 1)
+            print(
+                "********************** Received UE_ACT_DED_BER_REQ with ebi ",
+                act_ded_ber_ctxt_req.bearerId,
+            )
 
-            print("Sleeping for 5 seconds")
-            time.sleep(5)
+            print("Waiting for timer to expire.Sleeping for 45 seconds")
+            time.sleep(45)
 
+            # Verify that the flow rule is created only for default bearer
             dl_flow_rules = {
                 default_ip: [],
             }
             # 1 UL flow for default bearer
             num_ul_flows = 1
-            # Verify if flow rules are created
             self._s1ap_wrapper.s1_util.verify_flow_rules(
                 num_ul_flows, dl_flow_rules
             )

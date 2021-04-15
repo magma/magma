@@ -87,12 +87,12 @@ class TestAttachDetachDedicatedDeactInvalidImsi(unittest.TestCase):
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
+            # Verify if flow rules are created
             dl_flow_rules = {
                 default_ip: [flow_list],
             }
             # 1 UL flow for default bearer + 1 for dedicated bearer
             num_ul_flows = 2
-            # Verify if flow rules are created
             self._s1ap_wrapper.s1_util.verify_flow_rules(
                 num_ul_flows, dl_flow_rules
             )
@@ -104,6 +104,19 @@ class TestAttachDetachDedicatedDeactInvalidImsi(unittest.TestCase):
             # Deactivate bearer with invalid imsi
             self._spgw_util.delete_bearer(
                 "IMSI" + "".join("001010000000004"), attach.esmInfo.epsBearerId, act_ded_ber_ctxt_req.bearerId
+            )
+
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
+            # Deletion of dedicated bearer failed so the flow rule for dedicated bearer
+            # should not be deleted
+            dl_flow_rules = {
+                default_ip: [flow_list],
+            }
+            # 1 UL flow for default bearer + 1 for dedicated bearer
+            num_ul_flows = 2
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
             )
 
             print(

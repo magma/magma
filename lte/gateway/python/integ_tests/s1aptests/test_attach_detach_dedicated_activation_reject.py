@@ -92,13 +92,12 @@ class TestAttachDetachDedicatedReject(unittest.TestCase):
             print("Sleeping for 5 seconds")
             time.sleep(5)
             # Dedicated bearer creation failed as UE sent UE_ACT_DED_BER_REJ
-            # dl flow should not be created for the dedicated bearer
+            # flow rule should not be created for the dedicated bearer
             dl_flow_rules = {
                 default_ip: [],
             }
             # 1 UL flow for default bearer
             num_ul_flows = 1
-            # Verify if flow rules are created
             self._s1ap_wrapper.s1_util.verify_flow_rules(
                 num_ul_flows, dl_flow_rules
             )

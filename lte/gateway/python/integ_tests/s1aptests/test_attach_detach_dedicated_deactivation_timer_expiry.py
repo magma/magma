@@ -102,21 +102,21 @@ class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
             )
 
             # Do not send deactivate eps bearer context accept
-            # Wait for timer to expire
-            for i in range(5):
-                response = self._s1ap_wrapper.s1_util.get_response()
-                self.assertEqual(
-                    response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
-                )
-                deact_ded_ber_ctxt_req = response.cast(
-                    s1ap_types.UeDeActvBearCtxtReq_t
-                )
+            # TODO:Receive retransmissions
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+            )
+            deact_ded_ber_ctxt_req = response.cast(
+                s1ap_types.UeDeActvBearCtxtReq_t
+            )
+            print(
+                "********************** Received UE_DEACTIVATE_BER_REQ with ebi ",
+                deact_ded_ber_ctxt_req.bearerId,
+            )
 
-                print(
-                    "********************** Received UE_DEACTIVATE_BER_REQ with ebi ",
-                    deact_ded_ber_ctxt_req.bearerId,
-                )
-                print("************************* Timeout", i + 1)
+            print("Waiting for retransmissions.Sleeping for 45 seconds")
+            time.sleep(45)
 
             print(
                 "********************** Running UE detach for UE id ",

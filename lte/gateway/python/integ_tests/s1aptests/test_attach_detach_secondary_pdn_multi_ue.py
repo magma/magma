@@ -16,7 +16,7 @@ import time
 
 import s1ap_types
 import s1ap_wrapper
-
+import ipaddress
 
 class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
     def setUp(self):
@@ -30,6 +30,8 @@ class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
         num_ues = 4
         ue_ids = []
         bearer_ids = []
+        default_ips = []
+        sec_ips = []
 
         self._s1ap_wrapper.configUEDevice(num_ues)
 
@@ -59,12 +61,15 @@ class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
                 ue_id,
             )
             # Attach
-            self._s1ap_wrapper.s1_util.attach(
+            attach = self._s1ap_wrapper.s1_util.attach(
                 ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+
+            addr = attach.esmInfo.pAddr.addrInfo
+            default_ips.append(ipaddress.ip_address(bytes(addr[:4])))
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -90,8 +95,25 @@ class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
                 ue_id,
             )
             bearer_ids.append(act_def_bearer_req.m.pdnInfo.epsBearerId)
+            addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+            sec_ips.append(ipaddress.ip_address(bytes(addr[:4])))
 
+        print("Sleeping for 5 seconds")
         time.sleep(5)
+        for i in range(num_ues):
+            # Verify if flow rules are created
+            # No dedicated bearers, so flowlist is empty
+            dl_flow_rules = {
+                default_ips[i]: [],
+                sec_ips[i]: [],
+            }
+            # 2 bearers per UE (2* 4 UEs = 8 UL flows)
+            num_ul_flows = 8
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
+            )
+
+        # Disconnect secondary PDNs
         self._s1ap_wrapper._ue_idx = 0
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -120,7 +142,20 @@ class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
                 ue_id, bearer_ids[i]
             )
 
-        time.sleep(2)
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify that flow rules are deleted for secondary pdns
+        for i in range(num_ues):
+            # No dedicated bearers, so flowlist is empty
+            dl_flow_rules = {
+                default_ips[i]: [],
+            }
+            # 1 default bearer per UE  = 4 UL flows
+            num_ul_flows = 4
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
+            )
+
         # Now detach the UE
         for ue in ue_ids:
             print(

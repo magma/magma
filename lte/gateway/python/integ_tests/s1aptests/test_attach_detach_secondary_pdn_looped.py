@@ -16,6 +16,7 @@ import time
 
 import s1ap_types
 import s1ap_wrapper
+import ipaddress
 
 
 class TestSecondaryPdnConnLooped(unittest.TestCase):
@@ -60,13 +61,16 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
         )
         # Attach
         for _ in range(loop):
+            print("Sleeping for 5 seconds")
             time.sleep(5)
-            self._s1ap_wrapper.s1_util.attach(
+            attach = self._s1ap_wrapper.s1_util.attach(
                 ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+            addr = attach.esmInfo.pAddr.addrInfo
+            default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -79,6 +83,9 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
             self.assertEqual(
                 response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
             )
+            act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+            addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+            sec_ip = ipaddress.ip_address(bytes(addr[:4]))
 
             print(
                 "************************* Sending Activate default EPS "
@@ -86,7 +93,19 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
                 ue_id,
             )
 
+            print("Sleeping for 5 seconds")
             time.sleep(5)
+            # Verify if flow rules are created
+            # No dedicated bearers, so flowlist is empty
+            dl_flow_rules = {
+                default_ip: [],
+                sec_ip: [],
+            }
+            # 1 UL flow is created per bearer
+            num_ul_flows = 2
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules
+            )
 
             print(
                 "************************* Running UE detach (switch-off)"

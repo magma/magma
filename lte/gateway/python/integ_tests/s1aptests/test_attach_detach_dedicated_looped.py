@@ -86,12 +86,12 @@ class TestAttachDetachDedicatedLooped(unittest.TestCase):
                 print("Sleeping for 5 seconds")
                 time.sleep(5)
 
+                # Verify if flow rules are created
                 dl_flow_rules = {
                     default_ip: [flow_list],
                 }
                 # 1 UL flow for default bearer + 1 for dedicated bearer
                 num_ul_flows = 2
-                # Verify if flow rules are created
                 self._s1ap_wrapper.s1_util.verify_flow_rules(
                     num_ul_flows, dl_flow_rules
                 )
@@ -121,7 +121,18 @@ class TestAttachDetachDedicatedLooped(unittest.TestCase):
                     req.ue_id, deactv_bearer_req.bearerId
                 )
 
-            time.sleep(5)
+                print("Sleeping for 5 seconds")
+                time.sleep(5)
+                # Verify if flow rule is deleted for dedicated bearer
+                dl_flow_rules = {
+                    default_ip: [],
+                }
+                # 1 UL flow for default bearer
+                num_ul_flows = 1
+                self._s1ap_wrapper.s1_util.verify_flow_rules(
+                    num_ul_flows, dl_flow_rules
+                )
+
             print(
                 "********************** Running UE detach for UE id ",
                 req.ue_id,

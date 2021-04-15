@@ -84,19 +84,18 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
                 act_ded_ber_ctxt_req.bearerId,
             )
 
-        print("Sleeping for 2 seconds")
-        time.sleep(2)
+        # Verify if flow rules are created
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
         # flow_lists for 3 dedicated bearers
         dl_flow_rules = {
             default_ip: [flow_lists[0],flow_lists[1],flow_lists[2]],
         }
         # 1 default UL flow + 3 dedicated bearer UL flows
         num_ul_flows = 4
-        # Verify if flow rules are created
         self._s1ap_wrapper.s1_util.verify_flow_rules(
             num_ul_flows, dl_flow_rules
         )
-
 
         for i in range(num_dedicated_bearers):
             print(
@@ -125,8 +124,18 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
                 bearer_ids[i],
             )
 
-        print("Sleeping for 2 seconds")
-        time.sleep(2)
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify if flow rules for dedicated bearers are deleted
+        dl_flow_rules = {
+            default_ip: [],
+        }
+        # 1 default UL flow
+        num_ul_flows = 1
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
+
         print("********************** Running UE detach for UE id ", req.ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
