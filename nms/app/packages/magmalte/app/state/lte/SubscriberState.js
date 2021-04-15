@@ -26,9 +26,11 @@ import type {
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
-import {getLabelUnit} from '../../views/subscriber/SubscriberUtils';
-
-const MAX_PAGE_ROW_COUNT = 1000;
+import {
+  DEFAULT_PAGE_SIZE,
+  MAX_PAGE_ROW_COUNT,
+  getLabelUnit,
+} from '../../views/subscriber/SubscriberUtils';
 
 type FetchProps = {
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
@@ -63,7 +65,7 @@ export async function FetchSubscribers(props: FetchProps) {
     try {
       return await MagmaV1API.getLteByNetworkIdSubscribersV2({
         networkId,
-        pageSize: pageSize ?? 10,
+        pageSize: pageSize ?? DEFAULT_PAGE_SIZE,
         pageToken: token ?? '',
       });
     } catch (e) {
@@ -147,9 +149,12 @@ export default async function InitSubscriberState(
     setSessionState,
     enqueueSnackbar,
   } = props;
-  const subscribers = await FetchSubscribers({networkId, enqueueSnackbar});
-  if (subscribers) {
-    setSubscriberMap(subscribers.subscribers);
+  const susbcriberResponse = await FetchSubscribers({
+    networkId,
+    enqueueSnackbar,
+  });
+  if (susbcriberResponse) {
+    setSubscriberMap(susbcriberResponse.subscribers);
   }
 
   const state = await FetchSubscriberState({networkId, enqueueSnackbar});
@@ -175,10 +180,7 @@ type SubscriberStateProps = {
   setSessionState: ({[string]: subscriber_state}) => void,
   key: string,
   value?: mutable_subscriber,
-  newState?: {
-    state: {[string]: subscriber},
-    sessionState: {[string]: subscriber_state},
-  },
+  newState?: {[string]: subscriber},
 };
 
 export async function setSubscriberState(props: SubscriberStateProps) {
@@ -186,14 +188,12 @@ export async function setSubscriberState(props: SubscriberStateProps) {
     networkId,
     subscriberMap,
     setSubscriberMap,
-    setSessionState,
     key,
     value,
     newState,
   } = props;
   if (newState) {
-    setSessionState(newState.sessionState);
-    setSubscriberMap(newState.state);
+    setSubscriberMap(newState);
     return;
   }
   if (value != null) {
@@ -229,11 +229,13 @@ export async function setSubscriberState(props: SubscriberStateProps) {
   }
 }
 
-export function getSubscriberGatewayMap(subscribers: {[string]: subscriber}) {
+export function getGatewaySubscriberMap(sessions: {
+  [string]: subscriber_state,
+}) {
   const gatewayMap = {};
-  Object.keys(subscribers).forEach(id => {
-    const subscriber = subscribers[id];
-    const gwHardwareId = subscriber?.state?.directory?.location_history?.[0];
+  Object.keys(sessions).forEach(id => {
+    const subscriber = sessions[id];
+    const gwHardwareId = subscriber?.directory?.location_history?.[0];
     if (
       gwHardwareId !== null &&
       gwHardwareId !== undefined &&
@@ -299,10 +301,7 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
         }
         setTokenList([...newTokenList]);
         // set subscriber state with current subscriber rows.
-        ctx.setState?.('', undefined, {
-          state: subscriberResponse.subscribers,
-          sessionState: {},
-        });
+        ctx.setState?.('', undefined, subscriberResponse.subscribers);
       }
       const tableData: Array<SubscriberRowType> = subscriberResponse
         ? Object.keys(subscriberResponse.subscribers).map((imsi: string) => {

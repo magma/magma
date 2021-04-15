@@ -73,7 +73,7 @@ import {UpdateNetworkState as UpdateFegLteNetworkState} from '../../state/feg_lt
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/NetworkState';
 import {
-  getSubscriberGatewayMap,
+  getGatewaySubscriberMap,
   setSubscriberState,
 } from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useState} from 'react';
@@ -268,7 +268,7 @@ export function SubscriberContextProvider(props: Props) {
         state: subscriberMap,
         metrics: subscriberMetrics,
         sessionState: sessionState,
-        gwSubscriberMap: getSubscriberGatewayMap(subscriberMap),
+        gwSubscriberMap: getGatewaySubscriberMap(sessionState),
         setState: (key: subscriber_id, value?: mutable_subscriber, newState?) =>
           setSubscriberState({
             networkId,
