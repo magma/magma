@@ -37,11 +37,10 @@
 #include "magma_logging.h"
 
 namespace magma {
-namespace lte {
 
 InterfaceMonitor::InterfaceMonitor(
-    const std::string& iface_name, std::shared_ptr<PDUGenerator> pkt_gen)
-    : iface_name_(iface_name), pkt_gen_(pkt_gen) {}
+    const std::string& iface_name, std::unique_ptr<PDUGenerator> pkt_gen)
+    : iface_name_(iface_name), pkt_gen_(std::move(pkt_gen)) {}
 
 static void packet_handler(
     u_char* user, const struct pcap_pkthdr* phdr, const u_char* pdata) {
@@ -74,5 +73,4 @@ int InterfaceMonitor::init_iface_pcap_monitor() {
   return 0;
 }
 
-}  // namespace lte
 }  // namespace magma

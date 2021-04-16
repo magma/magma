@@ -29,7 +29,7 @@
 
 #include "PDUGenerator.h"
 
-const PDU::PDUType LIX3PDU::pdu_flag = PDU::USER_DEFINED_PDU;
+namespace {  // anonymous
 
 /* TODO remove after testing */
 void print_bytes(void* ptr, int size) {
@@ -58,28 +58,22 @@ bool extract_ip_addr(
     src_ip = inet_ntop(AF_INET, &(ipHeader->ip_src), sourceIP, INET_ADDRSTRLEN);
     dst_ip = inet_ntop(AF_INET, &(ipHeader->ip_dst), destIP, INET_ADDRSTRLEN);
     return true;
-  } else {
-    return false;
   }
+  return false;
 }
 
-namespace magma {
-namespace lte {
+}  // namespace
 
-using namespace Tins;
+namespace magma {
 
 PDUGenerator::PDUGenerator(
-    std::shared_ptr<ProxyConnector> proxy_connector,
-    std::shared_ptr<AsyncDirectorydClient> directoryd_client,
+    std::unique_ptr<ProxyConnector> proxy_connector,
+    std::unique_ptr<DirectorydClient> directoryd_client,
     const std::string& pkt_dst_mac, const std::string& pkt_src_mac)
     : pkt_dst_mac_(pkt_dst_mac),
       pkt_src_mac_(pkt_src_mac),
-      directoryd_client_(directoryd_client),
-      proxy_connector_(proxy_connector) {
-  // TODO Don't know why but changing ethernet-> IP produces an error, check if
-  // this breaks sending over ssl
-  Allocators::register_allocator<EthernetII, LIX3PDU>(LI_X3_LINK_TYPE);
-}
+      directoryd_client_(std::move(directoryd_client)),
+      proxy_connector_(std::move(proxy_connector)) {}
 
 void PDUGenerator::set_conditional_attr(
     const struct pcap_pkthdr* phdr, struct conditional_attributes* attributes) {
@@ -88,9 +82,9 @@ void PDUGenerator::set_conditional_attr(
 
 void* PDUGenerator::generate_pkt(
     const struct pcap_pkthdr* phdr, const u_char* pdata) {
-  uint8_t* data = (uint8_t*) calloc(
+  uint8_t* data        = static_cast<uint8_t*>(calloc(
       1, sizeof(struct pdu_info) + sizeof(struct conditional_attributes) +
-             phdr->len);
+             phdr->len));
   struct pdu_info* pdu = (struct pdu_info*) data;
 
   pdu->version  = PDU_VERSION;
@@ -126,41 +120,36 @@ bool PDUGenerator::send_packet(
   void* data           = generate_pkt(phdr, pdata);
   struct pdu_info* pdu = (struct pdu_info*) data;
 
-  PacketSender sender;
   directoryd_client_->get_directoryd_xid_field(
-      src_ip, [this, src_ip, data, pdu](Status status, DirectoryField resp) {
-        // TODO process the output of the directoryd lookup
-        pdu->payload_direction = DIRECTION_FROM_TARGET;
-
-        set_xid(pdu, "tracking_123");
-        proxy_connector_->SendData(
-            data, pdu->header_length + pdu->payload_length);
-
-        if (!status.ok()) {
-          MLOG(MDEBUG) << "Could not fetch subscriber with ip - " << src_ip;
-          return;
-        }
-        MLOG(MDEBUG) << "Got reply " << resp.value().c_str() << "for -"
-                     << src_ip;
-      });
+      dst_ip, std::bind(
+                  &PDUGenerator::handle_ip_lookup_callback, this, src_ip, data,
+                  pdu, std::placeholders::_1, std::placeholders::_2));
 
   directoryd_client_->get_directoryd_xid_field(
-      dst_ip, [this, dst_ip, data, pdu](Status status, DirectoryField resp) {
-        // TODO process the output of the directoryd lookup
-        pdu->payload_direction = DIRECTION_TO_TARGET;
-        set_xid(pdu, "tracking_123");
-        proxy_connector_->SendData(
-            data, pdu->header_length + pdu->payload_length);
-
-        if (!status.ok()) {
-          MLOG(MDEBUG) << "Could not fetch subscriber with ip - " << dst_ip;
-          return;
-        }
-        MLOG(MDEBUG) << "Got reply " << resp.value().c_str() << "for -"
-                     << dst_ip;
-      });
+      dst_ip, std::bind(
+                  &PDUGenerator::handle_ip_lookup_callback, this, dst_ip, data,
+                  pdu, std::placeholders::_1, std::placeholders::_2));
   return true;
 }
 
-}  // namespace lte
+void PDUGenerator::handle_ip_lookup_callback(
+    std::string ip_addr, void* data, struct pdu_info* pdu, Status status,
+    DirectoryField resp) {
+  // TODO process the output of the directoryd lookup
+  pdu->payload_direction = DIRECTION_TO_TARGET;
+  set_xid(pdu, "tracking_123");
+  proxy_connector_->SendData(data, pdu->header_length + pdu->payload_length);
+  // free(data);
+
+  if (!status.ok()) {
+    MLOG(MDEBUG) << "Could not fetch subscriber with ip - " << ip_addr;
+    return;
+  }
+  MLOG(MDEBUG) << "Got reply " << resp.value().c_str() << "for -" << ip_addr;
+
+  // TODO create a cache that stores the IPs that were looked up successfully,
+  // the amount of LI activated UEs is small and lookup should only occur on
+  // first packet
+}
+
 }  // namespace magma

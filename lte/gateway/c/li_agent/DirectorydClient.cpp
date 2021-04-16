@@ -41,19 +41,18 @@ AsyncDirectorydClient::AsyncDirectorydClient()
           ServiceRegistrySingleton::Instance()->GetGrpcChannel(
               "directoryd", ServiceRegistrySingleton::LOCAL)) {}
 
-bool AsyncDirectorydClient::get_directoryd_xid_field(
+void AsyncDirectorydClient::get_directoryd_xid_field(
     const std::string& ip,
     std::function<void(Status status, DirectoryField)> callback) {
-  auto req = create_directory_field_req(ip);
+  GetDirectoryFieldRequest req = create_directory_field_req(ip);
   get_directoryd_xid_field_rpc(req, callback);
-  return true;
 }
 
 void AsyncDirectorydClient::get_directoryd_xid_field_rpc(
     const GetDirectoryFieldRequest& request,
     std::function<void(Status, DirectoryField)> callback) {
   auto local_resp = new AsyncLocalResponse<DirectoryField>(
-      std::move(callback), RESPONSE_TIMEOUT);
+      std::move(callback), RESPONSE_TIMEOUT_SECONDS);
   local_resp->set_response_reader(std::move(stub_->AsyncGetDirectoryField(
       local_resp->get_context(), request, &queue_)));
 }

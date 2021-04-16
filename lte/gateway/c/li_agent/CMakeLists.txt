@@ -23,7 +23,7 @@ if (NOT BUILD_TESTS)
       "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
   set (CMAKE_LINKER_FLAGS_DEBUG
       "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-  # Add LeakSanitizer (lsan) support to the release build of SessionD so that
+  # Add LeakSanitizer (lsan) support to the release build of LIAgentD so that
   # we can find memory leaks in production.
   set(CMAKE_C_FLAGS_RELWITHDEBINFO
      "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")

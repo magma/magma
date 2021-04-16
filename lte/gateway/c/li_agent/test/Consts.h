@@ -10,22 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#pragma once
 
-#include "PDUGenerator.h"
-
-namespace magma {
-
-class InterfaceMonitor {
- public:
-  InterfaceMonitor(
-      const std::string& iface_name, std::unique_ptr<PDUGenerator> pkt_gen);
-
-  int init_iface_pcap_monitor(void);
-
- private:
-  std::string iface_name_;
-  std::unique_ptr<PDUGenerator> pkt_gen_;
-};
-
-}  // namespace magma
+#define INTERFACE_NAME "li_port"
+#define PKT_DST_MAC "00:11:22:33:44:55"
+#define PKT_SRC_MAC "10:11:12:13:14:15"
+#define PROXY_ADDR "127.0.0.1"
+#define PROXY_PORT 443
+#define CERT_FILE "/tmp/domain.crt"
+#define KEY_FILE "/tmp/domain.key"

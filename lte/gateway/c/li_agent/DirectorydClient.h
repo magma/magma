@@ -26,11 +26,23 @@ namespace magma {
 using namespace orc8r;
 using grpc::Status;
 
+class DirectorydClient {
+ public:
+  virtual ~DirectorydClient() = default;
+
+  /**
+   * Gets the directoryd imsi's 'xid' field
+   * @param imsi - UE to query
+   */
+  virtual void get_directoryd_xid_field(
+      const std::string& ip,
+      std::function<void(Status status, DirectoryField)> callback) = 0;
+};
 /**
  * AsyncDirectorydClient sends asynchronous calls to directoryd to retrieve
  * UE information.
  */
-class AsyncDirectorydClient : public GRPCReceiver {
+class AsyncDirectorydClient : public GRPCReceiver, public DirectorydClient {
  public:
   AsyncDirectorydClient();
 
@@ -39,14 +51,13 @@ class AsyncDirectorydClient : public GRPCReceiver {
   /**
    * Gets the directoryd imsi's 'xid' field
    * @param imsi - UE to query
-   * @return true if the operation was successful
    */
-  bool get_directoryd_xid_field(
+  void get_directoryd_xid_field(
       const std::string& ip,
       std::function<void(Status status, DirectoryField)> callback);
 
  private:
-  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT_SECONDS = 6;
   std::unique_ptr<GatewayDirectoryService::Stub> stub_;
 
  private:

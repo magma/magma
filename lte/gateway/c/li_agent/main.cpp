@@ -83,7 +83,7 @@ int main(void) {
   sigaddset(&blockedSignal, SIGPIPE);
   pthread_sigmask(SIG_BLOCK, &blockedSignal, NULL);
 
-  auto directoryd_client = std::make_shared<magma::AsyncDirectorydClient>();
+  auto directoryd_client = std::make_unique<magma::AsyncDirectorydClient>();
   std::thread directoryd_response_handling_thread([&]() {
     MLOG(MINFO) << "Started DirectoryD response thread";
     directoryd_client->rpc_response_loop();
@@ -100,13 +100,14 @@ int main(void) {
   magma::service303::MagmaService server(LIAGENTD, LIAGENTD_VERSION);
   server.Start();
 
-  auto proxy_connector = std::make_shared<magma::lte::ProxyConnector>(
+  auto proxy_connector = std::make_unique<magma::ProxyConnectorImpl>(
       proxy_addr, proxy_port, cert_file, key_file);
-  auto pkt_generator = std::make_shared<magma::lte::PDUGenerator>(
-      proxy_connector, directoryd_client, pkt_dst_mac, pkt_src_mac);
+  auto pkt_generator = std::make_unique<magma::PDUGenerator>(
+      std::move(proxy_connector), std::move(directoryd_client), pkt_dst_mac,
+      pkt_src_mac);
 
-  auto interface_watcher = std::make_shared<magma::lte::InterfaceMonitor>(
-      interface_name, pkt_generator);
+  auto interface_watcher = std::make_unique<magma::InterfaceMonitor>(
+      interface_name, std::move(pkt_generator));
 
   interface_watcher->init_iface_pcap_monitor();
 

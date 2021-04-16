@@ -40,9 +40,8 @@
 #include "magma_logging.h"
 
 namespace magma {
-namespace lte {
 
-ProxyConnector::ProxyConnector(
+ProxyConnectorImpl::ProxyConnectorImpl(
     const std::string& proxy_addr, const int proxy_port,
     const std::string& cert_file, const std::string& key_file)
     : proxy_addr_(proxy_addr),
@@ -52,7 +51,7 @@ ProxyConnector::ProxyConnector(
   ssl_ = GetSSLSocket();
 }
 
-void ProxyConnector::LoadCertificates(SSL_CTX* ctx) {
+void ProxyConnectorImpl::LoadCertificates(SSL_CTX* ctx) {
   if (SSL_CTX_use_certificate_file(ctx, cert_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
     ERR_print_errors_fp(stderr);
@@ -69,7 +68,7 @@ void ProxyConnector::LoadCertificates(SSL_CTX* ctx) {
   }
 }
 
-SSL_CTX* ProxyConnector::InitCTX(void) {
+SSL_CTX* ProxyConnectorImpl::InitCTX(void) {
   SSL_CTX* ctx;
 
   OpenSSL_add_all_algorithms(); /* Load cryptos, et.al. */
@@ -82,7 +81,7 @@ SSL_CTX* ProxyConnector::InitCTX(void) {
   return ctx;
 }
 
-int ProxyConnector::OpenConnection() {
+int ProxyConnectorImpl::OpenConnection() {
   int sd;
   struct sockaddr_in serv_addr;
 
@@ -105,7 +104,7 @@ int ProxyConnector::OpenConnection() {
   return sd;
 }
 
-SSL* ProxyConnector::GetSSLSocket() {
+SSL* ProxyConnectorImpl::GetSSLSocket() {
   SSL* ssl;
   SSL_library_init();
 
@@ -121,18 +120,17 @@ SSL* ProxyConnector::GetSSLSocket() {
   return ssl;
 }
 
-int ProxyConnector::SendData(void* data, uint32_t size) {
+int ProxyConnectorImpl::SendData(void* data, uint32_t size) {
   // TODO we probably want to deal with write edge cases here
   SSL_write(ssl_, data, size);
 
   return 0;
 }
 
-void ProxyConnector::cleanup() {
+void ProxyConnectorImpl::cleanup() {
   SSL_free(ssl_);
   close(proxy_);
   SSL_CTX_free(ctx_);
 }
 
-}  // namespace lte
 }  // namespace magma

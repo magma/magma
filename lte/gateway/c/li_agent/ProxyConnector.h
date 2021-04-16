@@ -15,11 +15,15 @@
 #include <openssl/ssl.h>
 
 namespace magma {
-namespace lte {
 
 class ProxyConnector {
  public:
-  ProxyConnector(
+  virtual int SendData(void* data, uint32_t size) = 0;
+};
+
+class ProxyConnectorImpl : public ProxyConnector {
+ public:
+  ProxyConnectorImpl(
       const std::string& proxy_addr, const int port,
       const std::string& cert_file, const std::string& key_file);
 
@@ -41,5 +45,4 @@ class ProxyConnector {
   int proxy_;
 };
 
-}  // namespace lte
 }  // namespace magma
