@@ -12,6 +12,7 @@ RELEASE_BRANCHES = [
     'v1.2',
     'v1.3',
     'v1.4',
+    'v1.5',
     'magma-5G',
 ]
 
