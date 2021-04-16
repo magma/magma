@@ -165,7 +165,7 @@ class MilenageTests(unittest.TestCase):
 
         crypto = Milenage(amf)
         self.assertEqual(crypto.generate_opc(key, op), op_c)
-        (rand_, xres_, autn_, kasme_) = \
+        (rand_, xres_, autn_, kasme_, ck_, ik_) = \
             crypto.generate_eutran_vector(key, op_c, sqn, plmn)
         self.assertEqual(self.rand, rand_)
         self.assertEqual(xres, xres_)

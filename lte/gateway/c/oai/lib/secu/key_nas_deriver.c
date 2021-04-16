@@ -110,7 +110,7 @@ int derive_5gkey_gnb(const uint8_t* kamf, uint32_t ul_count, uint8_t* kgnb) {
 int derive_5gkey_ausf(
     uint8_t* ck_ik, uint8_t* snni, uint8_t* ak_sqn, uint8_t* kausf) {
   uint8_t s[43]   = {0};
-  uint8_t out[32]   = {0};
+  uint8_t out[32] = {0};
 
   /*
    * FC
@@ -236,6 +236,5 @@ int derive_5gkey_nas(
   s[6] = 0x01;
   kdf(kasme_32, 32, &s[0], 7, &out[0], 32);
   memcpy(knas, &out[31 - 16 + 1], 16);
->>>>>>> Added encode and decode support for Security Headers for NAS messagesin AMF
   return 0;
 }

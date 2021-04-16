@@ -46,9 +46,6 @@ typedef uint32_t amf_ue_ngap_id_t;
 namespace magma5g {
 /*forward declaration*/
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
-extern ue_m5gmm_context_s
-    ue_m5gmm_global_context;  // TODO This has been taken care in new PR with
-                              // multi UE feature
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause);
 static int amf_as_security_req(
     const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg);
@@ -126,8 +123,8 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   }
 
   ue_m5gmm_context->mm_state = UNREGISTERED;
-  amf_context_t* amf_ctx    = NULL;
-  amf_ctx                   = &ue_m5gmm_context->amf_context;
+  amf_context_t* amf_ctx     = NULL;
+  amf_ctx                    = &ue_m5gmm_context->amf_context;
 
   if (amf_ctx) {
     if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
