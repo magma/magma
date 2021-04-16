@@ -162,15 +162,19 @@ class MilenageTests(unittest.TestCase):
         autn = b'o\xbf\xa3\x80\x1fW\x80\x00{\xdeY\x88n\x96\xe4\xfe'
         kasme = (b'\x87H\xc1\xc0\xa2\x82o\xa4\x05\xb1\xe2~\xa1\x04CJ\xe5V\xc7e'
                  b'\xe8\xf0a\xeb\xdb\x8a\xe2\x86\xc4F\x16\xc2')
+        ck = b'\xf0n2\xf9\x13\xee\xfbI\xfbr\xf1\t\xb3\xa5\xf3\xc8'
+        ik = b'\xb0j{F\x0fOS\xc4\x16k\xf4\xa2\xe0\xa0\xc2\\'
 
         crypto = Milenage(amf)
         self.assertEqual(crypto.generate_opc(key, op), op_c)
-        (rand_, xres_, autn_, kasme_) = \
+        (rand_, xres_, autn_, kasme_, ck_, ik_) = \
             crypto.generate_eutran_vector(key, op_c, sqn, plmn)
         self.assertEqual(self.rand, rand_)
         self.assertEqual(xres, xres_)
         self.assertEqual(autn, autn_)
         self.assertEqual(kasme, kasme_)
+        self.assertEqual(ck, ck_)
+        self.assertEqual(ik, ik_)
 
 
 if __name__ == "__main__":

@@ -48,6 +48,10 @@
 #define AUTH_KEY_LENGTH_OCTETS (AUTH_KEY_LENGTH_BITS / 8)
 #define KASME_LENGTH_BITS (256)
 #define KASME_LENGTH_OCTETS (KASME_LENGTH_BITS / 8)
+#define CK_LENGTH_BITS (128)
+#define CK_LENGTH_OCTETS (CK_LENGTH_BITS / 8)
+#define IK_LENGTH_BITS (128)
+#define IK_LENGTH_OCTETS (IK_LENGTH_BITS / 8)
 /* In OCTETS */
 #define XRES_LENGTH_MIN (4)
 #define XRES_LENGTH_MAX (16)
@@ -122,6 +126,8 @@ typedef struct eutran_vector_s {
   res_t xres;
   uint8_t autn[AUTN_LENGTH_OCTETS];
   uint8_t kasme[KASME_LENGTH_OCTETS];
+  uint8_t ck[CK_LENGTH_OCTETS];
+  uint8_t ik[IK_LENGTH_OCTETS];
 } eutran_vector_t;
 
 #define FC_KASME (0x10)

@@ -26,13 +26,84 @@ extern "C" {
 #include "amf_sap.h"
 #include "amf_config.h"
 #include "amf_app_ue_context_and_proc.h"
+#include "amf_identity.h"
 #include "dynamic_memory_check.h"
+
+#define IMSI64_TO_IMSI15(iMsI64_t, imsi15)                                     \
+  {                                                                            \
+    if ((iMsI64_t / 100000000000000) != 0) {                                   \
+      imsi15[0]  = iMsI64_t / 100000000000000;                                 \
+      iMsI64_t   = iMsI64_t % 100000000000000;                                 \
+      imsi15[1]  = iMsI64_t / 10000000000000;                                  \
+      iMsI64_t   = iMsI64_t % 10000000000000;                                  \
+      imsi15[2]  = iMsI64_t / 1000000000000;                                   \
+      iMsI64_t   = iMsI64_t % 1000000000000;                                   \
+      imsi15[3]  = iMsI64_t / 100000000000;                                    \
+      iMsI64_t   = iMsI64_t % 100000000000;                                    \
+      imsi15[4]  = iMsI64_t / 10000000000;                                     \
+      iMsI64_t   = iMsI64_t % 10000000000;                                     \
+      imsi15[5]  = iMsI64_t / 1000000000;                                      \
+      iMsI64_t   = iMsI64_t % 1000000000;                                      \
+      imsi15[6]  = iMsI64_t / 100000000;                                       \
+      iMsI64_t   = iMsI64_t % 100000000;                                       \
+      imsi15[7]  = iMsI64_t / 10000000;                                        \
+      iMsI64_t   = iMsI64_t % 10000000;                                        \
+      imsi15[8]  = iMsI64_t / 1000000;                                         \
+      iMsI64_t   = iMsI64_t % 1000000;                                         \
+      imsi15[9]  = iMsI64_t / 100000;                                          \
+      iMsI64_t   = iMsI64_t % 100000;                                          \
+      imsi15[10] = iMsI64_t / 10000;                                           \
+      iMsI64_t   = iMsI64_t % 10000;                                           \
+      imsi15[11] = iMsI64_t / 1000;                                            \
+      iMsI64_t   = iMsI64_t % 1000;                                            \
+      imsi15[12] = iMsI64_t / 100;                                             \
+      iMsI64_t   = iMsI64_t % 100;                                             \
+      imsi15[13] = iMsI64_t / 10;                                              \
+      iMsI64_t   = iMsI64_t % 10;                                              \
+      imsi15[14] = iMsI64_t / 1;                                               \
+    }                                                                          \
+  }
 
 namespace magma5g {
 
 nas5g_config_t amf_data;
 nas_amf_smc_proc_t smc_ctrl;
 amf_as_data_t amf_data_sec_ctrl;
+
+//-----------------------------------------------------------------------------
+
+void format_plmn(amf_plmn_t* plmn) {
+  int loop       = 0;
+  uint8_t* octet = (uint8_t*) plmn;
+  /*TODO handle this better; for 2 digit mnc, the mnc_digit3 will be coming in
+   * as 0xf. This has to be changed to 0x0 before being used to create SNNI.
+   * When the PLMN value is used to form SNNI, the value is shifted such that
+   * the mnc_digit3, which was made 0, has to become mncdigit_1. For example a 5
+   * digit plmn such as 20895 will be 20895f in NAS. This will be expanded to
+   * 208 095 in respective mcc mnc values
+   */
+  bool format_flag = false;
+  for (loop = 0; loop < 3; loop++) {
+    uint8_t d2 = octet[loop];
+    uint8_t d1 = (d2 & 0xf0) >> 4;
+    d2         = d2 & 0x0f;
+    if (d2 >= 10) {
+      octet[loop] = octet[loop] & 0xf0;
+      format_flag = true;
+    }
+    if (d1 >= 10) {
+      octet[loop] = octet[loop] & 0x0f;
+      format_flag = true;
+    }
+  }
+  if (format_flag) {
+    amf_plmn_t temp_plmn;
+    memcpy(&temp_plmn, plmn, 3);
+    plmn->mnc_digit1 = 0;
+    plmn->mnc_digit2 = temp_plmn.mnc_digit1;
+    plmn->mnc_digit3 = temp_plmn.mnc_digit2;
+  }
+}
 
 /****************************************************************************
  **                                                                        **
@@ -162,7 +233,13 @@ int amf_proc_security_mode_control(
   bool security_context_is_new = false;
   // TODO: Hardcoded values Will be taken care in upcoming PR
   int amf_eea = 0;
-  int amf_eia = 0;
+  int amf_eia = 2;  // Integrity Algorithm 2
+  amf_plmn_t plmn;
+  uint8_t snni[32]  = {0};
+  uint8_t kausf[32] = {0};
+  uint8_t kseaf[32] = {0};
+  uint8_t ck_ik[32] = {0};
+  uint8_t ak_sqn[6] = {0};
   /*
    * Get the UE context
    */
@@ -215,11 +292,70 @@ int amf_proc_security_mode_control(
       }
       smc_ctrl.amf_ctx_set_security_type(
           amf_ctx, SECURITY_CTX_TYPE_FULL_NATIVE);
-      derive_key_nas(
-          NAS_INT_ALG, amf_ctx->_security.selected_algorithms.integrity,
-          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
-              .kasme,
-          amf_ctx->_security.knas_int);
+
+      // NAS Integrity key is calculated as specified in TS 33501, Annex A
+      uint8_t imsi[15];
+      IMSI64_TO_IMSI15(amf_ctx->imsi64, imsi);
+      memcpy(&plmn, amf_ctx->imsi.u.value, 3);
+      format_plmn(&plmn);
+
+      /* Building 32 bytes of string with serving network SN
+       * SN value 5G:mnc095.mcc208.3gppnetwork.org
+       * mcc and mnc retrive saved _imsi from amf_context
+       */
+      snni[0]  = 0x35;  // 5
+      snni[1]  = 0x47;  // G
+      snni[2]  = 0x3A;  //:
+      snni[3]  = 0x6D;  // m
+      snni[4]  = 0x6E;  // n
+      snni[5]  = 0x63;  // c
+      snni[6]  = 0x30 | plmn.mnc_digit1;
+      snni[7]  = 0x30 | plmn.mnc_digit2;
+      snni[8]  = 0x30 | plmn.mnc_digit3;
+      snni[9]  = 0x2E;  //.
+      snni[10] = 0x6D;  // m
+      snni[11] = 0x63;  // c
+      snni[12] = 0x63;  // c
+      snni[13] = 0x30 | plmn.mcc_digit1;
+      snni[14] = 0x30 | plmn.mcc_digit2;
+      snni[15] = 0x30 | plmn.mcc_digit3;
+      snni[16] = 0x2E;  //.
+      snni[17] = 0x33;  // 3
+      snni[18] = 0x67;  // g
+      snni[19] = 0x70;  // p
+      snni[20] = 0x70;  // p
+      snni[21] = 0x6E;  // n
+      snni[22] = 0x65;  // e
+      snni[23] = 0x74;  // t
+      snni[24] = 0x77;  // w
+      snni[25] = 0x6F;  // o
+      snni[26] = 0x72;  // r
+      snni[27] = 0x6B;  // k
+      snni[28] = 0x2E;  //.
+      snni[29] = 0x6F;  // o
+      snni[30] = 0x72;  // r
+      snni[31] = 0x67;  // g
+
+      memcpy(
+          ak_sqn,
+          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].autn,
+          6);
+      memcpy(
+          ck_ik,
+          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].ck,
+          16);
+      memcpy(
+          &ck_ik[16],
+          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].ik,
+          16);
+
+      derive_5gkey_ausf(ck_ik, snni, ak_sqn, kausf);
+      derive_5gkey_seaf(kausf, snni, kseaf);
+      derive_5gkey_amf(imsi, 15, kseaf, amf_ctx->_security.kamf);
+
+      derive_5gkey_nas(
+          NAS_INT_ALG, 2, amf_ctx->_security.kamf, amf_ctx->_security.knas_int);
+
       derive_key_nas(
           NAS_ENC_ALG, amf_ctx->_security.selected_algorithms.encryption,
           amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]

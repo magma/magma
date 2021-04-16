@@ -52,7 +52,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
                 auts = re_sync_info[16:]
                 self.lte_processor.resync_lte_auth_seq(imsi, rand, auts)
 
-            rand, xres, autn, kasme = \
+            rand, xres, autn, kasme ,ck, ik = \
                 self.lte_processor.generate_lte_auth_vector(imsi, plmn)
 
             metrics.S6A_AUTH_SUCCESS_TOTAL.inc()
@@ -64,6 +64,8 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             eutran_vector.xres = xres
             eutran_vector.autn = autn
             eutran_vector.kasme = kasme
+            eutran_vector.ck = ck
+            eutran_vector.ik = ik
             logging.info("Auth success: %s", imsi)
             return aia
 

@@ -105,6 +105,8 @@ message AuthenticationInformationAnswer {
         bytes xres = 2;
         bytes autn = 3;
         bytes kasme = 4;
+        bytes ck = 5;
+        bytes ik = 6;
     }
     // 3GPP TS 29.272, Section 7.3.19 UTRAN-Vector
     message UTRANVector {

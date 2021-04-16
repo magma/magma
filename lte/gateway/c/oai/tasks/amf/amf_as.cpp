@@ -123,6 +123,14 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   }
 
   ue_m5gmm_context->mm_state = UNREGISTERED;
+  amf_context_t* amf_ctx     = NULL;
+  amf_ctx                    = &ue_m5gmm_context->amf_context;
+
+  if (amf_ctx) {
+    if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
+      amf_security_context = &amf_ctx->_security;
+    }
+  }
 
   // Decode initial NAS message
   decoder_rc = nas5g_message_decode(
@@ -306,10 +314,8 @@ static int amf_as_encode(
 
   if (*info) {
     // Encode the NAS message
-    AmfMsg amf_msg;
-    bytes = amf_msg.M5gNasMessageEncodeMsg(
-        (AmfMsg*) &msg->security_protected.plain.amf, (uint8_t*) (*info)->data,
-        (uint32_t) length);
+    bytes =
+        nas5g_message_encode((*info)->data, msg, length, amf_security_context);
 
     if (bytes > 0) {
       (*info)->slen = bytes;
@@ -713,17 +719,12 @@ static int amf_auth_request(
         LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
-  char temp_imsi[IMSI_BCD_DIGITS_MAX + 1] = "208950000000031";
-  strcpy(air_t.imsi, temp_imsi);
-  air_t.imsi_length             = IMSI_LENGTH;
-  air_t.visited_plmn.mcc_digit1 = 0x2;
-  air_t.visited_plmn.mcc_digit2 = 0x0;
-  air_t.visited_plmn.mcc_digit3 = 0x8;
-  air_t.visited_plmn.mnc_digit1 = 0x9;
-  air_t.visited_plmn.mnc_digit2 = 0x5;
-  air_t.visited_plmn.mnc_digit3 = 0x0;
-  air_t.nb_of_vectors           = 1;
-  air_t.re_synchronization      = 0;
+  air_t.imsi_length = IMSI_LENGTH;
+  memcpy(
+      &air_t.visited_plmn, &ue_context->amf_context.imsi,
+      sizeof(air_t.visited_plmn));
+  air_t.nb_of_vectors      = 1;
+  air_t.re_synchronization = 0;
   s6a_auth_info_ans_t aia_t;
   memset(&aia_t, 0, sizeof(s6a_auth_info_ans_t));
   auto imsi_len = air_t.imsi_length;
@@ -744,6 +745,30 @@ static int amf_auth_request(
     amf_msg->auth_rand.rand_val.assign(
         (const char*) aia_t.auth_info.eutran_vector[0].rand,
         RAND_LENGTH_OCTETS);
+    memcpy(
+        ue_context->amf_context
+            ._vector
+                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
+            .autn,
+        aia_t.auth_info.eutran_vector[0].autn, AUTN_LENGTH_OCTETS);
+    memcpy(
+        ue_context->amf_context
+            ._vector
+                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
+            .rand,
+        aia_t.auth_info.eutran_vector[0].rand, RAND_LENGTH_OCTETS);
+    memcpy(
+        ue_context->amf_context
+            ._vector
+                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
+            .ck,
+        aia_t.auth_info.eutran_vector[0].ck, CK_LENGTH_OCTETS);
+    memcpy(
+        ue_context->amf_context
+            ._vector
+                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
+            .ik,
+        aia_t.auth_info.eutran_vector[0].ik, IK_LENGTH_OCTETS);
   } else {
     OAILOG_DEBUG(LOG_AMF_APP, "s6a_air request failed\n");
   }
@@ -1027,6 +1052,10 @@ uint16_t amf_as_establish_cnf(
   switch (msg->nas_info) {
     case AMF_AS_NAS_INFO_REGISTERD:
       size = amf_reg_acceptmsg(msg, &nas_msg);
+      nas_msg.header.security_header_type =
+          SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+      /* TODO amf_as_set_header() is incorrectly setting the security header
+       * type for Registration Accept. Fix it in that function*/
       break;
     case AMF_AS_NAS_INFO_TAU:
     case AMF_AS_NAS_INFO_NONE:  // Response to SR

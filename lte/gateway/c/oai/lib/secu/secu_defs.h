@@ -36,6 +36,19 @@ int derive_key_nas(
     algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
     const uint8_t* kasme_32, uint8_t* knas);
 
+int derive_5gkey_ausf(
+    uint8_t* ck_ik, uint8_t* snni, uint8_t* ak_sqn, uint8_t* kausf);
+
+int derive_5gkey_seaf(uint8_t* kausf, uint8_t* snni, uint8_t* kseaf);
+
+int derive_5gkey_amf(
+    const uint8_t* imsi, uint8_t imsi_length, const uint8_t* kasme_32,
+    uint8_t* knas);
+
+int derive_5gkey_nas(
+    algorithm_type_dist_t nas_alg_type, uint8_t nas_enc_alg_id,
+    const uint8_t* kasme_32, uint8_t* knas);
+
 int derive_NH(
     const uint8_t* kasme_32, const uint8_t* syncInput, uint8_t* next_hop,
     uint8_t* next_hop_chaining_count);

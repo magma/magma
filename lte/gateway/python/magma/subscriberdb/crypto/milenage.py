@@ -51,7 +51,7 @@ class Milenage(BaseLTEAuthAlgo):
 
         autn = Milenage.generate_autn(sqn_bytes, ak, mac_a, self.amf)
         kasme = Milenage.generate_kasme(ck, ik, plmn, sqn_bytes, ak)
-        return rand, xres, autn, kasme
+        return rand, xres, autn, kasme, ck, ik
 
     def generate_auts(self, key, opc, rand, sqn):
         """
