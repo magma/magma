@@ -67,7 +67,10 @@ def _run_add_trailing_comma(path: str):
     abs_path = os.path.join(HOST_MAGMA_ROOT, path)
     if os.path.isfile(abs_path):
         # TODO upgrade to --py36-plus eventually
-        _run_docker_cmd(['add-trailing-comma', '--py35-plus', path])
+        _run_docker_cmd([
+            'add-trailing-comma', '--py35-plus',
+            '--exit-zero-even-if-changed', path,
+        ])
 
 
 def _run_flake8(paths: List[str]):
@@ -87,6 +90,7 @@ def _run(cmd: List[str]) -> None:
     try:
         subprocess.run(cmd, check=True)  # noqa: S603
     except subprocess.CalledProcessError as err:
+        print(err)
         exit(err.returncode)
 
 
