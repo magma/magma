@@ -73,7 +73,15 @@
         "ids": [
           "orc8r/architecture_overview",
           "orc8r/architecture_modularity",
-          "orc8r/architecture_security"
+          "orc8r/architecture_security",
+          "nms/nms_arch_overview"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/nms_arch_overview"
         ]
       }
     ],
