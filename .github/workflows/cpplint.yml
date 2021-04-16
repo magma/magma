@@ -31,6 +31,7 @@ jobs:
     - uses: reviewdog/action-cpplint@master
       with:
         github_token: ${{ secrets.github_token }}
+        filter: file
         reporter: github-pr-review
         flags: --linelength=120  # Optional
         # filter: "-readability/braces\

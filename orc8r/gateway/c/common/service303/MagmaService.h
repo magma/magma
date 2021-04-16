@@ -12,6 +12,8 @@
  */
 #pragma once
 
+// DO NOT COMMIT TEST
+
 #include <grpcpp/grpcpp.h>                    // for Server, ServerBuilder
 #include <grpcpp/impl/codegen/status.h>       // for Status
 #include <orc8r/protos/service303.grpc.pb.h>  // for Service303, Service303:...
