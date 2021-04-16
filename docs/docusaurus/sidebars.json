@@ -108,6 +108,7 @@
           "orc8r/deploy_install",
           "orc8r/hold_terraform_state_on_s3",
           "orc8r/override_values_of_terraform_files",
+          "orc8r/deploy_orcl",
           "orc8r/deploy_faq"
         ]
       },
