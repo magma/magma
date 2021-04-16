@@ -863,7 +863,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, " ue_context is NULL\n");
+    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: ue_context is NULL\n");
   }
 
   // if UE on REGISTERED_IDLE, so no need to do anyting
@@ -977,11 +977,11 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
     /*
      * ReSend Paging request message to the UE
      */
-    OAILOG_INFO(LOG_AMF_APP, "In Handler Starting PAGING Timer\n");
+    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: In Handler Starting PAGING Timer\n");
     paging_ctx->m5_paging_response_timer.id = start_timer(
         &amf_app_task_zmq_ctx, PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
         paging_t3513_handler, NULL);
-    OAILOG_INFO(LOG_AMF_APP, "After Starting PAGING Timer\n");
+    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: After Starting PAGING Timer\n");
     // Fill the itti msg based on context info produced in amf core
 
     message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
@@ -994,11 +994,12 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
         amf_ctx->m5_guti.guamfi.amf_pointer;
     OAILOG_INFO(
         LOG_AMF_APP,
-        "Filling NGAP structure for Downlink amf_ctx dec m_tmsi=%d",
+        "AMF_APP: Filling NGAP structure for Downlink amf_ctx dec "
+        "m_tmsi=%d",
         amf_ctx->m5_guti.m_tmsi);
     ngap_paging_notify->UEPagingIdentity.m_tmsi = amf_ctx->m5_guti.m_tmsi;
     OAILOG_INFO(
-        LOG_AMF_APP, "Filling NGAP structure for Downlink m_tmsi=%d",
+        LOG_AMF_APP, "AMF_APP: Filling NGAP structure for Downlink m_tmsi=%d",
         ngap_paging_notify->UEPagingIdentity.m_tmsi);
     ngap_paging_notify->TAIListForPaging.tai_list[0].plmn.mcc_digit1 =
         amf_ctx->m5_guti.guamfi.plmn.mcc_digit1;
@@ -1015,7 +1016,7 @@ static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg) {
     ngap_paging_notify->TAIListForPaging.no_of_items     = 1;
     ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
 
-    OAILOG_INFO(LOG_AMF_APP, " sending downlink message to NGAP");
+    OAILOG_INFO(LOG_AMF_APP, "AMF_APP: sending downlink message to NGAP");
     rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
     OAILOG_ERROR(
         LOG_AMF_APP, "Timer: timer has expired Sending Paging request again\n");
@@ -1044,41 +1045,46 @@ int amf_app_handle_notification_received(
   itti_ngap_paging_request_t* ngap_paging_notify = nullptr;
   int rc                                         = RETURNok;
 
-  OAILOG_INFO(LOG_AMF_APP, " PAGING NOTIFICATION received from SMF\n");
+  OAILOG_INFO(LOG_AMF_APP, "AMF_APP: PAGING NOTIFICATION received from SMF\n");
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(notification->imsi, &imsi64);
 
+  OAILOG_INFO(
+      LOG_AMF_APP, "AMF_APP: IMSI is %s %lu\n", notification->imsi, imsi64);
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
 
   if (ue_context == NULL) {
     OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
+    return -1;
   }
 
-  OAILOG_INFO(LOG_AMF_APP, "IMSI is %d\n", notification->notify_ue_evnt);
+
+  OAILOG_INFO(
+      LOG_AMF_APP, "AMF_APP: IMSI is %d\n", notification->notify_ue_evnt);
   switch (notification->notify_ue_evnt) {
     case UE_PAGING_NOTIFY:
-      OAILOG_INFO(LOG_AMF_APP, "PAGING NOTIFICATION received\n");
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: PAGING NOTIFICATION received\n");
 
       // Get Paging Context
       amf_ctx    = &ue_context->amf_context;
       paging_ctx = &ue_context->paging_context;
 
-      OAILOG_INFO(LOG_AMF_APP, "Starting PAGING Timer\n");
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: Starting PAGING Timer\n");
       /* Start Paging Timer T3513 */
       paging_ctx->m5_paging_response_timer.id = start_timer(
           &amf_app_task_zmq_ctx, PAGING_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
           paging_t3513_handler, NULL);
       // Fill the itti msg based on context info produced in amf core
-      OAILOG_INFO(LOG_AMF_APP, "After Starting PAGING Timer\n");
-      OAILOG_INFO(LOG_AMF_APP, "Allocating memory ");
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: After Starting PAGING Timer\n");
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: Allocating memory ");
       message_p = itti_alloc_new_message(TASK_AMF_APP, NGAP_PAGING_REQUEST);
 
-      OAILOG_INFO(LOG_AMF_APP, "ngap_paging_notify");
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: ngap_paging_notify");
 
       ngap_paging_notify = &message_p->ittiMsg.ngap_paging_request;
       memset(ngap_paging_notify, 0, sizeof(itti_ngap_paging_request_t));
-      OAILOG_INFO(LOG_AMF_APP, "Filling NGAP structure for Downlink");
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: Filling NGAP structure for Downlink");
       ngap_paging_notify->UEPagingIdentity.amf_set_id =
           amf_ctx->m5_guti.guamfi.amf_set_id;
       ngap_paging_notify->UEPagingIdentity.amf_pointer =
@@ -1098,16 +1104,16 @@ int amf_app_handle_notification_received(
           amf_ctx->m5_guti.guamfi.plmn.mnc_digit3;
       ngap_paging_notify->TAIListForPaging.no_of_items     = 1;
       ngap_paging_notify->TAIListForPaging.tai_list[0].tac = 2;
-      OAILOG_INFO(LOG_AMF_APP, "sending downlink message to NGAP");
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP: sending downlink message to NGAP");
       rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
       break;
 
     case UE_SERVICE_REQUEST_ON_PAGING:
-      OAILOG_INFO(LOG_AMF_APP, "SERVICE ACCEPT NOTIFICATION received\n");
-      /* TODO : SERVICE ACCEPT will be added as part of upcoming PR */
-      break;
+      OAILOG_INFO(
+          LOG_AMF_APP, "AMF_APP: SERVICE ACCEPT NOTIFICATION received\n");
+      // TODO: Service Accept code to be implemented in upcoming PR
     default:
-      OAILOG_INFO(LOG_AMF_APP, "default case nothing to do Returning\n");
+      OAILOG_INFO(LOG_AMF_APP, "AMF_APP : default case nothing to do\n");
       break;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

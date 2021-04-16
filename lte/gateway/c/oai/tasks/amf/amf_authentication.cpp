@@ -609,7 +609,8 @@ int amf_send_authentication_request(
       OAILOG_ERROR(LOG_NAS_EMM, "Timer:Start Authenthication Timer T3560\n");
       auth_proc->T3560.id = start_timer(
           &amf_app_task_zmq_ctx, AUTHENTICATION_TIMER_EXPIRY_MSECS,
-          TIMER_REPEAT_ONCE, authenthication_t3560_handler, NULL);
+          TIMER_REPEAT_ONCE, authenthication_t3560_handler,
+          (void*) auth_proc->ue_id);
       OAILOG_INFO(LOG_AMF_APP, "Timer: Authenthication timer T3560 started \n");
       OAILOG_INFO(
           LOG_AMF_APP, "Timer: Authenthication timer T3560 id is %d\n",
@@ -627,15 +628,23 @@ static int authenthication_t3560_handler(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
   amf_context_t* amf_ctx = NULL;
+  amf_ue_ngap_id_t ue_id = 0;
+  ue_id                  = *((amf_ue_ngap_id_t*) (arg));
+
   OAILOG_INFO(
       LOG_AMF_APP, "Timer: ZMQ In _identification_t3560_handler - T3560\n");
 
-  ue_m5gmm_context_s* ue_mm_context = &ue_m5gmm_global_context;
+  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context == NULL) {
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
+    return -1;
+  }
 
   OAILOG_INFO(
       LOG_AMF_APP,
       "Timer: ZMQ Created ue_mm_context from global context - T3560\n");
-  amf_ctx = &ue_mm_context->amf_context;
+  amf_ctx = &ue_context->amf_context;
   OAILOG_INFO(
       LOG_AMF_APP, "Timer: ZMQ got amf ctx and calling common procedure\n");
   if (!(amf_ctx)) {
@@ -646,7 +655,6 @@ static int authenthication_t3560_handler(
 
   nas5g_amf_auth_proc_t* auth_proc =
       get_nas5g_common_procedure_authentication(amf_ctx);
-  amf_ue_ngap_id_t ue_id;
 
   if (auth_proc) {
     /*
@@ -678,10 +686,10 @@ static int authenthication_t3560_handler(
        *
        */
       OAILOG_INFO(
-          LOG_NGAP, "AMF_TEST: Timer  retransmission_count  = %d\n",
+          LOG_NGAP, "Timer  retransmission_count  = %d\n",
           auth_proc->retransmission_count);
       OAILOG_INFO(
-          LOG_NGAP, "AMF_TEST: Timer AUTHENTICATION_COUNTER_MAX  = %d\n",
+          LOG_NGAP, "Timer AUTHENTICATION_COUNTER_MAX  = %d\n",
           AUTHENTICATION_COUNTER_MAX);
       OAILOG_ERROR(
           LOG_AMF_APP,

@@ -204,14 +204,14 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
     rc = amf_sap_send(&amf_sap);
     if (rc != RETURNerror) {
       OAILOG_INFO(
-          LOG_AMF_APP,
-          "AMF_TEST: Timer: Security Mode Calling start_timer_T3560 \n");
+          LOG_AMF_APP, "Timer: Security Mode Calling start_timer_T3560 \n");
       smc_proc->T3560.id = start_timer(
           &amf_app_task_zmq_ctx, SECURITY_MODE_TIMER_EXPIRY_MSECS,
-          TIMER_REPEAT_ONCE, security_mode_t3560_handler, NULL);
+          TIMER_REPEAT_ONCE, security_mode_t3560_handler,
+          (void*) smc_proc->ue_id);
       OAILOG_INFO(
           LOG_AMF_APP,
-          "AMF_TEST: Timer:  After starting SECURITY_MODE_TIMER timer T3560 "
+          "Timer:  After starting SECURITY_MODE_TIMER timer T3560 "
           "with id %d\n",
           smc_proc->T3560.id);
     }
@@ -223,13 +223,20 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
 static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
   OAILOG_INFO(LOG_AMF_APP, "Timer: In security_mode_t3560_handler - T3560\n");
   amf_context_t* amf_ctx = NULL;
+  amf_ue_ngap_id_t ue_id = 0;
+  ue_id                  = *((amf_ue_ngap_id_t*) (arg));
 
-  ue_m5gmm_context_s* ue_mm_context = &ue_m5gmm_global_context;
+  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context == NULL) {
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
+    return -1;
+  }
 
   OAILOG_INFO(
       LOG_AMF_APP,
       "Timer: Created ue_mm_context from global context - T3560\n");
-  amf_ctx = &ue_mm_context->amf_context;
+  amf_ctx = &ue_context->amf_context;
   OAILOG_INFO(LOG_AMF_APP, "Timer: got amf ctx and calling common procedure\n");
   if (!(amf_ctx)) {
     OAILOG_ERROR(LOG_AMF_APP, "T3560 timer expired No AMF context\n");

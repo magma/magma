@@ -31,7 +31,6 @@ extern "C" {
 extern amf_config_t amf_config;
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
-extern ue_m5gmm_context_s ue_m5gmm_global_context;
 AmfMsg amf_msg_obj;
 static int identification_t3570_handler(zloop_t* loop, int timer_id, void* arg);
 int nas_proc_establish_ind(
@@ -240,7 +239,7 @@ static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
         LOG_AMF_APP, "AMF_TEST: Timer: Starting Identity timer T3570 \n");
     proc->T3570.id = start_timer(
         &amf_app_task_zmq_ctx, IDENTITY_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
-        identification_t3570_handler, NULL);
+        identification_t3570_handler, (void*) proc->ue_id);
     OAILOG_INFO(
         LOG_AMF_APP, "Timer: Started Identity timer T3570 with id %d\n",
         proc->T3570.id);
@@ -251,17 +250,22 @@ static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
 /* Identification Timer T3570 Expiry Handler */
 static int identification_t3570_handler(
     zloop_t* loop, int timer_id, void* arg) {
-  //  amf_context_t* amf_ctx = (amf_context_t*) (arg);
+  amf_ue_ngap_id_t ue_id = NULL;
+  ue_id                  = *((amf_ue_ngap_id_t*) (arg));
   amf_context_t* amf_ctx = NULL;
   OAILOG_INFO(LOG_AMF_APP, "Timer: identification T3570 handler \n");
 
-  ue_m5gmm_context_s* ue_mm_context = &ue_m5gmm_global_context;
+  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
-  amf_ctx = &ue_mm_context->amf_context;
+  if (ue_context == NULL) {
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
+    return -1;
+  }
+
+  amf_ctx = &ue_context->amf_context;
   if (!(amf_ctx)) {
     OAILOG_ERROR(LOG_AMF_APP, "Timer: T3570 timer expired No AMF context\n");
     return 1;
-    // OAILOG_FUNC_OUT(LOG_AMF_APP);
   }
 
   nas_amf_ident_proc_t* ident_proc =

@@ -578,7 +578,8 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
       OAILOG_INFO(LOG_AMF_APP, "Timer: registration_accept timer start\n");
       registration_proc->T3550.id = start_timer(
           &amf_app_task_zmq_ctx, REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS,
-          TIMER_REPEAT_ONCE, registration_accept_t3550_handler, NULL);
+          TIMER_REPEAT_ONCE, registration_accept_t3550_handler,
+          (void*) registration_proc->ue_id);
       OAILOG_INFO(
           LOG_AMF_APP,
           "Timer: Registration_accept timer T3550 with id  %d Started\n",
@@ -594,18 +595,22 @@ static int registration_accept_t3550_handler(
   amf_context_t* amf_ctx                         = NULL;
   ue_m5gmm_context_s* ue_amf_context             = NULL;
   nas_amf_registration_proc_t* registration_proc = NULL;
+  amf_ue_ngap_id_t ue_id                         = 0;
+
+  ue_id = *((amf_ue_ngap_id_t*) (arg));
   /*
    * Get the UE context
    */
-  //  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  ue_amf_context =
-      &ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily
+  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
-  if (ue_amf_context) {
-    registration_proc =
-        (nas_amf_registration_proc_t*)
-            ue_amf_context->amf_context.amf_procedures->amf_specific_proc;
+  if (ue_amf_context == NULL) {
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
+    return -1;
   }
+
+  registration_proc =
+      (nas_amf_registration_proc_t*)
+          ue_amf_context->amf_context.amf_procedures->amf_specific_proc;
 
   OAILOG_INFO(
       LOG_AMF_APP, "Timer: In _registration_t3550_handler - T3550 id %p\n",
