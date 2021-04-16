@@ -133,6 +133,9 @@ s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_service_req_ul_udp_data_with_mme_restart.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
+s1aptests/test_imei_restriction_smc.py \
+s1aptests/test_imei_restriction_no_imeisv_in_smc.py \
+s1aptests/test_imei_restriction_wildcard_snr.py \
 s1aptests/test_attach_detach_dedicated_deactivation_timer_expiry.py \
 s1aptests/test_attach_detach_secondary_pdn.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers.py \
@@ -184,7 +187,6 @@ s1aptests/test_no_esm_information_rsp_with_mme_restart.py \
 s1aptests/test_no_smc_with_mme_restart_reattach.py \
 s1aptests/test_no_attach_complete_with_mme_restart.py \
 s1aptests/test_attach_ics_failure_with_mme_restart.py \
-s1aptests/test_agw_offload_idle_active_ue.py \
 s1aptests/test_restore_config_after_non_sanity.py
 
 #---------------
@@ -207,16 +209,14 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_no_auth_response_with_mme_restart_reattach.py \
 # s1aptests/test_no_identity_rsp_with_mme_restart.py \
 # s1aptests/test_data_flow_after_service_request.py \
+# s1aptests/test_agw_offload_idle_active_ue.py \
+# s1aptests/test_agw_offload_mixed_idle_active_multiue.py \
 
 # Non-Sanity: Failing Test Cases
-# s1aptests/test_agw_offload_mixed_idle_active_multiue.py \
 # s1aptests/test_attach_detach_with_corrupt_stateless_mme.py \
 # s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \
 # s1aptests/test_attach_with_multiple_mme_restarts.py \
-# s1aptests/test_imei_restriction_smc.py \
-# s1aptests/test_imei_restriction_no_imeisv_in_smc.py \
-# s1aptests/test_imei_restriction_wildcard_snr.py \
 #---------------
 
 # Enable these tests once the CI job time-out has increased
