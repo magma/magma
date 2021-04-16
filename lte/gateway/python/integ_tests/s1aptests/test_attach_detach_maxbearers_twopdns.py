@@ -83,7 +83,7 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                 " PDN"
             )
             # Create default flow list
-            flow_list1 = self._spgw_util.create_default_flows()
+            flow_list1 = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
                 flow_list1,
@@ -128,7 +128,7 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                     "********************** Adding dedicated bearer to ims"
                     " PDN"
                 )
-                flow_list2.append(self._spgw_util.create_default_flows(port_idx=i))
+                flow_list2.append(self._spgw_util.create_default_ipv4_flows(port_idx=i))
                 self._spgw_util.create_bearer(
                     "IMSI" + "".join([str(i) for i in req.imsi]), act_def_bearer_req.m.pdnInfo.epsBearerId,
                     flow_list2[i],qci_val = i+1

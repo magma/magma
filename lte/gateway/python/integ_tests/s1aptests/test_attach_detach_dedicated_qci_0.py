@@ -67,7 +67,7 @@ class TestAttachDetachDedicatedQci0(unittest.TestCase):
                 imsi,
             )
             # Create default flow list
-            flow_list = self._spgw_util.create_default_flows()
+            flow_list = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
                 "IMSI" + imsi, attach.esmInfo.epsBearerId,
                 flow_list, qci_val=0

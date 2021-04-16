@@ -78,7 +78,7 @@ class TestSecondaryPdnConnWithDedBearerReq(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             # Create default flow list
-            flow_list1 = self._spgw_util.create_default_flows()
+            flow_list1 = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
                 flow_list1,
@@ -121,7 +121,7 @@ class TestSecondaryPdnConnWithDedBearerReq(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             # Create default flow list
-            flow_list2 = self._spgw_util.create_default_flows()
+            flow_list2 = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]), act_def_bearer_req.m.pdnInfo.epsBearerId,
                 flow_list2,

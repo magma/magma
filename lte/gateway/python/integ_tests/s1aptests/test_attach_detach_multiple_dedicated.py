@@ -60,7 +60,7 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
-            flow_lists.append(self._spgw_util.create_default_flows(port_idx = i))
+            flow_lists.append(self._spgw_util.create_default_ipv4_flows(port_idx = i))
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
                 flow_lists[i],qci_val=i+1

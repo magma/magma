@@ -60,7 +60,7 @@ class TestAttachDetachDedicatedInvalidlbi(unittest.TestCase):
                   ''.join([str(i) for i in req.imsi]))
 
             # Create default flow list
-            flow_list = self._spgw_util.create_default_flows()
+            flow_list = self._spgw_util.create_default_ipv4_flows()
             # Send wrong LBI-6 instead of 5
             self._spgw_util.create_bearer(
                 'IMSI' + ''.join([str(i) for i in req.imsi]), (attach.esmInfo.epsBearerId+1), flow_list)

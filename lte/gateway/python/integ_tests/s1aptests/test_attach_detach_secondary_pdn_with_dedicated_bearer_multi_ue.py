@@ -108,7 +108,7 @@ class TestSecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
             time.sleep(2)
             # Add dedicated bearer to IMS PDN
             print("********************** Adding dedicated bearer to IMS PDN")
-            flow_list.append(self._spgw_util.create_default_flows())
+            flow_list.append(self._spgw_util.create_default_ipv4_flows())
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]), act_def_bearer_req.m.pdnInfo.epsBearerId,
                 flow_list[i],

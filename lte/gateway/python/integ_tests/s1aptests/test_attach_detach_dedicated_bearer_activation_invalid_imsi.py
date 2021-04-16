@@ -60,7 +60,7 @@ class TestAttachDetachDedicatedInvalidImsi(unittest.TestCase):
                   ''.join('001010000000004'))
 
             # Create default flow list
-            flow_list = self._spgw_util.create_default_flows()
+            flow_list = self._spgw_util.create_default_ipv4_flows()
             # Send wrong IMSI
             self._spgw_util.create_bearer(
                 "IMSI" + ''.join('001010000000004'), attach.esmInfo.epsBearerId,
