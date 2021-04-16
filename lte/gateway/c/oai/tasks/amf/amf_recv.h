@@ -28,7 +28,6 @@ int amf_handle_service_request(
     amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
     const amf_nas_message_decode_status_t decode_status);
 int amf_registration_run_procedure(amf_context_t* amf_context);
->>>>>>> compilation errors fixed
 int amf_handle_identity_response(
     amf_ue_ngap_id_t ue_id, M5GSMobileIdentityMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status);

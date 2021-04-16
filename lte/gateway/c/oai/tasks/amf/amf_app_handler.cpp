@@ -1059,7 +1059,6 @@ int amf_app_handle_notification_received(
     return -1;
   }
 
-
   OAILOG_INFO(
       LOG_AMF_APP, "AMF_APP: IMSI is %d\n", notification->notify_ue_evnt);
   switch (notification->notify_ue_evnt) {
