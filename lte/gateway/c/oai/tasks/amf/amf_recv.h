@@ -24,6 +24,9 @@ int amf_handle_registration_request(
     RegistrationRequestMsg* msg, const bool is_initial,
     const bool is_amf_ctx_new, int amf_cause,
     amf_nas_message_decode_status_t decode_status);
+int amf_handle_service_request(
+    amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
+    const amf_nas_message_decode_status_t decode_status);
 int amf_handle_identity_response(
     amf_ue_ngap_id_t ue_id, M5GSMobileIdentityMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t decode_status);
@@ -40,7 +43,8 @@ int amf_handle_deregistration_ue_origin_req(
     amf_nas_message_decode_status_t decode_status);
 int amf_smf_send(amf_ue_ngap_id_t ueid, ULNASTransportMsg* msg, int amf_cause);
 int amf_smf_notification_send(
-    amf_ue_ngap_id_t ueid, ue_m5gmm_context_s* ue_context);
+    amf_ue_ngap_id_t ueid, ue_m5gmm_context_s* ue_context,
+    notify_ue_event notify_event_type);
 int amf_proc_registration_request(
     amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,
     amf_registration_request_ies_t* ies);
@@ -51,5 +55,12 @@ int amf_proc_registration_reject(
     const amf_ue_ngap_id_t ue_id, amf_cause_t amf_cause);
 int amf_send_registration_accept_dl_nas(
     const amf_as_data_t* msg, RegistrationAcceptMsg* amf_msg);
+
+void amf_app_handle_cm_idle_on_ue_context_release(
+    itti_ngap_ue_context_release_req_t cm_idle_req);
+// Handle UE CONTEXT RELEASE COMMAND in DL to NGAP
+void ue_context_release_command(
+    amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    Ngcause ng_cause);
 
 }  // namespace magma5g

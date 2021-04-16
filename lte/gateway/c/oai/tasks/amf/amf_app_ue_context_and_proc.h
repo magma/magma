@@ -32,6 +32,7 @@ extern "C" {
 #ifdef __cplusplus
 };
 #endif
+#include <vector>
 #include "amf_fsm.h"
 #include "amf_data.h"
 #include "amf_smfDefs.h"
@@ -290,6 +291,7 @@ typedef struct amf_context_s {
   guti_m5_t m5_old_guti; /* The GUTI assigned to the UE                     */
   ksi_t ksi;             /*key set identifier  */
   drx_parameter_t drx_parameter;
+  UESecurityCapabilityMsg ue_sec_capability;
   m5g_auth_vector_t
       _vector[MAX_EPS_AUTH_VECTORS]; /* 5GMM authentication vector */
   amf_security_context_t
@@ -300,8 +302,9 @@ typedef struct amf_context_s {
                     with a native non-current 5GMM security context.*/
   int amf_cause; /* AMF failure cause code                          */
   amf_fsm_state_t amf_fsm_state;
+  smf_context_t smf_context;  // Keeps PDU session related info
   void* t3422_arg;
-  smf_context_t smf_context;             // Keeps PDU session related info
+  std::vector<smf_context_t> smf_ctxt_vector;  // smf contents
   drx_parameter_t current_drx_parameter; /* stored TAU Request IE Requirement
                                              AMF24.501R15_5.5.3.2.4_4*/
   std::string smf_msg; /* SMF message contained within the initial request*/
@@ -381,6 +384,11 @@ void amf_remove_ue_context(
     ue_m5gmm_context_s* const ue_context_p);
 
 ue_m5gmm_context_s* amf_create_new_ue_context(void);
+/*Multi PDU Session*/
+smf_context_t* amf_insert_smf_context(
+    ue_m5gmm_context_s* ue_context, uint8_t pdu_session_id);
+smf_context_t* amf_smf_context_exists_pdu_session_id(
+    ue_m5gmm_context_s* ue_context, uint8_t id);
 
 // Retrieve required UE context from the respective hash table
 amf_context_t* amf_context_get(const amf_ue_ngap_id_t ue_id);
@@ -431,6 +439,8 @@ union mobility_msg_u {
   RegistrationAcceptMsg registrationacceptmsg;
   RegistrationCompleteMsg registrationcompletemsg;
   RegistrationRejectMsg registrationrejectmsg;
+  ServiceRequestMsg service_request;
+  ServiceAcceptMsg service_accept;
   IdentityRequestMsg identityrequestmsg;
   IdentityResponseMsg identityresponsemsg;
   AuthenticationRequestMsg authenticationrequestmsg;
@@ -680,6 +690,7 @@ struct nas_amf_registration_proc_t {
   amf_ue_ngap_id_t ue_id;
   ksi_t ksi;
   int amf_cause;
+  int registration_accept_sent;
 };
 // NAS security related IEs
 class nas_amf_smc_proc_t {
@@ -719,6 +730,7 @@ amf_procedures_t* nas_new_amf_procedures(amf_context_t* amf_context);
 int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx);
 int amf_send_registration_accept(amf_context_t* amf_context);
 
+int amf_send_registration_accept(amf_context_t* amf_context);
 // UE originated deregistration procedures
 int amf_proc_deregistration_request(
     amf_ue_ngap_id_t ue_id, amf_deregistration_request_ies_t* params);
@@ -728,13 +740,19 @@ void amf_remove_ue_context(
 
 // PDU session related communication to gNB
 int pdu_session_resource_setup_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id);
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    smf_context_t*);
 void amf_app_handle_resource_setup_response(
     itti_ngap_pdusessionresource_setup_rsp_t session_seup_resp);
 int pdu_session_resource_release_request(
-    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id);
+    ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
+    smf_context_t* smf_ctx);
 void amf_app_handle_resource_release_response(
     itti_ngap_pdusessionresource_rel_rsp_t session_rel_resp);
 void amf_app_handle_cm_idle_on_ue_context_release(
     itti_ngap_ue_context_release_req_t cm_idle_req);
+// Handle UE CONTEXT RELEASE COMMAND in DL to NGAP
+void ue_context_release_command(
+    amf_ue_ngap_id_t amf_ue_ngap_id, gnb_ue_ngap_id_t gnb_ue_ngap_id,
+    Ngcause ng_cause);
 }  // namespace magma5g

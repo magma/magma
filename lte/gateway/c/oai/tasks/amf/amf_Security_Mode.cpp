@@ -28,9 +28,6 @@ extern "C" {
 #include "amf_sap.h"
 
 namespace magma5g {
-extern ue_m5gmm_context_s
-    ue_m5gmm_global_context;  // TODO: This has been taken care in upcoming
-                              //       PR with multi UE feature
 
 /****************************************************************************
  **                                                                        **
@@ -54,13 +51,12 @@ int amf_handle_security_complete_response(
   /*
    * Get the UE context
    */
-  ue_mm_context = &ue_m5gmm_global_context;  // TODO: This has been taken care
-                                             // in new PR with multi UE feature
+  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_mm_context) {
     amf_ctx = &ue_mm_context->amf_context;
   } else {
-    OAILOG_ERROR(LOG_AMF_APP, "ue_mm_context is NULL");
+    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
   nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);

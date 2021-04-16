@@ -30,9 +30,7 @@ extern "C" {
 
 extern amf_config_t amf_config;
 namespace magma5g {
-extern ue_m5gmm_context_s
-    ue_m5gmm_global_context;  // TODO: This has been taken care in new PR with
-                              // multi UE feature
+
 // Global map of supi to guti along with amf_ue_ngap_id
 std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 
@@ -127,8 +125,7 @@ int amf_proc_identification_complete(
       ue_id);
 
   ue_m5gmm_context_s* ue_mm_context =
-      &ue_m5gmm_global_context;  // TODO: This has been taken care in new PR
-                                 // with multi UE feature
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_mm_context) {
     amf_ctx = &ue_mm_context->amf_context;
@@ -183,8 +180,7 @@ void amf_app_generate_guti_on_supi(
   amf_config_read_lock(&amf_config);
   amf_guti->guamfi.amf_regionid = amf_config.guamfi.guamfi[0].amf_regionid;
   // TODO: Temp hardcoded change to remove later
-  amf_guti->guamfi.amf_set_id = 0;
-  // amf_guti->guamfi.amf_set_id   = amf_config.guamfi.guamfi[0].amf_set_id;
+  amf_guti->guamfi.amf_set_id  = 0;
   amf_guti->guamfi.amf_pointer = amf_config.guamfi.guamfi[0].amf_pointer;
   amf_config_unlock(&amf_config);
   return;

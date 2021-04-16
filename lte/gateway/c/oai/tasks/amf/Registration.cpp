@@ -34,9 +34,7 @@ extern "C" {
 #define INVALID_AMF_UE_NGAP_ID 0x0
 
 namespace magma5g {
-extern ue_m5gmm_context_s
-    ue_m5gmm_global_context;  // TODO: This has been taken care in upcoming PR
-                              // with multi UE feature
+
 amf_as_data_t amf_data_sec;
 nas_amf_smc_proc_t smc_proc;
 static int amf_registration_failure_authentication_cb(
@@ -46,6 +44,7 @@ static int amf_registration_failure_identification_cb(
 static int amf_start_registration_proc_security(
     amf_context_t* amf_context, nas_amf_registration_proc_t* registration_proc);
 static int amf_registration(amf_context_t* amf_context);
+int amf_send_registration_accept(amf_context_t* amf_context);
 static int amf_registration_failure_security_cb(amf_context_t* amf_context);
 static int amf_registration_run_procedure(amf_context_t* amf_context);
 static int amf_registration_reject(
@@ -106,7 +105,18 @@ static int amf_start_registration_proc_authentication(
 **                                                                        **
 ***************************************************************************/
 nas_amf_registration_proc_t* nas_new_registration_procedure(
-    amf_context_t* amf_context) {
+    ue_m5gmm_context_s* ue_ctxt) {
+  ue_m5gmm_context_s* ue_m5gmm_context =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_ctxt->amf_ue_ngap_id);
+
+  if (ue_m5gmm_context == NULL) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id=%u\n",
+        ue_ctxt->amf_ue_ngap_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, NULL);
+  }
+  amf_context_t* amf_context = &ue_ctxt->amf_context;
+
   if (!(amf_context->amf_procedures)) {
     OAILOG_DEBUG(
         LOG_AMF_APP,
@@ -127,8 +137,7 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
       (nas_amf_registration_proc_t*)
           amf_context->amf_procedures->amf_specific_proc;
 
-  ue_m5gmm_global_context.amf_context.amf_procedures =
-      amf_context->amf_procedures;
+  ue_m5gmm_context->amf_context.amf_procedures = amf_context->amf_procedures;
   OAILOG_TRACE(
       LOG_NAS_AMF, "New AMF_SPEC_PROC_TYPE_REGISTRATION initialized\n");
   return proc;
@@ -145,7 +154,7 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
 void amf_proc_create_procedure_registration_request(
     ue_m5gmm_context_s* ue_ctx, amf_registration_request_ies_t* ies) {
   nas_amf_registration_proc_t* reg_proc =
-      nas_new_registration_procedure(&ue_ctx->amf_context);
+      nas_new_registration_procedure(ue_ctx);
   if ((reg_proc)) {
     reg_proc->ies   = ies;
     reg_proc->ue_id = ue_ctx->amf_ue_ngap_id;
@@ -165,8 +174,8 @@ int amf_proc_registration_request(
     amf_registration_request_ies_t* ies) {
   int rc = RETURNerror;
   ue_m5gmm_context_s ue_ctx;
-  imsi64_t imsi64 = INVALID_IMSI64;
-
+  imsi64_t imsi64                      = INVALID_IMSI64;
+  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
   if (ies->imsi) {
     imsi64 = amf_imsi_to_imsi64(ies->imsi);
     OAILOG_DEBUG(
@@ -191,8 +200,13 @@ int amf_proc_registration_request(
   if (!(is_nas_specific_procedure_registration_running(&ue_ctx.amf_context))) {
     amf_proc_create_procedure_registration_request(&ue_ctx, ies);
   }
+  ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_m5gmm_context == NULL) {
+    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+  }
 
-  rc = amf_registration_run_procedure(&ue_ctx.amf_context);
+  rc = amf_registration_run_procedure(&ue_m5gmm_context->amf_context);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -693,8 +707,7 @@ static int amf_proc_registration_complete(
   /*
    * Get the UE context
    */
-  ue_amf_context = &ue_m5gmm_global_context;  // TODO: This has been taken care
-                                              // in new PR with multi UE feature
+  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_amf_context) {
     if (is_nas_specific_procedure_registration_running(
@@ -724,6 +737,7 @@ static int amf_proc_registration_complete(
         "UE " AMF_UE_NGAP_ID_FMT
         " REGISTRATION COMPLETE discarded (context not found)\n",
         ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
   /*
    * Set the network registration indicator

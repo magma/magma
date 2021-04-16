@@ -37,6 +37,9 @@ set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SmfMessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GULNASTransport.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GDLNASTransport.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GServiceRequest.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GServiceAccept.cpp
+
     )
 
 set(libnas_ies_OBJS
@@ -74,6 +77,7 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GGprsTimer3.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GNSSAI.cpp   
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GTAIList.cpp 
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GServiceType.cpp
     )
 
 add_library(LIB_NAS5G

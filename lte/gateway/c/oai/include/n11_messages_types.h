@@ -225,6 +225,9 @@ typedef struct itti_n11_create_pdu_session_response_s {
 #define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR)                                \
   (mSGpTR)->ittiMsg.n11_create_pdu_session_response
 
+#define N11_NOTIFICATION_RECEIVED(mSGpTR)                                      \
+  (mSGpTR)->ittiMsg.n11_notification_received
+
 // Resource relese request
 // typedef enum radio_network_layer_cause_e
 typedef enum {
@@ -373,6 +376,9 @@ typedef struct M5GSMCapability_received_s {
   bool multi_homed_ipv6_pdu_session;
 } M5GSMCapability_received;
 
+#define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR)                                \
+  (mSGpTR)->ittiMsg.n11_create_pdu_session_response
+
 typedef enum {
   PDU_SESSION_INACTIVE_NOTIFY,         // AMF <=> SMF
   UE_IDLE_MODE_NOTIFY,                 // AMF  => SMF
@@ -394,7 +400,6 @@ typedef struct itti_n11_received_notification_s {
   M5GSMCapability_received m5g_sm_capability;
   m5g_sm_cause_t m5gsm_cause;
   pdu_session_type_t pdu_session_type;
-  // M5GSMCause_response m5gsm_cause;
   // Idle/paging/periodic_reg events and UE state notification
   notify_ue_event notify_ue_evnt;
 } itti_n11_received_notification_t;

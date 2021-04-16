@@ -19,6 +19,7 @@ extern "C" {
 #include "log.h"
 #include "conversions.h"
 #include "3gpp_24.008.h"
+#include "secu_defs.h"
 #ifdef __cplusplus
 }
 #endif
@@ -34,6 +35,7 @@ extern "C" {
 #include "M5GDLNASTransport.h"
 #include "S6aClient.h"
 #include "proto_msg_to_itti_msg.h"
+#include "ngap_messages_types.h"
 
 using namespace magma;
 typedef uint32_t amf_ue_ngap_id_t;
@@ -43,6 +45,7 @@ typedef uint32_t amf_ue_ngap_id_t;
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
 /*forward declaration*/
+extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause);
 static int amf_as_security_req(
     const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg);
@@ -111,8 +114,15 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   int rc                = RETURNerror;
   tai_t originating_tai = {0};
   amf_nas_message_t nas_msg;
-  ue_m5gmm_context_s ue_m5gmm_context;
-  ue_m5gmm_context.mm_state = UNREGISTERED;
+  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
+  ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
+  if (ue_m5gmm_context == NULL) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+  }
+
+  ue_m5gmm_context->mm_state = UNREGISTERED;
 
   // Decode initial NAS message
   decoder_rc = nas5g_message_decode(
@@ -142,6 +152,10 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
           msg->ue_id, &originating_tai, &msg->ecgi,
           &amf_msg->msg.registrationrequestmsg, msg->is_initial,
           msg->is_amf_ctx_new, *amf_cause, decode_status);
+      break;
+    case M5G_SERVICE_REQUEST:  // SERVICE_REQUEST:
+      rc = amf_handle_service_request(
+          msg->ue_id, &amf_msg->msg.service_request, decode_status);
       break;
     case M5G_IDENTITY_RESPONSE:
       rc = amf_handle_identity_response(
@@ -498,6 +512,30 @@ uint16_t amf_as_data_req(
     int bytes                                    = 0;
     amf_security_context_t* amf_security_context = NULL;
     OAILOG_DEBUG(LOG_AMF_APP, "start NAS encoding\n");
+    amf_context_t* amf_ctx = NULL;
+    ue_m5gmm_context_s* ue_m5gmm_context =
+        amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
+
+    if (ue_m5gmm_context) {
+      amf_ctx = &ue_m5gmm_context->amf_context;
+#if 1  // TODO-RECHECK for NW initiated derestration and security
+      if (amf_ctx) {
+        // if (amf_msg->nw_deregister_request.nw_deregistertype ==
+        //    NW_DEREGISTER_TYPE_IMSI_DEREGISTER) {
+        //  amf_ctx->is_imsi_only_deregister = true;
+        //}
+        if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
+          amf_security_context = &amf_ctx->_security;
+          // is_encoded           = true;// TODO
+        }
+      }
+#endif
+    } else {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+    }
+
     if (!is_encoded) {
       /*
        * Encode the NAS information message
@@ -665,17 +703,15 @@ static int amf_auth_request(
     const amf_as_security_t* msg, AuthenticationRequestMsg* amf_msg) {
   s6a_auth_info_req_t air_t;
   memset(&air_t, 0, sizeof(s6a_auth_info_req_t));
-  extern ue_m5gmm_context_s
-      ue_m5gmm_global_context;  // TODO This has been taken care in new PR with
-                                // multi UE feature
+
   ue_m5gmm_context_s* ue_context =
       amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
   if (ue_context) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, air_t.imsi, IMSI_LENGTH);
   } else {
-    ue_context = &ue_m5gmm_global_context;  // TODO This has been taken care in
-                                            // new PR with multi UE feature
-    IMSI64_TO_STRING(ue_context->amf_context.imsi64, air_t.imsi, IMSI_LENGTH);
+    OAILOG_ERROR(
+        LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
   }
   char temp_imsi[IMSI_BCD_DIGITS_MAX + 1] = "208950000000031";
   strcpy(air_t.imsi, temp_imsi);
@@ -851,6 +887,10 @@ static int amf_as_security_req(
           nas_msg.header.sequence_number = amf_ctx->_security.dl_count.seq_num;
         }
       }
+    } else {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
     }
 
     /*
@@ -871,6 +911,57 @@ static int amf_as_security_req(
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
+}
+
+int initial_context_setup_request(
+    amf_ue_ngap_id_t ue_id, amf_context_t* amf_ctx, bstring nas_msg) {
+  /*This message is sent by the AMF to NG-RAN node to request the setup of a UE
+   * context before Registration Accept is sent to UE*/
+
+  Ngap_initial_context_setup_request_t* req = nullptr;
+  MessageDef* message_p                     = nullptr;
+  message_p =
+      itti_alloc_new_message(TASK_AMF_APP, NGAP_INITIAL_CONTEXT_SETUP_REQ);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "Failed to allocate memory for NGAP_INITIAL_CONTEXT_SETUP_REQ\n");
+    return RETURNerror;
+  }
+  req = &message_p->ittiMsg.ngap_initial_context_setup_request;
+  memset(req, 0, sizeof(Ngap_initial_context_setup_request_t));
+  req->amf_ue_ngap_id = ue_id;
+  gnb_ue_ngap_id_t gnb_ue_ngap_id =
+      PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->gnb_ue_ngap_id;
+  req->ran_ue_ngap_id = gnb_ue_ngap_id;
+  req->ue_security_capabilities.m5g_encryption_algo |=
+      (amf_ctx->ue_sec_capability.ea1 & 0001) << 15;
+  req->ue_security_capabilities.m5g_encryption_algo |=
+      (amf_ctx->ue_sec_capability.ea2 & 0001) << 14;
+  req->ue_security_capabilities.m5g_encryption_algo |=
+      (amf_ctx->ue_sec_capability.ea3 & 0001) << 13;
+  req->ue_security_capabilities.m5g_encryption_algo =
+      htons(req->ue_security_capabilities.m5g_encryption_algo);
+  req->ue_security_capabilities.m5g_integrity_protection_algo |=
+      (amf_ctx->ue_sec_capability.ia1 & 0001) << 15;
+  req->ue_security_capabilities.m5g_integrity_protection_algo |=
+      (amf_ctx->ue_sec_capability.ia2 & 0001) << 14;
+  req->ue_security_capabilities.m5g_integrity_protection_algo |=
+      (amf_ctx->ue_sec_capability.ia3 & 0001) << 13;
+  req->ue_security_capabilities.m5g_integrity_protection_algo =
+      htons(req->ue_security_capabilities.m5g_integrity_protection_algo);
+  req->Security_Key = (unsigned char*) &amf_ctx->_security.kgnb;
+  memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
+
+  if (nas_msg) {
+    req->nas_pdu = nas_msg;
+  } else {
+    OAILOG_INFO(LOG_AMF_APP, "invalid nas_msg for registration accept");
+    return RETURNerror;
+  }
+
+  send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+  return RETURNok;
 }
 
 /****************************************************************************
@@ -909,12 +1000,10 @@ uint16_t amf_as_establish_cnf(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
   }
 
-  as_msg->s_tmsi.amf_pointer = msg->pds_id.guti->guamfi.amf_pointer;
-  as_msg->s_tmsi.m_tmsi      = msg->pds_id.guti->m_tmsi;
-  as_msg->nas_msg            = msg->nas_msg;
-  as_msg->presencemask       = msg->presencemask;
-  as_msg->m5g_service_type   = msg->service_type;
-  amf_context_t* amf_ctx     = NULL;
+  as_msg->nas_msg                              = msg->nas_msg;
+  as_msg->presencemask                         = msg->presencemask;
+  as_msg->m5g_service_type                     = msg->service_type;
+  amf_context_t* amf_ctx                       = NULL;
   amf_security_context_t* amf_security_context = NULL;
   amf_ctx                                      = amf_context_get(msg->ue_id);
   if (amf_ctx) {
@@ -967,6 +1056,29 @@ uint16_t amf_as_establish_cnf(
 
   if (bytes > 0) {
     OAILOG_DEBUG(LOG_AMF_APP, "NAS encoding success\n");
+    m5gmm_state_t state =
+        PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->mm_state;
+    nas_amf_registration_proc_t* registration_proc =
+        get_nas_specific_procedure_registration(amf_ctx);
+
+    if ((state != REGISTERED_CONNECTED) &&
+        !(registration_proc->registration_accept_sent)) {
+      /*GNB key, generated in AMF from KAMF and shared with gNB as part of
+       * InitialContextSetupRequest*/
+      derive_5gkey_gnb(
+          amf_security_context->kamf, as_msg->nas_ul_count,
+          amf_security_context->kgnb);
+      OAILOG_DEBUG(LOG_AMF_APP, "prep and send initial_context_setup_request");
+      initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
+      registration_proc->registration_accept_sent++;
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
+    }
+    registration_proc->registration_accept_sent++;
+
+    OAILOG_INFO(
+        LOG_AMF_APP, "registration_accept_sent: %d",
+        registration_proc->registration_accept_sent);
+
     as_msg->err_code = M5G_AS_SUCCESS;
     ret_val          = AS_NAS_ESTABLISH_CNF_;
   } else {
