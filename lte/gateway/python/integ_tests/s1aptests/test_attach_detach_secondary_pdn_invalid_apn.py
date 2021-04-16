@@ -58,6 +58,11 @@ class TestSecondaryPdnConnReqInvalidAPN(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
+        # Verify cause
+        pdn_con_rsp = response.cast(s1ap_types.uePdnConRsp_t)
+        self.assertEqual(
+            pdn_con_rsp.m.conRejInfo.cause, s1ap_types.TFW_ESM_CAUSE_MISSING_OR_UNKNOWN_APN
+        )
 
         print("Sleeping for 5 seconds")
         time.sleep(5)

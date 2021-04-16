@@ -12,7 +12,7 @@ import time
 import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
-
+import ipaddress
 
 class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
     def setUp(self):
@@ -56,12 +56,14 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         print("***** Sleeping for 5 seconds")
         time.sleep(5)
         # Attach
-        self._s1ap_wrapper.s1_util.attach(
+        attach = self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -81,6 +83,13 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+        pdnType = act_def_bearer_req.m.pdnInfo.pAddr.pdnType
+        addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+        sec_ip_ipv4 = None
+        if pdnType == 1:
+            sec_ip_ipv4 = ipaddress.ip_address(bytes(addr[:4]))
+        elif pdnType == 3:
+            sec_ip_ipv4 = ipaddress.ip_address(bytes(addr[8:12]))
 
         print(
             "********************** Sending Activate default EPS bearer "
@@ -107,6 +116,7 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
             "\x00"
         )
         print("******* UE IPv6 address: ", ipv6_addr)
+        sec_ip_ipv6 = ipaddress.ip_address(ipv6_addr)
 
         print("***** Sleeping for 5 seconds")
         time.sleep(5)
@@ -114,11 +124,11 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         # Add dedicated bearer
         print("********************** Adding dedicated bearer to ims PDN")
 
-        self._spgw_util.create_bearer_ipv4v6(
-            "IMSI" + "".join([str(i) for i in req.imsi]),
-            act_def_bearer_req.m.pdnInfo.epsBearerId,
-            ipv4=True,
-            ipv6=True,
+        # Create default ipv4v6 flow list
+        flow_list = self._spgw_util.create_default_ipv4v6_flows()
+        self._spgw_util.create_bearer(
+            "IMSI" + "".join([str(i) for i in req.imsi]), act_def_bearer_req.m.pdnInfo.epsBearerId,
+            flow_list,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -133,9 +143,21 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
             "************* Added dedicated bearer",
             act_ded_ber_ctxt_req.bearerId,
         )
+        print("***** Sleeping for 10 seconds")
+        time.sleep(10)
+        # ipv4 default pdn + ipv4v6(ims) pdn + dedicated bearer for ims pdn
+        num_ul_flows = 3
+        dl_flow_rules = {
+            default_ip: [],
+            sec_ip_ipv4: [flow_list],
+            sec_ip_ipv6: [flow_list],
+        }
 
-        print("***** Sleeping for 5 seconds")
-        time.sleep(5)
+        # Verify if flow rules are created
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
+
         print(
             "********************** Deleting dedicated bearer for IMSI",
             "".join([str(i) for i in req.imsi]),
@@ -160,6 +182,26 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
 
         print("***** Sleeping for 5 seconds")
         time.sleep(5)
+        # ipv4 default pdn + ipv4v6(ims) pdn
+        num_ul_flows = 2
+        # For ipv4v6 pdn, pass default_ip, sec_ip_ipv4 and sec_ip_ipv6
+        if pdnType == 3:
+            dl_flow_rules = {
+                default_ip: [],
+                sec_ip_ipv4: [],
+                sec_ip_ipv6: [],
+            }
+        # For ipv6 pdn, pass default_ip, sec_ip_ipv6
+        if pdnType == 2:
+            dl_flow_rules = {
+                default_ip: [],
+                sec_ip_ipv6: [],
+            }
+        # Verify if flow rules are created
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
+
         print(
             "******************* Running UE detach (switch-off) for ",
             "UE id ",

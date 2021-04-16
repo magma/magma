@@ -14,6 +14,7 @@ limitations under the License.
 import unittest
 import s1ap_types
 import time
+import ipaddress
 
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
@@ -73,16 +74,19 @@ class Test3495TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
             req.ue_id,
         )
         # Now actually complete the attach
-        self._s1ap_wrapper._s1_util.attach(
+        attach = self._s1ap_wrapper._s1_util.attach(
             req.ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
+        print("Sleeping for 5 seconds")
         time.sleep(5)
         print("*** Sending PDN connectivity Req ***")
         # Send PDN Connectivity Request
@@ -94,13 +98,27 @@ class Test3495TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+        addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+        sec_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         print(
             "************************* Sending Activate default EPS bearer "
             "context accept for UE id ",
             req.ue_id,
         )
+        print("Sleeping for 5 seconds")
         time.sleep(5)
+        # Verify if flow rules are created
+        # No dedicated bearers, so flowlist is empty
+        dl_flow_rules = {
+            default_ip: [],
+            sec_ip: [],
+        }
+        # 1 UL flow is created per bearer
+        num_ul_flows = 2
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
 
         # Send PDN Disconnect
         pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
@@ -139,7 +157,18 @@ class Test3495TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
             req.ue_id, deactv_bearer_req.bearerId
         )
 
-        time.sleep(2)
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify that flow rules are deleted for the secondary pdn
+        # No dedicated bearers, so flowlist is empty
+        dl_flow_rules = {
+            default_ip: [],
+        }
+        # 1 UL flow is created per bearer
+        num_ul_flows = 1
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
 
         print(
             "********************** Running UE detach for UE id ", req.ue_id,

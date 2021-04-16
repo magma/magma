@@ -16,7 +16,7 @@ import time
 
 import s1ap_types
 import s1ap_wrapper
-
+import ipaddress
 
 class TestSecondaryPdnRejectMultipleSessionsNotAllowedPerApn(
     unittest.TestCase
@@ -42,12 +42,14 @@ class TestSecondaryPdnRejectMultipleSessionsNotAllowedPerApn(
             ue_id,
         )
         # Attach
-        self._s1ap_wrapper.s1_util.attach(
+        attach = self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -60,9 +62,24 @@ class TestSecondaryPdnRejectMultipleSessionsNotAllowedPerApn(
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
+        pdn_con_rsp = response.cast(s1ap_types.uePdnConRsp_t)
+        self.assertEqual(
+            pdn_con_rsp.m.conRejInfo.cause, s1ap_types.TFW_ESM_CAUSE_MULTIPLE_PDN_CON_FOR_A_GIVEN_APN_NA
+        )
 
         print("Sleeping for 5 seconds")
         time.sleep(5)
+        # Verify that flow rule is created only for the default bearer
+        # No dedicated bearers, so flowlist is empty
+        dl_flow_rules = {
+            default_ip: [],
+        }
+        # 1 UL flow for default PDN
+        num_ul_flows = 1
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
+
         print(
             "************************* Running UE detach (switch-off) for ",
             "UE id ",

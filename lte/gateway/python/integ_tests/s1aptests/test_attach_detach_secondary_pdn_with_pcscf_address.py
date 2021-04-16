@@ -16,6 +16,7 @@ import time
 
 import s1ap_types
 import s1ap_wrapper
+import ipaddress
 
 
 class TestAttachDetachSecondaryPdnWithPcscfAddress(unittest.TestCase):
@@ -31,6 +32,7 @@ class TestAttachDetachSecondaryPdnWithPcscfAddress(unittest.TestCase):
         num_pdns = 2
         bearer_ids = []
         num_ue = 1
+        sec_ips = []
 
         self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req
@@ -69,12 +71,14 @@ class TestAttachDetachSecondaryPdnWithPcscfAddress(unittest.TestCase):
             ue_id,
         )
         # Attach
-        self._s1ap_wrapper.s1_util.attach(
+        attach = self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -99,6 +103,8 @@ class TestAttachDetachSecondaryPdnWithPcscfAddress(unittest.TestCase):
                 response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
             )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+            addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+            sec_ips.append(ipaddress.ip_address(bytes(addr[:4])))
 
             print(
                 "********************** Sending Activate default EPS bearer "
@@ -112,7 +118,21 @@ class TestAttachDetachSecondaryPdnWithPcscfAddress(unittest.TestCase):
                 act_def_bearer_req.m.pdnInfo.epsBearerId,
             )
 
+        print("Sleeping for 5 seconds")
         time.sleep(5)
+        # Verify if flow rules are created
+        # No dedicated bearers, so flowlist is empty
+        dl_flow_rules = {
+            default_ip: [],
+            sec_ips[0]: [],
+            sec_ips[1]: [],
+        }
+        # 1 UL flow is created per bearer
+        num_ul_flows = 3
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
+
         for i in range(num_pdns):
             # Send PDN Disconnect
             pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
@@ -141,6 +161,19 @@ class TestAttachDetachSecondaryPdnWithPcscfAddress(unittest.TestCase):
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
                 ue_id, bearer_ids[i]
             )
+
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify that flow rules are deleted for the secondary pdns
+        # No dedicated bearers, so flowlist is empty
+        dl_flow_rules = {
+            default_ip: [],
+        }
+        # 1 UL flow default bearer
+        num_ul_flows = 1
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
 
         print(
             "******************* Running UE detach (switch-off) for ",

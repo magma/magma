@@ -82,6 +82,20 @@ class TestAttachDetachTwoPDNsWithTcpTraffic(unittest.TestCase):
         ims_addr = pdn_conn_rsp.m.pdnInfo.pAddr.addrInfo
         ims_ip = ipaddress.ip_address(bytes(ims_addr[:4]))
 
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify if flow rules are created
+        # No dedicated bearers, so flowlist is empty
+        dl_flow_rules = {
+            default_apn_ip: [],
+            ims_ip: [],
+        }
+        # 1 UL flow is created per bearer
+        num_ul_flows = 2
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
+
         print(
             "************************* Running UE uplink (TCP) for UE id ",
             req.ue_id,
@@ -131,6 +145,17 @@ class TestAttachDetachTwoPDNsWithTcpTraffic(unittest.TestCase):
         deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
         self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
             req.ue_id, deactv_bearer_req.bearerId
+        )
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify that flow rule is deleted for the secondary pdn
+        dl_flow_rules = {
+            default_apn_ip: [],
+        }
+        # 1 UL flow the default bearer
+        num_ul_flows = 1
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
         )
 
         print(
