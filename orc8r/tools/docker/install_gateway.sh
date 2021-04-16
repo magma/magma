@@ -13,13 +13,15 @@
 
 # This script is intended to install a docker-based gateway deployment
 
+# Both ENV vars are moved in to .env file:
+# GIT_HASH="v1.3.3"
+# IMAGE_VERSION="docker-tag-1.3.3"
 set -e
 
 CWAG="cwag"
 FEG="feg"
 XWF="xwf"
 INSTALL_DIR="/tmp/magmagw_install"
-GIT_HASH="master"
 
 # TODO: Update docker-compose to stable version
 
@@ -69,10 +71,6 @@ MAGMA_GITHUB_URL="https://github.com/magma/magma.git"
 git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL"
 
 source .env
-if [[ $IMAGE_VERSION == *"|"* ]]; then
-  GIT_HASH=$(cut -d'|' -f2 <<< "$IMAGE_VERSION")
-  IMAGE_VERSION=$(cut -d'|' -f1 <<< "$IMAGE_VERSION")
-fi
 
 if [ "$IMAGE_VERSION" != "latest" ]; then
     git -C $INSTALL_DIR/magma checkout "$GIT_HASH"
