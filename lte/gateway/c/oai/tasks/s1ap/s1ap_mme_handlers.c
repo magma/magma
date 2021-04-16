@@ -114,8 +114,9 @@ bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
  */
 s1ap_message_handler_t message_handlers[][3] = {
     {s1ap_mme_handle_handover_required, 0, 0}, /* HandoverPreparation */
-    {0, 0, 0},                                 /* HandoverResourceAllocation */
-    {0, 0, 0},                                 /* HandoverNotification */
+    {0, s1ap_mme_handle_handover_request_ack,
+     0},       /* HandoverResourceAllocation */
+    {0, 0, 0}, /* HandoverNotification */
     {s1ap_mme_handle_path_switch_request, 0, 0}, /* PathSwitchRequest */
     {0, 0, 0},                                   /* HandoverCancel */
     {0, s1ap_mme_handle_erab_setup_response,
@@ -1909,6 +1910,125 @@ int s1ap_mme_handle_ue_context_modification_failure(
 
 //------------------------------------------------------------------------------
 
+int s1ap_mme_handle_handover_request_ack(
+    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    __attribute__((unused)) const sctp_stream_id_t stream,
+    S1ap_S1AP_PDU_t* pdu) {
+  S1ap_HandoverRequestAcknowledge_t* container = NULL;
+  S1ap_HandoverRequestAcknowledgeIEs_t* ie     = NULL;
+  enb_description_t* source_enb                = NULL;
+  enb_description_t* target_enb                = NULL;
+  hashtable_element_array_t* enb_array         = NULL;
+  uint32_t idx                                 = 0;
+  ue_description_t* ue_ref_p                   = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id              = INVALID_MME_UE_S1AP_ID;
+  enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id          = INVALID_ENB_UE_S1AP_ID;
+  S1ap_HandoverType_t handover_type            = -1;
+  bstring tgt_src_container                    = {0};
+  imsi64_t imsi64                              = INVALID_IMSI64;
+  s1ap_imsi_map_t* imsi_map                    = get_s1ap_imsi_map();
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+  OAILOG_INFO(LOG_S1AP, "handover request ack received");
+
+  container =
+      &pdu->choice.successfulOutcome.value.choice.HandoverRequestAcknowledge;
+
+  // MME_UE_S1AP_ID: mandatory
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequestAcknowledgeIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // eNB_UE_S1AP_ID: mandatory
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequestAcknowledgeIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  // eNB UE S1AP ID is limited to 24 bits
+  if (ie) {
+    tgt_enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
+        ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // E-RABAdmittedList: mandatory
+  // Note that the DL and UL transport address and GTP-TEID are optional, and
+  // only used if data forwarding will take place.
+  // TODO: add support for indirect data forwarding
+
+  // Target To Source Transparent Container: mandatory
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequestAcknowledgeIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_Target_ToSource_TransparentContainer, true);
+  if (ie) {
+    // note: ownership of tgt_src_container transferred to receiver
+    tgt_src_container = blk2bstr(
+        ie->value.choice.Target_ToSource_TransparentContainer.buf,
+        ie->value.choice.Target_ToSource_TransparentContainer.size);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // get imsi for logging
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+      &imsi64);
+
+  // Retrieve the association ID for the eNB that UE is currently connected
+  // (i.e., Source eNB) and pull the Source eNB record from s1ap state using
+  // this association
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "MME_UE_S1AP_ID (" MME_UE_S1AP_ID_FMT
+        ") does not point to any valid UE\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
+    for (idx = 0; idx < enb_array->num_elements; idx++) {
+      source_enb = (enb_description_t*) (uintptr_t) enb_array->elements[idx];
+      if (source_enb->sctp_assoc_id == ue_ref_p->sctp_assoc_id) {
+        break;
+      }
+    }
+    free_wrapper((void**) &enb_array->elements);
+    free_wrapper((void**) &enb_array);
+    if (source_enb->sctp_assoc_id != ue_ref_p->sctp_assoc_id) {
+      OAILOG_ERROR_UE(LOG_S1AP, imsi64, "No source eNB found for UE\n");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+  }
+
+  OAILOG_INFO_UE(
+      LOG_S1AP, imsi64, "Source enb is %u (association id %u)\n",
+      source_enb->enb_id, source_enb->sctp_assoc_id);
+
+  // get the target eNB -- the one that sent this message, target of the
+  // handover
+  target_enb = s1ap_state_get_enb(state, assoc_id);
+
+  // handover type -- we only support intralte today, and reject all other
+  // handover types when we receive HandoverRequired, so we can always assume
+  // it's an intralte handover.
+  handover_type = S1ap_HandoverType_intralte;
+
+  // Since we aren't doing data forwarding yet, we could directly create the
+  // HandoverCommand. We'll pass the message through the MME_APP still.
+
+  s1ap_mme_itti_s1ap_handover_request_ack(
+      mme_ue_s1ap_id, ue_ref_p->enb_ue_s1ap_id, tgt_enb_ue_s1ap_id,
+      handover_type, source_enb->sctp_assoc_id, target_enb->sctp_assoc_id,
+      tgt_src_container, imsi64);
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
 int s1ap_mme_handle_handover_request(
     s1ap_state_t* state, const itti_mme_app_handover_request_t* ho_request_p) {
   uint8_t* buffer_p   = NULL;
@@ -2342,6 +2462,100 @@ int s1ap_mme_handle_handover_required(
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
+int s1ap_mme_handle_handover_command(
+    s1ap_state_t* state, const itti_mme_app_handover_command_t* ho_command_p) {
+  uint8_t* buffer_p   = NULL;
+  uint8_t err         = 0;
+  uint32_t length     = 0;
+  S1ap_S1AP_PDU_t pdu = {0};
+  S1ap_HandoverCommand_t* out;
+  S1ap_HandoverCommandIEs_t* ie = NULL;
+  ue_description_t* ue_ref_p    = NULL;
+  sctp_stream_id_t stream       = 0x0;
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+  if (ho_command_p == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "Handover Command is null\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(ho_command_p->mme_ue_s1ap_id)) ==
+      NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+        ", failing!\n",
+        (uint32_t) ho_command_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  } else {
+    stream = ue_ref_p->sctp_stream_send;
+  }
+
+  OAILOG_INFO(LOG_S1AP, "Handover Command received");
+  pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
+  pdu.choice.successfulOutcome.procedureCode =
+      S1ap_ProcedureCode_id_HandoverPreparation;
+  pdu.choice.successfulOutcome.value.present =
+      S1ap_SuccessfulOutcome__value_PR_HandoverCommand;
+  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
+  out = &pdu.choice.successfulOutcome.value.choice.HandoverCommand;
+
+  /* MME-UE-ID: mandatory */
+  ie =
+      (S1ap_HandoverCommandIEs_t*) calloc(1, sizeof(S1ap_HandoverCommandIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverCommandIEs__value_PR_MME_UE_S1AP_ID;
+  ie->value.choice.MME_UE_S1AP_ID = ho_command_p->mme_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* eNB-UE-ID: mandatory */
+  ie =
+      (S1ap_HandoverCommandIEs_t*) calloc(1, sizeof(S1ap_HandoverCommandIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverCommandIEs__value_PR_ENB_UE_S1AP_ID;
+  ie->value.choice.ENB_UE_S1AP_ID = ho_command_p->src_enb_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* HandoverType: mandatory */
+  ie =
+      (S1ap_HandoverCommandIEs_t*) calloc(1, sizeof(S1ap_HandoverCommandIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_HandoverType;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverCommandIEs__value_PR_HandoverType;
+  ie->value.choice.HandoverType = ho_command_p->handover_type;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* Target-ToSource-TransparentContainer: mandatory */
+  ie =
+      (S1ap_HandoverCommandIEs_t*) calloc(1, sizeof(S1ap_HandoverRequestIEs_t));
+  ie->id          = S1ap_ProtocolIE_ID_id_Target_ToSource_TransparentContainer;
+  ie->criticality = S1ap_Criticality_reject;
+  ie->value.present =
+      S1ap_HandoverCommandIEs__value_PR_Target_ToSource_TransparentContainer;
+  OCTET_STRING_fromBuf(
+      &ie->value.choice.Target_ToSource_TransparentContainer,
+      (char*) bdata(ho_command_p->tgt_src_container),
+      blength(ho_command_p->tgt_src_container));
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  // Construct the PDU and send message
+  if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
+    err = 1;
+  }
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_HandoverRequest, out);
+  if (err) {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  bstring b = blk2bstr(buffer_p, length);
+  free(buffer_p);
+
+  s1ap_mme_itti_send_sctp_request(
+      &b, ho_command_p->source_assoc_id, stream, ho_command_p->mme_ue_s1ap_id);
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
 int s1ap_mme_handle_path_switch_request(
     s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
