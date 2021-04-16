@@ -481,8 +481,10 @@ void amf_app_handle_pdu_session_response(
   smf_context_t* smf_ctx;
   amf_smf_t amf_smf_msg;
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
-  uint32_t ue_id = 1;
+  uint32_t ue_id = 0;
 
+  imsi64_t imsi64;
+  IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
   if (ue_context) {

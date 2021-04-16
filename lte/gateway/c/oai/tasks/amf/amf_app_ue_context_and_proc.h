@@ -308,6 +308,7 @@ typedef struct amf_ue_context_s {
   obj_hash_table_uint64_t* guti_ue_context_htbl;  // data is amf_ue_ngap_id_t
 } amf_ue_context_t;
 
+#if 0
 enum m5gmm_state_t {
   UNREGISTERED = 0,
   REGISTERED_IDLE,
@@ -315,6 +316,7 @@ enum m5gmm_state_t {
   UE_UNREGISTERED = 0,
   UE_REGISTERED,
 };
+#endif
 
 enum m5gcm_state_t {
   M5GCM_IDLE = 0,

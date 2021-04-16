@@ -205,9 +205,12 @@ int amf_proc_registration_request(
   /*
    * Execute Initial identity Request from AMF to UE
    */
+  // rc = state_handle_message_ue_1(
+  //    ue_m5gmm_global_context.mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
+  //    &ue_m5gmm_global_context, &ue_ctx.amf_context);
   rc = state_handle_message_ue_1(
-      ue_m5gmm_global_context.mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
-      &ue_m5gmm_global_context, &ue_ctx.amf_context);
+      ue_m5gmm_context->mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
+      ue_m5gmm_context, &ue_ctx.amf_context);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -670,6 +673,7 @@ int amf_handle_registration_complete_response(
     amf_nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc;
+  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "AMFAS-SAP - received registration complete message for ue_id = (%u)\n",
@@ -677,9 +681,16 @@ int amf_handle_registration_complete_response(
   /*
    * Execute the registration procedure completion
    */
+
+  ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_m5gmm_context == NULL) {
+    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
+    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
+  }
+
   rc = state_handle_message_ue_2(
-      ue_m5gmm_global_context.mm_state, STATE_EVENT_REG_COMPLETE, SESSION_NULL,
-      &ue_m5gmm_global_context, ue_id, msg->smf_pdu, amf_cause, status);
+      ue_m5gmm_context->mm_state, STATE_EVENT_REG_COMPLETE, SESSION_NULL,
+      ue_m5gmm_context, ue_id, msg->smf_pdu, amf_cause, status);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }

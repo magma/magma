@@ -281,7 +281,7 @@ int amf_handle_registration_request(
   /* This is SUCI message identity type is SUPI as IMSI type
    * Extract the SUPI from SUCI directly as scheme is NULL */
   if (msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity ==
-      M5GSMobileIdentityMsg_IMSI) {
+      M5GSMobileIdentityMsg_SUCI_IMSI) {
     // Only considering protection scheme as NULL else return error.
     if (msg->m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id ==
         MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
