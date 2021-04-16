@@ -56,7 +56,7 @@ class UEMacAddressTest(unittest.TestCase):
 
     @classmethod
     @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:aa:bb:cc:dd:ee'}]])
+                         return_value=[[{'addr': '00:aa:bb:cc:dd:ee'}]])
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
         """
@@ -195,7 +195,6 @@ class UEMacAddressTest(unittest.TestCase):
                                    self.testing_controller), 3, 2),
                 FlowTest(flow_queries[0], 4, 1),
             ], lambda: wait_after_send(self.testing_controller))
-
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)

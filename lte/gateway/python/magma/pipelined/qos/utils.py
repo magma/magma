@@ -28,6 +28,7 @@ class IdManager(object):
     """
     Simple utility class to manage IDs
     """
+
     def __init__(self, start_idx, max_idx):
         self._start_idx = start_idx
         self._max_idx = max_idx
@@ -35,7 +36,7 @@ class IdManager(object):
         self._free_idx_list = deque()
         self._restore_done = False
 
-    def allocate_idx(self,) -> int:
+    def allocate_idx(self) -> int:
         idx = self._get_free_idx()
         if idx is None:
             idx = self._counter
@@ -74,5 +75,7 @@ class IdManager(object):
 class QosStore(RedisHashDict):
     def __init__(self, redis_type):
         self.client = get_default_client()
-        super().__init__(self.client, redis_type,
-                         get_json_serializer(), get_json_deserializer())
+        super().__init__(
+            self.client, redis_type,
+            get_json_serializer(), get_json_deserializer(),
+        )

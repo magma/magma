@@ -2,7 +2,10 @@ import asyncio
 
 # pylint: disable=W0223
 
-# We cannot create instances directly for transport we need them to be created by event loop so hacking this.
+# We cannot create instances directly for transport we need them to be
+# created by event loop so hacking this.
+
+
 class MockTransport(asyncio.Transport):
     def __init__(self, extra=None):
         self.sent = []

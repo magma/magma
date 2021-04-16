@@ -31,14 +31,19 @@ from magma.pipelined.set_interface_client import send_periodic_session_update
 
 # Help to build failure report
 MsgParseOutput = NamedTuple(
-                   'MsgParseOutput',
-                   [('offending_ie', OffendingIE),
-                    ('cause_info', int)])
+    'MsgParseOutput',
+    [
+        ('offending_ie', OffendingIE),
+        ('cause_info', int),
+    ],
+)
+
 
 class SessionMessageType(Enum):
     MSG_TYPE_CONTEXT_STATE = 1  # In response to session configuraiton from SMF
-    MSG_TYPE_CONFIG_STATE  = 2  # Periodic messages to update session information to SMF
+    MSG_TYPE_CONFIG_STATE = 2  # Periodic messages to update session information to SMF
     MSG_TYPE_CONFIG_REPORT = 3  # Event or Periodic Report from session to SMF
+
 
 class SessionStateManager:
     send_message_offset = 0
@@ -48,6 +53,7 @@ class SessionStateManager:
     This controller manages session state information
     and reports session config to SMF.
     """
+
     def __init__(self, loop, logger):
         """
         Launch the SessionStateManager under ng_services
@@ -57,23 +63,35 @@ class SessionStateManager:
 
     # Creating the dict entries for the far group
     @staticmethod
-    def _pdr_create_rule_group(new_session, pdr_rules) -> Optional[MsgParseOutput]:
+    def _pdr_create_rule_group(
+            new_session, pdr_rules,
+    ) -> Optional[MsgParseOutput]:
 
         for pdr_entry in new_session.set_gr_pdr:
             # PDR Validation
             if pdr_entry.HasField('pdi') == False or pdr_entry.pdr_id == 0:
-                offending_ie = OffendingIE(identifier=pdr_entry.pdr_id,
-                                           version=pdr_entry.pdr_version)
-                return MsgParseOutput(offending_ie, CauseIE.MANDATORY_IE_INCORRECT)
+                offending_ie = OffendingIE(
+                    identifier=pdr_entry.pdr_id,
+                    version=pdr_entry.pdr_version,
+                )
+                return MsgParseOutput(
+                    offending_ie, CauseIE.MANDATORY_IE_INCORRECT,
+                )
 
             # If session is creted or activiated FAR_IDs cann't be 0
-            if  len(pdr_entry.set_gr_far.ListFields()) == 0 and \
-                     pdr_entry.pdr_state == PdrState.Value('INSTALL'):
-                offending_ie = OffendingIE(identifier=pdr_entry.pdr_id,
-                                           version=pdr_entry.pdr_version)
-                return MsgParseOutput(offending_ie, CauseIE.INVALID_FORWARDING_POLICY)
+            if len(pdr_entry.set_gr_far.ListFields()) == 0 and \
+                    pdr_entry.pdr_state == PdrState.Value('INSTALL'):
+                offending_ie = OffendingIE(
+                    identifier=pdr_entry.pdr_id,
+                    version=pdr_entry.pdr_version,
+                )
+                return MsgParseOutput(
+                    offending_ie, CauseIE.INVALID_FORWARDING_POLICY,
+                )
 
-            pdr_rules.update({pdr_entry.pdr_id: pdr_create_rule_entry(pdr_entry)})
+            pdr_rules.update(
+                {pdr_entry.pdr_id: pdr_create_rule_entry(pdr_entry)},
+            )
 
         return None
 
@@ -85,7 +103,7 @@ class SessionStateManager:
         existing session
         """
 
-        #if SEID is not found or version is 0
+        # if SEID is not found or version is 0
         if len(new_session.subscriber_id) == 0 or\
            new_session.session_version == 0:
             return CauseIE.SESSION_CONTEXT_NOT_FOUND
@@ -104,22 +122,32 @@ class SessionStateManager:
 
         # Assume things are green
         context_response =\
-             UPFSessionContextState(cause_info=CauseIE(cause_ie=CauseIE.REQUEST_ACCEPTED),
-                                    session_snapshot=UPFSessionState(subscriber_id=new_session.subscriber_id,
-                                                                     local_f_teid=new_session.local_f_teid,
-                                                                     session_version=new_session.session_version))
+            UPFSessionContextState(
+                cause_info=CauseIE(cause_ie=CauseIE.REQUEST_ACCEPTED),
+                session_snapshot=UPFSessionState(
+                    subscriber_id=new_session.subscriber_id,
+                    local_f_teid=new_session.local_f_teid,
+                    session_version=new_session.session_version,
+                ),
+            )
 
         context_response.cause_info.cause_ie = \
-                  SessionStateManager.validate_session_msg(new_session)
+            SessionStateManager.validate_session_msg(new_session)
         if context_response.cause_info.cause_ie != CauseIE.REQUEST_ACCEPTED:
-            self.logger.error("Error : Parsing Error in SetInterface Message %d",
-                              context_response.cause_info.cause_ie)
+            self.logger.error(
+                "Error : Parsing Error in SetInterface Message %d",
+                context_response.cause_info.cause_ie,
+            )
             return context_response
 
-        #Create PDR rules
-        pdr_validator = SessionStateManager._pdr_create_rule_group(new_session, process_pdr_rules)
+        # Create PDR rules
+        pdr_validator = SessionStateManager._pdr_create_rule_group(
+            new_session, process_pdr_rules,
+        )
         if pdr_validator:
-            context_response.failure_rule_id.pdr.extend([pdr_validator.offending_ie])
+            context_response.failure_rule_id.pdr.extend(
+                [pdr_validator.offending_ie],
+            )
             context_response.cause_info.cause_ie = pdr_validator.cause_info
 
         return context_response
@@ -127,7 +155,7 @@ class SessionStateManager:
     @classmethod
     def report_session_config_state(cls, session_config_dict, sessiond_stub):
 
-        SessionStateManager.send_message_offset +=1
+        SessionStateManager.send_message_offset += 1
 
         # Send session config messages every 10 seconds
         if SessionStateManager.send_message_offset % 5:
@@ -137,6 +165,10 @@ class SessionStateManager:
         for index in session_config_dict:
             session_config_list.append(session_config_dict[index])
 
-        session_config_msg = UPFSessionConfigState(upf_session_state=session_config_list)
-        if send_periodic_session_update(session_config_msg, sessiond_stub) == True:
+        session_config_msg = UPFSessionConfigState(
+            upf_session_state=session_config_list,
+        )
+        if send_periodic_session_update(
+                session_config_msg, sessiond_stub,
+        ) == True:
             SessionStateManager.periodic_config_msg_count += 1

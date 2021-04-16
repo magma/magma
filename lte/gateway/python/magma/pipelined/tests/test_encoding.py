@@ -51,9 +51,13 @@ class EncodingTest(unittest.TestCase):
         mac = 'qqqqq12345'
 
         hash = get_hash(key, PipelineD.HEConfig.SHA256)
-        self.assertEqual(hash, b'\xe6\xc6?<\xa3\xa4*F\x19v%\xf5\xc6l\x89L\xb1w,TM}\xb7H \x19\xffL\x85\xb4\xac\x82')
+        self.assertEqual(
+            hash,
+            b'\xe6\xc6?<\xa3\xa4*F\x19v%\xf5\xc6l\x89L\xb1w,TM}\xb7H \x19\xffL\x85\xb4\xac\x82')
         mac_hash = get_hash(mac, PipelineD.HEConfig.SHA256)
-        self.assertEqual(mac_hash, b'v\xdf\x84\xf3#I\xb4\xd2\x10\x0c4\xaeQL`\xccDW\xec\x02\n\x9f\xa4\x1ft\x1e\x95:2\xb3-\xb1')
+        self.assertEqual(
+            mac_hash,
+            b'v\xdf\x84\xf3#I\xb4\xd2\x10\x0c4\xaeQL`\xccDW\xec\x02\n\x9f\xa4\x1ft\x1e\x95:2\xb3-\xb1')
 
         encrypted = encrypt_str(
             msisdn, hash, PipelineD.HEConfig.AES256_CBC_HMAC_MD5, mac_hash)
@@ -93,7 +97,10 @@ class EncodingTest(unittest.TestCase):
         self.assertEqual(hash, b'4331347230333135763078')
 
         hash = get_hash(key, PipelineD.HEConfig.SHA256)
-        self.assertEqual(hash, b'\xe6\xc6?<\xa3\xa4*F\x19v%\xf5\xc6l\x89L\xb1w,TM}\xb7H \x19\xffL\x85\xb4\xac\x82')
+        self.assertEqual(
+            hash,
+            b'\xe6\xc6?<\xa3\xa4*F\x19v%\xf5\xc6l\x89L\xb1w,TM}\xb7H \x19\xffL\x85\xb4\xac\x82')
+
 
 if __name__ == "__main__":
     unittest.main()

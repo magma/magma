@@ -343,8 +343,8 @@ class GroupedAVP(BaseAVP):
         Return:
             an iterator on all AVPs that match
         """
-        return filter(lambda element: element.vendor == vendor \
-                                      and element.code == code, self.value)
+        return filter(lambda element: element.vendor == vendor
+                      and element.code == code, self.value)
 
     def find_avp(self, vendor, code):
         """
@@ -388,6 +388,7 @@ class AddressAVP(BaseAVP):
 
         raise exception.CodecException("Not a valid address")
 
+
 class EnumAVP(Unsigned32AVP):
     """
     Decode Enum AVPs given a Enum type
@@ -401,6 +402,7 @@ class EnumAVP(Unsigned32AVP):
             return cls.enum(val)
         except ValueError:
             return val
+
 
 @unique
 class ResultCode(IntEnum):
@@ -423,6 +425,7 @@ class ResultCodeAVP(EnumAVP):
     """
     enum = ResultCode
 
+
 @unique
 class DisconnectCause(IntEnum):
     """
@@ -431,6 +434,7 @@ class DisconnectCause(IntEnum):
     REBOOTING = 0
     BUSY = 1
     DO_NOT_WANT_TO_TALK_TO_YOU = 2
+
 
 class DisconnectCauseAVP(EnumAVP):
     """
@@ -476,13 +480,13 @@ def AVP(ident, value=None, **kwargs):
     avp_unknown = ('Unknown-AVP', UnknownAVP, 0)
     vendor = None
     code = None
-    if type(ident) == int:
+    if isinstance(ident, int):
         vendor = VendorId.DEFAULT
         code = ident
-    elif type(ident) == tuple:
+    elif isinstance(ident, tuple):
         vendor = ident[0]
         code = ident[1]
-    elif type(ident) == str:
+    elif isinstance(ident, str):
         vendor, code = resolve(ident)
     else:
         raise TypeError('Invalid key type')

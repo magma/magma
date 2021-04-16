@@ -116,10 +116,12 @@ class TestQosManager(unittest.TestCase):
                        parent_qid=0, skip_filter=False):
         intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
         mock_get_action_inst.assert_any_call(qid)
-        mock_traffic_cls.init_qdisc.assert_any_call(self.ul_intf, enable_pyroute2=False)
-        mock_traffic_cls.init_qdisc.assert_any_call(self.dl_intf, enable_pyroute2=False)
+        mock_traffic_cls.init_qdisc.assert_any_call(
+            self.ul_intf, enable_pyroute2=False)
+        mock_traffic_cls.init_qdisc.assert_any_call(
+            self.dl_intf, enable_pyroute2=False)
         mock_traffic_cls.create_class.assert_any_call(intf, qid, qos_info.mbr,
-            rate=qos_info.gbr, parent_qid=parent_qid, skip_filter=skip_filter)
+                                                      rate=qos_info.gbr, parent_qid=parent_qid, skip_filter=skip_filter)
 
     def verifyTcCleanRestart(self, prior_qids, mock_traffic_cls):
         for qid_tuple in prior_qids[self.ul_intf]:
@@ -192,14 +194,37 @@ get_action_instruction"
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
         qos_mgr._redis_store = {}
         qos_mgr._setupInternal()
-        imsi, ip_addr, rule_num, qos_info = "1234", '1.1.1.1', 0, QosInfo(100000, 100000)
+        imsi, ip_addr, rule_num, qos_info = "1234", '1.1.1.1', 0, QosInfo(
+            100000, 100000)
 
         # add new subscriber qos queue
-        qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.UPLINK, qos_info)
-        qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.DOWNLINK, qos_info)
+        qos_mgr.add_subscriber_qos(
+            imsi,
+            ip_addr,
+            0,
+            rule_num,
+            FlowMatch.UPLINK,
+            qos_info)
+        qos_mgr.add_subscriber_qos(
+            imsi,
+            ip_addr,
+            0,
+            rule_num,
+            FlowMatch.DOWNLINK,
+            qos_info)
 
-        k1 = get_key_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.UPLINK))
-        k2 = get_key_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.DOWNLINK))
+        k1 = get_key_json(
+            get_subscriber_key(
+                imsi,
+                ip_addr,
+                rule_num,
+                FlowMatch.UPLINK))
+        k2 = get_key_json(
+            get_subscriber_key(
+                imsi,
+                ip_addr,
+                rule_num,
+                FlowMatch.DOWNLINK))
         ul_exp_id = qos_mgr.impl._start_idx
         dl_exp_id = qos_mgr.impl._start_idx + 1
         ul_qid_info = get_data_json(get_subscriber_data(ul_exp_id, 0, 0))
@@ -207,16 +232,36 @@ get_action_instruction"
 
         self.assertTrue(qos_mgr._redis_store[k1] == ul_qid_info)
         self.assertTrue(qos_mgr._redis_store[k2] == dl_qid_info)
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, ul_qid_info))
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, dl_qid_info))
+        self.assertTrue(
+            qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (
+                0, ul_qid_info))
+        self.assertTrue(
+            qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (
+                1, dl_qid_info))
 
         # add the same subscriber and ensure that we didn't create another
         # qos config for the subscriber
-        qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.UPLINK, qos_info)
-        qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.DOWNLINK, qos_info)
+        qos_mgr.add_subscriber_qos(
+            imsi,
+            ip_addr,
+            0,
+            rule_num,
+            FlowMatch.UPLINK,
+            qos_info)
+        qos_mgr.add_subscriber_qos(
+            imsi,
+            ip_addr,
+            0,
+            rule_num,
+            FlowMatch.DOWNLINK,
+            qos_info)
 
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, ul_qid_info))
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, dl_qid_info))
+        self.assertTrue(
+            qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (
+                0, ul_qid_info))
+        self.assertTrue(
+            qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (
+                1, dl_qid_info))
 
         # verify if traffic class was invoked properly
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
@@ -258,11 +303,17 @@ get_action_instruction"
         self.assertTrue(imsi not in qos_mgr._subscriber_state)
 
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
-            self.verifyMeterRemoveQos(mock_meter_cls, FlowMatch.UPLINK, ul_exp_id)
-            self.verifyMeterRemoveQos(mock_meter_cls, FlowMatch.DOWNLINK, dl_exp_id)
+            self.verifyMeterRemoveQos(
+                mock_meter_cls, FlowMatch.UPLINK, ul_exp_id)
+            self.verifyMeterRemoveQos(
+                mock_meter_cls, FlowMatch.DOWNLINK, dl_exp_id)
         else:
-            self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ul_exp_id)
-            self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, dl_exp_id)
+            self.verifyTcRemoveQos(
+                mock_traffic_cls, FlowMatch.UPLINK, ul_exp_id)
+            self.verifyTcRemoveQos(
+                mock_traffic_cls,
+                FlowMatch.DOWNLINK,
+                dl_exp_id)
 
     @patch("magma.pipelined.qos.qos_tc_impl.TrafficClass")
     @patch("magma.pipelined.qos.qos_meter_impl.MeterClass")
@@ -327,7 +378,8 @@ get_action_instruction"
             exp_id_dict[k] = exp_id
             # self.assertTrue(qos_mgr._redis_store[k] == exp_id)
             qid_info = get_data_json(get_subscriber_data(exp_id, 0, 0))
-            self.assertEqual(qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, qid_info))
+            self.assertEqual(
+                qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, qid_info))
 
             if self.config["qos"]["impl"] == QosImplType.OVS_METER:
                 self.verifyMeterAddQos(
@@ -346,7 +398,8 @@ get_action_instruction"
 
         qos_mgr.remove_subscriber_qos(imsi, rule_num)
         self.assertTrue(k not in qos_mgr._redis_store)
-        self.assertTrue(not qos_mgr._subscriber_state[imsi].find_rule(rule_num))
+        self.assertTrue(
+            not qos_mgr._subscriber_state[imsi].find_rule(rule_num))
 
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             self.verifyMeterRemoveQos(mock_meter_cls, d, exp_id)
@@ -412,7 +465,8 @@ get_action_instruction"
 
             k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
             self.assertEqual(qos_mgr._redis_store[k], qid_info)
-            self.assertEqual(qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, qid_info))
+            self.assertEqual(
+                qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, qid_info))
             if self.config["qos"]["impl"] == QosImplType.OVS_METER:
                 self.verifyMeterAddQos(
                     mock_meter_get_action_inst, mock_meter_cls, d, exp_id, qos_info
@@ -479,8 +533,8 @@ get_action_instruction"
 
         # prepopulate qos_store
         old_qid_list = [2, 11, 13, 20]
-        old_rule_list = [("1",'1.1.1.1', 0, 0), ("1", '1.1.1.2', 1, 0),
-                        ("1", '1.1.1.3', 2, 1), ("2", '1.1.1.4', 0, 0)]
+        old_rule_list = [("1", '1.1.1.1', 0, 0), ("1", '1.1.1.2', 1, 0),
+                         ("1", '1.1.1.3', 2, 1), ("2", '1.1.1.4', 0, 0)]
         populate_db(old_qid_list, old_rule_list)
 
         # mock future state
@@ -505,7 +559,8 @@ get_action_instruction"
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             mock_meter_cls.del_meter.assert_called_with(MagicMock, 15)
         else:
-            mock_traffic_cls.delete_class.assert_called_with(self.ul_intf, 15, False)
+            mock_traffic_cls.delete_class.assert_called_with(
+                self.ul_intf, 15, False)
 
         # add a new rule to the qos_mgr and check if it is assigned right id
         imsi, rule_num, d, qos_info = "3", 0, 0, QosInfo(100000, 100000)
@@ -517,16 +572,19 @@ get_action_instruction"
         d3 = get_data_json(get_subscriber_data(exp_id, 0, 0))
 
         self.assertEqual(qos_mgr._redis_store[k], d3)
-        self.assertEqual(qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, d3))
+        self.assertEqual(
+            qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, d3))
 
         # delete the restored rule - ensure that it gets cleaned properly
         purge_imsi = "1"
         purge_rule_num = 0
         purge_qos_handle = 2
         qos_mgr.remove_subscriber_qos(purge_imsi, purge_rule_num)
-        self.assertTrue(purge_rule_num not in qos_mgr._subscriber_state[purge_imsi].rules)
+        self.assertTrue(
+            purge_rule_num not in qos_mgr._subscriber_state[purge_imsi].rules)
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
-            mock_meter_cls.del_meter.assert_called_with(MagicMock, purge_qos_handle)
+            mock_meter_cls.del_meter.assert_called_with(
+                MagicMock, purge_qos_handle)
         else:
             mock_traffic_cls.delete_class.assert_called_with(
                 self.ul_intf, purge_qos_handle, False
@@ -577,10 +635,14 @@ get_action_instruction"
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 13)
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 11)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 2, False)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15, False)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13, False)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.ul_intf, 2, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.ul_intf, 15, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.dl_intf, 13, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.dl_intf, 11, False)
 
     @patch("magma.pipelined.qos.qos_tc_impl.TrafficClass")
     @patch("magma.pipelined.qos.qos_meter_impl.MeterClass")
@@ -619,8 +681,8 @@ get_action_instruction"
         old_leaf_list = [20, 110, 130, 300]
         old_ambr_list = [200, 1100, 1300, 3000]
 
-        old_rule_list = [("1",'1.1.1.1', 0, 0), ("1", '1.1.1.2', 1, 0),
-                        ("1", '1.1.1.3', 2, 1), ("2", '1.1.1.4', 0, 0)]
+        old_rule_list = [("1", '1.1.1.1', 0, 0), ("1", '1.1.1.2', 1, 0),
+                         ("1", '1.1.1.3', 2, 1), ("2", '1.1.1.4', 0, 0)]
         populate_db(old_qid_list, old_ambr_list, old_leaf_list, old_rule_list)
 
         # mock future state
@@ -645,9 +707,12 @@ get_action_instruction"
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             mock_meter_cls.del_meter.assert_called_with(MagicMock, 15)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15, False)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150, False)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1500, True)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.ul_intf, 15, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.ul_intf, 150, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.ul_intf, 1500, True)
 
         # add a new rule to the qos_mgr and check if it is assigned right id
         imsi, rule_num, d, qos_info = "3", 0, 0, QosInfo(100000, 100000)
@@ -656,23 +721,29 @@ get_action_instruction"
         k = get_key_json(get_subscriber_key(imsi, '', rule_num, d))
 
         exp_id = 3  # since start_idx 2 is already used
-        d3 = get_data_json(get_subscriber_data(exp_id+1, exp_id-1, exp_id))
+        d3 = get_data_json(get_subscriber_data(exp_id + 1, exp_id - 1, exp_id))
 
         self.assertEqual(qos_mgr._redis_store[k], d3)
-        self.assertEqual(qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, d3))
+        self.assertEqual(
+            qos_mgr._subscriber_state[imsi].rules[rule_num][0], (d, d3))
 
         # delete the restored rule - ensure that it gets cleaned properly
         purge_imsi = "1"
         purge_rule_num = 1
         purge_qos_handle = 2
         qos_mgr.remove_subscriber_qos(purge_imsi, purge_rule_num)
-        self.assertTrue(purge_rule_num not in qos_mgr._subscriber_state[purge_imsi].rules)
+        self.assertTrue(
+            purge_rule_num not in qos_mgr._subscriber_state[purge_imsi].rules)
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
-            mock_meter_cls.del_meter.assert_called_with(MagicMock, purge_qos_handle)
+            mock_meter_cls.del_meter.assert_called_with(
+                MagicMock, purge_qos_handle)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 11, False)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 110, False)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1100, True)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.ul_intf, 11, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.ul_intf, 110, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.ul_intf, 1100, True)
 
         # case 2 - check with empty qos configs, qos_map gets purged
         mock_meter_cls.reset_mock()
@@ -720,14 +791,20 @@ get_action_instruction"
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 13)
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 11)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15, False)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.ul_intf, 15, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.ul_intf, 150, False)
 
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13, False)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 130, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.dl_intf, 13, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.dl_intf, 130, False)
 
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11, False)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 110, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.dl_intf, 11, False)
+            mock_traffic_cls.delete_class.assert_any_call(
+                self.dl_intf, 110, False)
 
     def testSanity(self):
         for impl_type in (QosImplType.LINUX_TC, QosImplType.OVS_METER):
@@ -770,45 +847,96 @@ get_action_instruction"
         qos_mgr._redis_store = {}
         qos_mgr._setupInternal()
         ambr_ul, ambr_dl = 250000, 500000
-        imsi, ip_addr, rule_num, qos_info = ("1234", '1.1.1.1', 1, QosInfo(50000, 100000))
+        imsi, ip_addr, rule_num, qos_info = (
+            "1234", '1.1.1.1', 1, QosInfo(50000, 100000))
 
         # add new subscriber qos queue
-        qos_mgr.add_subscriber_qos(imsi, ip_addr, ambr_ul, rule_num, FlowMatch.UPLINK, qos_info)
-        qos_mgr.add_subscriber_qos(imsi, ip_addr, ambr_dl, rule_num, FlowMatch.DOWNLINK, qos_info)
+        qos_mgr.add_subscriber_qos(
+            imsi,
+            ip_addr,
+            ambr_ul,
+            rule_num,
+            FlowMatch.UPLINK,
+            qos_info)
+        qos_mgr.add_subscriber_qos(
+            imsi,
+            ip_addr,
+            ambr_dl,
+            rule_num,
+            FlowMatch.DOWNLINK,
+            qos_info)
 
-        k1 = get_key_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.UPLINK))
-        k2 = get_key_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.DOWNLINK))
+        k1 = get_key_json(
+            get_subscriber_key(
+                imsi,
+                ip_addr,
+                rule_num,
+                FlowMatch.UPLINK))
+        k2 = get_key_json(
+            get_subscriber_key(
+                imsi,
+                ip_addr,
+                rule_num,
+                FlowMatch.DOWNLINK))
 
         ambr_ul_exp_id = qos_mgr.impl._start_idx
         ul_exp_id = qos_mgr.impl._start_idx + 2
         ambr_dl_exp_id = qos_mgr.impl._start_idx + 3
         dl_exp_id = qos_mgr.impl._start_idx + 5
 
-        qid_info_ul = get_subscriber_data(ul_exp_id, ul_exp_id - 2, ul_exp_id - 1)
-        qid_info_dl = get_subscriber_data(dl_exp_id, dl_exp_id - 2, dl_exp_id - 1)
+        qid_info_ul = get_subscriber_data(
+            ul_exp_id, ul_exp_id - 2, ul_exp_id - 1)
+        qid_info_dl = get_subscriber_data(
+            dl_exp_id, dl_exp_id - 2, dl_exp_id - 1)
         self.assertEqual(get_data(qos_mgr._redis_store[k1]), qid_info_ul)
         self.assertEqual(get_data(qos_mgr._redis_store[k2]), qid_info_dl)
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, get_data_json(qid_info_ul)))
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, get_data_json(qid_info_dl)))
+        self.assertTrue(
+            qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (
+                0, get_data_json(qid_info_ul)))
+        self.assertTrue(
+            qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (
+                1, get_data_json(qid_info_dl)))
 
         self.assertEqual(len(qos_mgr._subscriber_state[imsi].sessions), 1)
-        self.assertEqual(qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_dl, ambr_dl_exp_id)
-        self.assertEqual(qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_dl_leaf, ambr_dl_exp_id + 1)
+        self.assertEqual(
+            qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_dl,
+            ambr_dl_exp_id)
+        self.assertEqual(
+            qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_dl_leaf,
+            ambr_dl_exp_id + 1)
 
-        self.assertEqual(qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_ul_leaf, ambr_ul_exp_id + 1)
+        self.assertEqual(
+            qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_ul_leaf,
+            ambr_ul_exp_id + 1)
 
         # add the same subscriber and ensure that we didn't create another
         # qos config for the subscriber
-        qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.UPLINK, qos_info)
-        qos_mgr.add_subscriber_qos(imsi, ip_addr, 0, rule_num, FlowMatch.DOWNLINK, qos_info)
+        qos_mgr.add_subscriber_qos(
+            imsi,
+            ip_addr,
+            0,
+            rule_num,
+            FlowMatch.UPLINK,
+            qos_info)
+        qos_mgr.add_subscriber_qos(
+            imsi,
+            ip_addr,
+            0,
+            rule_num,
+            FlowMatch.DOWNLINK,
+            qos_info)
 
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, get_data_json(qid_info_ul)))
-        self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, get_data_json(qid_info_dl)))
+        self.assertTrue(
+            qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (
+                0, get_data_json(qid_info_ul)))
+        self.assertTrue(
+            qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (
+                1, get_data_json(qid_info_dl)))
 
         # verify if traffic class was invoked properly
         self.verifyTcAddQos(mock_tc_get_action_inst, mock_traffic_cls, FlowMatch.UPLINK,
                             ul_exp_id, qos_info, parent_qid=ambr_ul_exp_id)
-        self.verifyTcAddQos(mock_tc_get_action_inst,mock_traffic_cls, FlowMatch.DOWNLINK,
+        self.verifyTcAddQos(mock_tc_get_action_inst, mock_traffic_cls, FlowMatch.DOWNLINK,
                             dl_exp_id, qos_info, parent_qid=ambr_dl_exp_id)
         self.verifyTcCleanRestart(prior_qids, mock_traffic_cls)
 
@@ -817,9 +945,17 @@ get_action_instruction"
         self.assertTrue(len(qos_mgr._redis_store) == 0)
         self.assertTrue(imsi not in qos_mgr._subscriber_state)
 
-        self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ambr_ul_exp_id, True)
+        self.verifyTcRemoveQos(
+            mock_traffic_cls,
+            FlowMatch.UPLINK,
+            ambr_ul_exp_id,
+            True)
         self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ul_exp_id)
-        self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, ambr_dl_exp_id, True)
+        self.verifyTcRemoveQos(
+            mock_traffic_cls,
+            FlowMatch.DOWNLINK,
+            ambr_dl_exp_id,
+            True)
         self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, dl_exp_id)
 
 
@@ -857,7 +993,8 @@ class TestTrafficClass(unittest.TestCase):
 
         TrafficClass.init_qdisc(intf)
         mock_check_call.assert_any_call(
-            ["sudo", "tc", "qdisc", "add", "dev", intf, "root", "handle", "1:", "htb"]
+            ["sudo", "tc", "qdisc", "add", "dev",
+                intf, "root", "handle", "1:", "htb"]
         )
 
     @patch("subprocess.check_call")
@@ -891,14 +1028,16 @@ class TestTrafficClass(unittest.TestCase):
                                   parent_qid=parent_qid)
 
         # check if the filters installed for leaf class only
-        filter_output = subprocess.check_output(['tc', 'filter', 'show', 'dev', intf])
+        filter_output = subprocess.check_output(
+            ['tc', 'filter', 'show', 'dev', intf])
         filter_list = filter_output.decode('utf-8').split("\n")
         filter_list = [ln for ln in filter_list if 'classid' in ln]
         assert('classid 1:{qid}'.format(qid=parent_qid) in filter_list[0])
         assert('classid 1:{qid}'.format(qid=qid) in filter_list[1])
 
         # check if classes are installed with appropriate bandwidth limits
-        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', intf])
+        class_output = subprocess.check_output(
+            ['tc', 'class', 'show', 'dev', intf])
         class_list = class_output.decode('utf-8').split("\n")
         for info in class_list:
             if 'class htb 1:{qid}'.format(qid=qid) in info:
@@ -911,7 +1050,8 @@ class TestTrafficClass(unittest.TestCase):
         assert(child_class and 'rate 250Kbit ceil 500Kbit' in child_class)
 
         # check if fq_codel is associated only with the leaf class
-        qdisc_output = subprocess.check_output(['tc', 'qdisc', 'show', 'dev', intf])
+        qdisc_output = subprocess.check_output(
+            ['tc', 'qdisc', 'show', 'dev', intf])
 
         # check if read_all_classes work
         qid_list = TrafficClass.read_all_classes(intf)
@@ -921,23 +1061,27 @@ class TestTrafficClass(unittest.TestCase):
         TrafficClass.delete_class(intf, 3)
 
         # check class for qid 3 removed
-        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', intf])
+        class_output = subprocess.check_output(
+            ['tc', 'class', 'show', 'dev', intf])
         class_list = class_output.decode('utf-8').split("\n")
-        assert( not [info for info in class_list  if 'class htb 1:{qid}'.format(
+        assert(not [info for info in class_list if 'class htb 1:{qid}'.format(
             qid=qid) in info])
 
         # delete APN AMBR class
         TrafficClass.delete_class(intf, 2)
 
         # verify that parent class is removed
-        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', intf])
+        class_output = subprocess.check_output(
+            ['tc', 'class', 'show', 'dev', intf])
         class_list = class_output.decode('utf-8').split("\n")
-        assert( not [info for info in class_list  if 'class htb 1:{qid}'.format(
+        assert(not [info for info in class_list if 'class htb 1:{qid}'.format(
             qid=parent_qid) in info])
 
         # check if no fq_codel nor filter exists
-        qdisc_output = subprocess.check_output(['tc', 'qdisc', 'show', 'dev', intf])
-        filter_output = subprocess.check_output(['tc', 'filter', 'show', 'dev', intf])
+        qdisc_output = subprocess.check_output(
+            ['tc', 'qdisc', 'show', 'dev', intf])
+        filter_output = subprocess.check_output(
+            ['tc', 'filter', 'show', 'dev', intf])
         filter_list = filter_output.decode('utf-8').split("\n")
         filter_list = [ln for ln in filter_list if 'classid' in ln]
         qdisc_list = qdisc_output.decode('utf-8').split("\n")
@@ -1077,7 +1221,7 @@ class TestSubscriberState(unittest.TestCase):
         assert(session)
         session.set_ambr(new_d1, new_ambr_qos_handle, 0)
         subscriber_state.update_rule(new_session_ip_addr, new_rule_num4, new_d1,
-            new_qos_handle1, 0, 0)
+                                     new_qos_handle1, 0, 0)
 
         assert(len(subscriber_state.rules) == 3)
         assert(rule_num1 in subscriber_state.rules)

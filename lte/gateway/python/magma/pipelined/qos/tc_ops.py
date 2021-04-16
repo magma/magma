@@ -29,8 +29,10 @@ class TcOpsBase(ABC):
     """
 
     @abstractmethod
-    def create_htb(self, iface: str, qid: str, max_bw: str, rate:str,
-                    parent_qid: str = None) -> int:
+    def create_htb(
+        self, iface: str, qid: str, max_bw: str, rate: str,
+        parent_qid: str = None,
+    ) -> int:
         """
         Create HTB scheduler
         """
@@ -44,14 +46,20 @@ class TcOpsBase(ABC):
         ...
 
     @abstractmethod
-    def create_filter(self, iface: str, mark: str, qid: str, proto: int = 3) -> int:
+    def create_filter(
+        self, iface: str, mark: str,
+        qid: str, proto: int = 3,
+    ) -> int:
         """
         Create FW filter
         """
         ...
 
     @abstractmethod
-    def del_filter(self, iface: str, mark: str, qid: str, proto: int = 3) -> int:
+    def del_filter(
+        self, iface: str, mark: str,
+        qid: str, proto: int = 3,
+    ) -> int:
         """
         Delete FW filter
         """

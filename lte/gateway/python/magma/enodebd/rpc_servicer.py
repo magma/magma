@@ -38,6 +38,7 @@ from orc8r.protos.service303_pb2 import ServiceStatus
 
 class EnodebdRpcServicer(EnodebdServicer):
     """ gRPC based server for enodebd """
+
     def __init__(self, state_machine_manager: StateMachineManager) -> None:
         self.state_machine_manager = state_machine_manager
 
@@ -74,7 +75,8 @@ class EnodebdRpcServicer(EnodebdServicer):
         # And now construct the response to the rpc request
         get_parameter_values_response = GetParameterResponse()
         get_parameter_values_response.parameters.add(
-            name=parameter_path, value=param_value)
+            name=parameter_path, value=param_value,
+        )
         return get_parameter_values_response
 
     @return_void
@@ -96,8 +98,10 @@ class EnodebdRpcServicer(EnodebdServicer):
         elif request.HasField('value_string'):
             value = (request.value_string, 'string')
         else:
-            context.set_details('SetParameter: Unsupported type %d',
-                                request.type)
+            context.set_details(
+                'SetParameter: Unsupported type %d',
+                request.type,
+            )
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             return
 
@@ -137,8 +141,10 @@ class EnodebdRpcServicer(EnodebdServicer):
         all_enb_status = AllEnodebStatus()
         serial_list = self.state_machine_manager.get_connected_serial_id_list()
         for enb_serial in serial_list:
-            enb_status = get_single_enb_status(enb_serial,
-                                               self.state_machine_manager)
+            enb_status = get_single_enb_status(
+                enb_serial,
+                self.state_machine_manager,
+            )
             all_enb_status.enb_status_list.add(
                 device_serial=enb_status.device_serial,
                 ip_address=enb_status.ip_address,
@@ -164,5 +170,5 @@ class EnodebdRpcServicer(EnodebdServicer):
     ) -> SingleEnodebStatus:
         return get_single_enb_status(
             request.device_serial,
-            self.state_machine_manager
+            self.state_machine_manager,
         )

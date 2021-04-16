@@ -62,7 +62,7 @@ class ConntrackTest(unittest.TestCase):
         super(ConntrackTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([],
-            ['ue_mac', 'conntrack'])
+                                                     ['ue_mac', 'conntrack'])
         cls._tbl_num = cls.service_manager.get_table_num(
             ConntrackController.APP_NAME)
 
@@ -121,7 +121,7 @@ class ConntrackTest(unittest.TestCase):
         Test that conntrack rules are properly setup
         Verifies that 3 new connections are detected (2 tcp, 1 udp)
         """
-        sub_ip = '145.254.160.237' # extracted from pcap don't change
+        sub_ip = '145.254.160.237'  # extracted from pcap don't change
         sub = SubContextConfig('IMSI001010000000013', sub_ip,
                                default_ambr_config, self._tbl_num)
 

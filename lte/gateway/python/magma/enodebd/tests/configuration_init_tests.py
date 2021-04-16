@@ -48,51 +48,69 @@ class EnodebConfigurationFactoryTest(TestCase):
     def test_set_pci(self):
         pci = 3
         _set_pci(self.cfg, pci)
-        self.assertEqual(self.cfg.get_parameter(ParameterName.PCI), pci,
-                         'PCI value should be same as what was set')
+        self.assertEqual(
+            self.cfg.get_parameter(ParameterName.PCI), pci,
+            'PCI value should be same as what was set',
+        )
         with self.assertRaises(ConfigurationError):
             _set_pci(self.cfg, 505)
 
     def test_set_bandwidth(self):
         mhz = 15
         _set_bandwidth(self.cfg, self.data_model, mhz)
-        self.assertEqual(self.cfg.get_parameter(ParameterName.DL_BANDWIDTH),
-                         mhz,
-                         'Should have set %s' % ParameterName.DL_BANDWIDTH)
-        self.assertEqual(self.cfg.get_parameter(ParameterName.UL_BANDWIDTH),
-                         mhz,
-                         'Should have set %s' % ParameterName.UL_BANDWIDTH)
+        self.assertEqual(
+            self.cfg.get_parameter(ParameterName.DL_BANDWIDTH),
+            mhz,
+            'Should have set %s' % ParameterName.DL_BANDWIDTH,
+        )
+        self.assertEqual(
+            self.cfg.get_parameter(ParameterName.UL_BANDWIDTH),
+            mhz,
+            'Should have set %s' % ParameterName.UL_BANDWIDTH,
+        )
 
     def test_set_tdd_subframe_config(self):
         # Not TDD mode, should not try to set anything
         self.device_cfg.set_parameter(
-            ParameterName.DUPLEX_MODE_CAPABILITY, 'Not TDDMode')
+            ParameterName.DUPLEX_MODE_CAPABILITY, 'Not TDDMode',
+        )
         subframe = 0
         special_subframe = 0
-        _set_tdd_subframe_config(self.device_cfg, self.cfg, subframe,
-                                              special_subframe)
-        self.assertTrue(ParameterName.SUBFRAME_ASSIGNMENT not in
-                        self.cfg.get_parameter_names())
+        _set_tdd_subframe_config(
+            self.device_cfg, self.cfg, subframe,
+            special_subframe,
+        )
+        self.assertTrue(
+            ParameterName.SUBFRAME_ASSIGNMENT not in
+            self.cfg.get_parameter_names(),
+        )
 
         # Invalid subframe assignment
         self.device_cfg.set_parameter(
-            ParameterName.DUPLEX_MODE_CAPABILITY, 'TDDMode')
-        _set_tdd_subframe_config(self.device_cfg, self.cfg, subframe,
-                                 special_subframe)
-        self.assertIn(ParameterName.SUBFRAME_ASSIGNMENT,
-                      self.cfg.get_parameter_names(),
-                      'Expected a subframe assignment')
+            ParameterName.DUPLEX_MODE_CAPABILITY, 'TDDMode',
+        )
+        _set_tdd_subframe_config(
+            self.device_cfg, self.cfg, subframe,
+            special_subframe,
+        )
+        self.assertIn(
+            ParameterName.SUBFRAME_ASSIGNMENT,
+            self.cfg.get_parameter_names(),
+            'Expected a subframe assignment',
+        )
 
     def test_set_management_server(self):
         _set_management_server(self.cfg)
         self.assertEqual(
             self.cfg.get_parameter(ParameterName.PERIODIC_INFORM_ENABLE),
-            True, 'Expected periodic inform enable to be true')
+            True, 'Expected periodic inform enable to be true',
+        )
         self.assertTrue(
             isinstance(
                 self.cfg.get_parameter(ParameterName.PERIODIC_INFORM_INTERVAL),
-                int),
-            'Expected periodic inform interval to ani integer'
+                int,
+            ),
+            'Expected periodic inform interval to ani integer',
         )
 
     def test_set_s1_connection(self):
@@ -113,10 +131,12 @@ class EnodebConfigurationFactoryTest(TestCase):
         _set_s1_connection(self.cfg, mme_ip, mme_port)
         self.assertEqual(
             self.cfg.get_parameter(ParameterName.MME_IP), mme_ip,
-            'Expected mme ip to be set')
+            'Expected mme ip to be set',
+        )
         self.assertEqual(
             self.cfg.get_parameter(ParameterName.MME_PORT), mme_port,
-            'Expected mme port to be set')
+            'Expected mme port to be set',
+        )
 
     def test_set_perf_mgmt(self):
         mgmt_ip = '192.168.0.1'
@@ -125,14 +145,17 @@ class EnodebConfigurationFactoryTest(TestCase):
         _set_perf_mgmt(self.cfg, mgmt_ip, mgmt_port)
         self.assertTrue(
             self.cfg.get_parameter(ParameterName.PERF_MGMT_ENABLE),
-            'Expected perf mgmt to be enabled')
+            'Expected perf mgmt to be enabled',
+        )
         self.assertEqual(
             self.cfg.get_parameter(ParameterName.PERF_MGMT_UPLOAD_INTERVAL),
-            mgmt_upload_interval, 'Expected upload interval to be set')
+            mgmt_upload_interval, 'Expected upload interval to be set',
+        )
         expected_url = 'http://192.168.0.1:8080/'
         self.assertEqual(
             self.cfg.get_parameter(ParameterName.PERF_MGMT_UPLOAD_URL),
-            expected_url, 'Incorrect Url')
+            expected_url, 'Incorrect Url',
+        )
 
     def test_set_misc_static_params(self):
         # IPSec enable as integer
@@ -141,25 +164,32 @@ class EnodebConfigurationFactoryTest(TestCase):
         _set_misc_static_params(self.device_cfg, self.cfg, self.data_model)
         self.assertTrue(
             isinstance(
-                self.cfg.get_parameter(ParameterName.IP_SEC_ENABLE), int),
-            'Should support an integer IP_SEC_ENABLE parameter')
+                self.cfg.get_parameter(ParameterName.IP_SEC_ENABLE), int,
+            ),
+            'Should support an integer IP_SEC_ENABLE parameter',
+        )
 
         # IPSec enable as boolean
         self.device_cfg.set_parameter(ParameterName.IP_SEC_ENABLE, 'False')
         _set_misc_static_params(self.device_cfg, self.cfg, self.data_model)
         self.assertTrue(
             isinstance(
-                self.cfg.get_parameter(ParameterName.IP_SEC_ENABLE), bool),
-            'Should support a boolean IP_SEC_ENABLE parameter')
+                self.cfg.get_parameter(ParameterName.IP_SEC_ENABLE), bool,
+            ),
+            'Should support a boolean IP_SEC_ENABLE parameter',
+        )
         self.assertEqual(
             self.cfg.get_parameter(ParameterName.LOCAL_GATEWAY_ENABLE), 0,
-            'Should be disabled')
+            'Should be disabled',
+        )
         self.assertEqual(
             self.cfg.get_parameter(ParameterName.CELL_RESERVED), False,
-            'Should be disabled')
+            'Should be disabled',
+        )
         self.assertEqual(
             self.cfg.get_parameter(ParameterName.MME_POOL_ENABLE), False,
-            'Should be disabled')
+            'Should be disabled',
+        )
 
     def test_set_plmnids_tac(self):
         # We only handle a single PLMNID for now
@@ -178,43 +208,61 @@ class EnodebConfigurationFactoryTest(TestCase):
         _set_plmnids_tac(self.cfg, plmnids, tac)
         self.assertTrue(
             self.cfg.get_parameter_for_object(
-                ParameterName.PLMN_N_ENABLE % 1, ParameterName.PLMN_N % 1),
-            'First PLMN should be enabled')
-        self.assertFalse(self.cfg.has_object(ParameterName.PLMN_N % 2),
-                         'Second PLMN should be disabled')
+                ParameterName.PLMN_N_ENABLE % 1, ParameterName.PLMN_N % 1,
+            ),
+            'First PLMN should be enabled',
+        )
+        self.assertFalse(
+            self.cfg.has_object(ParameterName.PLMN_N % 2),
+            'Second PLMN should be disabled',
+        )
 
     def test_set_earafcn_freq_band_mode(self):
         # Invalid earfcndl
         with self.assertRaises(ConfigurationError):
             invalid_earfcndl = -1
-            _set_earfcn_freq_band_mode(self.device_cfg, self.cfg,
-                                       self.data_model, invalid_earfcndl)
+            _set_earfcn_freq_band_mode(
+                self.device_cfg, self.cfg,
+                self.data_model, invalid_earfcndl,
+            )
 
         # Duplex_mode is TDD but capability is FDD
         with self.assertRaises(ConfigurationError):
             self.device_cfg.set_parameter(
-                ParameterName.DUPLEX_MODE_CAPABILITY, 'FDDMode')
+                ParameterName.DUPLEX_MODE_CAPABILITY, 'FDDMode',
+            )
             earfcndl = 38650  # Corresponds to TDD
-            _set_earfcn_freq_band_mode(self.device_cfg, self.cfg,
-                                       self.data_model, earfcndl)
+            _set_earfcn_freq_band_mode(
+                self.device_cfg, self.cfg,
+                self.data_model, earfcndl,
+            )
 
         # Duplex_mode is FDD but capability is TDD
         with self.assertRaises(ConfigurationError):
             self.device_cfg.set_parameter(
-                ParameterName.DUPLEX_MODE_CAPABILITY, 'TDDMode')
+                ParameterName.DUPLEX_MODE_CAPABILITY, 'TDDMode',
+            )
             earfcndl = 0  # Corresponds to FDD
-            _set_earfcn_freq_band_mode(self.device_cfg, self.cfg,
-                                       self.data_model, earfcndl)
+            _set_earfcn_freq_band_mode(
+                self.device_cfg, self.cfg,
+                self.data_model, earfcndl,
+            )
 
     def test_get_enb_config(self):
         mconfig = EnodebConfigBuilder.get_mconfig()
         enb_config = _get_enb_config(mconfig, self.device_cfg)
-        self.assertTrue(enb_config.earfcndl == 39150,
-                        "Should give earfcndl from default eNB config")
+        self.assertTrue(
+            enb_config.earfcndl == 39150,
+            "Should give earfcndl from default eNB config",
+        )
 
         mconfig = EnodebConfigBuilder.get_multi_enb_mconfig()
-        self.device_cfg.set_parameter(ParameterName.SERIAL_NUMBER,
-                                      '120200002618AGP0003')
+        self.device_cfg.set_parameter(
+            ParameterName.SERIAL_NUMBER,
+            '120200002618AGP0003',
+        )
         enb_config = _get_enb_config(mconfig, self.device_cfg)
-        self.assertTrue(enb_config.earfcndl == 39151,
-                        "Should give earfcndl from specific eNB config")
+        self.assertTrue(
+            enb_config.earfcndl == 39151,
+            "Should give earfcndl from specific eNB config",
+        )

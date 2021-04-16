@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+
 class ConfigurationError(Exception):
     """ Indicates that the eNodeB could not be configured correctly. """
     pass
@@ -22,6 +23,7 @@ class Tr069Error(Exception):
 
 class IncorrectDeviceHandlerError(Exception):
     """ Indicates that we're using the wrong data model for configuration. """
+
     def __init__(self, device_name: str):
         """
         device_name: What device we actually are dealing with

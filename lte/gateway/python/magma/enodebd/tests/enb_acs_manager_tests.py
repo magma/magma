@@ -33,9 +33,11 @@ class StateMachineManagerTests(TestCase):
         ctx = get_spyne_context_with_ip()
         inform = Tr069MessageBuilder.get_inform()
         req = manager.handle_tr069_message(ctx, inform)
-        self.assertTrue(isinstance(req, models.InformResponse),
-                        'State machine handler should reply with an '
-                        'InformResponse')
+        self.assertTrue(
+            isinstance(req, models.InformResponse),
+            'State machine handler should reply with an '
+            'InformResponse',
+        )
 
     def test_serial_not_found(self):
         """
@@ -68,8 +70,8 @@ class StateMachineManagerTests(TestCase):
                         val_type='string',
                         data='BaiBS_RTS_3.1.6',
                     ),
-                ]
-            )
+                ],
+            ),
         )
 
         # No exception should be thrown, and we should return an empty response
@@ -83,65 +85,89 @@ class StateMachineManagerTests(TestCase):
 
         ##### Start session for the first IP #####
         # Send an Inform message, wait for an InformResponse
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_RTS_3.1.6',
-                                                    '120200002618AGP0001')
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '48BF74',
+            'BaiBS_RTS_3.1.6',
+            '120200002618AGP0001',
+        )
         resp1 = manager.handle_tr069_message(ctx1, inform_msg)
-        self.assertTrue(isinstance(resp1, models.InformResponse),
-                        'Should respond with an InformResponse')
+        self.assertTrue(
+            isinstance(resp1, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
 
         # Send an empty http request to kick off the rest of provisioning
         req1 = models.DummyInput()
         resp1 = manager.handle_tr069_message(ctx1, req1)
 
         # Expect a request for an optional parameter, three times
-        self.assertTrue(isinstance(resp1, models.GetParameterValues),
-                        'State machine should be requesting param values')
+        self.assertTrue(
+            isinstance(resp1, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
         req1 = Tr069MessageBuilder.get_fault()
         resp1 = manager.handle_tr069_message(ctx1, req1)
-        self.assertTrue(isinstance(resp1, models.GetParameterValues),
-                        'State machine should be requesting param values')
+        self.assertTrue(
+            isinstance(resp1, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
 
         ##### Start session for the second IP #####
         # Send an Inform message, wait for an InformResponse
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_RTS_3.1.6',
-                                                    '120200002618AGP0002')
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '48BF74',
+            'BaiBS_RTS_3.1.6',
+            '120200002618AGP0002',
+        )
         resp2 = manager.handle_tr069_message(ctx2, inform_msg)
-        self.assertTrue(isinstance(resp2, models.InformResponse),
-                        'Should respond with an InformResponse')
+        self.assertTrue(
+            isinstance(resp2, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
 
         ##### Continue session for the first IP #####
         req1 = Tr069MessageBuilder.get_fault()
         resp1 = manager.handle_tr069_message(ctx1, req1)
-        self.assertTrue(isinstance(resp1, models.GetParameterValues),
-                        'State machine should be requesting param values')
+        self.assertTrue(
+            isinstance(resp1, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
         req1 = Tr069MessageBuilder.get_fault()
         resp1 = manager.handle_tr069_message(ctx1, req1)
         # Expect a request for read-only params
-        self.assertTrue(isinstance(resp1, models.GetParameterValues),
-                        'State machine should be requesting param values')
+        self.assertTrue(
+            isinstance(resp1, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
 
         ##### Continue session for the second IP #####
         # Send an empty http request to kick off the rest of provisioning
         req2 = models.DummyInput()
         resp2 = manager.handle_tr069_message(ctx2, req2)
         # Expect a request for an optional parameter, three times
-        self.assertTrue(isinstance(resp2, models.GetParameterValues),
-                        'State machine should be requesting param values')
+        self.assertTrue(
+            isinstance(resp2, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
         req2 = Tr069MessageBuilder.get_fault()
         resp2 = manager.handle_tr069_message(ctx2, req2)
-        self.assertTrue(isinstance(resp2, models.GetParameterValues),
-                        'State machine should be requesting param values')
+        self.assertTrue(
+            isinstance(resp2, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
         req2 = Tr069MessageBuilder.get_fault()
         resp2 = manager.handle_tr069_message(ctx2, req2)
-        self.assertTrue(isinstance(resp2, models.GetParameterValues),
-                        'State machine should be requesting param values')
+        self.assertTrue(
+            isinstance(resp2, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
         req2 = Tr069MessageBuilder.get_fault()
         resp2 = manager.handle_tr069_message(ctx2, req2)
         # Expect a request for read-only params
-        self.assertTrue(isinstance(resp2, models.GetParameterValues),
-                        'State machine should be requesting param values')
+        self.assertTrue(
+            isinstance(resp2, models.GetParameterValues),
+            'State machine should be requesting param values',
+        )
 
     def test_handle_registered_enb(self):
         """
@@ -152,22 +178,30 @@ class StateMachineManagerTests(TestCase):
         manager = self._get_manager_multi_enb()
         ip1 = "192.168.60.145"
         ctx1 = get_spyne_context_with_ip(ip1)
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_RTS_3.1.6',
-                                                    '120200002618AGP0003')
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '48BF74',
+            'BaiBS_RTS_3.1.6',
+            '120200002618AGP0003',
+        )
         resp1 = manager.handle_tr069_message(ctx1, inform_msg)
-        self.assertTrue(isinstance(resp1, models.InformResponse),
-                        'Should respond with an InformResponse')
+        self.assertTrue(
+            isinstance(resp1, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
 
         ip2 = "192.168.60.146"
         ctx2 = get_spyne_context_with_ip(ip2)
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_RTS_3.1.6',
-                                                    'unregistered_serial')
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '48BF74',
+            'BaiBS_RTS_3.1.6',
+            'unregistered_serial',
+        )
 
         resp2 = manager.handle_tr069_message(ctx2, inform_msg)
-        self.assertTrue(isinstance(resp2, models.DummyInput),
-                        'Should respond with an empty HTTP response')
+        self.assertTrue(
+            isinstance(resp2, models.DummyInput),
+            'Should respond with an empty HTTP response',
+        )
 
     def test_ip_change(self) -> None:
         manager = self._get_manager()
@@ -175,29 +209,39 @@ class StateMachineManagerTests(TestCase):
         # Send an Inform
         ip1 = "192.168.60.145"
         ctx1 = get_spyne_context_with_ip(ip1)
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_RTS_3.1.6',
-                                                    '120200002618AGP0003')
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '48BF74',
+            'BaiBS_RTS_3.1.6',
+            '120200002618AGP0003',
+        )
         resp1 = manager.handle_tr069_message(ctx1, inform_msg)
-        self.assertTrue(isinstance(resp1, models.InformResponse),
-                        'Should respond with an InformResponse')
+        self.assertTrue(
+            isinstance(resp1, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
         handler1 = manager.get_handler_by_ip(ip1)
 
         # Send an Inform from the same serial, but different IP
         ip2 = "192.168.60.99"
         ctx2 = get_spyne_context_with_ip(ip2)
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_RTS_3.1.6',
-                                                    '120200002618AGP0003')
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '48BF74',
+            'BaiBS_RTS_3.1.6',
+            '120200002618AGP0003',
+        )
         resp2 = manager.handle_tr069_message(ctx2, inform_msg)
-        self.assertTrue(isinstance(resp2, models.InformResponse),
-                        'Should respond with an InformResponse')
+        self.assertTrue(
+            isinstance(resp2, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
         handler2 = manager.get_handler_by_ip(ip2)
 
         # Now check that the serial is associated with the second ip
-        self.assertTrue((handler1 is handler2),
-                        'After an IP switch, the manager should have moved '
-                        'the handler to a new IP')
+        self.assertTrue(
+            (handler1 is handler2),
+            'After an IP switch, the manager should have moved '
+            'the handler to a new IP',
+        )
 
     def test_serial_change(self) -> None:
         manager = self._get_manager()
@@ -205,28 +249,38 @@ class StateMachineManagerTests(TestCase):
 
         # Send an Inform
         ctx1 = get_spyne_context_with_ip(ip)
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_RTS_3.1.6',
-                                                    '120200002618AGP0001')
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '48BF74',
+            'BaiBS_RTS_3.1.6',
+            '120200002618AGP0001',
+        )
         resp1 = manager.handle_tr069_message(ctx1, inform_msg)
-        self.assertTrue(isinstance(resp1, models.InformResponse),
-                        'Should respond with an InformResponse')
+        self.assertTrue(
+            isinstance(resp1, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
         handler1 = manager.get_handler_by_ip(ip)
 
         # Send an Inform from the same serial, but different IP
         ctx2 = get_spyne_context_with_ip(ip)
-        inform_msg = Tr069MessageBuilder.get_inform('48BF74',
-                                                    'BaiBS_RTS_3.1.6',
-                                                    '120200002618AGP0002')
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '48BF74',
+            'BaiBS_RTS_3.1.6',
+            '120200002618AGP0002',
+        )
         resp2 = manager.handle_tr069_message(ctx2, inform_msg)
-        self.assertTrue(isinstance(resp2, models.InformResponse),
-                        'Should respond with an InformResponse')
+        self.assertTrue(
+            isinstance(resp2, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
         handler2 = manager.get_handler_by_ip(ip)
 
         # Now check that the serial is associated with the second ip
-        self.assertTrue((handler1 is not handler2),
-                        'After an IP switch, the manager should have moved '
-                        'the handler to a new IP')
+        self.assertTrue(
+            (handler1 is not handler2),
+            'After an IP switch, the manager should have moved '
+            'the handler to a new IP',
+        )
 
     def test_inform_from_baicells_qafb(self) -> None:
         manager = self._get_manager()
@@ -234,12 +288,16 @@ class StateMachineManagerTests(TestCase):
 
         # Send an Inform
         ctx1 = get_spyne_context_with_ip(ip)
-        inform_msg = Tr069MessageBuilder.get_qafb_inform('48BF74',
-                                                         'BaiBS_QAFB_v1234',
-                                                         '120200002618AGP0001')
+        inform_msg = Tr069MessageBuilder.get_qafb_inform(
+            '48BF74',
+            'BaiBS_QAFB_v1234',
+            '120200002618AGP0001',
+        )
         resp1 = manager.handle_tr069_message(ctx1, inform_msg)
-        self.assertTrue(isinstance(resp1, models.InformResponse),
-                        'Should respond with an InformResponse')
+        self.assertTrue(
+            isinstance(resp1, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
 
     def test_inform_from_unrecognized(self) -> None:
         manager = self._get_manager()
@@ -247,14 +305,16 @@ class StateMachineManagerTests(TestCase):
 
         # Send an Inform
         ctx1 = get_spyne_context_with_ip(ip)
-        inform_msg = Tr069MessageBuilder.get_qafb_inform('48BF74',
-                                                         'Unrecognized device',
-                                                         '120200002618AGP0001')
+        inform_msg = Tr069MessageBuilder.get_qafb_inform(
+            '48BF74',
+            'Unrecognized device',
+            '120200002618AGP0001',
+        )
         resp1 = manager.handle_tr069_message(ctx1, inform_msg)
-        self.assertTrue(isinstance(resp1, models.DummyInput),
-                        'Should end provisioninng session with empty response')
-
-
+        self.assertTrue(
+            isinstance(resp1, models.DummyInput),
+            'Should end provisioninng session with empty response',
+        )
 
     def _get_manager(self) -> StateMachineManager:
         service = EnodebAcsStateMachineBuilder.build_magma_service()

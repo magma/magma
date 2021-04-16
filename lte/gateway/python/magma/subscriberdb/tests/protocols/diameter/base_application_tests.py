@@ -33,7 +33,8 @@ class BaseApplicationTests(unittest.TestCase):
     HOST_ADDR = "127.0.0.1"
 
     def setUp(self):
-        base_manager = base.BaseApplication(self.REALM, self.HOST, self.HOST_ADDR)
+        base_manager = base.BaseApplication(
+            self.REALM, self.HOST, self.HOST_ADDR)
         s6a_manager = s6a_relay.S6AApplication(
             Mock(),
             self.REALM,

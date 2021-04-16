@@ -84,6 +84,7 @@ class BaseNamesStreamerCallback(StreamerClient.Callback):
     Callback for the base names streamer policy which persists the basenames
     and rules associated to the basename
     """
+
     def __init__(
         self,
         basenames_dict: BaseNameDict,
@@ -101,11 +102,13 @@ class BaseNamesStreamerCallback(StreamerClient.Callback):
             basename.ParseFromString(update.value)
             self._basenames[update.key] = basename
 
+
 class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
     """
     Callback for the apn rule mappings streamer policy which persists
     the mapping of (imsi, subscriber) tuples -> rules
     """
+
     def __init__(
         self,
         session_mgr_stub: LocalSessionManagerStub,
@@ -125,8 +128,10 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
         updates: List[DataUpdate],
         resync: bool,
     ):
-        logging.info('Processing %d SID -> apn -> policy updates', len(updates))
-        all_subscriber_rules = [] # type: List[RulesPerSubscriber]
+        logging.info(
+            'Processing %d SID -> apn -> policy updates',
+            len(updates))
+        all_subscriber_rules = []  # type: List[RulesPerSubscriber]
         found_update = False
         for update in updates:
             imsi = update.key
@@ -167,13 +172,13 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
         subscriber_id: str,
         sub_apn_policies: SubscriberPolicySet,
     ) -> RulesPerSubscriber:
-        apn_rule_sets = [] # type: List[RuleSet]
+        apn_rule_sets = []  # type: List[RuleSet]
         global_rules = self._get_global_static_rules(sub_apn_policies)
 
         for apn_policy_set in sub_apn_policies.rules_per_apn:
             # Static rule installs
             static_rule_ids = self._get_desired_static_rules(apn_policy_set)
-            static_rules = [] # type: List[StaticRuleInstall]
+            static_rules = []  # type: List[StaticRuleInstall]
             for rule_id in static_rule_ids:
                 static_rules.append(StaticRuleInstall(rule_id=rule_id))
             # Add global rules
@@ -181,7 +186,7 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
                 static_rules.append(StaticRuleInstall(rule_id=rule_id))
 
             # Dynamic rule installs
-            dynamic_rules = [] # type: List[DynamicRuleInstall]
+            dynamic_rules = []  # type: List[DynamicRuleInstall]
             # Build the rule id to be globally unique
             rule = DynamicRuleInstall(
                 policy_rule=get_allow_all_policy_rule(subscriber_id,
@@ -232,6 +237,7 @@ class RatingGroupsStreamerCallback(StreamerClient.Callback):
     """
     Callback for the rating groups streamer which persists the rating groups
     """
+
     def __init__(
             self,
             rating_groups_dict: RatingGroupsDict,

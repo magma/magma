@@ -92,14 +92,14 @@ class S6ARelayApplication(S6AApplication):
             self.grpc_timeout,
         )
         future.add_done_callback(lambda answer:
-            self._loop.call_soon_threadsafe(
-                self._relay_auth_answer,
-                state_id,
-                msg,
-                answer,
-                retries_left,
-            )
-        )
+                                 self._loop.call_soon_threadsafe(
+                                     self._relay_auth_answer,
+                                     state_id,
+                                     msg,
+                                     answer,
+                                     retries_left,
+                                 )
+                                 )
 
     def _relay_auth_answer(self, state_id, msg, answer_future, retries_left):
         user_name = msg.find_avp(*avp.resolve('User-Name')).value
@@ -140,7 +140,7 @@ class S6ARelayApplication(S6AApplication):
                         avp.AVP('RAND', vector.rand),
                         avp.AVP('XRES', vector.xres),
                         avp.AVP('AUTN', vector.autn),
-                        avp.AVP('KASME', vector.kasme)]) for vector in answer.eutran_vectors ])
+                        avp.AVP('KASME', vector.kasme)]) for vector in answer.eutran_vectors])
 
                 resp = self._gen_response(state_id, msg,
                                           avp.ResultCode.DIAMETER_SUCCESS,
@@ -162,7 +162,8 @@ class S6ARelayApplication(S6AApplication):
         # Validate the message
         if not self.validate_message(state_id, msg):
             return
-        return self._send_location_request_with_retries(state_id, msg, self.retry_count)
+        return self._send_location_request_with_retries(
+            state_id, msg, self.retry_count)
 
     def _send_location_request_with_retries(self, state_id, msg, retries_left):
         user_name = msg.find_avp(*avp.resolve('User-Name')).value
@@ -177,16 +178,17 @@ class S6ARelayApplication(S6AApplication):
         )
         future = self._client.UpdateLocation.future(request, self.grpc_timeout)
         future.add_done_callback(lambda answer:
-            self._loop.call_soon_threadsafe(
-                self._relay_update_location_answer,
-                state_id,
-                msg,
-                answer,
-                retries_left
-            )
-        )
+                                 self._loop.call_soon_threadsafe(
+                                     self._relay_update_location_answer,
+                                     state_id,
+                                     msg,
+                                     answer,
+                                     retries_left
+                                 )
+                                 )
 
-    def _relay_update_location_answer(self, state_id, msg, answer_future, retries_left):
+    def _relay_update_location_answer(
+            self, state_id, msg, answer_future, retries_left):
         err = answer_future.exception()
         if err and retries_left > 0:
             # TODO: retry only on network failure and not application failures
@@ -223,22 +225,39 @@ class S6ARelayApplication(S6AApplication):
                     avp.AVP('Subscriber-Status', 0),
                     avp.AVP('Network-Access-Mode', 2),
                     avp.AVP('AMBR', [
-                        avp.AVP('Max-Requested-Bandwidth-UL', answer.total_ambr.max_bandwidth_ul),
-                        avp.AVP('Max-Requested-Bandwidth-DL', answer.total_ambr.max_bandwidth_dl),
+                        avp.AVP(
+                            'Max-Requested-Bandwidth-UL',
+                            answer.total_ambr.max_bandwidth_ul),
+                        avp.AVP(
+                            'Max-Requested-Bandwidth-DL',
+                            answer.total_ambr.max_bandwidth_dl),
                     ]),
                     avp.AVP('APN-Configuration-Profile', [
-                        avp.AVP('Context-Identifier', answer.default_context_id),
-                        avp.AVP('All-APN-Configurations-Included-Indicator', 1 if answer.all_apns_included else 0),
+                        avp.AVP(
+                            'Context-Identifier',
+                            answer.default_context_id),
+                        avp.AVP(
+                            'All-APN-Configurations-Included-Indicator',
+                            1 if answer.all_apns_included else 0),
                         *[avp.AVP('APN-Configuration', [
                             avp.AVP('Context-Identifier', apn.context_id),
                             avp.AVP('PDN-Type', apn.pdn),
-                            avp.AVP('Service-Selection', apn.service_selection),
+                            avp.AVP(
+                                'Service-Selection',
+                                apn.service_selection),
                             avp.AVP('EPS-Subscribed-QoS-Profile', [
-                                avp.AVP('QoS-Class-Identifier', apn.qos_profile.class_id),
+                                avp.AVP(
+                                    'QoS-Class-Identifier',
+                                    apn.qos_profile.class_id),
                                 avp.AVP('Allocation-Retention-Priority', [
-                                    avp.AVP('Priority-Level', apn.qos_profile.priority_level),
-                                    avp.AVP('Pre-emption-Capability', 1 if apn.qos_profile.preemption_capability else 0),
-                                    avp.AVP('Pre-emption-Vulnerability', 1 if apn.qos_profile.preemption_vulnerability else 0),
+                                    avp.AVP(
+                                        'Priority-Level', apn.qos_profile.priority_level),
+                                    avp.AVP(
+                                        'Pre-emption-Capability',
+                                        1 if apn.qos_profile.preemption_capability else 0),
+                                    avp.AVP(
+                                        'Pre-emption-Vulnerability',
+                                        1 if apn.qos_profile.preemption_vulnerability else 0),
                                 ]),
                             ]),
                             avp.AVP('AMBR', [

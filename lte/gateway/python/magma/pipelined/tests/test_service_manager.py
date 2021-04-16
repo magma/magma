@@ -45,11 +45,12 @@ class ServiceManagerTest(unittest.TestCase):
             'static_services': ['arpd', 'access_control', 'ipfix', 'proxy'],
             '5G_feature_set': {'enable': False}
         }
-        # mock the get_default_client function used to return a fakeredis object
+        # mock the get_default_client function used to return a fakeredis
+        # object
         func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())
         with mock.patch(
             'magma.pipelined.rule_mappers.get_default_client',
-            func_mock):
+                func_mock):
             self.service_manager = ServiceManager(magma_service_mock)
 
     def test_get_table_num(self):
@@ -70,7 +71,8 @@ class ServiceManagerTest(unittest.TestCase):
             self.service_manager.get_table_num(EnforcementController.APP_NAME),
             13)
         self.assertEqual(
-            self.service_manager.get_table_num(EnforcementStatsController.APP_NAME),
+            self.service_manager.get_table_num(
+                EnforcementStatsController.APP_NAME),
             14)
         self.assertEqual(
             self.service_manager.get_table_num(IPFIXController.APP_NAME),
@@ -164,18 +166,18 @@ class ServiceManagerTest(unittest.TestCase):
             ('access_control', Tables(main_table=3, scratch_tables=[],
                                       type=ControllerType.PHYSICAL)),
             ('proxy', Tables(main_table=4, scratch_tables=[],
-                                      type=ControllerType.PHYSICAL)),
+                             type=ControllerType.PHYSICAL)),
             ('middle', Tables(main_table=10, scratch_tables=[], type=None)),
             ('dpi', Tables(main_table=11, scratch_tables=[],
                            type=ControllerType.LOGICAL)),
             ('gy', Tables(main_table=12, scratch_tables=[],
-                                   type=ControllerType.LOGICAL)),
+                          type=ControllerType.LOGICAL)),
             ('enforcement', Tables(main_table=13, scratch_tables=[21],
                                    type=ControllerType.LOGICAL)),
             ('enforcement_stats', Tables(main_table=14, scratch_tables=[22, 23],
                                          type=ControllerType.LOGICAL)),
             ('ipfix', Tables(main_table=15, scratch_tables=[],
-                                   type=ControllerType.LOGICAL)),
+                             type=ControllerType.LOGICAL)),
             ('egress', Tables(main_table=20, scratch_tables=[],
                               type=ControllerType.SPECIAL)),
         ])

@@ -70,26 +70,36 @@ def main():
     enable_nat = service.config.get('enable_nat', service.mconfig.nat_enabled)
     service.config['enable_nat'] = enable_nat
     logging.info("Nat: %s", enable_nat)
-    vlan_tag = service.config.get('sgi_management_iface_vlan',
-                                  service.mconfig.sgi_management_iface_vlan)
+    vlan_tag = service.config.get(
+        'sgi_management_iface_vlan',
+        service.mconfig.sgi_management_iface_vlan,
+    )
     service.config['sgi_management_iface_vlan'] = vlan_tag
 
-    sgi_ip = service.config.get('sgi_management_iface_ip_addr',
-                                service.mconfig.sgi_management_iface_ip_addr)
+    sgi_ip = service.config.get(
+        'sgi_management_iface_ip_addr',
+        service.mconfig.sgi_management_iface_ip_addr,
+    )
     service.config['sgi_management_iface_ip_addr'] = sgi_ip
 
-    sgi_gateway_ip = service.config.get('sgi_management_iface_gw',
-                                        service.mconfig.sgi_management_iface_gw)
+    sgi_gateway_ip = service.config.get(
+        'sgi_management_iface_gw',
+        service.mconfig.sgi_management_iface_gw,
+    )
     service.config['sgi_management_iface_gw'] = sgi_gateway_ip
 
     if 'virtual_mac' not in service.config:
-        service.config['virtual_mac'] = get_if_hwaddr(service.config.get('bridge_name'))
+        service.config['virtual_mac'] = get_if_hwaddr(
+            service.config.get('bridge_name'),
+        )
 
     # this is not read from yml file.
     service.config['uplink_port'] = OFPP_LOCAL
     uplink_port_name = service.config.get('ovs_uplink_port_name', None)
     if enable_nat is False and uplink_port_name is not None:
-        service.config['uplink_port'] = BridgeTools.get_ofport(uplink_port_name)
+        service.config['uplink_port'] = BridgeTools.get_ofport(
+            uplink_port_name,
+        )
 
     # header enrichment related configuration.
     service.config['proxy_port_name'] = PROXY_PORT_NAME
@@ -112,20 +122,23 @@ def main():
     def callback(returncode):
         if returncode != 0:
             logging.error(
-                "Failed to set MASQUERADE: %d", returncode
+                "Failed to set MASQUERADE: %d", returncode,
             )
 
     # TODO fix this hack for XWF
     if enable_nat is True or service.config.get('setup_type') == 'XWF':
-        call_process('iptables -t nat -A POSTROUTING -o %s -j MASQUERADE'
-                     % service.config['nat_iface'],
-                     callback,
-                     service.loop
-                     )
+        call_process(
+            'iptables -t nat -A POSTROUTING -o %s -j MASQUERADE'
+            % service.config['nat_iface'],
+            callback,
+            service.loop,
+        )
 
-    service.loop.create_task(monitor_ifaces(
-        service.config['monitored_ifaces'],
-        service.loop),
+    service.loop.create_task(
+        monitor_ifaces(
+            service.config['monitored_ifaces'],
+            service.loop,
+        ),
     )
 
     manager = AppManager.get_instance()
@@ -145,7 +158,8 @@ def main():
         manager.applications.get('InOutController', None),
         manager.applications.get('NGServiceController', None),
         service.config,
-        service_manager)
+        service_manager,
+    )
     pipelined_srv.add_to_server(service.rpc_server)
 
     if service.config['setup_type'] == 'CWF':
@@ -157,17 +171,24 @@ def main():
             service.StopService(None, None)
 
         # For CWF start quota check servers
-        start_check_quota_server(run_flask, bridge_ip, has_quota_port, True,
-                                 on_exit_server_thread)
-        start_check_quota_server(run_flask, bridge_ip, no_quota_port, False,
-                                 on_exit_server_thread)
+        start_check_quota_server(
+            run_flask, bridge_ip, has_quota_port, True,
+            on_exit_server_thread,
+        )
+        start_check_quota_server(
+            run_flask, bridge_ip, no_quota_port, False,
+            on_exit_server_thread,
+        )
 
     if service.config['setup_type'] == 'LTE':
-        polling_interval = service.config.get('ovs_gtp_stats_polling_interval',
-                                              MIN_OVSDB_DUMP_POLLING_INTERVAL)
+        polling_interval = service.config.get(
+            'ovs_gtp_stats_polling_interval',
+            MIN_OVSDB_DUMP_POLLING_INTERVAL,
+        )
         collector = GTPStatsCollector(
             polling_interval,
-            service.loop)
+            service.loop,
+        )
         collector.start()
 
     # Run the service loop
@@ -181,7 +202,8 @@ def start_check_quota_server(target, ip, port, response, exit_callback):
     """ Starts service server threads """
     thread = threading.Thread(
         target=target,
-        args=(ip, port, response, exit_callback))
+        args=(ip, port, response, exit_callback),
+    )
     thread.daemon = True
     thread.start()
 

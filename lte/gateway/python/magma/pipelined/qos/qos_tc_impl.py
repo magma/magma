@@ -47,8 +47,10 @@ class TrafficClass:
         return TrafficClass.tc_ops.del_htb(intf, qid_hex)
 
     @staticmethod
-    def create_class(intf: str, qid: int, max_bw: int, rate=None,
-                     parent_qid=None, skip_filter=False) -> int:
+    def create_class(
+        intf: str, qid: int, max_bw: int, rate=None,
+        parent_qid=None, skip_filter=False,
+    ) -> int:
         if not rate:
             rate = DEFAULT_RATE
 
@@ -63,7 +65,9 @@ class TrafficClass:
 
         qid_hex = hex(qid)
         parent_qid_hex = '1:' + hex(parent_qid)
-        err = TrafficClass.tc_ops.create_htb(intf, qid_hex, max_bw, rate, parent_qid_hex)
+        err = TrafficClass.tc_ops.create_htb(
+            intf, qid_hex, max_bw, rate, parent_qid_hex,
+        )
         if err < 0 or skip_filter:
             return err
 
@@ -87,23 +91,34 @@ class TrafficClass:
             with open(fn) as f:
                 speed = f.read().strip()
         except OSError:
-            LOG.error('unable to read speed from %s defaulting to %s', fn, speed)
+            LOG.error(
+                'unable to read speed from %s defaulting to %s',
+                fn,
+                speed,
+            )
 
-        # qdisc does not support replace, so check it before creating the HTB qdisc.
+        # qdisc does not support replace, so check it before creating the HTB
+        # qdisc.
         qdisc_type = TrafficClass._get_qdisc_type(intf)
         if qdisc_type != "htb":
-            qdisc_cmd = "tc qdisc add dev {intf} root handle 1: htb".format(intf=intf)
+            qdisc_cmd = "tc qdisc add dev {intf} root handle 1: htb".format(
+                intf=intf,
+            )
             cmd_list.append(qdisc_cmd)
             LOG.info("Created root qdisc")
 
         parent_q_cmd = "tc class replace dev {intf} parent 1: classid 1:{root_qid} htb "
         parent_q_cmd += "rate {speed}Mbit ceil {speed}Mbit"
-        parent_q_cmd = parent_q_cmd.format(intf=intf, root_qid=qid_hex, speed=speed)
+        parent_q_cmd = parent_q_cmd.format(
+            intf=intf, root_qid=qid_hex, speed=speed,
+        )
         cmd_list.append(parent_q_cmd)
         tc_cmd = "tc class replace dev {intf} parent 1:{root_qid} classid 1:1 htb "
         tc_cmd += "rate {rate} ceil {speed}Mbit"
-        tc_cmd = tc_cmd.format(intf=intf, root_qid=qid_hex, rate=DEFAULT_RATE,
-                               speed=speed)
+        tc_cmd = tc_cmd.format(
+            intf=intf, root_qid=qid_hex, rate=DEFAULT_RATE,
+            speed=speed,
+        )
         cmd_list.append(tc_cmd)
         return run_cmd(cmd_list, show_error)
 
@@ -148,8 +163,10 @@ class TrafficClass:
     @staticmethod
     def dump_class_state(intf: str, qid: int):
         qid_hex = hex(qid)
-        tc_cmd = "tc -s -d class show dev {} classid 1:{}".format(intf,
-                                                                  qid_hex)
+        tc_cmd = "tc -s -d class show dev {} classid 1:{}".format(
+            intf,
+            qid_hex,
+        )
         args = argSplit(tc_cmd)
         try:
             output = subprocess.check_output(args)
@@ -163,7 +180,8 @@ class TrafficClass:
         tc_cmd = "tc class show dev {} classid 1:{}".format(intf, qid_hex)
         args = argSplit(tc_cmd)
         try:
-            # output: class htb 1:3 parent 1:2 prio 2 rate 250Kbit ceil 500Kbit burst 1600b cburst 1600b
+            # output: class htb 1:3 parent 1:2 prio 2 rate 250Kbit ceil 500Kbit
+            # burst 1600b cburst 1600b
             raw_output = subprocess.check_output(args)
             output = raw_output.decode('utf-8')
             # return all config from 'rate' onwards
@@ -180,7 +198,8 @@ class TrafficClass:
         tc_cmd = "tc qdisc show dev {}".format(intf)
         args = argSplit(tc_cmd)
         try:
-            # output: qdisc htb 1: root refcnt 2 r2q 10 default 0 direct_packets_stat 314 direct_qlen 1000
+            # output: qdisc htb 1: root refcnt 2 r2q 10 default 0
+            # direct_packets_stat 314 direct_qlen 1000
             raw_output = subprocess.check_output(args)
             output = raw_output.decode('utf-8')
             config = output.split()
@@ -204,24 +223,30 @@ class TCManager(object):
     default queue and are not rate limited.
     """
 
-    def __init__(self,
-                 datapath,
-                 loop,
-                 config) -> None:
+    def __init__(
+        self,
+        datapath,
+        loop,
+        config,
+    ) -> None:
         self._datapath = datapath
         self._loop = loop
         self._uplink = config['nat_iface']
         self._downlink = config['enodeb_iface']
         self._max_rate = config["qos"]["max_rate"]
         self._enable_pyroute2 = config["qos"].get('enable_pyroute2', False)
-        self._start_idx, self._max_idx = (config['qos']['linux_tc']['min_idx'],
-                                          config['qos']['linux_tc']['max_idx'])
+        self._start_idx, self._max_idx = (
+            config['qos']['linux_tc']['min_idx'],
+            config['qos']['linux_tc']['max_idx'],
+        )
         self._id_manager = IdManager(self._start_idx, self._max_idx)
         self._initialized = True
-        LOG.info("Init LinuxTC module uplink:%s downlink:%s",
-                 config['nat_iface'], config['enodeb_iface'])
+        LOG.info(
+            "Init LinuxTC module uplink:%s downlink:%s",
+            config['nat_iface'], config['enodeb_iface'],
+        )
 
-    def destroy(self, ):
+    def destroy(self):
         LOG.info("destroying existing qos classes")
         # ensure ordering during deletion of classes, children should be deleted
         # prior to the parent class ids
@@ -236,10 +261,16 @@ class TCManager(object):
                     LOG.info("Attemting to delete parent class idx %d", pqid)
                     TrafficClass.delete_class(intf, pqid)
 
-    def setup(self, ):
+    def setup(self):
         # initialize new qdisc
-        TrafficClass.init_qdisc(self._uplink, enable_pyroute2=self._enable_pyroute2)
-        TrafficClass.init_qdisc(self._downlink, enable_pyroute2=self._enable_pyroute2)
+        TrafficClass.init_qdisc(
+            self._uplink,
+            enable_pyroute2=self._enable_pyroute2,
+        )
+        TrafficClass.init_qdisc(
+            self._downlink,
+            enable_pyroute2=self._enable_pyroute2,
+        )
 
     def get_action_instruction(self, qid: int):
         # return an action and an instruction corresponding to this qid
@@ -250,23 +281,29 @@ class TCManager(object):
         parser = self._datapath.ofproto_parser
         return parser.OFPActionSetField(pkt_mark=qid), None
 
-    def add_qos(self, d: FlowMatch.Direction, qos_info: QosInfo,
-                parent=None, skip_filter=False) -> int:
+    def add_qos(
+        self, d: FlowMatch.Direction, qos_info: QosInfo,
+        parent=None, skip_filter=False,
+    ) -> int:
         LOG.debug("add QoS: %s", qos_info)
         qid = self._id_manager.allocate_idx()
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
-        err = TrafficClass.create_class(intf, qid, qos_info.mbr,
-                                        rate=qos_info.gbr,
-                                        parent_qid=parent,
-                                        skip_filter=skip_filter)
+        err = TrafficClass.create_class(
+            intf, qid, qos_info.mbr,
+            rate=qos_info.gbr,
+            parent_qid=parent,
+            skip_filter=skip_filter,
+        )
         # typecast to int to avoid MagicMock related error in unit test
         if int(err) < 0:
             return 0
         LOG.debug("assigned qid: %d", qid)
         return qid
 
-    def remove_qos(self, qid: int, d: FlowMatch.Direction,
-                   recovery_mode=False, skip_filter=False):
+    def remove_qos(
+        self, qid: int, d: FlowMatch.Direction,
+        recovery_mode=False, skip_filter=False,
+    ):
         if not self._initialized and not recovery_mode:
             return
 
@@ -284,18 +321,25 @@ class TCManager(object):
             LOG.error('error deleting class %d, not releasing idx', qid)
         return
 
-    def read_all_state(self, ):
+    def read_all_state(self):
         LOG.debug("read_all_state")
         st = {}
         apn_qid_list = set()
         ul_qid_list = TrafficClass.read_all_classes(self._uplink)
         dl_qid_list = TrafficClass.read_all_classes(self._downlink)
-        for (d, qid_list) in ((FlowMatch.UPLINK, ul_qid_list),
-                              (FlowMatch.DOWNLINK, dl_qid_list)):
+        for (d, qid_list) in (
+            (FlowMatch.UPLINK, ul_qid_list),
+            (FlowMatch.DOWNLINK, dl_qid_list),
+        ):
             for qid_tuple in qid_list:
                 qid, pqid = qid_tuple
                 if qid < self._start_idx or qid > (self._max_idx - 1):
-                    LOG.debug("qid %d out of range: (%d - %d)", qid, self._start_idx, self._max_idx)
+                    LOG.debug(
+                        "qid %d out of range: (%d - %d)",
+                        qid,
+                        self._start_idx,
+                        self._max_idx,
+                    )
                     continue
                 apn_qid = pqid if pqid != self._max_idx else 0
                 st[qid] = {
@@ -308,11 +352,12 @@ class TCManager(object):
         self._id_manager.restore_state(st)
         return st, apn_qid_list
 
-    def same_qos_config(self, d: FlowMatch.Direction,
-                        qid1: int, qid2: int) -> bool:
+    def same_qos_config(
+        self, d: FlowMatch.Direction,
+        qid1: int, qid2: int,
+    ) -> bool:
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
 
         config1 = TrafficClass.get_class_rate(intf, qid1)
         config2 = TrafficClass.get_class_rate(intf, qid2)
         return config1 == config2
-

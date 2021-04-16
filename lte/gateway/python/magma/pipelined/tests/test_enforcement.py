@@ -63,7 +63,8 @@ from magma.pipelined.tests.pipelined_test_util import (
 )
 
 
-def mocked_activate_he_urls_for_ue(ip: IPAddress, rule_id, urls: List[str], imsi: str, msisdn: str):
+def mocked_activate_he_urls_for_ue(
+        ip: IPAddress, rule_id, urls: List[str], imsi: str, msisdn: str):
     return True
 
 
@@ -92,7 +93,8 @@ class EnforcementTableTest(unittest.TestCase):
         """
         super(EnforcementTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT], ['proxy'])
+        cls.service_manager = create_service_manager(
+            [PipelineD.ENFORCEMENT], ['proxy'])
         cls._tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
@@ -139,7 +141,6 @@ class EnforcementTableTest(unittest.TestCase):
             integ_test=False
         )
 
-
         cls.thread = start_ryu_app_thread(test_setup)
 
         cls.enforcement_controller = enforcement_controller_reference.result()
@@ -169,7 +170,10 @@ class EnforcementTableTest(unittest.TestCase):
         ]
         policies = [
             VersionedPolicy(
-                rule=PolicyRule(id='simple_match', priority=2,flow_list=flow_list1),
+                rule=PolicyRule(
+                    id='simple_match',
+                    priority=2,
+                    flow_list=flow_list1),
                 version=1,
             ),
         ]
@@ -230,7 +234,10 @@ class EnforcementTableTest(unittest.TestCase):
         ]
         policies = [
             VersionedPolicy(
-                rule=PolicyRule(id='simple_match', priority=2, flow_list=flow_list1),
+                rule=PolicyRule(
+                    id='simple_match',
+                    priority=2,
+                    flow_list=flow_list1),
                 version=1,
             ),
         ]
@@ -241,7 +248,7 @@ class EnforcementTableTest(unittest.TestCase):
         ).add_policy(policies[0])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
-                .build_requests(),
+            .build_requests(),
             self.testing_controller
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
@@ -324,7 +331,10 @@ class EnforcementTableTest(unittest.TestCase):
                 version=1,
             ),
             VersionedPolicy(
-                rule=PolicyRule(id='no_match', priority=2, flow_list=flow_list2),
+                rule=PolicyRule(
+                    id='no_match',
+                    priority=2,
+                    flow_list=flow_list2),
                 version=1,
             ),
         ]
@@ -457,7 +467,7 @@ class EnforcementTableTest(unittest.TestCase):
                                              self.service_manager)
 
         with s1.isolator, s1.context, s2.isolator, s2.context, flow_verifier, \
-             snapshot_verifier:
+                snapshot_verifier:
             for pkt in pkts_to_send:
                 pkt_sender.send(pkt.pkt, pkt.num)
 

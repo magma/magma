@@ -147,9 +147,9 @@ class SessionRpcServicerTest(unittest.TestCase):
                 ),
                 apn='apn1',
             ),
-            rat_specific_context = RatSpecificContext(
-                lte_context = LTESessionContext(
-                    imsi_plmn_id = '00101',
+            rat_specific_context=RatSpecificContext(
+                lte_context=LTESessionContext(
+                    imsi_plmn_id='00101',
                 ),
             ),
         )
@@ -175,9 +175,9 @@ class SessionRpcServicerTest(unittest.TestCase):
                 ),
                 apn='apn2',
             ),
-            rat_specific_context = RatSpecificContext(
-                lte_context = LTESessionContext(
-                    imsi_plmn_id = '00101',
+            rat_specific_context=RatSpecificContext(
+                lte_context=LTESessionContext(
+                    imsi_plmn_id='00101',
                 ),
             ),
         )
@@ -203,9 +203,9 @@ class SessionRpcServicerTest(unittest.TestCase):
                 ),
                 apn='apn1',
             ),
-            rat_specific_context = RatSpecificContext(
-                lte_context = LTESessionContext(
-                    imsi_plmn_id = '00101',
+            rat_specific_context=RatSpecificContext(
+                lte_context=LTESessionContext(
+                    imsi_plmn_id='00101',
                 ),
             ),
         )

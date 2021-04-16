@@ -33,7 +33,7 @@ class Utils:
     ovs = None
 
     @classmethod
-    def get_of_priority(cls, precedence:int):
+    def get_of_priority(cls, precedence: int):
         """
         Lower the precedence higher the importance of the flow in 3GPP.
         Higher the priority higher the importance of the flow in openflow.
@@ -72,4 +72,3 @@ class Utils:
             logging.warning('Cannot initiate OVSDB connection: %s', e)
             return None
         return cls.ovs
-

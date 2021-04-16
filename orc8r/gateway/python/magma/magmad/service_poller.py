@@ -39,7 +39,8 @@ class ServiceInfo(object):
         self._linked_services = []
         # Initialize the counter for each service
         UNEXPECTED_SERVICE_RESTARTS.labels(
-            service_name=self._service_name).inc(0)
+            service_name=self._service_name,
+        ).inc(0)
 
     @property
     def status(self):
@@ -61,10 +62,13 @@ class ServiceInfo(object):
         if start_time <= self._expected_start_time:
             # Probably a race in service starts, or magmad restarted
             return
-        if (start_time - self._expected_start_time >
-                self.SERVICE_RESTART_BUFFER_TIME):
+        if (
+            start_time - self._expected_start_time
+            > self.SERVICE_RESTART_BUFFER_TIME
+        ):
             UNEXPECTED_SERVICE_RESTARTS.labels(
-                service_name=self._service_name).inc()
+                service_name=self._service_name,
+            ).inc()
             self._expected_start_time = start_time
 
     def process_service_restart(self):
@@ -83,7 +87,7 @@ class ServicePoller(Job):
     def __init__(self, loop, config, dynamic_services: List[str]):
         super().__init__(
             interval=self.GET_STATUS_INTERVAL,
-            loop=loop
+            loop=loop,
         )
         self._config = config
         # Holds a map of service name -> ServiceInfo
@@ -96,9 +100,11 @@ class ServicePoller(Job):
             for service in service_list:
                 self._service_info[service].add_linked_services(service_list)
 
-    def update_dynamic_services(self,
-                                new_services: List[str],
-                                stopped_services: List[str]):
+    def update_dynamic_services(
+        self,
+        new_services: List[str],
+        stopped_services: List[str],
+    ):
         """
         Update the service poller when dynamic services are enabled or disabled
 
@@ -143,7 +149,8 @@ class ServicePoller(Job):
                 continue
             try:
                 chan = ServiceRegistry.get_rpc_channel(
-                    service, ServiceRegistry.LOCAL)
+                    service, ServiceRegistry.LOCAL,
+                )
             except ValueError:
                 # Service can't be contacted
                 logging.error('Cant get RPC channel to %s', service)
@@ -155,8 +162,10 @@ class ServicePoller(Job):
                     self.GET_STATUS_TIMEOUT,
                 )
                 info = await grpc_async_wrapper(future, self._loop)
-                self._service_info[service].update(info.start_time_secs,
-                                                   info.status)
+                self._service_info[service].update(
+                    info.start_time_secs,
+                    info.status,
+                )
                 self._service_info[service].continuous_timeouts = 0
             except grpc.RpcError as err:
                 logging.error(

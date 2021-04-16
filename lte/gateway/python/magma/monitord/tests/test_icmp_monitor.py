@@ -21,6 +21,7 @@ from magma.monitord.icmp_monitoring import ICMPMonitoring
 
 LOCALHOST = '127.0.0.1'
 
+
 class ICMPMonitoringTests(unittest.TestCase):
     """
     Test class for the ICMPMonitor class
@@ -31,8 +32,10 @@ class ICMPMonitoringTests(unittest.TestCase):
         self.subscribers[imsi] = ip
 
     async def _ping_local(self):
-        return await self._monitor._ping_targets([LOCALHOST],
-                                                     self.subscribers)
+        return await self._monitor._ping_targets(
+            [LOCALHOST],
+            self.subscribers,
+        )
 
     def setUp(self):
         """
@@ -41,9 +44,11 @@ class ICMPMonitoringTests(unittest.TestCase):
         self.loop = asyncio.get_event_loop()
         self.subscribers = {}
         self.obj = CpeMonitoringModule()
-        self._monitor = ICMPMonitoring(self.obj, polling_interval=5,
-                                       service_loop=self.loop,
-                                       mtr_interface=LOCALHOST)
+        self._monitor = ICMPMonitoring(
+            self.obj, polling_interval=5,
+            service_loop=self.loop,
+            mtr_interface=LOCALHOST,
+        )
 
     def test_ping_subscriber_saves_response(self):
         imsi = 'IMSI00000000001'

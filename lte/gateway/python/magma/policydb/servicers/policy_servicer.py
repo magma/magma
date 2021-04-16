@@ -77,7 +77,8 @@ class PolicyRpcServicer(PolicyDBServicer):
             context.set_details('Failed to update rule assignments in orc8r')
             return Void()
 
-        rules_to_install = self._get_rules(request.rule_ids, request.base_names)
+        rules_to_install = self._get_rules(
+            request.rule_ids, request.base_names)
         rar = PolicyReAuthRequest(
             # Leave session id empty, re-auth for all sessions
             imsi=request.imsi,

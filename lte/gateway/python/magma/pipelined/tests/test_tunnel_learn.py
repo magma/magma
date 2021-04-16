@@ -61,7 +61,7 @@ class TunnelLearnTest(unittest.TestCase):
         super(TunnelLearnTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([],
-            ['ue_mac', 'tunnel_learn'])
+                                                     ['ue_mac', 'tunnel_learn'])
         cls._tbl_num = cls.service_manager.get_table_num(
             TunnelLearnController.APP_NAME)
 

@@ -66,7 +66,7 @@ class GYTableTest(unittest.TestCase):
 
     @classmethod
     @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:11:22:33:44:55'}]])
+                         return_value=[[{'addr': '00:11:22:33:44:55'}]])
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
         """
@@ -154,7 +154,7 @@ class GYTableTest(unittest.TestCase):
         )
         flow_list = [FlowDescription(match=FlowMatch())]
         policy = VersionedPolicy(
-            rule= PolicyRule(
+            rule=PolicyRule(
                 id='redir_test', priority=3, flow_list=flow_list,
                 redirect=RedirectInformation(
                     support=1,
@@ -208,7 +208,10 @@ class GYTableTest(unittest.TestCase):
         ]
         policies = [
             VersionedPolicy(
-                rule=PolicyRule(id='restrict_match', priority=2, flow_list=flow_list1),
+                rule=PolicyRule(
+                    id='restrict_match',
+                    priority=2,
+                    flow_list=flow_list1),
                 version=1,
             )
         ]
@@ -247,6 +250,7 @@ class GYTableTest(unittest.TestCase):
 
         with isolator, sub_context, flow_verifier, snapshot_verifier:
             pkt_sender.send(packet)
+
 
 if __name__ == "__main__":
     unittest.main()

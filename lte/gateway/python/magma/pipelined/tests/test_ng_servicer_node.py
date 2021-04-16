@@ -42,10 +42,11 @@ from magma.pipelined.tests.pipelined_test_util import (
 )
 
 
-def mocked_send_node_state_message_success (node_message):
+def mocked_send_node_state_message_success(node_message):
     return True
 
-def mocked_send_node_state_message_failure (node_message):
+
+def mocked_send_node_state_message_failure(node_message):
     return False
 
 
@@ -115,16 +116,17 @@ class NGServiceControllerTest(unittest.TestCase):
 
         return (node_message.associaton_state)
 
-    def test_association_setup_message_request (self):
+    def test_association_setup_message_request(self):
         ng_serv = self.ng_services_controller
         node_mgr = ng_serv._ng_node_mgr
 
-        assoc_message = self._default_settings(mocked_send_node_state_message_success)
+        assoc_message = self._default_settings(
+            mocked_send_node_state_message_success)
         node_mgr._send_association_request_message(assoc_message)
         TestCase().assertEqual(node_mgr._smf_assoc_version, 1)
         TestCase().assertEqual(node_mgr._assoc_message_count, 1)
 
-    def test_association_release_message (self):
+    def test_association_release_message(self):
         ng_serv = self.ng_services_controller
         node_mgr = ng_serv._ng_node_mgr
 
@@ -136,19 +138,21 @@ class NGServiceControllerTest(unittest.TestCase):
         TestCase().assertEqual(node_mgr._smf_assoc_version, 0)
         TestCase().assertEqual(node_mgr._assoc_message_count, 2)
 
-    def test_association_setup_message_request_failure (self):
+    def test_association_setup_message_request_failure(self):
         ng_serv = self.ng_services_controller
         node_mgr = ng_serv._ng_node_mgr
 
         # Assume that the Association is established
         node_mgr._smf_assoc_state = UPFAssociationState.ESTABLISHED
 
-        assoc_message = self._default_settings(mocked_send_node_state_message_failure)
+        assoc_message = self._default_settings(
+            mocked_send_node_state_message_failure)
         node_mgr.send_association_release_message()
 
         TestCase().assertEqual(node_mgr._smf_assoc_version, 0)
         TestCase().assertEqual(node_mgr._assoc_message_count, 0)
         TestCase().assertEqual(node_mgr._smf_assoc_state, UPFAssociationState.RELEASE)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -14,7 +14,6 @@ limitations under the License.
 import abc
 import logging
 
-logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy.all import (
     ARP,
     BOOTP,
@@ -28,6 +27,8 @@ from scapy.all import (
     rdpcap,
     wrpcap,
 )
+
+logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 
 '''
 
@@ -141,6 +142,7 @@ class ScapyPacket:
 
 class PacketBuilder(abc.ABC):
     """Interface for packet Builder"""
+
     def __init__(self, packet):
         self.packet = packet
 
@@ -224,6 +226,7 @@ class PacketBuilder(abc.ABC):
 
 class ScapyPacketBuilder(PacketBuilder):
     """Scapy packet builder implementation of PacketBuilder"""
+
     def __init__(self):
         super().__init__(ScapyPacket())
 

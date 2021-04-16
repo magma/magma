@@ -53,20 +53,25 @@ class PolicyMixin(metaclass=ABCMeta):
     Mixin class for policy enforcement apps that includes common methods
     used for rule activation/deactivation.
     """
+
     def __init__(self, *args, **kwargs):
         super(PolicyMixin, self).__init__(*args, **kwargs)
         self._datapath = None
         self._rule_mapper = kwargs['rule_id_mapper']
         self._setup_type = kwargs['config']['setup_type']
         self._session_rule_version_mapper = kwargs[
-            'session_rule_version_mapper']
+            'session_rule_version_mapper'
+        ]
         if 'proxy' in kwargs['app_futures']:
             self.proxy_controller_fut = kwargs['app_futures']['proxy']
         else:
             self.proxy_controller_fut = None
         self.proxy_controller = None
 
-    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, policies):
+    def activate_rules(
+        self, imsi, msisdn: bytes,
+        uplink_tunnel: int, ip_addr, apn_ambr, policies,
+    ):
         """
         Activate the flows for a subscriber based on the rules stored in Redis.
         During activation, a default flow may be installed for the subscriber.
@@ -81,16 +86,32 @@ class PolicyMixin(metaclass=ABCMeta):
         if self._datapath is None:
             self.logger.error('Datapath not initialized for adding flows')
             return ActivateFlowsResult(
-                policy_results=[RuleModResult(
-                    rule_id=policy.rule.id,
-                    version=policy.version,
-                    result=RuleModResult.FAILURE,
-                ) for policy in policies],
+                policy_results=[
+                    RuleModResult(
+                        rule_id=policy.rule.id,
+                        version=policy.version,
+                        result=RuleModResult.FAILURE,
+                    ) for policy in policies
+                ],
             )
         policy_results = []
         for policy in policies:
-            res = self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policy.rule, policy.version)
-            policy_results.append(RuleModResult(rule_id=policy.rule.id, version=policy.version, result=res))
+            res = self._install_flow_for_rule(
+                imsi,
+                msisdn,
+                uplink_tunnel,
+                ip_addr,
+                apn_ambr,
+                policy.rule,
+                policy.version,
+            )
+            policy_results.append(
+                RuleModResult(
+                    rule_id=policy.rule.id,
+                    version=policy.version,
+                    result=res,
+                ),
+            )
 
         # Install a base flow for when no rule is matched.
         self._install_default_flow_for_subscriber(imsi, ip_addr)
@@ -98,17 +119,22 @@ class PolicyMixin(metaclass=ABCMeta):
             policy_results=policy_results,
         )
 
-    def _remove_he_flows(self, ip_addr: IPAddress, rule_id: str = "",
-                         rule_num: int = -1):
+    def _remove_he_flows(
+        self, ip_addr: IPAddress, rule_id: str = "",
+        rule_num: int = -1,
+    ):
         if self.proxy_controller:
-            self.proxy_controller.remove_subscriber_he_flows(ip_addr, rule_id,
-                                                             rule_num)
+            self.proxy_controller.remove_subscriber_he_flows(
+                ip_addr, rule_id,
+                rule_num,
+            )
 
     def _wait_for_rule_responses(self, imsi, ip_addr, rule, chan):
         def fail(err):
             self.logger.error(
                 "Failed to install rule %s for subscriber %s: %s",
-                rule.id, imsi, err)
+                rule.id, imsi, err,
+            )
             self._deactivate_flow_for_rule(imsi, ip_addr, rule.id)
             return RuleModResult.FAILURE
 
@@ -123,7 +149,8 @@ class PolicyMixin(metaclass=ABCMeta):
 
     def _wait_for_responses(self, chan, response_count):
         def fail(err):
-            #TODO need to rework setup to return all rule specific success/fails
+            # TODO need to rework setup to return all rule specific
+            # success/fails
             self.logger.error("Failed to install rule for subscriber: %s", err)
 
         for _ in range(response_count):
@@ -134,10 +161,12 @@ class PolicyMixin(metaclass=ABCMeta):
             if not result.ok():
                 return fail(result.exception())
 
-    def _get_classify_rule_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, flow, rule_num,
-                                     priority, qos, hard_timeout, rule_id, app_name,
-                                     app_service_type, next_table, version, qos_mgr,
-                                     copy_table, urls:List[str] = None):
+    def _get_classify_rule_flow_msgs(
+        self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, flow, rule_num,
+        priority, qos, hard_timeout, rule_id, app_name,
+        app_service_type, next_table, version, qos_mgr,
+        copy_table, urls: List[str] = None,
+    ):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
         will drop the packet. Otherwise, the flow classifies the packet with
@@ -147,15 +176,20 @@ class PolicyMixin(metaclass=ABCMeta):
         flow_match = flow_match_to_magma_match(flow.match, ip_addr)
         flow_match.imsi = encode_imsi(imsi)
         flow_match_actions, instructions = self._get_action_for_rule(
-            flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id, version, qos_mgr)
+            flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id, version, qos_mgr,
+        )
         msgs = []
         if app_name:
             # We have to allow initial traffic to pass through, before it gets
             # classified by DPI, flow match set app_id to unclassified
             flow_match.app_id = UNCLASSIFIED_PROTO_ID
             passthrough_actions = flow_match_actions + \
-                [parser.NXActionRegLoad2(dst=SCRATCH_REGS[1],
-                                         value=IGNORE_STATS)]
+                [
+                    parser.NXActionRegLoad2(
+                        dst=SCRATCH_REGS[1],
+                        value=IGNORE_STATS,
+                    ),
+                ]
             msgs.append(
                 flows.get_add_resubmit_current_service_flow_msg(
                     self._datapath,
@@ -166,7 +200,8 @@ class PolicyMixin(metaclass=ABCMeta):
                     priority=Utils.UNCLASSIFIED_ALLOW_PRIORITY,
                     cookie=rule_num,
                     copy_table=copy_table,
-                    resubmit_table=next_table)
+                    resubmit_table=next_table,
+                ),
             )
             flow_match.app_id = get_app_id(
                 PolicyRule.AppName.Name(app_name),
@@ -176,30 +211,38 @@ class PolicyMixin(metaclass=ABCMeta):
         # For DROP flow just send to stats table, it'll get dropped there
         if flow.action == flow.DENY:
             flow_match_actions = flow_match_actions + \
-                [parser.NXActionRegLoad2(dst=SCRATCH_REGS[1],
-                                         value=DROP_FLOW_STATS)]
-            msgs.append(flows.get_add_resubmit_current_service_flow_msg(
-                self._datapath,
-                self.tbl_num,
-                flow_match,
-                flow_match_actions,
-                hard_timeout=hard_timeout,
-                priority=priority,
-                cookie=rule_num,
-                resubmit_table=copy_table)
+                [
+                    parser.NXActionRegLoad2(
+                        dst=SCRATCH_REGS[1],
+                        value=DROP_FLOW_STATS,
+                    ),
+                ]
+            msgs.append(
+                flows.get_add_resubmit_current_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    flow_match,
+                    flow_match_actions,
+                    hard_timeout=hard_timeout,
+                    priority=priority,
+                    cookie=rule_num,
+                    resubmit_table=copy_table,
+                ),
             )
         else:
-            msgs.append(flows.get_add_resubmit_current_service_flow_msg(
-                self._datapath,
-                self.tbl_num,
-                flow_match,
-                flow_match_actions,
-                instructions=instructions,
-                hard_timeout=hard_timeout,
-                priority=priority,
-                cookie=rule_num,
-                copy_table=copy_table,
-                resubmit_table=next_table)
+            msgs.append(
+                flows.get_add_resubmit_current_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    flow_match,
+                    flow_match_actions,
+                    instructions=instructions,
+                    hard_timeout=hard_timeout,
+                    priority=priority,
+                    cookie=rule_num,
+                    copy_table=copy_table,
+                    resubmit_table=next_table,
+                ),
             )
 
         if self.proxy_controller:
@@ -209,12 +252,15 @@ class PolicyMixin(metaclass=ABCMeta):
 
             proxy_msgs = self.proxy_controller.get_subscriber_he_flows(
                 rule_id, direction, ue_ip, uplink_tunnel, ip_dst, rule_num,
-                urls, imsi, msisdn)
+                urls, imsi, msisdn,
+            )
             msgs.extend(proxy_msgs)
         return msgs
 
-    def _get_action_for_rule(self, flow, rule_num, imsi, ip_addr,
-                             apn_ambr, qos, rule_id, version, qos_mgr):
+    def _get_action_for_rule(
+        self, flow, rule_num, imsi, ip_addr,
+        apn_ambr, qos, rule_id, version, qos_mgr,
+    ):
         """
         Returns an action instructions list to be applied for a specific flow.
         If qos or apn_ambr are set, the appropriate action is returned based
@@ -248,9 +294,12 @@ class PolicyMixin(metaclass=ABCMeta):
 
         if qos_info or ambr:
             action, inst = qos_mgr.add_subscriber_qos(
-                imsi, ip_addr.address.decode('utf8'), ambr, rule_num, d, qos_info)
+                imsi, ip_addr.address.decode('utf8'), ambr, rule_num, d, qos_info,
+            )
 
-            self.logger.debug("adding Actions %s instruction %s ", action, inst)
+            self.logger.debug(
+                "adding Actions %s instruction %s ", action, inst,
+            )
             if action:
                 actions.append(action)
 
@@ -258,9 +307,11 @@ class PolicyMixin(metaclass=ABCMeta):
                 instructions.append(inst)
 
         actions.extend(
-            [parser.NXActionRegLoad2(dst=RULE_NUM_REG, value=rule_num),
-             parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
-             ])
+            [
+                parser.NXActionRegLoad2(dst=RULE_NUM_REG, value=rule_num),
+                parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version),
+            ],
+        )
         return actions, instructions
 
     def _get_ue_specific_flow_msgs(self, requests: List[ActivateFlowsRequest]):
@@ -279,7 +330,16 @@ class PolicyMixin(metaclass=ABCMeta):
                     msg_list.extend(msgs)
 
                 for policy in policies:
-                    msg_list.extend(self._get_policy_flows(imsi, msisdn, uplink_tunnel, ipv4, apn_ambr, policy))
+                    msg_list.extend(
+                        self._get_policy_flows(
+                            imsi,
+                            msisdn,
+                            uplink_tunnel,
+                            ipv4,
+                            apn_ambr,
+                            policy,
+                        ),
+                    )
             if add_flow_req.ipv6_addr:
                 ipv6 = convert_ipv6_bytes_to_ip_proto(add_flow_req.ipv6_addr)
                 msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv6)
@@ -287,21 +347,34 @@ class PolicyMixin(metaclass=ABCMeta):
                     msg_list.extend(msgs)
 
                 for policy in policies:
-                    msg_list.extend(self._get_policy_flows(imsi, msisdn, uplink_tunnel, ipv6, apn_ambr, policy))
-
+                    msg_list.extend(
+                        self._get_policy_flows(
+                            imsi,
+                            msisdn,
+                            uplink_tunnel,
+                            ipv6,
+                            apn_ambr,
+                            policy,
+                        ),
+                    )
 
         return {self.tbl_num: msg_list}
 
-    def _get_policy_flows(self, imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr,
-                          policy):
+    def _get_policy_flows(
+        self, imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr,
+        policy,
+    ):
         msg_list = []
         # As the versions are managed by sessiond, save state here
         self._service_manager.session_rule_version_mapper.save_version(
-            imsi, ip_addr, policy.rule.id, policy.version)
+            imsi, ip_addr, policy.rule.id, policy.version,
+        )
         try:
             if policy.rule.redirect.support == policy.rule.redirect.ENABLED:
                 return msg_list
-            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policy.rule, policy.version)
+            flow_adds = self._get_rule_match_flow_msgs(
+                imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policy.rule, policy.version,
+            )
             msg_list.extend(flow_adds)
         except FlowMatchError:
             self.logger.error("Failed to verify rule_id: %s", policy.rule.id)
@@ -315,23 +388,29 @@ class PolicyMixin(metaclass=ABCMeta):
 
             for policy in policies:
                 if policy.rule.redirect.support == policy.rule.redirect.ENABLED:
-                    self._install_redirect_flow(imsi, ip_addr, policy.rule, policy.version)
+                    self._install_redirect_flow(
+                        imsi, ip_addr, policy.rule, policy.version,
+                    )
 
     def finish_init(self, requests):
         # For now just reinsert redirection rules, this is a bit of a hack but
         # redirection relies on async dns request to be setup and we can't
-        # currently do this from out synchronous setup request. So just reinsert
+        # currently do this from out synchronous setup request. So just
+        # reinsert
         self._process_redirection_rules(requests)
 
         if self.proxy_controller_fut and self.proxy_controller_fut.done():
             if not self.proxy_controller:
                 self.proxy_controller = self.proxy_controller_fut.result()
-        self.logger.info("Initialized proxy_controller %s",
-                         self.proxy_controller)
-
+        self.logger.info(
+            "Initialized proxy_controller %s",
+            self.proxy_controller,
+        )
 
     @abstractmethod
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
+    def _install_flow_for_rule(
+            self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version,
+    ):
         """
         Install a flow given a rule. Subclass should implement this.
 

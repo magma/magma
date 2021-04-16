@@ -39,6 +39,7 @@ def get_context(ip: str):
             MockContext.transport = MockTransport
             return MockContext
 
+
 def main():
     """
     Top-level function for enodebd
@@ -57,9 +58,11 @@ def main():
     stats_mgr.run()
 
     # Start TR-069 thread
-    server_thread = Thread(target=tr069_server,
-                           args=(state_machine_manager, ),
-                           daemon=True)
+    server_thread = Thread(
+        target=tr069_server,
+        args=(state_machine_manager,),
+        daemon=True,
+    )
     server_thread.start()
 
     # Add all servicers to the server
@@ -91,10 +94,13 @@ def call_repeatedly(loop, interval, function, *args, **kwargs):
     Wrapper function to schedule function periodically
     """
     # Schedule next call
-    loop.call_later(interval, call_repeatedly, loop, interval, function,
-                    *args, **kwargs)
+    loop.call_later(
+        interval, call_repeatedly, loop, interval, function,
+        *args, **kwargs,
+    )
     # Call function
     function(*args, **kwargs)
+
 
 if __name__ == "__main__":
     main()

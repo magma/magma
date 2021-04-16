@@ -33,10 +33,14 @@ class EnodebdLogger:
     def init() -> None:
         if logging.root.level is not logging.DEBUG:
             EnodebdLogger._LOGGER.propagate = False
-        handler = RotatingFileHandler(LOG_FILE,
-                                      maxBytes=MAX_BYTES,
-                                      backupCount=BACKUP_COUNT)
-        formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s %(message)s')
+        handler = RotatingFileHandler(
+            LOG_FILE,
+            maxBytes=MAX_BYTES,
+            backupCount=BACKUP_COUNT,
+        )
+        formatter = logging.Formatter(
+            fmt='%(asctime)s %(levelname)s %(message)s',
+        )
         handler.setFormatter(formatter)
         EnodebdLogger._LOGGER.addHandler(handler)
         EnodebdLogger._LOGGER.setLevel(logging.DEBUG)

@@ -32,9 +32,10 @@ from magma.pipelined.tests.pipelined_test_util import (
     stop_ryu_app_thread,
 )
 
-FAULTY_PDR_SESSION    = 1
-FAULTY_FAR_SESSION    = 2
+FAULTY_PDR_SESSION = 1
+FAULTY_FAR_SESSION = 2
 FAULTY_PDRFAR_SESSION = 3
+
 
 class NGServiceControllerTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -70,7 +71,7 @@ class NGServiceControllerTest(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'clean_restart': True,
                 '5G_feature_set': {'enable': True,
-                                  'node_identifier': '192.168.220.1'},
+                                   'node_identifier': '192.168.220.1'},
                 'bridge_name': self.BRIDGE,
             },
             mconfig=None,
@@ -92,13 +93,15 @@ class NGServiceControllerTest(unittest.TestCase):
         BridgeTools.destroy_bridge(self.BRIDGE)
 
     # Send message and check response
-    def _util_session_message_handler(self, set_session, cause_info=CauseIE.REQUEST_ACCEPTED):
+    def _util_session_message_handler(
+            self, set_session, cause_info=CauseIE.REQUEST_ACCEPTED):
         ng_serv = self.ng_services_controller
 
         pdr_rules = OrderedDict()
 
         # Context Response
-        context_response = ng_serv.ng_session_message_handler(set_session, pdr_rules)
+        context_response = ng_serv.ng_session_message_handler(
+            set_session, pdr_rules)
         TestCase().assertEqual(context_response.cause_info.cause_ie, cause_info)
 
     # Create generic session create request
@@ -111,7 +114,7 @@ class NGServiceControllerTest(unittest.TestCase):
         cls_sess.CreateSession(subs_id, pdr_state, 100, 200,
                                "60.60.60.1", "192.168.10.11")
 
-        #Test case matches values with expected cause_info
+        # Test case matches values with expected cause_info
         self._util_session_message_handler(cls_sess._set_session, cause_ie)
 
         return cls_sess._set_session
@@ -126,29 +129,38 @@ class NGServiceControllerTest(unittest.TestCase):
 
     def test_smf_faulty_session_messages(self):
 
-        #Wrong session version
+        # Wrong session version
         cls_sess = CreateSessionUtil("IMSI001010000000001", 100, 0)
-        self._util_session_message_handler(cls_sess._set_session, CauseIE.SESSION_CONTEXT_NOT_FOUND)
+        self._util_session_message_handler(
+            cls_sess._set_session,
+            CauseIE.SESSION_CONTEXT_NOT_FOUND)
 
-        #Wrong subscriber id
+        # Wrong subscriber id
         cls_sess = CreateSessionUtil("", 100, 10)
-        self._util_session_message_handler(cls_sess._set_session, CauseIE.SESSION_CONTEXT_NOT_FOUND)
+        self._util_session_message_handler(
+            cls_sess._set_session,
+            CauseIE.SESSION_CONTEXT_NOT_FOUND)
 
     def test_smf_faulty_pdr_messages(self):
-        #Create Session message with pdr_id=0
+        # Create Session message with pdr_id=0
         cls_sess = CreateSessionUtil("IMSI001010000000001", 100, 1000)
         cls_sess.CreateSessionWithFaultyPDR()
 
-        #Check if wrong PDR returns error
-        self._util_session_message_handler(cls_sess._set_session, CauseIE.MANDATORY_IE_INCORRECT)
+        # Check if wrong PDR returns error
+        self._util_session_message_handler(
+            cls_sess._set_session,
+            CauseIE.MANDATORY_IE_INCORRECT)
 
     def test_smf_faulty_far_messages(self):
 
-        #Create Session message with PDR="INSTALL" but no FAR
+        # Create Session message with PDR="INSTALL" but no FAR
         cls_sess = CreateSessionUtil("IMSI001010000000001", 100, 1000)
         cls_sess.CreateSessionWithFaultyFar()
 
-        self._util_session_message_handler(cls_sess._set_session, CauseIE.INVALID_FORWARDING_POLICY)
+        self._util_session_message_handler(
+            cls_sess._set_session,
+            CauseIE.INVALID_FORWARDING_POLICY)
+
 
 if __name__ == "__main__":
     unittest.main()

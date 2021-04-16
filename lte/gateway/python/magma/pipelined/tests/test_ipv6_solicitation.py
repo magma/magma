@@ -79,8 +79,9 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         super(IPV6RouterSolicitationTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([],
-            ['ipv6_solicitation'])
-        cls._tbl_num = cls.service_manager.get_table_num(IPV6SolicitationController.APP_NAME)
+                                                     ['ipv6_solicitation'])
+        cls._tbl_num = cls.service_manager.get_table_num(
+            IPV6SolicitationController.APP_NAME)
 
         ipv6_controller_reference = Future()
         testing_controller_reference = Future()
@@ -140,7 +141,7 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         Verify that a UPLINK->UE arp request is properly matched
         """
         ll_addr = get_if_hwaddr('testing_br')
-        
+
         pkt_sender = ScapyPacketInjector(self.IFACE)
 
         pkt_rs = Ether(dst=self.OTHER_MAC, src=self.UE_MAC)

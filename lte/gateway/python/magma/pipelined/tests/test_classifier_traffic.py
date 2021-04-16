@@ -52,8 +52,10 @@ class GTPTrafficTest(unittest.TestCase):
     Dst_nat = '192.168.129.42'
 
     @classmethod
-    @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:aa:bb:cc:dd:ee'}]])
+    @unittest.mock.patch(
+        'netifaces.ifaddresses',
+        return_value=[[{'addr': '00:aa:bb:cc:dd:ee'}]],
+    )
     @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
         """
@@ -71,9 +73,11 @@ class GTPTrafficTest(unittest.TestCase):
         testing_controller_reference = Future()
         classifier_reference = Future()
         test_setup = TestSetup(
-            apps=[PipelinedController.Classifier,
-                  PipelinedController.Testing,
-                  PipelinedController.StartupFlows],
+            apps=[
+                PipelinedController.Classifier,
+                PipelinedController.Testing,
+                PipelinedController.StartupFlows,
+            ],
             references={
                 PipelinedController.Classifier:
                     classifier_reference,
@@ -129,9 +133,13 @@ class GTPTrafficTest(unittest.TestCase):
         # Attach the tunnel flows towards UE.
         seid1 = 5000
         ue_ip_addr = "192.168.128.30"
-        self.classifier_controller.add_tunnel_flows(65525, 1, 1000,
-                                                    IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1)
+        self.classifier_controller.add_tunnel_flows(
+            65525, 1, 1000,
+            IPAddress(
+                version=IPAddress.IPV4, address=ue_ip_addr.encode('utf-8'),
+            ),
+            self.EnodeB_IP, seid1,
+        )
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         eth = Ether(dst=self.MAC_1, src=self.MAC_2)
@@ -141,37 +149,55 @@ class GTPTrafficTest(unittest.TestCase):
         i_tcp = TCP(seq=1, sport=1111, dport=2222)
         i_ip = IP(src='192.168.60.142', dst=self.EnodeB_IP)
 
-        arp = ARP(hwdst=self.MAC_1,hwsrc=self.MAC_2, psrc=self.Dst_nat, pdst='192.168.128.30')
-        
-        gtp_packet_udp = eth / ip / o_udp / GTP_U_Header(teid=0x1, length=28,gtp_type=255) / i_ip / i_udp
-        gtp_packet_tcp = eth / ip / o_udp / GTP_U_Header(teid=0x1, length=68, gtp_type=255) / i_ip / i_tcp
-        arp_packet = eth / arp 
-        
+        arp = ARP(
+            hwdst=self.MAC_1,
+            hwsrc=self.MAC_2,
+            psrc=self.Dst_nat,
+            pdst='192.168.128.30',
+        )
+
+        gtp_packet_udp = eth / ip / o_udp / \
+            GTP_U_Header(teid=0x1, length=28, gtp_type=255) / i_ip / i_udp
+        gtp_packet_tcp = eth / ip / o_udp / \
+            GTP_U_Header(teid=0x1, length=68, gtp_type=255) / i_ip / i_tcp
+        arp_packet = eth / arp
+
         # Check if these flows were added (queries should return flows)
         flow_queries = [
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(tunnel_id=1, in_port=32768)),
-            FlowQuery(self._tbl_num, self.testing_controller,
-                      match=MagmaMatch(ipv4_dst='192.168.128.30'))
+            FlowQuery(
+                self._tbl_num, self.testing_controller,
+                match=MagmaMatch(tunnel_id=1, in_port=32768),
+            ),
+            FlowQuery(
+                self._tbl_num, self.testing_controller,
+                match=MagmaMatch(ipv4_dst='192.168.128.30'),
+            ),
         ]
         # =========================== Verification ===========================
         # Verify 5 flows installed for classifier table (3 pkts matched)
-        
+
         flow_verifier = FlowVerifier(
             [
-                FlowTest(FlowQuery(self._tbl_num,
-                                   self.testing_controller), 3, 5),
+                FlowTest(
+                    FlowQuery(
+                        self._tbl_num,
+                        self.testing_controller,
+                    ), 3, 5,
+                ),
                 FlowTest(flow_queries[0], 0, 1),
-            ], lambda: wait_after_send(self.testing_controller))
+            ], lambda: wait_after_send(self.testing_controller),
+        )
 
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+        snapshot_verifier = SnapshotVerifier(
+            self, self.BRIDGE,
+            self.service_manager,
+        )
 
         with flow_verifier, snapshot_verifier:
             pkt_sender.send(gtp_packet_udp)
             pkt_sender.send(gtp_packet_tcp)
             pkt_sender.send(arp_packet)
-            
+
         flow_verifier.verify()
 
 

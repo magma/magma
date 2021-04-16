@@ -42,14 +42,16 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
     gRPC based server for Magmad.
     """
 
-    def __init__(self,
-                 magma_service: MagmaService,
-                 services: List[str],
-                 service_manager: ServiceManager,
-                 mconfig_manager: MconfigManager,
-                 command_executor: CommandExecutor,
-                 loop: asyncio.AbstractEventLoop,
-                 print_grpc_payload: bool = False):
+    def __init__(
+        self,
+        magma_service: MagmaService,
+        services: List[str],
+        service_manager: ServiceManager,
+        mconfig_manager: MconfigManager,
+        command_executor: CommandExecutor,
+        loop: asyncio.AbstractEventLoop,
+        print_grpc_payload: bool = False,
+    ):
         """
         Constructor for the magmad RPC servicer
 
@@ -140,7 +142,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             )
 
         self._loop.create_task(
-            self._service_manager.restart_services(self._services)
+            self._service_manager.restart_services(self._services),
         )
         self._magma_service.reload_mconfig()
 
@@ -155,16 +157,21 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         self._print_grpc(request)
         ping_results = self.__ping_specified_hosts(request.pings)
         traceroute_results = self.__traceroute_specified_hosts(
-            request.traceroutes)
+            request.traceroutes,
+        )
 
-        return magmad_pb2.NetworkTestResponse(pings=ping_results,
-                                              traceroutes=traceroute_results)
+        return magmad_pb2.NetworkTestResponse(
+            pings=ping_results,
+            traceroutes=traceroute_results,
+        )
 
     def GetGatewayId(self, _, context):
         """
         Get gateway hardware ID
         """
-        return magmad_pb2.GetGatewayIdResponse(gateway_id=snowflake.snowflake())
+        return magmad_pb2.GetGatewayIdResponse(
+            gateway_id=snowflake.snowflake(),
+        )
 
     def GenericCommand(self, request, context):
         """
@@ -174,20 +181,25 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         self._print_grpc(request)
         if 'generic_command_config' not in self._magma_service.config:
-            set_grpc_err(context,
-                         grpc.StatusCode.NOT_FOUND,
-                         'Generic command config not found')
+            set_grpc_err(
+                context,
+                grpc.StatusCode.NOT_FOUND,
+                'Generic command config not found',
+            )
             return magmad_pb2.GenericCommandResponse()
 
         params = json_format.MessageToDict(request.params)
 
         # Run the execute command coroutine. Return an error if it times out or
         # if an exception occurs.
-        logging.info('Running generic command %s with parameters %s',
-                     request.command, params)
+        logging.info(
+            'Running generic command %s with parameters %s',
+            request.command, params,
+        )
         future = asyncio.run_coroutine_threadsafe(
             self._command_executor.execute_command(request.command, params),
-            self._loop)
+            self._loop,
+        )
 
         timeout = self._magma_service.config['generic_command_config']\
             .get('timeout_secs', 15)
@@ -197,20 +209,29 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             result = future.result(timeout=timeout)
             logging.debug('Command was successful')
             response.response.MergeFrom(
-                json_format.ParseDict(result, Struct()))
+                json_format.ParseDict(result, Struct()),
+            )
         except asyncio.TimeoutError:
-            logging.error('Error running command %s! Command timed out',
-                          request.command)
+            logging.error(
+                'Error running command %s! Command timed out',
+                request.command,
+            )
             future.cancel()
-            set_grpc_err(context,
-                         grpc.StatusCode.DEADLINE_EXCEEDED,
-                         'Command timed out')
+            set_grpc_err(
+                context,
+                grpc.StatusCode.DEADLINE_EXCEEDED,
+                'Command timed out',
+            )
         except Exception as e:  # pylint: disable=broad-except
-            logging.error('Error running command %s! %s: %s',
-                          request.command, e.__class__.__name__, e)
-            set_grpc_err(context,
-                         grpc.StatusCode.UNKNOWN,
-                         '{}: {}'.format(e.__class__.__name__, str(e)))
+            logging.error(
+                'Error running command %s! %s: %s',
+                request.command, e.__class__.__name__, e,
+            )
+            set_grpc_err(
+                context,
+                grpc.StatusCode.UNKNOWN,
+                '{}: {}'.format(e.__class__.__name__, str(e)),
+            )
 
         return response
 
@@ -222,16 +243,20 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         self._print_grpc(request)
         if request.service and \
                 request.service not in ServiceRegistry.list_services():
-            set_grpc_err(context,
-                         grpc.StatusCode.NOT_FOUND,
-                         'Service {} not found'.format(request.service))
+            set_grpc_err(
+                context,
+                grpc.StatusCode.NOT_FOUND,
+                'Service {} not found'.format(request.service),
+            )
             return
 
         if not request.service:
             exec_list = ['sudo', 'tail', '-f', '/var/log/syslog']
         else:
-            exec_list = ['sudo', 'journalctl', '-fu',
-                         'magma@{}'.format(request.service)]
+            exec_list = [
+                'sudo', 'journalctl', '-fu',
+                'magma@{}'.format(request.service),
+            ]
 
         logging.debug('Tailing logs')
         log_queue = queue.Queue()
@@ -241,13 +266,15 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             proc = await asyncio.create_subprocess_exec(
                 *exec_list,
                 stdout=asyncio.subprocess.PIPE,
-                preexec_fn=os.setsid)
+                preexec_fn=os.setsid,
+            )
             try:
                 while context.is_active():
                     try:
                         line = await asyncio.wait_for(
                             proc.stdout.readline(),
-                            timeout=10.0)
+                            timeout=10.0,
+                        )
                         log_queue.put(line)
                     except asyncio.TimeoutError:
                         pass
@@ -269,8 +296,10 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         Check the stateless mode on AGW
         """
         status = check_stateless_agw()
-        logging.debug("AGW mode is %s",
-                      magmad_pb2.CheckStatelessResponse.AGWMode.Name(status))
+        logging.debug(
+            "AGW mode is %s",
+            magmad_pb2.CheckStatelessResponse.AGWMode.Name(status),
+        )
         return magmad_pb2.CheckStatelessResponse(agw_mode=status)
 
     @return_void
@@ -306,11 +335,13 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                     avg_response_ms=ping_result.stats.rtt_avg,
                 )
 
-        pings_to_exec = [ping.PingCommandParams(
-            host_or_ip=p.host_or_ip,
-            num_packets=p.num_packets,
-            timeout_secs=None,
-        ) for p in ping_param_protos]
+        pings_to_exec = [
+            ping.PingCommandParams(
+                host_or_ip=p.host_or_ip,
+                num_packets=p.num_packets,
+                timeout_secs=None,
+            ) for p in ping_param_protos
+        ]
         ping_results = ping.ping(pings_to_exec)
         return map(create_ping_result_proto, ping_results)
 
@@ -331,35 +362,45 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         def create_hop_protos(hops):
             hop_protos = []
             for hop in hops:
-                hop_protos.append(magmad_pb2.TracerouteHop(
-                    idx=hop.idx,
-                    probes=create_probe_protos(hop.probes),
-                ))
+                hop_protos.append(
+                    magmad_pb2.TracerouteHop(
+                        idx=hop.idx,
+                        probes=create_probe_protos(hop.probes),
+                    ),
+                )
             return hop_protos
 
         def create_probe_protos(probes):
-            return [magmad_pb2.TracerouteProbe(
-                hostname=probe.hostname,
-                ip=probe.ip_addr,
-                rtt_ms=probe.rtt_ms,
-            ) for probe in probes]
+            return [
+                magmad_pb2.TracerouteProbe(
+                    hostname=probe.hostname,
+                    ip=probe.ip_addr,
+                    rtt_ms=probe.rtt_ms,
+                ) for probe in probes
+            ]
 
-        traceroutes_to_exec = [traceroute.TracerouteParams(
-            host_or_ip=param.host_or_ip,
-            max_hops=param.max_hops,
-            bytes_per_packet=param.bytes_per_packet
-        ) for param in traceroute_param_protos]
+        traceroutes_to_exec = [
+            traceroute.TracerouteParams(
+                host_or_ip=param.host_or_ip,
+                max_hops=param.max_hops,
+                bytes_per_packet=param.bytes_per_packet,
+            ) for param in traceroute_param_protos
+        ]
         traceroute_results = traceroute.traceroute(traceroutes_to_exec)
         return map(create_result_proto, traceroute_results)
 
     def _print_grpc(self, message):
         if self._print_grpc_payload:
-            log_msg = "{} {}".format(message.DESCRIPTOR.full_name,
-                                     MessageToJson(message))
+            log_msg = "{} {}".format(
+                message.DESCRIPTOR.full_name,
+                MessageToJson(message),
+            )
             # add indentation
             padding = 2 * ' '
-            log_msg = ''.join("{}{}".format(padding, line)
-                              for line in log_msg.splitlines(True))
+            log_msg = ''.join(
+                "{}{}".format(padding, line)
+                for line in log_msg.splitlines(True)
+            )
 
             log_msg = "GRPC message:\n{}".format(log_msg)
             logging.info(log_msg)

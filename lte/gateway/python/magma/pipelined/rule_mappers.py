@@ -24,7 +24,10 @@ from magma.common.redis.serializers import (
 )
 from magma.pipelined.imsi import encode_imsi
 
-SubscriberRuleKey = namedtuple('SubscriberRuleKey', 'key_type imsi ip_addr rule_id')
+SubscriberRuleKey = namedtuple(
+    'SubscriberRuleKey',
+    'key_type imsi ip_addr rule_id',
+)
 
 
 class RuleIDToNumMapper:
@@ -88,8 +91,10 @@ class SessionRuleToVersionMapper:
         self._version_by_imsi_and_rule = {}
         self._lock = threading.Lock()  # write lock
 
-    def _save_version_unsafe(self, imsi: str, ip_addr: str, rule_id: str,
-                             version):
+    def _save_version_unsafe(
+        self, imsi: str, ip_addr: str, rule_id: str,
+        version,
+    ):
         key = self._get_json_key(encode_imsi(imsi), ip_addr, rule_id)
         self._version_by_imsi_and_rule[key] = version
 
@@ -110,8 +115,10 @@ class SessionRuleToVersionMapper:
                 if imsi == encoded_imsi and ip_addr_str == ip_addr_str:
                     self._version_by_imsi_and_rule[k] = v + 1
 
-    def save_version(self, imsi: str, ip_addr: IPAddress,
-                     rule_id: [str], version: int):
+    def save_version(
+        self, imsi: str, ip_addr: IPAddress,
+        rule_id: [str], version: int,
+    ):
         """
         Increment the version number for a given subscriber and rule. If the
         rule id is not specified, then all rules for the subscriber will be
@@ -139,7 +146,10 @@ class SessionRuleToVersionMapper:
                 version = 0
         return version
 
-    def remove(self, imsi: str, ip_addr: IPAddress, rule_id: str, version: int):
+    def remove(
+        self, imsi: str, ip_addr: IPAddress,
+        rule_id: str, version: int,
+    ):
         """
         Removed the element from redis if the passed version matches the
         current one
@@ -157,8 +167,12 @@ class SessionRuleToVersionMapper:
                 del self._version_by_imsi_and_rule[key]
 
     def _get_json_key(self, imsi: str, ip_addr: str, rule_id: str):
-        return json.dumps(SubscriberRuleKey('imsi_rule', imsi, ip_addr,
-                                            rule_id))
+        return json.dumps(
+            SubscriberRuleKey(
+                'imsi_rule', imsi, ip_addr,
+                rule_id,
+            ),
+        )
 
 
 class RuleIDDict(RedisFlatDict):
@@ -171,8 +185,10 @@ class RuleIDDict(RedisFlatDict):
 
     def __init__(self):
         client = get_default_client()
-        serde = RedisSerde(self._DICT_HASH, get_json_serializer(),
-                           get_json_deserializer())
+        serde = RedisSerde(
+            self._DICT_HASH, get_json_serializer(),
+            get_json_deserializer(),
+        )
         super().__init__(client, serde, writethrough=True)
 
     def __missing__(self, key):
@@ -193,7 +209,8 @@ class RuleNameDict(RedisHashDict):
         super().__init__(
             client,
             self._DICT_HASH,
-            get_json_serializer(), get_json_deserializer())
+            get_json_serializer(), get_json_deserializer(),
+        )
 
     def __missing__(self, key):
         """Instead of throwing a key error, return None when key not found"""
@@ -210,8 +227,10 @@ class RuleVersionDict(RedisFlatDict):
 
     def __init__(self):
         client = get_default_client()
-        serde = RedisSerde(self._DICT_HASH, get_json_serializer(),
-                           get_json_deserializer())
+        serde = RedisSerde(
+            self._DICT_HASH, get_json_serializer(),
+            get_json_deserializer(),
+        )
         super().__init__(client, serde, writethrough=True)
 
     def __missing__(self, key):

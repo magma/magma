@@ -200,8 +200,8 @@ class RedirectTest(unittest.TestCase):
         flow_verifier = FlowVerifier(
             [FlowTest(FlowQuery(self._tbl_num, self.testing_controller), 2),
              FlowTest(learn_action_query, 0, flow_count=1)] +
-            [FlowTest(query, 0, flow_count=1) for query in permit_outbound] +
-            [FlowTest(query, 0, flow_count=1) for query in permit_inbound],
+            [FlowTest(query, 0, flow_count=1) for query in permit_outbound]
+            + [FlowTest(query, 0, flow_count=1) for query in permit_inbound],
             lambda: wait_after_send(self.testing_controller))
 
         with isolator, sub_context, flow_verifier:

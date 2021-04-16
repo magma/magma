@@ -463,7 +463,7 @@ class Interface(object):
         mask_bits = mask_bits << (MAXLEN - cidr_netmask)
 
         # build return
-        octets = [((mask_bits & (0xff << (MAXLEN-8-i))) >> (MAXLEN-8-i))
+        octets = [((mask_bits & (0xff << (MAXLEN - 8 - i))) >> (MAXLEN - 8 - i))
                   for i in range(0, MAXLEN, 8)]
         return ".".join(["%d" % b for b in octets])
 

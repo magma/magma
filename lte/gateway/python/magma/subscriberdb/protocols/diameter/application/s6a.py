@@ -96,7 +96,7 @@ class S6AApplication(abc.Application):
             return
 
         if msg.header.command_code == \
-            S6AApplicationCommands.AUTHENTICATION_INFORMATION:
+                S6AApplicationCommands.AUTHENTICATION_INFORMATION:
             self._send_auth(state_id, msg)
         elif msg.header.command_code == S6AApplicationCommands.UPDATE_LOCATION:
             self._send_location_request(state_id, msg)

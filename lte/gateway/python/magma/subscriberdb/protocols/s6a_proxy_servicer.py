@@ -146,11 +146,11 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         if self._print_grpc_payload:
             try:
                 log_msg = "{} {}".format(message.DESCRIPTOR.full_name,
-                                     MessageToJson(message))
+                                         MessageToJson(message))
                 # add indentation
                 padding = 2 * ' '
-                log_msg =''.join( "{}{}".format(padding, line)
-                              for line in log_msg.splitlines(True))
+                log_msg = ''.join("{}{}".format(padding, line)
+                                  for line in log_msg.splitlines(True))
 
                 log_msg = "GRPC message:\n{}".format(log_msg)
                 logging.info(log_msg)

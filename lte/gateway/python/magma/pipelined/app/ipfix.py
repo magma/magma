@@ -35,22 +35,27 @@ class IPFIXController(MagmaController):
 
     IPFIXConfig = NamedTuple(
         'IPFIXConfig',
-        [('enabled', bool), ('collector_ip', str), ('collector_port', int),
-         ('probability', int), ('collector_set_id', int),
-         ('obs_domain_id', int), ('obs_point_id', int), ('cache_timeout', int),
-         ('sampling_port', int)],
+        [
+            ('enabled', bool), ('collector_ip', str), ('collector_port', int),
+            ('probability', int), ('collector_set_id', int),
+            ('obs_domain_id', int), ('obs_point_id', int), ('cache_timeout', int),
+            ('sampling_port', int),
+        ],
     )
 
     def __init__(self, *args, **kwargs):
         super(IPFIXController, self).__init__(*args, **kwargs)
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
-            self.APP_NAME)
+            self.APP_NAME,
+        )
         self._dpi_enabled = kwargs['config']['dpi']['enabled']
         self._bridge_name = kwargs['config']['bridge_name']
         self._conntrackd_enabled = kwargs['config']['conntrackd']['enabled']
-        self.ipfix_config = self._get_ipfix_config(kwargs['config'],
-                                                   kwargs['mconfig'])
+        self.ipfix_config = self._get_ipfix_config(
+            kwargs['config'],
+            kwargs['mconfig'],
+        )
         # If DPI enabled don't sample normal traffic, sample only internal pkts
         if self._dpi_enabled or self._conntrackd_enabled:
             self._ipfix_sample_tbl_num = \
@@ -59,13 +64,17 @@ class IPFIXController(MagmaController):
             self._ipfix_sample_tbl_num = self.tbl_num
         self._datapath = None
 
-    def _get_ipfix_config(self, config_dict: Dict,
-                          mconfig) -> NamedTuple:
+    def _get_ipfix_config(
+        self, config_dict: Dict,
+        mconfig,
+    ) -> NamedTuple:
         if 'ipfix' not in config_dict or not config_dict['ipfix']['enabled']:
-            return self.IPFIXConfig(enabled=False, probability=0,
+            return self.IPFIXConfig(
+                enabled=False, probability=0,
                 collector_ip='', collector_port=0, collector_set_id=0,
                 obs_domain_id=0, obs_point_id=0, cache_timeout=0,
-                sampling_port=0)
+                sampling_port=0,
+            )
         collector_ip = mconfig.ipdr_export_dst.ip
         collector_port = mconfig.ipdr_export_dst.port
         if not mconfig.ipdr_export_dst.ip:
@@ -75,17 +84,21 @@ class IPFIXController(MagmaController):
                 collector_port = config_dict['ipfix']['collector_port']
             else:
                 self.logger.error("Missing mconfig IPDR dest IP")
-                return self.IPFIXConfig(enabled=False, probability=0,
+                return self.IPFIXConfig(
+                    enabled=False, probability=0,
                     collector_ip='', collector_port=0, collector_set_id=0,
                     obs_domain_id=0, obs_point_id=0, cache_timeout=0,
-                    sampling_port=0)
+                    sampling_port=0,
+                )
 
         if collector_port == 0:
             self.logger.error("Missing mconfig IPDR dest port")
-            return self.IPFIXConfig(enabled=False, probability=0,
+            return self.IPFIXConfig(
+                enabled=False, probability=0,
                 collector_ip='', collector_port=0, collector_set_id=0,
                 obs_domain_id=0, obs_point_id=0, cache_timeout=0,
-                sampling_port=0)
+                sampling_port=0,
+            )
 
         if self._dpi_enabled or self._conntrackd_enabled:
             probability = 65535
@@ -101,7 +114,7 @@ class IPFIXController(MagmaController):
             obs_domain_id=config_dict['ipfix']['obs_domain_id'],
             obs_point_id=config_dict['ipfix']['obs_point_id'],
             cache_timeout=config_dict['ipfix']['cache_timeout'],
-            sampling_port=config_dict['ovs_gtp_port_number']
+            sampling_port=config_dict['ovs_gtp_port_number'],
         )
 
     def initialize_on_connect(self, datapath: Datapath):
@@ -135,16 +148,20 @@ class IPFIXController(MagmaController):
             self.ipfix_config.collector_set_id, self._bridge_name,
             self.ipfix_config.collector_ip, self.ipfix_config.collector_port,
             self.ipfix_config.obs_domain_id, self.ipfix_config.obs_point_id,
-            self.ipfix_config.cache_timeout
+            self.ipfix_config.cache_timeout,
         )
         try:
-            p = subprocess.Popen(action_str, shell=True,
-                                 stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(
+                action_str, shell=True,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
             _, err = p.communicate()
             err_str = err.decode('utf-8')
             if err_str:
-                self.logger.error("Failed setting up ipfix sampling %s",
-                                  err_str)
+                self.logger.error(
+                    "Failed setting up ipfix sampling %s",
+                    err_str,
+                )
         except subprocess.CalledProcessError as e:
             raise Exception('Error: {} failed with: {}'.format(action_str, e))
 
@@ -172,11 +189,14 @@ class IPFIXController(MagmaController):
         flows.add_resubmit_next_service_flow(
             datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
-            resubmit_table=self.next_main_table)
+            resubmit_table=self.next_main_table,
+        )
 
-    def add_ue_sample_flow(self, imsi: str, msisdn: str,
-                           apn_mac_addr: str, apn_name: str,
-                           pdp_start_time: int) -> None:
+    def add_ue_sample_flow(
+        self, imsi: str, msisdn: str,
+        apn_mac_addr: str, apn_name: str,
+        pdp_start_time: int,
+    ) -> None:
         """
         Install a flow to sample packets for IPFIX for specific imsi
 
@@ -191,7 +211,7 @@ class IPFIXController(MagmaController):
             return
 
         if not self.ipfix_config.enabled:
-            #TODO logging higher than debug here will provide too much noise
+            # TODO logging higher than debug here will provide too much noise
             # possible fix is making ipfix a dynamic service enabled from orc8r
             self.logger.debug('IPFIX export dst not setup for adding flows')
             return
@@ -202,7 +222,8 @@ class IPFIXController(MagmaController):
         else:
             apn_mac_bytes = [int(a, 16) for a in apn_mac_addr.split('-')]
 
-        actions = [parser.NXActionSample2(
+        actions = [
+            parser.NXActionSample2(
             probability=self.ipfix_config.probability,
             collector_set_id=self.ipfix_config.collector_set_id,
             obs_domain_id=self.ipfix_config.obs_domain_id,
@@ -211,18 +232,22 @@ class IPFIXController(MagmaController):
             msisdn=msisdn,
             apn_name=apn_name,
             pdp_start_epoch=pdp_start_time,
-            sampling_port=self.ipfix_config.sampling_port)]
+            sampling_port=self.ipfix_config.sampling_port,
+            ),
+        ]
 
         match = MagmaMatch(imsi=encode_imsi(imsi))
         if self._dpi_enabled or self._conntrackd_enabled:
             flows.add_drop_flow(
                 self._datapath, self._ipfix_sample_tbl_num, match, actions,
-                priority=flows.UE_FLOW_PRIORITY)
+                priority=flows.UE_FLOW_PRIORITY,
+            )
         else:
             flows.add_resubmit_next_service_flow(
                 self._datapath, self._ipfix_sample_tbl_num, match, actions,
                 priority=flows.UE_FLOW_PRIORITY,
-                resubmit_table=self.next_main_table)
+                resubmit_table=self.next_main_table,
+            )
 
     def delete_ue_sample_flow(self, imsi: str) -> None:
         """

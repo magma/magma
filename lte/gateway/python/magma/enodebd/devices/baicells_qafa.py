@@ -148,7 +148,8 @@ class BaicellsQAFATrDataModel(DataModel):
         ParameterName.DEVICE: TrParam(DEVICE_PATH, True, TrParameterType.OBJECT, False),
         ParameterName.FAP_SERVICE: TrParam(FAPSERVICE_PATH, True, TrParameterType.OBJECT, False),
 
-        # Qualcomm units do not expose MME_Status (We assume that the eNB is broadcasting state is connected to the MME)
+        # Qualcomm units do not expose MME_Status (We assume that the eNB is
+        # broadcasting state is connected to the MME)
         ParameterName.MME_STATUS: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.OpState', True, TrParameterType.BOOLEAN, False),
         ParameterName.GPS_LAT: TrParam(DEVICE_PATH + 'FAP.GPS.latitude', True, TrParameterType.STRING, False),
         ParameterName.GPS_LONG: TrParam(DEVICE_PATH + 'FAP.GPS.longitude', True, TrParameterType.STRING, False),
@@ -176,7 +177,9 @@ class BaicellsQAFATrDataModel(DataModel):
         ParameterName.MME_IP: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkServerList', True, TrParameterType.STRING, False),
         ParameterName.MME_PORT: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkPort', True, TrParameterType.INT, False),
         # This parameter is standard but doesn't exist
-        # ParameterName.NUM_PLMNS: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNListNumberOfEntries', True, TrParameterType.INT, False),
+        # ParameterName.NUM_PLMNS: TrParam(FAPSERVICE_PATH +
+        # 'CellConfig.LTE.EPC.PLMNListNumberOfEntries', True,
+        # TrParameterType.INT, False),
         ParameterName.TAC: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.TAC', True, TrParameterType.INT, False),
         ParameterName.IP_SEC_ENABLE: TrParam('boardconf.ipsec.ipsecConfig.onBoot', False, TrParameterType.BOOLEAN, False),
 
@@ -195,18 +198,56 @@ class BaicellsQAFATrDataModel(DataModel):
         ParameterName.CELL_BARRED: transform_for_enb.invert_cell_barred,
     }
     for i in range(1, NUM_PLMNS_IN_CONFIG + 1):
-        TRANSFORMS_FOR_ENB[ParameterName.PLMN_N_CELL_RESERVED % i] = transform_for_enb.cell_reserved
-        PARAMETERS[ParameterName.PLMN_N % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.' % i, True, TrParameterType.STRING, False)
-        PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True, TrParameterType.STRING, False)
-        PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False)
-        PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False)
-        PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False)
+        TRANSFORMS_FOR_ENB[
+            ParameterName.PLMN_N_CELL_RESERVED %
+            i
+        ] = transform_for_enb.cell_reserved
+        PARAMETERS[
+            ParameterName.PLMN_N %
+            i
+        ] = TrParam(
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.EPC.PLMNList.%d.' %
+            i, True, TrParameterType.STRING, False,
+        )
+        PARAMETERS[
+            ParameterName.PLMN_N_CELL_RESERVED %
+            i
+        ] = TrParam(
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' %
+            i, True, TrParameterType.STRING, False,
+        )
+        PARAMETERS[
+            ParameterName.PLMN_N_ENABLE %
+            i
+        ] = TrParam(
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' %
+            i, True, TrParameterType.BOOLEAN, False,
+        )
+        PARAMETERS[
+            ParameterName.PLMN_N_PRIMARY %
+            i
+        ] = TrParam(
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' %
+            i, True, TrParameterType.BOOLEAN, False,
+        )
+        PARAMETERS[
+            ParameterName.PLMN_N_PLMNID %
+            i
+        ] = TrParam(
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' %
+            i, True, TrParameterType.STRING, False,
+        )
 
     TRANSFORMS_FOR_ENB[ParameterName.ADMIN_STATE] = transform_for_enb.admin_state
     TRANSFORMS_FOR_MAGMA = {
         # We don't set these parameters
         ParameterName.BAND_CAPABILITY: transform_for_magma.band_capability,
-        ParameterName.DUPLEX_MODE_CAPABILITY: transform_for_magma.duplex_mode
+        ParameterName.DUPLEX_MODE_CAPABILITY: transform_for_magma.duplex_mode,
     }
 
     @classmethod
@@ -236,11 +277,17 @@ class BaicellsQAFATrDataModel(DataModel):
 
     @classmethod
     def get_parameter_names(cls) -> List[ParameterName]:
-        excluded_params = [str(ParameterName.DEVICE),
-                           str(ParameterName.FAP_SERVICE)]
-        names = list(filter(lambda x: (not str(x).startswith('PLMN'))
-                                      and (str(x) not in excluded_params),
-                            cls.PARAMETERS.keys()))
+        excluded_params = [
+            str(ParameterName.DEVICE),
+            str(ParameterName.FAP_SERVICE),
+        ]
+        names = list(
+            filter(
+                lambda x: (not str(x).startswith('PLMN'))
+                and (str(x) not in excluded_params),
+                cls.PARAMETERS.keys(),
+            ),
+        )
         return names
 
     @classmethod

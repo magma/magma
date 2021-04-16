@@ -94,7 +94,8 @@ class UplinkBridgeTest(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.UPLINK_BRIDGE)
 
     def testFlowSnapshotMatch(self):
-        assert_bridge_snapshot_match(self, self.UPLINK_BRIDGE, self.service_manager)
+        assert_bridge_snapshot_match(
+            self, self.UPLINK_BRIDGE, self.service_manager)
 
 
 class UplinkBridgeWithNonNATTest(unittest.TestCase):
@@ -206,7 +207,7 @@ class UplinkBridgeWithNonNATTestVlan(unittest.TestCase):
     UPLINK_DHCP = 'test_dhcp0'
     UPLINK_PATCH = 'test_patch_p2'
     UPLINK_ETH_PORT = 'test_eth3'
-    VLAN_TAG='100'
+    VLAN_TAG = '100'
     VLAN_DEV_IN = "test_v_in"
     VLAN_DEV_OUT = "test_v_out"
 
@@ -309,8 +310,8 @@ class UplinkBridgeWithNonNATTest_IP_VLAN(unittest.TestCase):
     UPLINK_DHCP = 'test_dhcp0'
     UPLINK_PATCH = 'test_patch_p2'
     UPLINK_ETH_PORT = 'test_eth3'
-    VLAN_TAG='500'
-    SGi_IP="1.6.5.7"
+    VLAN_TAG = '500'
+    SGi_IP = "1.6.5.7"
 
     @classmethod
     def setUpClass(cls):
@@ -396,7 +397,12 @@ class UplinkBridgeWithNonNATTest_IP_VLAN(unittest.TestCase):
         assert_bridge_snapshot_match(self, self.UPLINK_BRIDGE, self.service_manager,
                                      include_stats=False)
 
-        self.assertIn(cls.SGi_IP, get_iface_ipv4(cls.UPLINK_BRIDGE), "ip not found")
+        self.assertIn(
+            cls.SGi_IP,
+            get_iface_ipv4(
+                cls.UPLINK_BRIDGE),
+            "ip not found")
+
 
 @unittest.skip
 # this reset default GW
@@ -520,7 +526,6 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
     UPLINK_PATCH = 'test_patch_p2'
     ROUTER_IP = "10.55.0.211"
 
-
     @classmethod
     def _setup_vlan_network(cls, vlan: str):
         setup_vlan_switch = cls.SCRIPT_PATH + "scripts/setup-uplink-vlan-sw.sh"
@@ -624,7 +629,7 @@ class UplinkBridgeTestNatIPAddr(unittest.TestCase):
     BRIDGE_IP = '192.168.128.1'
     BRIDGE_ETH_PORT = "eth_t1"
     UPLINK_BRIDGE = 'upt_br0'
-    SGi_IP="1.6.5.77"
+    SGi_IP = "1.6.5.77"
 
     @classmethod
     def setUpClass(cls):
@@ -686,8 +691,13 @@ class UplinkBridgeTestNatIPAddr(unittest.TestCase):
     def testFlowSnapshotMatch(self):
         cls = self.__class__
 
-        assert_bridge_snapshot_match(self, self.UPLINK_BRIDGE, self.service_manager)
-        self.assertIn(cls.SGi_IP, get_iface_ipv4(cls.BRIDGE_ETH_PORT), "ip not found")
+        assert_bridge_snapshot_match(
+            self, self.UPLINK_BRIDGE, self.service_manager)
+        self.assertIn(
+            cls.SGi_IP,
+            get_iface_ipv4(
+                cls.BRIDGE_ETH_PORT),
+            "ip not found")
 
 
 if __name__ == "__main__":
@@ -728,4 +738,3 @@ def validate_routing_table(dst: str, dev_name: str) -> str:
     logging.error("could not find route to %s via %s", dst, dev_name)
     logging.error("dump1: %s", str(dump1))
     assert 0
-

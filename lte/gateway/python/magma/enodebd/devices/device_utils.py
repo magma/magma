@@ -69,9 +69,11 @@ def get_device_name(
         elif sw_version.startswith('BaiBS_RTSH_'):
             return EnodebDeviceName.BAICELLS_RTS
         else:
-            raise UnrecognizedEnodebError("Device %s unsupported: Software (%s)"
-                                         % (device_oui, sw_version))
-    elif device_oui in {'000FB7', '744D28', }:
+            raise UnrecognizedEnodebError(
+                "Device %s unsupported: Software (%s)"
+                % (device_oui, sw_version),
+            )
+    elif device_oui in {'000FB7', '744D28'}:
         return EnodebDeviceName.CAVIUM
     else:
         raise UnrecognizedEnodebError("Device %s unsupported" % device_oui)
@@ -88,19 +90,24 @@ def _parse_sw_version(version_str):
     logger.debug('Got firmware version: %s', version_str)
 
     version = re.findall(
-        r'BaiStation_V(\d{3})R(\d{3})C(\d{2})B(\d{3})SPC(\d{3})', version_str)
+        r'BaiStation_V(\d{3})R(\d{3})C(\d{2})B(\d{3})SPC(\d{3})', version_str,
+    )
     if not version:
         return None
     elif len(version) > 1:
-        logger.warning('SW version (%s) not formatted as expected',
-                        version_str)
+        logger.warning(
+            'SW version (%s) not formatted as expected',
+            version_str,
+        )
     version_int = []
     for num in version[0]:
         try:
             version_int.append(int(num))
         except ValueError:
-            logger.warning('SW version (%s) not formatted as expected',
-                            version_str)
+            logger.warning(
+                'SW version (%s) not formatted as expected',
+                version_str,
+            )
             return None
 
     logger.debug('Parsed firmware version: %s', version_int)
