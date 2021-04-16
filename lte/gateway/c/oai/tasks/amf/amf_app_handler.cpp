@@ -643,7 +643,6 @@ void amf_app_handle_resource_setup_response(
   ue_m5gmm_context_s* ue_context = nullptr;
   smf_context_t* smf_ctx         = nullptr;
 
-    itti_ngap_pdusessionresource_setup_rsp_t session_setup_resp) {
   /* Check if failure message is not NULL and if NULL,
    * it is successful message from gNB.
    * Nothing to in this case. If failure message comes from gNB

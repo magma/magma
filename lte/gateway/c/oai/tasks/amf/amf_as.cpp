@@ -805,10 +805,10 @@ static int amf_security_mode_command(
         &(ue_context->amf_context.ue_sec_capability),
         sizeof(UESecurityCapabilityMsg));
   } else {
-       OAILOG_INFO(LOG_AMF_APP, "UE Contest not found for UE ID %d", ue_id);
-       OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+    OAILOG_INFO(LOG_AMF_APP, "UE Contest not found for UE ID %d", ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
-OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
 
 /****************************************************************************

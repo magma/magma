@@ -31,9 +31,6 @@ extern "C" {
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
 extern std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
-extern ue_m5gmm_context_s
-    ue_m5gmm_global_context;  // TODO This has been taken care in upcoming
-                              // PR with multi UE feature
 
 int amf_handle_service_request(
     amf_ue_ngap_id_t ue_id, ServiceRequestMsg* msg,
@@ -144,19 +141,13 @@ int amf_handle_registration_request(
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
+    OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL for UE ID:%d \n", ue_id);
+    return RETURNerror;
   }
-
-  if (ue_context) {
-    memcpy(
-        &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
-        sizeof(UESecurityCapabilityMsg));
-  } else {
-    ue_context = &ue_m5gmm_global_context;
-    memcpy(
-        &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
-        sizeof(UESecurityCapabilityMsg));
-  }
+  // Save the UE Security Capability into AMF's UE Context
+  memcpy(
+      &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
+      sizeof(UESecurityCapabilityMsg));
 
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
     OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST processing\n");
