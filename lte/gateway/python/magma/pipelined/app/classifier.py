@@ -197,9 +197,8 @@ class Classifier(MagmaController):
 
     def _send_message_interface(self, ue_ip_add: str, local_f_teid: int):
         """
-        Send the flow statictics request to ryu controller for
-        fetching the flow information from ovs table 14 for
-        corresponding UE address.
+        Sending the paging notifation to SMF using gRPC with
+        lacal_f_teid and ue_ip_addr value for corresponding UE address.
         """
         paging_message=UPFPagingInfo(local_f_teid=local_f_teid, ue_ip_addr=ue_ip_add)
         future = self._sessiond_setinterface.SendPagingReuest.future(
@@ -210,7 +209,7 @@ class Classifier(MagmaController):
 
     def _paging_msg_sent_callback(self, future):
         """
-        Callback after sessiond RPC completion
+        Callback method with exception after sessiond RPC completion
         """
         err = future.exception()
         if err:
