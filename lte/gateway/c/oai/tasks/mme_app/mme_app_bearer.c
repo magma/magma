@@ -3264,8 +3264,8 @@ void mme_app_handle_handover_required(
   ho_request_p->target_enb_id        = handover_required_p->enb_id;
   ho_request_p->cause                = handover_required_p->cause;
   ho_request_p->handover_type        = handover_required_p->handover_type;
-  ho_request_p->src_tgt_container =
-      bstrcpy(handover_required_p->src_tgt_container); // ownership passed to receiver
+  ho_request_p->src_tgt_container    = bstrcpy(
+      handover_required_p->src_tgt_container);  // ownership passed to receiver
 
   // get the ambr
   ho_request_p->ue_ambr = ue_context_p->subscribed_ue_ambr;
