@@ -964,7 +964,7 @@ jobs:
   
       - run:
           command: |
-            cd ${MAGMA_ROOT}/
+            cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
             pip install ansible
             ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
             ansible-playbook ami-init.yaml
