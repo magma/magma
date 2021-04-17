@@ -269,7 +269,12 @@ export function SubscriberContextProvider(props: Props) {
         metrics: subscriberMetrics,
         sessionState: sessionState,
         gwSubscriberMap: getGatewaySubscriberMap(sessionState),
-        setState: (key: subscriber_id, value?: mutable_subscriber, newState?) =>
+        setState: (
+          key: subscriber_id,
+          value?: mutable_subscriber,
+          newState?,
+          newSessionState?,
+        ) =>
           setSubscriberState({
             networkId,
             subscriberMap,
@@ -278,6 +283,7 @@ export function SubscriberContextProvider(props: Props) {
             key,
             value,
             newState,
+            newSessionState,
           }),
       }}>
       {props.children}

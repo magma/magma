@@ -17,8 +17,10 @@ import type {ActionQuery} from '../../components/ActionTable';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 
 import ActionTable from '../../components/ActionTable';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import NetworkContext from '../../components/context/NetworkContext';
 import React from 'react';
+import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -28,7 +30,7 @@ import {JsonDialog} from './SubscriberOverview';
 import {RenderLink} from './SubscriberOverview';
 import {handleSubscriberQuery} from '../../state/lte/SubscriberState';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -65,6 +67,12 @@ function SubscribersTable(props: WithAlert) {
   const onClose = () => setJsonDialog(false);
   const tableRef = React.useRef();
   const subscriberMap = ctx.state;
+  const subscriberCount = Object.keys(subscriberMap).length;
+
+  useEffect(() => {
+    tableRef.current?.onQueryChange();
+  }, [subscriberCount]);
+
   const tableColumns = [
     {
       title: 'Name',
@@ -110,9 +118,15 @@ function SubscribersTable(props: WithAlert) {
   return (
     <>
       <div className={classes.dashboardRoot}>
+        <CardTitleRow key="title" icon={SettingsIcon} label={'Subscribers'} />
         <JsonDialog open={jsonDialog} onClose={onClose} imsi={currRow.imsi} />
         <ActionTable
           tableRef={tableRef}
+          localization={{
+            toolbar: {
+              searchPlaceholder: 'Search IMSI001011234560000',
+            },
+          }}
           data={(query: ActionQuery) => {
             return handleSubscriberQuery({
               networkId,
@@ -157,7 +171,6 @@ function SubscribersTable(props: WithAlert) {
 
                     try {
                       await ctx.setState?.(currRow.imsi);
-                      tableRef.current?.onQueryChange();
                     } catch (e) {
                       enqueueSnackbar(
                         'failed deleting subscriber ' + currRow.imsi,
