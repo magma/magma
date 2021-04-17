@@ -149,12 +149,12 @@ export default async function InitSubscriberState(
     setSessionState,
     enqueueSnackbar,
   } = props;
-  const susbcriberResponse = await FetchSubscribers({
+  const subscriberResponse = await FetchSubscribers({
     networkId,
     enqueueSnackbar,
   });
-  if (susbcriberResponse) {
-    setSubscriberMap(susbcriberResponse.subscribers);
+  if (subscriberResponse) {
+    setSubscriberMap(subscriberResponse.subscribers);
   }
 
   const state = await FetchSubscriberState({networkId, enqueueSnackbar});
@@ -181,6 +181,7 @@ type SubscriberStateProps = {
   key: string,
   value?: mutable_subscriber,
   newState?: {[string]: subscriber},
+  newSessionState?: {[string]: subscriber_state},
 };
 
 export async function setSubscriberState(props: SubscriberStateProps) {
@@ -188,12 +189,19 @@ export async function setSubscriberState(props: SubscriberStateProps) {
     networkId,
     subscriberMap,
     setSubscriberMap,
+    setSessionState,
     key,
     value,
     newState,
+    newSessionState,
   } = props;
   if (newState) {
     setSubscriberMap(newState);
+    return;
+  }
+  if (newSessionState) {
+    // $FlowIgnore
+    setSessionState(newSessionState.sessionState);
     return;
   }
   if (value != null) {
@@ -284,6 +292,32 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
   } = props;
   return new Promise(async (resolve, reject) => {
     try {
+      // search subscriber by IMSI
+      let subscriberSearch = {};
+      const search = query.search;
+      if (search.startsWith('IMSI') && search.length > 9) {
+        const searchedSubscriber = await FetchSubscribers({
+          networkId,
+          id: search,
+        });
+        const metrics = subscriberMetrics?.[`${search}`];
+        if (searchedSubscriber) {
+          subscriberSearch = {
+            name: searchedSubscriber.id,
+            imsi: searchedSubscriber.id,
+            service: searchedSubscriber.lte?.state || '',
+            currentUsage: metrics?.currentUsage ?? '0',
+            dailyAvg: metrics?.dailyAvg ?? '0',
+            lastReportedTime:
+              searchedSubscriber.monitoring?.icmp?.last_reported_time === 0
+                ? new Date(
+                    searchedSubscriber.monitoring?.icmp?.last_reported_time,
+                  )
+                : '-',
+          };
+        }
+      }
+
       const page =
         MAX_PAGE_ROW_COUNT < query.page * query.pageSize
           ? MAX_PAGE_ROW_COUNT / query.pageSize
@@ -293,6 +327,7 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
         token: tokenList[page] ?? tokenList[tokenList.length - 1],
         pageSize,
       });
+
       const newTokenList = tokenList;
       // add next page token in token list to get next subscriber page.
       if (subscriberResponse) {
@@ -323,7 +358,10 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
           })
         : [];
       resolve({
-        data: tableData,
+        data:
+          search.startsWith('IMSI') && search.length > 9
+            ? [subscriberSearch]
+            : tableData,
         page: page,
         totalCount: MAX_PAGE_ROW_COUNT,
       });

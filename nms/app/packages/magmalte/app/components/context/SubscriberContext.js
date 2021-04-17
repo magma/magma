@@ -44,6 +44,7 @@ export type SubscriberContextType = {
     key: string,
     val?: mutable_subscriber,
     newState?: {[string]: subscriber},
+    newSessionState?: {[string]: subscriber_state},
   ) => Promise<void>,
 };
 
