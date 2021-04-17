@@ -31,7 +31,8 @@ class MockProxyConnector : public ProxyConnector {
  public:
   ~MockProxyConnector() {}
 
-  MOCK_METHOD2(SendData, int(void* data, uint32_t size));
+  MOCK_METHOD2(send_data, int(void* data, uint32_t size));
+  MOCK_METHOD0(setup_proxy_socket, int());
   MOCK_METHOD0(cleanup, void());
 };
 

@@ -69,6 +69,10 @@ static uint32_t get_log_verbosity(
   }
 }
 
+void signal_callback_handler(int signum) {
+  MLOG(MINFO) << "Ignoring SIGPIPE signal";
+}
+
 int main(void) {
   magma::init_logging(LIAGENTD);
 
@@ -77,11 +81,8 @@ int main(void) {
   magma::set_verbosity(get_log_verbosity(config, mconfig));
   MLOG(MINFO) << "Starting LI Agent service";
 
-  // TODO: Ignore SigPipe as SSL_write throws that occasionally, investigate
-  sigset_t blockedSignal;
-  sigemptyset(&blockedSignal);
-  sigaddset(&blockedSignal, SIGPIPE);
-  pthread_sigmask(SIG_BLOCK, &blockedSignal, NULL);
+  // Ignoring SIGPIPE due to ssl write throwing it occasionally
+  signal(SIGPIPE, signal_callback_handler);
 
   auto directoryd_client = std::make_unique<magma::AsyncDirectorydClient>();
   std::thread directoryd_response_handling_thread([&]() {

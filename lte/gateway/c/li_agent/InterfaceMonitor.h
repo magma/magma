@@ -21,7 +21,7 @@ class InterfaceMonitor {
   InterfaceMonitor(
       const std::string& iface_name, std::unique_ptr<PDUGenerator> pkt_gen);
 
-  int init_iface_pcap_monitor(void);
+  int init_iface_pcap_monitor();
 
  private:
   std::string iface_name_;

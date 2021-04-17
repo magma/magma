@@ -47,28 +47,54 @@ ProxyConnectorImpl::ProxyConnectorImpl(
     : proxy_addr_(proxy_addr),
       proxy_port_(proxy_port),
       cert_file_(cert_file),
-      key_file_(key_file) {
-  ssl_ = GetSSLSocket();
+      key_file_(key_file) {}
+
+int ProxyConnectorImpl::setup_proxy_socket() {
+  SSL_library_init();
+
+  ctx_ = init_ctx();
+  if (ctx_ == NULL) {
+    return -1;
+  }
+  if (load_certificates(ctx_) < 0) {
+    return -1;
+  }
+  proxy_ = open_connection();
+  if (proxy_ < 0) {
+    return -1;
+  }
+  ssl_ = SSL_new(ctx_);
+  if (ssl_ == NULL) {
+    return -1;
+  }
+  SSL_set_fd(ssl_, proxy_);
+  if (SSL_connect(ssl_) == -1) {
+    ERR_print_errors_fp(stderr);
+    return -1;
+  }
+
+  return 0;
 }
 
-void ProxyConnectorImpl::LoadCertificates(SSL_CTX* ctx) {
+int ProxyConnectorImpl::load_certificates(SSL_CTX* ctx) {
   if (SSL_CTX_use_certificate_file(ctx, cert_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
     ERR_print_errors_fp(stderr);
-    abort();
+    return -1;
   }
   if (SSL_CTX_use_PrivateKey_file(ctx, key_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
     ERR_print_errors_fp(stderr);
-    abort();
+    return -1;
   }
   if (!SSL_CTX_check_private_key(ctx)) {
     MLOG(MERROR) << "Private key does not match the public certificate";
-    abort();
+    return -1;
   }
+  return 0;
 }
 
-SSL_CTX* ProxyConnectorImpl::InitCTX(void) {
+SSL_CTX* ProxyConnectorImpl::init_ctx(void) {
   SSL_CTX* ctx;
 
   OpenSSL_add_all_algorithms(); /* Load cryptos, et.al. */
@@ -76,12 +102,12 @@ SSL_CTX* ProxyConnectorImpl::InitCTX(void) {
   ctx = SSL_CTX_new(TLS_client_method()); /* Create new context */
   if (ctx == NULL) {
     ERR_print_errors_fp(stderr);
-    abort();
+    return NULL;
   }
   return ctx;
 }
 
-int ProxyConnectorImpl::OpenConnection() {
+int ProxyConnectorImpl::open_connection() {
   int sd;
   struct sockaddr_in serv_addr;
 
@@ -99,28 +125,12 @@ int ProxyConnectorImpl::OpenConnection() {
       0) {
     MLOG(MERROR) << "Can't connect to the proxy, exiting";
     close(sd);
-    abort();
+    return -1;
   }
   return sd;
 }
 
-SSL* ProxyConnectorImpl::GetSSLSocket() {
-  SSL* ssl;
-  SSL_library_init();
-
-  ctx_ = InitCTX();
-  LoadCertificates(ctx_);
-  proxy_ = OpenConnection();
-  ssl    = SSL_new(ctx_);
-  SSL_set_fd(ssl, proxy_);
-  if (SSL_connect(ssl) == -1) {
-    ERR_print_errors_fp(stderr);
-    return NULL;
-  }
-  return ssl;
-}
-
-int ProxyConnectorImpl::SendData(void* data, uint32_t size) {
+int ProxyConnectorImpl::send_data(void* data, uint32_t size) {
   // TODO we probably want to deal with write edge cases here
   SSL_write(ssl_, data, size);
 

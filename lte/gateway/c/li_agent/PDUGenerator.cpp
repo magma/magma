@@ -138,7 +138,7 @@ void PDUGenerator::handle_ip_lookup_callback(
   // TODO process the output of the directoryd lookup
   pdu->payload_direction = DIRECTION_TO_TARGET;
   set_xid(pdu, "tracking_123");
-  proxy_connector_->SendData(data, pdu->header_length + pdu->payload_length);
+  proxy_connector_->send_data(data, pdu->header_length + pdu->payload_length);
   // free(data);
 
   if (!status.ok()) {

@@ -39,7 +39,6 @@ class PDUGeneratorTest : public ::testing::Test {
         PKT_DST_MAC, PKT_SRC_MAC);
   }
 
- protected:
   MockProxyConnector* proxy_connector;
   MockDirectorydClient* directoryd_client;
   std::unique_ptr<PDUGenerator> pkt_generator;

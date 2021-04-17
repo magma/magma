@@ -18,7 +18,8 @@ namespace magma {
 
 class ProxyConnector {
  public:
-  virtual int SendData(void* data, uint32_t size) = 0;
+  virtual int send_data(void* data, uint32_t size) = 0;
+  virtual int setup_proxy_socket()                 = 0;
 };
 
 class ProxyConnectorImpl : public ProxyConnector {
@@ -27,14 +28,14 @@ class ProxyConnectorImpl : public ProxyConnector {
       const std::string& proxy_addr, const int port,
       const std::string& cert_file, const std::string& key_file);
 
-  int SendData(void* data, uint32_t size);
-  void cleanup(void);
+  int setup_proxy_socket();
+  int send_data(void* data, uint32_t size);
+  void cleanup();
 
  private:
-  SSL* GetSSLSocket();
-  int OpenConnection();
-  void LoadCertificates(SSL_CTX* ctx);
-  SSL_CTX* InitCTX(void);
+  int open_connection();
+  int load_certificates(SSL_CTX* ctx);
+  SSL_CTX* init_ctx();
 
   const std::string& proxy_addr_;
   const int proxy_port_;
