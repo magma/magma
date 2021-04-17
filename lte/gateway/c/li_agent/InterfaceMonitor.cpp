@@ -52,11 +52,13 @@ int InterfaceMonitor::init_iface_pcap_monitor() {
   pcap_t* pcap;
   int ret;
 
-  pcap = pcap_open_live(iface_name_.c_str(), BUFSIZ, 0, 1000, errbuf);
+  pcap = pcap_open_live(
+      iface_name_.c_str(), MAX_PKT_SIZE, PROMISCUOUS_MODE,
+      PKT_BUF_READ_TIMEOUT_MS, errbuf);
   if (pcap == nullptr) {
     MLOG(MFATAL) << "Could not capture packets on " << iface_name_
                  << ", exiting";
-    return 1;
+    return -1;
   }
   MLOG(MINFO) << "Successfully started live pcap sniffing";
 
@@ -67,7 +69,7 @@ int InterfaceMonitor::init_iface_pcap_monitor() {
     if (pcap != nullptr) {
       pcap_close(pcap);
     }
-    return 1;
+    return -1;
   }
 
   return 0;

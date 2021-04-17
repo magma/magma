@@ -103,14 +103,20 @@ int main(void) {
 
   auto proxy_connector = std::make_unique<magma::ProxyConnectorImpl>(
       proxy_addr, proxy_port, cert_file, key_file);
+  if (proxy_connector->setup_proxy_socket() < 0) {
+    MLOG(MERROR) << "Coudn't setup proxy socket, terminating";
+    return -1;
+  }
   auto pkt_generator = std::make_unique<magma::PDUGenerator>(
       std::move(proxy_connector), std::move(directoryd_client), pkt_dst_mac,
       pkt_src_mac);
 
   auto interface_watcher = std::make_unique<magma::InterfaceMonitor>(
       interface_name, std::move(pkt_generator));
-
-  interface_watcher->init_iface_pcap_monitor();
+  if (interface_watcher->init_iface_pcap_monitor() < 0) {
+    MLOG(MERROR) << "Coudn't setup interface sniffing, terminating";
+    return -1;
+  }
 
   proxy_connector->cleanup();
   directoryd_response_handling_thread.join();
