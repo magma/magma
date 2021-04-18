@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include "PDUGenerator.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -27,8 +29,6 @@
 #include <tins/tins.h>
 #include <tins/ip.h>
 
-#include "PDUGenerator.h"
-
 namespace {  // anonymous
 
 /* TODO remove after testing */
@@ -41,25 +41,39 @@ void print_bytes(void* ptr, int size) {
   printf("\n");
 }
 
-void set_xid(struct pdu_info* pdu, std::string value) {
-  memcpy(pdu->xid, value.c_str(), XID_LENGTH);
+void set_xid(struct pdu_info*& pdu, const std::string& value) {
+  if (value.empty()) {
+    MLOG(MERROR) << "Recieved XID string is empty";
+    return;
+  }
+  if (value.length() > XID_LENGTH) {
+    MLOG(MERROR) << "Recieved XID string - " << value
+                 << ", is longer than allowed " << XID_LENGTH;
+  }
+  memcpy(
+      pdu->xid, value.c_str(),
+      std::min(static_cast<int>(value.length()), XID_LENGTH));
 }
 
-bool extract_ip_addr(
-    const u_char* packet, std::string& src_ip, std::string& dst_ip) {
+struct ip_extraction_pair extract_ip_addr(const u_char* packet) {
   const struct ether_header* ethernetHeader;
   const struct ip* ipHeader;
   char sourceIP[INET_ADDRSTRLEN];
   char destIP[INET_ADDRSTRLEN];
+  struct ip_extraction_pair ret;
+  ret.successful = false;
 
   ethernetHeader = (struct ether_header*) packet;
   if (ntohs(ethernetHeader->ether_type) == ETHERTYPE_IP) {
     ipHeader = (struct ip*) (packet + sizeof(struct ether_header));
-    src_ip = inet_ntop(AF_INET, &(ipHeader->ip_src), sourceIP, INET_ADDRSTRLEN);
-    dst_ip = inet_ntop(AF_INET, &(ipHeader->ip_dst), destIP, INET_ADDRSTRLEN);
-    return true;
+    ret.src_ip =
+        inet_ntop(AF_INET, &(ipHeader->ip_src), sourceIP, INET_ADDRSTRLEN);
+    ret.dst_ip =
+        inet_ntop(AF_INET, &(ipHeader->ip_dst), destIP, INET_ADDRSTRLEN);
+    ret.successful = true;
   }
-  return false;
+
+  return ret;
 }
 
 }  // namespace
@@ -108,27 +122,29 @@ void* PDUGenerator::generate_pkt(
 
 bool PDUGenerator::send_packet(
     const struct pcap_pkthdr* phdr, const u_char* pdata) {
-  std::string src_ip;
-  std::string dst_ip;
-  if (!extract_ip_addr(pdata, src_ip, dst_ip)) {
+  struct ip_extraction_pair ip_info = extract_ip_addr(pdata);
+
+  if (!ip_info.successful) {
     MLOG(MERROR) << "Could not extract IP from the packet, skipping";
     return true;
   }
 
-  MLOG(MDEBUG) << "Processing packet with src ip " << src_ip << " dst ip "
-               << dst_ip;
+  MLOG(MDEBUG) << "Processing packet with src ip - " << ip_info.src_ip
+               << ", and dst ip - " << ip_info.dst_ip;
   void* data           = generate_pkt(phdr, pdata);
   struct pdu_info* pdu = (struct pdu_info*) data;
 
   directoryd_client_->get_directoryd_xid_field(
-      dst_ip, std::bind(
-                  &PDUGenerator::handle_ip_lookup_callback, this, src_ip, data,
-                  pdu, std::placeholders::_1, std::placeholders::_2));
+      ip_info.src_ip,
+      std::bind(
+          &PDUGenerator::handle_ip_lookup_callback, this, ip_info.src_ip, data,
+          pdu, std::placeholders::_1, std::placeholders::_2));
 
   directoryd_client_->get_directoryd_xid_field(
-      dst_ip, std::bind(
-                  &PDUGenerator::handle_ip_lookup_callback, this, dst_ip, data,
-                  pdu, std::placeholders::_1, std::placeholders::_2));
+      ip_info.dst_ip,
+      std::bind(
+          &PDUGenerator::handle_ip_lookup_callback, this, ip_info.dst_ip, data,
+          pdu, std::placeholders::_1, std::placeholders::_2));
   return true;
 }
 

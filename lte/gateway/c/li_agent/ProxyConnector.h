@@ -12,6 +12,8 @@
  */
 #pragma once
 
+#include <string>
+
 #include <openssl/ssl.h>
 
 namespace magma {

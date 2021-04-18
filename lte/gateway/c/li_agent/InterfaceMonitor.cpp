@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include "InterfaceMonitor.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -31,8 +33,6 @@
 #include <linux/ip.h>
 #include <memory>
 #include <pcap.h>
-
-#include "InterfaceMonitor.h"
 
 #include "magma_logging.h"
 

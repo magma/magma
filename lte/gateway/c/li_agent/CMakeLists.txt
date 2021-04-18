@@ -13,8 +13,6 @@ cmake_minimum_required(VERSION 3.0.2)
 
 PROJECT(LIAgent)
 
-add_compile_options(-std=c++14)
-
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 if (NOT BUILD_TESTS)

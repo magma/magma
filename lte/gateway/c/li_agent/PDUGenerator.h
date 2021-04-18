@@ -26,6 +26,12 @@
 #define DIRECTION_TO_TARGET 2
 #define DIRECTION_FROM_TARGET 3
 
+struct ip_extraction_pair {
+  bool successful;
+  std::string src_ip;
+  std::string dst_ip;
+};
+
 struct pdu_info {
   uint16_t version;
   uint16_t pdu_type;

@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include "ProxyConnector.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -23,7 +25,6 @@
 #include <linux/netfilter/nfnetlink_conntrack.h>
 
 #include <linux/if_packet.h>
-#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <net/if.h>
@@ -34,8 +35,6 @@
 
 #include <openssl/ssl.h>
 #include <openssl/err.h>
-
-#include "ProxyConnector.h"
 
 #include "magma_logging.h"
 
