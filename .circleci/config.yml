@@ -964,7 +964,7 @@ jobs:
   
       - run:
           command: |
-          echo export AWS_DEFAULT_REGION="us-east-1" >> $BASH_ENV
+            echo export AWS_DEFAULT_REGION="us-east-1" >> $BASH_ENV
             echo export AWS_ACCESS_KEY_ID="$(printenv AWS_FB_CRED)" >> $BASH_ENV
             echo export AWS_SECRET_ACCESS_KEY="$(printenv AWS_FB_SECRET)" >> $BASH_ENV
             pip install wheel
@@ -974,7 +974,7 @@ jobs:
             ansible-playbook build-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "buildnode=tag_Name_buildAgw" -e "ansible_python_interpreter=/usr/bin/python3"
             ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
             ansible-playbook ami-init.yaml
-      - magma_slack_notify
+#      - magma_slack_notify
 
   ## CWF OPERATOR
 
