@@ -28,7 +28,6 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
 import {
   DEFAULT_PAGE_SIZE,
-  MAX_PAGE_ROW_COUNT,
   getLabelUnit,
 } from '../../views/subscriber/SubscriberUtils';
 
@@ -253,6 +252,8 @@ export function getGatewaySubscriberMap(sessions: {
 export type SubscriberQueryType = {
   networkId: string,
   query: ActionQuery,
+  maxPageRowCount: number,
+  setMaxPageRowCount: number => void,
   pageSize: number,
   tokenList: Array<string>,
   setTokenList: (Array<string>) => void,
@@ -277,6 +278,8 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
     networkId,
     query,
     pageSize,
+    maxPageRowCount,
+    setMaxPageRowCount,
     tokenList,
     setTokenList,
     ctx,
@@ -285,8 +288,8 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
   return new Promise(async (resolve, reject) => {
     try {
       const page =
-        MAX_PAGE_ROW_COUNT < query.page * query.pageSize
-          ? MAX_PAGE_ROW_COUNT / query.pageSize
+        maxPageRowCount < query.page * query.pageSize
+          ? maxPageRowCount / query.pageSize
           : query.page;
       const subscriberResponse = await FetchSubscribers({
         networkId,
@@ -295,10 +298,13 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
       });
       const newTokenList = tokenList;
       // add next page token in token list to get next subscriber page.
+      let totalCount = 0;
       if (subscriberResponse) {
         if (!newTokenList.includes(subscriberResponse.next_page_token)) {
           newTokenList.push(subscriberResponse.next_page_token);
         }
+        totalCount = subscriberResponse.total_count;
+        setMaxPageRowCount(totalCount);
         setTokenList([...newTokenList]);
         // set subscriber state with current subscriber rows.
         ctx.setState?.('', undefined, subscriberResponse.subscribers);
@@ -325,7 +331,7 @@ export async function handleSubscriberQuery(props: SubscriberQueryType) {
       resolve({
         data: tableData,
         page: page,
-        totalCount: MAX_PAGE_ROW_COUNT,
+        totalCount: totalCount,
       });
     } catch (e) {
       reject(e?.message ?? 'error retrieving subscribers');
