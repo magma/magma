@@ -967,6 +967,7 @@ jobs:
             pip install ansible
             cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
             ls ~/magma-experimental/files
+            ansible-playbook build-provision.yaml --tags devopsAgw,inventory
             ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
             ansible-playbook ami-init.yaml
       - magma_slack_notify
