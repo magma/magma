@@ -964,6 +964,9 @@ jobs:
   
       - run:
           command: |
+          echo export AWS_DEFAULT_REGION="us-east-1" >> $BASH_ENV
+            echo export AWS_ACCESS_KEY_ID="$(printenv AWS_FB_CRED)" >> $BASH_ENV
+            echo export AWS_SECRET_ACCESS_KEY="$(printenv AWS_FB_SECRET)" >> $BASH_ENV
             pip install wheel
             pip install ansible
             cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
