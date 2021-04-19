@@ -276,8 +276,8 @@ int mme_app_handle_s6a_update_location_ans(
   } else {
     OAILOG_ERROR(
         LOG_MME_APP,
-        "ULR Response Timer has invalid id. This implies that the timer has "
-        "expired and ULR has been handled as failure. \n ",
+        "ULR Response Timer has invalid id for ue_id (%u). This implies that "
+        "the timer has expired and ULR has been handled as failure. \n ",
         ue_mm_context->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
