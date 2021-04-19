@@ -690,17 +690,14 @@ func getDefaultCreateSessionRequest(pgwAddrs string) *protos.CreateSessionReques
 			ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
 				{
 					Id:       uint32(gtpv2.ProtoIDIPCP),
-					Length:   16, // len not required, just added to compare with the result which includes length
 					Contents: []byte{0x01, 0x00, 0x00, 0x10, 0x03, 0x06, 0x01, 0x01, 0x01, 0x01, 0x81, 0x06, 0x02, 0x02, 0x02, 0x02},
 				},
 				{
 					Id:       uint32(gtpv2.ProtoIDPAP),
-					Length:   12, // len not required, just added to compare with the result which includes length
 					Contents: []byte{0x01, 0x00, 0x00, 0x0c, 0x03, 0x66, 0x6f, 0x6f, 0x03, 0x62, 0x61, 0x72},
 				},
 				{
 					Id:       uint32(gtpv2.ContIDMSSupportOfNetworkRequestedBearerControlIndicator),
-					Length:   0, // len not required, just added to compare with the result which includes length
 					Contents: nil,
 				},
 			},

@@ -196,7 +196,6 @@ func handleFTEID(fteidIE *ie.IE) (*protos.Fteid, uint8, error) {
 	}
 
 	fteid := &protos.Fteid{Teid: teid}
-
 	if !fteidIE.HasIPv4() && !fteidIE.HasIPv6() {
 		return nil, interfaceType, fmt.Errorf("Error: fteid %+v has no ips", fteidIE.String())
 	}
@@ -306,7 +305,6 @@ func handlePCO(pcoIE *ie.IE) (*protos.ProtocolConfigurationOptions, error) {
 		containers = append(containers,
 			&protos.PcoProtocolOrContainerId{
 				Id:       uint32(containerField.ID),
-				Length:   uint32(len(containerField.Contents)),
 				Contents: containerField.Contents,
 			})
 	}
