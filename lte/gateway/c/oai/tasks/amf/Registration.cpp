@@ -256,7 +256,7 @@ int amf_proc_registration_reject(
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_registration_reject(
+static int amf_registration_reject(
     amf_context_t* amf_context, nas_amf_registration_proc_t* nas_base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
@@ -699,48 +699,6 @@ int amf_send_registration_accept_dl_nas(
   offset++;
   amf_msg->mobile_id.mobile_identity.guti.tmsi3 = *offset;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
-}
-
-/****************************************************************************
- **                                                                        **
- ** Name:    amf_handle_registration_complete_response()                    **
- **                                                                        **
- ** Description: Processes registration Complete message                   **
- **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                         **
- **      msg:       The received AMF message                               **
- **      Others:    None                                                   **
- **                                                                        **
- ** Outputs:     amf_cause: AMF cause code                                 **
- **      Return:    RETURNok, RETURNerror                                  **
- **      Others:    None                                                   **
- **                                                                        **
- ***************************************************************************/
-int amf_handle_registration_complete_response(
-    amf_ue_ngap_id_t ue_id, RegistrationCompleteMsg* msg, int amf_cause,
-    amf_nas_message_decode_status_t status) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc;
-  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
-  OAILOG_DEBUG(
-      LOG_NAS_AMF,
-      "AMFAS-SAP - received registration complete message for ue_id = (%u)\n",
-      ue_id);
-  /*
-   * Execute the registration procedure completion
-   */
-
-  ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  if (ue_m5gmm_context == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
-  }
-
-  rc = ue_state_handle_message_reg_conn(
-      ue_m5gmm_context->mm_state, STATE_EVENT_REG_COMPLETE, SESSION_NULL,
-      ue_m5gmm_context, ue_id, msg->smf_pdu, amf_cause, status);
-
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 /****************************************************************************

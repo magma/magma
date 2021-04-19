@@ -54,9 +54,6 @@ int amf_registration_success_authentication_cb(amf_context_t* amf_context);
 int amf_registration_success_security_cb(amf_context_t* amf_context);
 int amf_proc_registration_reject(
     const amf_ue_ngap_id_t ue_id, amf_cause_t amf_cause);
-int amf_registration_reject(
-    amf_context_t* amf_context, nas_amf_registration_proc_t* nas_base_proc);
-
 int amf_send_registration_accept_dl_nas(
     const amf_as_data_t* msg, RegistrationAcceptMsg* amf_msg);
 int amf_proc_registration_complete(
