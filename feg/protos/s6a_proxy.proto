@@ -218,14 +218,14 @@ message UpdateLocationAnswer {
         uint32 max_bandwidth_ul = 1;
         // Maximum downlink bitrate
         uint32 max_bandwidth_dl = 2;
-        // Unit (either bps or Kbps)
-        BitrateUnitsAMBR unit = 3;
 
         enum BitrateUnitsAMBR {
          BPS = 0;
          KBPS = 1;
         }
 
+        // Unit (either bps or Kbps)
+        BitrateUnitsAMBR unit = 3;
     }
 }
 

@@ -205,7 +205,13 @@ typedef union {
   uint8_t imeisv[IMEISV_DIGITS_MAX];
 } me_identity_t;
 
+typedef enum {
+  BPS  = 0,
+  KBPS = 1,
+} apn_ambr_bits_unit_t;
+
 typedef struct {
+  apn_ambr_bits_unit_t bitsunit;
   bitrate_t br_ul;
   bitrate_t br_dl;
 } ambr_t;

@@ -57,7 +57,9 @@ convert_itti_s6a_authentication_info_req_to_proto_msg(
    * Adding NR as secodnary RAT feature
    */
 
-  ret.feature_list_id_2().nr_as_secondary_rat();
+  if (msg->supportedfeatures.nr_as_secondary_rat) {
+    ret.mutable_feature_list_id_2()->set_nr_as_secondary_rat(1);
+  }
 
   /*
    * Re-synchronization information containing the AUTS computed at USIM
@@ -106,7 +108,7 @@ UpdateLocationRequest convert_itti_s6a_update_location_request_to_proto_msg(
    * Set the nr as secondary rat feature
    */
   if (msg->supportedfeatures.nr_as_secondary_rat) {
-    ret.feature_list_id_2().nr_as_secondary_rat();
+    ret.mutable_feature_list_id_2()->set_nr_as_secondary_rat(1);
   }
   /*
    * Set the initial_attach

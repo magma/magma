@@ -127,17 +127,7 @@ int mme_app_send_s6a_update_location_req(
         ue_context_p->mme_ue_s1ap_id);
   }
 
-#if EMBEDDED_SGW
-  s6a_ulr_p->dual_regis_5g_ind = 1;
-  OAILOG_DEBUG(
-      TASK_MME_APP,
-      "Dual registration 5g indicator flag is set in ULR "
-      "(dual_regis_5g_ind = %u)\n",
-      s6a_ulr_p->dual_regis_5g_ind);
-  s6a_ulr_p->supportedfeatures.nr_as_secondary_rat = 1;
-#endif
-
-  // Check if we have voice domain preference IE and send to S6a task
+ // Check if we have voice domain preference IE and send to S6a task
   if (ue_context_p->emm_context.volte_params.presencemask &
       VOICE_DOMAIN_PREF_UE_USAGE_SETTING) {
     s6a_ulr_p->voice_dom_pref_ue_usg_setting =

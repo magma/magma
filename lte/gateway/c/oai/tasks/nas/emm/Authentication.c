@@ -1496,21 +1496,6 @@ static void nas_itti_auth_info_req(
    * by checking  dcnr flag in ue network capability.
    */
 
-#if EMBEDDED_SGW
-  auth_info_req->supportedfeatures.nr_as_secondary_rat = 1;
-  OAILOG_DEBUG(
-      TASK_MME_APP,
-      "S6A_OVER_GRPC is working "
-      "(ue_id = %u)\n",
-      auth_info_req->supportedfeatures.nr_as_secondary_rat);
-
-  OAILOG_DEBUG(
-      TASK_MME_APP,
-      "Value of supportedfeaturesnrassecondaryrat "
-      "(auth_info_req->supportedfeatures.nr_as_secondary_rat = %u)\n",
-      auth_info_req->supportedfeatures.nr_as_secondary_rat);
-#endif
-
   if (dcnr) {
     auth_info_req->supportedfeatures.nr_as_secondary_rat = 1;
   } else {
