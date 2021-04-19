@@ -965,15 +965,15 @@ jobs:
       - aws-cli/setup:
           profile-name: artlee
           parameters:
-  aws-access-key-id:
-    default: AWS_FB_CREDS
-    type: env_var_name
-  aws-region:
-    default: AWS_DEFAULT_REGION
-    type: env_var_name
-  aws-secret-access-key:
-    default: AWS_FB_SECRET
-    type: env_var_name
+                      aws-access-key-id:
+                        default: AWS_FB_CREDS
+                        type: env_var_name
+                      aws-region:
+                        default: AWS_DEFAULT_REGION
+                        type: env_var_name
+                      aws-secret-access-key:
+                        default: AWS_FB_SECRET
+                        type: env_var_name
       - run:
           command: |
             echo export AWS_DEFAULT_REGION="us-west-1" >> $BASH_ENV
