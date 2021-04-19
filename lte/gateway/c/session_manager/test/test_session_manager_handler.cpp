@@ -427,7 +427,8 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   grpc::ServerContext server_context;
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, IP1, "rule1", 512, 512, record_list->Add());
+  create_rule_record(
+      IMSI1, teids0.agw_teid(), "rule1", 512, 512, record_list->Add());
 
   EXPECT_CALL(
       *reporter, report_updates(CheckUpdateRequestNumber(1), testing::_))

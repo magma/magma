@@ -43,20 +43,14 @@ typedef std::pair<std::string, std::string> ImsiAndSessionID;
 
 struct RuleRecord_equal {
   bool operator()(const RuleRecord& l, const RuleRecord& r) const {
-    // TODO replace IP comparison to tunnelID comparison
-    // return l.sid() == r.sid() && l.teid();
-    return l.sid() == r.sid() && l.ue_ipv4() == r.ue_ipv4() &&
-           l.ue_ipv6() == r.ue_ipv6();
+    return l.sid() == r.sid() && l.teid() == r.teid();
   }
 };
 struct RuleRecord_hash {
   std::size_t operator()(const RuleRecord& el) const {
     size_t h1 = std::hash<std::string>()(el.sid());
-    // TODO replace IP hash to tunnelID hash
-    // size_t h2 = std::hash<uint32_t>()(el.teid());
-    size_t h2 = std::hash<std::string>()(el.ue_ipv4());
-    size_t h3 = std::hash<std::string>()(el.ue_ipv6());
-    return h1 ^ h2 ^ h3;
+    size_t h2 = std::hash<uint32_t>()(el.teid());
+    return h1 ^ h2;
   }
 };
 typedef std::unordered_set<RuleRecord, RuleRecord_hash, RuleRecord_equal>

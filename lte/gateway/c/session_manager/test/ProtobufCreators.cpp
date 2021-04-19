@@ -84,33 +84,24 @@ void create_rule_record(
   rule_record->set_rule_id(rule_id);
   rule_record->set_bytes_rx(bytes_rx);
   rule_record->set_bytes_tx(bytes_tx);
+  rule_record->set_dropped_rx(0);
+  rule_record->set_dropped_tx(0);
 }
 
 void create_rule_record(
-    const std::string& imsi, const std::string& ip, const std::string& rule_id,
-    uint64_t bytes_rx, uint64_t bytes_tx, uint32_t teid,
-    RuleRecord* rule_record) {
-  create_rule_record(imsi, ip, rule_id, bytes_rx, bytes_tx, rule_record);
+    const std::string& imsi, const uint32_t teid, const std::string& rule_id,
+    uint64_t bytes_rx, uint64_t bytes_tx, RuleRecord* rule_record) {
+  create_rule_record(imsi, rule_id, bytes_rx, bytes_tx, rule_record);
   rule_record->set_teid(teid);
 }
 
 void create_rule_record(
-    const std::string& imsi, const std::string& ip, const std::string& rule_id,
-    uint64_t bytes_rx, uint64_t bytes_tx, RuleRecord* rule_record) {
-  create_rule_record(imsi, rule_id, bytes_rx, bytes_tx, rule_record);
-  rule_record->set_dropped_rx(0);
-  rule_record->set_dropped_tx(0);
-  rule_record->set_ue_ipv4(ip);
-}
-
-void create_rule_record(
-    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    const std::string& imsi, const uint32_t teid, const std::string& rule_id,
     uint64_t bytes_rx, uint64_t bytes_tx, uint64_t dropped_rx,
     uint64_t dropped_tx, RuleRecord* rule_record) {
-  create_rule_record(imsi, rule_id, bytes_rx, bytes_tx, rule_record);
+  create_rule_record(imsi, teid, rule_id, bytes_rx, bytes_tx, rule_record);
   rule_record->set_dropped_rx(dropped_rx);
   rule_record->set_dropped_tx(dropped_tx);
-  rule_record->set_ue_ipv4(ip);
 }
 
 void create_charging_credit(

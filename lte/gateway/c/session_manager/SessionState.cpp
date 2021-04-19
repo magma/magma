@@ -285,7 +285,7 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   // Static SessionInfo vlaue till UPF node value implementation
   // gets stablized.
   std::string imsi_num;
-  // TODO we cud eventually  migrate to SMF-UPF proto enum directly.
+  // TODO we could eventually  migrate to SMF-UPF proto enum directly.
   info->state = get_proto_fsm_state();
   info->subscriber_id.assign(get_imsi());
   info->ver_no              = get_current_version();

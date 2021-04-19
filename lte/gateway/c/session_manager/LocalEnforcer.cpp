@@ -239,12 +239,12 @@ void LocalEnforcer::aggregate_records(
   RuleRecordSet dead_sessions_to_cleanup;
 
   for (const RuleRecord& record : records.records()) {
-    const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
-    // TODO IPv6 add ipv6 to search criteria
-    SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip);
+    const std::string& imsi = record.sid();
+    const uint32_t teid     = record.teid();
+    SessionSearchCriteria criteria(imsi, IMSI_AND_TEID, teid);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
-      MLOG(MERROR) << "Could not find session for " << imsi << " and " << ip
+      MLOG(MERROR) << "Could not find session for " << imsi << " and " << teid
                    << " during record aggregation";
       dead_sessions_to_cleanup.insert(record);
       continue;

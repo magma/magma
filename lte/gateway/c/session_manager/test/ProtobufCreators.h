@@ -49,16 +49,11 @@ void create_rule_record(
     uint64_t bytes_tx, RuleRecord* rule_record);
 
 void create_rule_record(
-    const std::string& imsi, const std::string& ip, const std::string& rule_id,
-    uint64_t bytes_rx, uint64_t bytes_tx, uint32_t teid,
-    RuleRecord* rule_record);
-
-void create_rule_record(
-    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    const std::string& imsi, const uint32_t teid, const std::string& rule_id,
     uint64_t bytes_rx, uint64_t bytes_tx, RuleRecord* rule_record);
 
 void create_rule_record(
-    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    const std::string& imsi, const uint32_t teid, const std::string& rule_id,
     uint64_t bytes_rx, uint64_t bytes_tx, uint64_t dropped_rx,
     uint64_t dropped_tx, RuleRecord* rule_record);
 
