@@ -118,11 +118,11 @@ TEST_F(LocalEnforcerStatsPollerTest, test_poll_stats) {
   RuleRecordTable table;
 
   auto record_list = table.mutable_records();
-  auto ue_ipv4     = test_cfg_.common_context.ue_ipv4();
-  create_rule_record(IMSI1, ue_ipv4, "rule1", 10, 20, record_list->Add());
-  create_rule_record(IMSI1, ue_ipv4, "rule2", 15, 35, record_list->Add());
-  create_rule_record(IMSI1, ue_ipv4, "rule3", 100, 150, record_list->Add());
-  create_rule_record(IMSI1, ue_ipv4, "rule4", 200, 300, record_list->Add());
+  auto agw_teid1   = teids1.agw_teid();
+  create_rule_record(IMSI1, agw_teid1, "rule1", 10, 20, record_list->Add());
+  create_rule_record(IMSI1, agw_teid1, "rule2", 15, 35, record_list->Add());
+  create_rule_record(IMSI1, agw_teid1, "rule3", 100, 150, record_list->Add());
+  create_rule_record(IMSI1, agw_teid1, "rule4", 200, 300, record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
 

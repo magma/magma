@@ -613,10 +613,10 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
   auto& request_cpy = *request;
   auto imsi         = request->sid().id();
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
-  MLOG(MINFO) << "Received a UpdateTunnelIds request for " << imsi
-              << " with default bearer id: " << request->bearer_id()
-              << " enb_teid= " << request->enb_teid()
-              << " agw_teid= " << request->agw_teid();
+  MLOG(MDEBUG) << "Received a UpdateTunnelIds request for " << imsi
+               << " with default bearer id: " << request->bearer_id()
+               << ", enb teid: " << request->enb_teid()
+               << ", agw teid: " << request->agw_teid();
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy, imsi,
                                                     response_callback]() {
     auto session_map = session_store_.read_sessions({imsi});
