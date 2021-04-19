@@ -962,7 +962,7 @@ jobs:
     steps:
       - checkout
       - python/set_version
-      - aws-cli/setup:
+      - aws-cli:
           parameters:
             aws-access-key-id:
              default: AWS_FB_CREDS
