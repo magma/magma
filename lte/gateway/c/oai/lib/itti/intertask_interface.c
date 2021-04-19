@@ -326,10 +326,8 @@ int itti_create_task(
       result >= 0, "Thread creation for task %d, thread %d failed (%d)!\n",
       task_id, thread_id, result);
 
-  char name[16];
-
-  snprintf(name, sizeof(name), "ITTI %d", thread_id);
-  pthread_setname_np(itti_desc.threads[thread_id].task_thread, name);
+  pthread_setname_np(
+      itti_desc.threads[thread_id].task_thread, itti_get_task_name(task_id));
   itti_desc.created_tasks++;
 
   // Wait till the thread is completely ready
