@@ -63,6 +63,7 @@ function SubscribersTable(props: WithAlert) {
   const subscriberMetrics = ctx.metrics;
   const [jsonDialog, setJsonDialog] = useState(false);
   // first token (page 1) is an empty string
+  const [maxPageRowCount, setMaxPageRowCount] = useState(0);
   const [tokenList, setTokenList] = useState(['']);
   const onClose = () => setJsonDialog(false);
   const tableRef = React.useRef();
@@ -132,6 +133,8 @@ function SubscribersTable(props: WithAlert) {
               networkId,
               query,
               ctx,
+              maxPageRowCount,
+              setMaxPageRowCount,
               tokenList,
               setTokenList,
               pageSize: DEFAULT_PAGE_SIZE,
