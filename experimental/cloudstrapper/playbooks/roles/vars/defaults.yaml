@@ -6,7 +6,7 @@
 #------------------
 
 secgroupDefault: secgroupMagmaProto
-bucketDefault: bucket-mantle-canada
+bucketDefault: lte-agw-aws
 keyBoot: keyMagmaBoot
 keyHost: keyMagmaHost
 
