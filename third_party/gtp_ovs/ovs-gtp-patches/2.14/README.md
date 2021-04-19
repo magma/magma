@@ -18,7 +18,7 @@ Steps to build package from source code.
 2. cd $MAGMA_ROOT/third_party/gtp_ovs/ovs/2.14/
 3. git clone https://github.com/openvswitch/ovs
 4. cd ovs/
-5. git checkout f8ea6e0cab75f8f6675272fff6d99191150bb1cb /* Checkout ovs2.14.1 */
+5. git checkout branch-2.14 /* Checkout ovs2.14.1 */
 6. git am ../00*
 7. DEB_BUILD_OPTIONS='parallel=8 nocheck' fakeroot debian/rules binary
 8. Packages are copied in parent (..) dir
