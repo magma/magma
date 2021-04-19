@@ -42,6 +42,8 @@ service NorthboundConfigurator {
     rpc DeleteEntities (DeleteEntitiesRequest) returns (magma.orc8r.Void) {}
     // LoadEntities fetches the set of Entities specified by the request
     rpc LoadEntities (LoadEntitiesRequest) returns (storage.EntityLoadResult) {}
+    // CountEntities counts the number of Entities specified by the request
+    rpc CountEntities (LoadEntitiesRequest) returns (storage.EntityCountResult) {}
 }
 
 message ListNetworkIDsResponse {

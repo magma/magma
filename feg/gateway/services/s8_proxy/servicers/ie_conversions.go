@@ -244,7 +244,7 @@ func getSelectionModeType(selMode protos.SelectionModeType) *ie.IE {
 }
 
 func getProtocolConfigurationOptions(pco *protos.ProtocolConfigurationOptions) *ie.IE {
-	if pco == nil || !pco.IsValid {
+	if pco == nil {
 		return nil
 	}
 	var options []*ie.PCOContainer

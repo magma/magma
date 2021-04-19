@@ -176,6 +176,10 @@ message EntityLoadResult {
     string next_page_token = 3;
 }
 
+message EntityCountResult {
+    uint64 count = 1;
+}
+
 // EntityPageToken is an opaque token provided to load the next page of
 // entities.
 message EntityPageToken {

@@ -53,6 +53,22 @@ from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
 
 
+UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
+                               'rule_id'])
+
+def _gen_ue_set(num_of_ues):
+    imsi = 123000000
+    ue_set = set()
+    for _ in range(0, num_of_ues):
+        imsi_str = "IMSI" + str(imsi)
+        ipv4_src = ".".join(str(random.randint(0, 255)) for _ in range(4))
+        ipv4_dst = ".".join(str(random.randint(0, 255)) for _ in range(4))
+        rule_id = "allow." + imsi_str
+        ue_set.add(UEInfo(imsi_str, ipv4_src, ipv4_dst, rule_id))
+        imsi = imsi + 1
+    return ue_set
+
+
 @grpc_wrapper
 def set_smf_session(client, args):
 
@@ -169,8 +185,6 @@ def get_policy_usage(client, _):
 @grpc_wrapper
 def stress_test_grpc(client, args):
     print("WARNING: DO NOT USE ON PRODUCTION SETUPS")
-    UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
-                                   'rule_id'])
     delta_time = 1/args.attaches_per_sec
     print("Attach every ~{0} seconds".format(delta_time))
 
@@ -184,18 +198,6 @@ def stress_test_grpc(client, args):
             max_bandwidth_dl=1000000000,
         )
 
-    def _gen_ue_set(num_of_ues):
-        imsi = 123000000
-        ue_set = set()
-        for _ in range(0, num_of_ues):
-            imsi_str = "IMSI" + str(imsi)
-            ipv4_src = ".".join(str(random.randint(0, 255)) for _ in range(4))
-            ipv4_dst = ".".join(str(random.randint(0, 255)) for _ in range(4))
-            rule_id = "allow." + imsi_str
-            ue_set.add(UEInfo(imsi_str, ipv4_src, ipv4_dst, rule_id))
-            imsi = imsi + 1
-        return ue_set
-
     for i in range (0, args.test_iterations):
         print("Starting iteration {0} of attach/detach requests".format(i))
         ue_dict = _gen_ue_set(args.num_of_ues)
@@ -207,18 +209,21 @@ def stress_test_grpc(client, args):
             request = ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(ue.imsi_str),
                 ip_addr=ue.ipv4_src,
-                dynamic_rules=[PolicyRule(
-                    id=ue.rule_id,
-                    priority=10,
-                    flow_list=[
-                        FlowDescription(match=FlowMatch(
-                            ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
-                            direction=FlowMatch.UPLINK)),
-                        FlowDescription(match=FlowMatch(
-                            ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
-                            direction=FlowMatch.DOWNLINK)),
+                policies=[VersionedPolicy(
+                    rule=PolicyRule(
+                        id=ue.rule_id,
+                        priority=10,
+                        flow_list=[
+                            FlowDescription(match=FlowMatch(
+                                ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
+                                direction=FlowMatch.UPLINK)),
+                            FlowDescription(match=FlowMatch(
+                                ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
+                                direction=FlowMatch.DOWNLINK)),
+                        ],
+                    ),
+                    version=1)
                     ],
-                )],
                 request_origin=RequestOriginType(type=RequestOriginType.GX),
                 apn_ambr=apn_ambr,
             )
@@ -246,7 +251,11 @@ def stress_test_grpc(client, args):
             request = DeactivateFlowsRequest(
                 sid=SIDUtils.to_pb(ue.imsi_str),
                 ip_addr=ue.ipv4_src,
-                rule_ids=[ue.rule_id],
+                policies=[
+                    VersionedPolicyID(
+                        rule_id=ue.rule_id,
+                        version=1)
+                ],
                 request_origin=RequestOriginType(type=RequestOriginType.GX),
                 remove_default_drop_flows=True)
             response = client.DeactivateFlows(request)
