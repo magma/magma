@@ -42,6 +42,7 @@ executors:
 orbs:
   artifactory: circleci/artifactory@0.0.7
   codecov: codecov/codecov@1.1.3
+  aws-cli: circleci/aws-cli@2.0.0
 
   python:
     commands:
@@ -961,7 +962,8 @@ jobs:
     steps:
       - checkout
       - python/set_version
-  
+      - aws-cli/setup:
+          profile-name: artlee
       - run:
           command: |
             echo export AWS_DEFAULT_REGION="us-east-1" >> $BASH_ENV
