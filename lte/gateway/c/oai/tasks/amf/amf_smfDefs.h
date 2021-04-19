@@ -60,9 +60,9 @@ namespace magma5g {
  * -----------------------------------------
  */
 typedef struct amf_smf_establish_s {
-  uint32_t pdu_session_id;   // Session Identity
-  uint8_t pti;               // Procedure Tranction Identity
-  uint8_t pdu_session_type;  // Session type
+  uint32_t pdu_session_id;    // Session Identity
+  uint8_t pti;                // Procedure Tranction Identity
+  uint32_t pdu_session_type;  // Session type
   uint8_t gnb_gtp_teid[5];
   uint8_t gnb_gtp_teid_ip_addr[16];
   uint8_t cause_value;  // M5GSMCause

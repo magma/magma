@@ -84,7 +84,6 @@ struct amf_procedures_t;
 #define PAGING_TIMER_EXPIRY_MSECS 4000
 
 #define MAX_PAGING_RETRY_COUNT 1
-
 // Header length boundaries of 5GS Mobility Management messages
 #define AMF_HEADER_LENGTH sizeof(amf_msg_header)
 
@@ -229,16 +228,6 @@ typedef struct smf_proc_data_s {
   SSCModeMsg ssc_mode;
 } smf_proc_data_t;
 
-/*PDU session states*/
-typedef enum {
-  CREATING,
-  CREATE,
-  ACTIVE,
-  INACTIVE,
-  PENDING_RELEASE,
-  RELEASED
-} SMSessionFSMState;
-
 // PDU session context part of AMFContext
 typedef struct smf_context_s {
   SMSessionFSMState pdu_session_state;
@@ -318,12 +307,6 @@ typedef struct amf_ue_context_s {
       gnb_ue_ngap_id_ue_context_htbl;             // data is amf_ue_ngap_id_t
   obj_hash_table_uint64_t* guti_ue_context_htbl;  // data is amf_ue_ngap_id_t
 } amf_ue_context_t;
-
-enum m5gmm_state_t {
-  UNREGISTERED = 0,
-  REGISTERED_IDLE,
-  REGISTERED_CONNECTED,
-};
 
 enum m5gcm_state_t {
   M5GCM_IDLE = 0,
@@ -765,4 +748,23 @@ int nas5g_message_encode(
     unsigned char* buffer, const amf_nas_message_t* const msg, uint32_t length,
     void* security);
 
+int amf_registration_run_procedure(amf_context_t* amf_context);
+int amf_proc_registration_complete(
+    amf_ue_ngap_id_t ue_id, bstring smf_msg_p, int amf_cause,
+    const amf_nas_message_decode_status_t status);
+
+// Finite state machine handlers
+int ue_state_handle_message_initial(
+    m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
+    ue_m5gmm_context_s* ue_m5gmm_context, amf_context_t* amf_context);
+int ue_state_handle_message_reg_conn(
+    m5gmm_state_t, int, SMSessionFSMState, ue_m5gmm_context_s*,
+    amf_ue_ngap_id_t, bstring, int, amf_nas_message_decode_status_t);
+int ue_state_handle_message_dereg(
+    m5gmm_state_t, int event, SMSessionFSMState, ue_m5gmm_context_s*,
+    amf_ue_ngap_id_t);
+int pdu_state_handle_message(
+    m5gmm_state_t, int event, SMSessionFSMState session_state,
+    ue_m5gmm_context_s*, amf_smf_t, char*,
+    itti_n11_create_pdu_session_response_t*, uint32_t);
 }  // namespace magma5g

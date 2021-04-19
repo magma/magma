@@ -122,7 +122,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  ue_m5gmm_context->mm_state = UNREGISTERED;
+  ue_m5gmm_context->mm_state = DEREGISTERED;
   amf_context_t* amf_ctx     = NULL;
   amf_ctx                    = &ue_m5gmm_context->amf_context;
 

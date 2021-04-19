@@ -79,7 +79,10 @@ int amf_handle_security_complete_response(
       amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_SECURITY);
       rc = amf_sap_send(&amf_sap);
     }
-    amf_registration_success_security_cb(amf_ctx);
+    ue_state_handle_message_initial(
+        ue_mm_context->mm_state, STATE_EVENT_SEC_MODE_COMPLETE, SESSION_NULL,
+        ue_mm_context, amf_ctx);
+
   } else {
     OAILOG_ERROR(
         LOG_NAS_AMF,

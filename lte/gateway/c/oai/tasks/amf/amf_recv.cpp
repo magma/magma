@@ -278,6 +278,51 @@ int amf_handle_registration_request(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
   return rc;
+  /* This is SUCI message identity type is SUPI as IMSI type
+   * Extract the SUPI from SUCI directly as scheme is NULL */
+  if (msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity ==
+      M5GSMobileIdentityMsg_SUCI_IMSI) {
+    // Only considering protection scheme as NULL else return error.
+    if (msg->m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id ==
+        MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
+      /*
+       * Extract the SUPI or IMSI from SUCI as scheme output is not encrypted
+       */
+      params->imsi = new (imsi_t);
+      /* Copying PLMN to local supi which is imsi*/
+      supi_imsi.plmn.mcc_digit1 =
+          msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit1;
+      supi_imsi.plmn.mcc_digit2 =
+          msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2;
+      supi_imsi.plmn.mcc_digit3 =
+          msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit3;
+      supi_imsi.plmn.mnc_digit1 =
+          msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit1;
+      supi_imsi.plmn.mnc_digit2 =
+          msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit2;
+      supi_imsi.plmn.mnc_digit3 =
+          msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit3;
+      // copy 5 octet scheme_output to msin of supi_imsi
+      memcpy(
+          &supi_imsi.msin,
+          &msg->m5gs_mobile_identity.mobile_identity.imsi.scheme_output,
+          MSIN_MAX_LENGTH);
+      // Copy entire supi_imsi to param->imsi->u.value
+      memcpy(&params->imsi->u.value, &supi_imsi, IMSI_BCD8_SIZE);
+      OAILOG_DEBUG(
+          LOG_AMF_APP, "Value of SUPI/IMSI from params->imsi->u.value\n");
+      OAILOG_DEBUG(
+          LOG_AMF_APP,
+          "SUPI as IMSI derived : %02x%02x%02x%02x%02x%02x%02x%02x \n",
+          params->imsi->u.value[0], params->imsi->u.value[1],
+          params->imsi->u.value[2], params->imsi->u.value[3],
+          params->imsi->u.value[4], params->imsi->u.value[5],
+          params->imsi->u.value[6], params->imsi->u.value[7]);
+    }
+  }
+
+  rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 /****************************************************************************

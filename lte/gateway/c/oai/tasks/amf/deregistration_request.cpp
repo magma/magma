@@ -108,7 +108,15 @@ int amf_proc_deregistration_request(
       "processing deregistration UE-id = %d "
       "type = %d\n",
       ue_id, params->de_reg_type);
-  int rc                 = RETURNerror;
+  int rc = RETURNerror;
+
+  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context == NULL) {
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
+    return -1;
+  }
+
   amf_context_t* amf_ctx = amf_context_get(ue_id);
   if (!amf_ctx) {
     OAILOG_DEBUG(
@@ -160,7 +168,9 @@ int amf_proc_deregistration_request(
     rc = amf_sap_send(&amf_sap);
     /* Handle releasing all context related resources
      */
-    rc = amf_app_handle_deregistration_req(ue_id);
+    rc = ue_state_handle_message_dereg(
+        ue_context->mm_state, STATE_EVENT_DEREGISTER, SESSION_NULL, ue_context,
+        ue_id);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }

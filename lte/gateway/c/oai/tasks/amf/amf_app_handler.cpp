@@ -476,19 +476,15 @@ int amf_app_handle_uplink_nas_message(
 void amf_app_handle_pdu_session_response(
     itti_n11_create_pdu_session_response_t* pdu_session_resp) {
   DLNASTransportMsg encode_msg;
-  SmfMsg* smf_msg;
-  bstring buffer;
-  uint32_t len;
-  nas5g_error_code_t rc = M5G_AS_SUCCESS;
-  int amf_rc            = RETURNerror;
+  int amf_rc = RETURNerror;
   ue_m5gmm_context_s* ue_context;
   smf_context_t* smf_ctx;
-  uint32_t bytes = 0;
+  amf_smf_t amf_smf_msg;
+  // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
   uint32_t ue_id = 0;
 
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
-
   // Handle smf_context
   ue_context = lookup_ue_ctxt_by_imsi(imsi64);
   if (ue_context) {
@@ -539,6 +535,53 @@ void amf_app_handle_pdu_session_response(
      * command to UE and release message to SMF
      */
   }
+  /*Execute PDU establishement accept from AMF to gnodeb */
+  pdu_state_handle_message(
+      ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
+      smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
+      pdu_session_resp, ue_id);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_app_handle_pdu_session_accept()                           **
+ **                                                                        **
+ ** Description: Send the PDU establishment accept to gnodeb               **
+ **                                                                        **
+ ** Inputs:  pdu_session_resp:   pdusession response message               **
+ **      ue_id:      ue identity                                           **
+ **                                                                        **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **                                                                        **
+ ***************************************************************************/
+int amf_app_handle_pdu_session_accept(
+    itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
+  extern ue_m5gmm_context_s
+      ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily
+                                // store
+
+  nas5g_error_code_t rc = M5G_AS_SUCCESS;
+
+  DLNASTransportMsg encode_msg;
+  amf_nas_message_t msg;
+  uint32_t bytes = 0;
+  uint32_t len;
+  SmfMsg* smf_msg;
+  bstring buffer;
+  smf_context_t* smf_ctx;
+  ue_m5gmm_context_s* ue_context;
+
+  // Handle smf_context
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (ue_context) {
+    smf_ctx = &(ue_context->amf_context.smf_context);
+  } else {
+    ue_context = &ue_m5gmm_global_context;
+    smf_ctx    = &ue_m5gmm_global_context.amf_context
+                   .smf_context;  // TODO AMF_TEST global var to temporarily
+                                  // store context inserted to ht
+  }
+
   smf_msg = &encode_msg.payload_container.smf_msg;
 
   // Message construction for PDU Establishment Accept
@@ -635,6 +678,7 @@ void amf_app_handle_pdu_session_response(
   } else {
     bdestroy_wrapper(&buffer);
   }
+  return rc;
 }
 
 /* Handling PDU Session Resource Setup Response sent from gNB*/
@@ -1068,5 +1112,4 @@ int amf_app_handle_notification_received(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-
 }  // namespace magma5g
