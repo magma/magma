@@ -129,7 +129,8 @@ pipeline {
                       // Check if the pull request has files that will impact MME behavior
                       // If so, we will run the OAI pipeline
                       // For security reasons, we retrieve from a trusted forked repository
-                      sh 'wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/check_pr_modified_files_for_oai_pipeline.py -O ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
+                      sh 'wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/check_pr_modified_files_for_oai_pipeline.py -O ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py || true'
+                      sh 'git fetch --unshallow || true'
                       sh 'python3 ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
                       // If the previous command is OK, no need to run
                       // All the following stages will be bypassed and the CI
@@ -235,7 +236,8 @@ pipeline {
                   )
                   if (!params.REGRESSION_TEST) {
                     try {
-                      sh 'wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/check_pr_modified_files_for_oai_pipeline.py -O ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
+                      sh 'wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/check_pr_modified_files_for_oai_pipeline.py -O ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py || true'
+                      sh 'git fetch --unshallow || true'
                       sh 'python3 ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
                       runAllRHELPipelineStages = false
                     } catch (Exception e) {
