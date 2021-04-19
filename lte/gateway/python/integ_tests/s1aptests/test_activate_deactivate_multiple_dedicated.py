@@ -93,9 +93,9 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
         # Verify if flow rules are created
         print("Sleeping for 5 seconds")
         time.sleep(5)
-        # flow_lists for 11 dedicated bearers
+        # flow_lists for 10 dedicated bearers
         dl_flow_rules = {default_ip: flow_lists}
-        # 1 default UL flow + 11 dedicated bearer UL flows
+        # 1 default UL flow + 10 dedicated bearer UL flows
         num_ul_flows = 11
         self._s1ap_wrapper.s1_util.verify_flow_rules(
             num_ul_flows, dl_flow_rules,

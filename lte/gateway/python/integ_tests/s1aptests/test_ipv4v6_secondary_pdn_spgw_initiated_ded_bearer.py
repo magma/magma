@@ -154,11 +154,19 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         time.sleep(10)
         # ipv4 default pdn + ipv4v6(ims) pdn + dedicated bearer for ims pdn
         num_ul_flows = 3
-        dl_flow_rules = {
-            default_ip: [],
-            sec_ip_ipv4: [flow_list],
-            sec_ip_ipv6: [flow_list],
-        }
+        # For ipv4v6 pdn, pass default_ip, sec_ip_ipv4 and sec_ip_ipv6
+        if pdn_type == 3:
+            dl_flow_rules = {
+                default_ip: [],
+                sec_ip_ipv4: [flow_list],
+                sec_ip_ipv6: [flow_list],
+            }
+        # For ipv6 pdn, pass default_ip, sec_ip_ipv6
+        if pdn_type == 2:
+            dl_flow_rules = {
+                default_ip: [],
+                sec_ip_ipv6: [flow_list],
+            }
 
         # Verify if flow rules are created
         self._s1ap_wrapper.s1_util.verify_flow_rules(

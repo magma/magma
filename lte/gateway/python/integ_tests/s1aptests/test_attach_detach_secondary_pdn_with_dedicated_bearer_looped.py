@@ -21,7 +21,7 @@ from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
-    """Test secondary pdn with dedicated creation in loop"""
+    """Test secondary pdn with dedicated bearer creation in loop"""
 
     def setUp(self):
         """Initialize"""
@@ -144,7 +144,7 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
                 pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
                 pdn_disconnect_req.ue_Id = ue_id
                 pdn_disconnect_req.epsBearerId = (
-                    act_def_bearer_req.m.pdnInfo.epsBearerId,
+                    act_def_bearer_req.m.pdnInfo.epsBearerId
                 )
                 self._s1ap_wrapper._s1_util.issue_cmd(
                     s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ,

@@ -23,7 +23,7 @@ from s1ap_utils import MagmadUtil
 
 class Test3495TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
     """Test case validates the functionality of 3495 timer for
-    Default bearer while MME restarts
+    default bearer while MME restarts
     """
 
     def setUp(self):
@@ -39,7 +39,7 @@ class Test3495TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
 
     def test_3495_timer_for_default_bearer_with_mme_restart(self):
         """Test case validates the functionality of 3495 timer for
-        Default bearer while MME restarts.
+        default bearer while MME restarts.
         Step1: UE attaches to network
         Step2: Creates a secondary PDN
         Step3: Initiates PDN disconnect, as part of which mme sends

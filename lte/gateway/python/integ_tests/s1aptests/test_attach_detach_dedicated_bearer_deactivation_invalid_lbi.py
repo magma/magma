@@ -21,7 +21,7 @@ from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestAttachDetachDedicatedDeactInvalidLbi(unittest.TestCase):
-    """dedicated bearer deactivation with invalid LBI
+    """Dedicated bearer deactivation with invalid LBI
     test with a single UE
     """
 

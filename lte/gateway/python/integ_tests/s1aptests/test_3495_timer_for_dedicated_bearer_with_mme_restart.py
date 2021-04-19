@@ -23,7 +23,7 @@ from s1ap_utils import MagmadUtil
 
 class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
     """Test case validates the functionality of 3495 timer for
-    Dedicated bearer while MME restarts
+    dedicated bearer while MME restarts
     """
 
     def setUp(self):
@@ -39,7 +39,7 @@ class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
 
     def test_3495_timer_for_dedicated_bearer_with_mme_restart(self):
         """Test case validates the functionality of 3495 timer for
-        Dedicated bearer while MME restarts
+        dedicated bearer while MME restarts
         Step1: UE attaches to network
         Step2: Creates a dedicated bearer
         Step3: Initiates dedicated bearer deletion, as part of which mme sends
@@ -48,7 +48,7 @@ class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
         request message
         Step5: Send command to Magma to restart mme service
         Step6: TFW shall receive re-transmitted Deactivate EPS bearer context
-        equest message and send Deactivate EPS bearer Context Accept
+        request message and send Deactivate EPS bearer Context Accept
         Step7: TFW shall initiate Detach procedure.
         """
         num_ues = 1

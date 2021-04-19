@@ -489,7 +489,7 @@ class S1ApUtil(object):
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
         assert len(uplink_flows) == num_ul_flows,\
-            "Uplink flow missing for UE: %d %d !=" % (len(uplink_flows), num_ul_flows)
+            "Uplink flow missing for UE: %d != %d" % (len(uplink_flows), num_ul_flows)
 
         assert uplink_flows[0]["match"]["tunnel_id"] is not None
 
@@ -1112,7 +1112,7 @@ class SpgwUtil(object):
 
     def create_default_ipv4_flows(self, port_idx=0):
         """ Creates default ipv4 flow rules. 4 for UL and 4 for DL
-            port_idx: to generate different tcp_dst_port values
+            port_idx: idx to generate different tcp_dst_port values
                       so that different DL flows are created
                       in case of multiple dedicated bearers"""
         # UL Flow description #1
@@ -1194,7 +1194,7 @@ class SpgwUtil(object):
 
     def create_default_ipv6_flows(self, port_idx=0):
         """ Creates ipv6 flow rules
-            port_idx: to generate different tcp_dst_port values
+            port_idx: idx to generate different tcp_dst_port values
                       so that different DL flows are created
                       in case of multiple dedicated bearers"""
         # UL Flow description #1
@@ -1240,7 +1240,7 @@ class SpgwUtil(object):
 
     def create_default_ipv4v6_flows(self, port_idx=0):
         """ Creates ipv4v6 flow rules
-            port_idx: to generate different tcp_dst_port values
+            port_idx: idx to generate different tcp_dst_port values
                       so that different DL flows are created
                       in case of multiple dedicated bearers"""
         # UL Flow description #1
