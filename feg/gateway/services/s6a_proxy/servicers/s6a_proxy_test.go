@@ -92,10 +92,14 @@ func TestS6aProxyService(t *testing.T) {
 			t.Errorf("Unexpected Number of EutranVectors: %d, Expected: 3", len(r.EutranVectors))
 		}
 		ulReq := &protos.UpdateLocationRequest{
-			UserName:           test.TEST_IMSI,
-			VisitedPlmn:        []byte(test.TEST_PLMN_ID),
-			SkipSubscriberData: false,
-			InitialAttach:      true,
+			UserName:                     test.TEST_IMSI,
+			VisitedPlmn:                  []byte(test.TEST_PLMN_ID),
+			SkipSubscriberData:           false,
+			InitialAttach:                true,
+			DualRegistration_5GIndicator: true,
+			FeatureListId_2: &protos.FeatureListId2{
+				NrAsSecondaryRat: true,
+			},
 		}
 		// ULR
 		ulResp, err := c.UpdateLocation(context.Background(), ulReq)
@@ -114,6 +118,7 @@ func TestS6aProxyService(t *testing.T) {
 			!bytes.Equal(ulResp.RegionalSubscriptionZoneCode[1], []byte{1, 1, 0, 1}) {
 			t.Errorf("There should be 2 Regional Subscription Zone Codes : %+v", ulResp.RegionalSubscriptionZoneCode)
 		}
+		assert.True(t, ulReq.FeatureListId_2.NrAsSecondaryRat)
 
 		puReq := &protos.PurgeUERequest{
 			UserName: test.TEST_IMSI,

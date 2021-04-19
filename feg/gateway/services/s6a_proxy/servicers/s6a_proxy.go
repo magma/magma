@@ -35,7 +35,7 @@ import (
 
 const (
 	ULR_RAT_TYPE     = 1004
-	ULR_FLAGS        = 1<<1 | 1<<5
+	ULR_FLAGS        = 0b100010 // 29.272 Table 7.3.7/1: ULR-Flags (S6a/S6d-Indicator, Initial-AttachIndicator)
 	TIMEOUT_SECONDS  = 10
 	MAX_DIAM_RETRIES = 1
 )
