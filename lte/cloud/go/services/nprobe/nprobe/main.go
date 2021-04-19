@@ -54,7 +54,11 @@ func main() {
 	// Run LI service in Loop
 	go func() {
 		for {
-			nProbeManager.ProcessNProbeTasks()
+			err := nProbeManager.ProcessNProbeTasks()
+			if err != nil {
+				glog.Errorf("Failed to process tasks: %v", err)
+				<-time.After(time.Duration(serviceConfig.BackOffIntervalSecs) * time.Second)
+			}
 			<-time.After(time.Duration(serviceConfig.UpdateIntervalSecs) * time.Second)
 		}
 	}()

@@ -11,4 +11,4 @@
 # limitations under the License.
 
 updateIntervalSecs: 60
-maxRecordsExportRetries: 10
+backoffIntervalSecs: 360
