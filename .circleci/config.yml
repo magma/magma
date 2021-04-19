@@ -971,6 +971,7 @@ jobs:
             echo export AWS_SECRET_ACCESS_KEY="$(printenv AWS_FB_SECRET)" >> $BASH_ENV
             pip install wheel
             pip install ansible
+            pip install boto3
             mkdir ~/magma-experimental
             mkdir ~/magma-experimental/files
             cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
