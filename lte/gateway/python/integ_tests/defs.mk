@@ -133,6 +133,7 @@ s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
 s1aptests/test_service_req_ul_udp_data_with_mme_restart.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
+s1aptests/test_attach_restricted_plmn.py \
 s1aptests/test_imei_restriction_smc.py \
 s1aptests/test_imei_restriction_no_imeisv_in_smc.py \
 s1aptests/test_imei_restriction_wildcard_snr.py \
@@ -174,11 +175,9 @@ s1aptests/test_attach_esm_information_timerexpiration.py \
 s1aptests/test_attach_inactive_tau_with_combined_tala_update_reattach.py \
 s1aptests/test_attach_active_tau_with_combined_tala_update_reattach.py \
 s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \
-s1aptests/test_attach_restricted_plmn.py \
 s1aptests/test_activate_deactivate_multiple_dedicated.py \
 s1aptests/test_sctp_shutdown_while_mme_is_stopped.py \
 s1aptests/test_attach_detach_rar_activation_reject.py \
-s1aptests/test_continuous_random_attach.py \
 s1aptests/test_enb_partial_reset_multi_ue_with_mme_restart.py \
 s1aptests/test_attach_ics_drop_with_mme_restart.py \
 s1aptests/test_attach_mme_restart_detach_multi_ue.py \
@@ -187,6 +186,7 @@ s1aptests/test_no_esm_information_rsp_with_mme_restart.py \
 s1aptests/test_no_smc_with_mme_restart_reattach.py \
 s1aptests/test_no_attach_complete_with_mme_restart.py \
 s1aptests/test_attach_ics_failure_with_mme_restart.py \
+s1aptests/test_continuous_random_attach.py \
 s1aptests/test_restore_config_after_non_sanity.py
 
 #---------------
