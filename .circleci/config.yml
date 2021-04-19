@@ -972,6 +972,7 @@ jobs:
             pip install wheel
             pip install ansible
             mkdir ~/magma-experimental
+            mkdir ~/magma-experimental/files
             cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
             cp -r * ~/magma-experimental
             cp ~/magma-experimental/roles/vars/secrets.yaml ~/magma-experimental/files
