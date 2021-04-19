@@ -411,7 +411,7 @@ TEST_F(SessionStateTest, test_session_level_key) {
   UpdateSessionRequest update_2;
   std::vector<std::unique_ptr<ServiceAction>> actions_2;
   session_state->get_updates(update_2, &actions_2, update_criteria);
-  // TODO: session level seemsd to be adding total values, no deltas
+  // TODO: session level seems to be adding total values, no deltas
   // EXPECT_EQ(
   //   update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_TX], 1001);
   // EXPECT_EQ(
