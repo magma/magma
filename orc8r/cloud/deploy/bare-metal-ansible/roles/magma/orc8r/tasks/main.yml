@@ -71,7 +71,7 @@
     - orc8r
 
 - name: orc8r | Get orc8r pod
-  command: kubectl -n {{ magma_namespace }} get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}'
+  command: kubectl -n {{ magma_namespace }} get pod -l app.kubernetes.io/component=orchestrator -o jsonpath='{.items[0].metadata.name}'
   register: orc8r_pod
 
 - name: orc8r | Get nms pod
