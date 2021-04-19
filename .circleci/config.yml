@@ -974,6 +974,7 @@ jobs:
             mkdir ~/magma-experimental
             cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
             cp -r * ~/magma-experimental
+            cp -r ~/magma-experimental/roles/vars/secrets.yaml ~/magma-experimental/files
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files" -e "awsAccessKey: $AWS_ACCESS_KEY_ID" -e "awsSecretKey: $AWS_SECRET_ACCESS_KEY"
             ansible-playbook build-provision.yaml --tags devopsAgw,inventory  -e "awsAccessKey: $AWS_ACCESS_KEY_ID" -e "awsSecretKey: $AWS_SECRET_ACCESS_KEY"
             ansible-playbook build-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "buildnode=tag_Name_buildAgw" -e "ansible_python_interpreter=/usr/bin/python3"  -e "awsAccessKey: $AWS_ACCESS_KEY_ID" -e "awsSecretKey: $AWS_SECRET_ACCESS_KEY"
