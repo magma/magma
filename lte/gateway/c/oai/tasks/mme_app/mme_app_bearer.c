@@ -354,7 +354,7 @@ void mme_app_handle_conn_est_cnf(
           nas_conn_est_cnf_p->ue_id);
       mme_app_notify_service_reject_to_nas(
           ue_context_p->mme_ue_s1ap_id, EMM_CAUSE_CONGESTION,
-          INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
+          INITIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
     if (nas_conn_est_cnf_p->service_type == MO_CS_FB_EMRGNCY_CALL) {
@@ -1895,6 +1895,15 @@ int mme_app_handle_initial_context_setup_rsp_timer_expiry(
         mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
+  if (ue_context_p->mm_state == UE_UNREGISTERED) {
+    nas_emm_attach_proc_t* attach_proc =
+        get_nas_specific_procedure_attach(&ue_context_p->emm_context);
+    // Stop T3450 timer if its still runinng
+    if (attach_proc) {
+      nas_stop_T3450(attach_proc->ue_id, &attach_proc->T3450, NULL);
+    }
+  }
+
   handle_ics_failure(ue_context_p, "no_context_setup_rsp_from_enb");
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
@@ -2515,7 +2524,7 @@ int mme_app_handle_nas_extended_service_req(
                 ue_id);
             mme_app_notify_service_reject_to_nas(
                 ue_id, EMM_CAUSE_CS_SERVICE_NOT_AVAILABLE,
-                INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
+                INITIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
           } else if (ue_context_p->ecm_state == ECM_CONNECTED) {
             OAILOG_ERROR_UE(
                 LOG_MME_APP, ue_context_p->emm_context._imsi64,
@@ -2684,7 +2693,7 @@ void mme_app_notify_service_reject_to_nas(
       " \n",
       ue_id);
   switch (failed_procedure) {
-    case INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED: {
+    case INITIAL_CONTEXT_SETUP_PROCEDURE_FAILED: {
       if ((emm_proc_service_reject(ue_id, emm_cause)) != RETURNok) {
         OAILOG_ERROR(
             LOG_MME_APP,
@@ -4208,16 +4217,15 @@ static void handle_ics_failure(
     increment_counter("ue_attach", 1, 1, "action", "attach_abort");
   } else {
     // Release S1-U bearer and move the UE to idle mode
-
     for (pdn_cid_t i = 0; i < MAX_APN_PER_UE; i++) {
       if (ue_context_p->pdn_contexts[i]) {
         mme_app_send_s11_release_access_bearers_req(ue_context_p, i);
       }
     }
-    /* Handles CSFB failure */
+    // Handles CSFB failure
     if (ue_context_p->sgs_context != NULL) {
       handle_csfb_s1ap_procedure_failure(
-          ue_context_p, error_msg, INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
+          ue_context_p, error_msg, INITIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
