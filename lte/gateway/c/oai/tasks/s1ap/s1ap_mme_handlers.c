@@ -3157,8 +3157,8 @@ int s1ap_mme_handle_erab_setup_response(
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_E_RABSetupResponseIEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_E_RABFailedToSetupListBearerSURes, false);
-  const S1ap_E_RABList_t* const e_rab_list = &ie->value.choice.E_RABList;
   if (ie) {
+    const S1ap_E_RABList_t* const e_rab_list = &ie->value.choice.E_RABList;
     int num_erab = ie->value.choice.E_RABList.list.count;
     for (int index = 0; index < num_erab; index++) {
       const S1ap_E_RABItemIEs_t* const erab_item_ies =
