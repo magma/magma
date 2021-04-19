@@ -19,6 +19,8 @@ extern "C" {
 #include "assertions.h"
 #include "conversions.h"
 #include "amf_config.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
 #ifdef __cplusplus
 }
 #endif
@@ -31,6 +33,7 @@ extern "C" {
 extern amf_config_t amf_config;
 namespace magma5g {
 
+extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 // Global map of supi to guti along with amf_ue_ngap_id
 std::unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map;
 
@@ -129,6 +132,22 @@ int amf_proc_identification_complete(
 
   if (ue_mm_context) {
     amf_ctx = &ue_mm_context->amf_context;
+    OAILOG_INFO(
+        LOG_AMF_APP, "AMF-TEST:amf_procedures:%p\n", amf_ctx->amf_procedures);
+    nas_amf_ident_proc_t* ident_proc =
+        get_5g_nas_common_procedure_identification(amf_ctx);
+
+    // if (ident_proc) {
+    /*
+     * Stop timer T3570
+     */
+
+    OAILOG_INFO(LOG_AMF_APP, "Timer: Identity Timer stop\n");
+    OAILOG_INFO(
+        LOG_AMF_APP, "Timer: Stopping Identity timer with ID %d\n",
+        ident_proc->T3570.id);
+    stop_timer(&amf_app_task_zmq_ctx, ident_proc->T3570.id);
+    OAILOG_INFO(LOG_AMF_APP, "Timer: After Stopping Identity timer \n");
 
     if (imsi) {
       /*

@@ -15,6 +15,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#include "intertask_interface_types.h"
 #include "intertask_interface.h"
 #include "conversions.h"
 #include "log.h"
@@ -35,7 +36,8 @@ namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 
 amf_as_data_t amf_data_sec_auth;
-
+static int authenthication_t3560_handler(
+    zloop_t* loop, int timer_id, void* output);
 /****************************************************************************
  **                                                                        **
  ** Name:        nas_itti_auth_info_req()                                  **
@@ -244,7 +246,7 @@ static int amf_authentication_abort(
         "AMF-PROC  - Abort authentication procedure invoked "
         "(ue_id= " AMF_UE_NGAP_ID_FMT ")\n",
         ue_mm_context->amf_ue_ngap_id);
-    // TODO in future need to be implemented.
+
     rc = RETURNok;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -521,6 +523,14 @@ int amf_proc_authentication_complete(
       get_nas5g_common_procedure_authentication(amf_ctx);
 
   if (auth_proc) {
+    /*  Stop Timer T3560 */
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "Timer:  Stopping Authentication Timer T3560 with id = %d\n",
+        auth_proc->T3560.id);
+    stop_timer(&amf_app_task_zmq_ctx, auth_proc->T3560.id);
+    OAILOG_ERROR(LOG_NAS_EMM, "Timer: After Stopping T3560 Timer\n");
+
     nas_amf_smc_proc_autn.amf_ctx_set_security_eksi(amf_ctx, auth_proc->ksi);
 
     for (idx = 0; idx < amf_ctx->_vector[auth_proc->ksi].xres_size; idx++) {
@@ -592,9 +602,108 @@ int amf_send_authentication_request(
      */
     amf_data_sec_auth.amf_as_set_security_data(
         &amf_sap.u.amf_as.u.security.sctx, &amf_ctx->_security, false, true);
+
     rc = amf_sap_send(&amf_sap);
+
+    if (rc != RETURNerror) {
+      OAILOG_ERROR(LOG_NAS_EMM, "Timer:Start Authenthication Timer T3560\n");
+      auth_proc->T3560.id = start_timer(
+          &amf_app_task_zmq_ctx, AUTHENTICATION_TIMER_EXPIRY_MSECS,
+          TIMER_REPEAT_ONCE, authenthication_t3560_handler,
+          (void*) auth_proc->ue_id);
+      OAILOG_INFO(LOG_AMF_APP, "Timer: Authenthication timer T3560 started \n");
+      OAILOG_INFO(
+          LOG_AMF_APP, "Timer: Authenthication timer T3560 id is %d\n",
+          auth_proc->T3560.id);
+    }
+    if (rc != RETURNerror) {
+    }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+/* Timer Expiry Handler for AUTHENTHICATION Timer T3560 */
+static int authenthication_t3560_handler(
+    zloop_t* loop, int timer_id, void* arg) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+
+  amf_context_t* amf_ctx = NULL;
+  amf_ue_ngap_id_t ue_id = 0;
+  ue_id                  = *((amf_ue_ngap_id_t*) (arg));
+
+  OAILOG_INFO(
+      LOG_AMF_APP, "Timer: ZMQ In _identification_t3560_handler - T3560\n");
+
+  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_context == NULL) {
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
+    return -1;
+  }
+
+  OAILOG_INFO(
+      LOG_AMF_APP,
+      "Timer: ZMQ Created ue_mm_context from global context - T3560\n");
+  amf_ctx = &ue_context->amf_context;
+  OAILOG_INFO(
+      LOG_AMF_APP, "Timer: ZMQ got amf ctx and calling common procedure\n");
+  if (!(amf_ctx)) {
+    OAILOG_ERROR(LOG_AMF_APP, "T3560 timer expired No AMF context\n");
+    return 1;
+    // OAILOG_FUNC_OUT(LOG_AMF_APP);
+  }
+
+  nas5g_amf_auth_proc_t* auth_proc =
+      get_nas5g_common_procedure_authentication(amf_ctx);
+
+  if (auth_proc) {
+    /*
+     *Increment the retransmission counter
+     */
+
+    OAILOG_INFO(
+        LOG_AMF_APP,
+        "Timer: In authenthication timer handler - auth_proc id %p\n",
+        auth_proc);
+    OAILOG_INFO(
+        LOG_AMF_APP, "Timer: In t3560_handler - T3560 id %d\n",
+        auth_proc->T3560.id);
+    OAILOG_INFO(
+        LOG_AMF_APP, "Timer:  In t3560_handler - T3560 ue id %d\n",
+        auth_proc->ue_id);
+
+    auth_proc->retransmission_count += 1;
+    OAILOG_WARNING(
+        LOG_NAS_EMM,
+        "EMM-PROC  - T3560 timer expired, retransmission "
+        "counter = %d\n",
+        auth_proc->retransmission_count);
+    ue_id = auth_proc->ue_id;
+    OAILOG_ERROR(LOG_AMF_APP, "Timer: T3560 timer expired, retransmission\n");
+    if (auth_proc->retransmission_count < AUTHENTICATION_COUNTER_MAX) {
+      /*
+       * Send authentication request message to the UE
+       *
+       */
+      OAILOG_INFO(
+          LOG_NGAP, "Timer  retransmission_count  = %d\n",
+          auth_proc->retransmission_count);
+      OAILOG_INFO(
+          LOG_NGAP, "Timer AUTHENTICATION_COUNTER_MAX  = %d\n",
+          AUTHENTICATION_COUNTER_MAX);
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "Timer: T3560 Calling amf_send_authentication_request again\n");
+      amf_send_authentication_request(amf_ctx, auth_proc);
+    } else {
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "Timer: Maximum retires done hence Abort the identification "
+          "procedure\n");
+      return -1;
+    }
+    return 0;
+  }
 }
 
 }  // namespace magma5g

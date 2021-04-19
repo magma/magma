@@ -18,6 +18,8 @@ extern "C" {
 #include "log.h"
 #include "3gpp_24.501.h"
 #include "conversions.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
 #ifdef __cplusplus
 }
 #endif
@@ -28,6 +30,7 @@ extern "C" {
 #include "amf_sap.h"
 
 namespace magma5g {
+extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 
 /****************************************************************************
  **                                                                        **
@@ -62,8 +65,15 @@ int amf_handle_security_complete_response(
   nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
   if (smc_proc) {
     /*
-     * TODO:Stop timer T3570 This to be taken care in upcoming PR
+     * TODO:Stop timer T3560 This to be taken care in upcoming PR
      */
+
+    OAILOG_ERROR(
+        LOG_AMF_APP, "Timer: Calling SMC MODE stop timer with id = %d\n",
+        smc_proc->T3560.id);
+    stop_timer(&amf_app_task_zmq_ctx, smc_proc->T3560.id);
+    OAILOG_ERROR(LOG_AMF_APP, "Timer: After stopping SMC MODE timer \n");
+
     if (amf_ctx && IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
       /*
        * Notify AMF that the authentication procedure successfully completed

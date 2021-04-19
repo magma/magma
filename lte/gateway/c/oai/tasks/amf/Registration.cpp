@@ -18,6 +18,8 @@ extern "C" {
 #include "log.h"
 #include "3gpp_24.501.h"
 #include "conversions.h"
+#include "intertask_interface_types.h"
+#include "intertask_interface.h"
 #ifdef __cplusplus
 }
 #endif
@@ -34,7 +36,7 @@ extern "C" {
 #define INVALID_AMF_UE_NGAP_ID 0x0
 
 namespace magma5g {
-
+extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 amf_as_data_t amf_data_sec;
 nas_amf_smc_proc_t smc_proc;
 static int amf_registration_failure_authentication_cb(
@@ -48,6 +50,8 @@ static int amf_registration_failure_security_cb(amf_context_t* amf_context);
 
 static int amf_registration_reject(
     amf_context_t* amf_context, nas_amf_registration_proc_t* nas_base_proc);
+static int registration_accept_t3550_handler(
+    zloop_t* loop, int timer_id, void* arg);
 
 /***************************************************************************
 **                                                                        **
@@ -569,29 +573,79 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
       amf_sap.u.amf_as.u.establish.guti = amf_context->m5_guti;
 
       /*
-       * Get the activate default 5GMM PDu Session context request message to
-       * transfer within the SMF container of the Registration accept message
+       * Start T3550 timer
        */
-      amf_sap.u.amf_as.u.establish.nas_msg = registration_proc->amf_msg_out;
-      OAILOG_TRACE(
-          LOG_NAS_AMF,
-          "ue_id= " AMF_UE_NGAP_ID_FMT
-          " AMF-PROC  - nas_msg  src size = %d nas_msg  dst size = %d \n",
-          ue_id, blength(registration_proc->amf_msg_out),
-          blength(amf_sap.u.amf_as.u.establish.nas_msg));
-
-      rc = amf_sap_send(&amf_sap);
-
-      if (RETURNerror == rc) {
-        OAILOG_DEBUG(
-            LOG_NAS_AMF, " AMF-PROC  - Sending to access point failed\n");
-      }
-    } else {
-      OAILOG_ERROR(
-          LOG_NAS_AMF, " AMF-PROC  - Registration Procedure not found\n");
+      OAILOG_INFO(LOG_AMF_APP, "Timer: registration_accept timer start\n");
+      registration_proc->T3550.id = start_timer(
+          &amf_app_task_zmq_ctx, REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS,
+          TIMER_REPEAT_ONCE, registration_accept_t3550_handler,
+          (void*) registration_proc->ue_id);
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "Timer: Registration_accept timer T3550 with id  %d Started\n",
+          registration_proc->T3550.id);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+static int registration_accept_t3550_handler(
+    zloop_t* loop, int timer_id, void* arg) {
+  OAILOG_INFO(LOG_AMF_APP, "Timer: In registration_accept_t3550 handler\n");
+  amf_context_t* amf_ctx                         = NULL;
+  ue_m5gmm_context_s* ue_amf_context             = NULL;
+  nas_amf_registration_proc_t* registration_proc = NULL;
+  amf_ue_ngap_id_t ue_id                         = 0;
+
+  ue_id = *((amf_ue_ngap_id_t*) (arg));
+  /*
+   * Get the UE context
+   */
+  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_amf_context == NULL) {
+    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
+    return -1;
+  }
+
+  registration_proc =
+      (nas_amf_registration_proc_t*)
+          ue_amf_context->amf_context.amf_procedures->amf_specific_proc;
+
+  OAILOG_INFO(
+      LOG_AMF_APP, "Timer: In _registration_t3550_handler - T3550 id %p\n",
+      registration_proc);
+  if (registration_proc) {
+    OAILOG_WARNING(
+        LOG_AMF_APP, "T3550 timer   timer id %d ue id %d\n",
+        registration_proc->T3550.id, registration_proc->ue_id);
+    registration_proc->T3550.id = -1;
+
+    registration_proc->retransmission_count += 1;
+    OAILOG_ERROR(
+        LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
+        registration_proc->retransmission_count);
+    if (registration_proc->retransmission_count < REGISTRATION_COUNTER_MAX) {
+      /* Send entity Registration request message to the UE */
+
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "Timer: timer has expired Sending Registration request again\n");
+      // amf_registration_request(registration_proc); /* TO DO for negative
+      // scenario */
+    } else {
+      /* Abort the registration procedure */
+
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "Timer: Maximum retires done hence Abort the registration "
+          "procedure\n");
+      return -1;
+    }
+
+    return 0;
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
 }
 
 /****************************************************************************
@@ -649,48 +703,6 @@ int amf_send_registration_accept_dl_nas(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    amf_handle_registration_complete_response()                    **
- **                                                                        **
- ** Description: Processes registration Complete message                   **
- **                                                                        **
- ** Inputs:  ue_id:      UE lower layer identifier                         **
- **      msg:       The received AMF message                               **
- **      Others:    None                                                   **
- **                                                                        **
- ** Outputs:     amf_cause: AMF cause code                                 **
- **      Return:    RETURNok, RETURNerror                                  **
- **      Others:    None                                                   **
- **                                                                        **
- ***************************************************************************/
-int amf_handle_registration_complete_response(
-    amf_ue_ngap_id_t ue_id, RegistrationCompleteMsg* msg, int amf_cause,
-    amf_nas_message_decode_status_t status) {
-  OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc;
-  ue_m5gmm_context_s* ue_m5gmm_context = NULL;
-  OAILOG_DEBUG(
-      LOG_NAS_AMF,
-      "AMFAS-SAP - received registration complete message for ue_id = (%u)\n",
-      ue_id);
-  /*
-   * Execute the registration procedure completion
-   */
-
-  ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  if (ue_m5gmm_context == NULL) {
-    OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
-  }
-
-  rc = ue_state_handle_message_reg_conn(
-      ue_m5gmm_context->mm_state, STATE_EVENT_REG_COMPLETE, SESSION_NULL,
-      ue_m5gmm_context, ue_id, msg->smf_pdu, amf_cause, status);
-
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-}
-
-/****************************************************************************
- **                                                                        **
  ** Name:    amf_proc_registration_complete()                              **
  **                                                                        **
  ** Description: Completion of Registration Procedure                      **
@@ -726,6 +738,12 @@ int amf_proc_registration_complete(
           (nas_amf_registration_proc_t*)
               ue_amf_context->amf_context.amf_procedures->amf_specific_proc;
       amf_ctx = &ue_amf_context->amf_context;
+
+      stop_timer(&amf_app_task_zmq_ctx, registration_proc->T3550.id);
+      OAILOG_INFO(
+          LOG_AMF_APP, "Timer: after stop registration timer with id = %d\n",
+          registration_proc->T3550.id);
+
       /*
        * Upon receiving an REGISTRATION COMPLETE message, the AMF shall enter
        * state AMF-REGISTERED and consider the GUTI sent in the REGISTRATION
@@ -770,6 +788,37 @@ int amf_proc_registration_complete(
      * resquest comes along with Inital Registration request.
      */
   }
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_handle_registration_complete_response()                    **
+ **                                                                        **
+ ** Description: Processes registration Complete message                   **
+ **                                                                        **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      msg:       The received AMF message                               **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ** Outputs:     amf_cause: AMF cause code                                 **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int amf_handle_registration_complete_response(
+    amf_ue_ngap_id_t ue_id, RegistrationCompleteMsg* msg, int amf_cause,
+    amf_nas_message_decode_status_t status) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int rc;
+  OAILOG_DEBUG(
+      LOG_NAS_AMF,
+      "AMFAS-SAP - received registration complete message for ue_id = (%u)\n",
+      ue_id);
+  /*
+   * Execute the registration procedure completion
+   */
+  rc = amf_proc_registration_complete(ue_id, msg->smf_pdu, amf_cause, status);
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
