@@ -19,6 +19,7 @@ import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 import ipaddress
 
+
 class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -81,7 +82,8 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
             # Create default flow list
             flow_list1 = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
                 flow_list1,
             )
 
@@ -123,7 +125,8 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
             # Create default flow list
             flow_list2 = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), act_def_bearer_req.m.pdnInfo.epsBearerId,
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                act_def_bearer_req.m.pdnInfo.epsBearerId,
                 flow_list2,
             )
             response = self._s1ap_wrapper.s1_util.get_response()

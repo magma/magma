@@ -68,7 +68,8 @@ class TestAttachDetachDedicated(unittest.TestCase):
             # Create default flow list
             flow_list = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
                 flow_list,
             )
 
@@ -101,7 +102,8 @@ class TestAttachDetachDedicated(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             self._spgw_util.delete_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
                 act_ded_ber_ctxt_req.bearerId,
             )
 

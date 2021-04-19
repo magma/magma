@@ -63,14 +63,12 @@ class TestAttachDetachDedicatedQci0(unittest.TestCase):
             time.sleep(2)
             imsi = "".join([str(i) for i in req.imsi])
             print(
-                "********************** Adding dedicated bearer to IMSI",
-                imsi,
+                "********************** Adding dedicated bearer to IMSI", imsi,
             )
             # Create default flow list
             flow_list = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
-                "IMSI" + imsi, attach.esmInfo.epsBearerId,
-                flow_list, qci_val=0
+                "IMSI" + imsi, attach.esmInfo.epsBearerId, flow_list, qci_val=0
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -89,7 +87,7 @@ class TestAttachDetachDedicatedQci0(unittest.TestCase):
             )
             print(
                 " with qci:",
-                erab_setup_failed_for_bearers.failedErablist[0].qci
+                erab_setup_failed_for_bearers.failedErablist[0].qci,
             )
 
             print("Sleeping for 5 seconds")
@@ -106,7 +104,7 @@ class TestAttachDetachDedicatedQci0(unittest.TestCase):
 
             print(
                 "********************** Running UE detach for UE id ",
-                req.ue_id
+                req.ue_id,
             )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(

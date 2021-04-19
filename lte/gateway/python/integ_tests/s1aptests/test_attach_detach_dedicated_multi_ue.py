@@ -68,8 +68,9 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
             )
             flow_lists.append(self._spgw_util.create_default_ipv4_flows())
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
-                flow_lists[i]
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                flow_lists[i],
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -109,7 +110,9 @@ class TestAttachDetachDedicatedMultiUe(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             self._spgw_util.delete_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId, bearer_ids[i]
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                bearer_ids[i],
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()

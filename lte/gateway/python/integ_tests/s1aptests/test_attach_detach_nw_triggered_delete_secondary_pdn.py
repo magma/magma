@@ -98,7 +98,8 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
         # Create default flow list
         flow_list = self._spgw_util.create_default_ipv4_flows()
         self._spgw_util.create_bearer(
-            "IMSI" + "".join([str(i) for i in req.imsi]), act_sec_pdn.m.pdnInfo.epsBearerId,
+            "IMSI" + "".join([str(i) for i in req.imsi]),
+            act_sec_pdn.m.pdnInfo.epsBearerId,
             flow_list,
         )
         # Receive Activate dedicated EPS bearer context request

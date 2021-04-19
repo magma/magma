@@ -81,7 +81,8 @@ class TestSecondaryPdnRejectUnknownPdnType(unittest.TestCase):
         # Verify cause
         pdn_con_rsp = response.cast(s1ap_types.uePdnConRsp_t)
         self.assertEqual(
-            pdn_con_rsp.m.conRejInfo.cause, s1ap_types.TFW_ESM_CAUSE_UNKNOWN_PDN_TYPE
+            pdn_con_rsp.m.conRejInfo.cause,
+            s1ap_types.TFW_ESM_CAUSE_UNKNOWN_PDN_TYPE,
         )
 
         print("Sleeping for 5 seconds")

@@ -70,8 +70,9 @@ class TestAttachDetachDedicatedDeactInvalidImsi(unittest.TestCase):
             # Create default flow list
             flow_list = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
-                flow_list
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                flow_list,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -103,7 +104,9 @@ class TestAttachDetachDedicatedDeactInvalidImsi(unittest.TestCase):
             )
             # Deactivate bearer with invalid imsi
             self._spgw_util.delete_bearer(
-                "IMSI" + "".join("001010000000004"), attach.esmInfo.epsBearerId, act_ded_ber_ctxt_req.bearerId
+                "IMSI" + "".join("001010000000004"),
+                attach.esmInfo.epsBearerId,
+                act_ded_ber_ctxt_req.bearerId,
             )
 
             print("Sleeping for 5 seconds")

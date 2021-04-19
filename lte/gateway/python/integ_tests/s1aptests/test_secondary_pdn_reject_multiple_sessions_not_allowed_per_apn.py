@@ -18,6 +18,7 @@ import s1ap_types
 import s1ap_wrapper
 import ipaddress
 
+
 class TestSecondaryPdnRejectMultipleSessionsNotAllowedPerApn(
     unittest.TestCase
 ):
@@ -64,7 +65,8 @@ class TestSecondaryPdnRejectMultipleSessionsNotAllowedPerApn(
         )
         pdn_con_rsp = response.cast(s1ap_types.uePdnConRsp_t)
         self.assertEqual(
-            pdn_con_rsp.m.conRejInfo.cause, s1ap_types.TFW_ESM_CAUSE_MULTIPLE_PDN_CON_FOR_A_GIVEN_APN_NA
+            pdn_con_rsp.m.conRejInfo.cause,
+            s1ap_types.TFW_ESM_CAUSE_MULTIPLE_PDN_CON_FOR_A_GIVEN_APN_NA,
         )
 
         print("Sleeping for 5 seconds")

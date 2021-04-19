@@ -14,6 +14,7 @@ import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 import ipaddress
 
+
 class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -127,7 +128,8 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         # Create default ipv4v6 flow list
         flow_list = self._spgw_util.create_default_ipv4v6_flows()
         self._spgw_util.create_bearer(
-            "IMSI" + "".join([str(i) for i in req.imsi]), act_def_bearer_req.m.pdnInfo.epsBearerId,
+            "IMSI" + "".join([str(i) for i in req.imsi]),
+            act_def_bearer_req.m.pdnInfo.epsBearerId,
             flow_list,
         )
 

@@ -67,8 +67,9 @@ class TestAttachDetachDedicatedLooped(unittest.TestCase):
                 # Create default flow list
                 flow_list = self._spgw_util.create_default_ipv4_flows()
                 self._spgw_util.create_bearer(
-                    "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
-                    flow_list
+                    "IMSI" + "".join([str(i) for i in req.imsi]),
+                    attach.esmInfo.epsBearerId,
+                    flow_list,
                 )
 
                 response = self._s1ap_wrapper.s1_util.get_response()

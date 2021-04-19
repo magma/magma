@@ -18,6 +18,7 @@ import s1ap_types
 import s1ap_wrapper
 import ipaddress
 
+
 class TestSecondaryPdnConnReqMultiUe(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()

@@ -70,8 +70,9 @@ class TestAttachDetachDedicatedInvalidEbi(unittest.TestCase):
             # Create default flow list
             flow_list = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
-                flow_list
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                flow_list,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -103,7 +104,9 @@ class TestAttachDetachDedicatedInvalidEbi(unittest.TestCase):
             )
             # Deleting bearer with invalid EBI - 7
             self._spgw_util.delete_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId, 7
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                7,
             )
 
             print("Sleeping for 5 seconds")

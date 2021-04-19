@@ -18,6 +18,7 @@ import s1ap_wrapper
 import ipaddress
 import time
 
+
 class TestSecondaryPdnConnReqInvalidAPN(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -61,7 +62,8 @@ class TestSecondaryPdnConnReqInvalidAPN(unittest.TestCase):
         # Verify cause
         pdn_con_rsp = response.cast(s1ap_types.uePdnConRsp_t)
         self.assertEqual(
-            pdn_con_rsp.m.conRejInfo.cause, s1ap_types.TFW_ESM_CAUSE_MISSING_OR_UNKNOWN_APN
+            pdn_con_rsp.m.conRejInfo.cause,
+            s1ap_types.TFW_ESM_CAUSE_MISSING_OR_UNKNOWN_APN,
         )
 
         print("Sleeping for 5 seconds")

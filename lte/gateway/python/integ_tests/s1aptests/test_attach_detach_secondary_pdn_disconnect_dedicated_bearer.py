@@ -84,7 +84,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 attach_accept.esmInfo.epsBearerId,
-                flow_list1
+                flow_list1,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
@@ -127,7 +127,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 act_def_bearer_req.m.pdnInfo.epsBearerId,
-                flow_list2
+                flow_list2,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(

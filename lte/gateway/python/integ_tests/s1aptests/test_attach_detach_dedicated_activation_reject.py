@@ -69,8 +69,9 @@ class TestAttachDetachDedicatedReject(unittest.TestCase):
             # Create default flow list
             flow_list = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
-                flow_list
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                flow_list,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -87,7 +88,9 @@ class TestAttachDetachDedicatedReject(unittest.TestCase):
             self._s1ap_wrapper._s1_util.issue_cmd(
                 s1ap_types.tfwCmd.UE_ACT_DED_BER_REJ, ded_bearer_rej
             )
-            print("Sent UE_ACT_DED_BER_REJ for bearer", ded_bearer_rej.bearerId)
+            print(
+                "Sent UE_ACT_DED_BER_REJ for bearer", ded_bearer_rej.bearerId
+            )
 
             print("Sleeping for 5 seconds")
             time.sleep(5)

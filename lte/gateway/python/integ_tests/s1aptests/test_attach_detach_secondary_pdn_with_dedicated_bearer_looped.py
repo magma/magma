@@ -104,7 +104,8 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
                 # Create default flow list
                 flow_list = self._spgw_util.create_default_ipv4_flows()
                 self._spgw_util.create_bearer(
-                    "IMSI" + "".join([str(i) for i in req.imsi]), act_def_bearer_req.m.pdnInfo.epsBearerId,
+                    "IMSI" + "".join([str(i) for i in req.imsi]),
+                    act_def_bearer_req.m.pdnInfo.epsBearerId,
                     flow_list,
                 )
 

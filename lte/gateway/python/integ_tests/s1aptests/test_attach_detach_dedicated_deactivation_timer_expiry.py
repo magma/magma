@@ -65,8 +65,9 @@ class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
             # Create default flow list
             flow_list = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId,
-                flow_list
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                flow_list,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -98,14 +99,17 @@ class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             self._spgw_util.delete_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), attach.esmInfo.epsBearerId, act_ded_ber_ctxt_req.bearerId
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                act_ded_ber_ctxt_req.bearerId,
             )
 
             # Do not send deactivate eps bearer context accept
             # TODO:Receive retransmissions
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+                response.msg_type,
+                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
             )
             deact_ded_ber_ctxt_req = response.cast(
                 s1ap_types.UeDeActvBearCtxtReq_t
