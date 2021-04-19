@@ -18,8 +18,10 @@ from unittest import mock
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
-from magma.enodebd.enodeb_status import (get_operational_states,
-                                         get_service_status_old)
+from magma.enodebd.enodeb_status import (
+    get_operational_states,
+    get_service_status_old,
+)
 from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from orc8r.protos.service303_pb2 import State

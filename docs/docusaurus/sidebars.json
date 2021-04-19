@@ -16,7 +16,8 @@
           "howtos/config_agw_bridged",
           "howtos/call_tracing",
           "howtos/events_monitoring",
-          "howtos/header_enrichment.md"
+          "howtos/header_enrichment.md",
+          "howtos/inbound_roaming"
         ]
       },
       {
@@ -156,12 +157,20 @@
         ]
       }
     ],
+    "Contribute": [
+      "contributing/contribute_onboarding",
+      "contributing/contribute_workflow",
+      "contributing/contribute_conventions",
+      "contributing/contribute_ci_checks",
+      "contributing/contribute_codeowners"
+    ],
     "Technical Reference": [
       {
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
           "lte/dev_notes",
+          "lte/dev_unit_testing",
           "lte/tr069",
           "lte/s1ap_tests",
           "lte/eventd"
@@ -187,12 +196,6 @@
           "nms/dev_components"
         ]
       }
-    ],
-    "Contributing": [
-      "contributing/contribute_onboarding",
-      "contributing/contribute_workflow",
-      "contributing/contribute_conventions",
-      "contributing/contribute_codeowners"
     ],
     "Proposals": [
       "proposals/p001_vpn_config_from_api",

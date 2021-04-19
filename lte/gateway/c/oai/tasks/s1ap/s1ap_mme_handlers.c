@@ -113,8 +113,9 @@ bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 /* Handlers matrix. Only mme related procedures present here.
  */
 s1ap_message_handler_t message_handlers[][3] = {
-    {0, 0, 0}, /* HandoverPreparation */
-    {0, 0, 0}, /* HandoverResourceAllocation */
+    {s1ap_mme_handle_handover_required, 0, 0}, /* HandoverPreparation */
+    {0, s1ap_mme_handle_handover_request_ack,
+     0},       /* HandoverResourceAllocation */
     {0, 0, 0}, /* HandoverNotification */
     {s1ap_mme_handle_path_switch_request, 0, 0}, /* PathSwitchRequest */
     {0, 0, 0},                                   /* HandoverCancel */
@@ -362,13 +363,20 @@ void clean_stale_enb_state(
     ue_description_t* ue_ref = NULL;
     for (int i = 0; i < keys->num_keys; i++) {
       ue_ref = s1ap_state_get_ue_mmeid((mme_ue_s1ap_id_t) keys->keys[i]);
+      /* The function s1ap_remove_ue will take care of removing the enb also,
+       * when the last UE is removed
+       */
       s1ap_remove_ue(state, ue_ref);
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
+  } else {
+    // Remove the old eNB association
+    OAILOG_INFO(
+        LOG_S1AP, "Deleting eNB: %s (Sctp_assoc_id = %u)",
+        stale_enb_association->enb_name, stale_enb_association->sctp_assoc_id);
+    s1ap_remove_enb(state, stale_enb_association);
   }
 
-  // Remove the old eNB association
-  s1ap_remove_enb(state, stale_enb_association);
   OAILOG_DEBUG(LOG_S1AP, "Removed stale eNB and all associated UEs.");
 }
 
@@ -1901,6 +1909,653 @@ int s1ap_mme_handle_ue_context_modification_failure(
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
+
+int s1ap_mme_handle_handover_request_ack(
+    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    __attribute__((unused)) const sctp_stream_id_t stream,
+    S1ap_S1AP_PDU_t* pdu) {
+  S1ap_HandoverRequestAcknowledge_t* container = NULL;
+  S1ap_HandoverRequestAcknowledgeIEs_t* ie     = NULL;
+  enb_description_t* source_enb                = NULL;
+  enb_description_t* target_enb                = NULL;
+  hashtable_element_array_t* enb_array         = NULL;
+  uint32_t idx                                 = 0;
+  ue_description_t* ue_ref_p                   = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id              = INVALID_MME_UE_S1AP_ID;
+  enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id          = INVALID_ENB_UE_S1AP_ID;
+  S1ap_HandoverType_t handover_type            = -1;
+  bstring tgt_src_container                    = {0};
+  imsi64_t imsi64                              = INVALID_IMSI64;
+  s1ap_imsi_map_t* imsi_map                    = get_s1ap_imsi_map();
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+  OAILOG_INFO(LOG_S1AP, "handover request ack received");
+
+  container =
+      &pdu->choice.successfulOutcome.value.choice.HandoverRequestAcknowledge;
+
+  // MME_UE_S1AP_ID: mandatory
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequestAcknowledgeIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // eNB_UE_S1AP_ID: mandatory
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequestAcknowledgeIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  // eNB UE S1AP ID is limited to 24 bits
+  if (ie) {
+    tgt_enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
+        ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // E-RABAdmittedList: mandatory
+  // Note that the DL and UL transport address and GTP-TEID are optional, and
+  // only used if data forwarding will take place.
+  // TODO: add support for indirect data forwarding
+
+  // Target To Source Transparent Container: mandatory
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequestAcknowledgeIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_Target_ToSource_TransparentContainer, true);
+  if (ie) {
+    // note: ownership of tgt_src_container transferred to receiver
+    tgt_src_container = blk2bstr(
+        ie->value.choice.Target_ToSource_TransparentContainer.buf,
+        ie->value.choice.Target_ToSource_TransparentContainer.size);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // get imsi for logging
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+      &imsi64);
+
+  // Retrieve the association ID for the eNB that UE is currently connected
+  // (i.e., Source eNB) and pull the Source eNB record from s1ap state using
+  // this association
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "MME_UE_S1AP_ID (" MME_UE_S1AP_ID_FMT
+        ") does not point to any valid UE\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
+    for (idx = 0; idx < enb_array->num_elements; idx++) {
+      source_enb = (enb_description_t*) (uintptr_t) enb_array->elements[idx];
+      if (source_enb->sctp_assoc_id == ue_ref_p->sctp_assoc_id) {
+        break;
+      }
+    }
+    free_wrapper((void**) &enb_array->elements);
+    free_wrapper((void**) &enb_array);
+    if (source_enb->sctp_assoc_id != ue_ref_p->sctp_assoc_id) {
+      OAILOG_ERROR_UE(LOG_S1AP, imsi64, "No source eNB found for UE\n");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+  }
+
+  OAILOG_INFO_UE(
+      LOG_S1AP, imsi64, "Source enb is %u (association id %u)\n",
+      source_enb->enb_id, source_enb->sctp_assoc_id);
+
+  // get the target eNB -- the one that sent this message, target of the
+  // handover
+  target_enb = s1ap_state_get_enb(state, assoc_id);
+
+  // handover type -- we only support intralte today, and reject all other
+  // handover types when we receive HandoverRequired, so we can always assume
+  // it's an intralte handover.
+  handover_type = S1ap_HandoverType_intralte;
+
+  // Since we aren't doing data forwarding yet, we could directly create the
+  // HandoverCommand. We'll pass the message through the MME_APP still.
+
+  s1ap_mme_itti_s1ap_handover_request_ack(
+      mme_ue_s1ap_id, ue_ref_p->enb_ue_s1ap_id, tgt_enb_ue_s1ap_id,
+      handover_type, source_enb->sctp_assoc_id, target_enb->sctp_assoc_id,
+      tgt_src_container, imsi64);
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
+int s1ap_mme_handle_handover_request(
+    s1ap_state_t* state, const itti_mme_app_handover_request_t* ho_request_p) {
+  uint8_t* buffer_p   = NULL;
+  uint8_t err         = 0;
+  uint32_t length     = 0;
+  S1ap_S1AP_PDU_t pdu = {0};
+  S1ap_HandoverRequest_t* out;
+  S1ap_HandoverRequestIEs_t* ie = NULL;
+  enb_description_t* target_enb = NULL;
+  sctp_stream_id_t stream       = 0x0;
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+  if (ho_request_p == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "Handover Request is null\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  OAILOG_INFO(LOG_S1AP, "Handover Request received");
+  pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
+  pdu.choice.initiatingMessage.procedureCode =
+      S1ap_ProcedureCode_id_HandoverResourceAllocation;
+  pdu.choice.initiatingMessage.value.present =
+      S1ap_InitiatingMessage__value_PR_HandoverRequest;
+  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_ignore;
+  out = &pdu.choice.initiatingMessage.value.choice.HandoverRequest;
+
+  /* MME-UE-ID: mandatory */
+  ie =
+      (S1ap_HandoverRequestIEs_t*) calloc(1, sizeof(S1ap_HandoverRequestIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverRequestIEs__value_PR_MME_UE_S1AP_ID;
+  ie->value.choice.MME_UE_S1AP_ID = ho_request_p->mme_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* HandoverType: mandatory */
+  ie =
+      (S1ap_HandoverRequestIEs_t*) calloc(1, sizeof(S1ap_HandoverRequestIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_HandoverType;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverRequestIEs__value_PR_HandoverType;
+  ie->value.choice.HandoverType = ho_request_p->handover_type;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* Cause: mandatory */
+  ie =
+      (S1ap_HandoverRequestIEs_t*) calloc(1, sizeof(S1ap_HandoverRequestIEs_t));
+  ie->id                 = S1ap_ProtocolIE_ID_id_Cause;
+  ie->criticality        = S1ap_Criticality_ignore;
+  ie->value.present      = S1ap_HandoverRequestIEs__value_PR_Cause;
+  ie->value.choice.Cause = ho_request_p->cause;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* ambr: mandatory */
+  ie =
+      (S1ap_HandoverRequestIEs_t*) calloc(1, sizeof(S1ap_HandoverRequestIEs_t));
+  ie->id          = S1ap_ProtocolIE_ID_id_uEaggregateMaximumBitrate;
+  ie->criticality = S1ap_Criticality_reject;
+  ie->value.present =
+      S1ap_HandoverRequestIEs__value_PR_UEAggregateMaximumBitrate;
+  asn_uint642INTEGER(
+      &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateDL,
+      ho_request_p->ue_ambr.br_dl);
+  asn_uint642INTEGER(
+      &ie->value.choice.UEAggregateMaximumBitrate.uEaggregateMaximumBitRateUL,
+      ho_request_p->ue_ambr.br_ul);
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* e-rab to be setup list: mandatory */
+  ie =
+      (S1ap_HandoverRequestIEs_t*) calloc(1, sizeof(S1ap_HandoverRequestIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_E_RABToBeSetupListHOReq;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverRequestIEs__value_PR_E_RABToBeSetupListHOReq;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+  S1ap_E_RABToBeSetupListHOReq_t* const e_rab_to_be_setup_list =
+      &ie->value.choice.E_RABToBeSetupListHOReq;
+
+  for (int i = 0; i < ho_request_p->e_rab_list.no_of_items; i++) {
+    S1ap_E_RABToBeSetupItemHOReqIEs_t* e_rab_tobesetup_item =
+        (S1ap_E_RABToBeSetupItemHOReqIEs_t*) calloc(
+            1, sizeof(S1ap_E_RABToBeSetupItemHOReqIEs_t));
+
+    e_rab_tobesetup_item->id = S1ap_ProtocolIE_ID_id_E_RABToBeSetupItemHOReq;
+    e_rab_tobesetup_item->criticality = S1ap_Criticality_reject;
+    e_rab_tobesetup_item->value.present =
+        S1ap_E_RABToBeSetupItemHOReqIEs__value_PR_E_RABToBeSetupItemHOReq;
+    S1ap_E_RABToBeSetupItemHOReq_t* e_RABToBeSetup =
+        &e_rab_tobesetup_item->value.choice.E_RABToBeSetupItemHOReq;
+
+    // e_rab_id
+    e_RABToBeSetup->e_RAB_ID = ho_request_p->e_rab_list.item[i].e_rab_id;
+
+    // transportLayerAddress
+    e_RABToBeSetup->transportLayerAddress.buf = calloc(
+        blength(ho_request_p->e_rab_list.item[i].transport_layer_address),
+        sizeof(uint8_t));
+    memcpy(
+        e_RABToBeSetup->transportLayerAddress.buf,
+        ho_request_p->e_rab_list.item[i].transport_layer_address->data,
+        blength(ho_request_p->e_rab_list.item[i].transport_layer_address));
+    e_RABToBeSetup->transportLayerAddress.size =
+        blength(ho_request_p->e_rab_list.item[i].transport_layer_address);
+    e_RABToBeSetup->transportLayerAddress.bits_unused = 0;
+
+    // gtp-teid
+    INT32_TO_OCTET_STRING(
+        ho_request_p->e_rab_list.item[i].gtp_teid, &e_RABToBeSetup->gTP_TEID);
+
+    // qos params
+    e_RABToBeSetup->e_RABlevelQosParameters.qCI =
+        ho_request_p->e_rab_list.item[i].e_rab_level_qos_parameters.qci;
+    e_RABToBeSetup->e_RABlevelQosParameters.allocationRetentionPriority
+        .priorityLevel = ho_request_p->e_rab_list.item[i]
+                             .e_rab_level_qos_parameters
+                             .allocation_and_retention_priority.priority_level;
+    e_RABToBeSetup->e_RABlevelQosParameters.allocationRetentionPriority
+        .pre_emptionCapability =
+        ho_request_p->e_rab_list.item[i]
+            .e_rab_level_qos_parameters.allocation_and_retention_priority
+            .pre_emption_capability;
+    e_RABToBeSetup->e_RABlevelQosParameters.allocationRetentionPriority
+        .pre_emptionVulnerability =
+        ho_request_p->e_rab_list.item[i]
+            .e_rab_level_qos_parameters.allocation_and_retention_priority
+            .pre_emption_vulnerability;
+    ASN_SEQUENCE_ADD(&e_rab_to_be_setup_list->list, e_rab_tobesetup_item);
+  }
+
+  /* Source-ToTarget-TransparentContainer: mandatory */
+  ie =
+      (S1ap_HandoverRequestIEs_t*) calloc(1, sizeof(S1ap_HandoverRequestIEs_t));
+  ie->id          = S1ap_ProtocolIE_ID_id_Source_ToTarget_TransparentContainer;
+  ie->criticality = S1ap_Criticality_reject;
+  ie->value.present =
+      S1ap_HandoverRequestIEs__value_PR_Source_ToTarget_TransparentContainer;
+  OCTET_STRING_fromBuf(
+      &ie->value.choice.Source_ToTarget_TransparentContainer,
+      (char*) bdata(ho_request_p->src_tgt_container),
+      blength(ho_request_p->src_tgt_container));
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* UESecurityCapabilities: mandatory */
+  ie =
+      (S1ap_HandoverRequestIEs_t*) calloc(1, sizeof(S1ap_HandoverRequestIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_UESecurityCapabilities;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverRequestIEs__value_PR_UESecurityCapabilities;
+
+  S1ap_UESecurityCapabilities_t* const ue_security_capabilities =
+      &ie->value.choice.UESecurityCapabilities;
+
+  ue_security_capabilities->encryptionAlgorithms.buf =
+      calloc(1, sizeof(uint16_t));
+  memcpy(
+      ue_security_capabilities->encryptionAlgorithms.buf,
+      &ho_request_p->encryption_algorithm_capabilities, sizeof(uint16_t));
+  ue_security_capabilities->encryptionAlgorithms.size        = 2;
+  ue_security_capabilities->encryptionAlgorithms.bits_unused = 0;
+  OAILOG_DEBUG(
+      LOG_S1AP, "security_capabilities_encryption_algorithms 0x%04X\n",
+      ho_request_p->encryption_algorithm_capabilities);
+
+  ue_security_capabilities->integrityProtectionAlgorithms.buf =
+      calloc(1, sizeof(uint16_t));
+  memcpy(
+      ue_security_capabilities->integrityProtectionAlgorithms.buf,
+      &ho_request_p->integrity_algorithm_capabilities, sizeof(uint16_t));
+  ue_security_capabilities->integrityProtectionAlgorithms.size        = 2;
+  ue_security_capabilities->integrityProtectionAlgorithms.bits_unused = 0;
+  OAILOG_DEBUG(
+      LOG_S1AP, "security_capabilities_integrity_algorithms 0x%04X\n",
+      ho_request_p->integrity_algorithm_capabilities);
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* SecurityContext: mandatory */
+  ie =
+      (S1ap_HandoverRequestIEs_t*) calloc(1, sizeof(S1ap_HandoverRequestIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_SecurityContext;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverRequestIEs__value_PR_SecurityContext;
+
+  S1ap_SecurityContext_t* const security_context =
+      &ie->value.choice.SecurityContext;
+  security_context->nextHopChainingCount = ho_request_p->ncc;
+  security_context->nextHopParameter.buf = calloc(32, sizeof(uint8_t));
+  memcpy(
+      security_context->nextHopParameter.buf, &ho_request_p->nh,
+      sizeof(uint8_t));
+  security_context->nextHopParameter.size        = 32;
+  security_context->nextHopParameter.bits_unused = 0;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  // Get next sctp stream id for the target enb.
+  target_enb = s1ap_state_get_enb(state, ho_request_p->target_sctp_assoc_id);
+  stream     = target_enb->next_sctp_stream;
+  target_enb->next_sctp_stream += 1;
+  if (target_enb->next_sctp_stream >= target_enb->instreams) {
+    target_enb->next_sctp_stream = 1;
+  }
+
+  // Construct the PDU and send message
+  if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
+    err = 1;
+  }
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_HandoverRequest, out);
+  if (err) {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  bstring b = blk2bstr(buffer_p, length);
+  free(buffer_p);
+
+  s1ap_mme_itti_send_sctp_request(
+      &b, ho_request_p->target_sctp_assoc_id, stream,
+      ho_request_p->mme_ue_s1ap_id);
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
+int s1ap_mme_handle_handover_required(
+    s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    __attribute__((unused)) const sctp_stream_id_t stream,
+    S1ap_S1AP_PDU_t* pdu) {
+  S1ap_HandoverRequired_t* container = NULL;
+  S1ap_HandoverRequiredIEs_t* ie     = NULL;
+  enb_description_t* enb_association = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id    = INVALID_MME_UE_S1AP_ID;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id    = INVALID_ENB_UE_S1AP_ID;
+  S1ap_HandoverType_t handover_type  = -1;
+  S1ap_Cause_t cause                 = {0};
+  S1ap_Cause_PR cause_type;
+  long cause_value;
+  S1ap_TargeteNB_ID_t* targeteNB_ID         = NULL;
+  bstring src_tgt_container                 = {0};
+  uint8_t* enb_id_buf                       = NULL;
+  enb_description_t* target_enb_association = NULL;
+  hashtable_element_array_t* enb_array      = NULL;
+  uint32_t target_enb_id                    = 0;
+  uint32_t idx                              = 0;
+  imsi64_t imsi64                           = INVALID_IMSI64;
+  s1ap_imsi_map_t* imsi_map                 = get_s1ap_imsi_map();
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+
+  enb_association = s1ap_state_get_enb(state, assoc_id);
+  if (enb_association == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "Ignore Handover Required from unknown assoc "
+        "%u\n",
+        assoc_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  OAILOG_INFO(
+      LOG_S1AP,
+      "Handover Required from association id %u, "
+      "Connected UEs = %u Num elements = %zu\n",
+      assoc_id, enb_association->nb_ue_associated,
+      enb_association->ue_id_coll.num_elements);
+
+  container = &pdu->choice.initiatingMessage.value.choice.HandoverRequired;
+
+  // MME_UE_S1AP_ID
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequiredIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // eNB_UE_S1AP_ID
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequiredIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  // eNB UE S1AP ID is limited to 24 bits
+  if (ie) {
+    enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
+        ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // Handover Type
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequiredIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_HandoverType, true);
+  if (ie) {
+    handover_type = ie->value.choice.HandoverType;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // Only support intra LTE handovers today.
+  if (handover_type != S1ap_HandoverType_intralte) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "Unsupported handover type "
+        "%ld\n",
+        handover_type);
+
+    // TODO: Process a failure message
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // Grab the Cause Type and Cause Value
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequiredIEs_t, ie, container, S1ap_ProtocolIE_ID_id_Cause,
+      true);
+  if (ie) {
+    cause_type = ie->value.choice.Cause.present;
+    cause      = ie->value.choice.Cause;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  switch (cause_type) {
+    case S1ap_Cause_PR_radioNetwork:
+      cause_value = ie->value.choice.Cause.choice.radioNetwork;
+      break;
+
+    case S1ap_Cause_PR_transport:
+      cause_value = ie->value.choice.Cause.choice.transport;
+      break;
+
+    case S1ap_Cause_PR_nas:
+      cause_value = ie->value.choice.Cause.choice.nas;
+      break;
+
+    case S1ap_Cause_PR_protocol:
+      cause_value = ie->value.choice.Cause.choice.protocol;
+      break;
+
+    case S1ap_Cause_PR_misc:
+      cause_value = ie->value.choice.Cause.choice.misc;
+      break;
+
+    default:
+      OAILOG_ERROR(
+          LOG_S1AP, "HANDOVER REQUIRED with Invalid Cause_Type = %d\n",
+          cause_type);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // Target ID
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequiredIEs_t, ie, container, S1ap_ProtocolIE_ID_id_TargetID,
+      true);
+  if (ie) {
+    if (ie->value.choice.TargetID.present == S1ap_TargetID_PR_targeteNB_ID) {
+      targeteNB_ID = &ie->value.choice.TargetID.choice.targeteNB_ID;
+      if (targeteNB_ID->global_ENB_ID.eNB_ID.present ==
+          S1ap_ENB_ID_PR_homeENB_ID) {
+        // Home eNB ID = 28 bits
+        enb_id_buf = targeteNB_ID->global_ENB_ID.eNB_ID.choice.homeENB_ID.buf;
+
+        target_enb_id = (enb_id_buf[0] << 20) + (enb_id_buf[1] << 12) +
+                        (enb_id_buf[2] << 4) + ((enb_id_buf[3] & 0xf0) >> 4);
+        OAILOG_INFO(LOG_S1AP, "home eNB id: %u\n", target_enb_id);
+      } else {
+        // Macro eNB = 20 bits
+        enb_id_buf = targeteNB_ID->global_ENB_ID.eNB_ID.choice.macroENB_ID.buf;
+
+        target_enb_id = (enb_id_buf[0] << 12) + (enb_id_buf[1] << 4) +
+                        ((enb_id_buf[2] & 0xf0) >> 4);
+        OAILOG_INFO(LOG_S1AP, "macro eNB id: %u\n", target_enb_id);
+      }
+    } else {
+      OAILOG_ERROR(LOG_S1AP, "Invalid target, only intra LTE HO supported");
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // Source to Target Transparent Container
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequiredIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_Source_ToTarget_TransparentContainer, true);
+  if (ie) {
+    // note: ownership of src_tgt_container transferred to receiver
+    src_tgt_container = blk2bstr(
+        ie->value.choice.Source_ToTarget_TransparentContainer.buf,
+        ie->value.choice.Source_ToTarget_TransparentContainer.size);
+
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  OAILOG_INFO(
+      LOG_S1AP,
+      "Handover Required from association id %u, "
+      "MME UE S1AP ID (" MME_UE_S1AP_ID_FMT
+      ") ENB UE S1AP ID (" ENB_UE_S1AP_ID_FMT
+      ") "
+      "HandoverType = %ld CauseType = %u CauseValue = %ld Target ID = %u",
+      assoc_id, mme_ue_s1ap_id, enb_ue_s1ap_id, handover_type, cause_type,
+      cause_value, target_enb_id);
+
+  // get imsi for logging
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+      &imsi64);
+
+  // retrieve enb_description using hash table and match target_enb_id
+  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
+    for (idx = 0; idx < enb_array->num_elements; idx++) {
+      target_enb_association =
+          (enb_description_t*) (uintptr_t) enb_array->elements[idx];
+      if (target_enb_association->enb_id == target_enb_id) {
+        break;
+      }
+    }
+    free_wrapper((void**) &enb_array->elements);
+    free_wrapper((void**) &enb_array);
+    if (target_enb_association->enb_id != target_enb_id) {
+      OAILOG_ERROR(LOG_S1AP, "No eNB for enb_id %d\n", target_enb_id);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+  }
+
+  OAILOG_INFO_UE(
+      LOG_S1AP, imsi64, "Handing over to enb_id %d (sctp assoc %d)\n",
+      target_enb_id, target_enb_association->sctp_assoc_id);
+
+  s1ap_mme_itti_s1ap_handover_required(
+      target_enb_association->sctp_assoc_id, target_enb_id, cause,
+      handover_type, mme_ue_s1ap_id, src_tgt_container, imsi64);
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
+int s1ap_mme_handle_handover_command(
+    s1ap_state_t* state, const itti_mme_app_handover_command_t* ho_command_p) {
+  uint8_t* buffer_p   = NULL;
+  uint8_t err         = 0;
+  uint32_t length     = 0;
+  S1ap_S1AP_PDU_t pdu = {0};
+  S1ap_HandoverCommand_t* out;
+  S1ap_HandoverCommandIEs_t* ie = NULL;
+  ue_description_t* ue_ref_p    = NULL;
+  sctp_stream_id_t stream       = 0x0;
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+  if (ho_command_p == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "Handover Command is null\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(ho_command_p->mme_ue_s1ap_id)) ==
+      NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+        ", failing!\n",
+        (uint32_t) ho_command_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  } else {
+    stream = ue_ref_p->sctp_stream_send;
+  }
+
+  OAILOG_INFO(LOG_S1AP, "Handover Command received");
+  pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
+  pdu.choice.successfulOutcome.procedureCode =
+      S1ap_ProcedureCode_id_HandoverPreparation;
+  pdu.choice.successfulOutcome.value.present =
+      S1ap_SuccessfulOutcome__value_PR_HandoverCommand;
+  pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
+  out = &pdu.choice.successfulOutcome.value.choice.HandoverCommand;
+
+  /* MME-UE-ID: mandatory */
+  ie =
+      (S1ap_HandoverCommandIEs_t*) calloc(1, sizeof(S1ap_HandoverCommandIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverCommandIEs__value_PR_MME_UE_S1AP_ID;
+  ie->value.choice.MME_UE_S1AP_ID = ho_command_p->mme_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* eNB-UE-ID: mandatory */
+  ie =
+      (S1ap_HandoverCommandIEs_t*) calloc(1, sizeof(S1ap_HandoverCommandIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverCommandIEs__value_PR_ENB_UE_S1AP_ID;
+  ie->value.choice.ENB_UE_S1AP_ID = ho_command_p->src_enb_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* HandoverType: mandatory */
+  ie =
+      (S1ap_HandoverCommandIEs_t*) calloc(1, sizeof(S1ap_HandoverCommandIEs_t));
+  ie->id            = S1ap_ProtocolIE_ID_id_HandoverType;
+  ie->criticality   = S1ap_Criticality_reject;
+  ie->value.present = S1ap_HandoverCommandIEs__value_PR_HandoverType;
+  ie->value.choice.HandoverType = ho_command_p->handover_type;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* Target-ToSource-TransparentContainer: mandatory */
+  ie =
+      (S1ap_HandoverCommandIEs_t*) calloc(1, sizeof(S1ap_HandoverRequestIEs_t));
+  ie->id          = S1ap_ProtocolIE_ID_id_Target_ToSource_TransparentContainer;
+  ie->criticality = S1ap_Criticality_reject;
+  ie->value.present =
+      S1ap_HandoverCommandIEs__value_PR_Target_ToSource_TransparentContainer;
+  OCTET_STRING_fromBuf(
+      &ie->value.choice.Target_ToSource_TransparentContainer,
+      (char*) bdata(ho_command_p->tgt_src_container),
+      blength(ho_command_p->tgt_src_container));
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  // Construct the PDU and send message
+  if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
+    err = 1;
+  }
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_HandoverRequest, out);
+  if (err) {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  bstring b = blk2bstr(buffer_p, length);
+  free(buffer_p);
+
+  s1ap_mme_itti_send_sctp_request(
+      &b, ho_command_p->source_assoc_id, stream, ho_command_p->mme_ue_s1ap_id);
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
 int s1ap_mme_handle_path_switch_request(
     s1ap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,

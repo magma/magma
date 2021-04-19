@@ -352,8 +352,12 @@ async function updateDatasourceIfChanged({
   errorTask?: Task,
 }> {
   const completedTasks: Array<Task> = [];
-  // Make sure API Endpoint matches
-  if (oldDS.url === makeAPIUrl(newDSParams.apiHost, newDSParams.nmsOrgID)) {
+  // Make sure API Endpoint matches and certs match
+  if (
+    oldDS.url === makeAPIUrl(newDSParams.apiHost, newDSParams.nmsOrgID) &&
+    oldDS.secureJsonData?.tlsClientCert === newDSParams.cert.toString() &&
+    oldDS.secureJsonData?.tlsClientKey === newDSParams.key.toString()
+  ) {
     return {completedTasks};
   }
   const updatedDS = makeDatasourceConfig(newDSParams);

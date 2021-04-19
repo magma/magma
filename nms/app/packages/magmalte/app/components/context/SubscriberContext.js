@@ -28,18 +28,23 @@ export type Metrics = {
   dailyAvg: string,
 };
 
+/* SubscriberContextType
+state: paginated subscribers
+sessionState: paginated subscribers session state
+metrics: subscriber metrics
+gwSubscriberMap: gateway subscriber map
+setState: POST, PUT, DELETE subscriber
+*/
 export type SubscriberContextType = {
   state: {[string]: subscriber},
+  sessionState: {[string]: subscriber_state},
   metrics?: {[string]: Metrics},
   gwSubscriberMap: {[gateway_id]: Array<subscriber_id>},
-  sessionState: {[string]: subscriber_state},
   setState?: (
     key: string,
     val?: mutable_subscriber,
-    newState?: {
-      state: {[string]: subscriber},
-      sessionState: {[string]: subscriber_state},
-    },
+    newState?: {[string]: subscriber},
+    newSessionState?: {[string]: subscriber_state},
   ) => Promise<void>,
 };
 

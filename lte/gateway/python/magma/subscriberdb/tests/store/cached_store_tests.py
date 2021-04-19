@@ -16,12 +16,14 @@ import tempfile
 import unittest
 
 from lte.protos.subscriberdb_pb2 import SubscriberData
-from magma.subscriberdb.store.base import DuplicateSubscriberError, \
-    SubscriberNotFoundError
+from magma.subscriberdb.sid import SIDUtils
+from magma.subscriberdb.store.base import (
+    DuplicateSubscriberError,
+    SubscriberNotFoundError,
+)
 from magma.subscriberdb.store.cached_store import CachedStore
 from magma.subscriberdb.store.sqlite import SqliteStore
 
-from magma.subscriberdb.sid import SIDUtils
 
 class StoreTests(unittest.TestCase):
     """

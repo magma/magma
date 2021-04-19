@@ -117,10 +117,10 @@ func (srv *UESimServerHssLess) Authenticate(ctx context.Context, id *cwfprotos.A
 		return &cwfprotos.AuthenticateResponse{SessionId: ""}, err
 	}
 	activateReq := &lte_protos.UpdateTunnelIdsRequest{
-		Sid:                  sid,
-		BearerId:             0,
-		EnbTeid:              0,
-		AgwTeid:              0,
+		Sid:      sid,
+		BearerId: 0,
+		EnbTeid:  0,
+		AgwTeid:  0,
 	}
 
 	// activate is needed to install all hte flows

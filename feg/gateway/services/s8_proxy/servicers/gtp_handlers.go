@@ -38,7 +38,7 @@ func (s *S8Proxy) createSessionResponseHander() gtpv2.HandlerFunc {
 
 func (s *S8Proxy) deleteSessionResponseHandler() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) error {
-		dsRes, err := parseDelteSessionResponse(msg)
+		dsRes, err := parseDeleteSessionResponse(msg)
 		return s.gtpClient.PassMessage(msg.TEID(), senderAddr, msg, dsRes, err)
 	}
 }

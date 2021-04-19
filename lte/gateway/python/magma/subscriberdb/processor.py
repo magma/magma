@@ -13,13 +13,14 @@ limitations under the License.
 """
 
 import abc
+
 from lte.protos.subscriberdb_pb2 import (
     GSMSubscription,
     LTESubscription,
     SubscriberID,
 )
-
 from magma.subscriberdb.sid import SIDUtils
+
 from .crypto.gsm import UnsafePreComputedA3A8
 from .crypto.milenage import Milenage
 from .crypto.utils import CryptoError

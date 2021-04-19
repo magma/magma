@@ -48,6 +48,7 @@
 #include "esm_data.h"
 #include "mme_app_desc.h"
 #include "s11_messages_types.h"
+#include "common_utility_funs.h"
 
 #if EMBEDDED_SGW
 #define TASK_SPGW TASK_SPGW_APP
@@ -236,7 +237,8 @@ int mme_app_send_s11_create_session_req(
   } else {
     session_request_p->msisdn.length = 0;
   }
-
+  session_request_p->mei.present       = MEI_IMEISV;
+  session_request_p->mei.choice.imeisv = ue_mm_context->emm_context._imeisv;
   // Fill User Location Information
   session_request_p->uli.present = 0;  // initialize the presencemask
   mme_app_get_user_location_information(&session_request_p->uli, ue_mm_context);
@@ -359,34 +361,26 @@ int mme_app_send_s11_create_session_req(
         &ue_mm_context->emm_context.originating_tai,
         (struct sockaddr* const) & session_request_p->edns_peer_ip);
   }
-
-  session_request_p->serving_network.mcc[0] =
-      ue_mm_context->e_utran_cgi.plmn.mcc_digit1;
-  session_request_p->serving_network.mcc[1] =
-      ue_mm_context->e_utran_cgi.plmn.mcc_digit2;
-  session_request_p->serving_network.mcc[2] =
-      ue_mm_context->e_utran_cgi.plmn.mcc_digit3;
-  session_request_p->serving_network.mnc[0] =
-      ue_mm_context->e_utran_cgi.plmn.mnc_digit1;
-  session_request_p->serving_network.mnc[1] =
-      ue_mm_context->e_utran_cgi.plmn.mnc_digit2;
-  session_request_p->serving_network.mnc[2] =
-      ue_mm_context->e_utran_cgi.plmn.mnc_digit3;
+  COPY_PLMN_IN_ARRAY_FMT(
+      (session_request_p->serving_network), (ue_mm_context->e_utran_cgi.plmn));
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
-
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-      "Sending S11 CREATE SESSION REQ message to SPGW for "
-      "ue_id " MME_UE_S1AP_ID_FMT "\n",
-      ue_mm_context->mme_ue_s1ap_id);
-  if ((send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p)) !=
-      RETURNok) {
-    OAILOG_ERROR_UE(
+  int mode =
+      match_fed_mode_map((char*) session_request_p->imsi.digit, LOG_MME_APP);
+  if (mode == S8_SUBSCRIBER) {
+    OAILOG_INFO_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-        "Failed to send S11 CREATE SESSION REQ message to SPGW for "
+        "Sending s11 create session req message to SGW_s8 task for "
         "ue_id " MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+    ue_mm_context->pdn_contexts[pdn_cid]->route_s11_messages_to_s8_task = true;
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+        "Sending s11 create session req message to SPGW task for "
+        "ue_id " MME_UE_S1AP_ID_FMT "\n",
+        ue_mm_context->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }

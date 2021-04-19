@@ -16,7 +16,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"sync"
 	"testing"
 	"time"
 
@@ -89,20 +88,22 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	assert.Equal(t, sentQos.Qci, receivedAtPGWQos.Qci)
 
 	// check QOS received at Response (should be the same as the sent)
-
 	assert.NotEmpty(t, csRes.BearerContext.Qos)
 	receivedQOS := csRes.BearerContext.Qos
 
-	assert.True(t, csRes.BearerContext.ValidQos)
 	assert.Equal(t, sentQos.Gbr.BrDl, receivedQOS.Gbr.BrDl)
 	assert.Equal(t, sentQos.Gbr.BrUl, receivedQOS.Gbr.BrUl)
 	assert.Equal(t, sentQos.Mbr.BrDl, receivedQOS.Mbr.BrDl)
 	assert.Equal(t, sentQos.Mbr.BrUl, receivedQOS.Mbr.BrUl)
 	assert.Equal(t, sentQos.Qci, receivedQOS.Qci)
 
+	// check PCO
+	assert.NotEmpty(t, csRes.ProtocolConfigurationOptions)
+	assert.Equal(t, csReq.ProtocolConfigurationOptions, csRes.ProtocolConfigurationOptions)
+
 	// ------------------------
 	// ---- Delete Session ----
-	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid)
+	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)
 
 	dsRes, err := s8p.DeleteSession(context.Background(), cdReq)
 	assert.NoError(t, err)
@@ -214,7 +215,7 @@ func TestS8ProxyDeleteSessionAfterClientRestars(t *testing.T) {
 
 	// ------------------------
 	// ---- Delete Session ----
-	dsReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid)
+	dsReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)
 
 	// session should be deleted
 	dsRes, err := s8p.DeleteSession(context.Background(), dsReq)
@@ -237,9 +238,20 @@ func TestS8ProxyDeleteInexistentSession(t *testing.T) {
 		Imsi:     "000000000000015",
 		BearerId: 4,
 		CAgwTeid: 88,
-		CPgwFteid: &protos.Fteid{
-			Ipv4Address: pgwAddrs,
-			Teid:        87,
+		CPgwTeid: 87,
+		ServingNetwork: &protos.ServingNetwork{
+			Mcc: "222",
+			Mnc: "333",
+		},
+		Uli: &protos.UserLocationInformation{
+			Lac:    1,
+			Ci:     2,
+			Sac:    3,
+			Rac:    4,
+			Tac:    5,
+			Eci:    6,
+			MeNbi:  7,
+			EMeNbi: 8,
 		},
 	}
 	_, err := s8p.DeleteSession(context.Background(), dsReq)
@@ -254,7 +266,8 @@ func TestS8ProxyDeleteWithMissingParamaters(t *testing.T) {
 	// ------------------------
 	// ---- Delete Session inexistent session ----
 	// create a bad create session request
-	dsReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), nil)
+	dsReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), 10)
+	dsReq.Uli = nil
 	_, err := s8p.DeleteSession(context.Background(), dsReq)
 	assert.Error(t, err)
 }
@@ -339,7 +352,7 @@ func TestS8proxyValidateCreateSession(t *testing.T) {
 
 func TestS8proxyManyCreateAndDeleteSession(t *testing.T) {
 	// set up client ans server
-	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	s8p, mockPgw := startSgwAndPgw(t, 5*time.Second)
 	defer mockPgw.Close()
 
 	// ------------------------
@@ -349,64 +362,102 @@ func TestS8proxyManyCreateAndDeleteSession(t *testing.T) {
 	csReqs := getMultipleCreateSessionRequest(nRequest, pgwActualAddrs)
 
 	// routines will write on specific index
-	errors := make([]error, nRequest)
 	csResps := make([]*protos.CreateSessionResponsePgw, nRequest)
-	var wg sync.WaitGroup
+	errs := make(chan error, len(csReqs))
 	// PGW denies service
 	for i, csReq := range csReqs {
-		wg.Add(1)
 		csReqShadow := csReq
 		index := i
 		go func() {
-			defer wg.Done()
-			csResps[index], errors[index] = s8p.CreateSession(context.Background(), csReqShadow)
+			// we should report as an error either if there is a grpc issue or a gtp issue
+			var errCSR error
+			csResps[index], errCSR = s8p.CreateSession(context.Background(), csReqShadow)
+			if errCSR != nil {
+				errs <- fmt.Errorf("GRPC error during CreatSessionRequest %s", errCSR)
+				return
+			}
+
+			if csResps[index].GtpError != nil {
+				errs <- fmt.Errorf("GTP error during CreatSession %s", csResps[index].GtpError.Msg)
+				return
+			}
+			errs <- nil
 		}()
 	}
-	wg.Wait()
-
-	// Check all sessions were created
-	assert.Equal(t, nRequest, len(errors))
-	for _, err := range errors {
-		assert.NoError(t, err, "Some sessions return error: %s", err)
+	// wait for all create session to complete
+	for i := 0; i < len(csReqs); i++ {
+		err := <-errs
+		if err != nil {
+			t.Fatal(fmt.Errorf("Error Creating Sessions: %s", err))
+		}
 	}
+
 	// Check no gtpClient sessions were left created
 	for _, csReq := range csReqs {
 		_, err := s8p.gtpClient.GetSessionByIMSI(csReq.Imsi)
-		assert.Error(t, err)
+		if err == nil {
+			t.Fatal(fmt.Errorf(
+				"Found a session that should have been deleted after Create Session, %s", csReq.Imsi))
+		}
 	}
 
+	// ------------------------
 	// ---- Delete Sessions ----
-	errors = make([]error, nRequest)
+	errs = make(chan error, len(csReqs))
 	for i, csReq := range csReqs {
-		wg.Add(1)
 		csReqShadow := csReq
 		csResShadow := csResps[i]
-		index := i
 		go func() {
-			defer wg.Done()
 			cdReq := &protos.DeleteSessionRequestPgw{
-				PgwAddrs:  pgwActualAddrs,
-				Imsi:      csReqShadow.Imsi,
-				BearerId:  csResShadow.BearerContext.Id,
-				CAgwTeid:  csResShadow.CAgwTeid,
-				CPgwFteid: csResShadow.CPgwFteid,
+				PgwAddrs: pgwActualAddrs,
+				Imsi:     csReqShadow.Imsi,
+				BearerId: csResShadow.BearerContext.Id,
+				CAgwTeid: csResShadow.CAgwTeid,
+				CPgwTeid: csResShadow.CPgwFteid.Teid,
+				ServingNetwork: &protos.ServingNetwork{
+					Mcc: "222",
+					Mnc: "333",
+				},
+				Uli: &protos.UserLocationInformation{
+					Lac:    1,
+					Ci:     2,
+					Sac:    3,
+					Rac:    4,
+					Tac:    5,
+					Eci:    6,
+					MeNbi:  7,
+					EMeNbi: 8,
+				},
 			}
 
-			_, err := s8p.DeleteSession(context.Background(), cdReq)
-			errors[index] = err
+			var errDSR error
+			dsResps, errDSR := s8p.DeleteSession(context.Background(), cdReq)
+			if errDSR != nil {
+				errs <- fmt.Errorf("GRPC error during DeleteSession %s", errDSR)
+				return
+			}
+			if dsResps.GtpError != nil {
+				errs <- fmt.Errorf("GTP error during DeleteSession %s", dsResps.GtpError.Msg)
+				return
+			}
+			errs <- nil
 		}()
 	}
-	wg.Wait()
-
-	assert.Equal(t, nRequest, len(errors))
-	for _, err := range errors {
-		assert.NoError(t, err)
+	// wait for all delete request to complete
+	for i := 0; i < len(csReqs); i++ {
+		err := <-errs
+		if err != nil {
+			t.Fatal(fmt.Errorf("Error Deleting Sessions: %s", err))
+		}
 	}
 
 	// check sessions are deleted
 	for _, csReq := range csReqs {
 		_, err := s8p.gtpClient.GetSessionByIMSI(csReq.Imsi)
-		assert.Error(t, err)
+		if err == nil {
+			t.Fatal(fmt.Errorf(
+				"Found a session that should have been deleted after Delete Session, %s", csReq.Imsi))
+		}
 	}
 }
 
@@ -479,7 +530,7 @@ func TestS8proxyCreateSessionNillPAA(t *testing.T) {
 	// mock PGW so 0.0.0.0 will be good enough
 	assert.Equal(t, "0.0.0.0", session.GetDefaultBearer().SubscriberIP)
 
-	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid)
+	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)
 	dsRes, err := s8p.DeleteSession(context.Background(), cdReq)
 	assert.NoError(t, err)
 	assert.Empty(t, dsRes.GtpError)
@@ -500,10 +551,46 @@ func TestS8proxyCreateSessionNillPAA(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "::", session.GetDefaultBearer().SubscriberIP)
 
-	cdReq = getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid)
+	cdReq = getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)
 	dsRes, err = s8p.DeleteSession(context.Background(), cdReq)
 	assert.NoError(t, err)
 	assert.Empty(t, dsRes.GtpError)
+}
+
+func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	defer mockPgw.Close()
+
+	// Test empty list of PCO containers
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+	csReq.ProtocolConfigurationOptions.ProtoOrContainerId = nil
+
+	// Send and receive Create Session Request
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
+
+	// check PCO
+	assert.NoError(t, err)
+	assert.Empty(t, csRes.ProtocolConfigurationOptions)
+
+	// Test no PCO at all
+	// ------------------------
+	// ---- Delete Session ----
+	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)
+	_, err = s8p.DeleteSession(context.Background(), cdReq)
+	assert.NoError(t, err)
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq = getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+	csReq.ProtocolConfigurationOptions = nil
+	csRes, err = s8p.CreateSession(context.Background(), csReq)
+
+	// check PCO
+	assert.NoError(t, err)
+	assert.Nil(t, csRes.ProtocolConfigurationOptions)
 }
 
 func TestS8proxyEcho(t *testing.T) {
@@ -598,6 +685,26 @@ func getDefaultCreateSessionRequest(pgwAddrs string) *protos.CreateSessionReques
 			MeNbi:  7,
 			EMeNbi: 8,
 		},
+		ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
+			ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
+			ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
+				{
+					Id:       uint32(gtpv2.ProtoIDIPCP),
+					Length:   16, // len not required, just added to compare with the result which includes length
+					Contents: []byte{0x01, 0x00, 0x00, 0x10, 0x03, 0x06, 0x01, 0x01, 0x01, 0x01, 0x81, 0x06, 0x02, 0x02, 0x02, 0x02},
+				},
+				{
+					Id:       uint32(gtpv2.ProtoIDPAP),
+					Length:   12, // len not required, just added to compare with the result which includes length
+					Contents: []byte{0x01, 0x00, 0x00, 0x0c, 0x03, 0x66, 0x6f, 0x6f, 0x03, 0x62, 0x61, 0x72},
+				},
+				{
+					Id:       uint32(gtpv2.ContIDMSSupportOfNetworkRequestedBearerControlIndicator),
+					Length:   0, // len not required, just added to compare with the result which includes length
+					Contents: nil,
+				},
+			},
+		},
 		IndicationFlag: nil,
 		TimeZone: &protos.TimeZone{
 			DeltaSeconds:       int32(offset),
@@ -657,6 +764,23 @@ func getMultipleCreateSessionRequest(nRequest int, pgwAddrs string) []*protos.Cr
 				BrUl: 999,
 				BrDl: 888,
 			},
+			ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
+				ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
+				ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
+					{
+						Id:       uint32(gtpv2.ProtoIDIPCP),
+						Contents: []byte{0x01, 0x00, 0x00, 0x10, 0x03, 0x06, 0x01, 0x01, 0x01, 0x01, 0x81, 0x06, 0x02, 0x02, 0x02, 0x02},
+					},
+					{
+						Id:       uint32(gtpv2.ProtoIDPAP),
+						Contents: []byte{0x01, 0x00, 0x00, 0x0c, 0x03, 0x66, 0x6f, 0x6f, 0x03, 0x62, 0x61, 0x72},
+					},
+					{
+						Id:       uint32(gtpv2.ContIDMSSupportOfNetworkRequestedBearerControlIndicator),
+						Contents: nil,
+					},
+				},
+			},
 			Uli: &protos.UserLocationInformation{
 				Lac:    1,
 				Ci:     2,
@@ -678,13 +802,27 @@ func getMultipleCreateSessionRequest(nRequest int, pgwAddrs string) []*protos.Cr
 	return res
 }
 
-func getDeleteSessionRequest(pgwAddrs string, cPgwFteid *protos.Fteid) *protos.DeleteSessionRequestPgw {
+func getDeleteSessionRequest(pgwAddrs string, cPgwTeid uint32) *protos.DeleteSessionRequestPgw {
 	res := &protos.DeleteSessionRequestPgw{
-		PgwAddrs:  pgwAddrs,
-		Imsi:      IMSI1,
-		BearerId:  BEARER,
-		CAgwTeid:  AGWTeidC,
-		CPgwFteid: cPgwFteid,
+		PgwAddrs: pgwAddrs,
+		Imsi:     IMSI1,
+		BearerId: BEARER,
+		CAgwTeid: AGWTeidC,
+		CPgwTeid: cPgwTeid,
+		ServingNetwork: &protos.ServingNetwork{
+			Mcc: "222",
+			Mnc: "333",
+		},
+		Uli: &protos.UserLocationInformation{
+			Lac:    1,
+			Ci:     2,
+			Sac:    3,
+			Rac:    4,
+			Tac:    5,
+			Eci:    6,
+			MeNbi:  7,
+			EMeNbi: 8,
+		},
 	}
 	return res
 }

@@ -86,6 +86,11 @@ extern int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 
 static void handle_ics_failure(
     struct ue_mm_context_s* ue_context_p, char* error_msg);
+
+static void send_s11_modify_bearer_request(
+    ue_mm_context_t* ue_context_p, pdn_context_t* pdn_context_p,
+    MessageDef* message_p);
+
 int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -189,11 +194,7 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending S11_MODIFY_BEARER_REQUEST to SGW for ue" MME_UE_S1AP_ID_FMT "\n",
-      ue_id);
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  send_s11_modify_bearer_request(ue_context_p, pdn_context_p, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -1529,7 +1530,9 @@ static int mme_app_send_modify_bearer_request_for_active_pdns(
     mme_app_build_modify_bearer_request_message(
         ue_context_p, initial_ctxt_setup_rsp_p, s11_modify_bearer_request, &pid,
         &bc_to_be_removed_idx);
-    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+
+    send_s11_modify_bearer_request(
+        ue_context_p, ue_context_p->pdn_contexts[pid], message_p);
   }  // end of for loop
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -3147,6 +3150,177 @@ void mme_app_handle_nw_init_bearer_deactv_req(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
+void mme_app_handle_handover_required(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_handover_required_t* const handover_required_p) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+
+  struct ue_mm_context_s* ue_context_p          = NULL;
+  MessageDef* message_p                         = NULL;
+  itti_mme_app_handover_request_t* ho_request_p = NULL;
+
+  OAILOG_INFO(
+      LOG_MME_APP,
+      "Received HANDOVER_REQUIRED from S1AP for "
+      "ue-id " MME_UE_S1AP_ID_FMT "\n",
+      handover_required_p->mme_ue_s1ap_id);
+
+  ue_context_p =
+      mme_ue_context_exists_mme_ue_s1ap_id(handover_required_p->mme_ue_s1ap_id);
+
+  if (!ue_context_p) {
+    OAILOG_ERROR(
+        LOG_MME_APP, "UE context doesn't exist for UE " MME_UE_S1AP_ID_FMT "\n",
+        handover_required_p->mme_ue_s1ap_id);
+  }
+
+  message_p    = itti_alloc_new_message(TASK_MME_APP, MME_APP_HANDOVER_REQUEST);
+  ho_request_p = &message_p->ittiMsg.mme_app_handover_request;
+
+  // get the ue security capabilities
+  ho_request_p->encryption_algorithm_capabilities =
+      ((uint16_t) ue_context_p->emm_context._ue_network_capability.eea &
+       ~(1 << 7))
+      << 1;
+  ho_request_p->integrity_algorithm_capabilities =
+      ((uint16_t) ue_context_p->emm_context._ue_network_capability.eia &
+       ~(1 << 7))
+      << 1;
+
+  // copy information from the handover required message
+  ho_request_p->mme_ue_s1ap_id       = handover_required_p->mme_ue_s1ap_id;
+  ho_request_p->target_sctp_assoc_id = handover_required_p->sctp_assoc_id;
+  ho_request_p->target_enb_id        = handover_required_p->enb_id;
+  ho_request_p->cause                = handover_required_p->cause;
+  ho_request_p->handover_type        = handover_required_p->handover_type;
+  ho_request_p->src_tgt_container    = bstrcpy(
+      handover_required_p->src_tgt_container);  // ownership passed to receiver
+
+  // get the ambr
+  ho_request_p->ue_ambr = ue_context_p->subscribed_ue_ambr;
+
+  // get the e_rab to be setup list
+  int j = 0;
+  for (int i = 0; i < BEARERS_PER_UE; i++) {
+    bearer_context_t* bc = ue_context_p->bearer_contexts[i];
+    if (bc) {
+      e_rab_to_be_setup_item_ho_req_t item = {0};
+      item.e_rab_id                        = bc->ebi;
+      item.transport_layer_address =
+          fteid_ip_address_to_bstring(&bc->s_gw_fteid_s1u);
+      item.gtp_teid                       = bc->s_gw_fteid_s1u.teid;
+      item.e_rab_level_qos_parameters.qci = bc->qci;
+      item.e_rab_level_qos_parameters.allocation_and_retention_priority
+          .priority_level = bc->priority_level;
+      item.e_rab_level_qos_parameters.allocation_and_retention_priority
+          .pre_emption_capability = bc->preemption_capability;
+      item.e_rab_level_qos_parameters.allocation_and_retention_priority
+          .pre_emption_vulnerability   = bc->preemption_vulnerability;
+      ho_request_p->e_rab_list.item[i] = item;
+      j                                = j + 1;
+    }
+  }
+  ho_request_p->e_rab_list.no_of_items = j;
+
+  memcpy(
+      ho_request_p->nh, ue_context_p->emm_context._security.next_hop,
+      AUTH_NEXT_HOP_SIZE);
+  ho_request_p->ncc =
+      ue_context_p->emm_context._security.next_hop_chaining_count;
+  /* Generate NH key parameter */
+  if (ue_context_p->emm_context._security.vector_index != 0) {
+    OAILOG_DEBUG_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Invalid Vector index %d for ue_id %d \n",
+        ue_context_p->emm_context._security.vector_index,
+        ue_context_p->mme_ue_s1ap_id);
+  }
+  derive_NH(
+      ue_context_p->emm_context
+          ._vector[ue_context_p->emm_context._security.vector_index]
+          .kasme,
+      ue_context_p->emm_context._security.next_hop,
+      ue_context_p->emm_context._security.next_hop,
+      &ue_context_p->emm_context._security.next_hop_chaining_count);
+
+  OAILOG_INFO(
+      LOG_MME_APP,
+      "Finished HANDOVER_REQUIRED from S1AP for "
+      "ue-id " MME_UE_S1AP_ID_FMT ": eea: %u, eia: %u\n",
+      handover_required_p->mme_ue_s1ap_id,
+      ho_request_p->encryption_algorithm_capabilities,
+      ho_request_p->integrity_algorithm_capabilities);
+
+  // send msg to s1ap task to build s1ap message
+  OAILOG_INFO_UE(
+      LOG_MME_APP, ue_context_p->emm_context._imsi64,
+      "MME_APP send HANDOVER_REQUEST to S1AP for ue_id %d \n",
+      ue_context_p->mme_ue_s1ap_id);
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void mme_app_handle_handover_request_ack(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_handover_request_ack_t* const handover_request_ack_p) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+
+  struct ue_mm_context_s* ue_context_p          = NULL;
+  MessageDef* message_p                         = NULL;
+  itti_mme_app_handover_command_t* ho_command_p = NULL;
+
+  OAILOG_INFO(
+      LOG_MME_APP,
+      "Received handover request ack from S1AP for ue-id " MME_UE_S1AP_ID_FMT
+      "\n",
+      handover_request_ack_p->mme_ue_s1ap_id);
+
+  ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
+      handover_request_ack_p->mme_ue_s1ap_id);
+
+  if (!ue_context_p) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "UE context doesn't exist for UE " MME_UE_S1AP_ID_FMT ", failing\n",
+        handover_request_ack_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  message_p = itti_alloc_new_message(TASK_MME_APP, MME_APP_HANDOVER_COMMAND);
+
+  if (!message_p) {
+    OAILOG_ERROR(LOG_MME_APP, "Unable to allocate new ITTI message, failing\n");
+
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  ho_command_p = &message_p->ittiMsg.mme_app_handover_command;
+
+  ho_command_p->source_assoc_id    = handover_request_ack_p->source_assoc_id;
+  ho_command_p->mme_ue_s1ap_id     = handover_request_ack_p->mme_ue_s1ap_id;
+  ho_command_p->src_enb_ue_s1ap_id = handover_request_ack_p->src_enb_ue_s1ap_id;
+  ho_command_p->src_enb_ue_s1ap_id = handover_request_ack_p->src_enb_ue_s1ap_id;
+  ho_command_p->handover_type      = handover_request_ack_p->handover_type;
+  ho_command_p->tgt_src_container =
+      bstrcpy(handover_request_ack_p
+                  ->tgt_src_container);  // ownership passed to receiver
+
+  // TODO: set up E-RABs. As is, HO will proceed, but we will drop packets.
+
+  OAILOG_INFO_UE(
+      LOG_MME_APP, ue_context_p->emm_context._imsi64,
+      "MME_APP send HANDOVER_COMMAND to S1AP for ue_id %d \n",
+      ho_command_p->mme_ue_s1ap_id);
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
 void mme_app_handle_path_switch_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_path_switch_request_t* const path_switch_req_p) {
@@ -3359,11 +3533,9 @@ void mme_app_handle_path_switch_request(
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  OAILOG_DEBUG_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "MME_APP send S11_MODIFY_BEARER_REQUEST to teid %u \n",
-      s11_modify_bearer_request->teid);
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  if (pdn_context) {
+    send_s11_modify_bearer_request(ue_context_p, pdn_context, message_p);
+  }
   ue_context_p->path_switch_req = true;
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -3869,12 +4041,9 @@ void mme_app_handle_e_rab_modification_ind(
   s11_modify_bearer_request->trxn = NULL;
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-
-  OAILOG_DEBUG_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "MME_APP send S11_MODIFY_BEARER_REQUEST to teid %u \n",
-      s11_modify_bearer_request->teid);
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  if (pdn_context) {
+    send_s11_modify_bearer_request(ue_context_p, pdn_context, message_p);
+  }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
@@ -4050,6 +4219,33 @@ static void handle_ics_failure(
       handle_csfb_s1ap_procedure_failure(
           ue_context_p, error_msg, INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED);
     }
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void send_s11_modify_bearer_request(
+    ue_mm_context_t* ue_context_p, pdn_context_t* pdn_context_p,
+    MessageDef* message_p) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  Imsi_t imsi = {0};
+  IMSI64_TO_STRING(
+      ue_context_p->emm_context._imsi64, (char*) (&imsi.digit),
+      ue_context_p->emm_context._imsi.length);
+
+  if (pdn_context_p->route_s11_messages_to_s8_task) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Sending S11 modify bearer req message to SGW_s8 task for "
+        "ue_id " MME_UE_S1AP_ID_FMT "\n",
+        ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Sending S11 modify bearer req message to SPGW task for "
+        "ue_id " MME_UE_S1AP_ID_FMT "\n",
+        ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

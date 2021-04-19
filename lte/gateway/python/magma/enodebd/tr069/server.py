@@ -11,11 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import socket
-from wsgiref.simple_server import (ServerHandler, WSGIRequestHandler,
-                                   WSGIServer, make_server)
-
 import _thread
+import socket
+from wsgiref.simple_server import (
+    ServerHandler,
+    WSGIRequestHandler,
+    WSGIServer,
+    make_server,
+)
+
 from magma.common.misc_utils import get_ip_from_if
 from magma.configuration.service_configs import load_service_config
 from magma.enodebd.logger import EnodebdLogger as logger

@@ -15,17 +15,16 @@ limitations under the License.
 import datetime
 import enum
 import logging
+import os
 
 import grpc
 import magma.common.cert_utils as cert_utils
-import os
 import snowflake
 from cryptography.exceptions import InternalError
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
-from cryptography.hazmat.primitives.asymmetric.utils import \
-    decode_dss_signature
+from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature
 from google.protobuf.duration_pb2 import Duration
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.sdwatchdog import SDWatchdogTask
@@ -170,7 +169,7 @@ class BootstrapManager(SDWatchdogTask):
         If any steps fails, a new _bootstrap_now call will be scheduled.
         """
         assert self._state != BootstrapState.BOOTSTRAPPING, \
-                              'At most one bootstrap is happening'
+            'At most one bootstrap is happening'
         self._state = BootstrapState.BOOTSTRAPPING
 
         try:
@@ -262,14 +261,16 @@ class BootstrapManager(SDWatchdogTask):
 
     async def _request_sign_done_success(self, cert):
         if not self._is_valid_certificate(cert):
-            BOOTSTRAP_EXCEPTION.labels(cause='RequestSignDoneInvalidCert').inc()
+            BOOTSTRAP_EXCEPTION.labels(
+                cause='RequestSignDoneInvalidCert').inc()
             self._schedule_next_bootstrap(hard_failure=True)
             return
         try:
             cert_utils.write_key(self._gateway_key, self._gateway_key_file)
             cert_utils.write_cert(cert.cert_der, self._gateway_cert_file)
         except Exception as exp:
-            BOOTSTRAP_EXCEPTION.labels(cause='RequestSignDoneWriteCert:%s' % type(exp).__name__).inc()
+            BOOTSTRAP_EXCEPTION.labels(
+                cause='RequestSignDoneWriteCert:%s' % type(exp).__name__).inc()
             logging.error('Failed to write cert: %s', exp)
 
         # need to restart control_proxy
@@ -402,7 +403,8 @@ class BootstrapManager(SDWatchdogTask):
                 'Gateway does not have a proper challenge key: %s' % e)
 
         try:
-            signature = challenge_key.sign(challenge, ec.ECDSA(hashes.SHA256()))
+            signature = challenge_key.sign(
+                challenge, ec.ECDSA(hashes.SHA256()))
         except TypeError:
             raise BootstrapError(
                 'Challenge key cannot be used for ECDSA signature')

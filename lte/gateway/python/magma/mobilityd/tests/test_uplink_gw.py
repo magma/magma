@@ -12,12 +12,12 @@ limitations under the License.
 """
 import ipaddress
 import logging
+import subprocess
 import unittest
 from collections import defaultdict
-import subprocess
 
-from magma.mobilityd.uplink_gw import UplinkGatewayInfo, NO_VLAN
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress
+from magma.mobilityd.uplink_gw import NO_VLAN, UplinkGatewayInfo
 
 LOG = logging.getLogger('mobilityd.def_gw.test')
 LOG.isEnabledFor(logging.DEBUG)

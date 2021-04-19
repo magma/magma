@@ -1,489 +1,569 @@
-#/*
-# * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
-# * contributor license agreements.  See the NOTICE file distributed with
-# * this work for additional information regarding copyright ownership.
-# * The OpenAirInterface Software Alliance licenses this file to You under
-# * the terms found in the LICENSE file in the root of this
-# * source tree.
-# *
-# * Unless required by applicable law or agreed to in writing, software
-# * distributed under the License is distributed on an "AS IS" BASIS,
-# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# * See the License for the specific language governing permissions and
-# * limitations under the License.
-# *-------------------------------------------------------------------------------
-# * For more information about the OpenAirInterface (OAI) Software Alliance:
-# *   contact@openairinterface.org
-# */
-#---------------------------------------------------------------------
+"""
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
 
 import os
 import re
 import sys
-import subprocess
+
+
+MAX_ALLOWED_WARNINGS = 20
+COMMON_TYPE = 'OAI-COMMON'
+MME_TYPE = 'OAI-MME'
+SCTPD_TYPE = 'SCTPD'
+U18_BUILD_LOG_FILE = 'build_magma_mme.log'
+RHEL8_BUILD_LOG_FILE = 'build_magma_mme_rhel8.log'
+
 
 class HtmlReport():
-  def __init__(self):
-    self.job_name = ''
-    self.mode = ''
-    self.job_id = ''
-    self.job_url = ''
-    self.job_start_time = 'TEMPLATE_TIME'
-    self.git_url = ''
-    self.git_src_branch = ''
-    self.git_src_commit = ''
-    self.git_src_commit_msg = None
-    self.git_merge_request = False
-    self.git_target_branch = ''
-    self.git_target_commit = ''
+    """Creates Executive Summary HTML reports."""
 
-  def generateBuild(self):
-    cwd = os.getcwd()
-    self.file = open(cwd + '/build_results_magma_oai_mme.html', 'w')
-    self.generateHeader()
+    def __init__(self):
+        """Initialize obeject."""
+        self.job_name = ''
+        self.mode = ''
+        self.job_id = ''
+        self.job_url = ''
+        self.job_start_time = 'TEMPLATE_TIME'
+        self.git_url = ''
+        self.git_src_branch = ''
+        self.git_src_commit = ''
+        self.git_src_commit_msg = None
+        self.git_merge_request = False
+        self.git_target_branch = ''
+        self.git_target_commit = ''
 
-    self.buildSummaryHeader()
-    self.buildCompileRows()
-    self.copyToTargetImage()
-    self.copyConfToolsToTargetImage()
-    self.imageSizeRow()
-    self.buildSummaryFooter()
+    def generate_build_report(self):
+        """Create the BUILD HTML report."""
+        cwd = os.getcwd()
+        try:
+            self.file = open(os.path.join(cwd, 'build_results_magma_oai_mme.html'), 'w')
+        except IOError:
+            sys.exit('Could not open write output file')
+        self.generate_header()
 
-    self.generateFooter()
-    self.file.close()
+        self.add_build_summary_header()
+        self.add_compile_rows()
+        self.add_copy_to_target_image_row()
+        self.add_copy_conf_tools_to_target_mage_row()
+        self.add_image_size_row()
+        self.add_build_summary_footer()
 
-  def generateHeader(self):
-    # HTML Header
-    self.file.write('<!DOCTYPE html>\n')
-    self.file.write('<html class="no-js" lang="en-US">\n')
-    self.file.write('<head>\n')
-    self.file.write('  <meta name="viewport" content="width=device-width, initial-scale=1">\n')
-    self.file.write('  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">\n')
-    self.file.write('  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>\n')
-    self.file.write('  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>\n')
-    self.file.write('  <title>MAGMA/OAI Core Network Build Results for ' + self.job_name + ' job build #' + self.job_id + '</title>\n')
-    self.file.write('</head>\n')
-    self.file.write('<body><div class="container">\n')
-    self.file.write('  <br>\n')
-    self.file.write('  <table width = "100%" style="border-collapse: collapse; border: none;">\n')
-    self.file.write('   <tr style="border-collapse: collapse; border: none;">\n')
-    # SVG has a invisible background color -- adding it.
-    self.file.write('     <td bgcolor="#5602a4" style="border-collapse: collapse; border: none;">\n')
-    self.file.write('       <a href="https://www.magmacore.org/">\n')
-    self.file.write('          <img src="https://www.magmacore.org/img/magma-logo.svg" alt="" border="none" height=50 width=150>\n')
-    self.file.write('          </img>\n')
-    self.file.write('       </a>\n')
-    self.file.write('     </td>\n')
-    self.file.write('     <td align = "center" style="border-collapse: collapse; border: none; vertical-align: center;">\n')
-    self.file.write('       <b><font size = "6">Job Summary -- Job: ' + self.job_name + ' -- Build-ID: <a href="' + self.job_url + '">' + self.job_id + '</a></font></b>\n')
-    self.file.write('     </td>\n')
-    self.file.write('     <td style="border-collapse: collapse; border: none;">\n')
-    self.file.write('       <a href="http://www.openairinterface.org/">\n')
-    self.file.write('          <img src="http://www.openairinterface.org/wp-content/uploads/2016/03/cropped-oai_final_logo2.png" alt="" border="none" height=50 width=150>\n')
-    self.file.write('          </img>\n')
-    self.file.write('       </a>\n')
-    self.file.write('     </td>\n')
-    self.file.write('   </tr>\n')
-    self.file.write('  </table>\n')
-    self.file.write('  <br>\n')
-    buildSummary = self.generateBuildSummary()
-    self.file.write(buildSummary)
+        self.generate_footer()
+        self.file.close()
 
-  def generateBuildSummary(self):
-    returnString = ''
-    # Build Info Summary
-    returnString += '  <table class="table-bordered" width = "80%" align = "center" border = "1">\n'
-    returnString += '    <tr>\n'
-    returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-time"></span> Build Start Time</td>\n'
-    #date_formatted = re.sub('\..*', '', self.created
-    returnString += '      <td>' + self.job_start_time + '</td>\n'
-    returnString += '    </tr>\n'
-    returnString += '    <tr>\n'
-    returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-wrench"></span> Build Trigger</td>\n'
-    if self.git_merge_request:
-      returnString += '      <td>Pull Request</td>\n'
-    else:
-      returnString += '      <td>Push Event</td>\n'
-    returnString += '    </tr>\n'
-    returnString += '    <tr>\n'
-    returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-cloud-upload"></span> GIT Repository</td>\n'
-    returnString += '      <td><a href="' + self.git_url + '">' + self.git_url + '</a></td>\n'
-    returnString += '    </tr>\n'
-    if self.git_merge_request:
-      returnString += '    <tr>\n'
-      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-link"></span> Pull Request Link</td>\n'
-      returnString += '      <td><a href="TEMPLATE_PULL_REQUEST_LINK">TEMPLATE_PULL_REQUEST_LINK</a></td>\n'
-      returnString += '    </tr>\n'
-      returnString += '    <tr>\n'
-      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-header"></span> Pull Request Title</td>\n'
-      returnString += '      <td>TEMPLATE_PULL_REQUEST_TEMPLATE</td>\n'
-      returnString += '    </tr>\n'
-      returnString += '    <tr>\n'
-      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-log-out"></span> Source Branch</td>\n'
-      returnString += '      <td>' + self.git_src_branch + '</td>\n'
-      returnString += '    </tr>\n'
-      returnString += '    <tr>\n'
-      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Source Commit ID</td>\n'
-      returnString += '      <td>' + self.git_src_commit + '</td>\n'
-      returnString += '    </tr>\n'
-      if (self.git_src_commit_msg is not None):
-        returnString += '    <tr>\n'
-        returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-comment"></span> Source Commit Message</td>\n'
-        returnString += '      <td>' + self.git_src_commit_msg + '</td>\n'
-        returnString += '    </tr>\n'
-      returnString += '    <tr>\n'
-      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-log-in"></span> Target Branch</td>\n'
-      returnString += '      <td>' + self.git_target_branch + '</td>\n'
-      returnString += '    </tr>\n'
-      returnString += '    <tr>\n'
-      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Target Commit ID</td>\n'
-      returnString += '      <td>' + self.git_target_commit + '</td>\n'
-      returnString += '    </tr>\n'
-    else:
-      returnString += '    <tr>\n'
-      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tree-deciduous"></span> Branch</td>\n'
-      returnString += '      <td>' + self.git_src_branch + '</td>\n'
-      returnString += '    </tr>\n'
-      returnString += '    <tr>\n'
-      returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Commit ID</td>\n'
-      returnString += '      <td>' + self.git_src_commit + '</td>\n'
-      returnString += '    </tr>\n'
-      if (self.git_src_commit_msg is not None):
-        returnString += '    <tr>\n'
-        returnString += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-comment"></span> Commit Message</td>\n'
-        returnString += '      <td>' + self.git_src_commit_msg + '</td>\n'
-        returnString += '    </tr>\n'
-    returnString += '  </table>\n'
-    returnString += '  <br>\n'
-    return returnString
+    def generate_header(self):
+        """Append HTML header to file."""
+        # HTML Header
+        header = '<!DOCTYPE html>\n'
+        header += '<html class="no-js" lang="en-US">\n'
+        header += '<head>\n'
+        header += '  <meta name="viewport" content="width=device-width, initial-scale=1">\n'
+        header += '  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">\n'
+        header += '  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>\n'
+        header += '  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>\n'
+        header += '  <title>MAGMA/OAI Core Network Build Results for ' + self.job_name + ' job build #' + self.job_id + '</title>\n'
+        header += '</head>\n'
+        header += '<body><div class="container">\n'
+        header += '  <br>\n'
+        header += '  <table width = "100%" style="border-collapse: collapse; border: none;">\n'
+        header += '   <tr style="border-collapse: collapse; border: none;">\n'
+        # SVG has a invisible background color -- adding it.
+        header += '     <td bgcolor="#5602a4" style="border-collapse: collapse; border: none;">\n'
+        header += '       <a href="https://www.magmacore.org/">\n'
+        header += '          <img src="https://www.magmacore.org/img/magma-logo.svg" alt="" border="none" height=50 width=150>\n'
+        header += '          </img>\n'
+        header += '       </a>\n'
+        header += '     </td>\n'
+        header += '     <td align = "center" style="border-collapse: collapse; border: none; vertical-align: center;">\n'
+        header += '       <b><font size = "6">Job Summary -- Job: ' + self.job_name + ' -- Build-ID: <a href="' + self.job_url + '">' + self.job_id + '</a></font></b>\n'
+        header += '     </td>\n'
+        header += '     <td style="border-collapse: collapse; border: none;">\n'
+        header += '       <a href="http://www.openairinterface.org/">\n'
+        header += '          <img src="http://www.openairinterface.org/wp-content/uploads/2016/03/cropped-oai_final_logo2.png" alt="" border="none" height=50 width=150>\n'
+        header += '          </img>\n'
+        header += '       </a>\n'
+        header += '     </td>\n'
+        header += '   </tr>\n'
+        header += '  </table>\n'
+        header += '  <br>\n'
+        self.file.write(header)
+        summary = self.generate_build_summary()
+        self.file.write(summary)
 
-  def generateFooter(self):
-    self.file.write('  </nav>\n')
-    self.file.write('  <div class="well well-lg">End of Build Report -- Copyright <span class="glyphicon glyphicon-copyright-mark"></span> 2020 <a href="http://www.openairinterface.org/">OpenAirInterface</a>. All Rights Reserved.</div>\n')
-    self.file.write('</div></body>\n')
-    self.file.write('</html>\n')
+    def generate_build_summary(self):
+        """
+        Create build summary string.
 
-  def buildSummaryHeader(self):
-    self.file.write('  <h2>Docker Image Build Summary</h2>\n')
-    self.file.write('  <table class="table-bordered" width = "100%" align = "center" border = "1">\n')
-    self.file.write('     <tr bgcolor="#33CCFF" >\n')
-    self.file.write('       <th>Stage Name</th>\n')
-    self.file.write('       <th>Image Kind</th>\n')
-    self.file.write('       <th>MAGMA - OAI MME cNF</th>\n')
-    self.file.write('     </tr>\n')
+        Returns:
+            a string with build information.
+        """
+        summary = ''
+        # Build Info Summary
+        summary += '  <table class="table-bordered" width = "80%" align = "center" border = "1">\n'
+        summary += '    <tr>\n'
+        summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-time"></span> Build Start Time</td>\n'
+        # date_formatted = re.sub('\..*', '', self.created
+        summary += '      <td>' + self.job_start_time + '</td>\n'
+        summary += '    </tr>\n'
+        summary += '    <tr>\n'
+        summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-wrench"></span> Build Trigger</td>\n'
+        if self.git_merge_request:
+            summary += '      <td>Pull Request</td>\n'
+        else:
+            summary += '      <td>Push Event</td>\n'
+        summary += '    </tr>\n'
+        summary += '    <tr>\n'
+        summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-cloud-upload"></span> GIT Repository</td>\n'
+        summary += '      <td><a href="' + self.git_url + '">' + self.git_url + '</a></td>\n'
+        summary += '    </tr>\n'
+        if self.git_merge_request:
+            summary += '    <tr>\n'
+            summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-link"></span> Pull Request Link</td>\n'
+            summary += '      <td><a href="TEMPLATE_PULL_REQUEST_LINK">TEMPLATE_PULL_REQUEST_LINK</a></td>\n'
+            summary += '    </tr>\n'
+            summary += '    <tr>\n'
+            summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-header"></span> Pull Request Title</td>\n'
+            summary += '      <td>TEMPLATE_PULL_REQUEST_TEMPLATE</td>\n'
+            summary += '    </tr>\n'
+            summary += '    <tr>\n'
+            summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-log-out"></span> Source Branch</td>\n'
+            summary += '      <td>' + self.git_src_branch + '</td>\n'
+            summary += '    </tr>\n'
+            summary += '    <tr>\n'
+            summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Source Commit ID</td>\n'
+            summary += '      <td>' + self.git_src_commit + '</td>\n'
+            summary += '    </tr>\n'
+            if (self.git_src_commit_msg is not None):
+                summary += '    <tr>\n'
+                summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-comment"></span> Source Commit Message</td>\n'
+                summary += '      <td>' + self.git_src_commit_msg + '</td>\n'
+                summary += '    </tr>\n'
+            summary += '    <tr>\n'
+            summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-log-in"></span> Target Branch</td>\n'
+            summary += '      <td>' + self.git_target_branch + '</td>\n'
+            summary += '    </tr>\n'
+            summary += '    <tr>\n'
+            summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Target Commit ID</td>\n'
+            summary += '      <td>' + self.git_target_commit + '</td>\n'
+            summary += '    </tr>\n'
+        else:
+            summary += '    <tr>\n'
+            summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tree-deciduous"></span> Branch</td>\n'
+            summary += '      <td>' + self.git_src_branch + '</td>\n'
+            summary += '    </tr>\n'
+            summary += '    <tr>\n'
+            summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-tag"></span> Commit ID</td>\n'
+            summary += '      <td>' + self.git_src_commit + '</td>\n'
+            summary += '    </tr>\n'
+            if (self.git_src_commit_msg is not None):
+                summary += '    <tr>\n'
+                summary += '      <td bgcolor="lightcyan" > <span class="glyphicon glyphicon-comment"></span> Commit Message</td>\n'
+                summary += '      <td>' + self.git_src_commit_msg + '</td>\n'
+                summary += '    </tr>\n'
+        summary += '  </table>\n'
+        summary += '  <br>\n'
+        return summary
 
-  def buildSummaryFooter(self):
-    self.file.write('  </table>\n')
-    self.file.write('  <br>\n')
+    def generate_footer(self):
+        """Append the HTML footer to report."""
+        self.file.write('  </nav>\n')
+        self.file.write('  <div class="well well-lg">End of Build Report -- Copyright <span class="glyphicon glyphicon-copyright-mark"></span> 2020 <a href="http://www.openairinterface.org/">OpenAirInterface</a>. All Rights Reserved.</div>\n')
+        self.file.write('</div></body>\n')
+        self.file.write('</html>\n')
 
-  def buildCompileRows(self):
-    self.file.write('    <tr>\n')
-    self.file.write('      <td rowspan=2 bgcolor="lightcyan" ><b>magma-common</b> Compile / Build</td>\n')
-    self.analyze_build_log('OAI-COMMON')
-    self.file.write('    </tr>\n')
-    self.file.write('    <tr>\n')
-    self.analyze_compile_log('OAI-COMMON')
-    self.file.write('    </tr>\n')
-    self.file.write('    <tr>\n')
-    self.file.write('      <td rowspan=2 bgcolor="lightcyan" ><b>magma-oai-mme</b> Compile / Build</td>\n')
-    self.analyze_build_log('OAI-MME')
-    self.file.write('    </tr>\n')
-    self.file.write('    <tr>\n')
-    self.analyze_compile_log('OAI-MME')
-    self.file.write('    </tr>\n')
-    self.file.write('    <tr>\n')
-    self.file.write('      <td rowspan=2 bgcolor="lightcyan" ><b>magma-sctpd</b> Compile / Build</td>\n')
-    self.analyze_build_log('SCTPD')
-    self.file.write('    </tr>\n')
-    self.file.write('    <tr>\n')
-    self.analyze_compile_log('SCTPD')
-    self.file.write('    </tr>\n')
+    def add_build_summary_header(self):
+        """Append Build Information Summary (Header)."""
+        self.file.write('  <h2>Docker/Podman Images Build Summary</h2>\n')
+        self.file.write('  <table class="table-bordered" width = "100%" align = "center" border = "1">\n')
+        self.file.write('     <tr bgcolor="#33CCFF" >\n')
+        self.file.write('       <th>Stage Name</th>\n')
+        self.file.write('       <th>Image Kind</th>\n')
+        cwd = os.getcwd()
+        if os.path.isfile(cwd + '/archives/' + U18_BUILD_LOG_FILE):
+            self.file.write('       <th>MAGMA - OAI MME cNF (Ubuntu-18)</th>\n')
+        if os.path.isfile(cwd + '/archives/' + RHEL8_BUILD_LOG_FILE):
+            self.file.write('       <th>MAGMA - OAI MME cNF (RHEL-8)</th>\n')
+        self.file.write('     </tr>\n')
 
-  def analyze_build_log(self, nfType):
-    if nfType != 'OAI-COMMON' and nfType != 'OAI-MME' and nfType != 'SCTPD':
-      self.file.write('      <td>N/A</td>\n')
-      self.file.write('      <td>Wrong NF Type for this Report</td>\n')
-      return
+    def add_build_summary_footer(self):
+        """Append Build Information Summary (Footer)."""
+        self.file.write('  </table>\n')
+        self.file.write('  <br>\n')
 
-    logFileName = 'build_magma_mme.log'
-    self.file.write('      <td>Builder Image</td>\n')
+    def add_compile_rows(self):
+        """Add rows for the compilation."""
+        self.file.write('    <tr>\n')
+        self.file.write('      <td rowspan=2 bgcolor="lightcyan" ><b>magma-common</b> Compile / Build</td>\n')
+        self.analyze_build_log(COMMON_TYPE)
+        self.file.write('    </tr>\n')
+        self.file.write('    <tr>\n')
+        self.analyze_compile_log(COMMON_TYPE)
+        self.file.write('    </tr>\n')
+        self.file.write('    <tr>\n')
+        self.file.write('      <td rowspan=2 bgcolor="lightcyan" ><b>magma-oai-mme</b> Compile / Build</td>\n')
+        self.analyze_build_log(MME_TYPE)
+        self.file.write('    </tr>\n')
+        self.file.write('    <tr>\n')
+        self.analyze_compile_log(MME_TYPE)
+        self.file.write('    </tr>\n')
+        self.file.write('    <tr>\n')
+        self.file.write('      <td rowspan=2 bgcolor="lightcyan" ><b>magma-sctpd</b> Compile / Build</td>\n')
+        self.analyze_build_log(SCTPD_TYPE)
+        self.file.write('    </tr>\n')
+        self.file.write('    <tr>\n')
+        self.analyze_compile_log(SCTPD_TYPE)
+        self.file.write('    </tr>\n')
 
-    cwd = os.getcwd()
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      status = False
-      if nfType == 'OAI-COMMON':
-        section_start_pattern = 'ninja -C  /build/c/magma_common'
-        section_end_pattern = 'cmake  /magma/lte/gateway/c/oai -DCMAKE_BUILD_TYPE=Debug  -DS6A_OVER_GRPC=False -GNinja'
-      if nfType == 'OAI-MME':
-        section_start_pattern = 'ninja -C  /build/c/oai'
-        section_end_pattern = 'cmake  /magma/orc8r/gateway/c/common -DCMAKE_BUILD_TYPE=Debug   -GNinja'
-      if nfType == 'SCTPD':
-        section_start_pattern = 'ninja -C  /build/c/sctpd'
-        section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
-      section_status = False
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-                    result = re.search(section_start_pattern, line)
-                    if result is not None:
-                        section_status = True
-                    result = re.search(section_end_pattern, line)
-                    if result is not None:
-                        section_status = False
-                    if section_status:
-                        if nfType == 'OAI-COMMON':
-                          result = re.search('Linking CXX static library eventd/libEVENTD.a', line)
-                        if nfType == 'OAI-MME':
-                          result = re.search('Linking CXX executable oai_mme/mme', line)
-                        if nfType == 'SCTPD':
-                          result = re.search('Linking CXX executable sctpd', line)
-                        if result is not None:
+    def analyze_build_log(self, nf_type):
+        """
+        Add the row about build status.
+
+        Args:
+            nf_type: which build part
+        """
+        if nf_type != COMMON_TYPE and nf_type != MME_TYPE and nf_type != SCTPD_TYPE:
+            self.file.write('      <td>N/A</td>\n')
+            self.file.write('      <td>Wrong NF Type for this Report</td>\n')
+            return
+
+        self.file.write('      <td>Builder Image</td>\n')
+        cwd = os.getcwd()
+
+        log_file_names = [U18_BUILD_LOG_FILE, RHEL8_BUILD_LOG_FILE]
+        for log_file_name in log_file_names:
+            if os.path.isfile(cwd + '/archives/' + log_file_name):
+                status = False
+                if nf_type == COMMON_TYPE:
+                    section_start_pattern = 'ninja -C  /build/c/magma_common'
+                    section_end_pattern = 'cmake  /magma/lte/gateway/c/oai -DCMAKE_BUILD_TYPE=Debug  -DS6A_OVER_GRPC=False -GNinja'
+                if nf_type == MME_TYPE:
+                    section_start_pattern = 'ninja -C  /build/c/oai'
+                    section_end_pattern = 'cmake  /magma/orc8r/gateway/c/common -DCMAKE_BUILD_TYPE=Debug   -GNinja'
+                if nf_type == SCTPD_TYPE:
+                    section_start_pattern = 'ninja -C  /build/c/sctpd'
+                    section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
+                section_status = False
+                with open(cwd + '/archives/' + log_file_name, 'r') as logfile:
+                    for line in logfile:
+                        my_res = re.search(section_start_pattern, line)
+                        if my_res is not None:
+                            section_status = True
+                        my_res = re.search(section_end_pattern, line)
+                        if my_res is not None:
+                            section_status = False
+                        if section_status:
+                            if nf_type == COMMON_TYPE:
+                                my_res = re.search('Linking CXX static library eventd/libEVENTD.a', line)
+                            if nf_type == MME_TYPE:
+                                my_res = re.search('Linking CXX executable oai_mme/mme', line)
+                            if nf_type == SCTPD_TYPE:
+                                my_res = re.search('Linking CXX executable sctpd', line)
+                            if my_res is not None:
+                                status = True
+                    logfile.close()
+                if status:
+                    cell_msg = '      <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+                    cell_msg += 'OK:\n'
+                else:
+                    cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+                    cell_msg += 'KO:\n'
+                if nf_type == COMMON_TYPE:
+                    cell_msg += ' -- ninja -C  /build/c/magma_common</b></pre></td>\n'
+                if nf_type == MME_TYPE:
+                    cell_msg += ' -- ninja -C  /build/c/oai</b></pre></td>\n'
+                if nf_type == SCTPD_TYPE:
+                    cell_msg += ' -- ninja -C  /build/c/sctpd</b></pre></td>\n'
+            else:
+                cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+                cell_msg += 'KO: logfile (' + log_file_name + ') not found</b></pre></td>\n'
+
+            self.file.write(cell_msg)
+
+    def analyze_compile_log(self, nf_type):
+        """
+        Add the row about compilation errors/warnings/notes.
+
+        Args:
+            nf_type: which build part
+        """
+        if nf_type != COMMON_TYPE and nf_type != MME_TYPE and nf_type != SCTPD_TYPE:
+            self.file.write('      <td>N/A</td>\n')
+            self.file.write('      <td>Wrong NF Type for this Report</td>\n')
+            return
+
+        self.file.write('      <td>Builder Image</td>\n')
+        cwd = os.getcwd()
+
+        log_file_names = [U18_BUILD_LOG_FILE, RHEL8_BUILD_LOG_FILE]
+        for log_file_name in log_file_names:
+            nb_errors = 0
+            nb_warnings = 0
+            nb_notes = 0
+
+            if os.path.isfile(cwd + '/archives/' + log_file_name):
+                if nf_type == COMMON_TYPE:
+                    section_start_pattern = '/build/c/magma_common'
+                    section_end_pattern = 'mkdir -p  /build/c/oai'
+                if nf_type == MME_TYPE:
+                    section_start_pattern = '/build/c/oai'
+                    section_end_pattern = 'mkdir -p  /build/c/magma_common'
+                if nf_type == SCTPD_TYPE:
+                    section_start_pattern = '/build/c/sctpd'
+                    section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
+                section_status = False
+                section_done = False
+                with open(cwd + '/archives/' + log_file_name, 'r') as logfile:
+                    for line in logfile:
+                        my_res = re.search(section_start_pattern, line)
+                        if (my_res is not None) and not section_done and (re.search('cmake', line) is not None):
+                            section_status = True
+                        my_res = re.search(section_end_pattern, line)
+                        if (my_res is not None) and not section_done and section_status:
+                            section_status = False
+                            section_done = True
+                        if section_status:
+                            my_res = re.search('error:', line)
+                            if my_res is not None:
+                                nb_errors += 1
+                            my_res = re.search('warning:', line)
+                            if my_res is not None:
+                                nb_warnings += 1
+                            my_res = re.search('note:', line)
+                            if my_res is not None:
+                                nb_notes += 1
+                    logfile.close()
+                if nb_warnings == 0 and nb_errors == 0:
+                    cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+                elif nb_warnings < MAX_ALLOWED_WARNINGS and nb_errors == 0:
+                    cell_msg = '       <td bgcolor="Orange"><pre style="border:none; background-color:Orange"><b>'
+                else:
+                    cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+                if nb_errors > 0:
+                    cell_msg += str(nb_errors) + ' errors found in compile log\n'
+                cell_msg += str(nb_warnings) + ' warnings found in compile log\n'
+                if nb_notes > 0:
+                    cell_msg += str(nb_notes) + ' notes found in compile log\n'
+
+                cell_msg += '</b></pre></td>\n'
+            else:
+                cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+                cell_msg += 'KO: logfile (' + log_file_name + ') not found</b></pre></td>\n'
+
+            self.file.write(cell_msg)
+
+    def add_copy_to_target_image_row(self):
+        """Add the row about start of target image creation."""
+        self.file.write('    <tr>\n')
+        self.file.write('      <td bgcolor="lightcyan" >SW libs Installation / Copy from Builder</td>\n')
+        self.analyze_copy_log('MME')
+        self.file.write('    </tr>\n')
+
+    def analyze_copy_log(self, nf_type):
+        """
+        Add the row about copy of executables/packages to target image.
+
+        Args:
+            nf_type: which build part
+        """
+        if nf_type != 'MME':
+            self.file.write('      <td>N/A</td>\n')
+            self.file.write('      <td>Wrong NF Type for this Report</td>\n')
+            return
+
+        self.file.write('      <td>Target Image</td>\n')
+        cwd = os.getcwd()
+
+        log_file_names = [U18_BUILD_LOG_FILE, RHEL8_BUILD_LOG_FILE]
+        for log_file_name in log_file_names:
+            if os.path.isfile(cwd + '/archives/' + log_file_name):
+                if log_file_name == U18_BUILD_LOG_FILE:
+                    section_start_pattern = 'FROM ubuntu:bionic as magma-mme$'
+                if log_file_name == RHEL8_BUILD_LOG_FILE:
+                    section_start_pattern = 'FROM registry.access.redhat.com/ubi8/ubi:latest AS magma-mme$'
+                section_end_pattern = 'WORKDIR /magma-mme/bin$'
+                section_status = False
+                status = False
+                with open(cwd + '/archives/' + log_file_name, 'r') as logfile:
+                    for line in logfile:
+                        my_res = re.search(section_start_pattern, line)
+                        if my_res is not None:
+                            section_status = True
+                        my_res = re.search(section_end_pattern, line)
+                        if (my_res is not None) and section_status:
+                            section_status = False
                             status = True
-        logfile.close()
-      if status:
-        cell_msg = '      <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
-        cell_msg += 'OK:\n'
-      else:
-        cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-        cell_msg += 'KO:\n'
-      if nfType == 'OAI-COMMON':
-        cell_msg += ' -- ninja -C  /build/c/magma_common</b></pre></td>\n'
-      if nfType == 'OAI-MME':
-        cell_msg += ' -- ninja -C  /build/c/oai</b></pre></td>\n'
-      if nfType == 'SCTPD':
-        cell_msg += ' -- ninja -C  /build/c/sctpd</b></pre></td>\n'
-    else:
-      cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
+                    logfile.close()
+                if status:
+                    cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+                    cell_msg += 'OK:\n'
+                else:
+                    cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+                    cell_msg += 'KO:\n'
+                cell_msg += '</b></pre></td>\n'
+            else:
+                cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+                cell_msg += 'KO: logfile (' + log_file_name + ') not found</b></pre></td>\n'
 
-    self.file.write(cell_msg)
+            self.file.write(cell_msg)
 
-  def analyze_compile_log(self, nfType):
-    if nfType != 'OAI-COMMON' and nfType != 'OAI-MME' and nfType != 'SCTPD':
-      self.file.write('      <td>N/A</td>\n')
-      self.file.write('      <td>Wrong NF Type for this Report</td>\n')
-      return
+    def add_copy_conf_tools_to_target_mage_row(self):
+        """Add the row about copy of configuration/tools."""
+        self.file.write('    <tr>\n')
+        self.file.write('      <td bgcolor="lightcyan" >Copy Template Conf / Tools from Builder</td>\n')
+        self.analyze_copy_conf_tool_log('MME')
+        self.file.write('    </tr>\n')
 
-    logFileName = 'build_magma_mme.log'
-    self.file.write('      <td>Builder Image</td>\n')
+    def analyze_copy_conf_tool_log(self, nf_type):
+        """
+        Retrieve info from log for conf/tools copy.
 
-    cwd = os.getcwd()
-    nb_errors = 0
-    nb_warnings = 0
-    nb_notes = 0
+        Args:
+            nf_type: which build part
+        """
+        if nf_type != 'MME':
+            self.file.write('      <td>N/A</td>\n')
+            self.file.write('      <td>Wrong NF Type for this Report</td>\n')
+            return
 
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      if nfType == 'OAI-COMMON':
-        section_start_pattern = '/build/c/magma_common'
-        section_end_pattern = 'mkdir -p  /build/c/oai'
-      if nfType == 'OAI-MME':
-        section_start_pattern = '/build/c/oai'
-        section_end_pattern = 'mkdir -p  /build/c/magma_common'
-      if nfType == 'SCTPD':
-        section_start_pattern = '/build/c/sctpd'
-        section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
-      section_status = False
-      section_done = False
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-          result = re.search(section_start_pattern, line)
-          if (result is not None) and not section_done and (re.search('cmake', line) is not None):
-            section_status = True
-          result = re.search(section_end_pattern, line)
-          if (result is not None) and not section_done and section_status:
-            section_status = False
-            section_done = True
-          if section_status:
-            result = re.search('error:', line)
-            if result is not None:
-              nb_errors += 1
-            result = re.search('warning:', line)
-            if result is not None:
-              nb_warnings += 1
-            result = re.search('note:', line)
-            if result is not None:
-              nb_notes += 1
-        logfile.close()
-      if nb_warnings == 0 and nb_errors == 0:
-        cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
-      elif nb_warnings < 20 and nb_errors == 0:
-        cell_msg = '       <td bgcolor="Orange"><pre style="border:none; background-color:Orange"><b>'
-      else:
-        cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      if nb_errors > 0:
-        cell_msg += str(nb_errors) + ' errors found in compile log\n'
-      cell_msg += str(nb_warnings) + ' warnings found in compile log\n'
-      if nb_notes > 0:
-        cell_msg += str(nb_notes) + ' notes found in compile log\n'
+        self.file.write('      <td>Target Image</td>\n')
+        cwd = os.getcwd()
 
-      cell_msg += '</b></pre></td>\n'
-    else:
-      cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
+        log_file_names = [U18_BUILD_LOG_FILE, RHEL8_BUILD_LOG_FILE]
+        for log_file_name in log_file_names:
+            if os.path.isfile(cwd + '/archives/' + log_file_name):
+                section_start_pattern = 'WORKDIR /magma-mme/bin$'
+                if log_file_name == U18_BUILD_LOG_FILE:
+                    section_end_pattern = 'Successfully tagged magma-mme:'
+                if log_file_name == RHEL8_BUILD_LOG_FILE:
+                    section_end_pattern = 'COMMIT magma-mme:'
+                section_status = False
+                status = False
+                with open(cwd + '/archives/' + log_file_name, 'r') as logfile:
+                    for line in logfile:
+                        my_res = re.search(section_start_pattern, line)
+                        if my_res is not None:
+                            section_status = True
+                        my_res = re.search(section_end_pattern, line)
+                        if (my_res is not None) and section_status:
+                            section_status = False
+                            status = True
+                    logfile.close()
+                if status:
+                    cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+                    cell_msg += 'OK:\n'
+                else:
+                    cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+                    cell_msg += 'KO:\n'
+                cell_msg += '</b></pre></td>\n'
+            else:
+                cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+                cell_msg += 'KO: logfile (' + log_file_name + ') not found</b></pre></td>\n'
 
-    self.file.write(cell_msg)
+            self.file.write(cell_msg)
 
-  def copyToTargetImage(self):
-    self.file.write('    <tr>\n')
-    self.file.write('      <td bgcolor="lightcyan" >SW libs Installation / Copy from Builder</td>\n')
-    self.analyze_copy_log('MME')
-    self.file.write('    </tr>\n')
+    def add_image_size_row(self):
+        """Add the row about image size of target image."""
+        self.file.write('    <tr>\n')
+        self.file.write('      <td bgcolor="lightcyan" >Image Size</td>\n')
+        self.analyze_image_size_log('MME')
+        self.file.write('    </tr>\n')
 
-  def analyze_copy_log(self, nfType):
-    if nfType != 'MME':
-      self.file.write('      <td>N/A</td>\n')
-      self.file.write('      <td>Wrong NF Type for this Report</td>\n')
-      return
+    def analyze_image_size_log(self, nf_type):
+        """
+        Retrieve image size from log.
 
-    logFileName = 'build_magma_mme.log'
-    self.file.write('      <td>Target Image</td>\n')
+        Args:
+            nf_type: which build part
+        """
+        if nf_type != 'MME':
+            self.file.write('      <td>N/A</td>\n')
+            self.file.write('      <td>Wrong NF Type for this Report</td>\n')
+            return
 
-    cwd = os.getcwd()
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      section_start_pattern = 'FROM ubuntu:bionic as magma-mme$'
-      section_end_pattern = 'WORKDIR /magma-mme/bin$'
-      section_status = False
-      status = False
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-          result = re.search(section_start_pattern, line)
-          if result is not None:
-            section_status = True
-          result = re.search(section_end_pattern, line)
-          if result is not None:
-            section_status = False
-            status = True
-      logfile.close()
-      if status:
-        cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
-        cell_msg += 'OK:\n'
-      else:
-        cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-        cell_msg += 'KO:\n'
-      cell_msg += '</b></pre></td>\n'
-    else:
-      cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
+        self.file.write('      <td>Target Image</td>\n')
+        cwd = os.getcwd()
 
-    self.file.write(cell_msg)
+        log_file_names = [U18_BUILD_LOG_FILE, RHEL8_BUILD_LOG_FILE]
+        for log_file_name in log_file_names:
+            if os.path.isfile(cwd + '/archives/' + log_file_name):
+                if log_file_name == U18_BUILD_LOG_FILE:
+                    section_start_pattern = 'Successfully tagged magma-mme'
+                    section_end_pattern = 'MAGMA-OAI-MME DOCKER IMAGE BUILD'
+                if log_file_name == RHEL8_BUILD_LOG_FILE:
+                    section_start_pattern = 'COMMIT magma-mme:'
+                    section_end_pattern = 'MAGMA-OAI-MME RHEL8 PODMAN IMAGE BUILD'
+                section_status = False
+                status = False
+                with open(cwd + '/archives/' + log_file_name, 'r') as logfile:
+                    for line in logfile:
+                        my_res = re.search(section_start_pattern, line)
+                        if my_res is not None:
+                            section_status = True
+                        my_res = re.search(section_end_pattern, line)
+                        if (my_res is not None) and section_status:
+                            section_status = False
+                        if section_status:
+                            my_res = re.search('magma-mme *ci-tmp', line)
+                            if my_res is not None:
+                                my_res = re.search('ago *([0-9 A-Z]+)', line)
+                                if my_res is not None:
+                                    size = my_res.group(1)
+                                    status = True
+                    logfile.close()
+                if status:
+                    cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
+                    cell_msg += 'OK:  ' + size + '\n'
+                else:
+                    cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+                    cell_msg += 'KO:\n'
+                cell_msg += '</b></pre></td>\n'
+            else:
+                cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
+                cell_msg += 'KO: logfile (' + log_file_name + ') not found</b></pre></td>\n'
 
-  def copyConfToolsToTargetImage(self):
-    self.file.write('    <tr>\n')
-    self.file.write('      <td bgcolor="lightcyan" >Copy Template Conf / Tools from Builder</td>\n')
-    self.analyze_copy_conf_tool_log('MME')
-    self.file.write('    </tr>\n')
+            self.file.write(cell_msg)
 
-  def analyze_copy_conf_tool_log(self, nfType):
-    if nfType != 'MME':
-      self.file.write('      <td>N/A</td>\n')
-      self.file.write('      <td>Wrong NF Type for this Report</td>\n')
-      return
+    def append_build_summary(self, mode):
+        """
+        Append in test results a correct build info summary.
 
-    logFileName = 'build_magma_mme.log'
-    self.file.write('      <td>Target Image</td>\n')
+        Args:
+            mode: which test mode
+        """
+        cwd = os.getcwd()
+        if mode == 'dsTester':
+            filename = 'test_results_magma_oai_epc.html'
+        if os.path.isfile(cwd + '/' + filename):
+            new_test_report = open(cwd + '/new_' + filename, 'w')
+            build_summary_to_be_done = True
+            with open(cwd + '/' + filename, 'r') as original_test_report:
+                for line in original_test_report:
+                    my_res = re.search('Deployment Summary', line)
+                    if (my_res is not None) and build_summary_to_be_done:
+                        summary = self.generate_build_summary()
+                        new_test_report.write(summary)
+                        build_summary_to_be_done = False
+                    new_test_report.write(line)
+                original_test_report.close()
+            new_test_report.close()
+            os.rename(cwd + '/new_' + filename, cwd + '/' + filename)
 
-    cwd = os.getcwd()
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      section_start_pattern = 'WORKDIR /magma-mme/bin$'
-      section_end_pattern = 'Successfully tagged magma-mme:'
-      section_status = False
-      status = False
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-          result = re.search(section_start_pattern, line)
-          if result is not None:
-            section_status = True
-          result = re.search(section_end_pattern, line)
-          if result is not None:
-            section_status = False
-            status = True
-        logfile.close()
-      if status:
-        cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
-        cell_msg += 'OK:\n'
-      else:
-        cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-        cell_msg += 'KO:\n'
-      cell_msg += '</b></pre></td>\n'
-    else:
-      cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
-
-    self.file.write(cell_msg)
-
-  def imageSizeRow(self):
-    self.file.write('    <tr>\n')
-    self.file.write('      <td bgcolor="lightcyan" >Image Size</td>\n')
-    self.analyze_image_size_log('MME')
-    self.file.write('    </tr>\n')
-
-  def analyze_image_size_log(self, nfType):
-    if nfType != 'MME':
-      self.file.write('      <td>N/A</td>\n')
-      self.file.write('      <td>Wrong NF Type for this Report</td>\n')
-      return
-
-    logFileName = 'build_magma_mme.log'
-    self.file.write('      <td>Target Image</td>\n')
-
-    cwd = os.getcwd()
-    if os.path.isfile(cwd + '/archives/' + logFileName):
-      section_start_pattern = 'Successfully tagged magma-mme'
-      section_end_pattern = 'MAGMA-OAI-MME DOCKER IMAGE BUILD'
-      section_status = False
-      status = False
-      with open(cwd + '/archives/' + logFileName, 'r') as logfile:
-        for line in logfile:
-          result = re.search(section_start_pattern, line)
-          if result is not None:
-            section_status = True
-          result = re.search(section_end_pattern, line)
-          if result is not None:
-            section_status = False
-          if section_status:
-            result = re.search('magma-mme *ci-tmp', line)
-            if result is not None:
-              result = re.search('ago *([0-9A-Z]+)', line)
-              if result is not None:
-                size = result.group(1)
-                status = True
-        logfile.close()
-      if status:
-        cell_msg = '       <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
-        cell_msg += 'OK:  ' + size + '\n'
-      else:
-        cell_msg = '       <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-        cell_msg += 'KO:\n'
-      cell_msg += '</b></pre></td>\n'
-    else:
-      cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
-      cell_msg += 'KO: logfile (' + logFileName + ') not found</b></pre></td>\n'
-
-    self.file.write(cell_msg)
-
-  def appendBuildSummary(self, mode):
-    cwd = os.getcwd()
-    if mode == 'dsTester':
-      filename = 'test_results_magma_oai_epc.html'
-    if os.path.isfile(cwd + '/' + filename):
-      newEpcReport = open(cwd + '/new_' + filename, 'w')
-      buildSummaryToBeDone = True
-      with open(cwd + '/' + filename, 'r') as originalEpcReport:
-        for line in originalEpcReport:
-          result = re.search('Deployment Summary', line)
-          if (result is not None) and buildSummaryToBeDone:
-            buildSummary = self.generateBuildSummary()
-            newEpcReport.write(buildSummary)
-            buildSummaryToBeDone = False
-          newEpcReport.write(line)
-        originalEpcReport.close()
-      newEpcReport.close()
-      os.rename(cwd + '/new_' + filename, cwd + '/' + filename)
-
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
 #
 # Start of main
 #
-#--------------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------------
+
 
 argvs = sys.argv
 argc = len(argvs)
@@ -491,65 +571,65 @@ argc = len(argvs)
 HTML = HtmlReport()
 
 while len(argvs) > 1:
-  myArgv = argvs.pop(1)
-  if re.match('^\-\-help$', myArgv, re.IGNORECASE):
-    print('No help yet.')
-    sys.exit(0)
-  elif re.match('^\-\-job_name=(.+)$', myArgv, re.IGNORECASE):
-    matchReg = re.match('^\-\-job_name=(.+)$', myArgv, re.IGNORECASE)
-    HTML.job_name = matchReg.group(1)
-  elif re.match('^\-\-job_id=(.+)$', myArgv, re.IGNORECASE):
-    matchReg = re.match('^\-\-job_id=(.+)$', myArgv, re.IGNORECASE)
-    HTML.job_id = matchReg.group(1)
-  elif re.match('^\-\-job_url=(.+)$', myArgv, re.IGNORECASE):
-    matchReg = re.match('^\-\-job_url=(.+)$', myArgv, re.IGNORECASE)
-    HTML.job_url = matchReg.group(1)
-  elif re.match('^\-\-git_url=(.+)$', myArgv, re.IGNORECASE):
-    matchReg = re.match('^\-\-git_url=(.+)$', myArgv, re.IGNORECASE)
-    HTML.git_url = matchReg.group(1)
-  elif re.match('^\-\-git_src_branch=(.+)$', myArgv, re.IGNORECASE):
-    matchReg = re.match('^\-\-git_src_branch=(.+)$', myArgv, re.IGNORECASE)
-    HTML.git_src_branch = matchReg.group(1)
-  elif re.match('^\-\-git_src_commit=(.+)$', myArgv, re.IGNORECASE):
-    matchReg = re.match('^\-\-git_src_commit=(.+)$', myArgv, re.IGNORECASE)
-    HTML.git_src_commit = matchReg.group(1)
-  elif re.match('^\-\-git_src_commit_msg=(.+)$', myArgv, re.IGNORECASE):
-    # Not Mandatory
-    matchReg = re.match('^\-\-git_src_commit_msg=(.+)$', myArgv, re.IGNORECASE)
-    HTML.git_src_commit_msg = matchReg.group(1)
-  elif re.match('^\-\-git_merge_request=(.+)$', myArgv, re.IGNORECASE):
-    # Can be silent: would be false!
-    matchReg = re.match('^\-\-git_merge_request=(.+)$', myArgv, re.IGNORECASE)
-    if matchReg.group(1) == 'true' or matchReg.group(1) == 'True':
-      HTML.git_merge_request = True
-  elif re.match('^\-\-git_target_branch=(.+)$', myArgv, re.IGNORECASE):
-    matchReg = re.match('^\-\-git_target_branch=(.+)$', myArgv, re.IGNORECASE)
-    HTML.git_target_branch = matchReg.group(1)
-  elif re.match('^\-\-git_target_commit=(.+)$', myArgv, re.IGNORECASE):
-    matchReg = re.match('^\-\-git_target_commit=(.+)$', myArgv, re.IGNORECASE)
-    HTML.git_target_commit = matchReg.group(1)
-  elif re.match('^\-\-mode=(.+)$', myArgv, re.IGNORECASE):
-    matchReg = re.match('^\-\-mode=(.+)$', myArgv, re.IGNORECASE)
-    if matchReg.group(1) == 'Build':
-      HTML.mode = 'build'
-    elif matchReg.group(1) == 'TestWithDsTest':
-      HTML.mode = 'dsTester'
+    my_argv = argvs.pop(1)
+    if re.match('^--help$', my_argv, re.IGNORECASE):
+        print('No help yet.')
+        sys.exit(0)
+    elif re.match('^--job_name=(.+)$', my_argv, re.IGNORECASE):
+        match = re.match('^--job_name=(.+)$', my_argv, re.IGNORECASE)
+        HTML.job_name = match.group(1)
+    elif re.match('^--job_id=(.+)$', my_argv, re.IGNORECASE):
+        match = re.match('^--job_id=(.+)$', my_argv, re.IGNORECASE)
+        HTML.job_id = match.group(1)
+    elif re.match('^--job_url=(.+)$', my_argv, re.IGNORECASE):
+        match = re.match('^--job_url=(.+)$', my_argv, re.IGNORECASE)
+        HTML.job_url = match.group(1)
+    elif re.match('^--git_url=(.+)$', my_argv, re.IGNORECASE):
+        match = re.match('^--git_url=(.+)$', my_argv, re.IGNORECASE)
+        HTML.git_url = match.group(1)
+    elif re.match('^--git_src_branch=(.+)$', my_argv, re.IGNORECASE):
+        match = re.match('^--git_src_branch=(.+)$', my_argv, re.IGNORECASE)
+        HTML.git_src_branch = match.group(1)
+    elif re.match('^--git_src_commit=(.+)$', my_argv, re.IGNORECASE):
+        match = re.match('^--git_src_commit=(.+)$', my_argv, re.IGNORECASE)
+        HTML.git_src_commit = match.group(1)
+    elif re.match('^--git_src_commit_msg=(.+)$', my_argv, re.IGNORECASE):
+        # Not Mandatory
+        match = re.match('^--git_src_commit_msg=(.+)$', my_argv, re.IGNORECASE)
+        HTML.git_src_commit_msg = match.group(1)
+    elif re.match('^--git_merge_request=(.+)$', my_argv, re.IGNORECASE):
+        # Can be silent: would be false!
+        match = re.match('^--git_merge_request=(.+)$', my_argv, re.IGNORECASE)
+        if match.group(1) == 'true' or match.group(1) == 'True':
+            HTML.git_merge_request = True
+    elif re.match('^--git_target_branch=(.+)$', my_argv, re.IGNORECASE):
+        match = re.match('^--git_target_branch=(.+)$', my_argv, re.IGNORECASE)
+        HTML.git_target_branch = match.group(1)
+    elif re.match('^--git_target_commit=(.+)$', my_argv, re.IGNORECASE):
+        match = re.match('^--git_target_commit=(.+)$', my_argv, re.IGNORECASE)
+        HTML.git_target_commit = match.group(1)
+    elif re.match('^--mode=(.+)$', my_argv, re.IGNORECASE):
+        match = re.match('^--mode=(.+)$', my_argv, re.IGNORECASE)
+        if match.group(1) == 'Build':
+            HTML.mode = 'build'
+        elif match.group(1) == 'TestWithDsTest':
+            HTML.mode = 'dsTester'
+        else:
+            sys.exit('Invalid mode: ' + match.group(1))
     else:
-      sys.exit('Invalid mode: ' + matchReg.group(1))
-  else:
-    sys.exit('Invalid Parameter: ' + myArgv)
+        sys.exit('Invalid Parameter: ' + my_argv)
 
 if HTML.job_name == '' or HTML.job_id == '' or HTML.job_url == '' or HTML.mode == '':
-  sys.exit('Missing Parameter in job description')
+    sys.exit('Missing Parameter in job description')
 
 if HTML.git_url == '' or HTML.git_src_branch == '' or HTML.git_src_commit == '':
-  sys.exit('Missing Parameter in Git Repository description')
+    sys.exit('Missing Parameter in Git Repository description')
 
 if HTML.git_merge_request:
-  if HTML.git_target_commit == '' or HTML.git_target_branch == '':
-     sys.exit('Missing Parameter in Git Pull Request Repository description')
+    if HTML.git_target_commit == '' or HTML.git_target_branch == '':
+        sys.exit('Missing Parameter in Git Pull Request Repository description')
 
 if HTML.mode == 'build':
-  HTML.generateBuild()
+    HTML.generate_build_report()
 elif HTML.mode == 'dsTester':
-  HTML.appendBuildSummary(HTML.mode)
+    HTML.append_build_summary(HTML.mode)

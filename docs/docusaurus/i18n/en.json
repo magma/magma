@@ -57,6 +57,9 @@
       "feg/deploy_intro": {
         "title": "Introduction"
       },
+      "feg/docker_setup": {
+        "title": "FeG Docker Setup"
+      },
       "feg/legacy/docker_setup": {
         "title": "FeG Docker Setup"
       },
@@ -67,6 +70,9 @@
         "title": "Federated Gateway (FeG)",
         "sidebar_label": "Overview"
       },
+      "feg/session_proxy": {
+        "title": "feg/session_proxy"
+      },
       "howtos/call_tracing": {
         "title": "Call Tracing"
       },
@@ -75,6 +81,9 @@
       },
       "howtos/he_api": {
         "title": "Header Enrichment"
+      },
+      "howtos/inbound_roaming": {
+        "title": "Inbound Roaming"
       },
       "howtos/readme_package": {
         "title": "Packaging"
@@ -822,6 +831,18 @@
       "version-1.4.0/basics/version-1.4.0-quick_start_guide": {
         "title": "Quick Start Guide"
       },
+      "version-1.4.0/contributing/version-1.4.0-contribute_codeowners": {
+        "title": "Codeowners Workflow"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_conventions": {
+        "title": "Contributing Conventions"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_onboarding": {
+        "title": "Developer Onboarding"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_workflow": {
+        "title": "Development Workflow"
+      },
       "version-1.4.0/debugging_tools/version-1.4.0-show_tech": {
         "title": "Show Tech"
       },
@@ -1000,8 +1021,8 @@
       "Deploy": "Deploy",
       "Upgrade": "Upgrade",
       "Debug": "Debug",
+      "Contribute": "Contribute",
       "Technical Reference": "Technical Reference",
-      "Contributing": "Contributing",
       "Proposals": "Proposals",
       "FAQ": "FAQ",
       "Basics": "Basics",
