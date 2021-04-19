@@ -195,6 +195,29 @@ static void recv_s8_create_session_response(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
+static void convert_serving_network_to_proto_msg(
+    magma::feg::ServingNetwork* serving_network, ServingNetwork_t itti_msg_sn) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  char mcc[3]     = {0};
+  char mnc[3]     = {0};
+  uint8_t mnc_len = 0;
+
+  mcc[0] = convert_digit_to_char(itti_msg_sn.mcc[0]);
+  mcc[1] = convert_digit_to_char(itti_msg_sn.mcc[1]);
+  mcc[2] = convert_digit_to_char(itti_msg_sn.mcc[2]);
+  mnc[0] = convert_digit_to_char(itti_msg_sn.mnc[0]);
+  mnc[1] = convert_digit_to_char(itti_msg_sn.mnc[1]);
+  if ((itti_msg_sn.mnc[2] & 0xf) != 0xf) {
+    mnc[2]  = convert_digit_to_char(itti_msg_sn.mnc[2]);
+    mnc_len = 3;
+  } else {
+    mnc_len = 2;
+  }
+  serving_network->set_mcc(mcc, 3);
+  serving_network->set_mnc(mnc, mnc_len);
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
 static void convert_uli_to_proto_msg(
     magma::feg::UserLocationInformation* uli, Uli_t msg_uli) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
@@ -345,6 +368,25 @@ static void convert_imeisv_to_string(char* imeisv) {
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
+static void convert_pco_to_proto_msg(
+    protocol_configuration_options_t pco,
+    magma::feg::CreateSessionRequestPgw* csr) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  magma::feg::PcoProtocolOrContainerId* proto_pco = NULL;
+  pco_protocol_or_container_id_t csr_pco          = {0};
+  csr->mutable_protocol_configuration_options()->set_config_protocol(
+      pco.configuration_protocol);
+  for (uint8_t idx = 0; idx < pco.num_protocol_or_container_id; idx++) {
+    proto_pco = csr->mutable_protocol_configuration_options()
+                    ->add_proto_or_container_id();
+    csr_pco = pco.protocol_or_container_ids[idx];
+    proto_pco->set_id(csr_pco.id);
+    proto_pco->set_contents(
+        std::string(bdata(csr_pco.contents), blength(csr_pco.contents)));
+  }
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
 static void fill_s8_create_session_req(
     const itti_s11_create_session_request_t* msg,
     magma::feg::CreateSessionRequestPgw* csr, teid_t sgw_s8_teid) {
@@ -354,28 +396,12 @@ static void fill_s8_create_session_req(
   get_msisdn_from_csr_req(msg, msisdn);
   csr->set_imsi((char*) msg->imsi.digit, msg->imsi.length);
   csr->set_msisdn((char*) msisdn, msg->msisdn.length);
-  char mcc[3];
-  mcc[0] = convert_digit_to_char(msg->serving_network.mcc[0]);
-  mcc[1] = convert_digit_to_char(msg->serving_network.mcc[1]);
-  mcc[2] = convert_digit_to_char(msg->serving_network.mcc[2]);
-  char mnc[3];
-  uint8_t mnc_len = 0;
-  mnc[0]          = convert_digit_to_char(msg->serving_network.mnc[0]);
-  mnc[1]          = convert_digit_to_char(msg->serving_network.mnc[1]);
-  if ((msg->serving_network.mnc[2] & 0xf) != 0xf) {
-    mnc[2]  = convert_digit_to_char(msg->serving_network.mnc[2]);
-    mnc_len = 3;
-  } else {
-    mnc[2]  = '\0';
-    mnc_len = 2;
-  }
   char imeisv[IMEISV_DIGITS_MAX + 1];
   get_imeisv_from_session_req(msg, imeisv);
   convert_imeisv_to_string(imeisv);
   csr->set_mei(imeisv, IMEISV_DIGITS_MAX);
-  magma::feg::ServingNetwork* serving_network = csr->mutable_serving_network();
-  serving_network->set_mcc(mcc, 3);
-  serving_network->set_mnc(mnc, mnc_len);
+  convert_serving_network_to_proto_msg(
+      csr->mutable_serving_network(), msg->serving_network);
   convert_uli_to_proto_msg(csr->mutable_uli(), msg->uli);
   csr->set_rat_type(magma::feg::RATType::EUTRAN);
   convert_paa_to_proto_msg(msg, csr);
@@ -387,9 +413,6 @@ static void fill_s8_create_session_req(
     magma::feg::BearerContext* bc = csr->mutable_bearer_context();
     convert_bearer_context_to_proto(
         &msg->bearer_contexts_to_be_created.bearer_contexts[0], bc);
-    // set the mbr within bearer qos same as apn-ambr
-    bc->mutable_qos()->mutable_mbr()->set_br_ul(msg->ambr.br_ul);
-    bc->mutable_qos()->mutable_mbr()->set_br_dl(msg->ambr.br_dl);
   }
   csr->set_c_agw_teid(sgw_s8_teid);
   csr->set_charging_characteristics(
@@ -398,6 +421,7 @@ static void fill_s8_create_session_req(
 
   convert_indication_flag_to_proto_msg(msg, csr);
   convert_time_zone_to_proto_msg(&msg->ue_time_zone, csr->mutable_time_zone());
+  convert_pco_to_proto_msg(msg->pco, csr);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
@@ -426,41 +450,71 @@ void send_s8_create_session_request(
         recv_s8_create_session_response(
             imsi64, sgw_s11_teid, dflt_bearer_qos, status, response);
       });
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+static void get_pco_from_proto_msg(
+    const magma::feg::ProtocolConfigurationOptions& proto_pco,
+    protocol_configuration_options_t* s8_pco) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  uint8_t idx                          = 0;
+  s8_pco->configuration_protocol       = proto_pco.config_protocol();
+  s8_pco->num_protocol_or_container_id = proto_pco.proto_or_container_id_size();
+  auto proto_pco_ids                   = proto_pco.proto_or_container_id();
+  for (auto ptr = proto_pco_ids.begin(); ptr < proto_pco_ids.end(); ptr++) {
+    s8_pco->protocol_or_container_ids[idx].id = ptr->id();
+    if (ptr->contents().length()) {
+      s8_pco->protocol_or_container_ids[idx].length = ptr->contents().length();
+      s8_pco->protocol_or_container_ids[idx].contents = bfromcstr_with_str_len(
+          ptr->contents().c_str(), ptr->contents().length());
+    }
+    ++idx;
+  }
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
 static void convert_proto_msg_to_itti_csr(
     magma::feg::CreateSessionResponsePgw& response,
     s8_create_session_response_t* s5_response, bearer_qos_t dflt_bearer_qos) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  s5_response->apn_restriction_value = response.apn_restriction();
-  get_fteid_from_proto_msg(
-      response.c_pgw_fteid(), &s5_response->pgw_s8_cp_teid);
-  get_paa_from_proto_msg(
-      response.pdn_type(), response.paa(), &s5_response->paa);
-
   s8_bearer_context_t* s8_bc = &(s5_response->bearer_context[0]);
   s8_bc->eps_bearer_id       = response.bearer_context().id();
   s5_response->eps_bearer_id = s8_bc->eps_bearer_id;
-  s8_bc->charging_id         = response.bearer_context().charging_id();
-  if (response.bearer_context().valid_qos()) {
+
+  if (response.has_gtp_error()) {
+    s5_response->cause = response.mutable_gtp_error()->cause();
+    OAILOG_FUNC_OUT(LOG_SGW_S8);
+  } else {
+    s5_response->cause = REQUEST_ACCEPTED;
+  }
+
+  s8_bc->charging_id = response.bearer_context().charging_id();
+  if (response.bearer_context().has_qos()) {
     get_qos_from_proto_msg(response.bearer_context().qos(), &s8_bc->qos);
   } else {
     // If qos is not received from PGW, set the qos that was sent in CS Req
     s8_bc->qos = dflt_bearer_qos;
   }
+
+  if (response.has_protocol_configuration_options()) {
+    get_pco_from_proto_msg(
+        response.protocol_configuration_options(), &s5_response->pco);
+  }
+  s5_response->apn_restriction_value = response.apn_restriction();
+  get_fteid_from_proto_msg(
+      response.c_pgw_fteid(), &s5_response->pgw_s8_cp_teid);
+  get_paa_from_proto_msg(
+      response.pdn_type(), response.paa(), &s5_response->paa);
   get_fteid_from_proto_msg(
       response.bearer_context().user_plane_fteid(), &s8_bc->pgw_s8_up);
-  if (response.has_gtp_error()) {
-    s5_response->cause = response.mutable_gtp_error()->cause();
-  } else {
-    s5_response->cause = REQUEST_ACCEPTED;
-  }
+
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
 void send_s8_delete_session_request(
     imsi64_t imsi64, Imsi_t imsi, teid_t sgw_s11_teid, teid_t pgw_s5_teid,
-    ebi_t bearer_id) {
+    ebi_t bearer_id,
+    const itti_s11_delete_session_request_t* const delete_session_req_p) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   OAILOG_INFO_UE(
       LOG_SGW_S8, imsi64,
@@ -474,6 +528,9 @@ void send_s8_delete_session_request(
   dsr_req.set_bearer_id(bearer_id);
   dsr_req.set_c_pgw_teid(pgw_s5_teid);
   dsr_req.set_c_agw_teid(sgw_s11_teid);
+  convert_uli_to_proto_msg(dsr_req.mutable_uli(), delete_session_req_p->uli);
+  convert_serving_network_to_proto_msg(
+      dsr_req.mutable_serving_network(), delete_session_req_p->serving_network);
   magma::S8Client::s8_delete_session_request(
       dsr_req,
       [imsi64, sgw_s11_teid](

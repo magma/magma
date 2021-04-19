@@ -328,6 +328,24 @@ commands:
             mkdir -p versions
             cp *_version versions || true
           no_output_timeout: 20m
+      - run:
+          name: Copy debian packages to new JFROG repo
+          command: |
+            cd ${MAGMA_ROOT}/circleci
+            PACKAGE_FILE=packages.tar.gz
+            if [ -f "${PACKAGE_FILE}" ]; then
+               echo "${PACKAGE_FILE} exists"
+               rm -rf *.deb
+               tar xvf ${PACKAGE_FILE} 
+               for i in `ls -a1 *.deb`
+               do
+                  echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
+                 # curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
+               done
+            else
+               echo "${PACKAGE_FILE} does NOT exist"
+               echo "No debian packages to push to JFROG"
+            fi
       - store_artifacts:
           path: /tmp/logs
       - store_test_results:
@@ -469,8 +487,26 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
+  backport:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - python/set_version
+      - run:
+          command: |
+            mkdir ~/.magma
+            echo ${GITHUB_ACCESS_TOKEN} > ~/.magma/github_access_token
+      - run:
+          name: Install python prerequisites
+          command: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/circleci/release
+            fab find_release_commits
   ### CLOUD
-
   cloud-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -1351,4 +1387,8 @@ workflows:
   fossa:
     jobs:
       - fossa-analyze:
+          <<: *only_master
+  github:
+    jobs:
+      - backport:
           <<: *only_master

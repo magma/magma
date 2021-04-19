@@ -34,9 +34,22 @@ type loadType int
 
 const (
 	loadEntities loadType = iota
+	countEntities
 	loadChildren
 	loadParents
 )
+
+func (store *sqlConfiguratorStorage) countEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (uint64, error) {
+	selectBuilder, err := store.getBuilder(networkID, filter, criteria, countEntities)
+	if err != nil {
+		return 0, err
+	}
+	var count uint64
+	if err = selectBuilder.RunWith(store.tx).Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
 
 func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (EntitiesByTK, error) {
 	entsByTK := EntitiesByTK{}
@@ -129,10 +142,16 @@ func (store *sqlConfiguratorStorage) getBuilder(networkID string, filter EntityL
 	}
 	isInNetwork := sq.Eq{entCol(entNidCol): networkID}
 
-	cols := getLoadEntitiesCols(criteria)
-	// If we're loading assocs: don't need to load everything
-	if loadTyp == loadChildren || loadTyp == loadParents {
+	var cols []string
+	switch loadTyp {
+	case countEntities:
+		cols = []string{"COUNT(1)"}
+	case loadEntities:
+		cols = getLoadEntitiesCols(criteria)
+	case loadChildren, loadParents:
 		cols = getLoadAssocCols()
+	default:
+		return sq.SelectBuilder{}, fmt.Errorf("unsupported load type")
 	}
 
 	builder := store.builder.Select(cols...).From(fmt.Sprintf("%s AS ent", entityTable))

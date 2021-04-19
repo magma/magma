@@ -37,6 +37,7 @@ typedef struct s8_create_session_response_s {
   uint8_t apn_restriction_value;
   fteid_t pgw_s8_cp_teid;
   uint32_t cause;
+  protocol_configuration_options_t pco;
 } s8_create_session_response_t;
 
 typedef struct s8_delete_session_response_s {

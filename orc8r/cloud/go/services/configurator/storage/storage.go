@@ -79,6 +79,10 @@ type ConfiguratorStorage interface {
 	// querying until an empty page token is received in the load result.
 	LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error)
 
+	// CountEntities returns the count of entities corresponding to the provided
+	// load criteria.
+	CountEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityCountResult, error)
+
 	// CreateEntity creates a new entity. The created entity is returned
 	// with system-generated fields filled in.
 	CreateEntity(networkID string, entity NetworkEntity) (NetworkEntity, error)

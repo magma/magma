@@ -386,6 +386,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           mme_app_desc_p, &S1AP_HANDOVER_REQUIRED(received_message_p));
     } break;
 
+    case S1AP_HANDOVER_REQUEST_ACK: {
+      mme_app_handle_handover_request_ack(
+          mme_app_desc_p, &S1AP_HANDOVER_REQUEST_ACK(received_message_p));
+    } break;
+
     case S6A_AUTH_INFO_ANS: {
       /*
        * We received the authentication vectors from HSS,

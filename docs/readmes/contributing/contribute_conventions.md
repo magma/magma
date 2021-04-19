@@ -194,6 +194,55 @@ Orc8r's cloud code has some basic [CI lint checks](https://github.com/magma/magm
 - When import aliasing is required, prefer to alias with `snake_case` rather than `camelCase`
 - Prefer readable code over rigid adherence to max line lengths. Capping around 140 characters feels about right.
 
+### Python
+
+The [PEP 8 style guide](https://www.python.org/dev/peps/pep-0008/) is authoritative.
+
+**Type annotations**
+
+- All new code should be fully type-annotated
+  - For reference, please look at this [type hints cheat sheet for Python 3](https://mypy.readthedocs.io/en/stable/cheat_sheet_py3.html)
+
+**Documentation**
+
+- Document all public functions and *keep those docs up to date* when you make changes
+- We use [Google style docstrings](https://google.github.io/styleguide/pyguide.html#383-functions-and-methods) in our codebase
+  - For VSCode users, [Python Docstring Generator](https://marketplace.visualstudio.com/items?itemName=njpwerner.autodocstring) plugin is recommended
+  - For IntelliJ users, you can configure a doc string format via `Preferences->Tools->Python Integrated Tools->Docstring format`
+
+Example:
+```
+def foo(arg1: str) -> int:
+    """Returns the length of arg1.
+
+    Args:
+        arg1 (str): string to calculate the length of
+
+    Returns: the length of the provided parameter
+    """
+    return len(arg1)
+```
+
+**Logging**
+- Use the [logging](https://docs.python.org/3/library/logging.html) module for all logging 
+- Refer to the Go logging section for deciding between log levels
+
+
+**Linter**
+
+- For mandatory lint checks, we have a unit test that runs [Pylint](https://pypi.org/project/pylint/) on all gateway services 
+  - On CI, the check gets run as part of the `lte-test` job
+- Additionally, we have a [Reviewdog](https://github.com/reviewdog/reviewdog) linter using [wemake-python-styleguide](https://wemake-python-stylegui.de/en/latest/) enabled to aid the code review process
+  - To run the linter locally, use the [precommit script](https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py)
+
+**Formatters**
+
+- We recommend [autopep8](https://pypi.org/project/autopep8/) as it conforms to [pep8](https://www.python.org/dev/peps/pep-0008/)
+  - The above-mentioned [precommit script](https://github.com/magma/magma/blob/master/lte/gateway/python/precommit.py) also has an option to format your changes with 
+  [isort](https://pypi.org/project/isort/), [autopep8](https://pypi.org/project/autopep8/), and [add-trailing-comma](https://pypi.org/project/add-trailing-comma/)
+- We do *not* recommend other formatters such as [black](https://black.readthedocs.io/en/stable/installation_and_usage.html), as it diverges from pep8 on basic things like line length, etc.   
+
+
 ### Shell
 
 - Shell script names should be suffixed with the proper file extension

@@ -207,6 +207,16 @@ void mme_ue_context_update_ue_sgs_neaf(
     pLMN1.mnc_digit3 = pLMN2.mnc_digit3;                                       \
   } while (0)
 
+#define COPY_PLMN_IN_ARRAY_FMT(pLMN1, pLMN2)                                   \
+  do {                                                                         \
+    pLMN1.mcc[0] = pLMN2.mcc_digit1;                                           \
+    pLMN1.mcc[1] = pLMN2.mcc_digit2;                                           \
+    pLMN1.mcc[2] = pLMN2.mcc_digit3;                                           \
+    pLMN1.mnc[0] = pLMN2.mnc_digit1;                                           \
+    pLMN1.mnc[1] = pLMN2.mnc_digit2;                                           \
+    pLMN1.mnc[2] = pLMN2.mnc_digit3;                                           \
+  } while (0)
+
 #define OAILOG_DEBUG_GUTI(gUTI_p)                                              \
   do {                                                                         \
     OAILOG_DEBUG(                                                              \

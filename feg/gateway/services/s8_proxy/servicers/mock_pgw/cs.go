@@ -261,8 +261,8 @@ func handleQOStoBearer(qosIE *ie.IE, br *gtpv2.Bearer) error {
 	if err != nil {
 		return err
 	}
-	br.PCI = qosIE.PreemptionCapability()
-	br.PVI = qosIE.PreemptionVulnerability()
+	br.PCI = qosIE.HasPCI()
+	br.PVI = qosIE.HasPVI()
 
 	br.MBRUL, err = qosIE.MBRForUplink()
 	if err != nil {
