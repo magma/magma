@@ -134,9 +134,12 @@ func (store *sqlConfiguratorStorage) getBuilder(networkID string, filter EntityL
 		return fmt.Sprintf("ent.%s", c)
 	}
 	addSuffix := func(b sq.SelectBuilder) sq.SelectBuilder {
-		b = b.OrderBy(entCol(entKeyCol))
-		if loadTyp == loadEntities {
+		switch loadTyp {
+		case loadEntities:
 			b = b.Limit(uint64(pageSize))
+			fallthrough
+		case loadChildren, loadParents:
+			b = b.OrderBy(entCol(entKeyCol))
 		}
 		return b
 	}
