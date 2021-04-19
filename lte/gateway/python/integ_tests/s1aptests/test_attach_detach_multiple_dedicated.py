@@ -11,25 +11,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
-import time
 import ipaddress
+import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestAttachDetachMultipleDedicated(unittest.TestCase):
+    """Multiple dedicated bearer test with a single UE"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach(self):
-        """ attach/detach + multiple dedicated bearer test with a single UE """
+        """attach/detach + multiple dedicated bearer test with a single UE"""
         num_dedicated_bearers = 3
         bearer_ids = []
         flow_lists = []
@@ -61,7 +65,7 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             flow_lists.append(
-                self._spgw_util.create_default_ipv4_flows(port_idx=i)
+                self._spgw_util.create_default_ipv4_flows(port_idx=i),
             )
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
@@ -72,13 +76,13 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId
+                req.ue_id, act_ded_ber_ctxt_req.bearerId,
             )
             bearer_ids.append(act_ded_ber_ctxt_req.bearerId)
             print(
@@ -97,7 +101,7 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
         # 1 default UL flow + 3 dedicated bearer UL flows
         num_ul_flows = 4
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         for i in range(num_dedicated_bearers):
@@ -120,7 +124,7 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
             print("******************* Received deactivate eps bearer context")
 
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                req.ue_id, bearer_ids[i]
+                req.ue_id, bearer_ids[i],
             )
 
             print(
@@ -138,13 +142,13 @@ class TestAttachDetachMultipleDedicated(unittest.TestCase):
         # 1 default UL flow
         num_ul_flows = 1
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         print("********************** Running UE detach for UE id ", req.ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value
+            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
         )
 
 

@@ -11,27 +11,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
-import ipaddress
 
 
 class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
+    """Test secondary pdn with dedicated bearer deactivation"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_secondary_pdn_conn_ded_bearer_deactivate(self):
-        """ Attach a single UE and send standalone PDN Connectivity
+        """Attach a single UE and send standalone PDN Connectivity
         Request + add dedicated bearer to each default bearer + deactivate
-        dedicated bearers + detach"""
+        dedicated bearers + detach
+        """
         num_ues = 1
 
         self._s1ap_wrapper.configUEDevice(num_ues)
@@ -54,7 +59,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
             apn_list = [ims]
 
             self._s1ap_wrapper.configAPN(
-                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
             )
 
             print(
@@ -77,7 +82,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
             # Add dedicated bearer for default bearer 5
             print(
                 "********************** Adding dedicated bearer to magma.ipv4"
-                " PDN"
+                " PDN",
             )
             # Create default flow list
             flow_list1 = self._spgw_util.create_default_ipv4_flows()
@@ -89,13 +94,13 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_req_oai_apn = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_req_oai_apn.bearerId
+                req.ue_id, act_ded_ber_req_oai_apn.bearerId,
             )
 
             print("Sleeping for 5 seconds")
@@ -106,7 +111,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
             )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
             addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
@@ -131,13 +136,13 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_req_ims_apn = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_req_ims_apn.bearerId
+                req.ue_id, act_ded_ber_req_ims_apn.bearerId,
             )
             print(
                 "************* Added dedicated bearer",
@@ -150,10 +155,11 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
                 default_ip: [flow_list1],
                 sec_ip: [flow_list2],
             }
-            # 2 UL flows for default and seconday pdns + 2 for dedicated bearers
+            # 2 UL flows for default and secondary pdns +
+            # 2 for dedicated bearers
             num_ul_flows = 4
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
             print("Sleeping for 5 seconds")
@@ -161,7 +167,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
             # Delete dedicated bearer of secondary PDN (ims apn)
             print(
                 "********************** Deleting dedicated bearer for ims"
-                " apn"
+                " apn",
             )
             self._spgw_util.delete_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
@@ -179,7 +185,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
 
             # Send Deactivate dedicated bearer rsp
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                req.ue_id, deactv_bearer_req.bearerId
+                req.ue_id, deactv_bearer_req.bearerId,
             )
 
             print(
@@ -191,7 +197,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
             # Delete dedicated bearer of default PDN (magma.ipv4 apn)
             self._spgw_util.delete_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
-                5,
+                attach.esmInfo.epsBearerId,
                 act_ded_ber_req_oai_apn.bearerId,
             )
 
@@ -204,7 +210,7 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
             deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
             # Send Deactivate dedicated bearer rsp
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                req.ue_id, deactv_bearer_req.bearerId
+                req.ue_id, deactv_bearer_req.bearerId,
             )
 
             print(
@@ -218,10 +224,10 @@ class TestSecondaryPdnConnWithDedBearerDeactivateReq(unittest.TestCase):
                 default_ip: [],
                 sec_ip: [],
             }
-            # 2 UL flows for default and seconday pdns
+            # 2 UL flows for default and secondary pdns
             num_ul_flows = 2
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
             # Now detach the UE

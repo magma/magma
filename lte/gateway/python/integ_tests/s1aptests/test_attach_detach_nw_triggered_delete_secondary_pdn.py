@@ -11,27 +11,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import ipaddress
-
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
+    """Test network triggered secondary pdn deletion"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_nw_triggered_delete_secondary_pdn(self):
-        """ Attach a single UE + add secondary PDN + add dedicated bearer
-        to the secondary pdn + delete the secondary pdn + detach"""
+        """Attach a single UE + add secondary PDN + add dedicated bearer
+        to the secondary pdn + delete the secondary pdn + detach
+        """
         num_ue = 1
 
         self._s1ap_wrapper.configUEDevice(num_ue)
@@ -53,7 +57,7 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
         apn_list = [ims]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
         print(
             "******************* Running End to End attach for UE id ", ue_id,
@@ -78,7 +82,7 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
         )
         act_sec_pdn = response.cast(s1ap_types.uePdnConRsp_t)
         addr = act_sec_pdn.m.pdnInfo.pAddr.addrInfo
@@ -105,12 +109,12 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
         # Receive Activate dedicated EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_ctxt_req = response.cast(s1ap_types.UeActDedBearCtxtReq_t)
         # Send Activate dedicated EPS bearer context accept
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            req.ue_id, act_ded_ber_ctxt_req.bearerId
+            req.ue_id, act_ded_ber_ctxt_req.bearerId,
         )
 
         print("Sleeping for 5 seconds")
@@ -120,10 +124,10 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
             default_ip: [],
             sec_ip: [flow_list],
         }
-        # 2 UL flows for default and seconday pdns + 1 for dedicated bearer
+        # 2 UL flows for default and secondary pdns + 1 for dedicated bearer
         num_ul_flows = 3
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
         print(
             "******************* Deleting default bearer for IMSI",
@@ -145,16 +149,16 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
         deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
         print(
             "******************* Received deactivate eps bearer context"
-            " request"
+            " request",
         )
         print(
             "******************* Sending deactivate eps bearer context"
-            " accept"
+            " accept",
         )
 
         # Send Deactivate EPS bearer context accept
         self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-            ue_id, deactv_bearer_req.bearerId
+            ue_id, deactv_bearer_req.bearerId,
         )
         print("Sleeping for 5 seconds")
         time.sleep(5)
@@ -165,7 +169,7 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
         # 1 UL flow for default pdn
         num_ul_flows = 1
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
         print(
             "******************* Running UE detach (switch-off) for ",
@@ -174,7 +178,7 @@ class TestAttachDetachNwTriggeredDeleteSecondaryPdn(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
 

@@ -6,26 +6,31 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
-import ipaddress
 
 
 class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
+    """Test ipv4v6 secondary pdn with spgw initiated dedicated bearer"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_ipv4v6_secondary_pdn_spgw_initiated_ded_bearer(self):
-        """ Attach a single UE + add a secondary pdn with """
-        """ IPv4v6 + trigger dedicated bearer from spgw + detach """
+        """Attach a single UE + add a secondary pdn with
+        IPv4v6 + trigger dedicated bearer from spgw + detach
+        """
         num_ue = 1
 
         self._s1ap_wrapper.configUEDevice(num_ue)
@@ -47,7 +52,7 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         apn_list = [ims_apn]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
         print(
             "*********************** Running End to End attach for UE id ",
@@ -76,20 +81,20 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         pdn_type = 3
         # Send PDN Connectivity Request
         self._s1ap_wrapper.sendPdnConnectivityReq(
-            ue_id, apn, pdn_type=pdn_type
+            ue_id, apn, pdn_type=pdn_type,
         )
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
         )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
-        pdnType = act_def_bearer_req.m.pdnInfo.pAddr.pdnType
+        pdn_type = act_def_bearer_req.m.pdnInfo.pAddr.pdnType
         addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
         sec_ip_ipv4 = None
-        if pdnType == 1:
+        if pdn_type == 1:
             sec_ip_ipv4 = ipaddress.ip_address(bytes(addr[:4]))
-        elif pdnType == 3:
+        elif pdn_type == 3:
             sec_ip_ipv4 = ipaddress.ip_address(bytes(addr[8:12]))
 
         print(
@@ -99,22 +104,22 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         print(
             "********************** Added default bearer for apn-%s,"
             " bearer id-%d, pdn type-%d"
-            % (apn, act_def_bearer_req.m.pdnInfo.epsBearerId, pdn_type,)
+            % (apn, act_def_bearer_req.m.pdnInfo.epsBearerId, pdn_type),
         )
 
         # Receive Router Advertisement message
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value,
         )
-        routerAdv = response.cast(s1ap_types.ueRouterAdv_t)
+        router_adv = response.cast(s1ap_types.ueRouterAdv_t)
         print(
             "******************* Received Router Advertisement for APN-%s"
-            " ,bearer id-%d" % (apn, routerAdv.bearerId)
+            " ,bearer id-%d" % (apn, router_adv.bearerId),
         )
 
-        ipv6_addr = "".join([chr(i) for i in routerAdv.ipv6Addr]).rstrip(
-            "\x00"
+        ipv6_addr = "".join([chr(i) for i in router_adv.ipv6Addr]).rstrip(
+            "\x00",
         )
         print("******* UE IPv6 address: ", ipv6_addr)
         sec_ip_ipv6 = ipaddress.ip_address(ipv6_addr)
@@ -135,11 +140,11 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_ctxt_req = response.cast(s1ap_types.UeActDedBearCtxtReq_t)
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            req.ue_id, act_ded_ber_ctxt_req.bearerId
+            req.ue_id, act_ded_ber_ctxt_req.bearerId,
         )
         print(
             "************* Added dedicated bearer",
@@ -157,7 +162,7 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
 
         # Verify if flow rules are created
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         print(
@@ -179,7 +184,7 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
 
         deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
         self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-            req.ue_id, deactv_bearer_req.bearerId
+            req.ue_id, deactv_bearer_req.bearerId,
         )
 
         print("***** Sleeping for 5 seconds")
@@ -187,21 +192,21 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         # ipv4 default pdn + ipv4v6(ims) pdn
         num_ul_flows = 2
         # For ipv4v6 pdn, pass default_ip, sec_ip_ipv4 and sec_ip_ipv6
-        if pdnType == 3:
+        if pdn_type == 3:
             dl_flow_rules = {
                 default_ip: [],
                 sec_ip_ipv4: [],
                 sec_ip_ipv6: [],
             }
         # For ipv6 pdn, pass default_ip, sec_ip_ipv6
-        if pdnType == 2:
+        if pdn_type == 2:
             dl_flow_rules = {
                 default_ip: [],
                 sec_ip_ipv6: [],
             }
         # Verify if flow rules are created
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         print(
@@ -211,7 +216,7 @@ class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
 

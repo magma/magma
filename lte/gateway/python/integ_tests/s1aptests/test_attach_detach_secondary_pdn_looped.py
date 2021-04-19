@@ -11,25 +11,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import ipaddress
 
 
 class TestSecondaryPdnConnLooped(unittest.TestCase):
+    """Test secondary pdn connection and disconnection in loop"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_secondary_pdn_conn_looped(self):
-        """ Attach a single UE and send standalone PDN Connectivity
-        Request + detach. Repeat 3 times """
-
+        """Attach a single UE and send standalone PDN Connectivity
+        Request + detach. Repeat 3 times
+        """
         num_ues = 1
 
         self._s1ap_wrapper.configUEDevice(num_ues)
@@ -52,7 +56,7 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
         apn_list = [ims]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
 
         print(
@@ -81,7 +85,7 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
             )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
             addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
@@ -104,7 +108,7 @@ class TestSecondaryPdnConnLooped(unittest.TestCase):
             # 1 UL flow is created per bearer
             num_ul_flows = 2
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
             print(

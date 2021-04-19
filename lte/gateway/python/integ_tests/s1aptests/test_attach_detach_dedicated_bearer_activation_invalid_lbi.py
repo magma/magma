@@ -11,26 +11,31 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
-import time
 import ipaddress
+import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestAttachDetachDedicatedInvalidlbi(unittest.TestCase):
+    """Invalid lbi in dedicated bearer test with a single UE"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach(self):
-        """ attach/detach + invalid lbi in dedicated bearer test with
-            a single UE """
+        """attach/detach + invalid lbi in dedicated bearer test with
+        a single UE
+        """
         num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
@@ -84,7 +89,7 @@ class TestAttachDetachDedicatedInvalidlbi(unittest.TestCase):
             # 1 UL flow for default bearer
             num_ul_flows = 1
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
             print("Sleeping for 2 seconds")
@@ -95,7 +100,7 @@ class TestAttachDetachDedicatedInvalidlbi(unittest.TestCase):
             )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type[i], wait_for_s1[i]
+                req.ue_id, detach_type[i], wait_for_s1[i],
             )
 
 

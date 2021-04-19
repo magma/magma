@@ -11,27 +11,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import ipaddress
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
+    """Test secondary pdn with dedicated creation in loop"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_secondary_pdn_conn_ded_bearer_looped(self):
-        """ Attach a single UE and send standalone PDN Connectivity
+        """Attach a single UE and send standalone PDN Connectivity
         Request + add dedicated bearer to each default bearer
-        repeat 3 times """
+        repeat 3 times
+        """
         num_ues = 1
         loop = 3
 
@@ -55,7 +60,7 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
             apn_list = [ims]
 
             self._s1ap_wrapper.configAPN(
-                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
             )
 
             print(
@@ -115,10 +120,10 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
                     s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
                 )
                 act_ded_ber_ctxt_req = response.cast(
-                    s1ap_types.UeActDedBearCtxtReq_t
+                    s1ap_types.UeActDedBearCtxtReq_t,
                 )
                 self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                    req.ue_id, act_ded_ber_ctxt_req.bearerId
+                    req.ue_id, act_ded_ber_ctxt_req.bearerId,
                 )
 
                 print("Sleeping for 5 seconds")
@@ -128,20 +133,22 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
                     default_ip: [],
                     sec_ip: [flow_list],
                 }
-                # 2 UL flows for default and seconday pdns + 1 for dedicated bearer
+                # 2 UL flows for default and secondary pdns +
+                # 1 for dedicated bearer
                 num_ul_flows = 3
                 self._s1ap_wrapper.s1_util.verify_flow_rules(
-                    num_ul_flows, dl_flow_rules
+                    num_ul_flows, dl_flow_rules,
                 )
 
                 # Send PDN Disconnect
                 pdn_disconnect_req = s1ap_types.uepdnDisconnectReq_t()
                 pdn_disconnect_req.ue_Id = ue_id
                 pdn_disconnect_req.epsBearerId = (
-                    act_def_bearer_req.m.pdnInfo.epsBearerId
+                    act_def_bearer_req.m.pdnInfo.epsBearerId,
                 )
                 self._s1ap_wrapper._s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req
+                    s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ,
+                    pdn_disconnect_req,
                 )
 
                 # Receive UE_DEACTIVATE_BER_REQ
@@ -153,14 +160,14 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
 
                 print(
                     "*************** Received deactivate eps bearer context"
-                    " request"
+                    " request",
                 )
                 # Send DeactDedicatedBearerAccept
                 deactv_bearer_req = response.cast(
-                    s1ap_types.UeDeActvBearCtxtReq_t
+                    s1ap_types.UeDeActvBearCtxtReq_t,
                 )
                 self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                    req.ue_id, deactv_bearer_req.bearerId
+                    req.ue_id, deactv_bearer_req.bearerId,
                 )
                 print("Sleeping for 5 seconds")
                 time.sleep(5)
@@ -171,7 +178,7 @@ class TestSecondaryPdnConnWithDedBearerLooped(unittest.TestCase):
                 # 1 UL flow for default bearer
                 num_ul_flows = 1
                 self._s1ap_wrapper.s1_util.verify_flow_rules(
-                    num_ul_flows, dl_flow_rules
+                    num_ul_flows, dl_flow_rules,
                 )
 
             print(

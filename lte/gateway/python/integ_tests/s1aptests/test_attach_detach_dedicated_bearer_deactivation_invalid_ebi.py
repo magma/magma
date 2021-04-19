@@ -11,26 +11,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
-import time
 import ipaddress
+import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestAttachDetachDedicatedInvalidEbi(unittest.TestCase):
+    """Dedicated bearer deactivation with invalid EBI
+    test with a single UE
+    """
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach(self):
-        """ attach/detach + dedicated bearer deactivation with invalid EBI
-            test with a single UE """
+        """attach/detach + dedicated bearer deactivation with invalid EBI
+        test with a single UE
+        """
         num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
@@ -77,13 +84,13 @@ class TestAttachDetachDedicatedInvalidEbi(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId
+                req.ue_id, act_ded_ber_ctxt_req.bearerId,
             )
 
             print("Sleeping for 5 seconds")
@@ -95,7 +102,7 @@ class TestAttachDetachDedicatedInvalidEbi(unittest.TestCase):
             # 1 UL flow for default bearer + 1 for dedicated bearer
             num_ul_flows = 2
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
             print(
@@ -111,15 +118,15 @@ class TestAttachDetachDedicatedInvalidEbi(unittest.TestCase):
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
-            # Deletion of dedicated bearer failed so the flow rule for dedicated bearer
-            # should not be deleted
+            # Deletion of dedicated bearer failed so the flow rule
+            # for dedicated bearer should not be deleted
             dl_flow_rules = {
                 default_ip: [flow_list],
             }
             # 1 UL flow for default bearer + 1 for dedicated bearer
             num_ul_flows = 2
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
             print("Sleeping for 5 seconds")
@@ -130,7 +137,7 @@ class TestAttachDetachDedicatedInvalidEbi(unittest.TestCase):
             )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type[i], wait_for_s1[i]
+                req.ue_id, detach_type[i], wait_for_s1[i],
             )
 
 

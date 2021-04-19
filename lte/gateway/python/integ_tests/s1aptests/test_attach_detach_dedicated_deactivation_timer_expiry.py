@@ -11,26 +11,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
-import time
 import ipaddress
+import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
+    """Dedicated bearer deactivation timer expiry test
+    with a single UE
+    """
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach(self):
-        """ attach/detach + dedicated bearer deactivation timer expiry test
-            with a single UE """
+        """attach/detach + dedicated bearer deactivation timer expiry test
+        with a single UE
+        """
         num_ues = 1
         self._s1ap_wrapper.configUEDevice(num_ues)
 
@@ -72,13 +79,13 @@ class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId
+                req.ue_id, act_ded_ber_ctxt_req.bearerId,
             )
 
             print("Sleeping for 5 seconds")
@@ -91,7 +98,7 @@ class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
             num_ul_flows = 2
             # Verify if flow rules are created
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
             print(
@@ -112,10 +119,10 @@ class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
                 s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
             )
             deact_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeDeActvBearCtxtReq_t
+                s1ap_types.UeDeActvBearCtxtReq_t,
             )
             print(
-                "********************** Received UE_DEACTIVATE_BER_REQ with ebi ",
+                "******************* Received UE_DEACTIVATE_BER_REQ with ebi ",
                 deact_ded_ber_ctxt_req.bearerId,
             )
 

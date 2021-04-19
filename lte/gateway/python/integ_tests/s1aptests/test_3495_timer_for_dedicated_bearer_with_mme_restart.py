@@ -11,41 +11,46 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
-import time
 import ipaddress
+import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 from s1ap_utils import MagmadUtil
 
 
 class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
+    """Test case validates the functionality of 3495 timer for
+    Dedicated bearer while MME restarts
+    """
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_3495_timer_for_dedicated_bearer_with_mme_restart(self):
-        """ Test case validates the functionality of 3495 timer for
-            Dedicated bearer while MME restarts
+        """Test case validates the functionality of 3495 timer for
+        Dedicated bearer while MME restarts
         Step1: UE attaches to network
         Step2: Creates a dedicated bearer
         Step3: Initiates dedicated bearer deletion, as part of which mme sends
-               Deactivate EPS bearer context request and starts 3495 timer
+        deactivate EPS bearer context request and starts 3495 timer
         Step4: TFW shall not respond to first Deactivate EPS bearer context
-               request message
+        request message
         Step5: Send command to Magma to restart mme service
         Step6: TFW shall receive re-transmitted Deactivate EPS bearer context
-               Request message and send Deactivate EPS bearer Context Accept
+        equest message and send Deactivate EPS bearer Context Accept
         Step7: TFW shall initiate Detach procedure.
         """
-
         num_ues = 1
         self._s1ap_wrapper.configUEDevice(num_ues)
 
@@ -85,13 +90,13 @@ class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId
+                req.ue_id, act_ded_ber_ctxt_req.bearerId,
             )
 
             print("Sleeping for 5 seconds")
@@ -103,7 +108,7 @@ class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
             # 1 UL flow for default bearer + 1 for dedicated bearer
             num_ul_flows = 2
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
             print(
@@ -111,7 +116,9 @@ class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             self._spgw_util.delete_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5, 6
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                attach.esmInfo.epsBearerId,
+                act_ded_ber_ctxt_req.bearerId,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -139,7 +146,7 @@ class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
             )
             deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
             self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                req.ue_id, deactv_bearer_req.bearerId
+                req.ue_id, deactv_bearer_req.bearerId,
             )
             print("Sleeping for 5 seconds")
             time.sleep(5)
@@ -150,7 +157,7 @@ class Test3495TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
             # 1 UL flow for default bearer
             num_ul_flows = 1
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
             print(

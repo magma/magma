@@ -11,26 +11,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
-import time
 import ipaddress
+import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestAttachDetachDedicatedReject(unittest.TestCase):
+    """Dedicated bearer activation reject test with a
+    single UE
+    """
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach(self):
-        """ attach/detach + dedicated bearer activation reject test with a
-            single UE """
+        """attach/detach + dedicated bearer activation reject test with a
+        single UE
+        """
         num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
@@ -76,20 +83,20 @@ class TestAttachDetachDedicatedReject(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             ded_bearer_rej = s1ap_types.UeActDedBearCtxtRej_t()
             ded_bearer_rej.ue_Id = req.ue_id
             ded_bearer_rej.bearerId = act_ded_ber_ctxt_req.bearerId
             # Send Bearer Activation Reject
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ACT_DED_BER_REJ, ded_bearer_rej
+                s1ap_types.tfwCmd.UE_ACT_DED_BER_REJ, ded_bearer_rej,
             )
             print(
-                "Sent UE_ACT_DED_BER_REJ for bearer", ded_bearer_rej.bearerId
+                "Sent UE_ACT_DED_BER_REJ for bearer", ded_bearer_rej.bearerId,
             )
 
             print("Sleeping for 5 seconds")
@@ -102,7 +109,7 @@ class TestAttachDetachDedicatedReject(unittest.TestCase):
             # 1 UL flow for default bearer
             num_ul_flows = 1
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
             print(
@@ -111,7 +118,7 @@ class TestAttachDetachDedicatedReject(unittest.TestCase):
             )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type[i], wait_for_s1[i]
+                req.ue_id, detach_type[i], wait_for_s1[i],
             )
 
 
