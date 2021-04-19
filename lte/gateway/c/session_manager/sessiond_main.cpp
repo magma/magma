@@ -58,6 +58,10 @@ void initialize_sentry() {
   if (control_proxy_config[SENTRY_URL].IsDefined()) {
     const std::string sentry_dns =
         control_proxy_config[SENTRY_URL].as<std::string>();
+    if (!sentry_dns.size()) {
+      return;
+    }
+    MLOG(MINFO) << "Starting SessionD with Sentry!";
     sentry_options_t* options = sentry_options_new();
     sentry_options_set_dsn(options, sentry_dns.c_str());
 
@@ -205,16 +209,17 @@ int main(int argc, char* argv[]) {
   __gcov_flush();
 #endif
 
-#ifdef SENTRY_ENABLED
-  initialize_sentry();
-#endif
-
   magma::init_logging(argv[0]);
 
   auto mconfig = load_mconfig();
   auto config =
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
+
+#ifdef SENTRY_ENABLED
+  initialize_sentry();
+#endif
+
   bool converged_access = false;
   // Check converged SessionD is enabled or not
   if (config["converged_access"].IsDefined() &&

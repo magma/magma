@@ -84,6 +84,7 @@ DOCKER_REGISTRY=<registry>
 DOCKER_USERNAME=<username>
 DOCKER_PASSWORD=<password>
 IMAGE_VERSION=latest
+GIT_HASH=master
 
 ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem
 CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml

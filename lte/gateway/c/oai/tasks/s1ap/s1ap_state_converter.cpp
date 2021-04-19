@@ -37,20 +37,25 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   // copy over mmeid2associd
   hashtable_rc_t ht_rc;
   mme_ue_s1ap_id_t mmeid;
-  sctp_assoc_id_t associd;
+  // Helper ptr so sctp_assoc_id can be casted from double ptr on
+  // hashtable_ts_get
+  void* sctp_id_ptr  = nullptr;
   auto mmeid2associd = proto->mutable_mmeid2associd();
 
   hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->mmeid2associd);
   if (!keys) {
     OAILOG_DEBUG(LOG_S1AP, "No keys in mmeid2associd hashtable");
   } else {
-    for (uint32_t i = 0; i < keys->num_keys; i++) {
+    for (int i = 0; i < keys->num_keys; i++) {
       mmeid = (mme_ue_s1ap_id_t) keys->keys[i];
       ht_rc = hashtable_ts_get(
-          &state->mmeid2associd, (hash_key_t) mmeid, (void**) &associd);
+          &state->mmeid2associd, (hash_key_t) mmeid, (void**) &sctp_id_ptr);
       AssertFatal(ht_rc == HASH_TABLE_OK, "mmeid not in mmeid2associd");
-
-      (*mmeid2associd)[mmeid] = associd;
+      if (sctp_id_ptr) {
+        sctp_assoc_id_t sctp_assoc_id =
+            (sctp_assoc_id_t)(uintptr_t) sctp_id_ptr;
+        (*mmeid2associd)[mmeid] = sctp_assoc_id;
+      }
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }

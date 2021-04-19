@@ -80,6 +80,7 @@ DOCKER_REGISTRY=<registry>
 DOCKER_USERNAME=<username>
 DOCKER_PASSWORD=<password>
 IMAGE_VERSION=latest
+GIT_HASH=master
 
 BUILD_CONTEXT=https://github.com/facebookincubator/magma.git#master
 

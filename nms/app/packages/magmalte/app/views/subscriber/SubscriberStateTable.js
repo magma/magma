@@ -16,22 +16,31 @@
 import type {subscriber, subscriber_state} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import NetworkContext from '../../components/context/NetworkContext';
+import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
+import nullthrows from '@fbcnms/util/nullthrows';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 import {JsonDialog} from './SubscriberOverview';
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {RenderLink} from './SubscriberOverview';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
-
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
@@ -125,8 +134,10 @@ function SubscriberStateDetailPanel(props: SubscriberStateDetailPanelProps) {
 }
 
 export default function SubscriberStateTable() {
+  const {match} = useRouter();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
   const classes = useStyles();
+  const networkId: string = nullthrows(match.params.networkId);
   const ctx = useContext(SubscriberContext);
   const subscriberMap: {[string]: subscriber} = ctx.state;
   const sessionState: {[string]: subscriber_state} = ctx.sessionState;
@@ -134,12 +145,26 @@ export default function SubscriberStateTable() {
   const [jsonDialog, setJsonDialog] = useState(false);
   const subscribersIds = Object.keys(sessionState);
   const networkCtx = useContext(NetworkContext);
+  const [refresh, setRefresh] = useState(true);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  // Auto refresh subscribers sessions every 30 seconds
+  const refreshingSessionState = useRefreshingContext({
+    context: SubscriberContext,
+    networkId,
+    type: 'subscriber',
+    interval: REFRESH_INTERVAL,
+    enqueueSnackbar,
+    refresh,
+  });
 
   const tableData: Array<SubscriberRowType> = subscribersIds.map(
     (imsi: string) => {
       const subscriberInfo = subscriberMap[imsi] || {};
       const metrics = subscriberMetrics?.[`${imsi}`];
-      const subscriber = sessionState[imsi]?.subscriber_state || {};
+      const subscriber =
+        // $FlowIgnore
+        refreshingSessionState.sessionState?.[imsi]?.subscriber_state || {};
       const ipAddresses = [];
       const activeApns = [];
       let activeSessions = 0;
@@ -227,6 +252,17 @@ export default function SubscriberStateTable() {
   return (
     <>
       <div className={classes.dashboardRoot}>
+        <CardTitleRow
+          key="title"
+          icon={PeopleIcon}
+          label={'Subscriber Sessions'}
+          filter={() => (
+            <AutorefreshCheckbox
+              autorefreshEnabled={refresh}
+              onToggle={() => setRefresh(current => !current)}
+            />
+          )}
+        />
         <JsonDialog open={jsonDialog} onClose={onClose} imsi={currRow.imsi} />
         <ActionTable
           data={tableData}

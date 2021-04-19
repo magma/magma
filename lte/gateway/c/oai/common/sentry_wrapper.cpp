@@ -28,6 +28,9 @@ void initialize_sentry(void) {
   if (control_proxy_config[SENTRY_URL].IsDefined()) {
     const std::string sentry_dns =
         control_proxy_config[SENTRY_URL].as<std::string>();
+    if (!sentry_dns.size()) {
+      return;
+    }
     sentry_options_t* options = sentry_options_new();
 
     sentry_options_set_dsn(options, sentry_dns.c_str());
