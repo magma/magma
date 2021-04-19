@@ -1016,8 +1016,6 @@ int s1ap_mme_handle_ue_context_release_request(
   S1ap_UEContextReleaseRequest_t* container;
   S1ap_UEContextReleaseRequest_IEs_t* ie = NULL;
   ue_description_t* ue_ref_p             = NULL;
-  enb_description_t* enb_ref_p           = NULL;
-  MessageDef* message_p                  = NULL;
   S1ap_Cause_PR cause_type;
   long cause_value;
   enum s1cause s1_release_cause   = S1AP_RADIO_EUTRAN_GENERATED_REASON;
@@ -1160,23 +1158,9 @@ int s1ap_mme_handle_ue_context_release_request(
       hashtable_uint64_ts_get(
           imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
           &imsi64);
+      rc = s1ap_send_mme_ue_context_release(
+          state, ue_ref_p, s1_release_cause, ie->value.choice.Cause, imsi64);
 
-      message_p =
-          itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_REQ);
-      AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-
-      enb_ref_p = s1ap_state_get_enb(state, ue_ref_p->sctp_assoc_id);
-
-      S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id =
-          ue_ref_p->mme_ue_s1ap_id;
-      S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id =
-          ue_ref_p->enb_ue_s1ap_id;
-      S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id   = enb_ref_p->enb_id;
-      S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = s1_release_cause;
-      S1AP_UE_CONTEXT_RELEASE_REQ(message_p).cause    = ie->value.choice.Cause;
-
-      message_p->ittiMsgHeader.imsi = imsi64;
-      rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
       OAILOG_FUNC_RETURN(LOG_S1AP, rc);
     } else {
       // abnormal case. No need to do anything. Ignore the message
@@ -2504,9 +2488,117 @@ int s1ap_mme_handle_error_ind_message(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message) {
   OAILOG_FUNC_IN(LOG_S1AP);
-  OAILOG_WARNING(
-      LOG_S1AP, "ERROR IND RCVD on Stream id %d, ignoring it\n", stream);
+  OAILOG_WARNING(LOG_S1AP, "ERROR IND RCVD on Stream id %d \n", stream);
   increment_counter("s1ap_error_ind_rcvd", 1, NO_LABELS);
+  S1ap_ErrorIndication_t* container = NULL;
+  S1ap_ErrorIndicationIEs_t* ie     = NULL;
+  ue_description_t* ue_ref_p        = NULL;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id   = INVALID_ENB_UE_S1AP_ID;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id   = INVALID_MME_UE_S1AP_ID;
+  S1ap_Cause_PR cause_type;
+  long cause_value;
+
+  container = &message->choice.initiatingMessage.value.choice.ErrorIndication;
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_ErrorIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_ErrorIndicationIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  if (ie) {
+    // eNB UE S1AP ID is limited to 24 bits
+    enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
+        ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_ErrorIndicationIEs_t, ie, container, S1ap_ProtocolIE_ID_id_Cause,
+      true);
+  if (ie) {
+    cause_type = ie->value.choice.Cause.present;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid((uint32_t) mme_ue_s1ap_id)) == NULL) {
+    OAILOG_WARNING(
+        LOG_S1AP,
+        "No UE is attached to this mme UE s1ap id: " MME_UE_S1AP_ID_FMT
+        " and eNB UE s1ap id: \n" ENB_UE_S1AP_ID_FMT,
+        mme_ue_s1ap_id, enb_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  imsi64_t imsi64           = INVALID_IMSI64;
+  s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+      &imsi64);
+
+  switch (cause_type) {
+    case S1ap_Cause_PR_radioNetwork:
+      cause_value = ie->value.choice.Cause.choice.radioNetwork;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "Error Indication with Cause_Type = Radio Network "
+          "and Cause_Value = %ld\n",
+          cause_value);
+      s1ap_send_mme_ue_context_release(
+          state, ue_ref_p, S1AP_RADIO_EUTRAN_GENERATED_REASON,
+          ie->value.choice.Cause, imsi64);
+      break;
+
+    case S1ap_Cause_PR_transport:
+      cause_value = ie->value.choice.Cause.choice.transport;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "Error Indication with Cause_Type = Transport and "
+          "Cause_Value = %ld\n",
+          cause_value);
+      break;
+
+    case S1ap_Cause_PR_nas:
+      cause_value = ie->value.choice.Cause.choice.nas;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "Error Indication with Cause_Type = NAS and "
+          "Cause_Value = %ld\n",
+          cause_value);
+      break;
+
+    case S1ap_Cause_PR_protocol:
+      cause_value = ie->value.choice.Cause.choice.protocol;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "Error Indication with Cause_Type = Protocol and "
+          "Cause_Value = %ld\n",
+          cause_value);
+      break;
+
+    case S1ap_Cause_PR_misc:
+      cause_value = ie->value.choice.Cause.choice.misc;
+      OAILOG_DEBUG_UE(
+          LOG_S1AP, imsi64,
+          "Error Indication with Cause_Type = MISC and "
+          "Cause_Value = %ld\n",
+          cause_value);
+      break;
+
+    default:
+      OAILOG_ERROR_UE(
+          LOG_S1AP, imsi64, "Error Indication with Invalid Cause_Type = %d\n",
+          cause_type);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
@@ -3603,4 +3695,31 @@ int s1ap_mme_remove_stale_ue_context(
       enb_ue_s1ap_id);
   send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
+int s1ap_send_mme_ue_context_release(
+    s1ap_state_t* state, ue_description_t* ue_ref_p,
+    enum s1cause s1_release_cause, S1ap_Cause_t ie_cause, imsi64_t imsi64) {
+  MessageDef* message_p = NULL;
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_REQ);
+  if (!message_p) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "Failed to allocate memory for S1AP_REMOVE_STALE_UE_CONTEXT \n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  enb_description_t* enb_ref_p =
+      s1ap_state_get_enb(state, ue_ref_p->sctp_assoc_id);
+
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id =
+      ue_ref_p->mme_ue_s1ap_id;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id =
+      ue_ref_p->enb_ue_s1ap_id;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id   = enb_ref_p->enb_id;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = s1_release_cause;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).cause    = ie_cause;
+
+  message_p->ittiMsgHeader.imsi = imsi64;
+  return send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
 }
