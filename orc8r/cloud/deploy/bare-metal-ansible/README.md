@@ -144,7 +144,7 @@ export IPS=192.168.1.180
 ```
 or if you have multiple hosts:
 ```bash
-export IPS=192.168.1.180 192.168.181 192.168.1.182
+export IPS="192.168.1.180 192.168.181 192.168.1.182"
 ```
 
 Now you're ready to run the deployment.  From the `$MAGMA_ROOT/orc8r/cloud/deploy/bare-metal-ansible' directory, execute:
