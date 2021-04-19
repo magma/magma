@@ -977,11 +977,11 @@ jobs:
             cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
             cp -r * ~/magma-experimental
             cp ~/magma-experimental/roles/vars/secrets.yaml ~/magma-experimental/files
-            ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files" -e "awsAccessKey: $AWS_ACCESS_KEY_ID" -e "awsSecretKey: $AWS_SECRET_ACCESS_KEY"
-            ansible-playbook build-provision.yaml --tags devopsAgw,inventory  -e "awsAccessKey: $AWS_ACCESS_KEY_ID" -e "awsSecretKey: $AWS_SECRET_ACCESS_KEY"
-            ansible-playbook build-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "buildnode=tag_Name_buildAgw" -e "ansible_python_interpreter=/usr/bin/python3"  -e "awsAccessKey: $AWS_ACCESS_KEY_ID" -e "awsSecretKey: $AWS_SECRET_ACCESS_KEY"
-            ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin  -e "awsAccessKey: $AWS_ACCESS_KEY_ID" -e "awsSecretKey: $AWS_SECRET_ACCESS_KEY"
-            ansible-playbook ami-init.yaml  -e "awsAccessKey: $AWS_ACCESS_KEY_ID" -e "awsSecretKey: $AWS_SECRET_ACCESS_KEY"
+            ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files" -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
+            ansible-playbook build-provision.yaml --tags devopsAgw,inventory  -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
+            ansible-playbook build-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "buildnode=tag_Name_buildAgw" -e "ansible_python_interpreter=/usr/bin/python3"  -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
+            ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin  -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
+            ansible-playbook ami-init.yaml  -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
 #      - magma_slack_notify
 
   ## CWF OPERATOR
