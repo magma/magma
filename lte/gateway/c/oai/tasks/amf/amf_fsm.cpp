@@ -138,7 +138,7 @@ void create_state_matrix() {
  * state,ue_context,amf_context
  * @return int for success or failure
  */
-int state_handle_message_ue_1(
+int ue_state_handle_message_initial(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_context_t* amf_context) {
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
@@ -165,7 +165,7 @@ int state_handle_message_ue_1(
  * state,ue_context,ue_id,smf_msg,amf_cause,decode_status
  * @return int for success or failure
  */
-int state_handle_message_ue_2(
+int ue_state_handle_message_reg_conn(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_ue_ngap_id_t ue_id,
     bstring smf_msg_pP, int amf_cause,
@@ -195,7 +195,7 @@ int state_handle_message_ue_2(
  * state,ue_context,ue_id
  * @return int for success or failure
  */
-int state_handle_message_ue_3(
+int ue_state_handle_message_dereg(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_ue_ngap_id_t ue_id) {
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
@@ -223,7 +223,7 @@ int state_handle_message_ue_3(
  * state,ue_context,amf_smf_msg,imsi,pdu_session_resp,ue_id
  * @return int for success or failure
  */
-int state_session_handle_message_1(
+int pdu_state_handle_message(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_smf_t amf_smf_msg, char* imsi,
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {

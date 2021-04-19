@@ -266,7 +266,7 @@ int amf_smf_send(
       /*
        * Execute the Grpc Send call of PDU establishment Request from AMF to SMF
        */
-      rc = state_session_handle_message_1(
+      rc = pdu_state_handle_message(
           ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
           smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
 
@@ -286,7 +286,7 @@ int amf_smf_send(
       }
       OAILOG_DEBUG(LOG_AMF_APP, "notifying SMF about PDU session release\n");
       /* Execute PDU Session Release and notify to SMF */
-      rc = state_session_handle_message_1(
+      rc = pdu_state_handle_message(
           ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE,
           smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
 

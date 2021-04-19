@@ -536,7 +536,7 @@ void amf_app_handle_pdu_session_response(
      */
   }
   /*Execute PDU establishement accept from AMF to gnodeb */
-  state_session_handle_message_1(
+  pdu_state_handle_message(
       ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
       smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
       pdu_session_resp, ue_id);

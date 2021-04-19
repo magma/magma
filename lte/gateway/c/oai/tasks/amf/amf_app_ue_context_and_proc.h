@@ -308,16 +308,6 @@ typedef struct amf_ue_context_s {
   obj_hash_table_uint64_t* guti_ue_context_htbl;  // data is amf_ue_ngap_id_t
 } amf_ue_context_t;
 
-#if 0
-enum m5gmm_state_t {
-  UNREGISTERED = 0,
-  REGISTERED_IDLE,
-  REGISTERED_CONNECTED,
-  UE_UNREGISTERED = 0,
-  UE_REGISTERED,
-};
-#endif
-
 enum m5gcm_state_t {
   M5GCM_IDLE = 0,
   M5GCM_CONNECTED,
@@ -764,16 +754,16 @@ int amf_proc_registration_complete(
     const amf_nas_message_decode_status_t status);
 
 // Finite state machine handlers
-int state_handle_message_ue_1(
+int ue_state_handle_message_initial(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_context_t* amf_context);
-int state_handle_message_ue_2(
+int ue_state_handle_message_reg_conn(
     m5gmm_state_t, int, SMSessionFSMState, ue_m5gmm_context_s*,
     amf_ue_ngap_id_t, bstring, int, amf_nas_message_decode_status_t);
-int state_handle_message_ue_3(
+int ue_state_handle_message_dereg(
     m5gmm_state_t, int event, SMSessionFSMState, ue_m5gmm_context_s*,
     amf_ue_ngap_id_t);
-int state_session_handle_message_1(
+int pdu_state_handle_message(
     m5gmm_state_t, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s*, amf_smf_t, char*,
     itti_n11_create_pdu_session_response_t*, uint32_t);

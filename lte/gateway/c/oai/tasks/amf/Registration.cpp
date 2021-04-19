@@ -202,13 +202,7 @@ int amf_proc_registration_request(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  /*
-   * Execute Initial identity Request from AMF to UE
-   */
-  // rc = state_handle_message_ue_1(
-  //    ue_m5gmm_global_context.mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
-  //    &ue_m5gmm_global_context, &ue_ctx.amf_context);
-  rc = state_handle_message_ue_1(
+  rc = ue_state_handle_message_initial(
       ue_m5gmm_context->mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
       ue_m5gmm_context, &ue_ctx.amf_context);
 
@@ -688,7 +682,7 @@ int amf_handle_registration_complete_response(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  rc = state_handle_message_ue_2(
+  rc = ue_state_handle_message_reg_conn(
       ue_m5gmm_context->mm_state, STATE_EVENT_REG_COMPLETE, SESSION_NULL,
       ue_m5gmm_context, ue_id, msg->smf_pdu, amf_cause, status);
 

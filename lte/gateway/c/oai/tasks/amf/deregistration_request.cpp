@@ -168,7 +168,7 @@ int amf_proc_deregistration_request(
     rc = amf_sap_send(&amf_sap);
     /* Handle releasing all context related resources
      */
-    rc = state_handle_message_ue_3(
+    rc = ue_state_handle_message_dereg(
         ue_context->mm_state, STATE_EVENT_DEREGISTER, SESSION_NULL, ue_context,
         ue_id);
   }
