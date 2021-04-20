@@ -31,6 +31,10 @@ dist/
 eggs/
 build/lib/
 lib64/
+!orc8r/lib/
+!feg/radius/lib/
+!lte/gateway/c/core/oai/lib
+!lte/gateway/c
 parts/
 sdist/
 var/
