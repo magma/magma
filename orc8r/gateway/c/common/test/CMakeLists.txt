@@ -22,13 +22,13 @@ include_directories("${PROJECT_SOURCE_DIR}/../common/service303")
 include_directories("${PROJECT_SOURCE_DIR}/../common/protobuf")
 link_directories("/usr/src/googletest/googlemock/lib/")
 
-foreach(common_test yaml_utils magma_service service_registry service303 metrics)
+foreach (common_test yaml_utils magma_service service_registry service303 metrics)
   add_executable(${common_test}_test test_${common_test}.cpp)
-  target_link_libraries(${common_test}_test 
-	  CONFIG 
-	  gmock_main gtest gtest_main gmock
-	  yaml-cpp pthread rt
-	  ${GCOV_LIB}
-	  SERVICE303_LIB)
+  target_link_libraries(${common_test}_test
+      CONFIG
+      gmock_main gtest gtest_main gmock
+      yaml-cpp pthread rt
+      ${GCOV_LIB}
+      SERVICE303_LIB)
   add_test(test_${common_test} ${common_test}_test)
-endforeach(common_test)
+endforeach (common_test)

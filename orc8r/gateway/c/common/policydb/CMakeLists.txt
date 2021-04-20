@@ -26,11 +26,11 @@ list(APPEND PROTO_HDRS "")
 
 set(POLICYDB_ORC8R_CPP_PROTOS common)
 generate_cpp_protos("${POLICYDB_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
-  "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
+    "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
 set(POLICYDB_LTE_CPP_PROTOS policydb)
 generate_cpp_protos("${POLICYDB_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
-  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
+    "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
 message("Proto_srcs are ${PROTO_SRCS}")
 
@@ -42,18 +42,18 @@ add_library(POLICYDB
     )
 
 target_link_libraries(POLICYDB
-   DATASTORE CONFIG
-   glog
-   )
+    DATASTORE CONFIG
+    glog
+    )
 
 # copy headers to build directory so they can be shared with OAI,
 # session_manager, etc.
 add_custom_command(TARGET POLICYDB POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy
-                   ${PROJECT_SOURCE_DIR}/policydb/*.h
-                   $<TARGET_FILE_DIR:POLICYDB>)
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${PROJECT_SOURCE_DIR}/policydb/*.h
+    $<TARGET_FILE_DIR:POLICYDB>)
 
 target_compile_definitions(POLICYDB PUBLIC LOG_WITH_GLOG)
 target_include_directories(POLICYDB PUBLIC
-                  $<TARGET_FILE_DIR:POLICYDB>
-)
+    $<TARGET_FILE_DIR:POLICYDB>
+    )
