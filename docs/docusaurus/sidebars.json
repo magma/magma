@@ -172,7 +172,8 @@
           "lte/dev_unit_testing",
           "lte/tr069",
           "lte/s1ap_tests",
-          "lte/eventd"
+          "lte/eventd",
+          "lte/access_service_restrictions"
         ]
       },
       {
