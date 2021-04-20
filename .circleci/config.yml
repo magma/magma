@@ -1282,7 +1282,6 @@ workflows:
   #     - orc8r-gateway-test
 
   agw:
-    aws-cli:
     jobs:
       # - lte-test
       # - session_manager_test
