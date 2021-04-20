@@ -85,6 +85,8 @@ typedef struct s1ap_handover_state_s {
   uint32_t target_enb_id;
   enb_ue_s1ap_id_t
       target_enb_ue_s1ap_id : 24;  ///< Unique UE id over eNB (24 bits wide)
+  sctp_stream_id_t target_sctp_stream_recv;  ///< eNB -> MME stream
+  sctp_stream_id_t target_sctp_stream_send;  ///< MME -> eNB stream
 } s1ap_handover_state_t;
 
 /** Main structure representing UE association over s1ap
