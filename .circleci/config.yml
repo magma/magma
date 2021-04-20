@@ -954,8 +954,8 @@ jobs:
 
   lte-agw-aws:
     environment:
-      AWS_ACCESS_KEY_ID: "$AWS_FB_CRED"
-      PARAM_AWS_SECRET_ACCESS_KEY: "$AWS_FB_SECRET"  
+      #AWS_ACCESS_KEY_ID: "$AWS_FB_CRED"
+      PARAM_AWS_SECRET_ACCESS_KEY: "$(printenv AWS_FB_SECRET)"
       MAGMA_ROOT: /home/circleci/project  
     machine:
       image: ubuntu-1604:201903-01
