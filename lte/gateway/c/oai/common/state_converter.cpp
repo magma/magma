@@ -106,6 +106,7 @@ void StateConverter::ambr_to_proto(
     const ambr_t& state_ambr, oai::Ambr* ambr_proto) {
   ambr_proto->set_br_ul(state_ambr.br_ul);
   ambr_proto->set_br_dl(state_ambr.br_dl);
+  ambr_proto->set_bitrate_units(magma::lte::oai::Ambr::BPS);
 }
 
 void StateConverter::proto_to_ambr(
