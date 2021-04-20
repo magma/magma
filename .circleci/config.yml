@@ -955,7 +955,7 @@ jobs:
   lte-agw-aws:
     environment:
       AWS_ACCESS_KEY_ID: "$AWS_FB_CRED"
-      AWS_SECRET_ACCESS_KEY: "$AWS_FB_SECRET"
+      PARAM_AWS_SECRET_ACCESS_KEY: "$AWS_FB_SECRET"  
       MAGMA_ROOT: /home/circleci/project  
     machine:
       image: ubuntu-1604:201903-01
@@ -1282,6 +1282,7 @@ workflows:
   #     - orc8r-gateway-test
 
   agw:
+    aws-cli:
     jobs:
       # - lte-test
       # - session_manager_test
@@ -1299,13 +1300,6 @@ workflows:
       #       - mme_test
       #       - lte-integ-test
       - lte-agw-aws
-      #     <<: *only_master
-      #     requires:
-      #       - lte-test
-      #       - mme_test
-      #       - lte-integ-test
-      #
-      # - c-cpp-codecov
 
   # feg:
   #   jobs:
