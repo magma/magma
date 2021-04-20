@@ -26,7 +26,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - linux kernel from debian jessie backports
     # - updated vbguest-tool
     magma_debian.vm.box = "magmacore/magma_dev"
-    magma_debian.vm.hostname = "magma-dev"
+    magma_debian.vm.hostname = "magma-debian-dev"
     magma_debian.vm.box_version = "1.1.20210326"
 
     magma_debian.vbguest.auto_update = false
@@ -38,7 +38,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_debian.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
 
     magma_debian.vm.provider "virtualbox" do |vb|
-      vb.name = "magma-dev"
+      vb.name = "magma-debian-dev"
       vb.linked_clone = true
       vb.customize ["modifyvm", :id, "--memory", "6144"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
@@ -92,7 +92,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
 
     magma.vm.provider "virtualbox" do |vb|
-      vb.name = "magma-focal-dev"
+      vb.name = "magma-dev"
       vb.linked_clone = true
       vb.customize ["modifyvm", :id, "--memory", "8192"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
