@@ -428,7 +428,7 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, IP1, teids0.agw_teid(), "rule1", 512, 512, record_list->Add());
+      IMSI1, teids0.agw_teid(), "rule1", 512, 512, record_list->Add());
 
   EXPECT_CALL(
       *reporter, report_updates(CheckUpdateRequestNumber(1), testing::_))

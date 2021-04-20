@@ -426,12 +426,9 @@ TEST_F(SessiondTest, end_to_end_success) {
   // 3- ReportRuleStats Trigger
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(
-      IMSI1, ipv4_addrs, enb_teid, "rule1", 512, 512, record_list->Add());
-  create_rule_record(
-      IMSI1, ipv6_addrs, agw_teid, "rule2", 512, 0, record_list->Add());
-  create_rule_record(
-      IMSI1, ipv4_addrs, enb_teid, "rule3", 32, 32, record_list->Add());
+  create_rule_record(IMSI1, enb_teid, "rule1", 512, 512, record_list->Add());
+  create_rule_record(IMSI1, agw_teid, "rule2", 512, 0, record_list->Add());
+  create_rule_record(IMSI1, enb_teid, "rule3", 32, 32, record_list->Add());
   send_update_pipelined_table(stub, table);
 
   // The thread needs to be halted before proceeding to call EndSession()
@@ -551,9 +548,9 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
 
   RuleRecordTable table1;
   create_rule_record(
-      IMSI1, "", enb_teid, "rule1", 0, 512, table1.mutable_records()->Add());
+      IMSI1, enb_teid, "rule1", 0, 512, table1.mutable_records()->Add());
   create_rule_record(
-      IMSI1, "", agw_teid, "rule2", 512, 0, table1.mutable_records()->Add());
+      IMSI1, agw_teid, "rule2", 512, 0, table1.mutable_records()->Add());
   send_update_pipelined_table(stub, table1);
 
   // Need to wait for cloud response to come back and usage monitor to reset.
@@ -578,9 +575,9 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
 
   RuleRecordTable table2;
   create_rule_record(
-      IMSI1, "", enb_teid, "rule1", 512, 0, table2.mutable_records()->Add());
+      IMSI1, enb_teid, "rule1", 512, 0, table2.mutable_records()->Add());
   create_rule_record(
-      IMSI1, "", agw_teid, "rule2", 0, 512, table2.mutable_records()->Add());
+      IMSI1, agw_teid, "rule2", 0, 512, table2.mutable_records()->Add());
   send_update_pipelined_table(stub, table2);
 
   set_timeout(5000, end_promise);

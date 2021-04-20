@@ -318,8 +318,7 @@ TEST_F(LocalEnforcerTest, test_single_record) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.agw_teid(), "rule1", 16,
-      32, record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule1", 16, 32, record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
@@ -357,15 +356,12 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_mixed_ips) {
   auto record_list = table.mutable_records();
   // ipv4 usage
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.enb_teid(), "rule1", 10,
-      20, record_list->Add());
+      IMSI1, teids1.enb_teid(), "rule1", 10, 20, record_list->Add());
   // ipv6 usage for the same charging key and subscriber
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv6(), teids1.enb_teid(), "rule2", 5,
-      15, record_list->Add());
+      IMSI1, teids1.enb_teid(), "rule2", 5, 15, record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.enb_teid(), "rule3",
-      100, 150, record_list->Add());
+      IMSI1, teids1.enb_teid(), "rule3", 100, 150, record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
@@ -413,14 +409,11 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv6(), teids1.enb_teid(), "rule1", 10,
-      20, record_list->Add());
+      IMSI1, teids1.enb_teid(), "rule1", 10, 20, record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv6(), teids1.enb_teid(), "rule2", 5,
-      15, record_list->Add());
+      IMSI1, teids1.enb_teid(), "rule2", 5, 15, record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv6(), teids1.enb_teid(), "rule3",
-      100, 150, record_list->Add());
+      IMSI1, teids1.enb_teid(), "rule3", 100, 150, record_list->Add());
 
   EXPECT_CALL(
       *reporter,
@@ -454,8 +447,7 @@ TEST_F(LocalEnforcerTest, test_collect_updates) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.agw_teid(), "rule1",
-      1024, 2048, record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule1", 1024, 2048, record_list->Add());
 
   local_enforcer->aggregate_records(session_map, table, update);
   actions.clear();
@@ -501,8 +493,7 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv6(), teids1.enb_teid(), "rule1",
-      1024, 1024, record_list->Add());
+      IMSI1, teids1.enb_teid(), "rule1", 1024, 1024, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -566,8 +557,7 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.enb_teid(), "rule1", 10,
-      20, record_list->Add());
+      IMSI1, teids1.enb_teid(), "rule1", 10, 20, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
   assert_monitor_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{"1", 10}});
@@ -639,8 +629,8 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
   RuleRecordTable only_drop_rule_table;
   auto record_list = only_drop_rule_table.mutable_records();
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.enb_teid(),
-      "internal_default_drop_flow_rule", 0, 0, record_list->Add());
+      IMSI1, teids1.enb_teid(), "internal_default_drop_flow_rule", 0, 0,
+      record_list->Add());
 
   local_enforcer->aggregate_records(session_map, only_drop_rule_table, update);
   run_evb();
@@ -675,8 +665,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, cfg1.common_context.ue_ipv4(), teids1.agw_teid(), "rule1", 1024,
-      2048, record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule1", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -712,11 +701,10 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   RuleRecordTable only_drop_rule_table;
   record_list = only_drop_rule_table.mutable_records();
   create_rule_record(
-      IMSI1, cfg1.common_context.ue_ipv4(), teids1.agw_teid(), "rule1", 0, 0,
-      1000, 2000, record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule1", 0, 0, 1000, 2000, record_list->Add());
   create_rule_record(
-      IMSI1, cfg1.common_context.ue_ipv4(), teids1.agw_teid(),
-      "internal_default_drop_flow_rule", 0, 0, record_list->Add());
+      IMSI1, teids1.agw_teid(), "internal_default_drop_flow_rule", 0, 0,
+      record_list->Add());
 
   local_enforcer->aggregate_records(session_map, only_drop_rule_table, update);
   run_evb();
@@ -879,11 +867,9 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.agw_teid(), "rule1",
-      1024, 2048, record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule1", 1024, 2048, record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.agw_teid(), "rule2",
-      1024, 2048, record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule2", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -938,8 +924,8 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   // Insert record for key 1
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "", 0, "rule1", 1024, 2048, record_list->Add());
-  create_rule_record(IMSI1, "", 0, "rule2", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, 0, "rule1", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, 0, "rule2", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -999,14 +985,11 @@ TEST_F(LocalEnforcerTest, test_all) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, cfg1.common_context.ue_ipv4(), teids1.agw_teid(), "rule1", 10, 20,
-      record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule1", 10, 20, record_list->Add());
   create_rule_record(
-      IMSI1, cfg1.common_context.ue_ipv4(), teids1.agw_teid(), "rule2", 5, 15,
-      record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule2", 5, 15, record_list->Add());
   create_rule_record(
-      IMSI2, cfg2.common_context.ue_ipv4(), teids2.agw_teid(), "rule3", 1024,
-      1024, record_list->Add());
+      IMSI2, teids2.agw_teid(), "rule3", 1024, 1024, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -1136,8 +1119,7 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.enb_teid(), "rule1", 10,
-      20, record_list->Add());
+      IMSI1, teids1.enb_teid(), "rule1", 10, 20, record_list->Add());
   local_enforcer->aggregate_records(session_map, table, update);
 
   assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 10}});
@@ -1368,11 +1350,9 @@ TEST_F(LocalEnforcerTest, test_dynamic_rules) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.agw_teid(), "rule1", 16,
-      32, record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule1", 16, 32, record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.agw_teid(), "rule2", 8,
-      8, record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule2", 8, 8, record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
@@ -1424,11 +1404,9 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.agw_teid(), "rule1",
-      1024, 2048, record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule1", 1024, 2048, record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), teids1.agw_teid(), "rule2",
-      1024, 2048, record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule2", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -1559,16 +1537,14 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   // receive usages from pipelined
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  auto& ip         = test_cfg_.common_context.ue_ipv4();
   create_rule_record(
-      IMSI1, ip, teids1.agw_teid(), "both_rule", 10, 20, record_list->Add());
+      IMSI1, teids1.agw_teid(), "both_rule", 10, 20, record_list->Add());
   create_rule_record(
-      IMSI1, ip, teids1.agw_teid(), "ocs_rule", 5, 15, record_list->Add());
+      IMSI1, teids1.agw_teid(), "ocs_rule", 5, 15, record_list->Add());
   create_rule_record(
-      IMSI1, ip, teids1.agw_teid(), "pcrf_only", 1024, 1024,
-      record_list->Add());
+      IMSI1, teids1.agw_teid(), "pcrf_only", 1024, 1024, record_list->Add());
   create_rule_record(
-      IMSI1, ip, teids1.agw_teid(), "pcrf_split", 10, 20, record_list->Add());
+      IMSI1, teids1.agw_teid(), "pcrf_split", 10, 20, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -1724,12 +1700,11 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   // reports for all monitors receive usages from pipelined
   RuleRecordTable table_1;
   auto record_list_1 = table_1.mutable_records();
-  auto ip            = test_cfg_.common_context.ue_ipv4();
   create_rule_record(
-      IMSI1, ip, teids1.agw_teid(), "pcrf_only_active", 2000, 0,
+      IMSI1, teids1.agw_teid(), "pcrf_only_active", 2000, 0,
       record_list_1->Add());
   create_rule_record(
-      IMSI1, ip, teids1.agw_teid(), "pcrf_only_to_be_disabled", 2000, 0,
+      IMSI1, teids1.agw_teid(), "pcrf_only_to_be_disabled", 2000, 0,
       record_list_1->Add());
   local_enforcer->aggregate_records(session_map, table_1, update_1);
 
@@ -1788,10 +1763,10 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   RuleRecordTable table_2;
   auto record_list2 = table_2.mutable_records();
   create_rule_record(
-      IMSI1, ip, teids1.agw_teid(), "pcrf_only_active", 2000, 0,
+      IMSI1, teids1.agw_teid(), "pcrf_only_active", 2000, 0,
       record_list2->Add());
   create_rule_record(
-      IMSI1, ip, teids1.agw_teid(), "pcrf_only_to_be_disabled", 2000, 0,
+      IMSI1, teids1.agw_teid(), "pcrf_only_to_be_disabled", 2000, 0,
       record_list2->Add());
 
   update_2 = SessionStore::get_default_session_update(session_map);
@@ -2695,8 +2670,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, ip_addr, teids1.agw_teid(), "static_1", 1024, 2048,
-      record_list->Add());
+      IMSI1, teids1.agw_teid(), "static_1", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -2776,14 +2750,11 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, ip_addr, teids1.agw_teid(), "rule1", 1024, 2048,
-      record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule1", 1024, 2048, record_list->Add());
   create_rule_record(
-      IMSI1, ip_addr, teids1.agw_teid(), "rule2", 1024, 2048,
-      record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule2", 1024, 2048, record_list->Add());
   create_rule_record(
-      IMSI1, ip_addr, teids1.agw_teid(), "rule3", 1024, 2048,
-      record_list->Add());
+      IMSI1, teids1.agw_teid(), "rule3", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -2883,8 +2854,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, ip_addr, teids1.enb_teid(), "static_rule1", 1023, 0,
-      record_list->Add());
+      IMSI1, teids1.enb_teid(), "static_rule1", 1023, 0, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -2898,8 +2868,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   table.Clear();
   record_list = table.mutable_records();
   create_rule_record(
-      IMSI1, ip_addr, teids1.enb_teid(), "static_rule1", 1024, 0,
-      record_list->Add());
+      IMSI1, teids1.enb_teid(), "static_rule1", 1024, 0, record_list->Add());
   update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
