@@ -347,8 +347,8 @@ int s1ap_mme_itti_s1ap_handover_request_ack(
     const enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id,
     const S1ap_HandoverType_t const handover_type,
     const sctp_assoc_id_t source_assoc_id,
-    const sctp_assoc_id_t target_assoc_id,
-    const bstring const tgt_src_container, imsi64_t imsi64) {
+    const bstring const tgt_src_container, const uint32_t source_enb_id,
+    const uint32_t target_enb_id, imsi64_t imsi64) {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUEST_ACK);
   if (message_p == NULL) {
@@ -359,7 +359,8 @@ int s1ap_mme_itti_s1ap_handover_request_ack(
   S1AP_HANDOVER_REQUEST_ACK(message_p).src_enb_ue_s1ap_id = src_enb_ue_s1ap_id;
   S1AP_HANDOVER_REQUEST_ACK(message_p).tgt_enb_ue_s1ap_id = tgt_enb_ue_s1ap_id;
   S1AP_HANDOVER_REQUEST_ACK(message_p).source_assoc_id    = source_assoc_id;
-  S1AP_HANDOVER_REQUEST_ACK(message_p).target_assoc_id    = target_assoc_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).source_enb_id      = source_enb_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).target_enb_id      = target_enb_id;
   S1AP_HANDOVER_REQUEST_ACK(message_p).handover_type      = handover_type;
   S1AP_HANDOVER_REQUEST_ACK(message_p).tgt_src_container  = tgt_src_container;
 
