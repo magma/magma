@@ -205,6 +205,27 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
 //------------------------------------------------------------------------------
 int ngap_amf_init(const amf_config_t* amf_config_p) {
   OAILOG_DEBUG(LOG_NGAP, "Initializing NGAP interface\n");
+  amf_config_t* config = amf_config_p;
+
+  memset(config, 0, sizeof(*config));
+
+  pthread_rwlock_init(&config->rw_lock, NULL);
+
+  config->config_file                    = NULL;
+  config->max_gnbs                       = 2;
+  config->max_ues                        = 2;
+  config->unauthenticated_imsi_supported = 0;
+  config->relative_capacity              = RELATIVE_CAPACITY;
+  config->amf_statistic_timer            = AMF_STATISTIC_TIMER_S;
+
+  guamfi_config_init(&config->guamfi);
+
+  if (ngap_state_init(
+          amf_config_p->max_ues, amf_config_p->max_gnbs,
+          amf_config_p->use_stateless) < 0) {
+    OAILOG_ERROR(LOG_NGAP, "Error while initing NGAP state\n");
+    return RETURNerror;
+  }
 
   if (itti_create_task(TASK_NGAP, &ngap_amf_thread, NULL) == RETURNerror) {
     OAILOG_ERROR(LOG_NGAP, "Error while creating NGAP task\n");
