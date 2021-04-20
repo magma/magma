@@ -72,6 +72,10 @@ int s1ap_mme_handle_handover_request_ack(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
+int s1ap_mme_handle_enb_status_transfer(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu);
+
 int s1ap_mme_handle_path_switch_request(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);

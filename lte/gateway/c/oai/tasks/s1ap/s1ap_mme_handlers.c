@@ -144,7 +144,7 @@ s1ap_message_handler_t message_handlers[][3] = {
     {s1ap_mme_handle_ue_cap_indication, 0, 0}, /* UECapabilityInfoIndication */
     {s1ap_mme_handle_ue_context_release_request,
      s1ap_mme_handle_ue_context_release_complete, 0}, /* UEContextRelease */
-    {0, 0, 0},                                        /* eNBStatusTransfer */
+    {s1ap_mme_handle_enb_status_transfer, 0, 0},      /* eNBStatusTransfer */
     {0, 0, 0},                                        /* MMEStatusTransfer */
     {0, 0, 0},                                        /* DeactivateTrace */
     {0, 0, 0},                                        /* TraceStart */
@@ -2039,6 +2039,7 @@ int s1ap_mme_handle_handover_request(
   S1ap_HandoverRequestIEs_t* ie = NULL;
   enb_description_t* target_enb = NULL;
   sctp_stream_id_t stream       = 0x0;
+  ue_description_t* ue_ref_p    = NULL;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   if (ho_request_p == NULL) {
@@ -2047,6 +2048,37 @@ int s1ap_mme_handle_handover_request(
   }
 
   OAILOG_INFO(LOG_S1AP, "Handover Request received");
+
+  // get the ue description
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(ho_request_p->mme_ue_s1ap_id)) ==
+      NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+        ", failing!\n",
+        (uint32_t) ho_request_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if ((target_enb = s1ap_state_get_enb(
+           state, ho_request_p->target_sctp_assoc_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP, "Could not get enb description for assoc_id %u\n",
+        ho_request_p->target_sctp_assoc_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // set the recv and send streams for UE on the target.
+  stream = target_enb->next_sctp_stream;
+  ue_ref_p->s1ap_handover_state.target_sctp_stream_recv = stream;
+  target_enb->next_sctp_stream += 1;
+  if (target_enb->next_sctp_stream >= target_enb->instreams) {
+    target_enb->next_sctp_stream = 1;
+  }
+  ue_ref_p->s1ap_handover_state.target_sctp_stream_send =
+      target_enb->next_sctp_stream;
+
+  // Build and send PDU
   pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.procedureCode =
       S1ap_ProcedureCode_id_HandoverResourceAllocation;
@@ -2221,14 +2253,6 @@ int s1ap_mme_handle_handover_request(
   security_context->nextHopParameter.size        = 32;
   security_context->nextHopParameter.bits_unused = 0;
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
-  // Get next sctp stream id for the target enb.
-  target_enb = s1ap_state_get_enb(state, ho_request_p->target_sctp_assoc_id);
-  stream     = target_enb->next_sctp_stream;
-  target_enb->next_sctp_stream += 1;
-  if (target_enb->next_sctp_stream >= target_enb->instreams) {
-    target_enb->next_sctp_stream = 1;
-  }
 
   // Construct the PDU and send message
   if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
@@ -2561,6 +2585,111 @@ int s1ap_mme_handle_handover_command(
 
   s1ap_mme_itti_send_sctp_request(
       &b, ho_command_p->source_assoc_id, stream, ho_command_p->mme_ue_s1ap_id);
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
+int s1ap_mme_handle_enb_status_transfer(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
+  S1ap_ENBStatusTransfer_t* container       = NULL;
+  S1ap_ENBStatusTransferIEs_t* ie           = NULL;
+  ue_description_t* ue_ref_p                = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id           = INVALID_MME_UE_S1AP_ID;
+  hashtable_element_array_t* enb_array      = NULL;
+  enb_description_t* target_enb_association = NULL;
+  uint8_t* buffer                           = NULL;
+  uint32_t length                           = 0;
+  uint32_t idx                              = 0;
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+  container = &pdu->choice.initiatingMessage.value.choice.ENBStatusTransfer;
+
+  // similar to enb_configuration_transfer, we immediately generate the new
+  // message by changing type and updating the enb_ue_s1ap_id to match that of
+  // the target enb.
+
+  // MME_UE_S1AP_ID
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_ENBStatusTransferIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // get the UE and handover state
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+        ", failing!\n",
+        (uint32_t) mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  OAILOG_INFO(
+      LOG_S1AP,
+      "Received eNBStatusTransfer from source enb_id assoc %u for "
+      "ue " MME_UE_S1AP_ID_FMT " to target enb_id %u\n",
+      assoc_id, mme_ue_s1ap_id,
+      ue_ref_p->s1ap_handover_state.target_enb_ue_s1ap_id);
+
+  // set the target eNB_UE_S1AP_ID
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_ENBStatusTransferIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  if (ie) {
+    ie->value.choice.ENB_UE_S1AP_ID =
+        ue_ref_p->s1ap_handover_state.target_enb_ue_s1ap_id;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // get the enb_description matching the target_enb_id
+  // retrieve enb_description using hash table and match target_enb_id
+  if ((enb_array = hashtable_ts_get_elements(&state->enbs)) != NULL) {
+    for (idx = 0; idx < enb_array->num_elements; idx++) {
+      target_enb_association =
+          (enb_description_t*) (uintptr_t) enb_array->elements[idx];
+      if (target_enb_association->enb_id ==
+          ue_ref_p->s1ap_handover_state.target_enb_id) {
+        break;
+      }
+    }
+    free_wrapper((void**) &enb_array->elements);
+    free_wrapper((void**) &enb_array);
+    if (target_enb_association->enb_id !=
+        ue_ref_p->s1ap_handover_state.target_enb_id) {
+      OAILOG_ERROR(
+          LOG_S1AP, "No eNB for enb_id %d\n",
+          ue_ref_p->s1ap_handover_state.target_enb_id);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+  }
+
+  // change the message type and enb_ue_s1_id to the target eNB's ID
+  pdu->choice.initiatingMessage.procedureCode =
+      S1ap_ProcedureCode_id_MMEStatusTransfer;
+  pdu->present = S1ap_S1AP_PDU_PR_initiatingMessage;
+
+  // Encode message
+  if (s1ap_mme_encode_pdu(pdu, &buffer, &length) < 0) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "Failed to encode MME Configuration Transfer message for enb_id %u\n",
+        ue_ref_p->s1ap_handover_state.target_enb_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  bstring b = blk2bstr(buffer, length);
+  free(buffer);
+
+  s1ap_mme_itti_send_sctp_request(
+      &b, target_enb_association->sctp_assoc_id,
+      ue_ref_p->s1ap_handover_state.target_sctp_stream_recv,
+      ue_ref_p->mme_ue_s1ap_id);
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }

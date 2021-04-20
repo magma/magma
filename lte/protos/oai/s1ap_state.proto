@@ -69,4 +69,6 @@ message S1apHandoverState {
   uint32 source_enb_id = 2;
   uint32 target_enb_id = 3;
   uint32 target_enb_ue_s1ap_id = 4; // enb_ue_s1ap_id_t
+  uint32 target_sctp_stream_recv = 5; // sctp_stream_id_t
+  uint32 target_sctp_stream_send = 6; // sctp_stream_id_t
 }
