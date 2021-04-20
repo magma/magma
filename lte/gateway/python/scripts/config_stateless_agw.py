@@ -165,6 +165,8 @@ def ovs_reset_bridges():
 
 
 def sctpd_pre_start():
+    subprocess.Popen("service procps restart".split())
+
     if check_stateless_services() == return_codes.STATEFUL:
         # switching from stateless to stateful
         print("AGW is stateful, nothing to be done")
