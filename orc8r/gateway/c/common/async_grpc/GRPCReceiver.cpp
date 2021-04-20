@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include <ostream>          // for operator<<, char_traits
 #include "magma_logging.h"  // for MLOG
 

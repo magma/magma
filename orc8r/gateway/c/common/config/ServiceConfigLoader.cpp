@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "ServiceConfigLoader.h"
+#include "includes/ServiceConfigLoader.h"
 #include <yaml-cpp/exceptions.h>  // for BadFile
 #include <yaml-cpp/node/impl.h>   // for Node::Node, Node::~Node
 #include <yaml-cpp/node/parse.h>  // for LoadFile

@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
-#include "MetricsHelpers.h"
-#include <stdarg.h>            // for va_end, va_list, va_start
-#include "MetricsSingleton.h"  // for MetricsSingleton
+#include "includes/MetricsHelpers.h"
+#include <stdarg.h>                     // for va_end, va_list, va_start
+#include "includes/MetricsSingleton.h"  // for MetricsSingleton
 
 namespace magma {
 namespace service303 {
