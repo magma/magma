@@ -153,6 +153,15 @@ def disable_stateless_agw():
     _restart_sctpd()
     sys.exit(_check_stateless_services().value)
 
+def ovs_reset_bridges():
+    subprocess.call(
+        "ovs-vsctl --all destroy Flow_Sample_Collector_Set".split())
+    subprocess.call("ifdown uplink_br0".split())
+    subprocess.call("ifdown gtp_br0".split())
+    subprocess.call("service openvswitch-switch restart".split())
+    subprocess.call("ifup uplink_br0".split())
+    subprocess.call("ifup gtp_br0".split())
+
 
 def sctpd_pre_start():
     if _check_stateless_services() == return_codes.STATEFUL:
@@ -160,6 +169,7 @@ def sctpd_pre_start():
         print("AGW is stateful, nothing to be done")
     else:
         _clear_redis_state()
+        ovs_reset_bridges()
     sys.exit(0)
 
 
