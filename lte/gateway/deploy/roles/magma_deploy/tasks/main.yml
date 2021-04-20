@@ -1,0 +1,138 @@
+---
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+- name: Include vars of all.yaml
+  include_vars:
+    file: all.yaml
+
+- name: Configuring private package manager.
+  copy:
+    content: >
+      deb {{ magma_pkgrepo_proto }}://{{ magma_pkgrepo_host }}{{ magma_pkgrepo_path}}
+      {{ magma_pkgrepo_dist }} {{ magma_pkgrepo_component }}
+    dest: /etc/apt/sources.list.d/{{ magma_pkgrepo_name }}.list
+  become: yes
+
+- name: Add unvalidated Apt signing key.
+  when: magma_pkgrepo_key_fingerprint == ""
+  become: yes
+  block:
+    - name: Download key
+      apt_key:
+        url: "{{ magma_pkgrepo_key }}"
+        state: present
+        validate_certs: no
+    - name: Ignore server ssl cert
+      copy:
+        dest: /etc/apt/apt.conf.d/99insecurehttpsrepo
+        content: |
+          Acquire::https::{{ magma_pkgrepo_host }} {
+          Verify-Peer "false";
+          Verify-Host "false";
+          };
+
+- name: Add validated Apt signing key.
+  when: magma_pkgrepo_key_fingerprint != ""
+  become: yes
+  apt_key:
+    url: "{{ magma_pkgrepo_key }}"
+    id: "{{ magma_pkgrepo_key_fingerprint }}"
+    state: present
+
+- name: Update and upgrade apt packages
+  become: yes
+  apt:
+    update_cache: yes
+
+- name: Install runtime dependencies.
+  become: yes
+  apt:
+    name: "{{ packages }}"
+  vars:
+    packages:
+      - graphviz
+      - python-all
+      - module-assistant
+      - openssl
+      - dkms
+      - uuid-runtime
+
+- name: Preconfigure wireshark (tshark) SUID property
+  become: yes
+  ignore_errors: yes
+  shell: bash -c 'echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections'
+
+- name: Installing magma.
+  become: yes
+  apt:
+    name: "{{ packages }}"
+    dpkg_options: 'force-confold,force-confdef,force-overwrite'
+  vars:
+    packages:
+      - magma
+
+- name: Start service openvswitch-switch.
+  become: yes
+  service:
+    name: openvswitch-switch
+    state: started
+  tags:
+    - skipfirstinstall
+
+# Ansible's service module doesn't support wildcards so we have to use shell
+- name: Stop all magma services.
+  become: yes
+  shell: service magma@* stop
+  tags:
+    - skipfirstinstall
+
+- name: Bring up gtp_br0
+  shell: ifup gtp_br0
+  become: yes
+  tags:
+    - skipfirstinstall
+
+- name: Bring up mtr0
+  shell: ifup mtr0
+  become: yes
+  tags:
+    - skipfirstinstall
+
+- name: Bring up uplink_br0
+  shell: ifup uplink_br0
+  become: yes
+  tags:
+    - skipfirstinstall
+
+- name: Bring up ipfix0
+  shell: ifup ipfix0
+  become: yes
+  tags:
+    - skipfirstinstall
+
+- name: Bring up dhcp0
+  shell: ifup dhcp0
+  become: yes
+  tags:
+    - skipfirstinstall
+
+- name: Start service magma@magmad.
+  become: yes
+  service:
+    name: magma@magmad
+    state: started
+  tags:
+    - skipfirstinstall
+
+- name: Install ansible community collection
+  shell: ansible-galaxy collection install community.general

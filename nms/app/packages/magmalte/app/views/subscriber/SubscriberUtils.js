@@ -35,3 +35,6 @@ export function getPromValue(resp: promql_return_object) {
     .filter(Boolean);
   return respArr && respArr.length ? respArr[0] : 0;
 }
+
+// default subscriber count in get subscriber query
+export const DEFAULT_PAGE_SIZE = 25;

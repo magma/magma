@@ -52,6 +52,12 @@ secret:
     orc8r: orc8r-secrets-configs-orc8r
   envdir: orc8r-secrets-envdir
 
+# certs sub-chart configuration.
+certs:
+  create: false
+
+  domainName: localhost
+
 nginx:
   create: true
 
@@ -242,7 +248,7 @@ eventd:
       orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
-        /magma/v1/networks/logs,
+        /magma/v1/networks/:network_id/logs,
         /magma/v1/events,
 
 metricsd:

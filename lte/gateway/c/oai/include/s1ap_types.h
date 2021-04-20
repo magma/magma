@@ -79,6 +79,16 @@ enum s1_ue_state_s {
                         /// UE context Release Complete
 };
 
+typedef struct s1ap_handover_state_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  uint32_t source_enb_id;
+  uint32_t target_enb_id;
+  enb_ue_s1ap_id_t
+      target_enb_ue_s1ap_id : 24;  ///< Unique UE id over eNB (24 bits wide)
+  sctp_stream_id_t target_sctp_stream_recv;  ///< eNB -> MME stream
+  sctp_stream_id_t target_sctp_stream_send;  ///< MME -> eNB stream
+} s1ap_handover_state_t;
+
 /** Main structure representing UE association over s1ap
  *  Generated every time a new InitialUEMessage is received
  **/
@@ -105,6 +115,9 @@ typedef struct ue_description_s {
 
   // UE Context Release procedure guard timer
   struct s1ap_timer_t s1ap_ue_context_rel_timer;
+
+  // Handover status
+  s1ap_handover_state_t s1ap_handover_state;
 } ue_description_t;
 
 /* Maximum no. of Broadcast PLMNs. Value is 6

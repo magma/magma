@@ -216,7 +216,6 @@ func createSession(cmd *commands.Command, args []string) int {
 			Eci: 6,
 		},
 		ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
-			IsValid:        true,
 			ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
 			ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
 				{

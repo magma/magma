@@ -92,6 +92,7 @@ static inline int s1ap_mme_encode_initiating(
     case S1ap_ProcedureCode_id_MMEStatusTransfer:
     case S1ap_ProcedureCode_id_Paging:
     case S1ap_ProcedureCode_id_MMEConfigurationTransfer:
+    case S1ap_ProcedureCode_id_HandoverPreparation:
       break;
 
     default:

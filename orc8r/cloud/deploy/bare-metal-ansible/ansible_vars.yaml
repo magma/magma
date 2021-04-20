@@ -67,3 +67,13 @@ kubelet_cgroup_driver: systemd
 
 # LoadBalancer settings for Magma services publicly exposed
 # metallb_addresses: 192.168.10.200-192.168.10.230
+
+# Advanced options for enabling/disabling Helm charts
+deploy_nfs_server_provisioner: True
+kubevirt_enabled: False
+deploy_metallb: True
+deploy_mariadb: True
+deploy_elasticsearch: True
+deploy_fluentd: True
+deploy_kibana: False
+

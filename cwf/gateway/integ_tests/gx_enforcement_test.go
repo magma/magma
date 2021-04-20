@@ -172,8 +172,8 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 
 	// Pass a small amount, but not enough to trigger a CCR-U
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi: imsi,
-		Volume: &wrappers.StringValue{Value: "1M"},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "1M"},
 		Bitrate: &wrappers.StringValue{Value: "30M"},
 		Timeout: 30,
 	}
@@ -203,8 +203,8 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	fmt.Println("Generating traffic again to trigger a CCR/A-U so that 'static-pass-all-1' gets removed")
 	// Generate traffic to trigger the CCR-U so that the rule removal/install happens
 	req = &cwfprotos.GenTrafficRequest{
-		Imsi: imsi,
-		Volume: &wrappers.StringValue{Value: "1M"},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "1M"},
 		Bitrate: &wrappers.StringValue{Value: "20M"},
 		Timeout: 60,
 	}
@@ -216,8 +216,8 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 
 	fmt.Println("Generating traffic again to put data through static-pass-all-2")
 	req = &cwfprotos.GenTrafficRequest{
-		Imsi: imsi,
-		Volume: &wrappers.StringValue{Value: "1M"},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "1M"},
 		Bitrate: &wrappers.StringValue{Value: "30M"},
 		Timeout: 30,
 	}
@@ -444,7 +444,7 @@ func TestGxRevalidationTime(t *testing.T) {
 		tr.WaitForEnforcementStatsForRule(imsi, "revalidation-time-static-pass-all"),
 		10*time.Second, 2*time.Second)
 
-    waitingTime := timeUntilRevalidation + (5 * time.Second)
+	waitingTime := timeUntilRevalidation + (5 * time.Second)
 	fmt.Printf("Waiting %v seconds for revalidation timer expiration\n", waitingTime)
 	time.Sleep(waitingTime) // give an extra few seconds for error
 
