@@ -10,11 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "EventdClient.h"
+#include "includes/EventdClient.h"
 #include <grpcpp/channel.h>                        // for Channel
 #include <grpcpp/impl/codegen/async_unary_call.h>  // for default_delete
 #include <utility>                                 // for move
-#include "ServiceRegistrySingleton.h"              // for ServiceRegistrySin...
+#include "includes/ServiceRegistrySingleton.h"     // for ServiceRegistrySin...
 #include "orc8r/protos/common.pb.h"                // for Void
 #include "orc8r/protos/eventd.grpc.pb.h"           // for EventService::Stub
 namespace grpc {
