@@ -159,6 +159,14 @@ void S1apStateConverter::ue_to_proto(
       ue->s1ap_ue_context_rel_timer.id);
   proto->mutable_s1ap_ue_context_rel_timer()->set_sec(
       ue->s1ap_ue_context_rel_timer.sec);
+  proto->mutable_s1ap_handover_state()->set_mme_ue_s1ap_id(
+      ue->s1ap_handover_state.mme_ue_s1ap_id);
+  proto->mutable_s1ap_handover_state()->set_source_enb_id(
+      ue->s1ap_handover_state.source_enb_id);
+  proto->mutable_s1ap_handover_state()->set_target_enb_id(
+      ue->s1ap_handover_state.target_enb_id);
+  proto->mutable_s1ap_handover_state()->set_target_enb_ue_s1ap_id(
+      ue->s1ap_handover_state.target_enb_ue_s1ap_id);
 }
 void S1apStateConverter::proto_to_ue(
     const oai::UeDescription& proto, ue_description_t* ue) {
@@ -172,6 +180,14 @@ void S1apStateConverter::proto_to_ue(
   ue->sctp_stream_send              = proto.sctp_stream_send();
   ue->s1ap_ue_context_rel_timer.id  = proto.s1ap_ue_context_rel_timer().id();
   ue->s1ap_ue_context_rel_timer.sec = proto.s1ap_ue_context_rel_timer().sec();
+  ue->s1ap_handover_state.mme_ue_s1ap_id =
+      proto.s1ap_handover_state().mme_ue_s1ap_id();
+  ue->s1ap_handover_state.source_enb_id =
+      proto.s1ap_handover_state().source_enb_id();
+  ue->s1ap_handover_state.target_enb_id =
+      proto.s1ap_handover_state().target_enb_id();
+  ue->s1ap_handover_state.target_enb_ue_s1ap_id =
+      proto.s1ap_handover_state().target_enb_ue_s1ap_id();
 
   ue->comp_s1ap_id =
       S1AP_GENERATE_COMP_S1AP_ID(ue->sctp_assoc_id, ue->enb_ue_s1ap_id);
