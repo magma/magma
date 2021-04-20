@@ -970,6 +970,8 @@ jobs:
             echo export AWS_SECRET_ACCESS_KEY="$(printenv AWS_FB_SECRET)" >> $BASH_ENV
             pip install wheel
             pip install botocore
+            pip install boto3
+            pip install ansible-playbook
             pip install ansible
             mkdir ~/magma-experimental
             mkdir ~/magma-experimental/files
