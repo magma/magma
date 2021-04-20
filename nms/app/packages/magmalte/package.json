@@ -58,7 +58,7 @@
     "react-json-view": "^1.19.1",
     "react-router-dom": "5.1.2",
     "rimraf": "^3.0.0",
-    "style-loader": "^1.2.1",
+    "style-loader": "^2.0.0",
     "url": "^0.11.0"
   },
   "devDependencies": {
@@ -92,7 +92,7 @@
     "react-hot-loader": "^4.8.0",
     "react-test-renderer": "^16.12.0",
     "sqlite3": "^5.0.0",
-    "style-loader": "^1.2.1",
+    "style-loader": "^2.0.0",
     "terser-webpack-plugin": "^1.2.3",
     "url-loader": "^4.1.1",
     "webpack": "^4.44.2",
