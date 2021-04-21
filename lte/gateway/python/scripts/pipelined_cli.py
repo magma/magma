@@ -49,7 +49,7 @@ from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.qos.common import QosManager
 from magma.pipelined.service_manager import Tables
 from magma.subscriberdb.sid import SIDUtils
-from ng_set_session_msg import CreateSessionUtil
+from helpers.ng_set_session_msg import CreateSessionUtil
 from orc8r.protos.common_pb2 import Void
 
 UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
