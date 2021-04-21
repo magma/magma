@@ -69,7 +69,7 @@ if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $I
   service systemd-resolved restart
 
   # interface config
-  apt install -y ifupdown
+  apt install -y ifupdown net-tools
   echo "auto eth0
   iface eth0 inet dhcp" > /etc/network/interfaces.d/eth0
   # configuring eth1
