@@ -40,6 +40,7 @@ type FetchProps = {
   token?: string,
   pageSize?: number,
 };
+
 type InitSubscriberStateProps = {
   networkId: network_id,
   setSubscriberMap: ({[string]: subscriber}) => void,
@@ -47,6 +48,7 @@ type InitSubscriberStateProps = {
   setSubscriberMetrics?: ({[string]: Metrics}) => void,
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
+
 export async function FetchSubscribers(props: FetchProps) {
   const {networkId, enqueueSnackbar, id, token, pageSize} = props;
   if (id !== null && id !== undefined) {

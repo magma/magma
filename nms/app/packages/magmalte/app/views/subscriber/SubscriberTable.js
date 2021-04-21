@@ -15,9 +15,13 @@
  */
 import type {ActionQuery} from '../../components/ActionTable';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {lte_subscription, paginated_subscribers} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
+import Grid from '@material-ui/core/Grid';
+import LaunchIcon from '@material-ui/icons/Launch';
 import NetworkContext from '../../components/context/NetworkContext';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
@@ -25,10 +29,18 @@ import SubscriberContext from '../../components/context/SubscriberContext';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
-import {DEFAULT_PAGE_SIZE} from '../../views/subscriber/SubscriberUtils';
+import {CsvBuilder} from 'filefy';
+import {
+  DEFAULT_PAGE_SIZE,
+  SUBSCRIBER_EXPORT_COLUMNS,
+} from '../../views/subscriber/SubscriberUtils';
+import {
+  FetchSubscribers,
+  handleSubscriberQuery,
+} from '../../state/lte/SubscriberState';
 import {JsonDialog} from './SubscriberOverview';
 import {RenderLink} from './SubscriberOverview';
-import {handleSubscriberQuery} from '../../state/lte/SubscriberState';
+import {base64ToHex} from '@fbcnms/util/strings';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -52,7 +64,93 @@ export type SubscriberRowType = {
   lastReportedTime: Date | string,
 };
 
-function SubscribersTable(props: WithAlert) {
+function ExportSubscribersButton() {
+  const {match} = useRouter();
+  const networkId = nullthrows(match.params.networkId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  return (
+    <Grid item>
+      <Button
+        variant="contained"
+        color="primary"
+        startIcon={<LaunchIcon />}
+        onClick={() =>
+          exportSubscribers({
+            networkId,
+            enqueueSnackbar,
+          })
+        }>
+        Export
+      </Button>
+    </Grid>
+  );
+}
+type ExportProps = {
+  networkId: string,
+  enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
+};
+/**
+ * Export subscribers in csv format.
+ * Iterates over paginated subscribers.
+ *
+ * @param {string} networkId ID of the network.
+ * @param {ActionQuery} enqueueSnackbar Snackbar to display error message
+ */
+async function exportSubscribers(props: ExportProps) {
+  const {networkId, enqueueSnackbar} = props;
+  let page = 1;
+  let token = undefined;
+  const currTs = Date.now();
+  const subscriberExport = new CsvBuilder(`subscribers_${currTs}.csv`)
+    .setDelimeter(',')
+    .setColumns(SUBSCRIBER_EXPORT_COLUMNS.map(columnDef => columnDef.title));
+  try {
+    // last page next_page_token is an empty string
+    while (token !== '') {
+      // $FlowIgnore
+      const subscriberRows: paginated_subscribers = await FetchSubscribers({
+        networkId,
+        token,
+      });
+      if (subscriberRows) {
+        page = page + 1;
+        token = subscriberRows.next_page_token;
+      }
+      const subscriberData = Object.keys(subscriberRows.subscribers).map(
+        rowData =>
+          SUBSCRIBER_EXPORT_COLUMNS.map(columnDef => {
+            const subscriber: subscriber = subscriberRows.subscribers[rowData];
+            const subscriberConfig: lte_subscription =
+              subscriberRows.subscribers[rowData].config.lte;
+            const subscriberField =
+              typeof subscriber[columnDef.field] === 'object'
+                ? subscriber[columnDef.field].join('|')
+                : subscriber[columnDef.field];
+            const configField =
+              (columnDef.field === 'auth_opc' ||
+                columnDef.field === 'auth_key') &&
+              (subscriberConfig[columnDef.field] ?? false)
+                ? // $FlowIgnore
+                  base64ToHex(subscriberConfig[columnDef.field])
+                : // $FlowIgnore
+                  subscriberConfig[columnDef.field];
+            return subscriberField ?? configField;
+          }),
+      );
+      subscriberExport.addRows(subscriberData);
+    }
+    if (subscriberExport) {
+      subscriberExport.exportFile();
+    }
+  } catch (e) {
+    enqueueSnackbar(e?.message ?? 'error retrieving subscribers', {
+      variant: 'error',
+    });
+  }
+}
+
+function SubscribersTable(props: WithAlert & {refresh: boolean}) {
   const {history, match, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
   const classes = useStyles();
@@ -68,11 +166,6 @@ function SubscribersTable(props: WithAlert) {
   const onClose = () => setJsonDialog(false);
   const tableRef = React.useRef();
   const subscriberMap = ctx.state;
-  const subscriberCount = Object.keys(subscriberMap).length;
-
-  useEffect(() => {
-    tableRef.current?.onQueryChange();
-  }, [subscriberCount]);
 
   const tableColumns = [
     {
@@ -115,11 +208,19 @@ function SubscribersTable(props: WithAlert) {
       width: 200,
     },
   ];
-
+  // refresh data on subscriber add
+  useEffect(() => {
+    tableRef.current?.onQueryChange();
+  }, [props.refresh]);
   return (
     <>
       <div className={classes.dashboardRoot}>
-        <CardTitleRow key="title" icon={SettingsIcon} label={'Subscribers'} />
+        <CardTitleRow
+          key="title"
+          icon={SettingsIcon}
+          label={'Subscribers'}
+          filter={() => <ExportSubscribersButton />}
+        />
         <JsonDialog open={jsonDialog} onClose={onClose} imsi={currRow.imsi} />
         <ActionTable
           tableRef={tableRef}
@@ -174,6 +275,8 @@ function SubscribersTable(props: WithAlert) {
 
                     try {
                       await ctx.setState?.(currRow.imsi);
+                      // refresh table data
+                      tableRef.current?.onQueryChange();
                     } catch (e) {
                       enqueueSnackbar(
                         'failed deleting subscriber ' + currRow.imsi,
