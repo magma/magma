@@ -81,6 +81,9 @@ dpi:
   mon_port_number: 32769
   idle_timeout: 5
 
+conntrackd:
+  enabled: false
+
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: gtp_br0
 
