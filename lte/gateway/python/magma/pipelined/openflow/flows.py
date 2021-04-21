@@ -545,7 +545,7 @@ def delete_flow(datapath, table, match, actions=None, instructions=None,
     messages.send_msg(datapath, msg, retries=retries)
 
 
-def delete_all_flows_from_table(datapath, table, retries=3):
+def delete_all_flows_from_table(datapath, table, retries=3, cookie=None):
     """
     Delete all flows from a table.
 
@@ -558,7 +558,13 @@ def delete_all_flows_from_table(datapath, table, retries=3):
         MagmaOFError: if the flows can't be deleted
     """
     empty_match = MagmaMatch()
-    delete_flow(datapath, table, empty_match, retries=retries)
+    cookie_match = {}
+    if cookie is not None:
+        cookie_match = {
+            'cookie': cookie,
+            'cookie_mask': OVS_COOKIE_MATCH_ALL,
+        }
+    delete_flow(datapath, table, empty_match, retries=retries, **cookie_match)
 
 
 def __get_instructions_for_actions(ofproto, ofproto_parser,
