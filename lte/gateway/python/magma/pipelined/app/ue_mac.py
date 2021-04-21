@@ -172,7 +172,7 @@ class UEMacAddressController(MagmaController):
 
     def _add_resubmit_flow(self, sid, match, action=None,
                            priority=flows.DEFAULT_PRIORITY,
-                           next_table=None, tbl_num=None):
+                           next_table=None, tbl_num=None, cookie=0):
         parser = self._datapath.ofproto_parser
 
         if action is None:
@@ -191,7 +191,7 @@ class UEMacAddressController(MagmaController):
 
         flows.add_resubmit_next_service_flow(self._datapath, tbl_num,
                                              match, actions=actions,
-                                             priority=priority,
+                                             priority=priority, cookie=cookie,
                                              resubmit_table=next_table)
 
     def _delete_resubmit_flow(self, sid, match, action=None, tbl_num=None):
