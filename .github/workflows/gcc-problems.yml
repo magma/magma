@@ -115,7 +115,7 @@ jobs:
             CPPFLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wjump-misses-init -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2" make build_oai 2>&1 > /magma/compile.log
             BUILD_EXIT_CODE=$?
             for file in ${{ steps.changed_files.outputs.all }};
-            do grep "$file" /magma/compile.log | xo "/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/" || true;
+            do grep "$file" /magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
             done;
             exit $BUILD_EXIT_CODE
       -
@@ -175,7 +175,7 @@ jobs:
             CPPFLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wjump-misses-init -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2" make build_session_manager 2>&1 > /magma/compile.log
             BUILD_EXIT_CODE=$?
             for file in ${{ steps.changed_files.outputs.all }};
-            do grep "$file" /magma/compile.log | xo "/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/" || true;
+            do grep "$file" /magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
             done;
             exit $BUILD_EXIT_CODE
       -
