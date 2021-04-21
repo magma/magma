@@ -3392,6 +3392,158 @@ void mme_app_handle_handover_request_ack(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
+void mme_app_handle_handover_notify(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_handover_notify_t* const handover_notify_p) {
+  struct ue_mm_context_s* ue_context_p      = NULL;
+  MessageDef* message_p                     = NULL;
+  enb_s1ap_id_key_t enb_s1ap_id_key         = INVALID_ENB_UE_S1AP_ID_KEY;
+  ebi_t bearer_id                           = 0;
+  pdn_cid_t cid                             = 0;
+  pdn_context_t* pdn_context                = NULL;
+  bearer_context_t* current_bearer_p        = NULL;
+  e_rab_admitted_list_t e_rab_admitted_list = {0};
+  OAILOG_FUNC_IN(LOG_MME_APP);
+
+  ue_context_p =
+      mme_ue_context_exists_mme_ue_s1ap_id(handover_notify_p->mme_ue_s1ap_id);
+  if (!ue_context_p) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "HANDOVER NOTIFY received, failed to find UE context for "
+        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " \n",
+        handover_notify_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+
+  // update UE context
+  if (ue_context_p->enb_s1ap_id_key != INVALID_ENB_UE_S1AP_ID_KEY) {
+    // Remove existing enb_s1ap_id_key which is mapped with source eNB
+    hashtable_uint64_ts_remove(
+        mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+        (const hash_key_t) ue_context_p->enb_s1ap_id_key);
+    ue_context_p->enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
+  }
+  ue_context_p->enb_ue_s1ap_id = handover_notify_p->target_enb_ue_s1ap_id;
+  // regenerate the enb_s1ap_id_key as enb_ue_s1ap_id is changed.
+  MME_APP_ENB_S1AP_ID_KEY(
+      enb_s1ap_id_key, handover_notify_p->target_enb_id,
+      handover_notify_p->target_enb_ue_s1ap_id);
+  // Update enb_s1ap_id_key in hashtable
+  if (!IS_EMM_CTXT_PRESENT_GUTI(&(ue_context_p->emm_context))) {
+    mme_ue_context_update_coll_keys(
+        &mme_app_desc_p->mme_ue_contexts, ue_context_p, enb_s1ap_id_key,
+        ue_context_p->mme_ue_s1ap_id, ue_context_p->emm_context._imsi64,
+        ue_context_p->mme_teid_s11, &ue_context_p->emm_context._guti);
+  }
+
+  // Update sctp assoc id and ecgi
+  ue_context_p->sctp_assoc_id_key = handover_notify_p->target_sctp_assoc_id;
+  ue_context_p->e_utran_cgi       = handover_notify_p->ecgi;
+
+  // generate the Modify Bearer Request
+  message_p = itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
+  if (message_p == NULL) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Failed to allocate new ITTI message for S11 Modify Bearer Request "
+        "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        handover_notify_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
+      &message_p->ittiMsg.s11_modify_bearer_request;
+  s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
+
+  e_rab_admitted_list = handover_notify_p->e_rab_admitted_list;
+  for (int i = 0; i < e_rab_admitted_list.no_of_items; i++) {
+    bearer_id = e_rab_admitted_list.item[i].e_rab_id;
+    if ((current_bearer_p =
+             mme_app_get_bearer_context(ue_context_p, bearer_id)) == NULL) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Bearer Context for bearer_id %d does not exist for ue_id %d\n",
+          bearer_id, ue_context_p->mme_ue_s1ap_id);
+    } else {
+      s11_modify_bearer_request->bearer_contexts_to_be_modified
+          .bearer_contexts[i]
+          .eps_bearer_id = e_rab_admitted_list.item[i].e_rab_id;
+      s11_modify_bearer_request->bearer_contexts_to_be_modified
+          .bearer_contexts[i]
+          .s1_eNB_fteid.teid = e_rab_admitted_list.item[i].gtp_teid;
+      s11_modify_bearer_request->bearer_contexts_to_be_modified
+          .bearer_contexts[i]
+          .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
+      if (4 == blength(e_rab_admitted_list.item[i].transport_layer_address)) {
+        s11_modify_bearer_request->bearer_contexts_to_be_modified
+            .bearer_contexts[i]
+            .s1_eNB_fteid.ipv4 = 1;
+        memcpy(
+            &s11_modify_bearer_request->bearer_contexts_to_be_modified
+                 .bearer_contexts[i]
+                 .s1_eNB_fteid.ipv4_address,
+            e_rab_admitted_list.item[i].transport_layer_address->data,
+            blength(e_rab_admitted_list.item[i].transport_layer_address));
+      } else if (
+          16 == blength(e_rab_admitted_list.item[i].transport_layer_address)) {
+        s11_modify_bearer_request->bearer_contexts_to_be_modified
+            .bearer_contexts[i]
+            .s1_eNB_fteid.ipv6 = 1;
+        memcpy(
+            &s11_modify_bearer_request->bearer_contexts_to_be_modified
+                 .bearer_contexts[i]
+                 .s1_eNB_fteid.ipv6_address,
+            e_rab_admitted_list.item[i].transport_layer_address->data,
+            blength(e_rab_admitted_list.item[i].transport_layer_address));
+      } else {
+        OAILOG_ERROR_UE(
+            LOG_MME_APP, ue_context_p->emm_context._imsi64,
+            "Invalid IP address of %d bytes found for MME UE S1AP "
+            "Id: " MME_UE_S1AP_ID_FMT " (4 or 16 bytes was expected)\n",
+            blength(e_rab_admitted_list.item[i].transport_layer_address),
+            handover_notify_p->mme_ue_s1ap_id);
+        bdestroy_wrapper(&e_rab_admitted_list.item[i].transport_layer_address);
+        OAILOG_FUNC_OUT(LOG_MME_APP);
+      }
+      bdestroy_wrapper(&e_rab_admitted_list.item[i].transport_layer_address);
+      s11_modify_bearer_request->bearer_contexts_to_be_modified
+          .num_bearer_context++;
+
+      OAILOG_DEBUG_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Build MBR for ue_id %d\t bearer_id %d\t enb_teid %u\t sgw_teid %u\n",
+          ue_context_p->mme_ue_s1ap_id, bearer_id,
+          s11_modify_bearer_request->bearer_contexts_to_be_modified
+              .bearer_contexts[i]
+              .s1_eNB_fteid.teid,
+          current_bearer_p->s_gw_fteid_s1u.teid);
+    }
+
+    if (i == 0) {
+      cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(bearer_id)]->pdn_cx_id;
+      pdn_context = ue_context_p->pdn_contexts[cid];
+      s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr =
+          pdn_context->s_gw_address_s11_s4.address.ipv4_address;
+      s11_modify_bearer_request->teid = pdn_context->s_gw_teid_s11_s4;
+    }
+  }  // end for loop for e_rab_admitted_list.no_of_items
+
+  // we don't remove contexts during HANDOVER NOTIFY
+  s11_modify_bearer_request->bearer_contexts_to_be_removed.num_bearer_context =
+      0;
+
+  // S11 stack specific parameter. Not used in standalone epc mode
+  s11_modify_bearer_request->trxn = NULL;
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+
+  if (pdn_context) {
+    send_s11_modify_bearer_request(ue_context_p, pdn_context, message_p);
+  }
+
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
 void mme_app_handle_path_switch_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_path_switch_request_t* const path_switch_req_p) {

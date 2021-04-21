@@ -290,6 +290,10 @@ void mme_app_handle_handover_request_ack(
     mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_handover_request_ack_t* const handover_request_ack_p);
 
+void mme_app_handle_handover_notify(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_handover_notify_t* const handover_notify_p);
+
 void mme_app_handle_path_switch_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_path_switch_request_t* const path_switch_req_p);
