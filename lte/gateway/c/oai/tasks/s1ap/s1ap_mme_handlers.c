@@ -115,8 +115,8 @@ bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 s1ap_message_handler_t message_handlers[][3] = {
     {s1ap_mme_handle_handover_required, 0, 0}, /* HandoverPreparation */
     {0, s1ap_mme_handle_handover_request_ack,
-     0},       /* HandoverResourceAllocation */
-    {0, 0, 0}, /* HandoverNotification */
+     0},                                     /* HandoverResourceAllocation */
+    {s1ap_mme_handle_handover_notify, 0, 0}, /* HandoverNotification */
     {s1ap_mme_handle_path_switch_request, 0, 0}, /* PathSwitchRequest */
     {0, 0, 0},                                   /* HandoverCancel */
     {0, s1ap_mme_handle_erab_setup_response,
@@ -2641,6 +2641,172 @@ int s1ap_mme_handle_handover_command(
 
   s1ap_mme_itti_send_sctp_request(
       &b, ho_command_p->source_assoc_id, stream, ho_command_p->mme_ue_s1ap_id);
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
+int s1ap_mme_handle_handover_notify(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
+  S1ap_HandoverNotify_t* container    = NULL;
+  S1ap_HandoverNotifyIEs_t* ie        = NULL;
+  enb_description_t* target_enb       = NULL;
+  ue_description_t* src_ue_ref_p      = NULL;
+  ue_description_t* new_ue_ref_p      = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id     = INVALID_MME_UE_S1AP_ID;
+  enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
+  ecgi_t ecgi                         = {.plmn = {0}, .cell_identity = {0}};
+  tai_t tai                           = {0};
+  imsi64_t imsi64                     = INVALID_IMSI64;
+  s1ap_imsi_map_t* imsi_map           = get_s1ap_imsi_map();
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+
+  target_enb = s1ap_state_get_enb(state, assoc_id);
+  if (target_enb == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP, "Ignore HandoverNotify from unknown assoc %u\n", assoc_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  container = &pdu->choice.initiatingMessage.value.choice.HandoverNotify;
+
+  // HandoverNotify means the handover has completed successfully. We can
+  // remove the UE context from the old eNB, tear down indirect forwarding
+  // tunnels, modify the DL bearer, and create the new UE context on the new
+  // eNB.
+
+  // get the mandantory IEs
+  // MME_UE_S1AP_ID
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverNotifyIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // eNB_UE_S1AP_ID
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverNotifyIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  // eNB UE S1AP ID is limited to 24 bits
+  if (ie) {
+    tgt_enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
+        ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // CGI
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverNotifyIEs_t, ie, container, S1ap_ProtocolIE_ID_id_EUTRAN_CGI,
+      true);
+
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP, "Incorrect IE \n");
+    return RETURNerror;
+  }
+
+  if (!(ie->value.choice.EUTRAN_CGI.pLMNidentity.size == 3)) {
+    OAILOG_ERROR(LOG_S1AP, "Incorrect PLMN size \n");
+    return RETURNerror;
+  }
+  TBCD_TO_PLMN_T(&ie->value.choice.EUTRAN_CGI.pLMNidentity, &ecgi.plmn);
+  BIT_STRING_TO_CELL_IDENTITY(
+      &ie->value.choice.EUTRAN_CGI.cell_ID, ecgi.cell_identity);
+
+  // TAI
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverNotifyIEs_t, ie, container, S1ap_ProtocolIE_ID_id_TAI, true);
+  if (!ie) {
+    OAILOG_ERROR(LOG_S1AP, "Incorrect IE \n");
+    return RETURNerror;
+  }
+  OCTET_STRING_TO_TAC(&ie->value.choice.TAI.tAC, tai.tac);
+  if (!(ie->value.choice.EUTRAN_CGI.pLMNidentity.size == 3)) {
+    OAILOG_ERROR(LOG_S1AP, "Incorrect PLMN size \n");
+    return RETURNerror;
+  }
+  TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
+
+  // imsi for logging
+  hashtable_uint64_ts_get(
+      imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+      &imsi64);
+
+  // get existing UE context
+  if ((src_ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+    OAILOG_ERROR_UE(
+        LOG_S1AP, imsi64,
+        "source MME_UE_S1AP_ID (" MME_UE_S1AP_ID_FMT
+        ") does not point to any valid UE\n",
+        mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  } else {
+    // create new UE context, remove the old one.
+    new_ue_ref_p =
+        s1ap_state_get_ue_enbid(target_enb->sctp_assoc_id, tgt_enb_ue_s1ap_id);
+    if (new_ue_ref_p != NULL) {
+      OAILOG_ERROR_UE(
+          LOG_S1AP, imsi64,
+          "S1AP:Handover Notify- Received ENB_UE_S1AP_ID is not Unique "
+          "Drop Handover Notify for eNBUeS1APId:" ENB_UE_S1AP_ID_FMT "\n",
+          tgt_enb_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+    if ((new_ue_ref_p = s1ap_new_ue(state, assoc_id, tgt_enb_ue_s1ap_id)) ==
+        NULL) {
+      // If we failed to allocate a new UE return -1
+      OAILOG_ERROR_UE(
+          LOG_S1AP, imsi64,
+          "S1AP:Handover Notify- Failed to allocate S1AP UE Context, "
+          "eNBUeS1APId:" ENB_UE_S1AP_ID_FMT "\n",
+          tgt_enb_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+    new_ue_ref_p->s1_ue_state    = S1AP_UE_CONNECTED;  // handover has completed
+    new_ue_ref_p->enb_ue_s1ap_id = tgt_enb_ue_s1ap_id;
+    // Will be allocated by NAS
+    new_ue_ref_p->mme_ue_s1ap_id = mme_ue_s1ap_id;
+
+    new_ue_ref_p->s1ap_ue_context_rel_timer.id =
+        src_ue_ref_p->s1ap_ue_context_rel_timer.id;
+    new_ue_ref_p->s1ap_ue_context_rel_timer.sec =
+        src_ue_ref_p->s1ap_ue_context_rel_timer.sec;
+    new_ue_ref_p->sctp_stream_recv =
+        src_ue_ref_p->s1ap_handover_state.target_sctp_stream_recv;
+    new_ue_ref_p->sctp_stream_send =
+        src_ue_ref_p->s1ap_handover_state.target_sctp_stream_send;
+
+    // generate a message to update bearers
+    s1ap_mme_itti_s1ap_handover_notify(
+        mme_ue_s1ap_id, src_ue_ref_p->s1ap_handover_state, tgt_enb_ue_s1ap_id,
+        assoc_id, ecgi, imsi64);
+
+    /* Remove ue description from source eNB */
+    s1ap_remove_ue(state, src_ue_ref_p);
+
+    /* Mapping between mme_ue_s1ap_id, assoc_id and enb_ue_s1ap_id */
+    hashtable_rc_t h_rc = hashtable_ts_insert(
+        &state->mmeid2associd, (const hash_key_t) new_ue_ref_p->mme_ue_s1ap_id,
+        (void*) (uintptr_t) assoc_id);
+
+    hashtable_uint64_ts_insert(
+        &target_enb->ue_id_coll,
+        (const hash_key_t) new_ue_ref_p->mme_ue_s1ap_id,
+        new_ue_ref_p->comp_s1ap_id);
+
+    OAILOG_DEBUG_UE(
+        LOG_S1AP, imsi64,
+        "Associated sctp_assoc_id %d, enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+        ", mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT ":%s \n",
+        assoc_id, new_ue_ref_p->enb_ue_s1ap_id, new_ue_ref_p->mme_ue_s1ap_id,
+        hashtable_rc_code2string(h_rc));
+
+    s1ap_dump_enb(target_enb);
+  }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
