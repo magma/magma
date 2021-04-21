@@ -3381,8 +3381,6 @@ void mme_app_handle_handover_request_ack(
       bstrcpy(handover_request_ack_p
                   ->tgt_src_container);  // ownership passed to receiver
 
-  // TODO: set up E-RABs. As is, HO will proceed, but we will drop packets.
-
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
       "MME_APP send HANDOVER_COMMAND to S1AP for ue_id %d \n",
