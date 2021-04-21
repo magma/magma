@@ -1925,6 +1925,7 @@ int s1ap_mme_handle_handover_request_ack(
   enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id          = INVALID_ENB_UE_S1AP_ID;
   S1ap_HandoverType_t handover_type            = -1;
   bstring tgt_src_container                    = {0};
+  e_rab_admitted_list_t e_rab_list             = {0};
   imsi64_t imsi64                              = INVALID_IMSI64;
   s1ap_imsi_map_t* imsi_map                    = get_s1ap_imsi_map();
 
@@ -1957,9 +1958,34 @@ int s1ap_mme_handle_handover_request_ack(
   }
 
   // E-RABAdmittedList: mandatory
-  // Note that the DL and UL transport address and GTP-TEID are optional, and
-  // only used if data forwarding will take place.
-  // TODO: add support for indirect data forwarding
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverRequestAcknowledgeIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_E_RABAdmittedList, true);
+  if (ie) {
+    S1ap_E_RABAdmittedList_t* erab_admitted_list_req =
+        &ie->value.choice.E_RABAdmittedList;
+    int num_erab = ie->value.choice.E_RABAdmittedList.list.count;
+    for (int i = 0; i < num_erab; i++) {
+      S1ap_E_RABAdmittedItemIEs_t* erab_admitted_item_ies =
+          (S1ap_E_RABAdmittedItemIEs_t*) erab_admitted_list_req->list.array[i];
+      S1ap_E_RABAdmittedItem_t* erab_admitted_item_req =
+          (S1ap_E_RABAdmittedItem_t*) &erab_admitted_item_ies->value.choice
+              .E_RABAdmittedItem;
+      e_rab_list.item[i].e_rab_id = erab_admitted_item_req->e_RAB_ID;
+      e_rab_list.item[i].transport_layer_address = blk2bstr(
+          erab_admitted_item_req->transportLayerAddress.buf,
+          erab_admitted_item_req->transportLayerAddress.size);
+      e_rab_list.item[i].gtp_teid =
+          htonl(*((uint32_t*) erab_admitted_item_req->gTP_TEID.buf));
+      // TODO: Add support for indirect data forwarding. Note that the DL and UL
+      // transport address and GTP-TEID are optional, and only used if data
+      // forwarding will take place. Since we don't currently support data
+      // forwarding, these are ignored.
+      e_rab_list.no_of_items += 1;
+    }
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
 
   // Target To Source Transparent Container: mandatory
   S1AP_FIND_PROTOCOLIE_BY_ID(
@@ -2018,8 +2044,12 @@ int s1ap_mme_handle_handover_request_ack(
   // it's an intralte handover.
   handover_type = S1ap_HandoverType_intralte;
 
-  // Since we aren't doing data forwarding yet, we could directly create the
-  // HandoverCommand. We'll pass the message through the MME_APP still.
+  // Add the e_rab_list to the UE's handover state -- we'll modify the bearers
+  // if and when we receive the HANDOVER NOTIFY later in the procedure, so we
+  // need to keep track of this.
+  if (e_rab_list.no_of_items) {
+    ue_ref_p->s1ap_handover_state.e_rab_admitted_list = e_rab_list;
+  }
 
   s1ap_mme_itti_s1ap_handover_request_ack(
       mme_ue_s1ap_id, ue_ref_p->enb_ue_s1ap_id, tgt_enb_ue_s1ap_id,
@@ -2187,6 +2217,32 @@ int s1ap_mme_handle_handover_request(
         ho_request_p->e_rab_list.item[i]
             .e_rab_level_qos_parameters.allocation_and_retention_priority
             .pre_emption_vulnerability;
+
+    // data forwarding not supported
+    OAILOG_INFO(LOG_S1AP, "Note: data forwarding unsupported\n");
+    S1ap_E_RABToBeSetupItemHOReq_ExtIEs_t* exts =
+        (S1ap_E_RABToBeSetupItemHOReq_ExtIEs_t*) calloc(
+            1, sizeof(S1ap_E_RABToBeSetupItemHOReq_ExtIEs_t));
+    exts->id          = S1ap_ProtocolIE_ID_id_Data_Forwarding_Not_Possible;
+    exts->criticality = S1ap_Criticality_ignore;
+    exts->extensionValue.present =
+        S1ap_E_RABToBeSetupItemHOReq_ExtIEs__extensionValue_PR_Data_Forwarding_Not_Possible;
+    exts->extensionValue.choice.Data_Forwarding_Not_Possible =
+        S1ap_Data_Forwarding_Not_Possible_data_Forwarding_not_Possible;
+
+    S1ap_ProtocolExtensionContainer_7327P1_t* xc =
+        (S1ap_ProtocolExtensionContainer_7327P1_t*) calloc(
+            1, sizeof(S1ap_ProtocolExtensionContainer_7327P1_t));
+    int asn_ret = 0;
+    asn_ret     = ASN_SEQUENCE_ADD(&xc->list, exts);
+    if (asn_ret) {
+      OAILOG_ERROR(LOG_S1AP, "ASN_SEQUENCE_ADD ret = %d\n", asn_ret);
+    }
+
+    // Bad cast...
+    e_RABToBeSetup->iE_Extensions =
+        (struct S1ap_ProtocolExtensionContainer*) xc;
+
     ASN_SEQUENCE_ADD(&e_rab_to_be_setup_list->list, e_rab_tobesetup_item);
   }
 
