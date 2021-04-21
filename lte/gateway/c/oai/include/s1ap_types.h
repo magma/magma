@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #include "3gpp_36.401.h"
+#include "3gpp_36.413.h"
 
 #include "common_types.h"
 #include "hashtable.h"
@@ -87,6 +88,7 @@ typedef struct s1ap_handover_state_s {
       target_enb_ue_s1ap_id : 24;  ///< Unique UE id over eNB (24 bits wide)
   sctp_stream_id_t target_sctp_stream_recv;  ///< eNB -> MME stream
   sctp_stream_id_t target_sctp_stream_send;  ///< MME -> eNB stream
+  e_rab_admitted_list_t e_rab_admitted_list;
 } s1ap_handover_state_t;
 
 /** Main structure representing UE association over s1ap
@@ -116,7 +118,9 @@ typedef struct ue_description_s {
   // UE Context Release procedure guard timer
   struct s1ap_timer_t s1ap_ue_context_rel_timer;
 
-  // Handover status
+  // Handover status. We intentionally do not persist all of this state since
+  // it's time sensitive; if the MME restarts during a HO procedure the RAN
+  // will abort the procedure due to timeouts, rendering this state useless.
   s1ap_handover_state_t s1ap_handover_state;
 } ue_description_t;
 
