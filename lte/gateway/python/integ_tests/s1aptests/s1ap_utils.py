@@ -591,7 +591,6 @@ class SubscriberUtil(object):
         print("Using IMEI %s" % imei)
         return imei
 
-
     def _get_s1ap_sub(self, sid, imei):
         """
         Get the subscriber data in s1aptester format.
@@ -788,22 +787,20 @@ class MagmadUtil(object):
         self.exec_command("sudo systemctl mask magma@{}".format(service))
         self.exec_command("sudo systemctl stop magma@{}".format(service))
 
-    def is_service_enabled(self, service) -> bool:
+    def is_service_active(self, service) -> bool:
         """
-        Checks if a magma service on magma_dev VM is enabled
+        Checks if a magma service on magma_dev VM is active
         Args:
-            service: (str) service to disable
+            service: (str) service to check if it's active
         """
-        is_enabled_service_cmd = "systemctl is-enabled magma@" + service
+        is_active_service_cmd = "systemctl is-active magma@" + service
         try:
-            result_str = self.exec_command_output(is_enabled_service_cmd)
+            result_str = self.exec_command_output(is_active_service_cmd)
         except subprocess.CalledProcessError as e:
             # if service is disabled / masked, is-enabled will return
             # non-zero exit status
             result_str = e.output
-        if result_str in ("masked", "disabled"):
-            return False
-        return True
+        return result_str.strip() == "active"
 
     def update_mme_config_for_sanity(self, cmd):
         mme_config_update_script = (
@@ -877,12 +874,19 @@ class MagmadUtil(object):
             cmd: Enable / Disable cmd to configure service
         """
         magma_health_service_name = "health"
+        # Update health config to increment frequency of service failures
         if cmd.name == MagmadUtil.health_service_cmds.DISABLE.name:
-            if self.is_service_enabled(magma_health_service_name):
+            health_config_cmd = ("sed -i 's/interval_check_mins: 1/interval_"
+                                 "check_mins: 3/g' /etc/magma/health.yml")
+            self.exec_command("sudo %s" % health_config_cmd)
+            if self.is_service_active(magma_health_service_name):
                 self.disable_service(magma_health_service_name)
             print("Health service is disabled")
         elif cmd.name == MagmadUtil.health_service_cmds.ENABLE.name:
-            if not self.is_service_enabled(magma_health_service_name):
+            health_config_cmd = ("sed -i 's/interval_check_mins: 3/interval_"
+                                 "check_mins: 1/g' /etc/magma/health.yml")
+            self.exec_command("sudo %s" % health_config_cmd)
+            if not self.is_service_active(magma_health_service_name):
                 self.enable_service("health")
             print("Health service is enabled")
 
@@ -1708,4 +1712,3 @@ class HeaderEnrichmentUtils:
                             cnt = cnt + 1
 
         return cnt
-
