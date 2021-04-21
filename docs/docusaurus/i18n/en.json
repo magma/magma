@@ -370,6 +370,9 @@
       "proposals/p013_Ubuntu_upgrade": {
         "title": "AGW Ubuntu upgrade"
       },
+      "proposals/p014_proposal_process": {
+        "title": "Magma Proposals"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },
