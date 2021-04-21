@@ -1,0 +1,131 @@
+name: cloud-workflow
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+########## INSYNC-CHECKIN ##########
+
+  insync-checkin:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Export Magma root path
+      run: |
+              echo "MAGMA_ROOT=$(pwd)" >> $GITHUB_ENV
+#      - build/determinator:
+#          <<: *all_gateways_build_verify
+    - name: Run apt-get update
+      run: sudo apt-get update
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.6'
+    - name: Run build.py
+      run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --generate
+          sudo chown -R $USER $MAGMA_ROOT/*
+          git add .
+          git status
+          git diff-index --quiet HEAD
+#    - magma_slack_notify
+
+########## CLOUD-LINT ##########
+
+  cloud-lint:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Export Magma root path
+      run: |
+              echo "MAGMA_ROOT=$(pwd)" >> $GITHUB_ENV
+#      - build/determinator:
+#          <<: *all_gateways_build_verify
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.6'
+    - name: Lint cloud Go code
+      run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --lint
+    - name: Generate test coverage
+      run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --coverage
+#    - codecov/upload:
+#          file: /home/circleci/project/orc8r/cloud/coverage/all.gocov
+#    - magma_slack_notify
+
+########## CLOUD-TEST ##########
+
+  cloud-test:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Export Magma root path
+      run: |
+              echo "MAGMA_ROOT=$(pwd)" >> $GITHUB_ENV
+#      - build/determinator:
+#          <<: *all_gateways_build_verify
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.6'
+    - name: Run build.py
+      run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --tests --up
+      timeout-minutes: 15
+#    - magma_slack_notify
+
+########## ORC8R-BUILD ##########
+
+  orc8r-build:
+
+    runs-on: ubuntu-latest
+    needs: [insync-checkin, cloud-lint, cloud-test]
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Export Magma root path
+      run: |
+              echo "MAGMA_ROOT=$(pwd)" >> $GITHUB_ENV
+              echo "MODULE_DIR=$(pwd)" >> $GITHUB_ENV
+#      - build/determinator:
+#          <<: *all_gateways_build_verify
+    - name: Run apt-get update
+      run: sudo apt-get update
+    - uses: actions/setup-python@v2
+      with:
+        python-version: '3.6'
+    - name: Run build.py
+      run: |
+          cd ${MAGMA_ROOT}/orc8r/cloud/docker
+          python3 build.py --all --nocache --parallel
+#      - tag-push-docker:
+#          project: orc8r
+#          images: "nginx|controller"
+#          tag-latest: true
+    - name: persist-githash-version - Set prefix
+      run: |
+          echo "file_prefix=orc8r" >> $GITHUB_ENV
+    - name: persist-githash-version - Create version file
+      run: |
+          cd ${MAGMA_ROOT}/circleci
+          mkdir -p versions
+          echo "${CIRCLE_SHA1:0:8}" > versions/<< ${file_prefix} >>_version
+#      - notify-magma:
+#          artifact_name: Orchestrator Images
+#          version_path: versions/orc8r_version
+#      - magma_slack_notify
+

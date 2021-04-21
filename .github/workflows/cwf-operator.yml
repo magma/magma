@@ -1,0 +1,75 @@
+name: cwf-operator
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+########## CWF-PRECOMMIT ##########
+
+  cwf-operator-precommit:
+
+    runs-on: ubuntu-latest
+
+    env:
+      GO111MODULE: on
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Export Magma root path
+      run: echo "MAGMA_ROOT=${PWD}" >> $GITHUB_ENV
+    - name: Run golang_before_install.sh script
+      run: ./circleci/golang_before_install.sh
+    - name: Move into cwf dir
+      run: cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator
+    - name: Run go mod download with retry
+      uses: nick-invision/retry@v2
+      with:
+        command: cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator && go mod download
+        timeout_minutes: 10
+    - name: Run precommit
+      run: |
+          make -C ${MAGMA_ROOT}/cwf/k8s/cwf_operator precommit
+#    - magma_slack_notify
+
+########## CWF-OPERATOR-BUILD ##########
+
+  cwf-operator-build:
+
+    needs: cwf-operator-precommit
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Export Magma root path
+      run: |
+          echo "MAGMA_ROOT=${PWD}" >> $GITHUB_ENV
+          echo "DOCKER_REGISTRY=cwf_" >> $GITHUB_ENV
+    - name: Build the docker-compose stack
+      run: |
+           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
+           docker-compose up -d
+    - name: Run docker compose build
+      run: |
+           cd ${MAGMA_ROOT}/cwf/k8s/cwf_operator/docker
+           DOCKER_REGISTRY=cwf_ docker-compose build --parallel
+#      - tag-push-docker:
+#          project: cwf
+#          images: "operator"
+#          registry: $DOCKER_MAGMA_REGISTRY
+    - name: persist-githash-version - Set prefix
+      run: |
+          echo "file_prefix=cwf_operator" >> $GITHUB_ENV
+    - name: persist-githash-version - Create version file
+      run: |
+          cd ${MAGMA_ROOT}/circleci
+          mkdir -p versions
+          echo "${CIRCLE_SHA1:0:8}" > versions/<< ${file_prefix} >>_version
+#      - notify-magma:
+#          artifact_name: CWF Operator
+#          version_path: versions/cwf_operator_version
+#      - magma_slack_notify

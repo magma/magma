@@ -1,0 +1,70 @@
+name: feg-workflow
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+########## FEG-PRECOMMIT ##########
+
+  feg-precommit:
+
+    runs-on: ubuntu-latest
+
+    env:
+      GO111MODULE: on
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Export Magma root path
+      run: echo "MAGMA_ROOT=${PWD}" >> $GITHUB_ENV
+    - name: Run golang_before_install.sh script
+      run: ./circleci/golang_before_install.sh
+    - name: Run go mod download with retry
+      uses: nick-invision/retry@v2
+      with:
+        command: cd ${MAGMA_ROOT}/cwf/gateway && go mod download
+        timeout_minutes: 10
+    - name: make feg precommit
+      run: |
+          cd ${MAGMA_ROOT}/feg/gateway
+          make -C ${MAGMA_ROOT}/feg/gateway precommit
+#    - magma_slack_notify
+
+########## FEG-BUILD ##########
+
+  feg-build:
+
+    needs: feg-precommit
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+#      - build/determinator:
+#          paths: "cwf/k8s"
+    - name: Export Magma root path
+      run: echo "MAGMA_ROOT=${PWD}" >> $GITHUB_ENV
+    - name: Export Docker registry
+      run: |
+          cd ${MAGMA_ROOT}/feg/gateway/docker
+          echo "DOCKER_REGISTRY=feg_ docker-compose build --parallel" >> $GITHUB_ENV
+#      - tag-push-docker:
+#          project: feg
+#          images: "gateway_go|gateway_python"
+#          registry: $DOCKER_FEG_REGISTRY
+    - name: persist-githash-version - Set prefix
+      run: |
+          echo "file_prefix=feg" >> $GITHUB_ENV
+    - name: persist-githash-version - Create version file
+      run: |
+          cd ${MAGMA_ROOT}/circleci
+          mkdir -p versions
+          echo "${CIRCLE_SHA1:0:8}" > versions/<< ${file_prefix} >>_version
+#      - notify-magma:
+#          artifact_name: FeG
+#          version_path: versions/feg_version
+#      - magma_slack_notify
