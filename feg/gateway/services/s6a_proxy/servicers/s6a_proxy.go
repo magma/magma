@@ -33,9 +33,20 @@ import (
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
+// Flag definitions
+type FlagBit int
+
+const (
+	EmptyFlagBit FlagBit = 0
+	FlagBit1     FlagBit = 1 << 1
+	FlagBit5     FlagBit = 1 << 5
+	FlagBit8     FlagBit = 1 << 8
+	FlagBit27    FlagBit = 1 << 27
+)
+
 const (
 	ULR_RAT_TYPE     = 1004
-	ULR_FLAGS        = 0b100010 // 29.272 Table 7.3.7/1: ULR-Flags (S6a/S6d-Indicator, Initial-AttachIndicator)
+	ULR_FLAGS        = FlagBit1 | FlagBit5 // 29.272 Table 7.3.7/1: ULR-Flags S6a/S6d-Indicator (bit 1), and Initial-AttachIndicator (bit 5)
 	TIMEOUT_SECONDS  = 10
 	MAX_DIAM_RETRIES = 1
 )

@@ -300,10 +300,6 @@ func testHandleULR(settings *sm.Settings, expectedULRFlags uint32) diam.HandlerF
 			// Flags needs to exist for this test
 			fmt.Printf("error: ULRFlags (%d) doesnt match with the expected ULRFlags (%d)\n", req.ULRFlags, expectedULRFlags)
 			code = diam.UnableToComply
-		} else if len(req.SupportedFeatures) != 1 || req.SupportedFeatures[0].FeatureListID != 2 {
-			// Supported fetaured list id 2 should exist
-			fmt.Printf("error: Supported Feature-List-Id 2 not foound or wrong (%v)\n", req.SupportedFeatures)
-			code = diam.UnableToComply
 		} else {
 			code = diam.Success
 		}
@@ -316,15 +312,21 @@ func testHandleULR(settings *sm.Settings, expectedULRFlags uint32) diam.HandlerF
 		a.NewAVP(avp.OriginRealm, avp.Mbit, 0, settings.OriginRealm)
 		a.NewAVP(avp.OriginStateID, avp.Mbit, 0, settings.OriginStateID)
 
-		// Add Feature-List-ID 2
-		a.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
-			AVP: []*diam.AVP{
-				diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
-				diam.NewAVP(avp.FeatureListID, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(2)),
-				diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP,
-					datatype.Unsigned32(req.SupportedFeatures[0].FeatureList)),
-			},
-		})
+		// Add Feature-List-ID 2 if exists
+		if len(req.SupportedFeatures) > 0 {
+			for _, suportedFeature := range req.SupportedFeatures {
+				if suportedFeature.FeatureListID == 2 {
+					a.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+						AVP: []*diam.AVP{
+							diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
+							diam.NewAVP(avp.FeatureListID, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(2)),
+							diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP,
+								datatype.Unsigned32(suportedFeature.FeatureList)),
+						},
+					})
+				}
+			}
+		}
 
 		_, err = testSendULA(settings, c, a)
 		if err != nil {

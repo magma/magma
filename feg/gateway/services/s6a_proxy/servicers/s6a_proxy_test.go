@@ -118,7 +118,8 @@ func TestS6aProxyService(t *testing.T) {
 			!bytes.Equal(ulResp.RegionalSubscriptionZoneCode[1], []byte{1, 1, 0, 1}) {
 			t.Errorf("There should be 2 Regional Subscription Zone Codes : %+v", ulResp.RegionalSubscriptionZoneCode)
 		}
-		assert.True(t, ulReq.FeatureListId_2.NrAsSecondaryRat)
+		assert.NotEmpty(t, ulResp.FeatureListId_2)
+		assert.True(t, ulResp.FeatureListId_2.NrAsSecondaryRat)
 
 		puReq := &protos.PurgeUERequest{
 			UserName: test.TEST_IMSI,
