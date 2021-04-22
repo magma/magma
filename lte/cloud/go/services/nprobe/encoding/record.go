@@ -33,7 +33,7 @@ type EpsIRIRecord struct {
 }
 
 // Encode returns a byte sequence of the EpsIRIRecord in network byte order
-func (r EpsIRIRecord) Encode() ([]byte, error) {
+func (r *EpsIRIRecord) Encode() ([]byte, error) {
 	recordType := getRecordType(r.Payload.EPSEvent)
 	content, err := asn1.MarshalWithParams(r.Payload, recordType)
 	if err != nil {
@@ -48,7 +48,7 @@ func (r EpsIRIRecord) Encode() ([]byte, error) {
 }
 
 // Decode constructs an IRI record from a byte sequence
-func (r EpsIRIRecord) Decode(b []byte) error {
+func (r *EpsIRIRecord) Decode(b []byte) error {
 	if len(b) < int(HeaderFixLen) {
 		return errors.New("input too small")
 	}
@@ -147,8 +147,9 @@ func MakeRecord(
 	}
 
 	correlationID := task.TaskDetails.CorrelationID
-	return EpsIRIRecord{
+	record := EpsIRIRecord{
 		Header:  NewEpsIRIHeader(uuid, correlationID, attrs, attrs_len),
 		Payload: makeEpsIRIContent(event, eventID, correlationID, operatorID, bTimestamp),
-	}.Encode()
+	}
+	return record.Encode()
 }

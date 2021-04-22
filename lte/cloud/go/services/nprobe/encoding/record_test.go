@@ -15,9 +15,10 @@ package encoding
 
 import (
 	"encoding/hex"
-	"fmt"
 	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 type timeTest struct {
@@ -78,5 +79,12 @@ func TestEpsIRIRecord(t *testing.T) {
 	if err := record.Decode(encodedRecord); err != nil {
 		t.Errorf("Decoding record failed: %v", err)
 	}
-	fmt.Printf("%v\n", record)
+
+	assert.Equal(t, HeaderVersion, record.Header.Version)
+	assert.Equal(t, uint64(0x866cb397915ffe4), record.Header.CorrelationID)
+	assert.Equal(t, "609dcabd-5ab1-4c95-9681-a24681f105ac", record.Header.XID.String())
+
+	assert.Equal(t, BearerActivation, record.Payload.EPSEvent)
+	assert.Equal(t, InitiatorNotAvailable, record.Payload.Initiator)
+	assert.Equal(t, GetOID(), record.Payload.Hi2epsDomainID)
 }
