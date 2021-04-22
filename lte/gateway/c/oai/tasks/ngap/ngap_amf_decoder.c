@@ -11,22 +11,18 @@
  * limitations under the License.
  */
 /****************************************************************************
-  Source      ngap_amf_decoder.c
-  Date        2020/07/28
   Subsystem   Access and Mobility Management Function
-  Author      Ashish Prajapati
   Description Defines NG Application Protocol Messages
-
 *****************************************************************************/
 
 #include <stdbool.h>
 #include <string.h>
 
+#include "ngap_amf_decoder.h"
 #include "bstrlib.h"
 #include "log.h"
 #include "assertions.h"
 #include "common_defs.h"
-#include "ngap_amf_decoder.h"
 #include "Ngap_NGAP-PDU.h"
 #include "Ngap_InitiatingMessage.h"
 #include "Ngap_ProcedureCode.h"

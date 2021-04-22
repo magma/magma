@@ -24,6 +24,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ngap_amf_encoder.h"
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
 #include "assertions.h"
@@ -31,7 +32,6 @@
 #include "log.h"
 #include "conversions.h"
 #include "asn1_conversions.h"
-#include "ngap_amf_encoder.h"
 #include "ngap_amf.h"
 #include "ngap_amf_nas_procedures.h"
 #include "ngap_amf_itti_messaging.h"

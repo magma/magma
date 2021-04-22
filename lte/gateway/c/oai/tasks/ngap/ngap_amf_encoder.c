@@ -22,8 +22,8 @@
 #include <stdint.h>
 #include <string.h>
 
-#include "ngap_common.h"
 #include "ngap_amf_encoder.h"
+#include "ngap_common.h"
 #include "assertions.h"
 #include "log.h"
 #include "Ngap_NGAP-PDU.h"
@@ -39,9 +39,9 @@
 
 static inline int ngap_amf_encode_initiating(
     Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length);
-static inline int ngap_amf_encode_successfull_outcome(
+static inline int ngap_amf_encode_successful_outcome(
     Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* len);
-static inline int ngap_amf_encode_unsuccessfull_outcome(
+static inline int ngap_amf_encode_unsuccessful_outcome(
     Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* len);
 //------------------------------------------------------------------------------
 int ngap_amf_encode_pdu(
@@ -57,11 +57,11 @@ int ngap_amf_encode_pdu(
       break;
 
     case Ngap_NGAP_PDU_PR_successfulOutcome:
-      ret = ngap_amf_encode_successfull_outcome(pdu, buffer, length);
+      ret = ngap_amf_encode_successful_outcome(pdu, buffer, length);
       break;
 
     case Ngap_NGAP_PDU_PR_unsuccessfulOutcome:
-      ret = ngap_amf_encode_unsuccessfull_outcome(pdu, buffer, length);
+      ret = ngap_amf_encode_unsuccessful_outcome(pdu, buffer, length);
       break;
 
     default:
@@ -105,7 +105,7 @@ static inline int ngap_amf_encode_initiating(
 }
 
 //------------------------------------------------------------------------------
-static inline int ngap_amf_encode_successfull_outcome(
+static inline int ngap_amf_encode_successful_outcome(
     Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
@@ -117,7 +117,7 @@ static inline int ngap_amf_encode_successfull_outcome(
     default:
       OAILOG_DEBUG(
           LOG_NGAP,
-          "Unknown procedure ID (%d) for successfull outcome message\n",
+          "Unknown procedure ID (%d) for successful outcome message\n",
           (int) pdu->choice.successfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
@@ -134,7 +134,7 @@ static inline int ngap_amf_encode_successfull_outcome(
 }
 
 //------------------------------------------------------------------------------
-static inline int ngap_amf_encode_unsuccessfull_outcome(
+static inline int ngap_amf_encode_unsuccessful_outcome(
     Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
@@ -146,7 +146,7 @@ static inline int ngap_amf_encode_unsuccessfull_outcome(
     default:
       OAILOG_DEBUG(
           LOG_NGAP,
-          "Unknown procedure ID (%d) for unsuccessfull outcome message\n",
+          "Unknown procedure ID (%d) for unsuccessful outcome message\n",
           (int) pdu->choice.unsuccessfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
