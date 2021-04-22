@@ -143,7 +143,6 @@ s1aptests/test_x2_handover_ping_pong.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
-s1aptests/test_attach_detach_rar_tcp_he.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
@@ -165,6 +164,7 @@ s1aptests/test_restore_mme_config_after_sanity.py
 # s1aptests/test_attach_detach_ps_service_not_available.py \
 # s1aptests/test_enb_complete_reset.py \
 # s1aptests/test_attach_detach_multi_ue_looped.py \
+# s1aptests/test_attach_detach_rar_tcp_he.py \ GitHubIssue 6254
 
 CLOUD_TESTS = cloud_tests/checkin_test.py \
 cloud_tests/metrics_export_test.py \
