@@ -429,6 +429,40 @@ scope of work.
 | MS6: Testing and bug-fixing with a small pilot deployment (3-5 CBSDs) |          |          |          |          | x        | x        | x        |
 | MS7: Documentation and beta deployment support gate          |          |          |          |          |          |          | x        |
 
+
+# Implementation
+## Phase 1 (Passive Mode / Proxy Mode)
+NOTE: In the Passive mode Domain Proxy should proxy messages from CBSDs to SAS without any changes besides batching of messages outgoing to SAS. 
+### System Architecrue
+
+<img src="media/dp_phase_1_hl_arch.png" style="width:5.54167in;height:2.72917in" />
+
+This Architecture assumes following:
+1) we are going to talk to CBSDs which are "speaking" different procols (not a differen version of the same protocol)
+1) we are going to have different number of CBSDs per protocol
+1) CBSD is going to send synchronous REST API calls to DP, and DP is going to send synchronous REST API calls to SAS
+1) Rest of the communications inside DP can be synchronous or asynchronous, as long as it satisfies previous statement
+
+#### Key Components:
+Protocol Controller(PC) - µService responsible for translation CBSD protocol to internal protocol(SAS friendly protocol) and backwards. 
+Radio Controller(RC): µService responsible for state management using it's SQL DB(RC_DB). State in this case is some form of requests from CBSDs to SAS and responses from SAS to CBSDs. Specific DataStructures to be defined yet.
+SAS Client - µService responsible for communication with SAS
+
+#### Key Decisions:
+1) To make DP able to handle different protocols supported by CBSD we suggest to implement each hadler as a separate Protocol Controler module, with shared codebase. Shared Codebase should cover Protocol Controller to Radio Controller interaction, and may cover other utils.
+1) To make DP able to handle different number of CBSDs per protocol we suggest deploy each Protocol Controller with it's own Kubernetes Deployment. As a result we can scale each Protocol Controller Type independently.
+1)To make DP able to handle lots of incomming synchronous connection we should consider to make Protocol Controller to be event loop based server (as an example Twisted, Tornado in Python world)
+1)To decreas load of synchronous calls on Radio Controller we suggest to use Polling from Protocol Controller and SAS Client side.
+
+### Siquence diagram
+NOTE: All of the interactions between CBSD and SAS though DP are of the same shape. That's why only one sample provided, to explain interaction between services.
+
+<img src="media/dp_cbsd_registration_sd" style="width:5.54167in;height:2.72917in" />
+
+## Phase 2 (Active Mode / Smart Proxy Mode)
+NOTE: In the Active mode Domain Proxy may be configured to prepare reserved Grants for specific CBSD(s)
+< Work In Progress here >
+
 # Q/A Feedback
 
 Q: Can we run on VMware
