@@ -42,6 +42,7 @@ def read_all_chart_versions(constants : dict) -> dict:
     for chart_name, chart_fn in charts_fn_map.items():
         with open(f'{magma_root}/{chart_fn}') as chart_f:
             chart_info = yaml.load(chart_f, Loader=yaml.FullLoader)
+            chart_name = chart_name.replace('-', '_')
             chart_versions[chart_name] = chart_info['version']
     return chart_versions
 

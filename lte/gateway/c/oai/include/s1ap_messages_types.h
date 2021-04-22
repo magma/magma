@@ -89,6 +89,7 @@
 #define S1AP_HANDOVER_REQUIRED(mSGpTR) (mSGpTR)->ittiMsg.s1ap_handover_required
 #define S1AP_HANDOVER_REQUEST_ACK(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.s1ap_handover_request_ack
+#define S1AP_HANDOVER_NOTIFY(mSGpTR) (mSGpTR)->ittiMsg.s1ap_handover_notify
 
 // NOT a ITTI message
 typedef struct s1ap_initial_ue_message_s {
@@ -396,7 +397,18 @@ typedef struct itti_s1ap_handover_request_ack_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
   enb_ue_s1ap_id_t src_enb_ue_s1ap_id;
   enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id;
+  uint32_t source_enb_id;
+  uint32_t target_enb_id;
   S1ap_HandoverType_t handover_type;
   bstring tgt_src_container;
 } itti_s1ap_handover_request_ack_t;
+
+typedef struct itti_s1ap_handover_notify_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  uint32_t target_enb_id;
+  uint32_t target_sctp_assoc_id;
+  ecgi_t ecgi;
+  enb_ue_s1ap_id_t target_enb_ue_s1ap_id;
+  e_rab_admitted_list_t e_rab_admitted_list;
+} itti_s1ap_handover_notify_t;
 #endif /* FILE_S1AP_MESSAGES_TYPES_SEEN */

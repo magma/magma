@@ -63,10 +63,13 @@ Description Contains global security definitions
 #define AUTH_RES_SIZE 16      /* Authentication response:      128 bits */
 #define AUTH_SNID_SIZE 3      /* Serving network's identity:   24 bits  */
 #define AUTH_KASME_SIZE 32    /* KASME security key:        256 bits    */
+#define AUTH_KAMF_SIZE 32     /* KAMF security key:        256 bits    */
 #define AUTH_KNAS_INT_SIZE 16 /* NAS integrity key     */
 #define AUTH_KNAS_ENC_SIZE 16 /* NAS cyphering key     */
 #define AUTH_KENB_SIZE AUTH_KASME_SIZE     /* eNodeB security key   */
 #define AUTH_NEXT_HOP_SIZE AUTH_KASME_SIZE /* Next Hop security parameter*/
+
+#define AUTH_KGNB_SIZE AUTH_KAMF_SIZE /* gNodeB security key   */
 
 /* "Separation bit" of AMF field */
 #define AUTH_AMF_SEPARATION_BIT(a) ((a) &0x80)

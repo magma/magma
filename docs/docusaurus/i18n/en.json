@@ -94,6 +94,9 @@
       "howtos/troubleshooting/agw_unable_to_checkin": {
         "title": "Access Gateway Unable to Check-in to Orchestrator"
       },
+      "howtos/troubleshooting/analyze_service_crashes_in_agw": {
+        "title": "Analyze Service crashes in AGW"
+      },
       "howtos/troubleshooting/generate_admin_operator_certificates": {
         "title": "Generate and update admin_operator certificates"
       },
@@ -111,6 +114,9 @@
       },
       "lte/architecture_overview": {
         "title": "Overview"
+      },
+      "lte/build_install_magma_pkg_in_agw": {
+        "title": "Build and install a magma package in AGW"
       },
       "lte/openvswitch": {
         "title": "Magma Datapath"
@@ -268,6 +274,9 @@
       "orc8r/dev_testing": {
         "title": "Testing Tips"
       },
+      "orc8r/hold_terraform_state_on_s3": {
+        "title": "Hold Terraform state outside my local machine"
+      },
       "orc8r/legacy/docker_setup": {
         "title": "Docker Setup"
       },
@@ -291,6 +300,9 @@
       "orc8r/legacy/testing": {
         "title": "Testing in Orchestrator",
         "sidebar_label": "Testing"
+      },
+      "orc8r/override_values_of_terraform_files": {
+        "title": "Override values of Terraform files"
       },
       "orc8r/upgrade_1_1": {
         "title": "Upgrade to v1.1"
@@ -357,6 +369,9 @@
       },
       "proposals/p013_Ubuntu_upgrade": {
         "title": "AGW Ubuntu upgrade"
+      },
+      "proposals/p014_proposal_process": {
+        "title": "Magma Proposals"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"

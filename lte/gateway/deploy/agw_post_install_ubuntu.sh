@@ -31,7 +31,11 @@ if ! grep -q 'Ubuntu' /etc/issue; then
   exit
 fi
 
-/etc/init.d/openvswitch-switch  force-reload-kmod
+service magma@* stop
+
+ifdown gtp_br0
+ifdown uplink_br0
+service openvswitch-switch restart
 ifup gtp_br0
 ifup uplink_br0
 

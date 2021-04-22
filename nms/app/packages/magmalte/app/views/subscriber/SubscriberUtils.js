@@ -39,5 +39,17 @@ export function getPromValue(resp: promql_return_object) {
 // default subscriber count in get subscriber query
 export const DEFAULT_PAGE_SIZE = 25;
 
-// max subscribers in array
-export const MAX_PAGE_ROW_COUNT = 1000;
+// susbcriber export colums title
+export const SUBSCRIBER_EXPORT_COLUMNS = [
+  {
+    title: 'Name',
+    field: 'name',
+  },
+  {title: 'IMSI', field: 'id'},
+
+  {title: 'Auth Key', field: 'auth_key'},
+  {title: 'Auth OPC', field: 'auth_opc'},
+  {title: 'Service', field: 'state'},
+  {title: 'Data Plan', field: 'sub_profile'},
+  {title: 'Active APNs', field: 'active_apns'},
+];

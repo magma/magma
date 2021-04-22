@@ -50,6 +50,8 @@ message UeDescription {
   S1apTimer s1ap_ue_context_rel_timer = 7; // struct s1ap_timer_t
 
   uint32 sctp_assoc_id = 8; // sctp_assoc_id_t
+
+  S1apHandoverState s1ap_handover_state = 9; // s1ap_handover_state_t
 }
 
 message S1apState {
@@ -60,4 +62,13 @@ message S1apState {
 
 message S1apImsiMap {
   map<uint64, uint64> mme_ue_id_imsi_map = 1; // mme_s1ap_ue_id => IMSI64
+}
+
+message S1apHandoverState {
+  uint32 mme_ue_s1ap_id = 1;
+  uint32 source_enb_id = 2;
+  uint32 target_enb_id = 3;
+  uint32 target_enb_ue_s1ap_id = 4; // enb_ue_s1ap_id_t
+  uint32 target_sctp_stream_recv = 5; // sctp_stream_id_t
+  uint32 target_sctp_stream_send = 6; // sctp_stream_id_t
 }
