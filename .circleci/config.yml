@@ -239,9 +239,13 @@ commands:
       tag-release:
         type: boolean
         default: false
+      force-push:
+        type: boolean
+        default: false
     steps:
       - run: |
-          if [ "${CIRCLE_BRANCH}" != "master" ]; then
+          FORCE_PUSH=<< parameters.force-push >>
+          if [ "${CIRCLE_BRANCH}" != "master" && "$FORCE_PUSH" = false ]; then
             echo "Push only happens for master branch"
             exit 0
           fi
@@ -296,8 +300,6 @@ commands:
         type: string
     steps:
       - checkout
-      - build/determinator:
-          <<: *lte_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           name: Install tools
@@ -622,6 +624,7 @@ jobs:
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
           tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -728,6 +731,7 @@ jobs:
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
           tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -813,6 +817,7 @@ jobs:
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
           tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -1002,6 +1007,19 @@ jobs:
           artifact_name: LTE AGW
           version_path: versions/magma_version
 
+  lte-agw-deploy-release:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - magma_integ_test:
+          stack: lte
+          test: 'False'
+          build: 'True'
+          deploy: 'True'
+      - notify-magma:
+          artifact_name: LTE AGW
+          version_path: versions/magma_version
+
   ## CWF OPERATOR
 
   cwf-operator-precommit:
@@ -1050,6 +1068,7 @@ jobs:
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
           tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
@@ -1155,6 +1174,7 @@ jobs:
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
           tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: nms
       - notify-magma:
@@ -1336,7 +1356,7 @@ workflows:
       - release-hold:
           <<: *only_release
           type: approval
-      - lte-agw-deploy:
+      - lte-agw-deploy-release:
           <<: *only_release
           requires:
             - release-hold
