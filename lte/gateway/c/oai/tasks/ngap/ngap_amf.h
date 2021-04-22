@@ -10,14 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      ngap_amf.h
-  Date        2020/07/28
-  Author      Ashish Prajapati
-  Subsystem   Access and Mobility Management Function
-  Description Defines NG Application Protocol Messages
 
-*****************************************************************************/
 #pragma once
 
 #include "intertask_interface.h"
@@ -30,7 +23,6 @@ extern bool hss_associated;
  * @returns -1 in case of failure
  **/
 int ngap_amf_init(const amf_config_t* amf_config);
-// mme_config_t
 
 /** \brief NGAP layer top exit
  **/

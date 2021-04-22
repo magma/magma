@@ -111,11 +111,6 @@ func TestGetRetrieveAlertRuleHandler(t *testing.T) {
 			ExpectedError: "code=400, message=Missing Network ID",
 		},
 		{
-			Name:          "no alert name",
-			RequestURL:    "http://url.com",
-			ExpectedError: "code=400, message=alert_name required",
-		},
-		{
 			Name:                 "server non-200 response",
 			ClientExpectedReturn: []interface{}{empty500Response, nil},
 			ExpectedError:        "code=500, message=error reading rules: <nil>",

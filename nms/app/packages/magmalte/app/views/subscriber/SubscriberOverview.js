@@ -29,7 +29,7 @@ import SubscriberTable from './SubscriberTable';
 import TopBar from '../../components/TopBar';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {useContext} from 'react';
+import {useContext, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 import type {mutable_subscriber, subscriber} from '@fbcnms/magma-api';
 
@@ -74,6 +74,7 @@ type Props = {
 
 export function SubscribersOverview() {
   const {relativePath, relativeUrl} = useRouter();
+  const [refresh, setRefresh] = useState(false);
 
   return (
     <>
@@ -84,7 +85,13 @@ export function SubscribersOverview() {
             label: 'Config',
             to: '/config',
             icon: SettingsIcon,
-            filters: <AddSubscriberButton onClose={() => {}} />,
+            filters: (
+              <AddSubscriberButton
+                onClose={() => {
+                  setRefresh(!refresh);
+                }}
+              />
+            ),
           },
           {
             label: 'Sessions',
@@ -94,7 +101,10 @@ export function SubscribersOverview() {
         ]}
       />
       <Switch>
-        <Route path={relativePath('/config')} component={SubscriberTable} />
+        <Route
+          path={relativePath('/config')}
+          component={() => <SubscriberTable refresh />}
+        />
         <Route
           path={relativePath('/sessions')}
           component={SubscriberStateTable}

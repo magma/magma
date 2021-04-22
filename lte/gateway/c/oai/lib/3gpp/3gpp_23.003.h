@@ -204,18 +204,20 @@ typedef uint8_t amf_Pointer_t;  // 9.3.3.19 AMF Pointer is used to identify one
  * \brief Structure containing the Globally Unique AMF Identity.
  */
 typedef struct guamfi_s {
-  plmn_t plmn;         /*!< \brief  GUAMFI               */
-  amf_gid_t amf_gid;   /*!< \brief  AMF group identifier */
-  amf_code_t amf_code; /*!< \brief  AMF code             */
-  amf_Pointer_t amf_Pointer;
+  plmn_t plmn; /*!< \brief  GUAMFI               */
+  uint8_t amf_regionid;
+  uint16_t amf_set_id : 10;
+  uint16_t amf_pointer : 6;
 } guamfi_t;
+
 typedef struct guti_m5_s {
   guamfi_t guamfi; /*!< \brief  Globally Unique AMF Identity             */
   tmsi_t m_tmsi;   /*!< \brief  M-Temporary Mobile Subscriber Identity   */
 } guti_m5_t;
 typedef struct s_tmsi_m5_s {
-  amf_code_t amf_code; /* AMF code that allocated the GUTI     */
-  tmsi_t m_tmsi;       /* M-Temporary Mobile Subscriber Identity   */
+  uint16_t amf_set_id : 10;
+  uint16_t amf_pointer : 6;
+  tmsi_t m_tmsi; /* M-Temporary Mobile Subscriber Identity   */
 } s_tmsi_m5_t;
 
 //==============================================================================
