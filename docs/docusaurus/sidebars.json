@@ -97,7 +97,8 @@
           "lte/deploy_config_enodebd",
           "lte/deploy_config_apn",
           "lte/deploy_config_agw_ha",
-          "lte/build_install_magma_pkg_in_agw"
+          "lte/build_install_magma_pkg_in_agw",
+          "lte/integrate_sentry"
         ]
       },
       {
