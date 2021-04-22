@@ -526,8 +526,8 @@ int M5GSMobileIdentityMsg::EncodeSuciMobileIdentityMsg(
       (const char*) (buffer + encoded), suci->suci_nai.size());
   MLOG(MDEBUG) << "ielen = " << hex << (unsigned char) suci->suci_nai.size();
   MLOG(MDEBUG) << "contents";
-  int i = 0;
-  for (i; i < suci->suci_nai.size(); i++) {
+
+  for (size_t i = 0; i < suci->suci_nai.size(); i++) {
     MLOG(MDEBUG) << hex << int(suci->suci_nai[i]);
   }
 
