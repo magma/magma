@@ -1321,6 +1321,7 @@ workflows:
   release:
     jobs:
       - release-hold:
+          <<: *only_release
           type: approval
       - lte-agw-deploy:
           <<: *only_release
