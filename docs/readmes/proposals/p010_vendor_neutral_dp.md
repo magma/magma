@@ -445,11 +445,11 @@ This Architecture assumes following:
 
 #### Key Components:
 
-**Protocol Controller(PC)** - µService responsible for translation CBSD protocol to internal protocol(SAS friendly protocol) and backwards. 
+**Protocol Controller(PC)** - microservice responsible for translation CBSD protocol to internal protocol(SAS friendly protocol) and backwards. 
 
-**Radio Controller(RC)** - µService responsible for state management using it's SQL DB(RC_DB). State in this case is some form of requests from CBSDs to SAS and responses from SAS to CBSDs. Specific DataStructures to be defined yet.
+**Radio Controller(RC)** - microservice responsible for state management using it's SQL DB(RC_DB). State in this case is some form of requests from CBSDs to SAS and responses from SAS to CBSDs. Specific DataStructures to be defined yet.
 
-**SAS Client** - µService responsible for communication with SAS.
+**SAS Client** - microservice responsible for communication with SAS.
 
 #### Key Decisions:
 1) To make DP able to handle different protocols supported by CBSD we suggest to implement each hadler as a separate Protocol Controler module, with shared codebase. Shared Codebase should cover Protocol Controller to Radio Controller interaction, and may cover other utils. Each Protocol Controller should handle all the vendor specific CBSD Protocol "features".
