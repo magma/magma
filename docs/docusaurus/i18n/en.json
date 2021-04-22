@@ -14,6 +14,9 @@
       "basics/quick_start_guide": {
         "title": "Quick Start Guide"
       },
+      "contributing/contribute_ci_checks": {
+        "title": "Continuous Integration Checks"
+      },
       "contributing/contribute_codeowners": {
         "title": "Codeowners Workflow"
       },
@@ -112,6 +115,9 @@
       "howtos/ue_metering": {
         "title": "UE Usage Metering"
       },
+      "lte/access_service_restrictions": {
+        "title": "Restricting Network Access"
+      },
       "lte/architecture_overview": {
         "title": "Overview"
       },
@@ -142,11 +148,17 @@
       "lte/dev_notes": {
         "title": "Developer Notes"
       },
+      "lte/dev_unit_testing": {
+        "title": "Unit Testing"
+      },
       "lte/eventd": {
         "title": "Event Reporting"
       },
       "lte/deploy_config_agw_ha": {
         "title": "Configure AGW for HA"
+      },
+      "lte/integrate_sentry": {
+        "title": "Sentry Integration"
       },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"
@@ -195,6 +207,9 @@
       },
       "nms/alerts": {
         "title": "Alerts"
+      },
+      "nms/nms_arch_overview": {
+        "title": "Overview"
       },
       "nms/dashboard": {
         "title": "Dashboard"
@@ -361,6 +376,9 @@
       "proposals/p010_vendor_neutral_dp": {
         "title": "proposals/p010_vendor_neutral_dp"
       },
+      "proposals/p011_intra_agw_mobility": {
+        "title": "Intra-AGW Mobility (S1 Mobility)"
+      },
       "proposals/p011_victoriametrics": {
         "title": "VictoriaMetrics as Magma's TSDB"
       },
@@ -370,14 +388,14 @@
       "proposals/p013_Ubuntu_upgrade": {
         "title": "AGW Ubuntu upgrade"
       },
-      "proposals/p014_proposal_process": {
+      "proposals/proposal_process": {
         "title": "Magma Proposals"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },
-      "proposals/proposal_process": {
-        "title": "Magma Proposals"
+      "proposals/README": {
+        "title": "proposals/README"
       },
       "proposals/proposal_template": {
         "title": "Title of Design Doc"
