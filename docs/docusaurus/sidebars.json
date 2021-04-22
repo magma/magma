@@ -87,7 +87,8 @@
           "lte/deploy_config_agw",
           "lte/deploy_config_enodebd",
           "lte/deploy_config_apn",
-          "lte/deploy_config_agw_ha"
+          "lte/deploy_config_agw_ha",
+          "lte/integrate_sentry"
         ]
       },
       {
