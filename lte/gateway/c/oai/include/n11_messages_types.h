@@ -292,7 +292,7 @@ typedef struct cause_group_s {
     radio_network_layer network_layer;
     transport_layer_t trasport_layer;
     NAS_t nas;
-    protocol_t protocal;
+    protocol_t protocol;
     miscellaneous_t miscellaneous;
   } u_group;
 

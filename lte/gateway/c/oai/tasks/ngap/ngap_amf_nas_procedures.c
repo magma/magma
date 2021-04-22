@@ -139,7 +139,7 @@ int ngap_amf_handle_initial_ue_message(
 
     /*
      * Increment the sctp stream for the gNB association.
-     * If the next sctp stream is >= instream negociated between gNB and AMF,
+     * If the next sctp stream is >= instream negotiated between gNB and AMF,
      * wrap to first stream.
      * TODO: search for the first available stream instead.
      */
@@ -432,7 +432,7 @@ int ngap_generate_downlink_nas_transport(
 
   OAILOG_FUNC_IN(LOG_NGAP);
 
-  // Try to retrieve SCTP assoication id using amf_ue_ngap_id
+  // Try to retrieve SCTP association id using amf_ue_ngap_id
   if (HASH_TABLE_OK ==
       hashtable_ts_get(
           &state->amfid2associd, (const hash_key_t) ue_id, (void**) &id)) {
