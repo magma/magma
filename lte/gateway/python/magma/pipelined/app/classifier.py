@@ -346,7 +346,6 @@ class Classifier(MagmaController):
         priority = Utils.get_of_priority(ip_flow_dl.precedence)
         parser = self._datapath.ofproto_parser
         match = self._get_ip_flow_dl_match(ip_flow_dl, self._uplink_port)
-        actions = []
         actions = [parser.OFPActionSetField(tunnel_id=o_teid),
                    parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr),
                    parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=gtp_port)]
@@ -536,10 +535,10 @@ class Classifier(MagmaController):
 
         if ip_flow_dl.ip_proto == IPPROTO_TCP:
             match = MagmaMatch(eth_type=get_eth_type(ip_flow_dl.dest_ip),
-                           in_port=in_port, **ip_match_dst,
-                           **ip_match_src, ip_proto=ip_flow_dl.ip_proto,
-                           tcp_src=ip_flow_dl.tcp_src_port,
-                           tcp_dst=ip_flow_dl.tcp_dst_port)
+                               in_port=in_port, **ip_match_dst,
+                               **ip_match_src, ip_proto=ip_flow_dl.ip_proto,
+                               tcp_src=ip_flow_dl.tcp_src_port,
+                               tcp_dst=ip_flow_dl.tcp_dst_port)
 
         elif ip_flow_dl.ip_proto == IPPROTO_UDP:
             match = MagmaMatch(eth_type=get_eth_type(ip_flow_dl.dest_ip),
