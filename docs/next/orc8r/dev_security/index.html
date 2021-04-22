@@ -82,19 +82,14 @@ a top-level understanding of the security architecture.</p>
 <ul>
 <li>When Orc8r self-signs its certificates, the <code>rootCA.key</code> will also be included in the deployment</li>
 </ul></li>
-<li><code>admin_operator.{key.pem,pem}</code> admin operator certificates for full access to northbound interface</li>
+<li><code>admin_operator.{key.pem,pem}</code> admin operator certificates for full access to Orc8r's northbound interface by NMS and CLIs</li>
 </ul></li>
 <li>Orc8r
 <ul>
-<li><code>controller.{key,crt}</code> Orc8r's server-validation certificate, signed by <code>rootCA.pem</code></li>
+<li><code>controller.{key,crt}</code> server-validation certificate for Orc8r and NMS, signed by <code>rootCA.pem</code></li>
 <li><code>certifier.pem</code> Orc8r's client-validation certificate (root of trust)</li>
 <li><code>bootstrapper.key</code> Orc8r's signing key used in the bootstrap process</li>
 <li><code>fluentd.{key,pem}</code> Orc8r's certificates for its fluentd endpoints (fluentd is currently outside Orc8r proxy)</li>
-</ul></li>
-<li>NMS
-<ul>
-<li><code>nms.{key.pem,pem}</code> NMS's server-validation certificate</li>
-<li><code>nms_operator.{key.pem,pem}</code> NMS's admin operator certificates for full access to northbound interface</li>
 </ul></li>
 <li>Gateway
 <ul>
