@@ -10,7 +10,8 @@ aliases:
   - &only_release
     filters:
       branches:
-        only: /v*/
+        only:
+          - /v*/
   - &master_and_develop
     filters:
       branches:
