@@ -53,6 +53,10 @@ def rem_rhel_host = ""
 def rem_rhel8_resource = params.MagmaPodmanResources
 def MAGMA_RHEL8_BASE_IMAGE_TAG = params.MagmaRhel8BaseImageTag
 
+// Tag of images
+def u18_image_tag = 'ci-tmp'
+def rhel8_image_tag = 'ci-tmp'
+
 pipeline {
   agent {
     label nodeExecutor
@@ -111,6 +115,7 @@ pipeline {
                   def branch
                   if (params.REGRESSION_TEST) {
                     branch = 'master'
+                    u18_image_tag = 'master'
                   } else {
                     branch = sha1
                   }
@@ -168,13 +173,13 @@ pipeline {
                   // Clean any residual images
                   sh('docker image prune --force')
                   try {
-                    sh('docker image rm magma-mme:ci-tmp')
+                    sh('docker image rm magma-mme:' + u18_image_tag)
                   } catch (Exception e) {
                     echo 'OK if not present'
                   }
                   // Create the image to use
                   // Once again, we are not using the full dockerfile from scratch: too long.
-                  sh('docker build --no-cache --target magma-mme --tag magma-mme:ci-tmp --file ci-scripts/docker/Dockerfile.mme.ci.ubuntu18 . > archives/build_magma_mme.log 2>&1')
+                  sh('docker build --no-cache --target magma-mme --tag magma-mme:' + u18_image_tag + ' --file ci-scripts/docker/Dockerfile.mme.ci.ubuntu18 . > archives/build_magma_mme.log 2>&1')
                   sh('docker image prune --force > /dev/null 2>&1')
                   sh('docker image ls >> archives/build_magma_mme.log')
                 }
@@ -221,6 +226,7 @@ pipeline {
                   def branch
                   if (params.REGRESSION_TEST) {
                     branch = 'master'
+                    rhel8_image_tag = 'master'
                   } else {
                     branch = sha1
                   }
@@ -271,13 +277,13 @@ pipeline {
                     // Clean any residual images
                     sh('sudo podman image prune --force')
                     try {
-                      sh('sudo podman image rm magma-mme:ci-tmp')
+                      sh('sudo podman image rm magma-mme:' + rhel8_image_tag)
                     } catch (Exception e) {
                       echo 'OK if not present'
                     }
                     // Create the image to use
                     // Once again, we are not using the full dockerfile from scratch: too long.
-                    sh('sudo podman build --no-cache --target magma-mme --tag magma-mme:ci-tmp --file ci-scripts/docker/Dockerfile.mme.ci.rhel8 . > archives/build_magma_mme_rhel8.log 2>&1')
+                    sh('sudo podman build --no-cache --target magma-mme --tag magma-mme:' + rhel8_image_tag + ' --file ci-scripts/docker/Dockerfile.mme.ci.rhel8 . > archives/build_magma_mme_rhel8.log 2>&1')
                     sh('sudo podman image prune --force > /dev/null 2>&1')
                     sh('sudo podman image ls >> archives/build_magma_mme_rhel8.log')
                   }
@@ -345,7 +351,7 @@ pipeline {
         script {
           localStatus = build job: dsTesterPipelineName,
               parameters: [
-                  string(name: 'MAGMA_MME_TAG', value: 'ci-tmp')
+                  string(name: 'MAGMA_MME_TAG', value: u18_image_tag)
               ], propagate: false
           localResult = localStatus.getResult()
           echo "${dsTesterPipelineName} Slave Job status is ${localResult}"
@@ -409,7 +415,7 @@ pipeline {
           // Clean any residual images
           sh('docker image prune --force > /dev/null 2>&1')
           try {
-            sh('docker image rm magma-mme:ci-tmp > /dev/null 2>&1')
+            sh('docker image rm magma-mme:' + u18_image_tag + ' > /dev/null 2>&1')
           } catch (Exception e) {
             echo 'OK if not present'
           }
