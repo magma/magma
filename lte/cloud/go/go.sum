@@ -227,6 +227,8 @@ github.com/go-swagger/go-swagger v0.21.0/go.mod h1:tDb8PdDVFcaE8EPXkMOsuxpL3UEPi
 github.com/go-swagger/scan-repo-boundary v0.0.0-20180623220736-973b3573c013/go.mod h1:b65mBPzqzZWxOZGxSWrqs4GInLIn+u99Q9q7p+GKni0=
 github.com/gofrs/uuid v4.0.0+incompatible h1:1SD/1F5pU8p29ybwgQSwpQk+mwdRrXCYuPhW6m+TnJw=
 github.com/gofrs/uuid v4.0.0+incompatible/go.mod h1:b2aQJv3Z4Fp6yNu3cdSllBxTCLRxnplIgP/c0N/04lM=
+github.com/gogf/gf v1.15.4 h1:eHLhqUr7xHU2IRfrH6UNA6/KXYhAAS+RUGIVBKLQ8ag=
+github.com/gogf/gf v1.15.4/go.mod h1:J5TqnACl3Ew9QOWtegJVGrwtwOrXb0mi5OYDncxc9NE=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.0/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.1/go.mod h1:hp+jE20tsWTFYpLwKvXlhS1hjn+gTNwPg2I6zVXpSg4=

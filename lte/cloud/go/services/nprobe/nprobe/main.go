@@ -19,6 +19,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/nprobe"
+	"magma/lte/cloud/go/services/nprobe/exporter"
 	manager "magma/lte/cloud/go/services/nprobe/nprobe_manager"
 	"magma/lte/cloud/go/services/nprobe/obsidian/handlers"
 	np_storage "magma/lte/cloud/go/services/nprobe/storage"
@@ -62,7 +63,23 @@ func main() {
 	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(nprobe.ServiceName))
 
 	serviceConfig := nprobe.GetServiceConfig()
-	nProbeManager, err := manager.NewNProbeManager(serviceConfig)
+	tlsConfig, err := exporter.NewTlsConfig(
+		serviceConfig.ExporterCrtFile,
+		serviceConfig.ExporterKeyFile,
+		serviceConfig.ExporterRootCA,
+		serviceConfig.SkipVerifyServer,
+	)
+	if err != nil {
+		glog.Errorf("Failed to create new TlsConfig: %v", err)
+	}
+
+	// Init records exporter
+	recordExporter, err := exporter.NewRecordExporter(serviceConfig.DeliveryFunctionAddr, tlsConfig)
+	if err != nil {
+		glog.Errorf("Failed to create new RecordExporter: %v", err)
+	}
+
+	nProbeManager, err := manager.NewNProbeManager(serviceConfig, recordExporter)
 	if err != nil {
 		glog.Fatalf("Failed to create new NProbeManager: %v", err)
 	}
