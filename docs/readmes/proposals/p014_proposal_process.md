@@ -1,6 +1,5 @@
 ---
 id: p014_proposal_process
-id: proposal_process
 title: Magma Proposals
 hide_title: true
 ---
