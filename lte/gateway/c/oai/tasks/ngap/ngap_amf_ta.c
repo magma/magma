@@ -77,7 +77,7 @@ static int ngap_amf_compare_plmn(const Ngap_PLMNIdentity_t* const plmn) {
 /* @brief compare a list of broadcasted plmns against the AMF configured.
  o*/
 static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {
-  int i                  = 0;
+  int i                   = 0;
   int matching_occurrence = 0;
   DevAssert(b_plmns != NULL);
 
