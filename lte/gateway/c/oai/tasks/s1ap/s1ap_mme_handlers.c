@@ -115,10 +115,10 @@ bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 s1ap_message_handler_t message_handlers[][3] = {
     {s1ap_mme_handle_handover_required, 0, 0}, /* HandoverPreparation */
     {0, s1ap_mme_handle_handover_request_ack,
-     0},                                     /* HandoverResourceAllocation */
+     s1ap_mme_handle_handover_failure},      /* HandoverResourceAllocation */
     {s1ap_mme_handle_handover_notify, 0, 0}, /* HandoverNotification */
     {s1ap_mme_handle_path_switch_request, 0, 0}, /* PathSwitchRequest */
-    {0, 0, 0},                                   /* HandoverCancel */
+    {s1ap_mme_handle_handover_cancel, 0, 0},     /* HandoverCancel */
     {0, s1ap_mme_handle_erab_setup_response,
      s1ap_mme_handle_erab_setup_failure},      /* E_RABSetup */
     {0, 0, 0},                                 /* E_RABModify */
@@ -262,6 +262,47 @@ int s1ap_mme_set_cause(
   }
 
   return RETURNok;
+}
+
+long s1ap_mme_get_cause_value(S1ap_Cause_t* cause) {
+  S1ap_Cause_PR cause_type = {0};
+  long cause_value         = RETURNerror;
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+  if (cause == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "Cause is NULL\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  cause_type = cause->present;
+
+  switch (cause_type) {
+    case S1ap_Cause_PR_radioNetwork:
+      cause_value = cause->choice.radioNetwork;
+      break;
+
+    case S1ap_Cause_PR_transport:
+      cause_value = cause->choice.transport;
+      break;
+
+    case S1ap_Cause_PR_nas:
+      cause_value = cause->choice.nas;
+      break;
+
+    case S1ap_Cause_PR_protocol:
+      cause_value = cause->choice.protocol;
+      break;
+
+    case S1ap_Cause_PR_misc:
+      cause_value = cause->choice.misc;
+      break;
+
+    default:
+      OAILOG_ERROR(LOG_S1AP, "Invalid Cause_Type = %d\n", cause_type);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, cause_value);
 }
 
 //------------------------------------------------------------------------------
@@ -2055,6 +2096,286 @@ int s1ap_mme_handle_handover_request_ack(
       mme_ue_s1ap_id, ue_ref_p->enb_ue_s1ap_id, tgt_enb_ue_s1ap_id,
       handover_type, source_enb->sctp_assoc_id, tgt_src_container,
       source_enb->enb_id, target_enb->enb_id, imsi64);
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
+int s1ap_mme_handle_handover_failure(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
+  S1ap_HandoverFailure_t* container = NULL;
+  S1ap_HandoverFailureIEs_t* ie     = NULL;
+  S1ap_S1AP_PDU_t out_pdu           = {0};
+  S1ap_HandoverPreparationFailure_t* out;
+  S1ap_HandoverPreparationFailureIEs_t* hpf_ie = NULL;
+  ue_description_t* ue_ref_p                   = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id              = INVALID_MME_UE_S1AP_ID;
+  S1ap_Cause_PR cause_type;
+  long cause_value;
+  uint8_t* buffer_p = NULL;
+  uint8_t err       = 0;
+  uint32_t length   = 0;
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+
+  container = &pdu->choice.unsuccessfulOutcome.value.choice.HandoverFailure;
+
+  // get the mandantory IEs
+  // MME_UE_S1AP_ID
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverFailureIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // Grab the Cause Type and Cause Value
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverFailureIEs_t, ie, container, S1ap_ProtocolIE_ID_id_Cause,
+      true);
+  if (ie) {
+    cause_type  = ie->value.choice.Cause.present;
+    cause_value = s1ap_mme_get_cause_value(&ie->value.choice.Cause);
+    if (cause_value == RETURNerror) {
+      OAILOG_ERROR(
+          LOG_S1AP, "HANDOVER FAILURE with Invalid Cause_Type = %d\n",
+          cause_type);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // A failure means the target eNB was unable to prepare for handover. We need
+  // to get rid of UE handover state and send a failure message with cause back
+  // to the source eNB.
+
+  // get UE context
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+        ", failing!\n",
+        (uint32_t) mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if (ue_ref_p->s1_ue_state == S1AP_UE_HANDOVER) {
+    // this effectively cancels the HandoverPreparation proecedure as we
+    // only send a HandoverCommand if the UE is in the S1AP_UE_HANDOVER
+    // state.
+    ue_ref_p->s1_ue_state         = S1AP_UE_CONNECTED;
+    ue_ref_p->s1ap_handover_state = (struct s1ap_handover_state_s){0};
+  } else {
+    // Not a failure, but nothing for us to do.
+    OAILOG_INFO(
+        LOG_S1AP,
+        "Received HANDOVER FAILURE for UE not in handover state, leaving UE "
+        "state unmodified for MME_S1AP_UE_ID " MME_UE_S1AP_ID_FMT ".\n",
+        (uint32_t) mme_ue_s1ap_id);
+  }
+
+  // generate HandoverPreparationFailure
+  out_pdu.present = S1ap_S1AP_PDU_PR_unsuccessfulOutcome;
+  out_pdu.choice.unsuccessfulOutcome.procedureCode =
+      S1ap_ProcedureCode_id_HandoverPreparation;
+  out_pdu.choice.unsuccessfulOutcome.value.present =
+      S1ap_UnsuccessfulOutcome__value_PR_HandoverPreparationFailure;
+  out_pdu.choice.unsuccessfulOutcome.criticality = S1ap_Criticality_ignore;
+  out = &out_pdu.choice.unsuccessfulOutcome.value.choice
+             .HandoverPreparationFailure;
+
+  // mme_ue_s1ap_id (mandatory)
+  hpf_ie = (S1ap_HandoverPreparationFailureIEs_t*) calloc(
+      1, sizeof(S1ap_HandoverPreparationFailureIEs_t));
+  hpf_ie->id          = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+  hpf_ie->criticality = S1ap_Criticality_ignore;
+  hpf_ie->value.present =
+      S1ap_HandoverPreparationFailureIEs__value_PR_MME_UE_S1AP_ID;
+  hpf_ie->value.choice.MME_UE_S1AP_ID = mme_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, hpf_ie);
+
+  // source enb_ue_s1ap_id (mandatory)
+  hpf_ie = (S1ap_HandoverPreparationFailureIEs_t*) calloc(
+      1, sizeof(S1ap_HandoverPreparationFailureIEs_t));
+  hpf_ie->id          = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
+  hpf_ie->criticality = S1ap_Criticality_ignore;
+  hpf_ie->value.present =
+      S1ap_HandoverPreparationFailureIEs__value_PR_ENB_UE_S1AP_ID;
+  hpf_ie->value.choice.ENB_UE_S1AP_ID = ue_ref_p->enb_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, hpf_ie);
+
+  // cause (mandatory)
+  hpf_ie = (S1ap_HandoverPreparationFailureIEs_t*) calloc(
+      1, sizeof(S1ap_HandoverPreparationFailureIEs_t));
+  hpf_ie->id            = S1ap_ProtocolIE_ID_id_Cause;
+  hpf_ie->criticality   = S1ap_Criticality_ignore;
+  hpf_ie->value.present = S1ap_HandoverPreparationFailureIEs__value_PR_Cause;
+  s1ap_mme_set_cause(&hpf_ie->value.choice.Cause, cause_type, cause_value);
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, hpf_ie);
+
+  // Construct the PDU and send message
+  if (s1ap_mme_encode_pdu(&out_pdu, &buffer_p, &length) < 0) {
+    err = 1;
+  }
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_HandoverPreparationFailure, out);
+  if (err) {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  bstring b = blk2bstr(buffer_p, length);
+  free(buffer_p);
+
+  OAILOG_DEBUG(
+      LOG_S1AP,
+      "send HANDOVER PREPARATION FAILURE for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+      "\n",
+      (uint32_t) mme_ue_s1ap_id);
+
+  s1ap_mme_itti_send_sctp_request(
+      &b, ue_ref_p->sctp_assoc_id, ue_ref_p->sctp_stream_send, mme_ue_s1ap_id);
+
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
+int s1ap_mme_handle_handover_cancel(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
+  S1ap_HandoverCancel_t* container = NULL;
+  S1ap_HandoverCancelIEs_t* ie     = NULL;
+  S1ap_S1AP_PDU_t out_pdu          = {0};
+  S1ap_HandoverCancelAcknowledge_t* out;
+  S1ap_HandoverCancelAcknowledgeIEs_t* hca_ie = NULL;
+  ue_description_t* ue_ref_p                  = NULL;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id             = INVALID_MME_UE_S1AP_ID;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id             = INVALID_ENB_UE_S1AP_ID;
+  S1ap_Cause_PR cause_type;
+  long cause_value;
+  uint8_t* buffer_p = NULL;
+  uint8_t err       = 0;
+  uint32_t length   = 0;
+
+  OAILOG_FUNC_IN(LOG_S1AP);
+
+  container = &pdu->choice.initiatingMessage.value.choice.HandoverCancel;
+
+  // get the mandantory IEs
+  // MME_UE_S1AP_ID
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverCancelIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // eNB_UE_S1AP_ID
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverCancelIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
+  // eNB UE S1AP ID is limited to 24 bits
+  if (ie) {
+    enb_ue_s1ap_id = (enb_ue_s1ap_id_t)(
+        ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  // Grab the Cause Type and Cause Value
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_HandoverCancelIEs_t, ie, container, S1ap_ProtocolIE_ID_id_Cause,
+      true);
+  if (ie) {
+    cause_type  = ie->value.choice.Cause.present;
+    cause_value = s1ap_mme_get_cause_value(&ie->value.choice.Cause);
+    if (cause_value == RETURNerror) {
+      OAILOG_ERROR(
+          LOG_S1AP, "HANDOVER CANCEL with Invalid Cause_Type = %d\n",
+          cause_type);
+      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+    }
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  OAILOG_INFO(
+      LOG_S1AP,
+      "HANDOVER CANCEL from association ID %u for MME UE S1AP ID "
+      "(" MME_UE_S1AP_ID_FMT "), CauseType= %u CauseValue = %ld\n",
+      assoc_id, mme_ue_s1ap_id, cause_type, cause_value);
+
+  // make sure any handover state in the UE is reset, move the UE back to
+  // connected state, and generate a cancel acknowledgement (immediately).
+
+  // get UE context
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+        ", failing!\n",
+        (uint32_t) mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  if (ue_ref_p->s1_ue_state == S1AP_UE_HANDOVER) {
+    // this effectively cancels the HandoverPreparation proecedure as we
+    // only send a HandoverCommand if the UE is in the S1AP_UE_HANDOVER
+    // state.
+    ue_ref_p->s1_ue_state         = S1AP_UE_CONNECTED;
+    ue_ref_p->s1ap_handover_state = (struct s1ap_handover_state_s){0};
+  } else {
+    // Not a failure, but nothing for us to do.
+    OAILOG_INFO(
+        LOG_S1AP,
+        "Received HANDOVER CANCEL for UE not in handover state, leaving UE "
+        "state unmodified for MME_S1AP_UE_ID " MME_UE_S1AP_ID_FMT ".\n",
+        (uint32_t) mme_ue_s1ap_id);
+  }
+
+  // generate the cancel acknowledge
+  out_pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
+  out_pdu.choice.successfulOutcome.procedureCode =
+      S1ap_ProcedureCode_id_HandoverCancel;
+  out_pdu.choice.successfulOutcome.value.present =
+      S1ap_SuccessfulOutcome__value_PR_HandoverCancelAcknowledge;
+  out_pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
+  out =
+      &out_pdu.choice.successfulOutcome.value.choice.HandoverCancelAcknowledge;
+
+  /* MME-UE-ID: mandatory */
+  hca_ie = (S1ap_HandoverCancelAcknowledgeIEs_t*) calloc(
+      1, sizeof(S1ap_HandoverCancelAcknowledgeIEs_t));
+  hca_ie->id          = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+  hca_ie->criticality = S1ap_Criticality_ignore;
+  hca_ie->value.present =
+      S1ap_HandoverCancelAcknowledgeIEs__value_PR_MME_UE_S1AP_ID;
+  hca_ie->value.choice.MME_UE_S1AP_ID = mme_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, hca_ie);
+
+  /* eNB-UE-ID: mandatory */
+  hca_ie = (S1ap_HandoverCancelAcknowledgeIEs_t*) calloc(
+      1, sizeof(S1ap_HandoverCancelAcknowledgeIEs_t));
+  hca_ie->id          = S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID;
+  hca_ie->criticality = S1ap_Criticality_ignore;
+  hca_ie->value.present =
+      S1ap_HandoverCancelAcknowledgeIEs__value_PR_ENB_UE_S1AP_ID;
+  hca_ie->value.choice.ENB_UE_S1AP_ID = enb_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, hca_ie);
+
+  // Construct the PDU and send message
+  if (s1ap_mme_encode_pdu(&out_pdu, &buffer_p, &length) < 0) {
+    err = 1;
+  }
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_HandoverCancelAcknowledge, out);
+  if (err) {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  bstring b = blk2bstr(buffer_p, length);
+  free(buffer_p);
+
+  s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
