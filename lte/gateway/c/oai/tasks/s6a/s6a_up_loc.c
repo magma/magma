@@ -293,20 +293,6 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
   CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
 
   /*
-   * Adding Supported-Features
-   */
-  CHECK_FCT(
-      fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_supported_features, 0, &avp_p));
-  value.u32 = 0;
-
-  if (ulr_pP->dual_regis_5g_ind) {
-    FLAGS_SET(value.u32, FEATURE_LIST_ID_2_NR_AS_SECONDARY_RAT);
-  }
-  CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
-  CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
-  CHECK_FCT(fd_msg_send(&msg_p, NULL, NULL));
-
-  /*
    * Adding ULR-Flags
    */
   CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_ulr_flags, 0, &avp_p));
@@ -321,10 +307,6 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
    */
   if (ulr_pP->skip_subscriber_data) {
     FLAGS_SET(value.u32, ULR_SKIP_SUBSCRIBER_DATA);
-  }
-
-  if (ulr_pP->dual_regis_5g_ind) {
-    FLAGS_SET(value.u32, ULR_DUAL_REGIS_5G_IND);
   }
 
   if (ulr_pP->initial_attach) {
