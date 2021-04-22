@@ -87,7 +87,7 @@ func getEvents(networkID, targetID string, start_time *time.Time, client *elasti
 func (np *NProbeManager) processNProbeTask(networkID string, task *models.NetworkProbeTask) error {
 	// TBD - get the latest state of the task, collect latest events
 	// then process them to create iri records.
-	targetID := string(task.TaskDetails.TargetID)
+	targetID := task.TaskDetails.TargetID
 	timeSinceReported := time.Time(task.TaskDetails.Timestamp)
 	events, err := getEvents(networkID, targetID, &timeSinceReported, np.ElasticClient)
 	if err != nil {

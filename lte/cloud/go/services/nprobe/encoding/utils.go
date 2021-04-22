@@ -76,7 +76,7 @@ func getEPSEventID(eventType string) asn1.Enumerated {
 	return UnsupportedEvent
 }
 
-// getRecordType maps 3GPP event IDs to correponding record type
+// getRecordType maps 3GPP event IDs to corresponding record type
 func getRecordType(eventID asn1.Enumerated) string {
 	switch eventID {
 	case BearerActivation:
