@@ -694,6 +694,8 @@ static int esm_sap_recv(
       case ESM_INFORMATION_RESPONSE:
         esm_cause = esm_recv_information_response(
             emm_context, pti, ebi, &esm_msg.esm_information_response);
+        clear_protocol_configuration_options(
+            &esm_msg.esm_information_response.protocolconfigurationoptions);
         OAILOG_DEBUG(
             LOG_NAS_ESM,
             "ESM-SAP   - ESM Message type = ESM_INFORMATION_RESPONSE(0x%x)"
