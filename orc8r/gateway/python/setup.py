@@ -28,6 +28,7 @@ def os_release():
                 pass
     return release_info
 
+
 # We can use an environment variable to pass in the package version during
 # build. Since we don't distribute this on its own, we don't really care what
 # version this represents. 'None' defaults to 0.0.0.
@@ -108,10 +109,11 @@ if release_info.get('VERSION_CODENAME', '') == 'focal':
             "strict-rfc3339>=0.7",
             "rfc3987>=1.3.0",
             "webcolors>=1.11.1",
+            'systemd-python>=234',
         ],
         extras_require={
             'dev': [
-                "fakeredis[lua]"
+                "fakeredis[lua]",
             ],
         },
     )
@@ -196,7 +198,7 @@ setup(
     ],
     extras_require={
         'dev': [
-            "fakeredis[lua]"
+            "fakeredis[lua]",
         ],
     },
 )
