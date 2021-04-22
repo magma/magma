@@ -36,7 +36,7 @@ RUN yum update -y && \
       libubsan \
       libasan \
       psmisc \
-      psmisc \
+      tcpdump \
       openssl \
       net-tools \
       tzdata && \

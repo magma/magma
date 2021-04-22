@@ -102,8 +102,12 @@ int set_sctp_opts(
   event.sctp_association_event = on;
   event.sctp_shutdown_event    = on;
   event.sctp_data_io_event     = on;
+  int event_size               = sizeof(event);
+  if (event_size > 10) {
+    event_size = 10;
+  }
 
-  if (setsockopt(sd, IPPROTO_SCTP, SCTP_EVENTS, &event, sizeof(event)) < 0) {
+  if (setsockopt(sd, IPPROTO_SCTP, SCTP_EVENTS, &event, event_size) < 0) {
     MLOG_perror("setsockopt");
     return -1;
   }
