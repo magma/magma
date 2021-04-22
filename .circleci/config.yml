@@ -7,6 +7,10 @@ aliases:
     filters:
       branches:
         only: master
+  - &only_release
+    filters:
+      branches:
+        only: v*
   - &master_and_develop
     filters:
       branches:
@@ -231,6 +235,9 @@ commands:
       tag-latest:
         default: false
         type: boolean
+      tag-release:
+        type: boolean
+        default: false
     steps:
       - run: |
           if [ "${CIRCLE_BRANCH}" != "master" ]; then
@@ -249,6 +256,7 @@ commands:
           PROJECT=<< parameters.project >>
           TAG=<< parameters.tag >>
           TAG_LATEST=<< parameters.tag-latest >>
+          TAG_RELEASE=<< parameters.tag-release >>
 
           function tag_and_push {
             docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
@@ -265,6 +273,9 @@ commands:
             tag_and_push "$TAG"
             if [ "$TAG_LATEST" = true ]; then
               tag_and_push "latest"
+            fi
+            if [ "$TAG_RELEASE" = true ]; then
+              tag_and_push "1.5.0"
             fi
           done
 
@@ -328,6 +339,24 @@ commands:
             mkdir -p versions
             cp *_version versions || true
           no_output_timeout: 20m
+      - run:
+          name: Copy debian packages to new JFROG repo
+          command: |
+            cd ${MAGMA_ROOT}/circleci
+            PACKAGE_FILE=packages.tar.gz
+            if [ -f "${PACKAGE_FILE}" ]; then
+               echo "${PACKAGE_FILE} exists"
+               rm -rf *.deb
+               tar xvf ${PACKAGE_FILE}
+               for i in `ls -a1 *.deb`
+               do
+                  echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/$i;deb.distribution=stretch-1.5.0;deb.component=main;deb.architecture=amd64" -T $i
+               done
+            else
+               echo "${PACKAGE_FILE} does NOT exist"
+               echo "No debian packages to push to JFROG"
+            fi
       - store_artifacts:
           path: /tmp/logs
       - store_test_results:
@@ -584,13 +613,14 @@ jobs:
           project: orc8r
           images: "nginx|controller"
           tag-latest: true
-      # - tag-push-docker:
-      #     project: orc8r
-      #     images: "nginx|controller"
-      #     tag-latest: true
-      #     registry: $JFROG_DOCKER_ORC8R_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: orc8r
+          images: "nginx|controller"
+          tag-latest: true
+          registry: $JFROG_DOCKER_ORC8R_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
+          tag-release: true
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -690,12 +720,13 @@ jobs:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
-      # - tag-push-docker:
-      #     project: feg
-      #     images: "gateway_go|gateway_python"
-      #     registry: $JFROG_DOCKER_FEG_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: feg
+          images: "gateway_go|gateway_python"
+          registry: $JFROG_DOCKER_FEG_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
+          tag-release: true
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -772,14 +803,15 @@ jobs:
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
           tag-latest: <<parameters.tag-latest>>
-      # - tag-push-docker:
-      #     project: cwf
-      #     images: <<parameters.images>>
-      #     tag: <<parameters.tag>>
-      #     tag-latest: <<parameters.tag-latest>>
-      #     registry: $JFROG_DOCKER_CWF_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: cwf
+          images: <<parameters.images>>
+          tag: <<parameters.tag>>
+          tag-latest: <<parameters.tag-latest>>
+          registry: $JFROG_DOCKER_CWF_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
+          tag-release: true
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -1010,12 +1042,13 @@ jobs:
           project: cwf
           images: "operator"
           registry: $DOCKER_MAGMA_REGISTRY
-      # - tag-push-docker:
-      #     project: cwf
-      #     images: "operator"
-      #     registry: $JFROG_DOCKER_CWF_REGISTRY
-      #     username: $JFROG_USERNAME
-      #     password: $JFROG_PASSWORD
+      - tag-push-docker:
+          project: cwf
+          images: "operator"
+          registry: $JFROG_DOCKER_CWF_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
+          tag-release: true
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
@@ -1113,6 +1146,14 @@ jobs:
       - tag-push-docker:
           project: magmalte
           images: "magmalte"
+      - tag-push-docker:
+          project: magmalte
+          images: "magmalte"
+          tag-latest: true
+          registry: $JFROG_DOCKER_ORC8R_REGISTRY
+          username: $JFROG_USERNAME
+          password: $JFROG_PASSWORD
+          tag-release: true
       - persist-githash-version:
           file_prefix: nms
       - notify-magma:
@@ -1288,6 +1329,37 @@ workflows:
             - mme_test
             - lte-integ-test
       - c-cpp-codecov
+
+  release:
+    jobs:
+      - release-hold:
+          <<: *only_release
+          type: approval
+      - lte-agw-deploy:
+          <<: *only_release
+          requires:
+            - release-hold
+      - cwag-deploy:
+          <<: *only_release
+          requires:
+            - release-hold
+      - cwf-operator-build:
+          <<: *only_release
+          requires:
+            - release-hold
+      - feg-build:
+          <<: *only_release
+          requires:
+            - release-hold
+      - orc8r-build:
+          <<: *only_release
+          requires:
+            - release-hold
+      - nms-build:
+          <<: *only_release
+          requires:
+            - release-hold
+
 
   feg:
     jobs:
