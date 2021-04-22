@@ -27,6 +27,7 @@ process. When this process is completed, you are ready to complete the rest of
 your 1.5 upgrade.
 
 PRE-REQUISITES
+* You are running Magma orchestrator v1.3 or v1.4.
 * You will want to make sure that you have some understanding of your
   kubernetes setup on which you have Magma orc8r and NMS running.
 * Ensure that you have access to your kubernetes cluster which is running the
@@ -36,22 +37,28 @@ PRE-REQUISITES
 EOF
 
 # Get the Magma k8s namespace
-read -p "Enter Kubernetes namespace [orc8r]: " magma_namespace
+read -r -p "Enter Kubernetes namespace [orc8r]: " magma_namespace
 magma_namespace=${magma_namespace:-orc8r}
 echo ""
 
 # Find NMS pod name
-nms_pod_name=$(kubectl -n $magma_namespace get pods --no-headers -o custom-columns=":metadata.name" | grep nms-magmalte)
+nms_pod_name="$(kubectl -n $magma_namespace get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')"
 echo "Found Magma NMS pod name: $nms_pod_name"
-read -p "Enter NMS pod name [$nms_pod_name]: " input
-nms_pod_name=${input:-$nms_pod_name}
+read -r -p "Enter NMS pod name [$nms_pod_name]: " input
+nms_pod_name="${input:-$nms_pod_name}"
 echo ""
 
-# Find configurator pod name
-orc8r_pod_name=$(kubectl -n $magma_namespace get pods --no-headers -o custom-columns=":metadata.name" | grep orc8r-configurator)
-echo "Found Magma configurator pod name: $orc8r_pod_name"
-read -p "Enter configurator pod name [$orc8r_pod_name]: " input
-orc8r_pod_name=${input:-$orc8r_pod_name}
+# Find configurator/controller pod name
+orc8r_pod_name="$(kubectl -n $magma_namespace get pod -l app.kubernetes.io/component=configurator -o jsonpath='{.items[0].metadata.name}')"
+if [ -n "$orc8r_pod_name" ]; then
+  echo "Found Magma configurator pod name: $orc8r_pod_name"
+  read -r -p "Enter configurator pod name [$orc8r_pod_name]: " input
+else
+  orc8r_pod_name="$(kubectl -n $magma_namespace get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')"
+  echo "Found Magma controller pod name: $orc8r_pod_name"
+  read -r -p "Enter controller pod name [$orc8r_pod_name]: " input
+fi
+orc8r_pod_name="${input:-$orc8r_pod_name}"
 echo ""
 
 # Get DB connection parameters automatically from an orc8r pod env
