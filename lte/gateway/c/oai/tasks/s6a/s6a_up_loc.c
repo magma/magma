@@ -163,15 +163,6 @@ int s6a_ula_cb(
     goto err;
   }
 
-  // Supported-Features AVP addition
-  CHECK_FCT(fd_msg_search_avp(
-      ans_p, s6a_fd_cnf.dataobj_s6a_supported_features, &avp_p));
-
-  if (avp_p) {
-    CHECK_FCT(fd_msg_avp_hdr(avp_p, &hdr_p));
-  } else {
-    OAILOG_ERROR(LOG_S6A, "Imroper supported feature\n");
-  }
 
   CHECK_FCT(fd_msg_search_avp(
       ans_p, s6a_fd_cnf.dataobj_s6a_subscription_data, &avp_p));
