@@ -49,7 +49,7 @@ int sgw_handle_delete_session_request(
     spgw_state_t* spgw_state,
     const itti_s11_delete_session_request_t* const delete_session_p,
     imsi64_t imsi64);
-int sgw_handle_release_access_bearers_request(
+void sgw_handle_release_access_bearers_request(
     const itti_s11_release_access_bearers_request_t* const
         release_access_bearers_req_pP,
     imsi64_t imsi64);
@@ -93,4 +93,13 @@ void populate_sgi_end_point_update(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     itti_sgi_update_end_point_response_t* sgi_update_end_point_resp);
 
+void sgw_send_release_access_bearer_response(
+    log_proto_t module, imsi64_t imsi64, gtpv2c_cause_value_t cause,
+    const itti_s11_release_access_bearers_request_t* const
+        release_access_bearers_req_pP,
+    teid_t mme_teid_s11);
+
+void sgw_process_release_access_bearer_request(
+    log_proto_t module, imsi64_t imsi64,
+    sgw_eps_bearer_context_information_t* sgw_context);
 #endif /* FILE_SGW_HANDLERS_SEEN */
