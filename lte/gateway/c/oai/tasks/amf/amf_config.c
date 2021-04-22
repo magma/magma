@@ -77,13 +77,13 @@ void guamfi_config_init(guamfi_config_t* guamfi_conf) {
 
 /***************************************************************************
 **                                                                        **
-** Name:    served_tai_config_init()                                      **
+** Name:   m5g_served_tai_config_init()                                   **
 **                                                                        **
 ** Description: Initializes default values for served_tai                 **
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-void served_tai_config_init(m5g_served_tai_t* served_tai) {
+void m5g_served_tai_config_init(m5g_served_tai_t* served_tai) {
   served_tai->nb_tai          = 1;
   served_tai->plmn_mcc        = calloc(1, sizeof(*served_tai->plmn_mcc));
   served_tai->plmn_mnc        = calloc(1, sizeof(*served_tai->plmn_mnc));
@@ -127,7 +127,7 @@ void amf_config_init(amf_config_t* config) {
   ngap_config_init(&config->ngap_config);
   nas5g_config_init(&config->nas_config);
   guamfi_config_init(&config->guamfi);
-  served_tai_config_init(&config->served_tai);
+  m5g_served_tai_config_init(&config->served_tai);
 }
 
 /***************************************************************************
