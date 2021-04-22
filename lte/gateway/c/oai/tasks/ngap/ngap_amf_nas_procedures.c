@@ -360,7 +360,7 @@ int ngap_amf_handle_nas_non_delivery(
   container =
       &pdu->choice.initiatingMessage.value.choice.NASNonDeliveryIndication;
   /*
-   * UE associated signalling on stream == 0 is not valid.
+   * UE associated signaling on stream == 0 is not valid.
    */
   if (stream == 0) {
     OAILOG_NOTICE(

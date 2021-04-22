@@ -539,7 +539,7 @@ int ngap_generate_ng_setup_response(
   // memset for gcc 4.8.4 instead of {0}, servedGUAMFI.servedPLMNs
   servedGUAMFI = calloc(1, sizeof *servedGUAMFI);
 
-#if 0  
+#if 0
 amf_config_read_lock(&amf_config);
   /*
    * Use the guamfi parameters provided by configuration
@@ -855,7 +855,8 @@ int ngap_handle_new_association(
 }
 
 int ngap_amf_handle_ue_context_release_request(
-    ngap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
+    __attribute__((unused)) ngap_state_t* state,
+    __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     Ngap_NGAP_PDU_t* pdu) {
   Ngap_UEContextReleaseRequest_t* container;
@@ -997,8 +998,6 @@ int ngap_amf_handle_ue_context_release_request(
       message_p =
           itti_alloc_new_message(TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_REQ);
       AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
-
-      // gnb_ref_p = ngap_state_get_gnb(state, ue_ref_p->sctp_assoc_id);
 
       NGAP_UE_CONTEXT_RELEASE_REQ(message_p).amf_ue_ngap_id =
           ue_ref_p->amf_ue_ngap_id;

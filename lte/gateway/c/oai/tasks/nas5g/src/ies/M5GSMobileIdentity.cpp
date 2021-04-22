@@ -311,7 +311,7 @@ int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
     uint32_t len) {
   int decoded_rc = TLV_VALUE_DOESNT_MATCH;
   int decoded    = 0;
-  uint8_t ielen  = 0;
+  uint16_t ielen = 0;
 
   MLOG(MDEBUG) << "M5GS Mobile Identity : ";
   if (iei > 0) {
