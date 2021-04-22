@@ -10,14 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      ngap_amf.c
-  Date        2020/07/28
-  Author      Ashish Prajapati
-  Subsystem   Access and Mobility Management Function
-  Description Defines NG Application Protocol Messages
-
-*****************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -31,6 +23,10 @@
 #include "hashtable.h"
 #include "assertions.h"
 #include "ngap_state.h"
+#include "ngap_amf_decoder.h"
+#include "ngap_amf_handlers.h"
+#include "ngap_amf_nas_procedures.h"
+#include "ngap_amf_itti_messaging.h"
 #include "service303.h"
 #include "dynamic_memory_check.h"
 #include "amf_config.h"
@@ -68,7 +64,7 @@ static int ngap_send_init_sctp(void) {
   message_p->ittiMsg.sctpInit.ipv6         = 0;
   message_p->ittiMsg.sctpInit.nb_ipv4_addr = 1;
   message_p->ittiMsg.sctpInit.ipv4_address[0].s_addr =
-      mme_config.ip.s1_mme_v4.s_addr;  // TODO Need change
+      mme_config.ip.s1_mme_v4.s_addr;
 
   /*
    * SR WARNING: ipv6 multi-homing fails sometimes for localhost.
@@ -80,9 +76,14 @@ static int ngap_send_init_sctp(void) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
+  ngap_state_t* state = NULL;
   zframe_t* msg_frame = zframe_recv(reader);
   assert(msg_frame);
   MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+
+  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+  state           = get_ngap_state(false);
+  AssertFatal(state != NULL, "failed to retrieve ngap state (was null)");
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SCTP_DATA_IND: {
@@ -92,18 +93,55 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        */
 
       // Invoke NGAP message decoder
-      // TODO
+
+      Ngap_NGAP_PDU_t pdu = {0};
+
+      if (ngap_amf_decode_pdu(
+              &pdu, SCTP_DATA_IND(received_message_p).payload)) {
+        // TODO: Notify gNB of failure with right cause
+        OAILOG_ERROR(LOG_NGAP, "Failed to decode new buffer\n");
+
+      } else {
+        ngap_amf_handle_message(
+            state, SCTP_DATA_IND(received_message_p).assoc_id,
+            SCTP_DATA_IND(received_message_p).stream, &pdu);
+      }
+
+      // Free received PDU array
+      bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
+
     } break;
 
     case SCTP_NEW_ASSOCIATION: {
-      // TODO
+      increment_counter("amf_new_association", 1, NO_LABELS);
+      if (ngap_handle_new_association(
+              state, &received_message_p->ittiMsg.sctp_new_peer)) {
+        increment_counter("amf_new_association", 1, 1, "result", "failure");
+      } else {
+        increment_counter("amf_new_association", 1, 1, "result", "success");
+      }
     } break;
 
     case NGAP_NAS_DL_DATA_REQ: {  // packets from NAS
-                                  /*
-                                   * New message received from NAS task.
-                                   */
-                                  // TODO
+      /*
+       * New message received from NAS task.
+       * * * * This corresponds to a NGAP downlink nas transport message.
+       */
+      ngap_generate_downlink_nas_transport(
+          state, NGAP_NAS_DL_DATA_REQ(received_message_p).gnb_ue_ngap_id,
+          NGAP_NAS_DL_DATA_REQ(received_message_p).amf_ue_ngap_id,
+          &NGAP_NAS_DL_DATA_REQ(received_message_p).nas_msg, imsi64);
+    } break;
+
+    case TERMINATE_MESSAGE: {
+      itti_free_msg_content(received_message_p);
+      zframe_destroy(&msg_frame);
+      ngap_amf_exit();
+    } break;
+
+    case AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION: {
+      ngap_handle_amf_ue_id_notification(
+          state, &AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION(received_message_p));
     } break;
 
     default: {
@@ -113,9 +151,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  // put_ngap_state(); //TODO : implement
   put_ngap_imsi_map();
-  // put_ngap_ue_state(imsi64); //TODO
+  put_ngap_state();
+  put_ngap_imsi_map();
+  put_ngap_ue_state(imsi64);
   itti_free_msg_content(received_message_p);
   zframe_destroy(&msg_frame);
   return 0;
@@ -157,9 +196,8 @@ void ngap_amf_exit(void) {
 
   destroy_task_context(&ngap_task_zmq_ctx);
 
-  // put_ngap_imsi_map();//TODO
-
-  // n1ap_state_exit(); //TODO
+  put_ngap_imsi_map();
+  ngap_state_exit();
 
   OAILOG_DEBUG(LOG_NGAP, "Cleaning NGAP: DONE\n");
   OAI_FPRINTF_INFO("TASK_NGAP terminated\n");

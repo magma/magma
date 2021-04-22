@@ -123,6 +123,13 @@
     x = ((buf)[0] << 8) | ((buf)[1]);                                          \
   } while (0)
 
+#define BUFFER_TO_INT24(buf, x)                                                \
+  do {                                                                         \
+    x = (int32_t)(                                                             \
+        ((uint32_t)((buf)[0]) << 16) | ((uint32_t)((buf)[1]) << 8) |           \
+        ((uint32_t)((buf)[2])));                                               \
+  } while (0)
+
 /* Convert an integer on 32 bits to the given bUFFER */
 #define INT32_TO_BUFFER(x, buf)                                                \
   do {                                                                         \
@@ -160,6 +167,12 @@
     (aSN)->bits_unused = 6;                                                    \
   } while (0)
 
+#define AMF_POINTER_TO_BIT_STRING(x, aSN)                                      \
+  do {                                                                         \
+    INT8_TO_OCTET_STRING(x << 2, aSN);                                         \
+    (aSN)->bits_unused = 2;                                                    \
+  } while (0)
+
 #define INT16_TO_OCTET_STRING(x, aSN)                                          \
   do {                                                                         \
     (aSN)->buf  = calloc(2, sizeof(uint8_t));                                  \
@@ -188,6 +201,12 @@
   do {                                                                         \
     DevCheck((aSN)->size == 2, (aSN)->size, 0, 0);                             \
     BUFFER_TO_INT16((aSN)->buf, x);                                            \
+  } while (0)
+
+#define OCTET_STRING_TO_INT24(aSN, x)                                          \
+  do {                                                                         \
+    DevCheck((aSN)->size == 3, (aSN)->size, 0, 0);                             \
+    BUFFER_TO_INT24((aSN)->buf, x);                                            \
   } while (0)
 
 #define OCTET_STRING_TO_INT32(aSN, x)                                          \
@@ -391,10 +410,14 @@
 #define TAC_TO_ASN1 INT16_TO_OCTET_STRING
 #define GTP_TEID_TO_ASN1 INT32_TO_OCTET_STRING
 #define OCTET_STRING_TO_TAC OCTET_STRING_TO_INT16
+#define OCTET_STRING_TO_TAC_5G OCTET_STRING_TO_INT24
 #define OCTET_STRING_TO_MME_CODE OCTET_STRING_TO_INT8
 #define OCTET_STRING_TO_M_TMSI OCTET_STRING_TO_INT32
 #define OCTET_STRING_TO_MME_GID OCTET_STRING_TO_INT16
 #define OCTET_STRING_TO_CSG_ID OCTET_STRING_TO_INT27
+
+#define OCTET_STRING_TO_AMF_CODE OCTET_STRING_TO_INT8
+#define OCTET_STRING_TO_AMF_GID OCTET_STRING_TO_INT16
 
 /* Convert the IMSI contained by a char string NULL terminated to uint64_t */
 #define IMSI_STRING_TO_IMSI64(sTRING, iMSI64_pTr)                              \
