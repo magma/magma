@@ -54,9 +54,7 @@
 // and compilers.
 #define _Assert_Builtin_Trap_                                                  \
   do {                                                                         \
-    fprintf(                                                                   \
-        stderr,                                                                \
-        "\n Will use __builtin_trap() to be caught by GDB!\n");                \
+    fprintf(stderr, "\n Will use __builtin_trap() to be caught by GDB!\n");    \
     display_backtrace();                                                       \
     fflush(stdout);                                                            \
     fflush(stderr);                                                            \
