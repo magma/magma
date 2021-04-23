@@ -111,16 +111,6 @@ target_link_libraries(LI_AGENT
   prometheus-cpp tacopie mnl tins pcap ssl crypto
   )
 
-if (CLANG_FORMAT)
-  add_custom_target(
-          clang-format
-          COMMAND ${CLANG_FORMAT}
-          -style=file
-          -i
-          ${ALL_CXX_SOURCE_FILES}
-  )
-endif ()
-
 add_executable(liagentd ${PROJECT_SOURCE_DIR}/main.cpp)
 
 target_link_libraries (liagentd LI_AGENT)

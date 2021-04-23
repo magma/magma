@@ -26,7 +26,6 @@ lte/gateway/c/session_manager @themarwhal @uri200
 lte/gateway/c/oai @ssanadhya @ulaskozat @lionelgo @ardzoht
 lte/gateway/c/sctpd @ssanadhya @ulaskozat
 lte/gateway/c/connection_tracker @koolzz
-lte/gateway/c/li_agent @koolzz
 lte/gateway/docker @rdefosse @tmdzk
 lte/gateway/release @tmdzk
 lte/gateway/python/magma/pipelined @koolzz @pshelar

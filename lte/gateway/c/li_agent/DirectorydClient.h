@@ -46,7 +46,8 @@ class AsyncDirectorydClient : public GRPCReceiver, public DirectorydClient {
  public:
   AsyncDirectorydClient();
 
-  AsyncDirectorydClient(std::shared_ptr<grpc::Channel> directoryd_channel);
+  explicit AsyncDirectorydClient(
+      std::shared_ptr<grpc::Channel> directoryd_channel);
 
   /**
    * Gets the directoryd imsi's 'xid' field

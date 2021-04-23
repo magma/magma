@@ -44,7 +44,7 @@ InterfaceMonitor::InterfaceMonitor(
 
 static void packet_handler(
     u_char* user, const struct pcap_pkthdr* phdr, const u_char* pdata) {
-  ((PDUGenerator*) user)->send_packet(phdr, pdata);
+  reinterpret_cast<PDUGenerator*>(user)->send_packet(phdr, pdata);
 }
 
 int InterfaceMonitor::init_iface_pcap_monitor() {
@@ -62,7 +62,8 @@ int InterfaceMonitor::init_iface_pcap_monitor() {
   }
   MLOG(MINFO) << "Successfully started live pcap sniffing";
 
-  ret = pcap_loop(pcap, -1, packet_handler, (u_char*) pkt_gen_.get());
+  ret = pcap_loop(
+      pcap, -1, packet_handler, reinterpret_cast<u_char*>(pkt_gen_.get()));
 
   if (ret == -1) {
     MLOG(MERROR) << "Could not capture packets";

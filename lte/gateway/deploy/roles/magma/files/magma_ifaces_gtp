@@ -40,7 +40,7 @@ iface ipfix0 inet static
 
 allow-gtp_br0 li_port
 iface li_port inet static
-    address 127.0.0.20
+    address 127.1.0.0
     netmask 255.255.255.0
     ovs_bridge gtp_br0
     ovs_type OVSIntPort
