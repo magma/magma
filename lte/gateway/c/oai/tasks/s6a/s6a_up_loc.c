@@ -163,7 +163,6 @@ int s6a_ula_cb(
     goto err;
   }
 
-
   CHECK_FCT(fd_msg_search_avp(
       ans_p, s6a_fd_cnf.dataobj_s6a_subscription_data, &avp_p));
 
