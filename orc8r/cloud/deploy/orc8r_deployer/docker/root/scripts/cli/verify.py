@@ -13,6 +13,9 @@ limitations under the License.
 import os
 import sys
 import glob
+import json
+
+from kubernetes import client, config
 
 import click
 
@@ -30,8 +33,9 @@ def verify(ctx):
     pass
 
 @verify.command('sanity')
+@click.option('-n', '--namespace', default='orc8r')
 @click.pass_context
-def verify_sanity(ctx):
+def verify_sanity(ctx, namespace):
     # check if KUBECONFIG is set else find kubeconfig file and set the
     # environment variable
     constants = ctx.obj
@@ -51,11 +55,25 @@ def verify_sanity(ctx):
     os.environ["KUBECONFIG"] = kubeconfig
     os.environ["K8S_AUTH_KUBECONFIG"] = kubeconfig
 
+    # check if we have a valid namespace
+    config.load_kube_config(kubeconfig)
+    v1 = client.CoreV1Api()
+    response = v1.list_namespace()
+    all_namespaces = [item.metadata.name for item in response.items]
+    if namespace not in all_namespaces:
+        namespace = click.prompt('Provide orc8r namespace', abort=True)
+        if namespace not in all_namespaces:
+            print_error_msg(f"Orc8r namespace {namespace} not found")
+            sys.exit(1)
+
+    # add constants to the list of variables sent to ansible
+    constants['orc8r_namespace'] = namespace
+
     rc = run_playbook([
             "ansible-playbook",
             "-v",
             "-e",
-            "@/root/config.yml",
+            json.dumps(constants),
             "-t",
             "verify_sanity",
             "%s/main.yml" % constants["playbooks"]])
