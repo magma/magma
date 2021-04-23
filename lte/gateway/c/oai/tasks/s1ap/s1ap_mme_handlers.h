@@ -58,6 +58,36 @@ int s1ap_mme_handle_s1_setup_request(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
 
+int s1ap_mme_handle_handover_required(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
+
+int s1ap_mme_handle_handover_command(
+    s1ap_state_t* state, const itti_mme_app_handover_command_t* ho_command_p);
+
+int s1ap_mme_handle_handover_request(
+    s1ap_state_t* state, const itti_mme_app_handover_request_t* ho_request_p);
+
+int s1ap_mme_handle_handover_request_ack(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
+
+int s1ap_mme_handle_handover_cancel(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
+
+int s1ap_mme_handle_handover_failure(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
+
+int s1ap_mme_handle_enb_status_transfer(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu);
+
+int s1ap_mme_handle_handover_notify(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
+
 int s1ap_mme_handle_path_switch_request(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message_p);
@@ -98,6 +128,8 @@ int s1ap_handle_new_association(
 int s1ap_mme_set_cause(
     S1ap_Cause_t* cause_p, const S1ap_Cause_PR cause_type,
     const long cause_value);
+
+long s1ap_mme_get_cause_value(S1ap_Cause_t* cause);
 
 int s1ap_mme_generate_s1_setup_failure(
     const sctp_assoc_id_t assoc_id, const S1ap_Cause_PR cause_type,
@@ -159,6 +191,13 @@ int s1ap_handle_path_switch_req_failure(
     const itti_s1ap_path_switch_request_failure_t* path_switch_req_failure_p,
     imsi64_t imsi64);
 
+int s1ap_mme_handle_erab_modification_indication(
+    s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu);
+
+void s1ap_mme_generate_erab_modification_confirm(
+    s1ap_state_t* state, const itti_s1ap_e_rab_modification_cnf_t* const conf);
+
 int s1ap_mme_generate_ue_context_release_command(
     s1ap_state_t* state, ue_description_t* ue_ref_p, enum s1cause,
     imsi64_t imsi64, sctp_assoc_id_t assoc_id, sctp_stream_id_t stream,
@@ -166,4 +205,8 @@ int s1ap_mme_generate_ue_context_release_command(
 
 int s1ap_mme_remove_stale_ue_context(
     enb_ue_s1ap_id_t enb_ue_s1ap_id, uint32_t enb_id);
+
+int s1ap_send_mme_ue_context_release(
+    s1ap_state_t* state, ue_description_t* ue_ref_p,
+    enum s1cause s1_release_cause, S1ap_Cause_t ie_cause, imsi64_t imsi64);
 #endif /* FILE_S1AP_MME_HANDLERS_SEEN */

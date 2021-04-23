@@ -1,48 +1,42 @@
 {
   "docs": {
-    "Basics": [
+    "Getting Started": [
       "basics/introduction",
       "basics/prerequisites",
       "basics/quick_start_guide"
     ],
-    "Orchestrator": [
-      {
-        "type": "subcategory",
-        "label": "Deploy Orchestrator",
-        "ids": [
-          "orc8r/intro",
-          "orc8r/deploy_intro",
-          "orc8r/deploy_build",
-          "orc8r/deploy_install",
-          "orc8r/deploy_faq"
-        ]
-      },
-      {
-        "type": "subcategory",
-        "label": "Upgrade Orchestrator",
-        "ids": [
-          "orc8r/upgrade_intro",
-          "orc8r/upgrade_1_4",
-          "orc8r/upgrade_1_3",
-          "orc8r/upgrade_1_2",
-          "orc8r/upgrade_1_1"
-        ]
-      },
-      {
-        "type": "subcategory",
-        "label": "Development",
-        "ids": [
-          "orc8r/development/testing_tips",
-          "orc8r/development/minikube_deployment"
-        ]
-      }
+    "Tutorials": [
     ],
-    "NMS": [
+    "Usage": [
       {
         "type": "subcategory",
-        "label": "NMS Usage",
+        "label": "How-To",
         "ids": [
-          "nms/setup",
+          "howtos/ue_metering",
+          "howtos/config_agw_bridged",
+          "howtos/call_tracing",
+          "howtos/events_monitoring",
+          "howtos/header_enrichment.md",
+          "howtos/inbound_roaming"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "howtos/thanos"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
           "nms/overview",
           "nms/dashboard",
           "nms/equipment",
@@ -56,57 +50,169 @@
       },
       {
         "type": "subcategory",
-        "label": "NMS Development",
+        "label": "Troubleshooting",
         "ids": [
-          "nms/developer"
+          "howtos/troubleshooting/agw_unable_to_checkin",
+          "howtos/troubleshooting/user_unable_to_attach",
+          "howtos/troubleshooting/update_certificates",
+          "howtos/troubleshooting/generate_admin_operator_certificates",
+          "howtos/troubleshooting/analyze_service_crashes_in_agw"
         ]
       }
     ],
-    "Access Gateway": [
+    "Architecture": [
       {
         "type": "subcategory",
-        "label": "Deploy AGWs",
+        "label": "Access Gateway",
         "ids": [
-          "lte/setup_deb",
-          "lte/config_agw",
-          "lte/enodebd",
-          "lte/config_apn",
-          "lte/ha_setup",
-          "lte/agw_130_upgrade",
-          "lte/agw_120_upgrade",
-          "lte/agw_110_upgrade"
+          "lte/architecture_overview"
         ]
       },
       {
         "type": "subcategory",
-        "label": "AGW Development",
-        "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes", "lte/eventd"]
-      }
-    ],
-    "Feature Guides": [
-      "howtos/ue_metering",
-      "howtos/config_agw_bridged",
-      "howtos/thanos",
-      "howtos/call_tracing",
-      "howtos/events_monitoring",
-      "howtos/header_enrichment.md"
-    ],
-    "Debugging Tools": [
-      "debugging_tools/show_tech"
-    ],
-    "Federation Gateway": [
+        "label": "Orchestrator",
+        "ids": [
+          "orc8r/architecture_overview",
+          "orc8r/architecture_modularity",
+          "orc8r/architecture_security",
+          "nms/nms_arch_overview"
+        ]
+      },
       {
         "type": "subcategory",
-        "label": "Deploy FeG",
+        "label": "NMS",
+        "ids": [
+          "nms/nms_arch_overview"
+        ]
+      }
+    ],
+    "Deploy": [
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "lte/deploy_install",
+          "lte/deploy_install_ubuntu",
+          "lte/deploy_config_agw",
+          "lte/deploy_config_enodebd",
+          "lte/deploy_config_apn",
+          "lte/deploy_config_agw_ha",
+          "lte/build_install_magma_pkg_in_agw",
+          "lte/integrate_sentry"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "orc8r/deploy_intro",
+          "orc8r/deploy_build",
+          "orc8r/deploy_install",
+          "orc8r/hold_terraform_state_on_s3",
+          "orc8r/override_values_of_terraform_files",
+          "orc8r/deploy_orcl",
+          "orc8r/deploy_faq"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/deploy_config"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Federation Gateway",
         "ids": [
           "feg/deploy_intro",
           "feg/deploy_build",
           "feg/deploy_install",
-          "feg/federated_FWA_setup_guide"
+          "feg/deploy_configure"
         ]
       }
     ],
-    "FAQ": ["faq/magma_faq"],
+    "Upgrade": [
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "lte/upgrade_1_4",
+          "lte/upgrade_1_3",
+          "lte/upgrade_1_2",
+          "lte/upgrade_1_1"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "orc8r/upgrade_intro",
+          "orc8r/upgrade_1_4",
+          "orc8r/upgrade_1_3",
+          "orc8r/upgrade_1_2",
+          "orc8r/upgrade_1_1"
+        ]
+      }
+    ],
+    "Debug": [
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "lte/debug_show_tech",
+          "lte/debug_dp_probe"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "orc8r/debug_logs"
+        ]
+      }
+    ],
+    "Contribute": [
+      "contributing/contribute_onboarding",
+      "contributing/contribute_workflow",
+      "contributing/contribute_conventions",
+      "contributing/contribute_ci_checks",
+      "contributing/contribute_codeowners"
+    ],
+    "Technical Reference": [
+      {
+        "type": "subcategory",
+        "label": "Access Gateway",
+        "ids": [
+          "lte/dev_notes",
+          "lte/dev_unit_testing",
+          "lte/tr069",
+          "lte/s1ap_tests",
+          "lte/eventd",
+          "lte/access_service_restrictions"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Orchestrator",
+        "ids": [
+          "orc8r/dev_testing",
+          "orc8r/dev_minikube",
+          "orc8r/dev_security",
+          "orc8r/dev_indexers",
+          "orc8r/dev_dependencies"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/dev_spacing",
+          "nms/dev_themes",
+          "nms/dev_components"
+        ]
+      }
+    ],
     "Proposals": [
       "proposals/p001_vpn_config_from_api",
       "proposals/p002_scaled_prometheus_pipeline",
@@ -114,7 +220,13 @@
       "proposals/p004_fua-restrict-feature",
       "proposals/p005_call_tracing",
       "proposals/p007_header_enrichment",
-      "proposals/p008_apn_correction"
+      "proposals/p008_apn_correction",
+      "proposals/p009_nms_mariadb_migration",
+      "proposals/p010_subscriber_scaling",
+      "proposals/p011_victoriametrics"
+    ],
+    "FAQ": [
+      "faq/faq_magma"
     ]
   }
 }

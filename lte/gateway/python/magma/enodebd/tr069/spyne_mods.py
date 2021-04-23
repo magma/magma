@@ -20,10 +20,8 @@ modifications are required because:
 3) Minor enhancements for debug-ability
 """
 
-from magma.enodebd.logger import EnodebdLogger as logger
-
 from lxml import etree
-
+from magma.enodebd.logger import EnodebdLogger as logger
 from spyne.application import Application
 from spyne.interface._base import Interface
 from spyne.protocol.soap import Soap11

@@ -12,14 +12,16 @@ limitations under the License.
 """
 import logging
 import random
-
 from ipaddress import ip_address, ip_network
 from typing import List, Optional
 
-from .ip_descriptor import IPDesc, IPState, IPType
-from .ip_allocator_base import IPAllocator, \
-    NoAvailableIPError, OverlappedIPBlocksError, IPNotInUseError
-from .ip_descriptor import IPv6SessionAllocType
+from .ip_allocator_base import (
+    IPAllocator,
+    IPNotInUseError,
+    NoAvailableIPError,
+    OverlappedIPBlocksError,
+)
+from .ip_descriptor import IPDesc, IPState, IPType, IPv6SessionAllocType
 from .mobility_store import MobilityStore
 
 IPV6_PREFIX_PART_LEN = 64
@@ -77,7 +79,7 @@ class IPv6AllocatorPool(IPAllocator):
             return []
 
         if not force:
-            allocated_ip_block_set = self._store.ip_state_map.get_allocated_ip_block_set()
+            allocated_ip_block_set = self._store.ipv6_state_map.get_allocated_ip_block_set()
             if allocated_ip_block_set:
                 return []
 
@@ -89,11 +91,11 @@ class IPv6AllocatorPool(IPAllocator):
         for sid in list(self._store.sid_ips_map):
             ip_desc = self._store.sid_ips_map[sid]
             if ip_desc.ip.version == 6:
-                self._store.ip_state_map.remove_ip_from_state(ip_desc.ip,
-                                                              IPState.FREE)
+                self._store.ipv6_state_map.remove_ip_from_state(ip_desc.ip,
+                                                                IPState.FREE)
                 if force:
-                    self._store.ip_state_map.remove_ip_from_state(ip_desc.ip,
-                                                                  IPState.ALLOCATED)
+                    self._store.ipv6_state_map.remove_ip_from_state(
+                        ip_desc.ip, IPState.ALLOCATED)
                 self._store.sid_ips_map.pop(sid)
 
         removed_blocks.append(self._assigned_ip_block)

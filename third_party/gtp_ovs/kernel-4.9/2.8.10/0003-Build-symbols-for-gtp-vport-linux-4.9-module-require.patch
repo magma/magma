@@ -1,0 +1,45 @@
+From f86aa76748d9df9c034c39501d04516306756b78 Mon Sep 17 00:00:00 2001
+From: Omar Ramadan <oramadan@fb.com>
+Date: Tue, 17 Oct 2017 16:46:14 +0000
+Subject: [PATCH 3/7] Build symbols for gtp-vport linux 4.9 module required for
+ openvswitch module
+
+This is required until the gtp-vport module lands to netnext repos
+---
+ debian/rules         | 5 +++++
+ debian/rules.modules | 3 +++
+ 2 files changed, 8 insertions(+)
+
+diff --git a/debian/rules b/debian/rules
+index c847d2853..90ecce19b 100755
+--- a/debian/rules
++++ b/debian/rules
+@@ -77,6 +77,11 @@ override_dh_install-indep:
+ 	# check we can get kernel module names
+ 	$(MAKE) -C datapath print-build-modules
+ 
++
++	# make GTP flow based kernel patch
++	cd flow-based-gtp-linux-v4.9 && $(MAKE) build
++	cp flow-based-gtp-linux-v4.9/Module.symvers debian/$(PACKAGE_DKMS)/usr/src/$(PACKAGE)-$(DEB_VERSION_UPSTREAM)/datapath/linux
++
+ 	# Prepare dkms.conf from the dkms.conf.in template
+ 	sed "s/__VERSION__/$(DEB_VERSION_UPSTREAM)/g; s/__MODULES__/$(shell $(MAKE) -C datapath print-build-modules | grep -v make)/" debian/dkms.conf.in > debian/$(PACKAGE_DKMS)/usr/src/$(PACKAGE)-$(DEB_VERSION_UPSTREAM)/dkms.conf
+ 
+diff --git a/debian/rules.modules b/debian/rules.modules
+index b0c6cdcee..c0b29af86 100755
+--- a/debian/rules.modules
++++ b/debian/rules.modules
+@@ -23,6 +23,9 @@ binary-modules: prep-deb-files
+ 	dh_testroot
+ 	dh_clean -k
+ 	tar xzf openvswitch.tar.gz
++	cd flow-based-gtp-linux-v4.9 && $(MAKE) package
++	mv flow-based-gtp-linux-v4.9/*.deb $(DEB_DESTDIR)
++	cp flow-based-gtp-linux-v4.9/Module.symvers openvswitch/datapath/linux
+ 	cd openvswitch && ./configure --with-linux=$(KSRC) $(DATAPATH_CONFIGURE_OPTS)
+ 	cd openvswitch && $(MAKE) -C datapath/linux
+ 	install -d -m755 $(DSTDIR)
+-- 
+2.11.0
+

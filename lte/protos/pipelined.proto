@@ -74,17 +74,27 @@ message RequestOriginType {
   OriginType type = 1;
 }
 
+message VersionedPolicy {
+  PolicyRule rule = 1;
+  uint32 version = 2;
+}
+
 message ActivateFlowsRequest {
   SubscriberID sid = 1;
   string ip_addr = 2; // Subscriber session ipv4 address
-  repeated string rule_ids = 3; // List of static rules obtained from PCRF
-  repeated PolicyRule dynamic_rules = 4;  // List of dynamic rules obtained from PCRF
   RequestOriginType request_origin = 5; // Activate flow source (GX/GY)
   magma.lte.AggregatedMaximumBitrate apn_ambr = 6; // APN AMBR info, passed at the time of session creation
   bytes ipv6_addr = 7; // Subscriber session ipv6 address
   bytes msisdn = 8; // From SubscriberDB or HSS
   uint32 uplink_tunnel = 9; // Subscriber uplink tunnel
   uint32 downlink_tunnel = 10; // Subscriber downlink tunnel
+  repeated VersionedPolicy policies = 11; // Policy + version pairs
+  reserved 3, 4;
+}
+
+message VersionedPolicyID {
+  string rule_id = 1;
+  uint32 version = 2;
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
@@ -94,13 +104,14 @@ message ActivateFlowsRequest {
 // If no rule ids are given, all flows are deactivated
 message DeactivateFlowsRequest {
   SubscriberID sid = 1;
-  repeated string rule_ids = 2;
   RequestOriginType request_origin = 3;
   string ip_addr = 4; // Subscriber session ipv4 address
   bytes ipv6_addr = 5; // Subscriber session ipv6 address
   bool remove_default_drop_flows = 6;
   uint32 uplink_tunnel = 7; // Subscriber uplink tunnel
   uint32 downlink_tunnel = 8; // Subscriber downlink tunnel
+  repeated VersionedPolicyID policies = 9; // PolicyID + version pairs
+  reserved 2;
 }
 
 message RuleModResult {
@@ -111,11 +122,12 @@ message RuleModResult {
     FAILURE = 2;
   }
   Result result = 2;
+  uint64 version = 3;
 }
 
 message ActivateFlowsResult {
-  repeated RuleModResult static_rule_results = 1;
-  repeated RuleModResult dynamic_rule_results = 2;
+  repeated RuleModResult policy_results = 2;
+  reserved 1;
 }
 
 message DeactivateFlowsResult {
@@ -229,11 +241,6 @@ message Fsm_state {
   FsmState  state = 1;
 }
 
-
-message OuterHeadRemoval {
-  uint32 o_hd_remo_descr = 1;
-}
-
 message SdfFilters {                               //8.2.5
   FlowDescriptor fd = 1;
   bytes ttc = 2;
@@ -285,7 +292,7 @@ message OuterHeaderCreation {
 
 //Table 7.5.2.3-2: Forwarding Parameters IE in FAR
 message FwdParam {
-  uint32 dest_iface = 1;     
+  uint32 dest_iface = 1;
   string net_instance = 2;
   RedirectInfo redirect_info = 3;
   OuterHeaderCreation outr_head_cr = 4;
@@ -300,14 +307,15 @@ message DupParam {
 enum PdrState {
   INSTALL = 0;
   REMOVE  = 1;
+  IDLE    = 2;
 }
 
 //PDI Message Table 7.5.2.2-2: PDI IE within PFCP Session Establishment Request
 message PDI {
   uint32 src_interface = 1;
-  uint32 local_f_teid = 2; 
+  uint32 local_f_teid = 2;
   string net_instance = 3;
-  string ue_ip_adr = 4;        
+  string ue_ip_adr = 4;
   bytes tr_ep_id = 5;                //8.2.92
   SdfFilters sdf_filters = 6;
   string app_id = 7;
@@ -322,10 +330,11 @@ message SetGroupPDR {
   uint32 precedence = 3;
   PdrState pdr_state = 4;
   PDI pdi = 5;
-  uint32 o_h_remo_desc = 6; 
+  uint32 o_h_remo_desc = 6;
   string active_pred_rule = 7;
-  ActivateFlowsRequest activate_flow_req = 8;
-  SetGroupFAR set_gr_far = 9;  
+  SetGroupFAR set_gr_far = 8;
+  DeactivateFlowsRequest deactivate_flow_req = 9;
+  ActivateFlowsRequest activate_flow_req = 10;
 }
 
 //FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment
@@ -340,11 +349,10 @@ message SetGroupFAR {
 // ToDo  SetGroupBAR
 
 //SET message - SMF to Upf Session Requests
-//ToDo Flattening of SessionSet is in progress so will be updated along with addressing the comments
 message SessionSet {
   string subscriber_id = 1;
-  uint32 local_f_teid = 2; 
-  uint32 session_version = 3; 
+  uint32 local_f_teid = 2;
+  uint32 session_version = 3;
   NodeID node_id = 4;
   Fsm_state state = 5;
   repeated SetGroupPDR set_gr_pdr = 6;
@@ -354,9 +362,8 @@ message SessionSet {
 // 15.8 (Sec 7.5.3.1) : PFCP Session Response format
 message UPFSessionContextState {
     CauseIE cause_info = 1;
-    UPFSessionState session_snaphot = 2;
-    repeated FailureRuleInformation failure_rule_id = 3; // The session and version which failed in UPF
-    repeated ActivateFlowsResult qos_enforce_rule_results = 4;
+    UPFSessionState session_snapshot = 2;
+    FailureRuleInformation failure_rule_id = 3; // The session and version which failed in UPF
 }
 
 //15.8,  Section 8.2.1
@@ -384,17 +391,17 @@ message CauseIE {
    CauseValues cause_ie=1;
 }
 
+//For now only PDR is encoded as it encompass FAR and QER.
 message FailureRuleInformation {
-   OffendingIE pdr = 1;
-   OffendingIE far = 2;
-   OffendingIE qer = 3;
-   OffendingIE urr = 4;
-   OffendingIE bar = 5;
+   repeated OffendingIE pdr = 1;
 }
 
+//Failure Report
 message OffendingIE {
     uint32 identifier = 1;
     uint32 version = 2;
+    ActivateFlowsResult qos_enforce_rule_results = 3;
+    DeactivateFlowsResult del_qer_results = 4;
 }
 
 // --------------------------------------------------------------------------

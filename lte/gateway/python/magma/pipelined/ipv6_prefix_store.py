@@ -10,13 +10,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import threading
 import ipaddress
+import threading
 
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisHashDict
-from magma.common.redis.serializers import get_json_deserializer, \
-    get_json_serializer
+from magma.common.redis.serializers import (
+    get_json_deserializer,
+    get_json_serializer,
+)
 
 
 class InterfaceIDToPrefixMapper:
@@ -27,8 +29,11 @@ class InterfaceIDToPrefixMapper:
     """
 
     def __init__(self):
-        self._prefix_by_interface = PrefixDict()
+        self._prefix_by_interface = {}
         self._lock = threading.Lock()  # write lock
+
+    def setup_redis(self):
+        self._prefix_by_interface = PrefixDict()
 
     def get_prefix(self, interface):
         with self._lock:

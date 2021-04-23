@@ -12,38 +12,40 @@ limitations under the License.
 """
 
 import asyncio
+import faulthandler
+import functools
 import logging
+import os
 import signal
 import time
 from concurrent import futures
 from typing import List, Optional
-import functools
-import grpc
-import os
-import pkg_resources
-from orc8r.protos.common_pb2 import LogLevel, Void
-from orc8r.protos.metricsd_pb2 import MetricsContainer
-from orc8r.protos.service303_pb2 import (
-    ServiceInfo,
-    ReloadConfigResponse,
-    State,
-    GetOperationalStatesResponse,
-)
-from orc8r.protos.service303_pb2_grpc import (
-    Service303Servicer,
-    add_Service303Servicer_to_server,
-    Service303Stub,
-)
 
+import grpc
+import pkg_resources
+from magma.common.log_count_handler import MsgCounterHandler
+from magma.common.log_counter import ServiceLogErrorReporter
+from magma.common.metrics_export import get_metrics
+from magma.common.service_registry import ServiceRegistry
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import get_mconfig_manager
 from magma.configuration.service_configs import load_service_config
-from .log_counter import ServiceLogErrorReporter
-from .log_count_handler import MsgCounterHandler
-from .metrics_export import get_metrics
-from .service_registry import ServiceRegistry
+from orc8r.protos.common_pb2 import LogLevel, Void
+from orc8r.protos.metricsd_pb2 import MetricsContainer
+from orc8r.protos.service303_pb2 import (
+    GetOperationalStatesResponse,
+    ReloadConfigResponse,
+    ServiceInfo,
+    State,
+)
+from orc8r.protos.service303_pb2_grpc import (
+    Service303Servicer,
+    Service303Stub,
+    add_Service303Servicer_to_server,
+)
 
 MAX_DEFAULT_WORKER = 10
+
 
 async def loop_exit():
     """
@@ -128,7 +130,8 @@ class MagmaService(Service303Servicer):
             self._server = grpc.server(
                 futures.ThreadPoolExecutor(max_workers=self._config['grpc_workers']))
         else:
-            self._server = grpc.server(futures.ThreadPoolExecutor(max_workers=MAX_DEFAULT_WORKER))
+            self._server = grpc.server(
+                futures.ThreadPoolExecutor(max_workers=MAX_DEFAULT_WORKER))
         add_Service303Servicer_to_server(self, self._server)
 
     @property
@@ -332,6 +335,12 @@ class MagmaService(Service303Servicer):
             self._loop.add_signal_handler(
                 getattr(signal, signame),
                 functools.partial(self._stop, signame))
+
+        def _signal_handler():
+            logging.info('Handling SIGHUP...')
+            faulthandler.dump_traceback()
+        self._loop.add_signal_handler(
+            signal.SIGHUP, functools.partial(_signal_handler))
 
     def GetServiceInfo(self, request, context):
         """

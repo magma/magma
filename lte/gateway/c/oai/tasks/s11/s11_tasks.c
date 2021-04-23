@@ -195,9 +195,7 @@ static nw_rc_t s11_mme_stop_timer_wrapper(
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case MESSAGE_TEST: {
@@ -249,7 +247,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       s11_mme_exit();
     } break;
 
@@ -258,9 +256,15 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           LOG_S11, "Processing timeout for timer_id 0x%lx and arg %p\n",
           received_message_p->ittiMsg.timer_has_expired.timer_id,
           received_message_p->ittiMsg.timer_has_expired.arg);
-      DevAssert(
-          nwGtpv2cProcessTimeout(
-              received_message_p->ittiMsg.timer_has_expired.arg) == NW_OK);
+      nw_rc_t nw_rc = nwGtpv2cProcessTimeout(
+          received_message_p->ittiMsg.timer_has_expired.arg);
+      if (nw_rc != NW_OK) {
+        OAILOG_DEBUG(
+            LOG_S11,
+            "Processing timeout for timer_id 0x%lx and arg %p failed\n",
+            received_message_p->ittiMsg.timer_has_expired.timer_id,
+            received_message_p->ittiMsg.timer_has_expired.arg);
+      }
     } break;
 
     case UDP_DATA_IND: {
@@ -286,7 +290,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   }
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 

@@ -75,7 +75,7 @@ enum ServiceConditionChange {  // TS 132 298
 namespace magma {
 namespace lte {
 
-EventsReporterImpl::EventsReporterImpl(AsyncEventdClient& eventd_client)
+EventsReporterImpl::EventsReporterImpl(EventdClient& eventd_client)
     : eventd_client_(eventd_client) {}
 
 void EventsReporterImpl::session_created(
@@ -213,14 +213,15 @@ void EventsReporterImpl::session_terminated(
   event.set_event_type(SESSION_TERMINATED_EV);
   event.set_tag(imsi);
 
-  folly::dynamic event_value           = folly::dynamic::object;
-  event_value[IMSI]                    = imsi;
-  event_value[IP_ADDR]                 = session_cfg.common_context.ue_ipv4();
-  event_value[IPV6_ADDR]               = session_cfg.common_context.ue_ipv6();
-  event_value[MSISDN]                  = session_cfg.common_context.msisdn();
-  event_value[APN]                     = session_cfg.common_context.apn();
-  event_value[SESSION_ID]              = session->get_session_id();
-  SessionState::TotalCreditUsage usage = session->get_total_credit_usage();
+  folly::dynamic event_value = folly::dynamic::object;
+  event_value[IMSI]          = imsi;
+  event_value[IP_ADDR]       = session_cfg.common_context.ue_ipv4();
+  event_value[IPV6_ADDR]     = session_cfg.common_context.ue_ipv6();
+  event_value[MSISDN]        = session_cfg.common_context.msisdn();
+  event_value[APN]           = session_cfg.common_context.apn();
+  event_value[SESSION_ID]    = session->get_session_id();
+
+  SessionCredit::TotalCreditUsage usage = session->get_total_credit_usage();
   event_value[TOTAL_TX]       = usage.charging_tx + usage.monitoring_tx;
   event_value[TOTAL_RX]       = usage.charging_rx + usage.monitoring_rx;
   event_value[CHARGING_TX]    = usage.charging_tx;

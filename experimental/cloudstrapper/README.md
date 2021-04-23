@@ -122,7 +122,7 @@
   - build-provision: Setup build instance using default security group, Bootkey and Ubuntu with
     t2.xlarge. Optionally, Provision a AGW compliant image (Debian 4909 or Ubuntu 20.04) 
     ```
-    ansible-playbook build-provision.yaml
+    ansible-playbook build-provision.yaml --tags devopsOrc8r,inventory
     ```
 
   - build-configure: Configure build instance by setting up necessary parameters and reading from
@@ -131,14 +131,7 @@
     ansible-playbook build-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "buildnode=tag_Name_buildOrc8r" -e "ansible_python_interpreter=/usr/bin/python3"
     ```
 
-  - build-ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and
-    building OVS.
-    *TODO: Remove existing snapshot and create new snapshot*
-    ```
-    ansible-playbook build-ami-configure.yaml -e '@vars/main.yaml' -i files/build_instance_aws_ec2.yaml -e "buildnode=tag_Name_ec2MagmaBuild" -u admin
-    ```
-
-  - Result: Build instance created, images and helm charts published. AGW AMI created.
+  - Result: Build instance created, images and helm charts published. 
 
 ## 4. Control Plane/Cloud Services
 
@@ -152,6 +145,14 @@
     configuration be used across every terraform init.
 
   - Requires: secrets.yaml in the dirInventory folder. Use the sample file in roles/vars/secrets.yaml
+  - Before beginning Deployment process, check variables to ensure deployment is customized.
+    cluster.yaml : 
+      - orc8rClusterName: Locally identifiable cluster name
+      - orc8rDomainName: DNS name for Orc8r
+      - orc8rLabel: Label to look for in container repository
+      - orc8rVersion: What version of Orc8r is being deployed
+      - gitHelmRepo: Repo which holds helm charts
+      - awsOrc8rRegion: Region where Orc8r would run
   - Orchestrator : Deploy orchestrator 
   ```
     ansible-playbook orc8r.yaml [ --skip-tags deploy-orc8r ]
@@ -177,6 +178,123 @@
 
   - Validate Orchestrator deployment by following the verification steps in https://magma.github.io/magma/docs/orc8r/deploy_install
 
+## 5. Data Plane
+  The agw playbooks instantiate a site and configure gateways in it. The design includes two key
+  variables - SiteName (to uniquely identify an edge site) and GatewayName (to uniquely identify
+  a gateway within an edge site). A single site can host multiple gateways and each gateway is
+  associated to one site. While creating the gateway, the SiteName and GatewayName variable are
+  used. 
+
+  Default variable files are available in the varSite<SiteName>.yaml for sites and 
+  varGateway<GatewayName>.yaml for individual gateways from roles/agw-infra/vars/ directory. Newer
+  gateways and sites can also be added following the same format.
+
+  Prerequisites: AGW AMI available and the value specified in 'awsAgwAmi' in cluster.yaml file. If
+  you do not have an AGW AMI file already, please refer to Section 5.1 below to generate an AMI.
+ 
+  Tunables: (in var/opts)
+    cluster.yaml:
+      agwAgwRegion: Region where Gateway is deployed
+      awsAgwAz: Availability zone within aforesaid Region
+      awsAgwAmi: AMI ID of AGW AMI in the region, used to deploy in-region or edge gateways 
+      orc8rDomainName: Domain name to be used to attach this gateway
+    defaults.yaml:
+      dirSecretsLocal: Local directory with rootCA.pem file
+ 
+  - Provision the underlying infrastructure and the gateways
+
+    agw-provision: provisions a site with VPC, subnets, gateway, routing tables and one AGW Command:
+    ```
+    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" [ --tags createNet,createGw,attachIface ]
+    ```
+    Example:
+    ```
+    ansible-playbook agw-provision.yaml -e "idSite=MenloPark" -e "idGw=AgwA" [ --tags createNet createGw attachIface ]
+    ``` 
+
+  - A site needs to be added only once. After a site is up, multiple gatways can be individually 
+    provisioned by skipping the createNet tag as laid out below
+    ```
+    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" --tags createGw,attachIface
+    ``` 
+
+    Example:
+    ```
+    ansible-playbook agw-provision.yaml -e "idSite=MenloPark" -e "idGw=AgwB" --tags createGw,attachIface
+    ``` 
+
+  - After the gateway has been provisioned, configure the gateway to attach it to an Orchestrator 
+    instance. The orchstrator information is picked up from 'cluster.yaml' file
+
+    agw-configure: configures the AGW to include controller information Command:
+    ```
+    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<SiteId><GatewayId>" -u admin
+    ```
+    Example:
+
+    ```
+    ansible-playbook agw-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "agw=tag_Name_MenloParkAgwA" -u admin
+    ```
+    Proceed to add gateway to Orchestrator using NMS. 
+
+  - Result: AWS components created, AGW provisioned, configured and connected to Orchestrator
+
+### 5.1 For users who do not have access to an AGW AMI. Optional CI/CD
+
+  - Prerequisite: Debian Stretch AMI with 4.9.0.9 kernel with AMI id. 
+  - Tunables (in roles/vars): 
+    build.yaml:
+      buildDebianAmi: AMI ID of Base Debian Stretch 4.9.0.9 image
+      buildAgwAmiName: Name of the AGW AMI, used to label AMI 
+      buildGwTagName: Tag to be used for the AGW Devops instance, used to filter instance
+    defaults.yaml:  
+      keyHost: Name of *.pem file available from <dirInenvtory>, such as ~/magma-experimental/files 
+      secGroupDefault: Name of the default security group to be used for the AGW instance
+
+  - build-provision: Setup AGW devops build instance using default security group, Bootkey using a
+    a AGW compliant image (Debian 4909). This AMI value is specified in the build.yaml file as  
+    'buildDebianAmi'.
+    ```
+    ansible-playbook build-provision.yaml --tags devopsAgw,inventory
+    ```
+
+ - ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and building OVS.
+    ```
+    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "aminode=tag_Name_<buildGwTagName>" -u admin
+    ```
+    Example:
+    ```
+    ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
+    ```
+
+  - ami-init: Snapshot the AMI instance
+    ```
+    ansible-playbook ami-init.yaml
+    ```
+
+  - Result: AGW AMI created and ready to be used for AGW in-region or Snowcone deployments.
+
+## 6. Cleanup
+
+  Cleanup deletes all Control and Dataplane components created in the regions. Cleanup can be used
+  to remove all components in one stroke (orchestrator and gateways) or delete individual
+  elements within each layer (database, secrets in orchestrator, any given number of gateways).
+
+  Cleanup uses a combination of native Ansible modules when available and AWS CLI when Ansible 
+  modules are unable to force-delete resources (ex: EFS, Secrets etc.) It uses the name tag of the resources
+  when available and heavily relies on the current assumption that only one orchestrator deployment
+  exists per region. As newer capabilities around tagging emerge, cleanup can be used to target a single
+  deployment among many for cleanup.
+
+  tunables: 
+    - cluster.yaml: 
+        awsOrc8rRegion : Determines which Region hosts the Orc8r instance to be deleted
+        orc8rClusterName : Local folder with terraform state [ex: ~/magma-experimental/<Name of Cluster>]
+
+  - ansible-playbook cleanup.yaml  [ --tags *various* ]
+
+  Available tags include: agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc
+
 ## Known Issues, Best Practices & Expected Behavior
 
 ### Best Practices
@@ -187,6 +305,13 @@
 
     2. The tool is customizable to build every desired type of installation. However, for initial
        efforts, it might be better to to use the existing default values. 
+
+    3. Some resources are not covered under the current Cleanup playbooks. This includes Route53 
+       entries, keypairs and AWS roles created by Orchestrator since there is no clear way to distinguish
+       them from other resources that share the same name. 
+
+    4. Due to a cyclical dependency in orchestrator security groups, some rules have to be manually removed
+       until the [issue] (https://github.com/magma/magma/issues/5150) is fixed upstream. 
 
 ### Expected Behavior - Install
 

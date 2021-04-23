@@ -34,7 +34,6 @@ const (
 
 	entityTable      = "cfg_entities"
 	entityAssocTable = "cfg_assocs"
-	entityAclTable   = "cfg_acls"
 )
 
 const (
@@ -61,26 +60,19 @@ const (
 
 	aFrCol = "from_pk"
 	aToCol = "to_pk"
-
-	aclIdCol       = "id"
-	aclEntCol      = "entity_pk"
-	aclScopeCol    = "scope"
-	aclPermCol     = "permission"
-	aclTypeCol     = "type"
-	aclIdFilterCol = "id_filter"
-	aclVerCol      = "version"
 )
 
 // NewSQLConfiguratorStorageFactory returns a ConfiguratorStorageFactory
 // implementation backed by a SQL database.
-func NewSQLConfiguratorStorageFactory(db *sql.DB, generator storage.IDGenerator, sqlBuilder sqorc.StatementBuilder) ConfiguratorStorageFactory {
-	return &sqlConfiguratorStorageFactory{db: db, idGenerator: generator, builder: sqlBuilder}
+func NewSQLConfiguratorStorageFactory(db *sql.DB, generator storage.IDGenerator, sqlBuilder sqorc.StatementBuilder, maxEntityLoadSize uint32) ConfiguratorStorageFactory {
+	return &sqlConfiguratorStorageFactory{db: db, idGenerator: generator, builder: sqlBuilder, maxEntityLoadSize: maxEntityLoadSize}
 }
 
 type sqlConfiguratorStorageFactory struct {
-	db          *sql.DB
-	idGenerator storage.IDGenerator
-	builder     sqorc.StatementBuilder
+	db                *sql.DB
+	idGenerator       storage.IDGenerator
+	builder           sqorc.StatementBuilder
+	maxEntityLoadSize uint32
 }
 
 func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error) {
@@ -192,23 +184,6 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		return
 	}
 
-	_, err = fact.builder.CreateTable(entityAclTable).
-		IfNotExists().
-		Column(aclIdCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
-		Column(aclEntCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(aclScopeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(aclPermCol).Type(sqorc.ColumnTypeInt).NotNull().EndColumn().
-		Column(aclTypeCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-		Column(aclIdFilterCol).Type(sqorc.ColumnTypeText).EndColumn().
-		Column(aclVerCol).Type(sqorc.ColumnTypeInt).NotNull().Default(0).EndColumn().
-		ForeignKey(entityTable, map[string]string{aclEntCol: entPkCol}, sqorc.ColumnOnDeleteCascade).
-		RunWith(tx).
-		Exec()
-	if err != nil {
-		err = errors.Wrap(err, "failed to create entity acl table")
-		return
-	}
-
 	// Create indexes (index is not implicitly created on a referencing FK)
 	_, err = fact.builder.CreateIndex("graph_id_idx").
 		IfNotExists().
@@ -218,17 +193,6 @@ func (fact *sqlConfiguratorStorageFactory) InitializeServiceStorage() (err error
 		Exec()
 	if err != nil {
 		err = errors.Wrap(err, "failed to create graph ID index")
-		return
-	}
-
-	_, err = fact.builder.CreateIndex("acl_ent_pk_idx").
-		IfNotExists().
-		On(entityAclTable).
-		Columns(aclEntCol).
-		RunWith(tx).
-		Exec()
-	if err != nil {
-		err = errors.Wrap(err, "failed to create acl ent PK index")
 		return
 	}
 
@@ -252,7 +216,7 @@ func (fact *sqlConfiguratorStorageFactory) StartTransaction(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	return &sqlConfiguratorStorage{tx: tx, idGenerator: fact.idGenerator, builder: fact.builder}, nil
+	return &sqlConfiguratorStorage{tx: tx, idGenerator: fact.idGenerator, builder: fact.builder, maxEntityLoadSize: fact.maxEntityLoadSize}, nil
 }
 
 func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
@@ -266,9 +230,10 @@ func getSqlOpts(opts *storage.TxOptions) *sql.TxOptions {
 }
 
 type sqlConfiguratorStorage struct {
-	tx          *sql.Tx
-	idGenerator storage.IDGenerator
-	builder     sqorc.StatementBuilder
+	tx                *sql.Tx
+	idGenerator       storage.IDGenerator
+	builder           sqorc.StatementBuilder
+	maxEntityLoadSize uint32
 }
 
 func (store *sqlConfiguratorStorage) Commit() error {
@@ -353,10 +318,10 @@ func (store *sqlConfiguratorStorage) LoadAllNetworks(loadCriteria NetworkLoadCri
 func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, error) {
 	exists, err := store.doesNetworkExist(network.ID)
 	if err != nil {
-		return network, err
+		return Network{}, err
 	}
 	if exists {
-		return network, fmt.Errorf("a network with ID %s already exists", network.ID)
+		return Network{}, fmt.Errorf("a network with ID %s already exists", network.ID)
 	}
 
 	_, err = store.builder.Insert(networksTable).
@@ -365,7 +330,7 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 		RunWith(store.tx).
 		Exec()
 	if err != nil {
-		return network, fmt.Errorf("error inserting network: %s", err)
+		return Network{}, fmt.Errorf("error inserting network: %s", err)
 	}
 
 	if funk.IsEmpty(network.Configs) {
@@ -382,7 +347,7 @@ func (store *sqlConfiguratorStorage) CreateNetwork(network Network) (Network, er
 	}
 	_, err = insertBuilder.RunWith(store.tx).Exec()
 	if err != nil {
-		return network, errors.Wrap(err, "error inserting network configs")
+		return Network{}, errors.Wrap(err, "error inserting network configs")
 	}
 
 	return network, nil
@@ -429,50 +394,77 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 	return nil
 }
 
-func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityLoadResult, error) {
-	ret := EntityLoadResult{Entities: []*NetworkEntity{}, EntitiesNotFound: []*EntityID{}}
-
-	// We load the requested entities in 3 steps:
-	// First, we load the entities and their ACLs
-	// Then, we load assocs if requested by the load criteria. Note that the
-	// load criteria can specify to load edges to and/or from the requested
-	// entities.
-	// For each loaded edge, we need to load the (type, key) corresponding to
-	// to the PK pair that an edge is represented as. These may be already
-	// loaded as part of the first load from the entities table, so we can
-	// be smart here and only load (type, key) for PKs which we don't know.
-	// Finally, we will update the entity objects to return with their edges.
-
-	entsByPk, err := store.loadFromEntitiesTable(networkID, filter, loadCriteria)
+func (store *sqlConfiguratorStorage) CountEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityCountResult, error) {
+	ret := EntityCountResult{Count: 0}
+	count, err := store.countEntities(networkID, filter, loadCriteria)
 	if err != nil {
 		return ret, err
 	}
-	assocs, allAssocPks, err := store.loadFromAssocsTable(filter, loadCriteria, entsByPk)
-	if err != nil {
-		return ret, err
-	}
-	entTksByPk, err := store.loadEntityTypeAndKeys(allAssocPks, entsByPk)
-	if err != nil {
-		return ret, err
-	}
-
-	entsByPk, _, err = updateEntitiesWithAssocs(entsByPk, assocs, entTksByPk, loadCriteria)
-	if err != nil {
-		return ret, err
-	}
-
-	for _, ent := range entsByPk {
-		ret.Entities = append(ret.Entities, ent)
-	}
-	ret.EntitiesNotFound = calculateEntitiesNotFound(entsByPk, filter.IDs)
-
-	// Sort entities for deterministic returns
-	entComparator := func(a, b *NetworkEntity) bool {
-		return a.GetTypeAndKey().String() < b.GetTypeAndKey().String()
-	}
-	sort.Slice(ret.Entities, func(i, j int) bool { return entComparator(ret.Entities[i], ret.Entities[j]) })
-
+	ret.Count = count
 	return ret, nil
+}
+
+func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (EntityLoadResult, error) {
+	if err := validatePaginatedLoadParameters(filter, criteria); err != nil {
+		return EntityLoadResult{}, err
+	}
+
+	entsByTK, err := store.loadEntities(networkID, filter, criteria)
+	if err != nil {
+		return EntityLoadResult{}, err
+	}
+
+	if criteria.LoadAssocsFromThis {
+		assocs, err := store.loadAssocs(networkID, filter, criteria, loadChildren)
+		if err != nil {
+			return EntityLoadResult{}, err
+		}
+		for _, assoc := range assocs {
+			// Assoc may be from a not-loaded ent
+			e, ok := entsByTK[assoc.fromTK]
+			if ok {
+				e.Associations = append(e.Associations, assoc.getToID())
+			}
+		}
+		for _, ent := range entsByTK {
+			SortIDs(ent.Associations) // for deterministic return
+		}
+	}
+
+	if criteria.LoadAssocsToThis {
+		parentAssocs, err := store.loadAssocs(networkID, filter, criteria, loadParents)
+		if err != nil {
+			return EntityLoadResult{}, err
+		}
+		for _, parentAssoc := range parentAssocs {
+			// Assoc may be to a not-loaded ent
+			e, ok := entsByTK[parentAssoc.toTK]
+			if ok {
+				e.ParentAssociations = append(e.ParentAssociations, parentAssoc.getFromID())
+			}
+		}
+		for _, ent := range entsByTK {
+			SortIDs(ent.ParentAssociations) // for deterministic return
+		}
+	}
+
+	res := EntityLoadResult{}
+
+	for _, ent := range entsByTK {
+		res.Entities = append(res.Entities, ent)
+	}
+	SortEntities(res.Entities) // for deterministic return
+	res.EntitiesNotFound = calculateIDsNotFound(entsByTK, filter.IDs)
+
+	// Set next page token when there may be more pages to return
+	if len(res.Entities) == store.getEntityLoadPageSize(criteria) {
+		res.NextPageToken, err = getNextPageToken(res.Entities)
+		if err != nil {
+			return EntityLoadResult{}, err
+		}
+	}
+
+	return res, nil
 }
 
 func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity NetworkEntity) (NetworkEntity, error) {
@@ -481,52 +473,55 @@ func (store *sqlConfiguratorStorage) CreateEntity(networkID string, entity Netwo
 		return NetworkEntity{}, err
 	}
 	if exists {
-		return NetworkEntity{}, fmt.Errorf("an entity (%s) already exists", entity.GetTypeAndKey())
+		return NetworkEntity{}, errors.Errorf("an entity '%s' already exists", entity.GetTypeAndKey())
 	}
 
-	// First, we insert the entity and its ACLs. We do this first so we have a
-	// pk for the entity to reference in edge creation.
-	// Then we insert the associations as graph edges. This step involves a
+	// Physical ID must be unique across all networks, since we use a gateway's
+	// physical ID to search for its network (and ent)
+	physicalIDExists, err := store.doesPhysicalIDExist(entity.GetPhysicalID())
+	if err != nil {
+		return NetworkEntity{}, err
+	}
+	if physicalIDExists {
+		return NetworkEntity{}, errors.Errorf("an entity with physical ID '%s' already exists", entity.GetPhysicalID())
+	}
+
+	// First insert the associations as graph edges. This step involves a
 	// lookup of the associated entities to retrieve their PKs (since we don't
-	// expose PK to the world).
+	// trust the provided PKs).
 	// Finally, if the created entity "bridges" 1 or more graphs, we merge
 	// those graphs into a single graph.
 	// For simplicity, we don't do any cycle detection at the moment. This
 	// shouldn't be a problem on the load side because we load graphs via
 	// graph ID, not by traversing edges.
 
-	createdEntWithPk, err := store.insertIntoEntityTable(networkID, entity)
+	createdEnt, err := store.insertIntoEntityTable(networkID, entity)
 	if err != nil {
 		return NetworkEntity{}, err
 	}
 
-	err = store.createPermissions(networkID, createdEntWithPk.pk, createdEntWithPk.Permissions)
+	allAssociatedEntsByTk, err := store.createEdges(networkID, createdEnt)
 	if err != nil {
 		return NetworkEntity{}, err
 	}
 
-	allAssociatedEntsByTk, err := store.createEdges(networkID, createdEntWithPk)
+	newGraphID, err := store.mergeGraphs(createdEnt, allAssociatedEntsByTk)
 	if err != nil {
 		return NetworkEntity{}, err
 	}
-
-	newGraphID, err := store.mergeGraphs(createdEntWithPk, allAssociatedEntsByTk)
-	if err != nil {
-		return NetworkEntity{}, err
-	}
-	createdEntWithPk.GraphID = newGraphID
+	createdEnt.GraphID = newGraphID
 
 	// If we were given duplicate edges, get rid of those
-	if !funk.IsEmpty(createdEntWithPk.Associations) {
-		createdEntWithPk.Associations = funk.Chain(createdEntWithPk.Associations).
+	if funk.NotEmpty(createdEnt.Associations) {
+		createdEnt.Associations = funk.Chain(createdEnt.Associations).
 			Map(func(id *EntityID) storage.TypeAndKey { return id.ToTypeAndKey() }).
 			Uniq().
 			Map(func(tk storage.TypeAndKey) *EntityID { return (&EntityID{}).FromTypeAndKey(tk) }).
 			Value().([]*EntityID)
 	}
 
-	createdEntWithPk.NetworkID = networkID
-	return createdEntWithPk.NetworkEntity, nil
+	createdEnt.NetworkID = networkID
+	return createdEnt, nil
 }
 
 func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update EntityUpdateCriteria) (NetworkEntity, error) {
@@ -564,78 +559,57 @@ func (store *sqlConfiguratorStorage) UpdateEntity(networkID string, update Entit
 
 	// Then, update the fields on the entity table
 	entToUpdate.NetworkID = networkID
-	err = store.processEntityFieldsUpdate(entToUpdate.pk, update, &entToUpdate.NetworkEntity)
+	err = store.processEntityFieldsUpdate(entToUpdate.Pk, update, entToUpdate)
 	if err != nil {
-		return entToUpdate.NetworkEntity, errors.WithStack(err)
-	}
-
-	// Next, update permissions
-	err = store.processPermissionUpdates(networkID, entToUpdate.pk, update, &entToUpdate.NetworkEntity)
-	if err != nil {
-		return entToUpdate.NetworkEntity, errors.WithStack(err)
+		return *entToUpdate, errors.WithStack(err)
 	}
 
 	// Finally, process edge updates for the graph
 	err = store.processEdgeUpdates(networkID, update, entToUpdate)
 	if err != nil {
-		return entToUpdate.NetworkEntity, errors.WithStack(err)
+		return *entToUpdate, errors.WithStack(err)
 	}
 
-	return entToUpdate.NetworkEntity, nil
+	return *entToUpdate, nil
 }
 
 func (store *sqlConfiguratorStorage) LoadGraphForEntity(networkID string, entityID EntityID, loadCriteria EntityLoadCriteria) (EntityGraph, error) {
-	// Technically you could do this in one DB query with a subquery in the
-	// WHERE when selecting from the entity table.
-	// But until we hit some kind of scaling limit, let's keep the code simple
-	// and delegate to LoadGraph after loading the requested entity.
-
 	// We just care about getting the graph ID off this entity so use an empty
 	// load criteria
-	loadResult, err := store.loadFromEntitiesTable(networkID, EntityLoadFilter{IDs: []*EntityID{&entityID}}, EntityLoadCriteria{})
+	singleEnt, err := store.loadEntities(networkID, EntityLoadFilter{IDs: []*EntityID{&entityID}}, EntityLoadCriteria{})
 	if err != nil {
 		return EntityGraph{}, errors.Wrap(err, "failed to load entity for graph query")
 	}
 
-	var loadedEnt *NetworkEntity
-	for _, ent := range loadResult {
-		loadedEnt = ent
+	var ent *NetworkEntity
+	for _, e := range singleEnt {
+		ent = e
 	}
-	if loadedEnt == nil {
+	if ent == nil {
 		return EntityGraph{}, errors.Errorf("could not find requested entity (%s) for graph query", entityID.String())
 	}
 
-	internalGraph, err := store.loadGraphInternal(networkID, loadedEnt.GraphID, loadCriteria)
+	internalGraph, err := store.loadGraphInternal(networkID, ent.GraphID, loadCriteria)
 	if err != nil {
 		return EntityGraph{}, errors.WithStack(err)
 	}
 
-	rootPks := findRootNodes(internalGraph)
-	if funk.IsEmpty(rootPks) {
-		return EntityGraph{}, errors.Errorf("graph does not have root nodes because it is a ring")
+	rootPKs := findRootNodes(internalGraph)
+	if funk.IsEmpty(rootPKs) {
+		return EntityGraph{}, errors.Errorf("graph does not have root nodes")
 	}
 
-	// Fill entities with assocs. We will always fill out both directions of
-	// associations so we'll alter the load criteria for the helper function.
-	entTksByPk := funk.Map(
-		internalGraph.entsByPk,
-		func(pk string, ent *NetworkEntity) (string, storage.TypeAndKey) { return pk, ent.GetTypeAndKey() },
-	).(map[string]storage.TypeAndKey)
-	loadCriteria.LoadAssocsToThis, loadCriteria.LoadAssocsFromThis = true, true
-	_, edges, err := updateEntitiesWithAssocs(internalGraph.entsByPk, internalGraph.edges, entTksByPk, loadCriteria)
+	edges, err := updateEntitiesWithAssocs(internalGraph.entsByTK, internalGraph.edges)
 	if err != nil {
 		return EntityGraph{}, errors.Wrap(err, "failed to construct graph after loading")
 	}
 
 	// To make testing easier, we'll order the returned entities by TK
-	retEnts := funk.Map(internalGraph.entsByPk, func(_ string, ent *NetworkEntity) *NetworkEntity { return ent }).([]*NetworkEntity)
-	retRoots := funk.Map(rootPks, func(pk string) *EntityID { return &EntityID{Type: entTksByPk[pk].Type, Key: entTksByPk[pk].Key} }).([]*EntityID)
-	sort.Slice(retEnts, func(i, j int) bool {
-		return storage.IsTKLessThan(retEnts[i].GetTypeAndKey(), retEnts[j].GetTypeAndKey())
-	})
-	sort.Slice(retRoots, func(i, j int) bool {
-		return storage.IsTKLessThan(retRoots[i].ToTypeAndKey(), retRoots[j].ToTypeAndKey())
-	})
+	entsByPK := internalGraph.entsByTK.ByPK()
+	retEnts := internalGraph.entsByTK.Ents()
+	retRoots := funk.Map(rootPKs, func(pk string) *EntityID { return &EntityID{Type: entsByPK[pk].Type, Key: entsByPK[pk].Key} }).([]*EntityID)
+	SortEntities(retEnts)
+	SortIDs(retRoots)
 
 	return EntityGraph{
 		Entities:     retEnts,

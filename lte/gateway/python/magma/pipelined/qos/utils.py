@@ -13,11 +13,13 @@ limitations under the License.
 
 import logging
 from collections import deque
+
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisHashDict
-from magma.common.redis.serializers import get_json_serializer, \
-    get_json_deserializer
-import threading
+from magma.common.redis.serializers import (
+    get_json_deserializer,
+    get_json_serializer,
+)
 
 LOG = logging.getLogger('pipelined.qos.id_manager')
 
@@ -31,41 +33,37 @@ class IdManager(object):
         self._max_idx = max_idx
         self._counter = start_idx
         self._free_idx_list = deque()
-        self._lock = threading.RLock()  # re-entrant locks
         self._restore_done = False
 
     def allocate_idx(self,) -> int:
-        with self._lock:
-            idx = self._get_free_idx()
-            if idx is None:
-                idx = self._counter
-                if idx == self._max_idx:
-                    raise ValueError("maximum id allocation exceeded")
-                self._counter += 1
-            LOG.debug("allocating idx %d ", idx)
-            return idx
+        idx = self._get_free_idx()
+        if idx is None:
+            idx = self._counter
+            if idx == self._max_idx:
+                raise ValueError("maximum id allocation exceeded")
+            self._counter += 1
+        LOG.debug("allocating idx %d ", idx)
+        return idx
 
     def release_idx(self, idx):
-        with self._lock:
-            LOG.debug("releasing idx %d ", idx)
-            if idx < self._start_idx or idx > (self._max_idx - 1):
-                LOG.error("attempting to release invalid idx %d", idx)
-                return
+        LOG.debug("releasing idx %d ", idx)
+        if idx < self._start_idx or idx > (self._max_idx - 1):
+            LOG.error("attempting to release invalid idx %d", idx)
+            return
 
-            self._free_idx_list.append(idx)
+        self._free_idx_list.append(idx)
 
     def restore_state(self, id_set):
-        with self._lock:
-            if self._restore_done:
-                return
-            if not id_set:
-                return
+        if self._restore_done:
+            return
+        if not id_set:
+            return
 
-            self._counter = min(self._max_idx, max(id_set) + 1)
-            for idx in range(self._start_idx, self._counter):
-                if idx not in id_set:
-                    self._free_idx_list.append(idx)
-            self._restore_done = True
+        self._counter = min(self._max_idx, max(id_set) + 1)
+        for idx in range(self._start_idx, self._counter):
+            if idx not in id_set:
+                self._free_idx_list.append(idx)
+        self._restore_done = True
 
     def _get_free_idx(self) -> int:
         if self._free_idx_list:

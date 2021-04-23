@@ -43,6 +43,12 @@ variable "orc8r_route53_zone_id" {
   type        = string
 }
 
+variable "external_dns_deployment_name" {
+  description = "Name of the external dns helm deployment"
+  type        = string
+  default     = "external-dns"
+}
+
 variable "external_dns_role_arn" {
   description = "IAM role ARN for ExternalDNS."
   type        = string
@@ -96,6 +102,11 @@ variable "orc8r_db_name" {
   type        = string
 }
 
+variable "orc8r_db_dialect" {
+  description = "DB dialect for Orchestrator database connection."
+  type        = string
+}
+
 variable "orc8r_db_host" {
   description = "DB hostname for Orchestrator database connection."
   type        = string
@@ -109,21 +120,6 @@ variable "orc8r_db_port" {
 
 variable "orc8r_db_user" {
   description = "DB username for Orchestrator database connection."
-  type        = string
-}
-
-variable "nms_db_name" {
-  description = "DB name for NMS database connection."
-  type        = string
-}
-
-variable "nms_db_host" {
-  description = "DB hostname for NMS database connection."
-  type        = string
-}
-
-variable "nms_db_user" {
-  description = "DB username for NMS database connection."
   type        = string
 }
 
@@ -171,7 +167,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.15"
+  default     = "1.5.21"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -189,13 +185,13 @@ variable "fbinternal_orc8r_chart_version" {
 variable "feg_orc8r_chart_version" {
   description = "Version of the orchestrator feg module Helm chart to install."
   type        = string
-  default     = "0.2.2"
+  default     = "0.2.3"
 }
 
 variable "lte_orc8r_chart_version" {
   description = "Version of the orchestrator lte module Helm chart to install."
   type        = string
-  default     = "0.2.2"
+  default     = "0.2.4"
 }
 
 variable "wifi_orc8r_chart_version" {
@@ -222,6 +218,18 @@ variable "efs_file_system_id" {
 variable "efs_provisioner_role_arn" {
   description = "ARN of the IAM role for the EFS provisioner."
   type        = string
+}
+
+variable "efs_provisioner_name" {
+  description = "Name of the efs provisioner helm deployment"
+  type        = string
+  default     = "efs-provisioner"
+}
+
+variable "efs_storage_class_name" {
+  description = "Name of the Storage class"
+  type        = string
+  default     = "efs"
 }
 
 ##############################################################################
@@ -258,6 +266,18 @@ variable "elasticsearch_curator_log_level" {
   default     = "INFO"
 }
 
+variable "elasticsearch_curator_name" {
+  description = "Name of the elasticsearch-curator helm deployment"
+  type        = string
+  default     = "elasticsearch-curator"
+}
+
+variable "fluentd_deployment_name" {
+  description = "Name of the fluentd helm deployment"
+  type        = string
+  default     = "fluentd"
+}
+
 ##############################################################################
 # Secret configuration and values
 ##############################################################################
@@ -269,11 +289,6 @@ variable "secretsmanager_orc8r_name" {
 
 variable "orc8r_db_pass" {
   description = "Orchestrator DB password."
-  type        = string
-}
-
-variable "nms_db_pass" {
-  description = "NMS DB password."
   type        = string
 }
 

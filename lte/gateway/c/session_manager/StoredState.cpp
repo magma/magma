@@ -38,8 +38,7 @@ bool SessionConfig::operator==(const SessionConfig& config) const {
   return current_rat_specific == new_rat_specific;
 }
 
-std::experimental::optional<AggregatedMaximumBitrate>
-SessionConfig::get_apn_ambr() const {
+optional<AggregatedMaximumBitrate> SessionConfig::get_apn_ambr() const {
   if (rat_specific_context.has_lte_context() &&
       rat_specific_context.lte_context().has_qos_info()) {
     AggregatedMaximumBitrate max_bitrate;
@@ -64,6 +63,7 @@ SessionStateUpdateCriteria get_default_update_criteria() {
       decltype(&ccEqual)>(4, &ccHash, &ccEqual);
   uc.is_session_level_key_updated = false;
   uc.is_bearer_mapping_updated    = false;
+  uc.policy_version_and_stats     = {};
   return uc;
 }
 
@@ -358,6 +358,45 @@ std::string serialize_pending_event_triggers(
   return serialized;
 }
 
+PolicyStatsMap deserialize_policy_stats_map(std::string& serialized) {
+  auto folly_serialized    = folly::StringPiece(serialized);
+  folly::dynamic marshaled = folly::parseJson(folly_serialized);
+
+  auto stored = PolicyStatsMap{};
+  auto map    = marshaled["policy_stats_map"];
+  for (auto& key : marshaled["policy_stats_keys"]) {
+    StatsPerPolicy stats;
+    stats.current_version =
+        static_cast<uint32_t>(map[key]["current_version"].getInt());
+    stats.last_reported_version =
+        static_cast<uint32_t>(map[key]["last_reported_version"].getInt());
+    stored[key.getString()] = stats;
+  }
+  return stored;
+}
+
+std::string serialize_policy_stats_map(PolicyStatsMap stats_map) {
+  folly::dynamic marshaled = folly::dynamic::object;
+
+  folly::dynamic keys = folly::dynamic::array;
+  folly::dynamic map  = folly::dynamic::object;
+  for (auto& stats_pair : stats_map) {
+    auto key = stats_pair.first;
+    keys.push_back(key);
+    folly::dynamic stats = folly::dynamic::object;
+    stats["current_version"] =
+        static_cast<int>(stats_pair.second.current_version);
+    stats["last_reported_version"] =
+        static_cast<int>(stats_pair.second.last_reported_version);
+    map[key] = stats;
+  }
+  marshaled["policy_stats_keys"] = keys;
+  marshaled["policy_stats_map"]  = map;
+
+  std::string serialized = folly::toJson(marshaled);
+  return serialized;
+}
+
 BearerIDByPolicyID deserialize_bearer_id_by_policy(std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
@@ -416,6 +455,9 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   marshaled["bearer_id_by_policy"] =
       serialize_bearer_id_by_policy(stored.bearer_id_by_policy);
 
+  marshaled["policy_version_and_stats"] =
+      serialize_policy_stats_map(stored.policy_version_and_stats);
+
   folly::dynamic static_rule_ids = folly::dynamic::array;
   for (const auto& rule_id : stored.static_rule_ids) {
     static_rule_ids.push_back(rule_id);
@@ -473,6 +515,9 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
 
   stored.bearer_id_by_policy = deserialize_bearer_id_by_policy(
       marshaled["bearer_id_by_policy"].getString());
+
+  stored.policy_version_and_stats = deserialize_policy_stats_map(
+      marshaled["policy_version_and_stats"].getString());
 
   CreateSessionResponse csr;
   csr.ParseFromString(marshaled["create_session_response"].getString());

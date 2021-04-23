@@ -16,6 +16,7 @@ package serdes
 import (
 	"magma/lte/cloud/go/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	subscriberdb_models "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/serde"
@@ -34,7 +35,8 @@ var (
 	Entity = serdes.Entity.
 		MustMerge(lte_models.EntitySerdes).
 		MustMerge(subscriberdb_models.EntitySerdes).
-		MustMerge(policydb_models.EntitySerdes)
+		MustMerge(policydb_models.EntitySerdes).
+		MustMerge(nprobe_models.EntitySerdes)
 	// State contains the full set of state serdes used in the LTE module
 	State = serdes.State.MustMerge(serde.NewRegistry(
 		state.NewStateSerde(lte.EnodebStateType, &lte_models.EnodebState{}),

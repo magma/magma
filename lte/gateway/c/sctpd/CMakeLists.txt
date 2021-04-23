@@ -1,8 +1,13 @@
 cmake_minimum_required(VERSION 3.7)
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 14)
 
 project(MagmaSctpd)
+
+message("Adding code coverage build and linker flags for BUILD_TESTS")
+set (CMAKE_CXX_FLAGS_DEBUG
+  "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
+set(CMAKE_LINKER_FLAGS_DEBUG
+  "${CMAKE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 
 # generate sctpd protos
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)

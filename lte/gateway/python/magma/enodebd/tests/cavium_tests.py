@@ -11,15 +11,15 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from magma.enodebd.data_models.data_model_parameters import ParameterName
 # pylint: disable=protected-access
 from magma.enodebd.devices.device_utils import EnodebDeviceName
-from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.tr069 import models
-from magma.enodebd.tests.test_utils.tr069_msg_builder import \
-    Tr069MessageBuilder
-from magma.enodebd.tests.test_utils.enb_acs_builder import \
-    EnodebAcsStateMachineBuilder
+from magma.enodebd.tests.test_utils.enb_acs_builder import (
+    EnodebAcsStateMachineBuilder,
+)
 from magma.enodebd.tests.test_utils.enodeb_handler import EnodebHandlerTestCase
+from magma.enodebd.tests.test_utils.tr069_msg_builder import Tr069MessageBuilder
+from magma.enodebd.tr069 import models
 
 
 class CaviumHandlerTests(EnodebHandlerTestCase):

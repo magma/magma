@@ -15,144 +15,237 @@ package storage
 
 import (
 	"database/sql"
+	"encoding/base64"
 	"fmt"
 	"sort"
-	"strings"
 
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/util"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
-func (store *sqlConfiguratorStorage) loadFromEntitiesTable(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (map[string]*NetworkEntity, error) {
-	// Pointer values because we're modifying entities in-place with ACLs (LEFT JOIN)
-	entsByPk := map[string]*NetworkEntity{}
+type loadType int
 
-	selectBuilder := store.getLoadEntitiesSelectBuilder(networkID, filter, criteria)
-	rows, err := selectBuilder.RunWith(store.tx).Query()
+const (
+	countEntities loadType = iota
+	loadEntities
+	loadChildren
+	loadParents
+)
+
+func (store *sqlConfiguratorStorage) countEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (uint64, error) {
+	selectBuilder, err := store.getBuilder(networkID, filter, criteria, countEntities)
+	if err != nil {
+		return 0, err
+	}
+	var count uint64
+	if err = selectBuilder.RunWith(store.tx).Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (EntitiesByTK, error) {
+	entsByTK := EntitiesByTK{}
+
+	builder, err := store.getBuilder(networkID, filter, criteria, loadEntities)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := builder.RunWith(store.tx).Query()
 	if err != nil {
 		return nil, errors.Wrap(err, "error querying for entities")
 	}
-	defer sqorc.CloseRowsLogOnError(rows, "loadFromEntitiesTable")
+	defer sqorc.CloseRowsLogOnError(rows, "loadEntities")
 
 	for rows.Next() {
-		err = scanNextEntityRow(rows, criteria, entsByPk)
+		ent, err := scanEntityRow(rows, criteria)
 		if err != nil {
 			return nil, err
 		}
+		entsByTK[ent.GetTypeAndKey()] = &ent
 	}
 	err = rows.Err()
 	if err != nil {
 		return nil, errors.Wrap(err, "sql rows err")
 	}
-	return entsByPk, nil
+
+	return entsByTK, nil
 }
 
-func (store *sqlConfiguratorStorage) getLoadEntitiesSelectBuilder(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) sq.SelectBuilder {
-	// SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, graph.graph_id, ent.name, ent.description, ent.config,
-	// [[ acl.id, acl.scope, acl.permission, acl.type, acl.id_filter, acl.version ]]
-	// FROM cfg_entities AS ent
-	// [[ LEFT JOIN cfg_acls AS acl ON acl.entity_pk = ent.pk ]]
-	// [[ WHERE (ent.network_id = $1 AND ent.key = $2 AND ent.type = $3) OR (ent.network_id ...) ... ]]
-	selectBuilder := store.builder.Select(getLoadEntitiesColumns(criteria)...).
-		From(fmt.Sprintf("%s AS ent", entityTable))
-	if criteria.LoadPermissions {
-		selectBuilder = selectBuilder.LeftJoin(fmt.Sprintf("%s AS acl ON acl.%s = ent.%s", entityAclTable, aclEntCol, entPkCol))
+func (store *sqlConfiguratorStorage) loadAssocs(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria, loadTyp loadType) (loadedAssocs, error) {
+	if loadTyp != loadChildren && loadTyp != loadParents {
+		return nil, errors.Errorf("wrong load type received: '%v'", loadTyp)
 	}
 
-	// The WHERE has ORs if specific IDs are provided
-	if !funk.IsEmpty(filter.IDs) {
-		orClause := make(sq.Or, 0, len(filter.IDs))
-		funk.ForEach(filter.IDs, func(id *EntityID) {
-			orClause = append(orClause, sq.And{
-				sq.Eq{fmt.Sprintf("ent.%s", entNidCol): networkID},
-				sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): id.Key},
-				sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): id.Type},
-			})
-		})
-		selectBuilder = selectBuilder.Where(orClause)
-	} else {
-		if filter.PhysicalID != nil {
-			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entPidCol): filter.PhysicalID.Value})
-		} else if filter.GraphID != nil {
-			selectBuilder = selectBuilder.Where(sq.Eq{fmt.Sprintf("ent.%s", entGidCol): filter.GraphID.Value})
-		} else {
-			andClause := sq.And{sq.Eq{fmt.Sprintf("ent.%s", entNidCol): networkID}}
-			if filter.KeyFilter != nil {
-				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entKeyCol): filter.KeyFilter.Value})
-			}
-			if filter.TypeFilter != nil {
-				andClause = append(andClause, sq.Eq{fmt.Sprintf("ent.%s", entTypeCol): filter.TypeFilter.Value})
-			}
-			selectBuilder = selectBuilder.Where(andClause)
+	assocs := loadedAssocs{}
+
+	builder, err := store.getBuilder(networkID, filter, criteria, loadTyp)
+	if err != nil {
+		return nil, err
+	}
+
+	rows, err := builder.RunWith(store.tx).Query()
+	if err != nil {
+		return nil, errors.Wrap(err, "error querying for entities")
+	}
+	defer sqorc.CloseRowsLogOnError(rows, "loadAssocs")
+
+	for rows.Next() {
+		a, err := scanAssocRow(rows, loadTyp)
+		if err != nil {
+			return nil, err
+		}
+		assocs = append(assocs, a)
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
+	}
+
+	return assocs, nil
+}
+
+func (store *sqlConfiguratorStorage) getBuilder(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria, loadTyp loadType) (sq.SelectBuilder, error) {
+	// Something like:
+	//
+	// SELECT ent.pk, ent.key, ent.type, ent.physical_id, ent.version, ent.graph_id, ent.name, ent.description, ent.config
+	// FROM cfg_entities AS ent
+	// [[ JOIN (on cfg_assocs and cfg_entities to get child/parent assocs) ]]
+	// [[ WHERE ent.network_id = $network_filter AND ent.key = $key_filter AND ent.type = $type_filter AND ent.key > $page_token ]]
+	// ORDER BY ent.key
+	// LIMIT $page_size ;
+
+	pageSize := store.getEntityLoadPageSize(criteria)
+	pageToken, err := deserializePageToken(criteria.PageToken)
+	if err != nil {
+		return sq.SelectBuilder{}, err
+	}
+
+	// Helpers
+	entCol := func(c string) string {
+		return fmt.Sprintf("ent.%s", c)
+	}
+	addSuffix := func(b sq.SelectBuilder) sq.SelectBuilder {
+		switch loadTyp {
+		case countEntities:
+			return b
+		case loadEntities:
+			return b.OrderBy(entCol(entKeyCol)).Limit(uint64(pageSize))
+		case loadChildren, loadParents:
+			return b.OrderBy(entCol(entKeyCol))
+		default:
+			glog.Errorf("Unsupported configurator SQL load type '%v'", loadTyp)
+			return b
 		}
 	}
+	isInNetwork := sq.Eq{entCol(entNidCol): networkID}
 
-	return selectBuilder
+	var cols []string
+	switch loadTyp {
+	case countEntities:
+		cols = []string{"COUNT(1)"}
+	case loadEntities:
+		cols = getLoadEntitiesCols(criteria)
+	case loadChildren, loadParents:
+		cols = getLoadAssocCols()
+	default:
+		return sq.SelectBuilder{}, fmt.Errorf("unsupported load type '%v'", loadTyp)
+	}
+
+	builder := store.builder.Select(cols...).From(fmt.Sprintf("%s AS ent", entityTable))
+
+	// If we're loading assocs: query should be identical, except need to join on the assocs
+	if loadTyp == loadChildren {
+		builder = builder.
+			Join(fmt.Sprintf("%s ON ent.%s=%s", entityAssocTable, entPkCol, aFrCol)).
+			Join(fmt.Sprintf("%s AS assoc ON %s=assoc.%s", entityTable, aToCol, entPkCol))
+	} else if loadTyp == loadParents {
+		builder = builder.
+			Join(fmt.Sprintf("%s ON ent.%s=%s", entityAssocTable, entPkCol, aToCol)).
+			Join(fmt.Sprintf("%s AS assoc ON %s=assoc.%s", entityTable, aFrCol, entPkCol))
+	}
+
+	// Select only specific TKs
+	if funk.NotEmpty(filter.IDs) {
+		orClause := make(sq.Or, 0, len(filter.IDs))
+		for _, id := range filter.IDs {
+			c := sq.And{
+				isInNetwork,
+				sq.Eq{entCol(entKeyCol): id.Key},
+				sq.Eq{entCol(entTypeCol): id.Type},
+			}
+			orClause = append(orClause, c)
+		}
+		b := builder.Where(orClause)
+		return addSuffix(b), nil
+	}
+
+	// Select all with physical ID (generally expected to be unique)
+	//
+	// Physical ID is the only search not scoped to a network, since we
+	// need to be able to look up a caller's network and ent based just on
+	// its provided physical ID.
+	if filter.PhysicalID != nil {
+		b := builder.Where(sq.Eq{entCol(entPidCol): filter.PhysicalID.Value})
+		return addSuffix(b), nil
+	}
+
+	// Select all with graph ID
+	if filter.GraphID != nil {
+		b := builder.Where(sq.And{
+			isInNetwork,
+			sq.Eq{entCol(entGidCol): filter.GraphID.Value},
+		})
+		return addSuffix(b), nil
+	}
+
+	// Default select all
+
+	where := sq.And{isInNetwork}
+	// Type, key filters
+	if filter.KeyFilter != nil {
+		where = append(where, sq.Eq{entCol(entKeyCol): filter.KeyFilter.Value})
+	}
+	if filter.TypeFilter != nil {
+		where = append(where, sq.Eq{entCol(entTypeCol): filter.TypeFilter.Value})
+	}
+	// Specific page
+	if criteria.PageToken != "" {
+		where = append(where, sq.Gt{entCol(entKeyCol): pageToken.LastIncludedEntity})
+	}
+
+	b := builder.Where(where)
+	return addSuffix(b), nil
 }
 
-func getLoadEntitiesColumns(criteria EntityLoadCriteria) []string {
-	fields := []string{
-		fmt.Sprintf("ent.%s", entNidCol),
-		fmt.Sprintf("ent.%s", entPkCol),
-		fmt.Sprintf("ent.%s", entKeyCol),
-		fmt.Sprintf("ent.%s", entTypeCol),
-		fmt.Sprintf("ent.%s", entPidCol),
-		fmt.Sprintf("ent.%s", entVerCol),
-		fmt.Sprintf("ent.%s", entGidCol),
-	}
-	if criteria.LoadMetadata {
-		fields = append(fields, fmt.Sprintf("ent.%s", entNameCol), fmt.Sprintf("ent.%s", entDescCol))
-	}
-	if criteria.LoadConfig {
-		fields = append(fields, fmt.Sprintf("ent.%s", entConfCol))
-	}
-	if criteria.LoadPermissions {
-		fields = append(
-			fields,
-			fmt.Sprintf("acl.%s", aclIdCol),
-			fmt.Sprintf("acl.%s", aclScopeCol),
-			fmt.Sprintf("acl.%s", aclPermCol),
-			fmt.Sprintf("acl.%s", aclTypeCol),
-			fmt.Sprintf("acl.%s", aclIdFilterCol),
-			fmt.Sprintf("acl.%s", aclVerCol),
-		)
-	}
-	return fields
-}
-
-// existingEntsByPkOut is an output parameter
-func scanNextEntityRow(rows *sql.Rows, criteria EntityLoadCriteria, existingEntsByPkOut map[string]*NetworkEntity) error {
-	var nid, pk, key, entType, graphID string
+func scanEntityRow(rows *sql.Rows, criteria EntityLoadCriteria) (NetworkEntity, error) {
+	var nid, key, entType, graphID, pk string
 	var physicalID sql.NullString
 	var name, description sql.NullString
 
 	var config []byte
-	var entVersion uint64
-
-	// Nullstrings here in case the entity doesn't have perms
-	var aclid, aclscope, acltype sql.NullString
-	var aclIdFilter sql.NullString
-	var aclPermission, aclVersion sql.NullInt64
+	var version uint64
 
 	// This corresponds with the order of the columns queried in the SELECT
-	scanArgs := []interface{}{&nid, &pk, &key, &entType, &physicalID, &entVersion, &graphID}
+	scanArgs := []interface{}{&nid, &pk, &key, &entType, &physicalID, &version, &graphID}
 	if criteria.LoadMetadata {
 		scanArgs = append(scanArgs, &name, &description)
 	}
 	if criteria.LoadConfig {
 		scanArgs = append(scanArgs, &config)
 	}
-	if criteria.LoadPermissions {
-		scanArgs = append(scanArgs, &aclid, &aclscope, &aclPermission, &acltype, &aclIdFilter, &aclVersion)
-	}
 
 	err := rows.Scan(scanArgs...)
 	if err != nil {
-		return fmt.Errorf("error while scanning entity row: %s", err)
+		return NetworkEntity{}, errors.Wrap(err, "error while scanning entity row")
 	}
 
 	ent := NetworkEntity{
@@ -162,231 +255,185 @@ func scanNextEntityRow(rows *sql.Rows, criteria EntityLoadCriteria, existingEnts
 
 		Name:        nullStringToValue(name),
 		Description: nullStringToValue(description),
+		PhysicalID:  nullStringToValue(physicalID),
+		GraphID:     graphID,
+		Pk:          pk,
 
-		PhysicalID: nullStringToValue(physicalID),
-
-		Config: config,
-
-		GraphID: graphID,
-
-		Version: entVersion,
+		Config:  config,
+		Version: version,
 	}
-	if criteria.LoadPermissions && aclid.Valid {
-		ent.Permissions = []*ACL{
-			{
-				ID:         aclid.String,
-				Scope:      deserializeACLScope(aclscope.String),
-				Permission: ACL_Permission(aclPermission.Int64),
-				Type:       deserializeACLType(acltype.String),
-				IDFilter:   deserializeACLIDFilter(aclIdFilter),
-				Version:    uint64(aclVersion.Int64),
-			},
+
+	return ent, nil
+}
+
+func scanAssocRow(rows *sql.Rows, loadTyp loadType) (loadedAssoc, error) {
+	a := loadedAssoc{}
+
+	// This corresponds with the order of the columns queried in the SELECT
+	// Always loaded as (ent, assoc), so
+	// 	- For children => (from, to)
+	// 	- For parents => (to, from)
+	scanArgs := []interface{}{&a.fromTK.Key, &a.fromTK.Type, &a.toTK.Key, &a.toTK.Type, &a.fromPK, &a.toPK}
+	if loadTyp == loadParents {
+		scanArgs = []interface{}{&a.toTK.Key, &a.toTK.Type, &a.fromTK.Key, &a.fromTK.Type, &a.toPK, &a.fromPK}
+	}
+
+	err := rows.Scan(scanArgs...)
+	if err != nil {
+		return loadedAssoc{}, errors.Wrap(err, "error while scanning entity row")
+	}
+
+	return a, nil
+}
+
+func getLoadEntitiesCols(criteria EntityLoadCriteria) []string {
+	cols := []string{
+		fmt.Sprintf("ent.%s", entNidCol),
+		fmt.Sprintf("ent.%s", entPkCol),
+		fmt.Sprintf("ent.%s", entKeyCol),
+		fmt.Sprintf("ent.%s", entTypeCol),
+		fmt.Sprintf("ent.%s", entPidCol),
+		fmt.Sprintf("ent.%s", entVerCol),
+		fmt.Sprintf("ent.%s", entGidCol),
+	}
+	if criteria.LoadMetadata {
+		cols = append(cols, fmt.Sprintf("ent.%s", entNameCol), fmt.Sprintf("ent.%s", entDescCol))
+	}
+	if criteria.LoadConfig {
+		cols = append(cols, fmt.Sprintf("ent.%s", entConfCol))
+	}
+	return cols
+}
+
+func getLoadAssocCols() []string {
+	cols := []string{
+		fmt.Sprintf("ent.%s", entKeyCol),
+		fmt.Sprintf("ent.%s", entTypeCol),
+		fmt.Sprintf("assoc.%s", entKeyCol),
+		fmt.Sprintf("assoc.%s", entTypeCol),
+		fmt.Sprintf("ent.%s", entPkCol),
+		fmt.Sprintf("assoc.%s", entPkCol),
+	}
+	return cols
+}
+
+// getEntityLoadPageSize returns the maximum number of loadEntities to return based
+// on the EntityLoadCriteria specified. A page size of 0 will default to the
+// maximum load size.
+func (store *sqlConfiguratorStorage) getEntityLoadPageSize(loadCriteria EntityLoadCriteria) int {
+	if loadCriteria.PageSize == 0 {
+		return int(store.maxEntityLoadSize)
+	}
+	return util.MinInt(int(loadCriteria.PageSize), int(store.maxEntityLoadSize))
+}
+
+// updateEntitiesWithAssocs updates entsByTK in-place with the passed assocs.
+func updateEntitiesWithAssocs(entsByTK EntitiesByTK, assocs loadedAssocs) ([]*GraphEdge, error) {
+	edges := make([]*GraphEdge, 0, len(assocs))
+	for _, assoc := range assocs {
+		edges = append(edges, assoc.asGraphEdge())
+
+		// Assoc may reference not-loaded ents
+		fromEnt, ok := entsByTK[assoc.fromTK]
+		if ok {
+			fromEnt.Associations = append(fromEnt.Associations, (&EntityID{}).FromTypeAndKey(assoc.toTK))
+		}
+		toEnt, ok := entsByTK[assoc.toTK]
+		if ok {
+			toEnt.ParentAssociations = append(toEnt.ParentAssociations, (&EntityID{}).FromTypeAndKey(assoc.fromTK))
 		}
 	}
 
-	existingEnt, entExists := existingEntsByPkOut[pk]
-	if entExists {
-		if existingEnt.Permissions == nil {
-			existingEnt.Permissions = []*ACL{}
-		}
-		existingEnt.Permissions = append(existingEnt.Permissions, ent.Permissions...)
-	} else {
-		existingEntsByPkOut[pk] = &ent
+	sort.Slice(edges, func(i, j int) bool { return edges[i].ToString() < edges[j].ToString() })
+	for _, ent := range entsByTK {
+		SortIDs(ent.Associations)
+		SortIDs(ent.ParentAssociations)
+	}
+
+	return edges, nil
+}
+
+func calculateIDsNotFound(entsByTK EntitiesByTK, requestedIDs []*EntityID) []*EntityID {
+	if funk.IsEmpty(requestedIDs) {
+		return nil
+	}
+
+	var foundTKs storage.TKs
+	for tk := range entsByTK {
+		foundTKs = append(foundTKs, tk)
+	}
+	var requestedTKs storage.TKs
+	for _, id := range requestedIDs {
+		requestedTKs = append(requestedTKs, id.ToTypeAndKey())
+	}
+
+	missingTKs, _ := requestedTKs.Difference(foundTKs)
+
+	var missingIDs []*EntityID
+	for _, tk := range missingTKs {
+		missingIDs = append(missingIDs, (&EntityID{}).FromTypeAndKey(tk))
+	}
+
+	SortIDs(missingIDs) // for deterministic return
+
+	return missingIDs
+}
+
+func getNextPageToken(entities []*NetworkEntity) (string, error) {
+	lastEntity := entities[len(entities)-1]
+	nextPageToken := &EntityPageToken{LastIncludedEntity: lastEntity.Key}
+	return serializePageToken(nextPageToken)
+}
+
+func serializePageToken(token *EntityPageToken) (string, error) {
+	marshalledToken, err := proto.Marshal(token)
+	if err != nil {
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(marshalledToken), nil
+}
+
+func deserializePageToken(encodedToken string) (*EntityPageToken, error) {
+	marshalledToken, err := base64.StdEncoding.DecodeString(encodedToken)
+	if err != nil {
+		return nil, err
+	}
+	token := &EntityPageToken{}
+	err = proto.Unmarshal(marshalledToken, token)
+	if err != nil {
+		return nil, err
+	}
+	return token, err
+}
+
+func validatePaginatedLoadParameters(filter EntityLoadFilter, criteria EntityLoadCriteria) error {
+	err := fmt.Errorf("paginated loads cannot be used on multi-type queries")
+	if criteria.PageSize != 0 && filter.TypeFilter == nil {
+		return err
+	}
+	if criteria.PageToken != "" && filter.TypeFilter == nil {
+		return err
 	}
 	return nil
 }
 
-func deserializeACLScope(aclScope string) isACL_Scope {
-	if aclScope == ACL_WILDCARD_ALL.String() {
-		return &ACL_ScopeWildcard{ScopeWildcard: ACL_WILDCARD_ALL}
-	} else {
-		return &ACL_ScopeNetworkIDs{ScopeNetworkIDs: &ACL_NetworkIDs{IDs: strings.Split(aclScope, ",")}}
-	}
-}
-
-func deserializeACLType(aclType string) isACL_Type {
-	if aclType == ACL_WILDCARD_ALL.String() {
-		return &ACL_TypeWildcard{TypeWildcard: ACL_WILDCARD_ALL}
-	} else {
-		return &ACL_EntityType{EntityType: aclType}
-	}
-}
-
-func deserializeACLIDFilter(aclIdFilter sql.NullString) []string {
-	if aclIdFilter.Valid {
-		return strings.Split(aclIdFilter.String, ",")
-	} else {
-		return nil
-	}
-}
-
 type loadedAssoc struct {
-	fromPk, toPk string
+	fromTK storage.TypeAndKey
+	toTK   storage.TypeAndKey
+	fromPK string
+	toPK   string
 }
 
-func (store *sqlConfiguratorStorage) loadFromAssocsTable(filter EntityLoadFilter, criteria EntityLoadCriteria, entsByPk map[string]*NetworkEntity) ([]loadedAssoc, []string, error) {
-	ret := []loadedAssoc{}
-	allPks := map[string]struct{}{}
-	if !criteria.LoadAssocsFromThis && !criteria.LoadAssocsToThis {
-		return ret, []string{}, nil
-	}
-
-	entPks := funk.Keys(entsByPk).([]string)
-	sort.Strings(entPks)
-
-	// SELECT assoc.from_pk, assoc.to_pk FROM cfg_assocs AS assoc
-	// WHERE assoc.from_pk IN ($1, $2, $3, ...)
-	// OR assoc.to_pk IN ($4, $5, $6, ...)
-	orClause := sq.Or{}
-	if criteria.LoadAssocsFromThis {
-		orClause = append(orClause, sq.Eq{fmt.Sprintf("assoc.%s", aFrCol): entPks})
-	}
-	if criteria.LoadAssocsToThis {
-		orClause = append(orClause, sq.Eq{fmt.Sprintf("assoc.%s", aToCol): entPks})
-	}
-	// if we loaded all entities, save some network traffic and just load the
-	// entire assocs table
-	if filter.IsLoadAllEntities() {
-		orClause = sq.Or{sq.Eq{"1": 1}}
-	}
-
-	assocRows, err := store.builder.Select(fmt.Sprintf("assoc.%s", aFrCol), fmt.Sprintf("assoc.%s", aToCol)).
-		From("cfg_assocs AS assoc").
-		Where(orClause).
-		RunWith(store.tx).
-		Query()
-	if err != nil {
-		return ret, []string{}, errors.Wrap(err, "error querying for associations")
-	}
-	defer sqorc.CloseRowsLogOnError(assocRows, "LoadEntities")
-
-	for assocRows.Next() {
-		var fromPk, toPk string
-		err := assocRows.Scan(&fromPk, &toPk)
-		if err != nil {
-			return ret, []string{}, errors.Wrap(err, "error scanning association row")
-		}
-
-		ret = append(ret, loadedAssoc{fromPk: fromPk, toPk: toPk})
-		allPks[fromPk] = struct{}{}
-		allPks[toPk] = struct{}{}
-	}
-	err = assocRows.Err()
-	if err != nil {
-		return ret, []string{}, errors.Wrap(err, "sql rows err")
-	}
-
-	allPksList := funk.Keys(allPks).([]string)
-	sort.Strings(allPksList)
-
-	return ret, allPksList, nil
+func (l loadedAssoc) getFromID() *EntityID {
+	return (&EntityID{}).FromTypeAndKey(l.fromTK)
 }
 
-func (store *sqlConfiguratorStorage) loadEntityTypeAndKeys(pks []string, loadedEntitiesByPk map[string]*NetworkEntity) (map[string]storage.TypeAndKey, error) {
-	ret := map[string]storage.TypeAndKey{}
-	pksToLoad := []interface{}{}
-	for _, pk := range pks {
-		if ent, exists := loadedEntitiesByPk[pk]; exists {
-			ret[pk] = storage.TypeAndKey{Type: ent.Type, Key: ent.Key}
-		} else {
-			pksToLoad = append(pksToLoad, pk)
-		}
-	}
-	// Early exit if we don't need to load anything from DB
-	if len(pksToLoad) == 0 {
-		return ret, nil
-	}
-	rows, err := store.builder.Select(entPkCol, entTypeCol, entKeyCol).
-		From(entityTable).
-		Where(sq.Eq{entPkCol: pksToLoad}).
-		RunWith(store.tx).
-		Query()
-	defer sqorc.CloseRowsLogOnError(rows, "LoadEntities")
-	if err != nil {
-		return ret, errors.Wrap(err, "failed to query for entity IDs")
-	}
-
-	for rows.Next() {
-		var pk, t, k string
-		err := rows.Scan(&pk, &t, &k)
-		if err != nil {
-			return ret, errors.Wrap(err, "failed to scan entity ID")
-		}
-		ret[pk] = storage.TypeAndKey{Type: t, Key: k}
-	}
-	err = rows.Err()
-	if err != nil {
-		return nil, errors.Wrap(err, "sql rows err")
-	}
-
-	return ret, nil
+func (l loadedAssoc) getToID() *EntityID {
+	return (&EntityID{}).FromTypeAndKey(l.toTK)
 }
 
-// entsByPkOut is an output parameter but will also be returned
-func updateEntitiesWithAssocs(entsByPkOut map[string]*NetworkEntity, assocs []loadedAssoc, entTksByPk map[string]storage.TypeAndKey, loadCriteria EntityLoadCriteria) (map[string]*NetworkEntity, []*GraphEdge, error) {
-	retEdges := make([]*GraphEdge, 0, len(assocs))
-	for _, assoc := range assocs {
-		fromTk, fromTkExists := entTksByPk[assoc.fromPk]
-		fromID := &EntityID{}
-		fromID.FromTypeAndKey(fromTk)
-
-		toTk, toTkExists := entTksByPk[assoc.toPk]
-		toID := &EntityID{}
-		toID.FromTypeAndKey(toTk)
-
-		if !fromTkExists && !toTkExists {
-			return entsByPkOut, retEdges, errors.Errorf("one end of assoc from %s to %s does not exist", assoc.fromPk, assoc.toPk)
-		}
-		retEdges = append(retEdges, &GraphEdge{From: fromID, To: toID})
-
-		// We could load assocs to/from entities that weren't selected for loading
-		if loadCriteria.LoadAssocsFromThis {
-			fromEnt, exists := entsByPkOut[assoc.fromPk]
-			if exists {
-				fromEnt.Associations = append(fromEnt.Associations, toID)
-			}
-		}
-		if loadCriteria.LoadAssocsToThis {
-			toEnt, exists := entsByPkOut[assoc.toPk]
-			if exists {
-				toEnt.ParentAssociations = append(toEnt.ParentAssociations, fromID)
-			}
-		}
-	}
-
-	sort.Slice(retEdges, func(i, j int) bool { return retEdges[i].ToString() < retEdges[j].ToString() })
-	for _, ent := range entsByPkOut {
-		if loadCriteria.LoadAssocsFromThis {
-			sort.Slice(ent.Associations, func(i, j int) bool {
-				return storage.IsTKLessThan(ent.Associations[i].ToTypeAndKey(), ent.Associations[j].ToTypeAndKey())
-			})
-		}
-		if loadCriteria.LoadAssocsToThis {
-			sort.Slice(ent.ParentAssociations, func(i, j int) bool {
-				return storage.IsTKLessThan(ent.ParentAssociations[i].ToTypeAndKey(), ent.ParentAssociations[j].ToTypeAndKey())
-			})
-		}
-	}
-	return entsByPkOut, retEdges, nil
+func (l loadedAssoc) asGraphEdge() *GraphEdge {
+	return &GraphEdge{From: (&EntityID{}).FromTypeAndKey(l.fromTK), To: (&EntityID{}).FromTypeAndKey(l.toTK)}
 }
 
-func calculateEntitiesNotFound(entsByPk map[string]*NetworkEntity, requestedIDs []*EntityID) []*EntityID {
-	if funk.IsEmpty(requestedIDs) {
-		return []*EntityID{}
-	}
-
-	foundIDsMapper := func(pk string, entity *NetworkEntity) (storage.TypeAndKey, struct{}) {
-		return storage.TypeAndKey{Type: entity.Type, Key: entity.Key}, struct{}{}
-	}
-	foundIDsSet := funk.Map(entsByPk, foundIDsMapper).(map[storage.TypeAndKey]struct{})
-
-	ret := []*EntityID{}
-	for _, requestedID := range requestedIDs {
-		requestedTk := storage.TypeAndKey{Type: requestedID.Type, Key: requestedID.Key}
-		_, loaded := foundIDsSet[requestedTk]
-		if !loaded {
-			ret = append(ret, requestedID)
-		}
-	}
-	return ret
-}
+type loadedAssocs []loadedAssoc

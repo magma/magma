@@ -14,18 +14,23 @@ limitations under the License.
 import abc
 import copy
 
+from integ_tests.s1aptests.ovs import LOCALHOST
+from integ_tests.s1aptests.ovs.rest_api import (
+    add_flowentry,
+    delete_flowentry,
+    get_datapath,
+)
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.imsi import encode_imsi
-from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import DIRECTION_REG, Direction, \
-    IMSI_REG
-from integ_tests.s1aptests.ovs import LOCALHOST
-from integ_tests.s1aptests.ovs.rest_api import get_datapath,\
-    delete_flowentry, add_flowentry
-
-from ryu.lib.packet import ether_types
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    IMSI_REG,
+    Direction,
+)
+from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
 from ryu.lib import hub
+from ryu.lib.packet import ether_types
 
 
 class TableIsolator(abc.ABC):

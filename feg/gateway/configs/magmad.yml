@@ -11,6 +11,9 @@
 # limitations under the License.
 
 log_level: INFO
+
+print_grpc_payload: false
+
 # List of services for magmad to control
 magma_services:
   - control_proxy

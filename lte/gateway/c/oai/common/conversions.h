@@ -42,6 +42,7 @@
 #include <netinet/in.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <math.h>
 
 #include "common_types.h"
 #include "3gpp_23.003.h"
@@ -116,10 +117,25 @@
     (buf)[1] = (x);                                                            \
   } while (0)
 
+/* Convert an integer on 24 bits to the given bUFFER */
+#define INT24_TO_BUFFER(x, buf)                                                \
+  do {                                                                         \
+    (buf)[0] = (x) >> 16;                                                      \
+    (buf)[1] = (x) >> 8;                                                       \
+    (buf)[2] = (x);                                                            \
+  } while (0)
+
 /* Convert an array of char containing vALUE to x */
 #define BUFFER_TO_INT16(buf, x)                                                \
   do {                                                                         \
     x = ((buf)[0] << 8) | ((buf)[1]);                                          \
+  } while (0)
+
+#define BUFFER_TO_INT24(buf, x)                                                \
+  do {                                                                         \
+    x = (int32_t)(                                                             \
+        ((uint32_t)((buf)[0]) << 16) | ((uint32_t)((buf)[1]) << 8) |           \
+        ((uint32_t)((buf)[2])));                                               \
   } while (0)
 
 /* Convert an integer on 32 bits to the given bUFFER */
@@ -134,7 +150,9 @@
 /* Convert an array of char containing vALUE to x */
 #define BUFFER_TO_INT32(buf, x)                                                \
   do {                                                                         \
-    x = ((buf)[0] << 24) | ((buf)[1] << 16) | ((buf)[2] << 8) | ((buf)[3]);    \
+    x = (int32_t)(                                                             \
+        ((uint32_t)((buf)[0]) << 24) | ((uint32_t)((buf)[1]) << 16) |          \
+        ((uint32_t)((buf)[2]) << 8) | ((uint32_t)((buf)[3])));                 \
   } while (0)
 
 /* Convert an integer on 32 bits to an octet string from aSN1c tool */
@@ -155,6 +173,19 @@
   do {                                                                         \
     INT16_TO_OCTET_STRING(x << 6, aSN);                                        \
     (aSN)->bits_unused = 6;                                                    \
+  } while (0)
+
+#define AMF_POINTER_TO_BIT_STRING(x, aSN)                                      \
+  do {                                                                         \
+    INT8_TO_OCTET_STRING(x << 2, aSN);                                         \
+    (aSN)->bits_unused = 2;                                                    \
+  } while (0)
+
+#define INT24_TO_OCTET_STRING(x, aSN)                                          \
+  do {                                                                         \
+    (aSN)->buf  = calloc(3, sizeof(uint8_t));                                  \
+    (aSN)->size = 3;                                                           \
+    INT24_TO_BUFFER(x, (aSN)->buf);                                            \
   } while (0)
 
 #define INT16_TO_OCTET_STRING(x, aSN)                                          \
@@ -185,6 +216,12 @@
   do {                                                                         \
     DevCheck((aSN)->size == 2, (aSN)->size, 0, 0);                             \
     BUFFER_TO_INT16((aSN)->buf, x);                                            \
+  } while (0)
+
+#define OCTET_STRING_TO_INT24(aSN, x)                                          \
+  do {                                                                         \
+    DevCheck((aSN)->size == 3, (aSN)->size, 0, 0);                             \
+    BUFFER_TO_INT24((aSN)->buf, x);                                            \
   } while (0)
 
 #define OCTET_STRING_TO_INT32(aSN, x)                                          \
@@ -386,16 +423,25 @@
   (aDDRESS)[0], (aDDRESS)[1], (aDDRESS)[2], (aDDRESS)[3]
 
 #define TAC_TO_ASN1 INT16_TO_OCTET_STRING
+#define TAC_TO_ASN1_5G INT24_TO_OCTET_STRING
 #define GTP_TEID_TO_ASN1 INT32_TO_OCTET_STRING
 #define OCTET_STRING_TO_TAC OCTET_STRING_TO_INT16
+#define OCTET_STRING_TO_TAC_5G OCTET_STRING_TO_INT24
 #define OCTET_STRING_TO_MME_CODE OCTET_STRING_TO_INT8
 #define OCTET_STRING_TO_M_TMSI OCTET_STRING_TO_INT32
 #define OCTET_STRING_TO_MME_GID OCTET_STRING_TO_INT16
 #define OCTET_STRING_TO_CSG_ID OCTET_STRING_TO_INT27
 
+#define OCTET_STRING_TO_AMF_CODE OCTET_STRING_TO_INT8
+#define OCTET_STRING_TO_AMF_GID OCTET_STRING_TO_INT16
+
 /* Convert the IMSI contained by a char string NULL terminated to uint64_t */
 #define IMSI_STRING_TO_IMSI64(sTRING, iMSI64_pTr)                              \
   sscanf(sTRING, IMSI_64_FMT, iMSI64_pTr)
+
+/* Convert the IMEI contained by a char string NULL terminated to uint64_t */
+#define IMEI_STRING_TO_IMEI64(sTRING, iMEI64_pTr)                              \
+  sscanf(sTRING, IMEI_64_FMT, iMEI64_pTr)
 
 #define IMSI64_TO_CSFBIMSI(iMsI64_t, cSfBiMsI_t)                               \
   {                                                                            \
@@ -514,6 +560,36 @@ imsi64_t imsi_to_imsi64(const imsi_t* const imsi);
           iMeI_sTr + l_offset, MaXlEn - l_offset, "%u",                        \
           (iMeI_t_PtR)->u.num.cdsd);                                           \
     }                                                                          \
+  }
+
+#define IMEI_MOBID_TO_IMEI64(iMeI_t_PtR, iMEI64)                               \
+  {                                                                            \
+    (*iMEI64) = (uint64_t)((iMeI_t_PtR)->u.num.tac1);                          \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac2));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac3));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac4));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac5));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac6));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac7));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac8));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr1));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr2));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr3));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr4));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr5));     \
+    (*iMEI64) = (10 * (*iMEI64)) + ((uint64_t)((iMeI_t_PtR)->u.num.snr6));     \
+  }
+
+#define IMEI_MOBID_TO_IMEI_TAC64(iMeI_t_PtR, tAc_PtR)                          \
+  {                                                                            \
+    (*tAc_PtR) = (uint64_t)((iMeI_t_PtR)->u.num.tac1);                         \
+    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac2));   \
+    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac3));   \
+    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac4));   \
+    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac5));   \
+    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac6));   \
+    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac7));   \
+    (*tAc_PtR) = (10 * (*tAc_PtR)) + ((uint64_t)((iMeI_t_PtR)->u.num.tac8));   \
   }
 
 #define IMSI_TO_OCTET_STRING(iMsI_sTr, iMsI_len, aSN)                          \

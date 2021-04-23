@@ -11,17 +11,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from lte.protos.sms_orc8r_pb2_grpc import (
+    SmsDStub,
+    SMSOrc8rGatewayServiceStub,
+    SMSOrc8rServiceStub,
+)
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
-from lte.protos.mconfig import mconfigs_pb2
-from lte.protos.sms_orc8r_pb2_grpc import SMSOrc8rServiceStub, SMSOrc8rGatewayServiceStub, SmsDStub
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
+
 from .relay import SmsRelay
 
 
 def main():
     """ main() for smsd """
     service = MagmaService('smsd', None)
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     directoryd_chan = ServiceRegistry.get_rpc_channel('directoryd',
                                                       ServiceRegistry.LOCAL)
@@ -41,7 +49,6 @@ def main():
     service.run()
     # Cleanup the service
     service.close()
-
 
 if __name__ == "__main__":
     main()

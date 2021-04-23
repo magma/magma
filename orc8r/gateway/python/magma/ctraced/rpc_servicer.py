@@ -11,11 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from orc8r.protos.ctraced_pb2_grpc import CallTraceServiceServicer,\
-    add_CallTraceServiceServicer_to_server
-from orc8r.protos.ctraced_pb2 import StartTraceRequest, StartTraceResponse,\
-    EndTraceRequest, EndTraceResponse
-from .trace_manager import TraceManager
+from magma.ctraced.trace_manager import TraceManager
+from orc8r.protos.ctraced_pb2 import (
+    EndTraceRequest,
+    EndTraceResponse,
+    StartTraceRequest,
+    StartTraceResponse,
+)
+from orc8r.protos.ctraced_pb2_grpc import (
+    CallTraceServiceServicer,
+    add_CallTraceServiceServicer_to_server,
+)
 
 
 class CtraceDRpcServicer(CallTraceServiceServicer):
@@ -39,6 +45,8 @@ class CtraceDRpcServicer(CallTraceServiceServicer):
         _context,
     ) -> StartTraceResponse:
         success = self._trace_mgr.start_trace(
+            request.trace_id,
+            request.timeout,
             request.capture_filters,
             request.display_filters,
         )
@@ -50,7 +58,7 @@ class CtraceDRpcServicer(CallTraceServiceServicer):
         _request: EndTraceRequest,
         _context,
     ) -> EndTraceResponse:
-        res = self._trace_mgr.end_trace() # type: EndTraceResult
+        res = self._trace_mgr.end_trace()  # type: EndTraceResult
         response = EndTraceResponse(
             success=True,
             trace_content=res.data,

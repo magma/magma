@@ -1,0 +1,3 @@
+magma_namespace: magma
+charts_dir: /etc/orc8r/charts
+kibana_image_tag: 7.10.2

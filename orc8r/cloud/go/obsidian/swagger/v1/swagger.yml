@@ -2497,6 +2497,24 @@ paths:
       summary: Retrieve gateway pool from LTE network
       tags:
       - LTE Networks
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_pool_id'
+      - description: LTE HA gateway pool
+        in: body
+        name: HA Gateway Pool
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_cellular_gateway_pool'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update gateway pool in LTE network
+      tags:
+      - LTE Networks
   /lte/{network_id}/gateways:
     get:
       parameters:
@@ -3185,6 +3203,156 @@ paths:
       summary: Update the name of an LTE network
       tags:
       - LTE Networks
+  /lte/{network_id}/network_probe/destinations:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      responses:
+        "200":
+          description: Provisioned NetworkProbe Destinations
+          schema:
+            $ref: '#/definitions/network_probe_destination'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List NetworkProbe Destinations in the network
+      tags:
+      - Network Probes
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - in: body
+        name: network_probe_destination
+        required: true
+        schema:
+          $ref: '#/definitions/network_probe_destination'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Add a new NetworkProbeDestination to the network
+      tags:
+      - Network Probes
+  /lte/{network_id}/network_probe/destinations/{destination_id}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/destination_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Remove a NetworkProbe Destination from the network
+      tags:
+      - Network Probes
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/destination_id'
+      responses:
+        "200":
+          description: NetworkProbeDestination Info
+          schema:
+            $ref: '#/definitions/network_probe_destination'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve a NetworkProbe Destination
+      tags:
+      - Network Probes
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/destination_id'
+      - description: New NetworkProbeDestination configuration
+        in: body
+        name: network_probe_destination
+        required: true
+        schema:
+          $ref: '#/definitions/network_probe_destination'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update an existing NetworkProbe Destination in the network
+      tags:
+      - Network Probes
+  /lte/{network_id}/network_probe/tasks:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      responses:
+        "200":
+          description: Provisioned NetworkProbeTasks
+          schema:
+            $ref: '#/definitions/network_probe_task'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List NetworkProbeTask in the network
+      tags:
+      - Network Probes
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - in: body
+        name: network_probe_task
+        required: true
+        schema:
+          $ref: '#/definitions/network_probe_task'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Add a new NetworkProbeTask to the network
+      tags:
+      - Network Probes
+  /lte/{network_id}/network_probe/tasks/{task_id}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/task_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Remove an NetworkProbeTask from the network
+      tags:
+      - Network Probes
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/task_id'
+      responses:
+        "200":
+          description: NetworkProbeTask Info
+          schema:
+            $ref: '#/definitions/network_probe_task'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve the NetworkProbeTask info
+      tags:
+      - Network Probes
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/task_id'
+      - description: New NetworkProbeTask configuration
+        in: body
+        name: network_probe_task
+        required: true
+        schema:
+          $ref: '#/definitions/network_probe_task'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update an existing NetworkProbeTask in the network
+      tags:
+      - Network Probes
   /lte/{network_id}/policy_qos_profiles:
     get:
       parameters:
@@ -3630,6 +3798,32 @@ paths:
         default:
           $ref: '#/responses/UnexpectedError'
       summary: Change a subscriber's data profile
+      tags:
+      - Subscribers
+  /lte/{network_id}/subscribers_v2:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: Filter to subscribers with the passed MSISDN
+        in: query
+        name: msisdn
+        required: false
+        type: string
+      - description: Filter to subscribers assigned the passed IP address
+        in: query
+        name: ip
+        required: false
+        type: string
+      - $ref: '#/parameters/page_size'
+      - $ref: '#/parameters/page_token'
+      responses:
+        "200":
+          description: List of subscribers in the network
+          schema:
+            $ref: '#/definitions/paginated_subscribers'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: List subscribers in the network with pagination support
       tags:
       - Subscribers
   /networks:
@@ -6499,6 +6693,12 @@ parameters:
     name: channel_id
     required: true
     type: string
+  destination_id:
+    description: Network Probe Destination ID
+    in: path
+    name: destination_id
+    required: true
+    type: string
   dns_domain:
     description: DNS record domain
     in: path
@@ -6569,6 +6769,19 @@ parameters:
     name: node_id
     required: true
     type: string
+  page_size:
+    description: Maximum number of entities to return
+    format: uint32
+    in: query
+    name: page_size
+    required: false
+    type: integer
+  page_token:
+    description: Opaque page token for paginated requests
+    in: query
+    name: page_token
+    required: false
+    type: string
   policy_qos_profile_id:
     description: Policy QoS profile
     in: path
@@ -6598,6 +6811,12 @@ parameters:
     description: Subscriber ID
     in: path
     name: subscriber_id
+    required: true
+    type: string
+  task_id:
+    description: Network Probe Task ID
+    in: path
+    name: task_id
     required: true
     type: string
   tenant_id:
@@ -7953,10 +8172,26 @@ definitions:
     - timestamp
     - value
     type: object
+  federated_mode_map:
+    description: Mapping for PLMN, imsi ranges, vs its gateway mode
+    properties:
+      enabled:
+        default: false
+        description: If Enabled is false, mapping will not be applied
+        example: false
+        type: boolean
+        x-nullable: false
+      mapping:
+        items:
+          $ref: '#/definitions/mode_map_item'
+        type: array
+    type: object
   federated_network_configs:
     description: Configs for networks that are federated
     minLength: 1
     properties:
+      federated_modes_mapping:
+        $ref: '#/definitions/federated_mode_map'
       feg_network_id:
         example: example_feg_network
         type: string
@@ -8068,7 +8303,8 @@ definitions:
     - dns
     type: object
   feg_network_id:
-    example: example_feg_network
+    description: Name of the federated network serving this LTE network. Blank for non federated
+    example: feg_id_only_for_federated_network
     type: string
   flow_description:
     properties:
@@ -8329,7 +8565,6 @@ definitions:
         $ref: '#/definitions/swx'
     required:
     - s6a
-    - s8
     - hss
     - gx
     - gy
@@ -8860,6 +9095,22 @@ definitions:
     required:
     - latency_ms
     type: object
+  imei:
+    description: IMEI (type allocation code and serial number)
+    properties:
+      snr:
+        example: "176148"
+        pattern: ^(\d{6})$
+        type: string
+        x-nullable: false
+      tac:
+        example: "01300600"
+        pattern: ^(\d{8})$
+        type: string
+        x-nullable: false
+    required:
+    - tac
+    type: object
   ip_address:
     description: IP address
     properties:
@@ -9200,6 +9451,32 @@ definitions:
     items:
       $ref: '#/definitions/metric_datapoint'
     type: array
+  mode_map_item:
+    description: Item containing {mode, [plmnA, plmB], [imsi1, imsi2], [apnY, apnZ]}
+    properties:
+      apn:
+        example: internet.com
+        type: string
+        x-nullable: false
+      imsi_range:
+        example: 000000000000000:000019999999999
+        type: string
+        x-nullable: false
+      mode:
+        enum:
+        - local_subscriber
+        - s8_subscriber
+        example: local_subscriber
+        type: string
+        x-nullable: false
+      plmn:
+        example: "123456"
+        maxLength: 6
+        minLength: 5
+        pattern: ^(\d{5,6})$
+        type: string
+        x-nullable: false
+    type: object
   msisdn:
     description: Mobile station international subscriber directory number
     example: "13109976224"
@@ -9658,6 +9935,23 @@ definitions:
           type: string
         type: array
         x-omitempty: true
+      restricted_imeis:
+        description: List of IMEIs restricted in the network
+        items:
+          $ref: '#/definitions/imei'
+        type: array
+        x-omitempty: true
+      restricted_plmns:
+        description: List of PLMN IDs restricted in the network
+        items:
+          $ref: '#/definitions/plmn_config'
+        type: array
+        x-omitempty: true
+      service_area_maps:
+        additionalProperties:
+          $ref: '#/definitions/tac_list'
+        description: Mapping service areas to tacs in the network
+        type: object
       sub_profiles:
         additionalProperties:
           properties:
@@ -9794,6 +10088,93 @@ definitions:
   network_name:
     example: Sample Network
     minLength: 1
+    type: string
+    x-nullable: false
+  network_probe_destination:
+    description: Network Probe Destination
+    properties:
+      destination_details:
+        $ref: '#/definitions/network_probe_destination_details'
+      destination_id:
+        $ref: '#/definitions/network_probe_destination_id'
+    required:
+    - destination_id
+    - destination_details
+    type: object
+  network_probe_destination_details:
+    properties:
+      delivery_address:
+        example: 127.0.0.1:4040
+        type: string
+        x-nullable: false
+      delivery_type:
+        enum:
+        - all
+        - events_only
+        example: events_only
+        type: string
+        x-nullable: false
+    required:
+    - delivery_type
+    - delivery_address
+    type: object
+  network_probe_destination_id:
+    example: xxxx-yyyy-zzzz
+    type: string
+    x-nullable: false
+  network_probe_task:
+    description: Network Probe Task
+    properties:
+      task_details:
+        $ref: '#/definitions/network_probe_task_details'
+      task_id:
+        $ref: '#/definitions/network_probe_task_id'
+    required:
+    - task_id
+    - task_details
+    type: object
+  network_probe_task_details:
+    properties:
+      correlation_id:
+        example: 605394647632969700
+        format: uint64
+        type: integer
+      delivery_type:
+        enum:
+        - all
+        - events_only
+        example: events_only
+        type: string
+        x-nullable: false
+      duration:
+        default: 0
+        description: the duration in seconds after which the task will expire.
+        example: 300
+        minimum: 0
+        type: integer
+      target_id:
+        type: string
+        x-nullable: false
+      target_type:
+        enum:
+        - imsi
+        - imei
+        - msisdn
+        example: imsi
+        type: string
+        x-nullable: false
+      timestamp:
+        description: The timestamp in ISO 8601 format
+        example: "2020-03-11T00:36:59.65Z"
+        format: date-time
+        type: string
+    required:
+    - target_id
+    - target_type
+    - delivery_type
+    type: object
+  network_probe_task_id:
+    example: imsi1023001
     type: string
     x-nullable: false
   network_ran_configs:
@@ -9949,6 +10330,9 @@ definitions:
         example: theuamsecret
         type: string
     type: object
+  next_page_token:
+    description: Base 64 encoded page token for subsequent paginated API requests
+    type: string
   nh_routes:
     additionalProperties:
       type: string
@@ -9982,6 +10366,27 @@ definitions:
       version:
         example: 0.0.0
         type: string
+    type: object
+  paginated_subscribers:
+    description: Page of subscribers
+    properties:
+      next_page_token:
+        $ref: '#/definitions/next_page_token'
+      subscribers:
+        additionalProperties:
+          $ref: '#/definitions/subscriber'
+          x-nullable: true
+        type: object
+      total_count:
+        description: estimated total number of subscriber entries
+        example: 10
+        format: int64
+        type: integer
+        x-nullable: false
+    required:
+    - next_page_token
+    - subscribers
+    - total_count
     type: object
   ping_request:
     properties:
@@ -10062,6 +10467,23 @@ definitions:
         example: 10.0.0.1
         type: string
         x-go-custom-tag: magma_alt_name:"VpnIp"
+    type: object
+  plmn_config:
+    description: PLMN Configuration
+    properties:
+      mcc:
+        example: "001"
+        pattern: ^(\d{3})$
+        type: string
+        x-nullable: false
+      mnc:
+        example: "01"
+        pattern: ^(\d{2,3})$
+        type: string
+        x-nullable: false
+    required:
+    - mcc
+    - mnc
     type: object
   policy_id:
     example: All ICMP
@@ -11007,6 +11429,21 @@ definitions:
         format: uint64
         type: integer
     type: object
+  tac:
+    example: 1
+    format: uint32
+    maximum: 65535
+    minimum: 1
+    type: integer
+    x-nullable: false
+  tac_list:
+    description: List of tac ids
+    example:
+    - 1
+    items:
+      $ref: '#/definitions/tac'
+    type: array
+    x-omitempty: true
   tail_logs_request:
     properties:
       service:

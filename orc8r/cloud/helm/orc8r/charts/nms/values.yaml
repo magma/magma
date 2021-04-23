@@ -25,15 +25,16 @@ rbac: false
 magmalte:
   create: true
   env:
-    api_host: orc8r-nginx-proxy.magma.svc.cluster.local:9443
+    api_host: orc8r-nginx-proxy.magma.svc.cluster.local
     host: 0.0.0.0
     port: 8081
     mapbox_access_token: ""
     mysql_host: mariadb.magma.svc.cluster.local
+    mysql_port: 5432
     mysql_db: magma
     mysql_user: magma
     mysql_pass: password
-    mysql_dialect: mysql
+    mysql_dialect: postgres
     grafana_address: orc8r-user-grafana:3000
 
   labels: {}

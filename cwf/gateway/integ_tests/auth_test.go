@@ -169,8 +169,8 @@ func TestAuthenticateUplinkTraffic(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(imsi)
 
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi: imsi,
-		Volume: &wrappers.StringValue{Value: "1M"},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "1M"},
 		Bitrate: &wrappers.StringValue{Value: "60M"},
 		Timeout: 30,
 	}
@@ -220,8 +220,8 @@ func TestAuthenticateMultipleAPsUplinkTraffic(t *testing.T) {
 	tr.AuthenticateWithCalledIDAndAssertSuccess(imsi, CalledStationIDs[0])
 
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi: imsi,
-		Volume: &wrappers.StringValue{Value: "1M"},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "1M"},
 		Bitrate: &wrappers.StringValue{Value: "60M"},
 		Timeout: 30,
 	}

@@ -12,33 +12,60 @@ limitations under the License.
 """
 
 import unittest
+import warnings
 from concurrent.futures import Future
 from unittest.mock import MagicMock
 
-import warnings
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
-    RedirectInformation
-from lte.protos.pipelined_pb2 import ActivateFlowsRequest, SetupFlowsRequest
-from magma.subscriberdb.sid import SIDUtils
+from lte.protos.pipelined_pb2 import (
+    ActivateFlowsRequest,
+    SetupFlowsRequest,
+    VersionedPolicy,
+)
+from lte.protos.policydb_pb2 import (
+    FlowDescription,
+    FlowMatch,
+    PolicyRule,
+    RedirectInformation,
+)
+from magma.pipelined.app.base import global_epoch
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.app.base import global_epoch
-from magma.pipelined.policy_converters import flow_match_to_magma_match, \
-    convert_ipv4_str_to_ip_proto
-from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
-    TCPPacketBuilder
+from magma.pipelined.policy_converters import (
+    convert_ipv4_str_to_ip_proto,
+    convert_ipv6_bytes_to_ip_proto,
+    flow_match_to_magma_match,
+)
+from magma.pipelined.rule_mappers import RuleIDToNumMapper
+from magma.pipelined.tests.app.packet_builder import (
+    IPPacketBuilder,
+    TCPPacketBuilder,
+)
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
-from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext, default_ambr_config
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import fake_controller_setup, \
-    create_service_manager, start_ryu_app_thread, stop_ryu_app_thread, \
-    wait_after_send, SnapshotVerifier, get_enforcement_stats, \
-    wait_for_enforcement_stats
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.app.subscriber import (
+    RyuDirectSubscriberContext,
+    default_ambr_config,
+)
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    SnapshotVerifier,
+    create_service_manager,
+    fake_controller_setup,
+    get_enforcement_stats,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+    wait_for_enforcement_stats,
+)
+from magma.subscriberdb.sid import SIDUtils
 from scapy.all import IP
 
 
@@ -68,7 +95,6 @@ class RestartResilienceTest(unittest.TestCase):
         """
         super(RestartResilienceTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls._static_rule_dict = {}
         cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
         cls._enforcement_tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
@@ -111,6 +137,7 @@ class RestartResilienceTest(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
                 'clean_restart': False,
+                'setup_type': 'LTE',
             },
             mconfig=PipelineD(),
             loop=loop_mock,
@@ -128,10 +155,7 @@ class RestartResilienceTest(unittest.TestCase):
         cls.startup_flows_contoller = startup_flows_ref.result()
         cls.testing_controller = testing_controller_reference.result()
 
-        cls.enforcement_stats_controller._policy_dict = cls._static_rule_dict
         cls.enforcement_stats_controller._report_usage = MagicMock()
-
-        cls.enforcement_controller._policy_dict = cls._static_rule_dict
         cls.enforcement_controller._redirect_manager._save_redirect_entry =\
             MagicMock()
 
@@ -139,6 +163,73 @@ class RestartResilienceTest(unittest.TestCase):
     def tearDownClass(cls):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
+
+    def test_enforcement_ipv6_restart(self):
+        """
+        Adds rules using the setup feature
+
+        1) Empty SetupFlowsRequest
+            - assert default flows
+        2) Add imsi with ipv6 policy
+            - assert everything is properly added
+        """
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller)
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager,
+                                             'default_flows')
+        with snapshot_verifier:
+            pass
+
+        imsi = 'IMSI010000002388888'
+        sub_ip = b'fe80:24c3:d0ff:fef3:9d21:4407:d337:1928'
+
+        flow_list = [FlowDescription(
+            match=FlowMatch(
+                ip_dst=convert_ipv6_bytes_to_ip_proto(b'fe80::'),
+                direction=FlowMatch.UPLINK),
+            action=FlowDescription.PERMIT)
+        ]
+        policies = [
+            VersionedPolicy(
+                rule=PolicyRule(id='ipv6_rule', priority=2, flow_list=flow_list),
+                version=1,
+            ),
+        ]
+        enf_stat_name = [imsi + '|ipv6_rule' + '|' + str(sub_ip)]
+        setup_flows_request = SetupFlowsRequest(
+            requests=[ActivateFlowsRequest(
+                sid=SIDUtils.to_pb(imsi),
+                ipv6_addr=sub_ip,
+                policies=policies,
+            )],
+            epoch=global_epoch
+        )
+
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller,
+            setup_flows_request=setup_flows_request)
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager,
+                                             'after_restart')
+        with snapshot_verifier:
+            pass
+
+        fake_controller_setup(
+            enf_controller=self.enforcement_controller,
+            enf_stats_controller=self.enforcement_stats_controller,
+            startup_flow_controller=self.startup_flows_contoller)
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager,
+                                             'default_flows')
+
+        with snapshot_verifier:
+            pass
+
 
     def test_enforcement_restart(self):
         """
@@ -153,6 +244,8 @@ class RestartResilienceTest(unittest.TestCase):
         4) Empty SetupFlowsRequest
             - assert default flows
         """
+        self.enforcement_controller._rule_mapper = RuleIDToNumMapper()
+        self.enforcement_stats_controller._rule_mapper = RuleIDToNumMapper()
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
@@ -185,34 +278,44 @@ class RestartResilienceTest(unittest.TestCase):
             action=FlowDescription.PERMIT)
         ]
         policies1 = [
-            PolicyRule(id='sub1_rule_temp', priority=2, flow_list=flow_list1),
+            VersionedPolicy(
+                rule=PolicyRule(id='sub1_rule_temp', priority=2, flow_list=flow_list1),
+                version=1,
+            )
         ]
         policies2 = [
-            PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2)
+            VersionedPolicy(
+                rule=PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2),
+                version=1,
+            )
         ]
         enf_stat_name = [imsi1 + '|sub1_rule_temp' + '|' + sub2_ip,
                          imsi2 + '|sub2_rule_keep' + '|' + sub2_ip]
 
-        self.service_manager.session_rule_version_mapper.update_version(
-            imsi1, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub1_rule_temp')
-        self.service_manager.session_rule_version_mapper.update_version(
-            imsi2, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub2_rule_keep')
+        self.service_manager.session_rule_version_mapper.save_version(
+            imsi1, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub1_rule_temp', 1)
+        self.service_manager.session_rule_version_mapper.save_version(
+            imsi2, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub2_rule_keep', 1)
 
         setup_flows_request = SetupFlowsRequest(
             requests=[
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi1),
                     ip_addr=sub2_ip,
-                    dynamic_rules=policies1
+                    policies=policies1
                 ),
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi2),
                     ip_addr=sub2_ip,
-                    dynamic_rules=policies2
+                    policies=policies2
                 ),
             ],
             epoch=global_epoch
         )
+
+        # Simulate clearing the dict
+        self.service_manager.session_rule_version_mapper\
+            ._version_by_imsi_and_rule = {}
 
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
@@ -246,18 +349,22 @@ class RestartResilienceTest(unittest.TestCase):
             action=FlowDescription.PERMIT)
         ]
         policies = [
-            PolicyRule(id='sub2_new_rule', priority=2, flow_list=flow_list1),
-            PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2)
+            VersionedPolicy(
+                rule=PolicyRule(id='sub2_new_rule', priority=2, flow_list=flow_list1),
+                version=1,
+            ),
+            VersionedPolicy(
+                rule=PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2),
+                version=1,
+            ),
         ]
-        self.service_manager.session_rule_version_mapper.update_version(
-            imsi2, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub2_new_rule')
         enf_stat_name = [imsi2 + '|sub2_new_rule' + '|' + sub2_ip,
                          imsi2 + '|sub2_rule_keep' + '|' + sub2_ip]
         setup_flows_request = SetupFlowsRequest(
             requests=[ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(imsi2),
                 ip_addr=sub2_ip,
-                dynamic_rules=policies
+                policies=policies,
             )],
             epoch=global_epoch
         )
@@ -297,6 +404,7 @@ class RestartResilienceTest(unittest.TestCase):
         The controller is then restarted with the same SetupFlowsRequest,
             - assert flows keep their packet counts
         """
+        self.enforcement_stats_controller._report_usage.reset_mock()
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
             enf_stats_controller=self.enforcement_stats_controller,
@@ -326,24 +434,28 @@ class RestartResilienceTest(unittest.TestCase):
             action=FlowDescription.PERMIT)
         ]
         policies = [
-            PolicyRule(id='tx_match', priority=3, flow_list=flow_list1),
-            PolicyRule(id='rx_match', priority=5, flow_list=flow_list2)
+            VersionedPolicy(
+                rule=PolicyRule(id='tx_match', priority=3, flow_list=flow_list1),
+                version=1,
+            ),
+            VersionedPolicy(
+                rule=PolicyRule(id='rx_match', priority=5, flow_list=flow_list2),
+                version=1,
+            ),
         ]
         enf_stat_name = [imsi + '|tx_match' + '|' + sub_ip,
                          imsi + '|rx_match' + '|' + sub_ip]
-        self.service_manager.session_rule_version_mapper.update_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'tx_match')
-        self.service_manager.session_rule_version_mapper.update_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rx_match')
+        self.service_manager.session_rule_version_mapper.save_version(
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'tx_match', 1)
+        self.service_manager.session_rule_version_mapper.save_version(
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rx_match', 1)
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
-        self._static_rule_dict[policies[0].id] = policies[0]
-        self._static_rule_dict[policies[1].id] = policies[1]
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller,
             self._enforcement_tbl_num, self.enforcement_stats_controller,
             nuke_flows_on_exit=False
-        ).add_static_rule(policies[0].id).add_static_rule(policies[1].id)
+        ).add_policy(policies[0]).add_policy(policies[1])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -381,6 +493,8 @@ class RestartResilienceTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name[1]].sid, imsi)
         self.assertEqual(stats[enf_stat_name[1]].rule_id, "rx_match")
         self.assertEqual(stats[enf_stat_name[1]].bytes_tx, 0)
+        self.assertEqual(stats[enf_stat_name[1]].bytes_rx, 5120)
+
 
         # downlink packets will discount ethernet header by default
         # so, only count the IP portion
@@ -389,14 +503,14 @@ class RestartResilienceTest(unittest.TestCase):
 
         # NOTE this value is 8 because the EnforcementStatsController rule
         # reporting doesn't reset on clearing flows(lingers from old tests)
-        self.assertEqual(len(stats), 8)
+        self.assertEqual(len(stats), 3)
 
         setup_flows_request = SetupFlowsRequest(
             requests=[
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi),
                     ip_addr=sub_ip,
-                    rule_ids=[policies[0].id, policies[1].id]
+                    policies=[policies[0], policies[1]]
                 ),
             ],
             epoch=global_epoch
@@ -414,9 +528,6 @@ class RestartResilienceTest(unittest.TestCase):
 
         with snapshot_verifier:
             pass
-
-        self.assertEqual(stats[enf_stat_name[0]].bytes_tx,
-                         num_pkts_tx_match * len(packet1))
 
     def test_url_redirect(self):
         """
@@ -458,7 +569,7 @@ class RestartResilienceTest(unittest.TestCase):
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi),
                     ip_addr=sub_ip,
-                    dynamic_rules=[policy]
+                    policies=[VersionedPolicy(rule=policy, version=1)]
                 ),
             ],
             epoch=global_epoch

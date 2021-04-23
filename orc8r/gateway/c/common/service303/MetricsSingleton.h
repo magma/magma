@@ -12,24 +12,55 @@
  */
 #pragma once
 
-#include <stdarg.h>
+#include <stdarg.h>           // for va_list
+#include <stddef.h>           // for size_t
+#include <map>                // for map
+#include <memory>             // for shared_ptr
+#include <string>             // for string
+#include "MetricsRegistry.h"  // for MetricsRegistry, Registry
+namespace grpc {
+class Server;
+}
+namespace prometheus {
+class Counter;
+}
+namespace prometheus {
+class Gauge;
+}
+namespace prometheus {
+class Histogram;
+}
+namespace prometheus {
+class Registry;
+}
+namespace prometheus {
+namespace detail {
+class CounterBuilder;
+}
+}  // namespace prometheus
+namespace prometheus {
+namespace detail {
+class GaugeBuilder;
+}
+}  // namespace prometheus
+namespace prometheus {
+namespace detail {
+class HistogramBuilder;
+}
+}  // namespace prometheus
 
-#include <prometheus/registry.h>
-#include <grpc++/grpc++.h>
-
-#include "MetricsRegistry.h"
-
-using magma::service303::MetricsRegistry;
-using prometheus::Registry;
-using prometheus::Counter;
-using prometheus::detail::CounterBuilder;
-using prometheus::Gauge;
-using prometheus::detail::GaugeBuilder;
-using prometheus::Histogram;
-using prometheus::detail::HistogramBuilder;
 using grpc::Server;
+using magma::service303::MetricsRegistry;
+using prometheus::Counter;
+using prometheus::Gauge;
+using prometheus::Histogram;
+using prometheus::Registry;
+using prometheus::detail::CounterBuilder;
+using prometheus::detail::GaugeBuilder;
+using prometheus::detail::HistogramBuilder;
 
-namespace magma { namespace service303 {
+namespace magma {
+namespace service303 {
 
 // Forward decleration
 class MetricsSingleton;
@@ -41,41 +72,37 @@ class MetricsSingleton;
  */
 class MetricsSingleton {
   friend class MagmaService;
-  public:
-    static MetricsSingleton& Instance();
-    static void flush(); // destroy instance
-    void IncrementCounter(const char* name,
-      double increment,
-      size_t label_count,
-      va_list& args);
-    void IncrementGauge(const char* name,
-      double increment,
-      size_t label_count,
-      va_list& args);
-    void DecrementGauge(const char* name,
-      double decrement,
-      size_t label_count,
-      va_list& args);
-    void SetGauge(const char* name,
-      double value,
-      size_t label_count,
-      va_list& args);
-    void ObserveHistogram(const char* name,
-      double observation,
-      size_t label_count,
-      va_list& args);
-  private:
-    MetricsSingleton(); // Prevent construction
-    MetricsSingleton(const MetricsSingleton&); // Prevent construction by copying
-    MetricsSingleton& operator=(const MetricsSingleton&); // Prevent assignment
-    void args_to_map(std::map<std::string, std::string>& labels, size_t label_count, va_list& args); // Helper to convert variadic labels to map
-    // Shared registry to store all our metrics
-    std::shared_ptr<prometheus::Registry> registry_;
-    // Dictionaries to store instances of our metrics and intialize new ones
-    MetricsRegistry<Counter, CounterBuilder (&)()> counters_;
-    MetricsRegistry<Gauge, GaugeBuilder (&)()> gauges_;
-    MetricsRegistry<Histogram, HistogramBuilder (&)()> histograms_;
-    static MetricsSingleton* instance_;
+
+ public:
+  static MetricsSingleton& Instance();
+  static void flush();  // destroy instance
+  void RemoveCounter(const char* name, size_t label_count, va_list& args);
+  void IncrementCounter(
+      const char* name, double increment, size_t label_count, va_list& args);
+  void IncrementGauge(
+      const char* name, double increment, size_t label_count, va_list& args);
+  void DecrementGauge(
+      const char* name, double decrement, size_t label_count, va_list& args);
+  void SetGauge(
+      const char* name, double value, size_t label_count, va_list& args);
+  void ObserveHistogram(
+      const char* name, double observation, size_t label_count, va_list& args);
+
+ private:
+  MetricsSingleton();                         // Prevent construction
+  MetricsSingleton(const MetricsSingleton&);  // Prevent construction by copying
+  MetricsSingleton& operator=(const MetricsSingleton&);  // Prevent assignment
+  void args_to_map(
+      std::map<std::string, std::string>& labels, size_t label_count,
+      va_list& args);  // Helper to convert variadic labels to map
+  // Shared registry to store all our metrics
+  std::shared_ptr<prometheus::Registry> registry_;
+  // Dictionaries to store instances of our metrics and intialize new ones
+  MetricsRegistry<Counter, CounterBuilder (&)()> counters_;
+  MetricsRegistry<Gauge, GaugeBuilder (&)()> gauges_;
+  MetricsRegistry<Histogram, HistogramBuilder (&)()> histograms_;
+  static MetricsSingleton* instance_;
 };
 
-}}
+}  // namespace service303
+}  // namespace magma

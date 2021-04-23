@@ -23,7 +23,8 @@ class TestAttachDetachWithCorruptStatelessMME(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE)
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
+            health_service=MagmadUtil.stateless_cmds.ENABLE)
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
@@ -59,8 +60,8 @@ class TestAttachDetachWithCorruptStatelessMME(unittest.TestCase):
             self._s1ap_wrapper.magmad_util.corrupt_agw_state(
                 services_state_dict[s])
 
-            print("************************* Restarting %s service on" % s)
-            self._s1ap_wrapper.magmad_util.restart_services(s)
+            print("************************* Restarting %s service" % s)
+            self._s1ap_wrapper.magmad_util.restart_services([s])
 
             for j in range(100):
                 print("Waiting for", j, "seconds")

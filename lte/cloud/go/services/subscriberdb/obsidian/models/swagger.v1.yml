@@ -5,13 +5,14 @@ magma-gen-meta:
   go-package: magma/lte/cloud/go/services/subscriberdb/obsidian/models
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
-    - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
     - 'lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml'
   temp-gen-filename: lte-subscriberdb-swagger.yml
   output-dir: lte/cloud/go/services/subscriberdb/obsidian
   types:
     - go-struct-name: Subscriber
       filename: subscriber_swaggergen.go
+    - go-struct-name: PaginatedSubscribers
+      filename: paginated_subscribers_swaggergen.go
     - go-struct-name: LteSubscription
       filename: lte_subscription_swaggergen.go
     - go-struct-name: SubscriberStatus
@@ -80,6 +81,33 @@ paths:
       responses:
         '201':
           description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/subscribers_v2:
+    get:
+      summary: List subscribers in the network with pagination support
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: msisdn
+          type: string
+          description: Filter to subscribers with the passed MSISDN
+          required: false
+        - in: query
+          name: ip
+          type: string
+          description: Filter to subscribers assigned the passed IP address
+          required: false
+        - $ref: './orc8r-swagger-common.yml#/parameters/page_size'
+        - $ref: './orc8r-swagger-common.yml#/parameters/page_token'
+      responses:
+        '200':
+          description: List of subscribers in the network
+          schema:
+            $ref: '#/definitions/paginated_subscribers'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -339,6 +367,28 @@ definitions:
       active_apns:
         $ref: '#/definitions/apn_list'
 
+  paginated_subscribers:
+    description: Page of subscribers
+    type: object
+    required:
+      - next_page_token
+      - subscribers
+      - total_count
+    properties:
+      total_count:
+        type: integer
+        format: int64
+        description: estimated total number of subscriber entries
+        example: 10
+        x-nullable: false
+      next_page_token:
+        $ref: '#/definitions/next_page_token'
+      subscribers:
+        type: object
+        additionalProperties:
+          x-nullable: true
+          $ref: '#/definitions/subscriber'
+
   subscriber_config:
     type: object
     required:
@@ -505,3 +555,7 @@ definitions:
     example:
       - 'internet'
       - 'ims'
+
+  next_page_token:
+    type: string
+    description: Base 64 encoded page token for subsequent paginated API requests

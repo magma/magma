@@ -13,7 +13,6 @@ limitations under the License.
 
 from typing import Any
 
-
 GET_IP_FROM_IF_PATH = \
     'magma.enodebd.device_config.configuration_init.get_ip_from_if'
 

@@ -15,32 +15,34 @@ import warnings
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
+from magma.pipelined.app.inout import EGRESS, INGRESS
 from magma.pipelined.app.ue_mac import UEMacAddressController
-from magma.pipelined.app.inout import INGRESS, EGRESS
-from magma.pipelined.app.ue_mac import UEMacAddressController
-from magma.pipelined.tests.app.packet_builder import EtherPacketBuilder, \
-    UDPPacketBuilder, ARPPacketBuilder, DHCPPacketBuilder
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery as FlowQuery
+from magma.pipelined.tests.app.packet_builder import (
+    ARPPacketBuilder,
+    DHCPPacketBuilder,
+    EtherPacketBuilder,
+    UDPPacketBuilder,
+)
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
     PipelinedController,
+    TestSetup,
 )
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
-from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.pipelined_test_util import (
+    FlowTest,
+    FlowVerifier,
+    SnapshotVerifier,
+    create_service_manager,
+    fake_inout_setup,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    create_service_manager,
     wait_after_send,
-    FlowVerifier,
-    FlowTest,
-    SnapshotVerifier,
-    fake_inout_setup,
 )
 from ryu.lib import hub
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 
 class UEMacAddressTest(unittest.TestCase):
@@ -188,11 +190,12 @@ class UEMacAddressTest(unittest.TestCase):
                 FlowTest(FlowQuery(self._tbl_num,
                                    self.testing_controller), 4, 3),
                 FlowTest(FlowQuery(self._ingress_tbl_num,
-                                   self.testing_controller), 4, 2),
+                                   self.testing_controller), 4, 3),
                 FlowTest(FlowQuery(self._egress_tbl_num,
                                    self.testing_controller), 3, 2),
                 FlowTest(flow_queries[0], 4, 1),
             ], lambda: wait_after_send(self.testing_controller))
+
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)

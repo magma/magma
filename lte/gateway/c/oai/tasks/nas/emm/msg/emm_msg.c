@@ -174,12 +174,11 @@ int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
     case SECURITY_MODE_COMPLETE:
       decode_result = decode_security_mode_complete(
           &msg->security_mode_complete, buffer, len);
-      // MAX_IMEISV_SIZE is defined as 15, but IMEISV is
-      // actually 16 digits. Extra char for null termination.
-      char imeisv[MAX_IMEISV_SIZE + 2];
+      // IMEISV is 16 digits. Extra char for null termination.
+      char imeisv[MAX_IMEISV_SIZE + 1];
       IMEISV_MOBID_TO_STRING(
           &msg->security_mode_complete.imeisv.imeisv, imeisv,
-          MAX_IMEISV_SIZE + 2);
+          MAX_IMEISV_SIZE + 1);
       OAILOG_INFO(LOG_NAS_EMM, "EMM-MSG   - IMEISV: %s", imeisv);
       break;
 

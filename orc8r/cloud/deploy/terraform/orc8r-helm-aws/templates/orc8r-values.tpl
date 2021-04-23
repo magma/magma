@@ -115,17 +115,21 @@ metrics:
     create: ${create_usergrafana}
     volumes:
       datasources:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaDatasources}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaDatasources}
       dashboardproviders:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaProviders}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaProviders}
       dashboards:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaDashboards}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaDashboards}
       grafanaData:
-        persistentVolumeClaim:
-          claimName: ${grafana_pvc_grafanaData}
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: ${grafana_pvc_grafanaData}
 
   thanos:
     enabled: ${thanos_enabled}
@@ -179,9 +183,12 @@ nms:
 
     env:
       api_host: ${api_hostname}
-      mysql_db: ${nms_db_name}
-      mysql_host: ${nms_db_host}
-      mysql_user: ${nms_db_user}
+      mysql_db: ${orc8r_db_name}
+      mysql_dialect: ${orc8r_db_dialect}
+      mysql_host: ${orc8r_db_host}
+      mysql_port: ${orc8r_db_port}
+      mysql_user: ${orc8r_db_user}
+      mysql_pass: ${orc8r_db_pass}
       grafana_address: ${user_grafana_hostname}
 
   nginx:

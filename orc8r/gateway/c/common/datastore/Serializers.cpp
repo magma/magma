@@ -10,18 +10,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "Serializers.h"
-#include <orc8r/protos/redis.pb.h>
 
-using magma::orc8r::RedisState;
+#include "Serializers.h"
+#include <google/protobuf/message.h>  // for Message
+#include <orc8r/protos/redis.pb.h>    // for RedisState
+
 using google::protobuf::Message;
+using magma::orc8r::RedisState;
 namespace magma {
 
-std::function<bool(
-  const Message&,
-  std::string&,
-  uint64_t&)> get_proto_serializer() {
-  return [](const Message& message, std::string& str_out, uint64_t& version) -> bool {
+std::function<bool(const Message&, std::string&, uint64_t&)>
+get_proto_serializer() {
+  return [](const Message& message, std::string& str_out,
+            uint64_t& version) -> bool {
     auto can_parse = message.SerializeToString(&str_out);
     if (!can_parse) {
       return false;
@@ -43,4 +44,4 @@ std::function<bool(const std::string&, Message&)> get_proto_deserializer() {
     return msg_out.ParseFromString(redis_state.serialized_msg());
   };
 }
-}
+}  // namespace magma

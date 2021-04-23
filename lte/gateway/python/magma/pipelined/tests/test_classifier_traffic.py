@@ -15,30 +15,31 @@ import warnings
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
+from lte.protos.mobilityd_pb2 import IPAddress
+from magma.pipelined.app.classifier import Classifier
 from magma.pipelined.app.inout import INGRESS
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery as FlowQuery
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
     PipelinedController,
+    TestSetup,
 )
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
-from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.pipelined_test_util import (
+    FlowTest,
+    FlowVerifier,
+    SnapshotVerifier,
+    create_service_manager,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    create_service_manager,
     wait_after_send,
-    FlowVerifier,
-    FlowTest,
-    SnapshotVerifier,
 )
 from ryu.lib import hub
-from scapy.contrib.gtp import GTP_U_Header
 from scapy.all import *
-from magma.pipelined.app.classifier import Classifier
-from scapy.all import Ether, IP, UDP, ARP
+from scapy.all import ARP, IP, UDP, Ether
+from scapy.contrib.gtp import GTP_U_Header
+
 
 class GTPTrafficTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -90,6 +91,8 @@ class GTPTrafficTest(unittest.TestCase):
                 'mtr_ip': cls.MTR_IP,
                 'ovs_internal_sampling_port_number': 15578,
                 'ovs_internal_sampling_fwd_tbl_number': 201,
+                'ovs_internal_conntrack_port_number': 15579,
+                'ovs_internal_conntrack_fwd_tbl_number': 202,
                 'clean_restart': True,
                 'ovs_multi_tunnel': False,
             },
@@ -125,9 +128,10 @@ class GTPTrafficTest(unittest.TestCase):
 
         # Attach the tunnel flows towards UE.
         seid1 = 5000
-        self.classifier_controller._add_tunnel_flows(65525, 1, 1000,
-                                                     "192.168.128.30",
-                                                      self.EnodeB_IP, seid1)
+        ue_ip_addr = "192.168.128.30"
+        self.classifier_controller.add_tunnel_flows(65525, 1, 1000,
+                                                    IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                    self.EnodeB_IP, seid1)
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         eth = Ether(dst=self.MAC_1, src=self.MAC_2)

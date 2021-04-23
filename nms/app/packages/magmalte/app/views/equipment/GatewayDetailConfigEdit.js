@@ -368,7 +368,7 @@ export function ConfigEdit(props: Props) {
 
   const [gatewayVersion, setGatewayVersion] = useState<VersionType>(
     props.gateway?.status?.platform_info?.packages?.[0].version ||
-      DEFAULT_GATEWAY_CONFIG.status?.platform_info?.packages[0]?.version,
+      DEFAULT_GATEWAY_CONFIG.status?.platform_info?.packages?.[0]?.version,
   );
 
   const onSave = async () => {
@@ -841,7 +841,6 @@ export function RanEdit(props: Props) {
               onChange={({target}) => {
                 setConnectedEnodebs(Array.from(target.value));
               }}
-              data-testid="registeredEnodeb"
               MenuProps={{classes: {paper: classes.selectMenu}}}
               renderValue={selected => {
                 if (!selected.length) {
@@ -851,7 +850,7 @@ export function RanEdit(props: Props) {
               }}
               input={
                 <OutlinedInput
-                  disabled={!(dnsConfig?.dhcp_server_enabled ?? true)}
+                  data-testid="registeredEnodeb"
                   className={connectedEnodebs.length ? '' : classes.placeholder}
                 />
               }>

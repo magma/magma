@@ -1,0 +1,28 @@
+# Copyright 2021 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+{{- if .Values.create }}
+{{- if .Values.preInstallChecks.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-pre-install-checks
+  annotations:
+    "helm.sh/hook": pre-install
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded,hook-failed
+data:
+{{- if .Capabilities.APIVersions.Has "cert-manager.io/v1" }}
+  cert_manager: "cert-manager is installed"
+{{- else }}
+  cert_manager: {{ required "Please install cert-manager from https://cert-manager.io/docs/installation/kubernetes/" .Values.certManager }}
+{{- end }}
+{{- end }}
+{{- end }}

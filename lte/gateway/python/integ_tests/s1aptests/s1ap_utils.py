@@ -24,6 +24,7 @@ from typing import Optional
 
 import grpc
 import subprocess
+import json
 
 import s1ap_types
 from integ_tests.gateway.rpc import get_rpc_channel
@@ -39,6 +40,9 @@ from lte.protos.session_manager_pb2 import (
     DynamicRuleInstall,
     PolicyReAuthRequest,
     QoSInformation,
+    RuleSet,
+    RulesPerSubscriber,
+    SessionRules,
 )
 from lte.protos.abort_session_pb2 import (
     AbortSessionRequest,
@@ -50,8 +54,11 @@ from lte.protos.spgw_service_pb2 import (
 )
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
-from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
 from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
+from lte.protos.session_manager_pb2_grpc import (
+    LocalSessionManagerStub,
+    SessionProxyResponderStub,
+)
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
@@ -243,20 +250,19 @@ class S1ApUtil(object):
             ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
     def attach(
-            self,
-            ue_id,
-            attach_type,
-            resp_type,
-            resp_msg_type,
-            sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
-            id_type=s1ap_types.TFW_MID_TYPE_IMSI,
-            eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
-            pdn_type=1,
-            pcscf_addr_type=None,
-            dns_ipv6_addr=False,
+        self,
+        ue_id,
+        attach_type,
+        resp_type,
+        resp_msg_type,
+        sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
+        id_type=s1ap_types.TFW_MID_TYPE_IMSI,
+        eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
+        pdn_type=1,
+        pcscf_addr_type=None,
+        dns_ipv6_addr=False,
     ):
-        """
-        Given a UE issue the attach request of specified type
+        """Given a UE issue the attach request of specified type
 
         Caches the assigned IP address, if any is assigned
 
@@ -264,6 +270,7 @@ class S1ApUtil(object):
             ue_id: The eNB ue_id
             attach_type: The type of attach e.g. UE_END_TO_END_ATTACH_REQUEST
             resp_type: enum type of the expected response
+            resp_msg_type: Structure type of expected response message
             sec_ctxt: Optional param allows for the reuse of the security
                 context, defaults to creating a new security context.
             id_type: Optional param allows for changing up the ID type,
@@ -272,6 +279,11 @@ class S1ApUtil(object):
                 type, defaults to s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH.
             pdn_type:1 for IPv4, 2 for IPv6 and 3 for IPv4v6
             pcscf_addr_type:IPv4/IPv6/IPv4v6
+            dns_ipv6_addr: True/False flag
+
+        Returns:
+            msg: Received Attach Accept message
+
         """
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = ue_id
@@ -284,7 +296,7 @@ class S1ApUtil(object):
         # Populate PCO only if pcscf_addr_type is set
         if pcscf_addr_type or dns_ipv6_addr:
             self.populate_pco(
-                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr
+                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr,
             )
         assert self.issue_cmd(attach_type, attach_req) == 0
 
@@ -299,8 +311,8 @@ class S1ApUtil(object):
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
             assert (
-                    context_setup.msg_type
-                    == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                context_setup.msg_type
+                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             )
 
         logging.debug(
@@ -315,6 +327,8 @@ class S1ApUtil(object):
         # We only support IPv4 right now, as max PDN address in S1AP tester is
         # currently 13 bytes, which is too short for IPv6 (which requires 16)
         if resp_msg_type == s1ap_types.ueAttachAccept_t:
+            # Verify if requested and accepted EPS attach types are same
+            assert eps_type == msg.eps_Atch_resp
             pdn_type = msg.esmInfo.pAddr.pdnType
             addr = msg.esmInfo.pAddr.addrInfo
             if S1ApUtil.CM_ESM_PDN_IPV4 == pdn_type:
@@ -476,7 +490,9 @@ class S1ApUtil(object):
             if len(uplink_flows) == num_ul_flows:
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
-        assert len(uplink_flows) == num_ul_flows, "Uplink flow missing for UE"
+        assert len(uplink_flows) == num_ul_flows,\
+            "Uplink flow missing for UE: %d !=" % (len(uplink_flows), num_ul_flows)
+
         assert uplink_flows[0]["match"]["tunnel_id"] is not None
 
         # DOWNLINK
@@ -543,6 +559,7 @@ class SubscriberUtil(object):
 
     SID_PREFIX = "IMSI00101"
     IMSI_LEN = 15
+    MAX_IMEI_LEN = 16
 
     def __init__(self, subscriber_client):
         """
@@ -554,6 +571,8 @@ class SubscriberUtil(object):
         """
         self._sid_idx = 1
         self._ue_id = 1
+        self._imei_idx = 1
+        self._imei_default = 3805468432113170
         # Maintain references to UE configs to prevent GC
         self._ue_cfgs = []
 
@@ -571,11 +590,20 @@ class SubscriberUtil(object):
         print("Using subscriber IMSI %s" % sid)
         return sid
 
-    def _get_s1ap_sub(self, sid):
+    def _generate_imei(self, num_ues=1):
+        """ Generates 16 digit IMEI which includes SVN """
+        imei = str(self._imei_default + self._imei_idx)
+        assert(len(imei) <= self.MAX_IMEI_LEN), "Invalid IMEI length"
+        self._imei_idx += 1
+        print("Using IMEI %s" % imei)
+        return imei
+
+    def _get_s1ap_sub(self, sid, imei):
         """
         Get the subscriber data in s1aptester format.
         Args:
             The string representation of the subscriber id
+            and imei
         """
         ue_cfg = s1ap_types.ueConfig_t()
         ue_cfg.ue_id = self._ue_id
@@ -584,8 +612,8 @@ class SubscriberUtil(object):
         # cast into a uint8.
         for i in range(0, 15):
             ue_cfg.imsi[i] = ctypes.c_ubyte(int(sid[4 + i]))
-            ue_cfg.imei[i] = ctypes.c_ubyte(int("1"))
-        ue_cfg.imei[15] = ctypes.c_ubyte(int("1"))
+        for i in range(0, len(imei)):
+            ue_cfg.imei[i] = ctypes.c_ubyte(int(imei[i]))
         ue_cfg.imsiLen = self.IMSI_LEN
         self._ue_cfgs.append(ue_cfg)
         self._ue_id += 1
@@ -598,7 +626,8 @@ class SubscriberUtil(object):
         for _ in range(num_ues):
             sid = self._gen_next_sid()
             self._subscriber_client.add_subscriber(sid)
-            subscribers.append(self._get_s1ap_sub(sid))
+            imei = self._generate_imei()
+            subscribers.append(self._get_s1ap_sub(sid, imei))
         self._subscriber_client.wait_for_changes()
         return subscribers
 
@@ -617,6 +646,9 @@ class MagmadUtil(object):
     stateless_cmds = Enum("stateless_cmds", "CHECK DISABLE ENABLE")
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
     apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
+    health_service_cmds = Enum("health_service_cmds", "DISABLE ENABLE")
+    ipv6_config_cmds = Enum("ipv6_config_cmds", "DISABLE ENABLE")
+    ha_service_cmds = Enum("ha_service_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
         """
@@ -722,15 +754,11 @@ class MagmadUtil(object):
         print("Corrupted %s on redis" % key)
 
     def restart_all_services(self):
-        """
-            Restart all magma services on magma_dev VM
-            """
+        """Restart all magma services on magma_dev VM"""
         self.exec_command(
             "sudo service magma@* stop ; sudo service magma@magmad start"
         )
-        print(
-            "Waiting for all services to restart. Sleeping for 60 seconds.."
-        )
+        print("Waiting for all services to restart. Sleeping for 60 seconds..")
         timeSlept = 0
         while timeSlept < 60:
             time.sleep(5)
@@ -765,6 +793,21 @@ class MagmadUtil(object):
         """
         self.exec_command("sudo systemctl mask magma@{}".format(service))
         self.exec_command("sudo systemctl stop magma@{}".format(service))
+
+    def is_service_active(self, service) -> bool:
+        """
+        Checks if a magma service on magma_dev VM is active
+        Args:
+            service: (str) service to check if it's active
+        """
+        is_active_service_cmd = "systemctl is-active magma@" + service
+        try:
+            result_str = self.exec_command_output(is_active_service_cmd)
+        except subprocess.CalledProcessError as e:
+            # if service is disabled / masked, is-enabled will return
+            # non-zero exit status
+            result_str = e.output
+        return result_str.strip() == "active"
 
     def update_mme_config_for_sanity(self, cmd):
         mme_config_update_script = (
@@ -831,6 +874,129 @@ class MagmadUtil(object):
         else:
             print("APN Correction failed")
 
+    def config_health_service(self, cmd: health_service_cmds):
+        """
+        Configure magma@health service on access gateway
+        Args:
+            cmd: Enable / Disable cmd to configure service
+        """
+        magma_health_service_name = "health"
+        # Update health config to increment frequency of service failures
+        if cmd.name == MagmadUtil.health_service_cmds.DISABLE.name:
+            health_config_cmd = ("sed -i 's/interval_check_mins: 1/interval_"
+                                 "check_mins: 3/g' /etc/magma/health.yml")
+            self.exec_command("sudo %s" % health_config_cmd)
+            if self.is_service_active(magma_health_service_name):
+                self.disable_service(magma_health_service_name)
+            print("Health service is disabled")
+        elif cmd.name == MagmadUtil.health_service_cmds.ENABLE.name:
+            health_config_cmd = ("sed -i 's/interval_check_mins: 3/interval_"
+                                 "check_mins: 1/g' /etc/magma/health.yml")
+            self.exec_command("sudo %s" % health_config_cmd)
+            if not self.is_service_active(magma_health_service_name):
+                self.enable_service("health")
+            print("Health service is enabled")
+
+    def config_ipv6_solicitation(self, cmd):
+        """
+        Enable/disable the ipv6_solicitation service in pipelined configuration
+
+        Args:
+            cmd: Specify whether ipv6_solicitation should be enabled or not
+                 - enable: Enable ipv6_solicitation service,
+                           do nothing if already enabled
+                 - disable: Disable ipv6_solicitation service,
+                            do nothing if already disabled
+
+        Returns:
+            -1: Failed to configure
+            0: Already configured
+            1: Configured successfully. Need to restart the service
+        """
+        ipv6_update_config_cmd = ""
+        ipv6_config_status_cmd = (
+            "grep 'ipv6_solicitation' /etc/magma/pipelined.yml | wc -l"
+        )
+        ret_code = self.exec_command_output(ipv6_config_status_cmd).rstrip()
+
+        if cmd.name == MagmadUtil.ipv6_config_cmds.ENABLE.name:
+            if ret_code != "0":
+                print("IPv6 solicitation service is already enabled")
+                return 0
+            else:
+                ipv6_update_config_cmd = (
+                    r"sed -i \"/startup_flows/a \ \ 'ipv6_solicitation',\" "
+                    "/etc/magma/pipelined.yml"
+                )
+        else:
+            if ret_code == "0":
+                print("IPv6 solicitation service is already disabled")
+                return 0
+            else:
+                ipv6_update_config_cmd = (
+                    "sed -i '/ipv6_solicitation/d'  /etc/magma/pipelined.yml"
+                )
+
+        ret_code = self.exec_command("sudo " + ipv6_update_config_cmd)
+        if ret_code == 0:
+            print("IPv6 solicitation service configured successfully")
+            return 1
+
+        print("IPv6 solicitation service configuration failed")
+        return -1
+
+    def config_ha_service(self, cmd):
+        """
+        Modify the mme configuration by enabling/disabling use of Ha service
+
+        Args:
+            cmd: Specify whether Ha service is enabled for use or not
+                 - enable: Enable Ha service, do nothing if already enabled
+                 - disable: Disable Ha service, do nothing if already disabled
+
+        Returns:
+            -1: Failed to configure
+            0: Already configured
+            1: Configured successfully. Need to restart the service
+        """
+        ha_config_cmd = ""
+        if cmd.name == MagmadUtil.ha_service_cmds.ENABLE.name:
+            ha_config_status_cmd = (
+                "grep 'use_ha: true' /etc/magma/mme.yml | wc -l"
+            )
+            ret_code = self.exec_command_output(ha_config_status_cmd).rstrip()
+
+            if ret_code != "0":
+                print("Ha service is already enabled")
+                return 0
+            else:
+                ha_config_cmd = (
+                    "sed -i 's/use_ha: false/use_ha: true/g' "
+                    "/etc/magma/mme.yml"
+                )
+        else:
+            ha_config_status_cmd = (
+                "grep 'use_ha: false' /etc/magma/mme.yml | wc -l"
+            )
+            ret_code = self.exec_command_output(ha_config_status_cmd).rstrip()
+
+            if ret_code != "0":
+                print("Ha service is already disabled")
+                return 0
+            else:
+                ha_config_cmd = (
+                    "sed -i 's/use_ha: true/use_ha: false/g' "
+                    "/etc/magma/mme.yml"
+                )
+
+        ret_code = self.exec_command("sudo " + ha_config_cmd)
+        if ret_code == 0:
+            print("Ha service configured successfully")
+            return 1
+
+        print("Ha service configuration failed")
+        return -1
+
     def restart_mme_and_wait(self):
         print("Restarting mme service on gateway")
         self.restart_services(["mme"])
@@ -842,11 +1008,9 @@ class MagmadUtil(object):
         The Sctpd service is not managed by magmad, hence needs to be
         restarted explicitly
         """
-        self.exec_command(
-            "sudo service sctpd restart"
-        )
+        self.exec_command("sudo service sctpd restart")
         for j in range(30):
-            print("Waiting for", 30-j, "seconds for restart to complete")
+            print("Waiting for", 30 - j, "seconds for restart to complete")
             time.sleep(1)
 
     def print_redis_state(self):
@@ -859,7 +1023,7 @@ class MagmadUtil(object):
             magtivate_cmd + " && " + imsi_state_cmd
         )
         keys_to_be_cleaned = []
-        for key in redis_imsi_keys.split('\n'):
+        for key in redis_imsi_keys.split("\n"):
             # Ignore directoryd per-IMSI keys in this analysis as they will
             # persist after each test
             if "directory" not in key:
@@ -878,7 +1042,7 @@ class MagmadUtil(object):
         print(
             "Keys left in Redis (list should be empty)[\n",
             "\n".join(keys_to_be_cleaned),
-            "\n]"
+            "\n]",
         )
         print("Entries left in hashtables (should be zero):", num_htbl_entries)
 
@@ -952,7 +1116,7 @@ class SpgwUtil(object):
         """
         self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
 
-    def create_bearer(self, imsi, lbi, qci_val=1):
+    def create_bearer(self, imsi, lbi, qci_val=1, rule_id='1'):
         """
         Sends a CreateBearer Request to SPGW service
         """
@@ -962,7 +1126,7 @@ class SpgwUtil(object):
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
-                    id="rar_rule_1",
+                    id="rar_rule_"+rule_id,
                     qos=FlowQos(
                         qci=qci_val,
                         gbr_ul=10000000,
@@ -1198,6 +1362,16 @@ class SpgwUtil(object):
         )
         self._stub.DeleteBearer(req)
 
+    def delete_bearers(self, imsi, lbi, ebi):
+        """
+        Sends a DeleteBearer Request to SPGW service
+        """
+        print("Sending DeleteBearer request to spgw service")
+        req = DeleteBearerRequest(
+            sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=ebi
+        )
+        self._stub.DeleteBearer(req)
+
 
 class SessionManagerUtil(object):
     """
@@ -1208,7 +1382,7 @@ class SessionManagerUtil(object):
         """
         Initialize sessionManager util.
         """
-        self._session_stub = SessionProxyResponderStub(
+        self._session_proxy_stub = SessionProxyResponderStub(
             get_rpc_channel("sessiond")
         )
         self._abort_session_stub = AbortSessionResponderStub(
@@ -1216,6 +1390,9 @@ class SessionManagerUtil(object):
         )
         self._directorydstub = GatewayDirectoryServiceStub(
             get_rpc_channel("directoryd")
+        )
+        self._local_session_manager_stub = LocalSessionManagerStub(
+            get_rpc_channel("sessiond")
         )
 
     def get_flow_match(self, flow_list, flow_match_list):
@@ -1285,7 +1462,39 @@ class SessionManagerUtil(object):
                 )
             )
 
-    def create_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
+    def get_policy_rule(self, policy_id, qos=None, flow_match_list=None, he_urls=None):
+        if qos is not None:
+            policy_qos = FlowQos(
+                qci=qos["qci"],
+                max_req_bw_ul=qos["max_req_bw_ul"],
+                max_req_bw_dl=qos["max_req_bw_dl"],
+                gbr_ul=qos["gbr_ul"],
+                gbr_dl=qos["gbr_dl"],
+                arp=QosArp(
+                    priority_level=qos["arp_prio"],
+                    pre_capability=qos["pre_cap"],
+                    pre_vulnerability=qos["pre_vul"],
+                ),
+            )
+            priority = qos["priority"]
+        else:
+            policy_qos = None
+            priority = 2
+
+        policy_rule = PolicyRule(
+            id=policy_id,
+            priority=priority,
+            flow_list=flow_match_list,
+            tracking_type=PolicyRule.NO_TRACKING,
+            rating_group=1,
+            monitoring_key=None,
+            qos=policy_qos,
+            he=he_urls,
+        )
+
+        return policy_rule
+
+    def send_ReAuthRequest(self, imsi, policy_id, flow_list, qos, he_urls=None):
         """
         Sends Policy RAR message to session manager
         """
@@ -1294,28 +1503,7 @@ class SessionManagerUtil(object):
         res = None
         self.get_flow_match(flow_list, flow_match_list)
 
-        policy_qos = FlowQos(
-            qci=qos["qci"],
-            max_req_bw_ul=qos["max_req_bw_ul"],
-            max_req_bw_dl=qos["max_req_bw_dl"],
-            gbr_ul=qos["gbr_ul"],
-            gbr_dl=qos["gbr_dl"],
-            arp=QosArp(
-                priority_level=qos["arp_prio"],
-                pre_capability=qos["pre_cap"],
-                pre_vulnerability=qos["pre_vul"],
-            ),
-        )
-
-        policy_rule = PolicyRule(
-            id=policy_id,
-            priority=qos["priority"],
-            flow_list=flow_match_list,
-            tracking_type=PolicyRule.NO_TRACKING,
-            rating_group=1,
-            monitoring_key=None,
-            qos=policy_qos,
-        )
+        policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list, he_urls)
 
         qos = QoSInformation(qci=qos["qci"])
 
@@ -1335,7 +1523,7 @@ class SessionManagerUtil(object):
             print("error: Couldn't find sessionid. Directoryd content:")
             self._print_directoryd_content()
 
-        self._session_stub.PolicyReAuth(
+        self._session_proxy_stub.PolicyReAuth(
             PolicyReAuthRequest(
                 session_id=res.value,
                 imsi=imsi,
@@ -1382,38 +1570,152 @@ class SessionManagerUtil(object):
             for record in allRecordsResponse.records:
                 print("%s" % str(record))
 
+    def send_SetSessionRules(self, imsi, policy_id, flow_list, qos):
+        """
+        Sends Policy SetSessionRules message to session manager
+        """
+        print("Sending session rules to session manager")
+        flow_match_list = []
+        self.get_flow_match(flow_list, flow_match_list)
+
+        policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list)
+
+        ulFlow1 = {
+            "ip_proto": FlowMatch.IPPROTO_IP,
+            "direction": FlowMatch.UPLINK,  # Direction
+        }
+        dlFlow1 = {
+            "ip_proto": FlowMatch.IPPROTO_IP,
+            "direction": FlowMatch.DOWNLINK,  # Direction
+        }
+        default_flow_rules = [ulFlow1, dlFlow1]
+        default_flow_match_list = []
+        self.get_flow_match(default_flow_rules, default_flow_match_list)
+        default_policy_rule = self.get_policy_rule(
+            "allow_list_" + imsi, None, default_flow_match_list)
+
+        rule_set = RuleSet(
+            apply_subscriber_wide = True,
+            apn = "",
+            static_rules = [],
+            dynamic_rules = [
+                DynamicRuleInstall(policy_rule=policy_rule),
+                DynamicRuleInstall(policy_rule=default_policy_rule)
+            ],
+        )
+
+        self._local_session_manager_stub.SetSessionRules(
+            SessionRules(
+                rules_per_subscriber = [
+                    RulesPerSubscriber(
+                        imsi = imsi,
+                        rule_set = [rule_set],
+                    )
+                ]
+            )
+        )
+
 
 class GTPBridgeUtils:
     def __init__(self):
         self.magma_utils = MagmadUtil(None)
         ret = self.magma_utils.exec_command_output(
-            "sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
+            "sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml"
+        )
         if "false" in ret:
             self.gtp_port_name = "gtp0"
         else:
             self.gtp_port_name = "g_8d3ca8c0"
+        self.proxy_port = "proxy_port"
 
     def get_gtp_port_no(self) -> Optional[int]:
         output = self.magma_utils.exec_command_output(
-            "sudo ovsdb-client dump Interface name ofport")
-        for line in output.split('\n'):
+            "sudo ovsdb-client dump Interface name ofport"
+        )
+        for line in output.split("\n"):
             if self.gtp_port_name in line:
                 port_info = line.split()
                 return port_info[1]
 
+    def get_proxy_port_no(self) -> Optional[int]:
+        output = self.magma_utils.exec_command_output(
+            "sudo ovsdb-client dump Interface name ofport"
+        )
+        for line in output.split("\n"):
+            if self.proxy_port in line:
+                port_info = line.split()
+                return port_info[1]
+
+    # RYU rest API is not able dump flows from non zero table.
+    # this adds similar API using `ovs-ofctl` cmd
+    def get_flows(self, table_id) -> []:
+        output = self.magma_utils.exec_command_output(
+            "sudo ovs-ofctl dump-flows gtp_br0 table={}".format(table_id)
+        )
+        return output.split("\n")
+
+
 class HaUtil:
     def __init__(self):
-        self._ha_stub = HaServiceStub(
-            get_rpc_channel("spgw_service")
-        )
+        self._ha_stub = HaServiceStub(get_rpc_channel("spgw_service"))
 
     def offload_agw(self, imsi, enbID, offloadtype=0):
         req = StartAgwOffloadRequest(
-            enb_id = enbID,
-            enb_offload_type = offloadtype,
-            imsi = imsi,
-            )
+            enb_id=enbID,
+            enb_offload_type=offloadtype,
+            imsi=imsi,
+        )
         try:
             self._ha_stub.StartAgwOffload(req)
         except grpc.RpcError as e:
             print("gRPC failed with %s: %s" % (e.code(), e.details()))
+            return False
+
+        return True
+
+
+class HeaderEnrichmentUtils:
+    def __init__(self):
+        self.magma_utils = MagmadUtil(None)
+        self.dump = None
+
+    def restart_envoy_service(self):
+        print("restarting envoy")
+        self.magma_utils.exec_command_output("sudo service magma@envoy_controller restart")
+        time.sleep(5)
+        self.magma_utils.exec_command_output("sudo service magma_dp@envoy restart")
+        time.sleep(20)
+        print("restarting envoy done")
+
+    def get_envoy_config(self):
+        output = self.magma_utils.exec_command_output(
+            "sudo ip netns exec envoy_ns1 curl 127.0.0.1:9000/config_dump")
+        self.dump = json.loads(output)
+
+        return self.dump
+
+    def get_route_config(self):
+        self.dump = self.get_envoy_config()
+
+        for conf in self.dump['configs']:
+            if 'dynamic_listeners' in conf:
+                return conf['dynamic_listeners'][0]['active_state']['listener']['filter_chains'][0]['filters']
+
+        return []
+
+    def he_count_record_of_imsi_to_domain(self, imsi, domain) -> int:
+        envoy_conf1 = self.get_route_config()
+        cnt = 0
+        for conf in envoy_conf1:
+            virtual_host_config = conf['typed_config']['route_config']['virtual_hosts']
+
+            for host_conf in virtual_host_config:
+                if domain in host_conf['domains']:
+                    he_headers = host_conf['request_headers_to_add']
+                    for hdr in he_headers:
+                        he_key = hdr['header']['key']
+                        he_val = hdr['header']['value']
+                        if he_key == 'imsi' and he_val == imsi:
+                            cnt = cnt + 1
+
+        return cnt

@@ -220,12 +220,14 @@ int esm_send_pdn_disconnect_reject(
  ***************************************************************************/
 int esm_send_activate_default_eps_bearer_context_request(
     pti_t pti, ebi_t ebi, activate_default_eps_bearer_context_request_msg* msg,
-    bstring apn, const protocol_configuration_options_t* pco, int pdn_type,
-    bstring pdn_addr, const EpsQualityOfService* qos, int esm_cause) {
+    pdn_context_t* pdn_context_p, const protocol_configuration_options_t* pco,
+    int pdn_type, bstring pdn_addr, const EpsQualityOfService* qos,
+    int esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Send Activate Default EPS Bearer Context Request message\n");
+  bstring apn = pdn_context_p->apn_subscribed;
   /*
    * Mandatory - ESM message header
    */
@@ -312,20 +314,16 @@ int esm_send_activate_default_eps_bearer_context_request(
         &msg->protocolconfigurationoptions, pco);
   }
   //#pragma message  "TEST LG FORCE APN-AMBR"
-  OAILOG_DEBUG(LOG_NAS_ESM, "ESM-SAP   - FORCE APN-AMBR\n");
+  OAILOG_DEBUG(
+      LOG_NAS_ESM, "ESM-SAP   - FORCE APN-AMBR DL %lu UL %lu\n",
+      pdn_context_p->subscribed_apn_ambr.br_dl,
+      pdn_context_p->subscribed_apn_ambr.br_ul);
   msg->presencemask |=
       ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_APNAMBR_PRESENT;
-  // APN AMBR is hardcoded to DL AMBR = 200 Mbps and UL APN MBR = 100 Mbps -
-  // Which is ok for now for TDD 20 MHz
-  // TODO task#14477798 - need to change these to apm-subscribed values
-  msg->apnambr.apnambrfordownlink           = 0xfe;  // (8640kbps)
-  msg->apnambr.apnambrforuplink             = 0xfe;  // (8640kbps)
-  msg->apnambr.apnambrfordownlink_extended  = 0xde;  // (200Mbps)
-  msg->apnambr.apnambrforuplink_extended    = 0x9e;  // (100Mbps)
-  msg->apnambr.apnambrfordownlink_extended2 = 0;
-  msg->apnambr.apnambrforuplink_extended2   = 0;
-  msg->apnambr.extensions =
-      0 | APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION_PRESENT;
+  bit_rate_value_to_eps_qos(
+      &msg->apnambr, pdn_context_p->subscribed_apn_ambr.br_dl,
+      pdn_context_p->subscribed_apn_ambr.br_ul);
+
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Send Activate Default EPS Bearer Context "

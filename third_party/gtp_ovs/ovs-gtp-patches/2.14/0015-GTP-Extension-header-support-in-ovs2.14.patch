@@ -1,0 +1,217 @@
+From e0b8180c95894b92dc7e0421db703abe2c45173f Mon Sep 17 00:00:00 2001
+From: YOGESH PANDEY <yogesh@wavelabs.ai>
+Date: Thu, 25 Mar 2021 16:48:07 +0530
+Subject: [PATCH 15/15] GTP Extension header support in ovs2.14
+
+Add GTP Extension header Processing. Following are the changes :
+  1. When a GTPU packet comes from GNB the extension header is
+     removed and packet handed over to OVS
+  2. When the packet is going out the Extension Header is appended
+     with QFI value 5.
+
+This behavior is targted for the 5G usecases.
+
+Signed-off-by: YOGESH PANDEY <yogesh@wavelabs.ai>
+---
+ datapath/linux/compat/gtp.c | 106 +++++++++++++++++++++++++++++++-----
+ 1 file changed, 93 insertions(+), 13 deletions(-)
+
+diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
+index 20ad23ecb..137c67f51 100644
+--- a/datapath/linux/compat/gtp.c
++++ b/datapath/linux/compat/gtp.c
+@@ -39,6 +39,21 @@
+ 
+ 
+ #define GTP_PDP_HASHSIZE 1024
++#define GTPA_PEER_ADDRESS GTPA_SGSN_ADDRESS /* maintain legacy attr name */
++#define GTP_EXTENSION_HDR_FLAG 0x04
++
++struct gtpu_ext_hdr {
++	__be16 seq_num;
++	u8 n_pdu;
++        u8 type;
++};
++
++struct gtpu_ext_hdr_pdu_sc {
++	u8 len;
++	u8 pdu_type;
++	u8 qfi;
++        u8 next_type;
++};
+ 
+ /* An active session for the subscriber. */
+ struct pdp_ctx {
+@@ -365,6 +380,29 @@ static int gtp1u_udp_encap_recv(struct gtp_dev *gtp, struct sk_buff *skb)
+ 	 * If any of the bit is set, then the remaining ones also have to be
+ 	 * set.
+ 	 */
++	if ((gtp1->type == GTP_TPDU) && (gtp1->flags & GTP_EXTENSION_HDR_FLAG)) {
++		struct gtpu_ext_hdr *geh;
++		u8 next_hdr;
++
++		geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
++		netdev_dbg(gtp->dev, "ext type type %d\n", geh->type);
++
++		hdrlen += sizeof (struct gtpu_ext_hdr);
++		next_hdr = geh->type;
++		while (next_hdr) {
++			u8 len = *(u8 *) (skb->data + hdrlen);
++
++			hdrlen += (len * 4);
++			if (!pskb_may_pull(skb, hdrlen)) {
++				netdev_dbg(gtp->dev, "malformed packet %d", hdrlen);
++				return -1;
++			}
++			next_hdr = *(u8*) (skb->data + hdrlen - 1);
++			netdev_dbg(gtp->dev, "current hdr len %d next hdr type: %d\n", len, next_hdr);
++		}
++		netdev_dbg(gtp->dev, "pkt type: %x", *(u8*) (skb->data + hdrlen));
++		netdev_dbg(gtp->dev, "skb-len %d gtp len %d hdr len %d\n", skb->len, (int) ntohs(gtp1->length), hdrlen);
++	}
+ 	/* Make sure the header is larger enough, including extensions. */
+ 	if (!pskb_may_pull(skb, hdrlen))
+ 		return -1;
+@@ -506,12 +544,33 @@ static inline void gtp0_push_header(struct sk_buff *skb, struct pdp_ctx *pctx)
+ 	gtp0->tid	= cpu_to_be64(pctx->u.v0.tid);
+ }
+ 
+-static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid)
++const struct gtpu_ext_hdr n_hdr = {
++	.type = 0x85,
++};
++
++const struct gtpu_ext_hdr_pdu_sc pdu_sc_hdr = {
++	.len = 1,
++	.pdu_type = 0x0, /* PDU_TYPE_DL_PDU_SESSION_INFORMATION */
++	.qfi = 5,
++        .next_type = 0,
++};
++
++static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid, __u8 qfi)
+ {
+-	int payload_len = skb->len;
++	struct gtpu_ext_hdr *next_hdr;
++	struct gtpu_ext_hdr_pdu_sc *pdu_sc;
+ 	struct gtp1_header *gtp1;
++	struct ip_tunnel_info *info = NULL;
++	int payload_len = skb->len;
++	__u8 flags = 0x30;
+ 
+-	gtp1 = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1));
++	if (qfi) {
++		gtp1 = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1) + sizeof (*next_hdr) + sizeof (*pdu_sc));
++		payload_len += (sizeof(*next_hdr) + sizeof(*pdu_sc));
++		flags = flags | GTP_EXTENSION_HDR_FLAG;
++	} else {
++		gtp1 = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1));
++	}
+ 
+ 	/* Bits    8  7  6  5  4  3  2	1
+ 	 *	  +--+--+--+--+--+--+--+--+
+@@ -519,14 +578,22 @@ static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid)
+ 	 *	  +--+--+--+--+--+--+--+--+
+ 	 *	    0  0  1  1	1  0  0  0
+ 	 */
+-	gtp1->flags	= 0x30; /* v1, GTP-non-prime. */
++	gtp1->flags	= flags; /* v1, GTP-non-prime. */
+ 	gtp1->type	= GTP_TPDU;
+ 	gtp1->length	= htons(payload_len);
+ 	gtp1->tid	= tid;
+ 
+-	/* TODO: Suppport for extension header, sequence number and N-PDU.
+-	 *	 Update the length field if any of them is available.
+-	 */
++        if (qfi) {
++                /* TODO: Suppport for extension header, sequence number and N-PDU.
++                 *       Update the length field if any of them is available.
++                 */
++                next_hdr = (struct gtpu_ext_hdr *) (gtp1 + 1);
++                *next_hdr = n_hdr;
++                pdu_sc = (struct gtpu_ext_hdr_pdu_sc *) (next_hdr + 1);
++                *pdu_sc = pdu_sc_hdr;
++                pdu_sc->qfi = qfi;
++        }
++
+ }
+ 
+ static inline int gtp1_push_control_header(struct sk_buff *skb, __be32 tid, struct gtpu_metadata *opts,
+@@ -570,7 +637,7 @@ struct gtp_pktinfo {
+ 	__be16			gtph_port;
+ };
+ 
+-static void gtp_push_header(struct sk_buff *skb, struct gtp_pktinfo *pktinfo)
++static void gtp_push_header(struct sk_buff *skb, struct gtp_pktinfo *pktinfo, __u8 set_qfi)
+ {
+ 	switch (pktinfo->pctx->gtp_version) {
+ 	case GTP_V0:
+@@ -579,7 +646,7 @@ static void gtp_push_header(struct sk_buff *skb, struct gtp_pktinfo *pktinfo)
+ 		break;
+ 	case GTP_V1:
+ 		pktinfo->gtph_port = htons(GTP1U_PORT);
+-		gtp1_push_header(skb, htonl(pktinfo->pctx->u.v1.o_tei));
++		gtp1_push_header(skb, htonl(pktinfo->pctx->u.v1.o_tei), set_qfi);
+ 		break;
+ 	}
+ }
+@@ -637,6 +704,7 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 	struct flowi4 fl4;
+ 	__be16 df;
+         u8 ttl;
++        __u8 set_qfi = 0;
+ 
+ 	/* Read the IP destination address and resolve the PDP context.
+ 	 * Prepend PDP header with TEI/TID from PDP ctx.
+@@ -658,9 +726,12 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+         df = info->key.tun_flags & TUNNEL_DONT_FRAGMENT ? htons(IP_DF) : 0;
+ 
+         netdev_dbg(dev, "packet with opt len %d", info->options_len);
+-	if (info->options_len == 0) {
+-		gtp1_push_header(skb, tunnel_id_to_key32(info->key.tun_id));
+-	} else if (info->key.tun_flags & TUNNEL_GTPU_OPT) {
++        if (info->options_len == 0) {
++            if (info->key.tun_flags & TUNNEL_OAM) {
++               set_qfi = 5;
++            }
++            gtp1_push_header(skb, tunnel_id_to_key32(info->key.tun_id), set_qfi);
++        } else if (info->key.tun_flags & TUNNEL_GTPU_OPT) {
+                 struct gtpu_metadata *opts = ip_tunnel_info_opts(info);
+                 __be32 tid = tunnel_id_to_key32(info->key.tun_id);
+                 int err;
+@@ -696,8 +767,10 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
+ 	struct rtable *rt;
+ 	struct flowi4 fl4;
+ 	struct iphdr *iph;
++        struct ip_tunnel_info *info = NULL;
+ 	__be16 df;
+ 	int mtu;
++        __u8 set_qfi = 0;
+ 
+ 	/* Read the IP destination address and resolve the PDP context.
+ 	 * Prepend PDP header with TEI/TID from PDP ctx.
+@@ -714,6 +787,13 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
+ 		return -ENOENT;
+ 	}
+ 	netdev_dbg(dev, "found PDP context %p\n", pctx);
++        if (pctx->gtp_version == GTP_V1) {
++            info = skb_tunnel_info(skb);
++            if ((ntohs(info->key.tp_dst) == GTP1U_PORT) &&
++                (info->key.tun_flags & TUNNEL_OAM)){
++                set_qfi = 5;
++            }
++        }
+ 
+ 	rt = ip4_route_output_gtp(&fl4, pctx->sk, pctx->peer_addr_ip4.s_addr);
+ 	if (IS_ERR(rt)) {
+@@ -764,7 +844,7 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
+ 	}
+ 
+ 	gtp_set_pktinfo_ipv4(pktinfo, pctx->sk, iph, pctx, rt, &fl4, dev);
+-	gtp_push_header(skb, pktinfo);
++	gtp_push_header(skb, pktinfo, set_qfi);
+ 
+ 	return 0;
+ err_rt:
+-- 
+2.17.1
+

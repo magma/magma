@@ -11,19 +11,28 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import asyncio
+import logging
 import subprocess
 import unittest
 from collections import namedtuple
 from unittest.mock import MagicMock, call, patch
 
+from lte.protos.policydb_pb2 import FlowMatch
+from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.qos.common import QosImplType, QosManager, SubscriberState
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.qos.qos_tc_impl import TrafficClass, argSplit, run_cmd
-from magma.pipelined.qos.types import QosInfo, get_key_json, get_key, get_subscriber_key, \
-        get_subscriber_data, get_data, get_data_json
+from magma.pipelined.qos.types import (
+    QosInfo,
+    get_data,
+    get_data_json,
+    get_key,
+    get_key_json,
+    get_subscriber_data,
+    get_subscriber_key,
+)
 from magma.pipelined.qos.utils import IdManager
-from lte.protos.policydb_pb2 import FlowMatch
-import logging
+
 
 class TestQosCommon(unittest.TestCase):
     def testIdManager(self):
@@ -104,37 +113,38 @@ class TestQosManager(unittest.TestCase):
         }
 
     def verifyTcAddQos(self, mock_get_action_inst, mock_traffic_cls, d, qid, qos_info,
-                       parent_qid=0):
+                       parent_qid=0, skip_filter=False):
         intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
         mock_get_action_inst.assert_any_call(qid)
-        mock_traffic_cls.init_qdisc.assert_any_call(self.ul_intf)
-        mock_traffic_cls.init_qdisc.assert_any_call(self.dl_intf)
+        mock_traffic_cls.init_qdisc.assert_any_call(self.ul_intf, enable_pyroute2=False)
+        mock_traffic_cls.init_qdisc.assert_any_call(self.dl_intf, enable_pyroute2=False)
         mock_traffic_cls.create_class.assert_any_call(intf, qid, qos_info.mbr,
-            rate=qos_info.gbr, parent_qid=parent_qid)
+            rate=qos_info.gbr, parent_qid=parent_qid, skip_filter=skip_filter)
 
     def verifyTcCleanRestart(self, prior_qids, mock_traffic_cls):
         for qid_tuple in prior_qids[self.ul_intf]:
             qid, _ = qid_tuple
             mock_traffic_cls.delete_class.assert_any_call(
-                self.ul_intf, qid, show_error=False)
+                self.ul_intf, qid)
 
         for qid_tuple in prior_qids[self.dl_intf]:
             qid, _ = qid_tuple
             mock_traffic_cls.delete_class.assert_any_call(
-                self.dl_intf, qid, show_error=False)
+                self.dl_intf, qid)
 
-    def verifyTcRemoveQos(self, mock_traffic_cls, d, qid, show_error=True):
+    def verifyTcRemoveQos(self, mock_traffic_cls, d, qid, skip_filter=False):
         intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
-        if not show_error:
-            mock_traffic_cls.delete_class.assert_any_call(intf, qid, show_error=False)
+
+        if skip_filter:
+            mock_traffic_cls.delete_class.assert_any_call(intf, qid, True)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(intf, qid)
+            mock_traffic_cls.delete_class.assert_any_call(intf, qid, False)
 
     def verifyTcRemoveQosBulk(self, mock_traffic_cls, argList):
         call_arg_list = []
         for d, qid in argList:
             intf = self.ul_intf if d == FlowMatch.UPLINK else self.dl_intf
-            call_arg_list.append(call(intf, qid))
+            call_arg_list.append(call(intf, qid, False))
         mock_traffic_cls.delete_class.assert_has_calls(call_arg_list)
 
     def verifyMeterAddQos(
@@ -251,8 +261,8 @@ get_action_instruction"
             self.verifyMeterRemoveQos(mock_meter_cls, FlowMatch.UPLINK, ul_exp_id)
             self.verifyMeterRemoveQos(mock_meter_cls, FlowMatch.DOWNLINK, dl_exp_id)
         else:
-            self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ul_exp_id, show_error=False)
-            self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, dl_exp_id, show_error=False)
+            self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ul_exp_id)
+            self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, dl_exp_id)
 
     @patch("magma.pipelined.qos.qos_tc_impl.TrafficClass")
     @patch("magma.pipelined.qos.qos_meter_impl.MeterClass")
@@ -279,7 +289,6 @@ get_action_instruction"
         and ensure that code doesn't behave incorrectly when same items are
         deleted multiple times
         - Finally we delete everything and verify if that behavior is right"""
-
 
         if self.config["qos"]["impl"] == QosImplType.LINUX_TC:
             mock_traffic_cls.read_all_classes.side_effect = lambda intf: []
@@ -496,7 +505,7 @@ get_action_instruction"
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             mock_meter_cls.del_meter.assert_called_with(MagicMock, 15)
         else:
-            mock_traffic_cls.delete_class.assert_called_with(self.ul_intf, 15)
+            mock_traffic_cls.delete_class.assert_called_with(self.ul_intf, 15, False)
 
         # add a new rule to the qos_mgr and check if it is assigned right id
         imsi, rule_num, d, qos_info = "3", 0, 0, QosInfo(100000, 100000)
@@ -520,7 +529,7 @@ get_action_instruction"
             mock_meter_cls.del_meter.assert_called_with(MagicMock, purge_qos_handle)
         else:
             mock_traffic_cls.delete_class.assert_called_with(
-                self.ul_intf, purge_qos_handle
+                self.ul_intf, purge_qos_handle, False
             )
 
         # case 2 - check with empty qos configs, qos_map gets purged
@@ -568,10 +577,10 @@ get_action_instruction"
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 13)
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 11)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 2)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 2, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11, False)
 
     @patch("magma.pipelined.qos.qos_tc_impl.TrafficClass")
     @patch("magma.pipelined.qos.qos_meter_impl.MeterClass")
@@ -636,9 +645,9 @@ get_action_instruction"
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             mock_meter_cls.del_meter.assert_called_with(MagicMock, 15)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1500)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1500, True)
 
         # add a new rule to the qos_mgr and check if it is assigned right id
         imsi, rule_num, d, qos_info = "3", 0, 0, QosInfo(100000, 100000)
@@ -661,9 +670,9 @@ get_action_instruction"
         if self.config["qos"]["impl"] == QosImplType.OVS_METER:
             mock_meter_cls.del_meter.assert_called_with(MagicMock, purge_qos_handle)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 11)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 110)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1100)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 11, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 110, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 1100, True)
 
         # case 2 - check with empty qos configs, qos_map gets purged
         mock_meter_cls.reset_mock()
@@ -711,14 +720,14 @@ get_action_instruction"
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 13)
             mock_meter_cls.del_meter.assert_any_call(MagicMock, 11)
         else:
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15)
-            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 15, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.ul_intf, 150, False)
 
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 130)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 13, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 130, False)
 
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11)
-            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 110)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 11, False)
+            mock_traffic_cls.delete_class.assert_any_call(self.dl_intf, 110, False)
 
     def testSanity(self):
         for impl_type in (QosImplType.LINUX_TC, QosImplType.OVS_METER):
@@ -808,9 +817,9 @@ get_action_instruction"
         self.assertTrue(len(qos_mgr._redis_store) == 0)
         self.assertTrue(imsi not in qos_mgr._subscriber_state)
 
-        self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ambr_ul_exp_id)
+        self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ambr_ul_exp_id, True)
         self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.UPLINK, ul_exp_id)
-        self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, ambr_dl_exp_id)
+        self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, ambr_dl_exp_id, True)
         self.verifyTcRemoveQos(mock_traffic_cls, FlowMatch.DOWNLINK, dl_exp_id)
 
 
@@ -837,12 +846,18 @@ class TestMeters(unittest.TestCase):
 
 
 class TestTrafficClass(unittest.TestCase):
+
     @patch("subprocess.check_call")
     @patch("os.geteuid", return_value=1)
     def testSudoUser(self, _, mock_check_call):
-        TrafficClass.init_qdisc("eth0")
+        intf = 'qt'
+        BRIDGE = 'qtbr0'
+        BridgeTools.create_bridge(BRIDGE, BRIDGE)
+        BridgeTools.create_internal_iface(BRIDGE, intf, None)
+
+        TrafficClass.init_qdisc(intf)
         mock_check_call.assert_any_call(
-            ["sudo", "tc", "qdisc", "add", "dev", "eth0", "root", "handle", "1:", "htb"]
+            ["sudo", "tc", "qdisc", "add", "dev", intf, "root", "handle", "1:", "htb"]
         )
 
     @patch("subprocess.check_call")
@@ -851,13 +866,16 @@ class TestTrafficClass(unittest.TestCase):
             raise subprocess.CalledProcessError(returncode=1, cmd="tc")
 
         mock_check_call.side_effect = dummy_check_call
-        with self.assertLogs("pipelined.qos.qos_tc_impl", level="ERROR") as cm:
+        with self.assertLogs("pipelined.qos.tc_cmd", level="ERROR") as cm:
             TrafficClass.init_qdisc("eth0", show_error=True)
-        self.assertTrue("error running tc qdisc add dev" in cm.output[0])
-
+        self.assertTrue("error: 1 running: tc qdisc add dev " in cm.output[0])
 
     def testSanityTrafficClass(self, ):
-        intf = 'eth0'
+        intf = 'qt'
+        BRIDGE = 'qtbr0'
+        BridgeTools.create_bridge(BRIDGE, BRIDGE)
+        BridgeTools.create_internal_iface(BRIDGE, intf, None)
+
         parent_qid = 2
         qid = 3
         apn_ambr = 1000000
@@ -873,14 +891,14 @@ class TestTrafficClass(unittest.TestCase):
                                   parent_qid=parent_qid)
 
         # check if the filters installed for leaf class only
-        filter_output = subprocess.check_output(['tc', 'filter', 'show', 'dev', 'eth0'])
+        filter_output = subprocess.check_output(['tc', 'filter', 'show', 'dev', intf])
         filter_list = filter_output.decode('utf-8').split("\n")
         filter_list = [ln for ln in filter_list if 'classid' in ln]
         assert('classid 1:{qid}'.format(qid=parent_qid) in filter_list[0])
         assert('classid 1:{qid}'.format(qid=qid) in filter_list[1])
 
         # check if classes are installed with appropriate bandwidth limits
-        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', 'eth0'])
+        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', intf])
         class_list = class_output.decode('utf-8').split("\n")
         for info in class_list:
             if 'class htb 1:{qid}'.format(qid=qid) in info:
@@ -893,40 +911,40 @@ class TestTrafficClass(unittest.TestCase):
         assert(child_class and 'rate 250Kbit ceil 500Kbit' in child_class)
 
         # check if fq_codel is associated only with the leaf class
-        qdisc_output = subprocess.check_output(['tc', 'qdisc', 'show', 'dev', 'eth0'])
+        qdisc_output = subprocess.check_output(['tc', 'qdisc', 'show', 'dev', intf])
 
         # check if read_all_classes work
-        qid_list = TrafficClass.read_all_classes('eth0')
-        assert( (qid, parent_qid) in qid_list)
+        qid_list = TrafficClass.read_all_classes(intf)
+        assert((qid, parent_qid) in qid_list)
 
         # delete leaf class
-        TrafficClass.delete_class('eth0', 3)
+        TrafficClass.delete_class(intf, 3)
 
         # check class for qid 3 removed
-        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', 'eth0'])
+        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', intf])
         class_list = class_output.decode('utf-8').split("\n")
         assert( not [info for info in class_list  if 'class htb 1:{qid}'.format(
             qid=qid) in info])
 
         # delete APN AMBR class
-        TrafficClass.delete_class('eth0', 2)
+        TrafficClass.delete_class(intf, 2)
 
         # verify that parent class is removed
-        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', 'eth0'])
+        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', intf])
         class_list = class_output.decode('utf-8').split("\n")
         assert( not [info for info in class_list  if 'class htb 1:{qid}'.format(
             qid=parent_qid) in info])
 
         # check if no fq_codel nor filter exists
-        qdisc_output = subprocess.check_output(['tc', 'qdisc', 'show', 'dev', 'eth0'])
-        filter_output = subprocess.check_output(['tc', 'filter', 'show', 'dev', 'eth0'])
+        qdisc_output = subprocess.check_output(['tc', 'qdisc', 'show', 'dev', intf])
+        filter_output = subprocess.check_output(['tc', 'filter', 'show', 'dev', intf])
         filter_list = filter_output.decode('utf-8').split("\n")
         filter_list = [ln for ln in filter_list if 'classid' in ln]
         qdisc_list = qdisc_output.decode('utf-8').split("\n")
         qdisc_list = [ln for ln in qdisc_list if 'fq_codel' in ln]
         assert(not filter_list and not qdisc_list)
 
-        # destroy all qos on eth0
+        # destroy all qos on intf
         run_cmd(['tc qdisc del dev {intf} root'.format(intf=intf)])
 
 

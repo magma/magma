@@ -1,0 +1,18 @@
+---
+name: Dockerfile Linting
+on: [pull_request]  # yamllint disable-line rule:truthy
+jobs:
+  hadolint:
+    name: Dockerfile Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v1
+      - name: hadolint
+        uses: reviewdog/action-hadolint@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          reporter: github-pr-review  # Default is github-pr-check
+          # Ignore DL3005-"Do not use apt-get upgrade or dist-upgrade"
+          hadolint_ignore: DL3005
+          filter_mode: added  # All added or modified lines

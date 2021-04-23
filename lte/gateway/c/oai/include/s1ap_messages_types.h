@@ -45,6 +45,9 @@
 #include "TrackingAreaIdentity.h"
 #include "nas/securityDef.h"
 
+#include "S1ap_Source-ToTarget-TransparentContainer.h"
+#include "S1ap_HandoverType.h"
+
 #define S1AP_ENB_DEREGISTERED_IND(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.s1ap_eNB_deregistered_ind
 #define S1AP_ENB_INITIATED_RESET_REQ(mSGpTR)                                   \
@@ -63,9 +66,12 @@
   (mSGpTR)->ittiMsg.s1ap_ue_context_mod_response
 #define S1AP_UE_CONTEXT_MODIFICATION_FAILURE(mSGpTR)                           \
   (mSGpTR)->ittiMsg.s1ap_ue_context_mod_failure
-
 #define S1AP_E_RAB_SETUP_REQ(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_setup_req
 #define S1AP_E_RAB_SETUP_RSP(mSGpTR) (mSGpTR)->ittiMsg.s1ap_e_rab_setup_rsp
+#define S1AP_E_RAB_MODIFICATION_IND(mSGpTR)                                    \
+  (mSGpTR)->ittiMsg.s1ap_e_rab_modification_ind
+#define S1AP_E_RAB_MODIFICATION_CNF(mSGpTR)                                    \
+  (mSGpTR)->ittiMsg.s1ap_e_rab_modification_cnf
 #define S1AP_INITIAL_UE_MESSAGE(mSGpTR)                                        \
   (mSGpTR)->ittiMsg.s1ap_initial_ue_message
 #define S1AP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.s1ap_nas_dl_data_req
@@ -80,6 +86,10 @@
   (mSGpTR)->ittiMsg.s1ap_path_switch_request_failure
 #define S1AP_REMOVE_STALE_UE_CONTEXT(mSGpTR)                                   \
   (mSGpTR)->ittiMsg.s1ap_remove_stale_ue_context
+#define S1AP_HANDOVER_REQUIRED(mSGpTR) (mSGpTR)->ittiMsg.s1ap_handover_required
+#define S1AP_HANDOVER_REQUEST_ACK(mSGpTR)                                      \
+  (mSGpTR)->ittiMsg.s1ap_handover_request_ack
+#define S1AP_HANDOVER_NOTIFY(mSGpTR) (mSGpTR)->ittiMsg.s1ap_handover_notify
 
 // NOT a ITTI message
 typedef struct s1ap_initial_ue_message_s {
@@ -185,6 +195,7 @@ enum s1cause {
   S1AP_NAS_NORMAL_RELEASE,
   S1AP_NAS_DETACH,
   S1AP_RADIO_EUTRAN_GENERATED_REASON,
+  S1AP_RADIO_UNKNOWN_E_RAB_ID,
   S1AP_IMPLICIT_CONTEXT_RELEASE,
   S1AP_INITIAL_CONTEXT_SETUP_FAILED,
   S1AP_SCTP_SHUTDOWN_OR_RESET,
@@ -192,6 +203,8 @@ enum s1cause {
   S1AP_INVALID_MME_UE_S1AP_ID,
   S1AP_CSFB_TRIGGERED,
   S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS,
+  S1AP_SYSTEM_FAILURE,
+  S1AP_RADIO_MULTIPLE_E_RAB_ID,
   S1AP_NAS_MME_OFFLOADING,
   S1AP_NAS_MME_PENDING_OFFLOADING
 };
@@ -350,4 +363,52 @@ typedef struct itti_s1ap_path_switch_request_failure_s {
   enb_ue_s1ap_id_t enb_ue_s1ap_id : 24;
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
 } itti_s1ap_path_switch_request_failure_t;
+
+typedef struct itti_s1ap_e_rab_modification_ind_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id;
+  // E-RAB to be Modified List
+  e_rab_to_be_modified_bearer_mod_ind_list_t e_rab_to_be_modified_list;
+  e_rab_not_to_be_modified_bearer_mod_ind_list_t e_rab_not_to_be_modified_list;
+  // Optional
+} itti_s1ap_e_rab_modification_ind_t;
+
+typedef struct itti_s1ap_e_rab_modification_cnf_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id;
+  // E-RAB Modify List
+  e_rab_modify_bearer_mod_conf_list_t e_rab_modify_list;
+  // Optional
+  e_rab_list_t e_rab_failed_to_modify_list;
+} itti_s1ap_e_rab_modification_cnf_t;
+
+typedef struct itti_s1ap_handover_required_s {
+  uint32_t sctp_assoc_id;
+  uint32_t enb_id;
+  S1ap_Cause_t cause;
+  S1ap_HandoverType_t handover_type;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  bstring src_tgt_container;
+} itti_s1ap_handover_required_t;
+
+typedef struct itti_s1ap_handover_request_ack_s {
+  uint32_t source_assoc_id;
+  uint32_t target_assoc_id;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  enb_ue_s1ap_id_t src_enb_ue_s1ap_id;
+  enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id;
+  uint32_t source_enb_id;
+  uint32_t target_enb_id;
+  S1ap_HandoverType_t handover_type;
+  bstring tgt_src_container;
+} itti_s1ap_handover_request_ack_t;
+
+typedef struct itti_s1ap_handover_notify_s {
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  uint32_t target_enb_id;
+  uint32_t target_sctp_assoc_id;
+  ecgi_t ecgi;
+  enb_ue_s1ap_id_t target_enb_ue_s1ap_id;
+  e_rab_admitted_list_t e_rab_admitted_list;
+} itti_s1ap_handover_notify_t;
 #endif /* FILE_S1AP_MESSAGES_TYPES_SEEN */

@@ -54,6 +54,7 @@ func Start() {
 
 	// Serve static assets for the Swagger UI
 	e.Static(obsidian.StaticURLPrefix+"/static/swagger-ui/dist", obsidian.StaticFolder+"/swagger-ui/dist")
+	e.Static(obsidian.StaticURLPrefix+"/v1/static", obsidian.StaticFolder+"/swagger/v1/static")
 
 	portStr := fmt.Sprintf(":%d", obsidian.Port)
 	log.Printf("Starting %s on %s", obsidian.Product, portStr)

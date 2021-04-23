@@ -11,13 +11,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import Callable, List
 import unittest
+from typing import Callable, List
 from unittest.mock import Mock
-from lte.protos.policydb_pb2 import ChargingRuleNameSet,\
-    SubscriberPolicySet, ApnPolicySet, PolicyRule, FlowDescription, FlowMatch
-from lte.protos.session_manager_pb2 import SessionRules, RulesPerSubscriber,\
-    RuleSet, StaticRuleInstall, DynamicRuleInstall
+
+from lte.protos.policydb_pb2 import (
+    ApnPolicySet,
+    ChargingRuleNameSet,
+    FlowDescription,
+    FlowMatch,
+    PolicyRule,
+    SubscriberPolicySet,
+)
+from lte.protos.session_manager_pb2 import (
+    DynamicRuleInstall,
+    RuleSet,
+    RulesPerSubscriber,
+    SessionRules,
+    StaticRuleInstall,
+)
 from magma.policydb.streamer_callback import ApnRuleMappingsStreamerCallback
 from magma.policydb.tests.mock_stubs import MockLocalSessionManagerStub
 from orc8r.protos.common_pb2 import Void

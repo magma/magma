@@ -13,33 +13,43 @@ limitations under the License.
 import os
 from collections import defaultdict
 
-from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
-from lte.protos.session_manager_pb2 import RuleRecord, \
-    RuleRecordTable
+from lte.protos.session_manager_pb2 import RuleRecord, RuleRecordTable
+from magma.pipelined.app.base import (
+    ControllerType,
+    MagmaController,
+    global_epoch,
+)
+from magma.pipelined.app.policy_mixin import (
+    DROP_FLOW_STATS,
+    IGNORE_STATS,
+    PROCESS_STATS,
+    PolicyMixin,
+)
+from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
+from magma.pipelined.imsi import decode_imsi, encode_imsi
+from magma.pipelined.openflow import flows, messages
+from magma.pipelined.openflow.exceptions import (
+    MagmaDPDisconnectedError,
+    MagmaOFError,
+)
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.openflow.messages import MessageHub, MsgChannel
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    IMSI_REG,
+    RULE_VERSION_REG,
+    SCRATCH_REGS,
+    Direction,
+)
+from magma.pipelined.policy_converters import get_eth_type, get_ue_ip_match_args
+from magma.pipelined.utils import Utils
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
-
-from magma.pipelined.app.base import MagmaController, ControllerType, \
-    global_epoch
-from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
-    PROCESS_STATS, DROP_FLOW_STATS
-from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
-from magma.pipelined.policy_converters import get_ue_ip_match_args, \
-    get_eth_type
-from magma.pipelined.openflow import messages, flows
-from magma.pipelined.openflow.exceptions import MagmaOFError
-from magma.pipelined.imsi import decode_imsi, encode_imsi
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.messages import MsgChannel, MessageHub
-from magma.pipelined.utils import Utils
-from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
-    IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
-from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
-
 
 ETH_FRAME_SIZE_BYTES = 14
 
@@ -143,7 +153,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         if self._clean_restart:
             self.delete_all_flows(datapath)
 
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -161,7 +171,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 rule.id, imsi, err)
             return RuleModResult.FAILURE
 
-        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
 
         try:
             chan = self._msg_hub.send(msgs, self._datapath)
@@ -188,13 +198,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._msg_hub.handle_error(ev)
 
     # pylint: disable=protected-access,unused-argument
-    def _get_rule_match_flow_msgs(self, imsi, _, __, ip_addr, ambr, rule):
+    def _get_rule_match_flow_msgs(self, imsi, _, __, ip_addr, ambr, rule, version):
         """
         Returns flow add messages used for rule matching.
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
-                                                                rule.id)
         self.logger.debug(
             'Installing flow for %s with rule num %s (version %s)', imsi,
             rule_num, version)
@@ -270,7 +278,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
                                         priority=Utils.DROP_PRIORITY)]
 
-    def _install_redirect_flow(self, imsi, ip_addr, rule):
+    def _install_redirect_flow(self, imsi, ip_addr, rule, version):
         pass
 
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
@@ -471,6 +479,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         record.rule_id = rule_id
         record.sid = sid
 
+        rule_version = _get_version(flow_stat)
+        if not rule_version:
+            rule_version = 0
+        record.rule_version = rule_version
+
         if ipv4_addr:
             record.ue_ipv4 = ipv4_addr
         elif ipv6_addr:
@@ -551,7 +564,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     ipv4_addr = IPAddress(version=IPAddress.IPV4,
                                           address=ipv4_addr_str.encode('utf-8'))
                 rule_version = _get_version(stat)
-                if rule_id == "":
+                if rule_id == "" or rule_version == None:
                     continue
 
                 current_ver = \

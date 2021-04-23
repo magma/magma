@@ -1,0 +1,184 @@
+#######
+# This pipeline runs various static analysis (e.g. GCC warnings) against the c / c++ pull requests.
+#
+# TODO: Move Docker container caching / storage to a repository
+#
+# TODO: Reduce workflow description duplication across jobs
+#   - Option: by use of Workflow Templates per gcc-build-target (need to move docker build to another workflow and requires container repo)
+#   - Option: by improving our build system and enabling faster build-all-targets
+#######
+name: "GCC Warnings & Errors"
+on:
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - lte/gateway/c/**
+      - orc8r/gateway/c/**
+
+# See [Example Sharing Container Between Jobs](https://github.com/docker/build-push-action/issues/225)
+jobs:
+  gen_build_container:
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: Check Out Repo 
+        uses: actions/checkout@v2
+      - 
+        name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      - 
+        name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx
+      - 
+        name: Docker Build
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./lte/gateway/docker/mme/Dockerfile.ubuntu20.04
+          push: false
+          tags: magma/mme_builder:latest
+          outputs: type=docker,dest=/tmp/mme_builder.tar
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+      - 
+        # Temp fix
+        # https://github.com/docker/build-push-action/issues/252
+        # https://github.com/moby/buildkit/issues/1896
+        name: Move cache - Fixup for buildx cache issue
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
+      -
+        name: Upload docker image for other jobs
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_container
+          path: /tmp/mme_builder.tar
+
+  build_oai:
+    runs-on: ubuntu-latest
+    needs: gen_build_container
+    steps:
+      - 
+        # This is necessary for overlays into the Docker container below.
+        name: Check Out Repo 
+        uses: actions/checkout@v2
+      -
+        # I am using mmagician fork of get-changed-files (forked from jitterbit/get-changed-files)
+        #   Rationale: our workflow (merge branch into upstream master) is incompatible
+        #   See long list of GH Issues on https://github.com/jitterbit/get-changed-files w.r.t. head ahead of base
+        name: Fetch list of changed files
+        id: changed_files
+        uses: mmagician/get-changed-files@v2
+        with:
+          format: 'space-delimited'
+      -
+        name: Download docker image from generate_container_for_build
+        uses: actions/download-artifact@v2
+        with:
+          name: build_container
+          path: /tmp
+      -
+        name: Load Docker image
+        run: |
+          docker load --input /tmp/mme_builder.tar
+          docker image ls -a
+      -
+        # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
+        #
+        # Additional GH Issues regarding paths for monorepos without root build.
+        # - https://github.com/actions/runner/issues/659
+        # - https://github.com/actions/runner/issues/765
+        #
+        # Paths emitted on warnings must be relative to the repository (e.g. lte/gateway/...),
+        # Therefore below I use `xo` to fixup our path emissions on gcc warnings.
+        uses: electronjoe/gcc-problem-matcher@v1
+      -
+        name: Build and Apply GCC Problem Matcher
+        uses: addnab/docker-run-action@v2
+        with:
+          image: magma/mme_builder:latest
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/magma -e ABC=123
+          run: |
+            cd /magma/lte/gateway/
+            CPPFLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wjump-misses-init -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2" make build_oai 2>&1 > /magma/compile.log
+            BUILD_EXIT_CODE=$?
+            for file in ${{ steps.changed_files.outputs.all }};
+            do grep "$file" /magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
+            done;
+            exit $BUILD_EXIT_CODE
+      -
+        name: Store build_logs_oai Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_logs_oai
+          path: ${{ github.workspace }}/compile.log      
+
+  build_session_manager:
+    runs-on: ubuntu-latest
+    needs: gen_build_container
+    steps:
+      - 
+        # This is necessary for overlays into the Docker container below.
+        name: Check Out Repo 
+        uses: actions/checkout@v2
+      -
+        # I am using mmagician fork of get-changed-files (forked from jitterbit/get-changed-files)
+        #   Rationale: our workflow (merge branch into upstream master) is incompatible
+        #   See long list of GH Issues on https://github.com/jitterbit/get-changed-files w.r.t. head ahead of base
+        name: Fetch list of changed files
+        id: changed_files
+        uses: mmagician/get-changed-files@v2
+        with:
+          format: 'space-delimited'
+      -
+        name: Download docker image from generate_container_for_build
+        uses: actions/download-artifact@v2
+        with:
+          name: build_container
+          path: /tmp
+      -
+        name: Load Docker image
+        run: |
+          docker load --input /tmp/mme_builder.tar
+          docker image ls -a
+      -
+        # If needed https://github.com/microsoft/vscode-cpptools/issues/2266 for path fixups
+        #
+        # Additional GH Issues regarding paths for monorepos without root build.
+        # - https://github.com/actions/runner/issues/659
+        # - https://github.com/actions/runner/issues/765
+        #
+        # Paths emitted on warnings must be relative to the repository (e.g. lte/gateway/...),
+        # Therefore below I use `xo` to fixup our path emissions on gcc warnings.
+        uses: electronjoe/gcc-problem-matcher@v1
+      -
+        name: Build and Apply GCC Problem Matcher
+        uses: addnab/docker-run-action@v2
+        with:
+          image: magma/mme_builder:latest
+          # TODO: Remove work-around mount of Github workspace to /magma (https://github.com/addnab/docker-run-action/issues/11)
+          options: -v ${{ github.workspace }}:/magma -e ABC=123
+          run: |
+            cd /magma/lte/gateway/
+            CPPFLAGS="-Wextra -Wshadow -Wimplicit-fallthrough -Wduplicated-cond -Wduplicated-branches -Wlogical-op -Wnull-dereference -Wjump-misses-init -Wformat=2 -Wstrict-overflow=4 -Wuninitialized -Wshift-overflow=2" make build_session_manager 2>&1 > /magma/compile.log
+            BUILD_EXIT_CODE=$?
+            for file in ${{ steps.changed_files.outputs.all }};
+            do grep "$file" /magma/compile.log | xo '/\/magma\/((.*):(\d+):(\d+):\s+(?:fatal\s)?(warning|error):\s+(.*))/$1/' || true;
+            done;
+            exit $BUILD_EXIT_CODE
+      -
+        name: Store build_logs_session_manager Artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: build_logs_session_manager
+          path: ${{ github.workspace }}/compile.log      

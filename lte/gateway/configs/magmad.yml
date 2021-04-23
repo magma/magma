@@ -14,6 +14,8 @@
 
 # log_level is set in mconfig. it can be overridden here
 
+print_grpc_payload: False
+
 # List of services for magmad to control
 magma_services:
   - control_proxy

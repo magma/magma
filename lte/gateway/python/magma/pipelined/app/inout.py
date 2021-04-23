@@ -12,35 +12,38 @@ limitations under the License.
 """
 import ipaddress
 import threading
-
 from collections import namedtuple
 
-from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-
-from scapy.arch import get_if_hwaddr, get_if_addr
-from scapy.data import ETHER_BROADCAST, ETH_P_ALL
-from scapy.error import Scapy_Exception
-from scapy.layers.l2 import ARP, Ether, Dot1Q
-from scapy.sendrecv import srp1
-
-from .base import MagmaController
-from magma.pipelined.mobilityd_client import get_mobilityd_gw_info, \
-    set_mobilityd_gw_info
 from lte.protos.mobilityd_pb2 import IPAddress
-
+from magma.pipelined.app.base import MagmaController
 from magma.pipelined.app.li_mirror import LIMirrorController
-from magma.pipelined.openflow import flows
+from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
+from magma.pipelined.mobilityd_client import (
+    get_mobilityd_gw_info,
+    set_mobilityd_gw_info,
+)
+from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub, MsgChannel
-from magma.pipelined.openflow.registers import load_direction, Direction, \
-    PASSTHROUGH_REG_VAL, TUN_PORT_REG, PROXY_TAG_TO_PROXY
-from magma.pipelined.app.restart_mixin import RestartMixin, DefaultMsgsMap
-
-from ryu.lib import hub
-from ryu.lib.packet import ether_types
+from magma.pipelined.openflow.registers import (
+    PASSTHROUGH_REG_VAL,
+    PROXY_TAG_TO_PROXY,
+    REG_ZERO_VAL,
+    TUN_PORT_REG,
+    Direction,
+    load_direction,
+)
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
+from ryu.lib import hub
+from ryu.lib.packet import ether_types
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
+from scapy.arch import get_if_addr, get_if_hwaddr
+from scapy.data import ETH_P_ALL, ETHER_BROADCAST
+from scapy.error import Scapy_Exception
+from scapy.layers.l2 import ARP, Dot1Q, Ether
+from scapy.sendrecv import srp1
 
 # ingress and egress service names -- used by other controllers
 
@@ -206,7 +209,7 @@ class InOutController(RestartMixin, MagmaController):
         # Allow passthrough pkts(skip enforcement and send to egress table)
         ps_match = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
         msgs.append(flows.get_add_resubmit_next_service_flow_msg(dp,
-            self._midle_tbl_num, ps_match,actions=[], 
+            self._midle_tbl_num, ps_match, actions=[],
             priority=flows.PASSTHROUGH_PRIORITY,
             resubmit_table=self._egress_tbl_num))
 
@@ -363,14 +366,26 @@ class InOutController(RestartMixin, MagmaController):
             )
 
         # set a direction bit for outgoing (pn -> inet) traffic for remaining traffic
-        match = MagmaMatch()
+        # Passthrough is zero for packets from eNodeB GTP tunnels
+        ps_match_out = MagmaMatch(passthrough=REG_ZERO_VAL)
         actions = [load_direction(parser, Direction.OUT)]
         msgs.append(
-            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num,match,
+            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_out,
                                                  actions=actions,
                                                  priority=flows.MINIMUM_PRIORITY,
                                                  resubmit_table=next_table)
         )
+        # Passthrough is one for packets from remote PGW GTP tunnels, set direction
+        # flag to IN for such packets.
+        ps_match_in = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
+        actions = [load_direction(parser, Direction.IN)]
+        msgs.append(
+            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_in,
+                                                 actions=actions,
+                                                 priority=flows.MINIMUM_PRIORITY,
+                                                 resubmit_table=next_table)
+        )
+
         return msgs
 
     def _get_gw_mac_address(self, ip: IPAddress, vlan: str = "") -> str:

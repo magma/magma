@@ -56,14 +56,14 @@ module orc8r {
 module orc8r-app {
   source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.4"
   # ...
-  orc8r_chart_version   = "1.5.15"
+  orc8r_chart_version   = "1.5.16"
   orc8r_tag             = "MAGMA_TAG"  # from build step, e.g. v1.4.0
   orc8r_deployment_type = "fwa"        # valid options: ["fwa", "federated_fwa", "all"]
 }
 ```
 
 Set `cluster_version` to the Kubernetes version found during the
-`Prerequisites` section. Bump your chart version to `1.5.15` and `orc8r_tag` to
+`Prerequisites` section. Bump your chart version to `1.5.16` and `orc8r_tag` to
 the semver tag you published your new Orchestrator container images as.
 You also need to set the `orc8r_deployment_type` variable to the deployment
 type that you intend to deploy. This type sets which orc8r modules will run.
@@ -92,7 +92,7 @@ a separate terminal tab and manually scale the Prometheus deployment. You can
 re-run the Terraform command if it times out.
 
 ```bash
-kubectl -n orc8r scale deployment orc8r-prometheus --replicas=0 && kubectl -n orc8r scale deployment orc8r-prometheus --replicas=1
+kubectl --namespace orc8r scale deployment orc8r-prometheus --replicas=0 && kubectl --namespace orc8r scale deployment orc8r-prometheus --replicas=1
 ```
 
 After the Terraform command completes, all application components should be

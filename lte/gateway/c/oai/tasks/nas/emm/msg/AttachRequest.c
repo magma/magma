@@ -63,8 +63,13 @@ int decode_attach_request(
            &attach_request->uenetworkcapability, 0, buffer + decoded,
            len - decoded)) < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, TLV_VALUE_DOESNT_MATCH);
-  } else
+  }
+
+  else
     decoded += decoded_result;
+  OAILOG_DEBUG(
+      LOG_NAS_EMM, "    EN_DC value in Attach request %d \n",
+      attach_request->uenetworkcapability.dcnr);
 
   if ((decoded_result = decode_esm_message_container(
            &attach_request->esmmessagecontainer, 0, buffer + decoded,
@@ -264,6 +269,22 @@ int decode_attach_request(
         attach_request->presencemask |= ATTACH_REQUEST_OLD_GUTI_TYPE_PRESENT;
         break;
 
+      case ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI:
+        if ((decoded_result = decode_ue_additional_security_capability(
+                 &attach_request->ueadditionalsecuritycapability,
+                 ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI,
+                 buffer + decoded, len - decoded)) <= 0) {
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+        }
+
+        decoded += decoded_result;
+        /*
+         * Set corresponding mask to 1 in presencemask
+         */
+        attach_request->presencemask |=
+            ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI;
+        break;
+
       case ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI:
         if ((decoded_result =
                  decode_voice_domain_preference_and_ue_usage_setting(
@@ -358,7 +379,10 @@ int encode_attach_request(
            len - encoded)) < 0)  // Return in case of error
     return encode_result;
   else
-    encoded += encode_result;
+    OAILOG_DEBUG(
+        LOG_NAS_EMM, "    EN_DC value in encoded Attach request %d \n",
+        attach_request->uenetworkcapability.dcnr);
+  encoded += encode_result;
 
   if ((encode_result = encode_esm_message_container(
            attach_request->esmmessagecontainer, 0, buffer + encoded,

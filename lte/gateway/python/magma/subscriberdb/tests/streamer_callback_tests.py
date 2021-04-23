@@ -19,10 +19,10 @@ import unittest
 import unittest.mock
 
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
+from magma.common.service_registry import ServiceRegistry
 from magma.subscriberdb.store.sqlite import SqliteStore
 from magma.subscriberdb.streamer_callback import SubscriberDBStreamerCallback
 
-from magma.common.service_registry import ServiceRegistry
 
 class MockFuture(object):
     is_error = True

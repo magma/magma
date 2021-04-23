@@ -11,21 +11,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from netaddr import IPNetwork
+import threading
+import time
 import unittest
 from unittest.mock import MagicMock
-import time
-import threading
 
+from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.openflow.exceptions import MagmaOFError
+from magma.pkt_tester.tests.test_topology_builder import check_env
+from netaddr import IPNetwork
 from nose.plugins.skip import SkipTest
 from ryu.app.ofctl.exception import InvalidDatapath
 from ryu.base.app_manager import AppManager
-
-from magma.pipelined.openflow.exceptions import MagmaOFError
-from magma.pkt_tester.tests.test_topology_builder import check_env
-from magma.pipelined.app.base import MagmaController, ControllerType
-
-
 
 """
 Writing tests for pipelined
@@ -182,7 +179,7 @@ class BaseMagmaTest:
             if tries > 10:
                 raise ValueError("Switch didn't connect in time, failing")
 
-
+@unittest.skip
 class MagmaControllerPktTest(BaseMagmaTest.MagmaControllerTest):
     def setUp(self):
         super(MagmaControllerPktTest, self).setUp()
@@ -190,8 +187,8 @@ class MagmaControllerPktTest(BaseMagmaTest.MagmaControllerTest):
 
     def _generate_topology(self):
         # import here, after we've checked the environment
-        from ovstest import util
         from magma.pkt_tester.topology_builder import TopologyBuilder
+        from ovstest import util
 
         self._topo_builder = TopologyBuilder()
 
@@ -209,8 +206,8 @@ class MagmaControllerPktTest(BaseMagmaTest.MagmaControllerTest):
 
     def test_delete_all_flows(self):
         # import here, after we've checked the environment
-        from ovstest import util
         from magma.pkt_tester.topology_builder import OvsException
+        from ovstest import util
 
         # basic setup
         self._generate_topology()
@@ -242,8 +239,8 @@ class MagmaControllerPktTest(BaseMagmaTest.MagmaControllerTest):
 
     def test_delete_table_flows(self):
         # import here, after we've checked the environment
-        from ovstest import util
         from magma.pkt_tester.topology_builder import OvsException
+        from ovstest import util
 
         # basic setup
         self._generate_topology()

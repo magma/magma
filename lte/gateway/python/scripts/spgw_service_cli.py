@@ -15,11 +15,10 @@ limitations under the License.
 
 import argparse
 
-from magma.common.rpc_utils import grpc_wrapper
-from lte.protos.spgw_service_pb2 import CreateBearerRequest, \
-    DeleteBearerRequest
+from lte.protos.policydb_pb2 import FlowQos, PolicyRule, QosArp
+from lte.protos.spgw_service_pb2 import CreateBearerRequest, DeleteBearerRequest
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
-from lte.protos.policydb_pb2 import PolicyRule, FlowQos, QosArp
+from magma.common.rpc_utils import grpc_wrapper
 from magma.subscriberdb.sid import SIDUtils
 
 

@@ -13,6 +13,15 @@
 
 # log_level is set in mconfig. it can be overridden here
 
+# Append GRPC content to the log
+print_grpc_payload: False
+
+# Size of subscriber pages returned from cloud
+subscriber_page_size: 3000
+
+# Interval in seconds between gateway and cloud sync
+subscriberdb_sync_interval: 180
+
 # Host address of the Diameter/S6A MME server
 host_address: 0.0.0.0 # Bind to all interfaces
 

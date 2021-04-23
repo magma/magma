@@ -12,18 +12,19 @@ limitations under the License.
 """
 
 import logging
-import threading
 import subprocess
-from enum import Enum
+import threading
 from collections import namedtuple
 from concurrent.futures import Future
+from enum import Enum
 
-from magma.pipelined.rule_mappers import RuleIDToNumMapper
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
-from magma.pipelined.app.base import MagmaController, ControllerType
-from magma.pipelined.tests.app.exceptions import ServiceRunningError,\
-    BadConfigError
-
+from magma.pipelined.rule_mappers import RuleIDToNumMapper
+from magma.pipelined.tests.app.exceptions import (
+    BadConfigError,
+    ServiceRunningError,
+)
 from ryu.base.app_manager import AppManager
 from ryu.lib import hub
 

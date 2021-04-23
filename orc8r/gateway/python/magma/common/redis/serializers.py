@@ -10,10 +10,10 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import jsonpickle
 from typing import Callable, Generic, Type, TypeVar
-from orc8r.protos.redis_pb2 import RedisState
 
+import jsonpickle
+from orc8r.protos.redis_pb2 import RedisState
 
 T = TypeVar('T')
 

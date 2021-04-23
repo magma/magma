@@ -56,6 +56,7 @@ echo "Setting up infra helm charts..."
 helm repo add stable https://charts.helm.sh/stable/
 helm repo add jetstack https://charts.jetstack.io
 helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add elastic https://helm.elastic.co
 
 # This should point to a repo where built charts are located
 #helm repo add github-repo
@@ -73,7 +74,9 @@ kubectl -n mariadb exec -it mariadb-master-0 -- mysql -u root --password=$db_roo
 
 echo "Setting up Magma helm charts..."
 helm -n $namespace upgrade --install fluentd stable/fluentd -f charts/fluentd.yaml
-helm -n $namespace upgrade --install elasticsearch stable/elasticsearch -f charts/elasticsearch.yaml
+helm -n $namespace upgrade --install elasticsearch-master elastic/elasticsearch -f charts/elasticsearch-master.yaml
+helm -n $namespace upgrade --install elasticsearch-data elastic/elasticsearch -f charts/elasticsearch-data.yaml
+helm -n $namespace upgrade --install elasticsearch-data2 elastic/elasticsearch -f charts/elasticsearch-data2.yaml
 helm -n $namespace upgrade --install elasticsearch-curator stable/elasticsearch-curator -f charts/elasticsearch-curator.yaml
 helm -n $namespace upgrade --install kibana stable/kibana -f charts/kibana.yaml
 

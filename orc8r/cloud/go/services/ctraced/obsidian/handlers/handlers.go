@@ -62,7 +62,7 @@ func listCallTraces(c echo.Context) error {
 		return nerr
 	}
 
-	callTraces, err := configurator.LoadAllEntitiesOfType(
+	callTraces, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, orc8r.CallTraceEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
@@ -158,7 +158,9 @@ func getUpdateCallTraceHandlerFunc(client GwCtracedClient, storage storage.Ctrac
 			return obsidian.HttpError(errors.New("Error: call trace end already triggered earlier"), http.StatusBadRequest)
 		}
 
-		req := &protos.EndTraceRequest{}
+		req := &protos.EndTraceRequest{
+			TraceId: callTraceID,
+		}
 		resp, err := client.EndCallTrace(networkID, callTrace.Config.GatewayID, req)
 		if err != nil {
 			return err
@@ -256,7 +258,9 @@ func getNetworkIDAndCallTraceID(c echo.Context) (string, string, *echo.HTTPError
 
 func buildStartTraceRequest(cfg *models.CallTraceConfig) (*protos.StartTraceRequest, error) {
 	req := &protos.StartTraceRequest{
+		TraceId:        cfg.TraceID,
 		TraceType:      protos.StartTraceRequest_ALL,
+		Timeout:        cfg.Timeout,
 		CaptureFilters: cfg.CaptureFilters,
 		DisplayFilters: cfg.DisplayFilters,
 	}

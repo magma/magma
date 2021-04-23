@@ -13,7 +13,7 @@ limitations under the License.
 
 import unittest
 
-from magma.pipelined.imsi import encode_imsi, decode_imsi
+from magma.pipelined.imsi import decode_imsi, encode_imsi
 
 
 class IMSIEncodingTest(unittest.TestCase):

@@ -1,0 +1,4 @@
+---
+
+- name: delete elasticsearch
+  command: aws es delete-elasticsearch-domain --domain-name "{{ orc8rElasticsearch }}"

@@ -28,7 +28,7 @@
  * policies, either expressed or implied, of the FreeBSD Project.
  */
 
-#define _GNU_SOURCE
+#define GNU_SOURCE
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -129,12 +129,28 @@ int send_msg_to_task(
       message, sizeof(MessageHeader) + message->ittiMsgHeader.ittiMsgSize);
   assert(frame);
 
+  // Protect against multiple threads using this context
+  pthread_mutex_lock(&task_zmq_ctx_p->send_mutex);
   int rc =
       zframe_send(&frame, task_zmq_ctx_p->push_socks[destination_task_id], 0);
   assert(rc == 0);
+  pthread_mutex_unlock(&task_zmq_ctx_p->send_mutex);
 
   free(message);
   return 0;
+}
+
+MessageDef* receive_msg(zsock_t* reader) {
+  zframe_t* msg_frame = zframe_recv(reader);
+  assert(msg_frame);
+
+  // Copy message to avoid memory alignment problems
+  MessageDef* msg = (MessageDef*) malloc(zframe_size(msg_frame));
+  AssertFatal(msg != NULL, "Message memory allocation failed!\n");
+  memcpy(msg, zframe_data(msg_frame), zframe_size(msg_frame));
+
+  zframe_destroy(&msg_frame);
+  return msg;
 }
 
 void send_broadcast_msg(task_zmq_ctx_t* task_zmq_ctx_p, MessageDef* message) {
@@ -181,6 +197,8 @@ void init_task_context(
 
   task_zmq_ctx_p->event_loop = zloop_new();
   assert(task_zmq_ctx_p->event_loop);
+
+  pthread_mutex_init(&task_zmq_ctx_p->send_mutex, NULL);
 
   for (int i = 0; i < remote_tasks_count; i++) {
     task_zmq_ctx_p->push_socks[remote_task_ids[i]] =
@@ -308,10 +326,8 @@ int itti_create_task(
       result >= 0, "Thread creation for task %d, thread %d failed (%d)!\n",
       task_id, thread_id, result);
 
-  char name[16];
-
-  snprintf(name, sizeof(name), "ITTI %d", thread_id);
-  pthread_setname_np(itti_desc.threads[thread_id].task_thread, name);
+  pthread_setname_np(
+      itti_desc.threads[thread_id].task_thread, itti_get_task_name(task_id));
   itti_desc.created_tasks++;
 
   // Wait till the thread is completely ready

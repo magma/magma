@@ -20,26 +20,26 @@ import logging
 import threading
 
 import aioeventlet
-from ryu import cfg
-from ryu.base.app_manager import AppManager
-from scapy.arch import get_if_hwaddr
-from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-
+from lte.protos.mconfig import mconfigs_pb2
 from magma.common.misc_utils import call_process, get_ip_from_if
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration import environment
 from magma.pipelined.app import of_rest_server
-from magma.pipelined.check_quota_server import run_flask
-from magma.pipelined.service_manager import ServiceManager
-from magma.pipelined.ifaces import monitor_ifaces
-from magma.pipelined.rpc_servicer import PipelinedRpcServicer
-from magma.pipelined.gtp_stats_collector import GTPStatsCollector, \
-    MIN_OVSDB_DUMP_POLLING_INTERVAL
-
 from magma.pipelined.app.he import PROXY_PORT_NAME
 from magma.pipelined.bridge_util import BridgeTools
-from lte.protos.mconfig import mconfigs_pb2
-
+from magma.pipelined.check_quota_server import run_flask
+from magma.pipelined.gtp_stats_collector import (
+    MIN_OVSDB_DUMP_POLLING_INTERVAL,
+    GTPStatsCollector,
+)
+from magma.pipelined.ifaces import monitor_ifaces
+from magma.pipelined.rpc_servicer import PipelinedRpcServicer
+from magma.pipelined.service_manager import ServiceManager
+from ryu import cfg
+from ryu.base.app_manager import AppManager
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
+from scapy.arch import get_if_hwaddr
 
 
 def main():
@@ -53,6 +53,10 @@ def main():
     asyncio.set_event_loop_policy(aioeventlet.EventLoopPolicy())
 
     service = MagmaService('pipelined', mconfigs_pb2.PipelineD())
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
+
     service_config = service.config
 
     if environment.is_dev_mode():

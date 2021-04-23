@@ -14,7 +14,6 @@ limitations under the License.
 import logging
 from logging.handlers import RotatingFileHandler
 
-
 LOG_FILE = 'var/log/enodebd.log'
 MAX_BYTES = 1024 * 1024 * 10  # 10MB
 BACKUP_COUNT = 5  # 10MB, 5 files, 50MB total

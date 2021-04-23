@@ -12,19 +12,24 @@ limitations under the License.
 """
 
 from threading import Thread
+from typing import List
 from unittest import mock
-from magma.enodebd.enodeb_status import get_service_status_old, \
-    get_operational_states
-from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
+
+from lte.protos.mconfig import mconfigs_pb2
+from magma.common.sentry import sentry_init
+from magma.common.service import MagmaService
+from magma.enodebd.enodeb_status import (
+    get_operational_states,
+    get_service_status_old,
+)
 from magma.enodebd.logger import EnodebdLogger as logger
+from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
+from orc8r.protos.service303_pb2 import State
+
+from .enodebd_iptables_rules import set_enodebd_iptables_rule
 from .rpc_servicer import EnodebdRpcServicer
 from .stats_manager import StatsManager
 from .tr069.server import tr069_server
-from .enodebd_iptables_rules import set_enodebd_iptables_rule
-from magma.common.service import MagmaService
-from orc8r.protos.service303_pb2 import State
-from lte.protos.mconfig import mconfigs_pb2
-from typing import List
 
 
 def get_context(ip: str):
@@ -40,6 +45,9 @@ def main():
     """
     service = MagmaService('enodebd', mconfigs_pb2.EnodebD())
     logger.init()
+
+    # Optionally pipe errors to Sentry
+    sentry_init()
 
     # State machine manager for tracking multiple connected eNB devices.
     state_machine_manager = StateMachineManager(service)

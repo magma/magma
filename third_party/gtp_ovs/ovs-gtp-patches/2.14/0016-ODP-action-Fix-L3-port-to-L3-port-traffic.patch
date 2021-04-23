@@ -1,0 +1,65 @@
+From da9cd274d99621523cbb2e7f392acb6ee362a12a Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Sun, 18 Apr 2021 17:17:56 +0000
+Subject: [PATCH 16/16] ODP-action: Fix L3 port to L3 port traffic.
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ lib/odp-util.c | 27 +++++++++++++++++++++++++--
+ 1 file changed, 25 insertions(+), 2 deletions(-)
+
+diff --git a/lib/odp-util.c b/lib/odp-util.c
+index ec8fb313e..681350698 100644
+--- a/lib/odp-util.c
++++ b/lib/odp-util.c
+@@ -8605,6 +8605,27 @@ odp_put_push_nsh_action(struct ofpbuf *odp_actions,
+     nl_msg_end_nested(odp_actions, offset);
+ }
+ 
++static void OVS_PRINTF_FORMAT(2, 3)
++log_flow(const struct flow *flow, const char *format, ...)
++{
++    static struct vlog_rate_limit rl = VLOG_RATE_LIMIT_INIT(1, 5);
++    if (VLOG_DROP_DBG(&rl)) {
++        return;
++    }
++
++    struct ds s = DS_EMPTY_INITIALIZER;
++    va_list args;
++    va_start(args, format);
++    ds_put_format_valist(&s, format, args);
++    va_end(args);
++
++    ds_put_cstr(&s, " Unexpected state while processing ");
++    flow_format(&s, flow, NULL);
++    VLOG_DBG("%s", ds_cstr(&s));
++    ds_destroy(&s);
++}
++
++
+ static void
+ commit_encap_decap_action(const struct flow *flow,
+                           struct flow *base_flow,
+@@ -8635,7 +8656,8 @@ commit_encap_decap_action(const struct flow *flow,
+         default:
+             /* Only the above protocols are supported for encap.
+              * The check is done at action translation. */
+-            OVS_NOT_REACHED();
++            log_flow(flow, "pending encap");
++            return;
+         }
+     } else if (pending_decap || flow->packet_type != base_flow->packet_type) {
+         /* This is an explicit or implicit decap case. */
+@@ -8656,7 +8678,8 @@ commit_encap_decap_action(const struct flow *flow,
+                 break;
+             default:
+                 /* Checks are done during translation. */
+-                OVS_NOT_REACHED();
++                log_flow(flow, "pending dencap");
++                return;
+             }
+         }
+     }
+-- 
+2.17.1
+

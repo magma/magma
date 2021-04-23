@@ -1,0 +1,7 @@
+---
+
+- name: delete rds snapshots
+  command: aws rds delete-db-snapshot --db-snapshot-identifier "{{ item }}"
+  with_items: 
+    - "{{ orc8rDbSnapshots }}"
+

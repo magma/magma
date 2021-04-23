@@ -19,6 +19,7 @@ class Upgrader(object):
     Interface for software upgraders. Implementation of the actual upgrade
     process is left up to the derived classes.
     """
+
     def perform_upgrade_if_necessary(self, target_version):
         """
         Perform the software upgrade if it is required, otherwise no-op.
@@ -40,6 +41,7 @@ class UpgraderFactory(object):
 
     Note that factories are not instantiated with any arguments in magmad.
     """
+
     def create_upgrader(self, magmad_service, loop):
         """
         Instantiate a concrete instance of an Upgrader.

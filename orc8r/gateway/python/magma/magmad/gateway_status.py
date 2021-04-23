@@ -14,26 +14,27 @@ limitations under the License.
 
 import json
 import logging
-import psutil
 import platform
 import time
+from collections.abc import KeysView
+from typing import Any, Dict, List, NamedTuple, Optional, Tuple
+
 import netifaces
-from typing import NamedTuple, List, Any, Dict, Optional, Tuple
-from collections import KeysView
+import psutil
+from magma.common.job import Job
 from magma.common.misc_utils import (
-    get_ip_from_if,
-    is_interface_up,
+    IpPreference,
     get_all_ips_from_if_cidr,
     get_if_mac_address,
-    IpPreference,
+    get_ip_from_if,
+    is_interface_up,
 )
 from magma.common.service import MagmaService
-from magma.magmad.check.machine_check.cpu_info import get_cpu_info
-from magma.magmad.check.network_check.routing_table import get_routing_table
 from magma.magmad.check.kernel_check.kernel_versions import (
     get_kernel_versions_async,
 )
-from magma.common.job import Job
+from magma.magmad.check.machine_check.cpu_info import get_cpu_info
+from magma.magmad.check.network_check.routing_table import get_routing_table
 from magma.magmad.service_poller import ServicePoller
 
 GatewayStatus = NamedTuple(
@@ -53,7 +54,7 @@ PlatformInfo = NamedTuple(
     'PlatformInfo',
     [('vpn_ip', str), ('packages', List[Dict[str, Any]]),
      ('kernel_version', str), ('kernel_versions_installed', List[str]),
-     ('config_info',  Dict[str, Any])])
+     ('config_info', Dict[str, Any])])
 
 MachineInfo = NamedTuple(
     'MachineInfo',
@@ -95,6 +96,7 @@ class KernelVersionsPoller(Job):
     store the result. get_kernel_versions_installed can be called to get the
     latest list.
     """
+
     def __init__(self, service):
         super().__init__(
             interval=service.mconfig.checkin_interval,
@@ -122,6 +124,7 @@ class GatewayStatusFactory:
     the gateway status object. The object mimics the swagger spec for
     GatewayStatus defined in the orc8r.
     """
+
     def __init__(self, service: MagmaService,
                  service_poller: ServicePoller,
                  kernel_version_poller: Optional[KernelVersionsPoller]):
@@ -162,7 +165,7 @@ class GatewayStatusFactory:
         has_required_service_meta = \
             self._meta_has_required_services(meta_services)
         return json.dumps(gw_status._asdict(), default=str), \
-               has_required_service_meta
+            has_required_service_meta
 
     def _fill_in_meta(
         self, gw_status: GatewayStatus

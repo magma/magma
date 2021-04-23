@@ -16,52 +16,32 @@
  */
 
 #include <grpcpp/impl/codegen/status.h>
-#include <string.h>
+#include <cstring>
 #include <string>
 #include <conversions.h>
+#include <common_defs.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include "common_defs.h"
+#include "log.h"
+
+#ifdef __cplusplus
+}
+#endif
 
 #include "pcef_handlers.h"
 #include "PCEFClient.h"
 #include "MobilityClientAPI.h"
-#include "intertask_interface.h"
-#include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "lte/protos/session_manager.pb.h"
-#include "lte/protos/subscriberdb.pb.h"
 #include "spgw_types.h"
 
-extern "C" {}
+extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 #define ULI_DATA_SIZE 13
-
-static char _convert_digit_to_char(char digit);
-
-static void create_session_response(
-    spgw_state_t* state, const std::string& imsi, const std::string& apn,
-    itti_sgi_create_end_point_response_t sgi_response,
-    s5_create_session_request_t session_request, const grpc::Status& status,
-    s_plus_p_gw_eps_bearer_context_information_t* ctx_p) {
-  s5_create_session_response_t s5_response = {0};
-  s5_response.context_teid                 = session_request.context_teid;
-  s5_response.eps_bearer_id                = session_request.eps_bearer_id;
-  s5_response.sgi_create_endpoint_resp     = sgi_response;
-  s5_response.failure_cause                = S5_OK;
-
-  if (!status.ok()) {
-    if ((sgi_response.paa.pdn_type == IPv4) ||
-        (sgi_response.paa.pdn_type == IPv4_AND_v6)) {
-      release_ipv4_address(
-          imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv4_address);
-    }
-    if ((sgi_response.paa.pdn_type == IPv6) ||
-        (sgi_response.paa.pdn_type == IPv4_AND_v6)) {
-      release_ipv6_address(
-          imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv6_address);
-    }
-    s5_response.failure_cause = PCEF_FAILURE;
-  }
-  handle_s5_create_session_response(state, ctx_p, s5_response);
-}
 
 // TODO Clean up pcef_create_session_data structure to include
 // imsi/ip/bearer_id etc.
@@ -114,12 +94,46 @@ static void pcef_fill_create_session_req(
   lte_context->mutable_qos_info()->CopyFrom(qos_info);
 }
 
+/**
+ * Send an ITTI message from GRPC service task to SPGW task when the
+ * PCEFClient receives the response for the aynchronous Create Sesssion RPC
+ */
+int send_itti_pcef_create_session_response(
+    const std::string& imsi, s5_create_session_request_t session_request,
+    const grpc::Status& status) {
+  MessageDef* message_p = nullptr;
+
+  message_p =
+      itti_alloc_new_message(TASK_GRPC_SERVICE, PCEF_CREATE_SESSION_RESPONSE);
+
+  if (!message_p) {
+    OAILOG_ERROR(
+        LOG_UTIL, "Message PCEF Create Session Response allocation failed\n");
+    return RETURNerror;
+  }
+
+  itti_pcef_create_session_response_t* pcef_create_session_resp_p = nullptr;
+  pcef_create_session_resp_p = &message_p->ittiMsg.pcef_create_session_response;
+
+  pcef_create_session_resp_p->rpc_status = PCEF_STATUS_OK;
+  if (!status.ok()) {
+    pcef_create_session_resp_p->rpc_status = PCEF_STATUS_FAILED;
+  }
+
+  pcef_create_session_resp_p->teid          = session_request.context_teid;
+  pcef_create_session_resp_p->eps_bearer_id = session_request.eps_bearer_id;
+  pcef_create_session_resp_p->sgi_status    = session_request.status;
+
+  IMSI_STRING_TO_IMSI64(imsi.c_str(), &message_p->ittiMsgHeader.imsi);
+
+  OAILOG_DEBUG(LOG_UTIL, "Sending PCEF create session response to SPGW task");
+  return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
+}
+
 void pcef_create_session(
-    spgw_state_t* state, const char* imsi, const char* ip4, const char* ip6,
+    const char* imsi, const char* ip4, const char* ip6,
     const pcef_create_session_data* session_data,
-    itti_sgi_create_end_point_response_t sgi_response,
-    s5_create_session_request_t session_request,
-    s_plus_p_gw_eps_bearer_context_information_t* ctx_p) {
+    s5_create_session_request_t session_request) {
   auto imsi_str = std::string(imsi);
   std::string ip4_str, ip6_str;
 
@@ -138,11 +152,11 @@ void pcef_create_session(
   auto apn = std::string(session_data->apn);
   // call the `CreateSession` gRPC method and execute the inline function
   magma::PCEFClient::create_session(
-      sreq,
-      [imsi_str, apn, sgi_response, session_request, ctx_p, state](
-          grpc::Status status, magma::LocalCreateSessionResponse response) {
-        create_session_response(
-            state, imsi_str, apn, sgi_response, session_request, status, ctx_p);
+      sreq, [imsi_str, session_request](
+                const grpc::Status& status,
+                const magma::LocalCreateSessionResponse& response) {
+        send_itti_pcef_create_session_response(
+            imsi_str, session_request, status);
       });
 }
 
@@ -192,7 +206,7 @@ void pcef_update_teids(
  * else if they are in [48,57] keep them the same
  * else log an error and return '0'=48 value
  */
-static char _convert_digit_to_char(char digit) {
+char convert_digit_to_char(char digit) {
   if ((digit >= 0) && (digit <= 9)) {
     return (digit + '0');
   } else if ((digit >= '0') && (digit <= '9')) {
@@ -209,15 +223,14 @@ static char _convert_digit_to_char(char digit) {
 static void get_plmn_from_session_req(
     const itti_s11_create_session_request_t* saved_req,
     struct pcef_create_session_data* data) {
-  data->mcc_mnc[0]  = _convert_digit_to_char(saved_req->serving_network.mcc[0]);
-  data->mcc_mnc[1]  = _convert_digit_to_char(saved_req->serving_network.mcc[1]);
-  data->mcc_mnc[2]  = _convert_digit_to_char(saved_req->serving_network.mcc[2]);
-  data->mcc_mnc[3]  = _convert_digit_to_char(saved_req->serving_network.mnc[0]);
-  data->mcc_mnc[4]  = _convert_digit_to_char(saved_req->serving_network.mnc[1]);
+  data->mcc_mnc[0]  = convert_digit_to_char(saved_req->serving_network.mcc[0]);
+  data->mcc_mnc[1]  = convert_digit_to_char(saved_req->serving_network.mcc[1]);
+  data->mcc_mnc[2]  = convert_digit_to_char(saved_req->serving_network.mcc[2]);
+  data->mcc_mnc[3]  = convert_digit_to_char(saved_req->serving_network.mnc[0]);
+  data->mcc_mnc[4]  = convert_digit_to_char(saved_req->serving_network.mnc[1]);
   data->mcc_mnc_len = 5;
   if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
-    data->mcc_mnc[5] =
-        _convert_digit_to_char(saved_req->serving_network.mnc[2]);
+    data->mcc_mnc[5] = convert_digit_to_char(saved_req->serving_network.mnc[2]);
     data->mcc_mnc[6] = '\0';
     data->mcc_mnc_len += 1;
   } else {
@@ -228,15 +241,15 @@ static void get_plmn_from_session_req(
 static void get_imsi_plmn_from_session_req(
     const itti_s11_create_session_request_t* saved_req,
     struct pcef_create_session_data* data) {
-  data->imsi_mcc_mnc[0]  = _convert_digit_to_char(saved_req->imsi.digit[0]);
-  data->imsi_mcc_mnc[1]  = _convert_digit_to_char(saved_req->imsi.digit[1]);
-  data->imsi_mcc_mnc[2]  = _convert_digit_to_char(saved_req->imsi.digit[2]);
-  data->imsi_mcc_mnc[3]  = _convert_digit_to_char(saved_req->imsi.digit[3]);
-  data->imsi_mcc_mnc[4]  = _convert_digit_to_char(saved_req->imsi.digit[4]);
+  data->imsi_mcc_mnc[0]  = convert_digit_to_char(saved_req->imsi.digit[0]);
+  data->imsi_mcc_mnc[1]  = convert_digit_to_char(saved_req->imsi.digit[1]);
+  data->imsi_mcc_mnc[2]  = convert_digit_to_char(saved_req->imsi.digit[2]);
+  data->imsi_mcc_mnc[3]  = convert_digit_to_char(saved_req->imsi.digit[3]);
+  data->imsi_mcc_mnc[4]  = convert_digit_to_char(saved_req->imsi.digit[4]);
   data->imsi_mcc_mnc_len = 5;
   // Check if 2 or 3 digit by verifying mnc[2] has a valid value
   if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
-    data->imsi_mcc_mnc[5] = _convert_digit_to_char(saved_req->imsi.digit[5]);
+    data->imsi_mcc_mnc[5] = convert_digit_to_char(saved_req->imsi.digit[5]);
     data->imsi_mcc_mnc[6] = '\0';
     data->imsi_mcc_mnc_len += 1;
   } else {
@@ -282,7 +295,7 @@ static int get_uli_from_session_req(
   return 1;
 }
 
-static int get_msisdn_from_session_req(
+int get_msisdn_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* msisdn) {
   int len = saved_req->msisdn.length;
   int i, j;
@@ -300,7 +313,7 @@ static int get_msisdn_from_session_req(
   return len;
 }
 
-static int get_imeisv_from_session_req(
+int get_imeisv_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* imeisv) {
   if (saved_req->mei.present & MEI_IMEISV) {
     // IMEISV as defined in 3GPP TS 23.003 MEI_IMEISV

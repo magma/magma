@@ -16,6 +16,8 @@ package servicers
 import (
 	"context"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
@@ -43,16 +45,11 @@ func (s S8RelayRouter) CreateSession(
 		return nil, err
 	}
 	defer cancel()
-	return client.CreateSession(ctx, req)
-}
-
-func (s S8RelayRouter) ModifyBearer(c context.Context, req *protos.ModifyBearerRequestPgw) (*protos.ModifyBearerResponsePgw, error) {
-	client, ctx, cancel, err := s.getS8Client(c, req.GetImsi())
-	if err != nil {
-		return nil, err
+	res, err := client.CreateSession(ctx, req)
+	if err != nil && glog.V(1) {
+		glog.Errorf("S8 Create Session failure: %v; request: %s", err, req.String())
 	}
-	defer cancel()
-	return client.ModifyBearer(ctx, req)
+	return res, err
 }
 
 func (s S8RelayRouter) DeleteSession(c context.Context, req *protos.DeleteSessionRequestPgw) (*protos.DeleteSessionResponsePgw, error) {
@@ -77,6 +74,7 @@ func (s S8RelayRouter) getS8Client(c context.Context, imsi string) (protos.S8Pro
 
 	conn, ctx, cancel, err := s.GetFegServiceConnection(c, imsi, FegS8Proxy)
 	if err != nil {
+		glog.V(1).Infof("failed to get FeG S8 service connection for IMSI %s: %v", imsi, err)
 		return nil, nil, nil, err
 	}
 	return protos.NewS8ProxyClient(conn), ctx, cancel, nil
