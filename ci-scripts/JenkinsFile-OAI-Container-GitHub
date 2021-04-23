@@ -229,6 +229,7 @@ pipeline {
             stage ("Retrieve RHEL8 Code") {
               steps {
                 script {
+                  cleanWs()
                   echo '\u2705 \u001B[32mRetrieve Source Code on RHEL8 node\u001B[0m'
                   def branch
                   if (params.REGRESSION_TEST) {
