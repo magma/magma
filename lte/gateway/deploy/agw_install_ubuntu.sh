@@ -54,6 +54,8 @@ if [ "$SKIP_PRECHECK" != "$SUCCESS_MESSAGE" ]; then
   fi
 fi
 
+apt-get update
+
 echo "Need to check if both interfaces are named eth0 and eth1"
 INTERFACES=$(ip -br a)
 if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $INTERFACES == *'eth1'* ]] || ! grep -q 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' /etc/default/grub); then
@@ -145,7 +147,6 @@ echo "Checking if magma has been installed"
 MAGMA_INSTALLED=$(apt-cache show magma >  /dev/null 2>&1 echo "$SUCCESS_MESSAGE")
 if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   echo "Magma not installed, processing installation"
-  apt-get update
   apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev apt-transport-https
 
   alias python=python3
