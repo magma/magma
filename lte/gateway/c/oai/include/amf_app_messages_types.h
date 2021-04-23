@@ -10,13 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*****************************************************************************
-  Source      amf_app_messages_types.h
-  Date        2020/09/07
-  Subsystem   NG Application Protocol IEs
-  Description Defines NG Application Protocol Messages
 
-*****************************************************************************/
 #pragma once
 
 #include <stdint.h>
@@ -50,27 +44,11 @@ typedef struct itti_amf_app_initial_context_setup_failure_s {
   uint32_t amf_ue_ngap_id;
 } itti_amf_app_initial_context_setup_failure_t;
 
-typedef struct itti_amf_app_delete_session_rsp_s {
-  /* UE identifier */
-  amf_ue_ngap_id_t ue_id;
-} itti_amf_app_delete_session_rsp_t;
-
 typedef struct itti_amf_app_ngap_amf_ue_id_notification_s {
   gnb_ue_ngap_id_t gnb_ue_ngap_id;
   amf_ue_ngap_id_t amf_ue_ngap_id;
   sctp_assoc_id_t sctp_assoc_id;
 } itti_amf_app_ngap_amf_ue_id_notification_t;
-
-typedef struct itti_amf_app_dl_data_cnf_s {
-  amf_ue_ngap_id_t ue_id;    /* UE lower layer identifier        */
-  nas_error_code_t err_code; /* Transaction status               */
-} itti_amf_app_dl_data_cnf_t;
-
-typedef struct itti_amf_app_dl_data_rej_s {
-  amf_ue_ngap_id_t ue_id; /* UE lower layer identifier   */
-  bstring nas_msg;        /* Uplink NAS message           */
-  int err_code;
-} itti_amf_app_dl_data_rej_t;
 
 typedef struct itti_amf_app_ul_data_ind_s {
   amf_ue_ngap_id_t ue_id; /* UE lower layer identifier    */
@@ -80,3 +58,9 @@ typedef struct itti_amf_app_ul_data_ind_s {
   /* Indicating the cell from which the UE has sent the NAS message  */
   ecgi_t cgi;
 } itti_amf_app_ul_data_ind_t;
+
+typedef struct itti_amf_app_dl_data_rej_s {
+  amf_ue_ngap_id_t ue_id; /* UE lower layer identifier   */
+  bstring nas_msg;        /* Uplink NAS message           */
+  int err_code;
+} itti_amf_app_dl_data_rej_t;

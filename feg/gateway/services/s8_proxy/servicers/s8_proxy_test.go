@@ -357,7 +357,7 @@ func TestS8proxyManyCreateAndDeleteSession(t *testing.T) {
 
 	// ------------------------
 	// ---- Create Sessions ----
-	nRequest := 100
+	nRequest := 10
 	pgwActualAddrs := mockPgw.LocalAddr().String()
 	csReqs := getMultipleCreateSessionRequest(nRequest, pgwActualAddrs)
 

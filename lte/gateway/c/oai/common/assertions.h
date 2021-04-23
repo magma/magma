@@ -49,19 +49,20 @@
   } while (0)
 
 #ifndef __clang_analyzer__
-#define _Assert_SegFault_                                                      \
+// TODO: explore use of portable github.com/scottt/debugbreak.
+// In the event that __builtin_trap behavior is not desirable across platforms
+// and compilers.
+#define _Assert_Builtin_Trap_                                                  \
   do {                                                                         \
-    fprintf(                                                                   \
-        stderr,                                                                \
-        "\n Will Intentionaly raise SEGFAULT to be catched by GDB!\n");        \
+    fprintf(stderr, "\n Will use __builtin_trap() to be caught by GDB!\n");    \
     display_backtrace();                                                       \
     fflush(stdout);                                                            \
     fflush(stderr);                                                            \
-    *(int*) 0 = 0;                                                             \
+    __builtin_trap();                                                          \
     exit(EXIT_FAILURE);                                                        \
   } while (0)
 #else
-#define _Assert_SegFault_ _Assert_Exit_
+#define _Assert_Builtin_Trap_ _Assert_Exit_
 #endif
 
 #define _Assert_(cOND, aCTION, fORMAT, aRGS...)                                \
@@ -80,7 +81,7 @@
   } while (0)
 
 #if DEBUG_IS_ON
-#define _ASSERT_FINAL_ _Assert_SegFault_
+#define _ASSERT_FINAL_ _Assert_Builtin_Trap_
 #else
 #define _ASSERT_FINAL_ _Assert_Exit_
 #endif

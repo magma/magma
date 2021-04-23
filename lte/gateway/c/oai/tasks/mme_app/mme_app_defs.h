@@ -290,6 +290,10 @@ void mme_app_handle_handover_request_ack(
     mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_handover_request_ack_t* const handover_request_ack_p);
 
+void mme_app_handle_handover_notify(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_handover_notify_t* const handover_notify_p);
+
 void mme_app_handle_path_switch_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_path_switch_request_t* const path_switch_req_p);
@@ -340,7 +344,7 @@ void mme_app_remove_stale_ue_context(
 
 #define ATTACH_REQ (1 << 0)
 #define TAU_REQUEST (1 << 1)
-#define INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED 0x00
+#define INITIAL_CONTEXT_SETUP_PROCEDURE_FAILED 0x00
 #define UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED 0x01
 #define MME_APP_PAGING_ID_IMSI 0X00
 #define MME_APP_PAGING_ID_TMSI 0X01

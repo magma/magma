@@ -19,22 +19,22 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/thoas/go-funk"
-
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/util"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 type loadType int
 
 const (
-	loadEntities loadType = iota
-	countEntities
+	countEntities loadType = iota
+	loadEntities
 	loadChildren
 	loadParents
 )
@@ -135,13 +135,16 @@ func (store *sqlConfiguratorStorage) getBuilder(networkID string, filter EntityL
 	}
 	addSuffix := func(b sq.SelectBuilder) sq.SelectBuilder {
 		switch loadTyp {
+		case countEntities:
+			return b
 		case loadEntities:
-			b = b.Limit(uint64(pageSize))
-			fallthrough
+			return b.OrderBy(entCol(entKeyCol)).Limit(uint64(pageSize))
 		case loadChildren, loadParents:
-			b = b.OrderBy(entCol(entKeyCol))
+			return b.OrderBy(entCol(entKeyCol))
+		default:
+			glog.Errorf("Unsupported configurator SQL load type '%v'", loadTyp)
+			return b
 		}
-		return b
 	}
 	isInNetwork := sq.Eq{entCol(entNidCol): networkID}
 
@@ -154,7 +157,7 @@ func (store *sqlConfiguratorStorage) getBuilder(networkID string, filter EntityL
 	case loadChildren, loadParents:
 		cols = getLoadAssocCols()
 	default:
-		return sq.SelectBuilder{}, fmt.Errorf("unsupported load type")
+		return sq.SelectBuilder{}, fmt.Errorf("unsupported load type '%v'", loadTyp)
 	}
 
 	builder := store.builder.Select(cols...).From(fmt.Sprintf("%s AS ent", entityTable))

@@ -16,7 +16,6 @@ import subprocess
 
 from lte.protos.pipelined_pb2 import FlowRequest
 from magma.pipelined.app.base import ControllerType, MagmaController
-from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -97,7 +96,8 @@ class DPIController(MagmaController):
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
-        flows.delete_all_flows_from_table(datapath, self._app_set_tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._app_set_tbl_num,
+                                          cookie=self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._classify_app_tbl_num)
 
     def add_classify_flow(self, flow_match, flow_state, app: str,
@@ -177,11 +177,10 @@ class DPIController(MagmaController):
         actions = [
             parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num)]
 
-        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
-            flows.add_resubmit_next_service_flow(
-                self._datapath, self._app_set_tbl_num, MagmaMatch(), actions,
-                priority=flows.MINIMUM_PRIORITY,
-                resubmit_table=self._imsi_set_tbl_num)
+        flows.add_resubmit_next_service_flow(
+            self._datapath, self._app_set_tbl_num, MagmaMatch(), actions,
+            priority=flows.MINIMUM_PRIORITY, cookie=self.tbl_num,
+            resubmit_table=self._imsi_set_tbl_num)
 
         # Setup flows for the application reg classifier tbl
         actions = [parser.NXActionRegLoad2(dst=DPI_REG,

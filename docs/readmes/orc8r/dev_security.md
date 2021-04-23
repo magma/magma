@@ -31,15 +31,12 @@ Starting point for understanding the set of certificates related to Orc8r
 - General
     - `rootCA.pem` CA certificate which signed `controller.crt` (root of trust)
         - When Orc8r self-signs its certificates, the `rootCA.key` will also be included in the deployment
-    - `admin_operator.{key.pem,pem}` admin operator certificates for full access to northbound interface
+    - `admin_operator.{key.pem,pem}` admin operator certificates for full access to Orc8r's northbound interface by NMS and CLIs
 - Orc8r
-    - `controller.{key,crt}` Orc8r's server-validation certificate, signed by `rootCA.pem`
+    - `controller.{key,crt}` server-validation certificate for Orc8r and NMS, signed by `rootCA.pem`
     - `certifier.pem` Orc8r's client-validation certificate (root of trust)
     - `bootstrapper.key` Orc8r's signing key used in the bootstrap process
     - `fluentd.{key,pem}` Orc8r's certificates for its fluentd endpoints (fluentd is currently outside Orc8r proxy)
-- NMS
-    - `nms.{key.pem,pem}` NMS's server-validation certificate
-    - `nms_operator.{key.pem,pem}` NMS's admin operator certificates for full access to northbound interface
 - Gateway
     - `gw_challenge.key` gateway's long-term key used for the bootstrap process
     - `gateway.{key,crt}` gateway's session certificates, used as client certificates to Orc8r proxy

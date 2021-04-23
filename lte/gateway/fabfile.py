@@ -70,7 +70,7 @@ def test():
     env.debug_mode = False
 
 
-def package(vcs='hg', all_deps="False",
+def package(vcs='git', all_deps="False",
             cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
             destroy_vm='False',
             vm='magma', os="debian"):

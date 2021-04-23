@@ -50,26 +50,37 @@ extern "C" void __gcov_flush(void);
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"
-#define SENTRY_URL "sentry_url"
+#define SENTRY_NATIVE_URL "sentry_url_native"
+using std::experimental::optional;
+// TODO pull sentry related logic into a common library so it can be shared with
+// MME
+optional<std::string> get_sentry_url(YAML::Node control_proxy_config) {
+  std::string sentry_url;
+  if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
+    const std::string sentry_dns =
+        control_proxy_config[SENTRY_NATIVE_URL].as<std::string>();
+    if (sentry_dns.size()) {
+      return sentry_dns;
+    }
+  }
+  return {};
+}
 
 void initialize_sentry() {
   auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
       CONTROL_PROXY_SERVICE_NAME);
-  if (control_proxy_config[SENTRY_URL].IsDefined()) {
-    const std::string sentry_dns =
-        control_proxy_config[SENTRY_URL].as<std::string>();
-    if (!sentry_dns.size()) {
-      return;
-    }
+  auto op_sentry_url = get_sentry_url(control_proxy_config);
+  if (op_sentry_url) {
     MLOG(MINFO) << "Starting SessionD with Sentry!";
     sentry_options_t* options = sentry_options_new();
-    sentry_options_set_dsn(options, sentry_dns.c_str());
-
+    sentry_options_set_dsn(options, op_sentry_url->c_str());
     if (const char* commit_hash_p = std::getenv(COMMIT_HASH_ENV)) {
       sentry_options_set_release(options, commit_hash_p);
     }
 
     sentry_init(options);
+    sentry_set_tag("service_name", "SessionD");
+
     sentry_capture_event(sentry_value_new_message_event(
         SENTRY_LEVEL_INFO, "", "Starting SessionD with Sentry!"));
   }

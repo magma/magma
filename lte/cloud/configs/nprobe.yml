@@ -9,3 +9,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+# update_interval_secs sets the priodic time between runs in seconds.
+# backoff_interval_secs sets the backoff time when remote records collector is not
+# available.
+update_interval_secs: 60
+backoff_interval_secs: 360

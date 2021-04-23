@@ -154,6 +154,19 @@ typedef struct e_rab_to_be_setup_list_ho_req_s {
   e_rab_to_be_setup_item_ho_req_t item[MAX_NO_OF_E_RABS];
 } e_rab_to_be_setup_list_ho_req_t;
 
+// 9.1.5.5 HANDOVER REQUEST ACK
+typedef struct e_rab_admitted_item_s {
+  e_rab_id_t e_rab_id;
+  bstring transport_layer_address;
+  teid_t gtp_teid;
+  // TODO: Include optional UL and DL tunnels for indirect forwarding
+} e_rab_admitted_item_t;
+
+typedef struct e_rab_admitted_list_s {
+  uint16_t no_of_items;
+  e_rab_admitted_item_t item[MAX_NO_OF_E_RABS];
+} e_rab_admitted_list_t;
+
 // E-RAB TO BE MODIFIED ITEM BEARER MOD IND
 typedef struct e_rab_to_be_modified_bearer_mod_ind_s {
   e_rab_id_t e_rab_id;

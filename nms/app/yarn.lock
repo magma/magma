@@ -1462,21 +1462,7 @@
   dependencies:
     core-js "^3.2.1"
 
-"@fbcnms/express-middleware@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@fbcnms/express-middleware/-/express-middleware-0.1.0.tgz#fe56f89d6a81f657bc6fbd884ae9ea309e85a807"
-  integrity sha512-dL+i0oq+HbW4AGDlLoueyUxiIrJJ4nfiNQzmHfvIbJd+VVC9hmyhkw51mUMIzHbQJhYVUkOn7D6s8z6n/PXE+A==
-  dependencies:
-    "@fbcnms/logging" "^0.1.0"
-    body-parser "^1.18.3"
-    compression "^1.7.1"
-    cookie-parser "^1.4.3"
-    csurf "^1.9.0"
-    express "^4.16.3"
-    express-session "^1.15.6"
-    helmet "^3.13.0"
-
-"@fbcnms/express-middleware@^0.1.1":
+"@fbcnms/express-middleware@^0.1.0", "@fbcnms/express-middleware@^0.1.1":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@fbcnms/express-middleware/-/express-middleware-0.1.1.tgz#bf40cbb39b611f10d58fbdc794d633d8d828fb96"
   integrity sha512-RvXycGTfULrW2uZ+txajAAihh0dtQ1jkTghV3Xu8K9H7VeN6gnYsov0xdnxCdODkRiBzMlaX6u2byY5BBaxbBQ==
@@ -1499,21 +1485,21 @@
     morgan "^1.9.1"
     winston "^3.0.0"
 
-"@fbcnms/platform-server@^0.1.23":
-  version "0.1.23"
-  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.23.tgz#8a790299f321bcc74a0973f2e58bebfce378ca46"
-  integrity sha512-UnEYBYvhFhm4tlmxIjBsjtOXzfJDC5UooQbXOmKiPZgfVaPcMcaNrK52e0kTabVcVful0tGR+tVE1v/FxEmC5g==
+"@fbcnms/platform-server@^0.1.25":
+  version "0.1.25"
+  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.25.tgz#6075f79e61437db58427946a11537deb7d66084a"
+  integrity sha512-Qc/EU5nx+NsOWikFHIUO17IyKqETfKdjyZ1jMmBZtGADUQRxoEGnB0hHbro2yUXjNwzVvjqyRMLXoEjIA2fvvQ==
   dependencies:
     "@fbcnms/auth" "^0.1.0"
     "@fbcnms/babel-register" "^0.1.0"
     "@fbcnms/express-middleware" "^0.1.0"
     "@fbcnms/logging" "^0.1.0"
     "@fbcnms/magma-api" "^0.1.0"
-    "@fbcnms/sequelize-models" "^0.1.0"
+    "@fbcnms/sequelize-models" "^0.1.1"
     "@fbcnms/types" "^0.1.10"
     "@fbcnms/util" "^0.1.0"
     add "^2.0.6"
-    axios "^0.18.0"
+    axios "^0.21.1"
     bcryptjs "^2.4.3"
     connect-session-sequelize "^6.0.0"
     express "^4.16.3"
@@ -1539,21 +1525,7 @@
   resolved "https://registry.yarnpkg.com/@fbcnms/projects/-/projects-0.1.0.tgz#7e1d6641e6dbe0f8137560f25c6d89b1d5cd9354"
   integrity sha512-vdP5+Y4XWkdVR3H97NCbZiuMpi2xSelyUFg5AR7vZXWzXLFKVziSQEvvqG442U3PQbuLV15LShfYJhEHDc13fA==
 
-"@fbcnms/sequelize-models@^0.1.0":
-  version "0.1.0"
-  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.0.tgz#99201a0ec416c8d3dd141f7a4e7e765cd5e7cb33"
-  integrity sha512-6PPG2dkddTrJzgoo9dkvXrEryDKrKAwpSa86PfKlfASeEfpIfPU2LOJhcIwzgDLaGQTEsV4XVagsqvNqo7vL4A==
-  dependencies:
-    sequelize "^5.8.5"
-
-"@fbcnms/sequelize-models@^0.1.1":
-  version "0.1.1"
-  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.1.tgz#502ea03f39f6ec7433956d88a9706a8afc918b8f"
-  integrity sha512-jeTQMkjFmKFdbHPgg2fmwoEksbMY1zN4s3Q6GKghNaGGdQl4NfyXYyFbwGk92o26+4kfqqnZnYke9hNyCCOR/Q==
-  dependencies:
-    sequelize "^5.8.5"
-
-"@fbcnms/sequelize-models@^0.1.6":
+"@fbcnms/sequelize-models@^0.1.1", "@fbcnms/sequelize-models@^0.1.6":
   version "0.1.6"
   resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.6.tgz#4d4278b9c59469f17e7851f514189cff703173ea"
   integrity sha512-xQoF4w+6qo18gwS+kQYo5aCPpSvX9ZYIrAEp4EalQs+X5QkeKeHJs3a5c6SO8/wnMKsOX7Tdo0bg2Oa9Fgdc/w==
@@ -9165,17 +9137,7 @@ lodash.unescape@4.0.1:
   resolved "https://registry.yarnpkg.com/lodash.unescape/-/lodash.unescape-4.0.1.tgz#bf2249886ce514cda112fae9218cdc065211fc9c"
   integrity sha1-vyJJiGzlFM2hEvrpIYzcBlIR/Jw=
 
-lodash@4, "lodash@>=3.5 <5", lodash@^4.17.11, lodash@^4.17.13, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.4:
-  version "4.17.20"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.20.tgz#b44a9b6297bcb698f1c51a3545a2b3b368d59c52"
-  integrity sha512-PlhdFcillOINfeV7Ni6oF1TAEayyZBoZ8bcshTHqOYJYlrqzRK5hagpagky5o4HfCzzd1TRkXPMFq6cKk9rGmA==
-
-lodash@^4.17.10, lodash@^4.17.14, lodash@~4.17.11:
-  version "4.17.19"
-  resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.19.tgz#e48ddedbe30b3321783c5b4301fbd353bc1e4a4b"
-  integrity sha512-JNvd8XER9GQX0v2qJgsaN/mzFCNA5BRe/j8JN9d+tWyGLSodKQHKFicdwNYzWwI3wjRnaKPsGj1XkBjx/F96DQ==
-
-lodash@^4.17.21:
+lodash@4, "lodash@>=3.5 <5", lodash@^4.17.10, lodash@^4.17.11, lodash@^4.17.13, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.19, lodash@^4.17.20, lodash@^4.17.21, lodash@^4.17.4, lodash@~4.17.11:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -12526,7 +12488,7 @@ schema-utils@^1.0.0:
     ajv-errors "^1.0.0"
     ajv-keywords "^3.1.0"
 
-schema-utils@^2.6.5, schema-utils@^2.7.0:
+schema-utils@^2.6.5:
   version "2.7.1"
   resolved "https://registry.yarnpkg.com/schema-utils/-/schema-utils-2.7.1.tgz#1ca4f32d1b24c590c203b8e7a50bf0ea4cd394d7"
   integrity sha512-SHiNtMOUGWBQJwzISiVYKu82GiV4QYGePp3odlY1tuKO7gPtphAT5R/py0fA6xtbgLL/RvtJZnU9b8s0F1q0Xg==
@@ -13302,13 +13264,13 @@ strip-json-comments@~2.0.1:
   resolved "https://registry.yarnpkg.com/strip-json-comments/-/strip-json-comments-2.0.1.tgz#3c531942e908c2697c0ec344858c286c7ca0a60a"
   integrity sha1-PFMZQukIwml8DsNEhYwobHygpgo=
 
-style-loader@^1.2.1:
-  version "1.3.0"
-  resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-1.3.0.tgz#828b4a3b3b7e7aa5847ce7bae9e874512114249e"
-  integrity sha512-V7TCORko8rs9rIqkSrlMfkqA63DfoGBBJmK1kKGCcSi+BWb4cqz0SRsnp4l6rU5iwOEd0/2ePv68SV22VXon4Q==
+style-loader@^2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/style-loader/-/style-loader-2.0.0.tgz#9669602fd4690740eaaec137799a03addbbc393c"
+  integrity sha512-Z0gYUJmzZ6ZdRUqpg1r8GsaFKypE+3xAzuFeMuoHgjc9KZv3wMyCRjQIWEbhoFSq7+7yoHXySDJyyWQaPajeiQ==
   dependencies:
     loader-utils "^2.0.0"
-    schema-utils "^2.7.0"
+    schema-utils "^3.0.0"
 
 styled-system@^5.0.0, styled-system@^5.1.5:
   version "5.1.5"
