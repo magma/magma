@@ -42,7 +42,7 @@ typedef uint32_t context_identifier_t;
 typedef uint32_t rau_tau_timer_t;
 
 typedef uint32_t ard_t;
-typedef int pdn_cid_t;  // pdn connexion identity, related to esm protocol,
+typedef int pdn_cid_t;  // pdn connection identity, related to esm protocol,
                         // sometimes type is mixed with int return code!!...
 typedef uint8_t
     proc_tid_t;  // procedure transaction identity, related to esm protocol

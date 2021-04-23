@@ -31,8 +31,8 @@
 extern char buf_plmn[3];
 
 typedef struct nas5g_config_s {
-  uint8_t prefered_integrity_algorithm[8];
-  uint8_t prefered_ciphering_algorithm[8];
+  uint8_t preferred_integrity_algorithm[8];
+  uint8_t preferred_ciphering_algorithm[8];
   uint32_t t3502_min;
   uint32_t t3512_min;
   uint32_t t3522_sec;
@@ -60,8 +60,8 @@ typedef struct m5g_apn_map_config_s {
 } m5g_apn_map_config_t;
 
 typedef struct m5g_nas_config_s {
-  uint8_t prefered_integrity_algorithm[8];
-  uint8_t prefered_ciphering_algorithm[8];
+  uint8_t preferred_integrity_algorithm[8];
+  uint8_t preferred_ciphering_algorithm[8];
   uint32_t t3402_min;
   uint32_t t3412_min;
   uint32_t t3422_sec;

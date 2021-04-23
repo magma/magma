@@ -187,7 +187,7 @@ typedef enum AmbrUnit_response_e {
   Kbps_64 = 4
 } AmbrUnit_response;
 
-typedef struct SessionAmbr_reponse_s {
+typedef struct SessionAmbr_response_s {
   AmbrUnit_response downlink_unit_type;
   uint32_t downlink_units;  // Only to use lower 2 bytes (16 bit values)
   AmbrUnit_response uplink_unit_type;

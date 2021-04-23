@@ -40,14 +40,14 @@
 #define AS_INDICATION_ 0x0400
 #define AS_CONFIRM_ 0x0800
 
-/* NAS signalling connection establishment */
+/* NAS signaling connection establishment */
 #define AS_NAS_ESTABLISH_ 0x04
 #define AS_NAS_ESTABLISH_REQ_ (AS_NAS_ESTABLISH_ | AS_REQUEST_)
 #define AS_NAS_ESTABLISH_IND_ (AS_NAS_ESTABLISH_ | AS_INDICATION_)
 #define AS_NAS_ESTABLISH_RSP_ (AS_NAS_ESTABLISH_ | AS_RESPONSE_)
 #define AS_NAS_ESTABLISH_CNF_ (AS_NAS_ESTABLISH_ | AS_CONFIRM_)
 
-/* NAS signalling connection release */
+/* NAS signaling connection release */
 #define AS_NAS_RELEASE_ 0x05
 #define AS_NAS_RELEASE_REQ_ (AS_NAS_RELEASE_ | AS_REQUEST_)
 #define AS_NAS_RELEASE_IND_ (AS_NAS_RELEASE_ | AS_INDICATION_)
@@ -97,7 +97,7 @@ typedef struct m5g_cell_info_ind_s {
 
 /*
  * NAS->AS - Paging Information request
- * NAS requests the AS that NAS signalling messages or user data is pending
+ * NAS requests the AS that NAS signaling messages or user data is pending
  * to be sent.
  */
 typedef struct m5g_paging_req_s {
@@ -116,11 +116,11 @@ typedef enum amf_as_call_type_s {
 
 /* from 6.1.2 ETSI TS 138 331 V15.8.0 (2020-01)*/
 /* m5G RRC Cause */
-/*{emergency, highPriorityAccess, mt-Access, mo-Signalling,
+/*{emergency, highPriorityAccess, mt-Access, mo-signaling,
   mo-Data, mo-VoiceCall, mo-VideoCall, mo-SMS, mps-PriorityAccess,
   mcs-PriorityAccess, spare6, spare5, spare4, spare3, spare2, spare1}*/
 /* --------------------------------------------------------------------------
- *          NAS signalling connection establishment
+ *          NAS signaling connection establishment
  * --------------------------------------------------------------------------
  */
 
@@ -141,7 +141,7 @@ typedef enum m5g_as_cause_s {
 } m5g_as_cause_t;
 
 /*
- * NAS->AS - NAS signalling connection establishment request
+ * NAS->AS - NAS signaling connection establishment request
  * NAS requests the AS to perform the RRC connection establishment procedure
  * to transfer initial NAS message to the network while UE is in IDLE mode.
  */
@@ -155,7 +155,7 @@ typedef struct nas5g_establish_req_s {
 } nas5g_establish_req_t;
 
 /*
- * AS->NAS - NAS signalling connection establishment indication
+ * AS->NAS - NAS signaling connection establishment indication
  * AS transfers the initial NAS message to the NAS.
  */
 typedef struct nas5g_establish_ind_s {
@@ -187,7 +187,7 @@ typedef enum nas5g_error_code_s {
 } nas5g_error_code_t;
 
 /*
- * NAS->AS - NAS signalling connection establishment response
+ * NAS->AS - NAS signaling connection establishment response
  * NAS responds to the AS that initial answer message has to be provided to
  * the UE.
  */
@@ -206,7 +206,7 @@ typedef struct nas5g_establish_rsp_s {
 } nas5g_establish_rsp_t;
 
 /*
- * AS->NAS - NAS signalling connection establishment confirm
+ * AS->NAS - NAS signaling connection establishment confirm
  * AS transfers the initial answer message to the NAS.
  */
 typedef struct nas5g_establish_cnf_s {
@@ -220,7 +220,7 @@ typedef struct nas5g_establish_cnf_s {
 
 /*
  * --------------------------------------------------------------------------
- *          NAS signalling connection release
+ *          NAS signaling connection release
  * --------------------------------------------------------------------------
  */
 
@@ -231,7 +231,7 @@ typedef enum m5g_release_cause_s {
 } m5g_release_cause_t;
 
 /*
- * NAS->AS - NAS signalling connection release request
+ * NAS->AS - NAS signaling connection release request
  * NAS requests the termination of the connection with the UE.
  */
 typedef struct nas5g_release_req_s {
@@ -241,7 +241,7 @@ typedef struct nas5g_release_req_s {
 } nas5g_release_req_t;
 
 /*
- * AS->NAS - NAS signalling connection release indication
+ * AS->NAS - NAS signaling connection release indication
  * AS reports that connection has been terminated by the network.
  */
 typedef struct nas5g_release_ind_s {
