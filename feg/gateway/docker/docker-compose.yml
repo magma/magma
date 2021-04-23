@@ -40,11 +40,17 @@ x-goservice: &goservice
   <<: *service
   image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
 
+x-log-forward: &depends_on_logs
+  depends_on:
+    td-agent-bit:
+      condition: service_healthy
+
 services:
   csfb:
     <<: *goservice
     container_name: csfb
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/csfb -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   eap_aka:
     <<: *goservice
@@ -52,6 +58,7 @@ services:
     environment:
       USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   eap_sim:
     <<: *goservice
@@ -59,11 +66,13 @@ services:
     environment:
       USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_sim -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   eventd:
     <<: *pyservice
     container_name: eventd
     command: python3.8 -m magma.eventd.main
+    <<: *depends_on_logs
 
   aaa_server:
     <<: *goservice
@@ -71,17 +80,20 @@ services:
     environment:
       USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/aaa_server -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   feg_hello:
     <<: *goservice
     container_name: feg_hello
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/feg_hello -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   health:
     <<: *goservice
     volumes: *snowflake_volumes
     container_name: health
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   session_proxy:
     <<: *goservice
@@ -91,26 +103,31 @@ services:
       GY_SERVICE_CONTEXT_ID: ${GY_SERVICE_CONTEXT_ID}
     container_name: session_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/session_proxy -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   swx_proxy:
     <<: *goservice
     container_name: swx_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/swx_proxy -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   s6a_proxy:
     <<: *goservice
     container_name: s6a_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   s8_proxy:
     <<: *goservice
     container_name: s8_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s8_proxy -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   radiusd:
     <<: *goservice
     container_name: radiusd
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
+    <<: *depends_on_logs
 
   control_proxy:
     <<: *pyservice
@@ -119,6 +136,7 @@ services:
     command: >
       /bin/bash -c "/usr/local/bin/generate_nghttpx_config.py &&
              /usr/bin/env nghttpx --conf /var/opt/magma/tmp/nghttpx.conf /var/opt/magma/certs/controller.key /var/opt/magma/certs/controller.crt"
+    <<: *depends_on_logs  
 
   magmad:
     <<: *pyservice
@@ -138,6 +156,7 @@ services:
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
     command: python3.8 -m magma.magmad.main
+    <<: *depends_on_logs
 
   redis:
     <<: *pyservice
@@ -146,12 +165,19 @@ services:
       /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
              /usr/bin/redis-server /var/opt/magma/tmp/redis.conf --daemonize no &&
              /usr/bin/redis-cli shutdown"
+    <<: *depends_on_logs
 
   td-agent-bit:
     <<: *pyservice
     container_name: td-agent-bit
     logging:
       driver: json-file
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:2020"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     command: >
         /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
         /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
