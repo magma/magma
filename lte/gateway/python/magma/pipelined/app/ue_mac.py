@@ -104,7 +104,8 @@ class UEMacAddressController(MagmaController):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._passthrough_set_tbl)
         flows.delete_all_flows_from_table(datapath, self._dhcp_learn_scratch)
-        flows.delete_all_flows_from_table(datapath, self._imsi_set_tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._imsi_set_tbl_num,
+                                          cookie=self.tbl_num)
 
     def add_ue_mac_flow(self, sid, mac_addr):
         # TODO report add flow result back to sessiond
@@ -126,10 +127,12 @@ class UEMacAddressController(MagmaController):
             self._add_resubmit_flow(sid, uplink_match,
                                     priority=flows.UE_FLOW_PRIORITY,
                                     tbl_num=self._imsi_set_tbl_num,
+                                    cookie=self.tbl_num,
                                     next_table=self._ipfix_sample_tbl_num)
             self._add_resubmit_flow(sid, downlink_match,
                                     priority=flows.UE_FLOW_PRIORITY,
                                     tbl_num=self._imsi_set_tbl_num,
+                                    cookie=self.tbl_num,
                                     next_table=self._ipfix_sample_tbl_num)
 
         return FlowResponse(result=FlowResponse.SUCCESS)

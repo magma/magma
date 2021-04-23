@@ -72,6 +72,9 @@ dpi:
   mon_port_number: 32769
   idle_timeout: 5
 
+conntrackd:
+  enabled: false
+
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
 # metering for auto-clearing the sessions
