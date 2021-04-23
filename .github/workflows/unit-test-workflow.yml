@@ -2,7 +2,9 @@
 name: Cloud Unit Test Results
 on:  # yamllint disable-line rule:truthy
   workflow_run:
-    workflows: ["cloud-workflow"]
+    workflows:
+      - cloud-workflow
+      - feg-workflow
     types:
       - completed
 
@@ -29,5 +31,6 @@ jobs:
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
         with:
+          check_name: ${{ github.event.workflow.name }}
           commit: ${{ github.event.workflow_run.head_sha }}
           files: "artifacts/**/*.xml"
