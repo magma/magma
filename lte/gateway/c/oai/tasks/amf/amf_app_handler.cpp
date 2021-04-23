@@ -316,7 +316,6 @@ imsi64_t amf_app_handle_initial_ue_message(
   bool is_mm_ctx_new                = false;
   gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
   imsi64_t imsi64                   = INVALID_IMSI64;
-  paging_context_t* paging_ctx      = nullptr;
   guti_m5_t guti;
   plmn_t plmn;
   s_tmsi_m5_t s_tmsi = {0};
