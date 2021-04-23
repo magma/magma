@@ -11,10 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import sys
-sys.path.append('../../orc8r')
 import time
 from enum import Enum
-import os
+
 from fabric.api import (
     cd,
     env,
@@ -23,16 +22,15 @@ from fabric.api import (
     lcd,
     local,
     put,
-    get,
     run,
     settings,
     shell_env,
     sudo,
 )
 from fabric.contrib import files
-from tools.fab.hosts import ansible_setup, vagrant_setup
 
 sys.path.append('../../orc8r')
+from tools.fab.hosts import ansible_setup, vagrant_setup
 
 
 CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
@@ -65,7 +63,7 @@ def integ_test(
     gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
     transfer_images=False, destroy_vm=False, no_build=False,
     tests_to_run="all", skip_unit_tests=False, test_re=None,
-    test_result_xml=None, run_tests=True, count="1", force_provision=True,
+    test_result_xml=None, run_tests=True, count="1", provision_vm=True,
 ):
     """
     Run the integration tests. This defaults to running on local vagrant
@@ -91,11 +89,11 @@ def integ_test(
     except ValueError:
         print(
             "{} is not a valid value. We support {}".format(
-            tests_to_run, SubTests.list(),
+                tests_to_run, SubTests.list(),
             ),
         )
         return
-    force_provision = False if force_provision == "False" else True
+    provision_vm = False if provision_vm == "False" else True
 
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
@@ -104,7 +102,7 @@ def integ_test(
         gateway_vm,
         gateway_ansible_file,
         destroy_vm,
-        force_provision,
+        provision_vm,
     )
 
     # We will direct coredumps to be placed in this directory
@@ -138,7 +136,7 @@ def integ_test(
     with lcd(LTE_AGW_ROOT):
         _switch_to_vm(
             gateway_host, "magma_trfserver",
-            "magma_trfserver.yml", destroy_vm, force_provision,
+            "magma_trfserver.yml", destroy_vm, provision_vm,
         )
 
     execute(_start_trfserver)
@@ -150,7 +148,7 @@ def integ_test(
         "cwag_test",
         "cwag_test.yml",
         destroy_vm,
-        force_provision,
+        provision_vm,
     )
 
     cwag_test_host_to_mac = execute(_get_br_mac, CWAG_TEST_BR_NAME)
@@ -243,9 +241,9 @@ def _tar_coredump(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml"):
             )
 
 
-def _switch_to_vm(addr, host_name, ansible_file, destroy_vm, force_provision):
+def _switch_to_vm(addr, host_name, ansible_file, destroy_vm, provision_vm):
     if not addr:
-        vagrant_setup(host_name, destroy_vm, force_provision)
+        vagrant_setup(host_name, destroy_vm, provision_vm)
     else:
         ansible_setup(addr, host_name, ansible_file)
 
@@ -446,7 +444,9 @@ def _add_docker_host_remote_network_envvar():
     sudo(
         "grep -q 'DOCKER_HOST=tcp://%s:2375' /etc/environment || "
         "echo 'DOCKER_HOST=tcp://%s:2375' >> /etc/environment && "
-        "echo 'DOCKER_API_VERSION=1.40' >> /etc/environment" % (CWAG_IP, CWAG_IP),
+        "echo 'DOCKER_API_VERSION=1.40' >> /etc/environment" % (
+            CWAG_IP, CWAG_IP,
+        ),
     )
 
 
@@ -465,6 +465,8 @@ def _run_integ_tests(
 
     # QOS take a while to run. Increasing the timeout to 50m
     go_test_cmd = "gotestsum --format=standard-verbose "
+    # Retry once on failure
+    go_test_cmd += "--rerun-fails=1 --packages='./...' "
     if test_result_xml:  # generate test result XML in cwf/gateway directory
         go_test_cmd += "--junitfile ../" + test_result_xml + " "
     go_test_cmd += " -- -test.short -timeout 50m -count " + count  # go test args
