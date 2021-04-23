@@ -95,6 +95,9 @@ def clear_redis_state():
         "QosManager",
         "s1ap_imsi_map",
         "sessiond:sessions",
+        "*pipelined:rule_ids",
+        "*pipelined:rule_versions",
+        "*pipelined:rule_names",
     ]:
         for key in redis_client.scan_iter(key_regex):
             redis_client.delete(key)
