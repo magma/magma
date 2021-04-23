@@ -2704,15 +2704,9 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
 
   // the request should has no rules so PipelineD deletes all rules
   EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules_for_termination(
-          IMSI1, ip_addr, ipv6_addr, CheckTeids(teids), RequestOriginType::GX));
-  // the request should has no rules so PipelineD deletes all rules
-  EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules_for_termination(
-          IMSI1, ip_addr, ipv6_addr, CheckTeids(teids), RequestOriginType::GY))
-      .Times(1);
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
+                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
+                             RequestOriginType::WILDCARD));
   local_enforcer->handle_termination_from_access(
       session_map, IMSI1, APN1, update);
 }
@@ -2963,6 +2957,29 @@ TEST_F(LocalEnforcerTest, test_rar_dynamic_rule_modification) {
   EXPECT_TRUE(dynamic_rules.get_rule("d-rule1", &policy_out));
   EXPECT_EQ(2, policy_out.rating_group());
   EXPECT_TRUE(session_store->update_sessions(session_ucs));
+}
+
+// Test the case where PipelineD sends a data usage report for a session that
+// does not exist anymore. We expect SessionD to send a deactivate flows request
+// to PipelineD.
+TEST_F(LocalEnforcerTest, test_dead_session_in_usage_report) {
+  uint32_t teid = 32;
+  Teids expected_teids;
+  expected_teids.set_agw_teid(teid);
+  expected_teids.set_enb_teid(0);  // we don't care about this one
+  // no sessions exist at this point
+  // We expect to empty calls for both Gx + Gy
+  EXPECT_CALL(
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
+                             IMSI1, IP1, testing::_, CheckTeids(expected_teids),
+                             RequestOriginType::WILDCARD))
+      .Times(1);
+
+  RuleRecordTable table;
+  create_rule_record(
+      IMSI1, IP1, "rule1", 16, 32, teid, table.mutable_records()->Add());
+  auto update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->aggregate_records(session_map, table, update);
 }
 
 int main(int argc, char** argv) {

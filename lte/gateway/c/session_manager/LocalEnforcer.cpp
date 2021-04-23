@@ -20,6 +20,7 @@
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
+#include <lte/protos/session_manager.pb.h>
 #include <grpcpp/channel.h>
 
 #include "DiameterCodes.h"
@@ -33,6 +34,7 @@ namespace magma {
 uint32_t LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT = 2000;
 uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY                = 2000;
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE                      = false;
+bool LocalEnforcer::CLEANUP_DANGLING_FLOWS                    = true;
 
 using google::protobuf::RepeatedPtrField;
 
@@ -231,6 +233,10 @@ void LocalEnforcer::aggregate_records(
   // Insert the IMSI+SessionID for sessions we received a rule record into a set
   // for easy access
   std::unordered_set<ImsiAndSessionID> sessions_with_reporting_flows;
+  // In some failure cases, PipelineD may still hold onto flows for sessions
+  // that do not exist in SessionD. In this case, send DeactivateFlowsRequest
+  RuleRecordSet dead_sessions_to_cleanup;
+
   for (const RuleRecord& record : records.records()) {
     const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
     // TODO IPv6 add ipv6 to search criteria
@@ -239,6 +245,7 @@ void LocalEnforcer::aggregate_records(
     if (!session_it) {
       MLOG(MERROR) << "Could not find session for " << imsi << " and " << ip
                    << " during record aggregation";
+      dead_sessions_to_cleanup.insert(record);
       continue;
     }
     auto& session          = **session_it;
@@ -257,6 +264,30 @@ void LocalEnforcer::aggregate_records(
   }
   complete_termination_for_released_sessions(
       session_map, sessions_with_reporting_flows, session_update);
+  cleanup_dead_sessions(dead_sessions_to_cleanup);
+}
+
+void LocalEnforcer::cleanup_dead_sessions(
+    const RuleRecordSet dead_sessions_to_cleanup) {
+  if (dead_sessions_to_cleanup.size() == 0) {
+    return;
+  }
+  if (!CLEANUP_DANGLING_FLOWS) {
+    MLOG(MWARNING) << "Not cleaning up " << dead_sessions_to_cleanup.size()
+                   << " dangling sessions in PipelineD due to "
+                      "'cleanup_all_dangling_flows: false' in sessiond.yml";
+    return;
+  }
+
+  MLOG(MINFO) << "Deactivating " << dead_sessions_to_cleanup.size()
+              << " dangling sessions in PipelineD";
+  for (const RuleRecord& record : dead_sessions_to_cleanup) {
+    Teids teids;
+    teids.set_agw_teid(record.teid());
+    pipelined_client_->deactivate_flows_for_rules_for_termination(
+        record.sid(), record.ue_ipv4(), record.ue_ipv6(), teids,
+        RequestOriginType::WILDCARD);
+  }
 }
 
 void LocalEnforcer::complete_termination_for_released_sessions(
@@ -411,12 +442,7 @@ void LocalEnforcer::remove_all_rules_for_termination(
   const auto ipv6_addr      = session->get_config().common_context.ue_ipv6();
   const Teids teids         = session->get_config().common_context.teids();
   pipelined_client_->deactivate_flows_for_rules_for_termination(
-      imsi, ip_addr, ipv6_addr, teids, RequestOriginType::GX);
-  if (!session->get_all_final_unit_rules().empty()) {
-    pipelined_client_->deactivate_flows_for_rules_for_termination(
-        imsi, ip_addr, ipv6_addr, teids, RequestOriginType::GY);
-  }
-
+      imsi, ip_addr, ipv6_addr, teids, RequestOriginType::WILDCARD);
   session->remove_all_rules_for_termination(uc);
 }
 
