@@ -10,23 +10,22 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List
-import os
-import sys
 import argparse
-import subprocess
-import pprint
-import yaml
 import pathlib
+import subprocess
+import sys
+from typing import List
 
 import click
+import yaml
 
+from .certs import certs
+from .cleanup import cleanup
 from .configure import configure
 from .install import install
 from .upgrade import upgrade
 from .verify import verify
-from .certs import certs
-from .cleanup import cleanup
+
 
 def init():
     constants = None
@@ -45,6 +44,7 @@ def init():
             sys.exit(1)
     return constants
 
+
 @click.group()
 @click.version_option()
 @click.pass_context
@@ -53,6 +53,7 @@ def cli(ctx):
     Orchestrator Deployment CLI
     """
     ctx.obj = init()
+
 
 cli.add_command(configure)
 cli.add_command(certs)

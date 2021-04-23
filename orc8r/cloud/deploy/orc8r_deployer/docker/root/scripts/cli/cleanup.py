@@ -10,18 +10,18 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import json
 import os
 import sys
-import json
 
 import click
 from boto3 import Session
-
 from cli.common import (
+    print_error_msg,
+    print_success_msg,
     run_command,
     run_playbook,
-    print_error_msg,
-    print_success_msg)
+)
 from cli.configlib import get_input
 
 
@@ -44,13 +44,14 @@ orcl configure set -k region -v <region>
     os.environ["AWS_SECRET_ACCESS_KEY"] = frozen_creds.secret_key
     os.environ["AWS_REGION"] = session.region_name
 
+
 @click.group(invoke_without_command=True)
 @click.pass_context
 def cleanup(ctx):
     """
     Removes resources deployed for orc8r
     """
-    tf_destroy = [ "terraform", "destroy", "-auto-approve"]
+    tf_destroy = ["terraform", "destroy", "-auto-approve"]
 
     if ctx.invoked_subcommand is None:
         cmd = " ".join(tf_destroy)
@@ -62,6 +63,7 @@ def cleanup(ctx):
             print_error_msg("Destroy Failed!!! Attempt cleaning up individual"
                             "resources using 'orcl cleanup raw' subcommand")
             return
+
 
 @cleanup.command()
 @click.pass_context
@@ -106,7 +108,7 @@ def raw(ctx, dryrun, state, override):
     }
     if override:
         for k, v in default_values.items():
-            inp = get_input(k , v)
+            inp = get_input(k, v)
             inp_entries = inp.split(',')
             if len(inp_entries) > 1:
                 # mainly relevant for passing in list of mount and fs targets
@@ -116,7 +118,7 @@ def raw(ctx, dryrun, state, override):
 
     extra_vars = json.dumps(ctx.obj)
     cleanup_playbook = "%s/cleanup.yml" % ctx.obj["playbooks"]
-    playbook_args = [ "ansible-playbook", "-v", "-e", extra_vars]
+    playbook_args = ["ansible-playbook", "-v", "-e", extra_vars]
 
     if dryrun:
         tag_args = ["-t", "cleanup_dryrun"]

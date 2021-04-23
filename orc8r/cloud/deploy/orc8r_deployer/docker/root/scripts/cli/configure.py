@@ -16,14 +16,16 @@ import click
 
 from .configlib import ConfigManager
 
+
 def get_component_choices():
     return ['infra', 'platform', 'service']
 
+
 @click.group(invoke_without_command=True)
 @click.option('-c', '--component',
-            type=click.Choice(get_component_choices()),
-            multiple=True,
-            default=get_component_choices())
+              type=click.Choice(get_component_choices()),
+              multiple=True,
+              default=get_component_choices())
 @click.pass_context
 def configure(ctx, component):
     """
@@ -34,12 +36,13 @@ def configure(ctx, component):
         for c in component:
             mgr.configure(c)
 
+
 @configure.command()
 @click.pass_context
 @click.option('-c', '--component',
-            type=click.Choice(get_component_choices()),
-            multiple=True,
-            default=get_component_choices())
+              type=click.Choice(get_component_choices()),
+              multiple=True,
+              default=get_component_choices())
 def show(ctx, component):
     """
     Display the current configuration
@@ -48,11 +51,12 @@ def show(ctx, component):
     for c in component:
         mgr.show(c)
 
+
 @configure.command()
 @click.option('-c', '--component',
-            type=click.Choice(get_component_choices()),
-            multiple=True,
-            default=get_component_choices())
+              type=click.Choice(get_component_choices()),
+              multiple=True,
+              default=get_component_choices())
 @click.pass_context
 def info(ctx, component):
     """
@@ -62,11 +66,12 @@ def info(ctx, component):
     for c in component:
         mgr.info(c)
 
+
 @configure.command()
 @click.option('-c', '--component',
-            type=click.Choice(get_component_choices()),
-            multiple=True,
-            default=get_component_choices())
+              type=click.Choice(get_component_choices()),
+              multiple=True,
+              default=get_component_choices())
 @click.pass_context
 def check(ctx, component):
     """
@@ -79,10 +84,11 @@ def check(ctx, component):
     if not valid:
         sys.exit(1)
 
+
 @configure.command()
 @click.option('-c', '--component',
-            type=click.Choice(get_component_choices()),
-            prompt='select component')
+              type=click.Choice(get_component_choices()),
+              prompt='select component')
 @click.option('-k', '--key', prompt='name of the variable')
 @click.option('-v', '--value', prompt='value of the variable')
 @click.pass_context

@@ -10,19 +10,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import os
-import sys
 import glob
 import json
-
-from kubernetes import client, config
+import os
+import sys
 
 import click
+from kubernetes import client, config
 
-from .common import (
-    run_playbook,
-    print_error_msg,
-    print_success_msg)
+from .common import print_error_msg, print_success_msg, run_playbook
+
 
 @click.group()
 @click.pass_context
@@ -31,6 +28,7 @@ def verify(ctx):
     Run post deployment checks on orc8r
     """
     pass
+
 
 @verify.command('sanity')
 @click.option('-n', '--namespace', default='orc8r')
@@ -48,7 +46,9 @@ def verify_sanity(ctx, namespace):
             if len(kubeconfigs) == 0:
                 print_success_msg('No kubeconfig found!!!')
             else:
-                print_error_msg("multiple kubeconfigs found %s!!!" % repr(kubeconfigs))
+                print_error_msg(
+                    "multiple kubeconfigs found %s!!!" %
+                    repr(kubeconfigs))
             return
         kubeconfig = kubeconfigs[0]
 
@@ -70,13 +70,13 @@ def verify_sanity(ctx, namespace):
     constants['orc8r_namespace'] = namespace
 
     rc = run_playbook([
-            "ansible-playbook",
-            "-v",
-            "-e",
-            json.dumps(constants),
-            "-t",
-            "verify_sanity",
-            "%s/main.yml" % constants["playbooks"]])
+        "ansible-playbook",
+        "-v",
+        "-e",
+        json.dumps(constants),
+        "-t",
+        "verify_sanity",
+        "%s/main.yml" % constants["playbooks"]])
     if rc != 0:
         print_error_msg("Post deployment verification checks failed!!!")
         sys.exit(1)
