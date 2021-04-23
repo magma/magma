@@ -1343,13 +1343,14 @@ workflows:
           <<: *only_master
       - lte-integ-test:
           <<: *master_and_develop
-      - lte-agw-deploy:
-          <<: *only_master
-          requires:
-            - lte-test
-            - mme_test
-            - lte-integ-test
       - c-cpp-codecov
+      - agw-deploy-hold:
+          <<: *only_release
+          type: approval
+      - lte-agw-deploy:
+          <<: *only_release
+          requires:
+          - agw-deploy-hold
 
   release:
     jobs:
