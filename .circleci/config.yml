@@ -955,22 +955,20 @@ jobs:
   lte-agw-aws:
     environment:
       #AWS_ACCESS_KEY_ID: "$AWS_FB_CRED"
-      PARAM_AWS_SECRET_ACCESS_KEY: "$(printenv AWS_FB_SECRET)"
+      #PARAM_AWS_SECRET_ACCESS_KEY: "$(printenv AWS_FB_SECRET)"
       MAGMA_ROOT: /home/circleci/project  
     machine:
       image: ubuntu-1604:201903-01
     steps:
       - checkout
       - python/set_version
-      - aws-cli/setup
+      #- aws-cli/setup
       - run:
           command: |
             echo export AWS_DEFAULT_REGION="us-west-1" >> $BASH_ENV
             echo export AWS_ACCESS_KEY_ID="$(printenv AWS_FB_CRED)" >> $BASH_ENV
             echo export AWS_SECRET_ACCESS_KEY="$(printenv AWS_FB_SECRET)" >> $BASH_ENV
-            pip install wheel
-            pip install boto3
-            pip install ansible
+            pip install wheel ansible awscli boto3
             mkdir ~/magma-experimental
             mkdir ~/magma-experimental/files
             cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
