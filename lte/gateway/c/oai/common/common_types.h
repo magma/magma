@@ -169,7 +169,7 @@ typedef enum {
 
 typedef struct supported_features_s {
 #define FEATURE_LIST_ID_2_EXTERNAL_IDENTIFIER
-  unsigned external_identifier : 1;
+  bool external_identifier : 1;
 #define FEATURE_LIST_ID_2_NR_AS_SECONDARY_RAT (1U)
   bool nr_as_secondary_rat : 1;
 } supported_features_t;
