@@ -1995,6 +1995,14 @@ static void mme_app_handle_s1ap_ue_context_release(
     mme_app_stop_timer(ue_mm_context->ue_context_modification_timer.id);
     ue_mm_context->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
+  // Stop esm timer if running
+  for (int bid = 0; bid < BEARERS_PER_UE; bid++) {
+    if (ue_mm_context->bearer_contexts[bid]) {
+      esm_ebr_stop_timer(
+          &ue_mm_context->emm_context,
+          ue_mm_context->bearer_contexts[bid]->ebi);
+    }
+  }
 
   if (ue_mm_context->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
