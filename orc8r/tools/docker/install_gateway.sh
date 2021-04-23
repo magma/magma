@@ -27,7 +27,7 @@ INSTALL_DIR="/tmp/magmagw_install"
 
 # Using RC as opposed to stable (1.24.0) due to
 # SCTP port mapping support
-DOCKER_COMPOSE_VERSION=1.25.0-rc1
+DOCKER_COMPOSE_VERSION=1.29.1
 
 DIR="."
 echo "Setting working directory as: $DIR"
