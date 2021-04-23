@@ -136,9 +136,9 @@ int main(int argc, char* argv[]) {
 #endif
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
 
-  if (mme_config.enable_converged_core) {
-    CHECK_INIT_RETURN(ngap_amf_init(&amf_config));
-  }
+  //  if (mme_config.enable_converged_core) {
+  CHECK_INIT_RETURN(ngap_amf_init(&amf_config));
+  //  }
   CHECK_INIT_RETURN(s6a_init(&mme_config));
 
   // Create SGS Task only if non_eps_service_control is not set to OFF
