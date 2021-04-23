@@ -302,6 +302,7 @@ typedef struct amf_context_s {
                                              AMF24.501R15_5.5.3.2.4_4*/
   std::string smf_msg; /* SMF message contained within the initial request*/
   bool is_imsi_only_detach;
+  uint8_t reg_id_type;
 } amf_context_t;
 
 typedef struct amf_ue_context_s {

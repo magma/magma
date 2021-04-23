@@ -330,6 +330,20 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
               LOG_NAS_AMF,
               "Failed to start registration authentication procedure! \n");
         }
+      } else if (amf_context->reg_id_type == M5GSMobileIdentityMsg_SUCI_IMSI) {
+        OAILOG_INFO(
+            LOG_AMF_APP,
+            "In SUCI Initial request case Send Auth Req directly\n");
+        imsi64_t imsi64 = amf_imsi_to_imsi64(registration_proc->ies->imsi);
+        amf_ctx_set_valid_imsi(
+            amf_context, registration_proc->ies->imsi, imsi64);
+        rc = amf_start_registration_proc_authentication(
+            amf_context, registration_proc);
+        if (rc != RETURNok) {
+          OAILOG_ERROR(
+              LOG_NAS_AMF,
+              "Failed to start registration authentication procedure! \n");
+        }
       } else {
         // force identification, even if not necessary
         rc = amf_proc_identification(
@@ -339,7 +353,7 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
             amf_registration_success_identification_cb,
             amf_registration_failure_identification_cb);
       }
-    } else if (registration_proc->ies->guti) {
+    } else if (amf_context->reg_id_type == M5GSMobileIdentityMsg_GUTI) {
       /* TODO: Currently we are not receving GUTI during intial
        * Registration procedure and in future this code can be used.
        */

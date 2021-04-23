@@ -316,8 +316,10 @@ imsi64_t amf_app_handle_initial_ue_message(
   bool is_mm_ctx_new                = false;
   gnb_ngap_id_key_t gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
   imsi64_t imsi64                   = INVALID_IMSI64;
+  paging_context_t* paging_ctx      = nullptr;
   guti_m5_t guti;
   plmn_t plmn;
+  s_tmsi_m5_t s_tmsi = {0};
 
   if (initial_pP->amf_ue_ngap_id != INVALID_AMF_UE_NGAP_ID) {
     OAILOG_ERROR(
@@ -328,62 +330,42 @@ imsi64_t amf_app_handle_initial_ue_message(
 
   // Check if there is any existing UE context using S-TMSI/GUTI
   if (initial_pP->is_s_tmsi_valid) {
-    /* This check is not used in this PR and code got changed in upcoming PRs
-     * hence not-used functions are take out
-     */
     OAILOG_DEBUG(
         LOG_AMF_APP,
-        "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
-    guti.guamfi.plmn         = {0};
-    guti.guamfi.amf_regionid = 0;
-    guti.guamfi.amf_set_id   = 0;
-    guti.guamfi.amf_pointer  = 0;
-    guti.m_tmsi              = INVALID_M_TMSI;
-    plmn.mcc_digit1          = initial_pP->tai.plmn.mcc_digit1;
-    plmn.mcc_digit2          = initial_pP->tai.plmn.mcc_digit2;
-    plmn.mcc_digit3          = initial_pP->tai.plmn.mcc_digit3;
-    plmn.mnc_digit1          = initial_pP->tai.plmn.mnc_digit1;
-    plmn.mnc_digit2          = initial_pP->tai.plmn.mnc_digit2;
-    plmn.mnc_digit3          = initial_pP->tai.plmn.mnc_digit3;
-    is_guti_valid =
-        amf_app_construct_guti(&plmn, &(initial_pP->opt_s_tmsi), &guti);
-    // create a new ue context if nothing is found
-    if (is_guti_valid) {
-      ue_context_p =
-          amf_ue_context_exists_guti(&amf_app_desc_p->amf_ue_contexts, &guti);
-      if (ue_context_p) {
-        initial_pP->amf_ue_ngap_id = ue_context_p->amf_ue_ngap_id;
-        if (ue_context_p->gnb_ngap_id_key != INVALID_GNB_UE_NGAP_ID_KEY) {
-          /*
-           * Ideally this should never happen. When UE moves to IDLE,
-           * this key is set to INVALID.
-           * Note - This can happen if eNB detects RLF late and by that time
-           * UE sends Initial NAS message via new RRC connection.
-           * However if this key is valid, remove the key from the hashtable.
-           */
-          OAILOG_ERROR(
-              LOG_AMF_APP,
-              "AMF_APP_INITAIL_UE_MESSAGE: gnb_ngap_id_key %ld has "
-              "valid value \n",
-              ue_context_p->gnb_ngap_id_key);
-          amf_app_ue_context_release(
-              ue_context_p, ue_context_p->ue_context_rel_cause);
-          hashtable_uint64_ts_remove(
-              amf_app_desc_p->amf_ue_contexts.gnb_ue_ngap_id_ue_context_htbl,
-              (const hash_key_t) ue_context_p->gnb_ngap_id_key);
-          ue_context_p->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
-        }
-        // Update AMF UE context with new gnb_ue_ngap_id
-        ue_context_p->gnb_ue_ngap_id = initial_pP->gnb_ue_ngap_id;
-        amf_ue_context_update_coll_keys(
-            &amf_app_desc_p->amf_ue_contexts, ue_context_p, gnb_ngap_id_key,
-            ue_context_p->amf_ue_ngap_id, ue_context_p->amf_context.imsi64,
-            ue_context_p->amf_teid_n11, &guti);
-        imsi64 = ue_context_p->amf_context.imsi64;
-      }
+        "INITIAL UE Message: with S-TMSI received from ue_id:%d \n",
+        initial_pP->amf_ue_ngap_id);
+    ue_context_p =
+        amf_ue_context_exists_amf_ue_ngap_id(initial_pP->amf_ue_ngap_id);
+    if (!ue_context_p) {
+      /* AMF has lost the context associated with the
+       * UE which was earlier assigned with this GUTI. AMF needs to create a new
+       * context and ask for Identity */
+      OAILOG_INFO(
+          LOG_AMF_APP, "INITIAL UE Message: ue_context not found for ue_id: %d",
+          initial_pP->amf_ue_ngap_id);
     } else {
-      // TODO This piece of code got changed in upcoming PRs with feature
-      // like Service Req and Periodic Reg Updating.
+      // Update PLMN of GUTI of ue_context
+      ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit1 =
+          initial_pP->tai.plmn.mcc_digit1;
+      ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit2 =
+          initial_pP->tai.plmn.mcc_digit2;
+      ue_context_p->amf_context.m5_guti.guamfi.plmn.mcc_digit3 =
+          initial_pP->tai.plmn.mcc_digit3;
+      ue_context_p->amf_context.m5_guti.guamfi.plmn.mnc_digit1 =
+          initial_pP->tai.plmn.mnc_digit1;
+      ue_context_p->amf_context.m5_guti.guamfi.plmn.mnc_digit2 =
+          initial_pP->tai.plmn.mnc_digit2;
+      ue_context_p->amf_context.m5_guti.guamfi.plmn.mnc_digit3 =
+          initial_pP->tai.plmn.mnc_digit3;
+      s_tmsi = initial_pP->opt_s_tmsi;
+      // amf_context has been found. It means UE was already registred
+      is_mm_ctx_new = false;
+
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "PLMN updated, sending for NAS decode for ue_id = "
+          "(%d)\n",
+          ue_context_p->amf_ue_ngap_id);
     }
   } else {
     OAILOG_DEBUG(

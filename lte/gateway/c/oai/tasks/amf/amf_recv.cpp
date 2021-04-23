@@ -178,6 +178,25 @@ int amf_handle_registration_request(
             msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit2;
         supi_imsi.plmn.mnc_digit3 =
             msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit3;
+
+        amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
+        OAILOG_INFO(
+            LOG_NAS_AMF,
+            "In process of SUCI based Initial Request"
+            " new 5G-TMSI value 0x%08" PRIx32 "\n",
+            amf_guti.m_tmsi);
+        /* Update this new GUTI in amf_context and map
+         * unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map
+         */
+        ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
+
+        ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
+
+        OAILOG_INFO(
+            LOG_AMF_APP,
+            "In SUCI based Initial Request: New GUTI updated in "
+            "map and ue contxt, sending accept message in DL\n");
+
         // copy 5 octet scheme_output to msin of supi_imsi
         memcpy(
             &supi_imsi.msin,
@@ -194,7 +213,93 @@ int amf_handle_registration_request(
             params->imsi->u.value[2], params->imsi->u.value[3],
             params->imsi->u.value[4], params->imsi->u.value[5],
             params->imsi->u.value[6], params->imsi->u.value[7]);
+
+        imsi64_t imsi64                = amf_imsi_to_imsi64(params->imsi);
+        guti_and_amf_id.amf_guti       = amf_guti;
+        guti_and_amf_id.amf_ue_ngap_id = ue_id;
+        if (amf_supi_guti_map.size() == 0) {
+          // first entry.
+          amf_supi_guti_map.insert(
+              std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+        } else {
+          /* already elements exist then check if same imsi already present
+           * if same imsi then update/overwrite the element
+           */
+          std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
+              amf_supi_guti_map.find(imsi64);
+          if (found_imsi == amf_supi_guti_map.end()) {
+            // it is new entry to map
+            amf_supi_guti_map.insert(std::pair<imsi64_t, guti_and_amf_id_t>(
+                imsi64, guti_and_amf_id));
+          } else {
+            // Overwrite the second element.
+            found_imsi->second = guti_and_amf_id;
+          }
+        }
       }
+    } else if (
+        (msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
+         M5GSMobileIdentityMsg_GUTI) &&
+        !is_amf_ctx_new) {
+      OAILOG_DEBUG(
+          LOG_NAS_AMF,
+          "AMF_REGISTRATION processing"
+          "is_amf_ctx_new = %d and identity type = %d ",
+          is_amf_ctx_new,
+          msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity);
+      /* A UE which has already been registered can send registration request of
+       * AMF_REGISTRATION_TYPE_INITIAL type with GUTI as Identity Type. After
+       * validating the Recieved GUTI, AMF can reply to this Registration
+       * Request with the complete message and a new GUTI.
+       */
+      supi_imsi.plmn.mcc_digit1 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit1;
+      supi_imsi.plmn.mcc_digit2 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit2;
+      supi_imsi.plmn.mcc_digit3 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mcc_digit3;
+      supi_imsi.plmn.mnc_digit1 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit1;
+      supi_imsi.plmn.mnc_digit2 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit2;
+      supi_imsi.plmn.mnc_digit3 =
+          msg->m5gs_mobile_identity.mobile_identity.guti.mnc_digit3;
+
+      amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
+      OAILOG_INFO(
+          LOG_NAS_AMF,
+          "In process of periodic registraion update"
+          " new 5G-TMSI value 0x%08" PRIx32 "\n",
+          amf_guti.m_tmsi);
+      /* Update this new GUTI in amf_context and map
+       * unordered_map<imsi64_t, guti_and_amf_id_t> amf_supi_guti_map
+       */
+      ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
+
+      imsi64_t imsi64                     = ue_context->amf_context.imsi64;
+      guti_and_amf_id.amf_guti            = amf_guti;
+      guti_and_amf_id.amf_ue_ngap_id      = ue_id;
+      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
+      // Find the respective element in map with key imsi_64
+      std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
+          amf_supi_guti_map.find(imsi64);
+      if (found_imsi != amf_supi_guti_map.end()) {
+        // element found in map and update the GUTI
+        found_imsi->second = guti_and_amf_id;
+      }
+      OAILOG_DEBUG(
+          LOG_AMF_APP,
+          "New GUTI updated in "
+          "map and ue contxt, sending accept message in DL\n");
+
+      // Call the registration accept API to send accept messaeg in DL
+      rc = amf_send_registration_accept(&ue_context->amf_context);
+
+    } else if (
+        (msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
+         M5GSMobileIdentityMsg_GUTI) &&
+        is_amf_ctx_new) {
+      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
     }
   }  // end of AMF_REGISTRATION_TYPE_INITIAL
 
