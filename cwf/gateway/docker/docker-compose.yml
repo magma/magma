@@ -12,7 +12,7 @@ x-standard-volumes: &volumes_anchor
   - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
   - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
   - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
-  - /etc/snowflake:/etc/snowflake
+  - ${SNOWFLAKE_PATH}:/etc/snowflake
 
 x-generic-service: &service
   volumes: *volumes_anchor
@@ -109,7 +109,7 @@ services:
       - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
       - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
-      - /etc/snowflake:/etc/snowflake
+      - ${SNOWFLAKE_PATH}:/etc/snowflake
       - /var/run/docker.sock:/var/run/docker.sock
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
 
@@ -123,14 +123,15 @@ services:
       - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
       - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
-      - /etc/snowflake:/etc/snowflake
+      - ${SNOWFLAKE_PATH}:/etc/snowflake
       - /var/run/docker.sock:/var/run/docker.sock
       - ./:/var/opt/magma/docker
     environment:
       DOCKER_REGISTRY: ${DOCKER_REGISTRY}
       DOCKER_USERNAME: ${DOCKER_USERNAME}
       DOCKER_PASSWORD: ${DOCKER_PASSWORD}
-    command: python3.8 -m magma.magmad.main
+    command: >
+      sh -c "sleep 0 && python3.8 -m magma.magmad.main"
 
   pipelined:
     <<: *ltepyservice
@@ -142,7 +143,7 @@ services:
       - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
       - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
-      - /etc/snowflake:/etc/snowflake
+      - ${SNOWFLAKE_PATH}:/etc/snowflake
       - /var/run/openvswitch:/var/run/openvswitch
     healthcheck:
       test: ["CMD", "nc", "-zv", "localhost","50063"]

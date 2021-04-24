@@ -15,7 +15,7 @@ x-standard-volumes: &volumes_anchor
   - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
   - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
   - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
-  - /etc/snowflake:/etc/snowflake
+  - ${SNOWFLAKE_PATH}:/etc/snowflake
 
 x-generic-service: &service
   volumes: *volumes_anchor
@@ -46,7 +46,7 @@ services:
       - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
       - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
       - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
-      - /etc/snowflake:/etc/snowflake
+      - ${SNOWFLAKE_PATH}:/etc/snowflake
       - ../integ_tests/pipelined.yml:/etc/magma/pipelined.yml
       - /var/run/openvswitch:/var/run/openvswitch
     command: >

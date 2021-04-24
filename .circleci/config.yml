@@ -34,7 +34,7 @@ aliases:
   - &orc8r_build_verify
     paths: "orc8r"
   - &cwf_build_verify
-    paths: "cwf"
+    paths: "cwf lte feg"
   - &docs_only
     paths: "docs"
 
@@ -747,6 +747,46 @@ jobs:
             make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
       - magma_slack_notify
 
+  cwag-build-check:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *cwf_build_verify
+      - run:
+          name: Build CWAG containers
+          command: |
+            cd $MAGMA_ROOT/cwf/gateway/docker
+            docker-compose build --parallel
+      - run:
+          name: Generate test certs
+          command: |
+            sudo apt install openssl
+            mkdir -p $MAGMA_ROOT/cwf/gateway/docker/.test_certs
+            cd $MAGMA_ROOT/cwf/gateway/docker/.test_certs
+            touch snowflake
+            openssl genrsa -out rootCA.key 2048
+            openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 365000 \
+              -out rootCA.pem -subj "/C=US/CN=rootca.magma.test"
+      - run:
+          name: Bring up CWAG containers
+          command: |
+            cd $MAGMA_ROOT/cwf/gateway/docker
+            docker-compose --env-file=./.ci_env up -d
+      - run:
+          name: Check health (except pipelined and redirectd)
+          command: |
+            docker ps --format "{{.Names}}	{{.Status}}" \
+              | grep Restarting \
+              | grep --invert-match 'pipelined\|redirectd'
+            EXITCODE=$?
+            $EXITCODE -eq 1 # grep returns 1 when finding nothing
+
   cwf-integ-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -1360,6 +1400,7 @@ workflows:
   cwag:
     jobs:
       - cwag-precommit
+      - cwag-build-check
       - cwf-integ-test:
           <<: *master_and_develop
       - xwfm-test:

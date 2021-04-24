@@ -17,12 +17,12 @@ IMAGE_VERSION=latest
 
 BUILD_CONTEXT=../../..
 
-ROOTCA_PATH=../../../.cache/test_certs/rootCA.pem
+ROOTCA_PATH=./.test_certs/rootCA.pem
+SNOWFLAKE_PATH=./.test_certs/snowflake
 CONTROL_PROXY_PATH=../configs/control_proxy.yml
 CONFIGS_TEMPLATES_PATH=../../../orc8r/gateway/configs/templates
-SNOWFLAKE_PATH=/etc/snowflake
 
-CERTS_VOLUME=/var/opt/magma/certs
+CERTS_VOLUME=./.test_certs
 CONFIGS_OVERRIDE_VOLUME=/var/opt/magma/configs
 CONFIGS_DEFAULT_VOLUME=../configs
 SECRETS_VOLUME=/var/opt/magma/secrets
@@ -34,5 +34,3 @@ RADIUS_REDIS_ADDR=
 INGRESS_PORT=
 UPLINK_PORTS=
 LI_PORT=
-
-LOG_DRIVER=journald
