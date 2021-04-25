@@ -47,6 +47,11 @@ void create_rule_record(
 
 void create_rule_record(
     const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    uint64_t bytes_rx, uint64_t bytes_tx, uint32_t teid,
+    RuleRecord* rule_record);
+
+void create_rule_record(
+    const std::string& imsi, const std::string& ip, const std::string& rule_id,
     uint64_t bytes_rx, uint64_t bytes_tx, RuleRecord* rule_record);
 
 void create_rule_record(
