@@ -388,17 +388,27 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
             ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
-            if request.request_origin.type == RequestOriginType.GX:
+            if self._should_remove_from_gx(request):
                 self._deactivate_flows_gx(request, ipv4)
-            else:
+            if self._should_remove_from_gy(request):
                 self._deactivate_flows_gy(request, ipv4)
         if request.ipv6_addr:
             ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
             self._update_ipv6_prefix_store(request.ipv6_addr)
-            if request.request_origin.type == RequestOriginType.GX:
+            if self._should_remove_from_gx(request):
                 self._deactivate_flows_gx(request, ipv6)
-            else:
+            if self._should_remove_from_gy(request):
                 self._deactivate_flows_gy(request, ipv6)
+
+    def _should_remove_from_gy(self, request: DeactivateFlowsRequest) -> bool:
+        is_gy = request.request_origin.type == RequestOriginType.GY
+        is_wildcard = request.request_origin.type == RequestOriginType.WILDCARD
+        return is_gy or is_wildcard
+
+    def _should_remove_from_gx(self, request: DeactivateFlowsRequest) -> bool:
+        is_gx = request.request_origin.type == RequestOriginType.GX
+        is_wildcard = request.request_origin.type == RequestOriginType.WILDCARD
+        return is_gx or is_wildcard
 
     def _deactivate_flows_gx(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GX flows for %s', request.sid.id)

@@ -130,6 +130,11 @@ void set_consts(const YAML::Node& config) {
     magma::SessionCredit::DEFAULT_REQUESTED_UNITS =
         config["default_requested_units"].as<uint64_t>();
   }
+  // default value for this config is true
+  if (config["cleanup_all_dangling_flows"].IsDefined()) {
+    magma::LocalEnforcer::CLEANUP_DANGLING_FLOWS =
+        config["cleanup_all_dangling_flows"].as<bool>();
+  }
 }
 
 magma::SessionStore* create_session_store(
