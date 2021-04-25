@@ -16,6 +16,7 @@
 #include "magma_logging.h"
 #include "GrpcMagmaUtils.h"
 #include <google/protobuf/util/time_util.h>
+#include "EnumToString.h"
 
 using grpc::Status;
 
@@ -249,10 +250,11 @@ void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
     const RequestOriginType_OriginType origin_type) {
-  MLOG(MDEBUG)
-      << "Deactivating all static/dynamic rules and default drop flows "
-         "for subscriber "
-      << imsi << " IP " << ip_addr << " " << ipv6_addr;
+  MLOG(MDEBUG) << "Deactivating all rules and default drop flows "
+               << "for " << imsi << ", ipv4: " << ip_addr
+               << ", ipv6: " << ipv6_addr << ", agw teid: " << teids.agw_teid()
+               << ", enb teid: " << teids.enb_teid()
+               << ", origin_type: " << request_origin_type_to_str(origin_type);
 
   RulesToProcess empty_to_process;
   empty_to_process.rules = std::vector<PolicyRule>{};

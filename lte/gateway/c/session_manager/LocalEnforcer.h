@@ -38,6 +38,27 @@ using std::experimental::optional;
 
 typedef std::pair<std::string, std::string> ImsiAndSessionID;
 
+struct RuleRecord_equal {
+  bool operator()(const RuleRecord& l, const RuleRecord& r) const {
+    // TODO replace IP comparison to tunnelID comparison
+    // return l.sid() == r.sid() && l.teid();
+    return l.sid() == r.sid() && l.ue_ipv4() == r.ue_ipv4() &&
+           l.ue_ipv6() == r.ue_ipv6();
+  }
+};
+struct RuleRecord_hash {
+  std::size_t operator()(const RuleRecord& el) const {
+    size_t h1 = std::hash<std::string>()(el.sid());
+    // TODO replace IP hash to tunnelID hash
+    // size_t h2 = std::hash<uint32_t>()(el.teid());
+    size_t h2 = std::hash<std::string>()(el.ue_ipv4());
+    size_t h3 = std::hash<std::string>()(el.ue_ipv6());
+    return h1 ^ h2 ^ h3;
+  }
+};
+typedef std::unordered_set<RuleRecord, RuleRecord_hash, RuleRecord_equal>
+    RuleRecordSet;
+
 struct ImsiSessionIDAndCreditkey {
   std::string imsi;
   std::string session_id;
@@ -291,6 +312,10 @@ class LocalEnforcer {
   // If this is set to true, we will send the timezone along with
   // CreateSessionRequest
   static bool SEND_ACCESS_TIMEZONE;
+  // If true, for any rule reported as part of ReportRuleStats,
+  // remove it if the rule's IMSI+TEIDs pair do no exist as
+  // a session
+  static bool CLEANUP_DANGLING_FLOWS;
 
  private:
   std::shared_ptr<SessionReporter> reporter_;
@@ -631,6 +656,15 @@ class LocalEnforcer {
   void add_rules_for_unsuspended_credit(
       const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
       SessionStateUpdateCriteria& session_uc);
+
+  /**
+   * Given a set of IMSI+IPs that are no longer tracked in SessionD, send a
+   * deactivate flows request to PipelineD for all flows associated with those
+   * IDs. The function sends the request for all types (ANY), because the set
+   * does not specify the origin type (Gx/Gy/N4).
+   * @param dead_sessions_to_cleanup
+   */
+  void cleanup_dead_sessions(const RuleRecordSet dead_sessions_to_cleanup);
 };
 
 }  // namespace magma
