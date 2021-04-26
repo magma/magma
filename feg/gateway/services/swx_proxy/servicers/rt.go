@@ -86,7 +86,7 @@ func (r *fegRelayClient) RelayRTR(rtr *RTR) (protos.ErrorCode, error) {
 }
 
 func (r *fegRelayClient) RelayASR(*diameter.ASR) (protos.ErrorCode, error) {
-	return protos.ErrorCode_COMMAND_UNSUPORTED, fmt.Errorf("Relay for ASR is not implemented")
+	return protos.ErrorCode_COMMAND_UNSUPORTED, fmt.Errorf("relay for ASR is not implemented")
 }
 
 func handleRTR(s *swxProxy) diam.HandlerFunc {
@@ -102,9 +102,12 @@ func handleRTR(s *swxProxy) diam.HandlerFunc {
 		if len(imsi) == 0 {
 			imsi, err = diameter.ExtractImsiFromSessionID(string(rtr.SessionID))
 			if err != nil {
-				err = fmt.Errorf("Error retreiving IMSI from Session ID %s: %s", rtr.SessionID, err)
+				err = fmt.Errorf("error retreiving IMSI from Session ID %s: %s", rtr.SessionID, err)
 				glog.Error(err)
 				err = s.sendRTA(c, m, protos.ErrorCode_UNKNOWN_SESSION_ID, &rtr, MaxDiamRTRetries)
+				if err != nil {
+					glog.Error(fmt.Errorf("error replying back (RTA): %s", err))
+				}
 				return
 			}
 			rtr.UserName = datatype.UTF8String(imsi)

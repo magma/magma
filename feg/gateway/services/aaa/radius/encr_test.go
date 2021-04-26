@@ -51,7 +51,7 @@ func encodeWithMessageAuthenticator(p *rad.Packet) []byte {
 		encoded[:4],
 		p.Authenticator[:],
 		encoded[20:],
-		[]byte{80, 18},
+		{80, 18},
 		zeroedOutMsgAuthenticator[:],
 	}
 	var radiusMsg []byte

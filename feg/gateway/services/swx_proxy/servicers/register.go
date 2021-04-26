@@ -78,7 +78,7 @@ func (s *swxProxy) sendSARExt(
 		metrics.SARLatency.Observe(time.Since(sarStartTime).Seconds())
 		if !open {
 			metrics.SwxInvalidSessions.Inc()
-			err = status.Errorf(codes.Aborted, "SAA for Session ID: %s is cancelled", sid)
+			err = status.Errorf(codes.Aborted, "SAA for Session ID: %s is canceled", sid)
 			glog.Error(err)
 			return nil, err
 		}

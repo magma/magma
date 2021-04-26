@@ -181,10 +181,11 @@ func decrementUsedCredit(credit *CreditBucket, usage *usedServiceUnit) {
 }
 
 func decrementOrZero(first, second uint64) uint64 {
-	result := first - second
-	if result < 0 {
+	if second >= first {
+		// subtraction between uints is never negative!!
 		return 0
 	}
+	result := first - second
 	return result
 }
 
@@ -310,7 +311,7 @@ func toFinalUnitActionAVP(finalUnitAction protos.FinalUnitAction, redirectAddres
 	}
 
 	if finalUnitAction == protos.FinalUnitAction_Restrict {
-		if restrict_rules == nil || len(restrict_rules) == 0 {
+		if len(restrict_rules) == 0 {
 			glog.Errorf("RestrictRules must be provided when final unit action is set to restrict\n")
 			return fuaAVPs
 		}
