@@ -17,7 +17,7 @@
 #include <vector>
 
 #include "RuleStore.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 
 namespace magma {
 

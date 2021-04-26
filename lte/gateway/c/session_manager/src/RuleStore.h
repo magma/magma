@@ -22,8 +22,11 @@
 #include <unordered_map>
 #include <vector>
 
+#include <lte/protos/policydb.pb.h>
+#include <lte/protos/pipelined.grpc.pb.h>
+
 #include "CreditKey.h"
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 
 using grpc::Status;
 

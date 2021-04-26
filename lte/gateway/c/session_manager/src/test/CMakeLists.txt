@@ -18,6 +18,9 @@ set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("/usr/src/googletest/googlemock/include/")
 
+find_package(SERVICE303_LIB REQUIRED)
+find_package(SERVICE_REGISTRY REQUIRED)
+
 add_library(SESSIOND_TEST_LIB
     Consts.h
     Matchers.h
@@ -28,7 +31,8 @@ add_library(SESSIOND_TEST_LIB
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)
-target_link_libraries(SESSIOND_TEST_LIB SESSION_MANAGER gmock_main gtest gtest_main gmock pthread rt)
+target_link_libraries(SESSIOND_TEST_LIB SESSION_MANAGER SERVICE303_LIB
+    SERVICE_REGISTRY gmock_main gtest gtest_main gmock pthread rt)
 
 foreach (session_test session_credit local_enforcer cloud_reporter
     session_manager_handler sessiond_integ session_state
