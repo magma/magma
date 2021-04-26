@@ -57,15 +57,10 @@ lint: lint_tools
 	golangci-lint run
 
 lint_tools:
-	#if which golangci-lint 2>/dev/null; then echo "-> golangci-lint already installed"; \
-	#else curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-	#		| sh -s -- -b $$(go env GOBIN) v1.35.2; \
-	#fi
 	if which golangci-lint 2>/dev/null; then echo "-> golangci-lint already installed"; \
 	else curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
 			| sudo sh -s -- -b /usr/sbin/ v1.35.2; \
 	fi
-
 
 build_only:
 	go build ./...

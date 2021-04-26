@@ -193,10 +193,10 @@ func TestAkaChallenge(t *testing.T) {
 	if attr == nil {
 		t.Fatal("Nil AT_MAC Attribute")
 	}
-	if attr.Type() != aka.AT_MAC || !reflect.DeepEqual(attr.Marshaled(), []byte(expectedTestMac)) {
-		t.Fatalf("Invalid AT_MAC:\n\tExpected: %v\n\tReceived: %v\n", []byte(expectedTestMac), attr.Marshaled())
+	if attr.Type() != aka.AT_MAC || !reflect.DeepEqual(attr.Marshaled(), expectedTestMac) {
+		t.Fatalf("Invalid AT_MAC:\n\tExpected: %v\n\tReceived: %v\n", expectedTestMac, attr.Marshaled())
 	}
-	if !reflect.DeepEqual([]byte(p), []byte(expectedTestEapChallengeResp)) {
+	if !reflect.DeepEqual([]byte(p), expectedTestEapChallengeResp) {
 		t.Fatalf("Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			p, expectedTestEapChallengeResp)
 	}

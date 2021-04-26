@@ -102,7 +102,7 @@ func TestSwxProxyService_ValidationErrors(t *testing.T) {
 
 	emptyAuthReq := &protos.AuthenticationRequest{}
 	_, err = client.Authenticate(context.Background(), emptyAuthReq)
-	assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = Empty user-name provided in authentication request")
+	assert.EqualError(t, err, "rpc error: code = InvalidArgument desc = empty user-name provided in authentication request")
 
 	badNumVectorsReq := &protos.AuthenticationRequest{
 		UserName:             "10111011000110",

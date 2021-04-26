@@ -660,7 +660,7 @@ jobs:
          command: go mod download
          workdir: ${MAGMA_ROOT}/cwf/gateway
       - run:
-          name: GO lint code
+          name: Go lint code
           command: |
             cd ${MAGMA_ROOT}/feg/gateway
             make -C ${MAGMA_ROOT}/feg/gateway lint
