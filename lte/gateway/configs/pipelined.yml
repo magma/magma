@@ -83,6 +83,9 @@ dpi:
   mon_port_number: 32769
   idle_timeout: 5
 
+conntrackd:
+  enabled: false
+
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: gtp_br0
 
@@ -162,7 +165,7 @@ ovs_gtp_stats_polling_interval: 180
 he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
 he_enabled: true
 
-# Make as a True when gnb ip will support for uplink 
+# Make as a True when gnb ip will support for uplink
 ovs_multi_tunnel: False
 
 # Internal port for processing internal conntrack

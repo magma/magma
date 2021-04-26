@@ -250,20 +250,19 @@ class S1ApUtil(object):
             ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
     def attach(
-            self,
-            ue_id,
-            attach_type,
-            resp_type,
-            resp_msg_type,
-            sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
-            id_type=s1ap_types.TFW_MID_TYPE_IMSI,
-            eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
-            pdn_type=1,
-            pcscf_addr_type=None,
-            dns_ipv6_addr=False,
+        self,
+        ue_id,
+        attach_type,
+        resp_type,
+        resp_msg_type,
+        sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
+        id_type=s1ap_types.TFW_MID_TYPE_IMSI,
+        eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
+        pdn_type=1,
+        pcscf_addr_type=None,
+        dns_ipv6_addr=False,
     ):
-        """
-        Given a UE issue the attach request of specified type
+        """Given a UE issue the attach request of specified type
 
         Caches the assigned IP address, if any is assigned
 
@@ -271,6 +270,7 @@ class S1ApUtil(object):
             ue_id: The eNB ue_id
             attach_type: The type of attach e.g. UE_END_TO_END_ATTACH_REQUEST
             resp_type: enum type of the expected response
+            resp_msg_type: Structure type of expected response message
             sec_ctxt: Optional param allows for the reuse of the security
                 context, defaults to creating a new security context.
             id_type: Optional param allows for changing up the ID type,
@@ -279,6 +279,11 @@ class S1ApUtil(object):
                 type, defaults to s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH.
             pdn_type:1 for IPv4, 2 for IPv6 and 3 for IPv4v6
             pcscf_addr_type:IPv4/IPv6/IPv4v6
+            dns_ipv6_addr: True/False flag
+
+        Returns:
+            msg: Received Attach Accept message
+
         """
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = ue_id
@@ -291,7 +296,7 @@ class S1ApUtil(object):
         # Populate PCO only if pcscf_addr_type is set
         if pcscf_addr_type or dns_ipv6_addr:
             self.populate_pco(
-                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr
+                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr,
             )
         assert self.issue_cmd(attach_type, attach_req) == 0
 
@@ -306,8 +311,8 @@ class S1ApUtil(object):
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
             assert (
-                    context_setup.msg_type
-                    == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                context_setup.msg_type
+                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             )
 
         logging.debug(
@@ -322,6 +327,8 @@ class S1ApUtil(object):
         # We only support IPv4 right now, as max PDN address in S1AP tester is
         # currently 13 bytes, which is too short for IPv6 (which requires 16)
         if resp_msg_type == s1ap_types.ueAttachAccept_t:
+            # Verify if requested and accepted EPS attach types are same
+            assert eps_type == msg.eps_Atch_resp
             pdn_type = msg.esmInfo.pAddr.pdnType
             addr = msg.esmInfo.pAddr.addrInfo
             if S1ApUtil.CM_ESM_PDN_IPV4 == pdn_type:
@@ -1681,11 +1688,20 @@ class HeaderEnrichmentUtils:
         print("restarting envoy done")
 
     def get_envoy_config(self):
-        output = self.magma_utils.exec_command_output(
-            "sudo ip netns exec envoy_ns1 curl 127.0.0.1:9000/config_dump")
-        self.dump = json.loads(output)
+        retry = 0
+        max = 60
+        while retry < max:
+            try:
+                output = self.magma_utils.exec_command_output(
+                    "sudo ip netns exec envoy_ns1 curl 127.0.0.1:9000/config_dump")
+                self.dump = json.loads(output)
+                return self.dump
+            except subprocess.CalledProcessError as e:
+                logging.debug("cmd error: %s", e)
+                retry = retry + 1
+                time.sleep(1)
 
-        return self.dump
+        assert False
 
     def get_route_config(self):
         self.dump = self.get_envoy_config()

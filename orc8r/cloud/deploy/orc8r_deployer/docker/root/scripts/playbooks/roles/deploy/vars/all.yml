@@ -7,8 +7,8 @@ ORC8R_DB_SUBNET_QUERY: "values.root_module.child_modules[*].resources[?address==
 NMS_DB_ID_QUERY: "values.root_module.child_modules[*].resources[?address=='module.orc8r.aws_db_instance.nms'].values.id"
 EFS_MOUNT_TARGET_ID_QUERY: "values.root_module.child_modules[*].resources[?type=='aws_efs_mount_target'].values.id"
 EFS_FILE_SYSTEM_ID_QUERY: "values.root_module.child_modules[*].resources[?type=='aws_efs_mount_target'].values.file_system_id"
-HOSTED_ZONE_QUERY: "values.root_module.child_modules[*].resources[?address=='module.orc8r.aws_route53_zone.orc8r'].values"
-VPC_QUERY: "values.root_module.child_modules[*].child_modules[*].resources[?type=='aws_vpc'].values"
+HOSTED_ZONE_QUERY: "values.root_module.child_modules[*].resources[?address=='module.orc8r.aws_route53_zone.orc8r'].values.name"
+VPC_QUERY: "values.root_module.child_modules[*].child_modules[*].resources[?type=='aws_vpc'].values.tags.Name"
 REGION_QUERY: "values.root_module.child_modules[*].resources[?type=='aws_availability_zones'].values.id"
 
 ORC8R_CERTS:
