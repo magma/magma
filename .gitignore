@@ -88,6 +88,7 @@ tags
 # CI files
 archives/
 test_results_magma_converged_mme.html
+orc8r/cloud/test-results/
 
 # IntelliJ
 .idea/
