@@ -34,7 +34,7 @@ aliases:
   - &orc8r_build_verify
     paths: "orc8r"
   - &cwf_build_verify
-    paths: "cwf"
+    paths: "cwf lte feg"
   - &docs_only
     paths: "docs"
 
@@ -747,6 +747,24 @@ jobs:
             make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
       - magma_slack_notify
 
+  cwag-build:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *cwf_build_verify
+      - run:
+          name: Build CWAG containers
+          command: |
+            cd $MAGMA_ROOT/cwf/gateway/docker
+            docker-compose build --parallel
+      # TODO bring up the containers and check for crashloops
+
   cwf-integ-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -1360,6 +1378,7 @@ workflows:
   cwag:
     jobs:
       - cwag-precommit
+      - cwag-build
       - cwf-integ-test:
           <<: *master_and_develop
       - xwfm-test:
