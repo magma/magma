@@ -368,6 +368,10 @@ class S1ApUtil(object):
         with self._lock:
             del self._ue_ip_map[ue_id]
 
+        # Verify that all UL/DL flows are deleted
+        self.verify_flow_rules_deletion()
+
+
     def _verify_dl_flow(self, dl_flow_rules=None):
         # try at least 5 times before failing as gateway
         # might take some time to install the flows in ovs
@@ -534,6 +538,14 @@ class S1ApUtil(object):
                 and action["port"] == controller_port
             )
             assert bool(has_tunnel_action)"""
+
+    def verify_flow_rules_deletion(self):
+        print("Checking if all uplink/downlink flows were deleted")
+        flows = get_flows(
+            self.datapath, {"table_id": self.SPGW_TABLE, "priority": 0}
+        )
+        assert(
+            len(flows) == 2), "There should only be 2 default table 0 flows"
 
     def generate_imsi(self, prefix=None):
         """

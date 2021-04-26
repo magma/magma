@@ -112,7 +112,8 @@ class TestAttachDetachDedicatedDeactTmrExp(unittest.TestCase):
             )
 
             # Do not send deactivate eps bearer context accept
-            # TODO:Receive retransmissions
+            # TODO:Receive retransmissions once support is added
+            # at s1ap tester
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
                 response.msg_type,

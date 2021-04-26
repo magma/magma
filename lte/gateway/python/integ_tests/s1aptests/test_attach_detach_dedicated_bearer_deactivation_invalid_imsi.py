@@ -39,6 +39,7 @@ class TestAttachDetachDedicatedDeactInvalidImsi(unittest.TestCase):
         test with a single UE
         """
         num_ues = 1
+        invalid_imsi = "001010000000004"
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
@@ -107,11 +108,11 @@ class TestAttachDetachDedicatedDeactInvalidImsi(unittest.TestCase):
 
             print(
                 "********************** Deleting dedicated bearer for IMSI",
-                "".join("001010000000004"),
+                "".join(invalid_imsi),
             )
             # Deactivate bearer with invalid imsi
             self._spgw_util.delete_bearer(
-                "IMSI" + "".join("001010000000004"),
+                "IMSI" + "".join(invalid_imsi),
                 attach.esmInfo.epsBearerId,
                 act_ded_ber_ctxt_req.bearerId,
             )
@@ -120,11 +121,6 @@ class TestAttachDetachDedicatedDeactInvalidImsi(unittest.TestCase):
             time.sleep(5)
             # Deletion of dedicated bearer failed so the flow rule
             # for dedicated bearer should not be deleted
-            dl_flow_rules = {
-                default_ip: [flow_list],
-            }
-            # 1 UL flow for default bearer + 1 for dedicated bearer
-            num_ul_flows = 2
             self._s1ap_wrapper.s1_util.verify_flow_rules(
                 num_ul_flows, dl_flow_rules,
             )

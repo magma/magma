@@ -121,6 +121,9 @@ class TestAttachDetachNwTriggeredDeleteLastPdn(unittest.TestCase):
                 s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept,
             )
 
+            # Verify that all UL/DL flows are deleted
+            self._s1ap_wrapper._s1_util.verify_flow_rules_deletion()
+
 
 if __name__ == "__main__":
     unittest.main()

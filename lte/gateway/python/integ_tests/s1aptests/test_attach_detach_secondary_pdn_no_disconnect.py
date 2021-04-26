@@ -19,7 +19,7 @@ import s1ap_types
 import s1ap_wrapper
 
 
-class TestSecondaryPdnNoDisconnect(unittest.TestCase):
+class TestAttachDetachSecondaryPdnNoDisconnect(unittest.TestCase):
     """Test secondary pdn connection without disconnection"""
 
     def setUp(self):
@@ -30,7 +30,7 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
         """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_secondary_pdn_conn_req(self):
+    def test_attach_detach_secondary_pdn_no_disconnect(self):
         """Attach a single UE , send standalone PDN Connectivity
         Request and detach without sending PDN Disconnect
         """

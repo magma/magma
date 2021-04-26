@@ -186,13 +186,6 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
             print("********************* Sleeping for 5 seconds")
             time.sleep(5)
             # Verify that flow rules are not deleted as PDN disconnect failed
-            dl_flow_rules = {
-                default_ip: [flow_list1],
-                sec_ip: [flow_list2],
-            }
-            # 2 UL flows for default and secondary pdns +
-            # 2 for dedicated bearers
-            num_ul_flows = 4
             self._s1ap_wrapper.s1_util.verify_flow_rules(
                 num_ul_flows, dl_flow_rules,
             )

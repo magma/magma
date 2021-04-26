@@ -106,7 +106,9 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
             "".join([str(itr) for itr in req.imsi]),
         )
         self._spgw_util.delete_bearers(
-            "IMSI" + "".join([str(itr) for itr in req.imsi]), 5, bearer_ids,
+            "IMSI" + "".join([str(itr) for itr in req.imsi]),
+            attach.esmInfo.epsBearerId,
+            bearer_ids,
         )
         for i in range(num_dedicated_bearers):
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -141,6 +143,8 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
         self._s1ap_wrapper.s1_util.detach(
             req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
         )
+        # Verify that all UL/DL flows are deleted
+        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
 
 
 if __name__ == "__main__":

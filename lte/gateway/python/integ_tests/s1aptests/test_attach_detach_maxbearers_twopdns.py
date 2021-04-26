@@ -37,7 +37,7 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
         Request + add 9 dedicated bearers + detach
         """
         num_ues = 1
-        flow_list2 = []
+        flow_lists2 = []
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         # 1 oai PDN + 1 dedicated bearer, 1 ims pdn + 8 dedicated bearers
@@ -134,13 +134,13 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
                     "********************** Adding dedicated bearer to ims"
                     " PDN",
                 )
-                flow_list2.append(
+                flow_lists2.append(
                     self._spgw_util.create_default_ipv4_flows(port_idx=i),
                 )
                 self._spgw_util.create_bearer(
                     "IMSI" + "".join([str(i) for i in req.imsi]),
                     act_def_bearer_req.m.pdnInfo.epsBearerId,
-                    flow_list2[i],
+                    flow_lists2[i],
                     qci_val=i + 1,
                 )
                 response = self._s1ap_wrapper.s1_util.get_response()
@@ -166,7 +166,7 @@ class TestMaximumBearersTwoPdnsPerUe(unittest.TestCase):
             # for secondary pdn
             dl_flow_rules = {
                 default_ip: [flow_list1],
-                sec_ip: flow_list2,
+                sec_ip: flow_lists2,
             }
             # 2 UL flows for default and secondray pdn +
             # 9 for dedicated bearers

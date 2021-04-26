@@ -144,13 +144,6 @@ class TestSecondaryPdnDisconnInvalidBearerId(unittest.TestCase):
         print("Sleeping for 5 seconds")
         time.sleep(5)
         # Verify that flow rules are not deleted
-        # Flow list is empty as there are no dedicated bearers
-        dl_flow_rules = {
-            default_ip: [],
-            sec_ip: [],
-        }
-        # 2 UL flows for default and secondary pdns
-        num_ul_flows = 2
         self._s1ap_wrapper.s1_util.verify_flow_rules(
             num_ul_flows, dl_flow_rules,
         )

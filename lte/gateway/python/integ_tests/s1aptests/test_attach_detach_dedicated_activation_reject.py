@@ -96,7 +96,8 @@ class TestAttachDetachDedicatedReject(unittest.TestCase):
                 s1ap_types.tfwCmd.UE_ACT_DED_BER_REJ, ded_bearer_rej,
             )
             print(
-                "Sent UE_ACT_DED_BER_REJ for bearer", ded_bearer_rej.bearerId,
+                "Sent UE_ACT_DED_BER_REJ for bearer id",
+                ded_bearer_rej.bearerId,
             )
 
             print("Sleeping for 5 seconds")

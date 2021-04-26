@@ -82,7 +82,8 @@ class TestAttachDetachDedicatedActTmrExp(unittest.TestCase):
             )
 
             # Do not send ACT_DED_BER_ACC
-            # TODO:Receive retransmissions
+            # TODO:Receive retransmissions once support is added
+            # at s1ap tester
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
                 response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
