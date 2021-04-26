@@ -14,3 +14,4 @@
   hosts: magma_deploy
   roles:
     - role: magma_deploy
+    - role: magma_deploy_common

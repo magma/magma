@@ -50,3 +50,4 @@
     - role: fluent_bit
     - role: pyvenv
     - role: focal_hacks
+    - role: magma_deploy_common
