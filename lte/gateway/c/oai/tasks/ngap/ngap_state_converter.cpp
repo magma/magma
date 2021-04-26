@@ -44,7 +44,7 @@ void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
   amf_ue_ngap_id_t amfid;
   // Helper ptr so sctp_assoc_id can be casted from double ptr on
   // hashtable_ts_get
-  void* sctp_id_ptr = nullptr;
+  void* sctp_id_ptr  = nullptr;
   auto amfid2associd = proto->mutable_amfid2associd();
 
   hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->amfid2associd);

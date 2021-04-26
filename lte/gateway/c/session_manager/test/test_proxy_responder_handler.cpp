@@ -268,7 +268,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   // the request should has no rules so PipelineD deletes all rules
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             IMSI1, _, _, _, RequestOriginType::GX))
+                             IMSI1, _, _, _, RequestOriginType::WILDCARD))
       .Times(1);
   proxy_responder->AbortSession(
       &create_context, &request,

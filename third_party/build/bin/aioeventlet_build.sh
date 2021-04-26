@@ -19,9 +19,32 @@ PKGVERSION=0.5.1
 ITERATION=1
 VERSION="$PKGVERSION-$ITERATION"
 PKGNAME=python3-aioeventlet
+REPO="https://github.com/openstack-archive/deb-python-aioeventlet.git"
+WORK_DIR=/tmp/build-${PKGNAME}
+
+if [ -z "$1" ]; then
+  OUTPUT_DIR=$(pwd)
+else
+  OUTPUT_DIR=$1
+  if [ ! -d "$OUTPUT_DIR" ]; then
+    echo "error: $OUTPUT_DIR is not a valid directory. Exiting..."
+    exit 1
+  fi
+fi
+
+# building from source
+if [ -d ${WORK_DIR} ]; then
+  rm -rf ${WORK_DIR}
+fi
+mkdir ${WORK_DIR}
+cd ${WORK_DIR}
+
+git clone ${REPO}
+cd deb-python-aioeventlet
+git apply ${PATCH_DIR}/*.patch
+
 
 # packaging
-OUTPUT_DIR=$(pwd)
 PKGFILE="$(pkgfilename)"
 BUILD_PATH="$OUTPUT_DIR"/"$PKGFILE"
 
@@ -31,7 +54,7 @@ if [ -f "$BUILD_PATH" ]; then
 fi
 
 fpm \
-    -s dir \
+    -s python \
     -t "$PKGFMT" \
     -a "$ARCH" \
     -n "$PKGNAME" \
@@ -42,5 +65,6 @@ fpm \
     --replaces "$PKGNAME" \
     --package "$BUILD_PATH" \
     --description 'patched aioeventlet' \
-    /usr/local/lib/python3.8/dist-packages/aioeventlet.py=/usr/local/lib/python3.8/dist-packages/aioeventlet.py \
-    /usr/local/lib/python3.8/dist-packages/aioeventlet-0.5.1-py3.8.egg-info=/usr/local/lib/python3.8/dist-packages/aioeventlet-0.5.1-py3.8.egg-info
+    --python-bin /usr/bin/python3 \
+    --python-package-name-prefix 'python3' \
+    ${WORK_DIR}/deb-python-aioeventlet/setup.py

@@ -109,10 +109,11 @@ func TestS6aProxyClient(t *testing.T) {
 	}
 
 	ulReq := &protos.UpdateLocationRequest{
-		UserName:           test.TEST_IMSI,
-		VisitedPlmn:        []byte(test.TEST_PLMN_ID),
-		SkipSubscriberData: false,
-		InitialAttach:      true,
+		UserName:                     test.TEST_IMSI,
+		VisitedPlmn:                  []byte(test.TEST_PLMN_ID),
+		SkipSubscriberData:           false,
+		InitialAttach:                true,
+		DualRegistration_5GIndicator: true,
 	}
 	// ULR
 	ulResp, err := s6a_proxy.UpdateLocation(ulReq)

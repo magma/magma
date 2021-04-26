@@ -14,8 +14,12 @@ limitations under the License.
 package main
 
 import (
+	"flag"
+	"time"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/nprobe"
+	manager "magma/lte/cloud/go/services/nprobe/nprobe_manager"
 	"magma/lte/cloud/go/services/nprobe/obsidian/handlers"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -25,6 +29,10 @@ import (
 
 	"github.com/golang/glog"
 )
+
+func init() {
+	flag.Parse()
+}
 
 func main() {
 	// Create service
@@ -36,6 +44,24 @@ func main() {
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(nprobe.ServiceName))
+
+	serviceConfig := nprobe.GetServiceConfig()
+	nProbeManager, err := manager.NewNProbeManager(serviceConfig)
+	if err != nil {
+		glog.Fatalf("Failed to create new NProbeManager: %v", err)
+	}
+
+	// Run LI service in Loop
+	go func() {
+		for {
+			err := nProbeManager.ProcessNProbeTasks()
+			if err != nil {
+				glog.Errorf("Failed to process tasks: %v", err)
+				<-time.After(time.Duration(serviceConfig.BackOffIntervalSecs) * time.Second)
+			}
+			<-time.After(time.Duration(serviceConfig.UpdateIntervalSecs) * time.Second)
+		}
+	}()
 
 	// Run service
 	err = srv.Run()

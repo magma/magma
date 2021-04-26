@@ -95,6 +95,9 @@ def clear_redis_state():
         "QosManager",
         "s1ap_imsi_map",
         "sessiond:sessions",
+        "*pipelined:rule_ids",
+        "*pipelined:rule_versions",
+        "*pipelined:rule_names",
     ]:
         for key in redis_client.scan_iter(key_regex):
             redis_client.delete(key)
@@ -157,6 +160,8 @@ def disable_stateless_agw():
 
 
 def ovs_reset_bridges():
+    subprocess.call(
+        "ovs-vsctl --all destroy Flow_Sample_Collector_Set".split())
     subprocess.call("ifdown uplink_br0".split())
     subprocess.call("ifdown gtp_br0".split())
     subprocess.call("service openvswitch-switch restart".split())
@@ -165,6 +170,8 @@ def ovs_reset_bridges():
 
 
 def sctpd_pre_start():
+    subprocess.Popen("service procps restart".split())
+
     if check_stateless_services() == return_codes.STATEFUL:
         # switching from stateless to stateful
         print("AGW is stateful, nothing to be done")

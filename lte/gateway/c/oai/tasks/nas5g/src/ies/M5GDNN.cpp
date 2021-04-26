@@ -39,7 +39,6 @@ int DNNMsg::DecodeDNNMsg(
 // Encode DNN Message
 int DNNMsg::EncodeDNNMsg(
     DNNMsg* dnn_message, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint16_t* lenPtr;
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
@@ -55,7 +54,7 @@ int DNNMsg::EncodeDNNMsg(
   IES_ENCODE_U8(buffer, encoded, dnn_message->len);
   MLOG(MDEBUG) << "Length = " << std::hex << int(dnn_message->len);
   std::copy(dnn_message->dnn.begin(), dnn_message->dnn.end(), buffer + encoded);
-  BUFFER_PRINT_LOG(buffer + encoded, dnn_message->dnn.length());
+  BUFFER_PRINT_LOG(buffer + encoded, (int) dnn_message->dnn.length());
   encoded = encoded + dnn_message->dnn.length();
 
   return encoded;

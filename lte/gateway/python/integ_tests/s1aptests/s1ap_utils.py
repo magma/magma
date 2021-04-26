@@ -250,20 +250,19 @@ class S1ApUtil(object):
             ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
     def attach(
-            self,
-            ue_id,
-            attach_type,
-            resp_type,
-            resp_msg_type,
-            sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
-            id_type=s1ap_types.TFW_MID_TYPE_IMSI,
-            eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
-            pdn_type=1,
-            pcscf_addr_type=None,
-            dns_ipv6_addr=False,
+        self,
+        ue_id,
+        attach_type,
+        resp_type,
+        resp_msg_type,
+        sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
+        id_type=s1ap_types.TFW_MID_TYPE_IMSI,
+        eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
+        pdn_type=1,
+        pcscf_addr_type=None,
+        dns_ipv6_addr=False,
     ):
-        """
-        Given a UE issue the attach request of specified type
+        """Given a UE issue the attach request of specified type
 
         Caches the assigned IP address, if any is assigned
 
@@ -271,6 +270,7 @@ class S1ApUtil(object):
             ue_id: The eNB ue_id
             attach_type: The type of attach e.g. UE_END_TO_END_ATTACH_REQUEST
             resp_type: enum type of the expected response
+            resp_msg_type: Structure type of expected response message
             sec_ctxt: Optional param allows for the reuse of the security
                 context, defaults to creating a new security context.
             id_type: Optional param allows for changing up the ID type,
@@ -279,6 +279,11 @@ class S1ApUtil(object):
                 type, defaults to s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH.
             pdn_type:1 for IPv4, 2 for IPv6 and 3 for IPv4v6
             pcscf_addr_type:IPv4/IPv6/IPv4v6
+            dns_ipv6_addr: True/False flag
+
+        Returns:
+            msg: Received Attach Accept message
+
         """
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = ue_id
@@ -291,7 +296,7 @@ class S1ApUtil(object):
         # Populate PCO only if pcscf_addr_type is set
         if pcscf_addr_type or dns_ipv6_addr:
             self.populate_pco(
-                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr
+                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr,
             )
         assert self.issue_cmd(attach_type, attach_req) == 0
 
@@ -306,8 +311,8 @@ class S1ApUtil(object):
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
             assert (
-                    context_setup.msg_type
-                    == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                context_setup.msg_type
+                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             )
 
         logging.debug(
@@ -322,6 +327,8 @@ class S1ApUtil(object):
         # We only support IPv4 right now, as max PDN address in S1AP tester is
         # currently 13 bytes, which is too short for IPv6 (which requires 16)
         if resp_msg_type == s1ap_types.ueAttachAccept_t:
+            # Verify if requested and accepted EPS attach types are same
+            assert eps_type == msg.eps_Atch_resp
             pdn_type = msg.esmInfo.pAddr.pdnType
             addr = msg.esmInfo.pAddr.addrInfo
             if S1ApUtil.CM_ESM_PDN_IPV4 == pdn_type:
@@ -608,7 +615,6 @@ class SubscriberUtil(object):
         print("Using IMEI %s" % imei)
         return imei
 
-
     def _get_s1ap_sub(self, sid, imei):
         """
         Get the subscriber data in s1aptester format.
@@ -805,22 +811,20 @@ class MagmadUtil(object):
         self.exec_command("sudo systemctl mask magma@{}".format(service))
         self.exec_command("sudo systemctl stop magma@{}".format(service))
 
-    def is_service_enabled(self, service) -> bool:
+    def is_service_active(self, service) -> bool:
         """
-        Checks if a magma service on magma_dev VM is enabled
+        Checks if a magma service on magma_dev VM is active
         Args:
-            service: (str) service to disable
+            service: (str) service to check if it's active
         """
-        is_enabled_service_cmd = "systemctl is-enabled magma@" + service
+        is_active_service_cmd = "systemctl is-active magma@" + service
         try:
-            result_str = self.exec_command_output(is_enabled_service_cmd)
+            result_str = self.exec_command_output(is_active_service_cmd)
         except subprocess.CalledProcessError as e:
             # if service is disabled / masked, is-enabled will return
             # non-zero exit status
             result_str = e.output
-        if result_str in ("masked", "disabled"):
-            return False
-        return True
+        return result_str.strip() == "active"
 
     def update_mme_config_for_sanity(self, cmd):
         mme_config_update_script = (
@@ -894,12 +898,19 @@ class MagmadUtil(object):
             cmd: Enable / Disable cmd to configure service
         """
         magma_health_service_name = "health"
+        # Update health config to increment frequency of service failures
         if cmd.name == MagmadUtil.health_service_cmds.DISABLE.name:
-            if self.is_service_enabled(magma_health_service_name):
+            health_config_cmd = ("sed -i 's/interval_check_mins: 1/interval_"
+                                 "check_mins: 3/g' /etc/magma/health.yml")
+            self.exec_command("sudo %s" % health_config_cmd)
+            if self.is_service_active(magma_health_service_name):
                 self.disable_service(magma_health_service_name)
             print("Health service is disabled")
         elif cmd.name == MagmadUtil.health_service_cmds.ENABLE.name:
-            if not self.is_service_enabled(magma_health_service_name):
+            health_config_cmd = ("sed -i 's/interval_check_mins: 3/interval_"
+                                 "check_mins: 1/g' /etc/magma/health.yml")
+            self.exec_command("sudo %s" % health_config_cmd)
+            if not self.is_service_active(magma_health_service_name):
                 self.enable_service("health")
             print("Health service is enabled")
 
@@ -1664,11 +1675,20 @@ class HeaderEnrichmentUtils:
         print("restarting envoy done")
 
     def get_envoy_config(self):
-        output = self.magma_utils.exec_command_output(
-            "sudo ip netns exec envoy_ns1 curl 127.0.0.1:9000/config_dump")
-        self.dump = json.loads(output)
+        retry = 0
+        max = 60
+        while retry < max:
+            try:
+                output = self.magma_utils.exec_command_output(
+                    "sudo ip netns exec envoy_ns1 curl 127.0.0.1:9000/config_dump")
+                self.dump = json.loads(output)
+                return self.dump
+            except subprocess.CalledProcessError as e:
+                logging.debug("cmd error: %s", e)
+                retry = retry + 1
+                time.sleep(1)
 
-        return self.dump
+        assert False
 
     def get_route_config(self):
         self.dump = self.get_envoy_config()
@@ -1695,4 +1715,3 @@ class HeaderEnrichmentUtils:
                             cnt = cnt + 1
 
         return cnt
-

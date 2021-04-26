@@ -117,12 +117,15 @@ func (r *reindexerImpl) Run(ctx context.Context) {
 
 func (r *reindexerImpl) RunUnsafe(ctx context.Context, indexerID string, sendUpdate func(string)) error {
 	batches := r.getReindexBatches(ctx)
+	glog.Infof("Reindex for indexer '%s' with state batches: %+v", indexerID, batches)
 	jobs, err := r.getJobs(indexerID)
 	if err != nil || len(jobs) == 0 {
 		return err
 	}
+	glog.Infof("Reindex for indexer '%s' with reindex jobs: %+v", indexerID, jobs)
 
 	for _, j := range jobs {
+		glog.Infof("Reindex for indexer '%s', execute job %+v", indexerID, j)
 		err = executeJob(ctx, j, batches)
 		if err != nil {
 			return err

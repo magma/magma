@@ -127,7 +127,7 @@ class TrafficUtil(object):
         """ Update downlink route in TRF server """
         ret_code = self.exec_command(
             "sudo ip route flush via 192.168.129.1 && sudo ip route "
-            "add " + ue_ip_block + " via 192.168.129.1 dev eth2"
+            "replace " + ue_ip_block + " via 192.168.129.1 dev eth2"
         )
         if ret_code != 0:
             return False

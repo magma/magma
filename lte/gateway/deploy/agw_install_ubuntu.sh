@@ -11,8 +11,11 @@
 # limitations under the License.
 
 # Setting up env variable, user and project path
+set -x
+
 MAGMA_USER="magma"
-AGW_INSTALL_CONFIG="/etc/systemd/system/multi-user.target.wants/agw_installation.service"
+AGW_INSTALL_CONFIG_LINK="/etc/systemd/system/multi-user.target.wants/agw_installation.service"
+AGW_INSTALL_CONFIG="/lib/systemd/system/agw_installation.service"
 AGW_SCRIPT_PATH="/root/agw_install_ubuntu.sh"
 DEPLOY_PATH="/home/$MAGMA_USER/magma/lte/gateway/deploy"
 SUCCESS_MESSAGE="ok"
@@ -25,6 +28,12 @@ GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
   echo "You're executing the script as $WHOAMI instead of root.. exiting"
+  exit 1
+fi
+
+echo "Checking if Ubuntu is installed"
+if ! grep -q 'Ubuntu' /etc/issue; then
+  echo "Ubuntu is not installed"
   exit 1
 fi
 
@@ -45,19 +54,7 @@ if [ "$SKIP_PRECHECK" != "$SUCCESS_MESSAGE" ]; then
   fi
 fi
 
-echo "Checking if Ubuntu is installed"
-if ! grep -q 'Ubuntu' /etc/issue; then
-  echo "Ubuntu is not installed"
-  exit 1
-fi
-
-echo "Making sure $MAGMA_USER user is sudoers"
-if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
-  apt install -y sudo
-  adduser --disabled-password --gecos "" $MAGMA_USER
-  adduser $MAGMA_USER sudo
-  echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-fi
+apt-get update
 
 echo "Need to check if both interfaces are named eth0 and eth1"
 INTERFACES=$(ip -br a)
@@ -68,8 +65,13 @@ if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $I
   # changing interface name
   grub-mkconfig -o /boot/grub/grub.cfg
 
+  # name server config
+  ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
+  sed -i 's/#DNS=/DNS=8.8.8.8 208.67.222.222/' /etc/systemd/resolved.conf
+  service systemd-resolved restart
+
   # interface config
-  apt install ifupdown
+  apt install -y ifupdown net-tools
   echo "auto eth0
   iface eth0 inet dhcp" > /etc/network/interfaces.d/eth0
   # configuring eth1
@@ -77,8 +79,6 @@ if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $I
   iface eth1 inet static
   address 10.0.2.1
   netmask 255.255.255.0" > /etc/network/interfaces.d/eth1
-  # name server config
-  ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
 
   # get rid of netplan
   systemctl unmask networking
@@ -90,10 +90,23 @@ if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $I
   NEED_REBOOT=1
 else
   echo "Interfaces name are correct, let's check if network and DNS are up"
-  while ! ping -c 1 -W 1 -I eth0 google.com; do
+  while ! nslookup google.com; do
+    echo "DNS not reachable"
+    sleep 1
+  done
+
+  while ! ping -c 1 -W 1 -I eth0 8.8.8.8; do
     echo "Network not ready yet"
     sleep 1
   done
+fi
+
+echo "Making sure $MAGMA_USER user is sudoers"
+if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
+  apt install -y sudo
+  adduser --disabled-password --gecos "" $MAGMA_USER
+  adduser $MAGMA_USER sudo
+  echo "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 fi
 
 if [ $NEED_REBOOT = 1 ]; then
@@ -126,6 +139,7 @@ Group=root
 WantedBy=multi-user.target
 EOF
   chmod 644 $AGW_INSTALL_CONFIG
+  ln -sf $AGW_INSTALL_CONFIG $AGW_INSTALL_CONFIG_LINK
   reboot
 fi
 
@@ -133,7 +147,6 @@ echo "Checking if magma has been installed"
 MAGMA_INSTALLED=$(apt-cache show magma >  /dev/null 2>&1 echo "$SUCCESS_MESSAGE")
 if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   echo "Magma not installed, processing installation"
-  apt-get update
   apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev apt-transport-https
 
   alias python=python3

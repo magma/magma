@@ -31,7 +31,11 @@ if ! grep -q 'Ubuntu' /etc/issue; then
   exit
 fi
 
-/etc/init.d/openvswitch-switch  force-reload-kmod
+service magma@* stop
+
+ifdown gtp_br0
+ifdown uplink_br0
+service openvswitch-switch restart
 ifup gtp_br0
 ifup uplink_br0
 
@@ -39,7 +43,7 @@ apt-get update > /dev/null
 addInfo "$(apt list -qq --upgradable 2> /dev/null)"
 
 if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
-    addError "Debian is not installed" "Restart installation following agw_install.sh, magma has to be sudoer"
+    addError "Restart installation following agw_install_ubuntu.sh, magma has to be sudoer"
 fi
 
 KVERS=$(uname -r)
