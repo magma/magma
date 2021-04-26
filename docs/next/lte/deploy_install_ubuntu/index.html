@@ -122,6 +122,8 @@ You can follow the output there</p>
 <pre><code class="hljs css language-bash">service magma@* status
 </code></pre>
 <p><em>Post Install Check</em></p>
+<p>Make sure you have <code>control_proxy.yml</code> file in directory /var/opt/magma/configs/
+before running post install script.</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> ~/magma/lte/gateway/deploy
 ./agw_post_install_ubuntu.sh
 </code></pre>
