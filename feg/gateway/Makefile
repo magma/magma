@@ -23,8 +23,10 @@ install_envoy_controller:
 	go install ./... magma/feg/gateway/services/envoy_controller
 
 test:
-	go test ./...
-	go test -tags link_local_service,with_builtin_radius magma/feg/gateway/services/eap/... magma/feg/gateway/services/aaa/...
+	mkdir -p /tmp/test-results
+	gotestsum --junitfile /tmp/test-results/main.xml ./...
+	gotestsum --junitfile /tmp/test-results/aaa-eap.xml --packages  magma/feg/gateway/services/eap/... magma/feg/gateway/services/aaa/... -- -tags link_local_service,with_builtin_radius
+	go test -tags cli_test magma/feg/gateway/tools/...
 
 buildenv: stop
 	PROTO_LIST="orc8r_protos feg_protos lte_protos" $(MAKE) -C $(MAGMA_ROOT)/orc8r/gateway/python $@
@@ -61,11 +63,12 @@ build_only:
 run_local_hss:
 	sudo service magma@hss start
 
-precommit: fmt test vet
+precommit: tools fmt test vet
 
 TOOL_DEPS:= \
 	github.com/ory/go-acc \
-	github.com/wadey/gocovmerge
+	github.com/wadey/gocovmerge \
+	gotest.tools/gotestsum
 tools:: $(TOOL_DEPS)
 $(TOOL_DEPS): %:
 	go install $*
