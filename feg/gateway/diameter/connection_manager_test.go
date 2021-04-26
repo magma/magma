@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
@@ -168,6 +169,7 @@ func TestConnectionManager(t *testing.T) {
 	}
 	// Now, do it all in one send with retries
 	c, _, err = conn.getDiamConnection()
+	require.NoError(t, err)
 	c.Close()
 	err = conn.SendRequest(newMessage(), 1)
 	assert.NoError(t, err)

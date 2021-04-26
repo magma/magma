@@ -85,7 +85,7 @@ func (listener *storedObjectListener) Update(ub *orcprotos.DataUpdateBatch) bool
 		}
 		delete(currMap, u.GetKey())
 	}
-	for key, _ := range currMap {
+	for key := range currMap {
 		// leftovers
 		if err := listener.streamMap.Delete(key); err != nil {
 			glog.Errorf("Streamer deletion Error: %v for %s '%s'", err, listener.name, key)

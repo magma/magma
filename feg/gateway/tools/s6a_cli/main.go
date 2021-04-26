@@ -264,18 +264,24 @@ func air(cmd *commands.Command, args []string) int {
 				NumRequestedUtranGeranVectors: uint32(utranVectors),
 			}
 			// AIR
-			json, err := orcprotos.MarshalIntern(req)
-			fmt.Printf("Sending AIR to %s:\n%s\n%+#v\n\n", peerAddr, json, *req)
-			r, err := cli.AuthenticationInformation(req)
-			if err != nil || r == nil {
-				err2 := fmt.Errorf("GRPC AIR Error: %v", err)
+			json, err1 := orcprotos.MarshalIntern(req)
+			if err1 != nil {
+				err2 := fmt.Errorf("Can not marshall request: %s", err1)
 				log.Print(err2)
 				errChann <- err2
 				return
 			}
-			json, err = orcprotos.MarshalIntern(r)
-			if err != nil {
-				err2 := fmt.Errorf("Marshal Error %v for result: %+v", err, *r)
+			fmt.Printf("Sending AIR to %s:\n%s\n%+#v\n\n", peerAddr, json, *req)
+			r, err1 := cli.AuthenticationInformation(req)
+			if err1 != nil || r == nil {
+				err2 := fmt.Errorf("GRPC AIR Error: %v", err1)
+				log.Print(err2)
+				errChann <- err2
+				return
+			}
+			json, err1 = orcprotos.MarshalIntern(r)
+			if err1 != nil {
+				err2 := fmt.Errorf("Marshal Error %v for result: %+v", err1, *r)
 				errChann <- err2
 				return
 			}
@@ -291,7 +297,7 @@ func air(cmd *commands.Command, args []string) int {
 		done <- struct{}{}
 	}()
 
-	// wait untill all air request are done
+	// wait until all air request are done
 	wg.Wait()
 	close(errChann)
 	// wait until all the errors are processed

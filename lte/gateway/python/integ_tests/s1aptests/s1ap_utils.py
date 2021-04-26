@@ -1688,11 +1688,20 @@ class HeaderEnrichmentUtils:
         print("restarting envoy done")
 
     def get_envoy_config(self):
-        output = self.magma_utils.exec_command_output(
-            "sudo ip netns exec envoy_ns1 curl 127.0.0.1:9000/config_dump")
-        self.dump = json.loads(output)
+        retry = 0
+        max = 60
+        while retry < max:
+            try:
+                output = self.magma_utils.exec_command_output(
+                    "sudo ip netns exec envoy_ns1 curl 127.0.0.1:9000/config_dump")
+                self.dump = json.loads(output)
+                return self.dump
+            except subprocess.CalledProcessError as e:
+                logging.debug("cmd error: %s", e)
+                retry = retry + 1
+                time.sleep(1)
 
-        return self.dump
+        assert False
 
     def get_route_config(self):
         self.dump = self.get_envoy_config()

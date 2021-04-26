@@ -15,12 +15,13 @@ import sys
 import click
 
 from .common import (
-    run_command,
-    run_playbook,
     print_error_msg,
     print_success_msg,
-    print_warning_msg
+    print_warning_msg,
+    run_command,
+    run_playbook,
 )
+
 
 @click.group(invoke_without_command=True)
 @click.pass_context
@@ -31,7 +32,7 @@ def upgrade(ctx):
     tf_cmds = [
         ["terraform", "init", "--upgrade"],
         ["terraform", "refresh"],
-        [ "terraform", "apply", "-auto-approve"]
+        ["terraform", "apply", "-auto-approve"]
     ]
 
     if ctx.invoked_subcommand is None:
@@ -42,14 +43,16 @@ def upgrade(ctx):
 
         click.echo(
             "Following commands will be run during upgrade\n%s" % (
-            "\n".join((map(" ".join, tf_cmds)))
-        ))
+                "\n".join((map(" ".join, tf_cmds)))
+            ))
         for cmd in tf_cmds:
-            if click.confirm('Do you want to continue with %s?' %  " ".join(cmd)):
+            if click.confirm('Do you want to continue with %s?' %
+                             " ".join(cmd)):
                 rc = run_command(cmd)
                 if rc != 0:
                     print_error_msg("Upgrade Failed!!!")
                     return
+
 
 @upgrade.command()
 @click.pass_context
@@ -58,13 +61,13 @@ def precheck(ctx):
     Precheck runs various checks to ensure successful upgrade
     """
     rc = run_playbook([
-            "ansible-playbook",
-            "-v",
-            "-e",
-            "@/root/config.yml",
-            "-t",
-            "upgrade_precheck",
-            "%s/main.yml" % ctx.obj["playbooks"]])
+        "ansible-playbook",
+        "-v",
+        "-e",
+        "@/root/config.yml",
+        "-t",
+        "upgrade_precheck",
+        "%s/main.yml" % ctx.obj["playbooks"]])
     if rc != 0:
         print_error_msg("Upgrade prechecks failed!!!")
         sys.exit(1)

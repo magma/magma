@@ -60,3 +60,10 @@ converged_access: true
 # Sets the amount of octets that will be requested on the CCR-I for credit if
 # credit is given. If unset, defaults to 200000
 default_requested_units: 200000
+
+# [WARNING] only set this to false if you know what you're doing
+# If the config is missing, the value will default to true
+# When set to true, for any rule reported as part of ReportRuleStats,
+# SessionD will remove it if the rule's IMSI+TEIDs pair do no exist as
+# a session
+cleanup_all_dangling_flows: true

@@ -370,7 +370,7 @@ class QosManager(object):
                 LOG.debug("add_subscriber_qos: not enabled or initialized")
                 return None, None
 
-            LOG.debug("adding qos for imsi %s rule_num %d direction %d apn_ambr %d, qos_info %s",
+            LOG.debug("adding qos for imsi %s rule_num %d direction %d apn_ambr %d, %s",
                       imsi, rule_num, direction, apn_ambr, qos_info)
 
             imsi = normalize_imsi(imsi)

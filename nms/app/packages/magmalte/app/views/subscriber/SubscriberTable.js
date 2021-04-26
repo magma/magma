@@ -15,7 +15,11 @@
  */
 import type {ActionQuery} from '../../components/ActionTable';
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {lte_subscription, paginated_subscribers} from '@fbcnms/magma-api';
+import type {
+  lte_subscription,
+  paginated_subscribers,
+  subscriber,
+} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
@@ -120,22 +124,26 @@ async function exportSubscribers(props: ExportProps) {
       const subscriberData = Object.keys(subscriberRows.subscribers).map(
         rowData =>
           SUBSCRIBER_EXPORT_COLUMNS.map(columnDef => {
-            const subscriber: subscriber = subscriberRows.subscribers[rowData];
             const subscriberConfig: lte_subscription =
               subscriberRows.subscribers[rowData].config.lte;
-            const subscriberField =
-              typeof subscriber[columnDef.field] === 'object'
-                ? subscriber[columnDef.field].join('|')
-                : subscriber[columnDef.field];
-            const configField =
-              (columnDef.field === 'auth_opc' ||
-                columnDef.field === 'auth_key') &&
-              (subscriberConfig[columnDef.field] ?? false)
-                ? // $FlowIgnore
-                  base64ToHex(subscriberConfig[columnDef.field])
-                : // $FlowIgnore
-                  subscriberConfig[columnDef.field];
-            return subscriberField ?? configField;
+            const subscriberInfo: subscriber =
+              subscriberRows.subscribers[rowData];
+            switch (columnDef.field) {
+              case 'auth_opc':
+              case 'auth_key':
+                return base64ToHex(subscriberConfig[columnDef.field] ?? '');
+              case 'state':
+              case 'sub_profile':
+                return subscriberConfig[columnDef.field];
+              case 'id':
+              case 'active_apns':
+              case 'name':
+                return typeof subscriberInfo[columnDef.field] === 'object'
+                  ? subscriberInfo[columnDef.field].join('|')
+                  : subscriberInfo[columnDef.field];
+              default:
+                console.log('invalid field not found', columnDef.field);
+            }
           }),
       );
       subscriberExport.addRows(subscriberData);

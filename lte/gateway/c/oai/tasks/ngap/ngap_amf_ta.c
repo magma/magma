@@ -77,20 +77,20 @@ static int ngap_amf_compare_plmn(const Ngap_PLMNIdentity_t* const plmn) {
 /* @brief compare a list of broadcasted plmns against the AMF configured.
  o*/
 static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {
-  int i                  = 0;
-  int matching_occurence = 0;
+  int i                   = 0;
+  int matching_occurrence = 0;
   DevAssert(b_plmns != NULL);
 
   for (i = 0; i < b_plmns->list.count; i++) {
     if (ngap_amf_compare_plmn(&b_plmns->list.array[i]->pLMNIdentity) ==
         TA_LIST_AT_LEAST_ONE_MATCH)
-      matching_occurence++;
+      matching_occurrence++;
     // TBD will work on match case
   }
 
-  if (matching_occurence == 0)
+  if (matching_occurrence == 0)
     return TA_LIST_NO_MATCH;
-  else if (matching_occurence == b_plmns->list.count - 1)
+  else if (matching_occurrence == b_plmns->list.count - 1)
     return TA_LIST_COMPLETE_MATCH;
   else
     return TA_LIST_AT_LEAST_ONE_MATCH;

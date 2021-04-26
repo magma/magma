@@ -24,6 +24,7 @@ WHOAMI=$(whoami)
 MAGMA_VERSION="${MAGMA_VERSION:-v1.5}"
 CLOUD_INSTALL="cloud"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
+INTERFACE_DIR="/etc/network/interfaces.d"
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
@@ -54,6 +55,8 @@ if [ "$SKIP_PRECHECK" != "$SUCCESS_MESSAGE" ]; then
   fi
 fi
 
+apt-get update
+
 echo "Need to check if both interfaces are named eth0 and eth1"
 INTERFACES=$(ip -br a)
 if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $INTERFACES == *'eth1'* ]] || ! grep -q 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' /etc/default/grub); then
@@ -70,13 +73,16 @@ if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $I
 
   # interface config
   apt install -y ifupdown net-tools
+  mkdir -p "$INTERFACE_DIR"
+  echo "source-directory $INTERFACE_DIR" > /etc/network/interfaces
+
   echo "auto eth0
-  iface eth0 inet dhcp" > /etc/network/interfaces.d/eth0
+  iface eth0 inet dhcp" > "$INTERFACE_DIR"/eth0
   # configuring eth1
   echo "auto eth1
   iface eth1 inet static
   address 10.0.2.1
-  netmask 255.255.255.0" > /etc/network/interfaces.d/eth1
+  netmask 255.255.255.0" > "$INTERFACE_DIR"/eth1
 
   # get rid of netplan
   systemctl unmask networking
@@ -145,7 +151,6 @@ echo "Checking if magma has been installed"
 MAGMA_INSTALLED=$(apt-cache show magma >  /dev/null 2>&1 echo "$SUCCESS_MESSAGE")
 if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   echo "Magma not installed, processing installation"
-  apt-get update
   apt-get -y install curl make virtualenv zip rsync git software-properties-common python3-pip python-dev apt-transport-https
 
   alias python=python3

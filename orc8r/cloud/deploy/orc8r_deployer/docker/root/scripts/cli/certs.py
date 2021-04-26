@@ -13,10 +13,12 @@ limitations under the License.
 import click
 
 from .common import (
+    print_error_msg,
+    print_success_msg,
     run_command,
     run_playbook,
-    print_error_msg,
-    print_success_msg)
+)
+
 
 @click.group()
 @click.pass_context
@@ -25,6 +27,7 @@ def certs(ctx):
     Manage certs in orc8r deployment
     """
     pass
+
 
 @certs.command()
 @click.pass_context

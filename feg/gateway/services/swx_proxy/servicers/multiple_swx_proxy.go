@@ -20,9 +20,9 @@ import (
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/multiplex"
 	"magma/orc8r/lib/go/errors"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"golang.org/x/net/context"
-	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 // How SwxProxies works
@@ -161,7 +161,7 @@ func getProxyPerKey(imsi string, proxies []*swxProxy, mux multiplex.Multiplexor)
 		return nil, err
 	}
 	if index >= len(proxies) {
-		return nil, fmt.Errorf("Index %d is bigger than the ammount of proxies %d", index, len(proxies))
+		return nil, fmt.Errorf("index %d is bigger than the amount of proxies %d", index, len(proxies))
 	}
 	return proxies[index], nil
 }
