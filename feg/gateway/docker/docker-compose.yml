@@ -84,9 +84,9 @@ services:
 
   feg_hello:
     <<: *goservice
+    <<: *depends_on_logs
     container_name: feg_hello
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/feg_hello -logtostderr=true -v=0
-    <<: *depends_on_logs
 
   health:
     <<: *goservice
