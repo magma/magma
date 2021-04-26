@@ -1,0 +1,676 @@
+infra:
+  aws_access_key_id:
+    Description: AWS access key id.
+    Type: string
+    Required: true
+    ConfigApps:
+      - awscli
+  aws_secret_access_key:
+    Description: AWS access secret.
+    Type: string
+    Required: true
+    ConfigApps:
+      - awscli
+  region:
+    Description: >-
+      AWS region to deploy Orchestrator components into. The chosen region must
+      provide EKS.
+    Type: string
+    Required: true
+    ConfigApps:
+      - awscli
+      - tf
+  cluster_name:
+    Description: Name for the Orchestrator EKS cluster.
+    Type: string
+    Required: false
+    Default: orc8r
+    ConfigApps:
+      - tf
+  cluster_version:
+    Description: Kubernetes version for the EKS cluster
+    Type: string
+    Required: false
+    Default: '1.17'
+    ConfigApps:
+      - tf
+  eks_map_roles:
+    Description: >-
+      EKS IAM role mapping. Note that by Default, the creator of the cluster
+      will be in the system:master group.
+    Type: list
+    Required: false
+    ConfigApps:
+      - tf
+  eks_map_users:
+    Description: Additional IAM users to add to the aws-auth ConfigMap.
+    Type: list
+    Required: false
+    ConfigApps:
+      - tf
+  eks_worker_additional_policy_arns:
+    Description: Additional IAM policy ARNs to attach to EKS worker nodes.
+    Type: list(string)
+    Required: false
+    ConfigApps:
+      - tf
+  eks_worker_additional_sg_ids:
+    Description: Additional security group IDs to attach to EKS worker nodes.
+    Type: list(string)
+    Required: false
+    ConfigApps:
+      - tf
+  eks_worker_group_key:
+    Description: 'If specified, the worker nodes for EKS will use this EC2 keypair.'
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  eks_worker_groups:
+    Description: >-
+      Worker group configuration for EKS. Default value is 1 worker group
+      consisting of 3 t3.large instances.
+    Type: any
+    Required: false
+    ConfigApps:
+      - tf
+  vpc_cidr:
+    Description: CIDR block for the VPC.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  vpc_database_subnets:
+    Description: ' CIDR blocks for the VPC''s database subnets. '
+    Type: list(string)
+    Required: false
+    ConfigApps:
+      - tf
+  vpc_extra_tags:
+    Description: Tags to add to the VPC.
+    Type: map
+    Required: false
+    ConfigApps:
+      - tf
+  vpc_name:
+    Description: Name for the VPC that will contain all the Orchestrator components.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  vpc_private_subnets:
+    Description: ' CIDR blocks for the VPC''s private subnets. '
+    Type: list(string)
+    Required: false
+    ConfigApps:
+      - tf
+  vpc_public_subnets:
+    Description: ' CIDR blocks for the VPC''s public subnets. '
+    Type: list(string)
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_domain_name:
+    Description: Base domain name for AWS Route 53 hosted zone.
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  secretsmanager_orc8r_secret:
+    Description: AWS Secret Manager secret to store Orchestrator secrets.
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  thanos_worker_groups:
+    Description: >-
+      Worker group configuration for Thanos. Default consists of 1 group
+      consisting of 1 m5d.xlarge for thanos.
+    Type: any
+    Required: false
+    ConfigApps:
+      - tf
+platform:
+  deploy_elasticsearch:
+    Default: true
+    Description: >-
+      Flag to deploy AWS Elasticsearch service as the datasink for aggregated
+      logs.
+    Type: bool
+    Required: false
+    ConfigApps:
+      - tf
+  deploy_elasticsearch_service_linked_role:
+    Default: true
+    Description: ' Flag to deploy AWS Elasticsearch service linked role with cluster. If you''ve already created an ES service linked role for another cluster, you should set this to false. '
+    Type: bool
+    Required: false
+    ConfigApps:
+      - tf
+  efs_project_name:
+    Description: Project name for EFS file system
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_az_count:
+    Default: 2
+    Description: AZ count for ES.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_dedicated_master_count:
+    Description: Number of dedicated ES master nodes.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_dedicated_master_enabled:
+    Description: Enable/disable dedicated master nodes for ES.
+    Type: bool
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_dedicated_master_type:
+    Description: Instance Type for ES dedicated master nodes.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_domain_name:
+    Default: orc8r-es
+    Description: Name for the ES domain.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_domain_tags:
+    Description: Extra tags for the ES domain.
+    Type: map
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_ebs_enabled:
+    Default: true
+    Description: Use EBS for ES storage.
+    Type: bool
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_ebs_iops:
+    Description: IOPS for ES EBS volumes.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_ebs_volume_size:
+    Default: 32
+    Description: Size in GB to allocate for ES EBS data volumes.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_ebs_volume_type:
+    Default: gp2
+    Description: EBS volume Type for ES data volumes.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_instance_count:
+    Default: 2
+    Description: Number of instances to allocate for ES domain.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_instance_type:
+    Default: t2.medium.elasticsearch
+    Description: AWS instance Type for ES domain.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_version:
+    Default: '7.7'
+    Description: ES version for ES domain.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  global_tags:
+    Description: n/a
+    Type: map
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_engine_version:
+    Default: 9.6.15
+    Description: Postgres engine version for Orchestrator DB.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_identifier:
+    Default: orc8rdb
+    Description: Identifier for the RDS instance for Orchestrator.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_instance_class:
+    Description: RDS instance Type for Orchestrator DB.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_name:
+    Description: DB name for Orchestrator RDS instance.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_password:
+    Description: Password for the Orchestrator DB.
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  orc8r_db_storage_gb:
+    Description: Capacity in GB to allocate for Orchestrator RDS instance.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_username:
+    Description: Username for Default DB user for Orchestrator DB.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+service:
+  cwf_orc8r_chart_version:
+    Description: Version of the Orchestrator cwf module Helm chart to install.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+    Default: 0.2.1
+  deploy_nms:
+    Description: Flag to deploy NMS.
+    Type: bool
+    Required: false
+    ConfigApps:
+      - tf
+  deploy_openvpn:
+    Description: >-
+      Flag to deploy OpenVPN server into cluster. This is useful if you want to
+      remotely access AGWs.
+    Type: bool
+    Required: false
+    ConfigApps:
+      - tf
+  docker_pass:
+    Description: Docker registry password.
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  docker_registry:
+    Description: Docker registry to pull Orchestrator containers from.
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  docker_user:
+    Description: Docker username to login to registry with.
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  efs_file_system_id:
+    Description: ID of the EFS file system to use for K8s persistent volumes.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  efs_provisioner_role_arn:
+    Description: ARN of the IAM role for the EFS provisioner.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  eks_cluster_id:
+    Description: EKS cluster ID for the K8s cluster.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_endpoint:
+    Description: Endpoint of the Elasticsearch datasink for aggregated logs and events.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_retention_days:
+    Description: Retention period in days of Elasticsearch indices.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  existing_tiller_service_account_name:
+    Description: Name of existing Tiller service account to use for Helm.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  external_dns_role_arn:
+    Description: IAM role ARN for ExternalDNS.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  fbinternal_orc8r_chart_version:
+    Description: Version of the Orchestrator fbinternal module Helm chart to install.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+    Default: 0.2.1
+  feg_orc8r_chart_version:
+    Description: Version of the Orchestrator feg module Helm chart to install.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+    Default: 0.2.3
+  helm_deployment_name:
+    Description: Name for the Helm release.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  helm_pass:
+    Description: Helm repository password.
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  helm_repo:
+    Description: Helm repository URL for Orchestrator charts.
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  helm_user:
+    Description: Helm username to login to repository with.
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  install_tiller:
+    Description: Install Tiller in the cluster or not.
+    Type: bool
+    Required: false
+    ConfigApps:
+      - tf
+  lte_orc8r_chart_version:
+    Description: Version of the Orchestrator lte module Helm chart to install.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+    Default: 0.2.4
+  monitoring_kubernetes_namespace:
+    Description: K8s namespace to install Orchestrator monitoring components into.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_chart_version:
+    Description: Version of the core Orchestrator Helm chart to install.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+    Default: 1.5.21
+  orc8r_controller_replicas:
+    Description: Replica count for Orchestrator controller pods.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_port:
+    Description: DB port for Orchestrator database connection.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_deployment_type:
+    Description: 'Deployment Type of Orchestrator (fwa, federated fwa(ffwa), all).'
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  orc8r_kubernetes_namespace:
+    Description: K8s namespace to install main Orchestrator components into.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_proxy_replicas:
+    Description: Replica count for Orchestrator proxy pods.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_route53_zone_id:
+    Description: Route53 zone ID of Orchestrator domain name for ExternalDNS.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_tag:
+    Description: Image tag for Orchestrator components.
+    Type: string
+    Required: true
+    ConfigApps:
+      - tf
+  secretsmanager_orc8r_name:
+    Description: >-
+      Name of the AWS Secrets Manager secret where Orchestrator deployment
+      secrets will be stored.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  state_backend:
+    Description: 'State backend for terraform (e.g. s3, local).'
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  state_config:
+    Description: >-
+      Optional config for state backend. The object Type will depend on your
+      backend.
+    Type: any
+    Required: false
+    ConfigApps:
+      - tf
+  tiller_namespace:
+    Description: Namespace where Tiller is installed or should be installed into.
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  wifi_orc8r_chart_version:
+    Description: Version of the Orchestrator wifi module Helm chart to install.
+    Type: string
+    Required: false
+    Default: 0.2.1
+    ConfigApps:
+      - tf
+  seed_certs_dir:
+    Description: >-
+      Directory on LOCAL disk where Orchestrator certificates are stored to seed
+      Secrets Manager values. Home directory and env vars will be expanded.
+    Type: string
+    Required: false
+    Default: /root/project/secrets
+    ConfigApps:
+      - tf
+  prometheus_configurer_version:
+    Description: Image version for prometheus configurer.
+    Type: string
+    Default: 1.0.4
+    Required: false
+    ConfigApps:
+      - tf
+  alertmanager_configurer_version:
+    Description: Image version for alertmanager configurer.
+    Type: string
+    Default: 1.0.4
+    Required: false
+    ConfigApps:
+      - tf
+  external_dns_deployment_name:
+    Description: Name of the external dns helm deployment
+    Type: string
+    Default: external-dns
+    Required: false
+    ConfigApps:
+      - tf
+  analytics_export_enabled:
+    Description: Deploy thanos components and object storage
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
+  fluentd_deployment_name:
+    Description: Name of the fluentd helm deployment
+    Type: string
+    Default: fluentd
+    Required: false
+    ConfigApps:
+      - tf
+  analytics_metrics_prefix:
+    Description: Bucket name for s3 object storage. Must be globally unique
+    Type: string
+    Default: ''
+    Required: false
+    ConfigApps:
+      - tf
+  analytics_app_secret:
+    Description: App secret for which the metrics is to be exported to
+    Type: string
+    Default: ''
+    Required: false
+    ConfigApps:
+      - tf
+  analytics_app_id:
+    Description: App ID for which the metrics is to be exported to
+    Type: string
+    Default: ''
+    Required: false
+    ConfigApps:
+      - tf
+  analytics_metric_export_url:
+    Description: Metric Export URL
+    Type: string
+    Default: ''
+    Required: false
+    ConfigApps:
+      - tf
+  analytics_category_name:
+    Description: Category under which the exported metrics will be placed under
+    Type: string
+    Default: magma
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_curator_name:
+    Description: Name of the elasticsearch-curator helm deployment
+    Type: string
+    Default: elasticsearch-curator
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_curator_log_level:
+    Description: Defines Elasticsearch curator logging level.
+    Type: string
+    Default: INFO
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_use_ssl:
+    Description: Defines if elasicsearch curator should speak to ELK HTTP or HTTPS.
+    Type: string
+    Default: 'True'
+    Required: false
+    ConfigApps:
+      - tf
+  elasticsearch_port:
+    Description: Port Elastic search is listening.
+    Type: number
+    Default: 443
+    Required: false
+    ConfigApps:
+      - tf
+  thanos_enabled:
+    Description: Deploy thanos components and object storage
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
+  thanos_store_node_selector:
+    Description: >-
+      NodeSelector value to specify which node to run thanos store pod on. Label
+      is 'compute-Type:<value>'
+    Type: string
+    Default: ''
+    Required: false
+    ConfigApps:
+      - tf
+  thanos_compact_node_selector:
+    Description: >-
+      NodeSelector value to specify which node to run thanos compact pod on.
+      Label is 'compute-Type:<value>'
+    Type: string
+    Default: ''
+    Required: false
+    ConfigApps:
+      - tf
+  thanos_query_node_selector:
+    Description: >-
+      NodeSelector value to specify which node to run thanos query pod on.
+      Default is 'thanos' to be deployed on the Default thanos worker group.
+    Type: string
+    Default: thanos
+    Required: false
+    ConfigApps:
+      - tf
+  thanos_object_store_bucket_name:
+    Description: Bucket name for s3 object storage. Must be globally unique
+    Type: string
+    Default: ''
+    Required: false
+    ConfigApps:
+      - tf
+  efs_storage_class_name:
+    Description: Name of the Storage class
+    Type: string
+    Default: efs
+    Required: false
+    ConfigApps:
+      - tf
+  efs_provisioner_name:
+    Description: Name of the efs provisioner helm deployment
+    Type: string
+    Default: efs-provisioner
+    Required: false
+    ConfigApps:
+      - tf

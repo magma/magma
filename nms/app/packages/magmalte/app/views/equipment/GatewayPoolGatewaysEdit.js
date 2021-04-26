@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-/*[object Object]*/
 import type {GatewayPoolEditProps} from './GatewayPoolEdit';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
@@ -41,30 +40,55 @@ import {
   DEFAULT_GW_PRIMARY_CONFIG,
   DEFAULT_GW_SECONDARY_CONFIG,
 } from '../../components/GatewayUtils';
+import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
+const useStyles = makeStyles(_ => ({
+  placeholder: {
+    opacity: 0.5,
+  },
+  gatewayPrimary: {
+    margin: '32px 0',
+  },
+}));
 export default function GatewayEdit(props: GatewayPoolEditProps) {
   const enqueueSnackbar = useEnqueueSnackbar();
+  const classes = useStyles();
+
   const [error, setError] = useState('');
   const ctx = useContext(GatewayPoolsContext);
   const gwCtx = useContext(GatewayContext);
-  const [gwIds, _setGwIds] = useState(Object.keys(gwCtx.state));
   const [isPrimary, setIsPrimary] = useState(props.isPrimary || false);
   const [gwPool, setGwPool] = useState(props.gwPool);
   const [gateways, setGateways] = useState(
     isPrimary ? props.gatewayPrimary : props.gatewaySecondary,
   );
+  const gwIds = Object.keys(gwCtx.state);
 
+  // gateways already associated to gateway pools
+  const [pooledGwIds, setPooledGwIds] = useState(
+    Object.keys(ctx.state)
+      .map(poolId => {
+        return ctx.state[poolId].gatewayPoolRecords.map(
+          record => record.gateway_id,
+        );
+      })
+      .flat(),
+  );
   useEffect(() => {
     setGwPool(props.gwPool || DEFAULT_GW_POOL_CONFIG);
   }, [props.gwPool]);
 
-  const handleGwIdChange = (id: string, index: number) => {
+  const handleGwIdChange = (id: string, index: number, prevId: string) => {
     const newGwList = gateways;
     newGwList[index].gateway_id = id;
     props.onRecordChange?.([...newGwList]);
     setGateways([...newGwList]);
+    // update gw primary/secondary id list
+    const newPooledGwIds =
+      prevId !== '' ? pooledGwIds.filter(id => id !== prevId) : pooledGwIds;
+    setPooledGwIds([...newPooledGwIds, id]);
   };
 
   const handleGwChange = (index: number, value: number, key) => {
@@ -92,6 +116,9 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
       props.onRecordChange?.([...newGwList]);
       setGateways([...newGwList]);
     }
+    // update gw primary/secondary id list
+    const newPooledGwIds = pooledGwIds.filter(id => id !== gatewayId);
+    setPooledGwIds([...newPooledGwIds]);
   };
 
   useEffect(() => {
@@ -99,6 +126,11 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
   }, [props.isPrimary]);
 
   const onSave = async () => {
+    const mmeCodes = gateways.map(gw => gw.mme_code);
+    if (Array.from(new Set(mmeCodes)).length < mmeCodes.length) {
+      setError('MME code should differ for each gateway in the pool');
+      return;
+    }
     try {
       await ctx.updateGatewayPoolRecords(gwPool.gateway_pool_id, gwPool, [
         ...props.gatewayPrimary,
@@ -123,32 +155,47 @@ export default function GatewayEdit(props: GatewayPoolEditProps) {
               </FormLabel>
             </AltFormField>
           )}
-
           {gateways.length > 0 &&
             gateways.map((gw, index) => (
-              <ListItem component={Paper}>
+              <ListItem component={Paper} className={classes.gatewayPrimary}>
                 <AltFormField
                   label={`${isPrimary ? 'Primary' : 'Secondary'} Gateway ID`}>
                   <Select
                     variant={'outlined'}
                     displayEmpty={true}
                     value={gw.gateway_id}
-                    onChange={({target}) =>
-                      handleGwIdChange(target.value, index)
-                    }
+                    renderValue={selected => {
+                      if (!selected.length) {
+                        return (
+                          <em>{`Select ${
+                            isPrimary ? 'Primary' : 'Secondary'
+                          } Gateway ID`}</em>
+                        );
+                      }
+                      return selected;
+                    }}
+                    onChange={({target}) => {
+                      handleGwIdChange(target.value, index, gw.gateway_id);
+                    }}
                     input={
                       <OutlinedInput
                         data-testid={`gwId${
                           isPrimary ? 'Primary' : 'Secondary'
                         }`}
                         fullWidth={true}
+                        className={
+                          gw.gateway_id === '' ? classes.placeholder : ''
+                        }
                       />
                     }>
-                    {gwIds.map(id => (
-                      <MenuItem key={id} value={id}>
-                        <ListItemText primary={id} />
-                      </MenuItem>
-                    ))}
+                    {gwIds.map(
+                      id =>
+                        !(pooledGwIds.includes(id) && id !== gw.gateway_id) && (
+                          <MenuItem key={id} value={id}>
+                            <ListItemText primary={id} />
+                          </MenuItem>
+                        ),
+                    )}
                   </Select>
                 </AltFormField>
                 <AltFormField label={'MME Code'}>

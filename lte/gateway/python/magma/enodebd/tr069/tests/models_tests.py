@@ -12,9 +12,8 @@ limitations under the License.
 """
 import unittest
 
-from spyne import ComplexModelBase
-
 from magma.enodebd.tr069.models import DeviceIdStruct
+from spyne import ComplexModelBase
 
 
 class DeviceIdStructTests(unittest.TestCase):

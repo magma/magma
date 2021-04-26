@@ -31,6 +31,7 @@ message RuleRecord {
   uint64 dropped_tx = 7;
   uint64 dropped_rx = 8;
   uint64 rule_version = 9;
+  uint32 teid = 10;
 }
 
 message RuleRecordTable {

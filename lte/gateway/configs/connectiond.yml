@@ -14,7 +14,7 @@
 log_level: INFO
 
 # Interface for internal packet sending
-interface_name: mtr0
+interface_name: ipfix0
 
 # Used for generated internal packets
 pkt_dst_mac: "33:aa:99:33:aa:00"

@@ -15,8 +15,14 @@ import unittest
 from unittest.mock import MagicMock
 
 from lte.protos.policydb_pb2 import RedirectInformation
-from magma.redirectd.redirect_server import HTTP_NOT_FOUND, HTTP_REDIRECT, \
-    NOT_FOUND_HTML, RedirectInfo, ServerResponse, setup_flask_server
+from magma.redirectd.redirect_server import (
+    HTTP_NOT_FOUND,
+    HTTP_REDIRECT,
+    NOT_FOUND_HTML,
+    RedirectInfo,
+    ServerResponse,
+    setup_flask_server,
+)
 
 
 class RedirectdTest(unittest.TestCase):

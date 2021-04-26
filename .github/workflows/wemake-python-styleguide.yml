@@ -1,0 +1,23 @@
+name: Python linting by Reviewdog
+on: [pull_request]
+jobs:
+  wemake-python-styleguide:
+    name: runner / wemake-python-styleguide
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Get changed files
+        id: py-changes
+        # Set outputs.py to be a list of modified python files
+        run: |
+          echo "::set-output name=py::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .py$ | xargs)"
+      - if: ${{ steps.py-changes.outputs.py }}
+        name: wemake-python-styleguide
+        uses: wemake-services/wemake-python-styleguide@0.15.2
+        with:
+          reporter: 'github-pr-review'
+          path: ${{ steps.py-changes.outputs.py }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.github_token }}

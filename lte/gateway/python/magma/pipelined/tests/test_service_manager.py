@@ -13,21 +13,21 @@ limitations under the License.
 
 import unittest
 from collections import OrderedDict
-import fakeredis
-from unittest.mock import MagicMock
 from unittest import mock
+from unittest.mock import MagicMock
 
-from magma.pipelined.app.base import ControllerType
+import fakeredis
+from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.access_control import AccessControlController
 from magma.pipelined.app.arp import ArpController
-from lte.protos.mconfig.mconfigs_pb2 import PipelineD
+from magma.pipelined.app.base import ControllerType
 from magma.pipelined.app.dpi import DPIController
-from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
-from magma.pipelined.app.inout import INGRESS, EGRESS, PHYSICAL_TO_LOGICAL
-from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.he import HeaderEnrichmentController
+from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL
+from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.service_manager import (
     ServiceManager,
     TableNumException,

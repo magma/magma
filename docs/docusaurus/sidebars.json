@@ -16,7 +16,8 @@
           "howtos/config_agw_bridged",
           "howtos/call_tracing",
           "howtos/events_monitoring",
-          "howtos/header_enrichment.md"
+          "howtos/header_enrichment.md",
+          "howtos/inbound_roaming"
         ]
       },
       {
@@ -54,7 +55,8 @@
           "howtos/troubleshooting/agw_unable_to_checkin",
           "howtos/troubleshooting/user_unable_to_attach",
           "howtos/troubleshooting/update_certificates",
-          "howtos/troubleshooting/generate_admin_operator_certificates"
+          "howtos/troubleshooting/generate_admin_operator_certificates",
+          "howtos/troubleshooting/analyze_service_crashes_in_agw"
         ]
       }
     ],
@@ -72,7 +74,15 @@
         "ids": [
           "orc8r/architecture_overview",
           "orc8r/architecture_modularity",
-          "orc8r/architecture_security"
+          "orc8r/architecture_security",
+          "nms/nms_arch_overview"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/nms_arch_overview"
         ]
       }
     ],
@@ -82,10 +92,13 @@
         "label": "Access Gateway",
         "ids": [
           "lte/deploy_install",
+          "lte/deploy_install_ubuntu",
           "lte/deploy_config_agw",
           "lte/deploy_config_enodebd",
           "lte/deploy_config_apn",
-          "lte/deploy_config_agw_ha"
+          "lte/deploy_config_agw_ha",
+          "lte/build_install_magma_pkg_in_agw",
+          "lte/integrate_sentry"
         ]
       },
       {
@@ -95,6 +108,9 @@
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
           "orc8r/deploy_install",
+          "orc8r/hold_terraform_state_on_s3",
+          "orc8r/override_values_of_terraform_files",
+          "orc8r/deploy_orcl",
           "orc8r/deploy_faq"
         ]
       },
@@ -156,15 +172,24 @@
         ]
       }
     ],
+    "Contribute": [
+      "contributing/contribute_onboarding",
+      "contributing/contribute_workflow",
+      "contributing/contribute_conventions",
+      "contributing/contribute_ci_checks",
+      "contributing/contribute_codeowners"
+    ],
     "Technical Reference": [
       {
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
           "lte/dev_notes",
+          "lte/dev_unit_testing",
           "lte/tr069",
           "lte/s1ap_tests",
-          "lte/eventd"
+          "lte/eventd",
+          "lte/access_service_restrictions"
         ]
       },
       {
@@ -187,12 +212,6 @@
           "nms/dev_components"
         ]
       }
-    ],
-    "Contributing": [
-      "contributing/contribute_onboarding",
-      "contributing/contribute_workflow",
-      "contributing/contribute_conventions",
-      "contributing/contribute_codeowners"
     ],
     "Proposals": [
       "proposals/p001_vpn_config_from_api",

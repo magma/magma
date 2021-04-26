@@ -14,22 +14,21 @@ import asyncio
 import calendar
 import logging
 import math
-import prometheus_client
-from prometheus_client.parser import text_string_to_metric_families
-import requests
 import sys
 import time
-from typing import Callable, List, Optional, Dict, NamedTuple
+from typing import Callable, Dict, List, NamedTuple, Optional
 
-import snowflake
 import metrics_pb2
+import prometheus_client.core
+import requests
+import snowflake
+from magma.common.service_registry import ServiceRegistry
 from orc8r.protos import metricsd_pb2
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.metricsd_pb2 import MetricsContainer
 from orc8r.protos.metricsd_pb2_grpc import MetricsControllerStub
 from orc8r.protos.service303_pb2_grpc import Service303Stub
-
-from magma.common.service_registry import ServiceRegistry
+from prometheus_client.parser import text_string_to_metric_families
 
 # ScrapeTarget Holds information required to scrape and process metrics from a
 # prometheus target
@@ -97,7 +96,8 @@ class MetricsCollector(object):
                 # If we throw an exception here, we'll have no idea whether
                 # something was postprocessed or not, so I guess try and make it
                 # idempotent?  #m sevchicken
-                self.post_processing_fn(self._samples_for_service[service_name])
+                self.post_processing_fn(
+                    self._samples_for_service[service_name])
 
             samples = self._samples_for_service[service_name]
             sample_chunks = self._chunk_samples(samples)
@@ -109,8 +109,8 @@ class MetricsCollector(object):
                 future = client.Collect.future(metrics_container,
                                                self.grpc_timeout)
                 future.add_done_callback(self._make_sync_done_func(
-                                            service_name, idx)
-                                        )
+                    service_name, idx)
+                )
             self._samples_for_service[service_name].clear()
         self._loop.call_later(self.sync_interval, self.sync, service_name)
 
@@ -125,7 +125,7 @@ class MetricsCollector(object):
                           err.details())
         else:
             logging.debug("Metrics upload success for service %s (chunk %d)",
-              service_name, chunk)
+                          service_name, chunk)
 
     def collect(self, service_name):
         """
@@ -178,14 +178,14 @@ class MetricsCollector(object):
 
     def _make_sync_done_func(self, service_name, chunk):
         return lambda future: self._loop.call_soon_threadsafe(
-                               self.sync_done, service_name, chunk,
-                               future)
+            self.sync_done, service_name, chunk,
+            future)
 
     def _chunk_samples(self, samples):
         # Add 1kiB fpr gRPC overhead
         sample_size_bytes = sys.getsizeof(samples) + 1000
         buckets = math.ceil(
-          sample_size_bytes / self.grpc_max_msg_size_bytes)
+            sample_size_bytes / self.grpc_max_msg_size_bytes)
         sample_length = len(samples)
         chunk_size = sample_length // buckets
 

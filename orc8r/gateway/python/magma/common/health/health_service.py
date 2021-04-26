@@ -20,6 +20,15 @@ from datetime import datetime
 
 import apt
 from dateutil import tz
+from magma.common.health.entities import (
+    ActiveState,
+    Errors,
+    HealthStatus,
+    HealthSummary,
+    RestartFrequency,
+    ServiceHealth,
+    Version,
+)
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
@@ -29,11 +38,6 @@ from orc8r.protos import common_pb2, magmad_pb2
 from orc8r.protos.magmad_pb2_grpc import MagmadStub
 from orc8r.protos.mconfig import mconfigs_pb2
 from pystemd.systemd1 import Unit
-
-from magma.common.health.entities import (
-    HealthStatus, ActiveState, Errors, Version,
-    ServiceHealth, RestartFrequency, HealthSummary,
-)
 
 
 class GenericHealthChecker:
@@ -95,7 +99,8 @@ class GenericHealthChecker:
         services_errors = self.get_error_summary(service_names=service_names)
 
         for service_name in service_names:
-            unit = Unit('magma@{}.service'.format(service_name), _autoload=True)
+            unit = Unit('magma@{}.service'.format(service_name),
+                        _autoload=True)
             active_state = ActiveState.dbus2state[unit.Unit.ActiveState]
             sub_state = str(unit.Unit.SubState, 'utf-8')
             if active_state == ActiveState.ACTIVE:

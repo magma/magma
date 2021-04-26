@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 from typing import Any, List, Optional
+
 from magma.enodebd.tr069 import models
 
 

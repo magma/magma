@@ -102,3 +102,5 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     S1AP_HANDOVER_REQUEST_ACK, itti_s1ap_handover_request_ack_t,
     s1ap_handover_request_ack)
+MESSAGE_DEF(
+    S1AP_HANDOVER_NOTIFY, itti_s1ap_handover_notify_t, s1ap_handover_notify)

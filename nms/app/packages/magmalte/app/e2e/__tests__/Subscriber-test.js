@@ -133,7 +133,7 @@ describe('NMS Subscriber Edit', () => {
     const page = await browser.newPage();
     try {
       await page.goto(
-        'https://magma-test.localhost/nms/test/subscribers/overview/IMSI001010002220018/config',
+        'https://magma-test.localhost/nms/test/subscribers/overview/config/IMSI001010002220018/config',
       );
       // edit subscriber info
       const editButtonSelector = '[data-testid="subscriber"]';

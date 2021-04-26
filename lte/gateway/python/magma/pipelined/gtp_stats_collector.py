@@ -11,18 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
-
 import asyncio
-from typing import List, NamedTuple, Optional
-
+import logging
 import re
+from typing import List, NamedTuple, Optional
 
 from magma.common.job import Job
 from magma.magmad.check import subprocess_workflow
-
-from magma.pipelined.metrics import GTP_PORT_USER_PLANE_DL_BYTES, \
-    GTP_PORT_USER_PLANE_UL_BYTES
+from magma.pipelined.metrics import (
+    GTP_PORT_USER_PLANE_DL_BYTES,
+    GTP_PORT_USER_PLANE_UL_BYTES,
+)
 
 OVSDBDumpCommandParams = NamedTuple('OVSDBCommandParams',
                                     [('table', str), ('columns', List[str])])

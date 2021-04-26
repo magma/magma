@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2020 The Magma Authors.
+# Copyright 2021 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
@@ -20,8 +20,8 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.5.0 # magma version number
-SCTPD_MIN_VERSION=1.5.0 # earliest version of sctpd with which this version is compatible
+VERSION=1.6.0 # magma version number
+SCTPD_MIN_VERSION=1.6.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -109,7 +109,6 @@ SCTPD_PKGNAME=magma-sctpd
 # here.
 MAGMA_DEPS=(
     "grpc-dev >= 1.15.0"
-    "libprotobuf10 >= 3.0.0"
     "lighttpd >= 1.4.45"
     "libxslt1.1"
     "nghttp2-proxy >= 1.18.1"
@@ -124,7 +123,6 @@ MAGMA_DEPS=(
     "libsystemd-dev"
     "libyaml-cpp-dev" # install yaml parser
     "libgoogle-glog-dev"
-    "nlohmann-json-dev" # c++ json parser
     "python-redis"
     "magma-cpp-redis"
     "libfolly-dev" # required for C++ services
@@ -139,22 +137,35 @@ MAGMA_DEPS=(
     "getenvoy-envoy" # for envoy dep
     )
 
+if grep -q stretch /etc/os-release; then
+    MAGMA_DEPS+=("libprotobuf10 >= 3.0.0")
+    MAGMA_DEPS+=("nlohmann-json-dev")
+else
+    MAGMA_DEPS+=("libprotobuf17 >= 3.0.0")
+    MAGMA_DEPS+=("nlohmann-json3-dev")
+    MAGMA_DEPS+=("sentry-native")   # sessiond
+fi
+
 # OAI runtime dependencies
 OAI_DEPS=(
-    "libasan3"
     "libconfig9"
     "oai-asn1c"
-    "oai-freediameter >= 1.2.0-1"
     "oai-gnutls >= 3.1.23"
     "oai-nettle >= 1.0.1"
     "prometheus-cpp-dev >= 1.0.2"
     "liblfds710"
+    "libsctp-dev"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
     )
 
-if [[ "$OS"  == "debian" ]]; then
+if grep -q stretch /etc/os-release; then
+    OAI_DEPS+=("libasan3")
+    OAI_DEPS+=("oai-freediameter >= 1.2.0-1")
     OAI_DEPS+=("oai-gtp >= 4.9-9")
+else
+    OAI_DEPS+=("libasan5")
+    OAI_DEPS+=("oai-freediameter >= 0.0.2")
 fi
 
 # OVS runtime dependencies
@@ -173,7 +184,6 @@ else
         "libopenvswitch >= 2.14"
         "openvswitch-switch >= 2.14"
         "openvswitch-common >= 2.14"
-        "python3-openvswitch >= 2.14"
         "openvswitch-datapath-dkms >= 2.14"
         )
 fi
@@ -287,7 +297,7 @@ FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
 # adjust mtime of a setup.py to force update
 # (e.g. `touch ${PY_LTE}/setup.py`)
 pushd "${RELEASE_DIR}" || exit 1
-make -e magma.lockfile
+make os_release=$OS -e magma.lockfile
 popd
 
 cd ${PY_ORC8R}
@@ -295,15 +305,15 @@ make protos
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
 
-ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
 cd ${PY_LTE}
 make protos
 make swagger
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
-${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py
-LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile.$OS setup.py
+LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
 # now the binaries are built, we can package up everything else and build the
 # magma package.
@@ -413,11 +423,14 @@ $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
 
 eval "$BUILDCMD"
 
-cd "${MAGMA_ROOT}"
-OVS_DIFF_LINES=$(git diff master -- third_party/gtp_ovs/ lte/gateway/release/build-ovs.sh | wc -l | tr -dc 0-9)
+if grep -q stretch /etc/os-release; then
+  cd "${MAGMA_ROOT}"
+  OVS_DIFF_LINES=$(git diff master -- third_party/gtp_ovs/ lte/gateway/release/build-ovs.sh | wc -l | tr -dc 0-9)
 
-# if env var FORCE_OVS_BUILD is non-empty or there is are changes to openvswitch-related files build openvswitch
-if [[ x"${FORCE_OVS_BUILD}" != "x" || x"${OVS_DIFF_LINES}" != x0 ]]; then
-    cd "${PWD}"
-    "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
+  # if env var FORCE_OVS_BUILD is non-empty or there is are changes to openvswitch-related files build openvswitch
+  if [[ x"${FORCE_OVS_BUILD}" != "x" || x"${OVS_DIFF_LINES}" != x0 ]]; then
+      cd "${PWD}"
+      "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
+  fi
 fi
+

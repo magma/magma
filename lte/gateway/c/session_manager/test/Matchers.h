@@ -248,13 +248,12 @@ MATCHER_P6(
     CheckActivateFlowsForTunnIds, imsi, ipv4, ipv6, enb_teid, agw_teid,
     rule_count, "") {
   auto request = static_cast<const ActivateFlowsRequest*>(arg);
-  std::cerr << "Got dynamic size : " << request->dynamic_rules_size()
-            << std::endl;
+  std::cerr << "Got " << request->policies_size() << " rules" << std::endl;
   auto res = request->sid().id() == imsi && request->ip_addr() == ipv4 &&
              request->ipv6_addr() == ipv6 &&
              request->uplink_tunnel() == agw_teid &&
              request->downlink_tunnel() == enb_teid &&
-             request->dynamic_rules_size() == rule_count;
+             request->policies_size() == rule_count;
   return res;
 }
 

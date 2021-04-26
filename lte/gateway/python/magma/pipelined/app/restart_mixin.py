@@ -10,14 +10,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Dict
 from abc import ABCMeta, abstractmethod
+from typing import Dict, List
 
 from lte.protos.pipelined_pb2 import SetupFlowsResult
 from magma.pipelined.app.base import ControllerNotReadyException
 from magma.pipelined.openflow import flows
 from magma.pipelined.policy_converters import ovs_flow_match_to_magma_match
-
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 DefaultMsgsMap = Dict[int, List[OFPFlowStats]]

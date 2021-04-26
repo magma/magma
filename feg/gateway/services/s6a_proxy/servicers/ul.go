@@ -44,8 +44,19 @@ func (s *s6aProxy) sendULR(sid string, req *protos.UpdateLocationRequest, retryC
 	m.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(req.UserName))
 	m.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
 	m.NewAVP(avp.RATType, avp.Mbit, uint32(diameter.Vendor3GPP), datatype.Enumerated(ULR_RAT_TYPE))
-	m.NewAVP(avp.ULRFlags, avp.Vbit|avp.Mbit, uint32(diameter.Vendor3GPP), datatype.Unsigned32(ULR_FLAGS))
+	m.NewAVP(avp.ULRFlags, avp.Vbit|avp.Mbit, uint32(diameter.Vendor3GPP), datatype.Unsigned32(createULR_Flags(req)))
 	m.NewAVP(avp.VisitedPLMNID, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.OctetString(req.VisitedPlmn))
+
+	// Supported feature-List-id-2
+	if req.FeatureListId_2 != nil {
+		m.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+			AVP: []*diam.AVP{
+				diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
+				diam.NewAVP(avp.FeatureListID, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(2)),
+				diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(createFeatureListID2(req.FeatureListId_2))),
+			},
+		})
+	}
 
 	glog.V(2).Infof("Sending S6a ULR message\n%s\n", m)
 	err = c.SendRequest(m, retryCount)
@@ -53,6 +64,32 @@ func (s *s6aProxy) sendULR(sid string, req *protos.UpdateLocationRequest, retryC
 		err = Error(codes.DataLoss, err)
 	}
 	return err
+}
+
+// createULR_Flags creates ULR Flags based on TS 29.272
+func createULR_Flags(req *protos.UpdateLocationRequest) int {
+	// ULR_FLAGS contains defaults flags for ULR-Flags
+	ulrFlags := ULR_FLAGS
+	switch {
+	case req.DualRegistration_5GIndicator:
+		// add TS 29.272 Dual-Registration5G-Indicator on bit 8
+		ulrFlags = ulrFlags | FlagBit8
+	}
+	return int(ulrFlags)
+}
+
+// createFeatureListID2 creates the Feature-List-ID 2 based on TS 29.272
+func createFeatureListID2(id2 *protos.FeatureListId2) int {
+	if id2 == nil {
+		return 0
+	}
+	res := EmptyFlagBit
+	switch {
+	case id2.NrAsSecondaryRat:
+		// set bit 27 (TS 29.272 Nr As Secondary Rat)
+		res = res | FlagBit27
+	}
+	return int(res)
 }
 
 // S6a ULA
@@ -120,6 +157,7 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 						ula.SubscriptionData.APNConfigurationProfile.AllAPNConfigurationsIncludedIndicator == 0
 					res.NetworkAccessMode = protos.UpdateLocationAnswer_NetworkAccessMode(ula.SubscriptionData.NetworkAccessMode)
 					res.RegionalSubscriptionZoneCode = make([][]byte, len(ula.SubscriptionData.RegionalSubscriptionZoneCode))
+					res.FeatureListId_2 = getFeatureListID2(ula.SupportedFeatures)
 					for i, code := range ula.SubscriptionData.RegionalSubscriptionZoneCode {
 						res.RegionalSubscriptionZoneCode[i] = code.Serialize()
 					}
@@ -157,4 +195,21 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 		}
 	}
 	return res, err
+}
+
+// getFeatureListID2 creates the Feature-List-ID 2 based on TS 29.272
+func getFeatureListID2(supportedFeatures []SupportedFeatures) *protos.FeatureListId2 {
+	if len(supportedFeatures) == 0 {
+		return nil
+	}
+	protoFeatureList := &protos.FeatureListId2{}
+	for _, features := range supportedFeatures {
+		if features.FeatureListID == 2 {
+			// get bit 27 (TS 29.272 Nr As Secondary Rat)
+			if features.FeatureList&(1<<27) != 0 {
+				protoFeatureList.NrAsSecondaryRat = true
+			}
+		}
+	}
+	return protoFeatureList
 }

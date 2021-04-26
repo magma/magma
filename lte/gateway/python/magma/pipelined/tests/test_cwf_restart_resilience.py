@@ -12,22 +12,32 @@ limitations under the License.
 """
 
 import unittest
+import warnings
 from concurrent.futures import Future
 from unittest.mock import MagicMock
 
-import warnings
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.pipelined_pb2 import SetupUEMacRequest, UEMacFlowRequest
-from orc8r.protos.directoryd_pb2 import DirectoryRecord
-from magma.subscriberdb.sid import SIDUtils
-from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.app.base import global_epoch
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
-from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
-    create_service_manager, start_ryu_app_thread, stop_ryu_app_thread, \
-    wait_after_send, SnapshotVerifier, get_enforcement_stats, \
-    wait_for_enforcement_stats, fake_cwf_setup
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    FlowTest,
+    FlowVerifier,
+    SnapshotVerifier,
+    create_service_manager,
+    fake_cwf_setup,
+    get_enforcement_stats,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+    wait_for_enforcement_stats,
+)
+from magma.subscriberdb.sid import SIDUtils
+from orc8r.protos.directoryd_pb2 import DirectoryRecord
 
 
 class CWFRestartResilienceTest(unittest.TestCase):

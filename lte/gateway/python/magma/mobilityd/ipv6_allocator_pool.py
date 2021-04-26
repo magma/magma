@@ -12,14 +12,16 @@ limitations under the License.
 """
 import logging
 import random
-
 from ipaddress import ip_address, ip_network
 from typing import List, Optional
 
-from .ip_descriptor import IPDesc, IPState, IPType
-from .ip_allocator_base import IPAllocator, \
-    NoAvailableIPError, OverlappedIPBlocksError, IPNotInUseError
-from .ip_descriptor import IPv6SessionAllocType
+from .ip_allocator_base import (
+    IPAllocator,
+    IPNotInUseError,
+    NoAvailableIPError,
+    OverlappedIPBlocksError,
+)
+from .ip_descriptor import IPDesc, IPState, IPType, IPv6SessionAllocType
 from .mobility_store import MobilityStore
 
 IPV6_PREFIX_PART_LEN = 64

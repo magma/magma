@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from prometheus_client import Counter
+
 STREAMER_RESPONSES = Counter('streamer_responses',
                              'The number of responses by label',
                              ['result'])

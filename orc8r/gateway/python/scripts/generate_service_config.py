@@ -19,13 +19,12 @@ The templates should be in /etc/magma/templates and the final config will be in
 
 import argparse
 import logging
-
 import os
+
 from jinja2 import Template
 from magma.common.serialization_utils import write_to_file_atomically
 from magma.configuration.exceptions import LoadConfigError
-from magma.configuration.mconfig_managers \
-    import load_service_mconfig_as_json
+from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 from magma.configuration.service_configs import load_service_config
 from snowflake import make_snowflake
 

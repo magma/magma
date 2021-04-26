@@ -14,6 +14,9 @@
       "basics/quick_start_guide": {
         "title": "Quick Start Guide"
       },
+      "contributing/contribute_ci_checks": {
+        "title": "Continuous Integration Checks"
+      },
       "contributing/contribute_codeowners": {
         "title": "Codeowners Workflow"
       },
@@ -57,6 +60,9 @@
       "feg/deploy_intro": {
         "title": "Introduction"
       },
+      "feg/docker_setup": {
+        "title": "FeG Docker Setup"
+      },
       "feg/legacy/docker_setup": {
         "title": "FeG Docker Setup"
       },
@@ -67,6 +73,9 @@
         "title": "Federated Gateway (FeG)",
         "sidebar_label": "Overview"
       },
+      "feg/session_proxy": {
+        "title": "feg/session_proxy"
+      },
       "howtos/call_tracing": {
         "title": "Call Tracing"
       },
@@ -76,6 +85,9 @@
       "howtos/he_api": {
         "title": "Header Enrichment"
       },
+      "howtos/inbound_roaming": {
+        "title": "Inbound Roaming"
+      },
       "howtos/readme_package": {
         "title": "Packaging"
       },
@@ -84,6 +96,9 @@
       },
       "howtos/troubleshooting/agw_unable_to_checkin": {
         "title": "Access Gateway Unable to Check-in to Orchestrator"
+      },
+      "howtos/troubleshooting/analyze_service_crashes_in_agw": {
+        "title": "Analyze Service crashes in AGW"
       },
       "howtos/troubleshooting/generate_admin_operator_certificates": {
         "title": "Generate and update admin_operator certificates"
@@ -100,8 +115,14 @@
       "howtos/ue_metering": {
         "title": "UE Usage Metering"
       },
+      "lte/access_service_restrictions": {
+        "title": "Restricting Network Access"
+      },
       "lte/architecture_overview": {
         "title": "Overview"
+      },
+      "lte/build_install_magma_pkg_in_agw": {
+        "title": "Build and install a magma package in AGW"
       },
       "lte/openvswitch": {
         "title": "Magma Datapath"
@@ -127,11 +148,17 @@
       "lte/dev_notes": {
         "title": "Developer Notes"
       },
+      "lte/dev_unit_testing": {
+        "title": "Unit Testing"
+      },
       "lte/eventd": {
         "title": "Event Reporting"
       },
       "lte/deploy_config_agw_ha": {
         "title": "Configure AGW for HA"
+      },
+      "lte/integrate_sentry": {
+        "title": "Sentry Integration"
       },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"
@@ -180,6 +207,9 @@
       },
       "nms/alerts": {
         "title": "Alerts"
+      },
+      "nms/nms_arch_overview": {
+        "title": "Overview"
       },
       "nms/dashboard": {
         "title": "Dashboard"
@@ -259,6 +289,9 @@
       "orc8r/dev_testing": {
         "title": "Testing Tips"
       },
+      "orc8r/hold_terraform_state_on_s3": {
+        "title": "Hold Terraform state outside my local machine"
+      },
       "orc8r/legacy/docker_setup": {
         "title": "Docker Setup"
       },
@@ -282,6 +315,9 @@
       "orc8r/legacy/testing": {
         "title": "Testing in Orchestrator",
         "sidebar_label": "Testing"
+      },
+      "orc8r/override_values_of_terraform_files": {
+        "title": "Override values of Terraform files"
       },
       "orc8r/upgrade_1_1": {
         "title": "Upgrade to v1.1"
@@ -340,17 +376,26 @@
       "proposals/p010_vendor_neutral_dp": {
         "title": "proposals/p010_vendor_neutral_dp"
       },
+      "proposals/p011_intra_agw_mobility": {
+        "title": "Intra-AGW Mobility (S1 Mobility)"
+      },
       "proposals/p011_victoriametrics": {
         "title": "VictoriaMetrics as Magma's TSDB"
       },
       "proposals/p012_resource-tagging": {
         "title": "proposals/p012_resource-tagging"
       },
+      "proposals/p013_Ubuntu_upgrade": {
+        "title": "AGW Ubuntu upgrade"
+      },
+      "proposals/p014_proposal_process": {
+        "title": "Magma Proposals"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },
-      "proposals/proposal_process": {
-        "title": "Magma Proposals"
+      "proposals/README": {
+        "title": "proposals/README"
       },
       "proposals/proposal_template": {
         "title": "Title of Design Doc"
@@ -819,6 +864,18 @@
       "version-1.4.0/basics/version-1.4.0-quick_start_guide": {
         "title": "Quick Start Guide"
       },
+      "version-1.4.0/contributing/version-1.4.0-contribute_codeowners": {
+        "title": "Codeowners Workflow"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_conventions": {
+        "title": "Contributing Conventions"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_onboarding": {
+        "title": "Developer Onboarding"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_workflow": {
+        "title": "Development Workflow"
+      },
       "version-1.4.0/debugging_tools/version-1.4.0-show_tech": {
         "title": "Show Tech"
       },
@@ -997,8 +1054,8 @@
       "Deploy": "Deploy",
       "Upgrade": "Upgrade",
       "Debug": "Debug",
+      "Contribute": "Contribute",
       "Technical Reference": "Technical Reference",
-      "Contributing": "Contributing",
       "Proposals": "Proposals",
       "FAQ": "FAQ",
       "Basics": "Basics",

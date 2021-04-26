@@ -14,23 +14,26 @@ limitations under the License.
 """
 import ast
 import json
+import random
 from json.decoder import JSONDecodeError
 from typing import Union
 
 import fire
 import jsonpickle
-import random
 from lte.protos.keyval_pb2 import IPDesc
 from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
 from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription
 from lte.protos.oai.spgw_state_pb2 import SpgwState, SpgwUeContext
 from lte.protos.policydb_pb2 import InstalledPolicies, PolicyRule
-
 from magma.common.redis.client import get_default_client
-from magma.common.redis.serializers import get_json_deserializer, \
-    get_proto_deserializer
-from magma.mobilityd.serialize_utils import deserialize_ip_block, \
-    deserialize_ip_desc
+from magma.common.redis.serializers import (
+    get_json_deserializer,
+    get_proto_deserializer,
+)
+from magma.mobilityd.serialize_utils import (
+    deserialize_ip_block,
+    deserialize_ip_desc,
+)
 
 NO_DESERIAL_MSG = "No deserializer exists for type '{}'"
 

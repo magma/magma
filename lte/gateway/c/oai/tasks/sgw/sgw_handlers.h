@@ -69,4 +69,28 @@ int sgw_handle_ip_allocation_rsp(
     const itti_ip_allocation_response_t* ip_allocation_rsp, imsi64_t imsi64);
 bool is_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p);
 uint32_t spgw_get_new_s1u_teid(spgw_state_t* state);
+int send_mbr_failure(
+    log_proto_t module,
+    const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
+    imsi64_t imsi64);
+void sgw_populate_mbr_bearer_contexts_removed(
+    const itti_sgi_update_end_point_response_t* const resp_pP, imsi64_t imsi64,
+    sgw_eps_bearer_context_information_t* sgw_context_p,
+    itti_s11_modify_bearer_response_t* modify_response_p);
+void sgw_populate_mbr_bearer_contexts_not_found(
+    log_proto_t module,
+    const itti_sgi_update_end_point_response_t* const resp_pP,
+    itti_s11_modify_bearer_response_t* modify_response_p);
+void populate_sgi_end_point_update(
+    uint8_t sgi_rsp_idx, uint8_t idx,
+    const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
+    sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
+    itti_sgi_update_end_point_response_t* sgi_update_end_point_resp);
+bool does_bearer_context_hold_valid_enb_ip(ip_address_t enb_ip_address_S1u);
+void populate_sgi_end_point_update(
+    uint8_t sgi_rsp_idx, uint8_t idx,
+    const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
+    sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
+    itti_sgi_update_end_point_response_t* sgi_update_end_point_resp);
+
 #endif /* FILE_SGW_HANDLERS_SEEN */

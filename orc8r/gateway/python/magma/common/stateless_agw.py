@@ -47,7 +47,8 @@ def check_stateless_agw():
         res = magmad_pb2.CheckStatelessResponse.CORRUPT
 
     logging.debug(
-        "Check returning %s", magmad_pb2.CheckStatelessResponse.AGWMode.Name(res)
+        "Check returning %s", magmad_pb2.CheckStatelessResponse.AGWMode.Name(
+            res)
     )
     return res
 

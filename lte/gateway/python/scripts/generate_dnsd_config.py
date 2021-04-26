@@ -17,11 +17,11 @@ import ipaddress
 import logging
 
 from generate_service_config import generate_template_config
+from lte.protos.mconfig.mconfigs_pb2 import DnsD
 from magma.common.misc_utils import get_ip_from_if_cidr
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import load_service_config
-from lte.protos.mconfig.mconfigs_pb2 import DnsD
 
 CONFIG_OVERRIDE_DIR = '/var/opt/magma/tmp'
 

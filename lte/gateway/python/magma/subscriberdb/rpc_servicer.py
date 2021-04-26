@@ -14,13 +14,12 @@ limitations under the License.
 import logging
 
 import grpc
+from google.protobuf.json_format import MessageToJson
 from lte.protos import subscriberdb_pb2, subscriberdb_pb2_grpc
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
 
 from .store.base import DuplicateSubscriberError, SubscriberNotFoundError
-
-from google.protobuf.json_format import MessageToJson
 
 
 class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):

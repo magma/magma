@@ -174,10 +174,9 @@ func sendConfig(payload interface{}, url string, method string, client HttpClien
 
 func retrieveAlertRule(c echo.Context, url string, client HttpClient) error {
 	alertName := c.QueryParam(AlertNameQueryParam)
-	if alertName == "" {
-		return obsidian.HttpError(fmt.Errorf("alert_name required"), http.StatusBadRequest)
+	if alertName != "" {
+		url += fmt.Sprintf("/%s", neturl.PathEscape(alertName))
 	}
-	url += fmt.Sprintf("/%s", neturl.PathEscape(alertName))
 
 	resp, err := client.Get(url)
 	if err != nil {

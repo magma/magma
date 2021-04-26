@@ -104,7 +104,6 @@ def main() -> None:
     else:
         d_args = _get_default_file_args(args) + _get_default_build_args(args)
         _run(d_args)
-        _down(args)
 
 
 def _get_modules(mods: Iterable[str]) -> Iterable[MagmaModule]:
