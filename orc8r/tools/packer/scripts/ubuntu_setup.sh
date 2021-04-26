@@ -18,3 +18,15 @@ sed -i "s/^.*requiretty/#Defaults requiretty/" /etc/sudoers
 
 # Disable daily apt unattended updates.
 echo 'APT::Periodic::Enable "0";' >> /etc/apt/apt.conf.d/10periodic
+
+apt update
+apt install ansible
+
+# Mount the guest additions iso and run the install script
+mkdir -p /mnt/iso
+mount -t iso9660 -o loop /home/vagrant/VBoxGuestAdditions.iso /mnt/iso
+
+/mnt/iso/VBoxLinuxAdditions.run
+
+umount /mnt/iso
+rm -rf /mnt/iso /home/vagrant/VBoxGuestAdditions.iso
