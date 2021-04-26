@@ -164,10 +164,6 @@ cp control_proxy.yml /var/opt/magma/configs/
 cp docker-compose.yml /var/opt/magma/docker/
 cp .env /var/opt/magma/docker/
 
-# Prepare rsyslog config and restart rsyslog
-sudo cp "$INSTALL_DIR"/magma/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf /etc/rsyslog.d/
-sudo service rsyslog restart 
-
 # Copy recreate_services scripts to complete auto-upgrades
 cp recreate_services.sh /var/opt/magma/docker/
 cp recreate_services_cron /etc/cron.d/
@@ -197,3 +193,7 @@ if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
 fi
 
 echo "Installed successfully!!"
+# Prepare rsyslog config and restart rsyslog
+echo "If You want syslog to be forwardet to the cloud execute following commands as well"
+echo "sudo cp $INSTALL_DIR/magma/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf /etc/rsyslog.d/"
+echo "sudo service rsyslog restart"
