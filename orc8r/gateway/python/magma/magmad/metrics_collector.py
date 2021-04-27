@@ -19,7 +19,7 @@ import time
 from typing import Callable, Dict, List, NamedTuple, Optional
 
 import metrics_pb2
-import prometheus_client
+import prometheus_client.core
 import requests
 import snowflake
 from magma.common.service_registry import ServiceRegistry

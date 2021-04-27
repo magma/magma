@@ -16,7 +16,7 @@ var (
 	// MSuccess measures the amount of general successful events.
 	MSuccess = stats.Int64("success", "The number of successful events encountered", stats.UnitDimensionless)
 
-	// MEvents measures the number of times an event occured.
+	// MEvents measures the number of times an event occurred.
 	MEvents = stats.Int64("events", "The number of times an event occurred", stats.UnitDimensionless)
 )
 
@@ -52,7 +52,7 @@ var (
 	CountView = &view.View{
 		Name:        "counters",
 		Measure:     MEvents,
-		Description: "The number of times an event occured",
+		Description: "The number of times an event occurred",
 		Aggregation: view.Count(),
 		TagKeys:     []tag.Key{KeyComponent, KeyOperation},
 	}

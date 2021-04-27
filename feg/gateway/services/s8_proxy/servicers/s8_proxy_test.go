@@ -232,8 +232,7 @@ func TestS8ProxyDeleteInexistentSession(t *testing.T) {
 
 	// ------------------------
 	// ---- Delete Session inexistent session ----
-	dsReq := &protos.DeleteSessionRequestPgw{Imsi: "000000000000015"}
-	dsReq = &protos.DeleteSessionRequestPgw{
+	dsReq := &protos.DeleteSessionRequestPgw{
 		PgwAddrs: mockPgw.LocalAddr().String(),
 		Imsi:     "000000000000015",
 		BearerId: 4,
@@ -607,7 +606,7 @@ func TestS8proxyEcho(t *testing.T) {
 // startSgwAndPgw starts s8_proxy and a mock pgw for testing
 func startSgwAndPgw(t *testing.T, gtpTimeout time.Duration) (*S8Proxy, *mock_pgw.MockPgw) {
 	// Create and run PGW
-	mockPgw, err := mock_pgw.NewStarted(nil, pgwAddrs)
+	mockPgw, err := mock_pgw.NewStarted(context.Background(), pgwAddrs)
 	if err != nil {
 		t.Fatalf("Error creating mock PGW: +%s", err)
 	}

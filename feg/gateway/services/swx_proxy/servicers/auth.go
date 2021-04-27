@@ -166,7 +166,7 @@ func (s *swxProxy) sendMAR(req *protos.AuthenticationRequest, sid string) (*MAA,
 		metrics.MARLatency.Observe(time.Since(marStartTime).Seconds())
 		if !open {
 			metrics.SwxInvalidSessions.Inc()
-			err = status.Errorf(codes.Aborted, "MAA for Session ID: %s is cancelled", sid)
+			err = status.Errorf(codes.Aborted, "MAA for Session ID: %s is canceled", sid)
 			glog.Error(err)
 			return nil, err
 		}

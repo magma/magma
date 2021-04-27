@@ -155,7 +155,7 @@ func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*proto
 func (s *S8Proxy) configOrRequestedPgwAddress(pgwAddrsFromRequest string) (*net.UDPAddr, error) {
 	addrs := ParseAddress(pgwAddrsFromRequest)
 	if addrs != nil {
-		// address comming from string has precednece
+		// address coming from string has precedence
 		return addrs, nil
 	}
 	if s.config.ServerAddr != nil {

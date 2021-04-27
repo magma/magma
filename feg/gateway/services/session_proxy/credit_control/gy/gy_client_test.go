@@ -77,11 +77,11 @@ func TestGyClient(t *testing.T) {
 		SpgwIPV4:      "10.10.10.10",
 		Apn:           "gy.Apn.magma.com",
 		Credits: []*gy.UsedCredits{
-			&gy.UsedCredits{
+			{
 				RatingGroup:    1,
 				RequestedUnits: defaultRSU,
 			},
-			&gy.UsedCredits{
+			{
 				RatingGroup:    2,
 				RequestedUnits: defaultRSU,
 			},
@@ -197,7 +197,7 @@ func TestGyClientWithGyGlobalConf(t *testing.T) {
 		SpgwIPV4:      "10.10.10.10",
 		Apn:           "gy.Apn.magma.com",
 		Credits: []*gy.UsedCredits{
-			&gy.UsedCredits{
+			{
 				RatingGroup:    1,
 				RequestedUnits: defaultRSU,
 			},
@@ -236,7 +236,7 @@ func TestGyClientOutOfCredit(t *testing.T) {
 		UeIPV4:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
 		Credits: []*gy.UsedCredits{
-			&gy.UsedCredits{
+			{
 				RatingGroup:    1,
 				RequestedUnits: defaultRSU,
 			},
@@ -447,7 +447,7 @@ func TestGyClientOutOfCreditRestrict(t *testing.T) {
 		UeIPV4:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
 		Credits: []*gy.UsedCredits{
-			&gy.UsedCredits{
+			{
 				RatingGroup:    1,
 				RequestedUnits: defaultRSU,
 			},

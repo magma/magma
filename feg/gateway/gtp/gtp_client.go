@@ -42,7 +42,7 @@ type Client struct {
 	GtpTimeout time.Duration
 }
 
-// NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incomming calls
+// NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incoming calls
 // localIpAndPort is in form ip:port  (127.0.0.1:1)
 // 	- In case localIpAndPort is empty it uses any IP and a random port
 // 	- In case ip is not provided ( :port, or 0.0.0.0:port) it uses any interface
@@ -124,6 +124,7 @@ func newClient(localAddr *net.UDPAddr, connType uint8, gtpTimeout time.Duration)
 	return cli
 }
 
+// TODO: remove ctx (just create it outside the go routine)
 // run starts the listener and launches the actual GTP-C routine
 func (c *Client) run(ctx context.Context, localAddr *net.UDPAddr) error {
 	c.Conn = gtpv2.NewConn(localAddr, c.connType, 0)
@@ -132,6 +133,7 @@ func (c *Client) run(ctx context.Context, localAddr *net.UDPAddr) error {
 	}
 	go func() {
 		if ctx == nil {
+			// Do not pass a nil context, pass context.TODO(). But just in case, handle it locally
 			ctx = context.Background()
 		}
 		if err := c.Serve(ctx); err != nil {
@@ -139,7 +141,6 @@ func (c *Client) run(ctx context.Context, localAddr *net.UDPAddr) error {
 			return
 		}
 	}()
-	//TODO: remove this wait once there is a way to check when the listener is ready
 	return nil
 }
 
