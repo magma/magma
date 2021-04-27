@@ -31,13 +31,21 @@ x-generic-service: &service
   network_mode: host
 
 # Use generic python anchor to avoid repetition for python services
-x-pyservice: &pyservice
+# Use generic python anchor to avoid repetition for python services
+x-pyservice_base: &pyservice_base
   <<: *service
   image: ${DOCKER_REGISTRY}gateway_python:${IMAGE_VERSION}
+  
+# Use generic python anchor with logging capabilities to avoid repetition for python services
+x-pyservice: &pyservice
+  <<: *pyservice_base
+  <<: *depends_on_logs
+
 
 # Use generic go anchor to avoid repetition for go services
 x-goservice: &goservice
   <<: *service
+  <<: *depends_on_logs
   image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
 
 x-log-forward: &depends_on_logs
@@ -48,13 +56,11 @@ x-log-forward: &depends_on_logs
 services:
   csfb:
     <<: *goservice
-    <<: *depends_on_logs
     container_name: csfb
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/csfb -logtostderr=true -v=0
 
   eap_aka:
     <<: *goservice
-    <<: *depends_on_logs
     container_name: eap_aka
     environment:
       USE_REMOTE_SWX_PROXY: 0
@@ -62,7 +68,6 @@ services:
 
   eap_sim:
     <<: *goservice
-    <<: *depends_on_logs
     container_name: eap_sim
     environment:
       USE_REMOTE_SWX_PROXY: 0
@@ -70,13 +75,11 @@ services:
 
   eventd:
     <<: *pyservice
-    <<: *depends_on_logs
     container_name: eventd
     command: python3.8 -m magma.eventd.main
 
   aaa_server:
     <<: *goservice
-    <<: *depends_on_logs
     container_name: aaa_server
     environment:
       USE_REMOTE_SWX_PROXY: 0
@@ -84,20 +87,17 @@ services:
 
   feg_hello:
     <<: *goservice
-    <<: *depends_on_logs
     container_name: feg_hello
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/feg_hello -logtostderr=true -v=0
 
   health:
     <<: *goservice
-    <<: *depends_on_logs
     volumes: *snowflake_volumes
     container_name: health
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/gateway_health -logtostderr=true -v=0
 
   session_proxy:
     <<: *goservice
-    <<: *depends_on_logs
     environment:
       USE_GY_FOR_AUTH_ONLY: ${USE_GY_FOR_AUTH_ONLY}
       GY_SUPPORTED_VENDOR_IDS: ${GY_SUPPORTED_VENDOR_IDS}
@@ -107,32 +107,27 @@ services:
 
   swx_proxy:
     <<: *goservice
-    <<: *depends_on_logs
     container_name: swx_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/swx_proxy -logtostderr=true -v=0
 
   s6a_proxy:
     <<: *goservice
-    <<: *depends_on_logs
     container_name: s6a_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=0
 
 
   s8_proxy:
     <<: *goservice
-    <<: *depends_on_logs
     container_name: s8_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s8_proxy -logtostderr=true -v=0
 
   radiusd:
     <<: *goservice
-    <<: *depends_on_logs
     container_name: radiusd
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
 
   control_proxy:
     <<: *pyservice
-    <<: *depends_on_logs
     container_name: control_proxy
     volumes: *snowflake_volumes
     command: >
@@ -141,7 +136,6 @@ services:
 
   magmad:
     <<: *pyservice
-    <<: *depends_on_logs
     container_name: magmad
     volumes:
       - ${ROOTCA_PATH}:/var/opt/magma/certs/rootCA.pem
@@ -161,7 +155,6 @@ services:
 
   redis:
     <<: *pyservice
-    <<: *depends_on_logs
     container_name: redis
     command: >
       /bin/bash -c "/usr/local/bin/generate_service_config.py --service=redis --template=redis &&
@@ -169,7 +162,7 @@ services:
              /usr/bin/redis-cli shutdown"
 
   td-agent-bit:
-    <<: *pyservice
+    <<: *pyservice_base
     container_name: td-agent-bit
     logging:
       driver: json-file
