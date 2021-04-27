@@ -1462,13 +1462,28 @@
   dependencies:
     core-js "^3.2.1"
 
-"@fbcnms/express-middleware@^0.1.0", "@fbcnms/express-middleware@^0.1.1":
+"@fbcnms/express-middleware@^0.1.0":
   version "0.1.1"
   resolved "https://registry.yarnpkg.com/@fbcnms/express-middleware/-/express-middleware-0.1.1.tgz#bf40cbb39b611f10d58fbdc794d633d8d828fb96"
   integrity sha512-RvXycGTfULrW2uZ+txajAAihh0dtQ1jkTghV3Xu8K9H7VeN6gnYsov0xdnxCdODkRiBzMlaX6u2byY5BBaxbBQ==
   dependencies:
     "@fbcnms/logging" "^0.1.0"
     "@fbcnms/sequelize-models" "^0.1.1"
+    body-parser "^1.18.3"
+    compression "^1.7.1"
+    cookie-parser "^1.4.3"
+    csurf "^1.9.0"
+    express "^4.16.3"
+    express-session "^1.15.6"
+    helmet "^3.13.0"
+
+"@fbcnms/express-middleware@^0.1.3":
+  version "0.1.3"
+  resolved "https://registry.yarnpkg.com/@fbcnms/express-middleware/-/express-middleware-0.1.3.tgz#4d9213f7bffe462952945c8e7c648442b4305bfd"
+  integrity sha512-pXWD58K5/Ay5aszFPwkK6Taua+OLvDNIFurL/jyJLtG+zlfapXM6sEtfIwQIg99pORmv0TnWCOuv2ZRETX54fg==
+  dependencies:
+    "@fbcnms/logging" "^0.1.0"
+    "@fbcnms/sequelize-models" "^0.1.8"
     body-parser "^1.18.3"
     compression "^1.7.1"
     cookie-parser "^1.4.3"
@@ -1485,17 +1500,17 @@
     morgan "^1.9.1"
     winston "^3.0.0"
 
-"@fbcnms/platform-server@^0.1.25":
-  version "0.1.25"
-  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.25.tgz#6075f79e61437db58427946a11537deb7d66084a"
-  integrity sha512-Qc/EU5nx+NsOWikFHIUO17IyKqETfKdjyZ1jMmBZtGADUQRxoEGnB0hHbro2yUXjNwzVvjqyRMLXoEjIA2fvvQ==
+"@fbcnms/platform-server@^0.1.27":
+  version "0.1.27"
+  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.27.tgz#a29f8ae745e2477a000b2ac328c0642d1b277f48"
+  integrity sha512-+DCUcq+SW19wElZqZ2fXonOOafsfxIUGjn3mnIOyI65vIEXuaukMfNtE9HooviEDytcSWYyto8tNoLzR1Y5fNQ==
   dependencies:
     "@fbcnms/auth" "^0.1.0"
     "@fbcnms/babel-register" "^0.1.0"
     "@fbcnms/express-middleware" "^0.1.0"
     "@fbcnms/logging" "^0.1.0"
     "@fbcnms/magma-api" "^0.1.0"
-    "@fbcnms/sequelize-models" "^0.1.1"
+    "@fbcnms/sequelize-models" "^0.1.8"
     "@fbcnms/types" "^0.1.10"
     "@fbcnms/util" "^0.1.0"
     add "^2.0.6"
@@ -1536,10 +1551,10 @@
     minimist "^1.2.5"
     sequelize "^5.8.5"
 
-"@fbcnms/sequelize-models@^0.1.7":
-  version "0.1.7"
-  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.7.tgz#ac9f2d6e43b3071a8d192d14dd819143b0973531"
-  integrity sha512-UQULNmVFpqovNii6W8B9I/qQSOdb0MEZnz6HVzVnDlMmiK3jvIG2QGs3YJPj6GfKFxbvTBhRFJChlRx5kVcSRA==
+"@fbcnms/sequelize-models@^0.1.8":
+  version "0.1.8"
+  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.8.tgz#7c1828153021c4dee41e1c9e9bfeb482fe366a6b"
+  integrity sha512-PuigSaB6T+Cv6Wt0yj9yckvOnt2McW/tZdZOn0JjXwmD8VW4RABzFmfH6urFYcPNfHQoAfeDph78nnNFlpwVuw==
   dependencies:
     "@fbcnms/babel-register" "^0.1.0"
     inquirer "^8.0.0"
