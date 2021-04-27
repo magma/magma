@@ -68,3 +68,4 @@ If you're new to the project, also consider reading
 Magma is BSD License licensed, as found in the LICENSE file.
 
 The EPC originates from OAI (OpenAirInterface Software Alliance) and is offered under the same BSD-3-Clause License.
+
