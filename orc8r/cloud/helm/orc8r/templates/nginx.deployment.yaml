@@ -48,20 +48,25 @@ spec:
 {{ toYaml . | trimSuffix "\n" | indent 8 }}
       {{- end }}
       volumes:
-        - name: certs
+        {{- range tuple "controller" "certifier" }}
+        - name: {{ . }}
           secret:
-            secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
-        - name: envdir
-          secret:
-            secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
+            secretName: orc8r-{{ . }}-tls
+        {{- end }}
+        # - name: certs
+        #   secret:
+        #     secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+        # - name: envdir
+        #   secret:
+        #     secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
       containers:
         - name: {{ $serviceName }}
           image: {{ required "nginx.image.repository must be provided" .Values.nginx.image.repository }}:{{ .Values.nginx.image.tag }}
           imagePullPolicy: {{ .Values.nginx.image.pullPolicy }}
           volumeMounts:
-            {{- range tuple "certs" "envdir" }}
+            {{- range tuple "controller" "certifier" }}
             - name: {{ . }}
-              mountPath: /var/opt/magma/{{ . }}
+              mountPath: /var/opt/magma/certs/{{ . }}
               readOnly: true
             {{- end }}
           ports:
@@ -82,6 +87,12 @@ spec:
               value: {{ .Values.nginx.spec.resolver | quote }}
             - name: SERVICE_REGISTRY_MODE
               value: {{ .Values.controller.spec.service_registry.mode }}
+            - name: SSL_CERTIFICATE
+              value: {{ .Values.nginx.certs.sslCertificate }}
+            - name: SSL_CERTIFICATE_KEY
+              value: {{ .Values.nginx.certs.sslCertificateKey }}
+            - name: SSL_CLIENT_CERTIFICATE
+              value: {{ .Values.nginx.certs.sslClientCertificate }}
           livenessProbe:
             tcpSocket:
               port: health

@@ -15,22 +15,27 @@ name: orc8r-container
 image: {{ required "controller.image.repository must be provided" .Values.controller.image.repository }}:{{ .Values.controller.image.tag }}
 imagePullPolicy: {{ .Values.controller.image.pullPolicy }}
 volumeMounts:
-  {{- range tuple "certs" "envdir" }}
+  {{- range tuple "admin-operator" "bootstrapper" "controller" "certifier" "fluentd" "root" "nms" }}
   - name: {{ . }}
-    mountPath: /var/opt/magma/{{ . }}
+    mountPath: /var/opt/magma/certs/{{ . }}
     readOnly: true
   {{- end }}
-  {{- if .Values.secret.configs }}
-  {{- range $module, $secretName := .Values.secret.configs }}
-  - name: {{ $secretName }}-{{ $module }}
-    mountPath: {{ print "/var/opt/magma/configs/" $module }}
-    readOnly: true
-  {{- end }}
-  {{- else }}
-  - name: "empty-configs"
-    mountPath: /var/opt/magma/configs
-    readOnly: true
-  {{- end }}
+  # {{- range tuple "certs" "envdir" }}
+  # - name: {{ . }}
+  #   mountPath: /var/opt/magma/{{ . }}
+  #   readOnly: true
+  # {{- end }}
+  # {{- if .Values.secret.configs }}
+  # {{- range $module, $secretName := .Values.secret.configs }}
+  # - name: {{ $secretName }}-{{ $module }}
+  #   mountPath: {{ print "/var/opt/magma/configs/" $module }}
+  #   readOnly: true
+  # {{- end }}
+  # {{- else }}
+  # - name: "empty-configs"
+  #   mountPath: /var/opt/magma/configs
+  #   readOnly: true
+  # {{- end }}
 ports:
   - name: http
     containerPort: 8080

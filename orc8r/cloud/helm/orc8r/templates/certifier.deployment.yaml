@@ -32,8 +32,8 @@ spec:
 {{- define "certifier.container" -}}
 name: certifier
 command: ["/usr/bin/envdir"]
-args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/certifier", "-cac=/var/opt/magma/certs/certifier.pem",
-       "-cak=/var/opt/magma/certs/certifier.key", "-vpnc=/var/opt/magma/certs/vpn_ca.crt", "-vpnk=/var/opt/magma/certs/vpn_ca.key",
+args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/certifier", "-cac=/var/opt/magma/certs/certifier/tls.crt",
+       "-cak=/var/opt/magma/certs/certifier/tls.key", "-vpnc=/var/opt/magma/certs/vpn_ca.crt", "-vpnk=/var/opt/magma/certs/vpn_ca.key",
        "-logtostderr=true", "-v=0"]
 ports:
   - name: grpc

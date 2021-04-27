@@ -68,21 +68,16 @@ spec:
             - name: nginx-proxy-etc
               mountPath: /etc/nginx/conf.d/nginx_proxy_ssl.conf
               subPath: nginx_proxy_ssl.conf
-            - name: orc8r-secrets-certs
-              mountPath: /etc/nginx/conf.d/nms_nginx.pem
-              subPath: {{ .Values.nginx.deployment.spec.ssl_cert_name }}
-              readOnly: true
-            - name: orc8r-secrets-certs
-              mountPath: /etc/nginx/conf.d/nms_nginx.key.pem
-              subPath: {{ .Values.nginx.deployment.spec.ssl_cert_key_name }}
+            - name: nms
+              mountPath: /var/opt/magma/certs/nms/
               readOnly: true
       volumes:
         - name: nginx-proxy-etc
           configMap:
             name: nginx-proxy-etc
             defaultMode: 0555
-        - name: orc8r-secrets-certs
+        - name: nms
           secret:
-            secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+            secretName: {{ .Release.Name }}-nms-tls
             defaultMode: 0444
 {{- end }}

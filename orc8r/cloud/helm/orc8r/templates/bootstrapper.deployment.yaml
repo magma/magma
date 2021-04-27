@@ -32,7 +32,7 @@ spec:
 {{- define "bootstrapper.container" -}}
 name: bootstrapper
 command: ["/usr/bin/envdir"]
-args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/bootstrapper", "-cak=/var/opt/magma/certs/bootstrapper.key", "-logtostderr=true", "-v=0"]
+args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/bootstrapper", "-cak=/var/opt/magma/certs/bootstrapper/tls.key", "-logtostderr=true", "-v=0"]
 ports:
   - name: grpc
     containerPort: 9088

@@ -15,8 +15,10 @@ nms:
   magmalte:
     create: true
     image:
-      repository: <registry>/magmalte
-      tag: latest
+      repository: magmacore/magmalte
+      # repository: shubhamtatvamasi/magmalte
+      tag: 1.4.0
+      # tag: magma-master-certs.0.1.0
   nginx:
     create: true
 
@@ -27,7 +29,7 @@ imagePullSecrets: []
 
 ## metrics sub-chart configuration.
 metrics:
-  enabled: true
+  enabled: false # by Shubham
   prometheus:
     create: false
   prometheusCache:
@@ -54,9 +56,10 @@ secret:
 
 # certs sub-chart configuration.
 certs:
-  create: false
+  create: true
 
   domainName: localhost
+  prefix: orc8r
 
 nginx:
   create: true
@@ -79,7 +82,7 @@ nginx:
       clientcertLegacy: {}
       proxy: {}
     labels: {}
-    type: ClusterIP
+    type: LoadBalancer
     port:
       clientcert:
         port: 8443
@@ -100,16 +103,22 @@ nginx:
     loadBalancerIP: ""
     loadBalancerSourceRanges: []
 
+  # nginx certificates and key
+  certs:
+    sslCertificate: "/var/opt/magma/certs/controller/tls.crt"
+    sslCertificateKey: "/var/opt/magma/certs/controller/tls.key"
+    sslClientCertificate: "/var/opt/magma/certs/certifier/tls.crt"
+
   # nginx image
   image:
-    repository: <registry>/nginx
-    tag: latest
+    repository: shubhamtatvamasi/nginx
+    tag: magma-master-certs.0.1.0
     pullPolicy: IfNotPresent
 
   # Settings affecting nginx application
   spec:
     # magma controller domain name
-    hostname: ""
+    hostname: "controller.magmalocal.com" # by Shubham
     # when nginx sees a variable in a server_name it needs a resolver
     # by default we'll use kube-dns
     resolver: "kube-dns.kube-system.svc.cluster.local valid=10s"
@@ -148,8 +157,8 @@ controller:
 
   # orc8r_base image
   image:
-    repository: <registry>/orc8r_base
-    tag: latest
+    repository: magmacore/controller
+    tag: 1.4.0
     pullPolicy: IfNotPresent
 
   spec:
@@ -327,4 +336,4 @@ cloudwatch:
 
 # logging sub-chart configuration.
 logging:
-  enabled: true
+  enabled: false # by Shubham
