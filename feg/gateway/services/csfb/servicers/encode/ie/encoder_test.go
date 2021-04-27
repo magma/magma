@@ -21,6 +21,7 @@ import (
 	"magma/feg/gateway/services/csfb/servicers/encode/ie"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestEncodeIMSI(t *testing.T) {
@@ -65,6 +66,7 @@ func TestEncodeMMEName(t *testing.T) {
 		decode.IELengthMMEName,
 		[]byte("mmec01.mmegi0001.mme.EPC.mnc001.mcc001.3gppnetwork.org "),
 	)
+	require.NoError(t, err)
 	// replace the ending space with 0x00
 	expectedEncodedMMEName[len(expectedEncodedMMEName)-1] = byte(0x00)
 
