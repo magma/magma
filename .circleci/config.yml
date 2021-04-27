@@ -696,6 +696,8 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/feg/gateway
             make -C ${MAGMA_ROOT}/feg/gateway precommit
+      - store_test_results:
+          path: /tmp/test-results
       - magma_slack_notify
 
   feg-build:
