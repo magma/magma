@@ -528,6 +528,8 @@ jobs:
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
             python3 build.py --tests --up
           no_output_timeout: 15m
+      - store_test_results:
+          path: /home/circleci/project/orc8r/cloud/test-results
       - magma_slack_notify
 
   # Fail if code doesn't pass formatting requirements.
