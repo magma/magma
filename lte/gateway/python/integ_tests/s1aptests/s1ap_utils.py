@@ -548,8 +548,9 @@ class S1ApUtil(object):
 
     def verify_flow_rules_deletion(self):
         print("Checking if all uplink/downlink flows were deleted")
+        dpath = get_datapath()
         flows = get_flows(
-            self.datapath, {"table_id": self.SPGW_TABLE, "priority": 0}
+            dpath, {"table_id": self.SPGW_TABLE, "priority": 0}
         )
         assert(
             len(flows) == 2), "There should only be 2 default table 0 flows"
