@@ -1,3 +1,5 @@
+#!/bin/bash
+
 WHOAMI=$(whoami)
 MAGMA_VERSION="1.5.0"
 # Default is focal
@@ -28,7 +30,7 @@ rm -rf /etc/apt/sources.list.d/*
 wget https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public -O /tmp/public
 apt-key add /tmp/public
 
-echo "deb https://artifactory.magmacore.org/artifactory/debian $OS_VERSION-$MAGMA_VERSION main" >> /etc/apt/sources.list.d/magma
+echo "deb https://artifactory.magmacore.org/artifactory/debian $OS_VERSION-$MAGMA_VERSION main" >> /etc/apt/sources.list.d/magma.list
 
 apt udpate
 apt install -y magma
