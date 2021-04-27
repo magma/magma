@@ -1,6 +1,6 @@
- priority=65535,ip,nw_src=192.168.128.74 actions=load:0x48c2739fd9c3->OXM_OF_METADATA[],load:0x1->NXM_NX_REG1[],resubmit(,gy(main_table))
- priority=65535,ip,nw_dst=192.168.128.74 actions=load:0x48c2739fd9c3->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],resubmit(,gy(main_table))
+ priority=65535,ip,nw_src=192.168.128.74 actions=load:0x48c2739fd9c3->OXM_OF_METADATA[],load:0x1->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,gy(main_table))
+ priority=65535,ip,nw_dst=192.168.128.74 actions=load:0x48c2739fd9c3->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,gy(main_table))
  priority=10,in_port=LOCAL actions=resubmit(,204),resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
- cookie=0x2, table=gy(main_table), priority=65533,ip,reg1=0x1,metadata=0x48c2739fd9c3,nw_src=192.168.128.74,nw_dst=8.8.8.0/24 actions=note:b'restrict_match',set_field:0x2->reg2,set_field:0x1->reg4,resubmit(,enforcement_stats(main_table)),resubmit(,egress(main_table))
+ cookie=0x2, table=gy(main_table), priority=65533,ip,reg1=0x1,reg9=0x1234,metadata=0x48c2739fd9c3,nw_src=192.168.128.74,nw_dst=8.8.8.0/24 actions=note:b'restrict_match',set_field:0x2->reg2,set_field:0x1->reg4,resubmit(,enforcement_stats(main_table)),resubmit(,egress(main_table))
  table=gy(main_table), priority=0 actions=resubmit(,enforcement(main_table)),set_field:0->reg0,set_field:0->reg3
  cookie=0x1, table=204, priority=12,tcp,nw_src=192.168.128.1,nw_dst=192.168.0.1,tp_src=8080,tp_dst=42132 actions=load:0x1201020aabb->NXM_OF_ETH_DST[],load:0x48c2739fd9c3->OXM_OF_METADATA[],load:0xc0a8804a->NXM_OF_IP_DST[],load:0x972a297a->NXM_OF_IP_SRC[],load:0x50->NXM_OF_TCP_SRC[]

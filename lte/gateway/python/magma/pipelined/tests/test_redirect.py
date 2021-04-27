@@ -137,6 +137,7 @@ class RedirectTest(unittest.TestCase):
             "about.sha.ddih.org", lambda: redirect_ips, max_age=42
         )
         imsi = 'IMSI010000000088888'
+        uplink_tunnel = 0x1234
         sub_ip = '192.168.128.74'
         flow_list = [FlowDescription(match=FlowMatch())]
         policy = VersionedPolicy(
@@ -153,7 +154,7 @@ class RedirectTest(unittest.TestCase):
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+            imsi, sub_ip, uplink_tunnel, self.enforcement_controller, self._tbl_num
         ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
@@ -224,6 +225,7 @@ class RedirectTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller)
         redirect_ip = "54.12.31.42"
         imsi = 'IMSI012000000088888'
+        uplink_tunnel = 0x1234
         sub_ip = '192.168.128.74'
         flow_list = [FlowDescription(match=FlowMatch())]
         policy = VersionedPolicy(
@@ -240,7 +242,7 @@ class RedirectTest(unittest.TestCase):
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+            imsi, sub_ip, uplink_tunnel, self.enforcement_controller, self._tbl_num
         ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)

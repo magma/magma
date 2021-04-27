@@ -55,18 +55,21 @@ from scripts.helpers.ng_set_session_msg import CreateSessionUtil
 from orc8r.protos.common_pb2 import Void
 
 UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
-                               'rule_id'])
+                               'uplink_tunnel', 'rule_id'])
 
 def _gen_ue_set(num_of_ues):
     imsi = 123000000
+    uplink_tunnel = 0x12345
     ue_set = set()
     for _ in range(0, num_of_ues):
         imsi_str = "IMSI" + str(imsi)
         ipv4_src = ".".join(str(random.randint(0, 255)) for _ in range(4))
         ipv4_dst = ".".join(str(random.randint(0, 255)) for _ in range(4))
         rule_id = "allow." + imsi_str
-        ue_set.add(UEInfo(imsi_str, ipv4_src, ipv4_dst, rule_id))
-        imsi = imsi + 1
+        uplink_tunnel = uplink_tunnel
+        ue_set.add(UEInfo(imsi_str, ipv4_src, ipv4_dst, uplink_tunnel, rule_id))
+        imsi += 1
+        uplink_tunnel += 1
     return ue_set
 
 
@@ -94,6 +97,7 @@ def deactivate_flows(client, args):
     request = DeactivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         ip_addr=args.ipv4,
+        uplink_tunnel=args.uplink_tunnel,
         policies=policies,
         request_origin=RequestOriginType(type=RequestOriginType.GX))
     client.DeactivateFlows(request)
@@ -104,6 +108,7 @@ def activate_flows(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         ip_addr=args.ipv4,
+        uplink_tunnel=args.uplink_tunnel,
         policies=[VersionedPolicy(
             rule=PolicyRule(
                 id=args.rule_id,
@@ -129,6 +134,7 @@ def activate_gy_redirect(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         ip_addr=args.ipv4,
+        uplink_tunnel=args.uplink_tunnel,
         policies=[VersionedPolicy(
             rule=PolicyRule(
                 id=args.rule_id,
@@ -153,6 +159,7 @@ def deactivate_gy_flows(client, args):
     request = DeactivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         ip_addr=args.ipv4,
+        uplink_tunnel=args.uplink_tunnel,
         policies=policies,
         request_origin=RequestOriginType(type=RequestOriginType.GY))
     client.DeactivateFlows(request)
@@ -205,6 +212,7 @@ def stress_test_grpc(client, args):
             request = ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(ue.imsi_str),
                 ip_addr=ue.ipv4_src,
+                uplink_tunnel=ue.uplink_tunnel,
                 policies=[VersionedPolicy(
                     rule=PolicyRule(
                         id=ue.rule_id,
@@ -247,6 +255,7 @@ def stress_test_grpc(client, args):
             request = DeactivateFlowsRequest(
                 sid=SIDUtils.to_pb(ue.imsi_str),
                 ip_addr=ue.ipv4_src,
+                uplink_tunnel=ue.uplink_tunnel,
                 policies=[
                     VersionedPolicyID(
                         rule_id=ue.rule_id,
@@ -314,6 +323,8 @@ def create_enforcement_parser(apps):
                                    help='Activate flows')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
     subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
+    subcmd.add_argument('--uplink_tunnel', help='Subscriber Uplink Tunnel ID',
+                        default=0x12345)
     subcmd.add_argument('--rule_id', help='rule id to add', default='rule1')
     subcmd.add_argument('--ipv4_dst', help='ipv4 dst for rule', default='')
     subcmd.add_argument('--priority', help='priority for rule',
@@ -325,6 +336,8 @@ def create_enforcement_parser(apps):
     subcmd = subparsers.add_parser('deactivate_flows', help='Deactivate flows')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
     subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
+    subcmd.add_argument('--uplink_tunnel', help='Subscriber Uplink Tunnel ID',
+                        default=0x12345)
     subcmd.add_argument('--rule_ids', help='Comma separated rule ids',
                         default="")
     subcmd.set_defaults(func=deactivate_flows)
@@ -333,6 +346,8 @@ def create_enforcement_parser(apps):
                                    help='Activate gy final action redirect')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
     subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
+    subcmd.add_argument('--uplink_tunnel', help='Subscriber Uplink Tunnel ID',
+                        default=0x12345)
     subcmd.add_argument('--rule_id', help='rule id to add', default='redirect')
     subcmd.add_argument('--redirect_addr', help='Webpage to redirect to',
                         default='http://about.sha.ddih.org/')
@@ -342,6 +357,8 @@ def create_enforcement_parser(apps):
                                    help='Deactivate gy flows')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
     subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
+    subcmd.add_argument('--uplink_tunnel', help='Subscriber Uplink Tunnel ID',
+                        default=0x12345)
     subcmd.add_argument('--rule_ids', help='Comma separated rule ids',
                         default="")
     subcmd.set_defaults(func=deactivate_gy_flows)

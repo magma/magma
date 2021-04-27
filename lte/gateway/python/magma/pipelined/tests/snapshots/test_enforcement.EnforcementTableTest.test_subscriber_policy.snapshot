@@ -1,6 +1,6 @@
- cookie=0x0, table=mme(main_table), n_packets=4096, n_bytes=139264, priority=65535,ip,nw_src=192.168.128.74 actions=load:0x48c2739fd9c3->OXM_OF_METADATA[],load:0x1->NXM_NX_REG1[],resubmit(,enforcement(main_table))
- cookie=0x0, table=mme(main_table), n_packets=0, n_bytes=0, priority=65535,ip,nw_dst=192.168.128.74 actions=load:0x48c2739fd9c3->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],resubmit(,enforcement(main_table))
+ cookie=0x0, table=mme(main_table), n_packets=4096, n_bytes=139264, priority=65535,ip,nw_src=192.168.128.74 actions=load:0x48c2739fd9c3->OXM_OF_METADATA[],load:0x1->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,enforcement(main_table))
+ cookie=0x0, table=mme(main_table), n_packets=0, n_bytes=0, priority=65535,ip,nw_dst=192.168.128.74 actions=load:0x48c2739fd9c3->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,enforcement(main_table))
  cookie=0x0, table=proxy(main_table), n_packets=0, n_bytes=0, priority=1,in_port=16 actions=drop
  cookie=0x0, table=proxy(main_table), n_packets=0, n_bytes=0, priority=0 actions=resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3
- cookie=0x2, table=enforcement(main_table), n_packets=256, n_bytes=8704, priority=65533,ip,reg1=0x1,metadata=0x48c2739fd9c3,nw_src=192.168.128.74,nw_dst=45.10.0.0/24 actions=note:b'simple_match',set_field:0x2->reg2,set_field:0x1->reg4,resubmit(,enforcement_stats(main_table)),resubmit(,egress(main_table))
+ cookie=0x2, table=enforcement(main_table), n_packets=256, n_bytes=8704, priority=65533,ip,reg1=0x1,reg9=0x1234,metadata=0x48c2739fd9c3,nw_src=192.168.128.74,nw_dst=45.10.0.0/24 actions=note:b'simple_match',set_field:0x2->reg2,set_field:0x1->reg4,resubmit(,enforcement_stats(main_table)),resubmit(,egress(main_table))
  cookie=0xfffffffffffffffe, table=enforcement(main_table), n_packets=3840, n_bytes=130560, priority=0 actions=resubmit(,enforcement_stats(main_table)),set_field:0->reg0,set_field:0->reg3

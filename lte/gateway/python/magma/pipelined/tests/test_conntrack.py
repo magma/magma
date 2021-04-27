@@ -122,7 +122,7 @@ class ConntrackTest(unittest.TestCase):
         Verifies that 3 new connections are detected (2 tcp, 1 udp)
         """
         sub_ip = '145.254.160.237' # extracted from pcap don't change
-        sub = SubContextConfig('IMSI001010000000013', sub_ip,
+        sub = SubContextConfig('IMSI001010000000013', sub_ip, 0x1234,
                                default_ambr_config, self._tbl_num)
 
         isolator = RyuDirectTableIsolator(

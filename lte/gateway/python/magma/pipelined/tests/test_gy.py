@@ -148,6 +148,7 @@ class GYTableTest(unittest.TestCase):
         fake_controller_setup(self.gy_controller)
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
+        uplink_tunnel = 0x1234
         redirect_ips = ["185.128.101.5", "185.128.121.4"]
         self.gy_controller._redirect_manager._dns_cache.get(
             "about.sha.ddih.org", lambda: redirect_ips, max_age=42
@@ -167,7 +168,7 @@ class GYTableTest(unittest.TestCase):
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.gy_controller, self._tbl_num
+            imsi, sub_ip, uplink_tunnel, self.gy_controller, self._tbl_num
         ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
@@ -199,6 +200,7 @@ class GYTableTest(unittest.TestCase):
         """
         fake_controller_setup(self.gy_controller)
         imsi = 'IMSI010000000088888'
+        uplink_tunnel = 0x1234
         sub_ip = '192.168.128.74'
         flow_list1 = [FlowDescription(
             match=FlowMatch(
@@ -217,7 +219,7 @@ class GYTableTest(unittest.TestCase):
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.gy_controller, self._tbl_num
+            imsi, sub_ip, uplink_tunnel, self.gy_controller, self._tbl_num
         ).add_policy(policies[0])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)

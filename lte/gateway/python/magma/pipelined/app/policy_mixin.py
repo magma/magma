@@ -93,7 +93,7 @@ class PolicyMixin(metaclass=ABCMeta):
             policy_results.append(RuleModResult(rule_id=policy.rule.id, version=policy.version, result=res))
 
         # Install a base flow for when no rule is matched.
-        self._install_default_flow_for_subscriber(imsi, ip_addr)
+        self._install_default_flow_for_subscriber(imsi, ip_addr, uplink_tunnel)
         return ActivateFlowsResult(
             policy_results=policy_results,
         )
@@ -144,7 +144,8 @@ class PolicyMixin(metaclass=ABCMeta):
         its matched rule and injects the rule num into the packet's register.
         """
         parser = self._datapath.ofproto_parser
-        flow_match = flow_match_to_magma_match(flow.match, ip_addr)
+        flow_match = flow_match_to_magma_match(flow.match, ip_addr,
+                                               uplink_tunnel)
         flow_match.imsi = encode_imsi(imsi)
         flow_match_actions, instructions = self._get_action_for_rule(
             flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id, version, qos_mgr)
@@ -274,7 +275,8 @@ class PolicyMixin(metaclass=ABCMeta):
 
             if self._setup_type == 'CWF' or add_flow_req.ip_addr:
                 ipv4 = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
-                msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv4)
+                msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv4,
+                    uplink_tunnel)
                 if msgs:
                     msg_list.extend(msgs)
 
@@ -282,13 +284,13 @@ class PolicyMixin(metaclass=ABCMeta):
                     msg_list.extend(self._get_policy_flows(imsi, msisdn, uplink_tunnel, ipv4, apn_ambr, policy))
             if add_flow_req.ipv6_addr:
                 ipv6 = convert_ipv6_bytes_to_ip_proto(add_flow_req.ipv6_addr)
-                msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv6)
+                msgs = self._get_default_flow_msgs_for_subscriber(imsi, ipv6,
+                    uplink_tunnel)
                 if msgs:
                     msg_list.extend(msgs)
 
                 for policy in policies:
                     msg_list.extend(self._get_policy_flows(imsi, msisdn, uplink_tunnel, ipv6, apn_ambr, policy))
-
 
         return {self.tbl_num: msg_list}
 
@@ -297,7 +299,7 @@ class PolicyMixin(metaclass=ABCMeta):
         msg_list = []
         # As the versions are managed by sessiond, save state here
         self._service_manager.session_rule_version_mapper.save_version(
-            imsi, ip_addr, policy.rule.id, policy.version)
+            imsi, uplink_tunnel, policy.rule.id, policy.version)
         try:
             if policy.rule.redirect.support == policy.rule.redirect.ENABLED:
                 return msg_list
@@ -343,7 +345,7 @@ class PolicyMixin(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr, uplink_tunnel):
         """
         Install a flow for the subscriber in the event no rule is matched.
         Subclass should implement this.

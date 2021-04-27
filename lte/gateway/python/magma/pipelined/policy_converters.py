@@ -17,6 +17,7 @@ from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import (
     DPI_REG,
+    TUN_ID_REG,
     Direction,
     load_direction,
 )
@@ -51,7 +52,7 @@ def _check_pkt_protocol(match):
     return True
 
 
-def flow_match_to_magma_match(match, ip_addr=None):
+def flow_match_to_magma_match(match, ip_addr=None, teid: int = None):
     '''
     Convert a FlowMatch to a MagmaMatch object
 
@@ -106,6 +107,9 @@ def flow_match_to_magma_match(match, ip_addr=None):
                 match_kwargs[ip_src_reg] = ip_addr.address.decode('utf-8')
             else:
                 match_kwargs[ip_dst_reg] = ip_addr.address.decode('utf-8')
+
+    if teid:
+        match_kwargs[TUN_ID_REG] = teid
 
     return MagmaMatch(direction=get_direction_for_match(match),
                       **match_kwargs)

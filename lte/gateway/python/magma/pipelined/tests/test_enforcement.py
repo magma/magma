@@ -161,6 +161,7 @@ class EnforcementTableTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller)
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
+        uplink_tunnel = 0x1234
         flow_list1 = [FlowDescription(
             match=FlowMatch(
                 ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
@@ -178,7 +179,8 @@ class EnforcementTableTest(unittest.TestCase):
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+            imsi, sub_ip, uplink_tunnel,
+            self.enforcement_controller, self._tbl_num
         ).add_policy(policies[0])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
@@ -221,6 +223,7 @@ class EnforcementTableTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller)
         imsi = 'IMSI010000000088888'
         sub_ip = 'de34:431d:1bc::'
+        uplink_tunnel = 0x1234
         flow_list1 = [FlowDescription(
             match=FlowMatch(
                 ip_dst=convert_ipv6_bytes_to_ip_proto(
@@ -237,7 +240,8 @@ class EnforcementTableTest(unittest.TestCase):
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+            imsi, sub_ip, uplink_tunnel,
+            self.enforcement_controller, self._tbl_num
         ).add_policy(policies[0])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
@@ -267,6 +271,7 @@ class EnforcementTableTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller)
         imsi = 'IMSI000000000000001'
         sub_ip = '192.168.128.45'
+        uplink_tunnel = 0x1234
         flow_list = [FlowDescription(
             match=FlowMatch(
                 ip_src=convert_ipv4_str_to_ip_proto('9999.0.0.0/24')),
@@ -278,8 +283,8 @@ class EnforcementTableTest(unittest.TestCase):
                 version=1,
             )
         invalid_sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
-            self._tbl_num).add_policy(policy)
+            imsi, sub_ip,  uplink_tunnel,
+            self.enforcement_controller, self._tbl_num).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(invalid_sub_context.cfg)
                                      .build_requests(),
@@ -307,6 +312,7 @@ class EnforcementTableTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller)
         imsi = 'IMSI208950000000001'
         sub_ip = '192.168.128.74'
+        uplink_tunnel = 0x1234
         flow_list1 = [FlowDescription(
             match=FlowMatch(
                 ip_src=convert_ipv4_str_to_ip_proto('15.0.0.0/24'),
@@ -331,11 +337,9 @@ class EnforcementTableTest(unittest.TestCase):
         pkts_sent = 42
 
         # ============================ Subscriber ============================
-        sub_context = RyuDirectSubscriberContext(imsi, sub_ip,
-                                                 self.enforcement_controller,
-                                                 self._tbl_num) \
-            .add_policy(policies[0])\
-            .add_policy(policies[1])
+        sub_context = RyuDirectSubscriberContext(imsi, sub_ip,uplink_tunnel,
+            self.enforcement_controller, self._tbl_num) \
+            .add_policy(policies[0]).add_policy(policies[1])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -375,6 +379,7 @@ class EnforcementTableTest(unittest.TestCase):
             For subcriber2 the packets are matched to the proper policy
             The total packet delta in the table is from the above matches
         """
+        uplink_tunnel = 0x1234
         fake_controller_setup(self.enforcement_controller)
         pkt_sender = ScapyPacketInjector(self.IFACE)
         ip_match = [FlowDescription(
@@ -394,7 +399,7 @@ class EnforcementTableTest(unittest.TestCase):
             )
         # =========================== Subscriber 1 ===========================
         sub_context1 = RyuDirectSubscriberContext(
-            'IMSI208950001111111', '192.168.128.5',
+            'IMSI208950001111111', '192.168.128.5',  uplink_tunnel,
             self.enforcement_controller, self._tbl_num
         ).add_policy(policy)
         isolator1 = RyuDirectTableIsolator(
@@ -418,7 +423,7 @@ class EnforcementTableTest(unittest.TestCase):
 
         # =========================== Subscriber 2 ===========================
         sub_context2 = RyuDirectSubscriberContext(
-            'IMSI911500451242001', '192.168.128.100',
+            'IMSI911500451242001', '192.168.128.100', uplink_tunnel,
             self.enforcement_controller, self._tbl_num
         ).add_policy(
             VersionedPolicy(

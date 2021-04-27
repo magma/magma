@@ -165,6 +165,7 @@ class EnforcementStatsTest(unittest.TestCase):
                               self.enforcement_stats_controller)
         imsi = 'IMSI001010000000013'
         sub_ip = '192.168.128.74'
+        uplink_tunnel = 0x1234
         num_pkts_tx_match = 128
         num_pkts_rx_match = 256
 
@@ -191,19 +192,19 @@ class EnforcementStatsTest(unittest.TestCase):
                 version=1,
             )
         ]
-        enf_stat_name = [imsi + '|tx_match' + '|' + sub_ip,
-                         imsi + '|rx_match' + '|' + sub_ip]
+        enf_stat_name = [imsi + '|tx_match' + '|' + str(uplink_tunnel),
+                         imsi + '|rx_match' + '|' + str(uplink_tunnel)]
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'tx_match', 1)
+            imsi, uplink_tunnel, 'tx_match', 1)
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rx_match', 1)
+            imsi, uplink_tunnel, 'rx_match', 1)
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
+            imsi, sub_ip, uplink_tunnel,
+            self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
-        ).add_policy(policies[0]) \
-         .add_policy(policies[1])
+        ).add_policy(policies[0]).add_policy(policies[1])
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -267,6 +268,7 @@ class EnforcementStatsTest(unittest.TestCase):
             "about.sha.ddih.org", lambda: redirect_ips, max_age=42
         )
         imsi = 'IMSI010000000088888'
+        uplink_tunnel = 0x1234
         sub_ip = '192.168.128.74'
         flow_list = [FlowDescription(match=FlowMatch())]
         policy = VersionedPolicy(
@@ -280,13 +282,14 @@ class EnforcementStatsTest(unittest.TestCase):
             ),
             version=1,
         )
-        stat_name = imsi + '|redir_test' + '|' + sub_ip
+        stat_name = imsi + '|redir_test' + '|' + str(uplink_tunnel)
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'redir_test', 1)
+            imsi, uplink_tunnel, 'redir_test', 1)
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
+            imsi, sub_ip, uplink_tunnel,
+            self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
         ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
@@ -334,6 +337,7 @@ class EnforcementStatsTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller,
                               self.enforcement_stats_controller)
         imsi = 'IMSI001010000000013'
+        uplink_tunnel = 0x1234
         sub_ip = '192.168.128.74'
 
         flow_list = [FlowDescription(
@@ -347,11 +351,12 @@ class EnforcementStatsTest(unittest.TestCase):
             version=1,
         )
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
+            imsi, uplink_tunnel, 'rule1', 1)
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
+            imsi, sub_ip, uplink_tunnel,
+            self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
         ).add_policy(policy)
 
@@ -376,6 +381,7 @@ class EnforcementStatsTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller,
                               self.enforcement_stats_controller)
         imsi = 'IMSI001010000000014'
+        uplink_tunnel = 0x1234
         sub_ip = '192.16.15.7'
         num_pkt_unmatched = 4096
 
@@ -390,11 +396,12 @@ class EnforcementStatsTest(unittest.TestCase):
             version=1,
         )
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
+            imsi, uplink_tunnel, 'rule1', 1)
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
+            imsi, sub_ip, uplink_tunnel,
+            self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
         ).add_policy(policy)
 
@@ -420,7 +427,7 @@ class EnforcementStatsTest(unittest.TestCase):
         with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet)
 
-        enf_stat_name = imsi + '|' + self.DEFAULT_DROP_FLOW_NAME + '|' + sub_ip
+        enf_stat_name = imsi + '|' + self.DEFAULT_DROP_FLOW_NAME + '|' + str(uplink_tunnel)
         wait_for_enforcement_stats(self.enforcement_stats_controller,
                                    [enf_stat_name])
         stats = get_enforcement_stats(
@@ -446,6 +453,7 @@ class EnforcementStatsTest(unittest.TestCase):
                               self.enforcement_stats_controller)
 
         imsi = 'IMSI001010000000013'
+        uplink_tunnel = 0x1234
         sub_ip = 'de34:431d:1bc::'
 
         flow_list = [FlowDescription(
@@ -460,11 +468,12 @@ class EnforcementStatsTest(unittest.TestCase):
             version=1,
         )
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
+            imsi, uplink_tunnel, 'rule1', 1)
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
+            imsi, sub_ip, uplink_tunnel,
+            self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
         ).add_policy(policy)
 
@@ -489,6 +498,7 @@ class EnforcementStatsTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller,
                               self.enforcement_stats_controller)
         imsi = 'IMSI001010000000013'
+        uplink_tunnel = 0x1234
         sub_ip = '192.168.128.74'
         num_pkts_tx_match = 128
 
@@ -502,13 +512,14 @@ class EnforcementStatsTest(unittest.TestCase):
             rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
             version=1,
         )
-        enf_stat_name = imsi + '|rule1' + '|' + sub_ip
+        enf_stat_name = imsi + '|rule1' + '|' + str(uplink_tunnel)
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
+            imsi, uplink_tunnel, 'rule1', 1)
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
+            imsi, sub_ip, uplink_tunnel,
+            self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
         ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
@@ -538,10 +549,10 @@ class EnforcementStatsTest(unittest.TestCase):
             self.enforcement_stats_controller._report_usage.reset_mock()
             pkt_sender.send(packet)
             self.service_manager.session_rule_version_mapper. \
-                save_version(imsi, convert_ipv4_str_to_ip_proto(sub_ip),
-                             'rule1', 2)
+                save_version(imsi, uplink_tunnel, 'rule1', 2)
             self.enforcement_controller.deactivate_rules(
-                imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.rule.id])
+                imsi, convert_ipv4_str_to_ip_proto(sub_ip), uplink_tunnel,
+                [policy.rule.id])
 
         wait_for_enforcement_stats(self.enforcement_stats_controller,
                                    [enf_stat_name])
@@ -558,7 +569,8 @@ class EnforcementStatsTest(unittest.TestCase):
         self.assertEqual(len(stats), 2)
 
         self.enforcement_stats_controller.deactivate_default_flow(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip))
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip),
+            uplink_tunnel)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
                                              'nuke_ue')
@@ -580,6 +592,7 @@ class EnforcementStatsTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller,
                               self.enforcement_stats_controller)
         imsi = 'IMSI001010000000013'
+        uplink_tunnel = 0x1234
         sub_ip = '192.168.128.74'
         num_pkts_tx_match = 128
 
@@ -593,13 +606,13 @@ class EnforcementStatsTest(unittest.TestCase):
             rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
             version=1,
         )
-        enf_stat_name = imsi + '|rule1' + '|' + sub_ip
+        enf_stat_name = imsi + '|rule1' + '|' + str(uplink_tunnel)
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
+            imsi, uplink_tunnel, 'rule1', 1)
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
+            imsi, sub_ip, uplink_tunnel, self.enforcement_controller,
             self._main_tbl_num, self.enforcement_stats_controller
         ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
@@ -631,17 +644,17 @@ class EnforcementStatsTest(unittest.TestCase):
 
             self.enforcement_stats_controller._report_usage.reset_mock()
             self.service_manager.session_rule_version_mapper. \
-                save_version(imsi, convert_ipv4_str_to_ip_proto(sub_ip),
-                             'rule1', 2)
+                save_version(imsi, uplink_tunnel, 'rule1', 2)
             self.enforcement_controller.deactivate_rules(
-                imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.rule.id])
+                imsi, convert_ipv4_str_to_ip_proto(sub_ip),
+                uplink_tunnel, [policy.rule.id])
             policy.version=2
             self.enforcement_controller.activate_rules(
-                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
-                [policy])
+                imsi, None, uplink_tunnel,
+                convert_ipv4_str_to_ip_proto(sub_ip), None, [policy])
             self.enforcement_stats_controller.activate_rules(
-                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None,
-                [policy])
+                imsi, None, uplink_tunnel,
+                convert_ipv4_str_to_ip_proto(sub_ip), None, [policy])
             pkt_sender.send(packet)
 
         wait_for_enforcement_stats(self.enforcement_stats_controller,

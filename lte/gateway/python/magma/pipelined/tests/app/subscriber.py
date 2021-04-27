@@ -25,8 +25,8 @@ from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
 from magma.subscriberdb.sid import SIDUtils
 from ryu.lib import hub
 
-SubContextConfig = namedtuple('ContextConfig', ['imsi', 'ip', 'ambr',
-                                                'table_id'])
+SubContextConfig = namedtuple('ContextConfig', ['imsi', 'ip', 'uplink_tunnel',
+                                                'ambr', 'table_id'])
 default_ambr_config = None
 
 def try_grpc_call_with_retries(grpc_call, retry_count=5, retry_interval=1):
@@ -103,8 +103,9 @@ class RyuRPCSubscriberContext(SubscriberContext):
     testing subscriber rules
     """
 
-    def __init__(self, imsi, ip, pipelined_stub, table_id=5):
-        self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
+    def __init__(self, imsi, ip, uplink_tunnel, pipelined_stub, table_id=5):
+        self.cfg = SubContextConfig(imsi, ip, uplink_tunnel,
+                                    default_ambr_config, table_id)
         self._policies = []
         self._pipelined_stub = pipelined_stub
 
@@ -132,9 +133,11 @@ class RyuDirectSubscriberContext(SubscriberContext):
     directly manage subscriber flows
     """
 
-    def __init__(self, imsi, ip, enforcement_controller, table_id=5,
+    def __init__(self, imsi, ip, uplink_tunnel,
+                 enforcement_controller, table_id=5,
                  enforcement_stats_controller=None, nuke_flows_on_exit=True):
-        self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
+        self.cfg = SubContextConfig(imsi, ip, uplink_tunnel,
+                                    default_ambr_config, table_id)
         self._policies = []
         self._ec = enforcement_controller
         self._esc = enforcement_stats_controller
@@ -150,7 +153,7 @@ class RyuDirectSubscriberContext(SubscriberContext):
             self._ec.activate_rules(
                 imsi=self.cfg.imsi,
                 msisdn=None,
-                uplink_tunnel=None,
+                uplink_tunnel=self.cfg.uplink_tunnel,
                 ip_addr=ip_addr,
                 apn_ambr=default_ambr_config,
                 policies=self._policies)
@@ -158,7 +161,7 @@ class RyuDirectSubscriberContext(SubscriberContext):
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
                     msisdn=None,
-                    uplink_tunnel=None,
+                    uplink_tunnel=self.cfg.uplink_tunnel,
                     ip_addr=ip_addr,
                     apn_ambr=default_ambr_config,
                     policies=self._policies)
@@ -171,5 +174,6 @@ class RyuDirectSubscriberContext(SubscriberContext):
                 self._ec.deactivate_rules(
                     imsi=self.cfg.imsi,
                     ip_addr=ip_addr,
+                    uplink_tunnel=self.cfg.uplink_tunnel,
                     rule_ids=None)
             hub.joinall([hub.spawn(deactivate_flows)])
