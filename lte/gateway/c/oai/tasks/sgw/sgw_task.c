@@ -75,14 +75,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       sgw_handle_s11_create_session_request(
           spgw_state, &received_message_p->ittiMsg.s11_create_session_request,
           imsi64);
-      put_spgw_state();
     } break;
 
     case S11_DELETE_SESSION_REQUEST: {
       sgw_handle_delete_session_request(
           spgw_state, &received_message_p->ittiMsg.s11_delete_session_request,
           imsi64);
-      put_spgw_state();
     } break;
 
     case S11_MODIFY_BEARER_REQUEST: {
@@ -105,7 +103,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       sgw_handle_sgi_endpoint_created(
           spgw_state,
           &received_message_p->ittiMsg.sgi_create_end_point_response, imsi64);
-      put_spgw_state();
     } break;
 
     case SGI_UPDATE_ENDPOINT_RESPONSE: {
@@ -124,14 +121,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       sgw_handle_nw_initiated_deactv_bearer_rsp(
           spgw_state,
           &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp, imsi64);
-      put_spgw_state();
     } break;
 
     case PCEF_CREATE_SESSION_RESPONSE: {
       spgw_handle_pcef_create_session_response(
           spgw_state, &received_message_p->ittiMsg.pcef_create_session_response,
           imsi64);
-      put_spgw_state();
     } break;
 
     case GX_NW_INITIATED_ACTIVATE_BEARER_REQ: {
@@ -177,7 +172,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       int32_t rc = sgw_handle_ip_allocation_rsp(
           spgw_state, &received_message_p->ittiMsg.ip_allocation_response,
           imsi64);
-      put_spgw_state();
       if (rc != RETURNok) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64,
@@ -198,6 +192,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
+  put_spgw_state();
   put_spgw_ue_state(imsi64);
 
   itti_free_msg_content(received_message_p);

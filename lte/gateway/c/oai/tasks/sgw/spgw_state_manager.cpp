@@ -53,7 +53,7 @@ void SpgwStateManager::create_state() {
   // Allocating spgw_state_p
   state_cache_p = (spgw_state_t*) calloc(1, sizeof(spgw_state_t));
 
-  bstring b     = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
+  bstring b      = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
   state_teid_ht_ = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
       (void (*)(void**)) spgw_free_s11_bearer_context_information, b);
