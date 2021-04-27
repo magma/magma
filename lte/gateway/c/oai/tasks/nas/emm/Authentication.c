@@ -1500,10 +1500,6 @@ static void nas_itti_auth_info_req(
     auth_info_req->supportedfeatures.nr_as_secondary_rat = 1;
   } else {
     auth_info_req->supportedfeatures.nr_as_secondary_rat = 0;
-    OAILOG_DEBUG(
-        TASK_MME_APP,
-        "UE is connected on LTE, Dual registration with 5G-NR is disabled for "
-        "(ue_id = %u)\n");
   }
 
   if (is_initial_reqP) {
