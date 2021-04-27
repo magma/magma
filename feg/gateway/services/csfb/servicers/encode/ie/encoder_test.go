@@ -65,6 +65,7 @@ func TestEncodeMMEName(t *testing.T) {
 		decode.IELengthMMEName,
 		[]byte("mmec01.mmegi0001.mme.EPC.mnc001.mcc001.3gppnetwork.org "),
 	)
+	assert.NoError(t, err)
 	// replace the ending space with 0x00
 	expectedEncodedMMEName[len(expectedEncodedMMEName)-1] = byte(0x00)
 

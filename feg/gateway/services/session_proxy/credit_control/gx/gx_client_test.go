@@ -464,6 +464,7 @@ func TestDefaultFramedIpv4Addr(t *testing.T) {
 	gx.GetAnswer(done)
 
 	lastMsg, err := pcrf.GetLastAVPreceived()
+	assert.NoError(t, err)
 	avpValue, err := lastMsg.FindAVP(avp.FramedIPAddress, 0)
 	assert.NoError(t, err)
 	actualIPv4, err := datatype.DecodeIPv4(avpValue.Data.Serialize())

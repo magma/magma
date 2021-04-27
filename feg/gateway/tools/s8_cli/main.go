@@ -15,6 +15,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -89,7 +90,7 @@ func init() {
 		"PGW IP:port to send request with format ip:port")
 
 	csFlags.BoolVar(&withecho, "withecho", withecho,
-		fmt.Sprint("Starts s8 proxy checking PGW is alive"))
+		"Starts s8 proxy checking PGW is alive")
 
 	csFlags.BoolVar(&useMconfig, "use_mconfig", false,
 		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
@@ -138,7 +139,7 @@ func init() {
 		"PGW IP:port to send request with format ip:port")
 
 	eFlags.BoolVar(&withecho, "withecho", withecho,
-		fmt.Sprint("Starts s8 proxy checking PGW is alive"))
+		"Starts s8 proxy checking PGW is alive")
 
 	eFlags.BoolVar(&useMconfig, "use_mconfig", false,
 		"Use local gateway.mconfig configuration for local proxy (if set - starts local s8 proxy)")
@@ -250,7 +251,7 @@ func createSession(cmd *commands.Command, args []string) int {
 	}
 	printGRPCMessage("Received GRPC message: ", csRes)
 
-	// check if message was received but GTP message recived was in fact an error
+	// check if message was received but GTP message received was in fact an error
 	if csRes.GtpError != nil {
 		fmt.Printf("Received a GTP error (see the GRPC message before): %d\n", csRes.GtpError.Cause)
 		return 4
@@ -395,7 +396,7 @@ func validateImsi(imsi string) error {
 
 func startTestServer() (string, error) {
 	// Create and run PGW
-	mockPgw, err := mock_pgw.NewStarted(nil, testServerAddr)
+	mockPgw, err := mock_pgw.NewStarted(context.Background(), testServerAddr)
 	if err != nil {
 		return "", fmt.Errorf("Error creating test server mock PGW: +%s\n", err)
 	}

@@ -41,7 +41,7 @@ func GetPlmnVals(plmnids []string, plmnidModuleName ...string) PlmnIdVals {
 			plmnIds[plmnid] = PlmnIdVal{l5: true}
 		case 6:
 			plmnid5 := plmnid[:5]
-			val, _ := plmnIds[plmnid5]
+			val := plmnIds[plmnid5]
 			val.b6 = plmnid[5]
 			plmnIds[plmnid5] = val
 		default:

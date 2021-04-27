@@ -86,7 +86,7 @@ func (c *Client) ServiceContextId() string {
 }
 
 // NewClient creates a new client based on the config passed.
-// Input: clientCfg containing relavent diameter settings
+// Input: clientCfg containing relevant diameter settings
 func NewClient(clientCfg *DiameterClientConfig) *Client {
 	originStateID := uint32(time.Now().Unix())
 	mux := sm.New(&sm.Settings{
