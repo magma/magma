@@ -15,7 +15,6 @@ PROTO_LIST:=orc8r_protos lte_protos feg_protos
 # Add the s1aptester integration tests
 PRECOMMIT_TESTS = s1aptests/test_attach_detach.py \
 s1aptests/test_gateway_metrics_attach_detach.py \
-s1aptests/test_attach_detach_with_he_policy.py \
 s1aptests/test_attach_detach_looped.py  \
 s1aptests/test_attach_emergency.py \
 s1aptests/test_attach_combined_eps_imsi.py \
