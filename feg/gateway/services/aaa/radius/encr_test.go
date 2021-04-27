@@ -43,7 +43,7 @@ func encodeWithMessageAuthenticator(p *rad.Packet) []byte {
 		panic(err)
 	}
 	size := binary.BigEndian.Uint16(encoded[2:4]) + 18
-	binary.BigEndian.PutUint16(encoded[2:4], uint16(size))
+	binary.BigEndian.PutUint16(encoded[2:4], size)
 
 	// Add Message Authenticator Attribute, 0 padded, and flatten
 	zeroedOutMsgAuthenticator := [16]byte{}

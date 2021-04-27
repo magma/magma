@@ -151,13 +151,13 @@ func (s *AuthServer) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
 	eapPacket := eap.Packet(eapRes.Payload)
 	eapCode := eapPacket.Code()
 	resp := p.Response(ToRadiusCode(eapCode))
-	resp.Add(rfc2869.EAPMessage_Type, radius.Attribute(eapRes.Payload))
+	resp.Add(rfc2869.EAPMessage_Type, eapRes.Payload)
 
 	// Add key material for Access-Accept/EAP-Success message
 	if resp.Code == radius.CodeAccessAccept {
 		userNameAttr := p.Get(rfc2865.UserName_Type)
 		if userNameAttr == nil {
-			userNameAttr = radius.Attribute([]byte(postHandlerCtx.GetIdentity()))
+			userNameAttr = []byte(postHandlerCtx.GetIdentity())
 		}
 		resp.Add(rfc2865.UserName_Type, userNameAttr)
 		// Add optional Acct-Interim-Interval AVP to indicate that we want periodic Interim Updates from the client
@@ -183,9 +183,9 @@ func (s *AuthServer) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
 	}
 }
 
-// GenSessionID creates syntetic radius session ID if none is supplied by the client
+// GenSessionID creates synthetic radius session ID if none is supplied by the client
 func GenSessionID(calling string, called string) string {
-	return fmt.Sprintf("%s__%s", string(calling), string(called))
+	return fmt.Sprintf("%s__%s", calling, called)
 }
 
 // ToRadiusCode returs the RADIUS packet code which, as per RFCxxxx

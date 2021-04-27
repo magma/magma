@@ -37,10 +37,10 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 	bearerID := "bearer1"
 	var ratingGroup uint32 = 42
 	var totalOctets uint64 = 2048
-	var monitorSupport_0 gx.MonitoringSupport = gx.UsageMonitoringDisabled
-	var monitorReport_0 gx.MonitoringReport = gx.UsageMonitoringReport
+	var monitorSupport0 = gx.UsageMonitoringDisabled
+	var monitorReport0 = gx.UsageMonitoringReport
 	var qci uint32 = 1
-	var monitoringLevel gx.MonitoringLevel = gx.SessionLevel
+	var monitoringLevel = gx.SessionLevel
 	currentTime := time.Now()
 	protoTimestamp, err := ptypes.TimestampProto(currentTime)
 	assert.NoError(t, err)
@@ -59,7 +59,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				RuleBaseNames: nil,
 				RuleDefinitions: []*gx.RuleDefinition{
 					{RuleName: "dynamic1",
-						MonitoringKey: []byte(monitoringKey),
+						MonitoringKey: monitoringKey,
 						Precedence:    100,
 						RatingGroup:   &ratingGroup},
 				},
@@ -85,13 +85,13 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 					TotalOctets:  &totalOctets,
 				},
 				Level:   monitoringLevel,
-				Support: &monitorSupport_0,
+				Support: &monitorSupport0,
 			},
 			{
 				MonitoringKey:      monitoringKey3,
 				GrantedServiceUnit: nil,
 				Level:              monitoringLevel,
-				Report:             &monitorReport_0,
+				Report:             &monitorReport0,
 			},
 		},
 		Qos: &gx.QosInformation{
@@ -134,7 +134,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				PolicyRule: &protos.PolicyRule{
 					Id:            "dynamic1",
 					RatingGroup:   42,
-					MonitoringKey: []byte(monitoringKey),
+					MonitoringKey: monitoringKey,
 					Priority:      100,
 					TrackingType:  protos.PolicyRule_OCS_AND_PCRF,
 					Redirect:      &protos.RedirectInformation{},
@@ -149,7 +149,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 		UsageMonitoringCredits: []*protos.UsageMonitoringCredit{
 			{
 				Action:        protos.UsageMonitoringCredit_CONTINUE,
-				MonitoringKey: []byte(monitoringKey),
+				MonitoringKey: monitoringKey,
 				GrantedUnits: &protos.GrantedUnits{
 					Total: &protos.CreditUnit{IsValid: true, Volume: totalOctets},
 					Tx:    &protos.CreditUnit{IsValid: false},
@@ -159,7 +159,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 			},
 			{
 				Action:        protos.UsageMonitoringCredit_DISABLE,
-				MonitoringKey: []byte(monitoringKey2),
+				MonitoringKey: monitoringKey2,
 				GrantedUnits: &protos.GrantedUnits{
 					Total: &protos.CreditUnit{IsValid: true, Volume: totalOctets},
 					Tx:    &protos.CreditUnit{IsValid: true, Volume: totalOctets},
@@ -174,7 +174,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 					Tx:    &protos.CreditUnit{IsValid: false},
 					Rx:    &protos.CreditUnit{IsValid: false},
 				},
-				MonitoringKey: []byte(monitoringKey3),
+				MonitoringKey: monitoringKey3,
 				Level:         protos.MonitoringLevel(monitoringLevel),
 			},
 		},

@@ -54,7 +54,7 @@ func TestAkaChallengeResp(t *testing.T) {
 	if len(eapCtx.SessionId) == 0 {
 		t.Fatal("Empty Session ID")
 	}
-	if !reflect.DeepEqual([]byte(p), []byte(expectedTestEapChallengeResp)) {
+	if !reflect.DeepEqual([]byte(p), expectedTestEapChallengeResp) {
 		t.Fatalf("Unexpected identityResponse EAP\n\tReceived: %v\n\tExpected: %v", p, expectedTestEapChallengeResp)
 	}
 

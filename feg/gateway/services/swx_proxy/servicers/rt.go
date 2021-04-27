@@ -132,7 +132,7 @@ func handleRTR(s *swxProxy) diam.HandlerFunc {
 func (s *swxProxy) sendRTA(c diam.Conn, m *diam.Message, code protos.ErrorCode, rtr *RTR, retries uint) error {
 	ans := m.Answer(uint32(code))
 	// SessionID is required to be the AVP in position 1
-	ans.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(rtr.SessionID)))
+	ans.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, rtr.SessionID))
 	ans.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(rtr.AuthSessionState))
 	m.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Host))
 	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Realm))
