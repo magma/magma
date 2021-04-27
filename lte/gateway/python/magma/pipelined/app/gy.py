@@ -89,7 +89,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         self._datapath = datapath
         self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
 
-    def deactivate_rules(self, imsi, ip_addr, rule_ids):
+    def deactivate_rules(self, imsi, ip_addr, uplink_tunnel, rule_ids):
         """
         Deactivate flows for a subscriber. If only imsi is present, delete all
         rule flows for a subscriber (i.e. end its session). If rule_ids are
@@ -112,15 +112,17 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
             return
 
         if not rule_ids:
-            self._deactivate_flows_for_subscriber(imsi, ip_addr)
+            self._deactivate_flows_for_subscriber(imsi, ip_addr, uplink_tunnel)
         else:
             for rule_id in rule_ids:
-                self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)
+                self._deactivate_flow_for_rule(imsi, ip_addr, uplink_tunnel,
+                                               rule_id)
 
     def cleanup_state(self):
         pass
 
-    def _deactivate_flows_for_subscriber(self, imsi, ip_addr):
+    # pylint: disable=unused-argument
+    def _deactivate_flows_for_subscriber(self, imsi, ip_addr, uplink_tunnel):
         """
         Deactivate all rules for a subscriber, ending any enforcement
 
@@ -135,7 +137,9 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         self._qos_mgr.remove_subscriber_qos(imsi)
         self._remove_he_flows(ip_addr, None)
 
-    def _deactivate_flow_for_rule(self, imsi, ip_addr, rule_id):
+    # pylint: disable=unused-argument
+    def _deactivate_flow_for_rule(self, imsi, ip_addr, uplink_tunnel,
+                                  rule_id):
         """
         Deactivate a specific rule using the flow cookie for a subscriber
 
@@ -157,7 +161,8 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         self._qos_mgr.remove_subscriber_qos(imsi, num)
         self._remove_he_flows(ip_addr, rule_id)
 
-    def _install_flow_for_rule(self, imsi, msisdn:bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
+    def _install_flow_for_rule(self, imsi, msisdn:bytes, uplink_tunnel: int,
+                               ip_addr, apn_ambr, rule, version):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -261,7 +266,8 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
 
         return {self.tbl_num: [msg]}
 
-    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
+    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int,
+                                  ip_addr, apn_ambr, rule, version):
         """
         Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction

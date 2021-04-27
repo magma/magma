@@ -185,6 +185,7 @@ class RestartResilienceTest(unittest.TestCase):
 
         imsi = 'IMSI010000002388888'
         sub_ip = b'fe80:24c3:d0ff:fef3:9d21:4407:d337:1928'
+        uplink_tunnel = 0x1234
 
         flow_list = [FlowDescription(
             match=FlowMatch(
@@ -198,12 +199,13 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             ),
         ]
-        enf_stat_name = [imsi + '|ipv6_rule' + '|' + str(sub_ip)]
+        enf_stat_name = [imsi + '|ipv6_rule' + '|' + str(uplink_tunnel)]
         setup_flows_request = SetupFlowsRequest(
             requests=[ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(imsi),
                 ipv6_addr=sub_ip,
                 policies=policies,
+                uplink_tunnel=uplink_tunnel,
             )],
             epoch=global_epoch
         )
@@ -258,6 +260,8 @@ class RestartResilienceTest(unittest.TestCase):
 
         imsi1 = 'IMSI010000000088888'
         imsi2 = 'IMSI010000000012345'
+        uplink_tunnel1 = 0x1234
+        uplink_tunnel2 = 0x1234
         sub2_ip = '192.168.128.74'
         flow_list1 = [
             FlowDescription(
@@ -289,25 +293,26 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             )
         ]
-        enf_stat_name = [imsi1 + '|sub1_rule_temp' + '|' + sub2_ip,
-                         imsi2 + '|sub2_rule_keep' + '|' + sub2_ip]
+        enf_stat_name = [imsi1 + '|sub1_rule_temp' + '|' + str(uplink_tunnel1),
+                         imsi2 + '|sub2_rule_keep' + '|' + str(uplink_tunnel2)]
 
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi1, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub1_rule_temp', 1)
+            imsi1, uplink_tunnel1, 'sub1_rule_temp', 1)
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi2, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub2_rule_keep', 1)
-
+            imsi2, uplink_tunnel2, 'sub2_rule_keep', 1)
         setup_flows_request = SetupFlowsRequest(
             requests=[
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi1),
                     ip_addr=sub2_ip,
-                    policies=policies1
+                    policies=policies1,
+                    uplink_tunnel=uplink_tunnel1,
                 ),
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi2),
                     ip_addr=sub2_ip,
-                    policies=policies2
+                    policies=policies2,
+                    uplink_tunnel=uplink_tunnel2,
                 ),
             ],
             epoch=global_epoch
@@ -323,8 +328,8 @@ class RestartResilienceTest(unittest.TestCase):
             startup_flow_controller=self.startup_flows_contoller,
             setup_flows_request=setup_flows_request)
         sub_context = RyuDirectSubscriberContext(
-            imsi2, sub2_ip, self.enforcement_controller,
-            self._enforcement_tbl_num
+            imsi2, sub2_ip, uplink_tunnel2,
+            self.enforcement_controller, self._enforcement_tbl_num
         )
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
@@ -358,13 +363,17 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             ),
         ]
-        enf_stat_name = [imsi2 + '|sub2_new_rule' + '|' + sub2_ip,
-                         imsi2 + '|sub2_rule_keep' + '|' + sub2_ip]
+#
+#         self.service_manager.session_rule_version_mapper.save_version(
+#             imsi2, uplink_tunnel2, 'sub2_new_rule', 1)
+        enf_stat_name = [imsi2 + '|sub2_new_rule' + '|' + str(uplink_tunnel2),
+                         imsi2 + '|sub2_rule_keep' + '|' + str(uplink_tunnel2)]
         setup_flows_request = SetupFlowsRequest(
             requests=[ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(imsi2),
                 ip_addr=sub2_ip,
                 policies=policies,
+                uplink_tunnel=uplink_tunnel2,
             )],
             epoch=global_epoch
         )
@@ -404,6 +413,7 @@ class RestartResilienceTest(unittest.TestCase):
         The controller is then restarted with the same SetupFlowsRequest,
             - assert flows keep their packet counts
         """
+        uplink_tunnel = 0x1234
         self.enforcement_stats_controller._report_usage.reset_mock()
         fake_controller_setup(
             enf_controller=self.enforcement_controller,
@@ -443,16 +453,17 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             ),
         ]
-        enf_stat_name = [imsi + '|tx_match' + '|' + sub_ip,
-                         imsi + '|rx_match' + '|' + sub_ip]
+        enf_stat_name = [imsi + '|tx_match' + '|' + str(uplink_tunnel),
+                         imsi + '|rx_match' + '|' + str(uplink_tunnel)]
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'tx_match', 1)
+            imsi, uplink_tunnel, 'tx_match', 1)
         self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rx_match', 1)
+            imsi, uplink_tunnel, 'rx_match', 1)
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
+            imsi, sub_ip, uplink_tunnel,
+            self.enforcement_controller,
             self._enforcement_tbl_num, self.enforcement_stats_controller,
             nuke_flows_on_exit=False
         ).add_policy(policies[0]).add_policy(policies[1])
@@ -510,7 +521,8 @@ class RestartResilienceTest(unittest.TestCase):
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi),
                     ip_addr=sub_ip,
-                    policies=[policies[0], policies[1]]
+                    policies=[policies[0], policies[1]],
+                    uplink_tunnel=uplink_tunnel,
                 ),
             ],
             epoch=global_epoch
@@ -549,6 +561,7 @@ class RestartResilienceTest(unittest.TestCase):
         )
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
+        uplink_tunnel = 0x1234
         flow_list = [FlowDescription(match=FlowMatch())]
         policy = PolicyRule(
             id='redir_test', priority=3, flow_list=flow_list,
@@ -561,7 +574,8 @@ class RestartResilienceTest(unittest.TestCase):
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+            imsi, sub_ip, uplink_tunnel,
+            self.enforcement_controller, self._tbl_num
         )
 
         setup_flows_request = SetupFlowsRequest(
@@ -569,7 +583,8 @@ class RestartResilienceTest(unittest.TestCase):
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi),
                     ip_addr=sub_ip,
-                    policies=[VersionedPolicy(rule=policy, version=1)]
+                    policies=[VersionedPolicy(rule=policy, version=1)],
+                    uplink_tunnel=uplink_tunnel,
                 ),
             ],
             epoch=global_epoch

@@ -26,6 +26,7 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import (
     DIRECTION_REG,
     IMSI_REG,
+    INGRESS_TUN_ID_REG,
     Direction,
 )
 from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
@@ -150,6 +151,19 @@ class RyuForwardFlowArgsBuilder():
                               "value": Direction.IN}
         return self
 
+    def set_tunnel(self, uplink_tunnel):
+        """
+        Set Match IPs and set register values for ovs flows:
+            uplink_tunnel match for UPLINK
+        Args:
+            uplink_tunnel (int): outbound tunnel value
+        Returns:
+            Self
+        """
+        self._ul_tunnel_set = {"type": "SET_FIELD", "field": INGRESS_TUN_ID_REG,
+                                   "value": uplink_tunnel}
+        return self
+
     def set_eth_match(self, eth_src, eth_dst):
         self._match_kwargs['eth_src'] = eth_src
         self._match_kwargs['eth_dst'] = eth_dst
@@ -170,11 +184,11 @@ class RyuForwardFlowArgsBuilder():
 
         uplink["instructions"].append({
             "type": "APPLY_ACTIONS",
-            "actions": self._reg_sets + [self._ulink_action]
+            "actions": self._reg_sets + [self._ulink_action] + [self._ul_tunnel_set]
         })
         downlink["instructions"].append({
             "type": "APPLY_ACTIONS",
-            "actions": self._reg_sets + [self._dlink_action]
+            "actions": self._reg_sets + [self._dlink_action] + [self._ul_tunnel_set]
         })
 
         ip_addr = convert_ip_str_to_ip_proto(self._ip)
@@ -201,7 +215,8 @@ class RyuForwardFlowArgsBuilder():
         else:
             self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IP}
         return self.set_ip(sub_info.ip) \
-            .set_reg_value(IMSI_REG, encode_imsi(sub_info.imsi))
+            .set_reg_value(IMSI_REG, encode_imsi(sub_info.imsi))\
+            .set_tunnel(sub_info.uplink_tunnel)
 
     def build_requests(self):
         """

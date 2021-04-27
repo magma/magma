@@ -437,6 +437,12 @@ def fail(test_case: TestCase, err_msg: str, _bridge_name: str,
           'To fix the error, update "{}" to the current snapshot:\n' \
           '{}'.format(err_msg, snapshot_file,
                       '\n'.join(current_snapshot))
+
+    # For fixing test cases after major changes
+    #file = open(snapshot_file,'w+')
+    #file.write("\n".join(current_snapshot))
+    #file.close()
+
     return test_case.fail(msg)
 
 

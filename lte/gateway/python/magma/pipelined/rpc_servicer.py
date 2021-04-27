@@ -200,28 +200,30 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._service_manager.tunnel_id_mapper.save_tunnels(uplink_tunnel,
                                                             downlink_tunnel)
 
-    def _update_version(self, request: ActivateFlowsRequest, ipv4: IPAddress):
+    def _update_version(self, request: ActivateFlowsRequest):
         """
         Update version for a given subscriber and rule.
         """
         for policy in request.policies:
             self._service_manager.session_rule_version_mapper.save_version(
-                request.sid.id, ipv4, policy.rule.id, policy.version)
+                request.sid.id, request.uplink_tunnel, policy.rule.id,
+                policy.version)
 
-    def _remove_version(self, request: DeactivateFlowsRequest, ip_address: str):
-        def cleanup_dict(imsi, ip_address, rule_id, version):
+    def _remove_version(self, request: DeactivateFlowsRequest):
+        def cleanup_dict(imsi, teid, rule_id, version):
             self._service_manager.session_rule_version_mapper \
-                .remove(imsi, ip_address, rule_id, version)
+                .remove(imsi, teid, rule_id, version)
+
         if not request.policies:
             self._service_manager.session_rule_version_mapper\
-                .update_all_ue_versions(request.sid.id, ip_address)
+                .update_all_ue_versions(request.sid.id, request.uplink_tunnel)
             return
 
         for policy in request.policies:
             self._service_manager.session_rule_version_mapper \
-                .save_version(request.sid.id, ip_address,
+                .save_version(request.sid.id, request.uplink_tunnel,
                               policy.rule_id, policy.version)
-            cleanup_dict(request.sid.id, ip_address, policy.rule_id,
+            cleanup_dict(request.sid.id, request.uplink_tunnel, policy.rule_id,
                          policy.version)
 
     def _activate_flows(self, request: ActivateFlowsRequest,
@@ -265,11 +267,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_stats flows.
         """
         logging.debug('Activating GX flows for %s', request.sid.id)
-        self._update_version(request, ip_address)
+        self._update_version(request)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.policies)
+            request.sid.id, request.msisdn, request.uplink_tunnel,
+            ip_address, request.apn_ambr, request.policies)
 
         failed_policies_results = \
             _retrieve_failed_results(enforcement_stats_res)
@@ -278,8 +280,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             _filter_failed_policies(request, failed_policies_results)
 
         enforcement_res = self._activate_rules_in_enforcement(
-            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            policies)
+            request.sid.id, request.msisdn, request.uplink_tunnel,
+            ip_address, request.apn_ambr, policies)
 
         # Include the failed rules from enforcement_stats in the response.
         enforcement_res.policy_results.extend(
@@ -297,11 +299,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_stats flows.
         """
         logging.debug('Activating GY flows for %s', request.sid.id)
-        self._update_version(request, ip_address)
+        self._update_version(request)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
-            request.policies)
+            request.sid.id, request.msisdn, request.uplink_tunnel,
+            ip_address, request.apn_ambr, request.policies)
 
         failed_policies_results = \
             _retrieve_failed_results(enforcement_stats_res)
@@ -354,8 +356,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                               policies: List[VersionedPolicy]
                               ) -> ActivateFlowsResult:
         gy_res = self._gy_app.activate_rules(imsi, msisdn, uplink_tunnel,
-                                             ip_addr, apn_ambr,
-                                             policies)
+                                             ip_addr, apn_ambr, policies)
         # TODO: add metrics
         return gy_res
 
@@ -412,22 +413,22 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _deactivate_flows_gx(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GX flows for %s', request.sid.id)
-
-        self._remove_version(request, ip_address)
+        self._remove_version(request)
         if request.remove_default_drop_flows:
             self._enforcement_stats.deactivate_default_flow(request.sid.id,
-                                                            ip_address)
+                                                            ip_address,
+                                                            request.uplink_tunnel)
         rule_ids = [policy.rule_id for policy in request.policies]
         self._enforcer_app.deactivate_rules(request.sid.id, ip_address,
-                                            rule_ids)
+                                            request.uplink_tunnel, rule_ids)
 
     def _deactivate_flows_gy(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GY flows for %s', request.sid.id)
         # Only deactivate requested rules here to not affect GX
-        self._remove_version(request, ip_address)
+        self._remove_version(request)
         rule_ids = [policy.rule_id for policy in request.policies]
         self._gy_app.deactivate_rules(request.sid.id, ip_address,
-                                      rule_ids)
+                                      request.uplink_tunnel, rule_ids)
 
     def GetPolicyUsage(self, request, context):
         """

@@ -490,6 +490,7 @@ class EnforcementTableHeTest(unittest.TestCase):
 
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
+        uplink_tunnel = 0x1234
         flow_list1 = [FlowDescription(
             match=FlowMatch(
                 ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
@@ -506,7 +507,8 @@ class EnforcementTableHeTest(unittest.TestCase):
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+            imsi, sub_ip, uplink_tunnel, self.enforcement_controller,
+            self._tbl_num
         ).add_policy(policies[0])
 
         isolator = RyuDirectTableIsolator(

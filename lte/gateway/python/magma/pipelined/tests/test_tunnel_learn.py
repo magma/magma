@@ -120,7 +120,7 @@ class TunnelLearnTest(unittest.TestCase):
         in the scratch table(snapshot is checked)
         """
         # Set up subscribers
-        sub = SubContextConfig('IMSI001010000000013', '192.168.128.74',
+        sub = SubContextConfig('IMSI001010000000013', '192.168.128.74', 0x1234,
                                default_ambr_config, self._tbl_num)
 
         isolator = RyuDirectTableIsolator(

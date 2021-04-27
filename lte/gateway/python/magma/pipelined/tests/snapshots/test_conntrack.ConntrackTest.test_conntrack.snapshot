@@ -1,5 +1,5 @@
- priority=65535,ip,nw_src=145.254.160.237 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x1->NXM_NX_REG1[],resubmit(,conntrack(main_table))
- priority=65535,ip,nw_dst=145.254.160.237 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],resubmit(,conntrack(main_table))
+ priority=65535,ip,nw_src=145.254.160.237 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x1->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,conntrack(main_table))
+ priority=65535,ip,nw_dst=145.254.160.237 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,conntrack(main_table))
  table=conntrack(main_table), priority=10,ct_state=-trk,ip actions=ct(table=conntrack(scratch_table_0),zone=897),resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
  table=conntrack(main_table), priority=0,ip actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
  table=conntrack(scratch_table_0), priority=10,ct_state=+new+trk,ip actions=ct(commit,table=203,zone=897)
