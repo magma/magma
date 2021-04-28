@@ -32,5 +32,5 @@ apt-key add /tmp/public
 
 echo "deb https://artifactory.magmacore.org/artifactory/debian $OS_VERSION-$MAGMA_VERSION main" >> /etc/apt/sources.list.d/magma.list
 
-apt udpate
+apt update
 apt install -y magma
