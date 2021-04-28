@@ -44,7 +44,7 @@ class MagmaPyLintTest(unittest.TestCase):
         # TODO look up directories in magma/lte/gateway/python/magma
         directories = [
             'enodebd',
-            # 'health',
+            'health',
             # 'mobilityd',
             'monitord',
             'pipelined',
