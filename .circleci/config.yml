@@ -714,9 +714,27 @@ jobs:
       - build/determinator:
           <<: *federated_build_verify
       - run:
+          name: generate test certs and snowflake
+          command: |
+            # TODO add rootCA.pem and snowflake files in the ubuntu-1604:201903-01 image
+            # create directories
+            cd ${MAGMA_ROOT} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
+            # create test certs
+            cd ${MAGMA_ROOT}/.cache/test_certs/
+            openssl genrsa -out rootCA.key 2048
+            openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 365000 -out rootCA.pem -subj "/C=US/CN=rootca.magma.test"
+            # create snowflake
+            cd ${MAGMA_ROOT}/.cache/feg/ && touch snowflake
+      - run:
+          name: build docker
           command: |
             cd ${MAGMA_ROOT}/feg/gateway/docker
             DOCKER_REGISTRY=feg_ docker-compose build --parallel
+      - run:
+          name: run docker containers and check health
+          command: |
+            cd ${MAGMA_ROOT}/feg/gateway
+            DOCKER_REGISTRY=feg_ make -C ${MAGMA_ROOT}/feg/gateway docker_healthcheck
       - tag-push-docker:
           project: feg
           images: "gateway_go|gateway_python"

@@ -6,11 +6,11 @@ endif
 export MAGMA_ROOT
 
 COVER_DIR:=$(MAGMA_ROOT)/feg/gateway/coverage
-COVER_FILE:=$(COVER_DIR)/feg.gocov
 export COVER_DIR
+COVER_FILE:=$(COVER_DIR)/feg.gocov
+DOCKER_DIR := ${MAGMA_ROOT}/feg/gateway/docker
 
-
-all: fmt test vet install
+all: fmt lint test vet install
 
 build: install
 
@@ -47,7 +47,7 @@ clean:
 	go clean ./...
 
 fmt:
-	gofmt -l -s -w . 
+	gofmt -l -s -w .
 
 gen:
 	go generate ./...
@@ -59,8 +59,11 @@ lint: lint_tools
 	golangci-lint run
 
 lint_tools:
-	if which golangci-lint 2>/dev/null; then echo "-> golangci-lint already installed"; \
-	else curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+	@if which golangci-lint 2>/dev/null; then \
+		echo "-> golangci-lint already installed"; \
+	else \
+		echo "-> installing golangci " && \
+			curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
 			| sudo sh -s -- -b /usr/sbin/ v1.35.2; \
 	fi
 
@@ -70,7 +73,7 @@ build_only:
 run_local_hss:
 	sudo service magma@hss start
 
-precommit: tools fmt test vet
+precommit: tools fmt lint test vet
 
 cover: tools
 	mkdir -p $(COVER_DIR)
@@ -79,11 +82,24 @@ cover: tools
 	awk '!/\.pb\.go|_swaggergen\.go|\/mocks\/|\/tools\/|\/blobstore\/ent\//' $(COVER_FILE) > $(COVER_FILE).tmp && \
 		mv $(COVER_FILE).tmp $(COVER_FILE)
 
+docker_build:
+	cd ${DOCKER_DIR}; docker-compose build --parallel
+
+docker_start:
+	cd ${DOCKER_DIR}; docker-compose up -d
+
+docker_stop:
+	cd  ${DOCKER_DIR}; docker-compose down
+
+docker_healthcheck: docker_start
+	cd ${DOCKER_DIR}/tools/; ./docker_ps_healthcheck.sh ${DOCKER_DIR}
+
 # Tool dependencies
 TOOL_DEPS:= \
 	github.com/ory/go-acc \
 	github.com/wadey/gocovmerge \
 	gotest.tools/gotestsum
+
 tools:: $(TOOL_DEPS)
 $(TOOL_DEPS): %:
 	go install $*
