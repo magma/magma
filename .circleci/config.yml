@@ -964,7 +964,6 @@ jobs:
       - python/set_version
       #- aws-cli/setup
       - run:
-         name: Setup anisble
           command: |
             pip install wheel
             pip install ansible 
@@ -982,10 +981,6 @@ jobs:
             cp ~/magma-experimental/roles/vars/secrets.yaml ~/magma-experimental/files
             sed -i -e "s/AWS_ACCESS_KEY_ID/${AWS_FB_CRED}/g" ~/magma-experimental/files/secrets.yaml
             sed -i -e "s@AWS_SECRET_ACCESS_KEY@${AWS_FB_SECRET}@g" ~/magma-experimental/files/secrets.yaml
- 
-      - run:
-         name: run playbooks
-          command: |
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files" --tags keyCreate -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
             #ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
             #ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm
