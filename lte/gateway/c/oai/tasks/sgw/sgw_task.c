@@ -59,8 +59,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   imsi64_t imsi64          = itti_get_associated_imsi(received_message_p);
   spgw_state_t* spgw_state = get_spgw_state(false);
 
+  bool is_state_same = false;
+
   switch (ITTI_MSG_ID(received_message_p)) {
     case MESSAGE_TEST:
+      is_state_same = true;  // task state is not changed
       OAILOG_DEBUG(LOG_SPGW_APP, "Received MESSAGE_TEST\n");
       break;
 
@@ -79,24 +82,27 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S11_DELETE_SESSION_REQUEST: {
       sgw_handle_delete_session_request(
-          spgw_state, &received_message_p->ittiMsg.s11_delete_session_request,
-          imsi64);
+          &received_message_p->ittiMsg.s11_delete_session_request, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case S11_MODIFY_BEARER_REQUEST: {
       sgw_handle_modify_bearer_request(
           &received_message_p->ittiMsg.s11_modify_bearer_request, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
       sgw_handle_release_access_bearers_request(
           &received_message_p->ittiMsg.s11_release_access_bearers_request,
           imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case S11_SUSPEND_NOTIFICATION: {
       sgw_handle_suspend_notification(
           &received_message_p->ittiMsg.s11_suspend_notification, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case SGI_CREATE_ENDPOINT_RESPONSE: {
@@ -108,12 +114,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case SGI_UPDATE_ENDPOINT_RESPONSE: {
       sgw_handle_sgi_endpoint_updated(
           &received_message_p->ittiMsg.sgi_update_end_point_response, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
       // Handle Dedicated bearer Activation Rsp from MME
       sgw_handle_nw_initiated_actv_bearer_rsp(
           &received_message_p->ittiMsg.s11_nw_init_actv_bearer_rsp, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
@@ -121,6 +129,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       sgw_handle_nw_initiated_deactv_bearer_rsp(
           spgw_state,
           &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case PCEF_CREATE_SESSION_RESPONSE: {
@@ -156,6 +165,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       int32_t rc = spgw_handle_nw_initiated_bearer_deactv_req(
           &received_message_p->ittiMsg.gx_nw_init_deactv_bearer_request,
           imsi64);
+      is_state_same = true;  // task state is not changed
       if (rc != RETURNok) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64,
@@ -192,7 +202,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  put_spgw_state();
+  if (!is_state_same) {
+    put_spgw_state();
+  }
   put_spgw_ue_state(imsi64);
 
   itti_free_msg_content(received_message_p);

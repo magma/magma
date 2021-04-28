@@ -46,7 +46,6 @@ int sgw_handle_modify_bearer_request(
     const itti_s11_modify_bearer_request_t* const modify_bearer_p,
     imsi64_t imsi64);
 int sgw_handle_delete_session_request(
-    spgw_state_t* spgw_state,
     const itti_s11_delete_session_request_t* const delete_session_p,
     imsi64_t imsi64);
 void sgw_handle_release_access_bearers_request(

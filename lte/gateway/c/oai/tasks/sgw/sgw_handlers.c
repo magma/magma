@@ -1034,7 +1034,6 @@ int sgw_handle_modify_bearer_request(
 
 //------------------------------------------------------------------------------
 int sgw_handle_delete_session_request(
-    spgw_state_t* spgw_state,
     const itti_s11_delete_session_request_t* const delete_session_req_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
