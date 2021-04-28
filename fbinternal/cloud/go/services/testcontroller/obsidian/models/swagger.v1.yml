@@ -446,7 +446,7 @@ definitions:
         description: URL of debian package repo
         type: string
         minLength: 1
-        example: "http://packages.magma.etagecom.io"
+        example: "https://artifactory.magmacore.org/artifactory/debian/"
       release_channel:
         description: Release channel for package repo (stretch-beta, stretch-dev, etc)
         type: string
