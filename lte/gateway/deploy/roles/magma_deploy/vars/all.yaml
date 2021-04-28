@@ -11,13 +11,13 @@
 # limitations under the License.
 ################################################################################
 
-magma_pkgrepo_proto: http
-magma_pkgrepo_host: facebookconnectivity.jfrog.io
-magma_pkgrepo_path: "/artifactory/list/dev-focal/"
-magma_pkgrepo_dist: focal
+magma_pkgrepo_proto: https
+magma_pkgrepo_host: artifactory.magmacore.org/artifactory/debian
+magma_pkgrepo_path: ""
+magma_pkgrepo_dist: focal-1.5.0
 magma_pkgrepo_component: main
-magma_pkgrepo_name: "magma_package_repo"
+magma_pkgrepo_name: "magma"
 
-magma_pkgrepo_key: "https://facebookconnectivity.jfrog.io/artifactory/api/gpg/key/public"
+magma_pkgrepo_key: "https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public"
 magma_pkgrepo_key_fingerprint: ""
 magma_use_pkgrepo: yes
