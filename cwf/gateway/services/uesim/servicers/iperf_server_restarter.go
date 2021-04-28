@@ -3,9 +3,10 @@ package servicers
 import (
 	"bytes"
 	"fmt"
+	"time"
+
 	"github.com/golang/glog"
 	"golang.org/x/crypto/ssh"
-	"time"
 )
 
 // restartIperfServer is a best efort function to restart iperf server, Will try to

@@ -298,7 +298,7 @@ func ConvertStorageErrorToGrpcStatus(err error) error {
 // executeIperfWithOptions runs iperf with the timeout and server reachability options per req
 func executeIperfWithOptions(argList []string, req *cwfprotos.GenTrafficRequest) (*IperfResponse, error) {
 	// server reach-ability option (Enabled by default)
-	if req.DisableServerReachabilityCheck == false {
+	if !req.DisableServerReachabilityCheck {
 		// Check if server is reachable by requesting the server to send UE 10b of data
 		reachable, err := checkIperfServerReachabilityWithRetries()
 		if !reachable {
@@ -322,7 +322,7 @@ func checkIperfServerReachabilityWithRetries() (bool, error) {
 
 	for i := 0; i < numRetries; i++ {
 		res, err = checkIperfServerReachability()
-		if res == true {
+		if res {
 			break
 		}
 		glog.V(2).Infof("Iperf server was not reachable, trying one more time (%d out of %d)", i+1, numRetries)

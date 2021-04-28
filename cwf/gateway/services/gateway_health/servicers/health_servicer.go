@@ -154,7 +154,7 @@ func (s *GatewayHealthServicer) getSystemHealth() *protos.HealthStatus {
 	if err != nil {
 		return &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: fmt.Sprintf("could not fetch system metrics"),
+			HealthMessage: "could not fetch system metrics",
 		}
 	}
 	glog.V(1).Infof("system stats: cpuUtilPct: %f, memUtilPct: %f", stats.CpuUtilPct, stats.MemUtilPct)
@@ -194,7 +194,7 @@ func (s *GatewayHealthServicer) getServiceHealth() *protos.HealthStatus {
 	}
 	return &protos.HealthStatus{
 		Health:        protos.HealthStatus_HEALTHY,
-		HealthMessage: fmt.Sprintf("All services appear healthy"),
+		HealthMessage: "All services appear healthy",
 	}
 }
 

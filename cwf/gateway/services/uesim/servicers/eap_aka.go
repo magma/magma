@@ -122,7 +122,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 	expectedMac := attrs.mac.Marshaled()[aka.ATT_HDR_LEN:]
 
 	id := []byte("\x30" + ue.GetImsi() + IdentityPostfix)
-	key := []byte(ue.AuthKey)
+	key := ue.AuthKey
 
 	// Calculate SQN using SEQ and arbitrary IND
 	sqn := servicers.SeqToSqn(ue.Seq, defaultInd)
@@ -200,7 +200,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 			aka.AT_RES,
 			append(
 				[]byte{uint8(len(resultVec.Xres[:]) * 8 >> 8), uint8(len(resultVec.Xres[:]) * 8)},
-				[]byte(resultVec.Xres[:])...,
+				resultVec.Xres[:]...,
 			),
 		),
 	)
@@ -209,7 +209,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 	}
 
 	// Add the CHECKCODE attribute.
-	p, err = p.Append(
+	p, _ = p.Append(
 		eap.NewAttribute(
 			aka.AT_CHECKCODE,
 			[]byte(CheckcodeValue),
@@ -222,7 +222,7 @@ func (srv *UESimServer) eapAkaChallengeRequest(ue *protos.UEConfig, req eap.Pack
 	p, err = p.Append(
 		eap.NewAttribute(
 			aka.AT_MAC,
-			append(make([]byte, 2+16)),
+			[]byte{2 + 16},
 		),
 	)
 	if err != nil {

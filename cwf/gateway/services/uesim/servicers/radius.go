@@ -132,7 +132,7 @@ func (srv *UESimServer) MakeAccountingStopRequest(calledStationID string) (*radi
 func (srv *UESimServer) addMessageAuthenticator(encoded []byte) []byte {
 	// Calculate new size
 	size := uint16(len(encoded)) + radius.MessageAuthenticatorAttrLength
-	binary.BigEndian.PutUint16(encoded[2:4], uint16(size))
+	binary.BigEndian.PutUint16(encoded[2:4], size)
 
 	// Append the empty Message-Authenticator Attribute to the packet
 	encoded = append(

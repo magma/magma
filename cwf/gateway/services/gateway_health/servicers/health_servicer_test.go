@@ -34,7 +34,7 @@ func TestGetHealthStatus(t *testing.T) {
 	req := &orc8rprotos.Void{}
 	hc := &mconfig.CwfGatewayHealthConfig{
 		GrePeers: []*mconfig.CwfGatewayHealthConfigGrePeer{
-			&mconfig.CwfGatewayHealthConfigGrePeer{Ip: "127.0.0.1"},
+			{Ip: "127.0.0.1"},
 		},
 		CpuUtilThresholdPct: 0.75,
 		MemUtilThresholdPct: 0.75,

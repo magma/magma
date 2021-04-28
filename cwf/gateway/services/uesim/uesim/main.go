@@ -37,7 +37,7 @@ func createUeSimServer(store blobstore.BlobStorageFactory) (protos.UESimServer, 
 		glog.Fatalf("Error getting UESim Config : %s ", err)
 		return nil, err
 	}
-	if servicers.GetBypassHssFlag(config) == true {
+	if servicers.GetBypassHssFlag(config) {
 		return servicers.NewUESimServerHssLess(store)
 	} else {
 		return servicers.NewUESimServer(store)

@@ -83,7 +83,7 @@ func init() {
 		authFlags.PrintDefaults()
 	}
 
-	trafficGenCmd := cmdRegistry.Add("gen_traffic", "Generate control load by continously triggering authentication", handleTrafficGenCmd)
+	trafficGenCmd := cmdRegistry.Add("gen_traffic", "Generate control load by continuously triggering authentication", handleTrafficGenCmd)
 	trafficGenFlags := trafficGenCmd.Flags()
 	trafficGenFlags.Uint64Var(&trafficLength, "length", DefaultTrafficGenLengthSecs, "Amount of time (in seconds) to run traffic generation")
 	trafficGenFlags.Uint64Var(&maxBreak, "max_break", DefaultMaxBreakSecs, "Max amount of time between auth requests for each subscriber")
