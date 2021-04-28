@@ -1,9 +1,4 @@
 ---
-- name: check if gateway name is defined
-  assert:
-    that:
-      - idGw is defined
-
 - name: identify sgi subnet id using tag
   ec2_vpc_subnet_info:
     filters:
@@ -35,11 +30,11 @@
     factSecGroup: "{{ valSecGroup.security_groups[0].group_id }}"
 
 
-- name: provision agw base with dual nics for deploy
+- name: provision agw base with dual private nics
   cloudformation:
-    stack_name: "stack{{ siteName }}{{ idGw }}"
+    stack_name: "stack{{ siteName }}{{ item }}"
     state: present
-    template: "roles/cfn/cfnMagmaAgwPublicDual.json"
+    template: "roles/cfn/cfnMagmaAgwPrivateDual.json"
     template_parameters:
       paramImageBase: "{{ awsAgwAmi }}"
       paramSubnetSgi: "{{ factSgiSubnetId }}"
@@ -47,24 +42,9 @@
       paramAzHome: "{{ awsAgwAz }}"
       paramSecGroup: "{{ factSecGroup }}"
       paramSshKey: "{{ awsHostKey }}"
-      paramAgwTagName: "{{ idGw }}"
+      paramAgwTagName: "{{ item }}"
       paramAgwTagSite: "{{ siteName }}"
+      paramAgwTagUuid: "{{ clusterUuid }}"
       paramAgwInstanceType: "t2.medium"
-  when: agwDevops is undefined
-
-- name: provision agw base with dual nics for devops
-  cloudformation:
-    stack_name: "stack{{ siteName }}{{ idGw }}"
-    state: present
-    template: "roles/cfn/cfnMagmaAgwPublicDual.json"
-    template_parameters:
-      paramImageBase: "{{ buildUbuntuAmi }}"
-      paramSubnetSgi: "{{ factSgiSubnetId }}"
-      paramSubnetEnodeb: "{{ factEnodebSubnetId }}"
-      paramAzHome: "{{ awsAgwAz }}"
-      paramSecGroup: "{{ factSecGroup }}"
-      paramSshKey: "{{ awsHostKey }}"
-      paramAgwTagName: "{{ idGw }}"
-      paramAgwTagSite: "{{ siteName }}"
-      paramAgwInstanceType: "t2.medium"
-  when: agwDevops is defined
+  with_items:
+    - "{{ testClusterStacks }}"
