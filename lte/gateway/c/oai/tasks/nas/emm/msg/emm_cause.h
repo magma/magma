@@ -44,6 +44,6 @@ Description Defines error cause code returned upon receiving unknown,
  * Cause code used to notify that the EPS mobility management procedure
  * has been successfully processed
  */
-#define EMM_CAUSE_SUCCESS (-1)
+#define EMM_CAUSE_SUCCESS (255)
 
 #endif /* FILE_EMM_CAUSE_H_SEEN*/
