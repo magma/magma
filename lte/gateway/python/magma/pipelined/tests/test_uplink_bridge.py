@@ -505,7 +505,7 @@ class UplinkBridgeWithNonNATTest_IP_VLAN_GW(unittest.TestCase):
         self.assertIn(cls.SGi_GW, get_iface_gw_ipv4(cls.UPLINK_BRIDGE),
                       "gw not found")
 
-
+@unittest.skip
 class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
@@ -555,6 +555,8 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
 
         check_connectivity(cls.ROUTER_IP, cls.UPLINK_ETH_PORT)
 
+        BridgeTools.add_ovs_port(cls.UPLINK_BRIDGE, cls.UPLINK_ETH_PORT, "200")
+
         # this is setup after AGW boot up in NATed mode.
         uplink_bridge_controller_reference = Future()
         testing_controller_reference = Future()
@@ -599,6 +601,7 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
 
         cls.testing_controller = testing_controller_reference.result()
 
+
     @classmethod
     def tearDownClass(cls):
         stop_ryu_app_thread(cls.thread)
@@ -606,8 +609,6 @@ class UplinkBridgeWithNonNatUplinkConnect_Test(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.UPLINK_BRIDGE)
         BridgeTools.destroy_bridge(cls.NET_SW_BR)
 
-    # TODO this test updates resolve.conf, once that is fixed turn-on the test
-    @unittest.skip
     def testFlowSnapshotMatch(self):
         cls = self.__class__
         assert_bridge_snapshot_match(self, self.UPLINK_BRIDGE, self.service_manager,
@@ -726,6 +727,9 @@ def validate_routing_table(dst: str, dev_name: str) -> str:
         except ValueError:
             pass
     logging.error("could not find route to %s via %s", dst, dev_name)
-    logging.error("dump1: %s", str(dump1))
+    dump1 = subprocess.Popen(["ovs-ofctl", "dump-flows", cls.UPLINK_BRIDGE],
+                             stdout=subprocess.PIPE)
+    for line in dump1.stdout.readlines():
+        print("pbs: %s", line)
     assert 0
 
