@@ -70,6 +70,7 @@ int ngap_amf_encode_pdu(
           (int) pdu->present);
       break;
   }
+
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, pdu);
   return ret;
 }
@@ -99,7 +100,7 @@ static inline int ngap_amf_encode_initiating(
   memset(&res, 0, sizeof(res));
   res = asn_encode_to_new_buffer(
       NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_Ngap_NGAP_PDU, pdu);
-  *buffer = res.buffer;
+  *buffer = (uint8_t*) res.buffer;
   *length = res.result.encoded;
   return 0;
 }
@@ -156,6 +157,7 @@ static inline int ngap_amf_encode_unsuccessfull_outcome(
   memset(&res, 0, sizeof(res));
   res = asn_encode_to_new_buffer(
       NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_Ngap_NGAP_PDU, pdu);
+
   *buffer = res.buffer;
   *length = res.result.encoded;
   return 0;

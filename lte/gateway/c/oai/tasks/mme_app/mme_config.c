@@ -281,7 +281,7 @@ void mme_config_exit(void) {
 }
 
 //------------------------------------------------------------------------------
-int mme_config_parse_file(mme_config_t* config_pP, amf_config_t* config_aA) {
+int mme_config_parse_file(mme_config_t* config_pP) {
   config_t cfg                  = {0};
   config_setting_t* setting_mme = NULL;
   config_setting_t* setting     = NULL;
@@ -312,6 +312,8 @@ int mme_config_parse_file(mme_config_t* config_pP, amf_config_t* config_aA) {
   const char* csfb_mcc       = NULL;
   const char* csfb_mnc       = NULL;
   const char* lac            = NULL;
+  const char* tac_str        = NULL;
+  const char* snr_str        = NULL;
 
   config_init(&cfg);
 
@@ -785,237 +787,6 @@ int mme_config_parse_file(mme_config_t* config_pP, amf_config_t* config_aA) {
             (config_pP->served_tai.tac[i - 1] + 1)) {
           config_pP->served_tai.list_type =
               TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS;
-        }
-      }
-    }
-
-    // TAC_LIST
-
-    setting =
-        config_setting_get_member(setting_mme, MME_CONFIG_STRING_TAC_LIST);
-    if (setting != NULL) {
-      num = config_setting_length(setting);
-      OAILOG_INFO(LOG_MME_APP, "Number of TAIs configured: %d\n", num);
-      AssertFatal(
-          num >= MIN_TAI_SUPPORTED,
-          "Not even one TAI is configured, configure minimum one TAI\n");
-      AssertFatal(
-          num <= MAX_TAI_SUPPORTED,
-          "Too many TAIs configured: %d (Maximum supported: %d)", num,
-          MAX_TAI_SUPPORTED);
-
-      if (config_aA->served_tai.nb_tai != num) {
-        if (config_aA->served_tai.plmn_mcc != NULL)
-          free_wrapper((void**) &config_aA->served_tai.plmn_mcc);
-
-        if (config_aA->served_tai.plmn_mnc != NULL)
-          free_wrapper((void**) &config_aA->served_tai.plmn_mnc);
-
-        if (config_aA->served_tai.plmn_mnc_len != NULL)
-          free_wrapper((void**) &config_aA->served_tai.plmn_mnc_len);
-
-        if (config_aA->served_tai.tac != NULL)
-          free_wrapper((void**) &config_aA->served_tai.tac);
-
-        config_aA->served_tai.plmn_mcc =
-            calloc(num, sizeof(*config_aA->served_tai.plmn_mcc));
-        config_aA->served_tai.plmn_mnc =
-            calloc(num, sizeof(*config_aA->served_tai.plmn_mnc));
-        config_aA->served_tai.plmn_mnc_len =
-            calloc(num, sizeof(*config_aA->served_tai.plmn_mnc_len));
-        config_aA->served_tai.tac =
-            calloc(num, sizeof(*config_aA->served_tai.tac));
-      }
-
-      config_aA->served_tai.nb_tai = num;
-
-      for (i = 0; i < num; i++) {
-        sub2setting = config_setting_get_elem(setting, i);
-
-        if (sub2setting != NULL) {
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
-            config_aA->served_tai.plmn_mcc[i] = (uint16_t) atoi(mcc);
-          }
-
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
-            config_aA->served_tai.plmn_mnc[i]     = (uint16_t) atoi(mnc);
-            config_aA->served_tai.plmn_mnc_len[i] = strlen(mnc);
-
-            AssertFatal(
-                (config_aA->served_tai.plmn_mnc_len[i] == MIN_MNC_LENGTH) ||
-                    (config_aA->served_tai.plmn_mnc_len[i] == MAX_MNC_LENGTH),
-                "Bad MNC length %u, must be %d or %d",
-                config_aA->served_tai.plmn_mnc_len[i], MIN_MNC_LENGTH,
-                MAX_MNC_LENGTH);
-          }
-
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_TAC, &tac))) {
-            config_aA->served_tai.tac[i] = (uint16_t) atoi(tac);
-
-            AssertFatal(
-                TAC_IS_VALID(config_pP->served_tai.tac[i]),
-                "Invalid TAC value " TAC_FMT, config_pP->served_tai.tac[i]);
-          }
-        }
-      }
-      // sort TAI list
-      n = config_aA->served_tai.nb_tai;
-      do {
-        stop_index = 0;
-        for (i = 1; i < n; i++) {
-          swap = false;
-          if (config_aA->served_tai.plmn_mcc[i - 1] >
-              config_aA->served_tai.plmn_mcc[i]) {
-            swap = true;
-          } else if (
-              config_aA->served_tai.plmn_mcc[i - 1] ==
-              config_aA->served_tai.plmn_mcc[i]) {
-            if (config_aA->served_tai.plmn_mnc[i - 1] >
-                config_aA->served_tai.plmn_mnc[i]) {
-              swap = true;
-            } else if (
-                config_aA->served_tai.plmn_mnc[i - 1] ==
-                config_aA->served_tai.plmn_mnc[i]) {
-              if (config_aA->served_tai.tac[i - 1] >
-                  config_aA->served_tai.tac[i]) {
-                swap = true;
-              }
-            }
-          }
-          if (true == swap) {
-            uint16_t swap16;
-            swap16 = config_aA->served_tai.plmn_mcc[i - 1];
-            config_aA->served_tai.plmn_mcc[i - 1] =
-                config_aA->served_tai.plmn_mcc[i];
-            config_aA->served_tai.plmn_mcc[i] = swap16;
-
-            swap16 = config_aA->served_tai.plmn_mnc[i - 1];
-            config_aA->served_tai.plmn_mnc[i - 1] =
-                config_aA->served_tai.plmn_mnc[i];
-            config_aA->served_tai.plmn_mnc[i] = swap16;
-
-            swap16                           = config_aA->served_tai.tac[i - 1];
-            config_aA->served_tai.tac[i - 1] = config_aA->served_tai.tac[i];
-            config_aA->served_tai.tac[i]     = swap16;
-
-            stop_index = i;
-          }
-        }
-        n = stop_index;
-      } while (0 != n);
-
-      config_aA->served_tai.list_type =
-          TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS;
-      for (i = 1; i < config_aA->served_tai.nb_tai; i++) {
-        if ((config_aA->served_tai.plmn_mcc[i] !=
-             config_aA->served_tai.plmn_mcc[0]) ||
-            (config_aA->served_tai.plmn_mnc[i] !=
-             config_aA->served_tai.plmn_mnc[0])) {
-          config_aA->served_tai.list_type =
-              TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS;
-          break;
-        } else if (
-            (config_aA->served_tai.plmn_mcc[i] !=
-             config_aA->served_tai.plmn_mcc[i - 1]) ||
-            (config_aA->served_tai.plmn_mnc[i] !=
-             config_aA->served_tai.plmn_mnc[i - 1])) {
-          config_aA->served_tai.list_type =
-              TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS;
-          break;
-        }
-        if (config_aA->served_tai.tac[i] !=
-            (config_aA->served_tai.tac[i - 1] + 1)) {
-          config_aA->served_tai.list_type =
-              TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS;
-        }
-      }
-    }
-
-    // GUAMFI
-
-    setting =
-        config_setting_get_member(setting_mme, MME_CONFIG_STRING_GUAMFI_LIST);
-    config_aA->guamfi.nb = 0;
-    if (setting != NULL) {
-      num = config_setting_length(setting);
-      OAILOG_INFO(LOG_MME_APP, "Number of GUamfIs configured =%d\n", num);
-      AssertFatal(
-          num >= MIN_GUMMEI,
-          "Not even one GUAMFI is configured, configure minimum one GUAMFI \n");
-      AssertFatal(
-          num <= MAX_GUMMEI,
-          "Number of GUAMFIs configured:%d exceeds number of GUAMFIs "
-          "supported "
-          ":%d \n",
-          num, MAX_GUMMEI);
-
-      for (i = 0; i < num; i++) {
-        sub2setting = config_setting_get_elem(setting, i);
-
-        if (sub2setting != NULL) {
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
-            AssertFatal(
-                strlen(mcc) == MAX_MCC_LENGTH,
-                "Bad MCC length (%ld), it must be %u digit ex:001", strlen(mcc),
-                MAX_MCC_LENGTH);
-            char c[2]                                   = {mcc[0], 0};
-            config_aA->guamfi.guamfi[i].plmn.mcc_digit1 = (uint8_t) atoi(c);
-            c[0]                                        = mcc[1];
-            config_aA->guamfi.guamfi[i].plmn.mcc_digit2 = (uint8_t) atoi(c);
-            c[0]                                        = mcc[2];
-            config_aA->guamfi.guamfi[i].plmn.mcc_digit3 = (uint8_t) atoi(c);
-          }
-
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
-            AssertFatal(
-                (strlen(mnc) == MIN_MNC_LENGTH) ||
-                    (strlen(mnc) == MAX_MNC_LENGTH),
-                "Bad MNC length (%ld), it must be %u or %u digit ex: "
-                "12 or 123",
-                strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
-            char c[2]                                   = {mnc[0], 0};
-            config_aA->guamfi.guamfi[i].plmn.mnc_digit1 = (uint8_t) atoi(c);
-            c[0]                                        = mnc[1];
-            config_aA->guamfi.guamfi[i].plmn.mnc_digit2 = (uint8_t) atoi(c);
-            if (3 == strlen(mnc)) {
-              c[0]                                        = mnc[2];
-              config_aA->guamfi.guamfi[i].plmn.mnc_digit3 = (uint8_t) atoi(c);
-            } else {
-              config_aA->guamfi.guamfi[i].plmn.mnc_digit3 = 0x0F;
-            }
-          }
-
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_AMF_REGION_ID, &mnc))) {
-            config_aA->guamfi.guamfi[i].amf_regionid = (uint8_t) atoi(mnc);
-
-            OAILOG_INFO(
-                LOG_MME_APP, "GUAMFI region_id =%d\n",
-                config_aA->guamfi.guamfi[i].amf_regionid);
-          }
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_AMF_SET_ID, &mnc))) {
-            config_aA->guamfi.guamfi[i].amf_set_id = (uint16_t) atoi(mnc);
-
-            OAILOG_INFO(
-                LOG_MME_APP, "GUAMFI set_id =%d\n",
-                config_aA->guamfi.guamfi[i].amf_regionid);
-          }
-
-          if ((config_setting_lookup_string(
-                  sub2setting, MME_CONFIG_STRING_AMF_POINTER, &mnc))) {
-            config_aA->guamfi.guamfi[i].amf_pointer = (uint16_t) atoi(mnc);
-
-            OAILOG_INFO(
-                LOG_MME_APP, "GUAMFI amf_pointer =%d\n",
-                config_aA->guamfi.guamfi[i].amf_regionid);
-          }
-          config_aA->guamfi.nb += 1;
         }
       }
     }
@@ -1996,8 +1767,7 @@ static void usage(char* target) {
 }
 
 //------------------------------------------------------------------------------
-int mme_config_parse_opt_line(
-    int argc, char* argv[], mme_config_t* config_pP, amf_config_t* config_aA) {
+int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
   int c;
 
   mme_config_init(config_pP);
@@ -2049,7 +1819,7 @@ int mme_config_parse_opt_line(
   if (!config_pP->config_file) {
     config_pP->config_file = bfromcstr("/usr/local/etc/oai/mme.conf");
   }
-  if (mme_config_parse_file(config_pP, config_aA) != 0) {
+  if (mme_config_parse_file(config_pP) != 0) {
     return -1;
   }
 

@@ -270,6 +270,10 @@ int ngap_amf_generate_ng_setup_failure(
   bstring b = blk2bstr(buffer_p, length);
   free(buffer_p);
   rc = ngap_amf_itti_send_sctp_request(&b, assoc_id, 0, INVALID_AMF_UE_NGAP_ID);
+
+  /* Free up the bstring */
+  bdestroy(b);
+
   OAILOG_FUNC_RETURN(LOG_NGAP, rc);
 }
 
