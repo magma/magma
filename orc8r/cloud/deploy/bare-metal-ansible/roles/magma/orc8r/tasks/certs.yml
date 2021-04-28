@@ -18,7 +18,7 @@
 
 - name: orc8r | generate orc8r secret from certs
   shell: >-
-    kubectl -n {{ magma_namespace }} create secret generic orc8r-certs \
+    kubectl -n {{ magma_namespace }} create secret generic {{ orc8r_certs_secret }} \
     --from-file rootCA.pem \
     --from-file controller.key \
     --from-file controller.crt \
@@ -33,7 +33,7 @@
 
 - name: orc8r | generate fluentd secret from certs
   shell: >-
-    kubectl -n {{ magma_namespace }} create secret generic fluentd-certs \
+    kubectl -n {{ magma_namespace }} create secret generic {{ fluentd_certs_secret }} \
     --from-file fluentd.key \
     --from-file fluentd.pem \
     --from-file certifier.pem \
@@ -43,7 +43,7 @@
 
 - name: orc8r | generate nms secrets from certs
   shell: >-
-    kubectl -n {{ magma_namespace }} create secret generic nms-certs \
+    kubectl -n {{ magma_namespace }} create secret generic {{ nms_certs_secret }} \
     --from-file admin_operator.pem \
     --from-file admin_operator.key.pem \
     --from-file controller.key \

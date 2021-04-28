@@ -1,46 +1,29 @@
-# Mandatory vars
-# orc8r_image_repo: YOUR_REPO_HERE
-# orc8r_helm_repo: YOUR_REPO_HERE # set to "URL --username user --password  pass" if necessary
-
 orc8r_config_dir: /etc/orc8r
 orc8r_certs_dir: "{{ orc8r_config_dir }}/certs"
 orc8r_charts_dir: "{{ orc8r_config_dir }}/charts"
 credentials_dir: "{{ inventory_dir }}/credentials"
-magma_namespace: magma
-orc8r_domain: magma.local
-dns_domain: cluster.local
 
-orc8r_image_tag: latest # Unsafe!! Use specific version
+nms_certs_secret: "nms-certs"
+orc8r_certs_secret: "orc8r-certs"
+fluentd_certs_secret: "fluentd-certs"
+
 orc8r_db_user: orc8r
 orc8r_db_host: mariadb.{{ mariadb_namespace | default("mariadb") }}
 orc8r_db_pass: "{{ lookup('password', credentials_dir + '/orc8r_db_pass.creds length=24 chars=hexdigits') | lower }}"
 orc8r_db_name: orc8r
+orc8r_db_port: 3306
+orc8r_db_dialect: maria
 
 # NMS settings
-orc8r_nms_image_tag: latest # Unsafe!! Use specific version
 orc8r_nms_db_user: nms
 orc8r_nms_db_host: mariadb.{{ mariadb_namespace | default("mariadb") }}
 orc8r_nms_db_pass: "{{ lookup('password', credentials_dir + '/orc8r_nms_db_pass.creds length=24 chars=hexdigits') | lower }}"
 orc8r_nms_db_name: nms
+orc8r_nms_db_port: 3306
+orc8r_nms_db_dialect: mariadb
 
 orc8r_nms_admin_email: "admin@{{ orc8r_domain }}"
 orc8r_nms_admin_pass: "{{ lookup('password', credentials_dir + '/orc8r_nms_admin_pass.creds length=24 chars=hexdigits') | lower }}"
-
-
-# Monitoring component settings
-orc8r_alertmanager_configurer_image_repo: docker.io/facebookincubator/alertmanager-configurer
-orc8r_alertmanager_configurer_image_tag: 1.0.0
-orc8r_prometheus_cache_image_repo: docker.io/facebookincubator/prometheus-edge-hub
-orc8r_prometheus_cache_image_tag: 1.0.0
-orc8r_prometheus_configurer_image_repo: docker.io/facebookincubator/prometheus-configurer
-orc8r_prometheus_configurer_image_tag: 1.0.0
-orc8r_alertmanager_image_repo: docker.io/facebookincubator/alertmanager-configurer
-orc8r_alertmanager_image_tag: 1.0.0
-orc8r_grafana_image_repo: docker.io/grafana/grafana
-orc8r_grafana_image_tag: 6.6.2
-
-# Nginx settings
-orc8r_nginx_image_tag: latest # Unsafe!! Use specific version
 
 magma_pvcs:
   grafanadashboards: 2Gi
@@ -49,5 +32,4 @@ magma_pvcs:
   grafanaproviders: 100Mi
   openvpn: 2Mi
   promcfg: 1Gi
-  promdata: 30Gi
-
+  promdata: 10Gi

@@ -8,11 +8,13 @@ stringData:
     profile: prometheus
     prometheusQueryAddress: "http://orc8r-prometheus:9090"
     alertmanagerApiURL: "http://orc8r-alertmanager:9093/api/v2"
-    prometheusConfigServiceURL: "http://orc8r-prometheus-configurer:9100"
-    alertmanagerConfigServiceURL: "http://orc8r-alertmanager-configurer:9101"
+    prometheusConfigServiceURL: "http://orc8r-prometheus-configurer:9100/v1"
+    alertmanagerConfigServiceURL: "http://orc8r-alertmanager-configurer:9101/v1"
   orchestrator.yml: |
+    useGRPCExporter: true
+    prometheusGRPCPushAddress: "http://orc8r-prometheus-cache:9092"
     prometheusPushAddresses:
-      - "http://orc8r-prometheus-cache:9091/metrics"
+      - "http://orc8r-prometheus-cache:90912/metrics"
   elastic.yml: |
-    elasticHost: elasticsearch-master
+    elasticHost: elasticsearch
     elasticPort: 9200

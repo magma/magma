@@ -24,7 +24,7 @@
 - name: orc8r | Template out helm chart values
   template:
     src: orc8r-values.yaml.j2
-    dest: "{{ charts_dir }}/{{ item }}-values.yaml"
+    dest: "{{ orc8r_charts_dir }}/{{ item }}-values.yaml"
   with_items:
     - orc8r
 
@@ -60,18 +60,20 @@
 
 - name: orc8r | Install/upgrade helm charts
   command: >-
-    helm upgrade --install 
+    helm upgrade --install
     -n {{ magma_namespace }}
     {{ item }}
     orc8r/{{ item }}
-    {% if orc8r_chart_version is defined %} --version {{ orc8r_chart_version }}{% endif %}
-    -f {{ charts_dir }}/{{ item }}-values.yaml 
+    {% if item == "orc8r" %} --version {{ orc8r_chart_version }}{% endif %}
+    {% if item == "lte-orc8r" %} --version {{ lte_orc8r_chart_version }}{% endif %}
+    -f {{ orc8r_charts_dir }}/orc8r-values.yaml
     --wait
   with_items:
     - orc8r
+    - lte-orc8r
 
 - name: orc8r | Get orc8r pod
-  command: kubectl -n {{ magma_namespace }} get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}'
+  command: kubectl -n {{ magma_namespace }} get pod -l app.kubernetes.io/component=orchestrator -o jsonpath='{.items[0].metadata.name}'
   register: orc8r_pod
 
 - name: orc8r | Get nms pod

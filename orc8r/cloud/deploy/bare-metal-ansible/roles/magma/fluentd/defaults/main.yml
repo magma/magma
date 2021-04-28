@@ -1,3 +1,0 @@
-magma_namespace: magma
-charts_dir: /etc/orc8r/charts
-orc8r_domain: magma.local

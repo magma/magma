@@ -5,7 +5,7 @@
   command: helm repo update
 
 - name: mariadb | Ensure namespace
-  command: kubectl create ns {{ infra_charts_namespace }}
+  command: kubectl create ns {{ infra_namespace }}
   failed_when: false
 
 - name: metallb | Ensure charts dir
@@ -22,6 +22,6 @@
     - metallb
 
 - name: metallb | Install/upgrade helm charts
-  command: helm upgrade --install -n {{ infra_charts_namespace }} {{ item }} stable/{{ item }} -f {{ charts_dir }}/{{ item }}-values.yaml
+  command: helm upgrade --install -n {{ infra_namespace }} {{ item }} stable/{{ item }} -f {{ charts_dir }}/{{ item }}-values.yaml
   with_items:
     - metallb

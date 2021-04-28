@@ -12,7 +12,7 @@ fi
 export CLUSTER_NAME="cluster.local"
 export KUBESPRAY_RELEASE="release-2.14"
 # Optionally set IPS variable externally to define the IPs for your k8s nodes
-IPS=${IPS:-192.168.0.10 192.168.0.11}
+IPS=${IPS:-92.168.0.10 192.168.0.11}
 
 # Prepare Kubespray
 git clone https://github.com/kubernetes-sigs/kubespray.git || :

@@ -1,2 +1,1 @@
-infra_charts_namespace: infra
-charts_dir: /etc/orc8r/charts
+infra_namespace: infra

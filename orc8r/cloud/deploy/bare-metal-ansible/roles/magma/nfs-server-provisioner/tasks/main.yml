@@ -5,7 +5,7 @@
   command: helm repo update
 
 - name: nfs-server-provisioner | Ensure namespace
-  command: kubectl create ns {{ infra_charts_namespace }}
+  command: kubectl create ns {{ infra_namespace }}
   failed_when: false
 
 - name: nfs-server-provisioner | Ensure charts dir
@@ -36,6 +36,6 @@
     - nfs-server-provisioner
 
 - name: nfs-server-provisioner | Install/upgrade helm charts
-  command: helm upgrade --install -n {{ infra_charts_namespace }} nfs-server-provisioner stable/{{ item }} -f {{ charts_dir }}/{{ item }}-values.yaml
+  command: helm upgrade --install -n {{ infra_namespace }} nfs-server-provisioner stable/{{ item }} -f {{ charts_dir }}/{{ item }}-values.yaml
   with_items:
     - nfs-server-provisioner

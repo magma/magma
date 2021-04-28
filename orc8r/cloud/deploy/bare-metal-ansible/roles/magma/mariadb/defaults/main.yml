@@ -1,8 +1,3 @@
-charts_dir: /etc/orc8r/charts
 mariadb_namespace: mariadb
-
 mariadb_image_tag: 10.3.22-debian-10-r27
 db_root_password: "{{ lookup('password', credentials_dir + '/orc8r_db_pass.creds length=24 chars=hexdigits') | lower }}"
-
-orc8r_domain: magma.local
-storage_class: nfs

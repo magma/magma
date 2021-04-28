@@ -1,6 +1,11 @@
-infra_charts_namespace: infra
-charts_dir: /etc/orc8r/charts
-storage_class: nfs
+nfs_provisioner_image_repo: quay.io/kubernetes_incubator/nfs-provisioner
+nfs_provisioner_image_tag: v2.3.0
+
+infra_namespace: infra
+
+nfs_cpu: 0.25
+nfs_memory: 512Mi
 nfs_host: "{{ kube_override_hostname | default(inventory_hostname) }}"
 
+nfs_pv_storage: 80Gi
 nfs_pv_path: /mnt/persistentvols/nfs

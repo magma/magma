@@ -5,11 +5,11 @@ nodeGroup: data2
 replicas: 1
 resources:
   limits:
-    cpu: "1"
-    memory: 8Gi
+    cpu: {{ elasticsearch_data_cpu }}
+    memory: {{ elasticsearch_data_memory }}
   requests:
-    cpu: "1"
-    memory: 8Gi
+    cpu: {{ elasticsearch_data_cpu }}
+    memory: {{ elasticsearch_data_memory }}
 roles:
   data: "true"
   ingest: "true"
@@ -21,5 +21,5 @@ volumeClaimTemplate:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 50Gi
+      storage: {{ elasticsearch_data_storage }}
   storageClassName: {{ storage_class }}

@@ -4,11 +4,11 @@ minimumMasterNodes: 1
 replicas: 1
 resources:
   limits:
-    cpu: "2"
-    memory: 4Gi
+    cpu: {{ elasticsearch_master_cpu }}
+    memory: {{ elasticsearch_master_memory }}
   requests:
-    cpu: "2"
-    memory: 4Gi
+    cpu: {{ elasticsearch_master_cpu }}
+    memory: {{ elasticsearch_master_memory }}
 roles:
   data: "false"
   ingest: "false"
@@ -20,10 +20,8 @@ volumeClaimTemplate:
   - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: {{ elasticsearch_master_storage }}
   storageClassName: {{ storage_class }}
-replicas: 1
-minimumMasterNodes: 1
 rbac:
   create: true
 antiAffinity: "soft"

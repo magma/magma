@@ -7,7 +7,7 @@ spec:
   accessModes:
   - ReadWriteOnce
   capacity:
-    storage: 200Gi
+    storage: {{ nfs_pv_storage }}
   persistentVolumeReclaimPolicy: Delete
   storageClassName: nfs-provisioner
   volumeMode: Filesystem
@@ -21,4 +21,3 @@ spec:
           operator: In
           values:
           - {{ nfs_host }}
-

@@ -47,33 +47,49 @@ kubelet_cgroup_driver: systemd
 
 ## Orc8r settings
 ## These variabless must be set
-# orc8r_image_repo:
-# orc8r_helm_repo:
-# orc8r_domain:
-# orc8r_nms_admin_email:
-
 # Component versions
-# orc8r_chart_version: 1.3.x
-# orc8r_image_tag: 1.3.x
-# orc8r_nms_image_tag: 1.3.x
-# orc8r_nginx_image_tag: 1.3.x
+orc8r_domain: magma.local
+dns_domain: cluster.local
+
+orc8r_image_repo:
+orc8r_helm_repo:
+
+orc8r_image_version: 1.4.0
+orc8r_chart_version: 1.5.16
+lte_orc8r_chart_version: 0.2.2
+
+# Monitoring component settings
+orc8r_alertmanager_configurer_image_repo: docker.io/facebookincubator/alertmanager-configurer
+orc8r_alertmanager_configurer_image_tag: 1.0.4
+orc8r_prometheus_cache_image_repo: docker.io/facebookincubator/prometheus-edge-hub
+orc8r_prometheus_cache_image_tag: 1.1.0
+orc8r_prometheus_configurer_image_repo: docker.io/facebookincubator/prometheus-configurer
+orc8r_prometheus_configurer_image_tag: 1.0.4
+orc8r_grafana_image_repo: docker.io/grafana/grafana
+orc8r_grafana_image_tag: 6.6.2
+
+charts_dir: /etc/orc8r/charts
+magma_namespace: magma
+storage_class: nfs
 
 # Component passwords are randomly generated (and stored in credentials dir).
 # Uncomment the following lines to explicitly set passwords
-# db_root_password:
-# orc8r_db_pass:
-# orc8r_nms_db_pass:
-# orc8r_nms_admin_pass:
+db_root_password:
+orc8r_db_pass:
+orc8r_nms_db_pass:
+
+# nms admin user
+orc8r_nms_admin_email:
+orc8r_nms_admin_pass:
 
 # LoadBalancer settings for Magma services publicly exposed
 # metallb_addresses: 192.168.10.200-192.168.10.230
 
 # Advanced options for enabling/disabling Helm charts
 deploy_nfs_server_provisioner: True
+deploy_elasticsearch: True
 kubevirt_enabled: False
 deploy_metallb: True
 deploy_mariadb: True
-deploy_elasticsearch: True
 deploy_fluentd: True
-deploy_kibana: False
-
+deploy_kibana: True
