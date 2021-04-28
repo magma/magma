@@ -34,6 +34,12 @@ variable "deploy_elasticsearch_service_linked_role" {
   default     = true
 }
 
+variable "magma_uuid" {
+  description = "UUID to identify Orc8r deployment"
+  type        = string
+  default     = "default"
+}
+
 variable "global_tags" {
   default = {}
 }

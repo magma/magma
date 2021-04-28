@@ -305,8 +305,20 @@
   ```
     - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=<Local Dir>" -e "idSite=<Name of Site> --tags clusterCleanup
   ```
+  - Example:
+  ```
+    - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=~/magma-experimental" -e "idSite=MenloPark" --tags clusterCleanup
+  ```
 
-  Login to the Bridge node to access gateways and pick up challenge keys and hardware ids.
+  Create a SSH configuration to the gateways through the jump node
+  ```
+  - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=<Local Dir>" -e "agws=tag_Name_<ump_node_name>" -e "idSite=<Name of the Site>" --tags clusterJump
+  ```
+
+  - Example:
+  ```
+  - ansible-playbook cluster-provision.yaml -i /root/project/common_instance_aws_ec2.yaml -e "dirLocalInventory=/root/project" -e "agws=tag_Name_TestFrameworkGateway" -e "idSite=TestCluster" --tags clusterJump
+  ```
 
 ## 7. Cleanup
 

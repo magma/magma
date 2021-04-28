@@ -16,7 +16,7 @@ from setuptools import find_packages, setup
 setup(
     name='orcl',
     version='0.1',
-    packages=['cli'],
+    packages=['cli', 'utils', 'testlib'],
     include_package_data=True,
     install_requires=[
         'Click',
@@ -24,5 +24,6 @@ setup(
     entry_points='''
         [console_scripts]
         orcl=cli.orcl:cli
+        test-cluster=cli.cluster:cli
     ''',
 )
