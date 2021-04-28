@@ -24,8 +24,8 @@ class MagmaPyLintTest(unittest.TestCase):
             self.skipTest(
                 'Pylint not available, probably because this test is running '
                 'under @mode/opt: {}'.format(
-                    pylint_wrapper.PYLINT_IMPORT_PROBLEM
-                )
+                    pylint_wrapper.PYLINT_IMPORT_PROBLEM,
+                ),
             )
 
         py_wrap = pylint_wrapper.PyLintWrapper(
@@ -44,7 +44,7 @@ class MagmaPyLintTest(unittest.TestCase):
         # TODO look up directories in magma/lte/gateway/python/magma
         directories = [
             'enodebd',
-            # 'health',
+            'health',
             # 'mobilityd',
             # 'monitord',
             'pipelined',

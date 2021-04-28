@@ -84,7 +84,8 @@ class AGWHealth:
         config = load_service_mconfig_as_json('mme')
 
         # eNB status for #eNBs connected
-        chan = ServiceRegistry.get_rpc_channel('enodebd', ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            'enodebd', ServiceRegistry.LOCAL)
         client = EnodebdStub(chan)
         status = client.GetStatus(Void())
 
