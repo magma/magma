@@ -14,6 +14,7 @@
 #include <gtest/gtest.h>
 
 #include "spgw_state_converter.h"
+#include "spgw_state_manager.h"
 #include "sgw_defs.h"
 #include "state_creators.h"
 
@@ -21,9 +22,12 @@ namespace magma {
 namespace lte {
 
 class SPGWStateConverterTest : public ::testing::Test {
-  virtual void SetUp() {}
+  virtual void SetUp() {
+    spgw_config_t config;
+    SpgwStateManager::getInstance().init(false, &config);
+  }
 
-  virtual void TearDown() {}
+  virtual void TearDown() { SpgwStateManager::getInstance().free_state(); }
 };
 
 TEST_F(SPGWStateConverterTest, TestSPGWStateConversion) {
@@ -49,6 +53,18 @@ TEST_F(SPGWStateConverterTest, TestSPGWStateConversion) {
     EXPECT_EQ(initial_gtp_data.fd0, final_gtp_data.fd0);
     EXPECT_EQ(initial_gtp_data.fd1u, final_gtp_data.fd1u);
   }
+}
+
+TEST_F(SPGWStateConverterTest, TestEmptySPGWUeConversion) {
+  spgw_ue_context_t original_state, final_state;
+  oai::SpgwUeContext proto_state;
+  LIST_INIT(&original_state.sgw_s11_teid_list);
+
+  SpgwStateConverter::ue_to_proto(&original_state, &proto_state);
+  SpgwStateConverter::proto_to_ue(proto_state, &final_state);
+
+  EXPECT_TRUE(LIST_EMPTY(&(original_state.sgw_s11_teid_list)));
+  EXPECT_TRUE(LIST_EMPTY(&(final_state.sgw_s11_teid_list)));
 }
 
 // TODO add a state conversion test for UE context
