@@ -41,6 +41,7 @@ void SpgwStateManager::init(bool persist_state, const spgw_config_t* config) {
   table_key             = SPGW_STATE_TABLE_NAME;
   persist_state_enabled = persist_state;
   config_               = config;
+  redis_client          = std::make_unique<RedisClient>(persist_state);
   create_state();
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_SPGW_APP, "Failed to read state from redis");
@@ -117,7 +118,7 @@ int SpgwStateManager::read_ue_state_from_db() {
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
   for (const auto& key : keys) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
-    if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
+    if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
     OAILOG_DEBUG(log_task, "Reading UE state from db for key %s", key.c_str());

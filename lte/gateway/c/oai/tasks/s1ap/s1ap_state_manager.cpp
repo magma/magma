@@ -44,13 +44,14 @@ S1apStateManager& S1apStateManager::getInstance() {
 }
 
 void S1apStateManager::init(
-    uint32_t max_ues, uint32_t max_enbs, bool use_stateless) {
+    uint32_t max_ues, uint32_t max_enbs, bool persist_state) {
   log_task              = LOG_S1AP;
   table_key             = S1AP_STATE_TABLE;
   task_name             = S1AP_TASK_NAME;
-  persist_state_enabled = use_stateless;
+  persist_state_enabled = persist_state;
   max_ues_              = max_ues;
   max_enbs_             = max_enbs;
+  redis_client          = std::make_unique<RedisClient>(persist_state);
   create_state();
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_S1AP, "Failed to read state from redis");
@@ -134,9 +135,8 @@ int S1apStateManager::read_ue_state_from_db() {
   for (const auto& key : keys) {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     UeDescription ue_proto = UeDescription();
-    ue_description_t* ue_context =
-        (ue_description_t*) calloc(1, sizeof(ue_description_t));
-    if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
+    auto* ue_context = (ue_description_t*) calloc(1, sizeof(ue_description_t));
+    if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
 
