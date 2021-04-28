@@ -25,9 +25,6 @@ class TraceBuilder:
     TODO(andreilee): Support tracing by 3gpp protocol
     """
 
-    def __init__(self):
-        super().__init__()
-
     def build_trace_command(
         self,
         interfaces: List[str],
@@ -114,7 +111,7 @@ class TraceBuilder:
             "tshark",
             "-r", input_filename,
             "-Y", display_filters,
-            "-w", output_filename
+            "-w", output_filename,
         ]
 
 
@@ -133,6 +130,8 @@ def get_trace_builder(tool_name: str) -> TraceBuilder:
     """
     if tool_name == "tshark":
         return TraceBuilder()
-    raise TraceBuildException("Failed to create trace builder, "
-                              "invalid tool name specified: {}"
-                              .format(tool_name))
+    raise TraceBuildException(
+        "Failed to create trace builder, "
+        "invalid tool name specified: {}"
+        .format(tool_name),
+    )
