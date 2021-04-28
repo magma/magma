@@ -982,12 +982,12 @@ jobs:
             sed -i -e "s/AWS_ACCESS_KEY_ID/${AWS_FB_CRED}/g" ~/magma-experimental/files/secrets.yaml
             sed -i -e "s@AWS_SECRET_ACCESS_KEY@${AWS_FB_SECRET}@g" ~/magma-experimental/files/secrets.yaml
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files" --tags keyCreate -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
-            ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
-            ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm
+            #ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
+            #ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm
             #ansible-playbook cloudstrapper-provision.yaml  -e "dirLocalInventory=~/magma-experimental/files"
-            ansible-playbook agw-provision.yaml -e "idSite=MenloPark" -e "idGw=AgwA" --tags createNet,createGw,attachIface
-            ansible-playbook agw-provision.yaml -e "idSite=MenloPark" -e "idGw=AgwB" --tags createGw,attachIface
-            ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin  -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
+            #ansible-playbook agw-provision.yaml -e "idSite=MenloPark" -e "idGw=AgwA" --tags createNet,createGw,attachIface
+            #ansible-playbook agw-provision.yaml -e "idSite=MenloPark" -e "idGw=AgwB" --tags createGw,attachIface
+            #ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin  -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
             ansible-playbook build-provision.yaml --tags devopsAgw,inventory  -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
             ansible-playbook build-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "buildnode=tag_Name_buildAgw" -e "ansible_python_interpreter=/usr/bin/python3"  -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
             ansible-playbook ami-init.yaml  -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
