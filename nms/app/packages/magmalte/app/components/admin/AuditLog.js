@@ -37,6 +37,9 @@ const useStyles = makeStyles(theme => ({
 
 export type AuditLogRowType = {
   id: string,
+  updatedAt: Date,
+  ipAddress: string,
+  url: string,
   actingUserEmail: string,
   mutationType: string,
   objectType: string,
@@ -76,6 +79,8 @@ function AuditLog() {
           <ActionTable
             data={response.data}
             columns={[
+              {title: 'Time', field: 'updatedAt', type: 'datetime'},
+              {title: 'IP Address', field: 'ipAddress'},
               {title: 'User', field: 'actingUserEmail'},
               {title: 'Action', field: 'mutationType'},
               {title: 'Object Type', field: 'objectType'},
@@ -128,8 +133,12 @@ type DialogProps = {
  */
 function JsonDialog(props: DialogProps) {
   return (
-    <Dialog open={props.open} onClose={props.onClose} fullWidth={true}>
-      <DialogTitle>Log Entry</DialogTitle>
+    <Dialog
+      open={props.open}
+      onClose={props.onClose}
+      maxWidth="lg"
+      fullWidth={true}>
+      <DialogTitle>{props.row.url}</DialogTitle>
       <DialogContent>
         <ReactJson
           src={props.row.mutationData}
