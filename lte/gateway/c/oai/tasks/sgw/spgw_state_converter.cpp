@@ -15,12 +15,12 @@
  *      contact@openairinterface.org
  */
 
+#include "spgw_state_converter.h"
+
 extern "C" {
 #include "dynamic_memory_check.h"
 #include "sgw_context_manager.h"
 }
-
-#include "spgw_state_converter.h"
 
 using magma::lte::oai::CreateSessionMessage;
 using magma::lte::oai::GTPV1uData;
@@ -236,7 +236,7 @@ void SpgwStateConverter::proto_to_sgw_pdn_connection(
   bstring_to_ip_address(ip_addr_bstr, &state_pdn->p_gw_address_in_use_up);
   bdestroy_wrapper(&ip_addr_bstr);
 
-  for (uint32_t i = 0; i < BEARERS_PER_UE; i++) {
+  for (int i = 0; i < BEARERS_PER_UE; i++) {
     if (proto.eps_bearer_list(i).eps_bearer_id()) {
       auto* eps_bearer_entry =
           (sgw_eps_bearer_ctxt_t*) calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
@@ -322,8 +322,7 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
   proto->mutable_ue_time_zone()->set_daylight_saving_time(
       session_request->ue_time_zone.daylight_saving_time);
 
-  for (uint32_t i = 0; i < session_request->pco.num_protocol_or_container_id;
-       i++) {
+  for (int i = 0; i < session_request->pco.num_protocol_or_container_id; i++) {
     auto* pco_protocol = &session_request->pco.protocol_or_container_ids[i];
     auto* pco_protocol_proto = proto->mutable_pco()->add_pco_protocol();
     if (pco_protocol->contents) {
@@ -333,7 +332,7 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
           pco_protocol->contents, pco_protocol_proto->mutable_contents());
     }
   }
-  for (uint32_t i = 0;
+  for (int i = 0;
        i < session_request->bearer_contexts_to_be_created.num_bearer_context;
        i++) {
     auto* bearer =
@@ -429,7 +428,7 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
   session_request->ue_time_zone.daylight_saving_time =
       proto.ue_time_zone().daylight_saving_time();
 
-  for (uint32_t i = 0; i < proto.pco().pco_protocol_size(); i++) {
+  for (int i = 0; i < proto.pco().pco_protocol_size(); i++) {
     auto* protocol_or_container_id =
         &session_request->pco.protocol_or_container_ids[i];
     auto protocol_proto              = proto.pco().pco_protocol(i);
@@ -439,7 +438,7 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
         bfromcstr(protocol_proto.contents().c_str());
   }
 
-  for (uint32_t i = 0; i < proto.bearer_contexts_to_be_created_size(); i++) {
+  for (int i = 0; i < proto.bearer_contexts_to_be_created_size(); i++) {
     auto* eps_bearer =
         &session_request->bearer_contexts_to_be_created.bearer_contexts[i];
     auto eps_bearer_proto     = proto.bearer_contexts_to_be_created(i);
@@ -551,7 +550,7 @@ void SpgwStateConverter::traffic_flow_template_to_proto(
   // parameters_list member conversion
   tft_proto->mutable_parameters_list()->set_num_parameters(
       tft_state->parameterslist.num_parameters);
-  for (uint32_t i = 0; i < tft_state->parameterslist.num_parameters; i++) {
+  for (int i = 0; i < tft_state->parameterslist.num_parameters; i++) {
     auto* parameter = &tft_state->parameterslist.parameter[i];
     if (parameter->contents) {
       auto* param_proto =
@@ -567,25 +566,25 @@ void SpgwStateConverter::traffic_flow_template_to_proto(
   auto pft_state  = tft_state->packetfilterlist;
   switch (tft_state->tftoperationcode) {
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET_FILTERS_FROM_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
         pft_proto->add_delete_packet_filter_identifier(
             pft_state.deletepacketfilter[i].identifier);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT:
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
         packet_filter_to_proto(
             &pft_state.createnewtft[i], pft_proto->add_create_new_tft());
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
         packet_filter_to_proto(
             &pft_state.createnewtft[i], pft_proto->add_add_packet_filter());
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET_FILTERS_IN_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
         packet_filter_to_proto(
             &pft_state.createnewtft[i], pft_proto->add_replace_packet_filter());
       }
@@ -732,7 +731,7 @@ void SpgwStateConverter::proto_to_packet_filter(
       packet_filter_contents_proto.security_parameter_index();
   packet_filter_contents->flowlabel = packet_filter_contents_proto.flow_label();
 
-  for (uint32_t i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
+  for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
     packet_filter_contents->ipv4remoteaddr[i].addr =
         packet_filter_contents_proto.ipv4_remote_addresses(i).addr();
     packet_filter_contents->ipv4remoteaddr[i].mask =
@@ -880,7 +879,7 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
 
 void SpgwStateConverter::ue_to_proto(
     const spgw_ue_context_t* ue_state, oai::SpgwUeContext* ue_proto) {
-  if (ue_state && (!(LIST_EMPTY(&ue_state->sgw_s11_teid_list)))) {
+  if (ue_state && (!LIST_EMPTY(&ue_state->sgw_s11_teid_list))) {
     sgw_s11_teid_t* s11_teid_p = nullptr;
     LIST_FOREACH(s11_teid_p, &ue_state->sgw_s11_teid_list, entries) {
       if (s11_teid_p) {
@@ -897,13 +896,12 @@ void SpgwStateConverter::ue_to_proto(
 void SpgwStateConverter::proto_to_ue(
     const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  spgw_state_t* spgw_state     = nullptr;
-  hash_table_ts_t* state_ue_ht = nullptr;
+  hash_table_ts_t* state_ue_ht   = nullptr;
+  hash_table_ts_t* state_teid_ht = nullptr;
   if (ue_proto.s11_bearer_context_size()) {
-    spgw_state = get_spgw_state(false);
-    if (!spgw_state) {
-      OAILOG_ERROR(
-          LOG_SPGW_APP, "Failed to get spgw_state from get_spgw_state() \n");
+    state_teid_ht = get_spgw_teid_state();
+    if (!state_teid_ht) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_ht \n");
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
 
@@ -912,6 +910,19 @@ void SpgwStateConverter::proto_to_ue(
       OAILOG_ERROR(
           LOG_SPGW_APP,
           "Failed to get state_ue_ht from get_spgw_ue_state() \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+
+    // All s11_bearer_context on this UE context will be of same imsi
+    imsi64_t imsi64 =
+        ue_proto.s11_bearer_context(0).sgw_eps_bearer_context().imsi64();
+    if (ue_context_p) {
+      LIST_INIT(&ue_context_p->sgw_s11_teid_list);
+      hashtable_ts_insert(
+          state_ue_ht, (const hash_key_t) imsi64, (void*) ue_context_p);
+    } else {
+      OAILOG_ERROR_UE(
+          LOG_SPGW_APP, imsi64, "Failed to allocate memory for UE context \n");
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
   } else {
@@ -932,11 +943,11 @@ void SpgwStateConverter::proto_to_ue(
 
     proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
     hashtable_ts_insert(
-        state_ue_ht,
+        state_teid_ht,
         spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
         (void*) spgw_context_p);
     spgw_update_teid_in_ue_context(
-        spgw_state, spgw_context_p->sgw_eps_bearer_context_information.imsi64,
+        spgw_context_p->sgw_eps_bearer_context_information.imsi64,
         spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
   }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);

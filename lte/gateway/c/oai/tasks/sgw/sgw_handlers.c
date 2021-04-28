@@ -166,8 +166,8 @@ int sgw_handle_s11_create_session_request(
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
           .eps_bearer_id);
 
-  if (spgw_update_teid_in_ue_context(
-          state, imsi64, new_endpoint_p->local_teid) == RETURNerror) {
+  if (spgw_update_teid_in_ue_context(imsi64, new_endpoint_p->local_teid) ==
+      RETURNerror) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
         "Failed to update sgw_s11_teid" TEID_FMT " in UE context \n",
@@ -176,7 +176,7 @@ int sgw_handle_s11_create_session_request(
   }
   s_plus_p_gw_eps_bearer_ctxt_info_p =
       sgw_cm_create_bearer_context_information_in_collection(
-          state, new_endpoint_p->local_teid, imsi64);
+          new_endpoint_p->local_teid);
   if (s_plus_p_gw_eps_bearer_ctxt_info_p) {
     /*
      * We try to create endpoint for S11 interface. A NULL endpoint means that
@@ -1161,7 +1161,7 @@ int sgw_handle_delete_session_request(
           delete_session_req_pP->lbi);
 
       sgw_cm_remove_bearer_context_information(
-          spgw_state, delete_session_req_pP->teid, imsi64);
+          delete_session_req_pP->teid, imsi64);
       increment_counter("spgw_delete_session", 1, 1, "result", "success");
     }
 
@@ -1417,7 +1417,7 @@ void handle_s5_create_session_response(
            .pdn_connection,
       sgi_create_endpoint_resp.eps_bearer_id);
   sgw_cm_remove_bearer_context_information(
-      state, session_resp.context_teid,
+      session_resp.context_teid,
       new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64);
 
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
@@ -1752,7 +1752,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
         &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
     sgw_cm_remove_bearer_context_information(
-        spgw_state, s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4, imsi64);
+        s11_pcrf_ded_bearer_deactv_rsp->s_gw_teid_s11_s4, imsi64);
   } else {
     // Remove the dedicated bearer/s context
     for (i = 0; i < no_of_bearers; i++) {
