@@ -18,14 +18,17 @@ import (
 type NetworkProbeData struct {
 
 	// The timestamp in ISO 8601 format of last exported record
+	// Required: true
 	// Format: date-time
-	LastExported strfmt.DateTime `json:"last_exported,omitempty"`
+	LastExported strfmt.DateTime `json:"last_exported"`
 
 	// sequence number
-	SequenceNumber uint32 `json:"sequence_number,omitempty"`
+	// Required: true
+	SequenceNumber uint32 `json:"sequence_number"`
 
 	// target id
-	TargetID string `json:"target_id,omitempty"`
+	// Required: true
+	TargetID string `json:"target_id"`
 }
 
 // Validate validates this network probe data
@@ -33,6 +36,14 @@ func (m *NetworkProbeData) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateLastExported(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSequenceNumber(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTargetID(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -44,11 +55,29 @@ func (m *NetworkProbeData) Validate(formats strfmt.Registry) error {
 
 func (m *NetworkProbeData) validateLastExported(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.LastExported) { // not required
-		return nil
+	if err := validate.Required("last_exported", "body", strfmt.DateTime(m.LastExported)); err != nil {
+		return err
 	}
 
 	if err := validate.FormatOf("last_exported", "body", "date-time", m.LastExported.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkProbeData) validateSequenceNumber(formats strfmt.Registry) error {
+
+	if err := validate.Required("sequence_number", "body", uint32(m.SequenceNumber)); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkProbeData) validateTargetID(formats strfmt.Registry) error {
+
+	if err := validate.RequiredString("target_id", "body", string(m.TargetID)); err != nil {
 		return err
 	}
 
