@@ -59,7 +59,6 @@ certs:
   create: true
 
   domainName: localhost
-  prefix: orc8r
 
 nginx:
   create: true
