@@ -20,22 +20,6 @@ volumeMounts:
     mountPath: /var/opt/magma/certs/{{ . }}
     readOnly: true
   {{- end }}
-  # {{- range tuple "certs" "envdir" }}
-  # - name: {{ . }}
-  #   mountPath: /var/opt/magma/{{ . }}
-  #   readOnly: true
-  # {{- end }}
-  # {{- if .Values.secret.configs }}
-  # {{- range $module, $secretName := .Values.secret.configs }}
-  # - name: {{ $secretName }}-{{ $module }}
-  #   mountPath: {{ print "/var/opt/magma/configs/" $module }}
-  #   readOnly: true
-  # {{- end }}
-  # {{- else }}
-  # - name: "empty-configs"
-  #   mountPath: /var/opt/magma/configs
-  #   readOnly: true
-  # {{- end }}
 ports:
   - name: http
     containerPort: 8080
