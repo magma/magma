@@ -1,0 +1,267 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Inbound Roaming · Magma Documentation</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="*Last Updated: 4/08/2021*"/><meta name="docsearch:version" content="1.5.0"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Inbound Roaming · Magma Documentation"/><meta property="og:type" content="website"/><meta property="og:url" content="https://magma.github.io/magma/"/><meta property="og:description" content="*Last Updated: 4/08/2021*"/><meta property="og:image" content="https://magma.github.io/magma/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://magma.github.io/magma/img/docusaurus.png"/><link rel="shortcut icon" href="/magma/img/icon.png"/><link rel="stylesheet" href="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.css"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/magma/js/scrollSpy.js"></script><link rel="stylesheet" href="/magma/css/main.css"/><script src="/magma/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/magma/"><img class="logo" src="/magma/img/magma-logo.svg" alt="Magma Documentation"/><h2 class="headerTitleWithLogo">Magma Documentation</h2></a><a href="/magma/versions"><h3>1.5.0</h3></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="https://magmacore.org" target="_self">Home</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="/magma/" target="_self">Docs</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://github.com/magma" target="_self">Code</a></li><li class=""><a target="_self"> | </a></li><li class=""><a href="https://magmacore.org/community" target="_self">Community</a></li><li class="navSearchWrapper reactNavSearchWrapper"><input type="text" id="search_input_react" placeholder="Search" title="Search"/></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><div class="hamburger-menu"><div class="line1"></div><div class="line2"></div><div class="line3"></div></div></div><h2><i>›</i><span>How-To</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Getting Started<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/basics/introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/basics/prerequisites">Prerequisites</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/basics/quick_start_guide">Quick Start Guide</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Usage<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">How-To</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/ue_metering">UE Usage Metering</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/config_agw_bridged">AGW Bridged Mode</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/call_tracing">Call Tracing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/events_monitoring">Events Monitoring</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/magma/docs/howtos/inbound_roaming">Inbound Roaming</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/thanos">Thanos</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dashboard">Dashboard</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/equipment">Equipment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/network">Network</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/subscriber">Subscriber</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/traffic">Traffic</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/metrics">Metrics</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/alerts">Alerts</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/tips_and_tricks">Tips and Tricks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Troubleshooting</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/agw_unable_to_checkin">Access Gateway Unable to Check-in to Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/user_unable_to_attach">User is unable to attach to Magma</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/update_certificates">Update rootCA and controller SSL certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/generate_admin_operator_certificates">Generate and update admin_operator certificates</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/howtos/troubleshooting/analyze_service_crashes_in_agw">Analyze Service crashes in AGW</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Architecture<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/architecture_overview">Overview</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/architecture_overview">Overview</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/architecture_modularity">Modularity</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/architecture_security">Security</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/nms_arch_overview">Overview</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Deploy<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_install">Install AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_install_ubuntu">Install AGW on Ubuntu 20.04</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_config_agw">Configure AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_config_enodebd">Configure eNodeB</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_config_apn">Configure an APN</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/deploy_config_agw_ha">Configure AGW for HA</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/build_install_magma_pkg_in_agw">Build and install a magma package in AGW</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/integrate_sentry">Sentry Integration</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_build">Build Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_install">Install Orchestrator</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/hold_terraform_state_on_s3">Hold Terraform state outside my local machine</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/override_values_of_terraform_files">Override values of Terraform files</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_orcl">Experimental Orc8r Deployer</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/deploy_faq">FAQs</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/deploy_config">Configure NMS</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Federation Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deploy_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deploy_build">Build FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deploy_install">Install FeG</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/feg/deploy_configure">Configure FeG</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Upgrade<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/upgrade_1_1">Upgrade to v1.1</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_intro">Introduction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_4">Upgrade to v1.4</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_3">Upgrade to v1.3</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_2">Upgrade to v1.2</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/upgrade_1_1">Upgrade to v1.1</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Debug<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/debug_show_tech">Show Tech</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/debug_dp_probe">Datapath Probe CLI</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/debug_logs">View Logs</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Contribute<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_onboarding">Developer Onboarding</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_workflow">Development Workflow</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_conventions">Contributing Conventions</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_ci_checks">Continuous Integration Checks</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/contributing/contribute_codeowners">Codeowners Workflow</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Technical Reference<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Access Gateway</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/lte/dev_notes">Developer Notes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/dev_unit_testing">Unit Testing</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/tr069">Add eNB TR-069 Support</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/s1ap_tests">S1AP Integration Tests</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/eventd">Event Reporting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/lte/access_service_restrictions">Restricting Network Access</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Orchestrator</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_testing">Testing Tips</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_minikube">Deploy on Minikube</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_security">Security</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_indexers">State Indexers</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/orc8r/dev_dependencies">Module Dependencies</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">NMS</h4><ul><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dev_spacing">Spacing Guidelines</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dev_themes">Themes</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/nms/dev_components">Components</a></li></ul></div></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">Proposals<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p001_vpn_config_from_api">Configurable VPN from Orchestrator API</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p002_scaled_prometheus_pipeline">Scaled Prometheus Pipeline</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p003_qos_enforcement">QoS Policy Configuration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p005_call_tracing">Call Tracing for Troubleshooting</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p007_header_enrichment">Header enrichment</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p008_apn_correction">MME APN Correction</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p009_nms_mariadb_migration">NMS MariaDB Migration</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p010_subscriber_scaling">Subscriber Scaling</a></li><li class="navListItem"><a class="navItem" href="/magma/docs/proposals/p011_victoriametrics">VictoriaMetrics as Magma&#x27;s TSDB</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle collapsible">FAQ<span class="arrow"><svg width="24" height="24" viewBox="0 0 24 24"><path fill="#565656" d="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z"></path><path d="M0 0h24v24H0z" fill="none"></path></svg></span></h3><ul class="hide"><li class="navListItem"><a class="navItem" href="/magma/docs/faq/faq_magma">Frequently Asked Questions</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              var headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                var el = event.target;
+                while(el !== headings){
+                  if (el.tagName === 'A') {
+                    document.body.classList.remove('tocActive');
+                    break;
+                  } else{
+                    el = el.parentNode;
+                  }
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"></header><article><div><span><p><em>Last Updated: 4/08/2021</em></p>
+<h1><a class="anchor" aria-hidden="true" id="inbound-roaming"></a><a href="#inbound-roaming" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Inbound Roaming</h1>
+<p>Inbound Roaming allows a Magma operator to provide service for subscribers
+belonging to other operators (roaming subscribers)</p>
+<p>Inbound Roaming requires Magma operator to reach agreements with
+other operators to have direct connectivity to their HSS through <code>S6a</code>
+(diameter) and PGW through <code>S8</code> (gtp) interfaces. VPN is suggested to reach
+those roaming services but is out of scope of Magma.</p>
+<h2><a class="anchor" aria-hidden="true" id="architecture"></a><a href="#architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architecture</h2>
+<p>Currently, we support two Architectures:</p>
+<ul>
+<li><strong>Non-Federated + Roaming</strong>: where local subscribers are stored in
+SubscriberDB and roaming subscribers use a remote Federated Gateway to reach HSS/PGW</li>
+<li><strong>Federated + Roaming</strong>: where local Subscribers use local Federated Gateway to reach
+HSS/PCRF/OCS and roam Subscribers use a remote Federated Gateway to reach HSS/PGW.</li>
+</ul>
+<p>The example below shows a possible architecture for a Non-Federated +
+roaming case. As you can see in the picture below, VPN is suggested to
+reach to the user plane at the remote PGW.</p>
+<p><img src="/magma/docs/assets/feg/inbound_roaming_architecture_non_federated.png?raw=true" alt="Magma events table" title="Non-Federated Inbound Roaming"></p>
+<p>Other configurations like SubscriberDB with PCRF/OCS to handle local
+subscribers may also work but are not tested yet.</p>
+<p>Configurations with SubscriberDB, local HSS and remote HSS all at the same
+time is not supported yet.</p>
+<h2><a class="anchor" aria-hidden="true" id="pre-requisites"></a><a href="#pre-requisites" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Pre Requisites</h2>
+<p>Before starting to configure roaming setups, first you need to bring up a
+setup to handle your own/local subscribers.</p>
+<p>Even one of the architectures mentions <code>Non-Federated</code>, Inbound Roaming
+requires a <code>Federated</code> setup to work. So the to configure Inbound Roaming
+you need:</p>
+<ul>
+<li>Functioning <a href="https://docs.magmacore.org/docs/orc8r/architecture_overview">Or8cr</a>,</li>
+<li>Install <a href="https://docs.magmacore.org/docs/feg/deploy_intro">Federatetion Gateway</a> and,</li>
+<li>Install <a href="https://docs.magmacoreorg/docs/lte/setup_deb">Access Gateway</a>.</li>
+<li>Configure it as a <a href="https://docs.magmacore.org/docs/feg/federated_FWA_setup_guide">Federated Deployment</a></li>
+<li>Make sure your setup is able to serve calls with your local subscribers
+(in case of using subscriber DB you will need to set <code>&quot;hss_relay_enabled&quot;: false</code> on Federated LTE Network temporally to test this. Set it back to
+<code>true</code> once tested!!)</li>
+</ul>
+<p>At the end of this you will have:</p>
+<ul>
+<li>A Federated LTE Network with an LTE Gateway (AGW)</li>
+<li>A Federation Network with a Federation Gateway (FEG)</li>
+</ul>
+<p>We will refer to them as <code>local</code> Networks and Gateways to differentiate them
+from the <code>roaming</code>Networks and Gateways we will create in the next step.</p>
+<p><em>Note that in case of <strong>Non-Federated + roaming</strong> you can skip the creation
+of the Federated Gateway, but you still need the Federated Gateway Network that will serve your
+Federated LTE Network.</em></p>
+<h2><a class="anchor" aria-hidden="true" id="inbound-roaming-configuration"></a><a href="#inbound-roaming-configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Inbound Roaming Configuration</h2>
+<p>The following instructions use Orc8r Swagger API to configure Inbound Roaming.
+You can do the same using Swagger API or NMS JSON editor.</p>
+<p>In these instructions we will mainly use GET and PUT methods to read and write
+from Swagger. We will use GET to see the content of Network/Gateway,
+we will copy and paste that into the result of GET into the PUT method to
+modify parameters.</p>
+<p>Below are the steps to add Inbound Roaming to your current setup:</p>
+<ul>
+<li>Create roaming Federated Networks and Gateways.</li>
+<li>Configure local Access Gateway Network routing based on PLMN.</li>
+<li>Configure local Federation Network routing based on PLMN.</li>
+<li>Check connectivity</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="1-create-roaming-federated-networks-and-federated-gateways"></a><a href="#1-create-roaming-federated-networks-and-federated-gateways" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>1. Create Roaming Federated Networks and Federated Gateways</h3>
+<p>Inbound Roaming needs as many FEG Networks as roaming agreements. Don't
+forget to create a Federated Gateway per FEG Network.</p>
+<p>Roaming FEG Networks do not need to serve any Federated LTE Network (only the
+FEG Network created on Pre Requisites needs to serve a Federated LTE Network)</p>
+<p>Those roaming Federated Gateways will need <code>S6a</code> and <code>S8</code> interfaces
+configured (make sure you have the other operators HSS and PGW
+parameters). To configure those interfaces go to <strong>Swagger API</strong>:</p>
+<ul>
+<li>Go to<code>Federation Gateways</code> GET method <code>Get a specific federation gateway</code> and search the configuration for one of those roaming
+FEG Networks.</li>
+<li>Copy/paste the response into the PUT method <code>Update an entire federation gateway record</code></li>
+<li>Edit the <code>6a</code> and <code>S8</code> fields (check the example from the GET method to
+see any missing parameter)</li>
+<li>Hit Execute (check no errors are show on the Swagger Responses)</li>
+<li>Run the GET method again to see the changes.</li>
+</ul>
+<p>Note that you need a routable IP to the roaming HSS and PGW to configure those
+interfaces.</p>
+<h3><a class="anchor" aria-hidden="true" id="2-configure-local-access-gateway-network-routing"></a><a href="#2-configure-local-access-gateway-network-routing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>2. Configure Local Access Gateway Network routing.</h3>
+<p>When a request gets to Access Gateway, this will have to be routed to
+the proper call flow to either use <code>SubscriberDB</code> or <code>S6a/S5</code> or<code>S6a/S8</code>.
+based on subscriber PLMN.</p>
+<p>To enable that routing you will have to configure it in your local Access
+Gateway Network we created in Pre Requisites. On <strong>Swagger API</strong>:</p>
+<ul>
+<li>Go to <code>Federated LTE Networks</code> and search using GET method <code>Describe a federated LTE network</code> your local (non roaming) Federated LTE Network</li>
+<li>Copy/paste the response into PUT method <code>Update an entire Federated LTE network</code></li>
+<li>Find a key <code>federation</code>. If you completed Pre Requisites properly, you
+should have there <code>feg_network_id</code> pointing to your FEG Network Modify/add</li>
+<li>Add the routing dictionary following the example, adding an entry per each
+PLMN</li>
+</ul>
+<pre><code class="hljs css language-text">  "federation": {
+    "federated_modes_mapping": {
+      "enabled": false,
+      "mapping": [
+        {
+          "apn": "",
+          "imsi_range": "",
+          "mode": "local_subscriber",
+          "plmn": "123456"
+        },
+        {
+          "apn": "",
+          "imsi_range": "",
+          "mode": "s8_subscriber",
+          "plmn": "9999"
+        }
+      ]
+    },
+    "feg_network_id": "example_feg_network"
+  },
+</code></pre>
+<ul>
+<li>Field <code>mode</code> will indicate the flow the subscriber will take. Use
+<code>local_subscriber</code> for PLMN served by your own SubscriberDB/HSS. Use
+<code>s8_subscriber</code> to use roam HSS and roam PGW. Leave <code>apn</code> and <code>imsi_range</code>
+blank since it is not supported yet.</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="3-configure-local-federation-network-routing"></a><a href="#3-configure-local-federation-network-routing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3. Configure Local Federation Network routing</h3>
+<p>When a request gets to the Orc8r, this will have to be routed to the proper
+FEG Network which serves that PLMN.</p>
+<p>To enable that routing you will have to configure it in your local FEG Network
+we created in Pre Requisites. On <strong>Swagger API</strong>:</p>
+<ul>
+<li>Go to <code>Federation Networks</code> and search using GET method <code>Describe a federation network</code> your local (non roaming) FEG Network</li>
+<li>Copy/paste the response into PUT method <code>Update an entire federation network</code></li>
+<li>Modify/add the <code>nh_routes</code> (see the example on Swagger API if it is
+missing from your configuration). On the map match the PLMN, and the name
+of the roam FEG Network.</li>
+</ul>
+<pre><code class="hljs">  <span class="hljs-string">"nh_routes"</span>: {
+      <span class="hljs-string">"00102"</span>: <span class="hljs-string">"inbound_feg"</span>,
+      <span class="hljs-string">"9999"</span>: <span class="hljs-string">"feg_roaming_network_1"</span>
+    },
+</code></pre>
+<ul>
+<li>Hit Execute (check no errors are show on the Swagger Responses)</li>
+<li>Run the GET method again to see the changes.</li>
+</ul>
+<h3><a class="anchor" aria-hidden="true" id="4-check-connectivity"></a><a href="#4-check-connectivity" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>4. Check Connectivity</h3>
+<ul>
+<li>From Access Gateway make sure your Access Gateway is able to reach PGW-U
+IP.</li>
+</ul>
+<pre><code class="hljs">   <span class="hljs-built_in"> ping </span>-I sgi_interface pgw_u_ip
+</code></pre>
+<ul>
+<li>Fom Federated Gateway make sure you can reach PGW-C IP and test your
+Federated Gateway can reach PGW using this command</li>
+</ul>
+<pre><code class="hljs">    cd /var/opt/magma/docker
+    sudo docker-compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server
+    192.168.32.118:2123 123456789012345
+    # where 192.168.32.118:2123 is the<span class="hljs-built_in"> ip </span><span class="hljs-keyword">and</span><span class="hljs-built_in"> port </span>of the PGW-C
+    # where 123456789012345 is a valid imsi (<span class="hljs-keyword">if</span> you use a <span class="hljs-keyword">not</span> valid imsi
+    you can still check the connectivity, but you will <span class="hljs-builtin-name">get</span> a GTP <span class="hljs-builtin-name">error</span> back
+    <span class="hljs-keyword">from</span> PGW
+    # <span class="hljs-builtin-name">Add</span> -use_builtincli flag <span class="hljs-keyword">if</span> you don<span class="hljs-string">'t have a FEG setup properly yet
+</span></code></pre>
+<h2><a class="anchor" aria-hidden="true" id="test-and-troubleshooting"></a><a href="#test-and-troubleshooting" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Test and Troubleshooting</h2>
+<p>It is recommendable that before running the tests, enable some extra
+logging capabilities in both Access Gateway, and Federated Gateway to
+trace the call.</p>
+<p>For better details in Access Gateway logs:</p>
+<ul>
+<li>Enable <code>log_level: DEBUG</code> in <code>mme.yml</code> and <code>subscriberdb.yml</code></li>
+<li>Enable <code>print_grpc_payload: True</code> on <code>subscriberdb.yml</code></li>
+<li>Restart magma, so the changes are taken</li>
+<li>See the logs using <code>sudo journalctl -fu magma@mme</code> or sudo <code>journalctl -fu magma@subscriberdb</code></li>
+</ul>
+<p>For better details Federated Gateway logs:</p>
+<ul>
+<li>Add GRPC printing in the following services  <code>s6a_proxy</code>,
+<code>s8_proxy</code> adding <code>MAGMA_PRINT_GRPC_PAYLOAD: 1</code>. For example for s6a_proxy</li>
+</ul>
+<pre><code class="hljs">  <span class="hljs-attr">s6a_proxy:</span>
+    <span class="hljs-string">&lt;&lt;:</span> <span class="hljs-meta">*goservice</span>
+    <span class="hljs-attr">container_name:</span> <span class="hljs-string">s6a_proxy</span>
+    <span class="hljs-attr">command:</span> <span class="hljs-string">envdir</span> <span class="hljs-string">/var/opt/magma/envdir</span> <span class="hljs-string">/var/opt/magma/bin/s6a_proxy</span> <span class="hljs-string">-logtostderr=true</span> <span class="hljs-string">-v=0</span>
+    <span class="hljs-attr">environment:</span>
+      <span class="hljs-attr">MAGMA_PRINT_GRPC_PAYLOAD:</span> <span class="hljs-number">1</span>
+</code></pre>
+<ul>
+<li>Restart docker process, so the vars are taken <code>sudo docker-compose down</code> and
+<code>sudo docker-compose up -d</code></li>
+<li>Display the logs using for example<code>sudo docker-compose logs -f s8_proxy</code></li>
+</ul>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/howtos/header_enrichment"><span class="arrow-prev">← </span><span>Previous</span></a><a class="docs-next button" href="/magma/docs/howtos/thanos"><span>Thanos</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#architecture">Architecture</a></li><li><a href="#pre-requisites">Pre Requisites</a></li><li><a href="#inbound-roaming-configuration">Inbound Roaming Configuration</a><ul class="toc-headings"><li><a href="#1-create-roaming-federated-networks-and-federated-gateways">1. Create Roaming Federated Networks and Federated Gateways</a></li><li><a href="#2-configure-local-access-gateway-network-routing">2. Configure Local Access Gateway Network routing.</a></li><li><a href="#3-configure-local-federation-network-routing">3. Configure Local Federation Network routing</a></li><li><a href="#4-check-connectivity">4. Check Connectivity</a></li></ul></li><li><a href="#test-and-troubleshooting">Test and Troubleshooting</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+                document.addEventListener('keyup', function(e) {
+                  if (e.target !== document.body) {
+                    return;
+                  }
+                  // keyCode for '/' (slash)
+                  if (e.keyCode === 191) {
+                    const search = document.getElementById('search_input_react');
+                    search && search.focus();
+                  }
+                });
+              </script><script>
+              var search = docsearch({
+                
+                apiKey: 'f95caeb7bc059b294eec88e340e5445b',
+                indexName: 'magma',
+                inputSelector: '#search_input_react'
+              });
+            </script></body></html>
