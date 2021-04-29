@@ -363,7 +363,7 @@ static int update_bearer_context_info(
 
 static int sgw_s8_send_create_session_response(
     sgw_state_t* sgw_state, sgw_eps_bearer_context_information_t* sgw_context_p,
-    s8_create_session_response_t* session_rsp_p) {
+    s8_create_session_response_t* const session_rsp_p) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   MessageDef* message_p                                         = NULL;
   itti_s11_create_session_response_t* create_session_response_p = NULL;
