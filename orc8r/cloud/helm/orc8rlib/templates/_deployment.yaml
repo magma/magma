@@ -56,22 +56,6 @@ spec:
           secret:
             secretName: orc8r-{{ . }}-tls
         {{- end }}
-        # - name: certs
-        #   secret:
-        #     secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
-        # - name: envdir
-        #   secret:
-        #     secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
-        # {{- if .Values.secret.configs }}
-        # {{- range $module, $secretName := .Values.secret.configs }}
-        # - name: {{ $secretName }}-{{ $module }}
-        #   secret:
-        #     secretName: {{ $secretName }}
-        # {{- end }}
-        # {{- else }}
-        # - name: "empty-configs"
-        #   emptyDir: {}
-        # {{- end }}
       containers:
       -
 {{ include "orc8rlib.container.tpl" . | indent 8 }}
