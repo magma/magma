@@ -36,7 +36,7 @@ class ICMPMonitoring(Job):
                  mtr_interface: str):
         super().__init__(interval=CHECKIN_INTERVAL, loop=service_loop)
         self._MTR_PORT = mtr_interface
-        logging.info("Running on interface %s..." % self._MTR_PORT)
+        logging.info("Running on interface %s...", self._MTR_PORT)
         # Matching response time output to get latency
         self._polling_interval = max(polling_interval,
                                      DEFAULT_POLLING_INTERVAL)

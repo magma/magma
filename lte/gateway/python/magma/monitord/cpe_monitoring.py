@@ -17,7 +17,7 @@ from time import time
 from typing import Dict, List, NamedTuple, Optional
 
 import grpc
-from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.service_registry import ServiceRegistry
@@ -90,8 +90,8 @@ class CpeMonitoringModule:
             latency_ms=ping_resp.stats.rtt_avg)
         subscriber_icmp_latency_ms.labels(sid).observe(ping_resp.stats.rtt_avg)
         logging.info(
-            '{}:{} => {}ms'.format(sid, ip_addr,
-                                   self._subscriber_state[sid].latency_ms))
+            '%s:%s => %sms', sid, ip_addr,
+                                   self._subscriber_state[sid].latency_ms)
 
     def get_subscriber_state(self) -> Dict[str, ICMPMonitoringResponse]:
         return self._subscriber_state

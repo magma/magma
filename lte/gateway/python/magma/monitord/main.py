@@ -46,8 +46,8 @@ def main():
                 ip = IPAddress(version=IPAddress.IPV4,
                                address=str.encode(data["ip"]))
                 logging.debug(
-                    'Adding {}:{}:{} to ping target'.format(target, ip.version,
-                                                            ip.address))
+                    'Adding %s:%s:%s to ping target',target, ip.version,
+                                                            ip.address)
                 manual_ping_targets[target] = ip
     except KeyError:
         logging.warning("No ping targets configured")

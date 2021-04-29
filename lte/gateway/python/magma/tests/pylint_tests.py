@@ -24,8 +24,8 @@ class MagmaPyLintTest(unittest.TestCase):
             self.skipTest(
                 'Pylint not available, probably because this test is running '
                 'under @mode/opt: {}'.format(
-                    pylint_wrapper.PYLINT_IMPORT_PROBLEM
-                )
+                    pylint_wrapper.PYLINT_IMPORT_PROBLEM,
+                ),
             )
 
         py_wrap = pylint_wrapper.PyLintWrapper(
@@ -46,12 +46,12 @@ class MagmaPyLintTest(unittest.TestCase):
             'enodebd',
             # 'health',
             # 'mobilityd',
-            # 'monitord',
+            'monitord',
             'pipelined',
-            # 'pkt_tester',
+            'pkt_tester',
             'policydb',
-            # 'redirectd',
-            # 'smsd',
+            'redirectd',
+            'smsd',
             'subscriberdb',
         ]
         parent_path = os.path.dirname(os.path.dirname(__file__))
