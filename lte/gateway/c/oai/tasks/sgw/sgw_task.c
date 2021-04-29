@@ -193,7 +193,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   }
 
   put_spgw_state();
-  put_spgw_ue_state(spgw_state, imsi64);
+  put_spgw_ue_state(imsi64);
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);

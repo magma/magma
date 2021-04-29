@@ -236,8 +236,7 @@ int spgw_handle_nw_initiated_bearer_actv_req(
       "Received Create Bearer Req from PCRF with lbi:%d IMSI\n" IMSI_64_FMT,
       bearer_req_p->lbi, imsi64);
 
-  // TODO: Revisit this if UE context struct manages multiple PDN connections
-  hashtblP = get_spgw_ue_state();
+  hashtblP = get_spgw_teid_state();
   if (!hashtblP) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
@@ -344,7 +343,7 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
       "Received nw_initiated_deactv_bearer_req from SPGW service \n");
   print_bearer_ids_helper(bearer_req_p->ebi, bearer_req_p->no_of_bearers);
 
-  hashtblP = get_spgw_ue_state();
+  hashtblP = get_spgw_teid_state();
   if (hashtblP == NULL) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,

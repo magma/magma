@@ -166,20 +166,20 @@ func TestMacGeneration(t *testing.T) {
 		t.Fatalf("Invalid MAC Len: %d", len(mac))
 	}
 	// compare generated MAC with expected
-	if !reflect.DeepEqual(mac, []byte(expectedMac)) {
+	if !reflect.DeepEqual(mac, expectedMac) {
 		t.Fatalf(
 			"MACs don't match.\n\tGenerated MAC(%d): %v\n\tExpected  MAC(%d): %v",
-			len(mac), mac, len(expectedMac), []byte(expectedMac))
+			len(mac), mac, len(expectedMac), expectedMac)
 	}
 	mac = GenChallengeMac(challengeTestData, sres, K_aut)
 	if len(mac) != 16 {
 		t.Fatalf("Invalid Challenge MAC Len: %d", len(mac))
 	}
 	// compare generated ChallengeMAC with expected
-	if !reflect.DeepEqual(mac, []byte(expectedChellengeMac)) {
+	if !reflect.DeepEqual(mac, expectedChellengeMac) {
 		t.Fatalf(
 			"Challenge MACs don't match.\n\tGenerated MAC(%d): %v\n\tExpected  MAC(%d): %v",
-			len(mac), mac, len(expectedChellengeMac), []byte(expectedChellengeMac))
+			len(mac), mac, len(expectedChellengeMac), expectedChellengeMac)
 	}
 }
 

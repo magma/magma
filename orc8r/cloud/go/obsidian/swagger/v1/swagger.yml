@@ -6919,7 +6919,7 @@ definitions:
     properties:
       package_repo:
         description: URL of debian package repo
-        example: http://packages.magma.etagecom.io
+        example: https://artifactory.magmacore.org/artifactory/debian/
         minLength: 1
         type: string
       release_channel:

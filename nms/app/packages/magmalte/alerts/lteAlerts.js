@@ -102,6 +102,15 @@ export default function getLteAlerts(
       labels: {severity: 'minor'},
       annotations: {description: 'Alerts when we have UE attach failures'},
     },
+    'High duplicate attach requests': {
+      alert: 'High duplicate attach requests',
+      expr: `sum(increase(duplicate_attach_request{networkID="${networkID}"}[5m])) > 200`,
+      labels: {severity: 'critical'},
+      annotations: {
+        description:
+          'Alert when there are a large number of duplicate attach requests',
+      },
+    },
     'Gateway Checkin Failure': {
       alert: 'Gateway Checkin Failure',
       expr: `checkin_status{networkID=~"${networkID}"} < 1`,

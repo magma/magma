@@ -249,15 +249,15 @@ func (s *swxProxy) createMAR(sid string, req *protos.AuthenticationRequest) (*di
 	msg.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Realm))
 	msg.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(req.GetUserName()))
 	msg.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
-	msg.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, uint32(diameter.Vendor3GPP), datatype.Unsigned32(req.GetSipNumAuthVectors()))
+	msg.NewAVP(avp.SIPNumberAuthItems, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(req.GetSipNumAuthVectors()))
 	msg.NewAVP(avp.RATType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(RadioAccessTechnologyType_WLAN))
 	authDataAvp := []*diam.AVP{
-		diam.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, uint32(diameter.Vendor3GPP), datatype.UTF8String(authScheme)),
+		diam.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(authScheme)),
 	}
 	if len(req.GetResyncInfo()) > 0 {
 		authDataAvp = append(
 			authDataAvp,
-			diam.NewAVP(avp.SIPAuthorization, avp.Mbit|avp.Vbit, uint32(diameter.Vendor3GPP), datatype.OctetString(req.GetResyncInfo())),
+			diam.NewAVP(avp.SIPAuthorization, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(req.GetResyncInfo())),
 		)
 	}
 	msg.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{AVP: authDataAvp})
@@ -295,7 +295,7 @@ func getSIPAuthenticationVectors(items []SIPAuthDataItem) []*protos.Authenticati
 		authVectors = append(
 			authVectors,
 			&protos.AuthenticationAnswer_SIPAuthVector{
-				AuthenticationScheme: protos.AuthenticationScheme(authScheme),
+				AuthenticationScheme: authScheme,
 				RandAutn:             item.Authenticate.Serialize(),
 				Xres:                 item.Authorization.Serialize(),
 				ConfidentialityKey:   item.ConfidentialityKey.Serialize(),
@@ -306,17 +306,17 @@ func getSIPAuthenticationVectors(items []SIPAuthDataItem) []*protos.Authenticati
 
 func validateAuthRequest(req *protos.AuthenticationRequest) error {
 	if req == nil {
-		return fmt.Errorf("Nil authentication request provided")
+		return fmt.Errorf("nil authentication request provided")
 	}
 	if len(req.GetUserName()) == 0 {
-		return fmt.Errorf("Empty user-name provided in authentication request")
+		return fmt.Errorf("empty user-name provided in authentication request")
 	}
 	if req.SipNumAuthVectors == 0 {
 		return fmt.Errorf("SIPNumAuthVectors in authentication request must be greater than 0")
 	}
 	// imsi cannot be greater than 15 digits according to 3GPP Spec 23.003
 	if len(req.GetUserName()) > 15 {
-		return fmt.Errorf("Provided username %s is greater than 15 digits", req.GetUserName())
+		return fmt.Errorf("provided username %s is greater than 15 digits", req.GetUserName())
 	}
 	return nil
 }
@@ -328,7 +328,7 @@ func convertStringToAuthScheme(maaScheme string) (protos.AuthenticationScheme, e
 	case SipAuthScheme_EAP_AKA_PRIME:
 		return protos.AuthenticationScheme_EAP_AKA_PRIME, nil
 	default:
-		return protos.AuthenticationScheme_EAP_AKA, fmt.Errorf("Unrecognized Authentication Scheme returned: %s", maaScheme)
+		return protos.AuthenticationScheme_EAP_AKA, fmt.Errorf("unrecognized Authentication Scheme returned: %s", maaScheme)
 	}
 }
 
@@ -339,6 +339,6 @@ func convertAuthSchemeToString(scheme protos.AuthenticationScheme) (string, erro
 	case protos.AuthenticationScheme_EAP_AKA_PRIME:
 		return SipAuthScheme_EAP_AKA_PRIME, nil
 	default:
-		return "", fmt.Errorf("Unrecognized Authentication Scheme returned: %v", scheme)
+		return "", fmt.Errorf("unrecognized Authentication Scheme returned: %v", scheme)
 	}
 }

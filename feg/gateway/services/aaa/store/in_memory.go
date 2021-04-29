@@ -260,7 +260,7 @@ func cleanupTimer(ctx *cleanupTimerCtx) {
 		ctx.owner.rwl.Lock()
 		if ctx.owner.sm != nil {
 			if ms, ok := ctx.owner.sm[ctx.sidKey]; ok && ms == ctx.s {
-				if atomic.CompareAndSwapPointer((*unsafe.Pointer)(&ms.cleanupTimerCtx), unsafe.Pointer(ctx), nil) {
+				if atomic.CompareAndSwapPointer(&ms.cleanupTimerCtx, unsafe.Pointer(ctx), nil) {
 					delete(ctx.owner.sm, ctx.sidKey)
 					if oldSid, ok := ctx.owner.sids[ms.imsi]; ok && oldSid == ctx.sidKey {
 						delete(ctx.owner.sids, ms.imsi)

@@ -195,7 +195,6 @@ func TestGxClient(t *testing.T) {
 	assert.Equal(t, ipv6addr[:6], []byte{0, 0x80, 0xfd, 0xfa, 0xce, 0xb0})
 	assert.NotEqual(t, ipv6addr[6:10], []byte{0x0c, 0xab, 0xcd, 0xef})
 	assert.Equal(t, ipv6addr[10:], []byte{0x2, 0x0, 0x5e, 0xff, 0xfe, 0x0, 0x53, 0x1})
-
 }
 
 // TestGxClient tests CCR init and terminate messages using a fake PCRF and a specific GxGlobalConfig
