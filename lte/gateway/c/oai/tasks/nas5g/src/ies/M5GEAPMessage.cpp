@@ -38,7 +38,6 @@ int EAPMessageMsg::DecodeEAPMessageMsg(
 // Encode EAP Message
 int EAPMessageMsg::EncodeEAPMessageMsg(
     EAPMessageMsg* eap_message, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint16_t* lenPtr;
   uint32_t encoded = 0;
 
   // Checking IEI and pointer

@@ -30,7 +30,7 @@
 #include "MetricsSingleton.h"                      // for MetricsSingleton
 #include "ProcFileUtils.h"                         // for ProcFileUtils::mem...
 #include "ServiceRegistrySingleton.h"              // for ServiceRegistrySin...
-#include "magma_logging.h"                         // for set_verbosity
+#include "magma_logging_init.h"                    // for set_verbosity
 #include "orc8r/protos/metrics.pb.h"               // for MetricFamily
 #include "orc8r/protos/metricsd.pb.h"              // for MetricsContainer
 #include "registry.h"                              // for Registry

@@ -91,7 +91,7 @@ void init_logging(const char* app_name, uint32_t default_verbosity) {
 
   sort(glog_files.begin(), glog_files.end());
   if (glog_files.size() <= 10) return;
-  for (int i = 0; i < glog_files.size() - 10; ++i) {
+  for (long unsigned int i = 0; i < glog_files.size() - 10; ++i) {
     std::remove(glog_files[i].c_str());
   }
 }
