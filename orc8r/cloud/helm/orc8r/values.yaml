@@ -117,7 +117,7 @@ nginx:
   # Settings affecting nginx application
   spec:
     # magma controller domain name
-    hostname: "controller.magmalocal.com" # by Shubham
+    hostname: "controller.localhost" # by Shubham
     # when nginx sees a variable in a server_name it needs a resolver
     # by default we'll use kube-dns
     resolver: "kube-dns.kube-system.svc.cluster.local valid=10s"
