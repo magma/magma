@@ -54,7 +54,7 @@ spec:
         {{- range tuple "admin-operator" "bootstrapper" "controller" "certifier" "fluentd" "root" "nms" }}
         - name: {{ . }}
           secret:
-            secretName: orc8r-{{ . }}-tls
+            secretName: {{ $.Release.Name }}-{{ . }}-tls
         {{- end }}
       containers:
       -
