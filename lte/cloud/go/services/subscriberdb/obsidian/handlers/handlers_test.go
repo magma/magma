@@ -497,7 +497,8 @@ func TestListSubscribersV2(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	expectedResult := subscriberModels.PaginatedSubscribers{NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{}}
+	expectedTotalCount := int64(0)
+	expectedResult := subscriberModels.PaginatedSubscribers{TotalCount: expectedTotalCount, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{}}
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,
@@ -509,6 +510,8 @@ func TestListSubscribersV2(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// Set the total expected count to 3, the number of subscribers created below
+	expectedResult.TotalCount = 3
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{

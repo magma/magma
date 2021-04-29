@@ -20,6 +20,7 @@
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
+#include <lte/protos/session_manager.pb.h>
 #include <grpcpp/channel.h>
 
 #include "DiameterCodes.h"
@@ -33,6 +34,7 @@ namespace magma {
 uint32_t LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT = 2000;
 uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY                = 2000;
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE                      = false;
+bool LocalEnforcer::CLEANUP_DANGLING_FLOWS                    = true;
 
 using google::protobuf::RepeatedPtrField;
 
@@ -231,6 +233,10 @@ void LocalEnforcer::aggregate_records(
   // Insert the IMSI+SessionID for sessions we received a rule record into a set
   // for easy access
   std::unordered_set<ImsiAndSessionID> sessions_with_reporting_flows;
+  // In some failure cases, PipelineD may still hold onto flows for sessions
+  // that do not exist in SessionD. In this case, send DeactivateFlowsRequest
+  RuleRecordSet dead_sessions_to_cleanup;
+
   for (const RuleRecord& record : records.records()) {
     const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
     // TODO IPv6 add ipv6 to search criteria
@@ -239,6 +245,7 @@ void LocalEnforcer::aggregate_records(
     if (!session_it) {
       MLOG(MERROR) << "Could not find session for " << imsi << " and " << ip
                    << " during record aggregation";
+      dead_sessions_to_cleanup.insert(record);
       continue;
     }
     auto& session          = **session_it;
@@ -257,6 +264,30 @@ void LocalEnforcer::aggregate_records(
   }
   complete_termination_for_released_sessions(
       session_map, sessions_with_reporting_flows, session_update);
+  cleanup_dead_sessions(dead_sessions_to_cleanup);
+}
+
+void LocalEnforcer::cleanup_dead_sessions(
+    const RuleRecordSet dead_sessions_to_cleanup) {
+  if (dead_sessions_to_cleanup.size() == 0) {
+    return;
+  }
+  if (!CLEANUP_DANGLING_FLOWS) {
+    MLOG(MWARNING) << "Not cleaning up " << dead_sessions_to_cleanup.size()
+                   << " dangling sessions in PipelineD due to "
+                      "'cleanup_all_dangling_flows: false' in sessiond.yml";
+    return;
+  }
+
+  MLOG(MINFO) << "Deactivating " << dead_sessions_to_cleanup.size()
+              << " dangling sessions in PipelineD";
+  for (const RuleRecord& record : dead_sessions_to_cleanup) {
+    Teids teids;
+    teids.set_agw_teid(record.teid());
+    pipelined_client_->deactivate_flows_for_rules_for_termination(
+        record.sid(), record.ue_ipv4(), record.ue_ipv6(), teids,
+        RequestOriginType::WILDCARD);
+  }
 }
 
 void LocalEnforcer::complete_termination_for_released_sessions(
@@ -297,11 +328,11 @@ void LocalEnforcer::execute_actions(
     auto session_id = action_p->get_session_id();
     switch (action_p->get_type()) {
       case ACTIVATE_SERVICE:
-        handle_activate_service_action(session_map, action_p, session_update);
+        handle_activate_service_action(action_p);
         break;
       case REDIRECT:
       case RESTRICT_ACCESS: {
-        install_final_unit_action_flows(session_map, action_p, session_update);
+        install_final_unit_action_flows(action_p);
         break;
       }
       case TERMINATE_SERVICE: {
@@ -321,16 +352,14 @@ void LocalEnforcer::execute_actions(
 
 // TODO look into whether we need to re-install all Gx rules on activation
 void LocalEnforcer::handle_activate_service_action(
-    SessionMap& session_map, const std::unique_ptr<ServiceAction>& action_p,
-    SessionUpdate& session_update) {
+    const std::unique_ptr<ServiceAction>& action_p) {
   const std::string imsi      = action_p->get_imsi(),
                     msisdn    = action_p->get_msisdn(),
                     ip_addr   = action_p->get_ip_addr(),
                     ipv6_addr = action_p->get_ipv6_addr();
   const Teids teids           = action_p->get_teids();
   const auto ambr             = action_p->get_ambr();
-  RulesToProcess to_process;
-  to_process.rules = action_p->get_rule_definitions();
+  RulesToProcess to_process   = action_p->get_gx_rules_to_install();
   pipelined_client_->activate_flows_for_rules(
       imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
       std::bind(
@@ -413,12 +442,7 @@ void LocalEnforcer::remove_all_rules_for_termination(
   const auto ipv6_addr      = session->get_config().common_context.ue_ipv6();
   const Teids teids         = session->get_config().common_context.teids();
   pipelined_client_->deactivate_flows_for_rules_for_termination(
-      imsi, ip_addr, ipv6_addr, teids, RequestOriginType::GX);
-  if (!session->get_all_final_unit_rules().empty()) {
-    pipelined_client_->deactivate_flows_for_rules_for_termination(
-        imsi, ip_addr, ipv6_addr, teids, RequestOriginType::GY);
-  }
-
+      imsi, ip_addr, ipv6_addr, teids, RequestOriginType::WILDCARD);
   session->remove_all_rules_for_termination(uc);
 }
 
@@ -475,94 +499,22 @@ void LocalEnforcer::handle_subscriber_quota_state_change(
   handle_subscriber_quota_state_change(imsi, session, new_state, unused);
 }
 
-// TODO: make session_manager.proto and policydb.proto to use common field
-static RedirectInformation_AddressType address_type_converter(
-    RedirectServer_RedirectAddressType address_type) {
-  switch (address_type) {
-    case RedirectServer_RedirectAddressType_IPV4:
-      return RedirectInformation_AddressType_IPv4;
-    case RedirectServer_RedirectAddressType_IPV6:
-      return RedirectInformation_AddressType_IPv6;
-    case RedirectServer_RedirectAddressType_URL:
-      return RedirectInformation_AddressType_URL;
-    case RedirectServer_RedirectAddressType_SIP_URI:
-      return RedirectInformation_AddressType_SIP_URI;
-    default:
-      MLOG(MERROR) << "Unknown redirect address type!";
-      return RedirectInformation_AddressType_IPv4;
-  }
-}
-
-PolicyRule LocalEnforcer::create_redirect_rule(
-    const std::unique_ptr<ServiceAction>& action) {
-  PolicyRule redirect_rule;
-  redirect_rule.set_id("redirect");
-  redirect_rule.set_priority(LocalEnforcer::REDIRECT_FLOW_PRIORITY);
-
-  RedirectInformation* redirect_info = redirect_rule.mutable_redirect();
-  redirect_info->set_support(RedirectInformation_Support_ENABLED);
-
-  auto redirect_server = action->get_redirect_server();
-  redirect_info->set_address_type(
-      address_type_converter(redirect_server.redirect_address_type()));
-  redirect_info->set_server_address(redirect_server.redirect_server_address());
-
-  return redirect_rule;
-}
-
 void LocalEnforcer::install_final_unit_action_flows(
-    SessionMap& session_map, const std::unique_ptr<ServiceAction>& action,
-    SessionUpdate& session_update) {
-  const auto &imsi = action->get_imsi(), &session_id = action->get_session_id();
-  // First check if the UE IPv4 field is filled out & ready to use
-  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
-  auto session_it = session_store_.find_session(session_map, criteria);
-  if (!session_it) {
-    MLOG(MERROR) << session_id
-                 << " not found for installing final unit action flows";
-    return;
-  }
-  auto& session_uc           = session_update[imsi][session_id];
-  auto& session              = **session_it;
-  const auto config          = session->get_config().common_context;
-  const std::string &ip_addr = config.ue_ipv4(), &ipv6_addr = config.ue_ipv6(),
-                    &msisdn = config.msisdn();
-  const Teids teids         = config.teids();
-  const auto fua_type       = action->get_type();
-  RuleLifetime lifetime;
+    const std::unique_ptr<ServiceAction>& action_p) {
+  const std::string imsi       = action_p->get_imsi(),
+                    msisdn     = action_p->get_msisdn(),
+                    ip_addr    = action_p->get_ip_addr(),
+                    ipv6_addr  = action_p->get_ipv6_addr(),
+                    session_id = action_p->get_session_id();
+  const Teids teids            = action_p->get_teids();
+  const auto fua_type          = action_p->get_type();
 
   MLOG(MINFO) << "Installing final unit action "
               << service_action_type_to_str(fua_type) << " flows for "
               << session_id;
-
-  switch (fua_type) {
-    case REDIRECT: {
-      // This is GY based REDIRECT, GX redirect will come in as a regular
-      // rule
-      const auto& rule = create_redirect_rule(action);
-      // check if the rule has been installed already.
-      if (!session->is_gy_dynamic_rule_installed(rule.id())) {
-        RulesToProcess to_process;
-        to_process.rules = std::vector<PolicyRule>{rule};
-        pipelined_client_->add_gy_final_action_flow(
-            imsi, ip_addr, ipv6_addr, teids, msisdn, to_process);
-        session->insert_gy_dynamic_rule(rule, lifetime, session_uc);
-      }
-      return;
-    }
-    case RESTRICT_ACCESS: {
-      RulesToProcess to_process;
-      to_process.rules = action->get_restrict_rules();
-      pipelined_client_->add_gy_final_action_flow(
-          imsi, ip_addr, ipv6_addr, teids, msisdn, to_process);
-      return;
-    }
-    default:
-      MLOG(MDEBUG) << "Unexpected final unit action install "
-                   << service_action_type_to_str(fua_type) << " for "
-                   << session_id;
-      return;
-  }
+  RulesToProcess to_process = action_p->get_gy_rules_to_install();
+  pipelined_client_->add_gy_final_action_flow(
+      imsi, ip_addr, ipv6_addr, teids, msisdn, to_process);
 }
 
 UpdateSessionRequest LocalEnforcer::collect_updates(
@@ -661,13 +613,20 @@ void LocalEnforcer::schedule_static_rule_activation(
                          << "during installation of static rule " << rule_id;
           return;
         }
+        PolicyRule rule;
+        if (!rule_store_->get_rule(rule_id, &rule)) {
+          MLOG(MWARNING) << "Could not find static rules definition for "
+                         << rule_id;
+          return;
+        }
+
         auto& session = **session_it;
         auto& uc      = session_update[imsi][session_id];
 
         std::time_t current_time = time(nullptr);
         // don't install the rule if the current time is out of lifetime
-        if (session->should_rule_be_active(rule_id, current_time)) {
-          session->deactivate_scheduled_static_rule(rule_id, uc);
+        if (!session->should_rule_be_active(rule_id, current_time)) {
+          session->deactivate_scheduled_static_rule(rule_id);
           session_store_.update_sessions(session_update);
           return;
         }
@@ -679,11 +638,10 @@ void LocalEnforcer::schedule_static_rule_activation(
         const auto ambr           = config.get_apn_ambr();
         const std::string msisdn  = config.common_context.msisdn();
 
-        session->install_scheduled_static_rule(rule_id, uc);
-        PolicyRule rule;
-        rule_store_->get_rule(rule_id, &rule);
+        uint32_t version = session->activate_static_rule(
+            rule_id, session->get_rule_lifetime(rule_id), uc);
         RulesToProcess to_process;
-        to_process.rules = std::vector<PolicyRule>{rule};
+        to_process.append_versioned_policy(rule, version);
 
         pipelined_client_->activate_flows_for_rules(
             imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
@@ -721,7 +679,7 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
         }
         // don't install the rule if the current time is out of lifetime
         std::time_t current_time = time(nullptr);
-        if (session->should_rule_be_active(rule_id, current_time)) {
+        if (!session->should_rule_be_active(rule_id, current_time)) {
           session->remove_scheduled_dynamic_rule(rule_id, nullptr, session_uc);
           session_store_.update_sessions(session_update);
           return;
@@ -734,11 +692,17 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
         const auto ambr      = config.get_apn_ambr();
         const auto msisdn    = config.common_context.msisdn();
 
-        session->install_scheduled_dynamic_rule(rule_id, session_uc);
-        PolicyRule policy;
-        session->get_scheduled_dynamic_rules().get_rule(rule_id, &policy);
+        PolicyRule rule;
+        if (!session->remove_scheduled_dynamic_rule(
+                rule_id, &rule, session_uc)) {
+          MLOG(MWARNING) << "Dynamic rule " << rule_id << " doesn't exist for "
+                         << session_id;
+          return;
+        }
+        uint32_t version = session->insert_dynamic_rule(
+            rule, session->get_rule_lifetime(rule_id), session_uc);
         RulesToProcess to_process;
-        to_process.rules = std::vector<PolicyRule>{policy};
+        to_process.append_versioned_policy(rule, version);
 
         pipelined_client_->activate_flows_for_rules(
             imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
@@ -755,9 +719,8 @@ void LocalEnforcer::schedule_static_rule_deactivation(
     const std::string& imsi, const std::string& session_id,
     const std::string& rule_id, const std::time_t deactivation_time) {
   auto delta = magma::time_difference_from_now(deactivation_time);
-  MLOG(MDEBUG) << "Scheduling session " << session_id << " static rule "
-               << rule_id << " deactivation in " << (delta.count() / 1000)
-               << " secs";
+  MLOG(MDEBUG) << "Scheduling " << session_id << " static rule " << rule_id
+               << " deactivation in " << (delta.count() / 1000) << " secs";
   evb_->runAfterDelay(
       [=] {
         auto session_map = session_store_.read_sessions(SessionRead{imsi});
@@ -766,8 +729,8 @@ void LocalEnforcer::schedule_static_rule_deactivation(
         SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
         auto session_it = session_store_.find_session(session_map, criteria);
         if (!session_it) {
-          MLOG(MWARNING) << "Could not find session  " << session_id
-                         << "during removal of static rule " << rule_id;
+          MLOG(MERROR) << "Could not find session  " << session_id
+                       << "during removal of static rule " << rule_id;
           return;
         }
         auto& session = **session_it;
@@ -783,17 +746,21 @@ void LocalEnforcer::schedule_static_rule_deactivation(
         auto ip_addr      = session->get_config().common_context.ue_ipv4();
         auto ipv6_addr    = session->get_config().common_context.ue_ipv6();
         const Teids teids = session->get_config().common_context.teids();
-        RulesToProcess to_process;
-        to_process.rules = std::vector<PolicyRule>{rule};
 
+        auto& session_uc = session_update[imsi][session_id];
+        optional<uint32_t> op_version =
+            session->deactivate_static_rule(rule_id, session_uc);
+        if (!op_version) {
+          MLOG(MERROR) << "Could not find rule " << rule_id << " for "
+                       << session_id << " during static rule removal";
+          return;
+        }
+
+        RulesToProcess to_process;
+        to_process.append_versioned_policy(rule, *op_version);
         pipelined_client_->deactivate_flows_for_rules(
             imsi, ip_addr, ipv6_addr, teids, to_process, RequestOriginType::GX);
 
-        auto& session_uc = session_update[imsi][session_id];
-        if (!session->deactivate_static_rule(rule_id, session_uc)) {
-          MLOG(MWARNING) << "Could not find rule " << rule_id << " for "
-                         << session_id << " during static rule removal";
-        }
         session_store_.update_sessions(session_update);
       },
       delta.count());
@@ -803,9 +770,8 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
     const std::string& imsi, const std::string& session_id,
     const std::string& rule_id, const std::time_t deactivation_time) {
   auto delta = magma::time_difference_from_now(deactivation_time);
-  MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " dynamic rule "
-               << rule_id << " deactivation in " << (delta.count() / 1000)
-               << " secs";
+  MLOG(MDEBUG) << "Scheduling " << session_id << " dynamic rule " << rule_id
+               << " deactivation in " << (delta.count() / 1000) << " secs";
   evb_->runAfterDelay(
       [=] {
         auto session_map = session_store_.read_sessions(SessionRead{imsi});
@@ -827,13 +793,16 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
         const Teids teids = session->get_config().common_context.teids();
 
         PolicyRule policy;
-        session->get_scheduled_dynamic_rules().get_rule(rule_id, &policy);
-        RulesToProcess to_process;
-        to_process.rules = std::vector<PolicyRule>{policy};
-        pipelined_client_->deactivate_flows_for_rules(
-            imsi, ip_addr, ipv6_addr, teids, to_process, RequestOriginType::GX);
         auto& uc = session_update[imsi][session_id];
-        session->remove_dynamic_rule(policy.id(), nullptr, uc);
+        optional<uint32_t> op_version =
+            session->remove_dynamic_rule(policy.id(), &policy, uc);
+        if (op_version) {
+          RulesToProcess to_process;
+          to_process.append_versioned_policy(policy, *op_version);
+          pipelined_client_->deactivate_flows_for_rules(
+              imsi, ip_addr, ipv6_addr, teids, to_process,
+              RequestOriginType::GX);
+        }
         session_store_.update_sessions(session_update);
       },
       delta.count());
@@ -1245,7 +1214,7 @@ void LocalEnforcer::remove_rules_for_suspended_credit(
 
   // Remove pipelined rules
   RulesToProcess rules_to_remove;
-  session->get_rules_per_credit_key(ckey, rules_to_remove);
+  session->get_rules_per_credit_key(ckey, rules_to_remove, session_uc);
   auto imsi = session->get_config().common_context.sid().id();
   propagate_rule_updates_to_pipelined(
       imsi, session->get_config(), RulesToProcess{}, rules_to_remove, false);
@@ -1284,7 +1253,7 @@ void LocalEnforcer::add_rules_for_unsuspended_credit(
 
   //  add pipelined rules
   RulesToProcess rules_to_add;
-  session->get_rules_per_credit_key(ckey, rules_to_add);
+  session->get_rules_per_credit_key(ckey, rules_to_add, session_uc);
   auto imsi = session->get_config().common_context.sid().id();
   propagate_rule_updates_to_pipelined(
       imsi, session->get_config(), rules_to_add, RulesToProcess{}, false);
@@ -1720,19 +1689,36 @@ void LocalEnforcer::process_rules_to_remove(
         rules_to_remove,
     RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc) {
   for (const auto& rule_id : rules_to_remove) {
-    // Try to remove as dynamic rule first
-    PolicyRule dy_rule, st_rule;
-    bool is_dynamic = session->remove_dynamic_rule(rule_id, &dy_rule, uc);
-    if (is_dynamic) {  // dynamic rule
-      rules_to_deactivate.rules.push_back(dy_rule);
-    } else if (  // static rule
-        rule_store_->get_rule(rule_id, &st_rule) &&
-        session->deactivate_static_rule(rule_id, uc)) {
-      rules_to_deactivate.rules.push_back(st_rule);
-    } else {
+    optional<PolicyType> p_type = session->get_policy_type(rule_id);
+    if (!p_type) {
       MLOG(MWARNING) << "Could not find rule " << rule_id << " for " << imsi
                      << " during static rule removal";
+      continue;
     }
+    optional<uint32_t> op_version = {};
+    PolicyRule rule;
+    switch (*p_type) {
+      case DYNAMIC: {
+        op_version = session->remove_dynamic_rule(rule_id, &rule, uc);
+        break;
+      }
+      case STATIC: {
+        if (!rule_store_->get_rule(rule_id, &rule)) {
+          MLOG(MERROR) << "Static rule " << rule_id << " not found";
+          continue;
+        }
+        op_version = session->deactivate_static_rule(rule_id, uc);
+        break;
+      }
+      default:
+        break;
+    }
+    if (!op_version) {
+      MLOG(MERROR) << "Failed to remove " << rule_id << " for "
+                   << session->get_session_id();
+      continue;
+    }
+    rules_to_deactivate.append_versioned_policy(rule, *op_version);
   }
 }
 
@@ -1762,7 +1748,7 @@ void LocalEnforcer::process_rules_to_install(
     std::vector<DynamicRuleInstall> dynamic_rule_installs,
     RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
     SessionStateUpdateCriteria& uc) {
-  std::time_t current_time     = time(nullptr);
+  std::time_t current_time     = std::time(nullptr);
   std::string ip_addr          = session.get_config().common_context.ue_ipv4();
   std::string ipv6_addr        = session.get_config().common_context.ue_ipv6();
   const std::string session_id = session.get_session_id();
@@ -1777,6 +1763,7 @@ void LocalEnforcer::process_rules_to_install(
     if (!rule_store_->get_rule(id, &static_rule)) {
       MLOG(MERROR) << "static rule " << id
                    << " is not found, skipping install...";
+      continue;
     }
 
     RuleLifetime lifetime(rule_install);
@@ -1785,9 +1772,9 @@ void LocalEnforcer::process_rules_to_install(
       schedule_static_rule_activation(
           imsi, session_id, id, lifetime.activation_time);
     } else {
-      session.activate_static_rule(id, lifetime, uc);
+      uint32_t version = session.activate_static_rule(id, lifetime, uc);
       // Set up rules_to_activate
-      rules_to_activate.rules.push_back(static_rule);
+      rules_to_activate.append_versioned_policy(static_rule, version);
     }
 
     if (lifetime.deactivation_time > current_time) {
@@ -1795,12 +1782,13 @@ void LocalEnforcer::process_rules_to_install(
           imsi, session_id, id, lifetime.deactivation_time);
     } else if (lifetime.deactivation_time > 0) {
       // 0: never scheduled to deactivate
-      if (!session.deactivate_static_rule(id, uc)) {
+      optional<uint32_t> op_version = session.deactivate_static_rule(id, uc);
+      if (!op_version) {
         MLOG(MWARNING) << "Could not find rule " << id << "for " << session_id
                        << " during static rule removal";
+      } else {
+        rules_to_deactivate.append_versioned_policy(static_rule, *op_version);
       }
-
-      rules_to_deactivate.rules.push_back(static_rule);
     }
   }
 
@@ -1813,15 +1801,19 @@ void LocalEnforcer::process_rules_to_install(
       schedule_dynamic_rule_activation(
           imsi, session_id, rule_id, lifetime.activation_time);
     } else {
-      session.insert_dynamic_rule(dynamic_rule, lifetime, uc);
-      rules_to_activate.rules.push_back(dynamic_rule);
+      uint32_t version =
+          session.insert_dynamic_rule(dynamic_rule, lifetime, uc);
+      rules_to_activate.append_versioned_policy(dynamic_rule, version);
     }
     if (lifetime.deactivation_time > current_time) {
       schedule_dynamic_rule_deactivation(
           imsi, session_id, rule_id, lifetime.deactivation_time);
     } else if (lifetime.deactivation_time > 0) {
-      session.remove_dynamic_rule(rule_id, nullptr, uc);
-      rules_to_deactivate.rules.push_back(dynamic_rule);
+      optional<uint32_t> op_version =
+          session.remove_dynamic_rule(rule_id, nullptr, uc);
+      if (op_version) {
+        rules_to_deactivate.append_versioned_policy(dynamic_rule, *op_version);
+      }
     }
   }
 }
@@ -2071,22 +2063,23 @@ void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
   }
 
   PolicyRule rule;
-  bool found = false;
+  optional<uint32_t> op_version = {};
 
   switch (*policy_type) {
     case STATIC:
-      session.deactivate_static_rule(rule_id, uc);
-      found = rule_store_->get_rule(rule_id, &rule);
+      if (rule_store_->get_rule(rule_id, &rule)) {
+        op_version = session.deactivate_static_rule(rule_id, uc);
+      }
       break;
     case DYNAMIC: {
-      found = session.remove_dynamic_rule(rule_id, &rule, uc);
+      op_version = session.remove_dynamic_rule(rule_id, &rule, uc);
       break;
     }
   }
-  if (found) {
+  if (op_version) {
     auto config = session.get_config().common_context;
     RulesToProcess to_process;
-    to_process.rules = std::vector<PolicyRule>{rule};
+    to_process.append_versioned_policy(rule, *op_version);
     pipelined_client_->deactivate_flows_for_rules(
         imsi, config.ue_ipv4(), config.ue_ipv6(), config.teids(), to_process,
         RequestOriginType::GX);

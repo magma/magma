@@ -513,12 +513,11 @@ func getPipelinedClient() (*pipelinedClient, error) {
 	}, err
 }
 
-func deactivateSubscriberFlows(imsi string, ruleIDs []string) error {
+func deactivateAllFlowsPerSub(imsi string) error {
 	cli, err := getPipelinedClient()
 	if err == nil && cli != nil {
 		_, err = cli.DeactivateFlows(context.Background(), &lteprotos.DeactivateFlowsRequest{
-			Sid:     &lteprotos.SubscriberID{Id: imsi},
-			RuleIds: ruleIDs,
+			Sid: &lteprotos.SubscriberID{Id: imsi},
 		})
 	}
 	return err
@@ -541,7 +540,7 @@ func initializePolicyDBWrapper() (*policyDBWrapper, error) {
 	}
 	redisClientImpl := &object_store.RedisClientImpl{
 		RawClient: redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf(address),
+			Addr:     address,
 			Password: "",
 			DB:       0,
 		}),

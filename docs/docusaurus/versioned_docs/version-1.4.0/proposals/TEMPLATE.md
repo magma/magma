@@ -1,8 +1,8 @@
 ---
-id: version-1.4.0-p[###]_[short-description]
-title: [Title of Design Doc]
+id: version-1.4.0-proposal_template
+title: Title of Design Doc
 hide_title: true
-original_id: p[###]_[short-description]
+original_id: proposal_template
 ---
 
 [This is a template for Magma's change proposal process, documented

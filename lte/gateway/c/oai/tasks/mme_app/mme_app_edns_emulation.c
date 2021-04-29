@@ -57,8 +57,12 @@ int mme_app_edns_add_sgw_entry(bstring id, struct in_addr in_addr) {
 
       hashtable_rc_t rc =
           obj_hashtable_insert(g_e_dns_entries, cid, strlen(cid), data);
-      if (HASH_TABLE_OK == rc) return RETURNok;
+      if (HASH_TABLE_OK == rc) {
+        free(cid);
+        return RETURNok;
+      }
     }
+    free(cid);
   }
   return RETURNerror;
 }

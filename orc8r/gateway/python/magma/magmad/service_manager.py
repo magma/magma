@@ -18,8 +18,8 @@ import subprocess
 from enum import Enum
 from typing import List, Tuple
 
-from magma.magmad.service_poller import ServicePoller
 import magma.magmad.events as magmad_events
+from magma.magmad.service_poller import ServicePoller
 
 
 class ServiceState(Enum):
@@ -37,6 +37,7 @@ class ServiceState(Enum):
 
 class CommandReturn(object):
     """ Return from _run_command. Intended to mimic return from envoy.run() """
+
     def __init__(self, status_code, std_out):
         self.status_code = status_code
         self.std_out = std_out
@@ -166,6 +167,7 @@ class ServiceManager(object):
         /etc/systemd/system/ for systemd managed services. Runit service files
         should be copied to /etc/sv/.
         """
+
         def __init__(self, name, init_system_spec):
             self._init_system_spec = init_system_spec(name)
 

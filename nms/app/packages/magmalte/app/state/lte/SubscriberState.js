@@ -13,10 +13,10 @@
  * @flow strict-local
  * @format
  */
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-
-import {getLabelUnit} from '../../views/subscriber/SubscriberUtils';
+import type {ActionQuery} from '../../components/ActionTable';
 import type {Metrics} from '../../components/context/SubscriberContext';
+import type {SubscriberContextType} from '../../components/context/SubscriberContext';
+import type {SubscriberRowType} from '../../views/subscriber/SubscriberOverview';
 import type {
   mutable_subscriber,
   network_id,
@@ -24,13 +24,23 @@ import type {
   subscriber_state,
 } from '@fbcnms/magma-api';
 
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+
+import {
+  DEFAULT_PAGE_SIZE,
+  getLabelUnit,
+} from '../../views/subscriber/SubscriberUtils';
+
 type FetchProps = {
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
   networkId: string,
   id?: string,
   subscriberMap?: {[string]: subscriber},
   sessionState?: {[string]: subscriber_state},
+  token?: string,
+  pageSize?: number,
 };
+
 type InitSubscriberStateProps = {
   networkId: network_id,
   setSubscriberMap: ({[string]: subscriber}) => void,
@@ -38,8 +48,9 @@ type InitSubscriberStateProps = {
   setSubscriberMetrics?: ({[string]: Metrics}) => void,
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
+
 export async function FetchSubscribers(props: FetchProps) {
-  const {networkId, enqueueSnackbar, id} = props;
+  const {networkId, enqueueSnackbar, id, token, pageSize} = props;
   if (id !== null && id !== undefined) {
     try {
       return await MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId({
@@ -50,18 +61,18 @@ export async function FetchSubscribers(props: FetchProps) {
       enqueueSnackbar?.('failed fetching subscriber information', {
         variant: 'error',
       });
-      return;
     }
   } else {
     try {
-      return await MagmaV1API.getLteByNetworkIdSubscribers({
+      return await MagmaV1API.getLteByNetworkIdSubscribersV2({
         networkId,
+        pageSize: pageSize ?? DEFAULT_PAGE_SIZE,
+        pageToken: token ?? '',
       });
     } catch (e) {
       enqueueSnackbar?.('failed fetching subscriber information', {
         variant: 'error',
       });
-      return;
     }
   }
 }
@@ -128,6 +139,7 @@ export async function fetchSubscriberMetrics(props: FetchProps) {
   await Promise.all(requests);
   return subscriberMetrics;
 }
+
 export default async function InitSubscriberState(
   props: InitSubscriberStateProps,
 ) {
@@ -138,9 +150,12 @@ export default async function InitSubscriberState(
     setSessionState,
     enqueueSnackbar,
   } = props;
-  const subscribers = await FetchSubscribers({networkId, enqueueSnackbar});
-  if (subscribers) {
-    setSubscriberMap(subscribers);
+  const subscriberResponse = await FetchSubscribers({
+    networkId,
+    enqueueSnackbar,
+  });
+  if (subscriberResponse) {
+    setSubscriberMap(subscriberResponse.subscribers);
   }
 
   const state = await FetchSubscriberState({networkId, enqueueSnackbar});
@@ -166,10 +181,8 @@ type SubscriberStateProps = {
   setSessionState: ({[string]: subscriber_state}) => void,
   key: string,
   value?: mutable_subscriber,
-  newState?: {
-    state: {[string]: subscriber},
-    sessionState: {[string]: subscriber_state},
-  },
+  newState?: {[string]: subscriber},
+  newSessionState?: {[string]: subscriber_state},
 };
 
 export async function setSubscriberState(props: SubscriberStateProps) {
@@ -181,10 +194,15 @@ export async function setSubscriberState(props: SubscriberStateProps) {
     key,
     value,
     newState,
+    newSessionState,
   } = props;
   if (newState) {
-    setSessionState(newState.sessionState);
-    setSubscriberMap(newState.state);
+    setSubscriberMap(newState);
+    return;
+  }
+  if (newSessionState) {
+    // $FlowIgnore
+    setSessionState(newSessionState.sessionState);
     return;
   }
   if (value != null) {
@@ -220,11 +238,13 @@ export async function setSubscriberState(props: SubscriberStateProps) {
   }
 }
 
-export function getSubscriberGatewayMap(subscribers: {[string]: subscriber}) {
+export function getGatewaySubscriberMap(sessions: {
+  [string]: subscriber_state,
+}) {
   const gatewayMap = {};
-  Object.keys(subscribers).forEach(id => {
-    const subscriber = subscribers[id];
-    const gwHardwareId = subscriber?.state?.directory?.location_history?.[0];
+  Object.keys(sessions).forEach(id => {
+    const subscriber = sessions[id];
+    const gwHardwareId = subscriber?.directory?.location_history?.[0];
     if (
       gwHardwareId !== null &&
       gwHardwareId !== undefined &&
@@ -237,4 +257,124 @@ export function getSubscriberGatewayMap(subscribers: {[string]: subscriber}) {
     }
   });
   return gatewayMap;
+}
+
+export type SubscriberQueryType = {
+  networkId: string,
+  query: ActionQuery,
+  maxPageRowCount: number,
+  setMaxPageRowCount: number => void,
+  pageSize: number,
+  tokenList: Array<string>,
+  setTokenList: (Array<string>) => void,
+  ctx: SubscriberContextType,
+  subscriberMetrics?: {[string]: Metrics},
+};
+/**
+ * Used with material-table remote data feature to get paginated subscribers.
+ * Returns a promise holding subscriber rows data, the current page and the subscribers total count.
+ *
+ * @param {string} networkId ID of the network.
+ * @param {ActionQuery} query Subscriber query holding page number, page size, total count, order and filters.
+ * @param {number} pageSize Size of subscriber page. (default is 10)
+ * @param {Array<string>} tokenList List of page tokens used to get next/previous page.
+ * @param {(Array<string>) => void} setTokenList Set token list.
+ * @param {SubscriberContextType} ctx Subscriber context to set subscriber state.
+ * @param {{[string]: Metrics}} subscriberMetrics Metrics used for subscriber Current Usage and Daily Average.
+ * @return Promise holding subscriber rows data, the current page and the totalCount.
+ */
+export async function handleSubscriberQuery(props: SubscriberQueryType) {
+  const {
+    networkId,
+    query,
+    pageSize,
+    maxPageRowCount,
+    setMaxPageRowCount,
+    tokenList,
+    setTokenList,
+    ctx,
+    subscriberMetrics,
+  } = props;
+  return new Promise(async (resolve, reject) => {
+    try {
+      // search subscriber by IMSI
+      let subscriberSearch = {};
+      const search = query.search;
+      if (search.startsWith('IMSI') && search.length > 9) {
+        const searchedSubscriber = await FetchSubscribers({
+          networkId,
+          id: search,
+        });
+        const metrics = subscriberMetrics?.[`${search}`];
+        if (searchedSubscriber) {
+          subscriberSearch = {
+            name: searchedSubscriber.id,
+            imsi: searchedSubscriber.id,
+            service: searchedSubscriber.lte?.state || '',
+            currentUsage: metrics?.currentUsage ?? '0',
+            dailyAvg: metrics?.dailyAvg ?? '0',
+            lastReportedTime:
+              searchedSubscriber.monitoring?.icmp?.last_reported_time === 0
+                ? new Date(
+                    searchedSubscriber.monitoring?.icmp?.last_reported_time,
+                  )
+                : '-',
+          };
+        }
+      }
+
+      const page =
+        maxPageRowCount < query.page * query.pageSize
+          ? maxPageRowCount / query.pageSize
+          : query.page;
+      const subscriberResponse = await FetchSubscribers({
+        networkId,
+        token: tokenList[page] ?? tokenList[tokenList.length - 1],
+        pageSize,
+      });
+
+      const newTokenList = tokenList;
+      // add next page token in token list to get next subscriber page.
+      let totalCount = 0;
+      if (subscriberResponse) {
+        if (!newTokenList.includes(subscriberResponse.next_page_token)) {
+          newTokenList.push(subscriberResponse.next_page_token);
+        }
+        totalCount = subscriberResponse.total_count;
+        setMaxPageRowCount(totalCount);
+        setTokenList([...newTokenList]);
+        // set subscriber state with current subscriber rows.
+        ctx.setState?.('', undefined, subscriberResponse.subscribers);
+      }
+      const tableData: Array<SubscriberRowType> = subscriberResponse
+        ? Object.keys(subscriberResponse.subscribers).map((imsi: string) => {
+            const subscriberInfo = subscriberResponse.subscribers[imsi] || {};
+            const metrics = subscriberMetrics?.[`${imsi}`];
+            return {
+              name: subscriberInfo.name ?? imsi,
+              imsi: imsi,
+              service: subscriberInfo.lte?.state || '',
+              currentUsage: metrics?.currentUsage ?? '0',
+              dailyAvg: metrics?.dailyAvg ?? '0',
+              lastReportedTime:
+                subscriberInfo.monitoring?.icmp?.last_reported_time === 0
+                  ? new Date(
+                      subscriberInfo.monitoring?.icmp?.last_reported_time,
+                    )
+                  : '-',
+            };
+          })
+        : [];
+      resolve({
+        data:
+          search.startsWith('IMSI') && search.length > 9
+            ? [subscriberSearch]
+            : tableData,
+        page: page,
+        totalCount: totalCount,
+      });
+    } catch (e) {
+      reject(e?.message ?? 'error retrieving subscribers');
+    }
+  });
 }

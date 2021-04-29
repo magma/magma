@@ -13,6 +13,7 @@ limitations under the License.
 
 # pylint: disable=protected-access
 from unittest import TestCase
+
 from magma.enodebd.data_models.transform_for_enb import bandwidth
 
 

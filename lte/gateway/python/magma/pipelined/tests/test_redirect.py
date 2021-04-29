@@ -12,29 +12,46 @@ limitations under the License.
 """
 
 import unittest
+import warnings
 from concurrent.futures import Future
 from unittest.mock import MagicMock
 
-import warnings
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
-    RedirectInformation
+from lte.protos.pipelined_pb2 import VersionedPolicy
+from lte.protos.policydb_pb2 import (
+    FlowDescription,
+    FlowMatch,
+    PolicyRule,
+    RedirectInformation,
+)
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.policy_converters import flow_match_to_magma_match, \
-    convert_ipv4_str_to_ip_proto
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
+from magma.pipelined.policy_converters import (
+    convert_ipv4_str_to_ip_proto,
+    flow_match_to_magma_match,
+)
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery as FlowQuery
 from magma.pipelined.tests.app.packet_builder import TCPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
-    TestSetup
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
 from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
-    create_service_manager, start_ryu_app_thread, stop_ryu_app_thread, \
-    wait_after_send, assert_bridge_snapshot_match, fake_controller_setup
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    FlowTest,
+    FlowVerifier,
+    assert_bridge_snapshot_match,
+    create_service_manager,
+    fake_controller_setup,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+)
 
 
 class RedirectTest(unittest.TestCase):
@@ -81,6 +98,7 @@ class RedirectTest(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
                 'clean_restart': True,
+                'setup_type': 'LTE',
             },
             mconfig=PipelineD(),
             loop=None,
@@ -121,19 +139,22 @@ class RedirectTest(unittest.TestCase):
         imsi = 'IMSI010000000088888'
         sub_ip = '192.168.128.74'
         flow_list = [FlowDescription(match=FlowMatch())]
-        policy = PolicyRule(
-            id='redir_test', priority=3, flow_list=flow_list,
-            redirect=RedirectInformation(
-                support=1,
-                address_type=2,
-                server_address="http://about.sha.ddih.org/"
-            )
+        policy = VersionedPolicy(
+            rule=PolicyRule(
+                id='redir_test', priority=3, flow_list=flow_list,
+                redirect=RedirectInformation(
+                    support=1,
+                    address_type=2,
+                    server_address="http://about.sha.ddih.org/"
+                )
+            ),
+            version=1,
         )
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller, self._tbl_num
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),
@@ -205,19 +226,22 @@ class RedirectTest(unittest.TestCase):
         imsi = 'IMSI012000000088888'
         sub_ip = '192.168.128.74'
         flow_list = [FlowDescription(match=FlowMatch())]
-        policy = PolicyRule(
-            id='redir_ip_test', priority=3, flow_list=flow_list,
-            redirect=RedirectInformation(
-                support=1,
-                address_type=0,
-                server_address=redirect_ip
-            )
+        policy = VersionedPolicy(
+            rule=PolicyRule(
+                id='redir_ip_test', priority=3, flow_list=flow_list,
+                redirect=RedirectInformation(
+                    support=1,
+                    address_type=0,
+                    server_address=redirect_ip
+                )
+            ),
+            version=1,
         )
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller, self._tbl_num
-        ).add_dynamic_rule(policy)
+        ).add_policy(policy)
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
                                      .build_requests(),

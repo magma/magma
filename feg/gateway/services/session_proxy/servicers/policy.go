@@ -28,7 +28,7 @@ import (
 )
 
 // sendInitialGxRequestOrGenerateEmptyResponse generates an empty response in case Gx is disabled.
-// otherwise it sends the inital request to PCRF
+// otherwise it sends the initial request to PCRF
 func (srv *CentralSessionController) sendInitialGxRequestOrGenerateEmptyResponse(imsi string, pReq *protos.CreateSessionRequest) (*gx.CreditControlAnswer, error) {
 	if srv.cfg.DisableGx {
 		return generateGxLessCCAInit()
@@ -36,7 +36,7 @@ func (srv *CentralSessionController) sendInitialGxRequestOrGenerateEmptyResponse
 	return srv.sendInitialGxRequest(imsi, pReq)
 }
 
-// sendInitialGxRequest sends the inital request to PCRF. Returns a response
+// sendInitialGxRequest sends the initial request to PCRF. Returns a response
 func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *protos.CreateSessionRequest) (*gx.CreditControlAnswer, error) {
 	common := pReq.GetCommonContext()
 	ratType := common.GetRatType()
@@ -67,10 +67,8 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 			if lteContext.GetQosInfo() != nil {
 				request.Qos = (&gx.QosRequestInfo{}).FromProtos(lteContext.GetQosInfo())
 			}
-			break
 		case *protos.RatSpecificContext_WlanContext:
 			request.HardwareAddr = context.WlanContext.GetMacAddrBinary()
-			break
 		}
 	} else {
 		glog.Warning("No RatSpecificContext is specified")

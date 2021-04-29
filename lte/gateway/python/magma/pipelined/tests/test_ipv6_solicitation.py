@@ -16,25 +16,38 @@ import warnings
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id,\
-    get_ipv6_prefix
-from magma.pipelined.app.ipv6_solicitation import \
-    IPV6SolicitationController
-from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
+from magma.pipelined.app.ipv6_solicitation import IPV6SolicitationController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.app.start_pipelined import TestSetup, \
-    PipelinedController
+from magma.pipelined.ipv6_prefix_store import (
+    get_ipv6_interface_id,
+    get_ipv6_prefix,
+)
 from magma.pipelined.openflow.registers import DIRECTION_REG, Direction
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
-    stop_ryu_app_thread, create_service_manager, wait_after_send, \
-    SnapshotVerifier
-
-from scapy.arch import get_if_hwaddr, get_if_addr
-from scapy.layers.l2 import ARP, Ether, Dot1Q
-from scapy.layers.inet6 import IPv6, ICMPv6ND_RS, ICMPv6NDOptSrcLLAddr, \
-    ICMPv6NDOptPrefixInfo, ICMPv6ND_NS
+from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    SnapshotVerifier,
+    create_service_manager,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+)
+from scapy.arch import get_if_addr, get_if_hwaddr
+from scapy.layers.inet6 import (
+    ICMPv6ND_NS,
+    ICMPv6ND_RS,
+    ICMPv6NDOptPrefixInfo,
+    ICMPv6NDOptSrcLLAddr,
+    IPv6,
+)
+from scapy.layers.l2 import ARP, Dot1Q, Ether
 
 
 class IPV6RouterSolicitationTableTest(unittest.TestCase):

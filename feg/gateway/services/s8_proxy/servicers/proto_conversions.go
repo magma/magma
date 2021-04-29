@@ -26,55 +26,58 @@ import (
 // the message is proper it also returns the session. In case it there is an error it returns
 // the cause of error
 func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessionResponsePgw, err error) {
+	//glog.V(4).Infof("Received Create Session Response (gtp):\n%s", message.Prettify(msg))
 	csResGtp := msg.(*message.CreateSessionResponse)
 	glog.V(2).Infof("Received Create Session Response (gtp):\n%s", csResGtp.String())
-
 	csRes = &protos.CreateSessionResponsePgw{}
 	// check Cause value first.
 	if causeIE := csResGtp.Cause; causeIE != nil {
-		cause, err2 := causeIE.Cause()
-		if err2 != nil {
-			err = fmt.Errorf("Couldn't check cause of csRes: %s", err2)
-			return
-		}
-		if cause != gtpv2.CauseRequestAccepted {
-			csRes.GtpError = &protos.GtpError{
-				Cause: uint32(cause),
-				Msg:   fmt.Sprintf("Message with sequence # %d not accepted", msg.Sequence()),
-			}
-			return
+		csRes.GtpError, err = handleCause(causeIE, msg)
+		if err != nil || csRes.GtpError != nil {
+			// return either GtpError or err
+			return csRes, err
 		}
 		// If we get here, the message will be processed
 	} else {
 		csRes.GtpError = errorIeMissing(ie.Cause)
-		return
+		return csRes, nil
 	}
+
+	// get C AGW Teid (is the same used on Create Session Request by MME)
+	csRes.CAgwTeid = msg.TEID()
 
 	// get PDN Allocation from PGW
 	if paaIE := csResGtp.PAA; paaIE != nil {
-		paa, pdnType, err2 := handlePDNAddressAllocation(paaIE)
-		if err2 != nil {
-			return
+		csRes.Paa, csRes.PdnType, err = handlePDNAddressAllocation(paaIE)
+		if err != nil {
+			return nil, err
 		}
-		csRes.Paa = paa
-		csRes.PdnType = pdnType
 	} else {
 		csRes.GtpError = errorIeMissing(ie.PDNAddressAllocation)
-		return
+		// error is in GtpError
+		return csRes, nil
 	}
 
 	// Pgw control plane fteid
 	if pgwCFteidIE := csResGtp.PGWS5S8FTEIDC; pgwCFteidIE != nil {
-		pgwCFteid, _, err2 := handleFTEID(pgwCFteidIE)
-		if err2 != nil {
-			err = fmt.Errorf("Couldn't get PGW control plane FTEID: %s ", err2)
-			return
+		csRes.CPgwFteid, _, err = handleFTEID(pgwCFteidIE)
+		if err != nil {
+			err = fmt.Errorf("Couldn't get PGW control plane FTEID: %s ", err)
+			return nil, err
 		}
-		//session.AddTEID(interfaceType, pgwCFteid.GetTeid())
-		csRes.CPgwFteid = pgwCFteid
 	} else {
 		csRes.GtpError = errorIeMissing(ie.FullyQualifiedTEID)
-		return
+		// error is in GtpError
+		return csRes, nil
+	}
+
+	// Protocol Configuration Options (PCO) optional
+	if pgwPcoIE := csResGtp.PCO; pgwPcoIE != nil {
+		csRes.ProtocolConfigurationOptions, err = handlePCO(pgwPcoIE)
+		if err != nil {
+			err = fmt.Errorf("Couldn't get Protocol Configuration Options: %s ", err)
+			return nil, err
+		}
 	}
 
 	// TODO: handle more than one bearer
@@ -83,82 +86,101 @@ func parseCreateSessionResponse(msg message.Message) (csRes *protos.CreateSessio
 		for _, childIE := range brCtxIE.ChildIEs {
 			switch childIE.Type {
 			case ie.Cause:
-				cause, err2 := childIE.Cause()
-				if err2 != nil {
-					err = err2
-					return
+				cause, err := childIE.Cause()
+				if err != nil {
+					return nil, err
 				}
 				if cause != gtpv2.CauseRequestAccepted {
 					csRes.GtpError = &protos.GtpError{
 						Cause: uint32(cause),
-						Msg:   fmt.Sprintf("Bearer could not be created"),
+						Msg:   "Bearer could not be created",
 					}
-					return
+					// error is in GtpError
+					return csRes, nil
 				}
 			case ie.EPSBearerID:
-				ebi, err2 := childIE.EPSBearerID()
-				if err2 != nil {
-					err = err2
-					return
+				ebi, err := childIE.EPSBearerID()
+				if err != nil {
+					return nil, err
 				}
 				bearerCtx.Id = uint32(ebi)
 			case ie.FullyQualifiedTEID:
-				uFteid, _, err2 := handleFTEID(childIE)
-				if err2 != nil {
-					err = err2
-					return
+				uFteid, _, err := handleFTEID(childIE)
+				if err != nil {
+					return nil, err
 				}
 				bearerCtx.UserPlaneFteid = uFteid
 			case ie.ChargingID:
 				bearerCtx.ChargingId, err = childIE.ChargingID()
 				if err != nil {
-					return
+					return nil, err
+				}
+
+			case ie.BearerQoS:
+				// save for testing purposes
+				bearerCtx.Qos, err = handleQOStoProto(childIE)
+				if err != nil {
+					return nil, err
 				}
 			}
 		}
 		csRes.BearerContext = bearerCtx
 	} else {
 		csRes.GtpError = errorIeMissing(ie.BearerContext)
-		return
+		// error is in GtpError
+		return csRes, nil
 	}
 	return csRes, nil
 }
 
-// parseDelteSessionResponse parses a gtp message into a DeleteSessionResponsePgw. In case
+// parseDeleteSessionResponse parses a gtp message into a DeleteSessionResponsePgw. In case
 // the message is proper it also returns the session. In case it there is an error it returns
 // the cause of error
-func parseDelteSessionResponse(msg message.Message) (
-	dsRes *protos.DeleteSessionResponsePgw, err error) {
+func parseDeleteSessionResponse(msg message.Message) (
+	*protos.DeleteSessionResponsePgw, error) {
+	//glog.V(4).Infof("Received Delete Session Response (gtp):\n%s", (msg))
 	cdResGtp := msg.(*message.DeleteSessionResponse)
 	glog.V(2).Infof("Received Delete Session Response (gtp):\n%s", cdResGtp.String())
 
-	dsRes = &protos.DeleteSessionResponsePgw{}
+	dsRes := &protos.DeleteSessionResponsePgw{}
+	var err error
 	// check Cause value first.
 	if causeIE := cdResGtp.Cause; causeIE != nil {
-		cause, err2 := causeIE.Cause()
-		if err2 != nil {
-			err = fmt.Errorf("Couldn't check cause of delete session response: %s", err2)
-			return
+
+		dsRes.GtpError, err = handleCause(causeIE, msg)
+		if err != nil || dsRes.GtpError != nil {
+			// return either GtpError or err
+			return dsRes, err
 		}
-		if cause != gtpv2.CauseRequestAccepted {
-			dsRes.GtpError = &protos.GtpError{
-				Cause: uint32(cause),
-				Msg:   fmt.Sprintf("DeleteSessionRequest with sequence # %d not accepted", msg.Sequence()),
-			}
-			return
-		}
+		// If we get here, the message will be processed
 	} else {
 		dsRes.GtpError = errorIeMissing(ie.Cause)
-		return
+		// error is in GtpError
+		return dsRes, nil
 	}
 	return dsRes, nil
 }
 
-func errorIeMissing(missingIE uint8) *protos.GtpError {
-	errMsg := gtpv2.RequiredIEMissingError{Type: missingIE}
-	return &protos.GtpError{
-		Cause: uint32(gtpv2.CauseMandatoryIEMissing),
-		Msg:   errMsg.Error(),
+func handleCause(causeIE *ie.IE, msg message.Message) (*protos.GtpError, error) {
+	cause, err := causeIE.Cause()
+	if err != nil {
+		return nil, fmt.Errorf("Couldn't check cause of %s: %s", msg.MessageTypeName(), err)
+	}
+
+	switch cause {
+	case gtpv2.CauseRequestAccepted:
+		return nil, nil
+	default:
+		gtpErrorString := fmt.Sprintf("%s with sequence # %d not accepted. Cause: %d", msg.MessageTypeName(), msg.Sequence(), cause)
+		offendingIE, _ := causeIE.OffendingIE()
+		if offendingIE != nil {
+			gtpErrorString = fmt.Sprintf("%s %s: %d %s", gtpErrorString, " With Offending IE", offendingIE.Type, offendingIE)
+		}
+		glog.Warning(gtpErrorString)
+		return &protos.GtpError{
+			Cause: uint32(cause),
+			Msg:   gtpErrorString,
+		}, nil
 	}
 }
 
@@ -174,7 +196,6 @@ func handleFTEID(fteidIE *ie.IE) (*protos.Fteid, uint8, error) {
 	}
 
 	fteid := &protos.Fteid{Teid: teid}
-
 	if !fteidIE.HasIPv4() && !fteidIE.HasIPv6() {
 		return nil, interfaceType, fmt.Errorf("Error: fteid %+v has no ips", fteidIE.String())
 	}
@@ -217,4 +238,86 @@ func handlePDNAddressAllocation(paaIE *ie.IE) (*protos.PdnAddressAllocation, pro
 		pdnType = protos.PDNType_NonIP
 	}
 	return &paa, pdnType, nil
+}
+
+func handleQOStoProto(qosIE *ie.IE) (*protos.QosInformation, error) {
+	qos := &protos.QosInformation{}
+
+	// priority level
+	pl, err := qosIE.PriorityLevel()
+	if err != nil {
+		return nil, err
+	}
+	qos.PriorityLevel = uint32(pl)
+
+	// qci label
+	qci, err := qosIE.QCILabel()
+	if err != nil {
+		return nil, err
+	}
+	qos.Qci = uint32(qci)
+
+	// Preemption Capability
+	if qosIE.HasPCI() {
+		qos.PreemptionCapability = 1
+	}
+
+	// Preemption Vulnerability
+	if qosIE.HasPVI() {
+		qos.PreemptionVulnerability = 1
+	}
+
+	// maximum bitrate
+	mAmbr := &protos.Ambr{}
+	mAmbr.BrUl, err = qosIE.MBRForUplink()
+	if err != nil {
+		return nil, err
+	}
+	mAmbr.BrDl, err = qosIE.MBRForDownlink()
+	if err != nil {
+		return nil, err
+	}
+	qos.Mbr = mAmbr
+
+	// granted bitrate
+	gAmbr := &protos.Ambr{}
+	gAmbr.BrUl, err = qosIE.GBRForUplink()
+	if err != nil {
+		return nil, err
+	}
+	gAmbr.BrDl, err = qosIE.GBRForDownlink()
+	if err != nil {
+		return nil, err
+	}
+	qos.Gbr = gAmbr
+
+	return qos, nil
+}
+
+func handlePCO(pcoIE *ie.IE) (*protos.ProtocolConfigurationOptions, error) {
+	pgwPcoField, err := pcoIE.ProtocolConfigurationOptions()
+	if err != nil {
+		err = fmt.Errorf("Couldn't get PGW  Protocol Configuration Options: %s ", err)
+		return nil, err
+	}
+	var containers []*protos.PcoProtocolOrContainerId
+	for _, containerField := range pgwPcoField.ProtocolOrContainers {
+		containers = append(containers,
+			&protos.PcoProtocolOrContainerId{
+				Id:       uint32(containerField.ID),
+				Contents: containerField.Contents,
+			})
+	}
+	return &protos.ProtocolConfigurationOptions{
+		ConfigProtocol:     uint32(pgwPcoField.ConfigurationProtocol),
+		ProtoOrContainerId: containers,
+	}, nil
+}
+
+func errorIeMissing(missingIE uint8) *protos.GtpError {
+	errMsg := gtpv2.RequiredIEMissingError{Type: missingIE}
+	return &protos.GtpError{
+		Cause: uint32(gtpv2.CauseMandatoryIEMissing),
+		Msg:   errMsg.Error(),
+	}
 }

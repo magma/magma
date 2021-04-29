@@ -40,8 +40,12 @@ during it's life cycle in the IP allocator:
         to age IPs for a certain period of time before freeing.
 """
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import ipaddress
 import logging
@@ -50,12 +54,15 @@ from ipaddress import ip_address, ip_network
 from typing import List, Optional, Tuple
 
 from lte.protos.mobilityd_pb2 import GWInfo, IPAddress
-
 from magma.mobilityd.ip_descriptor import IPState
-from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
-from .ip_allocator_base import DuplicateIPAssignmentError, IPAllocator, \
-    IPNotInUseError, \
-    MappingNotFoundError
+from magma.mobilityd.metrics import IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL
+
+from .ip_allocator_base import (
+    DuplicateIPAssignmentError,
+    IPAllocator,
+    IPNotInUseError,
+    MappingNotFoundError,
+)
 from .mobility_store import MobilityStore
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
@@ -314,8 +321,13 @@ class IPAddressManager:
                 logging.error(error_msg)
                 raise DuplicateIPAssignmentError(error_msg)
 
-            self._store.ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc,
-                                                     IPState.ALLOCATED)
+            if version == IPAddress.IPV4:
+                self._store.ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc,
+                                                         IPState.ALLOCATED)
+            elif version == IPAddress.IPV6:
+                self._store.ipv6_state_map.add_ip_to_state(ip_desc.ip, ip_desc,
+                                                           IPState.ALLOCATED)
+
             self._store.sid_ips_map[sid] = ip_desc
 
             logging.debug("Allocating New IP: %s", str(ip_desc))
@@ -347,7 +359,9 @@ class IPAddressManager:
         """
             Check if IP address is on a given state
         """
-        return self._store.ip_state_map.test_ip_state(ip_addr, state)
+        ip_state_map = self._store.ip_state_map if ip_addr.version == 4 \
+            else self._store.ipv6_state_map
+        return ip_state_map.test_ip_state(ip_addr, state)
 
     def release_ip_address(self, sid: str, ip: ip_address,
                            version: int = IPAddress.IPV4):
@@ -380,15 +394,15 @@ class IPAddressManager:
                               "already released: <%s, %s>", sid, ip)
                 raise IPNotInUseError("IP not found in used list: %s", str(ip))
 
-            self._store.ip_state_map.mark_ip_state(ip, IPState.RELEASED)
             IP_RELEASED_TOTAL.inc()
 
             if version == IPAddress.IPV4:
+                self._store.ip_state_map.mark_ip_state(ip, IPState.RELEASED)
                 self._try_set_recycle_timer()  # start the timer to recycle
             elif version == IPAddress.IPV6:
                 # For IPv6, no recycling logic
-                ip_desc = self._store.ip_state_map.mark_ip_state(ip,
-                                                                 IPState.FREE)
+                ip_desc = self._store.ipv6_state_map.mark_ip_state(ip,
+                                                                   IPState.FREE)
                 self.ipv6_allocator.release_ip(ip_desc)
                 del self._store.sid_ips_map[ip_desc.sid]
 

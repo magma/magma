@@ -63,13 +63,13 @@
    retransmission counter */
 #define EPS_BEARER_DEACTIVATE_COUNTER_MAX 5
 
-static int _eps_bearer_deactivate(
+static int eps_bearer_deactivate(
     emm_context_t* emm_context_p, ebi_t ebi, STOLEN_REF bstring* msg);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-extern int _pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
+extern int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 
 /*
    --------------------------------------------------------------------------
@@ -225,7 +225,7 @@ int esm_proc_eps_bearer_context_deactivate_request(
    * * * * start timer T3495
    */
   /*Currently we only support single bearear deactivation at NAS*/
-  rc  = _eps_bearer_deactivate(emm_context_p, ebi, msg);
+  rc  = eps_bearer_deactivate(emm_context_p, ebi, msg);
   msg = NULL;
 
   if (rc != RETURNerror) {
@@ -321,7 +321,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
       /*
        * Delete the PDN connection entry
        */
-      _pdn_connectivity_delete(emm_context_p, pid);
+      pdn_connectivity_delete(emm_context_p, pid);
       // Free PDN context
       if (ue_context_p->pdn_contexts[pid]) {
         free_wrapper((void**) &ue_context_p->pdn_contexts[pid]);
@@ -420,7 +420,7 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
        * Re-send deactivate EPS bearer context request message to the UE
        */
       bstring b = bstrcpy(esm_ebr_timer_data->msg);
-      rc        = _eps_bearer_deactivate(
+      rc        = eps_bearer_deactivate(
           esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       bdestroy_wrapper(&b);
     } else {
@@ -463,7 +463,7 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
         /*
          * Delete the PDN connection entry
          */
-        _pdn_connectivity_delete(esm_ebr_timer_data->ctx, pdn_id);
+        pdn_connectivity_delete(esm_ebr_timer_data->ctx, pdn_id);
       }
       /* In case of PDN disconnect, no need to inform MME/SPGW as the session
        * would have been already released
@@ -520,7 +520,7 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
  **      Others:    T3495                                      **
  **                                                                        **
  ***************************************************************************/
-static int _eps_bearer_deactivate(
+static int eps_bearer_deactivate(
     emm_context_t* emm_context_p, ebi_t ebi, STOLEN_REF bstring* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};

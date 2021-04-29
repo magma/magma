@@ -1,0 +1,52 @@
+---
+
+- name: locate VPC
+  ec2_vpc_net_info:
+    filters:
+      "tag:Name": "{{ orc8rVpc }}"
+  register: valVpc
+
+
+- name: set vpc cidr fact
+  set_fact: 
+    factVpcCidr: "{{ valVpc.vpcs[0].cidr_block }}"
+
+- name: set vpc id fact
+  set_fact: 
+    factVpcId: "{{ valVpc.vpcs[0].vpc_id }}"
+
+- name: gather all security groups for this vpc
+  ec2_group_info:
+    filters:
+      vpc_id: "{{ factVpcId }}"
+      "tag:Name": "{{ item }}"
+  register: valSecGroup
+  with_items:
+    - "{{ orc8rSgs }}"
+
+- name: delete limitedsecurity groups in this VPC
+  ec2_group:
+    group_id: "{{ item.security_groups[0].group_id }}"
+    state: absent
+  with_items:
+    - "{{ valSecGroup.results }}"
+
+- name: gather all security groups for this vpc
+  ec2_group_info:
+    filters:
+      vpc_id: "{{ factVpcId }}"
+  register: valSecGroup
+
+- name: debug remaining security groups
+  debug:
+    msg: "{{ valSecGroup }}"
+
+- name: delete all security groups in this VPC
+  ec2_group:
+    group_id: "{{ item.group_id }}"
+    state: absent
+  when: item.group_name != "default"
+  with_items:
+    - "{{ valSecGroup.security_groups }}"
+  ignore_errors: true
+

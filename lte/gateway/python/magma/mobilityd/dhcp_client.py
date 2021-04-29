@@ -16,20 +16,18 @@ import datetime
 import logging
 import threading
 import time
-from typing import Optional, MutableMapping
-
-
 from ipaddress import IPv4Network, ip_address
+from threading import Condition
+from typing import MutableMapping, Optional
+
+from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
+from magma.mobilityd.mac import MacAddress, hex_to_mac
+from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 from scapy.all import AsyncSniffer
 from scapy.layers.dhcp import BOOTP, DHCP
-from scapy.layers.l2 import Ether, Dot1Q
 from scapy.layers.inet import IP, UDP
+from scapy.layers.l2 import Dot1Q, Ether
 from scapy.sendrecv import sendp
-from threading import Condition
-
-from magma.mobilityd.mac import MacAddress, hex_to_mac
-from magma.mobilityd.dhcp_desc import DHCPState, DHCPDescriptor
-from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 
 LOG = logging.getLogger('mobilityd.dhcp.sniff')
 DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]

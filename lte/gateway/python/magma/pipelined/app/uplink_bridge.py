@@ -16,8 +16,7 @@ from collections import namedtuple
 
 import netaddr
 import netifaces
-
-from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow import flows
 
@@ -284,6 +283,11 @@ class UplinkBridgeController(MagmaController):
             if if_name == self.config.uplink_bridge:
                 self._restart_dhclient(if_name)
             else:
+                if_addrs = netifaces.ifaddresses(if_name).get(netifaces.AF_INET, [])
+                if len(if_addrs) != 0:
+                    self.logger.info("SGi has valid IP, skip reconfiguration %s", if_addrs)
+                    return
+
                 # for system port, use networking config
                 try:
                     self._flush_ip(if_name)

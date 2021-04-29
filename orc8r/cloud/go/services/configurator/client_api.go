@@ -688,6 +688,28 @@ func LoadAllEntitiesOfType(networkID string, entityType string, criteria EntityL
 	return ret, res.NextPageToken, nil
 }
 
+// CountEntitiesOfType provides total count of entities of this type
+func CountEntitiesOfType(networkID string, entityType string, criteria EntityLoadCriteria, serdes serde.Registry) (uint64, error) {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return 0, err
+	}
+	res, err := client.CountEntities(
+		context.Background(),
+		&protos.LoadEntitiesRequest{
+			NetworkID: networkID,
+			Filter: &storage.EntityLoadFilter{
+				TypeFilter: &wrappers.StringValue{Value: entityType},
+			},
+			Criteria: criteria.toProto(),
+		},
+	)
+	if err != nil {
+		return 0, err
+	}
+	return res.Count, nil
+}
+
 func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {
 	conn, err := registry.GetConnection(ServiceName)
 	if err != nil {

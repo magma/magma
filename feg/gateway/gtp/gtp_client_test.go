@@ -30,11 +30,11 @@ import (
 // MockProto is a mock protobuf message to mimick Encanced messages
 type MockProto struct {
 	protoiface.MessageV1
-	Teid uint32
+	PgwCFteid uint32
 }
 
 func (mp MockProto) String() string {
-	return fmt.Sprint(mp.Teid)
+	return fmt.Sprintf("%d", mp.PgwCFteid)
 }
 
 const (
@@ -83,7 +83,7 @@ func TestGtpClient(t *testing.T) {
 
 	// add a dummy handler at the server for create session request
 	gtpServer.AddHandlers(map[uint8]gtpv2.HandlerFunc{
-		message.MsgTypeCreateSessionRequest: getHandleCreateSessionRequest(actualServerIPAndPort, bearerId1),
+		message.MsgTypeCreateSessionRequest: getHandleCreateSessionRequest(actualServerIPAndPort, cSgwTeid, bearerId1),
 	})
 
 	// add a dummy handler at tlient client for create session response
@@ -91,23 +91,34 @@ func TestGtpClient(t *testing.T) {
 		message.MsgTypeCreateSessionResponse: getHandleCreateSessionResponse(gtpClient),
 	})
 
-	csr := getCreateSessionRequest(t, gtpClient, localIP, actualServerIPAndPort, bearerId1, qci1)
+	csr := getCreateSessionRequest(t, gtpClient, localIP, actualServerIPAndPort, cSgwTeid, bearerId1, qci1)
 	msg := message.NewCreateSessionRequest(0, 0, csr...)
 	resMsg, err := gtpClient.SendMessageAndExtractGrpc(IMSI1, cSgwTeid, remoteAddr, msg)
 	assert.NoError(t, err)
 	csRes := resMsg.(MockProto)
 	assert.NotEmpty(t, csRes)
-	assert.Equal(t, cPgwTeid, csRes.Teid)
+	assert.Equal(t, cPgwTeid, csRes.PgwCFteid)
+	// session shouldn't exist after create sesion has been sent
+	_, err = gtpClient.GetSessionByIMSI(IMSI1)
+	assert.Error(t, err)
 
-	// create same session with differnt QCI
-	csr = getCreateSessionRequest(t, gtpClient, localIP, actualServerIPAndPort, bearerId1, qci2)
+	// create same session with different QCI and different C-Sgw TEID
+	newCSgwTeid := cSgwTeid + 1
+	csr = getCreateSessionRequest(t, gtpClient, localIP, actualServerIPAndPort, newCSgwTeid, bearerId1, qci2)
+	gtpServer.AddHandlers(map[uint8]gtpv2.HandlerFunc{
+		message.MsgTypeCreateSessionRequest: getHandleCreateSessionRequest(actualServerIPAndPort, newCSgwTeid, bearerId1),
+	})
 
 	msg = message.NewCreateSessionRequest(0, 0, csr...)
-	resMsg, err = gtpClient.SendMessageAndExtractGrpc(IMSI1, cSgwTeid, remoteAddr, msg)
+	resMsg, err = gtpClient.SendMessageAndExtractGrpc(IMSI1, newCSgwTeid, remoteAddr, msg)
 	assert.NoError(t, err)
+	// session shouldn't exist after create sesion has been sent
+	_, err = gtpClient.GetSessionByIMSI(IMSI1)
+	assert.Error(t, err)
+
 	csRes = resMsg.(MockProto)
 	assert.NotEmpty(t, csRes)
-	assert.Equal(t, cPgwTeid, csRes.Teid)
+	assert.Equal(t, cPgwTeid, csRes.PgwCFteid)
 }
 
 func startGTPServer(t *testing.T) *Client {
@@ -116,9 +127,9 @@ func startGTPServer(t *testing.T) *Client {
 	return pgwConn
 }
 
-func getCreateSessionRequest(t *testing.T, cli *Client, laddrs net.IP, raddrs string, bearerId, qci uint8) []*ie.IE {
+func getCreateSessionRequest(t *testing.T, cli *Client, laddrs net.IP, raddrs string, c_sgw_teid uint32, bearerId, qci uint8) []*ie.IE {
 	// SGW control plane teid
-	cSgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPC, cSgwTeid, raddrs, "").WithInstance(0)
+	cSgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPC, c_sgw_teid, raddrs, "").WithInstance(0)
 
 	// SGW user plane teid
 	uSgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8SGWGTPU, 11, raddrs, "").WithInstance(2)
@@ -148,14 +159,14 @@ func getCreateSessionRequest(t *testing.T, cli *Client, laddrs net.IP, raddrs st
 }
 
 // getHandleCreateSessionRequest dummy create sesson request handler
-func getHandleCreateSessionRequest(pgwAddrs string, bearerId uint8) gtpv2.HandlerFunc {
+func getHandleCreateSessionRequest(pgwAddrs string, c_sgw_teid uint32, bearerId uint8) gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
 
 		cPgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8PGWGTPC, cPgwTeid, pgwAddrs, "").WithInstance(1)
 		uPgwFTeid := ie.NewFullyQualifiedTEID(gtpv2.IFTypeS5S8PGWGTPU, uPgwTeid, pgwAddrs, "").WithInstance(2)
 
 		csRspFromPGW := message.NewCreateSessionResponse(
-			cSgwTeid, msg.Sequence(),
+			c_sgw_teid, msg.Sequence(),
 			ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
 			cPgwFTeid,
 			ie.NewAPNRestriction(gtpv2.APNRestrictionPublic2),
@@ -178,11 +189,11 @@ func getHandleCreateSessionResponse(cli *Client) gtpv2.HandlerFunc {
 		csResGtp := msg.(*message.CreateSessionResponse)
 		mockProto := MockProto{}
 		if pgwCFteidIE := csResGtp.PGWS5S8FTEIDC; pgwCFteidIE != nil {
-			teid, err := pgwCFteidIE.TEID()
+			pgw_c_fteid_IE, err := pgwCFteidIE.TEID()
 			if err != nil {
 				return err
 			}
-			mockProto.Teid = teid
+			mockProto.PgwCFteid = pgw_c_fteid_IE
 
 		} else {
 			return &gtpv2.RequiredIEMissingError{Type: ie.FullyQualifiedTEID}

@@ -1,0 +1,99 @@
+---
+name: "Dockerfile Health"
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - .devcontainer/Dockerfile
+      - .github/workflows/dockerfile-health.yml
+      - lte/gateway/docker/mme/Dockerfile.ubuntu20.04
+
+jobs:
+  build_ubuntu20_04_dockerfile:
+    env:
+      DOCKERFILE: lte/gateway/docker/mme/Dockerfile.ubuntu20.04
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Check Out Repo
+        uses: actions/checkout@v2
+      -
+        name: Docker meta
+        id: meta
+        uses: crazy-max/ghaction-docker-meta@v2
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            magma/mme_builder_focal
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=sha
+      -
+        name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles( '**/Dockerfile*' ) }}
+      -
+        name: Docker Build
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE }}
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=docker,dest=/tmp/mme_builder.tar
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new
+
+  build_devcontainer_dockerfile:
+    env:
+      DOCKERFILE: .devcontainer/Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+      -
+        name: Check Out Repo
+        uses: actions/checkout@v2
+      -
+        name: Docker meta
+        id: meta
+        uses: crazy-max/ghaction-docker-meta@v2
+        with:
+          # list of Docker images to use as base name for tags
+          images: |
+            magma/mme_builder_focal
+          # generate Docker tags based on the following events/attributes
+          tags: |
+            type=sha
+      -
+        name: Set up Docker Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      -
+        name: Cache Docker layers
+        uses: actions/cache@v2
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles( '**/Dockerfile*' ) }}
+      -
+        name: Docker Build
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE }}
+          push: false
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=docker,dest=/tmp/mme_builder.tar
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new

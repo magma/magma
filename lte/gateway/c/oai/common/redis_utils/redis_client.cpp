@@ -28,15 +28,18 @@ extern "C" {
 #endif
 
 #include "ServiceConfigLoader.h"
+#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 
 using google::protobuf::Message;
 
 namespace magma {
 namespace lte {
 
-RedisClient::RedisClient()
+RedisClient::RedisClient(bool init_connection)
     : db_client_(std::make_unique<cpp_redis::client>()), is_connected_(false) {
-  init_db_connection();
+  if (init_connection) {
+    init_db_connection();
+  }
 }
 
 void RedisClient::init_db_connection() {
@@ -84,26 +87,11 @@ std::string RedisClient::read(const std::string& key) {
   return db_read_reply.as_string();
 }
 
-int RedisClient::write_proto(const std::string& key, const Message& proto_msg) {
-  std::string inner_val;
-  if (serialize(proto_msg, inner_val) != RETURNok) {
-    return RETURNerror;
-  }
-
-  // Read the existing key for current version if it exists.
-  // Bump the version number of the wrapper and set its wrapped message.
+int RedisClient::write_proto_str(
+    const std::string& key, const std::string& proto_msg, uint64_t version) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
-  try {
-    if (key_exists(key)) {
-      if (read_redis_state(key, wrapper_proto) != RETURNok) {
-        return RETURNerror;
-      }
-    }
-  } catch (const std::runtime_error& e) {
-    return RETURNerror;
-  }
-  wrapper_proto.set_serialized_msg(inner_val);
-  wrapper_proto.set_version(wrapper_proto.version() + 1);
+  wrapper_proto.set_serialized_msg(proto_msg);
+  wrapper_proto.set_version(version);
 
   std::string str_value;
   if (serialize(wrapper_proto, str_value) != RETURNok) {
@@ -182,25 +170,6 @@ int RedisClient::read_redis_state(
   } catch (const std::runtime_error& e) {
     return RETURNerror;
   }
-}
-
-bool RedisClient::key_exists(const std::string& key) {
-  auto exists_vec = std::vector<std::string>();
-  exists_vec.push_back(key);
-
-  auto reply_future = db_client_->exists(exists_vec);
-  db_client_->sync_commit();
-  auto reply = reply_future.get();
-
-  if (reply.is_null()) {
-    return false;
-  }
-  if (reply.is_error() || !reply.is_integer()) {
-    throw std::runtime_error("Could not check for existence in redis");
-  }
-
-  // EXISTS returns how many of the queried keys exist as an integer
-  return reply.as_integer() == 1;
 }
 
 int RedisClient::serialize(

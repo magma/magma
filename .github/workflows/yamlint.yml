@@ -1,0 +1,23 @@
+---
+name: YAML linting by Reviewdog
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+
+jobs:
+  yamllint:
+    name: runner / yamllint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: yamllint
+        uses: reviewdog/action-yamllint@v1
+        with:
+          github_token: ${{ secrets.github_token }}
+          level: warning
+          filter_mode: added  # Any added or changed content.
+          reporter: github-pr-review  # Comments on PR with review comments.
+          yamllint_flags: "-d .github/workflows/config/yamllint_config.yml ."

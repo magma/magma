@@ -13,24 +13,25 @@ limitations under the License.
 import threading
 from typing import List
 
-from ryu.controller import ofp_event
-from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from ryu.lib.packet import packet
-from ryu.lib.packet import ether_types, dhcp
-from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
-
-from lte.protos.pipelined_pb2 import FlowResponse, SetupFlowsResult, \
-    UEMacFlowRequest
-from magma.pipelined.app.base import MagmaController, ControllerType
+from lte.protos.pipelined_pb2 import (
+    FlowResponse,
+    SetupFlowsResult,
+    UEMacFlowRequest,
+)
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.inout import INGRESS
-from magma.pipelined.directoryd_client import update_record
-from magma.pipelined.imsi import encode_imsi, decode_imsi
-from magma.pipelined.openflow import flows
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.directoryd_client import update_record
+from magma.pipelined.imsi import decode_imsi, encode_imsi
+from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, load_passthrough
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
+from ryu.lib.packet import dhcp, ether_types, packet
+from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
 
 
 class UEMacAddressController(MagmaController):
@@ -104,7 +105,8 @@ class UEMacAddressController(MagmaController):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._passthrough_set_tbl)
         flows.delete_all_flows_from_table(datapath, self._dhcp_learn_scratch)
-        flows.delete_all_flows_from_table(datapath, self._imsi_set_tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._imsi_set_tbl_num,
+                                          cookie=self.tbl_num)
 
     def add_ue_mac_flow(self, sid, mac_addr):
         # TODO report add flow result back to sessiond
@@ -126,10 +128,12 @@ class UEMacAddressController(MagmaController):
             self._add_resubmit_flow(sid, uplink_match,
                                     priority=flows.UE_FLOW_PRIORITY,
                                     tbl_num=self._imsi_set_tbl_num,
+                                    cookie=self.tbl_num,
                                     next_table=self._ipfix_sample_tbl_num)
             self._add_resubmit_flow(sid, downlink_match,
                                     priority=flows.UE_FLOW_PRIORITY,
                                     tbl_num=self._imsi_set_tbl_num,
+                                    cookie=self.tbl_num,
                                     next_table=self._ipfix_sample_tbl_num)
 
         return FlowResponse(result=FlowResponse.SUCCESS)
@@ -168,7 +172,7 @@ class UEMacAddressController(MagmaController):
 
     def _add_resubmit_flow(self, sid, match, action=None,
                            priority=flows.DEFAULT_PRIORITY,
-                           next_table=None, tbl_num=None):
+                           next_table=None, tbl_num=None, cookie=0):
         parser = self._datapath.ofproto_parser
 
         if action is None:
@@ -187,7 +191,7 @@ class UEMacAddressController(MagmaController):
 
         flows.add_resubmit_next_service_flow(self._datapath, tbl_num,
                                              match, actions=actions,
-                                             priority=priority,
+                                             priority=priority, cookie=cookie,
                                              resubmit_table=next_table)
 
     def _delete_resubmit_flow(self, sid, match, action=None, tbl_num=None):

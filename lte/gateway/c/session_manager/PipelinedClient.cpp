@@ -16,6 +16,7 @@
 #include "magma_logging.h"
 #include "GrpcMagmaUtils.h"
 #include <google/protobuf/util/time_util.h>
+#include "EnumToString.h"
 
 using grpc::Status;
 
@@ -62,9 +63,11 @@ magma::DeactivateFlowsRequest create_deactivate_req(
   req.set_uplink_tunnel(teids.agw_teid());
   req.set_remove_default_drop_flows(remove_default_drop_rules);
   req.mutable_request_origin()->set_type(origin_type);
-  auto ids = req.mutable_rule_ids();
-  for (const auto& rule : to_process.rules) {
-    ids->Add()->assign(rule.id());
+  auto mut_versioned_rules = req.mutable_policies();
+  for (uint index = 0; index < to_process.rules.size(); ++index) {
+    auto versioned_policy = mut_versioned_rules->Add();
+    versioned_policy->set_version(to_process.versions[index]);
+    versioned_policy->set_rule_id(to_process.rules[index].id());
   }
   return req;
 }
@@ -87,9 +90,11 @@ magma::ActivateFlowsRequest create_activate_req(
   if (ambr) {
     req.mutable_apn_ambr()->CopyFrom(*ambr);
   }
-  auto mut_dyn_rules = req.mutable_dynamic_rules();
-  for (const auto& dyn_rule : to_process.rules) {
-    mut_dyn_rules->Add()->CopyFrom(dyn_rule);
+  auto mut_versioned_rules = req.mutable_policies();
+  for (uint index = 0; index < to_process.rules.size(); ++index) {
+    auto versioned_policy = mut_versioned_rules->Add();
+    versioned_policy->set_version(to_process.versions[index]);
+    versioned_policy->mutable_rule()->CopyFrom(to_process.rules[index]);
   }
   return req;
 }
@@ -245,10 +250,11 @@ void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids,
     const RequestOriginType_OriginType origin_type) {
-  MLOG(MDEBUG)
-      << "Deactivating all static/dynamic rules and default drop flows "
-         "for subscriber "
-      << imsi << " IP " << ip_addr << " " << ipv6_addr;
+  MLOG(MDEBUG) << "Deactivating all rules and default drop flows "
+               << "for " << imsi << ", ipv4: " << ip_addr
+               << ", ipv6: " << ipv6_addr << ", agw teid: " << teids.agw_teid()
+               << ", enb teid: " << teids.enb_teid()
+               << ", origin_type: " << request_origin_type_to_str(origin_type);
 
   RulesToProcess empty_to_process;
   empty_to_process.rules = std::vector<PolicyRule>{};

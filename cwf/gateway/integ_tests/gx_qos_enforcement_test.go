@@ -402,7 +402,10 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)

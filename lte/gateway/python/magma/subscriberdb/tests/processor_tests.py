@@ -15,15 +15,19 @@ import tempfile
 import unittest
 
 from lte.protos.mconfig.mconfigs_pb2 import SubscriberDB
-from lte.protos.subscriberdb_pb2 import (GSMSubscription, LTESubscription,
-                                         SubscriberData, SubscriberState)
+from lte.protos.subscriberdb_pb2 import (
+    GSMSubscription,
+    LTESubscription,
+    SubscriberData,
+    SubscriberState,
+)
 from magma.subscriberdb import processor
 from magma.subscriberdb.crypto.milenage import BaseLTEAuthAlgo, Milenage
 from magma.subscriberdb.crypto.utils import CryptoError
+from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.base import SubscriberNotFoundError
 from magma.subscriberdb.store.sqlite import SqliteStore
 
-from magma.subscriberdb.sid import SIDUtils
 
 def _dummy_auth_tuple():
     rand = b'ni\x89\xbel\xeeqTT7p\xae\x80\xb1\xef\r'

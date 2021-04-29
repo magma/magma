@@ -140,7 +140,7 @@ func (m EapAkaTataIpxMethod) Handle(
 		// Add required User-Name
 		result.ExtraAttributes[rfc2865.UserName_Type] =
 			[]radius.Attribute{
-				radius.Attribute([]byte(currentState.Identity)),
+				radius.Attribute(currentState.Identity),
 			}
 	}
 

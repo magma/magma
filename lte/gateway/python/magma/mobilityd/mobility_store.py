@@ -14,12 +14,13 @@ from collections import defaultdict
 
 import redis
 from lte.protos.mobilityd_pb2 import GWInfo
-
 from magma.common.redis.client import get_default_client
-from magma.common.redis.containers import RedisFlatDict, RedisHashDict, \
-    RedisSet
-from magma.common.redis.serializers import RedisSerde, get_json_deserializer, \
-    get_json_serializer
+from magma.common.redis.containers import RedisFlatDict, RedisHashDict, RedisSet
+from magma.common.redis.serializers import (
+    RedisSerde,
+    get_json_deserializer,
+    get_json_serializer,
+)
 from magma.mobilityd import serialize_utils
 from magma.mobilityd.ip_descriptor import IPDesc
 from magma.mobilityd.ip_descriptor_map import IpDescriptorMap
@@ -43,6 +44,7 @@ class MobilityStore(object):
                    redis_port: int):
         if not persist_to_redis:
             self.ip_state_map = IpDescriptorMap(defaultdict(dict))
+            self.ipv6_state_map = IpDescriptorMap(defaultdict(dict))
             self.assigned_ip_blocks = set()  # {ip_block}
             self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
             self.dhcp_gw_info = UplinkGatewayInfo(defaultdict(GWInfo))
@@ -54,6 +56,8 @@ class MobilityStore(object):
                 raise ValueError(
                     'Must specify a redis_port in mobilityd config.')
             self.ip_state_map = IpDescriptorMap(
+                defaultdict_key(lambda key: ip_states(client, key)))
+            self.ipv6_state_map = IpDescriptorMap(
                 defaultdict_key(lambda key: ip_states(client, key)))
             self.assigned_ip_blocks = AssignedIpBlocksSet(client)
             self.sid_ips_map = IPDescDict(client)

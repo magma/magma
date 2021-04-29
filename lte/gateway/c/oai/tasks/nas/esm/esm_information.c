@@ -48,13 +48,13 @@
 /*
    Timer handlers
 */
-static void _esm_information_t3489_handler(void*, imsi64_t* imsi64);
+static void esm_information_t3489_handler(void*, imsi64_t* imsi64);
 
 /* Maximum value of the deactivate EPS bearer context request
    retransmission counter */
 #define ESM_INFORMATION_COUNTER_MAX 3
 
-static int _esm_information(
+static int esm_information(
     emm_context_t* emm_context_p, ebi_t ebi, esm_ebr_timer_data_t* const data);
 
 /****************************************************************************/
@@ -99,7 +99,7 @@ int esm_proc_esm_information_request(
       data->ebi   = EPS_BEARER_IDENTITY_UNASSIGNED;
       data->msg   = msg_req;
       data->ue_id = ue_id;
-      rc          = _esm_information(emm_context_p, pti, data);
+      rc          = esm_information(emm_context_p, pti, data);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -133,6 +133,7 @@ int esm_proc_esm_information_response(
     }
     copy_protocol_configuration_options(
         &emm_context_p->esm_ctx.esm_proc_data->pco, pco);
+    clear_protocol_configuration_options(pco);
   }
 
   *esm_cause = ESM_CAUSE_SUCCESS;
@@ -171,7 +172,7 @@ int esm_proc_esm_information_response(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
+static void esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   /*
@@ -199,7 +200,7 @@ static void _esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
       /*
        * Re-send deactivate EPS bearer context request message to the UE
        */
-      _esm_information(
+      esm_information(
           esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, esm_ebr_timer_data);
     } else {
       /*
@@ -248,7 +249,7 @@ static void _esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
  **      Others:    T3489                                                  **
  **                                                                        **
  ***************************************************************************/
-static int _esm_information(
+static int esm_information(
     emm_context_t* emm_context_p, ebi_t ebi, esm_ebr_timer_data_t* const data) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};
@@ -277,7 +278,7 @@ static int _esm_information(
      */
     emm_context_p->esm_ctx.T3489.id = nas_timer_start(
         emm_context_p->esm_ctx.T3489.sec, 0 /*usec*/,
-        _esm_information_t3489_handler, data);
+        esm_information_t3489_handler, data);
 
     OAILOG_INFO(
         LOG_NAS_EMM,

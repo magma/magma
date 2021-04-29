@@ -393,6 +393,7 @@ func sendRAR(state *SubscriberSessionState, target *protos.PolicyReAuthTarget, c
 				nil)...,
 		)
 	}
+
 	// Construct AVPs for Rules to Remove
 	ruleRemovals := target.GetRulesToRemove()
 	if ruleRemovals != nil {
@@ -403,18 +404,18 @@ func sendRAR(state *SubscriberSessionState, target *protos.PolicyReAuthTarget, c
 			)...,
 		)
 	}
+
 	// Construct AVPs for UsageMonitoring
 	monitorInstalls := target.GetUsageMonitoringInfos()
-	if monitorInstalls != nil {
-		for _, monitor := range monitorInstalls {
-			octets := monitor.GetOctets()
-			if octets == nil {
-				glog.Errorf("Monitor Octets is nil, skipping.")
-				continue
-			}
-			additionalAVPs = append(additionalAVPs, toUsageMonitoringInfoAVP(string(monitor.MonitoringKey), octets, monitor.MonitoringLevel))
+	for _, monitor := range monitorInstalls {
+		octets := monitor.GetOctets()
+		if octets == nil {
+			glog.Errorf("Monitor Octets is nil, skipping.")
+			continue
 		}
+		additionalAVPs = append(additionalAVPs, toUsageMonitoringInfoAVP(string(monitor.MonitoringKey), octets, monitor.MonitoringLevel))
 	}
+
 	for _, avp := range additionalAVPs {
 		m.InsertAVP(avp)
 	}

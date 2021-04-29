@@ -57,7 +57,7 @@ func (srv *HomeSubscriberServer) TerminateRegistration(sub *protos.SubscriberDat
 	select {
 	case resp, open := <-ch:
 		if !open {
-			err = status.Errorf(codes.Aborted, "RTA for Session ID: %s is cancelled", sid)
+			err = status.Errorf(codes.Aborted, "RTA for Session ID: %s is canceled", sid)
 			glog.Error(err)
 			return err
 		}

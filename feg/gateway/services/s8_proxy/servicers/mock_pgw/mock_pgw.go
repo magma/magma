@@ -51,9 +51,9 @@ type LastValues struct {
 
 // CreateSessionOptions to control Create Session Response values to produce errors
 type CreateSessionOptions struct {
-	SgwTeidc  uint32
-	PgwFTEIDc uint32
-	PgwFTEIDu uint32
+	SgwTEIDc uint32
+	PgwTEIDc uint32
+	PgwTEIDu uint32
 }
 
 func NewStarted(ctx context.Context, pgwAddrsStr string) (*MockPgw, error) {
@@ -89,13 +89,19 @@ func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 func (mPgw *MockPgw) SetCreateSessionWithErrorCause(errorCause uint8) {
 	mPgw.AddHandler(
 		message.MsgTypeCreateSessionRequest,
-		mPgw.getHandleCreateSessionRequestWithDeniedService(errorCause))
+		mPgw.getHandleCreateSessionRequestWithErrorCause(errorCause))
 }
 
-func (mPgw *MockPgw) SetCreateSessionWithMissingIE() {
+func (mPgw *MockPgw) SetCreateSessionResponseWithMissingIE() {
 	mPgw.AddHandler(
 		message.MsgTypeCreateSessionRequest,
-		mPgw.getHandleCreateSessionRequestWithMissingIE())
+		mPgw.getHandleCreateSessionResponseWithMissingIE())
+}
+
+func (mPgw *MockPgw) SetCreateSessionRequestWithMissingIE(missingIE *ie.IE) {
+	mPgw.AddHandler(
+		message.MsgTypeCreateSessionRequest,
+		mPgw.getHandleCreateSessionRequestWithMissingIE(missingIE))
 }
 
 // ONLY FOR DEBUGGING PURPOSES

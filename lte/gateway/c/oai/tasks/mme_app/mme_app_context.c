@@ -94,7 +94,7 @@ void print_trace(void) {
 }
 
 typedef void (*mme_app_timer_callback_t)(void* args, imsi64_t* imsi64);
-static void _mme_app_handle_s1ap_ue_context_release(
+static void mme_app_handle_s1ap_ue_context_release(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
     const enb_ue_s1ap_id_t enb_ue_s1ap_id, uint32_t enb_id, enum s1cause cause);
 
@@ -107,14 +107,14 @@ static void mme_app_resume_timers(
     struct mme_app_timer_t* timer,
     mme_app_timer_callback_t timer_expiry_handler, char* timer_name);
 
-static void _directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
+static void directoryd_report_location_a(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
   directoryd_report_location(imsi_str);
   OAILOG_INFO_UE(LOG_MME_APP, imsi, "Reported UE location to directoryd\n");
 }
 
-static void _directoryd_remove_location(uint64_t imsi, uint8_t imsi_len) {
+static void directoryd_remove_location_a(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
   directoryd_remove_location(imsi_str);
@@ -751,7 +751,7 @@ void mme_remove_ue_context(
   }
 
   // First, notify directoryd of removal
-  _directoryd_remove_location(
+  directoryd_remove_location_a(
       ue_context_p->emm_context._imsi64,
       ue_context_p->emm_context._imsi.length);
 
@@ -1639,7 +1639,7 @@ void mme_app_handle_s1ap_ue_context_release_req(
     const itti_s1ap_ue_context_release_req_t* const s1ap_ue_context_release_req)
 
 {
-  _mme_app_handle_s1ap_ue_context_release(
+  mme_app_handle_s1ap_ue_context_release(
       s1ap_ue_context_release_req->mme_ue_s1ap_id,
       s1ap_ue_context_release_req->enb_ue_s1ap_id,
       s1ap_ue_context_release_req->enb_id,
@@ -1721,7 +1721,7 @@ void mme_app_handle_s1ap_ue_context_modification_resp(
 void mme_app_handle_enb_deregister_ind(
     const itti_s1ap_eNB_deregistered_ind_t* const eNB_deregistered_ind) {
   for (int i = 0; i < eNB_deregistered_ind->nb_ue_to_deregister; i++) {
-    _mme_app_handle_s1ap_ue_context_release(
+    mme_app_handle_s1ap_ue_context_release(
         eNB_deregistered_ind->mme_ue_s1ap_id[i],
         eNB_deregistered_ind->enb_ue_s1ap_id[i], eNB_deregistered_ind->enb_id,
         S1AP_SCTP_SHUTDOWN_OR_RESET);
@@ -1745,7 +1745,7 @@ void mme_app_handle_enb_reset_req(
   }
 
   for (int i = 0; i < enb_reset_req->num_ue; i++) {
-    _mme_app_handle_s1ap_ue_context_release(
+    mme_app_handle_s1ap_ue_context_release(
         enb_reset_req->ue_to_reset_list[i].mme_ue_s1ap_id,
         enb_reset_req->ue_to_reset_list[i].enb_ue_s1ap_id,
         enb_reset_req->enb_id, S1AP_SCTP_SHUTDOWN_OR_RESET);
@@ -1875,7 +1875,7 @@ void mme_ue_context_update_ue_emm_state(
     ue_context_p->mm_state = new_mm_state;
 
     // Report directoryd UE record
-    _directoryd_report_location(
+    directoryd_report_location_a(
         ue_context_p->emm_context._imsi64,
         ue_context_p->emm_context._imsi.length);
 
@@ -1899,7 +1899,7 @@ void mme_ue_context_update_ue_emm_state(
 }
 
 //------------------------------------------------------------------------------
-static void _mme_app_handle_s1ap_ue_context_release(
+static void mme_app_handle_s1ap_ue_context_release(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
     const enb_ue_s1ap_id_t enb_ue_s1ap_id, uint32_t enb_id, enum s1cause cause)
 //------------------------------------------------------------------------------
@@ -1994,6 +1994,14 @@ static void _mme_app_handle_s1ap_ue_context_release(
       MME_APP_TIMER_INACTIVE_ID) {
     mme_app_stop_timer(ue_mm_context->ue_context_modification_timer.id);
     ue_mm_context->ue_context_modification_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  }
+  // Stop esm timer if running
+  for (int bid = 0; bid < BEARERS_PER_UE; bid++) {
+    if (ue_mm_context->bearer_contexts[bid]) {
+      esm_ebr_stop_timer(
+          &ue_mm_context->emm_context,
+          ue_mm_context->bearer_contexts[bid]->ebi);
+    }
   }
 
   if (ue_mm_context->mm_state == UE_UNREGISTERED) {

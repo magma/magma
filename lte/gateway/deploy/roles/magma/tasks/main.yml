@@ -231,6 +231,14 @@
       # install openvswitch
       - openvswitch-switch
       - openvswitch-test
+      - libopenvswitch
+      - openvswitch-datapath-dkms
+      - openvswitch-common
+      - libopenvswitch-dev
+      - python3-openvswitch
+      - openvswitch-doc
+      - openvswitch-pki
+      - openvswitch-test
       - magma-libfluid
       # install lxml
       - python3-lxml
@@ -249,6 +257,7 @@
       - ntpdate
       # For call tracing
       - tshark
+      - getenvoy-envoy
 
 - name: Install debian Magma dependencies
   retries: 5
@@ -355,6 +364,13 @@
     state: restarted
   when: full_provision
 
+- name: Restart OVS
+  ignore_errors: yes
+  shell: |
+    ifdown gtp_br0
+    /etc/init.d/openvswitch-switch  force-reload-kmod
+  when: ansible_distribution == "Ubuntu"
+
 - name: Bring up ovs bridge
   shell: ifup -i /etc/network/interfaces.d/gtp {{ item }}
   with_items:
@@ -377,8 +393,27 @@
     dest: /home/vagrant/build/python/lib/python3.5/site-packages/ryu/ofproto/
   when: full_provision
 
+- name: Change build folder ownership
+  ansible.builtin.file:
+    path: /home/vagrant/build
+    owner: vagrant
+    group: vagrant
+    recurse: yes
+
 - name: Patch python aio lib
   patch:
     src: patches/aioeventlet.py38.patch
     dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
   when: ansible_distribution == "Ubuntu"
+
+- name: Patch python aioeventlet lib crash ubuntu
+  patch:
+    src: patches/aioeventlet_fd_exception.patch
+    dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
+  when: ansible_distribution == "Ubuntu"
+
+- name: Patch python aioeventlet lib crash debian
+  patch:
+    src: patches/aioeventlet_fd_exception.patch
+    dest: /usr/lib/python3/dist-packages/aioeventlet.py
+  when: ansible_distribution == "Debian"

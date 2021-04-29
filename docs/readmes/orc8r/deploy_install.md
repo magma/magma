@@ -147,6 +147,9 @@ Make sure that the `source` variables for the module definitions point to
 Adjust any other parameters as you see fit - check the READMEs for the
 relevant Terraform modules to see additional variables that can be set.
 
+Additionally, you can [override values](./override_values_of_terraform_files.md)
+that are part of the terraform files that are used in the github repository.
+
 Finally, initialize Terraform
 
 ```bash
@@ -160,6 +163,8 @@ Initializing provider plugins...
 
 Terraform has been successfully initialized!
 ```
+
+By default, terraform state file will be stored locally. However, you can [hold the state file remotely](./hold_terraform_state_on_s3.md) using an AWS S3 bucket.
 
 ### Terraform Infrastructure
 
@@ -240,14 +245,14 @@ created earlier
 
 ```bash
 export ORC_POD=$(kubectl --namespace orc8r get pod -l app.kubernetes.io/component=orchestrator -o jsonpath='{.items[0].metadata.name}')
-kubectl --namespace orc8r exec ${ORC_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
+kubectl --namespace orc8r exec ${ORC_POD} -- /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 ```
 
 If you want to verify the admin user was successfully created, inspect the
 output from
 
 ```bash
-$ kubectl --namespace orc8r exec ${ORC_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc list-certs
+$ kubectl --namespace orc8r exec ${ORC_POD} -- /var/opt/magma/bin/accessc list-certs
 
 # NOTE: actual values will differ
 Serial Number: 83550F07322CEDCD; Identity: Id_Operator_admin_operator; Not Before: 2020-06-26 22:39:55 +0000 UTC; Not After: 2030-06-24 22:39:55 +0000 UTC

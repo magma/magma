@@ -1175,6 +1175,8 @@ typedef struct itti_s11_delete_session_request_s {
   void* trxn;  ///< Transaction identifier
   edns_peer_ip_t edns_peer_ip;
   struct in_addr peer_ip;
+  Uli_t uli;
+  ServingNetwork_t serving_network;
 } itti_s11_delete_session_request_t;
 
 //-----------------------------------------------------------------------------

@@ -70,6 +70,7 @@ message RequestOriginType {
     GX = 0;
     GY = 1;
     N4 = 2;
+    WILDCARD = 3; //  should only be used for deactivation
   }
   OriginType type = 1;
 }
@@ -82,7 +83,6 @@ message VersionedPolicy {
 message ActivateFlowsRequest {
   SubscriberID sid = 1;
   string ip_addr = 2; // Subscriber session ipv4 address
-  repeated PolicyRule dynamic_rules = 4;  // List of dynamic rules obtained from PCRF TODO deprecate
   RequestOriginType request_origin = 5; // Activate flow source (GX/GY)
   magma.lte.AggregatedMaximumBitrate apn_ambr = 6; // APN AMBR info, passed at the time of session creation
   bytes ipv6_addr = 7; // Subscriber session ipv6 address
@@ -90,7 +90,7 @@ message ActivateFlowsRequest {
   uint32 uplink_tunnel = 9; // Subscriber uplink tunnel
   uint32 downlink_tunnel = 10; // Subscriber downlink tunnel
   repeated VersionedPolicy policies = 11; // Policy + version pairs
-  reserved 3;
+  reserved 3, 4;
 }
 
 message VersionedPolicyID {
@@ -105,7 +105,6 @@ message VersionedPolicyID {
 // If no rule ids are given, all flows are deactivated
 message DeactivateFlowsRequest {
   SubscriberID sid = 1;
-  repeated string rule_ids = 2; // TODO deprecate
   RequestOriginType request_origin = 3;
   string ip_addr = 4; // Subscriber session ipv4 address
   bytes ipv6_addr = 5; // Subscriber session ipv6 address
@@ -113,6 +112,7 @@ message DeactivateFlowsRequest {
   uint32 uplink_tunnel = 7; // Subscriber uplink tunnel
   uint32 downlink_tunnel = 8; // Subscriber downlink tunnel
   repeated VersionedPolicyID policies = 9; // PolicyID + version pairs
+  reserved 2;
 }
 
 message RuleModResult {
@@ -123,11 +123,11 @@ message RuleModResult {
     FAILURE = 2;
   }
   Result result = 2;
+  uint64 version = 3;
 }
 
 message ActivateFlowsResult {
-  repeated RuleModResult dynamic_rule_results = 2;
-
+  repeated RuleModResult policy_results = 2;
   reserved 1;
 }
 

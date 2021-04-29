@@ -160,3 +160,40 @@ void imsi_string_to_3gpp_imsi(const Imsi_t* Imsi, imsi_t* imsi) {
   }
   imsi->length = Imsi->length;
 }
+
+//------------------------------------------------------------------------------
+imsi64_t amf_imsi_to_imsi64(const imsi_t* const imsi) {
+  imsi64_t imsi64 = INVALID_IMSI64;
+  if (imsi) {
+    imsi64 = 0;
+    for (int i = 0; i < IMSI_BCD8_SIZE; i++) {
+      /*Bring 2 digits to LSB and calculate
+       * each digit/nibel range would be 0 to 9
+       */
+      uint8_t d2 = imsi->u.value[i];
+      uint8_t d1 = (d2 & 0xf0) >> 4;
+      d2         = d2 & 0x0f;
+      if (d1 < 10) {
+        imsi64 = imsi64 * 10 + d1;
+      }
+      if (d2 < 10) {
+        imsi64 = imsi64 * 10 + d2;
+      }
+#if 0
+      if (10 > d1) {
+        imsi64 = imsi64 * 10 + d1;
+        if (10 > d2) {
+          imsi64 = imsi64 * 10 + d2;
+        }
+	else {
+          continue;
+        }
+      }
+      else {
+        continue;
+      }
+#endif
+    }
+  }
+  return imsi64;
+}

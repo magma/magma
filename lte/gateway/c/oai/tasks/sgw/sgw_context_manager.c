@@ -26,7 +26,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
 
@@ -38,15 +37,6 @@
 #include "common_defs.h"
 #include "log.h"
 #include "sgw_context_manager.h"
-
-//-----------------------------------------------------------------------------
-void sgw_display_s11teid2mme(mme_sgw_tunnel_t* mme_sgw_tunnel)
-//-----------------------------------------------------------------------------
-{
-  OAILOG_DEBUG(
-      LOG_SPGW_APP, "| " TEID_FMT "\t<------------->\t" TEID_FMT "\n",
-      mme_sgw_tunnel->remote_teid, mme_sgw_tunnel->local_teid);
-}
 
 //-----------------------------------------------------------------------------
 void sgw_display_sgw_eps_bearer_context(
@@ -65,49 +55,44 @@ void sgw_display_sgw_eps_bearer_context(
 
 //-----------------------------------------------------------------------------
 void sgw_display_s11_bearer_context_information(
-    s_plus_p_gw_eps_bearer_context_information_t* sp_context_information)
+    log_proto_t module,
+    sgw_eps_bearer_context_information_t* sgw_context_information)
 //-----------------------------------------------------------------------------
 {
   OAILOG_DEBUG(
-      LOG_SPGW_APP, "| KEY %" PRId64 ":      \n",
-      sp_context_information->sgw_eps_bearer_context_information.imsi64);
-  OAILOG_DEBUG(LOG_SPGW_APP, "|\tsgw_eps_bearer_context_information:     |\n");
+      module, "| KEY %" PRId64 ":      \n", sgw_context_information->imsi64);
+  OAILOG_DEBUG(module, "|\tsgw_eps_bearer_context_information:     |\n");
   // Imsi_t               imsi;                           ///< IMSI
   // (International Mobile Subscriber Identity) is the subscriber permanent
   // identity.
   OAILOG_DEBUG(
-      LOG_SPGW_APP, "|\t\timsi_unauthenticated_indicator:\t%u\n",
-      sp_context_information->sgw_eps_bearer_context_information
-          .imsi_unauthenticated_indicator);
+      module, "|\t\timsi_unauthenticated_indicator:\t%u\n",
+      sgw_context_information->imsi_unauthenticated_indicator);
   // char                 msisdn[MSISDN_LENGTH];          ///< The basic MSISDN
   // of the UE. The presence is dictated by its storage in the HSS.
   OAILOG_DEBUG(
-      LOG_SPGW_APP, "|\t\tmme_teid_    S11:              \t" TEID_FMT "\n",
-      sp_context_information->sgw_eps_bearer_context_information.mme_teid_S11);
+      module, "|\t\tmme_teid_    S11:              \t" TEID_FMT "\n",
+      sgw_context_information->mme_teid_S11);
   // ip_address_t         mme_ip_address_for_S11;         ///< MME IP address
   // the S11 interface.
   OAILOG_DEBUG(
-      LOG_SPGW_APP, "|\t\ts_gw_teid_S11_S4:              \t" TEID_FMT "\n",
-      sp_context_information->sgw_eps_bearer_context_information
-          .s_gw_teid_S11_S4);
+      module, "|\t\ts_gw_teid_S11_S4:              \t" TEID_FMT "\n",
+      sgw_context_information->s_gw_teid_S11_S4);
   // ip_address_t         s_gw_ip_address_for_S11_S4;     ///< S-GW IP address
   // for the S11 interface and the S4 Interface (control plane). cgi_t
   // last_known_cell_Id;             ///< This is the last location of the UE
   // known by the network
-  OAILOG_DEBUG(LOG_SPGW_APP, "|\t\tpdn_connection:\n");
+  OAILOG_DEBUG(module, "|\t\tpdn_connection:\n");
   OAILOG_DEBUG(
-      LOG_SPGW_APP, "|\t\t\tapn_in_use:        %s\n",
-      sp_context_information->sgw_eps_bearer_context_information.pdn_connection
-          .apn_in_use);
+      module, "|\t\t\tapn_in_use:        %s\n",
+      sgw_context_information->pdn_connection.apn_in_use);
   OAILOG_DEBUG(
-      LOG_SPGW_APP, "|\t\t\tdefault_bearer:    %u\n",
-      sp_context_information->sgw_eps_bearer_context_information.pdn_connection
-          .default_bearer);
-  OAILOG_DEBUG(LOG_SPGW_APP, "|\t\t\teps_bearers:\n");
+      module, "|\t\t\tdefault_bearer:    %u\n",
+      sgw_context_information->pdn_connection.default_bearer);
+  OAILOG_DEBUG(module, "|\t\t\teps_bearers:\n");
   for (int ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
     sgw_display_sgw_eps_bearer_context(
-        sp_context_information->sgw_eps_bearer_context_information
-            .pdn_connection.sgw_eps_bearers_array[ebix]);
+        sgw_context_information->pdn_connection.sgw_eps_bearers_array[ebix]);
   }
   // void                  *trxn;
   // uint32_t               peer_ip;
@@ -125,10 +110,10 @@ void pgw_lite_cm_free_apn(pgw_apn_t** apnP)
 }
 
 //-----------------------------------------------------------------------------
-teid_t sgw_get_new_S11_tunnel_id(spgw_state_t* state)
+void sgw_get_new_S11_tunnel_id(teid_t* tunnel_id)
 //-----------------------------------------------------------------------------
 {
-  return ++state->tunnel_id;
+  ++(*tunnel_id);
 }
 
 //-----------------------------------------------------------------------------
@@ -158,8 +143,7 @@ mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(
 
 //-----------------------------------------------------------------------------
 s_plus_p_gw_eps_bearer_context_information_t*
-sgw_cm_create_bearer_context_information_in_collection(
-    spgw_state_t* spgw_state, teid_t teid, imsi64_t imsi64) {
+sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_context_information =
       NULL;
   new_bearer_context_information =
@@ -203,9 +187,9 @@ sgw_cm_create_bearer_context_information_in_collection(
    * Trying to insert the new tunnel into the tree.
    * * * * If collision_p is not NULL (0), it means tunnel is already present.
    */
-  hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
+  hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
   hashtable_ts_insert(
-      state_imsi_ht, (const hash_key_t) teid, new_bearer_context_information);
+      state_teid_ht, (const hash_key_t) teid, new_bearer_context_information);
 
   OAILOG_DEBUG(
       LOG_SPGW_APP,
@@ -216,21 +200,20 @@ sgw_cm_create_bearer_context_information_in_collection(
 }
 
 //-----------------------------------------------------------------------------
-int sgw_cm_remove_bearer_context_information(
-    spgw_state_t* spgw_state, teid_t teid, imsi64_t imsi64) {
+int sgw_cm_remove_bearer_context_information(teid_t teid, imsi64_t imsi64) {
   int temp = 0;
 
-  hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
-  temp                           = hashtable_ts_free(state_imsi_ht, teid);
+  hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
+  temp                           = hashtable_ts_free(state_teid_ht, teid);
   if (temp != HASH_TABLE_OK) {
     OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64, "Failed to free teid from state_imsi_ht \n");
+        LOG_SPGW_APP, imsi64, "Failed to free teid from state_teid_ht \n");
     return temp;
   }
   spgw_ue_context_t* ue_context_p = NULL;
+  hash_table_ts_t* spgw_ue_state  = get_spgw_ue_state();
   hashtable_ts_get(
-      spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
-      (void**) &ue_context_p);
+      spgw_ue_state, (const hash_key_t) imsi64, (void**) &ue_context_p);
   if (ue_context_p) {
     sgw_s11_teid_t* p1 = LIST_FIRST(&(ue_context_p->sgw_s11_teid_list));
     while (p1) {
@@ -242,8 +225,7 @@ int sgw_cm_remove_bearer_context_information(
       p1 = LIST_NEXT(p1, entries);
     }
     if (LIST_EMPTY(&ue_context_p->sgw_s11_teid_list)) {
-      temp = hashtable_ts_free(
-          spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64);
+      temp = hashtable_ts_free(spgw_ue_state, (const hash_key_t) imsi64);
       if (temp != HASH_TABLE_OK) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64,
@@ -257,7 +239,6 @@ int sgw_cm_remove_bearer_context_information(
 }
 
 //--- EPS Bearer Entry
-
 //-----------------------------------------------------------------------------
 sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
     sgw_pdn_connection_t* const sgw_pdn_connection,
@@ -359,28 +340,26 @@ int sgw_cm_remove_eps_bearer_entry(
 s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
     teid_t teid) {
   s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_context_info = NULL;
-  hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
+  hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
 
   hashtable_ts_get(
-      state_imsi_ht, (const hash_key_t) teid,
+      state_teid_ht, (const hash_key_t) teid,
       (void**) &spgw_bearer_context_info);
   return spgw_bearer_context_info;
 }
 
-spgw_ue_context_t* spgw_create_or_get_ue_context(
-    spgw_state_t* spgw_state, imsi64_t imsi64) {
+spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   spgw_ue_context_t* ue_context_p = NULL;
+  hash_table_ts_t* state_ue_ht    = get_spgw_ue_state();
   hashtable_ts_get(
-      spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
-      (void**) &ue_context_p);
+      state_ue_ht, (const hash_key_t) imsi64, (void**) &ue_context_p);
   if (!ue_context_p) {
     ue_context_p = (spgw_ue_context_t*) calloc(1, sizeof(spgw_ue_context_t));
     if (ue_context_p) {
       LIST_INIT(&ue_context_p->sgw_s11_teid_list);
       hashtable_ts_insert(
-          spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
-          (void*) ue_context_p);
+          state_ue_ht, (const hash_key_t) imsi64, (void*) ue_context_p);
     } else {
       OAILOG_ERROR_UE(
           LOG_SPGW_APP, imsi64, "Failed to allocate memory for UE context \n");
@@ -389,11 +368,9 @@ spgw_ue_context_t* spgw_create_or_get_ue_context(
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
 }
 
-int spgw_update_teid_in_ue_context(
-    spgw_state_t* spgw_state, imsi64_t imsi64, teid_t teid) {
+int spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  spgw_ue_context_t* ue_context_p =
-      spgw_create_or_get_ue_context(spgw_state, imsi64);
+  spgw_ue_context_t* ue_context_p = spgw_create_or_get_ue_context(imsi64);
   if (!ue_context_p) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,

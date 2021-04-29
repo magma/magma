@@ -35,19 +35,20 @@ int PDUAddressMsg::EncodePDUAddressMsg(
 
   // CHECKING IEI
   if (iei > 0) {
-    pdu_address->iei = (*buffer + encoded);
+    pdu_address->iei = iei;
     CHECK_IEI_DECODER(iei, (unsigned char) pdu_address->iei);
+    *(buffer + encoded) = iei;
     encoded++;
   }
 
-  encoded++;
-  *(buffer + encoded) = 0x00 | (pdu_address->type_val & 0x07);
-  MLOG(MDEBUG) << "EncodePDUAddressMsg__: type_val = " << hex
-               << int(pdu_address->type_val) << endl;
-  encoded++;
-  memcpy(buffer + encoded, pdu_address->address_info, 12);
-  encoded = encoded + 12;
-
+  if (pdu_address->type_val == TYPE_VAL_IPV4) {
+    *(buffer + encoded) = pdu_address->length;
+    encoded++;
+    *(buffer + encoded) = 0x00 | (pdu_address->type_val & 0x07);
+    encoded++;
+    memcpy(buffer + encoded, pdu_address->address_info, IPV4_ADDRESS_LENGTH);
+    encoded = encoded + IPV4_ADDRESS_LENGTH;
+  }
   return (encoded);
 };
 }  // namespace magma5g

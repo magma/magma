@@ -8,15 +8,35 @@ SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
 KVERS=$(uname -r)
-MAGMA_VERSION="${MAGMA_VERSION:-v1.4}"
+MAGMA_VERSION="${MAGMA_VERSION:-v1.5}"
 CLOUD_INSTALL="cloud"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
+
+
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
   echo "You're executing the script as $WHOAMI instead of root.. exiting"
   exit 1
 fi
+
+if [ "$SKIP_PRECHECK" != "$SUCCESS_MESSAGE" ]; then
+  wget https://raw.githubusercontent.com/magma/magma/"$MAGMA_VERSION"/lte/gateway/deploy/agw_pre_check.sh
+  if [[ -f ./agw_pre_check.sh ]]; then
+    chmod 644 agw_pre_check.sh && bash agw_pre_check.sh
+    while true; do
+        read -p "Do you accept those modifications and want to proceed with magma installation?(y/n)" yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+  else
+    echo "agw_precheck.sh is not available in your version"
+  fi
+fi
+
 
 echo "Checking if Debian is installed"
 if ! grep -q 'Debian' /etc/issue; then
@@ -121,6 +141,7 @@ Environment=REPO_HOST=${REPO_HOST}
 Environment=REPO_DIST=${REPO_DIST}
 Environment=REPO_COMPONENT=${REPO_COMPONENT}
 Environment=REPO_KEY=${REPO_KEY}
+Environment=SKIP_PRECHECK=${SUCCESS_MESSAGE}
 Environment=REPO_KEY_FINGERPRINT=${REPO_KEY_FINGERPRINT}
 Type=oneshot
 ExecStart=/bin/bash ${AGW_SCRIPT_PATH}

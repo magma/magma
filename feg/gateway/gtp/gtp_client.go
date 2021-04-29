@@ -42,7 +42,7 @@ type Client struct {
 	GtpTimeout time.Duration
 }
 
-// NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incomming calls
+// NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incoming calls
 // localIpAndPort is in form ip:port  (127.0.0.1:1)
 // 	- In case localIpAndPort is empty it uses any IP and a random port
 // 	- In case ip is not provided ( :port, or 0.0.0.0:port) it uses any interface
@@ -71,12 +71,14 @@ func NewRunningClient(ctx context.Context, localIpAndPort string, connType uint8
 
 	localAddr := &net.UDPAddr{IP: ipAddr, Port: port, Zone: ""}
 	c := newClient(localAddr, connType, gtpTimeout)
-	c.enable(localAddr)
-	err = c.run(ctx)
+	err = c.run(ctx, localAddr)
 	if err != nil {
 		return nil, err
 	}
-	c.WaitUntilClientIsReady(0)
+
+	// We need to disable GTP validation in order to support stateless operation
+	// Otherwise if we receive a message which doesnt have an actie session, the message
+	// will be discarded.
 	c.DisableValidation()
 	return c, nil
 }
@@ -122,26 +124,23 @@ func newClient(localAddr *net.UDPAddr, connType uint8, gtpTimeout time.Duration)
 	return cli
 }
 
-// Enable just creates the object connection enabling messages to be sent
-func (c *Client) enable(localAddr *net.UDPAddr) {
+// TODO: remove ctx (just create it outside the go routine)
+// run starts the listener and launches the actual GTP-C routine
+func (c *Client) run(ctx context.Context, localAddr *net.UDPAddr) error {
 	c.Conn = gtpv2.NewConn(localAddr, c.connType, 0)
-}
-
-// Run launches the actual GTP-C cluent which will be able to send and receive GTP-C messages
-func (c *Client) run(ctx context.Context) error {
-	if c.Conn == nil {
-		return fmt.Errorf("nil conn object. You may need to Enable the client first")
+	if err := c.Conn.Listen(ctx); err != nil {
+		return fmt.Errorf("error enabling GTP client: %s", err)
 	}
 	go func() {
 		if ctx == nil {
+			// Do not pass a nil context, pass context.TODO(). But just in case, handle it locally
 			ctx = context.Background()
 		}
-		if err := c.ListenAndServe(ctx); err != nil {
-			glog.Errorf("error running gtp server: %s", err)
+		if err := c.Serve(ctx); err != nil {
+			glog.Errorf("error running GTP client: %s", err)
 			return
 		}
 	}()
-	//TODO: remove this wait once there is a way to check when the listener is ready
 	return nil
 }
 
@@ -163,35 +162,4 @@ func configOrDefaultTimeout(configTimeout time.Duration) time.Duration {
 		return DefaultGtpTimeout
 	}
 	return configTimeout
-}
-
-//TODO: remove this once we find a way to safely wait for initialization of the service
-// WaitUntilClientIsReady is a hack to know when the client is ready and avoid null pointer issues using
-// the GTP-C client too early. Since go-gtp doesn't offer any visibuility on the readines of the connection
-// we use LocalAddrs as indicator
-func (c *Client) WaitUntilClientIsReady(count int) {
-
-	// TODO: only use those 3 waits for debugging
-	time.Sleep(time.Millisecond * 20)
-	time.Sleep(time.Millisecond * 20)
-	time.Sleep(time.Millisecond * 20)
-
-	defer func() {
-
-		if count > 50 {
-			time.Sleep(time.Millisecond * 20)
-		}
-		if count > 100 {
-			glog.Errorf("Couldnt start GTP-Client")
-			return
-		}
-		if r := recover(); r != nil {
-			fmt.Print(".")
-			c.WaitUntilClientIsReady(count + 1)
-		}
-	}()
-	// this call will panic while client is starting
-	addr := c.LocalAddr().String()
-	fmt.Println()
-	glog.V(2).Infof("Started GTP-C client in %s", addr)
 }

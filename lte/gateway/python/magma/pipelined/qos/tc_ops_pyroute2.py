@@ -12,10 +12,12 @@ limitations under the License.
 """
 
 
-from .tc_ops import TcOpsBase
 import logging
-from pyroute2 import IPRoute, NetlinkError
 import pprint
+
+from pyroute2 import IPRoute, NetlinkError
+
+from .tc_ops import TcOpsBase
 
 LOG = logging.getLogger('pipelined.qos.tc_pyroute2')
 
@@ -35,9 +37,24 @@ class TcOpsPyRoute2(TcOpsBase):
 
     def create_htb(self, iface: str, qid: str, max_bw: int, rate: str,
                    parent_qid: str = None) -> int:
-        LOG.debug("Create HTB iface %s qid %s", iface, qid)
+        """
+        Create HTB class for a UE session.
 
+        Args:
+            iface: Egress interface name.
+            qid: qid number.
+            max_bw: ceiling in bits per sec.
+            rate: rate limiting.
+            parent_qid: HTB parent queue.
+
+        Returns:
+            zero on success.
+        """
+
+        LOG.debug("Create HTB iface %s qid %s max_bw %s rate %s", iface, qid, max_bw, rate)
         try:
+            # API needs ceiling in bytes per sec.
+            max_bw = max_bw / 8
             if_index = self._get_if_index(iface)
             htb_queue = QUEUE_PREFIX + qid
             ret = self._ipr.tc("add-class", "htb", if_index,
@@ -51,6 +68,15 @@ class TcOpsPyRoute2(TcOpsBase):
         return 0
 
     def del_htb(self, iface: str, qid: str) -> int:
+        """
+        Delete given queue from HTB classed
+
+        Args:
+            iface: interface name
+            qid: queue-id of the HTB class
+
+        Returns:
+        """
         LOG.debug("Delete HTB iface %s qid %s", iface, qid)
 
         try:
@@ -66,8 +92,11 @@ class TcOpsPyRoute2(TcOpsBase):
         return 0
 
     def create_filter(self, iface: str, mark: str, qid: str, proto: int = PROTOCOL) -> int:
-        LOG.debug("Create Filter iface %s qid %s", iface, qid)
+        """
+        Create TC Filter for given HTB class.
+        """
 
+        LOG.debug("Create Filter iface %s qid %s", iface, qid)
         try:
             if_index = self._get_if_index(iface)
 
@@ -86,8 +115,11 @@ class TcOpsPyRoute2(TcOpsBase):
         return 0
 
     def del_filter(self, iface: str, mark: str, qid: str, proto: int = PROTOCOL) -> int:
-        LOG.debug("Del Filter iface %s qid %s", iface, qid)
+        """
+        Delete TC filter.
+        """
 
+        LOG.debug("Del Filter iface %s qid %s", iface, qid)
         try:
             if_index = self._get_if_index(iface)
 

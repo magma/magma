@@ -156,6 +156,7 @@ typedef struct s6a_purge_ue_ans_s {
 
 typedef struct s6a_reset_req_s {
   /* RESET ALL. Partial Reset TBD*/
+  uint8_t unused;
 } s6a_reset_req_t;
 
 #endif /* FILE_S6A_MESSAGES_TYPES_SEEN */

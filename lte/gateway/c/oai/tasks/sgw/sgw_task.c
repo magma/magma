@@ -85,8 +85,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S11_MODIFY_BEARER_REQUEST: {
       sgw_handle_modify_bearer_request(
-          spgw_state, &received_message_p->ittiMsg.s11_modify_bearer_request,
-          imsi64);
+          &received_message_p->ittiMsg.s11_modify_bearer_request, imsi64);
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
@@ -155,7 +154,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case GX_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
       int32_t rc = spgw_handle_nw_initiated_bearer_deactv_req(
-          spgw_state,
           &received_message_p->ittiMsg.gx_nw_init_deactv_bearer_request,
           imsi64);
       if (rc != RETURNok) {
@@ -195,7 +193,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   }
 
   put_spgw_state();
-  put_spgw_ue_state(spgw_state, imsi64);
+  put_spgw_ue_state(imsi64);
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);

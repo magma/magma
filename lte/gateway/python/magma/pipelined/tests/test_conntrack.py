@@ -11,23 +11,34 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import pathlib
 import unittest
 import warnings
 from concurrent.futures import Future
-import pathlib
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.conntrack import ConntrackController
-from magma.pipelined.tests.app.start_pipelined import TestSetup, \
-    PipelinedController
-from magma.pipelined.tests.app.subscriber import SubContextConfig, default_ambr_config
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
-    stop_ryu_app_thread, create_service_manager, assert_bridge_snapshot_match, \
-    SnapshotVerifier
+from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.app.subscriber import (
+    SubContextConfig,
+    default_ambr_config,
+)
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    SnapshotVerifier,
+    assert_bridge_snapshot_match,
+    create_service_manager,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+)
 
 
 class ConntrackTest(unittest.TestCase):
@@ -121,7 +132,8 @@ class ConntrackTest(unittest.TestCase):
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+                                             self.service_manager,
+                                             include_stats=False)
 
         current_path = \
             str(pathlib.Path(__file__).parent.absolute())

@@ -54,22 +54,49 @@ int sgw_s8_init(sgw_config_t* sgw_config_p) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
-  imsi64_t imsi64 = itti_get_associated_imsi(received_message_p);
+  imsi64_t imsi64        = itti_get_associated_imsi(received_message_p);
+  sgw_state_t* sgw_state = get_sgw_state(false);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       sgw_s8_exit();
     } break;
 
     case S11_CREATE_SESSION_REQUEST: {
       sgw_s8_handle_s11_create_session_request(
-          &received_message_p->ittiMsg.s11_create_session_request, imsi64);
+          sgw_state, &received_message_p->ittiMsg.s11_create_session_request,
+          imsi64);
+    } break;
+    case S8_CREATE_SESSION_RSP: {
+      sgw_s8_handle_create_session_response(
+          sgw_state, &received_message_p->ittiMsg.s8_create_session_rsp,
+          imsi64);
+    } break;
+    case S11_MODIFY_BEARER_REQUEST: {
+      sgw_s8_handle_modify_bearer_request(
+          sgw_state, &received_message_p->ittiMsg.s11_modify_bearer_request,
+          imsi64);
+    } break;
+
+    case S11_DELETE_SESSION_REQUEST: {
+      sgw_s8_handle_s11_delete_session_request(
+          sgw_state, &received_message_p->ittiMsg.s11_delete_session_request,
+          imsi64);
+    } break;
+
+    case S8_DELETE_SESSION_RSP: {
+      sgw_s8_handle_delete_session_response(
+          sgw_state, &received_message_p->ittiMsg.s8_delete_session_rsp,
+          imsi64);
+    } break;
+    case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
+      sgw_s8_handle_release_access_bearers_request(
+          &received_message_p->ittiMsg.s11_release_access_bearers_request,
+          imsi64);
     } break;
 
     default: {
@@ -80,7 +107,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   }
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 

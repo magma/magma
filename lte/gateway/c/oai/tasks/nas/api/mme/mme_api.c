@@ -69,7 +69,7 @@
 #define MME_API_BIT_RATE_1024K 0x87
 
 /* Total number of PDN connections (should not exceed MME_API_PDN_MAX) */
-static int _mme_api_pdn_id = 0;
+static int mme_api_pdn_id = 0;
 
 static tmsi_t generate_random_TMSI(void);
 
@@ -637,7 +637,7 @@ int mme_api_unsubscribe(bstring apn) {
   /*
    * Decrement the total number of PDN connections
    */
-  _mme_api_pdn_id -= 1;
+  mme_api_pdn_id -= 1;
   OAILOG_FUNC_RETURN(LOG_NAS, rc);
 }
 

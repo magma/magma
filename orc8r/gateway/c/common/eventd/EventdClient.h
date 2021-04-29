@@ -12,13 +12,24 @@
  */
 #pragma once
 
-#include <memory>
-#include <utility>
-
-#include <orc8r/protos/eventd.pb.h>
-#include <orc8r/protos/eventd.grpc.pb.h>
-
-#include "GRPCReceiver.h"
+#include <orc8r/protos/eventd.grpc.pb.h>  // for EventService::Stub, EventSe...
+#include <stdint.h>                       // for uint32_t
+#include <functional>                     // for function
+#include <memory>                         // for unique_ptr
+#include "GRPCReceiver.h"                 // for GRPCReceiver
+namespace grpc {
+class Status;
+}
+namespace magma {
+namespace orc8r {
+class Event;
+}
+}  // namespace magma
+namespace magma {
+namespace orc8r {
+class Void;
+}
+}  // namespace magma
 
 using grpc::Status;
 

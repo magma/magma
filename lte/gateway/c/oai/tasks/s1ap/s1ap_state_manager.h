@@ -58,9 +58,11 @@ class S1apStateManager
 
   /**
    * Function to initialize member variables
-   * @param mme_config mme_config_t struct
+   * @param max_ues number of max UEs in hashtable
+   * @param max_enbs number of max eNBs in hashtable
+   * @param persist_state should persist state in redis
    */
-  void init(uint32_t max_ues, uint32_t max_enbs, bool use_stateless);
+  void init(uint32_t max_ues, uint32_t max_enbs, bool persist_state);
 
   // Copy constructor and assignment operator are marked as deleted functions
   S1apStateManager(S1apStateManager const&) = delete;
@@ -89,7 +91,7 @@ class S1apStateManager
 
  private:
   S1apStateManager();
-  ~S1apStateManager();
+  ~S1apStateManager() override;
 
   /**
    * Allocates new s1ap_state_t struct and its properties
@@ -101,6 +103,7 @@ class S1apStateManager
 
   uint32_t max_ues_;
   uint32_t max_enbs_;
+  std::size_t s1ap_imsi_map_hash_;
   s1ap_imsi_map_t* s1ap_imsi_map_;
 };
 }  // namespace lte

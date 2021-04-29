@@ -38,13 +38,13 @@
 #include "nas_proc.h"
 #include "mme_app_timer.h"
 
-static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
+static void mme_app_handle_sgs_status_for_imsi_detach_ind(
     ue_mm_context_t* ue_context_p);
 
-static void _mme_app_handle_sgs_status_for_eps_detach_ind(
+static void mme_app_handle_sgs_status_for_eps_detach_ind(
     ue_mm_context_t* ue_context_p);
 
-static void _mme_app_handle_sgs_status_for_loc_upd_req(
+static void mme_app_handle_sgs_status_for_loc_upd_req(
     ue_mm_context_t* ue_context_p);
 
 /****************************************************************************
@@ -105,7 +105,7 @@ int mme_app_handle_sgs_status_message(
           LOG_MME_APP,
           "Received SGS Error Status message for"
           "LOCATION_UPDATE_REQUEST \n");
-      _mme_app_handle_sgs_status_for_loc_upd_req(ue_context_p);
+      mme_app_handle_sgs_status_for_loc_upd_req(ue_context_p);
       break;
     }
     case SGS_TMSI_REALLOCATION_COMPLETE: {
@@ -120,7 +120,7 @@ int mme_app_handle_sgs_status_message(
           LOG_MME_APP,
           "Received SGS Error Status message for"
           "EPS_DETACH_INDICATION \n");
-      _mme_app_handle_sgs_status_for_eps_detach_ind(ue_context_p);
+      mme_app_handle_sgs_status_for_eps_detach_ind(ue_context_p);
       break;
     }
     case SGS_IMSI_DETACH_INDICATION: {
@@ -128,7 +128,7 @@ int mme_app_handle_sgs_status_message(
           LOG_MME_APP,
           "Received SGS Error Status message for"
           "IMSI_DETACH_INDICATION \n");
-      _mme_app_handle_sgs_status_for_imsi_detach_ind(ue_context_p);
+      mme_app_handle_sgs_status_for_imsi_detach_ind(ue_context_p);
       break;
     }
     case SGS_RESET_ACK: {
@@ -226,7 +226,7 @@ int mme_app_handle_sgs_status_message(
  **                                                                        **
  ***************************************************************************/
 
-static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
+static void mme_app_handle_sgs_status_for_imsi_detach_ind(
     ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -277,7 +277,7 @@ static void _mme_app_handle_sgs_status_for_imsi_detach_ind(
  **                                                                        **
  ***************************************************************************/
 
-static void _mme_app_handle_sgs_status_for_eps_detach_ind(
+static void mme_app_handle_sgs_status_for_eps_detach_ind(
     ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -307,7 +307,7 @@ static void _mme_app_handle_sgs_status_for_eps_detach_ind(
  **                                                                        **
  ***************************************************************************/
 
-static void _mme_app_handle_sgs_status_for_loc_upd_req(
+static void mme_app_handle_sgs_status_for_loc_upd_req(
     ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   lai_t* lai = NULL;

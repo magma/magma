@@ -157,6 +157,7 @@ pipeline {
                 // Manual removal of build dirs
                 try {
                   sh('cd lte/gateway && vagrant ssh magma -c "sudo rm -Rf build/c build/python"')
+
                 } catch (Exception e) {
                   echo "OK after a git clean..."
                 }
@@ -167,7 +168,7 @@ pipeline {
                 }
                 // Manually creating the c build dir
                 try {
-                  sh ('cd lte/gateway && vagrant ssh magma -c "mkdir -p build/c"' )
+                  sh('cd lte/gateway && vagrant ssh magma -c "sudo mkdir -p build/c;sudo chown -R vagrant build"')
                 } catch (Exception e) {
                   echo "It should not fail here but we still go on"
                 }
@@ -376,6 +377,7 @@ pipeline {
                 sh('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make stop"')
                 // Retrieving the sys logs and mme log for more debugging.
                 sh('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/syslog" > ${WORKSPACE}/archives/magma_dev_syslog.log')
+                sh('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/envoy.log" > ${WORKSPACE}/archives/magma_dev_envoy.log')
                 sh('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/mme.log" > ${WORKSPACE}/archives/magma_dev_mme.log')
                 sh('cd lte/gateway && vagrant ssh magma_test -c "sudo cat /var/log/syslog" > ${WORKSPACE}/archives/magma_test_syslog.log')
               }

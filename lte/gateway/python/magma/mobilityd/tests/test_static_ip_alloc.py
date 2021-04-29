@@ -12,26 +12,26 @@ limitations under the License.
 """
 
 import ipaddress
+import time
 import unittest
-import fakeredis
 from typing import Optional
 
+import fakeredis
+from magma.mobilityd.ip_address_man import (
+    DuplicateIPAssignmentError,
+    IPAddressManager,
+    IPNotInUseError,
+    MappingNotFoundError,
+)
+from magma.mobilityd.ip_allocator_pool import IpAllocatorPool
+from magma.mobilityd.ip_allocator_static import IPAllocatorStaticWrapper
 from magma.mobilityd.ip_descriptor import IPDesc, IPType
-from magma.mobilityd.ip_address_man import IPAddressManager, \
-    IPNotInUseError, MappingNotFoundError, DuplicateIPAssignmentError
-from magma.mobilityd.tests.test_multi_apn_ip_alloc import \
-    MockedSubscriberDBStub
-from magma.mobilityd.uplink_gw import InvalidVlanId
-
-from magma.mobilityd.ip_allocator_static import \
-    IPAllocatorStaticWrapper
-from magma.mobilityd.ip_allocator_pool import \
-    IpAllocatorPool
-from magma.mobilityd.ipv6_allocator_pool import \
-    IPv6AllocatorPool
+from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool
 from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.subscriberdb_client import SubscriberDBStaticIPValueError
-import time
+from magma.mobilityd.tests.test_multi_apn_ip_alloc import MockedSubscriberDBStub
+from magma.mobilityd.uplink_gw import InvalidVlanId
+
 
 class StaticIPAllocationTests(unittest.TestCase):
     """

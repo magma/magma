@@ -17,11 +17,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
+	"magma/orc8r/lib/go/util"
 
 	"github.com/golang/glog"
+	"google.golang.org/grpc"
 )
 
 type s8ProxyClient struct {
@@ -62,7 +65,15 @@ func SendEcho(req *protos.EchoRequest) (*protos.EchoResponse, error) {
 }
 
 func getS8ProxyClient() (*s8ProxyClient, error) {
-	conn, err := registry.GetConnection(registry.S8_PROXY)
+	var (
+		conn *grpc.ClientConn
+		err  error
+	)
+	if util.GetEnvBool("USE_REMOTE_S8_PROXY") {
+		conn, err = registry.Get().GetSharedCloudConnection(strings.ToLower(registry.S8_PROXY))
+	} else {
+		conn, err = registry.GetConnection(registry.S8_PROXY)
+	}
 	if err != nil {
 		errMsg := fmt.Sprintf("S8 Proxy client initialization error: %s", err)
 		glog.Error(errMsg)

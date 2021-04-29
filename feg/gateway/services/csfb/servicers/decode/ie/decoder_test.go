@@ -169,6 +169,7 @@ func TestDecodeVariableLengthIE(t *testing.T) {
 	)
 	assert.EqualError(t, err, errorMsg)
 	assert.Equal(t, []byte{}, mmInfo)
+	assert.Equal(t, -1, ieLength)
 }
 
 func TestDecodeLimitedLengthIE(t *testing.T) {

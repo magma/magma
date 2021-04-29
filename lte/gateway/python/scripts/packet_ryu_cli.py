@@ -13,13 +13,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
 import argparse
+import logging
 
-from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows,\
-    delete_flowentry, add_flowentry
+from integ_tests.s1aptests.ovs.rest_api import (
+    add_flowentry,
+    delete_flowentry,
+    get_datapath,
+    get_flows,
+)
+from scapy.all import IP, Ether, sendp
+
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from scapy.all import Ether, IP, sendp
 
 DEFAULT_PKT_MAC_SRC = "00:00:00:00:00:01"
 DEFAULT_PKT_MAC_DST = "12:99:cc:97:47:4e"
