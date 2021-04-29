@@ -51,7 +51,7 @@ spec:
         {{- range tuple "controller" "certifier" }}
         - name: {{ . }}
           secret:
-            secretName: orc8r-{{ . }}-tls
+            secretName: {{ .Release.Name }}-{{ . }}-tls
         {{- end }}
       containers:
         - name: {{ $serviceName }}
