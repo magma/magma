@@ -112,5 +112,5 @@ spec:
         - name: admin-operator
           secret:
             secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
-            # defaultMode: 0444
+            defaultMode: 0444
 {{- end }}
