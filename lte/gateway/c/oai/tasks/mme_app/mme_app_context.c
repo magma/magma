@@ -755,9 +755,24 @@ void mme_remove_ue_context(
       ue_context_p->emm_context._imsi64,
       ue_context_p->emm_context._imsi.length);
 
+  OAILOG_ERROR(
+      LOG_MME_APP,
+      "In mme_remove_ue_context  before delete_mme_ue_state "
+      "pdn_context[0]-%x,pdn_context[1]-%x",
+      ue_context_p->pdn_contexts[0], ue_context_p->pdn_contexts[1]);
   // Release emm and esm context
   delete_mme_ue_state(ue_context_p->emm_context._imsi64);
+  OAILOG_ERROR(
+      LOG_MME_APP,
+      "In mme_remove_ue_context after delete_mme_ue_state "
+      "pdn_context[0]-%x,pdn_context[1]-%x",
+      ue_context_p->pdn_contexts[0], ue_context_p->pdn_contexts[1]);
   mme_app_ue_context_free_content(ue_context_p);
+  OAILOG_ERROR(
+      LOG_MME_APP,
+      "In mme_remove_ue_context after "
+      "mme_app_ue_context_free_contentpdn_context[0]-%x,pdn_context[1]-%x",
+      ue_context_p->pdn_contexts[0], ue_context_p->pdn_contexts[1]);
   // IMSI
   if (ue_context_p->emm_context._imsi64) {
     hash_rc = hashtable_uint64_ts_remove(
@@ -794,6 +809,10 @@ void mme_remove_ue_context(
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
   }
 
+  OAILOG_ERROR(
+      LOG_MME_APP,
+      "In mme_remove_ue_context pdn_context[0]-%x,pdn_context[1]-%x",
+      ue_context_p->pdn_contexts[0], ue_context_p->pdn_contexts[1]);
   _clear_emm_ctxt(&ue_context_p->emm_context);
   // eNB UE S1P UE ID
   hash_rc = hashtable_uint64_ts_remove(
@@ -1821,7 +1840,7 @@ void mme_app_handle_s1ap_ue_context_release_complete(
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     if (ue_context_p->nb_active_pdn_contexts == 0) {
       // No Session
-      OAILOG_DEBUG_UE(
+      OAILOG_ERROR_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
           "Deleting UE context associated in MME for "
           "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n ",
@@ -2176,6 +2195,11 @@ static bool mme_app_recover_timers_for_ue(
     OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
 
+  OAILOG_ERROR(
+      LOG_MME_APP,
+      "PDN context1 %x PDN context2 %x is_pdn_disconnect flag %d\n",
+      ue_mm_context_pP->pdn_contexts[0], ue_mm_context_pP->pdn_contexts[1],
+      ue_mm_context_pP->emm_context.esm_ctx.is_pdn_disconnect);
   if (ue_mm_context_pP->time_mobile_reachability_timer_started) {
     mme_app_resume_timer(
         ue_mm_context_pP,
@@ -2296,6 +2320,8 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
           if ((ue_context_p->bearer_contexts[idx]->esm_ebr_context.args) &&
               (ue_context_p->bearer_contexts[idx]->esm_ebr_context.status ==
                ESM_EBR_INACTIVE_PENDING)) {
+            OAILOG_ERROR(
+                LOG_MME_APP, "Resuming eps_bearer_deactivate_t3495_handler\n");
             eps_bearer_deactivate_t3495_handler(
                 ue_context_p->bearer_contexts[idx]->esm_ebr_context.args,
                 &ue_context_p->emm_context._imsi64);

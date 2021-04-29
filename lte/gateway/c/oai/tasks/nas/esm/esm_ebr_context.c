@@ -275,10 +275,19 @@ ebi_t esm_ebr_context_release(
         /*
          * The EPS bearer context entry is found
          */
-        found = true;
-        *pid  = ue_mm_context->bearer_contexts[*bid]->pdn_cx_id;
-        pdn   = &ue_mm_context->pdn_contexts[*pid]->esm_data;
-        break;
+        *pid = ue_mm_context->bearer_contexts[*bid]->pdn_cx_id;
+        OAILOG_ERROR(
+            LOG_NAS_ESM, "In ebi != ESM_EBI_UNASSIGNED ESM-PROC  - PID %d is\n",
+            *pid);
+        if (ue_mm_context->pdn_contexts[*pid]) {
+          found = true;
+          OAILOG_ERROR(
+              LOG_NAS_ESM,
+              "In ebi != ESM_EBI_UNASSIGNED PDN context for PID %d isvalid \n",
+              *pid);
+          pdn = &ue_mm_context->pdn_contexts[*pid]->esm_data;
+          break;
+        }
       }
     }
   } else {
@@ -290,7 +299,10 @@ ebi_t esm_ebr_context_release(
      * Default EPS bearer to a given PDN is always identified by the
      * first EPS bearer context entry at index bid = 0
      */
+    OAILOG_ERROR(LOG_NAS_ESM, "ESM-PROC  - PID %d is\n", *pid);
     if (*pid < MAX_APN_PER_UE) {
+      OAILOG_ERROR(
+          LOG_NAS_ESM, "ESM-PROC  - PID %d is < MAX_APN_PER_UE\n", *pid);
       if (!ue_mm_context->pdn_contexts[*pid]) {
         OAILOG_ERROR(
             LOG_NAS_ESM,
@@ -313,12 +325,14 @@ ebi_t esm_ebr_context_release(
     /*
      * Delete the specified EPS bearer context entry
      */
-    if (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[*bid] != *bid) {
+
+    if ((!ue_mm_context->pdn_contexts[*pid]) ||
+        (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[*bid] != *bid)) {
       OAILOG_ERROR(
           LOG_NAS_ESM,
           "ESM-PROC  - EPS bearer identifier %d is "
-          "not valid\n",
-          *bid);
+          "not validi for pid %d\n",
+          *bid, *pid);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
     }
 
@@ -451,6 +465,11 @@ ebi_t esm_ebr_context_release(
           "(ebi=%d)\n",
           ebi);
     }
+    OAILOG_INFO(
+        LOG_NAS_ESM,
+        "ESM-PROC  - Finally Released EPS bearer context "
+        "(ebi=%d) pdn_context[0] %x, pdn_context[1]-%x\n",
+        ebi, ue_mm_context->pdn_contexts[0], ue_mm_context->pdn_contexts[1]);
 
     // if (pdn->n_bearers == 0) {
     /*

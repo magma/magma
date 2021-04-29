@@ -870,12 +870,23 @@ void mme_app_handle_delete_session_rsp(
   /*
    * Updating statistics
    */
+  OAILOG_ERROR(
+      LOG_MME_APP, "nb_active_pdn_contexts %d",
+      ue_context_p->nb_active_pdn_contexts);
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
-  if (ue_context_p->nb_active_pdn_contexts > 0) {
+  if ((ue_context_p->nb_active_pdn_contexts > 0) &&
+      (!ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
     ue_context_p->nb_active_pdn_contexts -= 1;
+    OAILOG_ERROR(
+        LOG_MME_APP, "nb_active_pdn_contexts %d",
+        ue_context_p->nb_active_pdn_contexts);
   }
 
+  OAILOG_ERROR(
+      LOG_MME_APP,
+      "Before new_attach_info pdn context[0] %x pdn context[1] %x\n",
+      ue_context_p->pdn_contexts[0], ue_context_p->pdn_contexts[1]);
   if (ue_context_p->emm_context.new_attach_info) {
     pdn_cid_t pid =
         ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]
@@ -900,6 +911,11 @@ void mme_app_handle_delete_session_rsp(
    * NAS will trigger deactivate Bearer Context Req to UE
    */
   if (ue_context_p->emm_context.esm_ctx.is_pdn_disconnect) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Before nas_proc_pdn_disconnect_rsp pdn context[0] %x pdn context[1] "
+        "%x\n",
+        ue_context_p->pdn_contexts[0], ue_context_p->pdn_contexts[1]);
     pdn_disconnect_rsp.ue_id = ue_context_p->mme_ue_s1ap_id;
     pdn_disconnect_rsp.lbi   = delete_sess_resp_pP->lbi;
     if ((nas_proc_pdn_disconnect_rsp(&pdn_disconnect_rsp)) != RETURNok) {
@@ -909,6 +925,12 @@ void mme_app_handle_delete_session_rsp(
           "ue_id " MME_UE_S1AP_ID_FMT " and lbi:%u \n",
           ue_context_p->mme_ue_s1ap_id, pdn_disconnect_rsp.lbi);
     }
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "After nas_proc_pdn_disconnect_rsp pdn context[0] %x pdn context[1] "
+        "%x, is_pdn_disconnect %d\n",
+        ue_context_p->pdn_contexts[0], ue_context_p->pdn_contexts[1],
+        ue_context_p->emm_context.esm_ctx.is_pdn_disconnect);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -999,6 +1021,9 @@ void mme_app_handle_delete_session_rsp(
       ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
     }
   }
+  OAILOG_ERROR(
+      LOG_MME_APP, "pdn context[0] %x pdn context[1] %x\n",
+      ue_context_p->pdn_contexts[0], ue_context_p->pdn_contexts[1]);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
