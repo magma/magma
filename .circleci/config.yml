@@ -1231,15 +1231,14 @@ jobs:
             mv docs/readmes readmes/
             rm -rf docs/
             mv readmes/ docs/
-      # Yeah I fucked up and created mamga-... instead of magma-... oops
       - run:
           name: Deploying to GitHub Pages
           command: |
-            git config --global user.email "mamga-docusaurus-bot@users.noreply.github.com"
-            git config --global user.name "mamga-docusaurus-bot"
-            echo "machine github.com login mamga-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
+            git config --global user.email "bots@magmacore.org"
+            git config --global user.name "magma-docusaurus-bot"
+            echo "machine github.com login magma-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
             cd website && yarn install
-            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=mamga-docusaurus-bot yarn run publish-gh-pages
+            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=magma-docusaurus-bot yarn run publish-gh-pages
       - magma_slack_notify
 
   ### XWF
