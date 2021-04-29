@@ -18,7 +18,7 @@ imagePullSecrets: []
 
 # Define which secrets should be mounted by pods.
 secret:
-  certs: orc8r-admin-operator-tls
+  certs: orc8r-certs
 
 rbac: false
 
