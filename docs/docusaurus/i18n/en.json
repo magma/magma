@@ -382,6 +382,9 @@
       "proposals/p014_proposal_process": {
         "title": "Magma Proposals"
       },
+      "proposals/p015_tech_debt_week": {
+        "title": "Tech Debt Week Processes"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },

@@ -56,6 +56,9 @@ orc8r/cloud/swagger/specs
 # Node
 node_modules/
 
+# Docusaurus
+docs/docusaurus/build/
+
 # Ignore apt/build cache
 .cache/*
 
