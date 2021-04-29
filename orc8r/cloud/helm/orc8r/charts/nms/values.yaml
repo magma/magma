@@ -44,10 +44,10 @@ magmalte:
     tag: latest
     pullPolicy: Always
 
-  # deployment:
-  #   spec:
-  #     operator_cert_name: admin_operator.pem
-  #     operator_key_name: admin_operator.key.pem
+  deployment:
+    spec:
+      operator_cert_name: admin_operator.pem
+      operator_key_name: admin_operator.key.pem
 
   service:
     type: ClusterIP
