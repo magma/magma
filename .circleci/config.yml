@@ -986,12 +986,13 @@ jobs:
             sed -i -e "s/keyMagmaHost/AGWHOST${CIRCLE_BUILD_NUM}/g" ~/magma-experimental/roles/vars/defaults.yaml
             echo "$(printenv CIRCLE_BUILD_NUM)">> ~/magma-experimental/files/AGWHOST${CIRCLE_BUILD_NUM}.pem
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files" --tags keyCreate
-            #ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
-            #ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm
+            ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files"
+            ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
+            ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm
             #ansible-playbook cloudstrapper-provision.yaml  -e "dirLocalInventory=~/magma-experimental/files"
             #ansible-playbook agw-provision.yaml -e "idSite=MenloPark" -e "idGw=AgwA" --tags createNet,createGw,attachIface
             #ansible-playbook agw-provision.yaml -e "idSite=MenloPark" -e "idGw=AgwB" --tags createGw,attachIface
-            #ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin  -e "awsAccessKey: $AWS_FB_CRED" -e "awsSecretKey: $AWS_FB_SECRET"
+            #ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
             ansible-playbook build-provision.yaml --tags devopsAgw,inventory -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook build-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "buildnode=tag_Name_buildAgw" -e "ansible_python_interpreter=/usr/bin/python3"  -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook ami-init.yaml
