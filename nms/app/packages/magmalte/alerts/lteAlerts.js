@@ -104,7 +104,7 @@ export default function getLteAlerts(
     },
     'High duplicate attach requests': {
       alert: 'High duplicate attach requests',
-      expr: `increase(duplicate_attach_request{networkID="${networkID}"}[5m]) > 200`,
+      expr: `sum(increase(duplicate_attach_request{networkID="${networkID}"}[5m])) > 200`,
       labels: {severity: 'critical'},
       annotations: {
         description:
