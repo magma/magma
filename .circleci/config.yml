@@ -982,7 +982,9 @@ jobs:
             sed -i -e "s/AWS_ACCESS_KEY_ID/${AWS_FB_CRED}/g" ~/magma-experimental/files/secrets.yaml
             sed -i -e "s@AWS_SECRET_ACCESS_KEY@${AWS_FB_SECRET}@g" ~/magma-experimental/files/secrets.yaml
             sed -i -e "s/keyMagmaBoot/AGWBOOT${CIRCLE_BUILD_NUM}/g" ~/magma-experimental/roles/vars/defaults.yaml
+            echo "$(printenv CIRCLE_SHA1)">> ~/magma-experimental/files/AGWBOOT${CIRCLE_BUILD_NUM}.pem
             sed -i -e "s/keyMagmaHost/AGWHOST${CIRCLE_BUILD_NUM}/g" ~/magma-experimental/roles/vars/defaults.yaml
+            echo "$(printenv CIRCLE_BUILD_NUM)">> ~/magma-experimental/files/AGWHOST${CIRCLE_BUILD_NUM}.pem
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files" --tags keyCreate
             #ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
             #ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm
