@@ -98,10 +98,10 @@ nginx:
       targetport: 443
       nodePort: ""
 
-  # deployment:
-  #   spec:
-  #     ssl_cert_name: nms_nginx.pem
-  #     ssl_cert_key_name: nms_nginx.key.pem
+  deployment:
+    spec:
+      ssl_cert_name: nms_nginx.pem
+      ssl_cert_key_name: nms_nginx.key.pem
 
   replicas: 1
 
