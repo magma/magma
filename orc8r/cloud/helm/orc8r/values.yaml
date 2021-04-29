@@ -29,7 +29,7 @@ imagePullSecrets: []
 
 ## metrics sub-chart configuration.
 metrics:
-  enabled: false # by Shubham
+  enabled: false
   prometheus:
     create: false
   prometheusCache:
@@ -117,7 +117,7 @@ nginx:
   # Settings affecting nginx application
   spec:
     # magma controller domain name
-    hostname: "controller.localhost" # by Shubham
+    hostname: "controller.localhost"
     # when nginx sees a variable in a server_name it needs a resolver
     # by default we'll use kube-dns
     resolver: "kube-dns.kube-system.svc.cluster.local valid=10s"
@@ -335,4 +335,4 @@ cloudwatch:
 
 # logging sub-chart configuration.
 logging:
-  enabled: false # by Shubham
+  enabled: false
