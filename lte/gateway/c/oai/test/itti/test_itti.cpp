@@ -55,7 +55,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
-
     } break;
 
     case TEST_MESSAGE: {
