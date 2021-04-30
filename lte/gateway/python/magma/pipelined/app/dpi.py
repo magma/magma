@@ -18,7 +18,6 @@ from lte.protos.pipelined_pb2 import FlowRequest
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow import flows
-from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, DPI_REG
 from magma.pipelined.policy_converters import FlowMatchError, \
