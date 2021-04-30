@@ -57,9 +57,9 @@ using namespace std::chrono;
 MagmaService::MagmaService(const std::string& name, const std::string& version)
     : name_(name),
       version_(version),
-      health_(ServiceInfo::APP_UNKNOWN),
       start_time_(steady_clock::now()),
       wall_start_time_(system_clock::now()),
+      health_(ServiceInfo::APP_UNKNOWN),
       service_info_callback_(nullptr),
       config_reload_callback_(nullptr),
       operational_states_callback_(nullptr) {}
