@@ -875,12 +875,18 @@ void mme_app_handle_delete_session_rsp(
       ue_context_p->nb_active_pdn_contexts);
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
-  if ((ue_context_p->nb_active_pdn_contexts > 0) &&
+  /*if ((ue_context_p->nb_active_pdn_contexts > 0) &&
       (!ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
     ue_context_p->nb_active_pdn_contexts -= 1;
     OAILOG_ERROR(
         LOG_MME_APP, "nb_active_pdn_contexts %d",
         ue_context_p->nb_active_pdn_contexts);
+  }*/
+  uint32_t pcid = 0;
+  for (int itr = 0; itr < MAX_APN_PER_UE; itr++) {
+    if (ue_context_p->pdn_contexts[itr]) {
+      pcid++;
+    }
   }
 
   OAILOG_ERROR(
@@ -992,7 +998,7 @@ void mme_app_handle_delete_session_rsp(
       }
     }
 #endif
-    if (ue_context_p->nb_active_pdn_contexts > 0) {
+    if (pcid > 0) {
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
 
