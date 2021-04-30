@@ -23,7 +23,6 @@ import (
 	eventdM "magma/orc8r/cloud/go/services/eventd/obsidian/models"
 
 	"github.com/gofrs/uuid"
-	"github.com/golang/glog"
 )
 
 // EpsIRIRecord represents a full IRI record combining header and payload
@@ -37,7 +36,6 @@ func (r *EpsIRIRecord) Encode() ([]byte, error) {
 	recordType := getRecordType(r.Payload.EPSEvent)
 	content, err := asn1.MarshalWithParams(r.Payload, recordType)
 	if err != nil {
-		glog.Errorf("Failed to marshal record %v\n", r)
 		return []byte{}, err
 	}
 
@@ -60,14 +58,12 @@ func (r *EpsIRIRecord) Decode(b []byte) error {
 	}
 
 	if err := r.Header.Unmarshal(b[:hdr_len]); err != nil {
-		glog.Errorf("Failed to unmarshal record header %s\n", err)
 		return err
 	}
 
 	content := b[hdr_len : hdr_len+pld_len]
 	recordType := decodeRecordType(b[hdr_len])
 	if _, err := asn1.UnmarshalWithParams(content, &r.Payload, recordType); err != nil {
-		glog.Errorf("Failed to unmarshal record payload %v\n", err)
 		return err
 	}
 	return nil
@@ -142,7 +138,6 @@ func MakeRecord(
 
 	uuid, err := uuid.FromString(string(task.TaskID))
 	if err != nil {
-		glog.Errorf("Failed to parse xID - type 4 %s\n", string(task.TaskID))
 		return []byte{}, err
 	}
 
