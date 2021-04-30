@@ -179,6 +179,30 @@ int amf_handle_registration_request(
         supi_imsi.plmn.mnc_digit3 =
             msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit3;
 
+        ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit1 =
+            supi_imsi.plmn.mcc_digit1;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit2 =
+            supi_imsi.plmn.mcc_digit2;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit3 =
+            supi_imsi.plmn.mcc_digit3;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit1 =
+            supi_imsi.plmn.mnc_digit1;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit2 =
+            supi_imsi.plmn.mnc_digit2;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit3 =
+            supi_imsi.plmn.mnc_digit3;
+
+        OAILOG_DEBUG(
+            LOG_AMF_APP,
+            "AMF_TEST send msg mcc1:%2x mcc2:%2x mcc3:%2x mnc1:%2x mnc2:%2x "
+            "mnc3:%2x",
+            ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit1,
+            ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit2,
+            ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit3,
+            ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit1,
+            ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit2,
+            ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit3);
+
         amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
         OAILOG_INFO(
             LOG_NAS_AMF,
