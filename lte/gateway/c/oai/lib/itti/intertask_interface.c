@@ -203,13 +203,18 @@ void init_task_context(
   for (int i = 0; i < remote_tasks_count; i++) {
     task_zmq_ctx_p->push_socks[remote_task_ids[i]] =
         zsock_new_push(itti_desc.tasks_info[remote_task_ids[i]].uri);
-    assert(task_zmq_ctx_p->push_socks[remote_task_ids[i]]);
+    AssertFatal(
+        task_zmq_ctx_p->push_socks[remote_task_ids[i]],
+        "remote task id: %d uri: %s", remote_task_ids[i],
+        itti_desc.tasks_info[remote_task_ids[i]].uri);
   }
 
   if (msg_handler) {
     task_zmq_ctx_p->pull_sock =
         zsock_new_pull(itti_desc.tasks_info[task_id].uri);
-    assert(task_zmq_ctx_p->pull_sock);
+    AssertFatal(
+        task_zmq_ctx_p->pull_sock, "task id: %d uri: %s", task_id,
+        itti_desc.tasks_info[task_id].uri);
 
     int rc = zloop_reader(
         task_zmq_ctx_p->event_loop, task_zmq_ctx_p->pull_sock, msg_handler,
@@ -288,6 +293,7 @@ static MessageDef* itti_alloc_new_message_sized(
   new_msg->ittiMsgHeader.originTaskId = origin_task_id;
   new_msg->ittiMsgHeader.ittiMsgSize  = size;
   new_msg->ittiMsgHeader.imsi         = 0;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &new_msg->ittiMsgHeader.timestamp);
 
   return new_msg;
 }
@@ -398,10 +404,6 @@ int itti_init(
   itti_desc.created_tasks = 0;
   itti_desc.ready_tasks   = 0;
 
-  CHECK_INIT_RETURN(timer_init());
-  // Could not be launched before ITTI initialization
-  shared_log_itti_connect();
-  OAILOG_ITTI_CONNECT();
   return 0;
 }
 
@@ -483,4 +485,12 @@ void send_terminate_message(task_zmq_ctx_t* task_zmq_ctx) {
   terminate_message_p =
       itti_alloc_new_message(task_zmq_ctx->task_id, TERMINATE_MESSAGE);
   send_broadcast_msg(task_zmq_ctx, terminate_message_p);
+}
+
+long itti_get_message_latency(struct timespec timestamp) {
+  struct timespec current_time;
+  clock_gettime(CLOCK_MONOTONIC_RAW, &current_time);
+  return (
+      1000000 * (current_time.tv_sec - timestamp.tv_sec) +
+      (current_time.tv_nsec - timestamp.tv_nsec) / 1000);
 }
