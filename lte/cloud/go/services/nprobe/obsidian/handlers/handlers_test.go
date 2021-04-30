@@ -21,10 +21,12 @@ import (
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/nprobe/obsidian/handlers"
 	"magma/lte/cloud/go/services/nprobe/obsidian/models"
+	"magma/lte/cloud/go/services/nprobe/storage"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/labstack/echo"
@@ -35,6 +37,11 @@ func init() {
 	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
 
+func getNProbeBlobstore(t *testing.T) storage.NProbeStorage {
+	fact := test_utils.NewSQLBlobstore(t, "nprobe_handlers_test_blobstore")
+	return storage.NewNProbeBlobstore(fact)
+}
+
 func TestCreateNetworkProbeTask(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -42,7 +49,7 @@ func TestCreateNetworkProbeTask(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/network_probe/tasks"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	createNetworkProbeTask := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 
 	payload := &models.NetworkProbeTask{
@@ -93,7 +100,7 @@ func TestListNetworkProbeTasks(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/network_probe/tasks"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	listNetworkProbeTasks := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
 	tc := tests.Test{
@@ -173,7 +180,7 @@ func TestGetNetworkProbeTask(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/network_probe/tasks/:task_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	getNetworkProbeTask := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
 	tc := tests.Test{
@@ -230,7 +237,7 @@ func TestUpdateNetworkProbeTask(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/network_probe/tasks/:task_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	updateNetworkProbeTask := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
 	// 404
@@ -304,7 +311,7 @@ func TestDeleteNetworkProbeTask(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/network_probe/tasks/:task_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	deleteNetworkProbeTask := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
 	_, err = configurator.CreateEntities(
@@ -371,7 +378,7 @@ func TestCreateNetworkProbeDestination(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/network_probe/destinations"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	createNetworkProbeDestination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 
 	payload := &models.NetworkProbeDestination{
@@ -412,7 +419,7 @@ func TestListNetworkProbeDestinations(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/network_probe/destinations"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	listNetworkProbeDestinations := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
 	tc := tests.Test{
@@ -484,7 +491,7 @@ func TestGetNetworkProbeDestination(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/network_probe/destinations/:destination_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	getNetworkProbeDestination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
 	tc := tests.Test{
@@ -537,7 +544,7 @@ func TestUpdateNetworkProbeDestination(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/network_probe/destinations/:destination_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	updateNetworkProbeDestination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
 	// 404
@@ -607,7 +614,7 @@ func TestDeleteNetworkProbeDestination(t *testing.T) {
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte/:network_id/network_probe/destinations/:destination_id"
-	handlers := handlers.GetHandlers()
+	handlers := handlers.GetHandlers(getNProbeBlobstore(t))
 	deleteNetworkProbeDestination := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
 	_, err = configurator.CreateEntities(

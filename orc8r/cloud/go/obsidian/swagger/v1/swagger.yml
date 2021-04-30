@@ -10090,6 +10090,28 @@ definitions:
     minLength: 1
     type: string
     x-nullable: false
+  network_probe_data:
+    description: Network Probe State
+    properties:
+      last_exported:
+        description: The timestamp in ISO 8601 format of last exported record
+        example: "2020-03-11T00:36:59.65Z"
+        format: date-time
+        type: string
+        x-nullable: false
+      sequence_number:
+        default: 0
+        format: uint32
+        type: integer
+        x-nullable: false
+      target_id:
+        type: string
+        x-nullable: false
+    required:
+    - target_id
+    - sequence_number
+    - last_exported
+    type: object
   network_probe_destination:
     description: Network Probe Destination
     properties:
