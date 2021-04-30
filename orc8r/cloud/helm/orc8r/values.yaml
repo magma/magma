@@ -15,10 +15,8 @@ nms:
   magmalte:
     create: true
     image:
-      repository: magmacore/magmalte
-      # repository: shubhamtatvamasi/magmalte
-      tag: 1.4.0
-      # tag: magma-master-certs.0.1.0
+      repository: docker.artifactory.magmacore.org/magmalte
+      tag: 1.5.0
   nginx:
     create: true
 
@@ -110,8 +108,8 @@ nginx:
 
   # nginx image
   image:
-    repository: shubhamtatvamasi/nginx
-    tag: magma-master-certs.0.1.0
+    repository: docker.artifactory.magmacore.org/nginx
+    tag: 1.5.0
     pullPolicy: IfNotPresent
 
   # Settings affecting nginx application
@@ -156,8 +154,8 @@ controller:
 
   # orc8r_base image
   image:
-    repository: magmacore/controller
-    tag: 1.4.0
+    repository: docker.artifactory.magmacore.org/controller
+    tag: 1.5.0
     pullPolicy: IfNotPresent
 
   spec:
