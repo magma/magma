@@ -70,7 +70,7 @@ orbs:
           compose_version:
             description: Docker-compose version to install
             type: string
-            default: "1.25.4"
+            default: "1.29.1"
         steps:
           - run:
               name: Install Docker Compose
