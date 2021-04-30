@@ -27,7 +27,7 @@ imagePullSecrets: []
 
 ## metrics sub-chart configuration.
 metrics:
-  enabled: false
+  enabled: true
   prometheus:
     create: false
   prometheusCache:
@@ -333,4 +333,4 @@ cloudwatch:
 
 # logging sub-chart configuration.
 logging:
-  enabled: false
+  enabled: true
