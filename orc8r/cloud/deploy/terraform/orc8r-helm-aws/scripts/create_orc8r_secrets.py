@@ -26,6 +26,8 @@ ORC8R_CERTS = [
     'certifier.key',
     'certifier.pem',
     'bootstrapper.key',
+    'nprobe.key',
+    'nprobe.pem',
 ]
 
 FLUENTD_CERTS = [

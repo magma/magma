@@ -54,6 +54,13 @@ openssl genrsa -out fluentd.key 2048
 openssl req -x509 -new -nodes -key fluentd.key -sha256 -days 3650 -out fluentd.pem -subj "/C=US/CN=fluentd.$domain"
 
 echo ""
+echo "######################"
+echo "Creating nprobe certs"
+echo "######################"
+openssl genrsa -out nprobe.key 2048
+openssl req -x509 -new -nodes -key nprobe.key -sha256 -days 3650 -out nprobe.pem -subj "/C=US/CN=nprobe.$domain"
+
+echo ""
 echo "#####################"
 echo "Creating certifier CA"
 echo "#####################"

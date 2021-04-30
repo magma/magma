@@ -42,6 +42,8 @@ locals {
     "certifier.pem",
     "bootstrapper.key",
     "admin_operator.pem",
+    "nprobe.key"
+    "nprobe.crt"
   ]
 
   fluentd_cert_names = [
@@ -120,6 +122,20 @@ resource "kubernetes_secret" "orc8r_configs" {
       "appID": var.analytics_app_id == null ? "" : var.analytics_app_id,
       "metricExportURL": var.analytics_metric_export_url == null ? "" : var.analytics_metric_export_url,
       "categoryName": var.analytics_category_name == null ? "" : var.analytics_category_name,
+    })
+
+    "nprobe.yml" = yamlencode({
+      "operatorID": var.nprobe_operator_id == null ? 1 : var.nprobe_operator_id,
+      "updateIntervalSecs" : 60,
+      "backoffIntervalSecs" : 360,
+    })
+
+    "nprobe.yml" = yamlencode({
+      "operatorID": var.nprobe_operator_id == null ? 1 : var.nprobe_operator_id,
+      "updateIntervalSecs" : 60,
+      "backoffIntervalSecs" : 360,
+      "deliveryServer" : var.nprobe_delivery_server,
+      "verifyServer" : var.nprobe_verify_server,
     })
   }
 }

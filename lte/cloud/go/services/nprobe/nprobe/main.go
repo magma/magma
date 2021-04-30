@@ -64,16 +64,16 @@ func main() {
 
 	serviceConfig := nprobe.GetServiceConfig()
 	tlsConfig, err := exporter.NewTlsConfig(
-		serviceConfig.ExporterCrtFile,
-		serviceConfig.ExporterKeyFile,
-		serviceConfig.SkipVerifyServer,
+		serviceConfig.ExporterCrt,
+		serviceConfig.ExporterKey,
+		serviceConfig.VerifyServer,
 	)
 	if err != nil {
 		glog.Fatalf("Failed to create new TlsConfig: %v", err)
 	}
 
 	// Init records exporter
-	recordExporter := exporter.NewRecordExporter(serviceConfig.DeliveryFunctionAddr, tlsConfig)
+	recordExporter := exporter.NewRecordExporter(serviceConfig.DeliveryServer, tlsConfig)
 	nProbeManager, err := manager.NewNProbeManager(serviceConfig, nprobeBlobstore, recordExporter)
 	if err != nil {
 		glog.Fatalf("Failed to create new NProbeManager: %v", err)

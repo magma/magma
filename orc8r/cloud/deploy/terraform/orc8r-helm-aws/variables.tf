@@ -452,3 +452,25 @@ variable "cloudwatch_exporter_enabled" {
   default     = false
   type        = bool
 }
+
+##############################################################################
+# NProbe service variables
+##############################################################################
+
+variable "nprobe_operator_id" {
+  description = "Mobile operator id used by nprobe service."
+  type        = number
+  default     = 1
+}
+
+variable "nprobe_delivery_server" {
+  description = "Remote LIMS address where nprobe service exports records."
+  type        = string
+  default     = "10.10.0.2:6666"
+}
+
+variable "nprobe_verify_server" {
+  description = "allows nprobe service to skip tls server verification when exporting records."
+  type        = bool
+  default     = false
+}

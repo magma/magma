@@ -10,20 +10,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# operator_id represents the mobile operator identifier
-# update_interval_secs sets the priodic time between runs in seconds.
-# backoff_interval_secs sets the backoff time when remote records collector is not
-# available.
-# delivery_function_address defines the address of the remote server collecting records.
-# exporter_key provides the absolute path to exporter tls private key.
-# exporter_crt provides the absolute path to exporter tls certificate.
-# skip_verify_server enables exporter to skip server tls certificate verifications.
+# operatorID represents the mobile operator identifier
+# updateIntervalSecs sets the priodic time between runs in seconds
+# backoffIntervalSecs sets the backoff time when remote records collector is not available
+# maxExportRetries sets the number of retries when exporting a record
+# deliveryServer defines the address of the remote server collecting records
+# exporterKey provides the absolute path to exporter tls private key
+# exporterCrt provides the absolute path to exporter tls certificate
+# verifyServer enables exporter to skip server tls certificate verifications
 
-operator_id: 49002
-update_interval_secs: 60
-backoff_interval_secs: 360
+operatorID: 49002
+updateIntervalSecs: 60
+backoffIntervalSecs: 360
+maxExportRetries: 10
 
-delivery_function_address: 10.10.0.2:6666
-exporter_key: /var/opt/magma/certs/client.key
-exporter_crt: /var/opt/magma/certs/client.crt
-skip_verify_server: true
+deliveryServer: 10.10.0.2:6666
+exporterKey: /var/opt/magma/certs/nprobe.key
+exporterCrt: /var/opt/magma/certs/nprobe.crt
+verifyServer: false

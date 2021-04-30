@@ -15,6 +15,7 @@ package nprobe
 
 import (
 	"magma/lte/cloud/go/lte"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
@@ -31,15 +32,15 @@ const (
 
 // Config represents the configuration provided to nprobe service
 type Config struct {
-	UpdateIntervalSecs  uint32 `yaml:"update_interval_secs"`
-	BackOffIntervalSecs uint32 `yaml:"backoff_interval_secs"`
-	OperatorID          uint32 `yaml:"operator_id"`
-	MaxExportRetries    uint32 `yaml:"max_export_retries"`
+	UpdateIntervalSecs  uint32 `yaml:"updateIntervalSecs"`
+	BackOffIntervalSecs uint32 `yaml:"backoffIntervalSecs"`
+	MaxExportRetries    uint32 `yaml:"maxExportRetries"`
+	OperatorID          uint32 `yaml:"operatorID"`
 
-	DeliveryFunctionAddr string `yaml:"delivery_function_address"`
-	SkipVerifyServer     bool   `yaml:"skip_verify_server"`
-	ExporterKeyFile      string `yaml:"exporter_key"`
-	ExporterCrtFile      string `yaml:"exporter_crt"`
+	DeliveryServer string `yaml:"deliveryServer"`
+	ExporterKey    string `yaml:"exporterKey"`
+	ExporterCrt    string `yaml:"exporterCrt"`
+	VerifyServer   bool   `yaml:"skipVerifyServer"`
 }
 
 // GetServiceConfig parses nprobe service config and returns Config
@@ -57,6 +58,21 @@ func GetServiceConfig() Config {
 	}
 	if serviceConfig.MaxExportRetries == 0 {
 		serviceConfig.MaxExportRetries = DefaultMaxExportRetries
+	}
+
+	// overrided nprobe config sits within orc8r module.
+	orc8rConfig, err := config.GetServiceConfig(orc8r.ModuleName, ServiceName)
+	if err != nil {
+		return serviceConfig
+	}
+	if val, err := orc8rConfig.GetInt("operatorID"); err != nil {
+		serviceConfig.OperatorID = uint32(val)
+	}
+	if val, err := orc8rConfig.GetString("deliveryServer"); err != nil {
+		serviceConfig.DeliveryServer = val
+	}
+	if val, err := orc8rConfig.GetBool("verifyServer"); err != nil {
+		serviceConfig.VerifyServer = val
 	}
 	return serviceConfig
 }
