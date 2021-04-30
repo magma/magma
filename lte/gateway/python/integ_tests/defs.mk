@@ -148,7 +148,6 @@ s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
-
 # Enable these tests once the CI job time-out has increased
 # s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
 # s1aptests/test_implicit_detach_timer_with_mme_restart.py \
