@@ -122,7 +122,6 @@ class ITTIApiTest : public ::testing::Test {
     destroy_task_context(&task_zmq_ctx_test1);
     destroy_task_context(&task_zmq_ctx_test2);
     destroy_task_context(&task_zmq_ctx_main);
-
   }
 };
 
