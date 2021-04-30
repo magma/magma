@@ -16,7 +16,7 @@
           "howtos/config_agw_bridged",
           "howtos/call_tracing",
           "howtos/events_monitoring",
-          "howtos/header_enrichment.md",
+          "howtos/header_enrichment",
           "howtos/inbound_roaming"
         ]
       },

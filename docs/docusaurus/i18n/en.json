@@ -142,6 +142,9 @@
       "lte/deploy_config_enodebd": {
         "title": "Configure eNodeB"
       },
+      "lte/deploy_install_ubuntu": {
+        "title": "Install AGW on Ubuntu 20.04"
+      },
       "lte/deploy_install": {
         "title": "Install AGW"
       },
@@ -274,6 +277,9 @@
       "orc8r/deploy_intro": {
         "title": "Introduction"
       },
+      "orc8r/deploy_orcl": {
+        "title": "Experimental Orc8r Deployer"
+      },
       "orc8r/dev_dependencies": {
         "title": "Module Dependencies"
       },
@@ -390,6 +396,9 @@
       },
       "proposals/p014_proposal_process": {
         "title": "Magma Proposals"
+      },
+      "proposals/p015_tech_debt_week": {
+        "title": "Tech Debt Week Processes"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"

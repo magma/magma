@@ -221,9 +221,6 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 		session.AddTEID(gtpv2.IFTypeS5S8PGWGTPC, pgwFTEIDc.MustTEID())
 		session.AddTEID(gtpv2.IFTypeS5S8PGWGTPU, pgwFTEIDu.MustTEID())
 
-		if err := c.RespondTo(sgwAddr, csReqFromSGW, csRspFromPGW); err != nil {
-			return err
-		}
 		s5pgwTEID, err := session.GetTEID(gtpv2.IFTypeS5S8PGWGTPC)
 		if err != nil {
 			return err
@@ -240,6 +237,11 @@ func (mPgw *MockPgw) getHandleCreateSessionRequest() gtpv2.HandlerFunc {
 		}
 		mPgw.LastTEIDu, err = pgwFTEIDu.TEID()
 		if err != nil {
+			return err
+		}
+		if err := c.RespondTo(sgwAddr, csReqFromSGW, csRspFromPGW); err != nil {
+			fmt.Printf("mock PGW couldnt create a session for %s\n", session.IMSI)
+			c.RemoveSession(session)
 			return err
 		}
 		fmt.Printf("mock PGW created a session for: %s\n", session.IMSI)

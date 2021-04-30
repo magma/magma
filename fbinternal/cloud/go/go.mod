@@ -23,11 +23,11 @@ require (
 	github.com/golang/protobuf v1.3.3
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lib/pq v1.2.0
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_model v0.2.0
 	github.com/stretchr/testify v1.5.1
 	github.com/thoas/go-funk v0.7.0
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	golang.org/x/net v0.0.0-20201021035429-f5854403a974
 	google.golang.org/grpc v1.31.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	magma/lte/cloud/go v0.0.0

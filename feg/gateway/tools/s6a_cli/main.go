@@ -240,7 +240,6 @@ func air(cmd *commands.Command, args []string) int {
 	}
 
 	errChann := make(chan error)
-	airErrors := make([]error, 0)
 	done := make(chan struct{})
 	lenOfImsi := len(imsi)
 	wg := sync.WaitGroup{}
@@ -256,6 +255,7 @@ func air(cmd *commands.Command, args []string) int {
 		}
 		go func() {
 			defer wg.Done()
+			var errCli error
 			req := &protos.AuthenticationInformationRequest{
 				UserName:                      fmt.Sprintf("%0*d", lenOfImsi, imsiNum+iShadow),
 				VisitedPlmn:                   plmnId[:],
@@ -264,25 +264,25 @@ func air(cmd *commands.Command, args []string) int {
 				NumRequestedUtranGeranVectors: uint32(utranVectors),
 			}
 			// AIR
-			json, err1 := orcprotos.MarshalIntern(req)
-			if err1 != nil {
-				err2 := fmt.Errorf("Can not marshall request: %s", err1)
-				log.Print(err2)
-				errChann <- err2
+			json, errCli := orcprotos.MarshalIntern(req)
+			if errCli != nil {
+				errCli := fmt.Errorf("Can not marshall request: %s", errCli)
+				log.Print(errCli)
+				errChann <- errCli
 				return
 			}
 			fmt.Printf("Sending AIR to %s:\n%s\n%+#v\n\n", peerAddr, json, *req)
-			r, err1 := cli.AuthenticationInformation(req)
-			if err1 != nil || r == nil {
-				err2 := fmt.Errorf("GRPC AIR Error: %v", err1)
-				log.Print(err2)
-				errChann <- err2
+			r, errCli := cli.AuthenticationInformation(req)
+			if errCli != nil || r == nil {
+				errCli = fmt.Errorf("GRPC AIR Error: %v", errCli)
+				log.Print(errCli)
+				errChann <- errCli
 				return
 			}
-			json, err1 = orcprotos.MarshalIntern(r)
-			if err1 != nil {
-				err2 := fmt.Errorf("Marshal Error %v for result: %+v", err1, *r)
-				errChann <- err2
+			json, errCli = orcprotos.MarshalIntern(r)
+			if errCli != nil {
+				errCli = fmt.Errorf("Marshal Error %v for result: %+v", errCli, *r)
+				errChann <- errCli
 				return
 			}
 			fmt.Printf("Received AIA:\n%s\n%+v\n", json, *r)
@@ -290,6 +290,7 @@ func air(cmd *commands.Command, args []string) int {
 	}
 
 	// go routine to collect the errors
+	airErrors := make([]error, 0)
 	go func() {
 		for err2 := range errChann {
 			airErrors = append(airErrors, err2)

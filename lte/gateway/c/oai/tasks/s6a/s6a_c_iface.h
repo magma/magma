@@ -31,7 +31,6 @@ bool s6a_viface_update_location_req(s6a_update_location_req_t* ulr_p);
 bool s6a_viface_authentication_info_req(s6a_auth_info_req_t* air_p);
 bool s6a_viface_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP);
 bool s6a_viface_purge_ue(const char* imsi);
-void s6a_viface_timer_expired(const long timer_idP);
 #ifdef __cplusplus
 }
 #endif

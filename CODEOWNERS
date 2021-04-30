@@ -29,16 +29,18 @@ lte/gateway/c/connection_tracker @koolzz
 lte/gateway/docker @rdefosse @tmdzk
 lte/gateway/release @tmdzk
 lte/gateway/python/magma/pipelined @koolzz @pshelar
-lte/gateway/python/integ_tests @ssanadhya @ulaskozat
+lte/gateway/python/integ_tests @ssanadhya @ulaskozat @ardzoht
 lte/gateway/Vagrantfile @mattymo @119Vik @tmdzk
 
-**/*.pb.go @magma/entire-org
-**/*_swaggergen.go @magma/entire-org
+**/*.pb.go @magma/repo-magma-maintain
+**/*_swaggergen.go @magma/repo-magma-maintain
 
 # xwf Magma integrations
 xwf/ @AyliD @aharonnovo @r-i-g
 feg/radius @AyliD @aharonnovo @r-i-g @themarwhal @mpgermano @uri200 @emakeev
 
 nms/ @karthiksubraveti @andreilee @HannaFar
+
+docs/readmes/proposals @electronjoe
 
 CODEOWNERS @amarpad @electronjoe

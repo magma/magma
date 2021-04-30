@@ -61,10 +61,23 @@ class GenericHealthChecker:
         return HealthStatus.UNKNOWN
 
     def get_error_summary(self, service_names):
+        """Get the list of services with the error count.
+
+        Args:
+            service_names: List of service names.
+
+        Returns:
+            A dictionary with service name as a key and the Errors object
+            as a value.
+
+        Raises:
+            PermissionError: User has no permision to exectue the command
+        """
         configs = {service_name: load_service_mconfig_as_json(service_name)
                    for service_name in service_names}
-        res = {service_name: Errors(log_level=configs[service_name]['logLevel'],
-                                    error_count=0)
+        res = {service_name: Errors(
+               log_level=configs[service_name].get('logLevel', 'INFO'),
+               error_count=0)
                for service_name in service_names}
 
         syslog_path = '/var/log/syslog'
