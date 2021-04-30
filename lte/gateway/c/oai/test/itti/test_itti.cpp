@@ -13,7 +13,6 @@
 #include <chrono>
 #include <string.h>
 #include <gtest/gtest.h>
-#include <stdio.h>
 #include <thread>
 
 extern "C" {
@@ -23,7 +22,6 @@ extern "C" {
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "itti_free_defined_msg.h"
-#include "log.h"
 }
 
 const task_info_t tasks_info[] = {
@@ -62,13 +60,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case TEST_MESSAGE: {
       msg_latency = ITTI_MSG_LATENCY(received_message_p);
-      std::cout << " RECEIVED TEST_MESSAGE latency: " << msg_latency
-                << std::endl;
     } break;
 
     default: { } break; }
   itti_free_msg_content(received_message_p);
   free(received_message_p);
+  // Add sleep to introduce delay in pulling the next message
   std::this_thread::sleep_for(std::chrono::milliseconds(1500));
   return 0;
 }
