@@ -319,10 +319,15 @@ pipeline {
                 unsuccessful {
                   script {
                     sh 'echo "MAGMA-OAI-MME RHEL8 PODMAN IMAGE BUILD: KO" >> archives/build_magma_mme_rhel8.log'
+                    sh 'sudo buildah rm --all || true'
+                    sh 'sudo podman image prune --force'
                   }
                 }
                 cleanup {
                   script {
+                    if (!params.REGRESSION_TEST) {
+                      sh('sudo podman rmi magma-dev-mme:ci-base-image || true')
+                    }
                     stash includes: 'archives/build_magma_mme_rhel8.log', name: 'podmanBuildLog'
                   }
                 }
@@ -431,12 +436,12 @@ pipeline {
     always {
       script {
         if (runAllPipelineStages) {
-          // Remove CI Base image tag
-          sh('docker rmi magma-dev-mme:ci-base-image')
           // Clean any residual images
           sh('docker image prune --force > /dev/null 2>&1')
           // Delete image only in case of pull requests
           if (!params.REGRESSION_TEST) {
+            // Remove CI Base image tag
+            sh('docker rmi magma-dev-mme:ci-base-image')
             try {
               sh('docker image rm magma-mme:' + u18_image_tag + ' > /dev/null 2>&1')
             } catch (Exception e) {
