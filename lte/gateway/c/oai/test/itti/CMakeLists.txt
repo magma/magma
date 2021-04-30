@@ -13,8 +13,25 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_subdirectory(mme_app_task)
-add_subdirectory(mobility_client)
-add_subdirectory(openflow)
-add_subdirectory(spgw_task)
-add_subdirectory(itti)
+set(ITTI_LIB_DIR $ENV{C_BUILD}/oai/lib/itti)
+# include_directories(${ITTI_LIB_DIR})
+
+# include_directories("${PROJECT_SOURCE_DIR}")
+include_directories("/usr/src/googletest/googlemock/include/")
+
+add_library(ITTI_TEST_LIB
+
+    )
+
+link_directories(/usr/src/googletest/googlemock/lib/)
+
+target_link_libraries(ITTI_TEST_LIB
+    LIB_ITTI
+    gmock_main gtest gtest_main gmock
+    )
+
+set_target_properties(ITTI_TEST_LIB PROPERTIES LINKER_LANGUAGE CXX)
+
+add_executable(itti_test test_itti.cpp)
+target_link_libraries(itti_test ITTI_TEST_LIB)
+add_test(test_itti itti_test)
