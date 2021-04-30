@@ -69,27 +69,18 @@ s1aptests/test_sctp_shutdown_after_identity_req.py \
 s1aptests/test_sctp_shutdown_after_smc.py \
 s1aptests/test_sctp_shutdown_after_multi_ue_attach.py \
 s1aptests/test_attach_detach_multi_ue.py \
-s1aptests/test_attach_detach_dedicated.py \
 s1aptests/test_attach_detach_dedicated_qci_0.py \
 s1aptests/test_attach_detach_dedicated_multi_ue.py \
-s1aptests/test_attach_detach_dedicated_looped.py \
-s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_lbi.py \
 s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_imsi.py \
-s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_ebi.py \
-s1aptests/test_attach_detach_dedicated_bearer_activation_invalid_lbi.py \
 s1aptests/test_attach_detach_dedicated_bearer_activation_invalid_imsi.py \
-s1aptests/test_attach_detach_dedicated_activation_timer_expiry.py \
 s1aptests/test_attach_detach_dedicated_activation_reject.py \
 s1aptests/test_attach_detach_multiple_dedicated.py \
 s1aptests/test_attach_detach_secondary_pdn_multi_ue.py \
-s1aptests/test_attach_detach_secondary_pdn_looped.py \
 s1aptests/test_attach_detach_secondary_pdn_invalid_apn.py \
 s1aptests/test_attach_detach_secondary_pdn_disconnect_dedicated_bearer.py \
 s1aptests/test_attach_detach_secondary_pdn_disconnect_invalid_bearer.py \
 s1aptests/test_attach_detach_secondary_pdn_no_disconnect.py \
-s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_looped.py \
 s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_multi_ue.py \
-s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer.py \
 s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_deactivate.py \
 s1aptests/test_attach_detach_disconnect_default_pdn.py \
 s1aptests/test_attach_detach_maxbearers_twopdns.py \
@@ -105,12 +96,9 @@ s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej.py \
 s1aptests/test_attach_standalone_act_dflt_ber_ctxt_rej_ded_bearer_activation.py \
 s1aptests/test_ics_timer_expiry_ue_registered.py \
 s1aptests/test_ics_timer_expiry_ue_unregistered.py \
-s1aptests/test_attach_service_with_multi_pdns_and_bearers_looped.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers_multi_ue.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers_failure.py \
-s1aptests/test_dedicated_bearer_activation_idle_mode.py \
 s1aptests/test_dedicated_bearer_activation_idle_mode_multi_ue.py \
-s1aptests/test_dedicated_bearer_activation_idle_mode_paging_timer_expiry.py \
 s1aptests/test_multi_enb_multi_ue.py \
 s1aptests/test_multi_enb_multi_ue_diff_enbtype.py \
 s1aptests/test_multi_enb_partial_reset.py \
@@ -134,9 +122,21 @@ s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_detach_setsessionrules_tcp_data.py
 
 EXTENDED_TESTS = s1aptests/test_modify_mme_config_for_sanity.py \
+s1aptests/test_attach_detach_dedicated.py \
+s1aptests/test_attach_detach_dedicated_looped.py \
+s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_lbi.py \
+s1aptests/test_attach_detach_dedicated_bearer_deactivation_invalid_ebi.py \
+s1aptests/test_attach_detach_dedicated_bearer_activation_invalid_lbi.py\
+s1aptests/test_attach_detach_dedicated_activation_timer_expiry.py \
 s1aptests/test_attach_detach_dedicated_deactivation_timer_expiry.py \
+s1aptests/test_dedicated_bearer_activation_idle_mode.py \
 s1aptests/test_attach_detach_secondary_pdn.py \
+s1aptests/test_attach_detach_secondary_pdn_looped.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers.py \
+s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer.py \
+s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_looped.py \
+s1aptests/test_attach_service_with_multi_pdns_and_bearers_looped.py \
+s1aptests/test_dedicated_bearer_activation_idle_mode_paging_timer_expiry.py \
 s1aptests/test_multi_enb_multi_ue_diff_plmn.py \
 s1aptests/test_multi_enb_multi_ue_diff_tac.py \
 s1aptests/test_x2_handover.py \
@@ -148,6 +148,7 @@ s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
+
 
 # Enable these tests once the CI job time-out has increased
 # s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
