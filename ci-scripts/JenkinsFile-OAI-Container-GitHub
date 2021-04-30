@@ -295,6 +295,12 @@ pipeline {
                     } catch (Exception e) {
                       echo 'OK if not present'
                     }
+                    // In case of the full build, we need the host RHEL8 credentials.
+                    if (params.REGRESSION_TEST) {
+                      sh('mkdir -p tmp/ca tmp/entitlement')
+                      sh('cp /etc/pki/entitlement/*pem tmp/entitlement')
+                      sh('sudo cp /etc/rhsm/ca/redhat-uep.pem tmp/ca')
+                    }
                     // Create the image to use
                     // Once again, we are not using the full dockerfile from scratch: too long --> when it is a pull request
                     // On the daily master build, we are doing from scratch
