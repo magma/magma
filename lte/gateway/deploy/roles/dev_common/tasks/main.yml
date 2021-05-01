@@ -58,6 +58,7 @@
     -  XDG_CACHE_HOME="{{magma_root}}/.cache"
     -  SWAGGER_CODEGEN_JAR={{ swagger_codegen_jar }}
     -  CODEGEN_ROOT={{ codegen_root }}
+    -  ASAN_OPTIONS=abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
   when: full_provision
 
 - name: "Go export"
