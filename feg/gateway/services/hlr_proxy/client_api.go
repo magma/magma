@@ -17,6 +17,7 @@ limitations under the License.
 package hlr_proxy
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -25,7 +26,6 @@ import (
 	"magma/feg/cloud/go/protos/hlr"
 	"magma/feg/gateway/registry"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 

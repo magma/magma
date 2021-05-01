@@ -15,6 +15,7 @@ limitations under the License.
 package gy_test
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"testing"
@@ -22,7 +23,6 @@ import (
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"

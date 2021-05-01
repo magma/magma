@@ -14,13 +14,13 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 
 	"magma/feg/cloud/go/protos"
 	"magma/orc8r/cloud/go/http2"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

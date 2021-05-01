@@ -14,6 +14,7 @@ limitations under the License.
 package health_manager_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -28,7 +29,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	"golang.org/x/net/context"
 )
 
 type MockHealthServicer struct {

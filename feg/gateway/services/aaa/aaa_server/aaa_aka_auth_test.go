@@ -14,12 +14,11 @@ limitations under the License.
 package main_test
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 
 	cp "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"

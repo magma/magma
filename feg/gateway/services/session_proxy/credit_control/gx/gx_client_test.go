@@ -15,6 +15,7 @@ limitations under the License.
 package gx_test
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -34,7 +35,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 const (

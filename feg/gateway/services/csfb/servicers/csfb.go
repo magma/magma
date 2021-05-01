@@ -14,13 +14,14 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 )
 
 type PortNumber = int
