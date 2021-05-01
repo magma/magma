@@ -981,7 +981,7 @@ jobs:
             cp ~/magma-experimental/roles/vars/secrets.yaml ~/magma-experimental/files
             sed -i -e "s/AWS_ACCESS_KEY_ID/${AWS_FB_CRED}/g" ~/magma-experimental/files/secrets.yaml
             sed -i -e "s@AWS_SECRET_ACCESS_KEY@${AWS_FB_SECRET}@g" ~/magma-experimental/files/secrets.yaml
-            sed -i -e "s/agwmpBoot1/agwmpboot2/g" ~/magma-experimental/roles/vars/defaults.yaml
+            cp ~/magma-experimental/cloudstrapper/playbooks/ansible.cfg ~/.ansible.cfg
             echo "$(printenv agwmpboot2)">> ~/magma-experimental/files/agwmpboot2.pem
             chmod 700 ~/magma-experimental/files/agwmpboot2.pem
             sed -i -e "s/agwmpHost1/agwmphost2/g" ~/magma-experimental/roles/vars/defaults.yaml
