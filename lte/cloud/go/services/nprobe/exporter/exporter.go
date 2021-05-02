@@ -18,12 +18,15 @@ type RecordExporter struct {
 }
 
 // NewTlsConfig creates a new TLS config from the client certificates
-func NewTlsConfig(crtFile, keyFile, rootCAFile string, skipVerify bool) (*tls.Config, error) {
+func NewTlsConfig(crtFile, keyFile string, skipVerify bool) (*tls.Config, error) {
 	cert, err := tls.LoadX509KeyPair(crtFile, keyFile)
 	if err != nil {
 		return nil, err
 	}
-	return &tls.Config{Certificates: []tls.Certificate{cert}, InsecureSkipVerify: skipVerify}, nil
+	return &tls.Config{
+		Certificates:       []tls.Certificate{cert},
+		InsecureSkipVerify: skipVerify,
+	}, nil
 }
 
 // NewRecordExporter creates a new tls exporter and attempt to establish a connection at start

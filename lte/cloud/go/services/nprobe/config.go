@@ -37,10 +37,9 @@ type Config struct {
 	MaxExportRetries    uint32 `yaml:"max_export_retries"`
 
 	DeliveryFunctionAddr string `yaml:"delivery_function_address"`
-	ExporterRootCA       string `yaml:"exporter_root_ca"`
+	SkipVerifyServer     bool   `yaml:"skip_verify_server"`
 	ExporterKeyFile      string `yaml:"exporter_key"`
 	ExporterCrtFile      string `yaml:"exporter_crt"`
-	SkipVerifyServer     bool   `yaml:"skip_verify_server"`
 }
 
 // GetServiceConfig parses nprobe service config and returns Config

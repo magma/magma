@@ -66,7 +66,6 @@ func main() {
 	tlsConfig, err := exporter.NewTlsConfig(
 		serviceConfig.ExporterCrtFile,
 		serviceConfig.ExporterKeyFile,
-		serviceConfig.ExporterRootCA,
 		serviceConfig.SkipVerifyServer,
 	)
 	if err != nil {
@@ -79,7 +78,7 @@ func main() {
 		glog.Errorf("Failed to create new RecordExporter: %v", err)
 	}
 
-	nProbeManager, err := manager.NewNProbeManager(serviceConfig, recordExporter)
+	nProbeManager, err := manager.NewNProbeManager(serviceConfig, nprobeBlobstore, recordExporter)
 	if err != nil {
 		glog.Fatalf("Failed to create new NProbeManager: %v", err)
 	}

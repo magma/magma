@@ -27,7 +27,7 @@ require (
 	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-openapi/swag v0.19.5
 	github.com/go-openapi/validate v0.19.3
-	github.com/go-sql-driver/mysql v1.4.1
+	github.com/go-sql-driver/mysql v1.5.0
 	github.com/gofrs/uuid v4.0.0+incompatible
 	github.com/gogf/gf v1.15.4
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
@@ -41,10 +41,10 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/common v0.9.1
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	github.com/thoas/go-funk v0.7.0
 	github.com/warthog618/sms v0.3.0
-	golang.org/x/net v0.0.0-20201021035429-f5854403a974
+	golang.org/x/net v0.0.0-20201031054903-ff519b6c9102
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.31.0
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
