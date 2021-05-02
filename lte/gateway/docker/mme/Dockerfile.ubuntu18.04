@@ -202,7 +202,7 @@ COPY ./ $MAGMA_ROOT
 ##### FreeDiameter
 RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
     cd freediameter && \
-    patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch && \
+    patch -p1 < $MAGMA_ROOT/lte/gateway/c/core/oai/patches/0001-opencoord.org.freeDiameter.patch && \
     mkdir build && \
     cd build && \
     cmake ../ && \
@@ -249,8 +249,8 @@ RUN apt-get install -y python3-pip && \
 # For developer's to have the same run env as in target image to debug
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /magma-mme/bin
-RUN cp $C_BUILD/oai/oai_mme/mme oai_mme
-RUN cp $C_BUILD/sctpd/sctpd .
+RUN cp $C_BUILD/core/oai/oai_mme/mme oai_mme
+RUN cp $C_BUILD/sctpd/src/sctpd .
 WORKDIR /magma-mme/etc
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
@@ -266,7 +266,7 @@ RUN cp $MAGMA_ROOT/lte/gateway/configs/redis.yml .
 RUN cp $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 
 WORKDIR /magma-mme/scripts
-RUN cp $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate . && \
+RUN cp $MAGMA_ROOT/lte/gateway/c/core/oai/test/check_mme_s6a_certificate . && \
     sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
            -e "s@\$SUDO@@" \
            -e "s@echo_error@echo@" \
@@ -351,8 +351,8 @@ RUN ldconfig
 
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
-COPY --from=magma-mme-builder $C_BUILD/oai/oai_mme/mme oai_mme
-COPY --from=magma-mme-builder $C_BUILD/sctpd/sctpd .
+COPY --from=magma-mme-builder $C_BUILD/core/oai/oai_mme/mme oai_mme
+COPY --from=magma-mme-builder $C_BUILD/sctpd/src/sctpd .
 
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /magma-mme/etc
@@ -371,7 +371,7 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.y
 
 # Adding means to re-generate certificates
 WORKDIR /magma-mme/scripts
-COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/core/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
            -e "s@\$SUDO@@" \
            -e "s@echo_error@echo@" \

@@ -153,7 +153,7 @@ RUN apt-get -y update && apt-get -y install \
   netcat
 
 # Copy the build artifacts.
-COPY --from=builder /build/c/session_manager/sessiond /usr/local/bin/sessiond
+COPY --from=builder /build/c/session_manager/src/sessiond /usr/local/bin/sessiond
 
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma
