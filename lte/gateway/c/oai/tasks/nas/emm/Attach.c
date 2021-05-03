@@ -710,6 +710,15 @@ int emm_proc_attach_complete(
           (nas_emm_attach_proc_t*)
               ue_mm_context->emm_context.emm_procedures->emm_specific_proc;
 
+      /* Process attach complete msg only if T3450 timer is running
+       * If its not running it means that implicit detach is in progress
+       */
+      if (attach_proc->T3450.id == NAS_TIMER_INACTIVE_ID) {
+        OAILOG_WARNING(
+            LOG_NAS_EMM,
+            " Discarding attach complete as T3450 timer is not active!\n");
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+      }
       emm_ctx = &ue_mm_context->emm_context;
       /*
        * Upon receiving an ATTACH COMPLETE message, the MME shall enter state
