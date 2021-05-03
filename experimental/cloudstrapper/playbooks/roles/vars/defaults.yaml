@@ -14,7 +14,7 @@ devOpsCloudstrapper: ec2MagmaDevopsCloudstrapper
 primaryCloudstrapper: ec2MagmaCloudstrapper
 devOpsAmi: imgCloudstrapperBase
 
-userBootstrap: circleci
+userBootstrap: ubuntu
 userMagma: "{{ userBootstrap }}"
 userAgw: admin
 
