@@ -31,16 +31,6 @@
 
 namespace {  // anonymous
 
-/* TODO remove after testing */
-void print_bytes(void* ptr, int size) {
-  unsigned char* p = (unsigned char*) ptr;
-  int i;
-  for (i = 0; i < size; i++) {
-    printf("%02hhX ", p[i]);
-  }
-  printf("\n");
-}
-
 void set_xid(struct pdu_info*& pdu, const std::string& value) {
   if (value.empty()) {
     MLOG(MERROR) << "Recieved XID string is empty";
@@ -115,7 +105,6 @@ void* PDUGenerator::generate_pkt(
 
   MLOG(MDEBUG) << "Generated packet length with length - "
                << pdu->header_length + pdu->payload_length;
-  print_bytes(data, pdu->header_length + pdu->payload_length);
 
   return (void*) data;
 }
@@ -151,17 +140,19 @@ bool PDUGenerator::send_packet(
 void PDUGenerator::handle_ip_lookup_callback(
     std::string ip_addr, void* data, struct pdu_info* pdu, Status status,
     DirectoryField resp) {
-  // TODO process the output of the directoryd lookup
-  pdu->payload_direction = DIRECTION_TO_TARGET;
-  set_xid(pdu, "tracking_123");
-  proxy_connector_->send_data(data, pdu->header_length + pdu->payload_length);
-  // free(data);
 
   if (!status.ok()) {
     MLOG(MDEBUG) << "Could not fetch subscriber with ip - " << ip_addr;
     return;
   }
+
   MLOG(MDEBUG) << "Got reply " << resp.value().c_str() << "for -" << ip_addr;
+
+  pdu->payload_direction = DIRECTION_TO_TARGET;
+  set_xid(pdu, "tracking_123");
+  proxy_connector_->send_data(data, pdu->header_length + pdu->payload_length);
+  //Only one directoryd lookup will succeed so this won't cause double free
+  free(data);
 
   // TODO create a cache that stores the IPs that were looked up successfully,
   // the amount of LI activated UEs is small and lookup should only occur on
