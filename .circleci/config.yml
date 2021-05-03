@@ -34,7 +34,7 @@ aliases:
   - &orc8r_build_verify
     paths: "orc8r"
   - &cwf_build_verify
-    paths: "cwf"
+    paths: "cwf lte feg"
   - &docs_only
     paths: "docs"
 
@@ -70,7 +70,7 @@ orbs:
           compose_version:
             description: Docker-compose version to install
             type: string
-            default: "1.25.4"
+            default: "1.29.1"
         steps:
           - run:
               name: Install Docker Compose
@@ -344,7 +344,7 @@ commands:
                for i in `ls -a1 *.deb`
                do
                   echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/stretch-ci/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"
@@ -528,6 +528,8 @@ jobs:
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
             python3 build.py --tests --up
           no_output_timeout: 15m
+      - store_test_results:
+          path: /home/circleci/project/orc8r/cloud/test-results
       - magma_slack_notify
 
   # Fail if code doesn't pass formatting requirements.
@@ -660,6 +662,11 @@ jobs:
          command: go mod download
          workdir: ${MAGMA_ROOT}/cwf/gateway
       - run:
+          name: Go lint code
+          command: |
+            cd ${MAGMA_ROOT}/feg/gateway
+            make -C ${MAGMA_ROOT}/feg/gateway lint
+      - run:
           name: Generate test coverage
           command: |
             cd ${MAGMA_ROOT}/feg/gateway
@@ -691,6 +698,8 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/feg/gateway
             make -C ${MAGMA_ROOT}/feg/gateway precommit
+      - store_test_results:
+          path: /tmp/test-results
       - magma_slack_notify
 
   feg-build:
@@ -705,9 +714,27 @@ jobs:
       - build/determinator:
           <<: *federated_build_verify
       - run:
+          name: generate test certs and snowflake
+          command: |
+            # TODO add rootCA.pem and snowflake files in the ubuntu-1604:201903-01 image
+            # create directories
+            cd ${MAGMA_ROOT} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
+            # create test certs
+            cd ${MAGMA_ROOT}/.cache/test_certs/
+            openssl genrsa -out rootCA.key 2048
+            openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 365000 -out rootCA.pem -subj "/C=US/CN=rootca.magma.test"
+            # create snowflake
+            cd ${MAGMA_ROOT}/.cache/feg/ && touch snowflake
+      - run:
+          name: build docker
           command: |
             cd ${MAGMA_ROOT}/feg/gateway/docker
             DOCKER_REGISTRY=feg_ docker-compose build --parallel
+      - run:
+          name: run docker containers and check health
+          command: |
+            cd ${MAGMA_ROOT}/feg/gateway
+            DOCKER_REGISTRY=feg_ make -C ${MAGMA_ROOT}/feg/gateway docker_healthcheck
       - tag-push-docker:
           project: feg
           images: "gateway_go|gateway_python"
@@ -746,6 +773,24 @@ jobs:
             cd ${MAGMA_ROOT}/cwf/gateway
             make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
       - magma_slack_notify
+
+  cwag-build:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *cwf_build_verify
+      - run:
+          name: Build CWAG containers
+          command: |
+            cd $MAGMA_ROOT/cwf/gateway/docker
+            docker-compose build --parallel
+      # TODO bring up the containers and check for crashloops
 
   cwf-integ-test:
     machine:
@@ -1186,15 +1231,14 @@ jobs:
             mv docs/readmes readmes/
             rm -rf docs/
             mv readmes/ docs/
-      # Yeah I fucked up and created mamga-... instead of magma-... oops
       - run:
           name: Deploying to GitHub Pages
           command: |
-            git config --global user.email "mamga-docusaurus-bot@users.noreply.github.com"
-            git config --global user.name "mamga-docusaurus-bot"
-            echo "machine github.com login mamga-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
+            git config --global user.email "bots@magmacore.org"
+            git config --global user.name "magma-docusaurus-bot"
+            echo "machine github.com login magma-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
             cd website && yarn install
-            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=mamga-docusaurus-bot yarn run publish-gh-pages
+            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=magma-docusaurus-bot yarn run publish-gh-pages
       - magma_slack_notify
 
   ### XWF
@@ -1360,6 +1404,7 @@ workflows:
   cwag:
     jobs:
       - cwag-precommit
+      - cwag-build
       - cwf-integ-test:
           <<: *master_and_develop
       - xwfm-test:

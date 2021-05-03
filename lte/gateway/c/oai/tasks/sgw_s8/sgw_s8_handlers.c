@@ -877,7 +877,7 @@ static void delete_userplane_tunnels(
       }
       ue_ipv4 = bearer_ctxt_p->paa.ipv4_address;
       // Delete S1-U tunnel and S8-U tunnel
-      rv = gtp_tunnel_ops->del_s8_tunnel(
+      rv = gtpv1u_del_s8_tunnel(
           enb, pgw, ue_ipv4, ue_ipv6, bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           bearer_ctxt_p->enb_teid_S1u, NULL);
       if (rv < 0) {

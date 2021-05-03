@@ -44,7 +44,7 @@ func getHlrProxyClient() (*hlrProxyClient, error) {
 	conn, err = registry.GetConnection(registry.HLR_PROXY)
 	if err != nil {
 		errMsg := fmt.Sprintf("HLR Proxy client initialization error: %s", err)
-		log.Printf(errMsg)
+		log.Print(errMsg)
 		return nil, errors.New(errMsg)
 	}
 	return &hlrProxyClient{

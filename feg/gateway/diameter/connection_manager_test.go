@@ -50,7 +50,7 @@ func TestConnectionManager(t *testing.T) {
 			OriginHost:  ClientHost,
 			OriginRealm: ClientRealm,
 			VendorID:    datatype.Unsigned32(Vendor3GPP),
-			ProductName: datatype.UTF8String("connection manager"),
+			ProductName: "connection manager",
 		})
 		cli = &sm.Client{
 			Dict:               dict.Default,
@@ -78,7 +78,7 @@ func TestConnectionManager(t *testing.T) {
 			OriginHost:  ServerHost,
 			OriginRealm: ServerRealm,
 			VendorID:    datatype.Unsigned32(Vendor3GPP),
-			ProductName: datatype.UTF8String("hello"),
+			ProductName: "hello",
 		})
 
 		serverStarted = make(chan struct{})

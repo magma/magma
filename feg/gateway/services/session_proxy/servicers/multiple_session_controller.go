@@ -286,7 +286,7 @@ func fillMapWithUpdateSessionRequestIfEmpty(
 	controllersToRequest map[*CentralSessionController]*protos.UpdateSessionRequest,
 	controller *CentralSessionController) {
 	_, found := controllersToRequest[controller]
-	if found == false {
+	if !found {
 		controllersToRequest[controller] = &protos.UpdateSessionRequest{}
 	}
 }
@@ -302,7 +302,7 @@ func getControllerPerKey(
 		return nil, err
 	}
 	if index >= len(controllers) {
-		return nil, fmt.Errorf("Index %d is bigger than the ammount of controllers %d", index, len(controllers))
+		return nil, fmt.Errorf("Index %d is bigger than the amount of controllers %d", index, len(controllers))
 	}
 	return controllers[index], nil
 }

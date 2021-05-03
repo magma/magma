@@ -155,10 +155,7 @@ func (conn *SCTPServerConnection) CloseListener() error {
 }
 
 func (conn *SCTPServerConnection) ConnectionEstablished() bool {
-	if conn.sendConn == nil {
-		return false
-	}
-	return true
+	return conn.sendConn != nil
 }
 
 func (conn *SCTPServerConnection) AcceptConn() error {

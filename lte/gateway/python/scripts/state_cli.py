@@ -29,6 +29,7 @@ from magma.common.redis.client import get_default_client
 from magma.common.redis.serializers import (
     get_json_deserializer,
     get_proto_deserializer,
+    get_proto_version_deserializer,
 )
 from magma.mobilityd.serialize_utils import (
     deserialize_ip_block,
@@ -178,7 +179,10 @@ class StateCLI(object):
         proto = self.STATE_PROTOS.get(key_type.lower())
         if proto:
             deserializer = get_proto_deserializer(proto)
+            version_deserializer = get_proto_version_deserializer()
             print(deserializer(value))
+            print('==================')
+            print('State version: %s' % version_deserializer(value))
         else:
             raise AttributeError('Key not found on redis')
 

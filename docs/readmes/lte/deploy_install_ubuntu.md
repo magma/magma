@@ -87,6 +87,9 @@ service magma@* status
 
 *Post Install Check*
 
+Make sure you have `control_proxy.yml` file in directory /var/opt/magma/configs/
+before running post install script.
+
 ``` bash
 cd ~/magma/lte/gateway/deploy
 ./agw_post_install_ubuntu.sh

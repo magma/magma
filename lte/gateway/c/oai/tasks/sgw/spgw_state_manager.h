@@ -70,6 +70,8 @@ class SpgwStateManager : public StateManager<
 
   int read_ue_state_from_db() override;
 
+  hash_table_ts_t* get_state_teid_ht();
+
  private:
   SpgwStateManager();
   ~SpgwStateManager();
@@ -80,6 +82,7 @@ class SpgwStateManager : public StateManager<
    */
   void create_state() override;
 
+  hash_table_ts_t* state_teid_ht_;
   const spgw_config_t* config_;
 };
 

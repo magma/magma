@@ -72,7 +72,7 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSe
 		getRatType(req.RatType),
 		getSelectionModeType(req.SelectionMode),
 		getProtocolConfigurationOptions(req.ProtocolConfigurationOptions),
-		ie.NewMSISDN(string(req.Msisdn[:])),
+		ie.NewMSISDN(req.Msisdn[:]),
 		ie.NewMobileEquipmentIdentity(req.Mei),
 		ie.NewServingNetwork(req.ServingNetwork.Mcc, req.ServingNetwork.Mnc),
 		ie.NewAccessPointName(req.Apn),

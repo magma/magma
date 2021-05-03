@@ -102,7 +102,7 @@ func TestGtpClient(t *testing.T) {
 	_, err = gtpClient.GetSessionByIMSI(IMSI1)
 	assert.Error(t, err)
 
-	// create same session with differnt QCI and different C-Sgw TEID
+	// create same session with different QCI and different C-Sgw TEID
 	newCSgwTeid := cSgwTeid + 1
 	csr = getCreateSessionRequest(t, gtpClient, localIP, actualServerIPAndPort, newCSgwTeid, bearerId1, qci2)
 	gtpServer.AddHandlers(map[uint8]gtpv2.HandlerFunc{

@@ -2489,12 +2489,14 @@ void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
        Do not send UE Context Release Command to eNB before receiving SGs IMSI
        Detach Ack from MSC/VLR */
     if (ue_context_p->sgs_context != NULL) {
-      if (((ue_context_p->sgs_detach_type !=
-            SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
-           (ue_context_p->sgs_detach_type !=
-            SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) &&
-          (ue_context_p->sgs_context->ts9_timer.id ==
-           MME_APP_TIMER_INACTIVE_ID)) {
+      if ((ue_context_p->sgs_detach_type ==
+           SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
+          (ue_context_p->sgs_detach_type ==
+           SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) {
+        OAILOG_FUNC_OUT(LOG_NAS_EMM);
+      } else if (
+          ue_context_p->sgs_context->ts9_timer.id ==
+          MME_APP_TIMER_INACTIVE_ID) {
         /* Notify S1AP to send UE Context Release Command to eNB or free
          * s1 context locally.
          */

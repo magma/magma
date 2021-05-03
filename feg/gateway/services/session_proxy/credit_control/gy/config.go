@@ -99,7 +99,7 @@ func GetOCSConfiguration() []*diameter.DiameterServerConfig {
 	if err != nil || !validGyConfig(configsPtr) {
 		log.Printf("%s Managed Gy Server Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
 		return []*diameter.DiameterServerConfig{
-			&diameter.DiameterServerConfig{
+			{
 				DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 					Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, OCSAddrEnv, "127.0.0.1:3869"),
 					Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GyNetworkEnv, "tcp"),
@@ -152,7 +152,7 @@ func GetGyClientConfiguration() []*diameter.DiameterClientConfig {
 	if err != nil {
 		log.Printf("%s Managed Gy Client Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
 		return []*diameter.DiameterClientConfig{
-			&diameter.DiameterClientConfig{
+			{
 				Host:               diameter.GetValueOrEnv(diameter.HostFlag, GyDiamHostEnv, diameter.DiamHost),
 				Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GyDiamRealmEnv, diameter.DiamRealm),
 				ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GyDiamProductEnv, diameter.DiamProductName),
