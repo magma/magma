@@ -137,6 +137,7 @@
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
+          "lte/upgrade_1_5",
           "lte/upgrade_1_4",
           "lte/upgrade_1_3",
           "lte/upgrade_1_2",
