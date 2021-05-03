@@ -56,6 +56,8 @@ RUN echo "Install 3rd party dependencies" && \
     apt-get -y install telegraf && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev=4.1.0-2 && \
+    echo "Install libtins" && \
+    apt-get install -y libtins-dev && \
     ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
@@ -172,7 +174,7 @@ RUN git clone https://git.osmocom.org/libgtpnl && \
 RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
     cd asn1c && \
     git checkout f12568d617dbf48497588f8e227d70388fa217c9 && \
-    autoreconf -iv && \    
+    autoreconf -iv && \
     ./configure && \
     make -j`nproc` && \
     make install && \
@@ -201,7 +203,7 @@ RUN echo "Install fmtlib required by Folly" && \
 COPY ./ $MAGMA_ROOT
 
 ##### FreeDiameter
-RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \ 
+RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
     cd freediameter && \
     patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch && \
     mkdir build && \
@@ -210,9 +212,9 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
     make -j`nproc` && \
     make install
-    
+
 ### Following  is required to build MME with OVS support
-# WARNING!!! for the moment it'snot working well cause libfluid linked with Ubuntu incorrectly 
+# WARNING!!! for the moment it'snot working well cause libfluid linked with Ubuntu incorrectly
 # ENV FEATURES=agw_of
 # RUN git clone https://github.com/facebookincubator/magma.git /fb_magma
 # Clone repos and checkout latest commit
@@ -232,7 +234,7 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
 # Build MME executables
 RUN ldconfig && \
     cd $MAGMA_ROOT/lte/gateway && \
-    echo $FEATURES && \ 
+    echo $FEATURES && \
     make build_oai && \
     make build_sctpd
 
