@@ -35,6 +35,8 @@ class TestAttachCompleteAfterIcsTimerExpiry(unittest.TestCase):
 
         MME should discard attach complete message as it is already in the
         process of implicit detach
+
+        ### Do not add this TC to sanity suite ###
         """
         # Ground work.
         self._s1ap_wrapper.configUEDevice(1)
