@@ -785,11 +785,10 @@ jobs:
       - checkout
       - build/determinator:
           <<: *cwf_build_verify
-      - run:
-          name: Build CWAG containers
-          command: |
-            cd $MAGMA_ROOT/cwf/gateway/docker
-            docker-compose build --parallel
+      - run-with-retry:
+          retry-count: 2
+          workdir: $MAGMA_ROOT/cwf/gateway/docker
+          command: docker-compose build --parallel
       # TODO bring up the containers and check for crashloops
 
   cwf-integ-test:
@@ -828,11 +827,10 @@ jobs:
       - build/determinator:
           <<: *cwf_build_verify
       - docker/install-dc
-      - run:
-          name: Build CWAG containers
-          command: |
-            cd ${MAGMA_ROOT}/cwf/gateway/docker
-            docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
+      - run-with-retry:
+          retry-count: 2
+          workdir: $MAGMA_ROOT/cwf/gateway/docker
+          command: docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
       - tag-push-docker:
           project: cwf
           images: <<parameters.images>>
