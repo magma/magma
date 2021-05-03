@@ -38,8 +38,9 @@ const (
 
 type Client struct {
 	*gtpv2.Conn
-	connType   uint8
-	GtpTimeout time.Duration
+	connType    uint8
+	GtpTimeout  time.Duration
+	echoChannel chan (error)
 }
 
 // NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incoming calls
@@ -76,6 +77,7 @@ func NewRunningClient(ctx context.Context, localIpAndPort string, connType uint8
 		return nil, err
 	}
 
+	c.AddDefaultHandlers()
 	// We need to disable GTP validation in order to support stateless operation
 	// Otherwise if we receive a message which doesnt have an actie session, the message
 	// will be discarded.
@@ -110,6 +112,7 @@ func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr,
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to GTP-C %s server: %s", remoteAddr.String(), err)
 	}
+	c.AddDefaultHandlers()
 	c.DisableValidation()
 	return c, nil
 }
@@ -117,11 +120,12 @@ func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr,
 // NewClient creates basic configuration structure for a GTP-C client. It does
 // not starts any connection or server.
 func newClient(localAddr *net.UDPAddr, connType uint8, gtpTimeout time.Duration) *Client {
-	cli := &Client{
-		connType:   connType,
-		GtpTimeout: configOrDefaultTimeout(gtpTimeout),
+	c := &Client{
+		connType:    connType,
+		echoChannel: make(chan error),
+		GtpTimeout:  configOrDefaultTimeout(gtpTimeout),
 	}
-	return cli
+	return c
 }
 
 // TODO: remove ctx (just create it outside the go routine)
@@ -142,6 +146,19 @@ func (c *Client) run(ctx context.Context, localAddr *net.UDPAddr) error {
 		}
 	}()
 	return nil
+}
+
+func (c *Client) SendEchoRequest(cPgwUDPAddr *net.UDPAddr) error {
+	_, err := c.Conn.EchoRequest(cPgwUDPAddr)
+	if err != nil {
+		return err
+	}
+	select {
+	case res := <-c.echoChannel:
+		return res
+	case <-time.After(c.GtpTimeout):
+		return fmt.Errorf("waitEchoResponse timeout")
+	}
 }
 
 // Get preferred outbound ip of this machine

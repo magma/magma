@@ -14,6 +14,7 @@ package servicers
 import (
 	"context"
 	"fmt"
+	"net"
 	"strconv"
 	"strings"
 	"testing"
@@ -593,14 +594,21 @@ func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
 }
 
 func TestS8proxyEcho(t *testing.T) {
-	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	s8p, mockPgw := startSgwAndPgw(t, 100*time.Second)
 	defer mockPgw.Close()
 
-	//------------------------
-	//---- Echo Request ----
+	//------------------------------------
+	//---- Echo Request from s8_proxy ----
 	eReq := &protos.EchoRequest{PgwAddrs: mockPgw.LocalAddr().String()}
 	_, err := s8p.SendEcho(context.Background(), eReq)
 	assert.NoError(t, err)
+
+	//-------------------------------
+	//---- Echo Request from pgw ----
+	s8LocalAddress := s8p.gtpClient.LocalAddr().(*net.UDPAddr)
+	s8LocalAddress.IP = net.IP{127, 0, 0, 1} // fix IP to use localhost
+	echoResp := mockPgw.SendEchoRequest(s8LocalAddress)
+	assert.Nil(t, echoResp)
 }
 
 // startSgwAndPgw starts s8_proxy and a mock pgw for testing
