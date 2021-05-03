@@ -36,6 +36,7 @@
 #include "mme_app_defs.h"
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
+#include "mme_app_ip_imsi.h"
 
 static void mme_app_pdn_context_init(
     ue_mm_context_t* const ue_context, pdn_context_t* const pdn_context);
@@ -46,6 +47,13 @@ void mme_app_free_pdn_context(pdn_context_t** const pdn_context) {
   bdestroy_wrapper(&(*pdn_context)->apn_subscribed);
   bdestroy_wrapper(&(*pdn_context)->apn_oi_replacement);
   free_protocol_configuration_options(&(*pdn_context)->pco);
+  if ((*pdn_context)->paa.ipv4_address.s_addr) {
+    OAILOG_DEBUG(
+        LOG_MME_APP, "Removing  ue_ip:%x from ipv4_imsi map \n",
+        (*pdn_context)->paa.ipv4_address.s_addr);
+
+    mme_app_remove_ue_ipv4_addr((*pdn_context)->paa.ipv4_address.s_addr);
+  }
   free_wrapper((void**) pdn_context);
 }
 //------------------------------------------------------------------------------

@@ -1328,6 +1328,7 @@ typedef struct itti_s11_delete_bearer_command_s {
  */
 typedef struct itti_s11_paging_request_s {
   const char* imsi;
+  struct in_addr ipv4_addr;
 } itti_s11_paging_request_t;
 
 /**
