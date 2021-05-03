@@ -20,7 +20,7 @@ include_directories("/usr/src/googletest/googlemock/include/")
 
 add_library(LIAGENTD_TEST_LIB
     Consts.h
-    LiAgentdMocks.h
+    LIAgentdMocks.h
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)
