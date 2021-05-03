@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Copyright 2021 The Magma Authors.
 
@@ -13,21 +15,20 @@ limitations under the License.
 
 import os
 import shutil
-import yaml
 from tempfile import mkdtemp
-
 from unittest import TestCase, main
-from unittest.mock import patch, Mock
+from unittest.mock import patch
 
 import configlib
+import yaml
 
 
 class TestConfigManager(TestCase):
     def setUp(self):
         self.root_dir = mkdtemp()
         self.constants = {
-            'project_dir':  self.root_dir,
-            'config_dir':  '%s/configs' % self.root_dir,
+            'project_dir': self.root_dir,
+            'config_dir': '%s/configs' % self.root_dir,
             'vars_definition': '%s/vars.yml' % self.root_dir,
             'components': ['infra', 'platform', 'service'],
             'auto_tf': self.root_dir + '/terraform.tfvars.json',
@@ -40,11 +41,11 @@ class TestConfigManager(TestCase):
         test_vars = {
             "infra": {
                 "aws_access_key_id": {
-                    "Required":  True,
+                    "Required": True,
                     "ConfigApps": ["awscli"]
                 },
                 "aws_secret_access_key": {
-                    "Required":  True,
+                    "Required": True,
                     "ConfigApps": ["awscli"]
                 },
                 "cluster_name": {
@@ -52,23 +53,23 @@ class TestConfigManager(TestCase):
                     "ConfigApps": ["tf"]
                 },
                 "secretsmanager_orc8r_secret": {
-                    "Required":  True,
+                    "Required": True,
                     "ConfigApps": ["tf"]
                 }
             },
             "platform": {
                 "deploy_elastic": {
-                    "Required":  False,
+                    "Required": False,
                     "ConfigApps": ["tf"]
                 },
                 "nms_db_password": {
-                    "Required":  True,
+                    "Required": True,
                     "ConfigApps": ["tf"]
                 }
             },
             "service": {
                 "lte_orc8r_chart_version": {
-                    "Required":  False,
+                    "Required": False,
                     "Default": "0.2.4",
                     "ConfigApps": ["tf"]
                 },
@@ -79,7 +80,7 @@ class TestConfigManager(TestCase):
 
         # write a simple jinja template file
         jinja_template = (
-'''
+            '''
 {% for k in cfg['infra'] %}
 {{k}}=var.{{k}}{% endfor %}
 ''')
@@ -87,7 +88,7 @@ class TestConfigManager(TestCase):
             f.write(jinja_template)
 
         jinja_template = (
-'''
+            '''
 {% for k in cfg %}
 variable "{{k}}" {}{% endfor %}
 ''')
@@ -95,10 +96,7 @@ variable "{{k}}" {}{% endfor %}
             f.write(jinja_template)
 
     def tearDown(self):
-        try:
-            shutil.rmtree(self.root_dir)
-        except:
-            pass
+        shutil.rmtree(self.root_dir, ignore_errors=True)
 
     @patch("configlib.get_input")
     @patch("configlib.check_call")
@@ -160,7 +158,6 @@ variable "{{k}}" {}{% endfor %}
         self.assertEqual(len(cfg.keys()), 1)
         self.assertEqual(cfg['nms_db_password'], "foo")
 
-
         # verify that service tfvars json file isn't present
         fn = "%s/service.tfvars.json" % self.constants['config_dir']
         self.assertEqual(os.path.isfile(fn), False)
@@ -191,7 +188,8 @@ variable "{{k}}" {}{% endfor %}
 
         # verify if jinja template has been rendered accordingly
         with open(self.constants['main_tf']) as f:
-            jinja_cfg = dict(ln.split('=') for ln in f.readlines() if ln.strip())
+            jinja_cfg = dict(ln.split('=')
+                             for ln in f.readlines() if ln.strip())
 
         # all infra terraform keys should be present in the jinja template
         self.assertEqual(
@@ -201,7 +199,8 @@ variable "{{k}}" {}{% endfor %}
         # variable tf is of the form variable "var_name" {}
         # get the middle element and remove the quotes
         with open(self.constants['vars_tf']) as f:
-            jinja_cfg = [ln.split()[1][1:-1] for ln in f.readlines() if ln.strip()]
+            jinja_cfg = [ln.split()[1][1:-1]
+                         for ln in f.readlines() if ln.strip()]
 
         # all infra terraform keys should be present in the jinja template
         self.assertEqual(set(jinja_cfg), set(mgr.tf_vars))
@@ -237,6 +236,7 @@ variable "{{k}}" {}{% endfor %}
         self.assertEqual(len(cfg.keys()), 2)
         self.assertEqual(cfg['nms_db_password'], "foo")
         self.assertEqual(cfg['deploy_elastic'], "true")
+
 
 if __name__ == '__main__':
     main()

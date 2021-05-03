@@ -51,7 +51,7 @@ func (request *CreditControlRequest) FromCreditUsageUpdate(update *protos.Credit
 	request.UserLocation = update.UserLocation
 	request.ChargingCharacteristics = update.ChargingCharacteristics
 	request.Type = credit_control.CRTUpdate
-	request.Credits = []*UsedCredits{&UsedCredits{
+	request.Credits = []*UsedCredits{{
 		RatingGroup:    update.Usage.ChargingKey,
 		InputOctets:    update.Usage.BytesTx, // transmit == input
 		OutputOctets:   update.Usage.BytesRx, // receive == output

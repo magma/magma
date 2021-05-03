@@ -31,7 +31,7 @@ func GetInt64(metricName string) (int64, error) {
 		if family.Name == nil || metricName != *family.Name {
 			continue
 		}
-		if metric == nil || len(metric) == 0 {
+		if len(metric) == 0 {
 			continue
 		}
 		value := metric[0].GetCounter().GetValue()

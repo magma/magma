@@ -51,76 +51,168 @@ const PATHS: Array<{
     type: 'gateway cellular config',
   },
   {
-    path: '/magma/networks/:networkId/gateways/:objectId/configs/wifi',
-    type: 'gateway wifi config',
-  },
-  {
-    path: '/magma/networks/:networkId/gateways/:objectId/configs/tarazed',
-    type: 'gateway tarazed config',
-  },
-  {
-    path: '/magma/networks/:networkId/gateways/:objectId/configs/devmand',
-    type: 'gateway devmand config',
-  },
-  {
     path: '/magma/networks/:networkId/gateways/:objectId/configs',
     type: 'gateway config',
   },
   {
     path: '/magma/networks/:networkId/subscribers/:objectId',
-    type: 'subscriber',
+    type: 'Subscriber',
+  },
+  {
+    path: '/magma/v1/lte/:networkId/subscribers/:objectId/(.*)',
+    type: 'Subscriber',
   },
   {
     path: '/magma/networks/:networkId/subscribers',
-    resolver: (req: FBCNMSRequest) => [req.body.id, 'subscriber'],
+    resolver: (req: FBCNMSRequest) => [req.body.id, 'Subscriber'],
+  },
+  {
+    path: '/magma/networks/:networkId/tracing',
+    type: 'Call Tracing',
+  },
+  {
+    path: '/magma/networks/:networkId/tracing/(.*)',
+    type: 'Call Tracing',
+  },
+  {
+    path: '/magma/networks/:networkId/alerts/(.*)',
+    type: 'Alerts',
   },
   {
     path: '/magma/networks/:networkId/tiers/:objectId',
-    type: 'network tier',
+    type: 'Network tier',
   },
   {
     path: '/magma/networks/:networkId/tiers',
-    resolver: (req: FBCNMSRequest) => [req.body.id, 'network tier'],
+    resolver: (req: FBCNMSRequest) => [req.body.id, 'Network tier'],
   },
   {
     path: '/magma/networks/:networkId/configs/cellular',
-    resolver: (_, params) => [params[2], 'network cellular configs'],
+    resolver: (_, params) => [params[2], 'Network cellular configs'],
   },
   {
     path: '/magma/networks/:networkId/configs/wifi',
-    resolver: (_, params) => [params[2], 'network wifi configs'],
+    resolver: (_, params) => [params[2], 'Network wifi configs'],
   },
   {
     path: '/magma/v1/networks/:networkId',
-    resolver: (_, params) => [params[1], 'network'],
+    resolver: (_, params) => [params[1], 'Network'],
+  },
+  {
+    path: '/magma/v1/feg_lte/:networkId',
+    resolver: (_, params) => [params[1], 'Federated LTE network'],
+  },
+  {
+    path: '/magma/v1/feg_lte/:networkId/federation',
+    resolver: (_, params) => [params[1], 'Federated LTE federation'],
+  },
+  {
+    path: '/magma/v1/feg_lte/:networkId/subscriber_config',
+    resolver: (_, params) => [params[1], 'Federated LTE subscriber config'],
+  },
+  {
+    path: '/magma/v1/feg/:networkId',
+    resolver: (_, params) => [params[1], 'Federation network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId',
+    resolver: (_, params) => [params[1], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/cellular/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/apns',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/apns/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/gateway_pools/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network pools'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/gateway_pools/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network pools'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/cellular/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/dns/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/enodebs',
+    resolver: (_, params) => [params[2], 'LTE managed eNodeBs'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/enodebs/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/description',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/gateways',
+    resolver: req => [req.body.id, 'LTE gateway'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/gateways/:objectId',
+    resolver: (_, params) => [params[2], 'LTE gateway'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/gateways/:objectId/(.*)',
+    resolver: (_, params) => [params[2], 'LTE gateway'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/subscribers/:objectId',
+    type: 'subscriber',
+  },
+  {
+    path: '/magma/v1/lte/:networkId/subscribers',
+    resolver: (req: FBCNMSRequest) => [req.body.id, 'Subscriber'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/policy_qos_profiles',
+    resolver: (req: FBCNMSRequest) => [req.body.id, 'Policy qos profiles'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/policy_qos_profiles/(.*)',
+    resolver: (req: FBCNMSRequest) => [req.body.id, 'Policy qos profiles'],
   },
   {
     path: '/magma/v1/cwf/:networkId/gateways',
-    resolver: req => [req.body.id, 'carrier wifi gateway'],
+    resolver: req => [req.body.id, 'Carrier wifi gateway'],
   },
   {
     path: '/magma/v1/cwf/:networkId/gateways/:objectId',
-    resolver: (_, params) => [params[2], 'carrier wifi gateway'],
+    resolver: (_, params) => [params[2], 'Carrier wifi gateway'],
   },
   {
     path: '/magma/v1/feg/:networkId/gateways',
-    resolver: req => [req.body.id, 'federation gateway'],
+    resolver: req => [req.body.id, 'Federation gateway'],
   },
   {
     path: '/magma/v1/feg/:networkId/gateways/:objectId',
-    resolver: (_, params) => [params[2], 'federation gateway'],
+    resolver: (_, params) => [params[2], 'Federation gateway'],
   },
   {
     path: '/magma/v1/feg/:networkId/gateways/:objectId/federation',
-    resolver: (_, params) => [params[2], 'federation gateway config'],
+    resolver: (_, params) => [params[2], 'Federation gateway config'],
   },
   {
     path: '/magma/v1/networks/:networkId/rules/policies',
-    resolver: req => [req.body.id, 'policy'],
+    resolver: req => [req.body.id, 'Policy'],
   },
   {
     path: '/magma/v1/networks/:networkId/policies/rules/:objectId',
-    resolver: (_, params) => [params[2], 'policy'],
+    resolver: (_, params) => [params[2], 'Policy'],
   },
 ];
 

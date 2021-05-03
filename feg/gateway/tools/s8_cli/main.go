@@ -15,6 +15,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -22,6 +23,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"magma/feg/cloud/go/protos"
@@ -56,6 +58,9 @@ var (
 	bearerId            uint32 = 5
 	rattype             uint   = 6
 	AGWTeidC            uint
+	imsiRange           uint64 = 1
+	rate                int    = 0
+	disableGRPClog      bool   = false
 )
 
 func init() {
@@ -89,7 +94,7 @@ func init() {
 		"PGW IP:port to send request with format ip:port")
 
 	csFlags.BoolVar(&withecho, "withecho", withecho,
-		fmt.Sprint("Starts s8 proxy checking PGW is alive"))
+		"Starts s8 proxy checking PGW is alive")
 
 	csFlags.BoolVar(&useMconfig, "use_mconfig", false,
 		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
@@ -112,6 +117,13 @@ func init() {
 
 	csFlags.UintVar(&rattype, "rat", 6,
 		"Rat type (by default 6 which meanes EUTRAN)")
+
+	csFlags.Uint64Var(&imsiRange, "range", imsiRange, "Send multiple request with consecutive imsis")
+
+	csFlags.IntVar(&rate, "rate", rate, "Request per second (to be used with range)")
+
+	csFlags.BoolVar(&disableGRPClog, "no_grpc_print", false,
+		"disable GRPC printing logs")
 
 	// Echo command
 	eCmd := cmdRegistry.Add(
@@ -138,7 +150,7 @@ func init() {
 		"PGW IP:port to send request with format ip:port")
 
 	eFlags.BoolVar(&withecho, "withecho", withecho,
-		fmt.Sprint("Starts s8 proxy checking PGW is alive"))
+		"Starts s8 proxy checking PGW is alive")
 
 	eFlags.BoolVar(&useMconfig, "use_mconfig", false,
 		"Use local gateway.mconfig configuration for local proxy (if set - starts local s8 proxy)")
@@ -149,6 +161,9 @@ func init() {
 }
 
 func createSession(cmd *commands.Command, args []string) int {
+	if disableGRPClog {
+		fmt.Println("no_grpc flag detected. GRPC will NOT be displayed")
+	}
 	cli, f, err := initialize(cmd, args)
 	if err != nil {
 		fmt.Print(err)
@@ -161,133 +176,190 @@ func createSession(cmd *commands.Command, args []string) int {
 		cmd.Usage()
 		return 2
 	}
-
-	// Create Session Request messagea
-	_, offset := time.Now().Zone()
-	csReq := &protos.CreateSessionRequestPgw{
-		PgwAddrs: pgwServerAddr,
-		Imsi:     imsi,
-		Msisdn:   "00111",
-		Mei:      generateIMEIbasedOnIMSI(imsi),
-		CAgwTeid: uint32(AGWTeidC),
-		ServingNetwork: &protos.ServingNetwork{
-			Mcc: "310",
-			Mnc: "14",
-		},
-		RatType: protos.RATType_EUTRAN,
-		BearerContext: &protos.BearerContext{
-			Id: bearerId,
-			UserPlaneFteid: &protos.Fteid{
-				Ipv4Address: "11.11.11.11",
-				Ipv6Address: "",
-				Teid:        uint32(AGWTeidU),
-			},
-			Qos: &protos.QosInformation{
-				Pci:                     0,
-				PriorityLevel:           0,
-				PreemptionCapability:    0,
-				PreemptionVulnerability: 0,
-				Qci:                     0,
-				Gbr: &protos.Ambr{
-					BrUl: 123,
-					BrDl: 234,
-				},
-				Mbr: &protos.Ambr{
-					BrUl: 567,
-					BrDl: 890,
-				},
-			},
-		},
-		PdnType: protos.PDNType_IPV4,
-		Paa: &protos.PdnAddressAllocation{
-			Ipv4Address: "10.0.0.10",
-			Ipv6Address: "",
-			Ipv6Prefix:  0,
-		},
-
-		Apn:           apn,
-		SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
-		Ambr: &protos.Ambr{
-			BrUl: 999,
-			BrDl: 888,
-		},
-		Uli: &protos.UserLocationInformation{
-			Tac: 5,
-			Eci: 6,
-		},
-		ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
-			IsValid:        true,
-			ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
-			ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
-				{
-					Id:       uint32(gtpv2.ProtoIDIPCP),
-					Contents: []byte{0x01, 0x00, 0x00, 0x10, 0x03, 0x06, 0x01, 0x01, 0x01, 0x01, 0x81, 0x06, 0x02, 0x02, 0x02, 0x02},
-				},
-				{
-					Id:       uint32(gtpv2.ProtoIDPAP),
-					Contents: []byte{0x01, 0x00, 0x00, 0x0c, 0x03, 0x66, 0x6f, 0x6f, 0x03, 0x62, 0x61, 0x72},
-				},
-				{
-					Id:       uint32(gtpv2.ContIDMSSupportOfNetworkRequestedBearerControlIndicator),
-					Contents: nil,
-				},
-			},
-		},
-		IndicationFlag: nil,
-		TimeZone: &protos.TimeZone{
-			DeltaSeconds:       int32(offset),
-			DaylightSavingTime: 1,
-		},
-	}
-
-	fmt.Println("\n *** Create Session Test ***")
-	printGRPCMessage("Sending GRPC message: ", csReq)
-
-	csRes, err := cli.CreateSession(csReq)
-
+	imsiNum, err := strconv.ParseUint(imsi, 10, 64)
 	if err != nil {
-		fmt.Printf("=> Create Session cli command failed: %s\n", err)
-		return 3
+		fmt.Printf("imsi is not numeric %+v: %s\n", imsi, err)
+		return 2
 	}
-	printGRPCMessage("Received GRPC message: ", csRes)
+	errChann := make(chan error)
+	done := make(chan struct{})
+	lenOfImsi := len(imsi)
+	wg := sync.WaitGroup{}
+	// run all the producers in parallel
+	fmt.Printf("Start sending requests %d\n", imsiRange)
+	for i := uint64(0); i < imsiRange; i++ {
 
-	// check if message was received but GTP message recived was in fact an error
-	if csRes.GtpError != nil {
-		fmt.Printf("Received a GTP error (see the GRPC message before): %d\n", csRes.GtpError.Cause)
-		return 4
-	}
-
-	// Delete recently created session (if enableD)
-	if createDeleteTimeout != -1 {
-		fmt.Printf("\n=> Sleeping for %ds before deleting....", createDeleteTimeout)
-		time.Sleep(time.Duration(createDeleteTimeout) * time.Second)
-		fmt.Println(" Done")
-
-		fmt.Println("\n *** Delete Session Test ***")
-		dsReq := &protos.DeleteSessionRequestPgw{
-			PgwAddrs: pgwServerAddr,
-			Imsi:     imsi,
-			BearerId: bearerId,
-			CAgwTeid: uint32(AGWTeidC),
-			CPgwTeid: csRes.CPgwFteid.Teid,
-			ServingNetwork: &protos.ServingNetwork{
-				Mcc: "310",
-				Mnc: "14",
-			},
-			Uli: &protos.UserLocationInformation{
-				Tac: 5,
-				Eci: 6,
-			},
+		wg.Add(1)
+		iShadow := i
+		// wait to adjust the rate
+		if rate > 0 && i != 0 && i%uint64(rate) == 0 {
+			fmt.Printf("\nWait 1 sec to send next group of %d request\n\n", rate)
+			time.Sleep(time.Second)
 		}
-		printGRPCMessage("Sending GRPC message: ", dsReq)
-		dsRes, err := cli.DeleteSession(dsReq)
-		if err != nil {
-			fmt.Printf("=> Delete session failed: %s\n", err)
-			return 5
-		}
-		printGRPCMessage("Received GRPC message: ", dsRes)
+
+		_, offset := time.Now().Zone()
+		go func() {
+			var errCli error
+			defer wg.Done()
+			// Create Session Request message
+			currentImsi := fmt.Sprintf("%0*d", lenOfImsi, imsiNum+iShadow)
+			currentMei := fmt.Sprint(uint64(2000000000000) + iShadow)
+			currentCAgwTeid := uint32(AGWTeidC + uint(iShadow))
+
+			csReq := &protos.CreateSessionRequestPgw{
+				PgwAddrs: pgwServerAddr,
+				Imsi:     currentImsi,
+				Msisdn:   currentMei,
+				Mei:      generateIMEIbasedOnIMSI(currentImsi),
+				CAgwTeid: currentCAgwTeid,
+				ServingNetwork: &protos.ServingNetwork{
+					Mcc: "310",
+					Mnc: "14",
+				},
+				RatType: protos.RATType_EUTRAN,
+				BearerContext: &protos.BearerContext{
+					Id: bearerId,
+					UserPlaneFteid: &protos.Fteid{
+						Ipv4Address: "11.11.11.11",
+						Ipv6Address: "",
+						Teid:        uint32(AGWTeidU),
+					},
+					Qos: &protos.QosInformation{
+						Pci:                     0,
+						PriorityLevel:           0,
+						PreemptionCapability:    0,
+						PreemptionVulnerability: 0,
+						Qci:                     0,
+						Gbr: &protos.Ambr{
+							BrUl: 123,
+							BrDl: 234,
+						},
+						Mbr: &protos.Ambr{
+							BrUl: 567,
+							BrDl: 890,
+						},
+					},
+				},
+				PdnType: protos.PDNType_IPV4,
+				Paa: &protos.PdnAddressAllocation{
+					Ipv4Address: "10.0.0.10",
+					Ipv6Address: "",
+					Ipv6Prefix:  0,
+				},
+
+				Apn:           apn,
+				SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
+				Ambr: &protos.Ambr{
+					BrUl: 999,
+					BrDl: 888,
+				},
+				Uli: &protos.UserLocationInformation{
+					Tac: 5,
+					Eci: 6,
+				},
+
+				ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
+					ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
+					ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
+						{
+							Id:       uint32(gtpv2.ProtoIDIPCP),
+							Contents: []byte{0x01, 0x00, 0x00, 0x10, 0x03, 0x06, 0x01, 0x01, 0x01, 0x01, 0x81, 0x06, 0x02, 0x02, 0x02, 0x02},
+						},
+						{
+							Id:       uint32(gtpv2.ProtoIDPAP),
+							Contents: []byte{0x01, 0x00, 0x00, 0x0c, 0x03, 0x66, 0x6f, 0x6f, 0x03, 0x62, 0x61, 0x72},
+						},
+						{
+							Id:       uint32(gtpv2.ContIDMSSupportOfNetworkRequestedBearerControlIndicator),
+							Contents: nil,
+						},
+					},
+				},
+				IndicationFlag: nil,
+				TimeZone: &protos.TimeZone{
+					DeltaSeconds:       int32(offset),
+					DaylightSavingTime: 1,
+				},
+			}
+
+			fmt.Println("\n *** Create Session Test ***")
+			printGRPCMessage("Sending GRPC message: ", csReq)
+
+			csRes, errCli := cli.CreateSession(csReq)
+
+			if errCli != nil {
+				errCli = fmt.Errorf("=> Create Session cli command failed: %s\n", errCli)
+				fmt.Print(errCli)
+				errChann <- errCli
+				return
+			}
+			printGRPCMessage("Received GRPC message: ", csRes)
+
+			// check if message was received but GTP message received was in fact an error
+			if csRes.GtpError != nil {
+				errCli = fmt.Errorf("Received a GTP error (see the GRPC message before): %d\n", csRes.GtpError.Cause)
+				fmt.Println(errCli)
+				errChann <- errCli
+				return
+			}
+
+			// Delete recently created session (if enableD)
+			if createDeleteTimeout != -1 {
+				fmt.Printf("\n=> Sleeping for %ds before deleting....", createDeleteTimeout)
+				time.Sleep(time.Duration(createDeleteTimeout) * time.Second)
+				fmt.Println(" Done")
+
+				fmt.Println("\n *** Delete Session Test ***")
+				dsReq := &protos.DeleteSessionRequestPgw{
+					PgwAddrs: pgwServerAddr,
+					Imsi:     currentImsi,
+					BearerId: bearerId,
+					CAgwTeid: currentCAgwTeid,
+					CPgwTeid: csRes.CPgwFteid.Teid,
+					ServingNetwork: &protos.ServingNetwork{
+						Mcc: "310",
+						Mnc: "14",
+					},
+					Uli: &protos.UserLocationInformation{
+						Tac: 5,
+						Eci: 6,
+					},
+				}
+				printGRPCMessage("Sending GRPC message: ", dsReq)
+				dsRes, errCli := cli.DeleteSession(dsReq)
+				if errCli != nil {
+					errCli = fmt.Errorf("=> Delete session failed: %s\n", errCli)
+					fmt.Println(errCli)
+					errChann <- errCli
+					return
+				}
+				printGRPCMessage("Received GRPC message: ", dsRes)
+			}
+		}()
 	}
 
+	// go routine to collect the errors
+	errsCli := make([]error, 0)
+	go func() {
+		for err2 := range errChann {
+			errsCli = append(errsCli, err2)
+		}
+		done <- struct{}{}
+	}()
+
+	// wait until all request are done
+	wg.Wait()
+	close(errChann)
+	// wait until all the errors are processed
+	<-done
+	close(done)
+
+	// check if errors
+	if len(errsCli) != 0 {
+		fmt.Printf("Errors found: %d request failed out of %d\n", len(errsCli), imsiRange)
+		return 9
+	}
+	fmt.Printf("\nAll request (%d) got a response\n", imsiRange)
 	return 0
 }
 
@@ -396,7 +468,7 @@ func validateImsi(imsi string) error {
 
 func startTestServer() (string, error) {
 	// Create and run PGW
-	mockPgw, err := mock_pgw.NewStarted(nil, testServerAddr)
+	mockPgw, err := mock_pgw.NewStarted(context.Background(), testServerAddr)
 	if err != nil {
 		return "", fmt.Errorf("Error creating test server mock PGW: +%s\n", err)
 	}
@@ -407,6 +479,9 @@ func startTestServer() (string, error) {
 }
 
 func printGRPCMessage(prefix string, v interface{}) {
+	if disableGRPClog {
+		return
+	}
 	var payload string
 	if pm, ok := v.(protobuf_proto.Message); ok {
 		var buf bytes.Buffer

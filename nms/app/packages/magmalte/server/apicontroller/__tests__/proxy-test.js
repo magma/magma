@@ -14,10 +14,10 @@
  * @format
  */
 
-import {networkIdFilter, networksResponseDecorator} from '../routes';
+import {apiFilter, networksResponseDecorator} from '../routes';
 
 // $FlowIgnore Ignoring error for tests.
-const testNetworkIdFilter = async req => await networkIdFilter(req);
+const testApiFilter = async req => await apiFilter(req);
 
 const testNetworksResponseDecorator = async (
   proxyResponse,
@@ -74,7 +74,7 @@ const createDataNoOrg = (
 };
 
 describe('Proxy test', () => {
-  describe('networkIdFilter', () => {
+  describe('apiFilter', () => {
     const params = {
       networkID: 'test',
     };
@@ -90,7 +90,7 @@ describe('Proxy test', () => {
           networkIDs: [],
         },
       };
-      const isAllowed = await testNetworkIdFilter(req);
+      const isAllowed = await testApiFilter(req);
       expect(isAllowed).toBe(true);
     });
 
@@ -102,7 +102,7 @@ describe('Proxy test', () => {
           networkIDs: [],
         },
       };
-      const isAllowed = await testNetworkIdFilter(req);
+      const isAllowed = await testApiFilter(req);
       expect(isAllowed).toBe(true);
     });
 
@@ -117,7 +117,7 @@ describe('Proxy test', () => {
           networkIDs: [],
         },
       };
-      const isAllowed = await testNetworkIdFilter(req);
+      const isAllowed = await testApiFilter(req);
       expect(isAllowed).toBe(false);
     });
 
@@ -132,7 +132,7 @@ describe('Proxy test', () => {
           networkIDs: ['test'],
         },
       };
-      const isAllowed = await testNetworkIdFilter(req);
+      const isAllowed = await testApiFilter(req);
       expect(isAllowed).toBe(true);
     });
 
@@ -144,7 +144,7 @@ describe('Proxy test', () => {
           networkIDs: ['test'],
         },
       };
-      const isAllowed = await testNetworkIdFilter(req);
+      const isAllowed = await testApiFilter(req);
       expect(isAllowed).toBe(true);
     });
 
@@ -159,7 +159,7 @@ describe('Proxy test', () => {
           networkIDs: ['test'],
         },
       };
-      const isAllowed = await testNetworkIdFilter(req);
+      const isAllowed = await testApiFilter(req);
       expect(isAllowed).toBe(false);
     });
 
@@ -174,7 +174,7 @@ describe('Proxy test', () => {
           networkIDs: ['not-test'],
         },
       };
-      const isAllowed = await testNetworkIdFilter(req);
+      const isAllowed = await testApiFilter(req);
       expect(isAllowed).toBe(false);
     });
 
@@ -186,7 +186,20 @@ describe('Proxy test', () => {
           networkIDs: ['not-test'],
         },
       };
-      const isAllowed = await testNetworkIdFilter(req);
+      const isAllowed = await testApiFilter(req);
+      expect(isAllowed).toBe(false);
+    });
+
+    it('disallows readonlyuser making mutating changes', async () => {
+      const req = {
+        method: 'PUT',
+        params,
+        user: {
+          isReadOnlyUser: true,
+          networkIDs: ['test'],
+        },
+      };
+      const isAllowed = await testApiFilter(req);
       expect(isAllowed).toBe(false);
     });
   });

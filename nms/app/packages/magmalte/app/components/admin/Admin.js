@@ -17,7 +17,6 @@
 import * as React from 'react';
 import AdminContextProvider from './AdminContextProvider';
 import AdminMain from './AdminMain';
-import AppContext from '@fbcnms/ui/context/AppContext';
 import ApplicationMain from '../ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import AuditLog from './AuditLog';
@@ -41,8 +40,6 @@ const useStyles = makeStyles(theme => ({
 
 function NavItems() {
   const {relativeUrl} = useRouter();
-  const {isFeatureEnabled} = React.useContext(AppContext);
-  const auditLogEnabled = isFeatureEnabled('audit_log_view');
 
   return (
     <>
@@ -51,13 +48,11 @@ function NavItems() {
         path={relativeUrl('/users')}
         icon={<PeopleIcon />}
       />
-      {auditLogEnabled && (
-        <NavListItem
-          label="Audit Log"
-          path={relativeUrl('/audit_log')}
-          icon={<AssignmentIcon />}
-        />
-      )}
+      <NavListItem
+        label="Audit Log"
+        path={relativeUrl('/audit_log')}
+        icon={<AssignmentIcon />}
+      />
       <NavListItem
         label="Networks"
         path={relativeUrl('/networks')}

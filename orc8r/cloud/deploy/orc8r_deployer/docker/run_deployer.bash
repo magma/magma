@@ -5,15 +5,56 @@ print_help()
 {
     echo "
 ./run_deployer runs the orc8r deployer container
-orc8r deployer contains scripts which enable user to configure, run prechecks
+orc8r deployer contains scripts which enable user to configure, run prechecks,
 install, upgrade, verify and cleanup an orc8r deployment
+
 Usage: run_deployer [-deploy-dir|-root-dir|-build|-h]
 options:
 -h           Print this Help
--deploy-dir  deployment dir containing configs and secrets (mandatory)
--root-dir    magma root directory
--build       build the deployer container
-example: ./run_deployer.bash -deploy-dir /tmp/orc8r_14_deployment"
+--deploy-dir  deployment dir containing configs and secrets (mandatory)
+--root-dir    magma root directory
+--build       build the deployer container
+--test        'all' or any specific test function[run_unit_tests,check_helmcharts_insync, check_tfvars_insync ]
+example: ./run_deployer.bash --deploy-dir ~/orc8r_15_deployment"
+}
+
+run_unit_tests()
+{
+    echo "Running orcl container unit tests"
+    docker run -it \
+        --entrypoint /root/scripts/cli/configlib_test.py \
+        -v "${DEPLOY_WORKDIR}":/root/project \
+        -v "${MAGMA_ROOT}":/root/magma \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        --rm orc8r_deployer:latest
+}
+
+check_helmcharts_insync()
+{
+    echo "Checking if helm charts are in sync"
+    docker run -it \
+        --entrypoint /root/scripts/test_helm_charts_sync.py \
+        -v "${DEPLOY_WORKDIR}":/root/project \
+        -v "${MAGMA_ROOT}":/root/magma \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        --rm orc8r_deployer:latest
+}
+
+check_tfvars_insync()
+{
+    echo "Checking tf vars are in sync"
+    docker run -it \
+        --entrypoint /root/scripts/test_vars_sync.py \
+        -v "${DEPLOY_WORKDIR}":/root/project \
+        -v "${MAGMA_ROOT}":/root/magma \
+        -v /var/run/docker.sock:/var/run/docker.sock \
+        --rm orc8r_deployer:latest
+}
+
+check_all() {
+    run_unit_tests
+    check_helmcharts_insync
+    check_tfvars_insync
 }
 
 if (( $# < 2 )); then
@@ -24,18 +65,24 @@ fi
 DOCKER_BUILD=false
 DEPLOY_WORKDIR=
 MAGMA_ROOT=
+TEST_TO_RUN=
+
 while [ -n "${1-}" ]; do
 	case "$1" in
-	-deploy-dir)
+	--deploy-dir)
         DEPLOY_WORKDIR="$2"
         shift
         ;;
-	-root-dir)
+	--root-dir)
         MAGMA_ROOT="$2"
         shift
         ;;
-    -build)
+    --build)
         DOCKER_BUILD=true
+        ;;
+    --test)
+        TEST_TO_RUN="$2"
+        shift
         ;;
     -h)
         print_help
@@ -66,7 +113,9 @@ if $DOCKER_BUILD; then
     docker build -t orc8r_deployer:latest .
 fi
 
-if [[ $? -eq 0 ]]; then
+if declare -F "$TEST_TO_RUN"; then
+    $TEST_TO_RUN
+else
     docker run -it \
         -v "${DEPLOY_WORKDIR}":/root/project \
         -v "${MAGMA_ROOT}":/root/magma \

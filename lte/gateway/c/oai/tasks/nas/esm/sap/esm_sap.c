@@ -447,6 +447,12 @@ static int esm_sap_recv(
         esm_cause = esm_recv_activate_default_eps_bearer_context_accept(
             emm_context, pti, ebi,
             &esm_msg.activate_default_eps_bearer_context_accept);
+        if (esm_msg.activate_default_eps_bearer_context_accept
+                .protocolconfigurationoptions.num_protocol_or_container_id) {
+          clear_protocol_configuration_options(
+              &esm_msg.activate_default_eps_bearer_context_accept
+                   .protocolconfigurationoptions);
+        }
 
         OAILOG_DEBUG(
             LOG_NAS_ESM,

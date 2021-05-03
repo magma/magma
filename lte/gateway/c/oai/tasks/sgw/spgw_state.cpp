@@ -43,8 +43,13 @@ spgw_state_t* get_spgw_state(bool read_from_db) {
 
 hash_table_ts_t* get_spgw_ue_state() {
   OAILOG_DEBUG(
-      LOG_SPGW_APP, "get_spgw_ue_state called by thread id %u", pthread_self());
+      LOG_SPGW_APP, "get_spgw_ue_state called by thread id %lu",
+      pthread_self());
   return SpgwStateManager::getInstance().get_ue_state_ht();
+}
+
+hash_table_ts_t* get_spgw_teid_state() {
+  return SpgwStateManager::getInstance().get_state_teid_ht();
 }
 
 int read_spgw_ue_state_db() {
@@ -59,12 +64,12 @@ void put_spgw_state() {
   SpgwStateManager::getInstance().write_state_to_db();
 }
 
-void put_spgw_ue_state(spgw_state_t* spgw_state, imsi64_t imsi64) {
+void put_spgw_ue_state(imsi64_t imsi64) {
   if (SpgwStateManager::getInstance().is_persist_state_enabled()) {
-    spgw_ue_context_t* ue_context_p = NULL;
+    spgw_ue_context_t* ue_context_p = nullptr;
+    hash_table_ts_t* spgw_ue_state  = get_spgw_ue_state();
     hashtable_ts_get(
-        spgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
-        (void**) &ue_context_p);
+        spgw_ue_state, (const hash_key_t) imsi64, (void**) &ue_context_p);
     if (ue_context_p) {
       auto imsi_str = SpgwStateManager::getInstance().get_imsi_str(imsi64);
       SpgwStateManager::getInstance().write_ue_state_to_db(
@@ -128,7 +133,7 @@ void pgw_free_pcc_rule(void** rule) {
 void sgw_free_ue_context(spgw_ue_context_t** ue_context_p) {
   if (*ue_context_p) {
     sgw_s11_teid_t* p1 = LIST_FIRST(&(*ue_context_p)->sgw_s11_teid_list);
-    sgw_s11_teid_t* p2 = NULL;
+    sgw_s11_teid_t* p2 = nullptr;
     while (p1) {
       p2 = LIST_NEXT(p1, entries);
       LIST_REMOVE(p1, entries);

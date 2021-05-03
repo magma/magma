@@ -86,7 +86,7 @@ func (r *fegRelayClient) RelayRTR(rtr *RTR) (protos.ErrorCode, error) {
 }
 
 func (r *fegRelayClient) RelayASR(*diameter.ASR) (protos.ErrorCode, error) {
-	return protos.ErrorCode_COMMAND_UNSUPORTED, fmt.Errorf("Relay for ASR is not implemented")
+	return protos.ErrorCode_COMMAND_UNSUPORTED, fmt.Errorf("relay for ASR is not implemented")
 }
 
 func handleRTR(s *swxProxy) diam.HandlerFunc {
@@ -102,9 +102,12 @@ func handleRTR(s *swxProxy) diam.HandlerFunc {
 		if len(imsi) == 0 {
 			imsi, err = diameter.ExtractImsiFromSessionID(string(rtr.SessionID))
 			if err != nil {
-				err = fmt.Errorf("Error retreiving IMSI from Session ID %s: %s", rtr.SessionID, err)
+				err = fmt.Errorf("error retreiving IMSI from Session ID %s: %s", rtr.SessionID, err)
 				glog.Error(err)
 				err = s.sendRTA(c, m, protos.ErrorCode_UNKNOWN_SESSION_ID, &rtr, MaxDiamRTRetries)
+				if err != nil {
+					glog.Error(fmt.Errorf("error replying back (RTA): %s", err))
+				}
 				return
 			}
 			rtr.UserName = datatype.UTF8String(imsi)
@@ -129,7 +132,7 @@ func handleRTR(s *swxProxy) diam.HandlerFunc {
 func (s *swxProxy) sendRTA(c diam.Conn, m *diam.Message, code protos.ErrorCode, rtr *RTR, retries uint) error {
 	ans := m.Answer(uint32(code))
 	// SessionID is required to be the AVP in position 1
-	ans.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(rtr.SessionID)))
+	ans.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, rtr.SessionID))
 	ans.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(rtr.AuthSessionState))
 	m.NewAVP(avp.OriginHost, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Host))
 	m.NewAVP(avp.OriginRealm, avp.Mbit, 0, datatype.DiameterIdentity(s.config.ClientCfg.Realm))

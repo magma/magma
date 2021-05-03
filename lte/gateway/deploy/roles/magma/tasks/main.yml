@@ -411,3 +411,15 @@
     src: patches/aioeventlet.py38.patch
     dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
   when: ansible_distribution == "Ubuntu"
+
+- name: Patch python aioeventlet lib crash ubuntu
+  patch:
+    src: patches/aioeventlet_fd_exception.patch
+    dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
+  when: ansible_distribution == "Ubuntu"
+
+- name: Patch python aioeventlet lib crash debian
+  patch:
+    src: patches/aioeventlet_fd_exception.patch
+    dest: /usr/lib/python3/dist-packages/aioeventlet.py
+  when: ansible_distribution == "Debian"

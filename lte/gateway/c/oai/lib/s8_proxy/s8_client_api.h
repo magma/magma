@@ -23,7 +23,8 @@ void send_s8_create_session_request(
     imsi64_t imsi64);
 void send_s8_delete_session_request(
     imsi64_t imsi64, Imsi_t imsi, teid_t sgw_s11_teid, teid_t pgw_s5_teid,
-    ebi_t bearer_id);
+    ebi_t bearer_id,
+    const itti_s11_delete_session_request_t* const delete_session_req_p);
 #ifdef __cplusplus
 }
 #endif

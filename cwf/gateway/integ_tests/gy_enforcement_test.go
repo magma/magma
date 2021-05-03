@@ -439,7 +439,6 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	assert.Eventually(t,
 		tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), time.Minute, 2*time.Second)
 
-
 	// we need to generate over 100% of the quota to trigger a session redirection
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
@@ -448,7 +447,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 		Timeout: 60,
 	}
 
-	 //time.Sleep(500 * time.Microsecond)
+	//time.Sleep(500 * time.Microsecond)
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
@@ -464,8 +463,11 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		// Check ReAuth success
+		assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	}
 
 	// Assert that a CCR-I and CCR-U were sent to the OCS
 	tr.AssertAllGyExpectationsMetNoError()
@@ -500,7 +502,6 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	tr.AssertAllGyExpectationsMetNoError()
 
 }
-
 
 func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditUpdateFail...")
@@ -546,8 +547,11 @@ func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		// Check ReAuth success
+		assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	}
 
 	// Wait for a termination to propagate
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
@@ -735,8 +739,11 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	raa, err := sendChargingReAuthRequest(imsi, 1)
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
-	// Check ReAuth success
-	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		// Check ReAuth success
+		assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	}
 
 	// Assert that a CCR-I and CCR-U were sent to the OCS
 	tr.AssertAllGyExpectationsMetNoError()
@@ -858,8 +865,11 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		// Check ReAuth success
+		assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	}
 
 	// Assert that a CCR-I and reauth were sent
 	tr.AssertAllGyExpectationsMetNoError()

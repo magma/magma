@@ -64,7 +64,8 @@ func (e GxExpectation) DoesMatch(message interface{}) error {
 }
 
 func (answer GxAnswer) toAVPs() ([]*diam.AVP, uint32) {
-	avps := []*diam.AVP{}
+	var avps []*diam.AVP
+
 	ruleInstalls := answer.GetRuleInstalls()
 	if ruleInstalls != nil {
 		ruleInstallAVPs := toRuleInstallAVPs(
@@ -76,6 +77,7 @@ func (answer GxAnswer) toAVPs() ([]*diam.AVP, uint32) {
 		)
 		avps = append(avps, ruleInstallAVPs...)
 	}
+
 	ruleRemovals := answer.GetRuleRemovals()
 	if ruleRemovals != nil {
 		ruleRemovalAVPs := toRuleRemovalAVPs(
@@ -83,17 +85,17 @@ func (answer GxAnswer) toAVPs() ([]*diam.AVP, uint32) {
 			ruleRemovals.GetRuleBaseNames())
 		avps = append(avps, ruleRemovalAVPs...)
 	}
+
 	monitorInstalls := answer.GetUsageMonitoringInfos()
-	if monitorInstalls != nil {
-		for _, monitor := range monitorInstalls {
-			octets := monitor.GetOctets()
-			if octets == nil {
-				glog.Errorf("Monitor Octets is nil, skipping.")
-				continue
-			}
-			avps = append(avps, toUsageMonitoringInfoAVP(string(monitor.MonitoringKey), octets, monitor.MonitoringLevel))
+	for _, monitor := range monitorInstalls {
+		octets := monitor.GetOctets()
+		if octets == nil {
+			glog.Errorf("Monitor Octets is nil, skipping.")
+			continue
 		}
+		avps = append(avps, toUsageMonitoringInfoAVP(string(monitor.MonitoringKey), octets, monitor.MonitoringLevel))
 	}
+
 	eventTriggers := answer.GetEventTriggers()
 	if eventTriggers != nil {
 		avps = append(avps, toEventTriggersAVPs(eventTriggers)...)

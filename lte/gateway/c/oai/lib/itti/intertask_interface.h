@@ -57,6 +57,8 @@
   itti_get_task_name(ITTI_MSG_ORIGIN_ID(mSGpTR))
 #define ITTI_MSG_DESTINATION_NAME(mSGpTR)                                      \
   itti_get_task_name(ITTI_MSG_DESTINATION_ID(mSGpTR))
+#define ITTI_MSG_LATENCY(mSGpTR)                                               \
+  itti_get_message_latency((mSGpTR)->ittiMsgHeader.timestamp)
 
 /* Make the message number platform specific */
 typedef unsigned long message_number_t;
@@ -71,7 +73,7 @@ typedef struct task_zmq_ctx_s {
 } task_zmq_ctx_t;
 
 typedef struct message_info_s {
-  task_id_t id;
+  MessagesIds id;
   /* Message payload size */
   MessageHeaderSize size;
   /* Printable name */
@@ -203,5 +205,12 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx);
 void send_terminate_message(task_zmq_ctx_t* task_zmq_ctx);
 
 int itti_send_broadcast_message(MessageDef* message_p);
+
+/**
+ * \brief Returns the latency of the message
+ * @param timestamp timespec struct
+ * @return long Message Latency in micro seconds
+ */
+long itti_get_message_latency(struct timespec timestamp);
 #endif /* INTERTASK_INTERFACE_H_ */
 /* @} */

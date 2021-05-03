@@ -1594,7 +1594,9 @@ int emm_send_emm_information(
   /*
    * optional - Local Time Zone
    */
-  if ((emm_msg->localtimezone = get_time_zone()) != RETURNerror) {
+  int result = get_time_zone();
+  if (result != RETURNerror) {
+    emm_msg->localtimezone = result;
     size += TIME_ZONE_IE_MAX_LENGTH;
     emm_msg->presencemask |= EMM_INFORMATION_LOCAL_TIME_ZONE_PRESENT;
   }
@@ -1647,7 +1649,7 @@ int emm_send_emm_information(
   formatted = (string[1] - '0') << 4;
   formatted |= (string[0] - '0');
   emm_msg->universaltimeandlocaltimezone.second = formatted;
-  if (emm_msg->localtimezone != RETURNerror) {
+  if ((emm_msg->presencemask && EMM_INFORMATION_LOCAL_TIME_ZONE_PRESENT) != 0) {
     emm_msg->universaltimeandlocaltimezone.timezone = emm_msg->localtimezone;
   }
   /*

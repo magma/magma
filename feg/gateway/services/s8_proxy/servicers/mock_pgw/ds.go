@@ -77,11 +77,10 @@ func (mPgw *MockPgw) getHandleDeleteSessionRequest() gtpv2.HandlerFunc {
 			sgwTeidC, msg.Sequence(),
 			ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
 		)
+		c.RemoveSession(session)
 		if err := c.RespondTo(sgwAddr, msg, dsr); err != nil {
 			return err
 		}
-
-		c.RemoveSession(session)
 		fmt.Printf("mock PGW deleted a session for: %s\n", session.IMSI)
 		return nil
 	}

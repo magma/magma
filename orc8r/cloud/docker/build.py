@@ -30,6 +30,7 @@ HOST_MAGMA_ROOT = '../../../.'
 IMAGE_MAGMA_ROOT = os.path.join('src', 'magma')
 
 GOLINT_FILE = '.golangci.yml'
+TEST_RESULT_DIR = 'orc8r/cloud/test-results'
 
 MODULES = [
     'orc8r',
@@ -99,12 +100,11 @@ def main() -> None:
     elif args.tests:
         _run(['up', '-d', 'postgres_test'])
         _run(['build', 'test'])
-        _run(['run', '--rm', 'test', 'make test'])
+        _run(['run', '--rm'] + _get_test_result_vol() + ['test', 'make test'])
         _down(args)
     else:
         d_args = _get_default_file_args(args) + _get_default_build_args(args)
         _run(d_args)
-        _down(args)
 
 
 def _get_modules(mods: Iterable[str]) -> Iterable[MagmaModule]:
@@ -150,13 +150,27 @@ def _get_mnt_vols(modules: Iterable[MagmaModule]) -> List[str]:
         # .golangci.yml file
         '-v', '%s:%s' % (
             os.path.abspath(os.path.join(HOST_MAGMA_ROOT, GOLINT_FILE)),
-            os.path.join(os.sep, IMAGE_MAGMA_ROOT, GOLINT_FILE)
+            os.path.join(os.sep, IMAGE_MAGMA_ROOT, GOLINT_FILE),
         ),
     ]
     # Per-module directory mounts
     for m in modules:
         vols.extend(['-v', '%s:%s' % (m.host_path, _get_module_image_dst(m))])
     return vols
+
+
+def _get_test_result_vol() -> List[str]:
+    """Return the volume argment to mount TEST_RESULT_DIR
+
+    Returns:
+        List[str]: -v command to mount TEST_RESULT_DIR
+    """
+    return [
+        '-v', '%s:%s' % (
+            os.path.abspath(os.path.join(HOST_MAGMA_ROOT, TEST_RESULT_DIR)),
+            os.path.join(os.sep, IMAGE_MAGMA_ROOT, TEST_RESULT_DIR),
+        ),
+    ]
 
 
 def _get_default_file_args(args: argparse.Namespace) -> List[str]:

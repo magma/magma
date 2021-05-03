@@ -86,7 +86,7 @@ func TestEAPClientApi(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), tst.ExpectedChallengeReq) {
+	if !reflect.DeepEqual(peap.GetPayload(), tst.ExpectedChallengeReq) {
 		t.Fatalf(
 			"Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), tst.ExpectedChallengeReq)
@@ -99,10 +99,10 @@ func TestEAPClientApi(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error Handling Test Challenge EAP: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), []byte(eap_test.SuccessEAP)) {
+	if !reflect.DeepEqual(peap.GetPayload(), eap_test.SuccessEAP) {
 		t.Fatalf(
 			"Unexpected Challenge Response EAP\n\tReceived: %.3v\n\tExpected: %.3v",
-			peap.GetPayload(), []byte(eap_test.SuccessEAP))
+			peap.GetPayload(), eap_test.SuccessEAP)
 	}
 	// Check that we got expected MSISDN with the success EAP
 	if peap.GetCtx().Msisdn != tst.MSISDN {
@@ -111,23 +111,23 @@ func TestEAPClientApi(t *testing.T) {
 
 	// We should get a valid MSR within the auth success EAP Ctx, verify that we generated valid
 	// MS-MPPE-Recv-Key & MS-MPPE-Send-Key according to https://tools.ietf.org/html/rfc2548
-	genMS_MPPE_Recv_Key := append(
+	genMsMppeRecvKey := append(
 		expectedMppeRecvKeySalt,
 		eap.EncodeMsMppeKey(expectedMppeRecvKeySalt, peap.GetCtx().Msk[0:32], authenticator, sharedSecret)...)
 
-	genMS_MPPE_Send_Key := append(
+	genMsMppeSendKey := append(
 		expectedMppeSendKeySalt,
 		eap.EncodeMsMppeKey(expectedMppeSendKeySalt, peap.GetCtx().Msk[32:], authenticator, sharedSecret)...)
 
-	if !reflect.DeepEqual(genMS_MPPE_Recv_Key, expectedMppeRecvKey) {
+	if !reflect.DeepEqual(genMsMppeRecvKey, expectedMppeRecvKey) {
 		t.Fatalf(
 			"MS_MPPE_Recv_Keys mismatch.\n\tGenerated MS_MPPE_Recv_Key(%d): %v\n\tExpected  MS_MPPE_Recv_Key(%d): %v",
-			len(genMS_MPPE_Recv_Key), genMS_MPPE_Recv_Key, len(expectedMppeRecvKey), expectedMppeRecvKey)
+			len(genMsMppeRecvKey), genMsMppeRecvKey, len(expectedMppeRecvKey), expectedMppeRecvKey)
 	}
-	if !reflect.DeepEqual(genMS_MPPE_Send_Key, expectedMppeSendKey) {
+	if !reflect.DeepEqual(genMsMppeSendKey, expectedMppeSendKey) {
 		t.Fatalf(
 			"MS_MPPE_Send_Keys mismatch.\n\tGenerated MS_MPPE_Send_Key(%d): %v\n\tExpected  MS_MPPE_Send_Key(%d): %v",
-			len(genMS_MPPE_Send_Key), genMS_MPPE_Send_Key, len(expectedMppeSendKey), expectedMppeSendKey)
+			len(genMsMppeSendKey), genMsMppeSendKey, len(expectedMppeSendKey), expectedMppeSendKey)
 	}
 
 	time.Sleep(time.Millisecond * 10)
@@ -137,10 +137,10 @@ func TestEAPClientApi(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error Handling Second Test Challenge EAP within Auth timeout window: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), []byte(eap_test.SuccessEAP)) {
+	if !reflect.DeepEqual(peap.GetPayload(), eap_test.SuccessEAP) {
 		t.Fatalf(
 			"Unexpected Challenge Response EAP\n\tReceived: %.3v\n\tExpected: %.3v",
-			peap.GetPayload(), []byte(eap_test.SuccessEAP))
+			peap.GetPayload(), eap_test.SuccessEAP)
 	}
 
 	time.Sleep(servicer.SessionAuthenticatedTimeout() + time.Millisecond*100)
