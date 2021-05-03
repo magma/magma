@@ -18,11 +18,16 @@ from unittest.mock import MagicMock
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.app.classifier import Classifier
-from magma.pipelined.app.inout import INGRESS
+from magma.pipelined.app.inout import EGRESS, INGRESS
+from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.tests.app.flow_query import \
     RyuDirectFlowQuery as FlowQuery
+from magma.pipelined.tests.app.packet_builder import (ARPPacketBuilder,
+                                                      DHCPPacketBuilder,
+                                                      EtherPacketBuilder,
+                                                      UDPPacketBuilder)
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import (PipelinedController,
                                                        TestSetup)
@@ -34,19 +39,18 @@ from magma.pipelined.tests.pipelined_test_util import (FlowTest, FlowVerifier,
                                                        wait_after_send)
 from ryu.lib import hub
 from scapy.all import *
-from scapy.all import ARP, IP, UDP, Ether
 from scapy.contrib.gtp import GTP_U_Header
 
 
-class GTPTrafficTest(unittest.TestCase):
+class PagingTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_1 = '5e:cc:cc:b1:49:4b'
     MAC_2 = '0a:00:27:00:00:02'
     BRIDGE_IP = '192.168.128.1'
     EnodeB_IP = '192.168.60.141'
-    MTR_IP = "10.0.2.10"
     Dst_nat = '192.168.129.42'
+    CLASSIFIER_CONTROLLER_ID = 5
 
     @classmethod
     @unittest.mock.patch('netifaces.ifaddresses',
@@ -60,11 +64,11 @@ class GTPTrafficTest(unittest.TestCase):
         launch the ryu apps for testing pipelined. Gets the references
         to apps launched by using futures.
         """
-        super(GTPTrafficTest, cls).setUpClass()
+        super(PagingTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([], ['classifier'])
         cls._tbl_num = cls.service_manager.get_table_num(Classifier.APP_NAME)
-
+        
         testing_controller_reference = Future()
         classifier_reference = Future()
         test_setup = TestSetup(
@@ -85,13 +89,11 @@ class GTPTrafficTest(unittest.TestCase):
                 'internal_ip_subnet': '192.168.0.0/16',
                 'ovs_gtp_port_number': 32768,
                 'ovs_mtr_port_number': 15577,
-                'mtr_ip': cls.MTR_IP,
                 'ovs_internal_sampling_port_number': 15578,
                 'ovs_internal_sampling_fwd_tbl_number': 201,
                 'ovs_internal_conntrack_port_number': 15579,
                 'ovs_internal_conntrack_fwd_tbl_number': 202,
                 'clean_restart': True,
-                'ovs_multi_tunnel': False,
                 'paging_timeout': 30,
                 'classifier_controller_id': 5,
             },
@@ -112,24 +114,46 @@ class GTPTrafficTest(unittest.TestCase):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
-    def test_detach_default_tunnel_flows(self):
-        self.classifier_controller._delete_all_flows()
-
-    def test_traffic_flows(self):
+    def test_install_paging_flow(self):
         """
-           Attach the tunnel flows with UE IP address and
-           send GTP and ARP traffic.
+           Add paging flow in table 0
         """
         # Need to delete all default flows in table 0 before
         # install the specific flows test case.
-        self.test_detach_default_tunnel_flows()
+        self.classifier_controller._delete_all_flows()
 
-        # Attach the tunnel flows towards UE.
-        seid1 = 5000
         ue_ip_addr = "192.168.128.30"
-        self.classifier_controller.add_tunnel_flows(65525, 1, 1000,
-                                                    IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1, True)
+        self.classifier_controller._install_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                        200, True) 
+
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+        with snapshot_verifier:
+            pass
+
+    def test_remove_paging_flow(self):
+        """
+           Delete the paging flow from table 0
+        """
+        ue_ip_addr = "192.168.128.30"
+        self.classifier_controller._remove_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
+
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+        with snapshot_verifier:
+            pass
+
+    def test_traffic_paging_flow(self):
+        """
+           Add paging flow in table 0
+        """
+        # Need to delete all default flows in table 0 before
+        # install the specific flows test case.
+        self.classifier_controller._delete_all_flows() 
+
+        ue_ip_addr = "192.168.128.30"
+        self.classifier_controller._install_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                        200, True)
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         eth = Ether(dst=self.MAC_1, src=self.MAC_2)
@@ -139,12 +163,9 @@ class GTPTrafficTest(unittest.TestCase):
         i_tcp = TCP(seq=1, sport=1111, dport=2222)
         i_ip = IP(src='192.168.60.142', dst=self.EnodeB_IP)
 
-        arp = ARP(hwdst=self.MAC_1,hwsrc=self.MAC_2, psrc=self.Dst_nat, pdst='192.168.128.30')
-        
         gtp_packet_udp = eth / ip / o_udp / GTP_U_Header(teid=0x1, length=28,gtp_type=255) / i_ip / i_udp
         gtp_packet_tcp = eth / ip / o_udp / GTP_U_Header(teid=0x1, length=68, gtp_type=255) / i_ip / i_tcp
-        arp_packet = eth / arp 
-        
+
         # Check if these flows were added (queries should return flows)
         flow_queries = [
             FlowQuery(self._tbl_num, self.testing_controller,
@@ -153,13 +174,12 @@ class GTPTrafficTest(unittest.TestCase):
                       match=MagmaMatch(ipv4_dst='192.168.128.30'))
         ]
         # =========================== Verification ===========================
-        # Verify 5 flows installed for classifier table (3 pkts matched)
-        
+        # Verify 2 flows installed for classifier table (2 pkts matched)
+
         flow_verifier = FlowVerifier(
             [
                 FlowTest(FlowQuery(self._tbl_num,
-                                   self.testing_controller), 3, 5),
-                FlowTest(flow_queries[0], 0, 1),
+                                   self.testing_controller), 2, 2),
             ], lambda: wait_after_send(self.testing_controller))
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
@@ -168,8 +188,7 @@ class GTPTrafficTest(unittest.TestCase):
         with flow_verifier, snapshot_verifier:
             pkt_sender.send(gtp_packet_udp)
             pkt_sender.send(gtp_packet_tcp)
-            pkt_sender.send(arp_packet)
-            
+
         flow_verifier.verify()
 
 

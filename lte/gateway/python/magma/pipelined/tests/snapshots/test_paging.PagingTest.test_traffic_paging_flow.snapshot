@@ -1,0 +1,2 @@
+ cookie=0xc8, table=classifier(main_table), n_packets=2, n_bytes=168, priority=5,ip,nw_dst=192.168.128.30 actions=controller(reason=action_set,max_len=0,id=5),CONTROLLER:65535
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, hard_timeout=30, priority=6,ip,nw_dst=192.168.128.30 actions=drop
