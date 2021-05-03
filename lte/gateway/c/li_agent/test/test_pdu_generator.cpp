@@ -58,7 +58,7 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
   ipHeader->ip_dst.s_addr = 1222787743;
   pkt_generator->send_packet(phdr, pdata);
 
-  // TODO: For some reason these are not properly caught, figure out why...
+  // TODO(koolzz): For some reason these are not properly caught, fix...
   //  EXPECT_CALL(
   //      *directoryd_client, get_directoryd_xid_field(testing::_, testing::_));
   //  EXPECT_CALL(
