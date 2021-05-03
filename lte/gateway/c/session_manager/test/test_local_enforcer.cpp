@@ -183,7 +183,9 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
   insert_static_rule(1, "", "rule1");
 
   SessionConfig test_cwf_cfg;
-  test_cwf_cfg.common_context.set_rat_type(TGPP_WLAN);
+  Teids teids;
+  test_cwf_cfg.common_context =
+      build_common_context(IMSI1, "", "", teids, "", "", TGPP_WLAN);
   const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
@@ -228,6 +230,7 @@ TEST_F(LocalEnforcerTest, test_init_infinite_metered_credit) {
   rules_to_install->Add()->CopyFrom(rule1);
 
   // Expect rule1 to be activated
+  test_cfg_.common_context.mutable_sid()->set_id(IMSI1);
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
                              IMSI1, IP1, IPv6_1, CheckTeids(teids1),
@@ -258,6 +261,7 @@ TEST_F(LocalEnforcerTest, test_init_no_credit) {
   rules_to_install->Add()->CopyFrom(rule1);
 
   // Expect rule1 to be activated even if the GSU is all 0s
+  test_cfg_.common_context.mutable_sid()->set_id(IMSI1);
   EXPECT_CALL(
       *pipelined_client,
       activate_flows_for_rules(
@@ -1486,6 +1490,7 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   // dynamic rules: rule1, rule3
   // static rules: rule4, rule6
   test_cfg_.common_context.set_ue_ipv4(IP3);
+  test_cfg_.common_context.mutable_sid()->set_id(IMSI1);
   std::string ip_addr   = test_cfg_.common_context.ue_ipv4();
   std::string ipv6_addr = test_cfg_.common_context.ue_ipv6();
   Teids teids           = teids1;
@@ -1536,6 +1541,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   response.mutable_static_rules()->Add()->set_rule_id("ocs_rule");
   response.mutable_static_rules()->Add()->set_rule_id("pcrf_only");
   response.mutable_static_rules()->Add()->set_rule_id("pcrf_split");
+  test_cfg_.common_context.mutable_sid()->set_id(IMSI1);
 
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
@@ -2653,6 +2659,7 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
 
 TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
   CreateSessionResponse response;
+  test_cfg_.common_context.mutable_sid()->set_id(IMSI1);
   create_credit_update_response(
       IMSI1, SESSION_ID_1, 1, 1024, ChargingCredit_FinalAction_REDIRECT,
       "12.7.7.4", "", response.mutable_credits()->Add());
@@ -2828,6 +2835,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
 // is pending
 TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   CreateSessionResponse response;
+  test_cfg_.common_context.mutable_sid()->set_id(IMSI1);
   create_credit_update_response(
       IMSI1, SESSION_ID_1, 1, 1024, ChargingCredit_FinalAction_RESTRICT_ACCESS,
       "", "restrict_rule", response.mutable_credits()->Add());
@@ -2905,6 +2913,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
 // 3. Assert we have rule X installed with modified entry
 TEST_F(LocalEnforcerTest, test_rar_dynamic_rule_modification) {
   CreateSessionResponse response;
+  test_cfg_.common_context.mutable_sid()->set_id(IMSI1);
   create_credit_update_response(
       IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
   auto dynamic_rule =

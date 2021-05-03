@@ -944,7 +944,7 @@ TEST_F(SessionStateTest, test_apply_session_rule_set) {
   SessionStateUpdateCriteria uc;
   RulesToProcess to_activate, to_deactivate;
   session_state->apply_session_rule_set(
-      rules_to_apply, to_activate, to_deactivate, uc);
+      rules_to_apply, &to_activate, &to_deactivate, uc);
 
   // First check the active rules in session
   EXPECT_TRUE(!session_state->is_static_rule_installed("rule-static-1"));
