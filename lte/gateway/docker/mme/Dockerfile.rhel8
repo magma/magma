@@ -131,7 +131,6 @@ COPY  lte/gateway/c/oai/patches/folly-gflagslib-fix.patch .
 COPY  lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch .
 COPY  lte/gateway/c/oai/patches/libzmq-strncpy.patch .
 COPY  lte/gateway/c/oai/patches/czmq-strncat.patch .
-COPY  lte/gateway/c/oai/patches/CMake-warnings-not-errors.patch .
 
 # In some network environments, GIT proxy is required
 RUN /bin/bash -c "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"
