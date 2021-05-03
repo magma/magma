@@ -61,7 +61,7 @@ class Classifier(MagmaController):
         self._uplink_port = OFPP_LOCAL
         self._datapath = None
         self._clean_restart = kwargs['config']['clean_restart']
-        self._sessiond_setinterface =
+        self._sessiond_setinterface = \
                    kwargs['rpc_stubs']['sessiond_setinterface']
         if self.config.multi_tunnel_flag:
             self._ovs_multi_tunnel_init()
