@@ -13,13 +13,19 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/test/modules")
+include(FindGMock)
+
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
-include_directories("${PROJECT_SOURCE_DIR}")
-include_directories("/usr/src/googletest/googlemock/include/")
+#include_directories("${PROJECT_SOURCE_DIR}")
+
+#include_directories("/usr/src/googletest/googlemock/include/")
 
 find_package(SERVICE303_LIB REQUIRED)
 find_package(SERVICE_REGISTRY REQUIRED)
+find_package(GMock REQUIRED)
+find_package(GTest REQUIRED)
 
 add_library(SESSIOND_TEST_LIB
     Consts.h
@@ -30,9 +36,13 @@ add_library(SESSIOND_TEST_LIB
     SessionStateTester.h
     )
 
-link_directories(/usr/src/googletest/googlemock/lib/)
+target_include_directories(SESSIOND_TEST_LIB PUBLIC
+    ${GMOCK_INCLUDE_DIRS}
+    ${GTEST_INCLUDE_DIRS}
+    ${CMAKE_SOURCE_DIR})
+
 target_link_libraries(SESSIOND_TEST_LIB SESSION_MANAGER SERVICE303_LIB
-    SERVICE_REGISTRY gmock_main gtest gtest_main gmock pthread rt)
+    SERVICE_REGISTRY ${GMOCK_BOTH_LIBRARIES} ${GTEST_BOTH_LIBRARIES} pthread rt)
 
 foreach (session_test session_credit local_enforcer cloud_reporter
     session_manager_handler sessiond_integ session_state
