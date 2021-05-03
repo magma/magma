@@ -20,7 +20,6 @@ The repository currently supports both Debian and Ubuntu OS flavors.
 
 ```bash
 wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/release/upgrade_magma.sh
-chmod +x upgrade_magma.sh
 ./upgrade_magma_sh
 ```
 
