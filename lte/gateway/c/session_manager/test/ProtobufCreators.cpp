@@ -434,12 +434,15 @@ magma::mconfig::SessionD get_default_mconfig() {
 
 PolicyBearerBindingRequest create_policy_bearer_bind_req(
     const std::string& imsi, const uint32_t linked_bearer_id,
-    const std::string& rule_id, const uint32_t bearer_id) {
+    const std::string& rule_id, const uint32_t bearer_id,
+    const uint32_t agw_teid, const uint32_t enb_teid) {
   PolicyBearerBindingRequest bearer_bind_req;
   bearer_bind_req.mutable_sid()->set_id(imsi);
   bearer_bind_req.set_linked_bearer_id(linked_bearer_id);
   bearer_bind_req.set_policy_rule_id(rule_id);
   bearer_bind_req.set_bearer_id(bearer_id);
+  bearer_bind_req.mutable_teids()->set_agw_teid(agw_teid);
+  bearer_bind_req.mutable_teids()->set_enb_teid(enb_teid);
   return bearer_bind_req;
 }
 

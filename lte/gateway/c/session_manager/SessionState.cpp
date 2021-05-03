@@ -1985,7 +1985,10 @@ void SessionState::bind_policy_to_bearer(
   }
   MLOG(MINFO) << session_id_ << " now has policy " << rule_id
               << " tied to bearerID " << request.bearer_id();
-  bearer_id_by_policy_[PolicyID(*policy_type, rule_id)] = request.bearer_id();
+  BearerIDAndTeid brearer_id_and_teid;
+  brearer_id_and_teid.bearer_id                         = request.bearer_id();
+  brearer_id_and_teid.teids                             = request.teids();
+  bearer_id_by_policy_[PolicyID(*policy_type, rule_id)] = brearer_id_and_teid;
   uc.is_bearer_mapping_updated                          = true;
   uc.bearer_id_by_policy                                = bearer_id_by_policy_;
 }
@@ -2193,7 +2196,7 @@ void SessionState::update_bearer_deletion_req(
     return;
   }
   // map change needs to be propagated to the store
-  const auto bearer_id_to_delete =
+  const BearerIDAndTeid bearer_id_to_delete =
       bearer_id_by_policy_[PolicyID(policy_type, rule_id)];
   bearer_id_by_policy_.erase(PolicyID(policy_type, rule_id));
   uc.is_bearer_mapping_updated = true;
@@ -2209,7 +2212,8 @@ void SessionState::update_bearer_deletion_req(
     req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }
-  update.delete_req.mutable_eps_bearer_ids()->Add(bearer_id_to_delete);
+  update.delete_req.mutable_eps_bearer_ids()->Add(
+      bearer_id_to_delete.bearer_id);
 }
 
 RuleSetToApply::RuleSetToApply(const magma::lte::RuleSet& rule_set) {
@@ -2348,6 +2352,10 @@ void SessionState::increment_rule_stats(
   if (!session_uc.policy_version_and_stats) {
     session_uc.policy_version_and_stats = policy_version_and_stats_;
   }
+}
+
+bool operator==(const Teids& lhs, const Teids& rhs) {
+  return lhs.enb_teid() == rhs.enb_teid() && lhs.agw_teid() == rhs.agw_teid();
 }
 
 }  // namespace magma
