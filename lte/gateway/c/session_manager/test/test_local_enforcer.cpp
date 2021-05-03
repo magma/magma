@@ -1895,8 +1895,9 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_creation_on_session_init) {
   // the policy to be tied a bearer already
   session_map = session_store->read_sessions({IMSI1});
   auto update = SessionStore::get_default_session_update(session_map);
-  auto bearer_bind_req_success1 = create_policy_bearer_bind_req(
-      IMSI1, default_bearer_id, "rule1", bearer_1);
+  PolicyBearerBindingRequest bearer_bind_req_success1 =
+      create_policy_bearer_bind_req(
+          IMSI1, default_bearer_id, "rule1", bearer_1, 1, 2);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_success1, update);
   // Write + Read in/from SessionStore
@@ -1997,10 +1998,12 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   // Progress the loop to run the scheduled bearer creation request
   evb->loopOnce();
   // Test successful creation of dedicated bearer for rule1 + rule2
-  auto bearer_bind_req_success1 = create_policy_bearer_bind_req(
-      IMSI1, default_bearer_id, "rule1", bearer_1);
-  auto bearer_bind_req_success2 = create_policy_bearer_bind_req(
-      IMSI1, default_bearer_id, "rule2", bearer_2);
+  PolicyBearerBindingRequest bearer_bind_req_success1 =
+      create_policy_bearer_bind_req(
+          IMSI1, default_bearer_id, "rule1", bearer_1, 1, 2);
+  PolicyBearerBindingRequest bearer_bind_req_success2 =
+      create_policy_bearer_bind_req(
+          IMSI1, default_bearer_id, "rule2", bearer_2, 3, 4);
   std::unordered_set<std::string> rule_ids({"rule1", "rule2"});
   // Expect NO call to PipelineD for rule1
   EXPECT_CALL(
@@ -2014,8 +2017,8 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
       session_map, bearer_bind_req_success2, update);
 
   // Test unsuccessful creation of dedicated bearer for rule3 (bearer_id = 0)
-  auto bearer_bind_req_fail =
-      create_policy_bearer_bind_req(IMSI1, default_bearer_id, "rule3", 0);
+  PolicyBearerBindingRequest bearer_bind_req_fail =
+      create_policy_bearer_bind_req(IMSI1, default_bearer_id, "rule3", 0, 0, 0);
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules(
                              IMSI1, testing::_, testing::_, testing::_,
