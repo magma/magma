@@ -43,8 +43,8 @@ func (s *s6aProxy) sendULR(sid string, req *protos.UpdateLocationRequest, retryC
 	s.addDiamOriginAVPs(m)
 	m.NewAVP(avp.UserName, avp.Mbit, 0, datatype.UTF8String(req.UserName))
 	m.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(1))
-	m.NewAVP(avp.RATType, avp.Mbit, uint32(diameter.Vendor3GPP), datatype.Enumerated(ULR_RAT_TYPE))
-	m.NewAVP(avp.ULRFlags, avp.Vbit|avp.Mbit, uint32(diameter.Vendor3GPP), datatype.Unsigned32(createULR_Flags(req)))
+	m.NewAVP(avp.RATType, avp.Mbit, diameter.Vendor3GPP, datatype.Enumerated(ULR_RAT_TYPE))
+	m.NewAVP(avp.ULRFlags, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(createULR_Flags(req)))
 	m.NewAVP(avp.VisitedPLMNID, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.OctetString(req.VisitedPlmn))
 
 	// Supported feature-List-id-2

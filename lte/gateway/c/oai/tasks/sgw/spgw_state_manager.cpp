@@ -41,6 +41,7 @@ void SpgwStateManager::init(bool persist_state, const spgw_config_t* config) {
   table_key             = SPGW_STATE_TABLE_NAME;
   persist_state_enabled = persist_state;
   config_               = config;
+  redis_client          = std::make_unique<RedisClient>(persist_state);
   create_state();
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_SPGW_APP, "Failed to read state from redis");
@@ -52,21 +53,20 @@ void SpgwStateManager::create_state() {
   // Allocating spgw_state_p
   state_cache_p = (spgw_state_t*) calloc(1, sizeof(spgw_state_t));
 
-  bstring b   = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
-  state_ue_ht = hashtable_ts_create(
+  bstring b      = bfromcstr(S11_BEARER_CONTEXT_INFO_HT_NAME);
+  state_teid_ht_ = hashtable_ts_create(
       SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
       (void (*)(void**)) spgw_free_s11_bearer_context_information, b);
+
+  state_ue_ht = hashtable_ts_create(
+      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
+      (void (*)(void**)) sgw_free_ue_context, nullptr);
 
   state_cache_p->sgw_ip_address_S1u_S12_S4_up.s_addr =
       config_->sgw_config.ipv4.S1u_S12_S4_up.s_addr;
 
-  // TODO: Refactor GTPv1u_data state
   state_cache_p->gtpv1u_data.sgw_ip_address_for_S1u_S12_S4_up =
       state_cache_p->sgw_ip_address_S1u_S12_S4_up;
-
-  state_cache_p->imsi_ue_context_htbl = hashtable_ts_create(
-      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
-      (void (*)(void**)) sgw_free_ue_context, nullptr);
 
   // Creating PGW related state structs
   state_cache_p->deactivated_predefined_pcc_rules = hashtable_ts_create(
@@ -98,7 +98,7 @@ void SpgwStateManager::free_state() {
         "hashtable");
   }
 
-  hashtable_ts_destroy(state_cache_p->imsi_ue_context_htbl);
+  hashtable_ts_destroy(state_teid_ht_);
 
   if (state_cache_p->deactivated_predefined_pcc_rules) {
     hashtable_ts_destroy(state_cache_p->deactivated_predefined_pcc_rules);
@@ -117,20 +117,23 @@ int SpgwStateManager::read_ue_state_from_db() {
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
   for (const auto& key : keys) {
     oai::SpgwUeContext ue_proto = oai::SpgwUeContext();
-    if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
+    if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
     OAILOG_DEBUG(log_task, "Reading UE state from db for key %s", key.c_str());
     spgw_ue_context_t* ue_context_p =
-        spgw_create_or_get_ue_context(state_cache_p, get_imsi_from_key(key));
-    if (ue_context_p) {
-      SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
-    } else {
-      OAILOG_ERROR(
-          log_task, "Failed to get UE state from db for key %s", key.c_str());
-    }
+        (spgw_ue_context_t*) calloc(1, sizeof(spgw_ue_context_t));
+    SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
   }
   return RETURNok;
+}
+
+hash_table_ts_t* SpgwStateManager::get_state_teid_ht() {
+  AssertFatal(
+      is_initialized,
+      "StateManager init() function should be called to initialize state");
+
+  return state_teid_ht_;
 }
 
 }  // namespace lte

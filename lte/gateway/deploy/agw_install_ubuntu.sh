@@ -24,6 +24,7 @@ WHOAMI=$(whoami)
 MAGMA_VERSION="${MAGMA_VERSION:-v1.5}"
 CLOUD_INSTALL="cloud"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
+INTERFACE_DIR="/etc/network/interfaces.d"
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
@@ -72,13 +73,16 @@ if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $I
 
   # interface config
   apt install -y ifupdown net-tools
+  mkdir -p "$INTERFACE_DIR"
+  echo "source-directory $INTERFACE_DIR" > /etc/network/interfaces
+
   echo "auto eth0
-  iface eth0 inet dhcp" > /etc/network/interfaces.d/eth0
+  iface eth0 inet dhcp" > "$INTERFACE_DIR"/eth0
   # configuring eth1
   echo "auto eth1
   iface eth1 inet static
   address 10.0.2.1
-  netmask 255.255.255.0" > /etc/network/interfaces.d/eth1
+  netmask 255.255.255.0" > "$INTERFACE_DIR"/eth1
 
   # get rid of netplan
   systemctl unmask networking

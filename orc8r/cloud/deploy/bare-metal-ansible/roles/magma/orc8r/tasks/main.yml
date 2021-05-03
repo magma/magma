@@ -8,6 +8,13 @@
   command: kubectl create ns {{ magma_namespace }}
   failed_when: false
 
+- name: orc8r | Set orc8r version
+  set_fact:
+    orc8r_version: "{% if orc8r_image_tag is version('1.4', '<') %}1.3{% else %}1.4{% endif %}"
+
+- name: orc8r | set monitoring docker image tags
+  include_vars: "{{ orc8r_version }}.yml"
+
 - name: orc8r | Ensure orc8r dirs
   file:
     path: "{{ item }}"
@@ -23,7 +30,7 @@
 
 - name: orc8r | Template out helm chart values
   template:
-    src: orc8r-values.yaml.j2
+    src: orc8r-values-{{ orc8r_version }}.yaml.j2
     dest: "{{ charts_dir }}/{{ item }}-values.yaml"
   with_items:
     - orc8r
@@ -48,7 +55,7 @@
   with_items:
     - orc8r-configs.yaml
     - orc8r-envdir.yaml
-  
+
 - name: orc8r | run DB setup script
   shell: kubectl -n mariadb exec -i mariadb-0 -- mysql -u root "--password={{ db_root_password }}" mysql < db_setup.sql
   args:
@@ -60,18 +67,18 @@
 
 - name: orc8r | Install/upgrade helm charts
   command: >-
-    helm upgrade --install 
+    helm upgrade --install
     -n {{ magma_namespace }}
     {{ item }}
     orc8r/{{ item }}
     {% if orc8r_chart_version is defined %} --version {{ orc8r_chart_version }}{% endif %}
-    -f {{ charts_dir }}/{{ item }}-values.yaml 
+    -f {{ charts_dir }}/{{ item }}-values.yaml
     --wait
   with_items:
     - orc8r
 
-- name: orc8r | Get orc8r pod
-  command: kubectl -n {{ magma_namespace }} get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}'
+- name: orc8r | Get orc8r certifier pod
+  command: kubectl -n {{ magma_namespace }} get pod -l app.kubernetes.io/component=certifier  -o jsonpath='{.items[0].metadata.name}'
   register: orc8r_pod
 
 - name: orc8r | Get nms pod

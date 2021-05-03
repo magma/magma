@@ -100,9 +100,9 @@ const (
 	DefaultErrorNotificationTimeout    = time.Second * 10
 	DefaultSessionTimeout              = time.Hour * 12
 	DefaultSessionAuthenticatedTimeout = time.Second * 5
+	GsmTripletsNumber                  = 3
 
-	Version           byte = 1 // SIM's Supported Version
-	GsmTripletsNumber      = 3
+	Version byte = 1 // SIM's Supported Version
 )
 
 type IMSI string

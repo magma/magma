@@ -80,7 +80,15 @@ class ServicePoller(Job):
     # Timeout when getting status from other local services, in seconds
     GET_STATUS_TIMEOUT = 8
 
-    def __init__(self, loop, config, dynamic_services: List[str]):
+    def __init__(self, loop, config, dynamic_services: List[str] = None):
+        """
+        Initialize the ServicePooler
+
+        Args:
+            loop: loop
+            config: configuration
+            dynamic_services: list of dynamic services
+        """
         super().__init__(
             interval=self.GET_STATUS_INTERVAL,
             loop=loop
@@ -90,8 +98,9 @@ class ServicePoller(Job):
         self._service_info = {}
         for service in config['magma_services']:
             self._service_info[service] = ServiceInfo(service)
-        for service in dynamic_services:
-            self._service_info[service] = ServiceInfo(service)
+        if dynamic_services is not None:
+            for service in dynamic_services:
+                self._service_info[service] = ServiceInfo(service)
         for service_list in config.get('linked_services', []):
             for service in service_list:
                 self._service_info[service].add_linked_services(service_list)

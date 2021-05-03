@@ -56,11 +56,27 @@ const PATHS: Array<{
   },
   {
     path: '/magma/networks/:networkId/subscribers/:objectId',
-    type: 'subscriber',
+    type: 'Subscriber',
+  },
+  {
+    path: '/magma/v1/lte/:networkId/subscribers/:objectId/(.*)',
+    type: 'Subscriber',
   },
   {
     path: '/magma/networks/:networkId/subscribers',
     resolver: (req: FBCNMSRequest) => [req.body.id, 'Subscriber'],
+  },
+  {
+    path: '/magma/networks/:networkId/tracing',
+    type: 'Call Tracing',
+  },
+  {
+    path: '/magma/networks/:networkId/tracing/(.*)',
+    type: 'Call Tracing',
+  },
+  {
+    path: '/magma/networks/:networkId/alerts/(.*)',
+    type: 'Alerts',
   },
   {
     path: '/magma/networks/:networkId/tiers/:objectId',
@@ -103,11 +119,55 @@ const PATHS: Array<{
     resolver: (_, params) => [params[1], 'LTE network'],
   },
   {
+    path: '/magma/v1/lte/:networkId/cellular/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/apns',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/apns/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/gateway_pools/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network pools'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/gateway_pools/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network pools'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/cellular/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/dns/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/enodebs',
+    resolver: (_, params) => [params[2], 'LTE managed eNodeBs'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/enodebs/(.*)',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/description',
+    resolver: (_, params) => [params[2], 'LTE network'],
+  },
+  {
     path: '/magma/v1/lte/:networkId/gateways',
     resolver: req => [req.body.id, 'LTE gateway'],
   },
   {
     path: '/magma/v1/lte/:networkId/gateways/:objectId',
+    resolver: (_, params) => [params[2], 'LTE gateway'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/gateways/:objectId/(.*)',
     resolver: (_, params) => [params[2], 'LTE gateway'],
   },
   {
@@ -120,6 +180,10 @@ const PATHS: Array<{
   },
   {
     path: '/magma/v1/lte/:networkId/policy_qos_profiles',
+    resolver: (req: FBCNMSRequest) => [req.body.id, 'Policy qos profiles'],
+  },
+  {
+    path: '/magma/v1/lte/:networkId/policy_qos_profiles/(.*)',
     resolver: (req: FBCNMSRequest) => [req.body.id, 'Policy qos profiles'],
   },
   {

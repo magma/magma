@@ -154,9 +154,9 @@ func (srv *CsfbServer) PagingRej(
 
 // ServiceReq sends SGsAP-SERVICE-REQUEST to VLR as a response
 // to a previously received SGsAP-PAGING-REQUEST message
-// to indicate the existence of a NAS signalling Connection
+// to indicate the existence of a NAS signaling Connection
 // between the UE and the MME or to indicate to the VLR that
-// the NAS signalling Connection has been established after the paging procedure
+// the NAS signaling Connection has been established after the paging procedure
 func (srv *CsfbServer) ServiceReq(
 	ctx context.Context,
 	req *protos.ServiceRequest,

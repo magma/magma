@@ -128,6 +128,7 @@ typedef struct MessageHeader_s {
 
       task_id_t originTaskId;      /**< ID of the sender task */
       task_id_t destinationTaskId; /**< ID of the destination task */
+      struct timespec timestamp;   /** Time msg got created */
       instance_t instance;         /**< Task instance for virtualization */
       imsi64_t imsi;               /** IMSI associated to sender task */
 
@@ -135,7 +136,7 @@ typedef struct MessageHeader_s {
           ittiMsgSize; /**< Message size (not including header size) */
     };
     // Add padding to avoid any holes in MessageDef object.
-    uint8_t __pad[32];
+    uint8_t __pad[64];
   };
 } MessageHeader;
 
