@@ -400,5 +400,11 @@ RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@
 WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
 
+# use this label for CI purpose
+LABEL use-separate-hss-realm="true"
+
+# expose ports
+EXPOSE 3870/tcp 5870/tcp 2123/udp
+
 # For the moment, let have a dummy command
 CMD ["sleep", "infinity"]
