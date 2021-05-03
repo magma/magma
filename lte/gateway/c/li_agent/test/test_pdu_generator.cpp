@@ -50,7 +50,7 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
   phdr->len       = sizeof(struct ether_header) + sizeof(struct ip);
   phdr->ts.tv_sec = 92;
   u_char* pdata =
-      (u_char*) malloc(sizeof(struct ether_header) + sizeof(struct ip));
+      reinterpret_cast<u_char*>(malloc(sizeof(struct ether_header) + sizeof(struct ip)));
   struct ether_header* ethernetHeader = (struct ether_header*) pdata;
   ethernetHeader->ether_type          = htons(ETHERTYPE_IP);
   struct ip* ipHeader     = (struct ip*) (pdata + sizeof(struct ether_header));

@@ -1374,6 +1374,7 @@ workflows:
     jobs:
       - lte-test
       - session_manager_test
+      - li_agent_test
       - mme_test
       - mme-clang-tidy:
           <<: *only_master
