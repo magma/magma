@@ -228,6 +228,7 @@ def transfer_artifacts(
         )
 
 
+
 def _tar_coredump(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml"):
     _switch_to_vm_no_destroy(None, gateway_vm, gateway_ansible_file)
     with cd(CWAG_ROOT):
