@@ -39,7 +39,7 @@ lte/gateway/Vagrantfile @rdefosse @mattymo @119Vik @tmdzk
 xwf/ @AyliD @aharonnovo @r-i-g
 feg/radius @AyliD @aharonnovo @r-i-g @magma/approvers-cwf
 
-nms/ @karthiksubraveti @andreilee @HannaFar
+nms/ @magma/approvers-nms
 
 docs/readmes/proposals @electronjoe
 
