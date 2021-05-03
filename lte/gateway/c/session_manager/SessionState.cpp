@@ -994,7 +994,9 @@ RuleToProcess SessionState::activate_static_rule(
   static_rules_.get_rule(rule_id, &rule);
 
   rule_lifetimes_[rule_id] = lifetime;
-  active_static_rules_.push_back(rule_id);
+  if (!is_static_rule_installed(rule_id)) {
+    active_static_rules_.push_back(rule_id);
+  }
   session_uc.static_rules_to_install.insert(rule_id);
   session_uc.new_rule_lifetimes[rule_id] = lifetime;
   increment_rule_stats(rule_id, session_uc);
@@ -1081,6 +1083,98 @@ bool SessionState::deactivate_scheduled_static_rule(
   }
   scheduled_static_rules_.erase(rule_id);
   return true;
+}
+
+void SessionState::process_static_rule_installs(
+    const std::vector<StaticRuleInstall>& static_rule_installs,
+    RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+    RulesToSchedule* to_schedule, SessionStateUpdateCriteria* session_uc) {
+  std::time_t current_time = std::time(nullptr);
+  for (const StaticRuleInstall& rule_install : static_rule_installs) {
+    const std::string& rule_id = rule_install.rule_id();
+    RuleLifetime lifetime(rule_install);
+    if (is_static_rule_installed(rule_id)) {
+      // Session proxy may ask for duplicate rule installs.
+      // Ignore them here.
+      MLOG(MWARNING) << "Ignoring static rule install for " << session_id_
+                     << " for rule " << rule_id
+                     << " since it is alreday installed";
+      continue;
+    }
+    PolicyRule static_rule;
+    if (!static_rules_.get_rule(rule_id, &static_rule)) {
+      MLOG(MERROR) << "static rule " << rule_id
+                   << " is not found, skipping install...";
+      continue;
+    }
+
+    // If the rule should be deactivated already, deactivate just in case and
+    // continue
+    if (lifetime.exceeded_lifetime(current_time)) {
+      optional<RuleToProcess> op_remove_info =
+          deactivate_static_rule(rule_id, *session_uc);
+      if (op_remove_info) {
+        to_deactivate->push_back(*op_remove_info);
+      }
+      continue;
+    }
+    // If the rule should be active now, install
+    if (lifetime.is_within_lifetime(current_time)) {
+      to_activate->push_back(
+          activate_static_rule(rule_id, lifetime, *session_uc));
+    }
+    // If the rule is for future activation, schedule
+    if (lifetime.before_lifetime(current_time)) {
+      schedule_static_rule(rule_id, lifetime, *session_uc);
+      to_schedule->push_back(
+          RuleToSchedule(STATIC, rule_id, ACTIVATE, lifetime.activation_time));
+    }
+    // Schedule deactivation time in the future
+    if (lifetime.should_schedule_deactivation(current_time)) {
+      to_schedule->push_back(RuleToSchedule(
+          STATIC, rule_id, DEACTIVATE, lifetime.deactivation_time));
+    }
+  }
+}
+
+void SessionState::process_dynamic_rule_installs(
+    const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+    RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+    RulesToSchedule* to_schedule, SessionStateUpdateCriteria* session_uc) {
+  std::time_t current_time = std::time(nullptr);
+
+  for (const DynamicRuleInstall& rule_install : dynamic_rule_installs) {
+    const PolicyRule& dynamic_rule = rule_install.policy_rule();
+    const std::string& rule_id     = dynamic_rule.id();
+    RuleLifetime lifetime(rule_install);
+
+    // If the rule should be deactivated already, deactivate just in case and
+    // continue
+    if (lifetime.exceeded_lifetime(current_time)) {
+      optional<RuleToProcess> op_remove_info =
+          remove_dynamic_rule(rule_id, nullptr, *session_uc);
+      if (op_remove_info) {
+        to_deactivate->push_back(*op_remove_info);
+      }
+      continue;
+    }
+    // If the rule should be active now, install
+    if (lifetime.is_within_lifetime(current_time)) {
+      to_activate->push_back(
+          insert_dynamic_rule(dynamic_rule, lifetime, *session_uc));
+    }
+    // If the rule is for future activation, schedule
+    if (lifetime.before_lifetime(current_time)) {
+      schedule_dynamic_rule(dynamic_rule, lifetime, *session_uc);
+      to_schedule->push_back(
+          RuleToSchedule(DYNAMIC, rule_id, ACTIVATE, lifetime.activation_time));
+    }
+    // Schedule deactivation time in the future
+    if (lifetime.should_schedule_deactivation(current_time)) {
+      to_schedule->push_back(RuleToSchedule(
+          DYNAMIC, rule_id, DEACTIVATE, lifetime.deactivation_time));
+    }
+  }
 }
 
 void SessionState::sync_rules_to_time(

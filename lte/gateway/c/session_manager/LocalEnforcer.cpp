@@ -835,11 +835,11 @@ void LocalEnforcer::filter_rule_installs(
 }
 
 void LocalEnforcer::handle_session_activate_rule_updates(
-    const std::string& imsi, SessionState& session_state,
+    const std::string& imsi, SessionState& session,
     const CreateSessionResponse& response,
     std::unordered_set<uint32_t>& charging_credits_received) {
-  RulesToProcess rules_to_activate;
-  RulesToProcess rules_to_deactivate;
+  RulesToProcess to_activate;
+  RulesToProcess to_deactivate;
   std::vector<StaticRuleInstall> static_rule_installs =
       to_vec(response.static_rules());
   std::vector<DynamicRuleInstall> dynamic_rule_installs =
@@ -849,24 +849,24 @@ void LocalEnforcer::handle_session_activate_rule_updates(
 
   SessionStateUpdateCriteria uc;  // TODO remove unused UC
   process_rules_to_install(
-      session_state, imsi, static_rule_installs, dynamic_rule_installs,
-      rules_to_activate, rules_to_deactivate, uc);
+      session, imsi, static_rule_installs, dynamic_rule_installs, &to_activate,
+      &to_deactivate, &uc);
 
   // activate_flows_for_rules() should be called even if there is no rule
   // to activate, because pipelined activates a "drop all packet" rule
   // when no rule is provided as the parameter.
-  const auto& config = session_state.get_config();
+  const SessionConfig& config = session.get_config();
   propagate_rule_updates_to_pipelined(
-      imsi, config, rules_to_activate, rules_to_deactivate, true);
+      imsi, config, to_activate, to_deactivate, true);
 
   if (config.common_context.rat_type() == TGPP_LTE) {
-    auto bearer_updates = session_state.get_dedicated_bearer_updates(
-        rules_to_activate, rules_to_deactivate, uc);
+    BearerUpdate bearer_updates =
+        session.get_dedicated_bearer_updates(to_activate, to_deactivate, uc);
     if (bearer_updates.needs_creation) {
       // If a bearer creation is needed, we need to delay this by a few seconds
       // so that the attach fully completes before.
       schedule_session_init_dedicated_bearer_creations(
-          imsi, session_state.get_session_id(), bearer_updates);
+          imsi, session.get_session_id(), bearer_updates);
     }
   }
 }
@@ -1367,20 +1367,18 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
     session->receive_monitor(usage_monitor_resp, uc);
     session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), uc);
 
-    RulesToProcess rules_to_activate;
-    RulesToProcess rules_to_deactivate;
+    RulesToProcess to_activate, to_deactivate;
 
     process_rules_to_remove(
-        imsi, session, usage_monitor_resp.rules_to_remove(),
-        rules_to_deactivate, uc);
+        imsi, session, usage_monitor_resp.rules_to_remove(), to_deactivate, uc);
 
     process_rules_to_install(
         *session, imsi, to_vec(usage_monitor_resp.static_rules_to_install()),
-        to_vec(usage_monitor_resp.dynamic_rules_to_install()),
-        rules_to_activate, rules_to_deactivate, uc);
+        to_vec(usage_monitor_resp.dynamic_rules_to_install()), &to_activate,
+        &to_deactivate, &uc);
 
     propagate_rule_updates_to_pipelined(
-        imsi, config, rules_to_activate, rules_to_deactivate, false);
+        imsi, config, to_activate, to_deactivate, false);
 
     if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
       actions.sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
@@ -1402,8 +1400,8 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
     }
 
     if (config.common_context.rat_type() == TGPP_LTE) {
-      const auto update = session->get_dedicated_bearer_updates(
-          rules_to_activate, rules_to_deactivate, uc);
+      const BearerUpdate update =
+          session->get_dedicated_bearer_updates(to_activate, to_deactivate, uc);
       propagate_bearer_updates_to_mme(update);
     }
   }
@@ -1505,8 +1503,8 @@ void LocalEnforcer::handle_set_session_rules(
     RuleSetBySubscriber rule_set_by_sub(rules_per_sub);
 
     for (const auto& session : session_it->second) {
-      RulesToProcess rules_to_activate;
-      RulesToProcess rules_to_deactivate;
+      RulesToProcess to_activate;
+      RulesToProcess to_deactivate;
       const auto& config = session->get_config();
 
       const auto& apn = config.common_context.apn();
@@ -1520,14 +1518,14 @@ void LocalEnforcer::handle_set_session_rules(
       // Process the rule sets and get rules that need to be
       // activated/deactivated
       session->apply_session_rule_set(
-          *rule_set, rules_to_activate, rules_to_deactivate, uc);
+          *rule_set, to_activate, to_deactivate, uc);
 
       // Propagate these rule changes to PipelineD and MME (if 4G)
       propagate_rule_updates_to_pipelined(
-          imsi, config, rules_to_activate, rules_to_deactivate, false);
+          imsi, config, to_activate, to_deactivate, false);
       if (config.common_context.rat_type() == TGPP_LTE) {
-        const auto update = session->get_dedicated_bearer_updates(
-            rules_to_activate, rules_to_deactivate, uc);
+        const BearerUpdate update = session->get_dedicated_bearer_updates(
+            to_activate, to_deactivate, uc);
         propagate_bearer_updates_to_mme(update);
       }
     }
@@ -1622,8 +1620,8 @@ void LocalEnforcer::init_policy_reauth_for_session(
 
   process_rules_to_install(
       *session, imsi, to_vec(request.rules_to_install()),
-      to_vec(request.dynamic_rules_to_install()), rules_to_activate,
-      rules_to_deactivate, uc);
+      to_vec(request.dynamic_rules_to_install()), &rules_to_activate,
+      &rules_to_deactivate, &uc);
 
   propagate_rule_updates_to_pipelined(
       imsi, session->get_config(), rules_to_activate, rules_to_deactivate,
@@ -1742,76 +1740,32 @@ std::vector<DynamicRuleInstall> LocalEnforcer::to_vec(
 
 void LocalEnforcer::process_rules_to_install(
     SessionState& session, const std::string& imsi,
-    std::vector<StaticRuleInstall> static_rule_installs,
-    std::vector<DynamicRuleInstall> dynamic_rule_installs,
-    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
-    SessionStateUpdateCriteria& uc) {
-  std::time_t current_time     = std::time(nullptr);
-  std::string ip_addr          = session.get_config().common_context.ue_ipv4();
-  std::string ipv6_addr        = session.get_config().common_context.ue_ipv6();
-  const std::string session_id = session.get_session_id();
-  for (const auto& rule_install : static_rule_installs) {
-    const auto& id = rule_install.rule_id();
-    if (session.is_static_rule_installed(id)) {
-      // Session proxy may ask for duplicate rule installs.
-      // Ignore them here.
-      continue;
-    }
-    PolicyRule static_rule;
-    if (!rule_store_->get_rule(id, &static_rule)) {
-      MLOG(MERROR) << "static rule " << id
-                   << " is not found, skipping install...";
-      continue;
-    }
+    const std::vector<StaticRuleInstall>& static_rule_installs,
+    const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+    RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+    SessionStateUpdateCriteria* session_uc) {
+  RulesToSchedule to_schedules;
+  session.process_static_rule_installs(
+      static_rule_installs, to_activate, to_deactivate, &to_schedules,
+      session_uc);
+  session.process_dynamic_rule_installs(
+      dynamic_rule_installs, to_activate, to_deactivate, &to_schedules,
+      session_uc);
 
-    RuleLifetime lifetime(rule_install);
-    if (lifetime.activation_time > current_time) {
-      session.schedule_static_rule(id, lifetime, uc);
-      schedule_static_rule_activation(
-          imsi, session_id, id, lifetime.activation_time);
-    } else {
-      // Set up rules_to_activate
-      rules_to_activate.push_back(
-          session.activate_static_rule(id, lifetime, uc));
-    }
-
-    if (lifetime.deactivation_time > current_time) {
-      schedule_static_rule_deactivation(
-          imsi, session_id, id, lifetime.deactivation_time);
-    } else if (lifetime.deactivation_time > 0) {
-      // 0: never scheduled to deactivate
-      optional<RuleToProcess> op_rule_info =
-          session.deactivate_static_rule(id, uc);
-      if (!op_rule_info) {
-        MLOG(MWARNING) << "Could not find rule " << id << "for " << session_id
-                       << " during static rule removal";
-      } else {
-        rules_to_deactivate.push_back(*op_rule_info);
-      }
-    }
-  }
-
-  for (auto& rule_install : dynamic_rule_installs) {
-    PolicyRule dynamic_rule = rule_install.policy_rule();
-    auto rule_id            = dynamic_rule.id();
-    RuleLifetime lifetime(rule_install);
-    if (lifetime.activation_time > current_time) {
-      session.schedule_dynamic_rule(dynamic_rule, lifetime, uc);
-      schedule_dynamic_rule_activation(
-          imsi, session_id, rule_id, lifetime.activation_time);
-    } else {
-      rules_to_activate.push_back(
-          session.insert_dynamic_rule(dynamic_rule, lifetime, uc));
-    }
-    if (lifetime.deactivation_time > current_time) {
-      schedule_dynamic_rule_deactivation(
-          imsi, session_id, rule_id, lifetime.deactivation_time);
-    } else if (lifetime.deactivation_time > 0) {
-      optional<RuleToProcess> remove_info =
-          session.remove_dynamic_rule(rule_id, nullptr, uc);
-      if (remove_info) {
-        rules_to_deactivate.push_back(*remove_info);
-      }
+  const std::string& session_id = session.get_session_id();
+  for (const RuleToSchedule& to_schedule : to_schedules) {
+    const PolicyType& p_type      = to_schedule.p_type;
+    const PolicyAction& p_action  = to_schedule.p_action;
+    const std::string& rule_id    = to_schedule.rule_id;
+    const std::time_t& sched_time = to_schedule.scheduled_time;
+    if (p_type == STATIC && p_action == ACTIVATE) {
+      schedule_static_rule_activation(imsi, session_id, rule_id, sched_time);
+    } else if (p_type == STATIC && p_action == DEACTIVATE) {
+      schedule_static_rule_deactivation(imsi, session_id, rule_id, sched_time);
+    } else if (p_type == DYNAMIC && p_action == ACTIVATE) {
+      schedule_dynamic_rule_activation(imsi, session_id, rule_id, sched_time);
+    } else if (p_type == DYNAMIC && p_action == ACTIVATE) {
+      schedule_dynamic_rule_deactivation(imsi, session_id, rule_id, sched_time);
     }
   }
 }

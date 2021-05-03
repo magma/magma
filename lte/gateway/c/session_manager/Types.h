@@ -149,6 +149,7 @@ struct RuleLifetime {
   bool is_within_lifetime(std::time_t time);
   bool exceeded_lifetime(std::time_t time);
   bool before_lifetime(std::time_t time);
+  bool should_schedule_deactivation(std::time_t time);
 };
 
 // QoS Management
@@ -200,6 +201,28 @@ struct RuleToProcess {
 };
 
 typedef std::vector<RuleToProcess> RulesToProcess;
+
+enum PolicyAction {
+  ACTIVATE   = 0,
+  DEACTIVATE = 1,
+};
+
+struct RuleToSchedule {
+  PolicyType p_type;
+  std::string rule_id;
+  PolicyAction p_action;
+  std::time_t scheduled_time;
+  RuleToSchedule() {}
+  RuleToSchedule(
+      PolicyType _p_type, std::string _rule_id, PolicyAction _p_action,
+      std::time_t _time)
+      : p_type(_p_type),
+        rule_id(_rule_id),
+        p_action(_p_action),
+        scheduled_time(_time) {}
+};
+
+typedef std::vector<RuleToSchedule> RulesToSchedule;
 
 struct StatsPerPolicy {
   // The version maintained by SessionD for this rule

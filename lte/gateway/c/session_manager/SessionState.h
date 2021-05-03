@@ -574,6 +574,40 @@ class SessionState {
   bool is_dynamic_rule_scheduled(const std::string& rule_id);
 
   /**
+   * @brief Go through static rule install instructions and return
+   * what needs to be propagated to PipelineD
+   *
+   * @param static_rule_installs StaticRuleInstall received from
+   * PCF/PCRF/PolicyDB
+   * @param rules_to_activate output parameter
+   * @param rules_to_deactivate output parameter
+   * @param rules_to_schedule output parameter
+   * @param session_uc
+   */
+  void process_static_rule_installs(
+      const std::vector<StaticRuleInstall>& static_rule_installs,
+      RulesToProcess* rules_to_activate, RulesToProcess* rules_to_deactivate,
+      RulesToSchedule* rules_to_schedule,
+      SessionStateUpdateCriteria* session_uc);
+
+  /**
+   * @brief Go through dynamic rule install instructions and return
+   * what needs to be propagated to PipelineD
+   *
+   * @param dynamic_rule_installs DynamicRuleInstall received from
+   * PCF/PCRF/PolicyDB
+   * @param rules_to_activate output parameter
+   * @param rules_to_deactivate output parameter
+   * @param rules_to_schedule output parameter
+   * @param session_uc
+   */
+  void process_dynamic_rule_installs(
+      const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+      RulesToProcess* rules_to_activate, RulesToProcess* rules_to_deactivate,
+      RulesToSchedule* rules_to_schedule,
+      SessionStateUpdateCriteria* session_uc);
+
+  /**
    * Clear all per-session metrics
    */
   void clear_session_metrics();

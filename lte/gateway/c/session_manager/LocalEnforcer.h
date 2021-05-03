@@ -399,10 +399,10 @@ class LocalEnforcer {
    */
   void process_rules_to_install(
       SessionState& session, const std::string& imsi,
-      std::vector<StaticRuleInstall> static_rule_installs,
-      std::vector<DynamicRuleInstall> dynamic_rule_installs,
-      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
-      SessionStateUpdateCriteria& uc);
+      const std::vector<StaticRuleInstall>& static_rule_installs,
+      const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * propagate_rule_updates_to_pipelined calls the PipelineD RPC calls to
