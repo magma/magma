@@ -15,11 +15,11 @@ limitations under the License.
 package test
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"time"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 

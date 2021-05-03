@@ -13,14 +13,13 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"testing"
 
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/providers/sim"
-
-	"golang.org/x/net/context"
 
 	cp "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
