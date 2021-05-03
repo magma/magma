@@ -139,6 +139,7 @@ message PolicyBearerBindingRequest {
   uint32 linked_bearer_id = 2;
   string policy_rule_id = 3;
   uint32 bearer_id = 4;
+  Teids teids = 5; // teids tied to the dedicated bearer
 }
 
 message PolicyBearerBindingResponse {
