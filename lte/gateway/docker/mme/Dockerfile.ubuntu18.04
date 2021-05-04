@@ -49,9 +49,8 @@ RUN echo "Install 3rd party dependencies" && \
     apt-get install -y libgoogle-glog-dev libconfig-dev libxml2-dev \
     libyaml-cpp-dev nlohmann-json-dev && \
     echo "Install Prometheus requirements" && \
-    wget https://dl.influxdata.com/telegraf/releases/telegraf_1.18.2-1_amd64.deb && \
+    wget --quiet https://dl.influxdata.com/telegraf/releases/telegraf_1.18.2-1_amd64.deb && \
     dpkg -i telegraf_1.18.2-1_amd64.deb && \
-    apt-get -y install telegraf && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev=4.1.0-2 && \
     echo "Install libtins" && \
@@ -61,7 +60,7 @@ RUN echo "Install 3rd party dependencies" && \
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
 
 ##### NETTLE
-RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
+RUN wget --quiet https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
     tar -xf nettle-2.5.tar.gz && \
     cd nettle-2.5 && \
     mkdir build && \
@@ -71,7 +70,7 @@ RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
     make install && \
     ldconfig -v && \
     cd / && \
-    wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    wget --quiet http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     ./configure --with-libnettle-prefix=/usr/local && \
@@ -151,7 +150,7 @@ RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
 
 ##### liblfds
 # https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
-RUN wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
+RUN wget --quiet https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
     tar -xf liblfds\ release\ 7.1.0\ source.tar.bz2  && \
     cd liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
     make -j`nproc` && \
