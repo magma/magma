@@ -105,7 +105,7 @@ struct amf_procedures_t;
 #define AMF_3GPP_ACCESS_AND_NON_AMF_3GPP_ACCESS 3
 
 // Global variable and needed to increment based on nas procedures
-uint64_t nas_puid = 1;
+static uint64_t nas_puid = 1;
 
 // Timer structure
 typedef struct amf_app_timer_s {
@@ -242,7 +242,7 @@ typedef struct smf_context_s {
   uint16_t dl_session_ambr;
   uint8_t ul_ambr_unit;
   uint16_t ul_session_ambr;
-  QOSRule qos_rules[32];
+  QOSRule qos_rules[1];
   teid_upf_gnb_t gtp_tunnel_id;
   smf_proc_data_t smf_proc_data;
 
@@ -272,6 +272,8 @@ typedef struct amf_context_s {
   uint32_t member_present_mask;   /* bitmask, see significance of bits below */
   uint32_t member_valid_mask;     /* bitmask, see significance of bits below */
   uint8_t m5gsregistrationtype;
+  std::vector<smf_context_t> smf_ctxt_vector;  // smf contents
+  // smf_context_t smf_ctxt_vector;  // smf contents
   amf_procedures_t* amf_procedures;
   imsi_t imsi;     /* The IMSI provided by the UE or the AMF, set valid when
                        identification returns IMSI */
@@ -297,7 +299,6 @@ typedef struct amf_context_s {
   amf_fsm_state_t amf_fsm_state;
   smf_context_t smf_context;  // Keeps PDU session related info
   void* t3422_arg;
-  std::vector<smf_context_t> smf_ctxt_vector;  // smf contents
   drx_parameter_t current_drx_parameter; /* stored TAU Request IE Requirement
                                              AMF24.501R15_5.5.3.2.4_4*/
   std::string smf_msg; /* SMF message contained within the initial request*/
@@ -358,17 +359,17 @@ typedef struct ue_m5gmm_context_s {
 /* Operation on UE context structure
  */
 int amf_insert_ue_context(
-    const amf_ue_context_t* amf_ue_context,
-    const ue_m5gmm_context_s* ue_context_p);
+    amf_ue_ngap_id_t ue_id, amf_ue_context_t* amf_ue_context_p,
+    ue_m5gmm_context_s* ue_context_p);
 amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
     amf_ue_ngap_id_t* amf_app_ue_ngap_id_generator_p);
 /* Notify NGAP about the mapping between amf_ue_ngap_id and
  * sctp assoc id + gnb_ue_ngap_id */
 void notify_ngap_new_ue_amf_ngap_id_association(
     const ue_m5gmm_context_s* ue_context_p);
-void amf_remove_ue_context(
-    amf_ue_context_t* const amf_ue_context,
-    ue_m5gmm_context_s* const ue_context_p);
+// void amf_remove_ue_context(
+//    amf_ue_context_t* const amf_ue_context,
+//    ue_m5gmm_context_s* const ue_context_p);
 
 ue_m5gmm_context_s* amf_create_new_ue_context(void);
 /*Multi PDU Session*/
@@ -404,6 +405,7 @@ typedef struct amf_msg_header_t {
   uint8_t extended_protocol_discriminator;
   uint8_t security_header_type;
   uint8_t message_type;
+  uint32_t message_authentication_code;
   uint8_t sequence_number;
 } amf_msg_header;
 
@@ -414,14 +416,14 @@ void amf_app_ue_context_release(
 // NAS decode and validaion of IE
 typedef struct amf_nas_message_decode_status_s {
   uint8_t integrity_protected_message : 1;
+  uint8_t ciphered_message : 1;
   uint8_t mac_matched : 1;
+  uint8_t security_context_available : 1;
   int amf_cause;
 } amf_nas_message_decode_status_t;
 
 // 5G Mobility Management Messages
 union mobility_msg_u {
-  mobility_msg_u() {}
-  ~mobility_msg_u() {}
   RegistrationRequestMsg registrationrequestmsg;
   RegistrationAcceptMsg registrationacceptmsg;
   RegistrationCompleteMsg registrationcompletemsg;
@@ -441,16 +443,19 @@ union mobility_msg_u {
   DeRegistrationAcceptUEInitMsg deregistrationacceptmsg;
   ULNASTransportMsg uplinknas5gtransport;
   DLNASTransportMsg downlinknas5gtransport;
+  mobility_msg_u() {}
+  ~mobility_msg_u() {}
 };
 
 // Procedure for NAS5G encoding and decoding
 class AMFMsg {
  public:
+  amf_msg_header header;
+  mobility_msg_u msg;
+
   AMFMsg() {}
   ~AMFMsg() {}
 
-  amf_msg_header header;
-  mobility_msg_u msg;
   int amf_msg_decode_header(
       amf_msg_header* header, const uint8_t* buffer, uint32_t len);
   int amf_msg_encode_header(
@@ -632,10 +637,12 @@ nas_amf_registration_proc_t* get_nas_specific_procedure_registration(
     const amf_context_t* ctxt);
 bool is_nas_specific_procedure_registration_running(const amf_context_t* ctxt);
 
+#if 0
 int nas5g_message_decode(
     unsigned char* buffer, amf_nas_message_t* nas_msg, int length,
     amf_security_context_t* amf_security_context,
     amf_nas_message_decode_status_t* decode_status);
+#endif
 nas_amf_common_proc_t* get_nas5g_common_procedure(
     const amf_context_t* const ctxt, amf_common_proc_type_t proc_type);
 

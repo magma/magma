@@ -58,7 +58,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   switch (ITTI_MSG_ID(received_message_p)) {
     /* Handle Initial UE message from NGAP */
     case NGAP_INITIAL_UE_MESSAGE:
-      OAILOG_DEBUG(LOG_AMF_APP, "NGAP_INITIAL_UE_MESSAGE received\n");
+      OAILOG_INFO(LOG_AMF_APP, "NGAP_INITIAL_UE_MESSAGE received\n");
       amf_app_handle_initial_ue_message(
           amf_app_desc_p, &NGAP_INITIAL_UE_MESSAGE(received_message_p));
       break;

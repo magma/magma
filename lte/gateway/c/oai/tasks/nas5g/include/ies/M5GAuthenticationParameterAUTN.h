@@ -21,7 +21,8 @@ class AuthenticationParameterAUTNMsg {
 #define AUTN_MIN_LEN 16
 #define AUTN_MAX_LEN 16
   uint8_t iei;
-  std::string AUTN;
+  //  std::string AUTN;
+  uint8_t AUTN[AUTN_MAX_LEN];
 
   AuthenticationParameterAUTNMsg();
   ~AuthenticationParameterAUTNMsg();

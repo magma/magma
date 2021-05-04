@@ -141,6 +141,7 @@ void create_state_matrix() {
 int ue_state_handle_message_initial(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_context_t* amf_context) {
+  OAILOG_INFO(LOG_AMF_APP, " mm_state %d", cur_state);
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     OAILOG_INFO(
         LOG_NAS_AMF,
@@ -149,6 +150,8 @@ int ue_state_handle_message_initial(
 
     ue_m5gmm_context->mm_state =
         ue_state_matrix[cur_state][event][session_state].next_state;
+    OAILOG_INFO(LOG_AMF_APP, " mm_state %d", ue_m5gmm_context->mm_state);
+
     return reinterpret_cast<int (*)(amf_context_t*)>(
         ue_state_matrix[cur_state][event][session_state].handler.func)(
         amf_context);
@@ -227,6 +230,7 @@ int pdu_state_handle_message(
     m5gmm_state_t cur_state, int event, SMSessionFSMState session_state,
     ue_m5gmm_context_s* ue_m5gmm_context, amf_smf_t amf_smf_msg, char* imsi,
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
+  OAILOG_INFO(LOG_AMF_APP, "pdu_state_handle_message");
   if (ue_state_matrix[cur_state][event][session_state].handler.func) {
     OAILOG_INFO(
         LOG_NAS_AMF,

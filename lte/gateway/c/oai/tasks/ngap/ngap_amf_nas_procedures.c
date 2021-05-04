@@ -90,7 +90,7 @@ int ngap_amf_handle_initial_ue_message(
   // gNB UE NGAP ID is limited to 24 bits
   gnb_ue_ngap_id =
       (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
-  OAILOG_ERROR(
+  OAILOG_INFO(
       LOG_NGAP,
       "New Initial UE message received with gNB UE NGAP ID: " GNB_UE_NGAP_ID_FMT
       "\n",
@@ -298,15 +298,17 @@ int ngap_amf_handle_uplink_nas_transport(
 
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
-
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_UplinkNASTransport_IEs_t, ie_nas_pdu, container,
       Ngap_ProtocolIE_ID_id_NAS_PDU, true);
-  // TAI mandatory IE
+
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_UplinkNASTransport_IEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_SupportedTAList, true);
-  OCTET_STRING_TO_TAC(
+      Ngap_ProtocolIE_ID_id_UserLocationInformation, true);
+
+  // ie->value.choice.UserLocationInformation.choice.userLocationInformationNR.tAI
+  //   .tAC.size = 2;  // ACL_TAG tmp for test
+  OCTET_STRING_TO_TAC_5G(
       &ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
            .tAI.tAC,
       tai.tac);
@@ -317,11 +319,6 @@ int ngap_amf_handle_uplink_nas_transport(
       &ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
            .tAI.pLMNIdentity,
       &tai.plmn);
-
-  // CGI mandatory IE
-  NGAP_FIND_PROTOCOLIE_BY_ID(
-      Ngap_UplinkNASTransport_IEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_EUTRA_CGI, true);
   DevAssert(
       ie->value.choice.UserLocationInformation.choice
           .userLocationInformationEUTRA.eUTRA_CGI.pLMNIdentity.size == 3);
@@ -601,10 +598,8 @@ int ngap_generate_ngap_pdusession_resource_setup_req(
   uint8_t* buffer_p            = NULL;
   uint32_t length              = 0;
   void* id                     = NULL;
-  const gnb_ue_ngap_id_t gnb_ue_ngap_id =
-      pdusession_resource_setup_req->gnb_ue_ngap_id;
-  const amf_ue_ngap_id_t amf_ue_ngap_id =
-      pdusession_resource_setup_req->amf_ue_ngap_id;
+  const gnb_ue_ngap_id_t gnb_ue_ngap_id = pdusession_resource_setup_req->gnb_ue_ngap_id;
+  const amf_ue_ngap_id_t amf_ue_ngap_id = pdusession_resource_setup_req->amf_ue_ngap_id;
   pdu_session_resource_setup_request_transfer_t amf_pdu_ses_setup_transfer_req;
   hashtable_ts_get(
       &state->amfid2associd, (const hash_key_t) amf_ue_ngap_id, (void**) &id);
@@ -680,13 +675,15 @@ int ngap_generate_ngap_pdusession_resource_setup_req(
     ie->value.present =
         Ngap_PDUSessionResourceSetupRequestIEs__value_PR_PDUSessionResourceSetupListSUReq;
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
+#if 1
     for (int i = 0; i < pdusession_resource_setup_req
                             ->pduSessionResource_setup_list.no_of_items;
          i++) {
+      OAILOG_INFO(LOG_NGAP, "no_of_items %d", pdusession_resource_setup_req->pduSessionResource_setup_list.no_of_items);
       Ngap_PDUSessionResourceSetupItemSUReq_t* ngap_pdusession_setup_item_ies =
           calloc(1, sizeof(Ngap_PDUSessionResourceSetupItemSUReq_t));
 
+      OAILOG_INFO(LOG_NGAP, "pDUSessionID %d", pdusession_resource_setup_req->pduSessionResource_setup_list.item[i].Pdu_Session_ID);
       ngap_pdusession_setup_item_ies->pDUSessionID =
           pdusession_resource_setup_req->pduSessionResource_setup_list.item[i]
               .Pdu_Session_ID;
@@ -697,8 +694,22 @@ int ngap_generate_ngap_pdusession_resource_setup_req(
       ngap_pdusession_setup_item_ies->s_NSSAI.sST.buf[0] = 0x11;
 
       // filling PDU TX Structure
-      amf_pdu_ses_setup_transfer_req =
-          pdusession_resource_setup_req->pduSessionResource_setup_list.item[i]
+      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.dl);
+      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.pdu_aggregate_max_bit_rate.ul);
+      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.gtp_tied[0]);
+      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.gtp_tied[1]);
+      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.gtp_tied[2]);
+      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.gtp_tied[3]);
+for (int i=0; i< 4; i++){
+      OAILOG_INFO(LOG_NGAP, " item[%d]: %x", i, amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.endpoint_ip_address->data[i]);
+}
+      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.pdu_ip_type.pdn_type);
+      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.qos_flow_setup_request_list.qos_flow_req_item.qos_flow_identifier);
+//      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.);
+//      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.);
+//      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.);
+//      OAILOG_INFO(LOG_NGAP, " item %d", amf_pdu_ses_setup_transfer_req.);
+      amf_pdu_ses_setup_transfer_req = pdusession_resource_setup_req->pduSessionResource_setup_list.item[i]
               .PDU_Session_Resource_Setup_Request_Transfer;
 
       /*tx_out*/
@@ -718,23 +729,18 @@ int ngap_generate_ngap_pdusession_resource_setup_req(
           Ngap_UPTransportLayerInformation_PR_gTPTunnel;
 
       /*transportLayerAddress*/
-      tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel
-          .transportLayerAddress.buf = calloc(
-          blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
-                      .endpoint_ip_address),
-          sizeof(uint8_t));
+      tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel.transportLayerAddress.buf = calloc(
+          blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.endpoint_ip_address), sizeof(uint8_t));
 
-      memcpy(
-          tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel
-              .transportLayerAddress.buf,
-          amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
-              .endpoint_ip_address->data,
-          blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
-                      .endpoint_ip_address));
+tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel.transportLayerAddress.size =
+blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.endpoint_ip_address);
+
+      memcpy( tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel.transportLayerAddress.buf,
+          amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.endpoint_ip_address->data,
+          blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl.endpoint_ip_address));
 
       tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel
-          .transportLayerAddress.size =
-          blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
+          .transportLayerAddress.size = blength(amf_pdu_ses_setup_transfer_req.up_transport_layer_info.gtp_tnl
                       .endpoint_ip_address);
 
       tx_ie->value.choice.UPTransportLayerInformation.choice.gTPTunnel
@@ -825,35 +831,48 @@ int ngap_generate_ngap_pdusession_resource_setup_req(
           &pduSessionResourceSetupRequestTransferIEs->protocolIEs.list, tx_ie);
       if (ret != 0) OAILOG_ERROR(LOG_NGAP, "  encode error \n");
 
-      uint32_t buffer_size = 512;
+      OAILOG_ERROR(LOG_NGAP, "###cobraranu -1\n");
+      
+      //uint32_t buffer_size = 512;
+      uint32_t buffer_size = 1024;
       char* buffer         = (char*) calloc(1, buffer_size);
+if (!buffer){
+      OAILOG_ERROR(LOG_NGAP, "buffer is null\n");
+}
+FILE *fp = fopen("/home/vagrant/PDU_STR", "a");
+xer_fprint(fp, &asn_DEF_Ngap_NGAP_PDU, (void*) &pdu);
+fclose(fp);
 
       asn_enc_rval_t er = aper_encode_to_buffer(
           &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer, NULL,
           pduSessionResourceSetupRequestTransferIEs, buffer, buffer_size);
+
+      OAILOG_ERROR(LOG_NGAP, "###cobraranu :er.encoded:%d\n", er.encoded);
 
       asn_fprint(
           stderr, &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
           pduSessionResourceSetupRequestTransferIEs);
 
       bstring transfer = blk2bstr(buffer, er.encoded);
-      ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer
-          .buf = (uint8_t*) calloc(er.encoded, sizeof(uint8_t));
+      ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer.buf = (uint8_t*) calloc(er.encoded, sizeof(uint8_t));
 
+      OAILOG_ERROR(LOG_NGAP, "###cobraranu -1\n");
       memcpy(
           (void*) ngap_pdusession_setup_item_ies
               ->pDUSessionResourceSetupRequestTransfer.buf,
           (void*) transfer->data, er.encoded);
 
+      OAILOG_ERROR(LOG_NGAP, "###cobraranu -1\n");
       ngap_pdusession_setup_item_ies->pDUSessionResourceSetupRequestTransfer
           .size = blength(transfer);
 
+      OAILOG_ERROR(LOG_NGAP, "###cobraranu -1\n");
       ASN_SEQUENCE_ADD(
           &ie->value.choice.PDUSessionResourceSetupListSUReq.list,
           ngap_pdusession_setup_item_ies);
 
     } /*for loop*/
-
+#endif
     if (ngap_amf_encode_pdu(&pdu, &buffer_p, &length) < 0) {
       OAILOG_ERROR(LOG_NGAP, "Encoding of IEs failed \n");
       OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);

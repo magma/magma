@@ -73,6 +73,7 @@ int amf_handle_security_complete_response(
         smc_proc->T3560.id);
     stop_timer(&amf_app_task_zmq_ctx, smc_proc->T3560.id);
     OAILOG_ERROR(LOG_AMF_APP, "Timer: After stopping SMC MODE timer \n");
+    smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
     if (amf_ctx && IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
       /*
@@ -89,8 +90,11 @@ int amf_handle_security_complete_response(
       amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_SECURITY);
       rc = amf_sap_send(&amf_sap);
     }
+    OAILOG_INFO(LOG_AMF_APP, " mm_state %d", ue_mm_context->mm_state);
+    OAILOG_INFO(LOG_AMF_APP, "ue_m5gmm_context %p\n", ue_mm_context);
     ue_state_handle_message_initial(
-        ue_mm_context->mm_state, STATE_EVENT_SEC_MODE_COMPLETE, SESSION_NULL,
+        // ue_mm_context->mm_state, STATE_EVENT_SEC_MODE_COMPLETE, SESSION_NULL,
+        (magma5g::m5gmm_state_t) 5, STATE_EVENT_SEC_MODE_COMPLETE, SESSION_NULL,
         ue_mm_context, amf_ctx);
 
   } else {

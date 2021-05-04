@@ -102,6 +102,54 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
   itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
   itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
+  itti_msg.session_ambr.uplink_unit_type =
+      (AmbrUnit_response) req_m5g.uplink_unit_type();
+  itti_msg.session_ambr.uplink_units = (uint32_t) req_m5g.uplink_units();
+  itti_msg.session_ambr.downlink_unit_type =
+      (AmbrUnit_response) req_m5g.downlink_unit_type();
+  itti_msg.session_ambr.downlink_units = (uint32_t) req_m5g.downlink_units();
+
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier = 5;
+
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .qos_characteristic.non_dynamic_5QI_desc.fiveQI =
+      req_m5g.qos().qci();  // enum
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .alloc_reten_priority.priority_level =
+      req_m5g.qos().arp().priority_level();  // uint32
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .alloc_reten_priority.pre_emption_cap =
+      (pre_emption_capability) req_m5g.qos().arp().pre_capability();  // enum
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .alloc_reten_priority.pre_emption_vul =
+      (pre_emption_vulnerability) req_m5g.qos()
+          .arp()
+          .pre_vulnerability();  // enum
+
+#define TEID_SIZE 4
+#define UPF_IPV4_ADDR_SIZE 4
+  // get the 4 byte UPF TEID and UPF IP message
+  memcpy(
+      itti_msg.upf_endpoint.teid, req_m5g.upf_endpoint().teid().c_str(),
+      TEID_SIZE);
+  memcpy(
+      itti_msg.upf_endpoint.end_ipv4_addr,
+      req_m5g.upf_endpoint().end_ipv4_addr().c_str(), UPF_IPV4_ADDR_SIZE);
+
+  OAILOG_INFO(
+      LOG_AMF_APP, "#######TIED: %02x %02x %02x %02x \n",
+      itti_msg.upf_endpoint.teid[0], itti_msg.upf_endpoint.teid[1],
+      itti_msg.upf_endpoint.teid[2], itti_msg.upf_endpoint.teid[3]);
+
+  OAILOG_INFO(
+      LOG_AMF_APP, "#######IP: %02x %02x %02x %02x \n",
+      itti_msg.upf_endpoint.end_ipv4_addr[0],
+      itti_msg.upf_endpoint.end_ipv4_addr[1],
+      itti_msg.upf_endpoint.end_ipv4_addr[2],
+      itti_msg.upf_endpoint.end_ipv4_addr[3]);
+  strcpy(
+      (char*) itti_msg.procedure_trans_identity,
+      req_m5g.procedure_trans_identity().c_str());  // pdu_change
   itti_msg.always_on_pdu_session_indication =
       req_m5g.always_on_pdu_session_indication();
   itti_msg.allowed_ssc_mode = (ssc_mode_t) req_m5g.allowed_ssc_mode();

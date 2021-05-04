@@ -206,6 +206,7 @@ int amf_proc_registration_request(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
+  OAILOG_INFO(LOG_AMF_APP, "ue_m5gmm_context %p\n", ue_m5gmm_context);
   rc = ue_state_handle_message_initial(
       ue_m5gmm_context->mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
       ue_m5gmm_context, &ue_ctx.amf_context);
@@ -315,9 +316,17 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
     OAILOG_DEBUG(
         LOG_AMF_APP, " registration_proc NULL, from %s\n", __FUNCTION__);
   }
+  OAILOG_DEBUG(
+      LOG_NAS_AMF, " decode_status.mac_matched :%d",
+      registration_proc->ies->decode_status.mac_matched);
+  OAILOG_DEBUG(
+      LOG_NAS_AMF, " decode_status.integrity_protected_message :%d",
+      registration_proc->ies->decode_status.integrity_protected_message);
   if (registration_proc) {
     if (registration_proc->ies->imsi) {
-      if ((registration_proc->ies->decode_status.mac_matched) ||
+      if (  //(registration_proc->ies->decode_status.mac_matched) ||
+            //(registration_proc->ies->decode_status.integrity_protected_message))
+            //{
           (registration_proc->ies->decode_status.integrity_protected_message)) {
         // force authentication, even if not necessary
         imsi64_t imsi64 = amf_imsi_to_imsi64(registration_proc->ies->imsi);
@@ -546,6 +555,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
         PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context);
     amf_ue_ngap_id_t ue_id = ue_m5gmm_context_p->amf_ue_ngap_id;
 
+    registration_proc->T3550.id = NAS5G_TIMER_INACTIVE_ID;
     if (registration_proc) {
       /*
        * The IMSI if provided by the UE
@@ -571,7 +581,9 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
        * response complete, now assign to amf_sap
        */
       amf_sap.u.amf_as.u.establish.guti = amf_context->m5_guti;
-
+      amf_sap.u.amf_as.u.establish.guti.m_tmsi =
+          htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
+      rc = amf_sap_send(&amf_sap);
       /*
        * Start T3550 timer
        */
@@ -743,6 +755,7 @@ int amf_proc_registration_complete(
       OAILOG_INFO(
           LOG_AMF_APP, "Timer: after stop registration timer with id = %d\n",
           registration_proc->T3550.id);
+      registration_proc->T3550.id = NAS5G_TIMER_INACTIVE_ID;
 
       /*
        * Upon receiving an REGISTRATION COMPLETE message, the AMF shall enter

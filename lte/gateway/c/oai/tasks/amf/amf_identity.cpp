@@ -132,8 +132,7 @@ int amf_proc_identification_complete(
 
   if (ue_mm_context) {
     amf_ctx = &ue_mm_context->amf_context;
-    OAILOG_INFO(
-        LOG_AMF_APP, "AMF-TEST:amf_procedures:%p\n", amf_ctx->amf_procedures);
+    OAILOG_INFO(LOG_AMF_APP, " amf_procedures:%p\n", amf_ctx->amf_procedures);
     nas_amf_ident_proc_t* ident_proc =
         get_5g_nas_common_procedure_identification(amf_ctx);
 
@@ -148,6 +147,7 @@ int amf_proc_identification_complete(
         ident_proc->T3570.id);
     stop_timer(&amf_app_task_zmq_ctx, ident_proc->T3570.id);
     OAILOG_INFO(LOG_AMF_APP, "Timer: After Stopping Identity timer \n");
+    ident_proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
 
     if (imsi) {
       /*

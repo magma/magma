@@ -65,6 +65,8 @@ int amf_smf_handle_pdu_establishment_request(
        PROCEDURE_TRANSACTION_IDENTITY_UNASSIGNED_t) ||
       esm_pt_is_reserved(msg->header.procedure_transaction_id)) {
     amf_smf_msg->u.establish.cause_value = SMF_CAUSE_INVALID_PTI_VALUE;
+    OAILOG_INFO(
+        LOG_AMF_APP, "smf_cause : %u", amf_smf_msg->u.establish.cause_value);
     return (amf_smf_msg->u.establish.cause_value);
   } else {
     amf_smf_msg->u.establish.pti = msg->header.procedure_transaction_id;
@@ -89,7 +91,7 @@ int amf_smf_handle_pdu_establishment_request(
   }
   amf_smf_msg->u.establish.pdu_session_id = msg->header.pdu_session_id;
   amf_smf_msg->u.establish.cause_value    = smf_cause;
-
+  OAILOG_INFO(LOG_AMF_APP, "smf_cause : %u", smf_cause);
   return (smf_cause);
 }
 
@@ -213,13 +215,17 @@ int amf_smf_send(
   }
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx");
   if (ue_context) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
     if (msg->payload_container.smf_msg.header.message_type ==
         PDU_SESSION_ESTABLISHMENT_REQUEST) {
+      OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx ");
       smf_ctx = amf_insert_smf_context(
           ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
+      OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx");
     } else {
+      OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx ");
       smf_ctx = amf_smf_context_exists_pdu_session_id(
           ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
     }
@@ -239,8 +245,10 @@ int amf_smf_send(
     case PDU_SESSION_ESTABLISHMENT_REQUEST: {
       amf_cause = amf_smf_handle_pdu_establishment_request(
           &(msg->payload_container.smf_msg), &amf_smf_msg);
+      OAILOG_INFO(LOG_AMF_APP, "amf_cause : %d", amf_cause);
 
       if (amf_cause != SMF_CAUSE_SUCCESS) {
+        OAILOG_INFO(LOG_AMF_APP, "amf_send_pdusession_reject");
         rc = amf_send_pdusession_reject(
             &reject_req, msg->payload_container.smf_msg.header.pdu_session_id,
             msg->payload_container.smf_msg.header.procedure_transaction_id,
@@ -267,9 +275,11 @@ int amf_smf_send(
        * Execute the Grpc Send call of PDU establishment Request from AMF to SMF
        */
       rc = pdu_state_handle_message(
-          ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
-          smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
-
+          // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
+          REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
+          // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL,
+          // 0);
+          SESSION_NULL, ue_context, amf_smf_msg, imsi, NULL, 0);
     } break;
     case PDU_SESSION_RELEASE_REQUEST: {
       amf_cause = amf_smf_handle_pdu_release_request(

@@ -104,6 +104,7 @@ static int ngap_amf_compare_tac(const Ngap_TAC_t* tac) {
 
   DevAssert(tac != NULL);
   OCTET_STRING_TO_TAC_5G(tac, tac_value);
+  return TA_LIST_AT_LEAST_ONE_MATCH;  // ACL_TAG temp to test remove later
   amf_config_read_lock(&amf_config);
 
   for (i = 0; i < amf_config.served_tai.nb_tai; i++) {
