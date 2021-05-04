@@ -1,0 +1,15 @@
+---
+# Use auto-comment bot to comment on new PRs: https://probot.github.io/apps/auto-comment/
+pullRequestOpened: >
+  Thanks for opening a PR!
+
+  The "Reviewers" listed on for this PR are the Magma maintainers who will help shepherd this PR.
+
+  Once your PR has been approved and passed all CI checks, use the [`ready2merge`](https://github.com/magma/magma/labels/ready2merge) label to indicate the maintainers can merge it.
+
+  Please take a moment to read through the Magma project's
+  - [Contributing conventions](https://docs.magmacore.org/docs/next/contributing/contribute_conventions) for norms around contributed code
+
+  If this is your first time opening a PR, also consider reading
+  - [Developer onboarding](https://docs.magmacore.org/docs/next/contributing/contribute_onboarding) for onboarding as a new Magma developer
+  - [Development workflow](https://docs.magmacore.org/docs/next/contributing/contribute_workflow) for guidance on your first pull request
