@@ -172,7 +172,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
             try:
                 if ng_session_id:
                     version = self._session_rule_version_mapper.\
-                                   get_ng_version_by_session_teid(ng_session_id) 
+                                   get_version(imsi, ip_addr, rule.id)
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
@@ -187,7 +187,7 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         return flow_adds
 
     def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version,
-                               shard_id: int, ng_session_id=0):
+                               shard_id: int, ng_session_id: int):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -247,9 +247,6 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         pass
 
     def _install_default_flow_for_subscriber(self, *_):
-        pass
-
-    def _install_default_ng_flow_for_subscriber(self, imsi, ip_addr, ng_session_id):
         pass
 
     def _deactivate_flow_for_rule(self, imsi, ip_addr, rule_id):

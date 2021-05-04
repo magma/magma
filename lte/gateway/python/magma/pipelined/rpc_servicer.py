@@ -279,6 +279,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         CWF won't have an ip_addr passed
         """
+        logging.info(request)
         ret = ActivateFlowsResult()
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
             ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
@@ -915,33 +916,32 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             'Update 5G Session Flow for SessionID:%s, SessionVersion:%d',
             request.subscriber_id, request.session_version,
         )
-
         # Convert message containing PDR to Named Tuple Rules.
         process_pdr_rules = OrderedDict()
-        response = self._ng_servicer_app.ng_session_message_handler(request, process_pdr_rules)
+        response = self._ng_servicer_app.ng_session_message_handler(request,
+                                                                    process_pdr_rules)
 
         # Failure in message processing return failure
         if response.cause_info.cause_ie == CauseIE.REQUEST_ACCEPTED:
             for _, pdr_entries in process_pdr_rules.items():
                 # Create the Tunnel
-                ret = self._ng_tunnel_update(pdr_entries, request.subscriber_id)
+                ret = self._ng_tunnel_update(pdr_entries,
+                                             request.subscriber_id)
                 if ret:
                     # Install the Rules
-                    failed_dynamic_rule_results =\
+                    failed_policy_rule_results =\
                             self._ng_qer_update(request, pdr_entries)
 
-                if ( not ret or failed_dynamic_rule_results):
+                if ( not ret or failed_policy_rule_results):
                     offending_ie = OffendingIE(identifier=pdr_entries.pdr_id,
                                                version=pdr_entries.pdr_version,
                                                qos_enforce_rule_results=ActivateFlowsResult(\
-                                               dynamic_rule_results=[failed_dynamic_rule_results]))
+                                               policy_results=[failed_policy_rule_results]))
 
                     # Session information is filled already
                     response.cause_info.cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
                     response.failure_rule_id.pdr.extend([offending_ie])
                     break
-        logging.debug("=====SMF-UPF-INTEGRATE: RESPONSE=====")
-        logging.debug(response)
         fut.set_result(response)
 
     def _ng_tunnel_update(self, pdr_entry: PDRRuleEntry, subscriber_id: str) -> bool:
@@ -987,84 +987,106 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _ng_qer_update(self, request:SessionSet, pdr_entry: PDRRuleEntry
                        ) -> Tuple[List[RuleModResult], List[RuleModResult]]:
         enforcement_res = []
-        failed_dynamic_rule_results = []
+        failed_policy_rules_results = []
 
         subscriber_id = request.subscriber_id
         session_version = request.session_version
         ng_session_id = request.local_f_teid
 
-        self._ng_update_version(ng_session_id, session_version)
-
         # PDR is deleted with ActiveRules or DelActive rules recieved
-        if pdr_entry.pdr_state in \
-                [PdrState.Value('REMOVE'), PdrState.Value('IDLE')]:
-            self._ng_deactivate_qer_flows(subscriber_id, ng_session_id, pdr_entry)
-
+        if pdr_entry.pdr_state == PdrState.Value('REMOVE'):
+            self._ng_deactivate_qer_flows(subscriber_id, ng_session_id,
+                                          pdr_entry, session_version)
+        elif pdr_entry.pdr_state == PdrState.Value('IDLE'):
+            self._ng_inactivate_qer_flows(subscriber_id, pdr_entry, session_version)
         #Install PDR rules
-        if pdr_entry.pdr_state == PdrState.Value('INSTALL'):
+        elif pdr_entry.pdr_state == PdrState.Value('INSTALL'):
             if pdr_entry.del_qos_enforce_rule:
-                self._ng_deactivate_qer_flows(subscriber_id, ng_session_id, pdr_entry)
+                self._ng_deactivate_qer_flows(subscriber_id, ng_session_id,
+                                              pdr_entry, session_version)
 
             enforcement_res = \
-                self._ng_activate_qer_flow(subscriber_id, ng_session_id, pdr_entry)
+                self._ng_activate_qer_flow(subscriber_id, ng_session_id,
+                                           pdr_entry, session_version)
 
-            failed_dynamic_rule_results = \
+            failed_policy_rules_results = \
                     _retrieve_failed_results(enforcement_res)
 
-        return failed_dynamic_rule_results
+        return failed_policy_rules_results
 
-    def _ng_activate_qer_flow(self, subscriber_id, ng_session_id, pdr_entry):
+    def _ng_inactivate_qer_flows(self, subscriber_id, pdr_entry, session_version):
+
+        ipv4 = convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr)
+        self._ng_update_version(subscriber_id, pdr_entry.add_qos_enforce_rule,
+                                ipv4, session_version)
+
+        if pdr_entry.add_qos_enforce_rule:
+            qos_enforce_rule = pdr_entry.add_qos_enforce_rule
+            rule_ids = [policy.rule.id for policy in qos_enforce_rule.policies]
+
+
+        if rule_ids:
+            self._enforcer_app.deactivate_rules(subscriber_id, ipv4,
+                                                rule_ids)
+
+    def _ng_activate_qer_flow(self, subscriber_id, ng_session_id,
+                              pdr_entry, session_version):
+
+        ipv4 = convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr)
+        self._ng_update_version(subscriber_id, pdr_entry.add_qos_enforce_rule,
+                                ipv4, session_version)
 
         qos_enforce_rule = pdr_entry.add_qos_enforce_rule
-        ipv4 = convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr)
         if qos_enforce_rule.ipv6_addr:
             self._update_ipv6_prefix_store(qos_enforce_rule.ipv6_addr)
 
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-                                         subscriber_id, qos_enforce_rule.msisdn, pdr_entry.local_f_teid,
+                                         subscriber_id, qos_enforce_rule.msisdn,
+                                         pdr_entry.local_f_teid,
                                          ipv4, qos_enforce_rule.apn_ambr,
-                                         qos_enforce_rule.dynamic_rules, ng_session_id)
+                                         qos_enforce_rule.policies, ng_session_id)
 
-        failed_dynamic_rule_results = \
+        failed_policies_results = \
              _retrieve_failed_results(enforcement_stats_res)
 
         # Do not install any rules that failed to install in enforcement_stats.
-        dynamic_rules = \
-             _filter_failed_dynamic_rules(qos_enforce_rule, failed_dynamic_rule_results)
+        policy_rules = \
+             _filter_failed_policies(qos_enforce_rule, failed_policies_results)
 
         enforcement_res = \
                self._activate_rules_in_enforcement(
                     subscriber_id, qos_enforce_rule.msisdn, pdr_entry.local_f_teid,
                     ipv4, qos_enforce_rule.apn_ambr,
-                    dynamic_rules, ng_session_id)
+                    policy_rules, ng_session_id)
 
         # Include the failed rules from enforcement_stats in the response.
-        enforcement_res.dynamic_rule_results.extend(
-             failed_dynamic_rule_results)
+        enforcement_res.policy_results.extend(
+             failed_policies_results)
 
         return enforcement_res
 
-    def _ng_deactivate_qer_flows(self, subscriber_id, ng_session_id, pdr_entry):
+    def _ng_deactivate_qer_flows(self, subscriber_id, ng_session_id,
+                                 pdr_entry, session_version):
         logging.debug('Deactivating N4 flows for %s', subscriber_id)
 
         rule_ids = []
         if pdr_entry.del_qos_enforce_rule:
-            rule_ids.extend(pdr_entry.del_qos_enforce_rule.rule_ids)
+            policy_rules = pdr_entry.del_qos_enforce_rule
+            logging.info(policy_rules)
+            rule_ids = [policy.rule_id for policy in policy_rules.policies]
 
-        if pdr_entry.add_qos_enforce_rule:
+        #if pdr_entry.add_qos_enforce_rule:
             #rule_ids.extend(pdr_entry.add_qos_enforce_rule.rule_ids)
-            dynamic_rules_ids = list(map(lambda entry: entry.id, pdr_entry.add_qos_enforce_rule.dynamic_rules))
-            rule_ids.extend(dynamic_rules_ids)
+        #    dynamic_rules_ids = list(map(lambda entry: entry.id, pdr_entry.add_qos_enforce_rule.dynamic_rules))
+        #    rule_ids.extend(dynamic_rules_ids)
 
         ipv4 = convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr)
+        self._ng_remove_version(subscriber_id, pdr_entry.del_qos_enforce_rule,
+                                ipv4, session_version)
 
-        if pdr_entry.pdr_state == PdrState.Value('REMOVE'):
-            self._enforcement_stats.deactivate_ng_default_flow(subscriber_id, ipv4,
-                                                               ng_session_id, True)
-        elif pdr_entry.pdr_state == PdrState.Value('IDLE'):
-            self._enforcement_stats.deactivate_ng_default_flow(subscriber_id, ipv4,
-                                                               ng_session_id, False)
+        self._enforcement_stats.deactivate_default_flow(subscriber_id, ipv4,
+                                                        ng_session_id)
 
         if rule_ids:
             self._enforcer_app.deactivate_rules(subscriber_id, ipv4,
@@ -1072,12 +1094,25 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._enforcement_stats.deactivate_rules(subscriber_id, ipv4,
                                                      rule_ids)
 
-    def _ng_update_version(self, ng_session_id: int, session_version: int):
+    def _ng_update_version(self, imsi: str, request: ActivateFlowsRequest,
+                           ipv4: IPAddress, session_version: int):
         """
         Update 5G version for a given subscriber as QOS is installed.
         """
-        self._service_manager.session_rule_version_mapper\
-                 .ng_update_rules_version(ng_session_id, session_version)
+        for policy in request.policies:
+            self._service_manager.session_rule_version_mapper.save_version(
+                           imsi, ipv4, policy.rule.id, session_version)
+
+    def _ng_remove_version(self, imsi: str, request: DeactivateFlowsRequest,
+                           ipv4: IPAddress, session_version: int):
+        """
+        Remove 5G version for a given subscriber as QOS is installed.
+        """
+        for policy in request.policies:
+            self._service_manager.session_rule_version_mapper \
+                .remove(imsi, ipv4,
+                        policy.rule_id, session_version)
+
 
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,

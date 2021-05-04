@@ -21,7 +21,7 @@ from magma.pipelined.openflow.registers import (
     RULE_NUM_REG,
     RULE_VERSION_REG,
     VLAN_TAG_REG,
-    NG_FLOW_ENABLE_REG,
+    NG_SESSION_ID_REG,
     Direction,
     is_valid_direction,
 )

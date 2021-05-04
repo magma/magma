@@ -35,6 +35,7 @@ from magma.pipelined.qos.common import QosImplType, QosManager
 from magma.pipelined.qos.types import QosInfo
 from collections import defaultdict
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
+from lte.protos.pipelined_pb2 import VersionedPolicy
 
 class EnforcementTableTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -77,11 +78,12 @@ class EnforcementTableTest(unittest.TestCase):
                 'bridge_ip_address': '192.168.128.1',
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
-                "qos": {
-                "max_rate": 1000000000,
-                "enable": False,
-            },
+                'qos': {'enable': False},
                 'clean_restart': True,
+                'uplink_port': 20,
+                'enable_nat': True,
+                'ovs_gtp_port_number': 10,
+                'setup_type': 'LTE',
             },
             mconfig=PipelineD(),
             loop=None,
@@ -103,27 +105,25 @@ class EnforcementTableTest(unittest.TestCase):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
-    def test_enforcemnet_multiple_rules(self):
+    def test_enforcemnet_rules(self):
         """
         Add QOS policy to enforcement table into OVS. 
         """
         fake_controller_setup(self.enforcement_controller)
         imsi = 'IMSI001010000000013'
         sub_ip = '192.168.128.30'
-        flow_list = [FlowDescription(match=FlowMatch(
+        flow_list1 = [FlowDescription(match=FlowMatch(
                             direction=FlowMatch.UPLINK),
                             action=FlowDescription.PERMIT),
                             FlowDescription(match=FlowMatch(
                             ip_dst=convert_ipv4_str_to_ip_proto("192.168.0.0/24"),
                             direction=FlowMatch.DOWNLINK),
                             action=FlowDescription.PERMIT)]
-
+ 
         self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
-                                       		       None, dynamic_rules=[PolicyRule(
-                                                                           id='rule1',
-                                                                           priority=65536,
-                                                                           flow_list=flow_list
-                                                                           )],ng_session_id=100)
+                                       		   None,  policies = [VersionedPolicy(
+                                                   rule=PolicyRule(id='rule1', priority=65530,flow_list=flow_list1),
+                                                   version=1,),],ng_session_id=100)
  
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -147,11 +147,9 @@ class EnforcementTableTest(unittest.TestCase):
                             action=FlowDescription.PERMIT)]
 
         self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
-                                       		       None, dynamic_rules=[PolicyRule(
-                                                                           id='rule1',
-                                                                           priority=65530,
-                                                                           flow_list=flow_list
-                                                                           )],ng_session_id=555)
+                                       		   None, policies = [VersionedPolicy(
+                                                   rule=PolicyRule(id='rule1', priority=65530,flow_list=flow_list),
+                                                   version=2,),],ng_session_id=555)
         imsi = 'IMSI001000000100088'
         sub_ip = '192.168.128.150'
         flow_list = [FlowDescription(match=FlowMatch(
@@ -163,11 +161,9 @@ class EnforcementTableTest(unittest.TestCase):
                             action=FlowDescription.PERMIT)]
 
         self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
-                                       		       None, dynamic_rules=[PolicyRule(
-                                                                           id='rule1',
-                                                                           priority=65536,
-                                                                           flow_list=flow_list
-                                                                           )],ng_session_id=5000)
+                                       		   None, policies = [VersionedPolicy(
+                                                   rule=PolicyRule(id='rule2', priority=65536,flow_list=flow_list),
+                                                   version=3,),],ng_session_id=5000)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)

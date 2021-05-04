@@ -13,7 +13,6 @@ limitations under the License.
 import json
 import threading
 from collections import namedtuple, OrderedDict
-from typing import Optional
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict, RedisHashDict

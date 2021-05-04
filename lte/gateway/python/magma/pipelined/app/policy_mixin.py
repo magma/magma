@@ -19,7 +19,6 @@ from lte.protos.pipelined_pb2 import (
     ActivateFlowsResult,
     RuleModResult,
 )
-from magma.pipelined.openflow import flows
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
@@ -29,7 +28,7 @@ from magma.pipelined.openflow.registers import (
     RULE_NUM_REG,
     RULE_VERSION_REG,
     SCRATCH_REGS,
-    NG_FLOW_ENABLE_REG,
+    NG_SESSION_ID_REG,
 )
 from magma.pipelined.policy_converters import (
     FlowMatchError,
@@ -97,11 +96,8 @@ class PolicyMixin(metaclass=ABCMeta):
                                               policy.version, shard_id, ng_session_id)
             policy_results.append(RuleModResult(rule_id=policy.rule.id, version=policy.version, result=res))
 
-        if ng_session_id:
-            self._install_default_ng_flow_for_subscriber(imsi, ip_addr, ng_session_id)
-        else:
-            # Install a base flow for when no rule is matched.
-            self._install_default_flow_for_subscriber(imsi, ip_addr)
+        # Install a base flow for when no rule is matched.
+        self._install_default_flow_for_subscriber(imsi, ip_addr, ng_session_id)
         
         return ActivateFlowsResult(
             policy_results=policy_results,
@@ -146,7 +142,7 @@ class PolicyMixin(metaclass=ABCMeta):
     def _get_classify_rule_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, flow, rule_num,
                                      priority, qos, hard_timeout, rule_id, app_name,
                                      app_service_type, next_table, version, qos_mgr,
-                                     copy_table, _, urls: List[str] = None, ng_session_id: int=0):
+                                     copy_table, _, urls: List[str] = None, ng_session_id: int = 0):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
         will drop the packet. Otherwise, the flow classifies the packet with
@@ -224,7 +220,7 @@ class PolicyMixin(metaclass=ABCMeta):
         return msgs
 
     def _get_action_for_rule(self, flow, rule_num, imsi, ip_addr,
-                             apn_ambr, qos, rule_id, version, qos_mgr, ng_session_id=0):
+                             apn_ambr, qos, rule_id, version, qos_mgr, ng_session_id):
         """
         Returns an action instructions list to be applied for a specific flow.
         If qos or apn_ambr are set, the appropriate action is returned based
@@ -353,7 +349,7 @@ class PolicyMixin(metaclass=ABCMeta):
 
     @abstractmethod
     def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int,
-                               ip_addr, apn_ambr, rule, version, shard_id: int, ng_session_id=0):
+                               ip_addr, apn_ambr, rule, version, shard_id: int, ng_session_id):
         """
         Install a flow given a rule. Subclass should implement this.
 
@@ -365,18 +361,7 @@ class PolicyMixin(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
-        """
-        Install a flow for the subscriber in the event no rule is matched.
-        Subclass should implement this.
-
-        Args:
-            imsi (string): subscriber id
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def _install_default_ng_flow_for_subscriber(self, imsi, ip_addr, ng_session_id):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr, ng_session_id):
         """
         Install a flow for the subscriber in the event no rule is matched.
         Subclass should implement this.
