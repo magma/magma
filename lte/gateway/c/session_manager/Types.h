@@ -13,6 +13,7 @@
 #pragma once
 
 #include <functional>
+#include <vector>
 #include <experimental/optional>
 
 #include <folly/Format.h>
@@ -193,14 +194,12 @@ struct BearerIDAndTeid {
 typedef std::unordered_map<PolicyID, BearerIDAndTeid, PolicyIDHash>
     BearerIDByPolicyID;
 
-struct RulesToProcess {
-  // If this vector is set, then it has PolicyRule definitions for both static
-  // and dynamic rules
-  std::vector<PolicyRule> rules;
-  std::vector<uint32_t> versions;
-  bool empty() const;
-  void append_versioned_policy(PolicyRule rule, uint32_t version);
+struct RuleToProcess {
+  PolicyRule rule;
+  uint32_t version;
 };
+
+typedef std::vector<RuleToProcess> RulesToProcess;
 
 struct StatsPerPolicy {
   // The version maintained by SessionD for this rule

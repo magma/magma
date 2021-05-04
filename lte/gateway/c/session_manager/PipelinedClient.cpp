@@ -17,6 +17,7 @@
 #include "GrpcMagmaUtils.h"
 #include <google/protobuf/util/time_util.h>
 #include "EnumToString.h"
+#include "Types.h"
 
 using grpc::Status;
 
@@ -64,10 +65,10 @@ magma::DeactivateFlowsRequest create_deactivate_req(
   req.set_remove_default_drop_flows(remove_default_drop_rules);
   req.mutable_request_origin()->set_type(origin_type);
   auto mut_versioned_rules = req.mutable_policies();
-  for (uint index = 0; index < to_process.rules.size(); ++index) {
+  for (const magma::RuleToProcess& val : to_process) {
     auto versioned_policy = mut_versioned_rules->Add();
-    versioned_policy->set_version(to_process.versions[index]);
-    versioned_policy->set_rule_id(to_process.rules[index].id());
+    versioned_policy->set_version(val.version);
+    versioned_policy->set_rule_id(val.rule.id());
   }
   return req;
 }
@@ -91,10 +92,10 @@ magma::ActivateFlowsRequest create_activate_req(
     req.mutable_apn_ambr()->CopyFrom(*ambr);
   }
   auto mut_versioned_rules = req.mutable_policies();
-  for (uint index = 0; index < to_process.rules.size(); ++index) {
+  for (const magma::RuleToProcess& val : to_process) {
     auto versioned_policy = mut_versioned_rules->Add();
-    versioned_policy->set_version(to_process.versions[index]);
-    versioned_policy->mutable_rule()->CopyFrom(to_process.rules[index]);
+    versioned_policy->set_version(val.version);
+    versioned_policy->mutable_rule()->CopyFrom(val.rule);
   }
   return req;
 }
@@ -256,9 +257,8 @@ void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
                << ", enb teid: " << teids.enb_teid()
                << ", origin_type: " << request_origin_type_to_str(origin_type);
 
-  RulesToProcess empty_to_process;
-  empty_to_process.rules = std::vector<PolicyRule>{};
-  auto req               = create_deactivate_req(
+  RulesToProcess empty_to_process = std::vector<RuleToProcess>{};
+  auto req                        = create_deactivate_req(
       imsi, ip_addr, ipv6_addr, teids, empty_to_process, origin_type, true);
   deactivate_flows(req);
 }
@@ -268,7 +268,7 @@ void AsyncPipelinedClient::deactivate_flows_for_rules(
     const std::string& ipv6_addr, const Teids teids,
     const RulesToProcess to_process,
     const RequestOriginType_OriginType origin_type) {
-  MLOG(MDEBUG) << "Deactivating " << to_process.rules.size()
+  MLOG(MDEBUG) << "Deactivating " << to_process.size()
                << " rules and for subscriber " << imsi << " IP " << ip_addr
                << " " << ipv6_addr;
 
@@ -294,8 +294,8 @@ void AsyncPipelinedClient::activate_flows_for_rules(
     const optional<AggregatedMaximumBitrate>& ambr,
     const RulesToProcess to_process,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
-  MLOG(MDEBUG) << "Activating " << to_process.rules.size() << " rules for "
-               << imsi << " msisdn " << msisdn << " and ip " << ip_addr << " "
+  MLOG(MDEBUG) << "Activating " << to_process.size() << " rules for " << imsi
+               << " msisdn " << msisdn << " and ip " << ip_addr << " "
                << ipv6_addr;
   auto req = create_activate_req(
       imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
