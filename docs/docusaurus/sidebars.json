@@ -16,7 +16,7 @@
           "howtos/config_agw_bridged",
           "howtos/call_tracing",
           "howtos/events_monitoring",
-          "howtos/header_enrichment",
+          "howtos/he_api",
           "howtos/inbound_roaming"
         ]
       },
@@ -213,7 +213,10 @@
       "proposals/p008_apn_correction",
       "proposals/p009_nms_mariadb_migration",
       "proposals/p010_subscriber_scaling",
-      "proposals/p011_victoriametrics"
+      "proposals/p011_victoriametrics",
+      "proposals/p013_Ubuntu_upgrade",
+      "proposals/p014_proposal_process",
+      "proposals/p015_tech_debt_week"
     ],
     "FAQ": [
       "faq/faq_magma"
