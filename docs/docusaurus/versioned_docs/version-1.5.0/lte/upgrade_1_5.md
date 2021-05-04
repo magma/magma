@@ -7,14 +7,12 @@ original_id: upgrade_1_5
 
 # Upgrade to v1.5
 
----
 > **_NOTE:_** Please note that Fuji is the last release with support for Debian.
----
 
 ### Repo Change
 
-In Magma Fuji (v1.5), Magma artifacts are now hosted on the new Magmacore repositories.
-(https://artifactory.magmacore.org/)
+In Magma Fuji (v1.5), Magma artifacts are now hosted on the new Magmacore repositories at
+[artifactory.magmacore.org](https://artifactory.magmacore.org/).
 Gateways migrating from older Magma releases can run the migration script to update the sources accordingly.
 
 The repository currently supports both Debian and Ubuntu OS flavors.
