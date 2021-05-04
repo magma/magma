@@ -17,7 +17,7 @@
     "@babel/cli": "^7.2.3",
     "@babel/core": "^7.14.0",
     "@babel/node": "^7.0.0",
-    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/plugin-proposal-nullish-coalescing-operator": "^7.12.13",
     "@babel/plugin-proposal-optional-chaining": "^7.0.0",
     "@babel/preset-env": "^7.11.5",
@@ -62,7 +62,7 @@
     "url": "^0.11.0"
   },
   "devDependencies": {
-    "@babel/plugin-proposal-class-properties": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.13.0",
     "@babel/plugin-transform-react-jsx": "^7.0.0",
     "@babel/preset-env": "^7.11.5",
     "@babel/preset-flow": "^7.0.0",
@@ -85,7 +85,7 @@
     "jest": "^26.4.2",
     "jest-cli": "^26.4.2",
     "json-server": "^0.16.1",
-    "nodemon": "^2.0.4",
+    "nodemon": "^2.0.7",
     "postcss-flexbugs-fixes": "^4.2.1",
     "postcss-loader": "^3.0.0",
     "puppeteer": "5.5.0",
