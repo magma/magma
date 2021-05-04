@@ -28,11 +28,7 @@ RUN ["/bin/bash", "-c", "echo \"Install general purpouse packages\" && \
     echo \"Add required package repository for CMake\" && \
     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
-    echo \"Add required package repository for Prometheus\" && \
-    wget -qO- https://repos.influxdata.com/influxdb.key | apt-key add - && \
-    ln -s /usr/bin/clang-format-7 /usr/bin/clang-format && \
-    source /etc/lsb-release && \
-    echo \"deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable\" | tee /etc/apt/sources.list.d/influxdb.list"]
+    ln -s /usr/bin/clang-format-7 /usr/bin/clang-format"]
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
@@ -53,6 +49,8 @@ RUN echo "Install 3rd party dependencies" && \
     apt-get install -y libgoogle-glog-dev libconfig-dev libxml2-dev \
     libyaml-cpp-dev nlohmann-json-dev && \
     echo "Install Prometheus requirements" && \
+    wget https://dl.influxdata.com/telegraf/releases/telegraf_1.18.2-1_amd64.deb && \
+    dpkg -i telegraf_1.18.2-1_amd64.deb && \
     apt-get -y install telegraf && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev=4.1.0-2 && \

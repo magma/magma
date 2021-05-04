@@ -95,7 +95,6 @@ RUN yum install -y \
     libgcrypt-devel \
     # Install libgtpnl requirements
     libmnl-devel \
-    libtins-dev \
     # Install Nettle requirements
     libconfig-devel \
     libxml2-devel \
