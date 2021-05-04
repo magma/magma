@@ -83,6 +83,9 @@ dpi:
   mon_port_number: 32769
   idle_timeout: 5
 
+conntrackd:
+  enabled: false
+
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: gtp_br0
 
@@ -160,9 +163,19 @@ uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 ovs_gtp_stats_polling_interval: 180
 
 he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
+he_enabled: true
 
-# Make as a True when gnb ip will support for uplink 
+# Make as a True when gnb ip will support for uplink
 ovs_multi_tunnel: False
+# Paging timeout value
+paging_timeout: 30
+classifier_controller_id: 5
+
+# Internal port for processing internal conntrack
+ovs_internal_conntrack_port_number: 15579
+
+# Table to forward packets from the internal conntrack
+ovs_internal_conntrack_fwd_tbl_number: 202
 
 # For 5G Functionality Support flag
 5G_feature_set:

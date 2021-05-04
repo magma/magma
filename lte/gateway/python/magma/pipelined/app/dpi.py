@@ -10,19 +10,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import logging
 import shlex
 import subprocess
-import logging
 
-from magma.pipelined.openflow import flows
+from lte.protos.pipelined_pb2 import FlowRequest
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.app.base import MagmaController, ControllerType
-from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import DPI_REG
-from magma.pipelined.policy_converters import FlowMatchError, \
-    flow_match_to_magma_match, flip_flow_match
-from lte.protos.pipelined_pb2 import FlowRequest
+from magma.pipelined.policy_converters import (
+    FlowMatchError,
+    flip_flow_match,
+    flow_match_to_magma_match,
+)
 
 # TODO might move to config file
 # Current classification will finalize if found in APP_PROTOS, if found in
@@ -94,7 +96,8 @@ class DPIController(MagmaController):
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
-        flows.delete_all_flows_from_table(datapath, self._app_set_tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._app_set_tbl_num,
+                                          cookie=self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._classify_app_tbl_num)
 
     def add_classify_flow(self, flow_match, flow_state, app: str,
@@ -174,11 +177,10 @@ class DPIController(MagmaController):
         actions = [
             parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num)]
 
-        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
-            flows.add_resubmit_next_service_flow(
-                self._datapath, self._app_set_tbl_num, MagmaMatch(), actions,
-                priority=flows.MINIMUM_PRIORITY,
-                resubmit_table=self._imsi_set_tbl_num)
+        flows.add_resubmit_next_service_flow(
+            self._datapath, self._app_set_tbl_num, MagmaMatch(), actions,
+            priority=flows.MINIMUM_PRIORITY, cookie=self.tbl_num,
+            resubmit_table=self._imsi_set_tbl_num)
 
         # Setup flows for the application reg classifier tbl
         actions = [parser.NXActionRegLoad2(dst=DPI_REG,

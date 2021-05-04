@@ -23,7 +23,6 @@ func TestUnionFind(t *testing.T) {
 	uf := newUnionFind([]string{"1", "2", "3", "4", "5"})
 
 	// 1 | 2 | 3 | 4 | 5
-	actual := uf.getComponents()
 	assert.Equal(
 		t,
 		[][]string{
@@ -33,13 +32,12 @@ func TestUnionFind(t *testing.T) {
 			{"4"},
 			{"5"},
 		},
-		actual,
+		uf.getComponents(),
 	)
 
 	uf.union("1", "2")
 	uf.union("3", "4")
 	// 1 -> 2 | 3 -> 4 | 5
-	actual = uf.getComponents()
 	assert.Equal(
 		t,
 		[][]string{
@@ -47,31 +45,29 @@ func TestUnionFind(t *testing.T) {
 			{"1", "2"},
 			{"3", "4"},
 		},
-		actual,
+		uf.getComponents(),
 	)
 
 	uf.union("4", "2")
 	// 1 -> (2, 3 -> 4) | 5
-	actual = uf.getComponents()
 	assert.Equal(
 		t,
 		[][]string{
 			{"5"},
 			{"1", "2", "3", "4"},
 		},
-		actual,
+		uf.getComponents(),
 	)
 
 	// paths were compressed from last call to getComponents
 	uf.union("4", "5")
 	// 1 -> (2, 3, 4, 5)
-	actual = uf.getComponents()
 	assert.Equal(
 		t,
 		[][]string{
 			{"1", "2", "3", "4", "5"},
 		},
-		actual,
+		uf.getComponents(),
 	)
 
 	uf = newUnionFind([]string{"1", "2", "3", "4", "5"})
@@ -82,12 +78,37 @@ func TestUnionFind(t *testing.T) {
 	uf.union("5", "3")
 	// 1 -> (2, 3, 4 -> 5)
 	// 4 -> (1 -> [2, 3], 5)
-	actual = uf.getComponents()
 	assert.Equal(
 		t,
 		[][]string{
 			{"1", "2", "3", "4", "5"},
 		},
-		actual,
+		uf.getComponents(),
+	)
+
+	// Trigger xRank < yRank
+	uf = newUnionFind([]string{"1", "2", "3"})
+	uf.union("1", "2")
+	// 1 -> 2 | 3
+	uf.union("3", "1")
+	// 1 -> (2, 3)
+	assert.Equal(
+		t,
+		[][]string{
+			{"1", "2", "3"},
+		},
+		uf.getComponents(),
+	)
+
+	// Trigger xRoot == yRoot
+	uf = newUnionFind([]string{"1", "2"})
+	uf.union("1", "2")
+	uf.union("1", "2")
+	assert.Equal(
+		t,
+		[][]string{
+			{"1", "2"},
+		},
+		uf.getComponents(),
 	)
 }

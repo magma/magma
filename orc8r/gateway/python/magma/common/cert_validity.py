@@ -25,6 +25,7 @@ class TCPClientProtocol(asyncio.Protocol):
     Implementation of TCP Protocol to create and immediately close the
     connection
     """
+
     def connection_made(self, transport):
         transport.close()
 

@@ -16,10 +16,8 @@ package mock_pgw
 import (
 	"context"
 	"fmt"
-	"net"
+	"sync"
 	"time"
-
-	"github.com/wmnsk/go-gtp/gtpv1"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
@@ -31,7 +29,7 @@ import (
 
 const (
 	dummyUserPlanePgwIP = "10.0.0.1"
-	gtpTimeout          = 500 * time.Millisecond
+	gtpTimeout          = 5 * time.Second
 )
 
 // MockPgw is just a wrapper around gtp.Client
@@ -39,6 +37,7 @@ type MockPgw struct {
 	*gtp.Client
 	LastValues
 	CreateSessionOptions CreateSessionOptions
+	randGenMux           sync.Mutex
 }
 
 type LastValues struct {
@@ -49,9 +48,9 @@ type LastValues struct {
 
 // CreateSessionOptions to control Create Session Response values to produce errors
 type CreateSessionOptions struct {
-	SgwTeidc  uint32
-	PgwFTEIDc uint32
-	PgwFTEIDu uint32
+	SgwTEIDc uint32
+	PgwTEIDc uint32
+	PgwTEIDu uint32
 }
 
 func NewStarted(ctx context.Context, pgwAddrsStr string) (*MockPgw, error) {
@@ -79,26 +78,24 @@ func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 		message.MsgTypeCreateSessionRequest:       mPgw.getHandleCreateSessionRequest(),
 		message.MsgTypeModifyAccessBearersRequest: mPgw.getHandleModifyBearerRequest(),
 		message.MsgTypeDeleteSessionRequest:       mPgw.getHandleDeleteSessionRequest(),
-		//message.MsgTypeEchoRequest: mPgw.getHandleEchoRequest(), // ONLY FOR DEBUGGING PURPOSES
 	})
 	return nil
 }
 
-func (mPgw *MockPgw) SetCreateSessionWithErrorCause() {
-	mPgw.AddHandlers(map[uint8]gtpv2.HandlerFunc{
-		message.MsgTypeCreateSessionRequest: mPgw.getHandleCreateSessionRequestWithDeniedService(),
-	})
-
+func (mPgw *MockPgw) SetCreateSessionWithErrorCause(errorCause uint8) {
+	mPgw.AddHandler(
+		message.MsgTypeCreateSessionRequest,
+		mPgw.getHandleCreateSessionRequestWithErrorCause(errorCause))
 }
 
-// ONLY FOR DEBUGGING PURPOSES
-// getHandleEchoResponse is the same method as the one found in Go-GTP gtpv1.handleEchoResponse
-func (mPgw *MockPgw) getHandleEchoRequest() gtpv2.HandlerFunc {
-	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
-		if _, ok := msg.(*message.EchoRequest); !ok {
-			return gtpv1.ErrUnexpectedType
-		}
-		// respond with EchoResponse.
-		return c.RespondTo(sgwAddr, msg, message.NewEchoResponse(0, ie.NewRecovery(c.RestartCounter)))
-	}
+func (mPgw *MockPgw) SetCreateSessionResponseWithMissingIE() {
+	mPgw.AddHandler(
+		message.MsgTypeCreateSessionRequest,
+		mPgw.getHandleCreateSessionResponseWithMissingIE())
+}
+
+func (mPgw *MockPgw) SetCreateSessionRequestWithMissingIE(missingIE *ie.IE) {
+	mPgw.AddHandler(
+		message.MsgTypeCreateSessionRequest,
+		mPgw.getHandleCreateSessionRequestWithMissingIE(missingIE))
 }

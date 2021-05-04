@@ -66,8 +66,7 @@
 /****************************************************************************/
 /*********************  L O C A L    F U N C T I O N S  *********************/
 /****************************************************************************/
-static int _emm_initiate_default_bearer_re_establishment(
-    emm_context_t* emm_ctx);
+static int emm_initiate_default_bearer_re_establishment(emm_context_t* emm_ctx);
 /*
    --------------------------------------------------------------------------
    Functions executed by both the UE and the MME upon receiving EMM messages
@@ -140,9 +139,17 @@ int check_plmn_restriction(imsi_t imsi) {
         (imsi.u.num.digit4 ==
          mme_config.restricted_plmn.plmn[itr].mnc_digit1) &&
         (imsi.u.num.digit5 ==
-         mme_config.restricted_plmn.plmn[itr].mnc_digit2) &&
-        (imsi.u.num.digit6 ==
-         mme_config.restricted_plmn.plmn[itr].mnc_digit3)) {
+         mme_config.restricted_plmn.plmn[itr].mnc_digit2)) {
+      /* MNC could be 2 or 3 digits. But for a given MCC,
+       * all the MNCs are of same length. Check MNC digit3
+       * only if mnc_digit3 in mme_config is not set to 0xf
+       */
+      if (mme_config.restricted_plmn.plmn[itr].mnc_digit3 != 0xf) {
+        if (imsi.u.num.digit6 !=
+            mme_config.restricted_plmn.plmn[itr].mnc_digit3) {
+          continue;
+        }
+      }
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, EMM_CAUSE_PLMN_NOT_ALLOWED);
     }
   }
@@ -174,20 +181,6 @@ int emm_recv_attach_request(
 
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Attach Request message\n");
   increment_counter("ue_attach", 1, NO_LABELS);
-  /*
-   * Message checking
-   */
-
-  if (msg->uenetworkcapability.spare != 0b000) {
-    /*
-     * Spare bits shall be coded as zero
-     */
-    *emm_cause = EMM_CAUSE_PROTOCOL_ERROR;
-    REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_b__4);
-    OAILOG_WARNING(
-        LOG_NAS_EMM, "EMMAS-SAP - [%08x] - Non zero spare bits is suspicious\n",
-        ue_id);
-  }
 
   /*
    * Handle message checking error
@@ -759,7 +752,7 @@ int emm_recv_service_request(
    * 2. Move UE ECM state to Connected
    * 3. Stop Mobile reachability time and Implicit Deatch timer (if running)
    */
-  rc = _emm_initiate_default_bearer_re_establishment(emm_ctx);
+  rc = emm_initiate_default_bearer_re_establishment(emm_ctx);
   if (rc == RETURNok) {
     *emm_cause = EMM_CAUSE_SUCCESS;
     increment_counter("service_request", 1, 1, "result", "success");
@@ -1197,7 +1190,7 @@ int emm_recv_detach_accept(mme_ue_s1ap_id_t ue_id, int* emm_cause) {
 }
 
 //-------------------------------------------------------------------------------------
-static int _emm_initiate_default_bearer_re_establishment(
+static int emm_initiate_default_bearer_re_establishment(
     emm_context_t* emm_ctx) {
   /*
    * This function is used to trigger initial context setup request towards eNB

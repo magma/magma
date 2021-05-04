@@ -29,7 +29,7 @@ namespace lte {
 
 class RedisClient {
  public:
-  RedisClient();
+  explicit RedisClient(bool init_connection);
   ~RedisClient() = default;
 
   /**
@@ -57,10 +57,20 @@ class RedisClient {
    * Writes a protobuf object to redis
    * @param key
    * @param proto_msg
+   * @param version
    * @return response code of operation
    */
-  int write_proto(
-      const std::string& key, const google::protobuf::Message& proto_msg);
+  int write_proto_str(
+      const std::string& key, const std::string& proto_msg, uint64_t version);
+
+  /**
+   * Converts protobuf Message and parses it to string
+   * @param proto_msg
+   * @param str_to_serialize
+   */
+  static int serialize(
+      const google::protobuf::Message& proto_msg,
+      std::string& str_to_serialize);
 
   /**
    * Reads value from redis mapped to key and returns proto object
@@ -73,7 +83,7 @@ class RedisClient {
 
   std::vector<std::string> get_keys(const std::string& pattern);
 
-  bool is_connected() { return is_connected_; }
+  bool is_connected() const { return is_connected_; }
 
  private:
   std::unique_ptr<cpp_redis::client> db_client_;
@@ -88,27 +98,11 @@ class RedisClient {
   int read_redis_state(const std::string& key, orc8r::RedisState& state_out);
 
   /**
-   * Check for existence of a key in Redis.
-   * @param key
-   * @throws std::runtime_error if the Redis call fails
-   * @return
-   */
-  bool key_exists(const std::string& key);
-
-  /**
-   * Converts protobuf Message and parses it to string
-   * @param proto_msg
-   * @param str_to_serialize
-   */
-  int serialize(
-      const google::protobuf::Message& proto_msg,
-      std::string& str_to_serialize);
-  /**
    * Takes a string and parses it to protobuf Message
    * @param proto_msg
    * @param str_to_deserialize
    */
-  int deserialize(
+  static int deserialize(
       google::protobuf::Message& proto_msg,
       const std::string& str_to_deserialize);
 };

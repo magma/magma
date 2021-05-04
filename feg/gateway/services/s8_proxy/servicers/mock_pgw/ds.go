@@ -31,15 +31,16 @@ func (mPgw *MockPgw) getHandleDeleteSessionRequest() gtpv2.HandlerFunc {
 		var err error
 		dsReqFromSGW := msg.(*message.DeleteSessionRequest)
 
-		session, err := c.GetSessionByTEID(dsReqFromSGW.TEID(), sgwAddr)
-		mPgw.LastTEIDc = dsReqFromSGW.TEID()
+		pgwTeidC := dsReqFromSGW.TEID()
+		session, err := c.GetSessionByTEID(pgwTeidC, sgwAddr)
+		mPgw.LastTEIDc = pgwTeidC
 		if err != nil {
 			return fmt.Errorf("PGW can't find session for PGWC teid %d, %s\n ",
-				dsReqFromSGW.TEID(), err)
+				pgwTeidC, err)
 		}
 
-		// get teid
-		teid, err := session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)
+		// get TEUD
+		sgwTeidC, err := session.GetTEID(gtpv2.IFTypeS5S8SGWGTPC)
 		if err != nil {
 			err = errors.Wrap(err, "Error")
 			return err
@@ -48,7 +49,7 @@ func (mPgw *MockPgw) getHandleDeleteSessionRequest() gtpv2.HandlerFunc {
 		// check bearer is n there
 		if dsReqFromSGW.LinkedEBI == nil {
 			dsr := message.NewDeleteSessionResponse(
-				teid, msg.Sequence(),
+				sgwTeidC, msg.Sequence(),
 				ie.NewCause(gtpv2.CauseMandatoryIEMissing, 0, 0, 0, ie.NewEPSBearerID(0)),
 			)
 			if err := c.RespondTo(sgwAddr, msg, dsr); err != nil {
@@ -62,7 +63,7 @@ func (mPgw *MockPgw) getHandleDeleteSessionRequest() gtpv2.HandlerFunc {
 		_, err = session.LookupBearerByEBI(dsReqFromSGW.LinkedEBI.MustEPSBearerID())
 		if err != nil {
 			dsr := message.NewDeleteBearerResponse(
-				teid, msg.Sequence(),
+				sgwTeidC, msg.Sequence(),
 				ie.NewCause(gtpv2.CauseContextNotFound, 0, 0, 0, nil),
 			)
 			if err := c.RespondTo(sgwAddr, msg, dsr); err != nil {
@@ -73,14 +74,13 @@ func (mPgw *MockPgw) getHandleDeleteSessionRequest() gtpv2.HandlerFunc {
 
 		// respond to S-GW with DeleteSessionResponse.
 		dsr := message.NewDeleteSessionResponse(
-			teid, msg.Sequence(),
+			sgwTeidC, msg.Sequence(),
 			ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
 		)
+		c.RemoveSession(session)
 		if err := c.RespondTo(sgwAddr, msg, dsr); err != nil {
 			return err
 		}
-
-		c.RemoveSession(session)
 		fmt.Printf("mock PGW deleted a session for: %s\n", session.IMSI)
 		return nil
 	}

@@ -1,0 +1,149 @@
+From e51a245559bdbee1c0c8bbb81e50c917a46020ed Mon Sep 17 00:00:00 2001
+From: Nick Yurchenko <urchennko@gmail.com>
+Date: Sat, 13 Feb 2021 00:28:20 +0000
+Subject: [PATCH 6/7] ovs: Handle spaces in ovs arguments
+
+---
+ lib/ofp-actions.c | 28 +++++++++++++++++++---------
+ lib/ofp-util.c    | 20 +++++++++++++++++---
+ lib/string.c      | 24 ++++++++++++++++++++++++
+ lib/string.h.in   |  1 +
+ 4 files changed, 61 insertions(+), 12 deletions(-)
+
+diff --git a/lib/ofp-actions.c b/lib/ofp-actions.c
+index 1b7089d97..facc60636 100644
+--- a/lib/ofp-actions.c
++++ b/lib/ofp-actions.c
+@@ -5761,8 +5761,11 @@ parse_SAMPLE(char *arg, const struct ofputil_port_map *port_map,
+                 error = xasprintf("invalid probability value \"%s\"", value);
+             }
+         } else if (!strcmp(key, "apn_name")) {
++            int j = 0;
+             for (i = 0; i < 24; i++) {
+-                os->apn_name[i] = (uint8_t)value[i];
++                if (value[i] == '"')
++                    continue;
++                os->apn_name[j++] = (uint8_t)value[i];
+                 if ((char)value[i] == '\0')
+                     break;
+             }
+@@ -5811,18 +5814,25 @@ format_SAMPLE(const struct ofpact_sample *a,
+     ds_put_format(s, "%ssample(%s%sprobability=%s%"PRIu16
+                   ",%scollector_set_id=%s%"PRIu32
+                   ",%sobs_domain_id=%s%"PRIu32
+-                  ",%sobs_point_id=%s%"PRIu32
+-                  ",%sapn_mac_addr=%s"ETH_ADDR_FMT
+-                  ",%smsisdn=%s%s"
+-                  ",%sapn_name=%s%s",
++                  ",%sobs_point_id=%s%"PRIu32,
+                   colors.paren, colors.end,
+                   colors.param, colors.end, a->probability,
+                   colors.param, colors.end, a->collector_set_id,
+                   colors.param, colors.end, a->obs_domain_id,
+-                  colors.param, colors.end, a->obs_point_id,
+-                  colors.param, colors.end, ETH_ADDR_ARGS(a->apn_mac_addr),
+-                  colors.param, colors.end, a->msisdn,
+-                  colors.param, colors.end, a->apn_name);
++                  colors.param, colors.end, a->obs_point_id);
++    if (!eth_addr_is_zero(a->apn_mac_addr)) {
++        ds_put_format(s,  ",%sapn_mac_addr=%s"ETH_ADDR_FMT,
++                  colors.param, colors.end, ETH_ADDR_ARGS(a->apn_mac_addr));
++
++    }
++    if (strlen((const char *)a->msisdn)) {
++        ds_put_format(s, ",%smsisdn=%s%s", colors.param, colors.end, a->msisdn);
++    }
++    if (strlen((const char *)a->apn_name)) {
++        char buf[32], *name;
++        name = str_quotify((char *)a->apn_name, 24, buf);
++        ds_put_format(s, ",%sapn_name=%s%s", colors.param, colors.end, name);
++    }
+     if (a->sampling_port != OFPP_NONE) {
+         ds_put_format(s, ",%ssampling_port=%s", colors.param, colors.end);
+         ofputil_format_port(a->sampling_port, port_map, s);
+diff --git a/lib/ofp-util.c b/lib/ofp-util.c
+index a712f2126..e15541bb3 100644
+--- a/lib/ofp-util.c
++++ b/lib/ofp-util.c
+@@ -7906,9 +7906,16 @@ ofputil_parse_key_value(char **stringp, char **keyp, char **valuep)
+      *     - If key_delim is "(", the value extends until ")".
+      *
+      * If there is no value, we are done. */
++    char *value = *stringp;
+     const char *value_delims;
++    bool value_with_quote = false;
+     if (key_delim == ':' || key_delim == '=') {
+-        value_delims = ", \t\r\n";
++        if (*value == '\"') {
++            value_delims = "\"";
++            value_with_quote = true;
++        } else {
++            value_delims = ", \t\r\n";
++        }
+     } else if (key_delim == '(') {
+         value_delims = ")";
+     } else {
+@@ -7919,9 +7926,16 @@ ofputil_parse_key_value(char **stringp, char **keyp, char **valuep)
+ 
+     /* Extract the value.  Advance the input position past the value and
+      * delimiter. */
+-    char *value = *stringp;
+-    size_t value_len = parse_value(value, value_delims);
++    size_t value_len;
++    if (value_with_quote) {
++        value_len = parse_value(value + 1, value_delims);
++    } else {
++        value_len = parse_value(value, value_delims);
++    }
+     char value_delim = value[value_len];
++    if (value_with_quote) {
++        value_len += 2;
++    }
+     value[value_len] = '\0';
+     *stringp += value_len + (value_delim != '\0');
+ 
+diff --git a/lib/string.c b/lib/string.c
+index e7e265bdf..b0bc80359 100644
+--- a/lib/string.c
++++ b/lib/string.c
+@@ -44,3 +44,27 @@ char *strcasestr(const char *str, const char *substr)
+     return NULL;
+ }
+ #endif
++
++/* Expect string 'd' is atleast three char longer than 's'. */
++char *
++str_quotify(const char *s, int len, char *d)
++{
++    bool found_space = false;
++    int i = 0;
++
++    d[0] = '"';
++    while(s[i] != '\0' && i <= len) {
++        d[i + 1] = s[i];
++        if (s[i] == ' ') {
++            found_space = true;
++        }
++        i++;
++    }
++    if (found_space) {
++        d[i + 1] = '"';
++        d[i + 2] = '\0';
++        return d;
++    } else {
++        return &d[1];
++    }
++}
+diff --git a/lib/string.h.in b/lib/string.h.in
+index 7a8e18f41..69565c9a9 100644
+--- a/lib/string.h.in
++++ b/lib/string.h.in
+@@ -45,4 +45,5 @@ char *strcasestr(const char *, const char *);
+ size_t strnlen(const char *, size_t maxlen);
+ #endif
+ 
++char *str_quotify(const char *s, int len, char *d);
+ #endif /* string.h wrapper */
+-- 
+2.11.0
+

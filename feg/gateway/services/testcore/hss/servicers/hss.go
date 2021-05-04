@@ -14,6 +14,7 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"time"
 
 	"github.com/emakeev/milenage"
@@ -22,7 +23,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
-	"golang.org/x/net/context"
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"

@@ -45,24 +45,24 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-extern int _pdn_connectivity_delete(emm_context_t* ctx, int pid);
+extern int pdn_connectivity_delete(emm_context_t* ctx, int pid);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
 
-static int _esm_sap_recv(
+static int esm_sap_recv(
     int msg_type, unsigned int ue_id, bool is_standalone,
     emm_context_t* emm_context, const_bstring req, bstring rsp,
     esm_sap_error_t* err);
 
-static int _esm_sap_send(
+static int esm_sap_send_a(
     int msg_type, bool is_standalone, emm_context_t* emm_context,
     proc_tid_t pti, ebi_t ebi, const esm_sap_data_t* data, bstring rsp);
 
 /*
    String representation of ESM-SAP primitives
 */
-static const char* _esm_sap_primitive_str[] = {
+static const char* esm_sap_primitive_str[] = {
     "ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_REQ",
     "ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_CNF",
     "ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_REJ",
@@ -139,7 +139,7 @@ int esm_sap_send(esm_sap_t* msg) {
   assert((primitive > ESM_START) && (primitive < ESM_END));
   OAILOG_INFO(
       LOG_NAS_ESM, "ESM-SAP   - Received primitive %s (%d)\n",
-      _esm_sap_primitive_str[primitive - ESM_START - 1], primitive);
+      esm_sap_primitive_str[primitive - ESM_START - 1], primitive);
 
   switch (primitive) {
     case ESM_PDN_CONNECTIVITY_REQ:
@@ -147,7 +147,7 @@ int esm_sap_send(esm_sap_t* msg) {
        * The MME received a PDN connectivity request message
        */
       increment_counter("ue_pdn_connection", 1, NO_LABELS);
-      rc = _esm_sap_recv(
+      rc = esm_sap_recv(
           PDN_CONNECTIVITY_REQUEST, msg->ue_id, msg->is_standalone, msg->ctx,
           msg->recv, msg->send, &msg->err);
       break;
@@ -189,7 +189,7 @@ int esm_sap_send(esm_sap_t* msg) {
       /*
        * The MME received activate default ESP bearer context accept
        */
-      rc = _esm_sap_recv(
+      rc = esm_sap_recv(
           ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT, msg->ue_id,
           msg->is_standalone, msg->ctx, msg->recv, msg->send, &msg->err);
       /*
@@ -206,7 +206,7 @@ int esm_sap_send(esm_sap_t* msg) {
       /*
        * The MME received activate default ESP bearer context reject
        */
-      rc = _esm_sap_recv(
+      rc = esm_sap_recv(
           ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT, msg->ue_id,
           msg->is_standalone, msg->ctx, msg->recv, msg->send, &msg->err);
       bdestroy_wrapper((bstring*) &msg->recv);
@@ -229,7 +229,7 @@ int esm_sap_send(esm_sap_t* msg) {
         }
         /* Send PDN connectivity request */
 
-        rc = _esm_sap_send(
+        rc = esm_sap_send_a(
             ACTIVATE_DEDICATED_EPS_BEARER_CONTEXT_REQUEST, msg->is_standalone,
             msg->ctx, (proc_tid_t) 0, bearer_activate->ebi, &msg->data,
             msg->send);
@@ -254,7 +254,7 @@ int esm_sap_send(esm_sap_t* msg) {
     case ESM_EPS_BEARER_CONTEXT_DEACTIVATE_REQ: {
       if (msg->data.eps_bearer_context_deactivate.is_pcrf_initiated) {
         /*Currently we support single bearear deactivation*/
-        rc = _esm_sap_send(
+        rc = esm_sap_send_a(
             DEACTIVATE_EPS_BEARER_CONTEXT_REQUEST, msg->is_standalone, msg->ctx,
             (proc_tid_t) 0, msg->data.eps_bearer_context_deactivate.ebi[0],
             &msg->data, msg->send);
@@ -272,7 +272,7 @@ int esm_sap_send(esm_sap_t* msg) {
       // TODO Assertion bellow is not true now:
       // If only default bearer is supported then release PDN connection as well
       // - Implicit Detach
-      _pdn_connectivity_delete(msg->ctx, pid);
+      pdn_connectivity_delete(msg->ctx, pid);
 
     } break;
 
@@ -280,7 +280,7 @@ int esm_sap_send(esm_sap_t* msg) {
       break;
 
     case ESM_UNITDATA_IND:
-      rc = _esm_sap_recv(
+      rc = esm_sap_recv(
           -1, msg->ue_id, msg->is_standalone, msg->ctx, msg->recv, msg->send,
           &msg->err);
       break;
@@ -292,7 +292,7 @@ int esm_sap_send(esm_sap_t* msg) {
   if (rc != RETURNok) {
     OAILOG_ERROR(
         LOG_NAS_ESM, "ESM-SAP   - Failed to process primitive %s (%d)\n",
-        _esm_sap_primitive_str[primitive - ESM_START - 1], primitive);
+        esm_sap_primitive_str[primitive - ESM_START - 1], primitive);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -332,7 +332,7 @@ int esm_sap_send(esm_sap_t* msg) {
  **      Return:    RETURNok, RETURNerror                      **
  **                                                                        **
  ***************************************************************************/
-static int _esm_sap_recv(
+static int esm_sap_recv(
     int msg_type, unsigned int ue_id, bool is_standalone,
     emm_context_t* emm_context, const_bstring req, bstring rsp,
     esm_sap_error_t* err) {
@@ -447,6 +447,12 @@ static int _esm_sap_recv(
         esm_cause = esm_recv_activate_default_eps_bearer_context_accept(
             emm_context, pti, ebi,
             &esm_msg.activate_default_eps_bearer_context_accept);
+        if (esm_msg.activate_default_eps_bearer_context_accept
+                .protocolconfigurationoptions.num_protocol_or_container_id) {
+          clear_protocol_configuration_options(
+              &esm_msg.activate_default_eps_bearer_context_accept
+                   .protocolconfigurationoptions);
+        }
 
         OAILOG_DEBUG(
             LOG_NAS_ESM,
@@ -808,7 +814,7 @@ static int _esm_sap_recv(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _esm_sap_send()                                           **
+ ** Name:    esm_sap_send_a()                                           **
  **                                                                        **
  ** Description: Processes ESM messages to send onto the network: Encoded  **
  **      the message and execute the relevant ESM procedure.       **
@@ -828,7 +834,7 @@ static int _esm_sap_recv(
  **      Return:    RETURNok, RETURNerror                      **
  **                                                                        **
  ***************************************************************************/
-static int _esm_sap_send(
+static int esm_sap_send_a(
     int msg_type, bool is_standalone, emm_context_t* emm_context,
     proc_tid_t pti, ebi_t ebi, const esm_sap_data_t* data, bstring rsp) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);

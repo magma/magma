@@ -122,7 +122,7 @@
   - build-provision: Setup build instance using default security group, Bootkey and Ubuntu with
     t2.xlarge. Optionally, Provision a AGW compliant image (Debian 4909 or Ubuntu 20.04) 
     ```
-    ansible-playbook build-provision.yaml
+    ansible-playbook build-provision.yaml --tags devopsOrc8r,inventory
     ```
 
   - build-configure: Configure build instance by setting up necessary parameters and reading from
@@ -131,14 +131,7 @@
     ansible-playbook build-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "buildnode=tag_Name_buildOrc8r" -e "ansible_python_interpreter=/usr/bin/python3"
     ```
 
-  - build-ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and
-    building OVS.
-
-    ```
-    ansible-playbook build-ami-configure.yaml -e '@vars/main.yaml' -i files/build_instance_aws_ec2.yaml -e "buildnode=tag_Name_ec2MagmaBuild" -u admin
-    ```
-
-  - Result: Build instance created, images and helm charts published. AGW AMI created.
+  - Result: Build instance created, images and helm charts published. 
 
 ## 4. Control Plane/Cloud Services
 
@@ -152,6 +145,14 @@
     configuration be used across every terraform init.
 
   - Requires: secrets.yaml in the dirInventory folder. Use the sample file in roles/vars/secrets.yaml
+  - Before beginning Deployment process, check variables to ensure deployment is customized.
+    cluster.yaml : 
+      - orc8rClusterName: Locally identifiable cluster name
+      - orc8rDomainName: DNS name for Orc8r
+      - orc8rLabel: Label to look for in container repository
+      - orc8rVersion: What version of Orc8r is being deployed
+      - gitHelmRepo: Repo which holds helm charts
+      - awsOrc8rRegion: Region where Orc8r would run
   - Orchestrator : Deploy orchestrator 
   ```
     ansible-playbook orc8r.yaml [ --skip-tags deploy-orc8r ]
@@ -248,6 +249,7 @@
       buildGwTagName: Tag to be used for the AGW Devops instance, used to filter instance
     defaults.yaml:  
       keyHost: Name of *.pem file available from <dirInenvtory>, such as ~/magma-experimental/files 
+      secGroupDefault: Name of the default security group to be used for the AGW instance
 
   - build-provision: Setup AGW devops build instance using default security group, Bootkey using a
     a AGW compliant image (Debian 4909). This AMI value is specified in the build.yaml file as  
@@ -272,6 +274,26 @@
 
   - Result: AGW AMI created and ready to be used for AGW in-region or Snowcone deployments.
 
+## 6. Cleanup
+
+  Cleanup deletes all Control and Dataplane components created in the regions. Cleanup can be used
+  to remove all components in one stroke (orchestrator and gateways) or delete individual
+  elements within each layer (database, secrets in orchestrator, any given number of gateways).
+
+  Cleanup uses a combination of native Ansible modules when available and AWS CLI when Ansible 
+  modules are unable to force-delete resources (ex: EFS, Secrets etc.) It uses the name tag of the resources
+  when available and heavily relies on the current assumption that only one orchestrator deployment
+  exists per region. As newer capabilities around tagging emerge, cleanup can be used to target a single
+  deployment among many for cleanup.
+
+  tunables: 
+    - cluster.yaml: 
+        awsOrc8rRegion : Determines which Region hosts the Orc8r instance to be deleted
+        orc8rClusterName : Local folder with terraform state [ex: ~/magma-experimental/<Name of Cluster>]
+
+  - ansible-playbook cleanup.yaml  [ --tags *various* ]
+
+  Available tags include: agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc
 
 ## Known Issues, Best Practices & Expected Behavior
 
@@ -283,6 +305,13 @@
 
     2. The tool is customizable to build every desired type of installation. However, for initial
        efforts, it might be better to to use the existing default values. 
+
+    3. Some resources are not covered under the current Cleanup playbooks. This includes Route53 
+       entries, keypairs and AWS roles created by Orchestrator since there is no clear way to distinguish
+       them from other resources that share the same name. 
+
+    4. Due to a cyclical dependency in orchestrator security groups, some rules have to be manually removed
+       until the [issue] (https://github.com/magma/magma/issues/5150) is fixed upstream. 
 
 ### Expected Behavior - Install
 

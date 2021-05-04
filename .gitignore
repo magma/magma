@@ -25,7 +25,7 @@ __pycache__/
 # Distribution / packaging
 .Python
 env/
-build/
+/build/
 develop-eggs/
 dist/
 eggs/
@@ -39,6 +39,8 @@ var/
 *.egg-info/
 .installed.cfg
 *.egg
+orc8r/gateway/python/build
+lte/gateway/python/build
 
 # Ignore test certs
 orc8r/cloud/test_certs/*.csr
@@ -50,6 +52,12 @@ orc8r/cloud/test_certs/*.pfx
 
 # Ignore generated Swagger files
 orc8r/cloud/swagger/specs
+
+# Node
+node_modules/
+
+# Docusaurus
+docs/docusaurus/build/
 
 # Ignore apt/build cache
 .cache/*
@@ -83,9 +91,14 @@ tags
 # CI files
 archives/
 test_results_magma_converged_mme.html
+orc8r/cloud/test-results/
 
 # IntelliJ
 .idea/
+
+# VS Code
+.vscode/
+.venv/
 
 # Internal
 fb
@@ -95,3 +108,5 @@ fb
 
 # Code coverage
 orc8r/cloud/coverage/
+feg/gateway/coverage/
+lte/gateway/c/oai/code_coverage/

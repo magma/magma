@@ -53,8 +53,14 @@ lint:
 swagger_tools:
 	go install magma/orc8r/cloud/go/tools/combine_swagger
 
+ifndef TEST_RESULTS_DIR
+TEST_RESULTS_DIR := $(MAGMA_ROOT)/orc8r/cloud/test-results
+export TEST_RESULTS_DIR
+endif
 test::
-	go test ./...
+	mkdir -p $(TEST_RESULTS_DIR)
+	$(eval NAME ?= $(shell pwd | tr / _))
+	gotestsum --junitfile $(TEST_RESULTS_DIR)/$(NAME).xml
 
 tidy:
 	go mod tidy

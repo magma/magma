@@ -30,7 +30,6 @@ extern "C" {
 #include "s6a_messages_types.h"
 #include "intertask_interface.h"
 #include "mme_config.h"
-#include "timer.h"
 #include "dynamic_memory_check.h"
 
 #ifdef __cplusplus
@@ -44,14 +43,15 @@ extern "C" {
 
 using namespace std;
 
+extern task_zmq_ctx_t s6a_task_zmq_ctx;
+
 static int gnutls_log_level = 9;
 static long timer_id        = 0;
 
 static void fd_gnutls_debug(int level, const char* str);
 static void oai_fd_logger(int loglevel, const char* format, va_list args);
 
-#define S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC (0)
-#define S6A_PEER_CONNECT_TIMEOUT_SEC (1)
+#define S6A_PEER_CONNECT_TIMEOUT_MSEC (1000)
 
 // TODO Mohit should be member of S6aFdIface (hide this global var).
 s6a_fd_cnf_t s6a_fd_cnf;
@@ -73,6 +73,27 @@ static void oai_fd_logger(int loglevel, const char* format, va_list args) {
     return;
   }
   OAILOG_EXTERNAL(OAILOG_LEVEL_TRACE - loglevel, LOG_S6A, "%s\n", buffer);
+}
+
+static int handle_timer(zloop_t* loop, int id, void* arg) {
+  /*
+   * Trying to connect to peers
+   */
+  if (s6a_fd_new_peer() != RETURNok) {
+    /*
+     * On failure, reschedule timer.
+     * * Preferred over TIMER_REPEAT_FOREVER because if s6a_fd_new_peer takes
+     * * longer to return than the period, the timer will schedule while
+     * * the previous one is active, causing a seg fault.
+     */
+    increment_counter("s6a_subscriberdb_connection_failure", 1, NO_LABELS);
+    OAILOG_ERROR(
+        LOG_S6A, "s6a_fd_new_peer has failed (%s:%d)\n", __FILE__, __LINE__);
+    timer_id = start_timer(
+        &s6a_task_zmq_ctx, S6A_PEER_CONNECT_TIMEOUT_MSEC, TIMER_REPEAT_ONCE,
+        handle_timer, NULL);
+  }
+  return 0;
 }
 
 //------------------------------------------------------------------------------
@@ -177,10 +198,10 @@ S6aFdIface::S6aFdIface(const s6a_config_t* const config) {
       "Initializing S6a interface over free-diameter:"
       "DONE\n");
 
-  /* Add timer here to send message to connect to peer */
-  timer_setup(
-      S6A_PEER_CONNECT_TIMEOUT_SEC, S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC,
-      TASK_S6A, INSTANCE_DEFAULT, TIMER_ONE_SHOT, NULL, 0, &timer_id);
+  /* Add timer here to connect to peer */
+  timer_id = start_timer(
+      &s6a_task_zmq_ctx, S6A_PEER_CONNECT_TIMEOUT_MSEC, TIMER_REPEAT_ONCE,
+      handle_timer, NULL);
 }
 
 //------------------------------------------------------------------------------
@@ -212,35 +233,8 @@ bool S6aFdIface::purge_ue(const char* imsi) {
     return true;
 }
 //------------------------------------------------------------------------------
-void S6aFdIface::timer_expired(const long timer_idP) {
-  if (!timer_exists(timer_idP)) {
-    return;
-  }
-  /*
-   * Trying to connect to peers
-   */
-  timer_id = 0;
-  if (s6a_fd_new_peer() != RETURNok) {
-    /*
-     * On failure, reschedule timer.
-     * * Preferred over TIMER_PERIODIC because if s6a_fd_new_peer takes
-     * * longer to return than the period, the timer will schedule while
-     * * the previous one is active, causing a seg fault.
-     */
-    increment_counter("s6a_subscriberdb_connection_failure", 1, NO_LABELS);
-    OAILOG_ERROR(
-        LOG_S6A, "s6a_fd_new_peer has failed (%s:%d)\n", __FILE__, __LINE__);
-    timer_setup(
-        S6A_PEER_CONNECT_TIMEOUT_SEC, S6A_PEER_CONNECT_TIMEOUT_MICRO_SEC,
-        TASK_S6A, INSTANCE_DEFAULT, TIMER_ONE_SHOT, NULL, 0, &timer_id);
-  }
-  timer_handle_expired(timer_idP);
-}
-//------------------------------------------------------------------------------
 S6aFdIface::~S6aFdIface() {
-  if (timer_id) {
-    timer_remove(timer_id, NULL);
-  }
+  stop_timer(&s6a_task_zmq_ctx, timer_id);
   // Release all resources
   free_wrapper((void**) &fd_g_config->cnf_diamid);
   fd_g_config->cnf_diamid_len = 0;

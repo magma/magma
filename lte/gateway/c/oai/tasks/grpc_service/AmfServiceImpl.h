@@ -46,7 +46,7 @@ class AmfServiceImpl final : public SmfPduSessionSmContext::Service {
 
   grpc::Status SetAmfNotification(
       ServerContext* context, const SetSmNotificationContext* notif,
-      SmContextVoid* response);
+      SmContextVoid* response) override;
 
   grpc::Status SetSmfSessionContext(
       ServerContext* context, const SetSMSessionContextAccess* request,

@@ -1,9 +1,11 @@
 ---
 id: dev_notes
-title: Developer Notes for Access Gateway
+title: Developer Notes
 hide_title: true
 ---
-# Developer Notes for Access Gateway
+
+# Developer Notes
+
 This section provides a guide for anyone testing existing features,
 fixing a bug or adding a new feature to the Access Gateway. All developers are
 highly encouraged to maintain this guide to make sure it is up to date and
@@ -112,8 +114,8 @@ the section previous (`/var/log/syslog`). By default, it is disabled.
 Note GRPC printing is independent of the `log_level`. So you can enabled GRPC
 printing even that your level is set as `INFO`.
 
-To enable GRPC logging for `pipelined`, `mobilityd`, `directoryd` or
-`subcriberdb` you can modify this line on the `/etc/magma/<service_name>.yml`
+To enable GRPC logging for `magmad`, `pipelined`, `mobilityd`, `directoryd` or
+`subscriberdb` you can modify this line on the `/etc/magma/<service_name>.yml`
 config file:
 ```yaml
 print_grpc_payload: true

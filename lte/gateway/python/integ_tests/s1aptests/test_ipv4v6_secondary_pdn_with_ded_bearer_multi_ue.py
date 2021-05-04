@@ -25,7 +25,7 @@ class TestIPv4v6SecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_ipv4v6_secondary_pdn_with_ded_bearer_multi_ue(self):
-        """ Attach a single UE + add a secondary pdn with
+        """Attach a single UE + add a secondary pdn with
         IPv4v6 + add dedicated bearer + detach
         Repeat for 4 UEs"""
         num_ues = 4
@@ -179,7 +179,11 @@ class TestIPv4v6SecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
             print(
                 "********************** Added default bearer for apn-%s,"
                 " bearer id-%d, pdn type-%d"
-                % (apn, act_def_bearer_req.m.pdnInfo.epsBearerId, pdn_type,)
+                % (
+                    apn,
+                    act_def_bearer_req.m.pdnInfo.epsBearerId,
+                    pdn_type,
+                )
             )
 
             # Receive Router Advertisement message
@@ -208,7 +212,7 @@ class TestIPv4v6SecondaryPdnWithDedBearerMultiUe(unittest.TestCase):
                 "********************** Sending RAR for IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
-            self._sessionManager_util.create_ReAuthRequest(
+            self._sessionManager_util.send_ReAuthRequest(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 policy_id,
                 flow_list,

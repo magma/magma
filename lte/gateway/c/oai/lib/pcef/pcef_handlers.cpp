@@ -43,8 +43,6 @@ extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 #define ULI_DATA_SIZE 13
 
-static char _convert_digit_to_char(char digit);
-
 // TODO Clean up pcef_create_session_data structure to include
 // imsi/ip/bearer_id etc.
 static void pcef_fill_create_session_req(
@@ -208,7 +206,7 @@ void pcef_update_teids(
  * else if they are in [48,57] keep them the same
  * else log an error and return '0'=48 value
  */
-static char _convert_digit_to_char(char digit) {
+char convert_digit_to_char(char digit) {
   if ((digit >= 0) && (digit <= 9)) {
     return (digit + '0');
   } else if ((digit >= '0') && (digit <= '9')) {
@@ -225,15 +223,14 @@ static char _convert_digit_to_char(char digit) {
 static void get_plmn_from_session_req(
     const itti_s11_create_session_request_t* saved_req,
     struct pcef_create_session_data* data) {
-  data->mcc_mnc[0]  = _convert_digit_to_char(saved_req->serving_network.mcc[0]);
-  data->mcc_mnc[1]  = _convert_digit_to_char(saved_req->serving_network.mcc[1]);
-  data->mcc_mnc[2]  = _convert_digit_to_char(saved_req->serving_network.mcc[2]);
-  data->mcc_mnc[3]  = _convert_digit_to_char(saved_req->serving_network.mnc[0]);
-  data->mcc_mnc[4]  = _convert_digit_to_char(saved_req->serving_network.mnc[1]);
+  data->mcc_mnc[0]  = convert_digit_to_char(saved_req->serving_network.mcc[0]);
+  data->mcc_mnc[1]  = convert_digit_to_char(saved_req->serving_network.mcc[1]);
+  data->mcc_mnc[2]  = convert_digit_to_char(saved_req->serving_network.mcc[2]);
+  data->mcc_mnc[3]  = convert_digit_to_char(saved_req->serving_network.mnc[0]);
+  data->mcc_mnc[4]  = convert_digit_to_char(saved_req->serving_network.mnc[1]);
   data->mcc_mnc_len = 5;
   if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
-    data->mcc_mnc[5] =
-        _convert_digit_to_char(saved_req->serving_network.mnc[2]);
+    data->mcc_mnc[5] = convert_digit_to_char(saved_req->serving_network.mnc[2]);
     data->mcc_mnc[6] = '\0';
     data->mcc_mnc_len += 1;
   } else {
@@ -244,15 +241,15 @@ static void get_plmn_from_session_req(
 static void get_imsi_plmn_from_session_req(
     const itti_s11_create_session_request_t* saved_req,
     struct pcef_create_session_data* data) {
-  data->imsi_mcc_mnc[0]  = _convert_digit_to_char(saved_req->imsi.digit[0]);
-  data->imsi_mcc_mnc[1]  = _convert_digit_to_char(saved_req->imsi.digit[1]);
-  data->imsi_mcc_mnc[2]  = _convert_digit_to_char(saved_req->imsi.digit[2]);
-  data->imsi_mcc_mnc[3]  = _convert_digit_to_char(saved_req->imsi.digit[3]);
-  data->imsi_mcc_mnc[4]  = _convert_digit_to_char(saved_req->imsi.digit[4]);
+  data->imsi_mcc_mnc[0]  = convert_digit_to_char(saved_req->imsi.digit[0]);
+  data->imsi_mcc_mnc[1]  = convert_digit_to_char(saved_req->imsi.digit[1]);
+  data->imsi_mcc_mnc[2]  = convert_digit_to_char(saved_req->imsi.digit[2]);
+  data->imsi_mcc_mnc[3]  = convert_digit_to_char(saved_req->imsi.digit[3]);
+  data->imsi_mcc_mnc[4]  = convert_digit_to_char(saved_req->imsi.digit[4]);
   data->imsi_mcc_mnc_len = 5;
   // Check if 2 or 3 digit by verifying mnc[2] has a valid value
   if ((saved_req->serving_network.mnc[2] & 0xf) != 0xf) {
-    data->imsi_mcc_mnc[5] = _convert_digit_to_char(saved_req->imsi.digit[5]);
+    data->imsi_mcc_mnc[5] = convert_digit_to_char(saved_req->imsi.digit[5]);
     data->imsi_mcc_mnc[6] = '\0';
     data->imsi_mcc_mnc_len += 1;
   } else {
@@ -298,7 +295,7 @@ static int get_uli_from_session_req(
   return 1;
 }
 
-static int get_msisdn_from_session_req(
+int get_msisdn_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* msisdn) {
   int len = saved_req->msisdn.length;
   int i, j;
@@ -316,7 +313,7 @@ static int get_msisdn_from_session_req(
   return len;
 }
 
-static int get_imeisv_from_session_req(
+int get_imeisv_from_session_req(
     const itti_s11_create_session_request_t* saved_req, char* imeisv) {
   if (saved_req->mei.present & MEI_IMEISV) {
     // IMEISV as defined in 3GPP TS 23.003 MEI_IMEISV

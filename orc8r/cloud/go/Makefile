@@ -7,7 +7,8 @@ TOOL_DEPS:= \
 	github.com/golang/protobuf/protoc-gen-go \
 	github.com/ory/go-acc \
 	github.com/vektra/mockery/cmd/mockery \
-	github.com/wadey/gocovmerge
+	github.com/wadey/gocovmerge \
+	gotest.tools/gotestsum
 include $(MAGMA_ROOT)/orc8r/cloud/go/module.mk
 
 LIB_ROOT=$(MAGMA_ROOT)/orc8r/lib/go

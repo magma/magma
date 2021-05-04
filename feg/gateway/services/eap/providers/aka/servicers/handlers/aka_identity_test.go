@@ -13,14 +13,13 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"testing"
 
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/providers/aka"
-
-	"golang.org/x/net/context"
 
 	cp "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
@@ -42,7 +41,7 @@ func (s testSwxProxy) Authenticate(
 	return &cp.AuthenticationAnswer{
 		UserName: req.GetUserName(),
 		SipAuthVectors: []*cp.AuthenticationAnswer_SIPAuthVector{
-			&cp.AuthenticationAnswer_SIPAuthVector{
+			{
 				AuthenticationScheme: req.AuthenticationScheme,
 				RandAutn: []byte(
 					"\x01\x23\x45\x67\x89\xab\xcd\xef\x01\x23\x45\x67\x89\xab\xcd\xef" +
@@ -100,7 +99,7 @@ func TestChallengeEAPTemplate(t *testing.T) {
 		t.Fatalf("Invalid challengeReqTemplateLen: %d", challengeReqTemplateLen)
 	}
 
-	scanner, err := eap.NewAttributeScanner(challengeReqTemplate)
+	scanner, _ := eap.NewAttributeScanner(challengeReqTemplate)
 	if scanner == nil {
 		t.Fatal("Nil Attribute Scanner")
 	}
@@ -162,7 +161,7 @@ func TestAkaChallenge(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected identityResponse error: %v", err)
 	}
-	scanner, err := eap.NewAttributeScanner(p)
+	scanner, _ := eap.NewAttributeScanner(p)
 	if scanner == nil {
 		t.Fatal("Nil Attribute Scanner")
 	}
@@ -193,10 +192,10 @@ func TestAkaChallenge(t *testing.T) {
 	if attr == nil {
 		t.Fatal("Nil AT_MAC Attribute")
 	}
-	if attr.Type() != aka.AT_MAC || !reflect.DeepEqual(attr.Marshaled(), []byte(expectedTestMac)) {
-		t.Fatalf("Invalid AT_MAC:\n\tExpected: %v\n\tReceived: %v\n", []byte(expectedTestMac), attr.Marshaled())
+	if attr.Type() != aka.AT_MAC || !reflect.DeepEqual(attr.Marshaled(), expectedTestMac) {
+		t.Fatalf("Invalid AT_MAC:\n\tExpected: %v\n\tReceived: %v\n", expectedTestMac, attr.Marshaled())
 	}
-	if !reflect.DeepEqual([]byte(p), []byte(expectedTestEapChallengeResp)) {
+	if !reflect.DeepEqual([]byte(p), expectedTestEapChallengeResp) {
 		t.Fatalf("Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			p, expectedTestEapChallengeResp)
 	}

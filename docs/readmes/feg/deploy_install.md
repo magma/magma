@@ -1,9 +1,10 @@
 ---
 id: deploy_install
-title: Installing Federation Gateway
+title: Install FeG
 hide_title: true
 ---
-# Installing Federation Gateway
+
+# Install Federation Gateway
 
 ## Prerequisites
 
@@ -83,6 +84,7 @@ DOCKER_REGISTRY=<registry>
 DOCKER_USERNAME=<username>
 DOCKER_PASSWORD=<password>
 IMAGE_VERSION=latest
+GIT_HASH=master
 
 ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem
 CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml

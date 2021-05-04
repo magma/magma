@@ -25,6 +25,20 @@
       - ansible
   retries: 5
 
+- name: Copy ssh keepAlive configs
+  copy: src={{ item.src }} dest={{ item.dest }}
+  become: yes
+  with_items:
+    - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
+  when: preburn
+
+- name: Restart service ssh
+  become: yes
+  service:
+    name: ssh
+    state: restarted
+  when: preburn
+
 - name: Install ansible community collection
   shell: su - {{ ansible_user }} -c 'ansible-galaxy collection install community.general'
   ignore_errors: yes
@@ -44,6 +58,7 @@
     -  XDG_CACHE_HOME="{{magma_root}}/.cache"
     -  SWAGGER_CODEGEN_JAR={{ swagger_codegen_jar }}
     -  CODEGEN_ROOT={{ codegen_root }}
+    -  ASAN_OPTIONS=abort_on_error=1:disable_coredump=0:unmap_shadow_on_exit=1
   when: full_provision
 
 - name: "Go export"
@@ -216,6 +231,7 @@
       - protobuf-compiler
       # install ethtool for disabling TCP checksumming
       - ethtool
+      - ifupdown
       - libffi-dev
       - iperf3
       - libsystemd-dev
@@ -223,6 +239,7 @@
       - libpcap-dev
       - libtins-dev
       - libmnl-dev
+      - libcurl4-openssl-dev
   retries: 5
   when: preburn
 
@@ -249,6 +266,40 @@
       - libprotobuf-lite17
       - libprotoc17
       - libssl-dev
+
+###############################################
+# Download and build sentry-native
+###############################################
+
+- name: Install Sentry Native SDK
+  vars:
+    sentry_native_version: "0.4.8"
+  get_url:
+    url: "https://github.com/getsentry/sentry-native/releases/download/{{ sentry_native_version }}/sentry-native.zip"
+    dest: "{{ tmp_directory }}/sentry-native.zip"
+  when: preburn and ansible_distribution == "Ubuntu"
+
+- name: Create a directory for Sentry Native
+  file:
+    path: "{{ tmp_directory }}/sentry-native"
+    state: directory
+  when: preburn and ansible_distribution == "Ubuntu"
+
+- name: Unpack Sentry Native SDK
+  unarchive:
+    src: "{{ tmp_directory }}/sentry-native.zip"
+    dest: "{{ tmp_directory }}/sentry-native"
+    remote_src: yes
+  when: preburn and ansible_distribution == "Ubuntu"
+
+- name: Build and Install Sentry Native SDK
+  shell: |
+    cd {{ tmp_directory }}/sentry-native && \
+    cmake -B build -DCMAKE_BUILD_TYPE=RelWithDebInfo && \
+    cmake --build build --parallel && \
+    cmake --install build --prefix install --config RelWithDebInfo && \
+    cd build && make install
+  when: preburn and ansible_distribution == "Ubuntu"
 
 ###############################################
 # Download and build swagger-codegen
@@ -304,6 +355,20 @@
     CODEGEN_ROOT: "{{ codegen_root }}"
   when: preburn
 
+- name: Download gHZ binary from artifactory
+  get_url:
+    url: https://artifactory.magmacore.org:443/artifactory/blob-prod/ghz
+    dest: /usr/local/bin/ghz
+    mode: 0755
+  when: full_provision
+
+- name: Fix kernel commandline for interface naming.
+  shell: |
+    sed -i 's/enp0s3/eth0/g' /etc/netplan/50-cloud-init.yaml
+    sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
+    grub-mkconfig -o /boot/grub/grub.cfg
+  when: preburn
+
 - name: Create links for clang-format
   become: yes
   command: "update-alternatives --install /usr/bin/clang-format clang-format /usr/bin/clang-format-7 1000"
@@ -313,3 +378,28 @@
     path: /var/tmp/test_results
     state: directory
     mode: 0777
+
+- name: Patch multipath conf
+  when: preburn and ansible_distribution == "Ubuntu"
+  patch:
+    src: patches/multipath-conf.patch
+    dest: /etc/multipath.conf
+
+- name: Copy Interface file.
+  copy:
+    src: magma_interfaces
+    dest: /etc/network/interfaces
+  when: preburn and ansible_distribution == "Ubuntu"
+
+- name: Remove netplan and enable networking.
+  shell: |
+    systemctl unmask networking
+    systemctl enable networking
+    apt-get --assume-yes purge nplan netplan.i
+  when: preburn
+
+- name: Copy Resolve file.
+  copy:
+    src: magma_resolv.conf
+    dest: /etc/systemd/resolved.conf
+  when: preburn and ansible_distribution == "Ubuntu"

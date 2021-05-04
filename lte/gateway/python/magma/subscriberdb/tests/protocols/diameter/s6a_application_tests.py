@@ -20,9 +20,13 @@ from lte.protos.mconfig.mconfigs_pb2 import SubscriberDB
 from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.processor import LTEProcessor
 from magma.subscriberdb.protocols.diameter import avp, message, server
-from magma.subscriberdb.protocols.diameter.application import base, s6a, \
-    s6a_relay
+from magma.subscriberdb.protocols.diameter.application import (
+    base,
+    s6a,
+    s6a_relay,
+)
 from magma.subscriberdb.store.base import SubscriberNotFoundError
+
 from .common import MockTransport
 
 

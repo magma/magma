@@ -30,6 +30,7 @@
       background: #fafafa;
     }
   </style>
+  <script src="https://kit.fontawesome.com/85d0a9f517.js" crossorigin="anonymous"></script>
 </head>
 
 <body>
@@ -41,6 +42,9 @@
   {{ range $idx, $val := .Services}}
   <a href="{{$val}}" {{if eq $.SelectedService $val}}class="selected"{{end}}> {{ $val }} </a>
   {{ end }}
+
+  <!-- Collapse Button -->
+  <button class="fas fa-compress-alt" style="cursor: pointer; font-size: x-large; margin-left: 10px;" onclick="window.location=window.location + '?docExpansion=none' "></button>
 </div>
 
 <svg xmlns="http://www.w3.org/2000/svg"
@@ -90,6 +94,7 @@ window.onload = function() {
     url: window.location.origin + '{{.URL}}',
     dom_id: '#swagger-ui',
     deepLinking: true,
+    validatorUrl: null,
     presets: [
       SwaggerUIBundle.presets.apis,
       SwaggerUIStandalonePreset

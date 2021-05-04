@@ -53,6 +53,7 @@
 #include "nas_proc.h"
 #include "emm_cnDef.h"
 #include "emm_proc.h"
+#include "mme_app_timer.h"
 #include "dynamic_memory_check.h"
 
 //------------------------------------------------------------------------------
@@ -108,6 +109,23 @@ int mme_app_send_s6a_update_location_req(
         ue_context_p->mme_ue_s1ap_id);
   }
 
+  /*
+   * Check if we have UE 5G-NR
+   * connection supported in Attach request message.
+   * This is done by checking either en_dc flag in ms network capability or
+   * by checking  dcnr flag in ue network capability.
+   */
+  if (ue_context_p->emm_context._ms_network_capability.en_dc) {
+    s6a_ulr_p->dual_regis_5g_ind = 1;
+  } else {
+    s6a_ulr_p->dual_regis_5g_ind = 0;
+    OAILOG_DEBUG(
+        TASK_MME_APP,
+        "UE is connected on LTE, Dual registration with 5G-NR is disabled for "
+        "(ue_id = %u)\n",
+        ue_context_p->mme_ue_s1ap_id);
+  }
+
   // Check if we have voice domain preference IE and send to S6a task
   if (ue_context_p->emm_context.volte_params.presencemask &
       VOICE_DOMAIN_PREF_UE_USAGE_SETTING) {
@@ -127,15 +145,10 @@ int mme_app_send_s6a_update_location_req(
    */
   if (ue_context_p->location_info_confirmed_in_hss == false) {
     // Start ULR Response timer
-    nas_itti_timer_arg_t timer_callback_fun = {0};
-    timer_callback_fun.nas_timer_callback   = mme_app_handle_ulr_timer_expiry;
-    timer_callback_fun.nas_timer_callback_arg =
-        (void*) &(ue_context_p->mme_ue_s1ap_id);
-    if (timer_setup(
-            ue_context_p->ulr_response_timer.sec, 0, TASK_MME_APP,
-            INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_fun,
-            sizeof(timer_callback_fun),
-            &(ue_context_p->ulr_response_timer.id)) < 0) {
+    if ((ue_context_p->ulr_response_timer.id = mme_app_start_timer(
+             ue_context_p->ulr_response_timer.sec * 1000, TIMER_REPEAT_ONCE,
+             mme_app_handle_ulr_timer_expiry, ue_context_p->mme_ue_s1ap_id)) ==
+        -1) {
       OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to start Update location update response timer for UE id  %d "
@@ -152,25 +165,14 @@ int mme_app_send_s6a_update_location_req(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-int _handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
+int handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   // Stop ULR Response timer if running
   if (ue_context_p->ulr_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(
-            ue_context_p->ulr_response_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to stop Update location update response timer for UE id  %d "
-          "\n",
-          ue_context_p->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_context_p->ulr_response_timer.id);
     ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   }
   increment_counter("mme_s6a_update_location_ans", 1, 1, "result", "failure");
@@ -223,7 +225,7 @@ int mme_app_handle_s6a_update_location_ans(
           "ULR/ULA procedure returned non success "
           "(ULA.result.choice.base=%d)\n",
           ula_pP->result.choice.base);
-      if (_handle_ula_failure(ue_mm_context) != RETURNok) {
+      if (handle_ula_failure(ue_mm_context) != RETURNok) {
         OAILOG_ERROR(
             LOG_MME_APP,
             "Failed to handle Un-successful ULA message for ue_id (%u)\n",
@@ -242,7 +244,7 @@ int mme_app_handle_s6a_update_location_ans(
         LOG_MME_APP,
         "ULR/ULA procedure returned non success (ULA.result.present=%d)\n",
         ula_pP->result.present);
-    if (_handle_ula_failure(ue_mm_context) == RETURNok) {
+    if (handle_ula_failure(ue_mm_context) == RETURNok) {
       OAILOG_DEBUG(
           LOG_MME_APP, "Sent PDN Connectivity failure to NAS for ue_id (%u)\n",
           ue_mm_context->mme_ue_s1ap_id);
@@ -256,21 +258,19 @@ int mme_app_handle_s6a_update_location_ans(
     }
   }
 
-  // Stop ULR Response timer if running
+  // Stop ULR Response timer.
+  // If expired its timer id should be MME_APP_TIMER_INACTIVE_ID and
+  // it should be already treated as failure
   if (ue_mm_context->ulr_response_timer.id != MME_APP_TIMER_INACTIVE_ID) {
-    nas_itti_timer_arg_t* timer_argP = NULL;
-    if (timer_remove(
-            ue_mm_context->ulr_response_timer.id, (void**) &timer_argP)) {
-      OAILOG_ERROR(
-          LOG_MME_APP,
-          "Failed to stop Update location update response timer for UE id  %d "
-          "\n",
-          ue_mm_context->mme_ue_s1ap_id);
-    }
-    if (timer_argP) {
-      free_wrapper((void**) &timer_argP);
-    }
+    mme_app_stop_timer(ue_mm_context->ulr_response_timer.id);
     ue_mm_context->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  } else {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "ULR Response Timer has invalid id for ue_id (%u). This implies that "
+        "the timer has expired and ULR has been handled as failure. \n ",
+        ue_mm_context->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   ue_mm_context->subscription_known = SUBSCRIPTION_KNOWN;

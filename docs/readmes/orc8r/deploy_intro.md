@@ -36,6 +36,27 @@ The instructions in this section have been tested on macOS and Linux. If you
 are deploying from a Windows host, some shell commands will likely require
 adjustments.
 
+## Release versioning
+
+Orc8r follows the standard [semantic versioning scheme](https://semver.org/)
+of `MAJOR.MINOR.PATCH`. Generally speaking, a bump in each version type
+involves the following
+
+- `MAJOR` considerable change
+    - Orc8r: major manual intervention
+    - General: large-scale changes, e.g. to the conceptual function of Magma as a whole
+- `MINOR` non-trivial change
+    - Orc8r: minor manual intervention may be required
+    - Orc8r-gateway interface: gateways may need to be updated to new minimum version
+- `PATCH` small, backward-compatible changes
+    - Security or functionality-critical
+    - Updating to newer patch should be seamless, with no manual intervention required
+
+Major and minor releases are tagged off the master branch, then a patch branch is opened starting at that tag.
+Patch releases are tagged on the respective patch branch.
+
+The current release schedule tags a new minor version 3-4 times per year. Patch releases are tagged on an on-demand basis.
+
 ## Deploying specific release
 
 To target a specific release, checkout the Magma repository's relevant release
@@ -51,7 +72,7 @@ likely work as well.
 - `v1.4` [patch branch](https://github.com/magma/magma/tree/v1.4)
 - `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.4`
 Terraform module source
-- `1.5.8` Helm chart version
+- `1.5.16` Helm chart version
 - Additional notes
     - `9.6` PostgreSQL target release, newer versions will likely work as well
 

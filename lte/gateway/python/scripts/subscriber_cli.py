@@ -23,10 +23,9 @@ from lte.protos.subscriberdb_pb2 import (
     SubscriberUpdate,
 )
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
-from orc8r.protos.common_pb2 import Void
-
 from magma.common.rpc_utils import grpc_wrapper
 from magma.subscriberdb.sid import SIDUtils
+from orc8r.protos.common_pb2 import Void
 
 
 @grpc_wrapper

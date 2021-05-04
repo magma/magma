@@ -32,6 +32,7 @@
 #include <stdbool.h>
 
 #include "log.h"
+#include "conversions.h"
 #include "intertask_interface.h"
 #include "gcc_diag.h"
 #include "mme_config.h"
@@ -113,12 +114,27 @@ void mme_app_send_delete_session_request(
       ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   mme_config_unlock(&mme_config);
 
+  mme_app_get_user_location_information(
+      &(S11_DELETE_SESSION_REQUEST(message_p).uli), ue_context_p);
+  COPY_PLMN_IN_ARRAY_FMT(
+      (S11_DELETE_SESSION_REQUEST(message_p).serving_network),
+      (ue_context_p->e_utran_cgi.plmn));
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
-  OAILOG_INFO(
-      LOG_MME_APP, "Send Delete session Req for teid " TEID_FMT "\n",
-      ue_context_p->mme_teid_s11);
+  if (ue_context_p->pdn_contexts[cid]->route_s11_messages_to_s8_task) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Send delete session Req for teid to sgw_s8 task " TEID_FMT "\n",
+        ue_context_p->mme_teid_s11);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Send delete session Req for teid to spgw task " TEID_FMT "\n",
+        ue_context_p->mme_teid_s11);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  }
+
   increment_counter("mme_spgw_delete_session_req", 1, NO_LABELS);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

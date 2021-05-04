@@ -63,7 +63,13 @@ class GTPApplication : public Application {
    */
   void add_downlink_tunnel_flow(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      uint32_t port_number);
+      uint32_t port_number, bool passthrough, bool from_pgw);
+
+  /*
+   * Add downlink tunnel flow for S8
+   */
+  void add_uplink_s8_tunnel_flow(
+      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger);
 
   /*
    * Remove uplink tunnel flow on disconnect
@@ -137,14 +143,16 @@ class GTPApplication : public Application {
    * @param gtp_port GTP port from event
    * @param i_tei tunnel id.
    */
-  void add_uplink_match(
+  void add_tunnel_match(
       of13::FlowMod& uplink_fm, uint32_t gtp_port, uint32_t i_tei);
 
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;
   static const std::string GTP_PORT_MAC;
-  static const uint16_t NEXT_TABLE   = 1;
-  static const uint32_t LOW_PRIORITY = 0;
+  static const uint16_t NEXT_TABLE      = 1;
+  static const uint32_t LOW_PRIORITY    = 0;
+  static const uint32_t TUNNEL_PORT_REG = 8;
+  static const uint32_t TUNNEL_ID_REG   = 9;
 
   const std::string uplink_mac_;
   const uint32_t gtp0_port_num_;
@@ -164,19 +172,26 @@ class GTPApplication : public Application {
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
       of13::FlowMod downlink_fm);
 
+  void add_tunnel_flow_action(
+      uint32_t out_tei, uint32_t in_tei, std::string ue_imsi,
+      struct in_addr remote_ip, uint32_t egress_gtp_port,
+      fluid_base::OFConnection* connection, const OpenflowMessenger& messenger,
+      of13::FlowMod downlink_fm, const std::string& flow_type,
+      bool passthrough);
+
   void add_downlink_tunnel_flow_action(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      of13::FlowMod downlink_fm);
+      of13::FlowMod downlink_fm, bool passthrough, bool from_pgw);
 
   void add_downlink_tunnel_flow_ipv4(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      uint32_t port_number);
+      uint32_t port_number, bool passthrough, bool from_pgw);
   void add_downlink_tunnel_flow_ipv6(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      uint32_t port_number);
+      uint32_t port_number, bool passthrough, bool from_pgw);
   void add_downlink_tunnel_flow_ded_brr(
       const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
-      uint32_t port_number);
+      uint32_t port_number, bool passthrough, bool from_pgw);
 
   void delete_downlink_tunnel_flow_ipv4(
       const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,

@@ -47,7 +47,6 @@ resource "aws_dynamodb_table" "terraform_locks" {
 
 # This secretsmanager secret needs to be manually created and populated in the
 # AWS console. For this example, you would set the following key-value pairs:
-#   nms_db_pass
 #   orc8r_db_pass
 #   docker_registry
 #   docker_user
@@ -69,7 +68,6 @@ module "orc8r" {
 
   region = local.region
 
-  nms_db_password             = jsondecode(data.aws_secretsmanager_secret_version.root_secrets.secret_string)["nms_db_pass"]
   orc8r_db_password           = jsondecode(data.aws_secretsmanager_secret_version.root_secrets.secret_string)["orc8r_db_pass"]
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
@@ -113,15 +111,12 @@ module "orc8r-app" {
   secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
   seed_certs_dir            = "~/orc8r.test.secrets/certs"
 
-  orc8r_db_host = module.orc8r.orc8r_db_host
-  orc8r_db_name = module.orc8r.orc8r_db_name
-  orc8r_db_user = module.orc8r.orc8r_db_user
-  orc8r_db_pass = module.orc8r.orc8r_db_pass
-
-  nms_db_host = module.orc8r.nms_db_host
-  nms_db_name = module.orc8r.nms_db_name
-  nms_db_user = module.orc8r.nms_db_user
-  nms_db_pass = module.orc8r.nms_db_pass
+  orc8r_db_host    = module.orc8r.orc8r_db_host
+  orc8r_db_port    = module.orc8r.orc8r_db_port
+  orc8r_db_dialect = module.orc8r.orc8r_db_dialect
+  orc8r_db_name    = module.orc8r.orc8r_db_name
+  orc8r_db_user    = module.orc8r.orc8r_db_user
+  orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
   docker_registry = jsondecode(data.aws_secretsmanager_secret_version.root_secrets.secret_string)["docker_registry"]
   docker_user     = jsondecode(data.aws_secretsmanager_secret_version.root_secrets.secret_string)["docker_user"]

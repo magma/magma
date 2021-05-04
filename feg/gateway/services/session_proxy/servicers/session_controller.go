@@ -14,6 +14,7 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -31,7 +32,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
-	"golang.org/x/net/context"
 )
 
 // CentralSessionController acts as the gRPC server for accepting calls from
@@ -110,7 +110,7 @@ func (srv *CentralSessionController) CreateSession(
 
 	credits := []*protos.CreditUpdateResponse{}
 	// Gy
-	if srv.cfg.DisableGy == false {
+	if !srv.cfg.DisableGy {
 		if srv.cfg.UseGyForAuthOnly {
 			return srv.handleUseGyForAuthOnly(
 				imsi, request, staticRuleInstalls, dynamicRuleInstalls, gxCCAInit)
@@ -318,10 +318,10 @@ func (srv *CentralSessionController) Disable(
 	if req == nil {
 		return nil, fmt.Errorf("Nil Disable Request")
 	}
-	if srv.cfg.DisableGx == false {
+	if !srv.cfg.DisableGx {
 		srv.policyClient.DisableConnections(time.Duration(req.DisablePeriodSecs) * time.Second)
 	}
-	if srv.cfg.DisableGy == false {
+	if !srv.cfg.DisableGy {
 		srv.creditClient.DisableConnections(time.Duration(req.DisablePeriodSecs) * time.Second)
 	}
 	return &orcprotos.Void{}, nil
@@ -335,13 +335,13 @@ func (srv *CentralSessionController) Enable(
 	void *orcprotos.Void,
 ) (*orcprotos.Void, error) {
 	multiError := errors.NewMulti()
-	if srv.cfg.DisableGx == false {
+	if !srv.cfg.DisableGx {
 		err := srv.policyClient.EnableConnections()
 		if err != nil {
 			multiError.Add(fmt.Errorf("An error occurred while enabling connections; policyClient err: %s", err))
 		}
 	}
-	if srv.cfg.DisableGy == false {
+	if !srv.cfg.DisableGy {
 		err := srv.creditClient.EnableConnections()
 		if err != nil {
 			multiError.Add(fmt.Errorf("An error occurred while enabling connections; creditClient err: %s", err))
@@ -360,7 +360,7 @@ func (srv *CentralSessionController) GetHealthStatus(
 	if err != nil {
 		return &fegprotos.HealthStatus{
 			Health:        fegprotos.HealthStatus_UNHEALTHY,
-			HealthMessage: fmt.Sprintf("Error occured while retrieving health metrics: %s", err),
+			HealthMessage: fmt.Sprintf("Error occurred while retrieving health metrics: %s", err),
 		}, err
 	}
 	deltaMetrics, err := srv.healthTracker.Metrics.GetDelta(currentMetrics)
@@ -398,7 +398,7 @@ func (srv *CentralSessionController) GetHealthStatus(
 }
 
 func (srv *CentralSessionController) getHealthStatusForGxRequests(failures, total int64) *fegprotos.HealthStatus {
-	if srv.cfg.DisableGx == false {
+	if !srv.cfg.DisableGx {
 		gxExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
 			float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
 		if gxExceedsThreshold {
@@ -420,7 +420,7 @@ func (srv *CentralSessionController) getHealthStatusForGxRequests(failures, tota
 }
 
 func (srv *CentralSessionController) getHealthStatusForGyRequests(failures, total int64) *fegprotos.HealthStatus {
-	if srv.cfg.DisableGy == false {
+	if !srv.cfg.DisableGy {
 		gyExceedsThreshold := total >= int64(srv.healthTracker.MinimumRequestThreshold) &&
 			float64(failures)/float64(total) >= float64(srv.healthTracker.RequestFailureThreshold)
 		if gyExceedsThreshold {

@@ -15,6 +15,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"fmt"
 	"math/rand"
@@ -22,6 +23,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 
 	"magma/feg/cloud/go/protos"
@@ -33,11 +35,13 @@ import (
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/jsonpb"
 	protobuf_proto "github.com/golang/protobuf/proto"
+	"github.com/wmnsk/go-gtp/gtpv2"
 )
 
 var (
 	cmdRegistry   = new(commands.Map)
 	proxyAddr     string
+	remoteS8      bool
 	IMSI          string = "123456789012345"
 	useMconfig    bool
 	useBuiltinCli bool
@@ -54,6 +58,9 @@ var (
 	bearerId            uint32 = 5
 	rattype             uint   = 6
 	AGWTeidC            uint
+	imsiRange           uint64 = 1
+	rate                int    = 0
+	disableGRPClog      bool   = false
 )
 
 func init() {
@@ -81,11 +88,13 @@ func init() {
 	csFlags.StringVar(&localPort, "localport", localPort,
 		"S8 local port to run the server")
 
+	csFlags.BoolVar(&remoteS8, "remote_s8", remoteS8, "Use orc8r to get to the s0_proxy (Run it on AGW without proxy flag)")
+
 	csFlags.StringVar(&pgwServerAddr, "server", pgwServerAddr,
 		"PGW IP:port to send request with format ip:port")
 
 	csFlags.BoolVar(&withecho, "withecho", withecho,
-		fmt.Sprint("Starts s8 proxy checking PGW is alive"))
+		"Starts s8 proxy checking PGW is alive")
 
 	csFlags.BoolVar(&useMconfig, "use_mconfig", false,
 		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
@@ -109,6 +118,13 @@ func init() {
 	csFlags.UintVar(&rattype, "rat", 6,
 		"Rat type (by default 6 which meanes EUTRAN)")
 
+	csFlags.Uint64Var(&imsiRange, "range", imsiRange, "Send multiple request with consecutive imsis")
+
+	csFlags.IntVar(&rate, "rate", rate, "Request per second (to be used with range)")
+
+	csFlags.BoolVar(&disableGRPClog, "no_grpc_print", false,
+		"disable GRPC printing logs")
+
 	// Echo command
 	eCmd := cmdRegistry.Add(
 		"e",
@@ -125,6 +141,8 @@ func init() {
 	eFlags.BoolVar(&testServer, "test", testServer,
 		fmt.Sprintf("Start local test s8 server bound to default PGW address (%s)", testServerAddr))
 
+	eFlags.BoolVar(&remoteS8, "remote_s8", remoteS8, "Use orc8r to get to the s0_proxy (Run it on AGW without proxy flag)")
+
 	eFlags.StringVar(&localPort, "localport", localPort,
 		"S8 local port to run the server")
 
@@ -132,17 +150,20 @@ func init() {
 		"PGW IP:port to send request with format ip:port")
 
 	eFlags.BoolVar(&withecho, "withecho", withecho,
-		fmt.Sprint("Starts s8 proxy checking PGW is alive"))
+		"Starts s8 proxy checking PGW is alive")
 
 	eFlags.BoolVar(&useMconfig, "use_mconfig", false,
-		"Use local gateway.mconfig configuration for local proxy (if set - starts local s6a proxy)")
+		"Use local gateway.mconfig configuration for local proxy (if set - starts local s8 proxy)")
 
-	eFlags.BoolVar(&useBuiltinCli, "use_builtincli", true,
+	eFlags.BoolVar(&useBuiltinCli, "use_builtincli", false,
 		"Use local built in client instead of the running instance on the gateway")
 
 }
 
 func createSession(cmd *commands.Command, args []string) int {
+	if disableGRPClog {
+		fmt.Println("no_grpc flag detected. GRPC will NOT be displayed")
+	}
 	cli, f, err := initialize(cmd, args)
 	if err != nil {
 		fmt.Print(err)
@@ -153,108 +174,192 @@ func createSession(cmd *commands.Command, args []string) int {
 	if err != nil {
 		fmt.Println(err)
 		cmd.Usage()
-		return 1
+		return 2
 	}
-
-	// Create Session Request messagea
-	_, offset := time.Now().Zone()
-	csReq := &protos.CreateSessionRequestPgw{
-		//PgwAddrs: pgwServerAddr,	// this will set through config
-		Imsi:     imsi,
-		Msisdn:   "00111",
-		Mei:      generateIMEIbasedOnIMSI(imsi),
-		CAgwTeid: uint32(AGWTeidC),
-		ServingNetwork: &protos.ServingNetwork{
-			Mcc: "310",
-			Mnc: "14",
-		},
-		RatType: protos.RATType_EUTRAN,
-		BearerContext: &protos.BearerContext{
-			Id: bearerId,
-			UserPlaneFteid: &protos.Fteid{
-				Ipv4Address: "11.11.11.11",
-				Ipv6Address: "",
-				Teid:        uint32(AGWTeidU),
-			},
-			Qos: &protos.QosInformation{
-				Pci:                     0,
-				PriorityLevel:           0,
-				PreemptionCapability:    0,
-				PreemptionVulnerability: 0,
-				Qci:                     0,
-				Gbr: &protos.Ambr{
-					BrUl: 123,
-					BrDl: 234,
-				},
-				Mbr: &protos.Ambr{
-					BrUl: 567,
-					BrDl: 890,
-				},
-			},
-		},
-		PdnType: protos.PDNType_IPV4,
-		Paa: &protos.PdnAddressAllocation{
-			Ipv4Address: "10.0.0.10",
-			Ipv6Address: "",
-			Ipv6Prefix:  0,
-		},
-
-		Apn:           apn,
-		SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
-		Ambr: &protos.Ambr{
-			BrUl: 999,
-			BrDl: 888,
-		},
-		Uli: &protos.UserLocationInformation{
-			Lac:    1,
-			Ci:     2,
-			Sac:    3,
-			Rac:    4,
-			Tac:    5,
-			Eci:    6,
-			MeNbi:  7,
-			EMeNbi: 8,
-		},
-		IndicationFlag: nil,
-		TimeZone: &protos.TimeZone{
-			DeltaSeconds:       int32(offset),
-			DaylightSavingTime: 1,
-		},
-	}
-
-	fmt.Println("\n *** Create Session Test ***")
-	printGRPCMessage("Sending GRPC message: ", csReq)
-
-	csRes, err := cli.CreateSession(csReq)
-
+	imsiNum, err := strconv.ParseUint(imsi, 10, 64)
 	if err != nil {
-		fmt.Printf("=> Create Session cli command failed: %s\n", err)
+		fmt.Printf("imsi is not numeric %+v: %s\n", imsi, err)
+		return 2
+	}
+	errChann := make(chan error)
+	done := make(chan struct{})
+	lenOfImsi := len(imsi)
+	wg := sync.WaitGroup{}
+	// run all the producers in parallel
+	fmt.Printf("Start sending requests %d\n", imsiRange)
+	for i := uint64(0); i < imsiRange; i++ {
+
+		wg.Add(1)
+		iShadow := i
+		// wait to adjust the rate
+		if rate > 0 && i != 0 && i%uint64(rate) == 0 {
+			fmt.Printf("\nWait 1 sec to send next group of %d request\n\n", rate)
+			time.Sleep(time.Second)
+		}
+
+		_, offset := time.Now().Zone()
+		go func() {
+			var errCli error
+			defer wg.Done()
+			// Create Session Request message
+			currentImsi := fmt.Sprintf("%0*d", lenOfImsi, imsiNum+iShadow)
+			currentMei := fmt.Sprint(uint64(2000000000000) + iShadow)
+			currentCAgwTeid := uint32(AGWTeidC + uint(iShadow))
+
+			csReq := &protos.CreateSessionRequestPgw{
+				PgwAddrs: pgwServerAddr,
+				Imsi:     currentImsi,
+				Msisdn:   currentMei,
+				Mei:      generateIMEIbasedOnIMSI(currentImsi),
+				CAgwTeid: currentCAgwTeid,
+				ServingNetwork: &protos.ServingNetwork{
+					Mcc: "310",
+					Mnc: "14",
+				},
+				RatType: protos.RATType_EUTRAN,
+				BearerContext: &protos.BearerContext{
+					Id: bearerId,
+					UserPlaneFteid: &protos.Fteid{
+						Ipv4Address: "11.11.11.11",
+						Ipv6Address: "",
+						Teid:        uint32(AGWTeidU),
+					},
+					Qos: &protos.QosInformation{
+						Pci:                     0,
+						PriorityLevel:           0,
+						PreemptionCapability:    0,
+						PreemptionVulnerability: 0,
+						Qci:                     0,
+						Gbr: &protos.Ambr{
+							BrUl: 123,
+							BrDl: 234,
+						},
+						Mbr: &protos.Ambr{
+							BrUl: 567,
+							BrDl: 890,
+						},
+					},
+				},
+				PdnType: protos.PDNType_IPV4,
+				Paa: &protos.PdnAddressAllocation{
+					Ipv4Address: "10.0.0.10",
+					Ipv6Address: "",
+					Ipv6Prefix:  0,
+				},
+
+				Apn:           apn,
+				SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
+				Ambr: &protos.Ambr{
+					BrUl: 999,
+					BrDl: 888,
+				},
+				Uli: &protos.UserLocationInformation{
+					Tac: 5,
+					Eci: 6,
+				},
+
+				ProtocolConfigurationOptions: &protos.ProtocolConfigurationOptions{
+					ConfigProtocol: uint32(gtpv2.ConfigProtocolPPPWithIP),
+					ProtoOrContainerId: []*protos.PcoProtocolOrContainerId{
+						{
+							Id:       uint32(gtpv2.ProtoIDIPCP),
+							Contents: []byte{0x01, 0x00, 0x00, 0x10, 0x03, 0x06, 0x01, 0x01, 0x01, 0x01, 0x81, 0x06, 0x02, 0x02, 0x02, 0x02},
+						},
+						{
+							Id:       uint32(gtpv2.ProtoIDPAP),
+							Contents: []byte{0x01, 0x00, 0x00, 0x0c, 0x03, 0x66, 0x6f, 0x6f, 0x03, 0x62, 0x61, 0x72},
+						},
+						{
+							Id:       uint32(gtpv2.ContIDMSSupportOfNetworkRequestedBearerControlIndicator),
+							Contents: nil,
+						},
+					},
+				},
+				IndicationFlag: nil,
+				TimeZone: &protos.TimeZone{
+					DeltaSeconds:       int32(offset),
+					DaylightSavingTime: 1,
+				},
+			}
+
+			fmt.Println("\n *** Create Session Test ***")
+			printGRPCMessage("Sending GRPC message: ", csReq)
+
+			csRes, errCli := cli.CreateSession(csReq)
+
+			if errCli != nil {
+				errCli = fmt.Errorf("=> Create Session cli command failed: %s\n", errCli)
+				fmt.Print(errCli)
+				errChann <- errCli
+				return
+			}
+			printGRPCMessage("Received GRPC message: ", csRes)
+
+			// check if message was received but GTP message received was in fact an error
+			if csRes.GtpError != nil {
+				errCli = fmt.Errorf("Received a GTP error (see the GRPC message before): %d\n", csRes.GtpError.Cause)
+				fmt.Println(errCli)
+				errChann <- errCli
+				return
+			}
+
+			// Delete recently created session (if enableD)
+			if createDeleteTimeout != -1 {
+				fmt.Printf("\n=> Sleeping for %ds before deleting....", createDeleteTimeout)
+				time.Sleep(time.Duration(createDeleteTimeout) * time.Second)
+				fmt.Println(" Done")
+
+				fmt.Println("\n *** Delete Session Test ***")
+				dsReq := &protos.DeleteSessionRequestPgw{
+					PgwAddrs: pgwServerAddr,
+					Imsi:     currentImsi,
+					BearerId: bearerId,
+					CAgwTeid: currentCAgwTeid,
+					CPgwTeid: csRes.CPgwFteid.Teid,
+					ServingNetwork: &protos.ServingNetwork{
+						Mcc: "310",
+						Mnc: "14",
+					},
+					Uli: &protos.UserLocationInformation{
+						Tac: 5,
+						Eci: 6,
+					},
+				}
+				printGRPCMessage("Sending GRPC message: ", dsReq)
+				dsRes, errCli := cli.DeleteSession(dsReq)
+				if errCli != nil {
+					errCli = fmt.Errorf("=> Delete session failed: %s\n", errCli)
+					fmt.Println(errCli)
+					errChann <- errCli
+					return
+				}
+				printGRPCMessage("Received GRPC message: ", dsRes)
+			}
+		}()
+	}
+
+	// go routine to collect the errors
+	errsCli := make([]error, 0)
+	go func() {
+		for err2 := range errChann {
+			errsCli = append(errsCli, err2)
+		}
+		done <- struct{}{}
+	}()
+
+	// wait until all request are done
+	wg.Wait()
+	close(errChann)
+	// wait until all the errors are processed
+	<-done
+	close(done)
+
+	// check if errors
+	if len(errsCli) != 0 {
+		fmt.Printf("Errors found: %d request failed out of %d\n", len(errsCli), imsiRange)
 		return 9
 	}
-	printGRPCMessage("Received GRPC message: ", csRes)
-
-	// Delete recently created session (if enableD)
-	if createDeleteTimeout != -1 {
-		fmt.Printf("\n=> Sleeping for %ds before deleting....", createDeleteTimeout)
-		time.Sleep(time.Duration(createDeleteTimeout) * time.Second)
-		fmt.Println(" Done")
-
-		fmt.Println("\n *** Delete Session Test ***")
-		dsReq := &protos.DeleteSessionRequestPgw{
-			Imsi:      imsi,
-			BearerId:  bearerId,
-			CAgwTeid:  uint32(AGWTeidC),
-			CPgwFteid: csRes.CPgwFteid,
-		}
-		printGRPCMessage("Sending GRPC message: ", dsReq)
-		dsRes, err := cli.DeleteSession(dsReq)
-		if err != nil {
-			fmt.Printf("=> Delete session failed: %s\n", err)
-			return 9
-		}
-		printGRPCMessage("Received GRPC message: ", dsRes)
-	}
-
+	fmt.Printf("\nAll request (%d) got a response\n", imsiRange)
 	return 0
 }
 
@@ -282,6 +387,8 @@ func initialize(cmd *commands.Command, args []string) (s8Cli, *flag.FlagSet, err
 
 	// start and configure a test server that will act as a PGW
 	if testServer {
+		// ONLY USE BUILTIN CLI
+		useBuiltinCli = true
 		pgwServerAddr, err = startTestServer()
 		if err != nil {
 			return nil, nil, err
@@ -292,12 +399,12 @@ func initialize(cmd *commands.Command, args []string) (s8Cli, *flag.FlagSet, err
 
 	conf := &servicers.S8ProxyConfig{
 		ClientAddr: fmt.Sprintf(":%s", localPort),
-		ServerAddr: servicers.ParseAddress(pgwServerAddr),
 	}
 
 	// Selection of builtIn Client or S8proxy running on the gateway
 	if useMconfig || useBuiltinCli {
 		// use builtin proxy (ignore loccal proxy)
+		fmt.Println("Using builtin S8_proxy")
 		if useMconfig {
 			conf = servicers.GetS8ProxyConfig()
 		}
@@ -312,10 +419,14 @@ func initialize(cmd *commands.Command, args []string) (s8Cli, *flag.FlagSet, err
 		if err != nil {
 			return nil, nil, fmt.Errorf("=> BuiltIn S8 Proxy initialization error: %v\n", err)
 		}
-
 		cli = s8BuiltIn{localProxy}
 	} else {
-		// TODO: use local proxy running on the gateway
+		if remoteS8 {
+			fmt.Println("Using S8_proxy through Orc8r")
+			os.Setenv("USE_REMOTE_S8_PROXY", "true")
+		} else {
+			fmt.Println("Using local S8_proxy")
+		}
 		proxyAddr, _ = registry.GetServiceAddress(registry.S8_PROXY)
 		cli = s8CliImpl{}
 	}
@@ -357,7 +468,7 @@ func validateImsi(imsi string) error {
 
 func startTestServer() (string, error) {
 	// Create and run PGW
-	mockPgw, err := mock_pgw.NewStarted(nil, testServerAddr)
+	mockPgw, err := mock_pgw.NewStarted(context.Background(), testServerAddr)
 	if err != nil {
 		return "", fmt.Errorf("Error creating test server mock PGW: +%s\n", err)
 	}
@@ -368,6 +479,9 @@ func startTestServer() (string, error) {
 }
 
 func printGRPCMessage(prefix string, v interface{}) {
+	if disableGRPClog {
+		return
+	}
 	var payload string
 	if pm, ok := v.(protobuf_proto.Message); ok {
 		var buf bytes.Buffer
@@ -388,9 +502,12 @@ func main() {
 	// Init help for all commands
 	flag.Usage = func() {
 		cmd := os.Args[0]
+		fmt.Println("Example:")
+		fmt.Println("./s8_cli cs -server 172.16.1.2:2123 -use_builtincli -delete 3 -apn roam  001020000000066 -logtostderr")
 		fmt.Printf(
-			"\nUsage: \033[1m%s command [OPTIONS]\033[0m\n\n",
+			"\nUsage: \033[1m%s command [OPTIONS] <IMSI> [DEFAULTS]\033[0m\n\n",
 			filepath.Base(cmd))
+		fmt.Println("Defaults:")
 		flag.PrintDefaults()
 		fmt.Println("\nCommands:")
 		cmdRegistry.Usage()

@@ -1,0 +1,1 @@
+../../../../../scripts/create_application_certs.sh

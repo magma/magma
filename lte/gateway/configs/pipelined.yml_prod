@@ -74,6 +74,9 @@ dpi:
   mon_port_number: 32769
   idle_timeout: 5
 
+conntrackd:
+  enabled: false
+
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
 # metering for auto-clearing the sessions
@@ -154,3 +157,9 @@ uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
 
 ovs_gtp_stats_polling_interval: 180
+
+# Internal port for processing internal conntrack
+ovs_internal_conntrack_port_number: 15579
+
+# Table to forward packets from the internal conntrack
+ovs_internal_conntrack_fwd_tbl_number: 202

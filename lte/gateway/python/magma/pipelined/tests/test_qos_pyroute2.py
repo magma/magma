@@ -1,18 +1,16 @@
-from pyroute2 import IPRoute
-from pyroute2 import NetlinkError
-from pyroute2 import protocols
-
-import unittest
-import socket
 import logging
-import traceback
-import time
 import pprint
+import socket
 import subprocess
+import time
+import traceback
+import unittest
+
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.qos.qos_tc_impl import TrafficClass
-from magma.pipelined.qos.tc_ops_pyroute2 import TcOpsPyRoute2
 from magma.pipelined.qos.tc_ops_cmd import TcOpsCmd
+from magma.pipelined.qos.tc_ops_pyroute2 import TcOpsPyRoute2
+from pyroute2 import IPRoute, NetlinkError, protocols
 
 LOG = logging.getLogger('pipelined.qos.tc_rtnl')
 

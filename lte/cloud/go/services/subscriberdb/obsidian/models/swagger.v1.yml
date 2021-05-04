@@ -5,7 +5,6 @@ magma-gen-meta:
   go-package: magma/lte/cloud/go/services/subscriberdb/obsidian/models
   dependencies:
     - 'orc8r/cloud/go/models/swagger-common.yml'
-    - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
     - 'lte/cloud/go/services/policydb/obsidian/models/swagger.v1.yml'
   temp-gen-filename: lte-subscriberdb-swagger.yml
   output-dir: lte/cloud/go/services/subscriberdb/obsidian
@@ -374,7 +373,14 @@ definitions:
     required:
       - next_page_token
       - subscribers
+      - total_count
     properties:
+      total_count:
+        type: integer
+        format: int64
+        description: estimated total number of subscriber entries
+        example: 10
+        x-nullable: false
       next_page_token:
         $ref: '#/definitions/next_page_token'
       subscribers:

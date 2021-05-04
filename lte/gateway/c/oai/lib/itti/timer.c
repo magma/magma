@@ -67,8 +67,8 @@ typedef struct timer_desc_s {
 
 static timer_desc_t timer_desc;
 
-static int _timer_delete_helper(struct timer_elm_s* timer_p);
-static struct timer_elm_s* _find_timer(long timer_id);
+static int timer_delete_helper(struct timer_elm_s* timer_p);
+static struct timer_elm_s* find_timer(long timer_id);
 
 #define TIMER_SEARCH(vAR, tIMERfIELD, tIMERvALUE, tIMERqUEUE)                  \
   do {                                                                         \
@@ -215,7 +215,7 @@ int timer_setup(
 }
 
 // Helper function to delete a timer from queue and cleanup associated resources
-static int _timer_delete_helper(struct timer_elm_s* timer_p) {
+static int timer_delete_helper(struct timer_elm_s* timer_p) {
   int rc = TIMER_OK;
   pthread_mutex_lock(&timer_desc.timer_list_mutex);
   STAILQ_REMOVE(&timer_desc.timer_queue, timer_p, timer_elm_s, entries);
@@ -234,7 +234,7 @@ static int _timer_delete_helper(struct timer_elm_s* timer_p) {
 }
 
 // Helper function to find a timer in the queue
-static struct timer_elm_s* _find_timer(long timer_id) {
+static struct timer_elm_s* find_timer(long timer_id) {
   struct timer_elm_s* timer_p = NULL;
   pthread_mutex_lock(&timer_desc.timer_list_mutex);
   TIMER_SEARCH(timer_p, timer, ((timer_t) timer_id), &timer_desc.timer_queue);
@@ -253,7 +253,7 @@ static struct timer_elm_s* _find_timer(long timer_id) {
  */
 int timer_handle_expired(long timer_id) {
   OAILOG_INFO(LOG_ITTI, "timer 0x%lx expired \n", timer_id);
-  struct timer_elm_s* timer_p = _find_timer(timer_id);
+  struct timer_elm_s* timer_p = find_timer(timer_id);
   if (timer_p == NULL) {
     return TIMER_NOT_FOUND;
   }
@@ -261,7 +261,7 @@ int timer_handle_expired(long timer_id) {
   if (timer_p->type == TIMER_ONE_SHOT) {
     OAILOG_INFO(
         LOG_ITTI, "Timer 0x%lx expiry signal received, deleting\n", timer_id);
-    return _timer_delete_helper(timer_p);
+    return timer_delete_helper(timer_p);
   }
 
   OAILOG_INFO(
@@ -271,7 +271,7 @@ int timer_handle_expired(long timer_id) {
 }
 
 bool timer_exists(long timer_id) {
-  return _find_timer(timer_id) != NULL;
+  return find_timer(timer_id) != NULL;
 }
 
 int timer_remove(long timer_id, void** arg) {

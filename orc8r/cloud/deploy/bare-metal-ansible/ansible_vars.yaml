@@ -1,0 +1,79 @@
+ansible_user: ubuntu
+
+helm_enabled: true
+kube_network_plugin: calico
+kube_network_plugin_multus: true
+
+kube_apiserver_port: 6443
+kube_pods_subnet: 10.233.64.0/18
+kube_network_node_prefix: 24
+kube_service_addresses: 10.233.0.0/18
+kubeadm_control_plane: "true"
+etcd_kubeadm_enabled: true
+
+enable_nodelocaldns: true
+resolvconf_mode: host_resolvconf
+
+# Copies kubectl and kubeconfig to your ansible host
+kubectl_localhost: true
+kubeconfig_localhost: true
+
+# Change these to your private nameservers if needed
+nameservers:
+  - 8.8.8.8
+  - 8.8.4.4
+upstream_dns_servers:
+  - 8.8.8.8
+  - 8.8.4.4
+
+# If we have a docker registry without trusted SSL or http only, add here
+# docker_insecure_registries:
+#   - private_registry:5000
+
+docker_cgroup_driver: systemd
+kubelet_cgroup_driver: systemd
+
+## Kubernetes LoadBalancer
+## Enabling a loadbalancer is optional, but provides HA for external access to Kubernetes API
+## loadbalancer_apiserver and vrrp_nic need to be set if you want to enable this feature.
+
+# Change to match the network of nodes where you want to run loadbalancer
+#loadbalancer_apiserver:
+#  address: 192.168.0.20
+#  port: 8383
+
+# Set to the NIC on which you want to run loadbalancer
+#vrrp_nic: "eth0"
+
+## Orc8r settings
+## These variabless must be set
+# orc8r_image_repo:
+# orc8r_helm_repo:
+# orc8r_domain:
+# orc8r_nms_admin_email:
+
+# Component versions (orc8r 1.3.x or 1.4.x supported)
+# orc8r_chart_version: 1.4.x
+# orc8r_image_tag: 1.3.x
+# orc8r_nms_image_tag: 1.3.x
+# orc8r_nginx_image_tag: 1.3.x
+
+# Component passwords are randomly generated (and stored in credentials dir).
+# Uncomment the following lines to explicitly set passwords
+# db_root_password:
+# orc8r_db_pass:
+# orc8r_nms_db_pass:
+# orc8r_nms_admin_pass:
+
+# LoadBalancer settings for Magma services publicly exposed
+# metallb_addresses: 192.168.10.200-192.168.10.230
+
+# Advanced options for enabling/disabling Helm charts
+deploy_nfs_server_provisioner: True
+kubevirt_enabled: False
+deploy_metallb: True
+deploy_mariadb: True
+deploy_elasticsearch: True
+deploy_fluentd: True
+deploy_kibana: False
+

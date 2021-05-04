@@ -14,12 +14,11 @@ limitations under the License.
 package main_test
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"testing"
 	"time"
-
-	"golang.org/x/net/context"
 
 	cp "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
@@ -141,21 +140,21 @@ func TestEAPPeerNak(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), permIdReq) {
+	if !reflect.DeepEqual(peap.GetPayload(), permIdReq) {
 		t.Fatalf("Unexpected Identity Responsen\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), permIdReq)
 	}
 	peap, err = aaa_client.Handle(&protos.Eap{Payload: akaPrimeNak, Ctx: peap.Ctx})
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), failureEAP) {
+	if !reflect.DeepEqual(peap.GetPayload(), failureEAP) {
 		t.Fatalf("Unexpected AKA' Nak Response\n\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), failureEAP)
 	}
 	peap, err = aaa_client.Handle(&protos.Eap{Payload: akaAkaPrimeNak, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), permIdReq) {
+	if !reflect.DeepEqual(peap.GetPayload(), permIdReq) {
 		t.Fatalf("Unexpected AKA['] Nak Response\n\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), permIdReq)
 	}
 }
@@ -187,7 +186,7 @@ func TestEAPAkaWrongPlmnId(t *testing.T) {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
 	notifAkaEap := aka.NewAKANotificationReq(eap.Packet(tst.EapIdentityResp).Identifier(), aka.NOTIFICATION_FAILURE)
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), []byte(notifAkaEap)) {
+	if !reflect.DeepEqual(peap.GetPayload(), []byte(notifAkaEap)) {
 		t.Fatalf(
 			"Unexpected identityResponse Notification\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), notifAkaEap)
@@ -222,7 +221,7 @@ func TestEAPAkaPlmnId5(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), tst.ExpectedChallengeReq) {
+	if !reflect.DeepEqual(peap.GetPayload(), tst.ExpectedChallengeReq) {
 		t.Fatalf(
 			"Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), tst.ExpectedChallengeReq)
@@ -256,7 +255,7 @@ func TestEAPAkaPlmnId6(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), tst.ExpectedChallengeReq) {
+	if !reflect.DeepEqual(peap.GetPayload(), tst.ExpectedChallengeReq) {
 		t.Fatalf(
 			"Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), tst.ExpectedChallengeReq)

@@ -10,14 +10,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import Optional  # noqa
-import subprocess
 import logging
+import subprocess
+from typing import Optional  # noqa
+
 from lte.protos.policydb_pb2 import FlowMatch
+
+from .tc_ops_cmd import TcOpsCmd, argSplit, run_cmd
+from .tc_ops_pyroute2 import TcOpsPyRoute2
 from .types import QosInfo
 from .utils import IdManager
-from .tc_ops_cmd import run_cmd, TcOpsCmd, argSplit
-from .tc_ops_pyroute2 import TcOpsPyRoute2
 
 LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
 # LOG.setLevel(logging.DEBUG)

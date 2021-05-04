@@ -14,8 +14,8 @@ limitations under the License.
 """
 
 import argparse
-import os
 import logging
+import os
 
 from magma.common.health.service_state_wrapper import ServiceStateWrapper
 from orc8r.protos.service_status_pb2 import ServiceExitStatus

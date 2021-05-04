@@ -12,37 +12,58 @@
  */
 #pragma once
 
-#include <memory>
-#include <utility>
-
-#include <orc8r/protos/eventd.pb.h>
-#include <orc8r/protos/eventd.grpc.pb.h>
-
-#include "GRPCReceiver.h"
+#include <orc8r/protos/eventd.grpc.pb.h>  // for EventService::Stub, EventSe...
+#include <stdint.h>                       // for uint32_t
+#include <functional>                     // for function
+#include <memory>                         // for unique_ptr
+#include "GRPCReceiver.h"                 // for GRPCReceiver
+namespace grpc {
+class Status;
+}
+namespace magma {
+namespace orc8r {
+class Event;
+}
+}  // namespace magma
+namespace magma {
+namespace orc8r {
+class Void;
+}
+}  // namespace magma
 
 using grpc::Status;
 
 namespace magma {
 
 /**
- * AsyncEventdClient sends asynchronous calls to eventd
+ * Base class for interfacing with EventD
+ */
+class EventdClient {
+ public:
+  virtual ~EventdClient() = default;
+  virtual void log_event(
+      const orc8r::Event& request,
+      std::function<void(Status status, orc8r::Void)> callback) = 0;
+};
+
+/**
+ * AsyncEventdClient sends asynchronous calls to EventD
  * to log events
  */
-class AsyncEventdClient : public GRPCReceiver {
+class AsyncEventdClient : public GRPCReceiver, public EventdClient {
  public:
   AsyncEventdClient(AsyncEventdClient const&) = delete;
   void operator=(AsyncEventdClient const&) = delete;
 
   static AsyncEventdClient& getInstance();
 
-  // Logs an event
   void log_event(
       const orc8r::Event& request,
       std::function<void(Status status, orc8r::Void)> callback);
 
  private:
   AsyncEventdClient();
-  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
+  static const uint32_t RESPONSE_TIMEOUT_SEC = 6;
   std::unique_ptr<orc8r::EventService::Stub> stub_{};
 };
 

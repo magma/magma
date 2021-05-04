@@ -15,11 +15,11 @@ limitations under the License.
 package test
 
 import (
+	"context"
 	"fmt"
 	"math/rand"
 	"time"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -48,7 +48,7 @@ func (s SwxProxy) Authenticate(
 	res := &protos.AuthenticationAnswer{
 		UserName: req.GetUserName(),
 		SipAuthVectors: []*protos.AuthenticationAnswer_SIPAuthVector{
-			&protos.AuthenticationAnswer_SIPAuthVector{
+			{
 				AuthenticationScheme: req.AuthenticationScheme,
 				RandAutn:             v.RandAutn,
 				Xres:                 v.Xres,
@@ -75,7 +75,7 @@ func (s SwxProxy) Deregister(_ context.Context, _ *protos.RegistrationRequest) (
 	return &protos.RegistrationAnswer{}, nil
 }
 
-// NoUseSwxProxy - a dummu SwxProxy implementation which always retuns an error & should not be called
+// NoUseSwxProxy - a dummu SwxProxy implementation which always returns an error & should not be called
 type NoUseSwxProxy struct{}
 
 //

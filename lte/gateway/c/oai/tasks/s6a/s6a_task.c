@@ -34,7 +34,6 @@
 #include "itti_types.h"
 #include "s6a_messages_types.h"
 #include "service303.h"
-#include "timer_messages_types.h"
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -46,7 +45,6 @@
 #include "s6a_defs.h"
 #include "s6a_messages.h"
 #include "mme_config.h"
-#include "timer.h"
 #include "s6a_client_api.h"
 #include "s6a_c_iface.h"
 
@@ -88,10 +86,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             LOG_S6A, "Failure in sending s6a AIR for imsi=%s\n",
             received_message_p->ittiMsg.s6a_auth_info_req.imsi);
       }
-    } break;
-    case TIMER_HAS_EXPIRED: {
-      s6a_viface_timer_expired(
-          received_message_p->ittiMsg.timer_has_expired.timer_id);
     } break;
     case S6A_CANCEL_LOCATION_ANS: {
       s6a_viface_send_cancel_location_ans(
@@ -167,10 +161,8 @@ int s6a_init(const mme_config_t* mme_config_p) {
 
 //------------------------------------------------------------------------------
 static void s6a_exit(void) {
-  destroy_task_context(&s6a_task_zmq_ctx);
-
   s6a_viface_close();
-
+  destroy_task_context(&s6a_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_S6A terminated\n");
   pthread_exit(NULL);
 }

@@ -17,6 +17,7 @@ package storage
 
 import (
 	"fmt"
+	"sort"
 
 	"magma/orc8r/lib/go/definitions"
 
@@ -28,13 +29,6 @@ var (
 	SQLDriver      = definitions.GetEnvWithDefault("SQL_DRIVER", "sqlite3")
 	DatabaseSource = definitions.GetEnvWithDefault("DATABASE_SOURCE", ":memory:")
 )
-
-type TypeAndKey struct {
-	Type string
-	Key  string
-}
-
-type TKs []TypeAndKey
 
 type IsolationLevel int
 
@@ -55,9 +49,20 @@ const (
 	LevelLinearizable
 )
 
+type TypeAndKey struct {
+	Type string
+	Key  string
+}
+
 func (tk TypeAndKey) String() string {
 	return fmt.Sprintf("%s-%s", tk.Type, tk.Key)
 }
+
+func (tk TypeAndKey) IsLessThan(tkb TypeAndKey) bool {
+	return tk.String() < tkb.String()
+}
+
+type TKs []TypeAndKey
 
 // Filter returns the tks which match the passed type.
 func (tks TKs) Filter(typ string) TKs {
@@ -137,8 +142,10 @@ func (tks TKs) Difference(b TKs) (TKs, TKs) {
 	return diffA, diffB
 }
 
-func IsTKLessThan(a TypeAndKey, b TypeAndKey) bool {
-	return a.String() < b.String()
+func (tks TKs) Sort() {
+	sort.Slice(tks, func(i, j int) bool {
+		return tks[i].IsLessThan(tks[j])
+	})
 }
 
 // IDGenerator is an interface which wraps the creation of unique IDs

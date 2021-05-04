@@ -28,7 +28,11 @@ using magma::lte::oai::UeDescription;
 namespace magma {
 namespace lte {
 
-S1apStateManager::S1apStateManager() : max_enbs_(0), max_ues_(0) {}
+S1apStateManager::S1apStateManager()
+    : max_ues_(0),
+      max_enbs_(0),
+      s1ap_imsi_map_hash_(0),
+      s1ap_imsi_map_(nullptr) {}
 
 S1apStateManager::~S1apStateManager() {
   free_state();
@@ -40,13 +44,14 @@ S1apStateManager& S1apStateManager::getInstance() {
 }
 
 void S1apStateManager::init(
-    uint32_t max_ues, uint32_t max_enbs, bool use_stateless) {
+    uint32_t max_ues, uint32_t max_enbs, bool persist_state) {
   log_task              = LOG_S1AP;
   table_key             = S1AP_STATE_TABLE;
   task_name             = S1AP_TASK_NAME;
-  persist_state_enabled = use_stateless;
+  persist_state_enabled = persist_state;
   max_ues_              = max_ues;
   max_enbs_             = max_enbs;
+  redis_client          = std::make_unique<RedisClient>(persist_state);
   create_state();
   if (read_state_from_db() != RETURNok) {
     OAILOG_ERROR(LOG_S1AP, "Failed to read state from redis");
@@ -130,9 +135,8 @@ int S1apStateManager::read_ue_state_from_db() {
   for (const auto& key : keys) {
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     UeDescription ue_proto = UeDescription();
-    ue_description_t* ue_context =
-        (ue_description_t*) calloc(1, sizeof(ue_description_t));
-    if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
+    auto* ue_context = (ue_description_t*) calloc(1, sizeof(ue_description_t));
+    if (redis_client->read_proto(key, ue_proto) != RETURNok) {
       return RETURNerror;
     }
 
@@ -194,7 +198,15 @@ void S1apStateManager::write_s1ap_imsi_map_to_db() {
   }
   oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
   S1apStateConverter::s1ap_imsi_map_to_proto(s1ap_imsi_map_, &imsi_proto);
-  redis_client->write_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
+  std::string proto_msg;
+  redis_client->serialize(imsi_proto, proto_msg);
+  std::size_t new_hash = std::hash<std::string>{}(proto_msg);
+
+  // s1ap_imsi_map is not state service synced, so version will not be updated
+  if (new_hash != this->s1ap_imsi_map_hash_) {
+    redis_client->write_proto_str(S1AP_IMSI_MAP_TABLE_NAME, proto_msg, 0);
+    this->s1ap_imsi_map_hash_ = new_hash;
+  }
 }
 
 }  // namespace lte

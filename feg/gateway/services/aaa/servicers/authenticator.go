@@ -15,12 +15,12 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"time"
 
 	"github.com/emakeev/snowflake"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
 	"magma/feg/cloud/go/protos/mconfig"

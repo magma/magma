@@ -17,9 +17,9 @@ package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
 
 service S8Proxy {
-    rpc CreateSession (CreateSessionRequestPgw) returns(CreateSessionResponsePgw){}
-    rpc DeleteSession (DeleteSessionRequestPgw) returns(DeleteSessionResponsePgw) {}
-    rpc SendEcho(EchoRequest) returns(EchoResponse) {}
+    rpc CreateSession(CreateSessionRequestPgw) returns (CreateSessionResponsePgw) {}
+    rpc DeleteSession(DeleteSessionRequestPgw) returns (DeleteSessionResponsePgw) {}
+    rpc SendEcho(EchoRequest) returns (EchoResponse) {}
 }
 
 // 3GPP TS 29.274  (not all 3gpp create session fields are included)
@@ -30,23 +30,24 @@ message CreateSessionRequestPgw {
     string msisdn = 3;
     string mei = 4;
 
-    ServingNetwork serving_network = 6;
-    UserLocationInformation uli = 7;
+    ServingNetwork serving_network = 5;
+    UserLocationInformation uli = 6;
 
-    RATType rat_type = 9;
-    PDNType pdn_type = 10;
-    PdnAddressAllocation paa = 11;
+    RATType rat_type = 7;
+    PDNType pdn_type = 8;
+    PdnAddressAllocation paa = 9;
 
-    string apn = 14;
-    Ambr ambr = 16;                      //Aggregate Maximum BitRate
-    SelectionModeType selection_mode = 17;
+    string apn = 10;
+    Ambr ambr = 11;                      //Aggregate Maximum BitRate
+    SelectionModeType selection_mode = 12;
 
-    BearerContext bearer_context = 20;   // Contains AGW user plane FTEID
-    uint32 c_agw_teid = 21;              // AGW control plane TEID
+    BearerContext bearer_context = 13;   // Contains AGW user plane FTEID
+    uint32 c_agw_teid = 14;              // AGW control plane TEID
 
-    bytes indication_flag = 25;
-    string charging_characteristics = 27;
-    TimeZone time_zone = 29;
+    ProtocolConfigurationOptions protocol_configuration_options = 15;
+    bytes indication_flag = 16;
+    string charging_characteristics = 17;
+    TimeZone time_zone = 18;
 }
 
 enum PDNType {
@@ -89,8 +90,18 @@ message UserLocationInformation {
 }
 
 message ServingNetwork {
-    string mcc = 1;             //TODO: change to bytes
-    string mnc = 2;             //TODO: change to bytes
+    string mcc = 1;
+    string mnc = 2;
+}
+
+message ProtocolConfigurationOptions {
+    uint32 config_protocol = 1;
+    repeated PcoProtocolOrContainerId proto_or_container_id = 2;
+}
+
+message PcoProtocolOrContainerId {
+    uint32 id = 1;
+    bytes contents = 2;
 }
 
 message BearerContext {
@@ -133,23 +144,28 @@ message Fteid {
 }
 
 message CreateSessionResponsePgw {
-    string subscriber_ip = 3;
-    uint32 apn_restriction = 4;
-    uint32 c_agw_teid = 6;              // TODO: delete
-    Fteid c_pgw_fteid = 8;
-    BearerContext bearer_context = 10;
-    //TrafficFlowTemplate saved_tft = 13;
+    PDNType pdn_type = 1;
+    PdnAddressAllocation paa = 2;       // subscriber_ip
+    uint32 apn_restriction = 3;
+    uint32 c_agw_teid = 4;
+    Fteid c_pgw_fteid = 5;
+    BearerContext bearer_context = 6;
+    ProtocolConfigurationOptions protocol_configuration_options = 7;
+    GtpError gtp_error = 8;
 }
 
 message DeleteSessionRequestPgw {
     string pgwAddrs = 1;
-    string imsi = 4;
-    uint32 bearer_id = 6;
-    uint32 c_agw_teid = 8;          // AGW control plane TEID
-    Fteid c_pgw_fteid = 9;
+    string imsi = 2;
+    uint32 bearer_id = 3;
+    uint32 c_agw_teid = 4;          // AGW control plane TEID
+    uint32 c_pgw_teid = 5;
+    ServingNetwork serving_network = 6;
+    UserLocationInformation uli = 7;
 }
 
 message DeleteSessionResponsePgw{
+    GtpError gtp_error = 1;
 }
 
 message EchoRequest{
@@ -158,4 +174,9 @@ message EchoRequest{
 }
 
 message EchoResponse{
+}
+
+message GtpError {
+    uint32 cause = 1;
+    string msg= 2;
 }

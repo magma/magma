@@ -24,6 +24,10 @@ type PaginatedSubscribers struct {
 	// subscribers
 	// Required: true
 	Subscribers map[string]*Subscriber `json:"subscribers"`
+
+	// estimated total number of subscriber entries
+	// Required: true
+	TotalCount int64 `json:"total_count"`
 }
 
 // Validate validates this paginated subscribers
@@ -35,6 +39,10 @@ func (m *PaginatedSubscribers) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSubscribers(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTotalCount(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -69,6 +77,15 @@ func (m *PaginatedSubscribers) validateSubscribers(formats strfmt.Registry) erro
 			}
 		}
 
+	}
+
+	return nil
+}
+
+func (m *PaginatedSubscribers) validateTotalCount(formats strfmt.Registry) error {
+
+	if err := validate.Required("total_count", "body", int64(m.TotalCount)); err != nil {
+		return err
 	}
 
 	return nil

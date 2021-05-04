@@ -1,0 +1,543 @@
+################################################################
+# Builder Image (can also be used as developer's image)
+################################################################
+FROM registry.access.redhat.com/ubi8/ubi:latest as magma-mme-builder
+
+ARG GIT_PROXY
+ARG FEATURES=mme_oai
+ENV MAGMA_ROOT=/magma
+ENV BUILD_TYPE=Debug
+ENV C_BUILD=/build/c
+ENV TZ=Europe/Paris
+# Copy RHEL certificates for builder image
+COPY tmp/entitlement/*.pem /etc/pki/entitlement
+COPY tmp/ca/redhat-uep.pem /etc/rhsm/ca
+
+RUN mkdir -p $C_BUILD
+
+RUN rm /etc/rhsm-host && \
+    yum repolist --disablerepo=* && \
+    subscription-manager repos --enable codeready-builder-for-rhel-8-x86_64-rpms \
+  && yum update -y \
+  && yum install -y https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm \
+  && yum install dnf-plugins-core -y \
+  && yum install -y --enablerepo="codeready-builder-for-rhel-8-x86_64-rpms" \
+    psmisc \
+    git \
+    python3 \
+    python3-setuptools \
+    python3-pip \
+    libselinux-python3 \
+    vim \
+    gcc \
+    automake \
+    autoconf \
+    tmux \
+    ninja-build \
+    json-devel \
+    libxml2-devel \
+    libconfig-devel \
+    czmq-devel \
+    libasan \
+    liblsan \
+    libubsan \
+    protobuf-compiler \
+    ruby \
+    ruby-devel \
+  && ln -s /usr/bin/python3 /usr/bin/python
+
+RUN yum install -y \
+    gnupg \
+    wget \
+    autoconf \
+    automake \
+    make \
+    bzip2 \
+    libtool \
+    curl \
+    make \
+    unzip \
+    git \
+    git-clang-format \
+    clang-tools-extra \
+    ninja-build \
+    pkg-config \
+    gcc \
+    gcc-c++ \
+    ca-certificates \
+    vim \
+    openssl-devel \
+    golang \
+    python2 \
+    perl \
+    # Install FMT lib requirements
+    elfutils-libelf-devel-static \
+    libdwarf-devel \
+    # Install Folly requirements
+    cmake \
+    boost \
+    boost-devel \
+    libevent-devel \
+    glog-devel \
+    gflags-devel \
+    lz4-devel \
+    zlib-devel \
+    binutils-devel \
+    bzip2-devel \
+    libaio-devel \
+    # Install FreeDiameter requirements
+    lksctp-tools \
+    lksctp-tools-devel \
+    bison \
+    flex \
+    patch \
+    libidn-devel \
+    libgcrypt-devel \
+    # Install libgtpnl requirements
+    libmnl-devel \
+    libtins-dev \
+    # Install Nettle requirements
+    libconfig-devel \
+    libxml2-devel \
+    libyaml-devel \
+    gmp-devel \
+    xz \
+    # Install czmq requirements
+    uuid-devel \
+  && ln -s /usr/bin/python2.7 /usr/local/bin/python
+
+RUN yum install -y \
+    # for some reasons diff, cmp and file are not present in ubi
+    diffutils \
+    file \
+    # debugging
+    gdb \
+    iputils \
+    net-tools \
+    valgrind \
+    tcpdump \
+    openssh-server \
+    tree
+
+RUN yum install -y \
+    # redis is temporary --> has to be deployed w/ an other pod/container
+    redis \
+  && yum clean all -y \
+  && rm -rf /var/cache/yum
+
+# Add Converged MME sources to the container
+WORKDIR /patches
+COPY  lte/gateway/c/oai/patches/folly-gflagslib-fix.patch .
+COPY  lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch .
+COPY  lte/gateway/c/oai/patches/libzmq-strncpy.patch .
+COPY  lte/gateway/c/oai/patches/czmq-strncat.patch .
+COPY  lte/gateway/c/oai/patches/CMake-warnings-not-errors.patch .
+
+# In some network environments, GIT proxy is required
+RUN /bin/bash -c "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"
+
+# All works will be done from root of file system
+WORKDIR /
+
+# git clone may fail on our OC cluster (could not resolve github.com, other sites
+# may happen), we may have to tweak some limits...
+# Prefer to fail as soon as possible if it has to happen
+RUN  git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
+     git clone https://github.com/jupp0r/prometheus-cpp.git && \
+     git clone https://github.com/cpp-redis/cpp_redis.git && \
+     wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
+     wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+     wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
+     git clone https://git.osmocom.org/libgtpnl && \
+     git clone https://github.com/OPENAIRINTERFACE/asn1c.git && \
+     git clone https://github.com/fmtlib/fmt.git && \
+     git clone --depth=1 --branch=v3.1.5 https://github.com/google/double-conversion.git && \
+     git clone --depth=1 --branch=v1.2.1 https://github.com/libunwind/libunwind.git && \
+     git clone https://github.com/facebook/folly.git /folly && \
+     git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
+     git clone https://github.com/jbeder/yaml-cpp.git && \
+     git clone https://github.com/nlohmann/json.git && \
+     git clone --branch=v4.2.3 https://github.com/zeromq/libzmq.git
+
+##### GRPC and it's dependencies
+RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
+    echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf && \
+    # Moved git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
+    echo "Install c-ares" && \
+    cd grpc && \
+    cd third_party/cares/cares && \
+    git fetch origin && \
+    git checkout cares-1_13_0 && \
+    mkdir -p cmake/build && \
+    cd cmake/build && \
+    cmake3 -DCMAKE_BUILD_TYPE=Release ../.. && \
+    make -j`nproc` && \
+    make install && \
+    cd ../../../../.. && \
+    rm -rf third_party/cares/cares && \
+    echo "Install zlib" && \
+    cd third_party/zlib && \
+    mkdir -p cmake/build && \
+    cd cmake/build && \
+    cmake3 -DCMAKE_BUILD_TYPE=Release ../.. && \
+    make -j`nproc` && \
+    make install && \
+    cd ../../../.. && \
+    rm -rf third_party/zlib && \
+    echo "Install protobuf" && \
+    cd third_party/protobuf && \
+    git submodule update --init --recursive  && \
+    ./autogen.sh  && \
+    ./configure  && \
+    make -j`nproc` && \
+    make install && \
+    cd ../.. && \
+    rm -rf third_party/protobuf && \
+    ldconfig && \
+    echo "Install GRPC" && \
+    mkdir -p cmake/build && \
+    cd cmake/build && \
+    cmake3 \
+        -DgRPC_INSTALL=ON \
+        -DBUILD_SHARED_LIBS=ON \
+        -DgRPC_BUILD_TESTS=OFF \
+        -DgRPC_PROTOBUF_PROVIDER=package \
+        -DgRPC_ZLIB_PROVIDER=package \
+        -DgRPC_CARES_PROVIDER=package \
+        -DgRPC_SSL_PROVIDER=package \
+        -DCMAKE_BUILD_TYPE=Release \
+        ../.. && \
+    make -j`nproc` && \
+    make install
+
+##### Prometheus CPP
+RUN cd prometheus-cpp && \
+    # Moved git clone https://github.com/jupp0r/prometheus-cpp.git && \
+    git checkout d8326b2bba945a435f299e7526c403d7a1f68c1f && \
+    git submodule init && git submodule update && \
+    mkdir _build && \
+    cd _build/ && \
+    cmake3 .. && \
+    make -j`nproc` && \
+    make install
+
+##### Redis CPP
+RUN cd cpp_redis && \
+    # Moved git clone https://github.com/cpp-redis/cpp_redis.git && \
+    git checkout bbe38a7f83de943ffcc90271092d689ae02b3489 && \
+    git submodule init && git submodule update && \
+    mkdir build && cd build && \
+    cmake3 .. -DCMAKE_BUILD_TYPE=Release && \
+    make -j`nproc` && \
+    make install
+
+##### NETTLE / gnutls
+RUN tar -xf nettle-2.5.tar.gz && \
+    # Moved wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
+    cd nettle-2.5 && \
+    mkdir build && \
+    cd build/ && \
+    ../configure --libdir=/usr/local/lib && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig -v && \
+    cd / && \
+    # Moved wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    tar xf gnutls-3.1.23.tar.xz && \
+    cd gnutls-3.1.23 && \
+    ./configure --with-libnettle-prefix=/usr/local && \
+    sed -i -e "s#elif 0#elif 1#" gl/fseterr.c && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig -v
+
+##### liblfds
+# https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
+RUN tar -xf liblfds\ release\ 7.1.0\ source.tar.bz2  && \
+    # Moved wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
+    cd liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
+    make -j`nproc` && \
+    make ar_install
+
+##### libgtpnl
+# review https://github.com/OPENAIRINTERFACE/openair-cn/blob/master/build/tools/build_helper.gtpnl
+RUN cd libgtpnl && \
+    # Moved git clone https://git.osmocom.org/libgtpnl && \
+    git reset --hard 345d687 && \
+    autoreconf -fi && \
+    ./configure && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig
+
+#####  asn1c
+RUN cd asn1c && \
+    # Moved git clone https://github.com/OPENAIRINTERFACE/asn1c.git && \
+    git checkout f12568d617dbf48497588f8e227d70388fa217c9 && \
+    autoreconf -iv && \
+    ./configure && \
+    make -j`nproc` && \
+    make install
+
+##### Facebook Folly C++ lib
+RUN echo "Install fmtlib required by Folly" && \
+    # Moved git clone https://github.com/fmtlib/fmt.git && \
+    cd fmt && \
+    mkdir _build && cd _build && \
+    cmake3 .. && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig && \
+    cd / && \
+    echo "Install Double Conversion" && \
+    # Moved git clone --depth=1 --branch=v3.1.5 https://github.com/google/double-conversion.git && \
+    cd double-conversion && \
+    cmake3 -DBUILD_SHARED_LIBS=ON . && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig && \
+    cd / && \
+    echo "Install Unwind" && \
+    # Moved git clone --depth=1 --branch=v1.2.1 https://github.com/libunwind/libunwind.git && \
+    cd libunwind && \
+    ./autogen.sh && \
+    ./configure && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig && \
+    cd / && \
+    echo "Install Folly" && \
+    # Moved git clone https://github.com/facebook/folly.git /folly && \
+    cd /folly && \
+    git checkout -f efe2962d54734d9e899f592dfaa68055e7752858 && \
+    patch -p1 < /patches/folly-gflagslib-fix.patch && \
+    mkdir _build && \
+    cd _build && \
+    # cmake "-DFPHSA_NAME_MISMATCHED=true" .. && \
+    cmake \
+   "-DCMAKE_INCLUDE_PATH=/usr/local/include/double-conversion" \
+   "-DCMAKE_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64" \
+    .. && \
+    make -j`nproc` && \
+    make install
+
+##### FreeDiameter
+RUN cd freediameter && \
+    # Moved git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
+    git pull origin master && \
+    git log -n1 && \
+    echo "Patching dict_S6as6d" && \
+    patch -p1 < /patches/0001-opencoord.org.freeDiameter.patch && \
+    mkdir build && \
+    cd build && \
+    cmake3 ../ && \
+    grep DISABLE_SCTP CMakeCache.txt && \
+    awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
+    grep DISABLE_SCTP CMakeCache.txt && \
+    make -j`nproc` && \
+    make install
+
+##### lib nlohmann json
+RUN cd json && \
+    # Moved git clone https://github.com/nlohmann/json.git && \
+    git log -n1 && \
+    mkdir _build && \
+    cd _build && \
+    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .. && \
+    make -j`nproc` && \
+    make install && \
+    cp /usr/local/include/nlohmann/json.hpp /usr/local/include/
+
+##### lib yaml-cpp
+RUN cd yaml-cpp && \
+    # Moved git clone https://github.com/jbeder/yaml-cpp.git && \
+    git checkout -f yaml-cpp-0.6.3 && \
+    mkdir _build && \
+    cd _build && \
+    cmake -DYAML_BUILD_SHARED_LIBS=ON .. && \
+    make -j`nproc` && \
+    make install
+
+##### lib czmq
+RUN cd libzmq && \
+    # Moved git clone --branch=v4.2.3 https://github.com/zeromq/libzmq.git && \
+    patch -p1 < /patches/libzmq-strncpy.patch && \
+    ./autogen.sh && \
+    ./configure && \
+    make -j`nproc` && \
+    make install && \
+    git clone --branch=v4.1.0 https://github.com/zeromq/czmq.git && \
+    cd czmq && \
+    patch -p1 < /patches/czmq-strncat.patch && \
+    ./autogen.sh && \
+    ./configure && \
+    make -j`nproc` && \
+    make install
+
+# Add Converged MME sources to the container
+COPY ./ $MAGMA_ROOT
+
+# Build MME executables
+RUN ldconfig --verbose && \
+    export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
+    cd $MAGMA_ROOT/lte/gateway && \
+    echo $FEATURES && \
+    make build_oai && \
+    make build_sctpd
+
+# Prepare config file
+RUN yum install -y python3-pip && \
+    pip3 install jinja2-cli && \
+    cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
+    echo -e '{ \n' \
+    '"realm": "magma.com",	 \n'\
+    '"use_stateless": "", \n'\
+    '"conf_dir": "/magma-mme/etc", \n'\
+    '"hss_hostname": "hss", \n'\
+    '"mcc": "001", \n'\
+    '"mnc": "01", \n'\
+    '"mmeGid": "1", \n'\
+    '"mmeCode": "1", \n'\
+    '"tac": "1", \n'\
+    '"non_eps_service_control": "OFF", \n'\
+    '"csfb_mcc": "001", \n'\
+    '"csfb_mnc": "01", \n'\
+    '"lac": "1", \n'\
+    '"s1ap_iface_name": "eth0", \n'\
+    '"s1ap_ip": "192.168.61.133/24", \n'\
+    '"s11_iface_name": "eth0", \n'\
+    '"mme_s11_ip": "192.168.61.133/24", \n'\
+    '"oai_log_level": "INFO", \n'\
+    '"remote_sgw_ip": "192.168.61.130", \n'\
+    '"attachedEnodebTacs": [], \n'\
+    '"attached_enodeb_tacs": [1] }' \
+    > mme_vars.json && \
+    jinja2 ../../../configs/templates/mme.conf.template mme_vars.json --format=json  > mme.conf
+
+# For developer's to have the same run env as in target image to debug
+# Copy the configuration file templates and mean to modify/generate certificates
+WORKDIR /magma-mme/bin
+RUN cp $C_BUILD/oai/oai_mme/mme oai_mme
+RUN cp $C_BUILD/sctpd/sctpd .
+WORKDIR /magma-mme/etc
+RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
+RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
+
+# Create running dirs
+WORKDIR /var/opt/magma/configs
+# Adding mme configuration for stateful run
+RUN echo "use_stateless: false" > mme.yml
+WORKDIR /usr/local/etc/redis
+RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
+
+WORKDIR /etc/magma
+RUN cp $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
+RUN cp $MAGMA_ROOT/lte/gateway/configs/redis.yml .
+RUN cp $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
+
+WORKDIR /magma-mme/scripts
+RUN cp $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
+RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
+RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
+
+WORKDIR /magma-mme
+RUN openssl rand -out /root/.rnd 128
+
+################################################################
+# Target Image
+################################################################
+FROM registry.access.redhat.com/ubi8/ubi:latest as magma-mme
+ENV MAGMA_ROOT=/magma
+ENV C_BUILD=/build/c
+
+# Install a few tools (may not be necessary later on)
+ENV TZ=Europe/Paris
+RUN yum update -y && \
+    yum -y install --enablerepo="ubi-8-codeready-builder" \
+      libubsan \
+      libasan \
+      psmisc \
+      psmisc \
+      openssl \
+      net-tools \
+      tzdata && \
+    echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
+    echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf && \
+    yum clean all -y && \
+    rm -rf /var/cache/yum
+
+# Copy runtime-used shared libraries from builder
+WORKDIR /lib64
+COPY --from=magma-mme-builder /lib64/libsctp.so.1 .
+COPY --from=magma-mme-builder /lib64/libconfig.so.9 .
+COPY --from=magma-mme-builder /lib64/libboost_program_options.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libboost_filesystem.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libboost_system.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libboost_regex.so.1.66.0 .
+COPY --from=magma-mme-builder /lib64/libgflags.so.2.1 .
+COPY --from=magma-mme-builder /lib64/libglog.so.0 .
+COPY --from=magma-mme-builder /lib64/libczmq.so.3 .
+COPY --from=magma-mme-builder /lib64/libicudata.so.60 .
+COPY --from=magma-mme-builder /lib64/libicui18n.so.60 .
+COPY --from=magma-mme-builder /lib64/libicuuc.so.60 .
+COPY --from=magma-mme-builder /lib64/libidn.so.11 .
+
+WORKDIR /usr/local/lib
+COPY --from=magma-mme-builder /usr/local/lib/libnettle.so.4 .
+COPY --from=magma-mme-builder /usr/local/lib/libgnutls.so.28 .
+COPY --from=magma-mme-builder /usr/local/lib/libgrpc.so .
+COPY --from=magma-mme-builder /usr/local/lib/libgrpc++.so .
+COPY --from=magma-mme-builder /usr/local/lib/libgpr.so .
+COPY --from=magma-mme-builder /usr/local/lib/libyaml-cpp.so.0.6 .
+COPY --from=magma-mme-builder /usr/local/lib/libcares.so.2 .
+COPY --from=magma-mme-builder /usr/local/lib/libaddress_sorting.so  .
+COPY --from=magma-mme-builder /usr/local/lib/libunwind.so.8 .
+COPY --from=magma-mme-builder /usr/local/lib/libfdproto.so.6 .
+COPY --from=magma-mme-builder /usr/local/lib/libfdcore.so.6 .
+COPY --from=magma-mme-builder /usr/local/lib/libprotobuf.so.17 .
+COPY --from=magma-mme-builder /usr/local/lib/libhogweed.so.2 .
+COPY --from=magma-mme-builder /usr/local/lib/libzmq.so.5 .
+
+WORKDIR /usr/local/lib64
+COPY --from=magma-mme-builder /usr/local/lib64/libdouble-conversion.so.3 .
+
+# Copy all fdx files from freeDiameter installation
+WORKDIR /usr/local/lib/freeDiameter
+COPY --from=magma-mme-builder /usr/local/lib/freeDiameter/* ./
+
+# Refresh library cache
+RUN ldconfig -v
+
+# Copy pre-built binaries for MME and SCTPD
+WORKDIR /magma-mme/bin
+COPY --from=magma-mme-builder $C_BUILD/oai/oai_mme/mme oai_mme
+COPY --from=magma-mme-builder $C_BUILD/sctpd/sctpd .
+
+# Copy the configuration file templates and mean to modify/generate certificates
+WORKDIR /magma-mme/etc
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
+
+# Create running dirs
+WORKDIR /var/opt/magma/configs
+# Adding mme configuration for stateful run
+RUN echo "use_stateless: false" > mme.yml
+WORKDIR /usr/local/etc/redis
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
+
+WORKDIR /etc/magma
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/redis.yml .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
+
+# Adding means to re-generate certificates
+WORKDIR /magma-mme/scripts
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
+RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
+RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
+
+WORKDIR /magma-mme
+RUN openssl rand -out /root/.rnd 128
+
+# For the moment, let have a dummy command
+CMD ["sleep", "infinity"]

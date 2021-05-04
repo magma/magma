@@ -1,0 +1,93 @@
+- name: orc8r | Ensure orc8r helm repo
+  command: helm repo add orc8r {{ orc8r_helm_repo }}
+
+- name: orc8r | Update repo metadata
+  command: helm repo update
+
+- name: orc8r | Ensure namespace
+  command: kubectl create ns {{ magma_namespace }}
+  failed_when: false
+
+- name: orc8r | Set orc8r version
+  set_fact:
+    orc8r_version: "{% if orc8r_image_tag is version('1.4', '<') %}1.3{% else %}1.4{% endif %}"
+
+- name: orc8r | set monitoring docker image tags
+  include_vars: "{{ orc8r_version }}.yml"
+
+- name: orc8r | Ensure orc8r dirs
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: yes
+  with_items:
+    - "{{ orc8r_config_dir }}"
+    - "{{ orc8r_charts_dir }}"
+    - "{{ orc8r_certs_dir }}"
+
+- name: orc8r | create certificates
+  include_tasks: certs.yml
+
+- name: orc8r | Template out helm chart values
+  template:
+    src: orc8r-values-{{ orc8r_version }}.yaml.j2
+    dest: "{{ charts_dir }}/{{ item }}-values.yaml"
+  with_items:
+    - orc8r
+
+- name: orc8r | template DB setup script
+  template:
+    src: db_setup.sql.j2
+    dest: "{{ orc8r_config_dir }}/db_setup.sql"
+    mode: 600
+
+- name: orc8r | copy orc8r settings secrets
+  copy:
+    src: "{{ item }}"
+    dest: "{{ orc8r_config_dir }}/{{ item }}"
+    mode: 0600
+  with_items:
+    - orc8r-configs.yaml
+    - orc8r-envdir.yaml
+
+- name: orc8r | create orc8r settings secrets
+  command: kubectl -n {{ magma_namespace }} apply -f {{ orc8r_config_dir }}/{{ item }}
+  with_items:
+    - orc8r-configs.yaml
+    - orc8r-envdir.yaml
+
+- name: orc8r | run DB setup script
+  shell: kubectl -n mariadb exec -i mariadb-0 -- mysql -u root "--password={{ db_root_password }}" mysql < db_setup.sql
+  args:
+    chdir: "{{ orc8r_config_dir }}"
+
+- name: orc8r | precreate persistentvolumeclaims for components
+  script: make_magma_pvcs.sh {{ magma_namespace }} {{ storage_class }} ReadWriteMany {{ item.key }} {{ item.value }}
+  with_items: "{{ magma_pvcs | dict2items }}"
+
+- name: orc8r | Install/upgrade helm charts
+  command: >-
+    helm upgrade --install
+    -n {{ magma_namespace }}
+    {{ item }}
+    orc8r/{{ item }}
+    {% if orc8r_chart_version is defined %} --version {{ orc8r_chart_version }}{% endif %}
+    -f {{ charts_dir }}/{{ item }}-values.yaml
+    --wait
+  with_items:
+    - orc8r
+
+- name: orc8r | Get orc8r certifier pod
+  command: kubectl -n {{ magma_namespace }} get pod -l app.kubernetes.io/component=certifier  -o jsonpath='{.items[0].metadata.name}'
+  register: orc8r_pod
+
+- name: orc8r | Get nms pod
+  command: kubectl -n {{ magma_namespace }} get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}'
+  register: nms_pod
+
+- name: orc8r | Import admin_operator cert to orc8r
+  command:  kubectl -n {{ magma_namespace }} exec {{ orc8r_pod.stdout | trim }} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
+  failed_when: false
+
+- name: orc8r | Set admin password in nms
+  command: kubectl -n {{ magma_namespace }} exec {{ nms_pod.stdout | trim }} -- yarn setAdminPassword master {{ orc8r_nms_admin_email }} {{ orc8r_nms_admin_pass }}

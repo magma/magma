@@ -183,9 +183,12 @@ nms:
 
     env:
       api_host: ${api_hostname}
-      mysql_db: ${nms_db_name}
-      mysql_host: ${nms_db_host}
-      mysql_user: ${nms_db_user}
+      mysql_db: ${orc8r_db_name}
+      mysql_dialect: ${orc8r_db_dialect}
+      mysql_host: ${orc8r_db_host}
+      mysql_port: ${orc8r_db_port}
+      mysql_user: ${orc8r_db_user}
+      mysql_pass: ${orc8r_db_pass}
       grafana_address: ${user_grafana_hostname}
 
   nginx:

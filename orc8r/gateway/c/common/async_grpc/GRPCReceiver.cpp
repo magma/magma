@@ -10,8 +10,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #include "GRPCReceiver.h"
-#include "magma_logging.h"
+#include <ostream>          // for operator<<, char_traits
+#include "magma_logging.h"  // for MLOG
 
 namespace magma {
 
@@ -34,6 +36,12 @@ void GRPCReceiver::rpc_response_loop() {
 void GRPCReceiver::stop() {
   running_ = false;
   queue_.Shutdown();
+  // Pop all items in the queue until it is empty
+  // https://github.com/grpc/grpc/issues/8610
+  void* tag;
+  bool ok;
+  while (queue_.Next(&tag, &ok)) {
+  }
 }
 
 }  // namespace magma

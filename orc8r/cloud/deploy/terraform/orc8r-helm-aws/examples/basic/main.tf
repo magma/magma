@@ -17,7 +17,6 @@ module "orc8r" {
 
   region = "us-west-2"
 
-  nms_db_password             = "mypassword" # must be at least 8 characters
   orc8r_db_password           = "mypassword" # must be at least 8 characters
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
@@ -50,15 +49,12 @@ module "orc8r-app" {
   secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
   seed_certs_dir            = "~/secrets/certs"
 
-  orc8r_db_host = module.orc8r.orc8r_db_host
-  orc8r_db_name = module.orc8r.orc8r_db_name
-  orc8r_db_user = module.orc8r.orc8r_db_user
-  orc8r_db_pass = module.orc8r.orc8r_db_pass
-
-  nms_db_host = module.orc8r.nms_db_host
-  nms_db_name = module.orc8r.nms_db_name
-  nms_db_user = module.orc8r.nms_db_user
-  nms_db_pass = module.orc8r.nms_db_pass
+  orc8r_db_host    = module.orc8r.orc8r_db_host
+  orc8r_db_port    = module.orc8r.orc8r_db_port
+  orc8r_db_dialect = module.orc8r.orc8r_db_dialect
+  orc8r_db_name    = module.orc8r.orc8r_db_name
+  orc8r_db_user    = module.orc8r.orc8r_db_user
+  orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
   # Note that this can be any container registry provider -- the example below
   # provides the URL format for Docker Hub, where the user and pass are your

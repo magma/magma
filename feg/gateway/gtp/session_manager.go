@@ -20,11 +20,10 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
-
 	"magma/feg/gateway/gtp/enriched_message"
 
+	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/message"
 )
@@ -37,6 +36,8 @@ func (c *Client) SendMessageAndExtractGrpc(imsi string, srcTEID uint32, peerAddr
 	proto.Message, error) {
 	// Receive Create Session Response
 	session := c.getSessionOrCreateNew(imsi, srcTEID, peerAddr)
+	// session will be removed once we are done. No need to keep it
+	defer c.RemoveSession(session)
 
 	sequence, err := c.SendMessageTo(msg, session.PeerAddr())
 	if err != nil {
@@ -49,7 +50,6 @@ func (c *Client) SendMessageAndExtractGrpc(imsi string, srcTEID uint32, peerAddr
 	}
 	grpcMsg, err := enriched_message.ExtractGrpcMessageFromGtpMessage(incomingMsg)
 	if err != nil {
-		c.RemoveSession(session)
 		return nil, fmt.Errorf("GTP server return an error: %s", err)
 	}
 	return grpcMsg, nil
@@ -83,12 +83,12 @@ func (c *Client) RemoveSessionByIMSI(imsi string) {
 // If there were an error during parsing, enriched_message will contain that error
 // If session can not be found, then the caller will never receive an answer and will time out
 func (c *Client) PassMessage(teid uint32, senderAddr net.Addr,
-	gtpMessage message.Message, grpcMessage proto.Message, incommingError error) error {
+	gtpMessage message.Message, grpcMessage proto.Message, incomingError error) error {
 	session, err := c.GetSessionByTEID(teid, senderAddr)
 	if err != nil {
 		return err
 	}
-	enrichedMsg := enriched_message.NewMessageWithGrpc(gtpMessage, grpcMessage, incommingError)
+	enrichedMsg := enriched_message.NewMessageWithGrpc(gtpMessage, grpcMessage, incomingError)
 	// pass message to same session
 	if err = gtpv2.PassMessageTo(session, enrichedMsg, c.GtpTimeout); err != nil {
 		return err

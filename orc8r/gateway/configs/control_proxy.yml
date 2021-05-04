@@ -36,3 +36,8 @@ proxy_cloud_connections: True
 
 # Allows http_proxy usage if the environment variable is present
 allow_http_proxy: True
+
+# Dummy URL to Sentry logging -> Modify to local sentry instance in order
+# to pipe error handling to sentry
+sentry_url: ""
+sentry_sample_rate: 1.0

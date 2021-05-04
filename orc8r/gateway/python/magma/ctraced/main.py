@@ -11,16 +11,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
-from .rpc_servicer import CtraceDRpcServicer
-from .trace_manager import TraceManager
+from magma.common.service_registry import ServiceRegistry
+from magma.ctraced.rpc_servicer import CtraceDRpcServicer
+from magma.ctraced.trace_manager import TraceManager
+from orc8r.protos.ctraced_pb2_grpc import CallTraceControllerStub
 from orc8r.protos.mconfig.mconfigs_pb2 import CtraceD
+
 
 def main():
     """ main() for ctraced """
     service = MagmaService('ctraced', CtraceD())
 
-    trace_manager = TraceManager(service.config)
+    # Optionally pipe errors to Sentry
+    sentry_init()
+
+    orc8r_chan = ServiceRegistry.get_rpc_channel('ctraced',
+                                                 ServiceRegistry.CLOUD)
+    ctraced_stub = CallTraceControllerStub(orc8r_chan)
+
+    trace_manager = TraceManager(service.config, ctraced_stub)
 
     ctraced_servicer = CtraceDRpcServicer(trace_manager)
     ctraced_servicer.add_to_server(service.rpc_server)

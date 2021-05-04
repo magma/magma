@@ -14,12 +14,12 @@
 package mock_pipelined
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
 	"magma/lte/cloud/go/protos"

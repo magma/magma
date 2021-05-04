@@ -14,7 +14,6 @@ limitations under the License.
 package collection
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -31,7 +30,7 @@ func ParsePrometheusText(prometheusText string) (map[string]*dto.MetricFamily, e
 	parser := expfmt.TextParser{}
 	metricFamilies, err := parser.TextToMetricFamilies(reader)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Error parsing metric families from text: %s", err))
+		return nil, fmt.Errorf("Error parsing metric families from text: %s", err)
 	}
 
 	return metricFamilies, nil

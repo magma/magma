@@ -12,9 +12,18 @@
  */
 #pragma once
 
-#include <atomic>
-#include <grpc++/grpc++.h>
-#include <lte/protos/session_manager.grpc.pb.h>
+#include <grpcpp/impl/codegen/client_context.h>    // for ClientContext
+#include <grpcpp/impl/codegen/completion_queue.h>  // for CompletionQueue
+#include <grpcpp/impl/codegen/status.h>            // for Status
+#include <stdint.h>                                // for uint32_t
+#include <atomic>                                  // for atomic
+#include <chrono>                                  // for operator+, seconds
+#include <functional>                              // for function
+#include <memory>                                  // for unique_ptr
+namespace grpc {
+template<class R>
+class ClientAsyncResponseReader;
+}
 
 namespace magma {
 
@@ -48,6 +57,7 @@ class GRPCReceiver {
  */
 class AsyncResponse {
  public:
+  virtual ~AsyncResponse() = default;
   /**
    * Override handle_response to be called when a response comes into the queue
    */

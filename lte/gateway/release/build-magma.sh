@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Copyright 2020 The Magma Authors.
+# Copyright 2021 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
 # LICENSE file in the root directory of this source tree.
@@ -14,14 +14,14 @@
 # This script builds Magma based on the current state of your repo. It needs to
 # be run inside the VM.
 
-set -e
+set -ex
 shopt -s extglob
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.5.0 # magma version number
-SCTPD_MIN_VERSION=1.5.0 # earliest version of sctpd with which this version is compatible
+VERSION=1.6.0 # magma version number
+SCTPD_MIN_VERSION=1.6.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -30,6 +30,7 @@ BUILD_TYPE=Debug
 COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
 CERT_FILE="$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 CONTROL_PROXY_FILE="$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
+OS="debian"
 
 while [[ $# -gt 0 ]]
 do
@@ -55,11 +56,16 @@ case $key in
     CONTROL_PROXY_FILE="$2"
     shift
     ;;
+    --os)
+    OS="$2"
+    shift
+    ;;
     *)
     echo "Error: unknown cmdline option:" $key
     echo "Usage: $0 [-v|--version V] [-i|--iteration I] [-h|--hash HASH]
     [-t|--type Debug|RelWithDebInfo] [-c|--cert <path to cert .pem file>]
-    [-p|--proxy <path to control_proxy config .yml file]>"
+    [-p|--proxy <path to control_proxy config .yml file]>
+    [-u|--build-buntu build packages for ubuntu>"
     exit 1
     ;;
 esac
@@ -78,6 +84,19 @@ case $BUILD_TYPE in
     ;;
 esac
 
+case $OS in
+    debian)
+    ;;
+    ubuntu)
+    echo "Ubuntu package build"
+    ;;
+    *)
+    echo "Error: unknown OS option:" $OS
+    echo "Usage: [--os debian|ubuntu]"
+    exit 1
+    ;;
+esac
+
 
 # Default options
 BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
@@ -90,7 +109,6 @@ SCTPD_PKGNAME=magma-sctpd
 # here.
 MAGMA_DEPS=(
     "grpc-dev >= 1.15.0"
-    "libprotobuf10 >= 3.0.0"
     "lighttpd >= 1.4.45"
     "libxslt1.1"
     "nghttp2-proxy >= 1.18.1"
@@ -105,7 +123,6 @@ MAGMA_DEPS=(
     "libsystemd-dev"
     "libyaml-cpp-dev" # install yaml parser
     "libgoogle-glog-dev"
-    "nlohmann-json-dev" # c++ json parser
     "python-redis"
     "magma-cpp-redis"
     "libfolly-dev" # required for C++ services
@@ -120,30 +137,56 @@ MAGMA_DEPS=(
     "getenvoy-envoy" # for envoy dep
     )
 
+if grep -q stretch /etc/os-release; then
+    MAGMA_DEPS+=("libprotobuf10 >= 3.0.0")
+    MAGMA_DEPS+=("nlohmann-json-dev")
+else
+    MAGMA_DEPS+=("libprotobuf17 >= 3.0.0")
+    MAGMA_DEPS+=("nlohmann-json3-dev")
+    MAGMA_DEPS+=("sentry-native")   # sessiond
+fi
+
 # OAI runtime dependencies
 OAI_DEPS=(
-    "libasan3"
     "libconfig9"
     "oai-asn1c"
-    "oai-freediameter >= 1.2.0-1"
     "oai-gnutls >= 3.1.23"
     "oai-nettle >= 1.0.1"
     "prometheus-cpp-dev >= 1.0.2"
     "liblfds710"
+    "libsctp-dev"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
-    "oai-gtp >= 4.9-5"
     )
 
+if grep -q stretch /etc/os-release; then
+    OAI_DEPS+=("libasan3")
+    OAI_DEPS+=("oai-freediameter >= 1.2.0-1")
+    OAI_DEPS+=("oai-gtp >= 4.9-9")
+else
+    OAI_DEPS+=("libasan5")
+    OAI_DEPS+=("oai-freediameter >= 0.0.2")
+fi
+
 # OVS runtime dependencies
-OVS_DEPS=(
-    "magma-libfluid >= 0.1.0.5"
-    "libopenvswitch >= 2.8.10"
-    "openvswitch-switch >= 2.8.10"
-    "openvswitch-common >= 2.8.10"
-    "python-openvswitch >= 2.8.10"
-    "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
-    )
+if [[ "$OS" == "debian" ]]; then
+    OVS_DEPS=(
+        "magma-libfluid >= 0.1.0.6"
+        "libopenvswitch >= 2.8.10"
+        "openvswitch-switch >= 2.8.10"
+        "openvswitch-common >= 2.8.10"
+        "python-openvswitch >= 2.8.10"
+        "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.10"
+        )
+else
+    OVS_DEPS=(
+        "magma-libfluid >= 0.1.0.6"
+        "libopenvswitch >= 2.14"
+        "openvswitch-switch >= 2.14"
+        "openvswitch-common >= 2.14"
+        "openvswitch-datapath-dkms >= 2.14"
+        )
+fi
 
 # generate string for FPM
 SYSTEM_DEPS=""
@@ -254,7 +297,7 @@ FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
 # adjust mtime of a setup.py to force update
 # (e.g. `touch ${PY_LTE}/setup.py`)
 pushd "${RELEASE_DIR}" || exit 1
-make -e magma.lockfile
+make os_release=$OS -e magma.lockfile
 popd
 
 cd ${PY_ORC8R}
@@ -262,15 +305,15 @@ make protos
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
 
-ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
 cd ${PY_LTE}
 make protos
 make swagger
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
-${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py
-LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
+${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile.$OS setup.py
+LTE_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile.$OS`
 
 # now the binaries are built, we can package up everything else and build the
 # magma package.
@@ -288,14 +331,16 @@ ANSIBLE_FILES="${MAGMA_ROOT}/lte/gateway/deploy/roles/magma/files"
 
 SCTPD_VERSION_FILE=$(mktemp)
 SCTPD_MIN_VERSION_FILE=$(mktemp)
+COMMIT_HASH_FILE=$(mktemp)
 
 # files to be removed should be safely named (no special chars from mktemp)
 # use current value (see https://github.com/koalaman/shellcheck/wiki/SC2064)
 # shellcheck disable=SC2064
-trap "rm -f '${SCTPD_VERSION_FILE}' '${SCTPD_MIN_VERSION_FILE}'" EXIT
+trap "rm -f '${SCTPD_VERSION_FILE}' '${SCTPD_MIN_VERSION_FILE}' '${COMMIT_HASH_FILE}'" EXIT
 
 echo "${FULL_VERSION}" > "${SCTPD_VERSION_FILE}"
 echo "${SCTPD_MIN_VERSION}" > "${SCTPD_MIN_VERSION_FILE}"
+echo "COMMIT_HASH=\"${COMMIT_HASH}\"" > "${COMMIT_HASH_FILE}"
 
 BUILDCMD="fpm \
 -s dir \
@@ -335,6 +380,7 @@ ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
 ${CONNECTIOND_BUILD}/connectiond=/usr/local/bin/ \
 ${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
+${COMMIT_HASH_FILE}=/usr/local/share/magma/commit_hash \
 $(glob_files "${SERVICE_DIR}/magma@.service" /etc/systemd/system/magma@.service) \
 $(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/magma@control_proxy.service) \
 $(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@magmad.service) \
@@ -361,12 +407,13 @@ $(glob_files "${ANSIBLE_FILES}/magma_modules_load" /etc/modules-load.d/magma.con
 $(glob_files "${ANSIBLE_FILES}/configure_envoy_namespace.sh" /usr/local/bin/ ) \
 $(glob_files "${ANSIBLE_FILES}/envoy.yaml" /var/opt/magma/ ) \
 $(glob_files "${ANSIBLE_FILES}/logrotate_oai.conf" /etc/logrotate.d/oai) \
-$(glob_files "${ANSIBLE_FILES}/logrotate_rsyslog.conf" /etc/logrotate.d/rsyslog) \
+$(glob_files "${ANSIBLE_FILES}/logrotate_rsyslog.conf" /etc/logrotate.d/rsyslog.magma) \
 $(glob_files "${ANSIBLE_FILES}/local-cdn/*" /var/www/local-cdn/) \
 ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
 ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
+${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.5/dist-packages/ryu/ofproto/nx_actions.py \
 ${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
 ${PY_PROTOS}=${PY_DEST} \
@@ -377,11 +424,14 @@ $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
 
 eval "$BUILDCMD"
 
-cd "${MAGMA_ROOT}"
-OVS_DIFF_LINES=$(git diff master -- third_party/gtp_ovs/ lte/gateway/release/build-ovs.sh | wc -l | tr -dc 0-9)
+if grep -q stretch /etc/os-release; then
+  cd "${MAGMA_ROOT}"
+  OVS_DIFF_LINES=$(git diff master -- third_party/gtp_ovs/ lte/gateway/release/build-ovs.sh | wc -l | tr -dc 0-9)
 
-# if env var FORCE_OVS_BUILD is non-empty or there is are changes to openvswitch-related files build openvswitch
-if [[ x"${FORCE_OVS_BUILD}" != "x" || x"${OVS_DIFF_LINES}" != x0 ]]; then
-    cd "${PWD}"
-    "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
+  # if env var FORCE_OVS_BUILD is non-empty or there is are changes to openvswitch-related files build openvswitch
+  if [[ x"${FORCE_OVS_BUILD}" != "x" || x"${OVS_DIFF_LINES}" != x0 ]]; then
+      cd "${PWD}"
+      "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
+  fi
 fi
+

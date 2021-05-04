@@ -63,9 +63,8 @@ class SessionManagerHandlerTest : public ::testing::Test {
     events_reporter        = std::make_shared<MockEventsReporter>();
     auto default_mconfig   = get_default_mconfig();
     local_enforcer         = std::make_shared<LocalEnforcer>(
-        reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, events_reporter, spgw_client, aaa_client, 0, 0,
-        default_mconfig);
+        reporter, rule_store, *session_store, pipelined_client, events_reporter,
+        spgw_client, aaa_client, 0, 0, default_mconfig);
     evb = new folly::EventBase();
     std::thread([&]() {
       std::cout << "Started event loop thread\n";
@@ -86,6 +85,11 @@ class SessionManagerHandlerTest : public ::testing::Test {
     teids1.set_enb_teid(TEID_1_DL);
   }
 
+  virtual void TearDown() {
+    local_enforcer->stop();
+    delete evb;
+  }
+
   void insert_static_rule(
       std::shared_ptr<StaticRuleStore> rule_store, const std::string& m_key,
       uint32_t charging_key, const std::string& rule_id) {
@@ -97,9 +101,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
     rule_store->insert_rule(rule);
   }
 
-  // This function should always be called at the beginning of the test to
-  // prevent unexpected SessionD <-> PipelineD syncing logic mid-test.
-  void send_empty_table_and_wait_for_setup(SetupFlowsResult_Result res) {
+  void send_empty_table() {
     RuleRecordTable empty_table;
     // epoch indicates the last PipelineD service start time
     empty_table.set_epoch(DEFAULT_PIPELINED_EPOCH);
@@ -107,12 +109,16 @@ class SessionManagerHandlerTest : public ::testing::Test {
     session_manager->ReportRuleStats(
         &context, &empty_table,
         [this](grpc::Status status, Void response_out) {});
+  }
 
+  // This function should always be called at the beginning of the test to
+  // prevent unexpected SessionD <-> PipelineD syncing logic mid-test.
+  void send_empty_table_and_wait_for_successful_setup() {
+    send_empty_table();
     EXPECT_CALL(
         *pipelined_client, setup_lte(testing::_, testing::_, testing::_))
         .Times(1)
-        .WillOnce(
-            testing::DoAll(CallSetupCallback(res), testing::Return(true)));
+        .WillOnce(CallSetupCallback(SetupFlowsResult_Result_SUCCESS));
     evb->loopOnce();
     evb->loopOnce();
   }
@@ -133,7 +139,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
 };
 
 TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
-  send_empty_table_and_wait_for_setup(SetupFlowsResult_Result_SUCCESS);
+  send_empty_table_and_wait_for_successful_setup();
   // 1) Insert the entry for a rule
   insert_static_rule(rule_store, monitoring_key, 1, "rule1");
   std::vector<std::string> static_rules{"rule1"};
@@ -205,7 +211,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
 }
 
 TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
-  send_empty_table_and_wait_for_setup(SetupFlowsResult_Result_SUCCESS);
+  send_empty_table_and_wait_for_successful_setup();
   // 1) Insert the entry for a rule
   insert_static_rule(rule_store, monitoring_key, 1, "rule1");
   std::vector<std::string> static_rules{"rule1"};
@@ -307,7 +313,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
 }
 
 TEST_F(SessionManagerHandlerTest, test_create_session) {
-  send_empty_table_and_wait_for_setup(SetupFlowsResult_Result_SUCCESS);
+  send_empty_table_and_wait_for_successful_setup();
   // 1) Create the session
   LocalCreateSessionRequest request;
 
@@ -355,7 +361,12 @@ TEST_F(SessionManagerHandlerTest, test_create_session) {
 }
 
 TEST_F(SessionManagerHandlerTest, test_create_session_pipelined_unavailable) {
-  send_empty_table_and_wait_for_setup(SetupFlowsResult_Result_FAILURE);
+  send_empty_table();
+  // On failure cases, LocalEnforcer will endlessly retry the setup call
+  EXPECT_CALL(*pipelined_client, setup_lte(testing::_, testing::_, testing::_))
+      .WillRepeatedly(CallSetupCallback(SetupFlowsResult_Result_FAILURE));
+  evb->loopOnce();
+  evb->loopOnce();
   // 1) Create the session
   LocalCreateSessionRequest request;
 

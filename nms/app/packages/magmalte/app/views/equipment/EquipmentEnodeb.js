@@ -171,7 +171,7 @@ function EnodebTableRaw(props: WithAlert) {
       <CardTitleRow
         key="title"
         icon={SettingsInputAntennaIcon}
-        label={`Enodebs (${Object.keys(ctx.state).length})`}
+        label={`Enodebs (${Object.keys(state?.enbInfo || {}).length})`}
         filter={() => (
           <Grid container justify="flex-end" alignItems="center" spacing={1}>
             <Grid item>

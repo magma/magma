@@ -304,15 +304,34 @@ message UeNetworkCapability {
   uint32 uea = 3;
   uint32 ucs2 = 4;
   uint32 uia = 5;
-  uint32 spare = 6;
+  uint32 spare = 6 [deprecated = true];
   uint32 csfb = 7;
   uint32 lpp = 8;
   uint32 lcs = 9;
   uint32 srvcc = 10;
   uint32 nf = 11;
-
+  uint32 prosedd = 12;
+  uint32 prose = 13;
+  uint32 h245ash = 14;
+  uint32 epco = 15;
+  uint32 hccpciot = 16;
+  uint32 erwfopdn = 17;
+  uint32 s1udata = 18;
+  uint32 upciot = 19;
   bool umts_present = 20;
-  bool misc_present = 21;
+  bool misc_present = 21 [deprecated = true];
+  uint32 cpciot = 22;
+  uint32 proserelay = 23;
+  uint32 prosedc = 24;
+  uint32 bearer = 25;
+  uint32 sgc = 26;
+  uint32 n1mod = 27;
+  uint32 dcnr = 28;
+  uint32 cpbackoff = 29;
+  uint32 restrictec = 30;
+  uint32 v2xpc5 = 31;
+  uint32 multipledrb = 32;
+  uint32 length = 33;
 }
 
 // bearer_qos_t

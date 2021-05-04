@@ -10,16 +10,15 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from copy import deepcopy
 from typing import Any, Iterator, List, MutableMapping, Optional, TypeVar
 
 import redis
 import redis_collections
 import redis_lock
-from copy import deepcopy
+from magma.common.redis.serializers import RedisSerde
 from orc8r.protos.redis_pb2 import RedisState
 from redis.lock import Lock
-
-from magma.common.redis.serializers import RedisSerde
 
 # NOTE: these containers replace the serialization methods exposed by
 # the redis-collection objects. Although the methods are hinted to be
@@ -261,7 +260,7 @@ class RedisFlatDict(MutableMapping[str, T]):
             return composite_key in self.cache
 
         return bool(self.redis.exists(composite_key)) and \
-               not self.is_garbage(key)
+            not self.is_garbage(key)
 
     def __getitem__(self, key: str) -> T:
         """Return the item of dictionary with key *key:type*. Raises a
@@ -313,14 +312,14 @@ class RedisFlatDict(MutableMapping[str, T]):
             raise KeyError(composite_key)
         return deleted_count
 
-    def get(self, key: str) -> Optional[T]:
+    def get(self, key: str, default=None) -> Optional[T]:
         """Get ``d[key:type]`` from dictionary.
         Returns None if *key:type* is not in the map
         """
         try:
             return self.__getitem__(key)
         except (KeyError, ValueError):
-            return None
+            return default
 
     def clear(self) -> None:
         """

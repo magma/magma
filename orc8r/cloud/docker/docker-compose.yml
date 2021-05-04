@@ -12,6 +12,7 @@ services:
       SERVICE_HOSTNAME: localhost  # All services are reachable through localhost
       SQL_DRIVER: postgres
       DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
+#      DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"
       SQL_DIALECT: psql
       SERVICE_REGISTRY_MODE: yaml
     links:
@@ -43,6 +44,9 @@ services:
 
   postgres:
     image: postgres
+    # Default is 64mb
+    # Ref: https://stackoverflow.com/questions/30210362/how-to-increase-the-size-of-the-dev-shm-in-docker-container
+    shm_size: '256mb'
     ports:
       - 5432:5432/tcp
     volumes:
@@ -51,6 +55,12 @@ services:
       POSTGRES_USER: magma_dev
       POSTGRES_PASSWORD: magma_dev
       POSTGRES_DB: magma_dev
+    command:
+      - "postgres"
+      - "-c"
+      - "log_duration=true"
+#      - "-c"
+#      - "log_statement=all"
     restart: always
 
   maria:

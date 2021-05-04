@@ -14,7 +14,7 @@ import logging
 
 from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import SCRATCH_REGS, REG_ZERO_VAL
+from magma.pipelined.openflow.registers import REG_ZERO_VAL, SCRATCH_REGS
 from ryu.ofproto.nicira_ext import ofs_nbits
 
 logger = logging.getLogger(__name__)
@@ -26,9 +26,6 @@ MINIMUM_PRIORITY = 0
 MEDIUM_PRIORITY = 100
 MAXIMUM_PRIORITY = 65535
 OVS_COOKIE_MATCH_ALL = 0xffffffff
-
-CLASSIFIER_NEXT_TABLE_NUM = 1
-CLASSIFIER_INTERNAL_SAMPLING_FWD_TABLE_NUM = 201
 
 def add_drop_flow(datapath, table, match, actions=None, instructions=None,
                   priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
@@ -141,14 +138,10 @@ def add_flow(datapath, table, match, actions=None, instructions=None,
 
     if actions is None:
         actions = []
-    # As 4G GTP tunnel, Register value is not used.
-    # if use for default flow, 4G traffic is dropping.
-    if ((goto_table != CLASSIFIER_NEXT_TABLE_NUM) and
-                     (goto_table != CLASSIFIER_INTERNAL_SAMPLING_FWD_TABLE_NUM)):
-        reset_scratch_reg_actions = [
+    reset_scratch_reg_actions = [
              parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
              for reg in SCRATCH_REGS]
-        actions = actions + reset_scratch_reg_actions
+    actions = actions + reset_scratch_reg_actions
 
     inst = __get_instructions_for_actions(ofproto, parser,
                                           actions, instructions)
@@ -172,7 +165,8 @@ def add_resubmit_next_service_flow(datapath, table, match, actions=None,
                                    instructions=None,
                                    priority=MINIMUM_PRIORITY, retries=3,
                                    cookie=0x0, idle_timeout=0, hard_timeout=0,
-                                   copy_table=None, resubmit_table=None):
+                                   copy_table=None, reset_default_register:bool = True,
+                                   resubmit_table=None):
     """
     Add a flow to a table that resubmits to another service.
     All scratch registers will be reset before resubmitting.
@@ -207,7 +201,8 @@ def add_resubmit_next_service_flow(datapath, table, match, actions=None,
         datapath, table, match, actions=actions,
         instructions=instructions, priority=priority,
         cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
-        copy_table=copy_table, resubmit_table=resubmit_table)
+        copy_table=copy_table, reset_default_register=reset_default_register,
+        resubmit_table=resubmit_table)
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 
@@ -365,6 +360,7 @@ def get_add_resubmit_next_service_flow_msg(datapath, table, match,
                                            priority=MINIMUM_PRIORITY,
                                            cookie=0x0, idle_timeout=0,
                                            hard_timeout=0, copy_table=None,
+                                           reset_default_register:bool=True,
                                            resubmit_table=None):
     """
     Get an add flow modification message that resubmits to another service
@@ -411,7 +407,8 @@ def get_add_resubmit_next_service_flow_msg(datapath, table, match,
     if copy_table:
         actions.append(parser.NXActionResubmitTable(table_id=copy_table))
 
-    actions = actions + reset_scratch_reg_actions
+    if (reset_default_register):
+        actions = actions + reset_scratch_reg_actions
 
     inst = __get_instructions_for_actions(ofproto, parser,
                                           actions, instructions)
@@ -548,7 +545,7 @@ def delete_flow(datapath, table, match, actions=None, instructions=None,
     messages.send_msg(datapath, msg, retries=retries)
 
 
-def delete_all_flows_from_table(datapath, table, retries=3):
+def delete_all_flows_from_table(datapath, table, retries=3, cookie=None):
     """
     Delete all flows from a table.
 
@@ -561,7 +558,13 @@ def delete_all_flows_from_table(datapath, table, retries=3):
         MagmaOFError: if the flows can't be deleted
     """
     empty_match = MagmaMatch()
-    delete_flow(datapath, table, empty_match, retries=retries)
+    cookie_match = {}
+    if cookie is not None:
+        cookie_match = {
+            'cookie': cookie,
+            'cookie_mask': OVS_COOKIE_MATCH_ALL,
+        }
+    delete_flow(datapath, table, empty_match, retries=retries, **cookie_match)
 
 
 def __get_instructions_for_actions(ofproto, ofproto_parser,

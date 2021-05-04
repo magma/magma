@@ -18,32 +18,40 @@ from typing import List
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.mobilityd_pb2 import IPAddress
-
-from magma.pipelined.app.he import HeaderEnrichmentController
-from magma.pipelined.app.enforcement import EnforcementController
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
-    HeaderEnrichment
-
-from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
-
-from magma.pipelined.tests.app.start_pipelined import TestSetup, \
-    PipelinedController
-from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
-    stop_ryu_app_thread, create_service_manager, wait_after_send, \
-    SnapshotVerifier
-from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
-
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-
-from magma.pipelined.openflow.messages import MessageHub
-from magma.pipelined.openflow.messages import MsgChannel
+from lte.protos.pipelined_pb2 import VersionedPolicy
+from lte.protos.policydb_pb2 import (
+    FlowDescription,
+    FlowMatch,
+    HeaderEnrichment,
+    PolicyRule,
+)
 from magma.pipelined.app import he
+from magma.pipelined.app.enforcement import EnforcementController
+from magma.pipelined.app.he import HeaderEnrichmentController
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.openflow.messages import MessageHub, MsgChannel
 from magma.pipelined.openflow.registers import Direction
-from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
-
-from magma.pipelined.tests.pipelined_test_util import fake_controller_setup
+from magma.pipelined.policy_converters import (
+    convert_ip_str_to_ip_proto,
+    convert_ipv4_str_to_ip_proto,
+)
+from magma.pipelined.tests.app.start_pipelined import (
+    PipelinedController,
+    TestSetup,
+)
+from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
+from magma.pipelined.tests.app.table_isolation import (
+    RyuDirectTableIsolator,
+    RyuForwardFlowArgsBuilder,
+)
+from magma.pipelined.tests.pipelined_test_util import (
+    SnapshotVerifier,
+    create_service_manager,
+    fake_controller_setup,
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    wait_after_send,
+)
 
 
 def mocked_activate_he_urls_for_ue(ip: IPAddress, rule_id: str, urls: List[str], imsi: str, msisdn: str):
@@ -414,7 +422,6 @@ class EnforcementTableHeTest(unittest.TestCase):
         """
         super(EnforcementTableHeTest, cls).setUpClass()
         warnings.simplefilter('ignore')
-        cls._static_rule_dict = {}
         cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT], ['proxy'])
         cls._tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
@@ -454,6 +461,7 @@ class EnforcementTableHeTest(unittest.TestCase):
                 'proxy_port_name': cls.VETH,
                 'enable_nat': True,
                 'ovs_gtp_port_number': 10,
+                'setup_type': 'LTE',
             },
             mconfig=PipelineD(),
             loop=None,
@@ -465,8 +473,6 @@ class EnforcementTableHeTest(unittest.TestCase):
 
         cls.enforcement_controller = enforcement_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
-
-        cls.enforcement_controller._policy_dict = cls._static_rule_dict
 
     @classmethod
     def tearDownClass(cls):
@@ -492,15 +498,16 @@ class EnforcementTableHeTest(unittest.TestCase):
         ]
         he = HeaderEnrichment(urls=['abc.com'])
         policies = [
-            PolicyRule(id='simple_match', priority=2, flow_list=flow_list1, he=he)
+            VersionedPolicy(
+                rule=PolicyRule(id='simple_match', priority=2, flow_list=flow_list1, he=he),
+                version=1,
+            )
         ]
-
-        self._static_rule_dict[policies[0].id] = policies[0]
 
         # ============================ Subscriber ============================
         sub_context = RyuDirectSubscriberContext(
             imsi, sub_ip, self.enforcement_controller, self._tbl_num
-        ).add_static_rule(policies[0].id)
+        ).add_policy(policies[0])
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)

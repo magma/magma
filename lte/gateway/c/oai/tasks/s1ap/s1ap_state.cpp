@@ -191,7 +191,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
   uint32_t num_ues_checked;
 
   // get each eNB in s1ap_state
-  for (uint32_t i = 0; i < ht_keys->num_keys; i++) {
+  for (int i = 0; i < ht_keys->num_keys; i++) {
     enb_description_t* enb_association_p = nullptr;
     ht_rc                                = hashtable_ts_get(
         &s1ap_state_p->enbs, (hash_key_t) ht_keys->keys[i],

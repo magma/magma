@@ -41,7 +41,6 @@ int decode_bstring(
     *bstr = blk2bstr(buffer, pdulen);
     return pdulen;
   } else {
-    *bstr = NULL;
     return TLV_BUFFER_TOO_SHORT;
   }
 }

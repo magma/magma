@@ -20,9 +20,11 @@ class MetricTests(unittest.TestCase):
     """
     Tests for the Service303 metrics interface
     """
+
     def test_metrics_defined(self):
         """ Test that all metrics are defined in proto enum """
         import magma.magmad.metrics
+
         # Avoid lint error about unused imports
         magma.magmad.metrics.CPU_PERCENT.set(1)
 

@@ -250,7 +250,19 @@ func listSubscribersV2Handler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
+
+	// get total number of subscribers
+	loadCriteria := configurator.EntityLoadCriteria{}
+	count, err := configurator.CountEntitiesOfType(
+		networkID,
+		lte.SubscriberEntityType,
+		loadCriteria,
+		serdes.Entity)
+	if err != nil {
+		return c.JSON(http.StatusOK, nil)
+	}
 	paginatedSubs := subscribermodels.PaginatedSubscribers{
+		TotalCount:    int64(count),
 		NextPageToken: subscribermodels.NextPageToken(nextPageToken),
 		Subscribers:   subs,
 	}

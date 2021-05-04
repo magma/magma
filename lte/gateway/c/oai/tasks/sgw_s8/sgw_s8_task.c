@@ -1,26 +1,16 @@
 /*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this source tree.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
- */
+Copyright 2020 The Magma Authors.
 
-/*! \file sgw_s8_task.c
-  \brief
-  \author
-  \company
-  \email:
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 */
+
 #define SGW_S8
 #define SGW_S8_TASK_C
 
@@ -30,6 +20,8 @@
 #include "common_defs.h"
 #include "itti_free_defined_msg.h"
 #include "sgw_s8_defs.h"
+#include "sgw_s8_s11_handlers.h"
+#include "sgw_s8_state.h"
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg);
 static void sgw_s8_exit(void);
@@ -46,8 +38,12 @@ static void* sgw_s8_thread(void* args) {
   return NULL;
 }
 
-int sgw_s8_init(void) {
+int sgw_s8_init(sgw_config_t* sgw_config_p) {
   OAILOG_DEBUG(LOG_SGW_S8, "Initializing SGW-S8 interface\n");
+  if (sgw_state_init(false, sgw_config_p) < 0) {
+    OAILOG_CRITICAL(LOG_SGW_S8, "Error while initializing SGW_S8 state\n");
+    return RETURNerror;
+  }
 
   if (itti_create_task(TASK_SGW_S8, &sgw_s8_thread, NULL) < 0) {
     OAILOG_ERROR(LOG_SGW_S8, "Failed to create sgw_s8 task\n");
@@ -58,15 +54,49 @@ int sgw_s8_init(void) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
+
+  imsi64_t imsi64        = itti_get_associated_imsi(received_message_p);
+  sgw_state_t* sgw_state = get_sgw_state(false);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       sgw_s8_exit();
+    } break;
+
+    case S11_CREATE_SESSION_REQUEST: {
+      sgw_s8_handle_s11_create_session_request(
+          sgw_state, &received_message_p->ittiMsg.s11_create_session_request,
+          imsi64);
+    } break;
+    case S8_CREATE_SESSION_RSP: {
+      sgw_s8_handle_create_session_response(
+          sgw_state, &received_message_p->ittiMsg.s8_create_session_rsp,
+          imsi64);
+    } break;
+    case S11_MODIFY_BEARER_REQUEST: {
+      sgw_s8_handle_modify_bearer_request(
+          sgw_state, &received_message_p->ittiMsg.s11_modify_bearer_request,
+          imsi64);
+    } break;
+
+    case S11_DELETE_SESSION_REQUEST: {
+      sgw_s8_handle_s11_delete_session_request(
+          sgw_state, &received_message_p->ittiMsg.s11_delete_session_request,
+          imsi64);
+    } break;
+
+    case S8_DELETE_SESSION_RSP: {
+      sgw_s8_handle_delete_session_response(
+          sgw_state, &received_message_p->ittiMsg.s8_delete_session_rsp,
+          imsi64);
+    } break;
+    case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
+      sgw_s8_handle_release_access_bearers_request(
+          &received_message_p->ittiMsg.s11_release_access_bearers_request,
+          imsi64);
     } break;
 
     default: {
@@ -77,7 +107,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   }
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
