@@ -60,7 +60,7 @@ RUN yum install -y \
     git \
     git-clang-format \
     clang-tools-extra \
-    ninja-build \ 
+    ninja-build \
     pkg-config \
     gcc \
     gcc-c++ \
@@ -95,6 +95,7 @@ RUN yum install -y \
     libgcrypt-devel \
     # Install libgtpnl requirements
     libmnl-devel \
+    libtins-dev \
     # Install Nettle requirements
     libconfig-devel \
     libxml2-devel \
@@ -103,9 +104,9 @@ RUN yum install -y \
     xz \
     # Install czmq requirements
     uuid-devel \
-  && ln -s /usr/bin/python2.7 /usr/local/bin/python 
+  && ln -s /usr/bin/python2.7 /usr/local/bin/python
 
-RUN yum install -y \  
+RUN yum install -y \
     # for some reasons diff, cmp and file are not present in ubi
     diffutils \
     file \
@@ -117,8 +118,8 @@ RUN yum install -y \
     tcpdump \
     openssh-server \
     tree
-  
-RUN yum install -y \  
+
+RUN yum install -y \
     # redis is temporary --> has to be deployed w/ an other pod/container
     redis \
   && yum clean all -y \
@@ -157,7 +158,7 @@ RUN  git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
      git clone https://github.com/jbeder/yaml-cpp.git && \
      git clone https://github.com/nlohmann/json.git && \
      git clone --branch=v4.2.3 https://github.com/zeromq/libzmq.git
-     
+
 ##### GRPC and it's dependencies
 RUN echo "/usr/local/lib" > /etc/ld.so.conf.d/local-lib.conf && \
     echo "/usr/local/lib64" >> /etc/ld.so.conf.d/local-lib.conf && \
@@ -380,7 +381,7 @@ COPY ./ $MAGMA_ROOT
 RUN ldconfig --verbose && \
     export PKG_CONFIG_PATH=$PKG_CONFIG_PATH:/usr/local/lib/pkgconfig/ && \
     cd $MAGMA_ROOT/lte/gateway && \
-    echo $FEATURES && \ 
+    echo $FEATURES && \
     make build_oai && \
     make build_sctpd
 

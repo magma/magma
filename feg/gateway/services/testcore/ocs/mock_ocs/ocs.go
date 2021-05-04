@@ -14,6 +14,7 @@ limitations under the License.
 package mock_ocs
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"time"
@@ -32,7 +33,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/sm/smpeer"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 )
 
 const DiameterCreditLimitReached = 4012

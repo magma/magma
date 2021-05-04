@@ -14,6 +14,7 @@
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"sync"
 
@@ -27,7 +28,6 @@ import (
 	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 )
 
 // How CentralSessionControllers works

@@ -1,7 +1,7 @@
 ################################################################
 # Builder Image (can also be used as developer's image)
 ################################################################
-FROM ubuntu:focal as mme_builder 
+FROM ubuntu:focal as mme_builder
 
 ARG GIT_PROXY
 ARG FEATURES=mme_oai
@@ -40,6 +40,7 @@ RUN echo "Install general purpouse packages" && \
         libgmp3-dev \
         libpcap-dev \
         libssl-dev \
+        libtins-dev \
         libtool \
         make \
         ninja-build \
@@ -210,7 +211,7 @@ RUN git clone https://github.com/facebook/folly && cd folly && \
     make install && \
     cd / && \
     rm -rf folly
-    
+
 ##### Build and install libgtest and gmock
 RUN cd /usr/src/googletest && \
     mkdir build && \

@@ -159,6 +159,12 @@
   tags:
     - skipfirstinstall
 
+- name: Bring up li_port
+  shell: ifup li_port
+  become: yes
+  tags:
+    - skipfirstinstall
+
 - name: Bring up uplink_br0
   shell: ifup uplink_br0
   become: yes

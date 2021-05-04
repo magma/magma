@@ -14,6 +14,7 @@
 package servicers
 
 import (
+	"context"
 	"fmt"
 
 	"magma/feg/cloud/go/protos"
@@ -21,8 +22,6 @@ import (
 	"magma/feg/gateway/multiplex"
 	"magma/orc8r/lib/go/errors"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"golang.org/x/net/context"
 )
 
 // How SwxProxies works

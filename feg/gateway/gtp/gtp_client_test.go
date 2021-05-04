@@ -58,10 +58,20 @@ func TestEcho(t *testing.T) {
 	actualServerIPAndPort := pgwCli.LocalAddr().String()
 
 	// run GTP client (SGW) and send echo message to check if server is available
-	_, err := NewConnectedAutoClient(context.Background(), actualServerIPAndPort, gtpv2.IFTypeS5S8SGWGTPC, gtpTimeout)
+	gtpClient, err := NewConnectedAutoClient(context.Background(), actualServerIPAndPort, gtpv2.IFTypeS5S8SGWGTPC, gtpTimeout)
 
 	// if no error service was started and echo was received properly
 	assert.NoError(t, err)
+
+	// Send echo request
+	echoResp := gtpClient.SendEchoRequest(pgwCli.LocalAddr().(*net.UDPAddr))
+	assert.NoError(t, echoResp)
+
+	// receive echo request
+	gtpClientLocalAddress := gtpClient.LocalAddr().(*net.UDPAddr)
+	gtpClientLocalAddress.IP = net.IP{127, 0, 0, 1} // fix IP to use localhost
+	echoResp = pgwCli.SendEchoRequest(gtpClientLocalAddress)
+	assert.NoError(t, echoResp)
 }
 
 // TestGtpClient tests gtp client-server interaction using dummy handlers

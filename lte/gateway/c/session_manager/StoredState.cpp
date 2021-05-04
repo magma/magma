@@ -405,8 +405,14 @@ BearerIDByPolicyID deserialize_bearer_id_by_policy(std::string& serialized) {
   for (auto& bearer_id_by_policy : marshaled) {
     PolicyType policy_type = PolicyType(bearer_id_by_policy["type"].getInt());
     std::string rule_id    = bearer_id_by_policy["rule_id"].getString();
-    stored[PolicyID(policy_type, rule_id)] =
+    auto policy_id         = PolicyID(policy_type, rule_id);
+    stored[policy_id]      = BearerIDAndTeid();
+    stored[policy_id].bearer_id =
         static_cast<uint32_t>(bearer_id_by_policy["bearer_id"].getInt());
+    stored[policy_id].teids.set_agw_teid(
+        static_cast<uint32_t>(bearer_id_by_policy["agw_teid"].getInt()));
+    stored[policy_id].teids.set_enb_teid(
+        static_cast<uint32_t>(bearer_id_by_policy["enb_teid"].getInt()));
   }
   return stored;
 }
@@ -418,7 +424,11 @@ std::string serialize_bearer_id_by_policy(BearerIDByPolicyID bearer_map) {
     folly::dynamic bearer_id_by_policy = folly::dynamic::object;
     bearer_id_by_policy["type"]      = static_cast<int>(pair.first.policy_type);
     bearer_id_by_policy["rule_id"]   = pair.first.rule_id;
-    bearer_id_by_policy["bearer_id"] = static_cast<int>(pair.second);
+    bearer_id_by_policy["bearer_id"] = static_cast<int>(pair.second.bearer_id);
+    bearer_id_by_policy["agw_teid"] =
+        static_cast<int>(pair.second.teids.agw_teid());
+    bearer_id_by_policy["enb_teid"] =
+        static_cast<int>(pair.second.teids.enb_teid());
     marshaled.push_back(bearer_id_by_policy);
   }
   std::string serialized = folly::toJson(marshaled);

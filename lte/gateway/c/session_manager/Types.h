@@ -179,7 +179,19 @@ struct PolicyIDHash {
   }
 };
 
-typedef std::unordered_map<PolicyID, uint32_t, PolicyIDHash> BearerIDByPolicyID;
+bool operator==(const Teids& lhs, const Teids& rhs);
+
+struct BearerIDAndTeid {
+  uint32_t bearer_id;
+  Teids teids;
+
+  bool operator==(const BearerIDAndTeid& id) const {
+    return bearer_id == id.bearer_id && teids == id.teids;
+  }
+};
+
+typedef std::unordered_map<PolicyID, BearerIDAndTeid, PolicyIDHash>
+    BearerIDByPolicyID;
 
 struct RulesToProcess {
   // If this vector is set, then it has PolicyRule definitions for both static

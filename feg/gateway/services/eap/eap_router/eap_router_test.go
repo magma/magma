@@ -14,23 +14,22 @@ limitations under the License.
 package main_test
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"testing"
 	"time"
 
-	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/providers/aka"
-
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	cp "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
+	"magma/feg/gateway/services/eap"
 	eap_client "magma/feg/gateway/services/eap/client"
 	eapp "magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 	eap_test "magma/feg/gateway/services/eap/test"

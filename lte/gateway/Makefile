@@ -70,7 +70,7 @@ TEST_FLAG = -DBUILD_TESTS=1
 
 all: build
 
-build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller ## Build all
+build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
 
 smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
@@ -184,6 +184,9 @@ build_sctpd: format_sctpd build_common ## Build SCTPD
 build_session_manager: format_session_manager build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
+build_li_agent: format_li_agent build_common ## Build li agent
+	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
+
 build_connection_tracker: format_connection_tracker build_common ## Build connection tracker
 	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
 
@@ -240,7 +243,7 @@ clang_tidy_oai: build_common
 	mkdir $(GATEWAY_C_DIR)/oai/build
 	cd $(GATEWAY_C_DIR)/oai/build;cmake ..
 	sed -i 's/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON/g' $(GATEWAY_C_DIR)/oai/build/CMakeCache.txt
-	cmake --build $(GATEWAY_C_DIR)/oai/build/ 
+	cmake --build $(GATEWAY_C_DIR)/oai/build/
 	wget https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py
 	python run-clang-tidy.py -p $(GATEWAY_C_DIR)/oai/build/ -j 2 -checks='-*,clang-analyzer-security*,android-*,cert-*,clang-analyzer-*,concurrency,misc-*,-misc-unused-parameters,bugprone-*' 2>&1 | tee /tmp/clang-tidy-oai.findings
 
