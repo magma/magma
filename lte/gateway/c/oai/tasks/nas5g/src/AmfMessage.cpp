@@ -19,6 +19,8 @@ using namespace std;
 namespace magma5g {
 AmfMsg::AmfMsg(){};
 AmfMsg::~AmfMsg(){};
+MMsg_u::MMsg_u(){};
+MMsg_u::~MMsg_u(){};
 
 // Decode AMF NAS Header and Message
 int AmfMsg::M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {

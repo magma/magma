@@ -63,15 +63,16 @@ void grpc_prep_estab_req_to_smf(magma::lte::SetSMSessionContext req) {
       [&req, &smf_srv_client](
           const Status& status, AllocateIPAddressResponse ip_msg) {
         struct in_addr ip_addr = {0};
-        uint8_t ip_str[INET_ADDRSTRLEN];
+        char ip_str[INET_ADDRSTRLEN];
         unsigned char buff_ip[4];
         memcpy(
             &(ip_addr), ip_msg.mutable_ip_list(0)->mutable_address()->c_str(),
             sizeof(in_addr));
         memset(ip_str, '\0', sizeof(ip_str));
-        uint32_t ip_int = ntohl(ip_addr.s_addr);
-        INT32_TO_BUFFER(ip_int, buff_ip);
-        memcpy(ip_str, buff_ip, sizeof(buff_ip));
+        //        uint32_t ip_int = ntohl(ip_addr.s_addr);
+        //        INT32_TO_BUFFER(ip_int, buff_ip);
+        //        memcpy(ip_str, buff_ip, sizeof(buff_ip));
+        inet_ntop(AF_INET, &(ip_addr.s_addr), ip_str, INET_ADDRSTRLEN);
         req.mutable_rat_specific_context()
             ->mutable_m5gsm_session_context()
             ->mutable_pdu_address()
@@ -80,6 +81,11 @@ void grpc_prep_estab_req_to_smf(magma::lte::SetSMSessionContext req) {
             LOG_AMF_APP, "Sending PDU session Establishment Request to SMF");
         smf_srv_client->set_smf_session(req);
       });
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(
+      20));  // TODO remove this blocking call without which the gRPC call
+             // set_smf_session() doesn't initiate, as per the way its
+             // implemeted now
 }
 
 namespace magma5g {

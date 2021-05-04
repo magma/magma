@@ -22,13 +22,17 @@ extern "C" {
 #include "amf_as.h"
 #include "amf_fsm.h"
 #include "amf_recv.h"
-#include "nas5g_network.h"
 #include "M5GDLNASTransport.h"
 namespace magma5g {
 
 #define NAS5G_MESSAGE_SECURITY_HEADER_SIZE 7
 
 /* Functions used to decode layer 3 NAS messages */
+int nas5g_message_header_decode(
+    const unsigned char* const buffer, amf_msg_header* const header,
+    const uint32_t length, amf_nas_message_decode_status_t* const status,
+    bool* const is_sr);
+
 static int _nas5g_message_plain_decode(
     const unsigned char* buffer, const amf_msg_header* header,
     nas_message_plain_t* msg, uint32_t length);
@@ -110,7 +114,7 @@ int nas5g_message_decode(
   size =
       nas5g_message_header_decode(buffer, &msg->header, length, status, &is_sr);
   if (size < 0) {
-    OAILOG_ERROR(LOG_AMF_APP, "NAS Header decode failed")
+    OAILOG_ERROR(LOG_AMF_APP, "NAS Header decode failed");
     OAILOG_FUNC_RETURN(LOG_AMF_APP, TLV_BUFFER_TOO_SHORT);
   }
   if (size > 2) {
@@ -177,7 +181,7 @@ int nas5g_message_decode(
     OAILOG_FUNC_RETURN(LOG_AMF_APP, bytes);
   }
 
-  if (size > 2) {
+  if (size > 1) {
     // Security Protected NAS message decoded
     OAILOG_FUNC_RETURN(LOG_AMF_APP, size + bytes);
   }
@@ -293,6 +297,8 @@ int nas5g_message_encode(
     /*
      * Encode plain NAS message
      */
+    OAILOG_DEBUG(
+        LOG_AMF_APP, "msg_type: %x", msg->plain.amf.header.message_type);
     bytes =
         _nas5g_message_plain_encode(buffer, &msg->header, &msg->plain, length);
   }
@@ -584,6 +590,7 @@ int _nas5g_message_plain_encode(
     /*
      * Encode Mobility Management L3 message
      */
+    OAILOG_DEBUG(LOG_AMF_APP, "msg_type: %x", msg->amf.header.message_type);
     bytes = amf_msg_test.M5gNasMessageEncodeMsg(
         (AmfMsg*) &msg->amf, (uint8_t*) buffer, length);
     for (int i = 0; i < length; i++)

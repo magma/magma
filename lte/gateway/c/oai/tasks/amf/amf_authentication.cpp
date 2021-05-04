@@ -19,6 +19,7 @@ extern "C" {
 #include "intertask_interface.h"
 #include "conversions.h"
 #include "log.h"
+#include "dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
@@ -27,7 +28,6 @@ extern "C" {
 #include "amf_authentication.h"
 #include "amf_recv.h"
 #include "amf_identity.h"
-#include "dynamic_memory_check.h"
 #include "amf_sap.h"
 #define AMF_CAUSE_SUCCESS (1)
 #define MAX_5G_AUTH_VECTORS 1
@@ -522,15 +522,17 @@ int amf_proc_authentication_complete(
   nas5g_amf_auth_proc_t* auth_proc =
       get_nas5g_common_procedure_authentication(amf_ctx);
 
-  if (auth_proc) {
-    /*  Stop Timer T3560 */
+/*  Stop Timer T3560 */
+#if 0
     OAILOG_ERROR(
         LOG_NAS_EMM,
         "Timer:  Stopping Authentication Timer T3560 with id = %d\n",
         auth_proc->T3560.id);
     stop_timer(&amf_app_task_zmq_ctx, auth_proc->T3560.id);
+    auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
     OAILOG_ERROR(LOG_NAS_EMM, "Timer: After Stopping T3560 Timer\n");
-
+#endif
+  if (auth_proc) {
     nas_amf_smc_proc_autn.amf_ctx_set_security_eksi(amf_ctx, auth_proc->ksi);
 
     for (idx = 0; idx < amf_ctx->_vector[auth_proc->ksi].xres_size; idx++) {
@@ -579,8 +581,8 @@ int amf_proc_authentication_complete(
 int amf_send_authentication_request(
     amf_context_t* amf_ctx, nas5g_amf_auth_proc_t* auth_proc) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int rc = RETURNerror;
-
+  int rc              = RETURNerror;
+  auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
   if (auth_proc) {
     /*
      * Notify AMF-AS SAP that Authentication Request message has to be sent
@@ -590,8 +592,11 @@ int amf_send_authentication_request(
     amf_sap.primitive = AMFAS_SECURITY_REQ;
     amf_sap.u.amf_as.u.security.puid =
         auth_proc->amf_com_proc.amf_proc.base_proc.nas_puid;
-    amf_sap.u.amf_as.u.security.guti     = {0};
-    amf_sap.u.amf_as.u.security.ue_id    = auth_proc->ue_id;
+    amf_sap.u.amf_as.u.security.guti = {0};
+    //    amf_sap.u.amf_as.u.security.ue_id    = auth_proc->ue_id;
+    amf_sap.u.amf_as.u.security.ue_id =
+        PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->amf_ue_ngap_id;
+
     amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
     amf_sap.u.amf_as.u.security.ksi      = auth_proc->ksi;
     memcpy(amf_sap.u.amf_as.u.security.rand, auth_proc->rand, AUTH_RAND_SIZE);
@@ -607,6 +612,7 @@ int amf_send_authentication_request(
 
     if (rc != RETURNerror) {
       OAILOG_ERROR(LOG_NAS_EMM, "Timer:Start Authenthication Timer T3560\n");
+#if 0
       auth_proc->T3560.id = start_timer(
           &amf_app_task_zmq_ctx, AUTHENTICATION_TIMER_EXPIRY_MSECS,
           TIMER_REPEAT_ONCE, authenthication_t3560_handler,
@@ -615,6 +621,8 @@ int amf_send_authentication_request(
       OAILOG_INFO(
           LOG_AMF_APP, "Timer: Authenthication timer T3560 id is %d\n",
           auth_proc->T3560.id);
+#endif
+      OAILOG_INFO(LOG_AMF_APP, "Timer: Authenthication timer T3560 skipped \n");
     }
     if (rc != RETURNerror) {
     }

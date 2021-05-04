@@ -138,7 +138,7 @@ int amf_insert_ue_context(
  ***************************************************************************/
 // warning: lock the UE context
 ue_m5gmm_context_s* amf_create_new_ue_context(void) {
-  ue_m5gmm_context_s* new_p = NULL;  // new (ue_m5gmm_context_s);
+  ue_m5gmm_context_s* new_p = new (ue_m5gmm_context_s);
 
   if (!new_p) {
     OAILOG_ERROR(LOG_AMF_APP, "Failed to allocate memory for UE context \n");
@@ -224,6 +224,7 @@ smf_context_t* amf_insert_smf_context(
 
   for (i = ue_context->amf_context.smf_ctxt_vector.begin();
        i != ue_context->amf_context.smf_ctxt_vector.end(); i++, j++) {
+    OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx j%d", j);
     if (i->smf_proc_data.pdu_session_identity.pdu_session_id ==
         pdu_session_id) {
       ue_context->amf_context.smf_ctxt_vector.at(j) = smf_context;
@@ -232,8 +233,21 @@ smf_context_t* amf_insert_smf_context(
   }
 
   // add new element to the vector
+  OAILOG_INFO(
+      LOG_AMF_APP, "insert smf_ctx_vector_data%d",
+      ue_context->amf_context.smf_ctxt_vector.data());
+  OAILOG_INFO(
+      LOG_AMF_APP, "insert smf_ctx_vector_size%d",
+      ue_context->amf_context.smf_ctxt_vector.size());
   ue_context->amf_context.smf_ctxt_vector.push_back(smf_context);
+  // i = ue_context->amf_context.smf_ctxt_vector.begin();
+  // ue_context->amf_context.smf_ctxt_vector.insert(i, smf_context);
+  // ue_context->amf_context.smf_ctxt_vector.at(0) = smf_context;
+  OAILOG_INFO(
+      LOG_AMF_APP, "insert smf_ctx_vector_data%d",
+      ue_context->amf_context.smf_ctxt_vector.data());
   return ue_context->amf_context.smf_ctxt_vector.data() + j;
+  // return ue_context->amf_context.smf_ctxt_vector.data();
 }
 
 /****************************************************************************
@@ -293,6 +307,7 @@ int amf_context_upsert_imsi(amf_context_t* elm) {
   return RETURNok;
 }
 
+#if 0
 /****************************************************************************
  **                                                                        **
  ** Name:    amf_remove_ue_context()                                       **
@@ -403,6 +418,7 @@ void amf_remove_ue_context(
   free_wrapper((void**) &ue_context_p);
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
+#endif
 
 /****************************************************************************
  **                                                                        **

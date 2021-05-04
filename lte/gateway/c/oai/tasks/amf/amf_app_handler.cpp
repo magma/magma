@@ -20,6 +20,7 @@ extern "C" {
 #include "intertask_interface.h"
 #include "directoryd.h"
 #include "amf_config.h"
+#include "dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
@@ -41,9 +42,6 @@ extern "C" {
 static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg);
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
-extern ue_m5gmm_context_s
-    ue_m5gmm_global_context;  // TODO: This has been taken care in new PR with
-                              // multi UE feature
 amf_config_t amf_config_handler;
 
 //----------------------------------------------------------------------------
@@ -331,7 +329,7 @@ imsi64_t amf_app_handle_initial_ue_message(
     /* This check is not used in this PR and code got changed in upcoming PRs
      * hence not-used functions are take out
      */
-    OAILOG_DEBUG(
+    OAILOG_INFO(
         LOG_AMF_APP,
         "INITIAL UE Message: Valid amf_set_id and S-TMSI received ");
     guti.guamfi.plmn         = {0};
@@ -409,7 +407,11 @@ imsi64_t amf_app_handle_initial_ue_message(
     AMF_APP_GNB_NGAP_ID_KEY(
         ue_context_p->gnb_ngap_id_key, initial_pP->gnb_id,
         initial_pP->gnb_ue_ngap_id);
-    amf_insert_ue_context(&amf_app_desc_p->amf_ue_contexts, ue_context_p);
+    amf_insert_ue_context(
+        ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
+        ue_context_p);
+    ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
+    ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
 
     notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
     s_tmsi_m5_t s_tmsi = {0};
@@ -419,6 +421,7 @@ imsi64_t amf_app_handle_initial_ue_message(
       s_tmsi.amf_pointer = 0;
       s_tmsi.m_tmsi      = INVALID_M_TMSI;
     }
+    is_mm_ctx_new = true;
 
     OAILOG_DEBUG(
         LOG_AMF_APP,
@@ -537,9 +540,10 @@ void amf_app_handle_pdu_session_response(
   }
   /*Execute PDU establishement accept from AMF to gnodeb */
   pdu_state_handle_message(
-      ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
-      smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
-      pdu_session_resp, ue_id);
+      // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
+      REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
+      // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
+      CREATING, ue_context, amf_smf_msg, NULL, pdu_session_resp, ue_id);
 }
 
 /****************************************************************************
@@ -556,13 +560,9 @@ void amf_app_handle_pdu_session_response(
  ***************************************************************************/
 int amf_app_handle_pdu_session_accept(
     itti_n11_create_pdu_session_response_t* pdu_session_resp, uint32_t ue_id) {
-  extern ue_m5gmm_context_s
-      ue_m5gmm_global_context;  // TODO AMF_TEST global var to temporarily
-                                // store
-
   nas5g_error_code_t rc = M5G_AS_SUCCESS;
 
-  DLNASTransportMsg encode_msg;
+  DLNASTransportMsg* encode_msg;
   amf_nas_message_t msg;
   uint32_t bytes = 0;
   uint32_t len;
@@ -576,49 +576,59 @@ int amf_app_handle_pdu_session_accept(
   if (ue_context) {
     smf_ctx = &(ue_context->amf_context.smf_context);
   } else {
-    ue_context = &ue_m5gmm_global_context;
-    smf_ctx    = &ue_m5gmm_global_context.amf_context
-                   .smf_context;  // TODO AMF_TEST global var to temporarily
-                                  // store context inserted to ht
+    OAILOG_INFO(LOG_AMF_APP, "UE Context not found for UE ID: %d", ue_id);
   }
 
-  smf_msg = &encode_msg.payload_container.smf_msg;
-
   // Message construction for PDU Establishment Accept
-  // AmfHeader
-  encode_msg.extended_protocol_discriminator.extended_proto_discriminator =
+  msg.security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  encode_msg.spare_half_octet.spare = 0x00;
-  encode_msg.sec_header_type.sec_hdr =
+  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  msg.header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
-  encode_msg.message_type.msg_type      = DLNASTRANSPORT;
-  encode_msg.payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
+  msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.header.sequence_number =
+      ue_context->amf_context._security.dl_count.seq_num;
+
+  encode_msg = &msg.security_protected.plain.amf.msg.downlinknas5gtransport;
+  smf_msg    = &encode_msg->payload_container.smf_msg;
+
+  // AmfHeader
+  encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  encode_msg->spare_half_octet.spare = 0x00;
+  encode_msg->sec_header_type.sec_hdr =
+      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+  encode_msg->message_type.msg_type      = DLNASTRANSPORT;
+  encode_msg->payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
 
   // SmfMsg
-  encode_msg.payload_container_type.type_val = N1_SM_INFO;
-  encode_msg.payload_container.iei           = PAYLOAD_CONTAINER;
-  encode_msg.pdu_session_identity.iei        = PDU_SESSION_IDENTITY;
-  encode_msg.pdu_session_identity.pdu_session_id =
+  encode_msg->payload_container_type.type_val = N1_SM_INFO;
+  encode_msg->payload_container.iei           = PAYLOAD_CONTAINER;
+  encode_msg->pdu_session_identity.iei        = PDU_SESSION_IDENTITY;
+  encode_msg->pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
-  smf_msg->header.pdu_session_id           = pdu_session_resp->pdu_session_id;
-  smf_msg->header.message_type             = PDU_SESSION_ESTABLISHMENT_ACCEPT;
-  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->header.pdu_session_id = pdu_session_resp->pdu_session_id;
+  smf_msg->header.message_type   = PDU_SESSION_ESTABLISHMENT_ACCEPT;
+  // smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->header.procedure_transaction_id = 0x01;
   smf_msg->msg.pdu_session_estab_accept.extended_protocol_discriminator
       .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->msg.pdu_session_estab_accept.pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
-  smf_msg->msg.pdu_session_estab_accept.pti.pti =
-      smf_ctx->smf_proc_data.pti.pti;
+  smf_msg->msg.pdu_session_estab_accept.pti.pti = 0x01;
+  // smf_ctx->smf_proc_data.pti.pti;
   smf_msg->msg.pdu_session_estab_accept.message_type.msg_type =
       PDU_SESSION_ESTABLISHMENT_ACCEPT;
-  smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
-      pdu_session_resp->pdu_session_type;
-  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val = SSC_MODE_ONE;
+  smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val = 1;
+  // smf_msg->msg.pdu_session_estab_accept.pdu_session_type.type_val =
+  // pdu_session_resp->pdu_session_type;
+  smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val = 1;
+  // smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val = SSC_MODE_ONE;
   memset(
-      smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info, '\0',
-      sizeof(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info));
+      smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info, '\0', 12);
+  //      sizeof(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info));
   memcpy(
       smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info,
       pdu_session_resp->pdu_address.redirect_server_address, PDU_ADDR_IPV4_LEN);
@@ -662,10 +672,42 @@ int amf_app_handle_pdu_session_accept(
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
       smf_ctx->ul_session_ambr;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
-  encode_msg.payload_container.len = PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN;
-  len                              = PDU_ESTAB_ACCPET_NAS_PDU_LEN;
-  buffer                           = bfromcstralloc(len, "\0");
-  bytes = encode_msg.EncodeDLNASTransportMsg(&encode_msg, buffer->data, len);
+  //  encode_msg.payload_container.len = PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN;
+  //  len                              = PDU_ESTAB_ACCPET_NAS_PDU_LEN;
+  //  buffer                           = bfromcstralloc(len, "\0");
+  //  bytes = encode_msg.EncodeDLNASTransportMsg(&encode_msg, buffer->data,
+  //  len);
+  encode_msg->payload_container.len = 30;
+  OAILOG_INFO(
+      LOG_AMF_APP,
+      "AMF_TEST: start NAS encoding for PDU Session Establishment Accept\n");
+
+  len = 41;  // originally 38 and 30
+
+  /* Ciphering algorithms, EEA1 and EEA2 expects length to be mode of 4,
+   * so length is modified such that it will be mode of 4
+   */
+  AMF_GET_BYTE_ALIGNED_LENGTH(len);
+  if (msg.header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
+    amf_msg_header* header = &msg.security_protected.plain.amf.header;
+    /*
+     * Expand size of protected NAS message
+     */
+    OAILOG_INFO(
+        LOG_AMF_APP, "AMF_TEST:before adding sec header, length %d ", len);
+    len += NAS_MESSAGE_SECURITY_HEADER_SIZE;
+    OAILOG_INFO(
+        LOG_AMF_APP, "AMF_TEST:after adding sec header, length %d ", len);
+    /*
+     * Set header of plain NAS message
+     */
+    header->extended_protocol_discriminator = M5GS_MOBILITY_MANAGEMENT_MESSAGE;
+    header->security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  }
+
+  buffer = bfromcstralloc(len, "\0");
+  bytes  = nas5g_message_encode(
+      buffer->data, &msg, len, &ue_context->amf_context._security);
   if (bytes > 0) {
     OAILOG_DEBUG(
         LOG_AMF_APP,
@@ -738,7 +780,7 @@ void amf_app_handle_resource_setup_response(
     ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     // Handling of ue context
     if (!ue_context) {
-      ue_context = &ue_m5gmm_global_context;
+      OAILOG_INFO(LOG_AMF_APP, "UE Context not found for UE ID: %d", ue_id);
     }
     smf_ctx = &ue_context->amf_context.smf_context;
     OAILOG_DEBUG(LOG_AMF_APP, "filling gNB TEID info in smf context \n");

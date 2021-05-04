@@ -19,6 +19,7 @@ extern "C" {
 #include "secu_defs.h"
 #include "intertask_interface_types.h"
 #include "intertask_interface.h"
+#include "dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
@@ -29,7 +30,6 @@ extern "C" {
 #include "amf_config.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_identity.h"
-#include "dynamic_memory_check.h"
 
 #define IMSI64_TO_IMSI15(iMsI64_t, imsi15)                                     \
   {                                                                            \
@@ -159,7 +159,8 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
   ue_m5gmm_context_s* ue_mm_context = NULL;
   amf_context_t* amf_ctx            = NULL;
   amf_sap_t amf_sap;
-  int rc = RETURNerror;
+  int rc             = RETURNerror;
+  smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
   if (smc_proc) {
     /*
@@ -328,7 +329,7 @@ int amf_proc_security_mode_control(
   bool security_context_is_new = false;
   // TODO: Hardcoded values Will be taken care in upcoming PR
   int amf_eea = 0;
-  int amf_eia = 2;  // Integrity Algorithm 2
+  int amf_eia = 0;  // Integrity Algorithm 2
   amf_plmn_t plmn;
   uint8_t snni[32]  = {0};
   uint8_t kausf[32] = {0};
