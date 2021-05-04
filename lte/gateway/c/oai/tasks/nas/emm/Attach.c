@@ -714,9 +714,12 @@ int emm_proc_attach_complete(
        * If its not running it means that implicit detach is in progress
        */
       if (attach_proc->T3450.id == NAS_TIMER_INACTIVE_ID) {
-        OAILOG_WARNING(
-            LOG_NAS_EMM,
-            " Discarding attach complete as T3450 timer is not active!\n");
+        OAILOG_WARNING_UE(
+            LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
+            "Discarding attach complete as T3450 timer is not active for "
+            "ueid " MME_UE_S1AP_ID_FMT "\n",
+            ue_id);
+        bdestroy((bstring)(esm_msg_pP));
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
       emm_ctx = &ue_mm_context->emm_context;
