@@ -168,11 +168,11 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
 
   echo "Deleting boot script if it exists"
-  if [ -f "$AGW_INSTALL_CONFIG" ]; then
-    rm -rf $AGW_INSTALL_CONFIG
-  fi
+  rm -rf $AGW_INSTALL_CONFIG
   rm -rf /home/$MAGMA_USER/build
-  echo "AGW installation is done, make sure all services above are running correctly.. rebooting"
+  echo "AGW installation is done, Run agw_post_install_ubuntu.sh install script after reboot to finish installation"
+  wget https://raw.githubusercontent.com/magma/magma/"$MAGMA_VERSION"/lte/gateway/deploy/agw_post_install_ubuntu.sh
+
   reboot
 else
   echo "Magma already installed, skipping.."
