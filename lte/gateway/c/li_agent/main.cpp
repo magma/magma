@@ -23,6 +23,7 @@
 #include "InterfaceMonitor.h"
 #include "PDUGenerator.h"
 #include "ProxyConnector.h"
+#include "magma_logging_init.h"
 
 #define LIAGENTD "liagentd"
 #define LIAGENTD_VERSION "1.0"
