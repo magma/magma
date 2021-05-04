@@ -32,12 +32,9 @@ from magma.pipelined.tests.pipelined_test_util import (SnapshotVerifier,
                                                        stop_ryu_app_thread,
                                                        wait_after_send)
 
-<<<<<<< HEAD
 from lte.protos.pipelined_pb2 import (
     IPFlowDL
 )
-=======
->>>>>>> Support for flowdl in classifier for gtp tunnel #5505
 
 class ClassifierTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -144,13 +141,13 @@ class ClassifierTest(unittest.TestCase):
         ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller.add_tunnel_flows(65525, 1, 100000,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1, ip_flow_dl=ip_flow_dl, True)
+                                                    self.EnodeB_IP, seid1, True, ip_flow_dl=ip_flow_dl)
 
         seid2 = 5001
         ue_ip_addr = "192.168.128.31"
         self.classifier_controller.add_tunnel_flows(65525, 2,100001,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid2, ip_flow_dl=ip_flow_dl, True)
+                                                    self.EnodeB_IP, seid2, True, ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -190,7 +187,7 @@ class ClassifierTest(unittest.TestCase):
         ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller.add_tunnel_flows(65525, 1, 100000,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1, ip_flow_dl=ip_flow_dl, True)
+                                                    self.EnodeB_IP, seid1, True, ip_flow_dl=ip_flow_dl)
 
         ip_no = hex(socket.htonl(int(ipaddress.ip_address(self.EnodeB2_IP))))
         buf = "g_{}".format(ip_no[2:])
@@ -202,12 +199,12 @@ class ClassifierTest(unittest.TestCase):
         ue_ip_addr = "192.168.128.31"
         self.classifier_controller.add_tunnel_flows(65525, 2,100001,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB2_IP, seid2, ip_flow_dl=ip_flow_dl, True)
+                                                    self.EnodeB2_IP, seid2, True, ip_flow_dl=ip_flow_dl)
 
         ue_ip_addr = "192.168.128.51"
         self.classifier_controller.add_tunnel_flows(65525, 5,1001,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB2_IP, seid2, ip_flow_dl=ip_flow_dl, True)
+                                                    self.EnodeB2_IP, seid2, True, ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -244,13 +241,13 @@ class ClassifierTest(unittest.TestCase):
         ue_ip_addr = "2001::1"
         self.classifier_controller.add_tunnel_flows(65525, 1, 10000,
                                                     IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1, ip_flow_dl=ip_flow_dl, True)
+                                                    self.EnodeB_IP, seid1, True, ip_flow_dl=ip_flow_dl)
 
         seid2 = 5001
         ue_ip_addr = "2001:db8::1"
         self.classifier_controller.add_tunnel_flows(65525, 2,100001,
                                                     IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid2, ip_flow_dl=ip_flow_dl, True)
+                                                    self.EnodeB_IP, seid2, True, ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)

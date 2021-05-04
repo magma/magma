@@ -34,6 +34,8 @@ class Utils:
     DISCARD_RULE_PRIORITY = RESUME_RULE_PRIORITY
     # Paging tunnel flows
     PAGING_RULE_PRIORITY = 5
+    PAGING_RULE_DROP_PRIORITY = PAGING_RULE_PRIORITY + 1
+
     OVSDB_PORT = 6640  # The IANA registered port for OVSDB [RFC7047]
     CONF = cfg.CONF
     # OVSBridge instance instantiated later

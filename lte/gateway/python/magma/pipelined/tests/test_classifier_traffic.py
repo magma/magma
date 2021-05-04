@@ -130,7 +130,7 @@ class GTPTrafficTest(unittest.TestCase):
         ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller.add_tunnel_flows(65525, 1, 1000,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1, ip_flow_dl=ip_flow_dl, True)
+                                                    self.EnodeB_IP, seid1, True, ip_flow_dl=ip_flow_dl)
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         eth = Ether(dst=self.MAC_1, src=self.MAC_2)
