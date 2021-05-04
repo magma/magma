@@ -44,6 +44,7 @@ from lte.protos.pipelined_pb2 import (
     UPFSessionContextState,
     VersionedPolicy,
     VersionedPolicyID,
+    PdrState,
 )
 from lte.protos.session_manager_pb2 import RuleRecordTable
 from magma.pipelined.app.check_quota import CheckQuotaController

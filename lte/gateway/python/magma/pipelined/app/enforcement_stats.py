@@ -40,7 +40,7 @@ from magma.pipelined.openflow.registers import (
     RULE_NUM_REG,
     RULE_VERSION_REG,
     SCRATCH_REGS,
-    NG_FLOW_ENABLE_REG,
+    NG_SESSION_ID_REG,
     REG_ZERO_VAL,
     Direction,
 )
