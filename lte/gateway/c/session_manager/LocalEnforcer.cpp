@@ -638,10 +638,9 @@ void LocalEnforcer::schedule_static_rule_activation(
         const auto ambr           = config.get_apn_ambr();
         const std::string msisdn  = config.common_context.msisdn();
 
-        uint32_t version = session->activate_static_rule(
-            rule_id, session->get_rule_lifetime(rule_id), uc);
         RulesToProcess to_process;
-        to_process.append_versioned_policy(rule, version);
+        to_process.push_back(session->activate_static_rule(
+            rule_id, session->get_rule_lifetime(rule_id), uc));
 
         pipelined_client_->activate_flows_for_rules(
             imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
@@ -699,10 +698,9 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
                          << session_id;
           return;
         }
-        uint32_t version = session->insert_dynamic_rule(
-            rule, session->get_rule_lifetime(rule_id), session_uc);
         RulesToProcess to_process;
-        to_process.append_versioned_policy(rule, version);
+        to_process.push_back(session->insert_dynamic_rule(
+            rule, session->get_rule_lifetime(rule_id), session_uc));
 
         pipelined_client_->activate_flows_for_rules(
             imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
@@ -748,16 +746,16 @@ void LocalEnforcer::schedule_static_rule_deactivation(
         const Teids teids = session->get_config().common_context.teids();
 
         auto& session_uc = session_update[imsi][session_id];
-        optional<uint32_t> op_version =
+        optional<RuleToProcess> op_rule_info =
             session->deactivate_static_rule(rule_id, session_uc);
-        if (!op_version) {
+        if (!op_rule_info) {
           MLOG(MERROR) << "Could not find rule " << rule_id << " for "
                        << session_id << " during static rule removal";
           return;
         }
 
         RulesToProcess to_process;
-        to_process.append_versioned_policy(rule, *op_version);
+        to_process.push_back(*op_rule_info);
         pipelined_client_->deactivate_flows_for_rules(
             imsi, ip_addr, ipv6_addr, teids, to_process, RequestOriginType::GX);
 
@@ -794,11 +792,11 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
 
         PolicyRule policy;
         auto& uc = session_update[imsi][session_id];
-        optional<uint32_t> op_version =
+        optional<RuleToProcess> remove_info =
             session->remove_dynamic_rule(policy.id(), &policy, uc);
-        if (op_version) {
+        if (remove_info) {
           RulesToProcess to_process;
-          to_process.append_versioned_policy(policy, *op_version);
+          to_process.push_back(*remove_info);
           pipelined_client_->deactivate_flows_for_rules(
               imsi, ip_addr, ipv6_addr, teids, to_process,
               RequestOriginType::GX);
@@ -1322,7 +1320,7 @@ void LocalEnforcer::update_charging_credits(
     if (final_action_info) {
       RulesToProcess gy_rules =
           session->remove_all_final_action_rules(*final_action_info, uc);
-      if (!gy_rules.rules.empty()) {
+      if (!gy_rules.empty()) {
         auto config = session->get_config().common_context;
         // We need to cancel final unit action flows installed in pipelined here
         // following the reception of new charging credit.
@@ -1636,7 +1634,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
     return;
   }
   if (session->get_config().common_context.rat_type() == TGPP_LTE) {
-    create_bearer(session, request, rules_to_activate.rules);
+    create_bearer(session, request, rules_to_activate);
   }
 }
 
@@ -1695,11 +1693,11 @@ void LocalEnforcer::process_rules_to_remove(
                      << " during static rule removal";
       continue;
     }
-    optional<uint32_t> op_version = {};
+    optional<RuleToProcess> remove_info = {};
     PolicyRule rule;
     switch (*p_type) {
       case DYNAMIC: {
-        op_version = session->remove_dynamic_rule(rule_id, &rule, uc);
+        remove_info = session->remove_dynamic_rule(rule_id, &rule, uc);
         break;
       }
       case STATIC: {
@@ -1707,18 +1705,18 @@ void LocalEnforcer::process_rules_to_remove(
           MLOG(MERROR) << "Static rule " << rule_id << " not found";
           continue;
         }
-        op_version = session->deactivate_static_rule(rule_id, uc);
+        remove_info = session->deactivate_static_rule(rule_id, uc);
         break;
       }
       default:
         break;
     }
-    if (!op_version) {
+    if (!remove_info) {
       MLOG(MERROR) << "Failed to remove " << rule_id << " for "
                    << session->get_session_id();
       continue;
     }
-    rules_to_deactivate.append_versioned_policy(rule, *op_version);
+    rules_to_deactivate.push_back(*remove_info);
   }
 }
 
@@ -1772,9 +1770,9 @@ void LocalEnforcer::process_rules_to_install(
       schedule_static_rule_activation(
           imsi, session_id, id, lifetime.activation_time);
     } else {
-      uint32_t version = session.activate_static_rule(id, lifetime, uc);
       // Set up rules_to_activate
-      rules_to_activate.append_versioned_policy(static_rule, version);
+      rules_to_activate.push_back(
+          session.activate_static_rule(id, lifetime, uc));
     }
 
     if (lifetime.deactivation_time > current_time) {
@@ -1782,12 +1780,13 @@ void LocalEnforcer::process_rules_to_install(
           imsi, session_id, id, lifetime.deactivation_time);
     } else if (lifetime.deactivation_time > 0) {
       // 0: never scheduled to deactivate
-      optional<uint32_t> op_version = session.deactivate_static_rule(id, uc);
-      if (!op_version) {
+      optional<RuleToProcess> op_rule_info =
+          session.deactivate_static_rule(id, uc);
+      if (!op_rule_info) {
         MLOG(MWARNING) << "Could not find rule " << id << "for " << session_id
                        << " during static rule removal";
       } else {
-        rules_to_deactivate.append_versioned_policy(static_rule, *op_version);
+        rules_to_deactivate.push_back(*op_rule_info);
       }
     }
   }
@@ -1801,18 +1800,17 @@ void LocalEnforcer::process_rules_to_install(
       schedule_dynamic_rule_activation(
           imsi, session_id, rule_id, lifetime.activation_time);
     } else {
-      uint32_t version =
-          session.insert_dynamic_rule(dynamic_rule, lifetime, uc);
-      rules_to_activate.append_versioned_policy(dynamic_rule, version);
+      rules_to_activate.push_back(
+          session.insert_dynamic_rule(dynamic_rule, lifetime, uc));
     }
     if (lifetime.deactivation_time > current_time) {
       schedule_dynamic_rule_deactivation(
           imsi, session_id, rule_id, lifetime.deactivation_time);
     } else if (lifetime.deactivation_time > 0) {
-      optional<uint32_t> op_version =
+      optional<RuleToProcess> remove_info =
           session.remove_dynamic_rule(rule_id, nullptr, uc);
-      if (op_version) {
-        rules_to_deactivate.append_versioned_policy(dynamic_rule, *op_version);
+      if (remove_info) {
+        rules_to_deactivate.push_back(*remove_info);
       }
     }
   }
@@ -1931,7 +1929,7 @@ void LocalEnforcer::handle_add_ue_mac_flow_callback(
 void LocalEnforcer::create_bearer(
     const std::unique_ptr<SessionState>& session,
     const PolicyReAuthRequest& request,
-    const std::vector<PolicyRule>& dynamic_rules) {
+    const std::vector<RuleToProcess>& dynamic_rules) {
   const auto& config = session->get_config();
   if (!config.rat_specific_context.has_lte_context()) {
     MLOG(MWARNING) << "No LTE Session Context is specified for session";
@@ -1952,10 +1950,11 @@ void LocalEnforcer::create_bearer(
     req.set_link_bearer_id(lte_context.bearer_id());
 
     auto req_policy_rules = req.mutable_policy_rules();
-    for (const auto& rule : dynamic_rules) {
-      optional<PolicyType> p_type = session->get_policy_type(rule.id());
+    for (const auto& to_process : dynamic_rules) {
+      optional<PolicyType> p_type =
+          session->get_policy_type(to_process.rule.id());
       if (p_type && *p_type == DYNAMIC) {
-        req_policy_rules->Add()->CopyFrom(rule);
+        req_policy_rules->Add()->CopyFrom(to_process.rule);
       }
     }
     spgw_client_->create_dedicated_bearer(req);
@@ -2063,23 +2062,23 @@ void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
   }
 
   PolicyRule rule;
-  optional<uint32_t> op_version = {};
+  optional<RuleToProcess> remove_info = {};
 
   switch (*policy_type) {
     case STATIC:
       if (rule_store_->get_rule(rule_id, &rule)) {
-        op_version = session.deactivate_static_rule(rule_id, uc);
+        remove_info = session.deactivate_static_rule(rule_id, uc);
       }
       break;
     case DYNAMIC: {
-      op_version = session.remove_dynamic_rule(rule_id, &rule, uc);
+      remove_info = session.remove_dynamic_rule(rule_id, &rule, uc);
       break;
     }
   }
-  if (op_version) {
+  if (remove_info) {
     auto config = session.get_config().common_context;
     RulesToProcess to_process;
-    to_process.append_versioned_policy(rule, *op_version);
+    to_process.push_back(*remove_info);
     pipelined_client_->deactivate_flows_for_rules(
         imsi, config.ue_ipv4(), config.ue_ipv6(), config.teids(), to_process,
         RequestOriginType::GX);
