@@ -107,8 +107,9 @@ int mme_api_get_emm_config(
       LOG_NAS, "Number of GUMMEIs supported = %d\n", mme_config_p->gummei.nb);
 
   config->tai_list.numberoflists = 0;
-  // TODO actually we support only one partial TAI list.
-  // reminder mme_config_p->served_tai is sorted in ascending order of TAIs
+  // We can store 16 TAIs per list and have 16 partial lists maximum
+  // As per TS 124.301 V15.4.0 Section 9.9.3.33, we will be sending at most
+  // 16 TAIs for which UE data is set during
   switch (mme_config_p->served_tai.list_type) {
     case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS: {
       int tai_list_i = 0, tac_i = 0;
@@ -528,6 +529,16 @@ int mme_api_new_guti(
         AssertFatal(
             0, "BAD TAI list configuration, unknown TAI list type %u",
             _emm_data.conf.tai_list.partial_tai_list[i].typeoflist);
+    }
+
+    // TS 124.301 V15.4.0 Section 9.9.3.33:
+    // "The Tracking area identity list is a type 4 information element,
+    // with a minimum length of 8 octets and a maximum length of 98 octets.
+    // The list can contain a maximum of 16 different tracking area identities."
+    // We will limit the number to 1 partial list which can have maximum of 16
+    // TAIs.
+    if (j == 1) {
+      break;  // for loop
     }
   }
   tai_list->numberoflists = j;
