@@ -76,7 +76,8 @@ bool pcef_end_session(char* imsi, char* apn);
  */
 void pcef_send_policy2bearer_binding(
     const char* imsi, uint8_t default_bearer_id, char* policy_rule_name,
-    uint8_t eps_bearer_id);
+    uint8_t eps_bearer_id, uint32_t eps_bearer_agw_teid,
+    uint32_t eps_bearer_enb_teid);
 
 void get_session_req_data(
     spgw_state_t* spgw_state,

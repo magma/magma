@@ -174,12 +174,15 @@ bool pcef_end_session(char* imsi, char* apn) {
 
 void pcef_send_policy2bearer_binding(
     const char* imsi, uint8_t default_bearer_id, char* policy_rule_name,
-    uint8_t eps_bearer_id) {
+    uint8_t eps_bearer_id, uint32_t eps_bearer_agw_teid,
+    uint32_t eps_bearer_enb_teid) {
   magma::PolicyBearerBindingRequest request;
   request.mutable_sid()->set_id("IMSI" + std::string(imsi));
   request.set_linked_bearer_id(default_bearer_id);
   request.set_policy_rule_id(policy_rule_name);
   request.set_bearer_id(eps_bearer_id);
+  request.mutable_teids()->set_enb_teid(eps_bearer_enb_teid);
+  request.mutable_teids()->set_agw_teid(eps_bearer_agw_teid);
   magma::PCEFClient::bind_policy2bearer(
       request,
       [&](grpc::Status status, magma::PolicyBearerBindingResponse response) {

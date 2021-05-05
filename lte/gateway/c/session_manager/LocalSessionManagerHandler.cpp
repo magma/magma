@@ -559,7 +559,9 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
              << request->sid().id()
              << " with default bearerID: " << request->linked_bearer_id()
              << " policyID: " << request->policy_rule_id()
-             << " created dedicated bearerID: " << request->bearer_id();
+             << " created dedicated bearerID: " << request->bearer_id()
+             << " agw TEID: " << request->teids().agw_teid()
+             << " eNB TEID: " << request->teids().enb_teid();
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     auto session_map = session_store_.read_sessions({request_cpy.sid().id()});
     SessionUpdate update =
