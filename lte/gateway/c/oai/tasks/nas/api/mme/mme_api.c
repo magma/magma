@@ -174,7 +174,7 @@ int mme_api_get_emm_config(
             &(config->tai_list.partial_tai_list[tai_list_i]
                   .u.tai_many_plmn[tac_i]
                   .plmn));
-        AssertFatal(rc == RETURNok, "BAD MNC length for GUMMEI");
+        AssertFatal(rc == RETURNok, "BAD MNC length in SERVED TAI");
         config->tai_list.partial_tai_list[tai_list_i].u.tai_many_plmn[i].tac =
             mme_config_p->served_tai.tac[i];
         ++tac_i;
@@ -206,7 +206,7 @@ int mme_api_get_emm_config(
             &(mme_config_p->served_tai), i,
             &(config->tai_list.partial_tai_list[tai_list_i]
                   .u.tai_one_plmn_non_consecutive_tacs.plmn));
-        AssertFatal(rc == RETURNok, "BAD MNC length for GUMMEI");
+        AssertFatal(rc == RETURNok, "BAD MNC length in SERVED TAI");
         config->tai_list.partial_tai_list[tai_list_i]
             .u.tai_one_plmn_non_consecutive_tacs.tac[tac_i] =
             mme_config_p->served_tai.tac[i];
