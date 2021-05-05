@@ -17,7 +17,8 @@
           "howtos/call_tracing",
           "howtos/events_monitoring",
           "howtos/he_api",
-          "howtos/inbound_roaming"
+          "howtos/inbound_roaming",
+          "howtos/pcap"
         ]
       },
       {
@@ -184,6 +185,14 @@
       "contributing/contribute_codeowners"
     ],
     "Technical Reference": [
+      {
+        "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "resources/ref_pcap",
+          "resources/ref_useful_links"
+        ]
+      },
       {
         "type": "subcategory",
         "label": "Access Gateway",

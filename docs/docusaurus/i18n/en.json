@@ -418,6 +418,12 @@
       "proposals/proposal_template": {
         "title": "Title of Design Doc"
       },
+      "resources/ref_pcap": {
+        "title": "PCAP Collection"
+      },
+      "resources/ref_useful_links": {
+        "title": "Useful Links"
+      },
       "version-1.0.0/basics/version-1.0.0-introduction": {
         "title": "Introduction"
       },
