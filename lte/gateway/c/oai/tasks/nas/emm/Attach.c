@@ -719,7 +719,6 @@ int emm_proc_attach_complete(
             "Discarding attach complete as T3450 timer is not active for "
             "ueid " MME_UE_S1AP_ID_FMT "\n",
             ue_id);
-        bdestroy((bstring)(esm_msg_pP));
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
       emm_ctx = &ue_mm_context->emm_context;
@@ -797,7 +796,6 @@ int emm_proc_attach_complete(
           "UE " MME_UE_S1AP_ID_FMT
           " ATTACH COMPLETE discarded (EMM procedure not found)\n",
           ue_id);
-      bdestroy((bstring)(esm_msg_pP));
     }
   } else {
     NOT_REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__20);
