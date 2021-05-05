@@ -56,7 +56,7 @@ secret:
 certs:
   create: true
 
-  domainName: localhost
+  domainName: ""
 
 nginx:
   create: true
@@ -115,7 +115,7 @@ nginx:
   # Settings affecting nginx application
   spec:
     # magma controller domain name
-    hostname: "controller.localhost"
+    hostname: ""
     # when nginx sees a variable in a server_name it needs a resolver
     # by default we'll use kube-dns
     resolver: "kube-dns.kube-system.svc.cluster.local valid=10s"
