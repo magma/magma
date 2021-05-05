@@ -43,11 +43,14 @@ def main():
         targets = load_service_config("monitord")["ping_targets"]
         for target, data in targets.items():
             if "ip" in data:
-                ip = IPAddress(version=IPAddress.IPV4,
-                               address=str.encode(data["ip"]))
+                ip = IPAddress(
+                    version=IPAddress.IPV4,
+                    address=str.encode(data["ip"]),
+                )
                 logging.debug(
-                    'Adding {}:{}:{} to ping target'.format(target, ip.version,
-                                                            ip.address))
+                    'Adding %s:%s:%s to ping target', target, ip.version,
+                    ip.address,
+                )
                 manual_ping_targets[target] = ip
     except KeyError:
         logging.warning("No ping targets configured")
@@ -55,14 +58,17 @@ def main():
     cpe_monitor = CpeMonitoringModule()
     cpe_monitor.set_manually_configured_targets(manual_ping_targets)
 
-    icmp_monitor = ICMPMonitoring(cpe_monitor,
-                                  service.mconfig.polling_interval,
-                                  service.loop, mtr_interface)
+    icmp_monitor = ICMPMonitoring(
+        cpe_monitor,
+        service.mconfig.polling_interval,
+        service.loop, mtr_interface,
+    )
     icmp_monitor.start()
 
     # Register a callback function for GetOperationalStates
     service.register_operational_states_callback(
-        _get_serialized_subscriber_states(cpe_monitor))
+        _get_serialized_subscriber_states(cpe_monitor),
+    )
 
     # Run the service loop
     service.run()
