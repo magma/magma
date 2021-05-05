@@ -85,6 +85,7 @@ static inline int ngap_amf_encode_initiating(
     case Ngap_ProcedureCode_id_InitialContextSetup:
     case Ngap_ProcedureCode_id_UEContextRelease:
     case Ngap_ProcedureCode_id_Paging:
+    case Ngap_ProcedureCode_id_PDUSessionResourceSetup:
       break;
 
     default:
