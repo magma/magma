@@ -53,6 +53,7 @@ class UEMacAddressTest(unittest.TestCase):
     BRIDGE_IP = '192.168.130.1'
     DPI_PORT = 'mon1'
     DPI_IP = '1.1.1.1'
+    UE_BLOCK = '192.168.128.0/24'
 
     @classmethod
     @unittest.mock.patch('netifaces.ifaddresses',
@@ -113,9 +114,10 @@ class UEMacAddressTest(unittest.TestCase):
                     'idle_timeout': 42,
                 },
                 'uplink_port': OFPP_LOCAL,
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=PipelineD(
-                ue_ip_block="192.168.128.0/24",
+                ue_ip_block=cls.UE_BLOCK,
             ),
             loop=None,
             service_manager=cls.service_manager,

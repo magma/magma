@@ -63,6 +63,7 @@ class GYTableTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
+    UE_BLOCK = '192.168.128.0/24'
 
     @classmethod
     @unittest.mock.patch('netifaces.ifaddresses',
@@ -114,6 +115,7 @@ class GYTableTest(unittest.TestCase):
                 'qos': {'enable': False},
                 'dpi': {'enable': False},
                 'clean_restart': True,
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=PipelineD(
                 ue_ip_block='192.168.128.0/24'

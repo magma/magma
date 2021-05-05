@@ -12,6 +12,8 @@ limitations under the License.
 """
 import ipaddress
 import threading
+import subprocess
+import sys
 from collections import namedtuple
 
 from lte.protos.mobilityd_pb2 import IPAddress
@@ -34,6 +36,7 @@ from magma.pipelined.openflow.registers import (
     Direction,
     load_direction,
 )
+
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
@@ -69,7 +72,8 @@ class InOutController(RestartMixin, MagmaController):
         'InOutConfig',
         ['gtp_port', 'uplink_port', 'mtr_ip', 'mtr_port', 'li_port_name',
          'enable_nat', 'non_nat_gw_probe_frequency', 'non_nat_arp_egress_port',
-         'setup_type', 'uplink_gw_mac', 'he_proxy_port', 'he_proxy_eth_mac'],
+         'setup_type', 'uplink_gw_mac', 'he_proxy_port', 'he_proxy_eth_mac',
+         'ue_ip_block', 'bridge_name'],
     )
     ARP_PROBE_FREQUENCY = 300
     NON_NAT_ARP_EGRESS_PORT = 'dhcp0'
@@ -140,6 +144,7 @@ class InOutController(RestartMixin, MagmaController):
                                                       self.NON_NAT_ARP_EGRESS_PORT)
         uplink_gw_mac = config_dict.get('uplink_gw_mac',
                                         "ff:ff:ff:ff:ff:ff")
+        bridge_name = config_dict.get('bridge_name', 'gtp_br0')
         return self.InOutConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
             uplink_port=port_no,
@@ -152,11 +157,15 @@ class InOutController(RestartMixin, MagmaController):
             setup_type=setup_type,
             uplink_gw_mac=uplink_gw_mac,
             he_proxy_port=he_proxy_port,
-            he_proxy_eth_mac=he_proxy_eth_mac)
+            he_proxy_eth_mac=he_proxy_eth_mac,
+            ue_ip_block=config_dict['ue_ip_block'],
+            bridge_name=bridge_name,
+        )
 
     def initialize_on_connect(self, datapath):
         self._datapath = datapath
         self._setup_non_nat_monitoring()
+        self._set_lte_bridge_ip_address()
         # TODO possibly investigate stateless XWF(no sessiond)
         if self.config.setup_type == 'XWF':
             self.delete_all_flows(datapath)
@@ -545,6 +554,40 @@ class InOutController(RestartMixin, MagmaController):
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
 
+    def _set_lte_bridge_ip_address(self):
+        if self.config.setup_type != 'LTE':
+            return
+
+        if self.config.ue_ip_block is None:
+            return
+
+        try:
+            first_ip = BridgeTools.get_ip_addr_gtp_br(self.config.ue_ip_block)
+            network_mask = self.config.ue_ip_block.split('/')[1]
+            bridge_ip_addr = get_if_addr(self.config.bridge_name)
+
+            if bridge_ip_addr == first_ip:
+                return
+
+            try:
+                flush_ip = ["ip", "addr", "flush", "dev",
+                            self.config.bridge_name]
+                subprocess.check_call(flush_ip)
+                set_ip = str(first_ip) + '/' + str(network_mask)
+
+                set_ip_cmd = ["ip",
+                              "addr", "replace",
+                              set_ip,
+                              "dev",
+                              self.config.bridge_name]
+                subprocess.check_call(set_ip_cmd)
+                self.logger.info("Bridge ip address config: [%s]", set_ip_cmd)
+            except subprocess.SubprocessError as e:
+                self.logger.warning("Error while setting Bridge IP: %s", e)
+                sys.exit(1)
+        except ValueError:
+            self.logger.info("Error setting bridge IP address")
+
 
 def _get_vlan_egress_flow_msgs(dp, table_no, ip, out_port=None,
                                priority=0, direction=Direction.IN):
@@ -584,4 +627,5 @@ def _get_vlan_egress_flow_msgs(dp, table_no, ip, out_port=None,
             priority=priority, output_reg=output_reg, output_port=out_port)
     )
     return msgs
+
 

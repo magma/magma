@@ -65,11 +65,11 @@ class ArpController(MagmaController):
         self.local_eth_addr = kwargs['config']['local_ue_eth_addr']
         self.setup_type = kwargs['config']['setup_type']
         self.allow_unknown_uplink_arps = kwargs['config']['allow_unknown_arps']
-        self.config = self._get_config(kwargs['config'], kwargs['mconfig'])
+        self.config = self._get_config(kwargs['config'])
         self._current_ues = []
         self._datapath = None
 
-    def _get_config(self, config_dict, mconfig):
+    def _get_config(self, config_dict):
         def get_virtual_iface_mac(iface):
             virt_ifaddresses = netifaces.ifaddresses(iface)
             return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
@@ -102,7 +102,7 @@ class ArpController(MagmaController):
             virtual_iface=virtual_iface,
             virtual_mac=virtual_mac,
             # TODO deprecate this, use mobilityD API to get ip-blocks
-            ue_ip_blocks=[cidr_to_ip_netmask_tuple(mconfig.ue_ip_block)],
+            ue_ip_blocks=[cidr_to_ip_netmask_tuple(config_dict['ue_ip_block'])],
             cwf_check_quota_ip=config_dict.get('quota_check_ip', None),
             cwf_bridge_mac=get_virtual_iface_mac(config_dict['bridge_name']),
             mtr_ip=mtr_ip,

@@ -40,6 +40,7 @@ class LIMirrorTest(unittest.TestCase):
     BRIDGE_IP = '192.168.128.1'
     LI_LOCAL_IP = '1.1.1.1'
     LI_DST_IP = '2.2.3.3'
+    UE_BLOCK = '192.168.128.0/24'
 
     @classmethod
     def setUpClass(cls):
@@ -82,7 +83,8 @@ class LIMirrorTest(unittest.TestCase):
                 'li_mirror_all': True,
                 'li_local_iface': cls.LI_LOCAL_IFACE,
                 'li_dst_iface': cls.LI_DST_IFACE,
-                'uplink_port': OFPP_LOCAL
+                'uplink_port': OFPP_LOCAL,
+                'ue_ip_block': cls.UE_BLOCK
             },
             mconfig=None,
             loop=None,

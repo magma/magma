@@ -40,6 +40,7 @@ class InternalPktIpfixExportTest(unittest.TestCase):
     BRIDGE_IP = '192.168.128.1'
     DPI_PORT = 'mon1'
     DPI_IP = '1.1.1.1'
+    UE_BLOCK = '192.168.128.0/24'
 
     @classmethod
     def setUpClass(cls):
@@ -94,6 +95,7 @@ class InternalPktIpfixExportTest(unittest.TestCase):
                     'mon_port_number': 32769,
                     'idle_timeout': 42,
                 },
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=PipelineD(),
             loop=None,

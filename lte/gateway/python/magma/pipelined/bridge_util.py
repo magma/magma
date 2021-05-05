@@ -12,6 +12,7 @@ limitations under the License.
 """
 import binascii
 import logging
+import ipaddress
 import re
 import subprocess
 from collections import defaultdict
@@ -243,6 +244,11 @@ class BridgeTools:
                 '/'.join(sorted(apps)))
         return annotated_tables
 
+    @staticmethod
+    def get_ip_addr_gtp_br(ue_ip_block):
+        block = ipaddress.ip_network(ue_ip_block)
+        return list(block.hosts())[0]
+
     @classmethod
     def get_annotated_flows_for_bridge(cls, bridge_name: str,
                                        table_assignments: 'Dict[str, Tables]',
@@ -317,3 +323,4 @@ class BridgeTools:
         return [parse_flow(flow) for flow in
                 filter_apps(cls.get_flows_for_bridge(bridge_name,
                     include_stats=include_stats))]
+

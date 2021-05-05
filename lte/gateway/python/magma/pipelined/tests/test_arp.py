@@ -103,6 +103,7 @@ class ArpTableTest(unittest.TestCase):
                 'quota_check_ip': '1.2.3.4',
                 'clean_restart': True,
                 'enable_nat': True,
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=PipelineD(
                 ue_ip_block=cls.UE_BLOCK,

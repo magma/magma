@@ -69,6 +69,7 @@ class InOutNonNatTest(unittest.TestCase):
     UPLINK_BR = "up_inout_br0"
     DHCP_PORT = "tino_dhcp"
     UPLINK_VLAN_SW = "vlan_inout"
+    UE_BLOCK = '192.168.128.0/24'
 
     @classmethod
     def setup_uplink_br(cls):
@@ -157,6 +158,7 @@ class InOutNonNatTest(unittest.TestCase):
                 'non_nat_arp_egress_port': non_nat_arp_egress_port,
                 'uplink_port': patch_up_port_no,
                 'uplink_gw_mac': gw_mac_addr,
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=None,
             loop=None,
@@ -345,6 +347,7 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
+    UE_BLOCK = '192.168.128.0/24'
 
     @classmethod
     def setUpClass(cls):
@@ -380,7 +383,8 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
                 'clean_restart': True,
                 'enable_nat': False,
                 'uplink_gw_mac': '11:22:33:44:55:66',
-                'uplink_port': OFPP_LOCAL
+                'uplink_port': OFPP_LOCAL,
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=None,
             loop=None,

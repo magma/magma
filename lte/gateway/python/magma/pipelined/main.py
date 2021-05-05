@@ -115,6 +115,14 @@ def main():
         mtr_ip = get_ip_from_if(mtr_interface)
         service.config['mtr_ip'] = mtr_ip
 
+    # UE IP range.
+    ue_ip_block = service.config.get('ue_ip_block', None)
+    if service.mconfig.ue_ip_block:
+        ue_ip_block = service.mconfig.ue_ip_block
+    service.config['ue_ip_block'] = ue_ip_block
+
+    service.config['bridge_ip_address'] = BridgeTools.get_ip_addr_gtp_br(ue_ip_block)
+
     # Load the ryu apps
     service_manager = ServiceManager(service)
     service_manager.load()

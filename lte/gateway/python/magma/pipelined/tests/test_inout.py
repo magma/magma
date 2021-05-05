@@ -35,6 +35,7 @@ class InOutTest(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
+    UE_BLOCK = '192.168.128.0/24'
 
     @classmethod
     def setUpClass(cls):
@@ -70,7 +71,8 @@ class InOutTest(unittest.TestCase):
                 'clean_restart': True,
                 'enable_nat': True,
                 'uplink_gw_mac': '11:22:33:44:55:66',
-                'uplink_port': OFPP_LOCAL
+                'uplink_port': OFPP_LOCAL,
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=None,
             loop=None,
@@ -99,6 +101,7 @@ class InOutTestLTE(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
+    UE_BLOCK = '192.168.128.0/24'
 
     @classmethod
     def setUpClass(cls):
@@ -137,7 +140,8 @@ class InOutTestLTE(unittest.TestCase):
                 'uplink_gw_mac': '11:22:33:44:55:66',
                 'mtr_ip': '1.2.3.4',
                 'ovs_mtr_port_number': 211,
-                'uplink_port': OFPP_LOCAL
+                'uplink_port': OFPP_LOCAL,
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=None,
             loop=None,
@@ -166,6 +170,7 @@ class InOutTestXWF(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
+    UE_BLOCK = '192.168.128.0/24'
 
     @classmethod
     def setUpClass(cls):
@@ -200,7 +205,8 @@ class InOutTestXWF(unittest.TestCase):
                 'bridge_ip_address': cls.BRIDGE_IP,
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
-                'uplink_port': OFPP_LOCAL
+                'uplink_port': OFPP_LOCAL,
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=None,
             loop=None,

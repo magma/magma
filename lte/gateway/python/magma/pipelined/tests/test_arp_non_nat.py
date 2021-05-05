@@ -136,6 +136,7 @@ class ArpTableTest(unittest.TestCase):
                 'enable_nat': False,
                 'mtr_ip': cls.MTR_IP,
                 'mtr_mac': cls.MTR_MAC,
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=PipelineD(
                 ue_ip_block=cls.UE_BLOCK,
@@ -322,6 +323,7 @@ class ArpTableTestRouterIP(unittest.TestCase):
                 'enable_nat': False,
                 'mtr_ip': cls.MTR_IP,
                 'mtr_mac': cls.MTR_MAC,
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=PipelineD(
                 ue_ip_block=cls.UE_BLOCK,

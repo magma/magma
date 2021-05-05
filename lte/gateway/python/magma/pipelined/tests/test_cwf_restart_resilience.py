@@ -111,6 +111,7 @@ class CWFRestartResilienceTest(unittest.TestCase):
                     'mon_port_number': 32769,
                     'idle_timeout': 42,
                 },
+                'ue_ip_block': cls.UE_BLOCK,
             },
             mconfig=PipelineD(
                 ue_ip_block=cls.UE_BLOCK,
