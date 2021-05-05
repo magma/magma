@@ -23,18 +23,18 @@ ORC8R_VERSION="1.4"
 
 # package chart, update index.yaml and push it to artifactory
 update_and_send_to_artifactory () {
-  CHART_PATH=$1
-  helm dependency update $CHART_PATH
-  ARTIFACT_PATH=$(helm package $CHART_PATH | awk '{print $8}')
+  CHART_PATH="$1"
+  helm dependency update "$CHART_PATH"
+  ARTIFACT_PATH="$(helm package "$CHART_PATH" | awk '{print $8}')"
   helm repo index .
-  MD5_CHECKSUM=$(md5sum $ARTIFACT_PATH | awk '{print $1}')
-  SHA1_CHECKSUM=$(shasum -a 1 $ARTIFACT_PATH | awk '{ print $1 }')
-  SHA256_CHECKSUM=$(shasum -a 256 $ARTIFACT_PATH | awk '{ print $1 }')
-  curl -u $HELM_CHART_MUSEUM_USERNAME:$HELM_CHART_MUSEUM_TOKEN \
+  MD5_CHECKSUM="$(md5sum "$ARTIFACT_PATH" | awk '{print $1}')"
+  SHA1_CHECKSUM="$(shasum -a 1 "$ARTIFACT_PATH" | awk '{ print $1 }')"
+  SHA256_CHECKSUM="$(shasum -a 256 "$ARTIFACT_PATH" | awk '{ print $1 }')"
+  curl -u "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" \
               --header "X-Checksum-MD5:${MD5_CHECKSUM}" \
               --header "X-Checksum-Sha1:${SHA1_CHECKSUM}" \
               --header "X-Checksum-Sha256:${SHA256_CHECKSUM}" \
-               -T $ARTIFACT_PATH $HELM_CHART_MUSEUM_URL/$(basename $ARTIFACT_PATH)
+               -T "$ARTIFACT_PATH" "$HELM_CHART_MUSEUM_URL/$(basename "$ARTIFACT_PATH")"
 
 } 
 
@@ -93,52 +93,52 @@ if [[ -z $HELM_CHART_MUSEUM_URL ]]; then
   git init
 
   # Begin packaging necessary helm charts
-  helm dependency update $MAGMA_ROOT/orc8r/cloud/helm/orc8r/
-  helm package $MAGMA_ROOT/orc8r/cloud/helm/orc8r/ && helm repo index .
+  helm dependency update "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/"
+  helm package "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/" && helm repo index .
 
   if [ "$DEPLOYMENT_TYPE" == "$FWA" ]; then
-    helm dependency update $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/
-    helm package $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/ && helm repo index .
+    helm dependency update "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
+    helm package "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/" && helm repo index .
   fi
 
   if [ "$DEPLOYMENT_TYPE" == "$FFWA" ]; then
-    helm dependency update $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/
-    helm package $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/ && helm repo index .
+    helm dependency update "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
+    helm package "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/" && helm repo index .
 
-    helm dependency update $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/
-    helm package $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/ && helm repo index .
+    helm dependency update "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
+    helm package "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/" && helm repo index .
   fi
 
   if  [ "$DEPLOYMENT_TYPE" == "$ALL" ]; then
-    helm dependency update $MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/
-    helm package $MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/ && helm repo index .
+    helm dependency update "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/"
+    helm package "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/" && helm repo index .
 
-    helm dependency update $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/
-    helm package $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/ && helm repo index .
+    helm dependency update "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
+    helm package "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/" && helm repo index .
 
-    helm dependency update $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/
-    helm package $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/ && helm repo index .
+    helm dependency update "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
+    helm package "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/" && helm repo index .
 
-    helm dependency update $MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/
-    helm package $MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/ && helm repo index .
+    helm dependency update "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"
+    helm package "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/" && helm repo index .
 
-    helm dependency update $MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/
-    helm package $MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/ && helm repo index .
+    helm dependency update "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"
+    helm package "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/" && helm repo index .
   fi
 
   # Push charts
   git add . && git commit -m "orc8r charts commit for version $ORC8R_VERSION"
-  git config remote.origin.url >&- || git remote add origin $GITHUB_REPO_URL
+  git config remote.origin.url >&- || git remote add origin "$GITHUB_REPO_URL"
   git push -u origin master
 
   # Ensure push was successful
-  helm repo add $GITHUB_REPO --username $GITHUB_USERNAME --password $GITHUB_ACCESS_TOKEN \
+  helm repo add "$GITHUB_REPO" --username "$GITHUB_USERNAME" --password "$GITHUB_ACCESS_TOKEN" \
         "https://raw.githubusercontent.com/$GITHUB_USERNAME/$GITHUB_REPO/master/"
   helm repo update
 
   # The helm command returns 0 even when no results are found. Search for err str
   # instead
-  HELM_SEARCH_RESULTS=$(helm search repo $GITHUB_REPO) # should list the uploaded charts
+  HELM_SEARCH_RESULTS="$(helm search repo "$GITHUB_REPO")" # should list the uploaded charts
   if [ "$HELM_SEARCH_RESULTS" == "No results found" ]; then
     exitmsg "Error! Unable to find uploaded orc8r charts"
   fi
@@ -157,47 +157,47 @@ else
   fi
 
   # Begin packaging necessary helm charts
-  update_and_send_to_artifactory $MAGMA_ROOT/orc8r/cloud/helm/orc8r/
+  update_and_send_to_artifactory "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/"
 
   if [ "$DEPLOYMENT_TYPE" == "$FWA" ]; then
-    update_and_send_to_artifactory $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/
+    update_and_send_to_artifactory "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
   fi
 
   if [ "$DEPLOYMENT_TYPE" == "$FFWA" ]; then
-    update_and_send_to_artifactory $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/
+    update_and_send_to_artifactory "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
 
-    update_and_send_to_artifactory $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/
+    update_and_send_to_artifactory "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
   fi
 
   if  [ "$DEPLOYMENT_TYPE" == "$ALL" ]; then
-    update_and_send_to_artifactory $MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/
+    update_and_send_to_artifactory "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/"
 
-    update_and_send_to_artifactory $MAGMA_ROOT/lte/cloud/helm/lte-orc8r/
+    update_and_send_to_artifactory "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
     
-    update_and_send_to_artifactory $MAGMA_ROOT/feg/cloud/helm/feg-orc8r/
+    update_and_send_to_artifactory "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
 
-    update_and_send_to_artifactory $MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/
+    update_and_send_to_artifactory "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"
     
-    update_and_send_to_artifactory $MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/
+    update_and_send_to_artifactory "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"
   fi
 
   # Push index.yaml
-  INDEX_MD5_CHECKSUM=$(md5sum $MAGMA_ROOT/index.yaml | awk '{print $1}')
-  INDEX_SHA1_CHECKSUM=$(shasum -a 1 $MAGMA_ROOT/index.yaml | awk '{ print $1 }')
-  INDEX_SHA256_CHECKSUM=$(shasum -a 256 $MAGMA_ROOT/index.yaml | awk '{ print $1 }')
-  curl -u $HELM_CHART_MUSEUM_USERNAME:$HELM_CHART_MUSEUM_TOKEN \
+  INDEX_MD5_CHECKSUM="$(md5sum "$MAGMA_ROOT/index.yaml" | awk '{print $1}')"
+  INDEX_SHA1_CHECKSUM="$(shasum -a 1 "$MAGMA_ROOT/index.yaml" | awk '{ print $1 }')"
+  INDEX_SHA256_CHECKSUM="$(shasum -a 256 "$MAGMA_ROOT/index.yaml" | awk '{ print $1 }')"
+  curl -u "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" \
               --header "X-Checksum-MD5:${INDEX_MD5_CHECKSUM}" \
               --header "X-Checksum-Sha1:${INDEX_SHA1_CHECKSUM}" \
               --header "X-Checksum-Sha256:${INDEX_SHA256_CHECKSUM}" \
-              -T $MAGMA_ROOT/index.yaml $HELM_CHART_MUSEUM_URL/index.yaml
+              -T "$MAGMA_ROOT/index.yaml" "$HELM_CHART_MUSEUM_URL/index.yaml"
 
   # Ensure push was successful
-  helm repo add $HELM_CHART_MUSEUM_URL $HELM_CHART_MUSEUM_URL --username $HELM_CHART_MUSEUM_USERNAME --password $HELM_CHART_MUSEUM_TOKEN 
+  helm repo add "$(basename "$HELM_CHART_MUSEUM_URL")" "$HELM_CHART_MUSEUM_URL" --username "$HELM_CHART_MUSEUM_USERNAME" --password "$HELM_CHART_MUSEUM_TOKEN" 
   helm repo update
 
   # The helm command returns 0 even when no results are found. Search for err str
   # instead
-  HELM_SEARCH_RESULTS=$(helm search repo $HELM_CHART_MUSEUM_URL) # should list the uploaded charts
+  HELM_SEARCH_RESULTS="$(helm search repo "$(basename "$HELM_CHART_MUSEUM_URL")")" # should list the uploaded charts
   if [ "$HELM_SEARCH_RESULTS" == "No results found" ]; then
     exitmsg "Error! Unable to find uploaded orc8r charts"
   fi
