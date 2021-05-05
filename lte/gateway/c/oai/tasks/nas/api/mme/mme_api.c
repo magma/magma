@@ -73,7 +73,8 @@ static int mme_api_pdn_id = 0;
 
 static tmsi_t generate_random_TMSI(void);
 
-static int copy_plmn_from_config(const served_tai_t*, int index, plmn_t*);
+static int copy_plmn_from_config(
+    const served_tai_t* served_tai, int index, plmn_t* plmn);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -110,42 +111,43 @@ int mme_api_get_emm_config(
   // reminder mme_config_p->served_tai is sorted in ascending order of TAIs
   switch (mme_config_p->served_tai.list_type) {
     case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_CONSECUTIVE_TACS: {
-      int list_i = 0, tac_i = 0;
+      int tai_list_i = 0, tac_i = 0;
       for (int i = 0; i < mme_config_p->served_tai.nb_tai; ++i) {
         if (tac_i == 16) {  // cannot have more than 16 TACs per partial list
           // LW: number of elements is coded as N-1 (0 -> 1 element, 1 -> 2
           // elements...), see 3GPP TS 24.301, section 9.9.3.33.1
-          config->tai_list.partial_tai_list[list_i].numberofelements =
+          config->tai_list.partial_tai_list[tai_list_i].numberofelements =
               tac_i - 1;
-          ++list_i;
+          ++tai_list_i;
           tac_i = 0;
         }
-        config->tai_list.partial_tai_list[list_i].typeoflist =
+        config->tai_list.partial_tai_list[tai_list_i].typeoflist =
             mme_config_p->served_tai.list_type;
         int rc = copy_plmn_from_config(
             &(mme_config_p->served_tai), i,
-            &(config->tai_list.partial_tai_list[list_i]
+            &(config->tai_list.partial_tai_list[tai_list_i]
                   .u.tai_one_plmn_consecutive_tacs.plmn));
-        AssertFatal(rc == RETURNok, "BAD MNC length for GUMMEI");
-        config->tai_list.partial_tai_list[list_i]
+        AssertFatal(rc == RETURNok, "BAD MNC length in SERVED TAI");
+        config->tai_list.partial_tai_list[tai_list_i]
             .u.tai_one_plmn_consecutive_tacs.tac =
-            mme_config_p->served_tai.tac[16 * list_i];
+            mme_config_p->served_tai.tac[16 * tai_list_i];
         ++tac_i;
       }
       AssertFatal(
-          list_i < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI,
+          tai_list_i < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI,
           "Too many TAI partial list in TAI list");
       // LW: number of elements is coded as N-1 (0 -> 1 element, 1 -> 2
       // elements...), see 3GPP TS 24.301, section 9.9.3.33.1
-      config->tai_list.partial_tai_list[list_i].numberofelements = tac_i - 1;
-      config->tai_list.numberoflists                             = list_i + 1;
+      config->tai_list.partial_tai_list[tai_list_i].numberofelements =
+          tac_i - 1;
+      config->tai_list.numberoflists = tai_list_i + 1;
 
       break;
     }
     case TRACKING_AREA_IDENTITY_LIST_TYPE_MANY_PLMNS: {
       // no need to optimize here as we do not really support multi PLMN
       // use case in Magma yet
-      int list_i = 0, tac_i = 0;
+      int tai_list_i = 0, tac_i = 0;
       uint16_t last_mcc = mme_config_p->served_tai.plmn_mcc[0];
       uint16_t last_mnc = mme_config_p->served_tai.plmn_mnc[0];
       for (int i = 0; i < mme_config_p->served_tai.nb_tai; i++) {
@@ -160,62 +162,64 @@ int mme_api_get_emm_config(
                                                  // TACs per partial list
           // LW: number of elements is coded as N-1 (0 -> 1 element, 1 -> 2
           // elements...), see 3GPP TS 24.301, section 9.9.3.33.1
-          config->tai_list.partial_tai_list[list_i].numberofelements =
+          config->tai_list.partial_tai_list[tai_list_i].numberofelements =
               tac_i - 1;
-          ++list_i;
+          ++tai_list_i;
           tac_i = 0;
         }
-        config->tai_list.partial_tai_list[list_i].typeoflist =
+        config->tai_list.partial_tai_list[tai_list_i].typeoflist =
             mme_config_p->served_tai.list_type;
         int rc = copy_plmn_from_config(
             &(mme_config_p->served_tai), i,
-            &(config->tai_list.partial_tai_list[list_i]
+            &(config->tai_list.partial_tai_list[tai_list_i]
                   .u.tai_many_plmn[tac_i]
                   .plmn));
         AssertFatal(rc == RETURNok, "BAD MNC length for GUMMEI");
-        config->tai_list.partial_tai_list[list_i].u.tai_many_plmn[i].tac =
+        config->tai_list.partial_tai_list[tai_list_i].u.tai_many_plmn[i].tac =
             mme_config_p->served_tai.tac[i];
         ++tac_i;
       }
       AssertFatal(
-          list_i < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI,
+          tai_list_i < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI,
           "Too many TAI partial list in TAI list");
       // LW: number of elements is coded as N-1 (0 -> 1 element, 1 -> 2
       // elements...), see 3GPP TS 24.301, section 9.9.3.33.1
-      config->tai_list.partial_tai_list[list_i].numberofelements = tac_i - 1;
-      config->tai_list.numberoflists                             = list_i + 1;
+      config->tai_list.partial_tai_list[tai_list_i].numberofelements =
+          tac_i - 1;
+      config->tai_list.numberoflists = tai_list_i + 1;
       break;
     }
     case TRACKING_AREA_IDENTITY_LIST_TYPE_ONE_PLMN_NON_CONSECUTIVE_TACS: {
-      int list_i = 0, tac_i = 0;
+      int tai_list_i = 0, tac_i = 0;
       for (int i = 0; i < mme_config_p->served_tai.nb_tai; ++i) {
         if (tac_i == 16) {  // cannot have more than 16 TACs per partial list
           // LW: number of elements is coded as N-1 (0 -> 1 element, 1 -> 2
           // elements...), see 3GPP TS 24.301, section 9.9.3.33.1
-          config->tai_list.partial_tai_list[list_i].numberofelements =
+          config->tai_list.partial_tai_list[tai_list_i].numberofelements =
               tac_i - 1;
-          ++list_i;
+          ++tai_list_i;
           tac_i = 0;
         }
-        config->tai_list.partial_tai_list[list_i].typeoflist =
+        config->tai_list.partial_tai_list[tai_list_i].typeoflist =
             mme_config_p->served_tai.list_type;
         int rc = copy_plmn_from_config(
             &(mme_config_p->served_tai), i,
-            &(config->tai_list.partial_tai_list[list_i]
+            &(config->tai_list.partial_tai_list[tai_list_i]
                   .u.tai_one_plmn_non_consecutive_tacs.plmn));
         AssertFatal(rc == RETURNok, "BAD MNC length for GUMMEI");
-        config->tai_list.partial_tai_list[list_i]
+        config->tai_list.partial_tai_list[tai_list_i]
             .u.tai_one_plmn_non_consecutive_tacs.tac[tac_i] =
             mme_config_p->served_tai.tac[i];
         ++tac_i;
       }
       AssertFatal(
-          list_i < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI,
+          tai_list_i < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI,
           "Too many TAI partial list in TAI list");
       // LW: number of elements is coded as N-1 (0 -> 1 element, 1 -> 2
       // elements...), see 3GPP TS 24.301, section 9.9.3.33.1
-      config->tai_list.partial_tai_list[list_i].numberofelements = tac_i - 1;
-      config->tai_list.numberoflists                             = list_i + 1;
+      config->tai_list.partial_tai_list[tai_list_i].numberofelements =
+          tac_i - 1;
+      config->tai_list.numberoflists = tai_list_i + 1;
       break;
     }
     default:
