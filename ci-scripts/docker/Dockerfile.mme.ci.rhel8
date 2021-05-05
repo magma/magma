@@ -7,7 +7,6 @@ ARG FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
 ENV BUILD_TYPE=Debug
 ENV C_BUILD=/build/c
-ENV TZ=Europe/Paris
 
 # Remove any old CI artifact
 RUN rm -Rf $MAGMA_ROOT $C_BUILD && mkdir -p $C_BUILD
@@ -36,7 +35,7 @@ RUN yum update -y && \
       libubsan \
       libasan \
       psmisc \
-      psmisc \
+      tcpdump \
       openssl \
       net-tools \
       tzdata && \
@@ -85,7 +84,7 @@ WORKDIR /usr/local/lib/freeDiameter
 COPY --from=magma-mme-builder /usr/local/lib/freeDiameter/* ./
 
 # Refresh library cache
-RUN ldconfig -v
+RUN ldconfig
 
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
@@ -96,8 +95,6 @@ COPY --from=magma-mme-builder $C_BUILD/sctpd/sctpd .
 WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml
-WORKDIR /usr/local/etc/redis
-COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
 
 WORKDIR /etc/magma
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
@@ -107,8 +104,11 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.y
 # Adding means to re-generate certificates
 WORKDIR /magma-mme/scripts
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
-RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
-RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
+RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
+           -e "s@\$SUDO@@" \
+           -e "s@echo_error@echo@" \
+           -e "s@echo_success@echo@" \
+           -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
 WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
