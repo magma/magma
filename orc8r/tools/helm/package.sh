@@ -30,7 +30,7 @@ update_and_send_to_artifactory () {
   MD5_CHECKSUM="$(md5sum "$ARTIFACT_PATH" | awk '{print $1}')"
   SHA1_CHECKSUM="$(shasum -a 1 "$ARTIFACT_PATH" | awk '{ print $1 }')"
   SHA256_CHECKSUM="$(shasum -a 256 "$ARTIFACT_PATH" | awk '{ print $1 }')"
-  curl -u "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" \
+  curl -u "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" --fail \
               --header "X-Checksum-MD5:${MD5_CHECKSUM}" \
               --header "X-Checksum-Sha1:${SHA1_CHECKSUM}" \
               --header "X-Checksum-Sha256:${SHA256_CHECKSUM}" \
