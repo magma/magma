@@ -27,7 +27,7 @@ jobs:
 
             ### More info
 
-            [All commits must be signed off](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines). This is enforced by the `DCO check`.
+            [All commits must be signed off](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines). This is enforced by the \`DCO check\`.
 
             Please take a moment to read through the Magma project's
             - [Contributing conventions](https://docs.magmacore.org/docs/next/contributing/contribute_conventions) for norms around contributed code
