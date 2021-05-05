@@ -69,15 +69,11 @@ func main() {
 		serviceConfig.SkipVerifyServer,
 	)
 	if err != nil {
-		glog.Errorf("Failed to create new TlsConfig: %v", err)
+		glog.Fatalf("Failed to create new TlsConfig: %v", err)
 	}
 
 	// Init records exporter
-	recordExporter, err := exporter.NewRecordExporter(serviceConfig.DeliveryFunctionAddr, tlsConfig)
-	if err != nil {
-		glog.Errorf("Failed to create new RecordExporter: %v", err)
-	}
-
+	recordExporter := exporter.NewRecordExporter(serviceConfig.DeliveryFunctionAddr, tlsConfig)
 	nProbeManager, err := manager.NewNProbeManager(serviceConfig, nprobeBlobstore, recordExporter)
 	if err != nil {
 		glog.Fatalf("Failed to create new NProbeManager: %v", err)
@@ -100,5 +96,4 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error while running service and echo server: %v", err)
 	}
-
 }

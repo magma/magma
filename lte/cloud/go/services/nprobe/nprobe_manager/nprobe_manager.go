@@ -129,7 +129,6 @@ func (np *NProbeManager) updateRecordState(
 
 // processNProbeTask is the main function processing each task, managing state and exporting data
 func (np *NProbeManager) processNProbeTask(networkID string, task *models.NetworkProbeTask) error {
-	var err error
 	taskID := string(task.TaskID)
 	state, err := np.Storage.GetNProbeData(networkID, taskID)
 	if err != nil {
@@ -151,7 +150,7 @@ func (np *NProbeManager) processNProbeTask(networkID string, task *models.Networ
 			continue
 		}
 
-		err = np.Exporter.SendRecord(record, np.MaxExportRetries)
+		err = np.Exporter.SendMessageWithRetries(record, np.MaxExportRetries)
 		if err != nil {
 			glog.Errorf("Failed to export record for targetID %s: %s\n", state.TargetID, err)
 			break

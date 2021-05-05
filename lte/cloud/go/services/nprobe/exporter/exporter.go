@@ -1,3 +1,16 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package exporter
 
 import (
@@ -30,37 +43,29 @@ func NewTlsConfig(crtFile, keyFile string, skipVerify bool) (*tls.Config, error)
 }
 
 // NewRecordExporter creates a new tls exporter and attempt to establish a connection at start
-func NewRecordExporter(remoteAddr string, tlsConfig *tls.Config) (*RecordExporter, error) {
+func NewRecordExporter(remoteAddr string, tlsConfig *tls.Config) *RecordExporter {
 	client := &RecordExporter{
 		tlsConfig:  tlsConfig,
 		remoteAddr: remoteAddr,
 	}
-	var err error
-	go func() { // init connection in a goroutine, it can block for long time
-		conn, err := client.getTlsConnection() // attempt to establish connection at start
-		if err != nil {
-			glog.Errorf(
-				"Failed to establish new TLS connection from to '%s'; error: %v, will retry later.",
-				remoteAddr, err)
-		}
-		client.conn = conn
-	}()
-	return client, err
+	conn, err := client.getTlsConnection() // attempt to establish connection at start
+	if err != nil {
+		glog.Errorf(
+			"Failed to establish new TLS connection from to '%s'; error: %v, will retry later.",
+			remoteAddr, err)
+	}
+	client.conn = conn
+	return client
 }
 
-// SendRecord writes data to remote address with a retry counter
-func (c *RecordExporter) SendRecord(record []byte, retryCount uint32) error {
-	return c.sendMessageWithRetries(record, retryCount)
-}
-
-func (c *RecordExporter) sendMessageWithRetries(message []byte, retryCount uint32) error {
+// SendMessageWithRetries writes data to remote address with a retry counter
+func (c *RecordExporter) SendMessageWithRetries(message []byte, retryCount uint32) error {
 	var err error
-	timesToSend := retryCount + 1
-	for ; timesToSend > 0; timesToSend-- {
+	for i := 0; i < int(retryCount); i++ {
 		err = c.sendMessage(message)
 		// send succeeded
 		if err == nil {
-			break
+			return nil
 		}
 	}
 	return err
@@ -70,7 +75,6 @@ func (c *RecordExporter) sendMessageWithRetries(message []byte, retryCount uint3
 // not established, this establishes it. If the message sending fails, the
 // connection is closed
 func (c *RecordExporter) sendMessage(message []byte) error {
-	var err error
 	conn, err := c.getTlsConnection()
 	if err != nil {
 		return err
@@ -94,20 +98,13 @@ func (c *RecordExporter) getTlsConnection() (*gtcp.Conn, error) {
 	if c.conn != nil {
 		return c.conn, nil
 	}
-	var err error
 	if len(c.remoteAddr) == 0 {
 		return nil, errors.New("Invalid remote address")
 	}
-	if c.tlsConfig == nil {
-		return nil, errors.New("Invalid tls config")
-	}
 
 	conn, err := gtcp.NewConnTLS(c.remoteAddr, c.tlsConfig)
-	if err != nil {
-		return nil, err
-	}
 	c.conn = conn
-	return conn, nil
+	return c.conn, err
 }
 
 // destroyConnection closes a bad connection. If the connection
@@ -119,10 +116,10 @@ func (c *RecordExporter) destroyConnection(conn *gtcp.Conn) {
 		return
 	}
 	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	if conn == c.conn {
 		c.conn = nil
 	}
-	c.mutex.Unlock()
 	conn.Close()
 }
 
