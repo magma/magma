@@ -22,7 +22,7 @@ from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.inout import INGRESS
 from magma.pipelined.openflow import flows, messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import TUN_PORT_REG, Direction
+from magma.pipelined.openflow.registers import TUN_PORT_REG, TUN_ID_REG, Direction
 from magma.pipelined.policy_converters import (get_eth_type,
                                                get_ue_ip_match_args)
 from magma.pipelined.utils import Utils
@@ -162,6 +162,10 @@ class Classifier(MagmaController):
         self._install_default_tunnel_flows()
         self._install_internal_pkt_fwd_flow()
         self._install_internal_conntrack_flow()
+       # ue_ip_addr = "192.168.128.30"
+       # self.add_tunnel_flows(65525, 5, 1000,
+       #               IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+       #               "192.168.60.141", 5000, True)
 
     def _delete_all_flows(self):
         flows.delete_all_flows_from_table(self._datapath, self.tbl_num)
@@ -222,7 +226,8 @@ class Classifier(MagmaController):
         parser = self._datapath.ofproto_parser
         match = MagmaMatch(tunnel_id=i_teid, in_port=gtp_portno)
         actions = [parser.OFPActionSetField(eth_src=GTP_PORT_MAC),
-                   parser.OFPActionSetField(eth_dst="ff:ff:ff:ff:ff:ff")]
+                   parser.OFPActionSetField(eth_dst="ff:ff:ff:ff:ff:ff"),
+                   parser.NXActionRegLoad2(dst=TUN_ID_REG, value=i_teid)]
         if sid:
             actions.append(parser.OFPActionSetField(metadata=sid))
         flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
@@ -230,10 +235,10 @@ class Classifier(MagmaController):
                                              reset_default_register=False,
                                              resubmit_table=self.next_table)
 
-    def _install_downlink_tunnel_flows(self, priority: int, o_teid: int,
-                                       in_port: int, ue_ip_adr: IPAddress,
-                                       enodeb_ip_addr: str, gtp_portno: int,
-                                       sid: int, ng_flag: bool):
+    def _install_downlink_tunnel_flows(self, priority: int, i_teid: int,
+                                       o_teid: int, in_port: int,
+                                       ue_ip_adr:IPAddress, enodeb_ip_addr:str,
+                                       gtp_portno: int, sid: int, ng_flag: bool):
 
         parser = self._datapath.ofproto_parser
         ip_match_out = get_ue_ip_match_args(ue_ip_adr, Direction.IN)
@@ -245,6 +250,8 @@ class Classifier(MagmaController):
                    parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=gtp_portno)]
         if ng_flag:
             actions.append(parser.OFPActionSetField(tun_flags=TUNNEL_OAM_FLAG))
+        if i_teid:
+            actions.append(parser.NXActionRegLoad2(dst=TUN_ID_REG, value=i_teid))
         if sid:
             actions.append(parser.OFPActionSetField(metadata=sid))
 
@@ -295,11 +302,14 @@ class Classifier(MagmaController):
         else:
             if o_teid and enodeb_ip_addr:
                 # Add  Downlink Tunnel flow for LOCAL port
-                self._install_downlink_tunnel_flows(priority, o_teid, self._uplink_port,
-                                                    ue_ip_adr, enodeb_ip_addr,
-                                                    gtp_portno, sid, ng_flag)
+                self._install_downlink_tunnel_flows(priority, i_teid, o_teid,
+                                                    self._uplink_port, ue_ip_adr,
+                                                    enodeb_ip_addr, gtp_portno,
+                                                    sid, ng_flag)
+
                 # Add  Downlink Tunnel flow for mtr port
-                self._install_downlink_tunnel_flows(priority, o_teid, self.config.mtr_port,
+                self._install_downlink_tunnel_flows(priority, i_teid, o_teid,
+                                                    self.config.mtr_port,
                                                     ue_ip_adr, enodeb_ip_addr,
                                                     gtp_portno, sid, ng_flag)
 
