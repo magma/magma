@@ -45,10 +45,6 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     return encoded_result;
   } else {
     encoded += encoded_result;
-    for (int i = 0; i < encoded; i++) {
-      // std::cout << "nas_buf["<< i << "]" << buffer[i] << endl;
-      printf("nas_buf[%d]: %x\n", i, buffer[i]);
-    }
   }
   if ((encoded_result = pdu_session_estab_accept->pdu_session_identity
                             .EncodePDUSessionIdentityMsg(
@@ -57,10 +53,6 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     return encoded_result;
   } else {
     encoded += encoded_result;
-    for (int i = 0; i < encoded; i++) {
-      // std::cout << "nas_buf["<< i << "]" << buffer[i] << endl;
-      printf("nas_buf[%d]: %x\n", i, buffer[i]);
-    }
   }
   if ((encoded_result = pdu_session_estab_accept->pti.EncodePTIMsg(
            &pdu_session_estab_accept->pti, 0, buffer + encoded,
@@ -68,10 +60,6 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     return encoded_result;
   } else {
     encoded += encoded_result;
-    for (int i = 0; i < encoded; i++) {
-      // std::cout << "nas_buf["<< i << "]" << buffer[i] << endl;
-      printf("nas_buf[%d]: %x\n", i, buffer[i]);
-    }
   }
   if ((encoded_result =
            pdu_session_estab_accept->message_type.EncodeMessageTypeMsg(
@@ -80,10 +68,6 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     return encoded_result;
   } else {
     encoded += encoded_result;
-    for (int i = 0; i < encoded; i++) {
-      // std::cout << "nas_buf["<< i << "]"<< buffer[i] << endl;
-      printf("nas_buf[%d]: %x\n", i, buffer[i]);
-    }
   }
   if ((encoded_result = pdu_session_estab_accept->ssc_mode.EncodeSSCModeMsg(
            &pdu_session_estab_accept->ssc_mode, 0, buffer + encoded,
@@ -91,10 +75,6 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     return encoded_result;
   } else {
     encoded += encoded_result;
-    for (int i = 0; i < encoded; i++) {
-      // std::cout << "nas_buf["<< i << "]" << buffer[i] << endl;
-      printf("nas_buf[%d]: %x\n", i, buffer[i]);
-    }
   }
   if ((encoded_result =
            pdu_session_estab_accept->pdu_session_type.EncodePDUSessionTypeMsg(
@@ -103,10 +83,6 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     return encoded_result;
   } else {
     encoded += encoded_result;
-    for (int i = 0; i < encoded; i++) {
-      // std::cout << "nas_buf["<< i << "]"<< buffer[i] << endl;
-      printf("nas_buf[%d]: %x\n", i, buffer[i]);
-    }
   }
   if ((encoded_result = pdu_session_estab_accept->qos_rules.EncodeQOSRulesMsg(
            &pdu_session_estab_accept->qos_rules, 0, buffer + encoded,
@@ -114,10 +90,6 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     return encoded_result;
   } else {
     encoded += encoded_result;
-    for (int i = 0; i < encoded; i++) {
-      // std::cout << "nas_buf["<< i << "]"<< buffer[i] << endl;
-      printf("nas_buf[%d]: %x\n", i, buffer[i]);
-    }
   }
   if ((encoded_result =
            pdu_session_estab_accept->session_ambr.EncodeSessionAMBRMsg(
@@ -126,10 +98,6 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     return encoded_result;
   } else {
     encoded += encoded_result;
-    for (int i = 0; i < encoded; i++) {
-      // std::cout << "nas_buf["<< i << "]"<< buffer[i] << endl;
-      printf("nas_buf[%d]: %x\n", i, buffer[i]);
-    }
   }
   if ((encoded_result =
            pdu_session_estab_accept->pdu_address.EncodePDUAddressMsg(
@@ -138,20 +106,7 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
     return encoded_result;
   } else {
     encoded += encoded_result;
-    for (int i = 0; i < encoded; i++) {
-      // std::cout << "nas_buf["<< i << "]"<< buffer[i] << endl;
-      printf("nas_buf[%d]: %x\n", i, buffer[i]);
-    }
   }
-#if 0
-  if ((encoded_result = pdu_session_estab_accept->dnn.EncodeDNNMsg(
-           &pdu_session_estab_accept->dnn, DNN, buffer + encoded,
-           len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
-#endif
   return encoded;
 }
 }  // namespace magma5g

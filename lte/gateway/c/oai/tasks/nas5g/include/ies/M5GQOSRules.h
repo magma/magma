@@ -23,9 +23,6 @@ class NewQOSRulePktFilter {
   uint8_t pkt_filter_dir : 2;
   uint8_t pkt_filter_id : 4;
   uint8_t len;
-  // uint8_t contents[4 * ONE_K];  // need to revisit if the QOS rules occupy
-  // more
-  // space than 4k.
   uint8_t contents[1 * ONE_K];  // need to revisit if the QOS rules occupy more
                                 // space than 4k.
   NewQOSRulePktFilter();
@@ -40,7 +37,6 @@ class QOSRule {
   uint8_t rule_oper_code : 3;
   uint8_t dqr_bit : 1;
   uint8_t no_of_pkt_filters : 4;
-  // NewQOSRulePktFilter new_qos_rule_pkt_filter[16];
   NewQOSRulePktFilter new_qos_rule_pkt_filter[1];
   uint8_t qos_rule_precedence;
   uint8_t spare : 1;

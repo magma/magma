@@ -112,7 +112,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case SCTP_NEW_ASSOCIATION: {
-      OAILOG_ERROR(LOG_NGAP, "SCTP_NEW_ASSOCIATION\n");
       increment_counter("amf_new_association", 1, NO_LABELS);
       if (ngap_handle_new_association(
               state, &received_message_p->ittiMsg.sctp_new_peer)) {
@@ -123,11 +122,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case NGAP_NAS_DL_DATA_REQ: {  // packets from NAS
-                                  /*
-                                   * New message received from NAS task.
-                                   * * * * This corresponds to a NGAP downlink nas transport message.
-                                   */
-      OAILOG_ERROR(LOG_NGAP, "NGAP_NAS_DL_DATA_REQ\n");
+
+      /*
+       * New message received from NAS task.
+       * * * * This corresponds to a NGAP downlink nas transport message.
+       */
       ngap_generate_downlink_nas_transport(
           state, NGAP_NAS_DL_DATA_REQ(received_message_p).gnb_ue_ngap_id,
           NGAP_NAS_DL_DATA_REQ(received_message_p).amf_ue_ngap_id,
@@ -141,7 +140,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION: {
-      OAILOG_ERROR(LOG_NGAP, "AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION\n");
       ngap_handle_amf_ue_id_notification(
           state, &AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION(received_message_p));
     } break;

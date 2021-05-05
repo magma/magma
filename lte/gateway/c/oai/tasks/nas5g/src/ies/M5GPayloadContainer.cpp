@@ -56,11 +56,6 @@ int PayloadContainerMsg::EncodePayloadContainerMsg(
   encoded = payload_container->smf_msg.SmfMsgEncodeMsg(
       &payload_container->smf_msg, payload_container->contents,
       payload_container->len);
-  printf("after SmfMsgEncodeMsg\n");
-  for (int i = 0; i < payload_container->len; i++) {
-    // std::cout << "nas_buf["<< i << "]"<< buffer[i] << endl;
-    printf("nas_buf[%d]: %x\n", i, payload_container->contents[i]);
-  }
   BUFFER_PRINT_LOG(payload_container->contents, payload_container->len);
   memcpy(buffer + tmp, payload_container->contents, payload_container->len);
 

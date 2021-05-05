@@ -87,7 +87,6 @@ int QOSRulesMsg::EncodeQOSRulesMsg(
           buffer + encoded,
           qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
       encoded = encoded + qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
-      // encoded++;
     }
 
     *(buffer + encoded) = qos_rules->qos_rule[i].qos_rule_precedence;

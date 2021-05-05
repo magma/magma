@@ -42,7 +42,6 @@ int PDUAddressMsg::EncodePDUAddressMsg(
   }
 
   if (pdu_address->type_val == TYPE_VAL_IPV4) {
-    printf("pdu_address->length%d\n", pdu_address->length);
     *(buffer + encoded) = 0x5;
     encoded++;
     *(buffer + encoded) = 0x00 | (pdu_address->type_val & 0x07);

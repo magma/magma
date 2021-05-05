@@ -41,6 +41,8 @@ using magma::lte::SmfPduSessionSmContext;
 
 namespace magma {
 using namespace lte;
+#define TEID_SIZE 4
+#define UPF_IPV4_ADDR_SIZE 4
 
 AmfServiceImpl::AmfServiceImpl() {}
 
@@ -126,8 +128,6 @@ Status AmfServiceImpl::SetSmfSessionContext(
           .arp()
           .pre_vulnerability();  // enum
 
-#define TEID_SIZE 4
-#define UPF_IPV4_ADDR_SIZE 4
   // get the 4 byte UPF TEID and UPF IP message
   memcpy(
       itti_msg.upf_endpoint.teid, req_m5g.upf_endpoint().teid().c_str(),
@@ -136,17 +136,6 @@ Status AmfServiceImpl::SetSmfSessionContext(
       itti_msg.upf_endpoint.end_ipv4_addr,
       req_m5g.upf_endpoint().end_ipv4_addr().c_str(), UPF_IPV4_ADDR_SIZE);
 
-  OAILOG_INFO(
-      LOG_AMF_APP, "#######TIED: %02x %02x %02x %02x \n",
-      itti_msg.upf_endpoint.teid[0], itti_msg.upf_endpoint.teid[1],
-      itti_msg.upf_endpoint.teid[2], itti_msg.upf_endpoint.teid[3]);
-
-  OAILOG_INFO(
-      LOG_AMF_APP, "#######IP: %02x %02x %02x %02x \n",
-      itti_msg.upf_endpoint.end_ipv4_addr[0],
-      itti_msg.upf_endpoint.end_ipv4_addr[1],
-      itti_msg.upf_endpoint.end_ipv4_addr[2],
-      itti_msg.upf_endpoint.end_ipv4_addr[3]);
   strcpy(
       (char*) itti_msg.procedure_trans_identity,
       req_m5g.procedure_trans_identity().c_str());  // pdu_change

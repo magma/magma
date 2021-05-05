@@ -139,45 +139,29 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
     return (RETURNerror);
   }
 
-  // buffer        = buffer + header_result;
-  // encode_result = encode_result + header_result;
-
   switch ((unsigned char) msg->header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_ACCEPT:
       encode_result = msg->msg.pdu_session_estab_accept
                           .EncodePDUSessionEstablishmentAcceptMsg(
                               &msg->msg.pdu_session_estab_accept, buffer, len);
-      printf("PDU_SESSION_ESTABLISHMENT_ACCEPT\n");
-      for (int i = 0; i < encode_result; i++) {
-        // std::cout << "nas_buf["<< i << "]"<< buffer[i] << endl;
-        printf("nas_buf[%d]: %x\n", i, buffer[i]);
-      }
       break;
     case PDU_SESSION_ESTABLISHMENT_REJECT:
       encode_result = msg->msg.pdu_session_estab_reject
                           .EncodePDUSessionEstablishmentRejectMsg(
                               &msg->msg.pdu_session_estab_reject, buffer, len);
-      printf("PDU_SESSION_ESTABLISHMENT_REJECT\n");
       break;
     case PDU_SESSION_MODIFICATION_REJECT:
       encode_result = msg->msg.pdu_session_modif_reject
                           .EncodePDUSessionModificationRejectMsg(
                               &msg->msg.pdu_session_modif_reject, buffer, len);
-      printf("PDU_SESSION_MODIFICATION_REJECT\n");
       break;
     case PDU_SESSION_RELEASE_REJECT:
       encode_result =
           msg->msg.pdu_session_release_reject.EncodePDUSessionReleaseRejectMsg(
               &msg->msg.pdu_session_release_reject, buffer, len);
-      printf("PDU_SESSION_RELEASE_REJECT\n");
       break;
     default:
       encode_result = TLV_WRONG_MESSAGE_TYPE;
-  }
-  printf("SmfMsgEncodeMsg\n");
-  for (int i = 0; i < encode_result; i++) {
-    // std::cout << "nas_buf["<< i << "]"<< buffer[i] << endl;
-    printf("nas_buf[%d]: %x\n", i, buffer[i]);
   }
   return (encode_result);
 }

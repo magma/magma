@@ -47,12 +47,9 @@ int ABBAMsg::EncodeABBAMsg(
   MLOG(MDEBUG) << " EncodeABBAMsg : ";
   lenPtr = buffer + encoded;
   encoded++;
-  // std::copy(abba->contents.begin(), abba->contents.end(), buffer + encoded);
   memcpy(buffer + encoded, abba->contents, ABBA_MIN_LEN);
-  //  MLOG(MDEBUG) << "   Length : " << dec << int(abba->contents.length());
   MLOG(MDEBUG) << "   ABBA Contents : ";
   BUFFER_PRINT_LOG(buffer + encoded, ABBA_MIN_LEN);
-  // encoded = encoded + abba->contents.length();
   encoded = encoded + ABBA_MIN_LEN;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 
