@@ -93,7 +93,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        */
 
       // Invoke NGAP message decoder
-      OAILOG_ERROR(LOG_NGAP, "SCTP_DATA_IND\n");
       Ngap_NGAP_PDU_t pdu = {0};
 
       if (ngap_amf_decode_pdu(
