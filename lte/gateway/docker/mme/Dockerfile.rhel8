@@ -95,7 +95,6 @@ RUN yum install -y \
     libgcrypt-devel \
     # Install libgtpnl requirements
     libmnl-devel \
-    libtins-dev \
     # Install Nettle requirements
     libconfig-devel \
     libxml2-devel \
@@ -131,7 +130,6 @@ COPY  lte/gateway/c/oai/patches/folly-gflagslib-fix.patch .
 COPY  lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch .
 COPY  lte/gateway/c/oai/patches/libzmq-strncpy.patch .
 COPY  lte/gateway/c/oai/patches/czmq-strncat.patch .
-COPY  lte/gateway/c/oai/patches/CMake-warnings-not-errors.patch .
 
 # In some network environments, GIT proxy is required
 RUN /bin/bash -c "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"
@@ -538,6 +536,12 @@ RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@
 
 WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
+
+# use this label for CI purpose
+LABEL use-separate-hss-realm="true"
+
+# expose ports
+EXPOSE 3870/tcp 5870/tcp 2123/udp
 
 # For the moment, let have a dummy command
 CMD ["sleep", "infinity"]
