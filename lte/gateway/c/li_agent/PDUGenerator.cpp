@@ -140,7 +140,6 @@ bool PDUGenerator::send_packet(
 void PDUGenerator::handle_ip_lookup_callback(
     std::string ip_addr, void* data, struct pdu_info* pdu, Status status,
     DirectoryField resp) {
-
   if (!status.ok()) {
     MLOG(MDEBUG) << "Could not fetch subscriber with ip - " << ip_addr;
     return;
@@ -151,7 +150,7 @@ void PDUGenerator::handle_ip_lookup_callback(
   pdu->payload_direction = DIRECTION_TO_TARGET;
   set_xid(pdu, "tracking_123");
   proxy_connector_->send_data(data, pdu->header_length + pdu->payload_length);
-  //Only one directoryd lookup will succeed so this won't cause double free
+  // Only one directoryd lookup will succeed so this won't cause double free
   free(data);
 
   // TODO create a cache that stores the IPs that were looked up successfully,
