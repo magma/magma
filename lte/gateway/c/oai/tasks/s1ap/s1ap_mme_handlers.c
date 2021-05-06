@@ -3796,10 +3796,6 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
       (uint32_t) ue_ref_p->mme_ue_s1ap_id);
   s1ap_remove_ue(state, ue_ref_p);
 
-  hashtable_uint64_ts_remove(
-      imsi_map->mme_ue_id_imsi_htbl,
-      (const hash_key_t) ue_ref_p->mme_ue_s1ap_id);
-
   OAILOG_FUNC_OUT(LOG_S1AP);
 }
 

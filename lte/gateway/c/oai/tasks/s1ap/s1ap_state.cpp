@@ -188,6 +188,7 @@ void remove_ues_without_imsi_from_ue_id_coll() {
 
   hashtable_rc_t ht_rc;
   hash_key_t* mme_ue_id_no_imsi_list;
+  s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
   uint32_t num_ues_checked;
 
   // get each eNB in s1ap_state
@@ -215,8 +216,10 @@ void remove_ues_without_imsi_from_ue_id_coll() {
 
     // remove all the mme_ue_s1ap_ids
     for (uint32_t i = 0; i < num_ues_checked; i++) {
-      hashtable_uint64_ts_free(
+      hashtable_uint64_ts_remove(
           &enb_association_p->ue_id_coll, mme_ue_id_no_imsi_list[i]);
+      hashtable_uint64_ts_remove(
+          s1ap_imsi_map->mme_ue_id_imsi_htbl, mme_ue_id_no_imsi_list[i]);
       enb_association_p->nb_ue_associated--;
 
       OAILOG_DEBUG(
