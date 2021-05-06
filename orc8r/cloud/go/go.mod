@@ -59,7 +59,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.1
 	github.com/spf13/cobra v1.0.0
 	github.com/stretchr/testify v1.5.1
-	github.com/thoas/go-funk v0.7.0
+	github.com/thoas/go-funk v0.8.0
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad
 	golang.org/x/net v0.0.0-20201021035429-f5854403a974
