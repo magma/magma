@@ -115,13 +115,13 @@ class StoredStateTest : public ::testing::Test {
 
   PolicyStatsMap get_policy_stats_map() {
     PolicyStatsMap stored;
-    stored["rule1"]                            = Usage();
-    stored["rule1"].last_reported_rule_version = 1;
-    stored["rule1"].stats_map[1]               = RuleStats{1, 2, 3, 4};
-    stored["rule2"]                            = Usage();
-    stored["rule2"].last_reported_rule_version = 2;
-    stored["rule2"].stats_map[1]               = RuleStats{5, 2, 3, 4};
-    stored["rule2"].stats_map[2]               = RuleStats{50, 20, 30, 40};
+    stored["rule1"]                       = StatsPerPolicy();
+    stored["rule1"].last_reported_version = 1;
+    stored["rule1"].stats_map[1]          = RuleStats{1, 2, 3, 4};
+    stored["rule2"]                       = StatsPerPolicy();
+    stored["rule2"].last_reported_version = 2;
+    stored["rule2"].stats_map[1]          = RuleStats{5, 2, 3, 4};
+    stored["rule2"].stats_map[2]          = RuleStats{50, 20, 30, 40};
     return stored;
   }
 
@@ -162,7 +162,7 @@ class StoredStateTest : public ::testing::Test {
 
     stored.request_number = 1;
 
-    stored.policy_stats_map = get_policy_stats_map();
+    stored.policy_version_and_stats = get_policy_stats_map();
 
     return stored;
   }
@@ -367,11 +367,15 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(deserialized.pdp_end_time, 332211);
 
   EXPECT_EQ(
-      deserialized.policy_stats_map["rule1"].last_reported_rule_version, 1);
-  EXPECT_EQ(deserialized.policy_stats_map["rule1"].stats_map[1].tx, 1);
-  EXPECT_EQ(deserialized.policy_stats_map["rule1"].stats_map[1].rx, 2);
-  EXPECT_EQ(deserialized.policy_stats_map["rule2"].stats_map[1].dropped_tx, 3);
-  EXPECT_EQ(deserialized.policy_stats_map["rule2"].stats_map[2].dropped_rx, 40);
+      deserialized.policy_version_and_stats["rule1"].last_reported_version, 1);
+  EXPECT_EQ(deserialized.policy_version_and_stats["rule1"].stats_map[1].tx, 1);
+  EXPECT_EQ(deserialized.policy_version_and_stats["rule1"].stats_map[1].rx, 2);
+  EXPECT_EQ(
+      deserialized.policy_version_and_stats["rule2"].stats_map[1].dropped_tx,
+      3);
+  EXPECT_EQ(
+      deserialized.policy_version_and_stats["rule2"].stats_map[2].dropped_rx,
+      40);
 }
 
 TEST_F(StoredStateTest, test_policy_stats_map) {

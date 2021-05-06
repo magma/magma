@@ -81,6 +81,7 @@ void create_rule_record(
   rule_record->set_rule_id(rule_id);
   rule_record->set_bytes_rx(bytes_rx);
   rule_record->set_bytes_tx(bytes_tx);
+  rule_record->set_rule_version(1);
 }
 
 void create_rule_record(

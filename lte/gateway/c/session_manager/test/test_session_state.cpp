@@ -213,6 +213,7 @@ TEST_F(SessionStateTest, test_marshal_unmarshal) {
   EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 1000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 2000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 1000);
+  session_state->increment_rule_stats("rule1", update_criteria);
   session_state->add_rule_usage("rule1", 2, 1000, 500, 10, 20, update_criteria);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 3000);
   EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 1500);
@@ -225,8 +226,7 @@ TEST_F(SessionStateTest, test_marshal_unmarshal) {
   EXPECT_EQ(unmarshaled->get_monitor("m1", ALLOWED_TOTAL), 1024);
   EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
   EXPECT_EQ(unmarshaled->is_dynamic_rule_installed("rule2"), false);
-  EXPECT_EQ(
-      unmarshaled->get_policy_stats("rule1").last_reported_rule_version, 2);
+  EXPECT_EQ(unmarshaled->get_policy_stats("rule1").last_reported_version, 2);
   EXPECT_EQ(unmarshaled->get_policy_stats("rule1").stats_map[1].tx, 2000);
   EXPECT_EQ(unmarshaled->get_policy_stats("rule1").stats_map[2].tx, 1000);
   EXPECT_EQ(unmarshaled->get_policy_stats("rule1").stats_map[2].dropped_rx, 20);
@@ -388,6 +388,7 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
 }
 
 TEST_F(SessionStateTest, test_session_level_key) {
+  insert_rule(1, "m1", "rule1", DYNAMIC, 0, 0);
   receive_credit_from_pcrf("m1", 8000, MonitoringLevel::SESSION_LEVEL);
   EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL), 8000);
   EXPECT_EQ(
@@ -399,6 +400,8 @@ TEST_F(SessionStateTest, test_session_level_key) {
 
   // add usage to go over quota
   session_state->add_rule_usage("rule1", 1, 5000, 2000, 0, 0, update_criteria);
+  EXPECT_EQ(session_state->get_policy_stats("rule1").current_version, 1);
+  EXPECT_EQ(session_state->get_policy_stats("rule1").last_reported_version, 1);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 5000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 2000);
   EXPECT_EQ(

@@ -83,7 +83,6 @@ struct StoredSessionState {
   std::set<std::string> scheduled_static_rules;
   std::vector<PolicyRule> scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
-  PolicyStatsMap policy_stats;
   uint32_t request_number;
   EventTriggerStatus pending_event_triggers;
   google::protobuf::Timestamp revalidation_time;

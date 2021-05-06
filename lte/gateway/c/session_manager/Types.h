@@ -215,12 +215,13 @@ struct StatsPerPolicy {
   // The last reported version from PipelineD
   uint32_t last_reported_version;
 
-    std::unordered_map<int, RuleStats> stats_map;
-    StatsPerPolicy() {
-      last_reported_version = 0;
-      RuleStats s                = {0, 0, 0, 0};
-      stats_map                  = {{0, s}};
-    }
+  std::unordered_map<int, RuleStats> stats_map;
+  StatsPerPolicy() {
+    current_version       = 0;
+    last_reported_version = 0;
+    RuleStats s           = {0, 0, 0, 0};
+    stats_map             = {{0, s}};
+  }
 };
 typedef std::unordered_map<std::string, StatsPerPolicy> PolicyStatsMap;
 

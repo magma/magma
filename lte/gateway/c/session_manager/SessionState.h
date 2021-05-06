@@ -518,7 +518,7 @@ class SessionState {
 
   bool apply_update_criteria(SessionStateUpdateCriteria& uc);
 
-  Usage get_policy_stats(std::string rule_id);
+  StatsPerPolicy get_policy_stats(std::string rule_id);
 
   // QoS Management
   /**
@@ -579,6 +579,15 @@ class SessionState {
    */
   void clear_session_metrics();
 
+  // PolicyStatsMap functions
+  /**
+   *
+   * @param rule_id
+   * @param session_uc
+   */
+  void increment_rule_stats(
+      const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
+
  private:
   std::string imsi_;
   std::string session_id_;
@@ -620,8 +629,6 @@ class SessionState {
   // Activation & deactivation times for each rule that is either currently
   // installed, or scheduled for installation for this session
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes_;
-
-  PolicyStatsMap policy_stats_map_;
 
   // map of Gx event_triggers that are pending and its status (bool)
   // If the value is true, that means an update request for that event trigger
@@ -831,15 +838,6 @@ class SessionState {
       const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
       uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
       SessionStateUpdateCriteria& uc);
-
-  // PolicyStatsMap functions
-  /**
-   *
-   * @param rule_id
-   * @param session_uc
-   */
-  void increment_rule_stats(
-      const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
 };
 
 }  // namespace magma

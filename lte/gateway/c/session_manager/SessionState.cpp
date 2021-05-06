@@ -120,10 +120,10 @@ StoredSessionState SessionState::marshal() {
     marshaled.rule_lifetimes[it.first] = it.second;
   }
 
-//  marshaled.policy_stats_map = PolicyStatsMap();
-//  for (auto& it : policy_stats_map_) {
-//    marshaled.policy_stats_map[it.first] = it.second;
-//  }
+  //  marshaled.policy_stats_map = PolicyStatsMap();
+  //  for (auto& it : policy_stats_map_) {
+  //    marshaled.policy_stats_map[it.first] = it.second;
+  //  }
 
   marshaled.policy_version_and_stats = policy_version_and_stats_;
   return marshaled;
@@ -185,8 +185,8 @@ SessionState::SessionState(
   for (auto& rule : marshaled.gy_dynamic_rules) {
     gy_dynamic_rules_.insert_rule(rule);
   }
-  for (auto& it : marshaled.policy_stats_map) {
-    policy_stats_map_[it.first] = it.second;
+  for (auto& it : marshaled.policy_version_and_stats) {
+    policy_version_and_stats_[it.first] = it.second;
   }
 }
 
@@ -473,37 +473,37 @@ RuleStats SessionState::get_rule_delta(
     SessionStateUpdateCriteria& uc) {
   RuleStats ret = {0};
 
-  auto it = policy_stats_map_.find(rule_id);
-  // If no previous record found, create one
-  if (it == policy_stats_map_.end()) {
-    policy_stats_map_[rule_id] = StatsPerPolicy();
-    it                         = policy_stats_map_.find(rule_id);
-  }
-
-  auto last_tracked_version_num = it->second.last_reported_version;
-  auto last_tracked =
-      policy_stats_map_[rule_id].stats_map.find(last_tracked_version_num);
-
-  RuleStats prev_usage = last_tracked->second;
-  if (rule_version < last_tracked_version_num) {
-    MLOG(MERROR) << "Reported stat version less than the current tracked one";
+  auto it = policy_version_and_stats_.find(rule_id);
+  if (it == policy_version_and_stats_.end()) {
+    MLOG(MERROR) << "Reported rule not found, ignoring";
     return ret;
   }
 
-  if (rule_version > last_tracked_version_num) {
-    ret.tx         = used_tx;
-    ret.rx         = used_rx;
-    ret.dropped_tx = dropped_tx;
-    ret.dropped_rx = dropped_rx;
+  // Only accept rule reports for current_version or last_reported_version
+  // ignore other reports as they shoudn't be sent
+  auto last_reported_version = it->second.last_reported_version;
+  if (rule_version > it->second.current_version) {
+    MLOG(MERROR) << "Reported version higher than tracked one, ignoring";
+    return ret;
+  }
 
-    policy_stats_map_[rule_id].last_reported_version = rule_version;
-  } else {
+  if (rule_version < last_reported_version) {
+    MLOG(MERROR) << "Reported rule version too old, ignoring";
+    return ret;
+  }
+
+  auto last_tracked =
+      policy_version_and_stats_[rule_id].stats_map.find(last_reported_version);
+
+  RuleStats prev_usage = last_tracked->second;
+
+  if (rule_version == last_reported_version) {
     if (prev_usage.tx != 0 && prev_usage.tx > used_tx) {
-      MLOG(MERROR) << "Reported stat used_tx than the current tracked one";
+      MLOG(MERROR) << "Reported stat used_tx less than the current tracked one";
       return ret;
     }
     if (prev_usage.rx != 0 && prev_usage.rx > used_rx) {
-      MLOG(MERROR) << "Reported stat used_rx than the current tracked one";
+      MLOG(MERROR) << "Reported stat used_rx less than the current tracked one";
       return ret;
     }
 
@@ -511,18 +511,24 @@ RuleStats SessionState::get_rule_delta(
     ret.rx         = used_rx - prev_usage.rx;
     ret.dropped_tx = dropped_tx - prev_usage.dropped_tx;
     ret.dropped_rx = dropped_rx - prev_usage.dropped_rx;
+  } else {
+    ret.tx         = used_tx;
+    ret.rx         = used_rx;
+    ret.dropped_tx = dropped_tx;
+    ret.dropped_rx = dropped_rx;
   }
 
-  policy_stats_map_[rule_id].stats_map[rule_version] =
+  policy_version_and_stats_[rule_id].last_reported_version = rule_version;
+  policy_version_and_stats_[rule_id].stats_map[rule_version] =
       RuleStats{used_tx, used_rx, dropped_tx, dropped_rx};
 
-  if (uc.rule_usage_updates.find(rule_id) == policy_stats_map_.end()) {
+  if (uc.rule_usage_updates.find(rule_id) == policy_version_and_stats_.end()) {
     uc.rule_usage_updates[rule_id] = StatsPerPolicy();
   }
   uc.rule_usage_updates[rule_id].last_reported_version =
-      policy_stats_map_[rule_id].last_reported_version;
+      policy_version_and_stats_[rule_id].last_reported_version;
   uc.rule_usage_updates[rule_id].stats_map[rule_version] =
-      policy_stats_map_[rule_id].stats_map[rule_version];
+      policy_version_and_stats_[rule_id].stats_map[rule_version];
 
   return ret;
 }
@@ -537,6 +543,10 @@ void SessionState::add_rule_usage(
   RuleStats delta = get_rule_delta(
       rule_id, rule_version, used_tx, used_rx, dropped_tx, dropped_rx,
       update_criteria);
+  //  if (delta.tx == 0 && delta.rx == 0 && delta.dropped_tx == 0 &&
+  //      delta.dropped_rx == 0) {
+  //    return;
+  //  }
   uint64_t delta_tx         = delta.tx;
   uint64_t delta_rx         = delta.rx;
   uint64_t delta_dropped_tx = delta.dropped_tx;
@@ -2401,13 +2411,13 @@ void SessionState::clear_create_session_response() {
   create_session_response_ = CreateSessionResponse();
 }
 
-Usage SessionState::get_policy_stats(std::string rule_id) {
-  auto it = policy_stats_map_.find(rule_id);
-  if (it == policy_stats_map_.end()) {
-    return Usage{};
+StatsPerPolicy SessionState::get_policy_stats(std::string rule_id) {
+  auto it = policy_version_and_stats_.find(rule_id);
+  if (it == policy_version_and_stats_.end()) {
+    return StatsPerPolicy{};
   }
   return it->second;
-  }
+}
 
 bool RulesToProcess::empty() const {
   return rules.empty();
@@ -2434,11 +2444,12 @@ void SessionState::increment_rule_stats(
     const std::string& rule_id, SessionStateUpdateCriteria& session_uc) {
   if (policy_version_and_stats_.find(rule_id) ==
       policy_version_and_stats_.end()) {
-    policy_version_and_stats_[rule_id]                       = StatsPerPolicy();
-    policy_version_and_stats_[rule_id].current_version       = 0;
-    policy_version_and_stats_[rule_id].last_reported_version = 0;
+    policy_version_and_stats_[rule_id] = StatsPerPolicy();
   }
   policy_version_and_stats_[rule_id].current_version++;
+  policy_version_and_stats_[rule_id]
+      .stats_map[policy_version_and_stats_[rule_id].current_version] =
+      RuleStats{0};
 
   if (!session_uc.policy_version_and_stats) {
     session_uc.policy_version_and_stats = policy_version_and_stats_;
