@@ -67,6 +67,24 @@ MATCHER_P(CheckTeids, configured_teids, "") {
   return false;
 }
 
+MATCHER_P(CheckTeidVector, expected, "") {
+  const std::vector<Teids> req_teids =
+      static_cast<const std::vector<Teids>>(arg);
+  if (expected.size() != req_teids.size()) {
+    return false;
+  }
+  for (uint32_t i = 0; i < req_teids.size(); i++) {
+    const Teids& expected_teids = expected[i];
+    const Teids& actual_teids   = req_teids[i];
+    if ((expected_teids.agw_teid() != actual_teids.agw_teid()) ||
+        (expected_teids.enb_teid() != actual_teids.enb_teid())) {
+      return false;
+    }
+  }
+
+  return true;
+}
+
 MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
   auto req = static_cast<const UpdateSessionRequest>(arg);
   return req.updates().size() == chargingCount &&
