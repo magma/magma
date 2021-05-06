@@ -339,14 +339,15 @@ class HtmlReport():
                                 file_name = re.sub(':.*$', '', line.strip())
                                 file_name = re.sub('^/magma/', '', file_name)
                                 line_nb = '0'
+                                warning_msg = re.sub('^.*error: ', '', line.strip())
                                 details = re.search(':(?P<linenb>[0-9]+):', line)
                                 if details is not None:
                                     line_nb = details.group('linenb')
                                 errorandwarnings['kind'] = 'Error'
                                 errorandwarnings['file_name'] = file_name
                                 errorandwarnings['line_nb'] = line_nb
-                                errorandwarnings['warning_msg'] = 'n/a'
-                                errorandwarnings['warning_type'] = 'n/a'
+                                errorandwarnings['warning_msg'] = warning_msg
+                                errorandwarnings['warning_type'] = 'fatal'
                                 self.errorWarningInfo[idx].append(errorandwarnings)
                             my_res = re.search('warning:', line)
                             if my_res is not None:
