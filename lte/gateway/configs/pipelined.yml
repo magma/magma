@@ -159,6 +159,7 @@ ovs_uplink_port_name: patch-up
 uplink_bridge: uplink_br0
 uplink_eth_port_name: uplink_p0
 uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
+dp_router_enabled: true
 
 ovs_gtp_stats_polling_interval: 180
 
