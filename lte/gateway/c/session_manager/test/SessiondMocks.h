@@ -113,7 +113,7 @@ class MockPipelinedClient : public PipelinedClient {
       deactivate_flows_for_rules_for_termination,
       void(
           const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr, const std::vector<Teids>& teids,
+          const std::string& ipv6_addr, const Teids teids,
           const RequestOriginType_OriginType origin_type));
   MOCK_METHOD8(
       activate_flows_for_rules,

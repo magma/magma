@@ -1071,8 +1071,6 @@ RuleToProcess SessionState::make_rule_to_process(const PolicyRule& rule) {
   RuleToProcess to_process;
   to_process.version = get_current_rule_version(rule.id());
   to_process.rule    = rule;
-  // TODO(@themarwhal): look up teids from PolicyID -> BearerID map
-  to_process.teids = config_.common_context.teids();
   return to_process;
 }
 
@@ -2232,15 +2230,6 @@ void SessionState::update_bearer_deletion_req(
   }
   update.delete_req.mutable_eps_bearer_ids()->Add(
       bearer_id_to_delete.bearer_id);
-}
-
-std::vector<Teids> SessionState::get_active_teids() {
-  std::vector<Teids> teids = {config_.common_context.teids()};
-  // TODO(@themarwhal): uncomment the block below once MME starts sending the
-  // teids for (auto bearer_pair : bearer_id_by_policy_) {
-  //   teids.push_back(bearer_pair.second.teids);
-  // }
-  return teids;
 }
 
 RuleSetToApply::RuleSetToApply(const magma::lte::RuleSet& rule_set) {

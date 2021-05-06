@@ -50,9 +50,10 @@ magma::SessionSet create_session_set_req(
   return req;
 }
 
-magma::DeactivateFlowsRequest make_deactivate_req(
+magma::DeactivateFlowsRequest create_deactivate_req(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const magma::Teids teids,
+    const magma::RulesToProcess& to_process,
     const magma::RequestOriginType_OriginType origin_type,
     const bool remove_default_drop_rules) {
   magma::DeactivateFlowsRequest req;
@@ -63,59 +64,21 @@ magma::DeactivateFlowsRequest make_deactivate_req(
   req.set_uplink_tunnel(teids.agw_teid());
   req.set_remove_default_drop_flows(remove_default_drop_rules);
   req.mutable_request_origin()->set_type(origin_type);
-  return req;
-}
-
-/**
- * @brief Create a map of Teids -> DeactivateFlowsRequest
- * If to_process is empty, create one default_teids -> DeactivateFlowsRequest
- * with no rules. For each to_process item, create item.teid ->
- * DeactivateFlowsRequest with item.rules
- * @param imsi
- * @param ip_addr
- * @param ipv6_addr
- * @param default_teids this value is only used if to_process is empty
- * @param to_process
- * @param origin_type
- * @param remove_default_drop_rules
- * @return magma::DeactivateReqByTeids
- */
-magma::DeactivateReqByTeids make_deactivate_req_by_teid(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const magma::Teids default_teids,
-    const magma::RulesToProcess& to_process,
-    const magma::RequestOriginType_OriginType origin_type,
-    const bool remove_default_drop_rules) {
-  magma::DeactivateReqByTeids deactivate_req_by_teids;
-  if (to_process.empty()) {
-    // Send an empty request with the default teid
-    deactivate_req_by_teids[default_teids] = make_deactivate_req(
-        imsi, ip_addr, ipv6_addr, default_teids, origin_type,
-        remove_default_drop_rules);
-    return deactivate_req_by_teids;
-  }
-
+  auto mut_versioned_rules = req.mutable_policies();
   for (const magma::RuleToProcess& val : to_process) {
-    const magma::Teids& dedicated_teids = val.teids;
-    if (deactivate_req_by_teids.find(dedicated_teids) ==
-        deactivate_req_by_teids.end()) {
-      deactivate_req_by_teids[dedicated_teids] = make_deactivate_req(
-          imsi, ip_addr, ipv6_addr, dedicated_teids, origin_type,
-          remove_default_drop_rules);
-    }
-    auto versioned_policy =
-        deactivate_req_by_teids[dedicated_teids].mutable_policies()->Add();
+    auto versioned_policy = mut_versioned_rules->Add();
     versioned_policy->set_version(val.version);
     versioned_policy->set_rule_id(val.rule.id());
   }
-  return deactivate_req_by_teids;
+  return req;
 }
 
-magma::ActivateFlowsRequest make_activate_req(
+magma::ActivateFlowsRequest create_activate_req(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const magma::Teids teids,
     const std::string& msisdn,
     const optional<magma::AggregatedMaximumBitrate>& ambr,
+    const magma::RulesToProcess& to_process,
     const magma::RequestOriginType_OriginType origin_type) {
   magma::ActivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
@@ -128,52 +91,13 @@ magma::ActivateFlowsRequest make_activate_req(
   if (ambr) {
     req.mutable_apn_ambr()->CopyFrom(*ambr);
   }
-  return req;
-}
-
-/**
- * @brief Create a map of Teids -> ActivateFlowsRequest
- * If to_process is empty, create one default_teids -> ActivateFlowsRequest with
- * no rules. For each to_process item, create item.teid -> ActivateFlowsRequest
- * with item.rules
- * @param imsi
- * @param ip_addr
- * @param ipv6_addr
- * @param default_teids
- * @param msisdn
- * @param ambr
- * @param to_process
- * @param origin_type
- * @return magma::ActivateReqByTeids
- */
-magma::ActivateReqByTeids make_activate_req_by_teid(
-    const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const magma::Teids default_teids,
-    const std::string& msisdn,
-    const optional<magma::AggregatedMaximumBitrate>& ambr,
-    const magma::RulesToProcess& to_process,
-    const magma::RequestOriginType_OriginType origin_type) {
-  magma::ActivateReqByTeids activate_req_by_teids;
-  if (to_process.empty()) {
-    // Send an empty request with the default teid
-    activate_req_by_teids[default_teids] = make_activate_req(
-        imsi, ip_addr, ipv6_addr, default_teids, msisdn, ambr, origin_type);
-    return activate_req_by_teids;
-  }
-
+  auto mut_versioned_rules = req.mutable_policies();
   for (const magma::RuleToProcess& val : to_process) {
-    const magma::Teids& dedicated_teids = val.teids;
-    if (activate_req_by_teids.find(dedicated_teids) ==
-        activate_req_by_teids.end()) {
-      activate_req_by_teids[dedicated_teids] = make_activate_req(
-          imsi, ip_addr, ipv6_addr, dedicated_teids, msisdn, ambr, origin_type);
-    }
-    auto versioned_policy =
-        activate_req_by_teids[dedicated_teids].mutable_policies()->Add();
+    auto versioned_policy = mut_versioned_rules->Add();
     versioned_policy->set_version(val.version);
     versioned_policy->mutable_rule()->CopyFrom(val.rule);
   }
-  return activate_req_by_teids;
+  return req;
 }
 
 magma::UEMacFlowRequest create_add_ue_mac_flow_req(
@@ -209,24 +133,25 @@ magma::SetupPolicyRequest create_setup_policy_req(
     const std::vector<magma::SessionState::SessionInfo>& infos,
     const std::uint64_t& epoch) {
   magma::SetupPolicyRequest req;
-  req.set_epoch(epoch);
-  auto mut_requests = req.mutable_requests();
+  std::vector<magma::ActivateFlowsRequest> activation_reqs;
 
   for (auto it = infos.begin(); it != infos.end(); it++) {
-    magma::ActivateReqByTeids gx_activate_reqs = make_activate_req_by_teid(
+    auto gx_activate_req = create_activate_req(
         it->imsi, it->ip_addr, it->ipv6_addr, it->teids, it->msisdn, it->ambr,
         it->gx_rules, magma::RequestOriginType::GX);
-    for (auto& activate_pair : gx_activate_reqs) {
-      mut_requests->Add()->CopyFrom(activate_pair.second);
-    }
-
-    magma::ActivateReqByTeids gy_activate_reqs = make_activate_req_by_teid(
-        it->imsi, it->ip_addr, it->ipv6_addr, it->teids, it->msisdn, {},
-        it->gy_dynamic_rules, magma::RequestOriginType::GY);
-    for (auto& activate_pair : gy_activate_reqs) {
-      mut_requests->Add()->CopyFrom(activate_pair.second);
+    activation_reqs.push_back(gx_activate_req);
+    if (!it->gy_dynamic_rules.empty()) {
+      auto gy_activate_req = create_activate_req(
+          it->imsi, it->ip_addr, it->ipv6_addr, it->teids, it->msisdn, {},
+          it->gy_dynamic_rules, magma::RequestOriginType::GY);
+      activation_reqs.push_back(gy_activate_req);
     }
   }
+  auto mut_requests = req.mutable_requests();
+  for (const auto& act_req : activation_reqs) {
+    mut_requests->Add()->CopyFrom(act_req);
+  }
+  req.set_epoch(epoch);
   return req;
 }
 
@@ -324,18 +249,18 @@ void AsyncPipelinedClient::set_upf_session(
 
 void AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr, const std::vector<Teids>& teids,
+    const std::string& ipv6_addr, const Teids teids,
     const RequestOriginType_OriginType origin_type) {
-  for (const Teids& t : teids) {
-    MLOG(MDEBUG) << "Deactivating all rules and default drop flows "
-                 << "for " << imsi << ", ipv4: " << ip_addr
-                 << ", ipv6: " << ipv6_addr << ", agw teid: " << t.agw_teid()
-                 << ", enb teid: " << t.enb_teid() << ", origin_type: "
-                 << request_origin_type_to_str(origin_type);
-    DeactivateFlowsRequest req =
-        make_deactivate_req(imsi, ip_addr, ipv6_addr, t, origin_type, true);
-    deactivate_flows(req);
-  }
+  MLOG(MDEBUG) << "Deactivating all rules and default drop flows "
+               << "for " << imsi << ", ipv4: " << ip_addr
+               << ", ipv6: " << ipv6_addr << ", agw teid: " << teids.agw_teid()
+               << ", enb teid: " << teids.enb_teid()
+               << ", origin_type: " << request_origin_type_to_str(origin_type);
+
+  RulesToProcess empty_to_process = std::vector<RuleToProcess>{};
+  auto req                        = create_deactivate_req(
+      imsi, ip_addr, ipv6_addr, teids, empty_to_process, origin_type, true);
+  deactivate_flows(req);
 }
 
 void AsyncPipelinedClient::deactivate_flows_for_rules(
@@ -347,11 +272,9 @@ void AsyncPipelinedClient::deactivate_flows_for_rules(
                << " rules and for subscriber " << imsi << " IP " << ip_addr
                << " " << ipv6_addr;
 
-  DeactivateReqByTeids reqs = make_deactivate_req_by_teid(
+  auto req = create_deactivate_req(
       imsi, ip_addr, ipv6_addr, teids, to_process, origin_type, false);
-  for (auto& req_pair : reqs) {
-    deactivate_flows(req_pair.second);
-  }
+  deactivate_flows(req);
 }
 
 void AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
@@ -374,12 +297,10 @@ void AsyncPipelinedClient::activate_flows_for_rules(
   MLOG(MDEBUG) << "Activating " << to_process.size() << " rules for " << imsi
                << " msisdn " << msisdn << " and ip " << ip_addr << " "
                << ipv6_addr;
-  ActivateReqByTeids reqs = make_activate_req_by_teid(
+  auto req = create_activate_req(
       imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_process,
       RequestOriginType::GX);
-  for (auto& activate_pair : reqs) {
-    activate_flows_rpc(activate_pair.second, callback);
-  }
+  activate_flows_rpc(req, callback);
 }
 
 void AsyncPipelinedClient::add_ue_mac_flow(
@@ -432,19 +353,15 @@ void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
     const RulesToProcess to_process) {
   MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
-  ActivateReqByTeids reqs = make_activate_req_by_teid(
+  auto req = create_activate_req(
       imsi, ip_addr, ipv6_addr, teids, msisdn, {}, to_process,
       RequestOriginType::GY);
-  auto cb = [imsi](Status status, ActivateFlowsResult resp) {
+  activate_flows_rpc(req, [imsi](Status status, ActivateFlowsResult resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not activate GY flows through pipelined for UE "
                    << imsi << ": " << status.error_message();
     }
-  };
-
-  for (auto& activate_pair : reqs) {
-    activate_flows_rpc(activate_pair.second, cb);
-  }
+  });
 }
 
 // RPC definition to Send Set Session request to UPF

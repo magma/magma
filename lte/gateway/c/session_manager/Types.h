@@ -14,7 +14,6 @@
 
 #include <functional>
 #include <vector>
-#include <unordered_map>
 #include <experimental/optional>
 
 #include <folly/Format.h>
@@ -198,7 +197,6 @@ typedef std::unordered_map<PolicyID, BearerIDAndTeid, PolicyIDHash>
 struct RuleToProcess {
   PolicyRule rule;
   uint32_t version;
-  Teids teids;
 };
 
 typedef std::vector<RuleToProcess> RulesToProcess;
@@ -210,22 +208,5 @@ struct StatsPerPolicy {
   uint32_t last_reported_version;
 };
 typedef std::unordered_map<std::string, StatsPerPolicy> PolicyStatsMap;
-
-struct TeidHash {
-  std::size_t operator()(const Teids& teid) const {
-    std::size_t h1 = std::hash<uint32_t>{}(teid.enb_teid());
-    std::size_t h2 = std::hash<uint32_t>{}(teid.agw_teid());
-    return h1 ^ h2;
-  }
-};
-struct TeidEqual {
-  bool operator()(const Teids& lhs, const Teids& rhs) const {
-    return lhs.agw_teid() == rhs.agw_teid() && lhs.enb_teid() == rhs.enb_teid();
-  }
-};
-typedef std::unordered_map<Teids, ActivateFlowsRequest, TeidHash, TeidEqual>
-    ActivateReqByTeids;
-typedef std::unordered_map<Teids, DeactivateFlowsRequest, TeidHash, TeidEqual>
-    DeactivateReqByTeids;
 
 }  // namespace magma

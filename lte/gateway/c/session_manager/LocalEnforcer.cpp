@@ -284,9 +284,8 @@ void LocalEnforcer::cleanup_dead_sessions(
   for (const RuleRecord& record : dead_sessions_to_cleanup) {
     Teids teids;
     teids.set_agw_teid(record.teid());
-    const std::vector<Teids> teids_vec{teids};
     pipelined_client_->deactivate_flows_for_rules_for_termination(
-        record.sid(), record.ue_ipv4(), record.ue_ipv6(), teids_vec,
+        record.sid(), record.ue_ipv4(), record.ue_ipv6(), teids,
         RequestOriginType::WILDCARD);
   }
 }
@@ -441,7 +440,7 @@ void LocalEnforcer::remove_all_rules_for_termination(
     SessionStateUpdateCriteria& uc) {
   const std::string ip_addr = session->get_config().common_context.ue_ipv4();
   const auto ipv6_addr      = session->get_config().common_context.ue_ipv6();
-  const std::vector<Teids> teids = session->get_active_teids();
+  const Teids teids         = session->get_config().common_context.teids();
   pipelined_client_->deactivate_flows_for_rules_for_termination(
       imsi, ip_addr, ipv6_addr, teids, RequestOriginType::WILDCARD);
   session->remove_all_rules_for_termination(uc);

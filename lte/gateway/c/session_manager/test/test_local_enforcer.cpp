@@ -2707,12 +2707,10 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
       session_map, IMSI1, SESSION_ID_1, credit_key, true);
 
   // the request should has no rules so PipelineD deletes all rules
-  std::vector<Teids> expected_teids_vec{teids};
   EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules_for_termination(
-          IMSI1, ip_addr, ipv6_addr, CheckTeidVector(expected_teids_vec),
-          RequestOriginType::WILDCARD));
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
+                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
+                             RequestOriginType::WILDCARD));
   local_enforcer->handle_termination_from_access(
       session_map, IMSI1, APN1, update);
 }
@@ -2973,14 +2971,12 @@ TEST_F(LocalEnforcerTest, test_dead_session_in_usage_report) {
   Teids expected_teids;
   expected_teids.set_agw_teid(teid);
   expected_teids.set_enb_teid(0);  // we don't care about this one
-  std::vector<Teids> expected_teids_vec{expected_teids};
   // no sessions exist at this point
   // We expect to empty calls for both Gx + Gy
   EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules_for_termination(
-          IMSI1, IP1, testing::_, CheckTeidVector(expected_teids_vec),
-          RequestOriginType::WILDCARD))
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
+                             IMSI1, IP1, testing::_, CheckTeids(expected_teids),
+                             RequestOriginType::WILDCARD))
       .Times(1);
 
   RuleRecordTable table;
