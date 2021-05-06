@@ -192,14 +192,6 @@ int esm_sap_send(esm_sap_t* msg) {
       rc = esm_sap_recv(
           ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_ACCEPT, msg->ue_id,
           msg->is_standalone, msg->ctx, msg->recv, msg->send, &msg->err);
-      /*
-       * Free received ESM container string
-       * note: Freeing const container pointer here as a quick fix for memory
-       * release in normal success case.
-       * TODO move this free to at the base of the calling function to cover
-       * memory free for all possible negative scenarios as well.
-       */
-      bdestroy((bstring)(msg->recv));
       break;
 
     case ESM_DEFAULT_EPS_BEARER_CONTEXT_ACTIVATE_REJ:
@@ -209,7 +201,6 @@ int esm_sap_send(esm_sap_t* msg) {
       rc = esm_sap_recv(
           ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REJECT, msg->ue_id,
           msg->is_standalone, msg->ctx, msg->recv, msg->send, &msg->err);
-      bdestroy_wrapper((bstring*) &msg->recv);
       break;
 
     case ESM_DEDICATED_EPS_BEARER_CONTEXT_ACTIVATE_REQ: {

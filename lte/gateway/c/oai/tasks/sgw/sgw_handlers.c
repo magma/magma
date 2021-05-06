@@ -73,8 +73,8 @@ extern struct gtp_tunnel_ops* gtp_tunnel_ops;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
 static void handle_failed_create_bearer_response(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
-    gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id,
-    teid_t teid);
+    gtpv2c_cause_value_t cause, imsi64_t imsi64,
+    bearer_context_within_create_bearer_response_t* bearer_context);
 static void generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t ipv4_s_addr,
     struct in6_addr* ue_ipv6, struct ip_flow_dl* dlflow);
@@ -1546,7 +1546,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
         s11_actv_bearer_rsp->sgw_s11_teid);
     handle_failed_create_bearer_response(
         spgw_context, s11_actv_bearer_rsp->cause.cause_value, imsi64,
-        bearer_context.eps_bearer_id, bearer_context.s1u_sgw_fteid.teid);
+        &bearer_context);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
 
@@ -1568,7 +1568,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
         bearer_context.eps_bearer_id);
     handle_failed_create_bearer_response(
         spgw_context, s11_actv_bearer_rsp->cause.cause_value, imsi64,
-        bearer_context.eps_bearer_id, bearer_context.s1u_sgw_fteid.teid);
+        &bearer_context);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
   // If UE did not accept the request send reject to NW
@@ -1580,7 +1580,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
         bearer_context.eps_bearer_id);
     handle_failed_create_bearer_response(
         spgw_context, s11_actv_bearer_rsp->cause.cause_value, imsi64,
-        bearer_context.eps_bearer_id, bearer_context.s1u_sgw_fteid.teid);
+        &bearer_context);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
 
@@ -1638,8 +1638,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   }
   // Send ACTIVATE_DEDICATED_BEARER_RSP to PCRF
   rc = spgw_send_nw_init_activate_bearer_rsp(
-      cause, imsi64, bearer_context.eps_bearer_id, default_bearer_id,
-      policy_rule_name);
+      cause, imsi64, &bearer_context, default_bearer_id, policy_rule_name);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
@@ -1936,8 +1935,8 @@ bool is_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p) {
 
 static void handle_failed_create_bearer_response(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
-    gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id,
-    teid_t teid) {
+    gtpv2c_cause_value_t cause, imsi64_t imsi64,
+    bearer_context_within_create_bearer_response_t* bearer_context) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
@@ -1951,8 +1950,9 @@ static void handle_failed_create_bearer_response(
          (!LIST_EMPTY(pgw_ni_cbr_proc->pending_eps_bearers)))) {
       sgw_eps_bearer_entry_p = LIST_FIRST(pgw_ni_cbr_proc->pending_eps_bearers);
       while (sgw_eps_bearer_entry_p) {
-        if (teid == sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
-                        ->s_gw_teid_S1u_S12_S4_up) {
+        if (bearer_context->s1u_sgw_fteid.teid ==
+            sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
+                ->s_gw_teid_S1u_S12_S4_up) {
           strcpy(
               policy_rule_name,
               sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->policy_rule_name);
@@ -1982,7 +1982,7 @@ static void handle_failed_create_bearer_response(
     }
   }
   int rc = spgw_send_nw_init_activate_bearer_rsp(
-      cause, imsi64, eps_bearer_id, default_bearer_id, policy_rule_name);
+      cause, imsi64, bearer_context, default_bearer_id, policy_rule_name);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,

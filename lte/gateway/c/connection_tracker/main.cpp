@@ -21,6 +21,7 @@
 
 #include "EventTracker.h"
 #include "PacketGenerator.h"
+#include "magma_logging_init.h"
 
 #define CONNECTION_SERVICE "connectiond"
 #define CONNECTIOND_VERSION "1.0"

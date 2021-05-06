@@ -25,6 +25,8 @@ aliases:
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos"
   - &mme_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos"
+  - &li_agent_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -785,11 +787,10 @@ jobs:
       - checkout
       - build/determinator:
           <<: *cwf_build_verify
-      - run:
-          name: Build CWAG containers
-          command: |
-            cd $MAGMA_ROOT/cwf/gateway/docker
-            docker-compose build --parallel
+      - run-with-retry:
+          retry-count: 2
+          workdir: $MAGMA_ROOT/cwf/gateway/docker
+          command: docker-compose build --parallel
       # TODO bring up the containers and check for crashloops
 
   cwf-integ-test:
@@ -828,11 +829,10 @@ jobs:
       - build/determinator:
           <<: *cwf_build_verify
       - docker/install-dc
-      - run:
-          name: Build CWAG containers
-          command: |
-            cd ${MAGMA_ROOT}/cwf/gateway/docker
-            docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
+      - run-with-retry:
+          retry-count: 2
+          workdir: $MAGMA_ROOT/cwf/gateway/docker
+          command: docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
       - tag-push-docker:
           project: cwf
           images: <<parameters.images>>
@@ -963,6 +963,33 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
+      - magma_slack_notify
+
+  li_agent_test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *li_agent_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Run common tests
+          command: |
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+      - run:
+          name: Run li agent tests
+          command: |
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_li_agent;"
+          no_output_timeout: 5m
       - magma_slack_notify
 
   lte-test:
@@ -1347,6 +1374,7 @@ workflows:
     jobs:
       - lte-test
       - session_manager_test
+      - li_agent_test
       - mme_test
       - mme-clang-tidy:
           <<: *only_master

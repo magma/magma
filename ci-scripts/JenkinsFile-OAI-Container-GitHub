@@ -53,6 +53,10 @@ def rem_rhel_host = ""
 def rem_rhel8_resource = params.MagmaPodmanResources
 def MAGMA_RHEL8_BASE_IMAGE_TAG = params.MagmaRhel8BaseImageTag
 
+// Tag of images
+def u18_image_tag = 'ci-tmp'
+def rhel8_image_tag = 'ci-tmp'
+
 pipeline {
   agent {
     label nodeExecutor
@@ -111,8 +115,13 @@ pipeline {
                   def branch
                   if (params.REGRESSION_TEST) {
                     branch = 'master'
+                    u18_image_tag = 'master'
+                    u18_docker_file = 'lte/gateway/docker/mme/Dockerfile.ubuntu18.04'
+                    u18_options = ' --build-arg GIT_PROXY="http://proxy.eurecom.fr:8080"'
                   } else {
                     branch = sha1
+                    u18_docker_file = 'ci-scripts/docker/Dockerfile.mme.ci.ubuntu18'
+                    u18_options = ''
                   }
                   checkout(
                     changelog: false,
@@ -152,29 +161,32 @@ pipeline {
               steps {
                 script {
                   echo '\u2705 \u001B[32mBuild Ubuntu18 Target Image to Test\u001B[0m'
-                  try {
-                    // Checking if the CI Base image is still there.
-                    // If the inspect command fails, it's not there. If it passes, let remove tag.
-                    sh('docker image inspect magma-dev-mme:ci-base-image > /dev/null 2>&1')
-                    sh('docker rmi magma-dev-mme:ci-base-image')
-                  } catch (Exception e) {
-                    echo 'No need to remove the CI base image'
+                  if (!params.REGRESSION_TEST) {
+                    try {
+                      // Checking if the CI Base image is still there.
+                      // If the inspect command fails, it's not there. If it passes, let remove tag.
+                      sh('docker image inspect magma-dev-mme:ci-base-image > /dev/null 2>&1')
+                      sh('docker rmi magma-dev-mme:ci-base-image')
+                    } catch (Exception e) {
+                      echo 'No need to remove the CI base image'
+                    }
+                    // "ci-base-image" is the tag used in the docker file.
+                    sh('docker image tag magma-dev-mme:' + MAGMA_U18_BASE_IMAGE_TAG + ' magma-dev-mme:ci-base-image')
                   }
-                  // "ci-base-image" is the tag used in the docker file.
-                  sh('docker image tag magma-dev-mme:' + MAGMA_U18_BASE_IMAGE_TAG + ' magma-dev-mme:ci-base-image')
 
                   // Removing the .dockerignore file (troublesome for us)
                   sh('mv .dockerignore .fockerignore')
                   // Clean any residual images
                   sh('docker image prune --force')
                   try {
-                    sh('docker image rm magma-mme:ci-tmp')
+                    sh('docker image rm magma-mme:' + u18_image_tag)
                   } catch (Exception e) {
                     echo 'OK if not present'
                   }
                   // Create the image to use
-                  // Once again, we are not using the full dockerfile from scratch: too long.
-                  sh('docker build --no-cache --target magma-mme --tag magma-mme:ci-tmp --file ci-scripts/docker/Dockerfile.mme.ci.ubuntu18 . > archives/build_magma_mme.log 2>&1')
+                  // Once again, we are not using the full dockerfile from scratch: too long --> when it is a pull request
+                  // On the daily master build, we are doing from scratch
+                  sh('docker build --no-cache --target magma-mme --tag magma-mme:' + u18_image_tag + ' --file ' + u18_docker_file + u18_options + ' . > archives/build_magma_mme.log 2>&1')
                   sh('docker image prune --force > /dev/null 2>&1')
                   sh('docker image ls >> archives/build_magma_mme.log')
                 }
@@ -217,12 +229,18 @@ pipeline {
             stage ("Retrieve RHEL8 Code") {
               steps {
                 script {
+                  cleanWs()
                   echo '\u2705 \u001B[32mRetrieve Source Code on RHEL8 node\u001B[0m'
                   def branch
                   if (params.REGRESSION_TEST) {
                     branch = 'master'
+                    rhel8_image_tag = 'master'
+                    rhel8_docker_file = 'lte/gateway/docker/mme/Dockerfile.rhel8'
+                    rhel8_options = ' --build-arg GIT_PROXY="http://proxy.eurecom.fr:8080"'
                   } else {
                     branch = sha1
+                    rhel8_docker_file = 'ci-scripts/docker/Dockerfile.mme.ci.rhel8'
+                    rhel8_options = ''
                   }
                   checkout(
                     changelog: false,
@@ -255,29 +273,38 @@ pipeline {
                 lock (rem_rhel8_resource) {
                   script {
                     echo '\u2705 \u001B[32mBuild RHEL8 Target Image to Test\u001B[0m'
-                    try {
-                      // Checking if the CI Base image is still there.
-                      // If the inspect command fails, it's not there. If it passes, let remove tag.
-                      sh('sudo podman image inspect magma-dev-mme:ci-base-image > /dev/null 2>&1')
-                      sh('sudo podman rmi magma-dev-mme:ci-base-image')
-                    } catch (Exception e) {
-                      echo 'No need to remove the CI base image'
+                    if (!params.REGRESSION_TEST) {
+                      try {
+                        // Checking if the CI Base image is still there.
+                        // If the inspect command fails, it's not there. If it passes, let remove tag.
+                        sh('sudo podman image inspect magma-dev-mme:ci-base-image > /dev/null 2>&1')
+                        sh('sudo podman rmi magma-dev-mme:ci-base-image')
+                      } catch (Exception e) {
+                        echo 'No need to remove the CI base image'
+                      }
+                      // "ci-base-image" is the tag used in the docker file.
+                      sh('sudo podman image tag magma-dev-mme:' + MAGMA_RHEL8_BASE_IMAGE_TAG + ' magma-dev-mme:ci-base-image')
                     }
-                    // "ci-base-image" is the tag used in the docker file.
-                    sh('sudo podman image tag magma-dev-mme:' + MAGMA_RHEL8_BASE_IMAGE_TAG + ' magma-dev-mme:ci-base-image')
 
                     // Removing the .dockerignore file (troublesome for us)
                     sh('mv .dockerignore .fockerignore')
                     // Clean any residual images
                     sh('sudo podman image prune --force')
                     try {
-                      sh('sudo podman image rm magma-mme:ci-tmp')
+                      sh('sudo podman image rm magma-mme:' + rhel8_image_tag)
                     } catch (Exception e) {
                       echo 'OK if not present'
                     }
+                    // In case of the full build, we need the host RHEL8 credentials.
+                    if (params.REGRESSION_TEST) {
+                      sh('mkdir -p tmp/ca tmp/entitlement')
+                      sh('cp /etc/pki/entitlement/*pem tmp/entitlement')
+                      sh('sudo cp /etc/rhsm/ca/redhat-uep.pem tmp/ca')
+                    }
                     // Create the image to use
-                    // Once again, we are not using the full dockerfile from scratch: too long.
-                    sh('sudo podman build --no-cache --target magma-mme --tag magma-mme:ci-tmp --file ci-scripts/docker/Dockerfile.mme.ci.rhel8 . > archives/build_magma_mme_rhel8.log 2>&1')
+                    // Once again, we are not using the full dockerfile from scratch: too long --> when it is a pull request
+                    // On the daily master build, we are doing from scratch
+                    sh('sudo podman build --no-cache --target magma-mme --tag magma-mme:' + rhel8_image_tag + ' --file ' + rhel8_docker_file + rhel8_options + ' . > archives/build_magma_mme_rhel8.log 2>&1')
                     sh('sudo podman image prune --force > /dev/null 2>&1')
                     sh('sudo podman image ls >> archives/build_magma_mme_rhel8.log')
                   }
@@ -292,10 +319,15 @@ pipeline {
                 unsuccessful {
                   script {
                     sh 'echo "MAGMA-OAI-MME RHEL8 PODMAN IMAGE BUILD: KO" >> archives/build_magma_mme_rhel8.log'
+                    sh 'sudo buildah rm --all || true'
+                    sh 'sudo podman image prune --force'
                   }
                 }
                 cleanup {
                   script {
+                    if (!params.REGRESSION_TEST) {
+                      sh('sudo podman rmi magma-dev-mme:ci-base-image || true')
+                    }
                     stash includes: 'archives/build_magma_mme_rhel8.log', name: 'podmanBuildLog'
                   }
                 }
@@ -345,7 +377,7 @@ pipeline {
         script {
           localStatus = build job: dsTesterPipelineName,
               parameters: [
-                  string(name: 'MAGMA_MME_TAG', value: 'ci-tmp')
+                  string(name: 'MAGMA_MME_TAG', value: u18_image_tag)
               ], propagate: false
           localResult = localStatus.getResult()
           echo "${dsTesterPipelineName} Slave Job status is ${localResult}"
@@ -404,14 +436,17 @@ pipeline {
     always {
       script {
         if (runAllPipelineStages) {
-          // Remove CI Base image tag
-          sh('docker rmi magma-dev-mme:ci-base-image')
           // Clean any residual images
           sh('docker image prune --force > /dev/null 2>&1')
-          try {
-            sh('docker image rm magma-mme:ci-tmp > /dev/null 2>&1')
-          } catch (Exception e) {
-            echo 'OK if not present'
+          // Delete image only in case of pull requests
+          if (!params.REGRESSION_TEST) {
+            // Remove CI Base image tag
+            sh('docker rmi magma-dev-mme:ci-base-image')
+            try {
+              sh('docker image rm magma-mme:' + u18_image_tag + ' > /dev/null 2>&1')
+            } catch (Exception e) {
+              echo 'OK if not present'
+            }
           }
           // Zipping all archived log files
           sh "zip -r -qq magma_logs.zip archives"

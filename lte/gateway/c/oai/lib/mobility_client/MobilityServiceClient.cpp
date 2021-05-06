@@ -206,7 +206,6 @@ int MobilityServiceClient::GetAssignedIPv4Block(
   ClientContext context;
   Void request;
   ListAddedIPBlocksResponse response;
-  uint32_t prefix_len = 0;
 
   assert(index == 0 && "Only one IP block is supported currently");
 

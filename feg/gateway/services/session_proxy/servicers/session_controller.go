@@ -14,6 +14,7 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"time"
@@ -31,7 +32,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
-	"golang.org/x/net/context"
 )
 
 // CentralSessionController acts as the gRPC server for accepting calls from

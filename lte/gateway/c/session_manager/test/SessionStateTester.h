@@ -59,11 +59,13 @@ class SessionStateTest : public ::testing::Test {
         // insert into list of existing rules
         rule_store->insert_rule(rule);
         // mark the rule as active in session
-        return session_state->activate_static_rule(
-            rule_id, lifetime, update_criteria);
+        return session_state
+            ->activate_static_rule(rule_id, lifetime, update_criteria)
+            .version;
       case DYNAMIC:
-        return session_state->insert_dynamic_rule(
-            rule, lifetime, update_criteria);
+        return session_state
+            ->insert_dynamic_rule(rule, lifetime, update_criteria)
+            .version;
         break;
     }
     return 0;
@@ -124,8 +126,9 @@ class SessionStateTest : public ::testing::Test {
         redirect_server.redirect_server_address());
 
     RuleLifetime lifetime{};
-    return session_state->insert_gy_rule(
-        redirect_rule, lifetime, update_criteria);
+    return session_state
+        ->insert_gy_rule(redirect_rule, lifetime, update_criteria)
+        .version;
   }
 
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume) {
@@ -171,12 +174,14 @@ class SessionStateTest : public ::testing::Test {
     switch (rule_type) {
       case STATIC:
         rule_store->insert_rule(rule);
-        return session_state->activate_static_rule(
-            rule_id, lifetime, update_criteria);
+        return session_state
+            ->activate_static_rule(rule_id, lifetime, update_criteria)
+            .version;
         break;
       case DYNAMIC:
-        return session_state->insert_dynamic_rule(
-            rule, lifetime, update_criteria);
+        return session_state
+            ->insert_dynamic_rule(rule, lifetime, update_criteria)
+            .version;
         break;
       default:
         break;

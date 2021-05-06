@@ -15,12 +15,12 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"strings"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
 	fegprotos "magma/feg/cloud/go/protos"

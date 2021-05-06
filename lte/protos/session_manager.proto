@@ -139,6 +139,7 @@ message PolicyBearerBindingRequest {
   uint32 linked_bearer_id = 2;
   string policy_rule_id = 3;
   uint32 bearer_id = 4;
+  Teids teids = 5; // teids tied to the dedicated bearer
 }
 
 message PolicyBearerBindingResponse {
@@ -953,10 +954,17 @@ message UPFSessionConfigState {
      repeated UPFSessionState upf_session_state = 1;
 }
 
+
+message UPFPagingInfo {
+  uint32 local_f_teid = 1;
+  string ue_ip_addr = 2;
+}
+
 //Set Interface from Pipelined
 service SetInterfaceForUserPlane {
     rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
     rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
+    rpc SendPagingReuest(UPFPagingInfo) returns (magma.orc8r.Void) {}
 }
 
 // RPC service and method

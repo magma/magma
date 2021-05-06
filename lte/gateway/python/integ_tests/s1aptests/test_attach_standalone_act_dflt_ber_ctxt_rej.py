@@ -110,7 +110,7 @@ class TestAttachStandaloneActvDfltBearCtxtRej(unittest.TestCase):
         print("Sleeping for 5 seconds")
         time.sleep(5)
 
-        # Verify that ovs rule is not is created for the seconday pdn
+        # Verify that ovs rule is not is created for the secondary pdn
         # as UE rejected the establishment of secondary pdn
 
         # 1 UL flow for the default bearer

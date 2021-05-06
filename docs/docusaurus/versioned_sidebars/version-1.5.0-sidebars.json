@@ -146,6 +146,7 @@
         "label": "Orchestrator",
         "ids": [
           "version-1.5.0-orc8r/upgrade_intro",
+          "version-1.5.0-orc8r/upgrade_1_5",
           "version-1.5.0-orc8r/upgrade_1_4",
           "version-1.5.0-orc8r/upgrade_1_3",
           "version-1.5.0-orc8r/upgrade_1_2",

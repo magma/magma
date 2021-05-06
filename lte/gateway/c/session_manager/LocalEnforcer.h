@@ -486,7 +486,7 @@ class LocalEnforcer {
   void create_bearer(
       const std::unique_ptr<SessionState>& session,
       const PolicyReAuthRequest& request,
-      const std::vector<PolicyRule>& dynamic_rules);
+      const std::vector<RuleToProcess>& dynamic_rules);
 
   /**
    * Check if REVALIDATION_TIMEOUT is one of the event triggers

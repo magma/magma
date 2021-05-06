@@ -88,6 +88,7 @@ class S1ApUtil(object):
     PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST = 0x0001
     PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST = 0x000C
     PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST = 0x0003
+    PROT_CFG_PID_IPCP = 0x8021
 
     lib_name = "libtfw.so"
 
@@ -193,7 +194,8 @@ class S1ApUtil(object):
         return self._msg.get(True)
 
     def populate_pco(
-            self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
+            self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False,
+            ipcp=False
     ):
         """
         Populates the PCO values.
@@ -201,6 +203,7 @@ class S1ApUtil(object):
             protCfgOpts_pr: PCO structure
             pcscf_addr_type: ipv4/ipv6/ipv4v6 flag
             dns_ipv6_addr: True/False flag
+            ipcp: True/False flag
         Returns:
             None
         """
@@ -249,6 +252,35 @@ class S1ApUtil(object):
                 idx
             ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
+        if ipcp:
+            protCfgOpts_pr.numProtId += 1
+            protCfgOpts_pr.p[
+                0
+            ].pid = S1ApUtil.PROT_CFG_PID_IPCP
+            protCfgOpts_pr.p[
+                0
+            ].len = 0x10
+
+            # PPP IP Control Protocol packet as per rfc 1877
+            # 01 00 00 10 81 06 00 00 00 00 83 06 00 00 00 00
+
+            protCfgOpts_pr.p[0].val[0] = 0x01  # code = 01 - Config Request
+            protCfgOpts_pr.p[0].val[1] = 0x00  # Identifier : 00
+            protCfgOpts_pr.p[0].val[2] = 0x00  # Length : 16
+            protCfgOpts_pr.p[0].val[3] = 0x10
+            protCfgOpts_pr.p[0].val[4] = 0x81  # Options:Primary DNS IP Addr
+            protCfgOpts_pr.p[0].val[5] = 0x06  # len = 6
+            protCfgOpts_pr.p[0].val[6] = 0x00  # 00.00.00.00
+            protCfgOpts_pr.p[0].val[7] = 0x00
+            protCfgOpts_pr.p[0].val[8] = 0x00
+            protCfgOpts_pr.p[0].val[9] = 0x00
+            protCfgOpts_pr.p[0].val[10] = 0x83  # Options:Secondary DNS IP Addr
+            protCfgOpts_pr.p[0].val[11] = 0x06  # len = 6
+            protCfgOpts_pr.p[0].val[12] = 0x00  # 00.00.00.00
+            protCfgOpts_pr.p[0].val[13] = 0x00
+            protCfgOpts_pr.p[0].val[14] = 0x00
+            protCfgOpts_pr.p[0].val[15] = 0x00
+
     def attach(
         self,
         ue_id,
@@ -261,6 +293,7 @@ class S1ApUtil(object):
         pdn_type=1,
         pcscf_addr_type=None,
         dns_ipv6_addr=False,
+        ipcp=False,
     ):
         """Given a UE issue the attach request of specified type
 
@@ -293,10 +326,10 @@ class S1ApUtil(object):
         attach_req.pdnType_pr.pres = True
         attach_req.pdnType_pr.pdn_type = pdn_type
 
-        # Populate PCO only if pcscf_addr_type is set
-        if pcscf_addr_type or dns_ipv6_addr:
+        # Populate PCO if pcscf_addr_type/dns_ipv6_addr/ipcp is set
+        if pcscf_addr_type or dns_ipv6_addr or ipcp:
             self.populate_pco(
-                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr,
+                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr, ipcp
             )
         assert self.issue_cmd(attach_type, attach_req) == 0
 
@@ -375,6 +408,10 @@ class S1ApUtil(object):
         with self._lock:
             del self._ue_ip_map[ue_id]
 
+        # Verify that all UL/DL flows are deleted
+        self.verify_flow_rules_deletion()
+
+
     def _verify_dl_flow(self, dl_flow_rules=None):
         # try at least 5 times before failing as gateway
         # might take some time to install the flows in ovs
@@ -427,11 +464,16 @@ class S1ApUtil(object):
                             flow["direction"] == FlowMatch.DOWNLINK
                             and key_to_be_matched in flow
                     ):
+                        ip_src = None
                         ip_src_addr = flow[key_to_be_matched]
-                        ip_src = "ipv4_src" if key.version == 4 else "ipv6_src"
+                        if ip_src_addr:
+                            ip_src = (
+                                "ipv4_src" if key.version == 4 else "ipv6_src"
+                            )
                         ip_dst = "ipv4_dst" if key.version == 4 else "ipv6_dst"
-                        tcp_src_port = flow["tcp_src_port"]
-                        ip_proto = flow["ip_proto"]
+                        tcp_src_port = flow.get("tcp_src_port", None)
+                        tcp_sport = "tcp_src" if tcp_src_port else None
+                        ip_proto = flow.get("ip_proto", None)
                         for i in range(self.MAX_NUM_RETRIES):
                             print("Get downlink flows: attempt ", i)
                             downlink_flows = get_flows(
@@ -443,7 +485,7 @@ class S1ApUtil(object):
                                         "eth_type": eth_typ,
                                         "in_port": self.LOCAL_PORT,
                                         ip_src: ip_src_addr,
-                                        "tcp_src": tcp_src_port,
+                                        tcp_sport: tcp_src_port,
                                         "ip_proto": ip_proto,
                                     },
                                 },
@@ -491,7 +533,7 @@ class S1ApUtil(object):
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
         assert len(uplink_flows) == num_ul_flows,\
-            "Uplink flow missing for UE: %d !=" % (len(uplink_flows), num_ul_flows)
+            "Uplink flow missing for UE: %d != %d" % (len(uplink_flows), num_ul_flows)
 
         assert uplink_flows[0]["match"]["tunnel_id"] is not None
 
@@ -536,6 +578,15 @@ class S1ApUtil(object):
                 and action["port"] == controller_port
             )
             assert bool(has_tunnel_action)"""
+
+    def verify_flow_rules_deletion(self):
+        print("Checking if all uplink/downlink flows were deleted")
+        dpath = get_datapath()
+        flows = get_flows(
+            dpath, {"table_id": self.SPGW_TABLE, "priority": 0}
+        )
+        assert(
+            len(flows) == 2), "There should only be 2 default table 0 flows"
 
     def generate_imsi(self, prefix=None):
         """
@@ -1116,224 +1167,194 @@ class SpgwUtil(object):
         """
         self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
 
-    def create_bearer(self, imsi, lbi, qci_val=1, rule_id='1'):
+    def create_default_ipv4_flows(self, port_idx=0):
+        """ Creates default ipv4 flow rules. 4 for UL and 4 for DL
+            port_idx: idx to generate different tcp_dst_port values
+                      so that different DL flows are created
+                      in case of multiple dedicated bearers"""
+        # UL Flow description #1
+        ulFlow1 = {
+            "ipv4_dst": "0.0.0.0/0",  # IPv4 destination address
+            "tcp_dst_port": 5001,  # TCP dest port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.UPLINK,  # Direction
+        }
+
+        # UL Flow description #2
+        ulFlow2 = {
+            "ipv4_dst": "192.168.129.42/24",  # IPv4 destination address
+            "tcp_dst_port": 5002,  # TCP dest port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.UPLINK,  # Direction
+        }
+
+        # UL Flow description #3
+        ulFlow3 = {
+            "ipv4_dst": "192.168.129.42",  # IPv4 destination address
+            "tcp_dst_port": 5003,  # TCP dest port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.UPLINK,  # Direction
+        }
+
+        # UL Flow description #4
+        ulFlow4 = {
+            "ipv4_dst": "192.168.129.42",  # IPv4 destination address
+            "tcp_dst_port": 5004,  # TCP dest port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.UPLINK,  # Direction
+        }
+
+        # DL Flow description #1
+        dlFlow1 = {
+            "ipv4_src": "192.168.129.42",  # IPv4 source address
+            "tcp_src_port": 5001+port_idx,  # TCP source port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.DOWNLINK,  # Direction
+        }
+
+        # DL Flow description #2
+        dlFlow2 = {
+            "ipv4_src": "",  # IPv4 source address
+            "tcp_src_port": 5002+port_idx,  # TCP source port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.DOWNLINK,  # Direction
+        }
+
+        # DL Flow description #3
+        dlFlow3 = {
+            "ipv4_src": "192.168.129.64/26",  # IPv4 source address
+            "tcp_src_port": 5003+port_idx,  # TCP source port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.DOWNLINK,  # Direction
+        }
+
+        # DL Flow description #4
+        dlFlow4 = {
+            "ipv4_src": "192.168.129.42/16",  # IPv4 source address
+            "tcp_src_port": 5004+port_idx,  # TCP source port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.DOWNLINK,  # Direction
+        }
+
+        # Flow lists to be configured
+        flow_list = [
+            ulFlow1,
+            ulFlow2,
+            ulFlow3,
+            ulFlow4,
+            dlFlow1,
+            dlFlow2,
+            dlFlow3,
+            dlFlow4,
+        ]
+        return flow_list
+
+    def create_default_ipv6_flows(self, port_idx=0):
+        """ Creates ipv6 flow rules
+            port_idx: idx to generate different tcp_dst_port values
+                      so that different DL flows are created
+                      in case of multiple dedicated bearers"""
+        # UL Flow description #1
+        ulFlow1 = {
+            "ipv6_dst": "5546:222:2259::226",  # IPv6 destination address
+            "tcp_dst_port": 5001,  # TCP dest port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.UPLINK,  # Direction
+        }
+
+        # UL Flow description #2
+        ulFlow2 = {
+            "ipv6_dst": "5598:3422:259::456",  # IPv6 destination address
+            "tcp_dst_port": 5002,  # TCP dest port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.UPLINK,  # Direction
+        }
+
+        # DL Flow description #1
+        dlFlow1 = {
+            "ipv6_src": "baee:1205:486c:988c::99",  # IPv6 source address
+            "tcp_src_port": 5001+port_idx,  # TCP source port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.DOWNLINK,  # Direction
+        }
+
+        # DL Flow description #2
+        dlFlow2 = {
+            "ipv6_src": "fdee:0005:006c:018c::8c99",  # IPv6 source address
+            "tcp_src_port": 5002+port_idx,  # TCP source port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.DOWNLINK,  # Direction
+        }
+
+        # Flow lists to be configured
+        flow_list = [
+            ulFlow1,
+            dlFlow1,
+            ulFlow2,
+            dlFlow2,
+        ]
+        return flow_list
+
+    def create_default_ipv4v6_flows(self, port_idx=0):
+        """ Creates ipv4v6 flow rules
+            port_idx: idx to generate different tcp_dst_port values
+                      so that different DL flows are created
+                      in case of multiple dedicated bearers"""
+        # UL Flow description #1
+        ulFlow1 = {
+            "ipv4_dst": "192.168.129.42/24",  # IPv4 destination address
+            "tcp_dst_port": 5001,  # TCP dest port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.UPLINK,  # Direction
+        }
+
+        # UL Flow description #2
+        ulFlow2 = {
+            "ipv6_dst": "5546:222:2259::226",  # IPv6 destination address
+            "tcp_dst_port": 5001,  # TCP dest port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.UPLINK,  # Direction
+        }
+
+        # DL Flow description #1
+        dlFlow1 = {
+            "ipv4_src": "192.168.129.42",  # IPv4 source address
+            "tcp_src_port": 5001+port_idx,  # TCP source port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.DOWNLINK,  # Direction
+        }
+
+        # DL Flow description #2
+        dlFlow2 = {
+            "ipv6_src": "fdee:0005:006c:018c::8c99",  # IPv6 source address
+            "tcp_src_port": 5002+port_idx,  # TCP source port
+            "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
+            "direction": FlowMatch.DOWNLINK,  # Direction
+        }
+
+        # Flow lists to be configured
+        flow_list = [
+            ulFlow1,
+            dlFlow1,
+            ulFlow2,
+            dlFlow2,
+        ]
+        return flow_list
+
+    def create_bearer(self, imsi, lbi, flow_list, qci_val=1, rule_id='1'):
         """
         Sends a CreateBearer Request to SPGW service
         """
+        self._sessionManager_util = SessionManagerUtil()
         print("Sending CreateBearer request to spgw service")
+        flow_match_list = []
+        self._sessionManager_util.get_flow_match(flow_list, flow_match_list)
         req = CreateBearerRequest(
             sid=SIDUtils.to_pb(imsi),
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
                     id="rar_rule_"+rule_id,
-                    qos=FlowQos(
-                        qci=qci_val,
-                        gbr_ul=10000000,
-                        gbr_dl=10000000,
-                        max_req_bw_ul=10000000,
-                        max_req_bw_dl=10000000,
-                        arp=QosArp(
-                            priority_level=1,
-                            pre_capability=1,
-                            pre_vulnerability=0,
-                        ),
-                    ),
-                    flow_list=[
-                        FlowDescription(
-                            match=FlowMatch(
-                                ip_dst=IPAddress(
-                                    version=IPAddress.IPV4,
-                                    address="0.0.0.0/0".encode('utf-8')),
-                                tcp_dst=5001,
-                                ip_proto=FlowMatch.IPPROTO_TCP,
-                                direction=FlowMatch.UPLINK,
-                            ),
-                            action=FlowDescription.PERMIT,
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                                ip_dst=IPAddress(
-                                    version=IPAddress.IPV4,
-                                    address="192.168.129.42/24".encode('utf-8')
-                                ),
-                                tcp_dst=5002,
-                                ip_proto=FlowMatch.IPPROTO_TCP,
-                                direction=FlowMatch.UPLINK,
-                            ),
-                            action=FlowDescription.PERMIT,
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                                ip_dst=IPAddress(
-                                    version=IPAddress.IPV4,
-                                    address="192.168.129.42".encode('utf-8')),
-                                tcp_dst=5003,
-                                ip_proto=FlowMatch.IPPROTO_TCP,
-                                direction=FlowMatch.UPLINK,
-                            ),
-                            action=FlowDescription.PERMIT,
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                                ip_dst=IPAddress(
-                                    version=IPAddress.IPV4,
-                                    address="192.168.129.42".encode('utf-8')),
-                                tcp_dst=5004,
-                                ip_proto=FlowMatch.IPPROTO_TCP,
-                                direction=FlowMatch.UPLINK,
-                            ),
-                            action=FlowDescription.PERMIT,
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                                ip_dst=IPAddress(
-                                    version=IPAddress.IPV4,
-                                    address="192.168.129.42".encode('utf-8')),
-                                tcp_dst=5005,
-                                ip_proto=FlowMatch.IPPROTO_TCP,
-                                direction=FlowMatch.UPLINK,
-                            ),
-                            action=FlowDescription.DENY,
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                                ip_src=IPAddress(
-                                    version=IPAddress.IPV4,
-                                    address="192.168.129.42".encode('utf-8')),
-                                tcp_src=5001,
-                                ip_proto=FlowMatch.IPPROTO_TCP,
-                                direction=FlowMatch.DOWNLINK,
-                            ),
-                            action=FlowDescription.PERMIT,
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                                ip_src=IPAddress(version=IPAddress.IPV4,
-                                                 address="".encode('utf-8')),
-                                tcp_dst=5002,
-                                ip_proto=FlowMatch.IPPROTO_TCP,
-                                direction=FlowMatch.DOWNLINK,
-                            ),
-                            action=FlowDescription.PERMIT,
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                                ip_src=IPAddress(
-                                    version=IPAddress.IPV4,
-                                    address="192.168.129.64/26".encode('utf-8')
-                                ),
-                                tcp_src=5003,
-                                ip_proto=FlowMatch.IPPROTO_TCP,
-                                direction=FlowMatch.DOWNLINK,
-                            ),
-                            action=FlowDescription.PERMIT,
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                                ip_src=IPAddress(
-                                    version=IPAddress.IPV4,
-                                    address="192.168.129.42/16".encode('utf-8')
-                                ),
-                                tcp_src=5004,
-                                ip_proto=FlowMatch.IPPROTO_TCP,
-                                direction=FlowMatch.DOWNLINK,
-                            ),
-                            action=FlowDescription.PERMIT,
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                                ip_src=IPAddress(
-                                    version=IPAddress.IPV4,
-                                    address="192.168.129.42".encode('utf-8')),
-                                tcp_src=5005,
-                                ip_proto=FlowMatch.IPPROTO_TCP,
-                                direction=FlowMatch.DOWNLINK,
-                            ),
-                            action=FlowDescription.DENY,
-                        ),
-                    ],
-                )
-            ],
-        )
-        self._stub.CreateBearer(req)
-
-    def create_bearer_ipv4v6(
-            self, imsi, lbi, qci_val=1, ipv4=False, ipv6=False
-    ):
-        """
-        Sends a CreateBearer Request with ipv4/ipv6/ipv4v6 packet """
-        """ filters to SPGW service """
-        print("Sending CreateBearer request to spgw service")
-        flow_match_list = []
-        if ipv4:
-            flow_match_list.append(
-                FlowDescription(
-                    match=FlowMatch(
-                        ip_dst=IPAddress(
-                            version=IPAddress.IPV4,
-                            address="192.168.129.42/24".encode("utf-8"),
-                        ),
-                        tcp_dst=5001,
-                        ip_proto=FlowMatch.IPPROTO_TCP,
-                        direction=FlowMatch.UPLINK,
-                    ),
-                    action=FlowDescription.PERMIT,
-                )
-            )
-            flow_match_list.append(
-                FlowDescription(
-                    match=FlowMatch(
-                        ip_src=IPAddress(
-                            version=IPAddress.IPV4,
-                            address="192.168.129.42".encode("utf-8"),
-                        ),
-                        tcp_src=5001,
-                        ip_proto=FlowMatch.IPPROTO_TCP,
-                        direction=FlowMatch.DOWNLINK,
-                    ),
-                    action=FlowDescription.PERMIT,
-                )
-            )
-
-        if ipv6:
-            flow_match_list.append(
-                FlowDescription(
-                    match=FlowMatch(
-                        ip_dst=IPAddress(
-                            version=IPAddress.IPV6,
-                            address="5546:222:2259::226".encode("utf-8"),
-                        ),
-                        tcp_dst=5001,
-                        ip_proto=FlowMatch.IPPROTO_TCP,
-                        direction=FlowMatch.UPLINK,
-                    ),
-                    action=FlowDescription.PERMIT,
-                )
-            )
-            flow_match_list.append(
-                FlowDescription(
-                    match=FlowMatch(
-                        ip_src=IPAddress(
-                            version=IPAddress.IPV6,
-                            address="fdee:0005:006c:018c::8c99".encode(
-                                "utf-8"
-                            ),
-                        ),
-                        tcp_src=5002,
-                        ip_proto=FlowMatch.IPPROTO_TCP,
-                        direction=FlowMatch.DOWNLINK,
-                    ),
-                    action=FlowDescription.PERMIT,
-                )
-            )
-
-        req = CreateBearerRequest(
-            sid=SIDUtils.to_pb(imsi),
-            link_bearer_id=lbi,
-            policy_rules=[
-                PolicyRule(
-                    id="rar_rule_1",
                     qos=FlowQos(
                         qci=qci_val,
                         gbr_ul=10000000,
