@@ -120,12 +120,8 @@ StoredSessionState SessionState::marshal() {
     marshaled.rule_lifetimes[it.first] = it.second;
   }
 
-  //  marshaled.policy_stats_map = PolicyStatsMap();
-  //  for (auto& it : policy_stats_map_) {
-  //    marshaled.policy_stats_map[it.first] = it.second;
-  //  }
-
   marshaled.policy_version_and_stats = policy_version_and_stats_;
+
   return marshaled;
 }
 
