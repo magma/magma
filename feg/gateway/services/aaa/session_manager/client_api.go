@@ -15,10 +15,11 @@ limitations under the License.
 package session_manager
 
 import (
+	"context"
 	"errors"
 	"fmt"
+
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
 	"magma/lte/cloud/go/protos"

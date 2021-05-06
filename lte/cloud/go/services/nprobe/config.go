@@ -29,8 +29,9 @@ const (
 
 // Config represents the configuration provided to nprobe service
 type Config struct {
-	UpdateIntervalSecs  uint `yaml:"update_interval_secs"`
-	BackOffIntervalSecs uint `yaml:"backoff_interval_secs"`
+	UpdateIntervalSecs  uint32 `yaml:"update_interval_secs"`
+	BackOffIntervalSecs uint32 `yaml:"backoff_interval_secs"`
+	OperatorID          uint32 `yaml:"operator_id"`
 }
 
 // GetServiceConfig parses nprobe service config and returns Config

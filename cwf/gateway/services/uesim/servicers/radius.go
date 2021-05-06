@@ -90,7 +90,7 @@ func (srv *UESimServer) EapToRadius(eapP eap.Packet, imsi string, calledStationI
 	if err != nil {
 		return nil, err
 	}
-	err = rfc2869.EAPMessage_Set(radiusP, []byte(eapP))
+	err = rfc2869.EAPMessage_Set(radiusP, eapP)
 	if err != nil {
 		return nil, err
 	}

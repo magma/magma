@@ -83,12 +83,12 @@ func (c *Client) RemoveSessionByIMSI(imsi string) {
 // If there were an error during parsing, enriched_message will contain that error
 // If session can not be found, then the caller will never receive an answer and will time out
 func (c *Client) PassMessage(teid uint32, senderAddr net.Addr,
-	gtpMessage message.Message, grpcMessage proto.Message, incommingError error) error {
+	gtpMessage message.Message, grpcMessage proto.Message, incomingError error) error {
 	session, err := c.GetSessionByTEID(teid, senderAddr)
 	if err != nil {
 		return err
 	}
-	enrichedMsg := enriched_message.NewMessageWithGrpc(gtpMessage, grpcMessage, incommingError)
+	enrichedMsg := enriched_message.NewMessageWithGrpc(gtpMessage, grpcMessage, incomingError)
 	// pass message to same session
 	if err = gtpv2.PassMessageTo(session, enrichedMsg, c.GtpTimeout); err != nil {
 		return err

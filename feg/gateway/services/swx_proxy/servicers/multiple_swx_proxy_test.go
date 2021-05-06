@@ -41,7 +41,7 @@ import (
 // but in this case it uses multiple server
 func TestMultiSwxProxyService_VerifyAuthorization(t *testing.T) {
 	configs := getSwxTestConfigs(true)
-	for activeServerIndex, _ := range configs {
+	for activeServerIndex := range configs {
 		t.Logf("Starting tests against SWx at at position %d", activeServerIndex)
 		addr := initMultiSwxTestSetup(t, configs, activeServerIndex)
 		// Set up a connection to the server.
@@ -76,10 +76,10 @@ func initMultiSwxTestSetup(t *testing.T, configs []*servicers.SwxProxyConfig, ac
 		// Update config address with address of where test swx server is running
 		config.ServerCfg.Addr = serverAddr
 	}
-	// create mux. Here is were we tell the multiplexr where to send the request for this setup
+	// create mux. Here is were we tell the multiplexer where to send the request for this setup
 	mux := &MockMultiplexor{t: t, fixedServer: activeServerIndex}
 
-	// create a SWx Service with default mockMultipexor
+	// create a SWx Service with default mockMultiplexer
 	swxService, err := servicers.NewSwxProxies(configs, mux)
 	if err != nil {
 		t.Fatalf("failed to create SwxProxy: %v", err)
@@ -95,21 +95,21 @@ func initMultiSwxTestSetup(t *testing.T, configs []*servicers.SwxProxyConfig, ac
 
 	// start gRPC service
 	go func() {
-		if err := grpcServer.Serve(grpcListener); err != nil {
-			t.Fatalf("failed to serve: %v", err)
+		if err2 := grpcServer.Serve(grpcListener); err2 != nil {
+			t.Errorf("failed to serve: %v", err2)
 		}
 	}()
 	addr := grpcListener.Addr()
 	t.Logf("Started Swx GRPC Proxy on %s", addr.String())
 
-	// returns the addres of the client at SWx side.
+	// returns the address of the client at SWx side.
 	return addr.String()
 }
 
 // Produces a slice of two HSS configurations
 func getSwxTestConfigs(verify bool) []*servicers.SwxProxyConfig {
 	return []*servicers.SwxProxyConfig{
-		&servicers.SwxProxyConfig{
+		{
 			ClientCfg: &diameter.DiameterClientConfig{
 				Host:  "magma-oai.openair4G.eur", // diameter host
 				Realm: "openair4G.eur",           // diameter realm,
@@ -120,7 +120,7 @@ func getSwxTestConfigs(verify bool) []*servicers.SwxProxyConfig {
 			},
 			VerifyAuthorization: verify,
 		},
-		&servicers.SwxProxyConfig{
+		{
 			ClientCfg: &diameter.DiameterClientConfig{
 				Host:  "magma2-oai.openair4G.eur", // diameter host
 				Realm: "openair4G.eur",            // diameter realm,

@@ -32,20 +32,19 @@ MATCHER_P(CheckCount, count, "") {
 }
 
 MATCHER_P(CheckRuleCount, count, "") {
-  int arg_count = arg.rules.size();
+  int arg_count = arg.size();
   return arg_count == count;
 }
 
 MATCHER_P(CheckRuleNames, list_static_rules, "") {
-  RulesToProcess to_process     = arg;
-  std::vector<PolicyRule> rules = to_process.rules;
-  if (rules.size() != list_static_rules.size()) {
+  std::vector<RuleToProcess> to_process = arg;
+  if (to_process.size() != list_static_rules.size()) {
     return false;
   }
-  for (PolicyRule rule : rules) {
+  for (RuleToProcess val : to_process) {
     bool found = false;
     for (const std::string rule_to_check : list_static_rules) {
-      if (rule.id() == rule_to_check) {
+      if (val.rule.id() == rule_to_check) {
         found = true;
         break;
       }
@@ -124,17 +123,17 @@ MATCHER_P6(
     }
 
     std::vector<std::string> expected_gx_rules = rule_ids_lists[i];
-    if (info.gx_rules.rules.size() != expected_gx_rules.size()) {
+    if (info.gx_rules.size() != expected_gx_rules.size()) {
       return false;
     }
-    for (size_t r_index = 0; i < info.gx_rules.rules.size(); i++) {
-      if (info.gx_rules.rules[r_index].id() != expected_gx_rules[r_index])
+    for (size_t r_index = 0; i < info.gx_rules.size(); i++) {
+      if (info.gx_rules[r_index].rule.id() != expected_gx_rules[r_index])
         return false;
     }
 
     std::vector<uint32_t> expected_versions = versions_lists[i];
-    for (size_t r_index = 0; i < info.gx_rules.versions.size(); i++) {
-      if (info.gx_rules.versions[r_index] != expected_versions[r_index])
+    for (size_t r_index = 0; i < info.gx_rules.size(); i++) {
+      if (info.gx_rules[r_index].version != expected_versions[r_index])
         return false;
     }
 
@@ -174,9 +173,9 @@ MATCHER_P3(CheckDeleteOneBearerReq, imsi, link_bearer_id, eps_bearer_id, "") {
 }
 
 MATCHER_P(CheckSubset, ids, "") {
-  auto request = static_cast<const std::vector<PolicyRule>>(arg.rules);
+  auto request = static_cast<const RulesToProcess>(arg);
   for (size_t i = 0; i < request.size(); i++) {
-    if (ids.find(request[i].id()) != ids.end()) {
+    if (ids.find(request[i].rule.id()) != ids.end()) {
       return true;
     }
   }
@@ -184,9 +183,9 @@ MATCHER_P(CheckSubset, ids, "") {
 }
 
 MATCHER_P(CheckPolicyID, id, "") {
-  auto request = static_cast<const std::vector<PolicyRule>>(arg.rules);
+  auto request = static_cast<const RulesToProcess>(arg);
   for (size_t i = 0; i < request.size(); i++) {
-    if (request[i].id() == id) {
+    if (request[i].rule.id() == id) {
       return true;
     }
   }
@@ -194,12 +193,12 @@ MATCHER_P(CheckPolicyID, id, "") {
 }
 
 MATCHER_P2(CheckPolicyIDs, count, ids, "") {
-  auto request = static_cast<const std::vector<PolicyRule>>(arg.rules);
+  auto request = static_cast<const RulesToProcess>(arg);
   if (request.size() != (unsigned int) count) {
     return false;
   }
   for (size_t i = 0; i < request.size(); i++) {
-    if (ids.find(request[i].id()) != ids.end()) {
+    if (ids.find(request[i].rule.id()) != ids.end()) {
       return true;
     }
   }

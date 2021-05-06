@@ -124,8 +124,7 @@ def main():
                      )
 
     service.loop.create_task(monitor_ifaces(
-        service.config['monitored_ifaces'],
-        service.loop),
+        service.config['monitored_ifaces']),
     )
 
     manager = AppManager.get_instance()

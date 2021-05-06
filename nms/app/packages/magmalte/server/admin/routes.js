@@ -28,6 +28,7 @@ router.get(
   '/auditlog/async',
   asyncHandler(async (req: FBCNMSRequest, res: ExpressResponse) => {
     const organization = await req.organization();
+    //$FlowFixMe[incompatible-call]
     const data = await AuditLogEntry.findAll({
       where: {organization: organization.name},
       limit: MAX_AUDITLOG_ROWS,
@@ -50,6 +51,10 @@ router.get(
       mutationData: item.mutationData,
       actingUserId: item.actingUserId,
       actingUserEmail: userMap[item.actingUserId] ?? 'undefined',
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+      url: item.url,
+      ipAddress: item.ipAddress,
     }));
     res.status(200).send(userLogData);
   }),

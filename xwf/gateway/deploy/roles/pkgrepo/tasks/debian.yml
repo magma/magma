@@ -13,9 +13,8 @@
 
 - name: Add GPG key for magma repository
   apt_key:
-    url: http://packages.magma.etagecom.io/pubkey.gpg
+    url: https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public
     state: present
-    id: 2E97854368E14ED8FB6F80903E838E02450E78EA
 
 - name: Add apt-transport-https
   apt: pkg=apt-transport-https state=present update_cache=yes

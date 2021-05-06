@@ -17,6 +17,7 @@
 package hss
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -25,7 +26,6 @@ import (
 	lteprotos "magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 

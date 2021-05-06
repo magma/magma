@@ -172,7 +172,7 @@ int pgw_process_pco_request_ipcp(
           OAILOG_DEBUG(
               LOG_SPGW_APP,
               "PCO: Protocol identifier IPCP option "
-              "SECONDARY_DNS_SERVER_IP_ADDRESS ipcp_out_dns_prim_ipv4_addr "
+              "PRIMARY_DNS_SERVER_IP_ADDRESS ipcp_out_dns_prim_ipv4_addr "
               "0x%x\n",
               ipcp_out_dns_prim_ipv4_addr);
         }

@@ -23,7 +23,6 @@ import (
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
@@ -140,8 +139,10 @@ func TestOmnipresentRules(t *testing.T) {
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.Equal(t, int(raa.ResultCode), diameter.SuccessCode)
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)

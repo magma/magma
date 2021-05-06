@@ -25,7 +25,7 @@
 #include "ServiceRegistrySingleton.h"
 #include "PolicyLoader.h"
 #include "MConfigLoader.h"
-#include "magma_logging.h"
+#include "magma_logging_init.h"
 #include "OperationalStatesHandler.h"
 #include "SessionCredit.h"
 #include "SessionStore.h"

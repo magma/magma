@@ -710,6 +710,17 @@ int emm_proc_attach_complete(
           (nas_emm_attach_proc_t*)
               ue_mm_context->emm_context.emm_procedures->emm_specific_proc;
 
+      /* Process attach complete msg only if T3450 timer is running
+       * If its not running it means that implicit detach is in progress
+       */
+      if (attach_proc->T3450.id == NAS_TIMER_INACTIVE_ID) {
+        OAILOG_WARNING_UE(
+            LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
+            "Discarding attach complete as T3450 timer is not active for "
+            "ueid " MME_UE_S1AP_ID_FMT "\n",
+            ue_id);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+      }
       emm_ctx = &ue_mm_context->emm_context;
       /*
        * Upon receiving an ATTACH COMPLETE message, the MME shall enter state
@@ -785,7 +796,6 @@ int emm_proc_attach_complete(
           "UE " MME_UE_S1AP_ID_FMT
           " ATTACH COMPLETE discarded (EMM procedure not found)\n",
           ue_id);
-      bdestroy((bstring)(esm_msg_pP));
     }
   } else {
     NOT_REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__20);
@@ -2489,12 +2499,14 @@ void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
        Do not send UE Context Release Command to eNB before receiving SGs IMSI
        Detach Ack from MSC/VLR */
     if (ue_context_p->sgs_context != NULL) {
-      if (((ue_context_p->sgs_detach_type !=
-            SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
-           (ue_context_p->sgs_detach_type !=
-            SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) &&
-          (ue_context_p->sgs_context->ts9_timer.id ==
-           MME_APP_TIMER_INACTIVE_ID)) {
+      if ((ue_context_p->sgs_detach_type ==
+           SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
+          (ue_context_p->sgs_detach_type ==
+           SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) {
+        OAILOG_FUNC_OUT(LOG_NAS_EMM);
+      } else if (
+          ue_context_p->sgs_context->ts9_timer.id ==
+          MME_APP_TIMER_INACTIVE_ID) {
         /* Notify S1AP to send UE Context Release Command to eNB or free
          * s1 context locally.
          */

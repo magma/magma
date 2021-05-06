@@ -202,7 +202,7 @@ func (m EapAkaMagmaMethod) Handle(
 		// Add User-Name attribute, which is mandatory
 		result.ExtraAttributes[rfc2865.UserName_Type] =
 			[]radius.Attribute{
-				radius.Attribute([]byte(postHandlerContext.Identity)),
+				radius.Attribute(postHandlerContext.Identity),
 			}
 	}
 	return result, nil

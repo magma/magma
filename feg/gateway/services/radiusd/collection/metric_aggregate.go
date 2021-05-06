@@ -14,7 +14,6 @@ limitations under the License.
 package collection
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -52,7 +51,7 @@ func CreateMetricAggregate(metricName string, metricFamily *dto.MetricFamily) (M
 	metricType := metricFamily.GetType()
 	labelArr, err := getLabelNames(metricFamily)
 	if err != nil {
-		return nil, errors.New(fmt.Sprintf("Failed to build metric collector: %s\n", err))
+		return nil, fmt.Errorf("Failed to build metric collector: %s\n", err)
 	}
 	metricHelp := metricFamily.GetHelp()
 
@@ -96,7 +95,7 @@ func CreateMetricAggregate(metricName string, metricFamily *dto.MetricFamily) (M
 		}
 	}
 	// Do not parse other metric types
-	return nil, errors.New(fmt.Sprintf("Not building MetricAggregate for metric type %s", metricType))
+	return nil, fmt.Errorf("Not building MetricAggregate for metric type %s", metricType)
 }
 
 func (ma *GaugeMetricAggregate) Update(metricFamily *dto.MetricFamily) {

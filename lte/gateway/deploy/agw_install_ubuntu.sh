@@ -24,6 +24,7 @@ WHOAMI=$(whoami)
 MAGMA_VERSION="${MAGMA_VERSION:-v1.5}"
 CLOUD_INSTALL="cloud"
 GIT_URL="${GIT_URL:-https://github.com/magma/magma.git}"
+INTERFACE_DIR="/etc/network/interfaces.d"
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
@@ -72,13 +73,16 @@ if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $I
 
   # interface config
   apt install -y ifupdown net-tools
+  mkdir -p "$INTERFACE_DIR"
+  echo "source-directory $INTERFACE_DIR" > /etc/network/interfaces
+
   echo "auto eth0
-  iface eth0 inet dhcp" > /etc/network/interfaces.d/eth0
+  iface eth0 inet dhcp" > "$INTERFACE_DIR"/eth0
   # configuring eth1
   echo "auto eth1
   iface eth1 inet static
   address 10.0.2.1
-  netmask 255.255.255.0" > /etc/network/interfaces.d/eth1
+  netmask 255.255.255.0" > "$INTERFACE_DIR"/eth1
 
   # get rid of netplan
   systemctl unmask networking
@@ -152,7 +156,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   alias python=python3
   pip3 install ansible
 
-  git clone "${GIT_URL}" /home/$MAGMA_USER/magma
+  git clone --depth=1 "${GIT_URL}" /home/$MAGMA_USER/magma
   cd /home/$MAGMA_USER/magma || exit
   git checkout "$MAGMA_VERSION"
 
@@ -163,12 +167,15 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   # install magma and its dependencies including OVS.
   su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/magma_deploy.yml"
 
-  echo "Deleting boot script if it exists"
-  if [ -f "$AGW_INSTALL_CONFIG" ]; then
-    rm -rf $AGW_INSTALL_CONFIG
-  fi
+  echo "Cleanup temp files"
+  cd /root || exit
+  rm -rf $AGW_INSTALL_CONFIG
   rm -rf /home/$MAGMA_USER/build
-  echo "AGW installation is done, make sure all services above are running correctly.. rebooting"
+  rm -rf /home/$MAGMA_USER/magma
+
+  echo "AGW installation is done, Run agw_post_install_ubuntu.sh install script after reboot to finish installation"
+  wget https://raw.githubusercontent.com/magma/magma/"$MAGMA_VERSION"/lte/gateway/deploy/agw_post_install_ubuntu.sh -P /root/
+
   reboot
 else
   echo "Magma already installed, skipping.."

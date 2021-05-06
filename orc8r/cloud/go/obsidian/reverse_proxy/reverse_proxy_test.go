@@ -18,6 +18,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"net"
 	"net/http"
 	"testing"
 
@@ -63,8 +64,8 @@ func TestReverseProxy(t *testing.T) {
 	srv2.EchoServer.GET(pathPrefix3, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
-	go srv1.RunTest(lis1)
-	go srv2.RunTest(lis2)
+	startTestService(t, srv1, lis1)
+	startTestService(t, srv2, lis2)
 
 	handler := NewReverseProxyHandler()
 	e, err := startTestServer(handler)
@@ -123,7 +124,7 @@ func TestReverseProxy(t *testing.T) {
 	_, err = handler.AddReverseProxyPaths(e, pathPrefixesByAddr)
 	assert.NoError(t, err)
 
-	go srv3.RunTest(lis3)
+	startTestService(t, srv3, lis3)
 
 	// Ensure added prefix to test_service2 works
 	s, err = sendRequest("GET", urlPrefix+newPrefix)
@@ -176,8 +177,8 @@ func TestReverseProxyPathCollision(t *testing.T) {
 	srv2.EchoServer.GET(pathPrefix, func(c echo.Context) error {
 		return c.String(http.StatusOK, "All good!")
 	})
-	go srv1.RunTest(lis1)
-	go srv2.RunTest(lis2)
+	startTestService(t, srv1, lis1)
+	startTestService(t, srv2, lis2)
 
 	handler := NewReverseProxyHandler()
 	e, err := startTestServer(handler)
@@ -197,6 +198,7 @@ func TestReverseProxyPathCollision(t *testing.T) {
 
 func startTestServer(handler *ReverseProxyHandler) (*echo.Echo, error) {
 	e := echo.New()
+	e.HideBanner = true
 	pathPrefixesByAddr, err := GetEchoServerAddressToPathPrefixes()
 	if err != nil {
 		return nil, err
@@ -209,6 +211,11 @@ func startTestServer(handler *ReverseProxyHandler) (*echo.Echo, error) {
 		e.Start("")
 	}()
 	return e, nil
+}
+
+func startTestService(t *testing.T, srv *service.OrchestratorService, lis net.Listener) {
+	go srv.RunTest(lis)
+	tests.WaitForTestServer(t, srv.EchoServer)
 }
 
 func sendRequest(method string, url string) (int, error) {

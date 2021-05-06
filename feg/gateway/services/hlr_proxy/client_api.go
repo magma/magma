@@ -17,6 +17,7 @@ limitations under the License.
 package hlr_proxy
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -25,7 +26,6 @@ import (
 	"magma/feg/cloud/go/protos/hlr"
 	"magma/feg/gateway/registry"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
 
@@ -44,7 +44,7 @@ func getHlrProxyClient() (*hlrProxyClient, error) {
 	conn, err = registry.GetConnection(registry.HLR_PROXY)
 	if err != nil {
 		errMsg := fmt.Sprintf("HLR Proxy client initialization error: %s", err)
-		log.Printf(errMsg)
+		log.Print(errMsg)
 		return nil, errors.New(errMsg)
 	}
 	return &hlrProxyClient{

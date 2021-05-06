@@ -11,23 +11,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
 
 
 class TestSecondaryPdnRejectUnknownPdnType(unittest.TestCase):
+    """Test secondary pdn connection rejection due to unknown pdn type"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_secondary_pdn_reject_unknown_pdn_type(self):
-        """ Attach a single UE + send standalone PDN connectivity
-        request with IPv6 pdn type + attach reject + detach"""
+        """Attach a single UE + send standalone PDN connectivity
+        request with IPv6 pdn type + attach reject + detach
+        """
         num_ue = 1
 
         self._s1ap_wrapper.configUEDevice(num_ue)
@@ -49,19 +55,21 @@ class TestSecondaryPdnRejectUnknownPdnType(unittest.TestCase):
         apn_list = [ims]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
         print(
             "************************* Running End to End attach for UE id ",
             ue_id,
         )
         # Attach
-        self._s1ap_wrapper.s1_util.attach(
+        attach = self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -73,11 +81,29 @@ class TestSecondaryPdnRejectUnknownPdnType(unittest.TestCase):
         # Receive PDN Connectivity reject
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
+        )
+        # Verify cause
+        pdn_con_rsp = response.cast(s1ap_types.uePdnConRsp_t)
+        self.assertEqual(
+            pdn_con_rsp.m.conRejInfo.cause,
+            s1ap_types.TFW_ESM_CAUSE_UNKNOWN_PDN_TYPE,
         )
 
         print("Sleeping for 5 seconds")
         time.sleep(5)
+        # Verify that flow rules are created only for the default bearer as
+        # the establishment of secondary pdn failed
+        # No dedicated bearers, so flowlist is empty
+        dl_flow_rules = {
+            default_ip: [],
+        }
+        # 1 UL flow is created per bearer
+        num_ul_flows = 1
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules,
+        )
+
         print(
             "************************* Running UE detach (switch-off) for ",
             "UE id ",
@@ -85,7 +111,7 @@ class TestSecondaryPdnRejectUnknownPdnType(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
 

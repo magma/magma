@@ -14,6 +14,7 @@ limitations under the License.
 package test
 
 import (
+	"context"
 	"testing"
 
 	"magma/feg/cloud/go/protos"
@@ -24,7 +25,6 @@ import (
 	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 const mandatoryFieldLength = decode.LengthIEI + decode.LengthLengthIndicator

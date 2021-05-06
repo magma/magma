@@ -15,13 +15,13 @@ package hss_test
 
 import (
 	"context"
-	orcprotos "magma/orc8r/lib/go/protos"
 	"testing"
 
 	"magma/feg/gateway/services/testcore/hss"
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/feg/gateway/services/testcore/hss/test_init"
 	lteprotos "magma/lte/cloud/go/protos"
+	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -75,6 +75,7 @@ func TestHSSClient(t *testing.T) {
 	expectedErr, ok := status.FromError(expectedGrpcErr)
 	assert.True(t, ok)
 	actualErr, ok := status.FromError(err)
+	assert.True(t, ok)
 	assert.Equal(t, expectedErr.Code(), actualErr.Code())
 	assert.Equal(t, expectedErr.Message(), actualErr.Message())
 

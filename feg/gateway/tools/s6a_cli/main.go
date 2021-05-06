@@ -240,7 +240,6 @@ func air(cmd *commands.Command, args []string) int {
 	}
 
 	errChann := make(chan error)
-	airErrors := make([]error, 0)
 	done := make(chan struct{})
 	lenOfImsi := len(imsi)
 	wg := sync.WaitGroup{}
@@ -256,6 +255,7 @@ func air(cmd *commands.Command, args []string) int {
 		}
 		go func() {
 			defer wg.Done()
+			var errCli error
 			req := &protos.AuthenticationInformationRequest{
 				UserName:                      fmt.Sprintf("%0*d", lenOfImsi, imsiNum+iShadow),
 				VisitedPlmn:                   plmnId[:],
@@ -264,19 +264,25 @@ func air(cmd *commands.Command, args []string) int {
 				NumRequestedUtranGeranVectors: uint32(utranVectors),
 			}
 			// AIR
-			json, err := orcprotos.MarshalIntern(req)
-			fmt.Printf("Sending AIR to %s:\n%s\n%+#v\n\n", peerAddr, json, *req)
-			r, err := cli.AuthenticationInformation(req)
-			if err != nil || r == nil {
-				err2 := fmt.Errorf("GRPC AIR Error: %v", err)
-				log.Print(err2)
-				errChann <- err2
+			json, errCli := orcprotos.MarshalIntern(req)
+			if errCli != nil {
+				errCli := fmt.Errorf("Can not marshall request: %s", errCli)
+				log.Print(errCli)
+				errChann <- errCli
 				return
 			}
-			json, err = orcprotos.MarshalIntern(r)
-			if err != nil {
-				err2 := fmt.Errorf("Marshal Error %v for result: %+v", err, *r)
-				errChann <- err2
+			fmt.Printf("Sending AIR to %s:\n%s\n%+#v\n\n", peerAddr, json, *req)
+			r, errCli := cli.AuthenticationInformation(req)
+			if errCli != nil || r == nil {
+				errCli = fmt.Errorf("GRPC AIR Error: %v", errCli)
+				log.Print(errCli)
+				errChann <- errCli
+				return
+			}
+			json, errCli = orcprotos.MarshalIntern(r)
+			if errCli != nil {
+				errCli = fmt.Errorf("Marshal Error %v for result: %+v", errCli, *r)
+				errChann <- errCli
 				return
 			}
 			fmt.Printf("Received AIA:\n%s\n%+v\n", json, *r)
@@ -284,6 +290,7 @@ func air(cmd *commands.Command, args []string) int {
 	}
 
 	// go routine to collect the errors
+	airErrors := make([]error, 0)
 	go func() {
 		for err2 := range errChann {
 			airErrors = append(airErrors, err2)
@@ -291,7 +298,7 @@ func air(cmd *commands.Command, args []string) int {
 		done <- struct{}{}
 	}()
 
-	// wait untill all air request are done
+	// wait until all air request are done
 	wg.Wait()
 	close(errChann)
 	// wait until all the errors are processed

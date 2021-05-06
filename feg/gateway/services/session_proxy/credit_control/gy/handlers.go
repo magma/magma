@@ -14,9 +14,10 @@ limitations under the License.
 package gy
 
 import (
+	"context"
+
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/relay"

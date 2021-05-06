@@ -73,7 +73,7 @@ var (
 			hdr: EpsIRIHeader{
 				Version:       1,
 				PduType:       2,
-				HeaderLength:  uint32(HeaderFixLen),
+				HeaderLength:  HeaderFixLen,
 				XID:           uid,
 				PayloadLength: 0,
 			},
@@ -86,7 +86,7 @@ var (
 				Version:               1,
 				PduType:               2,
 				PayloadLength:         0,
-				HeaderLength:          uint32(HeaderFixLen + 11), // size of tc1 attributes
+				HeaderLength:          HeaderFixLen + 11, // size of tc1 attributes
 				XID:                   uid,
 				ConditionalAttributes: tc1[0].at,
 			},

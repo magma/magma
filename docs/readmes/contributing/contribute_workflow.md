@@ -17,6 +17,8 @@ Magma follows the standard "fork and pull-request" development workflow. For mor
 
 See the [opinionated workflow](#opinionated-workflow) section below for a low-friction version of these workflows.
 
+Once your PR has been approved and passed all CI checks, use the [`ready2merge`](https://github.com/magma/magma/labels/ready2merge) label to indicate the maintainers can merge it.
+
 ## Guidelines
 
 **Required: commits must be signed off.** You must sign-off all commits on the originating branch for a PR, using [the `--signoff` flag in Git](https://stackoverflow.com/questions/1962094). There is a CI check that will fail if any commit in your branch has an unsigned commit. If you've forgotten to sign-off a commit, you can `git commit --amend --signoff`, or `git rebase --signoff` to sign-off an entire branch at once.

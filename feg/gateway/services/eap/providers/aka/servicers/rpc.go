@@ -15,9 +15,9 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"io"
 
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 
 	"magma/feg/gateway/services/aaa/protos"

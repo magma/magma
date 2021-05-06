@@ -15,13 +15,13 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"reflect"
 	"time"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	"magma/feg/gateway/services/aaa/protos"

@@ -14,12 +14,12 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"net"
 	"time"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
 	"magma/lte/cloud/go/protos"

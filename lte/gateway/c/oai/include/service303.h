@@ -25,7 +25,7 @@
 
 #define NO_BOUNDARIES 0
 #define NO_LABELS 0
-#define EPC_STATS_TIMER_VALUE 60  // In seconds
+#define EPC_STATS_TIMER_MSEC 60000  // In milliseconds
 
 void service303_statistics_read(void);
 

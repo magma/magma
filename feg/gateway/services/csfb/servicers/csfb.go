@@ -14,13 +14,14 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	orcprotos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 )
 
 type PortNumber = int
@@ -154,9 +155,9 @@ func (srv *CsfbServer) PagingRej(
 
 // ServiceReq sends SGsAP-SERVICE-REQUEST to VLR as a response
 // to a previously received SGsAP-PAGING-REQUEST message
-// to indicate the existence of a NAS signalling Connection
+// to indicate the existence of a NAS signaling Connection
 // between the UE and the MME or to indicate to the VLR that
-// the NAS signalling Connection has been established after the paging procedure
+// the NAS signaling Connection has been established after the paging procedure
 func (srv *CsfbServer) ServiceReq(
 	ctx context.Context,
 	req *protos.ServiceRequest,
