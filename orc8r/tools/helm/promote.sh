@@ -61,7 +61,9 @@ if [[ -z $HELM_CHART_MUSEUM_TOKEN ]]; then
 fi
 
 # Trim last backslash if exists
+# shellcheck disable=SC2001
 HELM_CHART_ARTIFACTORY_URL="$(echo "$HELM_CHART_ARTIFACTORY_URL" | sed 's:/$::')"
+# shellcheck enable=SC2001
 
 # Verify existence of the helm repo
 set +e +o pipefail
