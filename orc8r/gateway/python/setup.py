@@ -65,7 +65,7 @@ setup(
         'glob2>=0.7',
         'aioh2==0.2.2',
         'redis>=2.10.5',  # redis-py (Python bindings to redis)
-        'redis-collections>=0.4.2',
+        'redis-collections>=0.9.1',
         'aiohttp>=0.17.2',
         'grpcio==1.16.1',
         'protobuf==3.6.1',
