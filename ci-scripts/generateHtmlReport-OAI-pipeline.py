@@ -243,9 +243,9 @@ class HtmlReport():
                 status = False
                 if nf_type == COMMON_TYPE:
                     section_start_pattern = 'ninja -C  /build/c/magma_common'
-                    section_end_pattern = 'cmake  /magma/lte/gateway/c/oai -DCMAKE_BUILD_TYPE=Debug  -DS6A_OVER_GRPC=False -GNinja'
+                    section_end_pattern = 'cmake  /magma/lte/gateway/c/core/oai -DCMAKE_BUILD_TYPE=Debug  -DS6A_OVER_GRPC=False -GNinja'
                 if nf_type == MME_TYPE:
-                    section_start_pattern = 'ninja -C  /build/c/oai'
+                    section_start_pattern = 'ninja -C  /build/c/core/oai'
                     section_end_pattern = 'cmake  /magma/orc8r/gateway/c/common -DCMAKE_BUILD_TYPE=Debug   -GNinja'
                 if nf_type == SCTPD_TYPE:
                     section_start_pattern = 'ninja -C  /build/c/sctpd'
@@ -263,7 +263,7 @@ class HtmlReport():
                             if nf_type == COMMON_TYPE:
                                 my_res = re.search('Linking CXX static library eventd/libEVENTD.a', line)
                             if nf_type == MME_TYPE:
-                                my_res = re.search('Linking CXX executable oai_mme/mme', line)
+                                my_res = re.search('Linking CXX executable core/oai_mme/mme', line)
                             if nf_type == SCTPD_TYPE:
                                 my_res = re.search('Linking CXX executable sctpd', line)
                             if my_res is not None:
@@ -278,7 +278,7 @@ class HtmlReport():
                 if nf_type == COMMON_TYPE:
                     cell_msg += ' -- ninja -C  /build/c/magma_common</b></pre></td>\n'
                 if nf_type == MME_TYPE:
-                    cell_msg += ' -- ninja -C  /build/c/oai</b></pre></td>\n'
+                    cell_msg += ' -- ninja -C  /build/c/core/oai</b></pre></td>\n'
                 if nf_type == SCTPD_TYPE:
                     cell_msg += ' -- ninja -C  /build/c/sctpd</b></pre></td>\n'
             else:
@@ -313,9 +313,9 @@ class HtmlReport():
             if os.path.isfile(cwd + '/archives/' + log_file_name):
                 if nf_type == COMMON_TYPE:
                     section_start_pattern = '/build/c/magma_common'
-                    section_end_pattern = 'mkdir -p  /build/c/oai'
+                    section_end_pattern = 'mkdir -p  /build/c/core/oai'
                 if nf_type == MME_TYPE:
-                    section_start_pattern = '/build/c/oai'
+                    section_start_pattern = '/build/c/core/oai'
                     section_end_pattern = 'mkdir -p  /build/c/magma_common'
                 if nf_type == SCTPD_TYPE:
                     section_start_pattern = '/build/c/sctpd'
