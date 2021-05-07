@@ -204,23 +204,18 @@ def _get_context():
     mme_service_config = load_service_mconfig('mme', MME())
     nat = _get_enable_nat(mme_service_config)
     if nat:
-        sgw_s5s8_interface = _get_iface_ip('spgw', 'sgw_s5s8_up_iface_name')
         iface_name = get_service_config_value(
             'spgw', 'sgw_s5s8_up_iface_name', '',
         )
     else:
-        sgw_s5s8_interface = _get_iface_ip(
-            'spgw', 'sgw_s5s8_up_iface_name_non_nat',
-        )
         iface_name = get_service_config_value(
             'spgw', 'sgw_s5s8_up_iface_name_non_nat', '',
         )
-
     context = {
         "mme_s11_ip": _get_iface_ip("mme", "s11_iface_name"),
         "sgw_s11_ip": _get_iface_ip("spgw", "s11_iface_name"),
-        "sgw_s5s8_up_ip": sgw_s5s8_interface,
-        "sgw_s5s8_up_iface_name": iface_name,
+        'sgw_s5s8_up_ip': get_ip_from_if_cidr(iface_name),
+        'sgw_s5s8_up_iface_name': iface_name,
         "remote_sgw_ip": get_service_config_value("mme", "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
         "oai_log_level": _get_oai_log_level(),
@@ -237,7 +232,7 @@ def _get_context():
         "lac": _get_lac(mme_service_config),
         "use_stateless": get_service_config_value("mme", "use_stateless", ""),
         "attached_enodeb_tacs": _get_attached_enodeb_tacs(mme_service_config),
-        "enable_nat": nat,
+        'enable_nat': nat,
         "federated_mode_map": _get_federated_mode_map(mme_service_config),
         "restricted_plmns": _get_restricted_plmns(mme_service_config),
         "restricted_imeis": _get_restricted_imeis(mme_service_config),
