@@ -8,7 +8,7 @@
 
 - name: retrieve instance id from instance info
   set_fact:
-    factIid: "{{ inst_val.instances[0].instance_id }}" 
+    factIid: "{{ inst_val.instances[0].instance_id }}"
 
 - name: create snapshot of instance
   ec2_ami:
@@ -18,5 +18,11 @@
     tags:
       Name: "{{ devOpsAmi }}"
       Service: DevOpsAMI
+  register: result
+  failed_when:
+    - result.stderr is defined and 'FAILED' in result.stderr
+    - result.stderr.error is not defined or result.stderr.error.code is not defined or result.stderr.error.code != "InvalidAMIName.Duplicate"
+
+
 
 

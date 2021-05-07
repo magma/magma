@@ -50,7 +50,7 @@ usrName: ubuntu
 usrHome: "{{ dirHome }}"
 binPyenv: "{{ dirHome }}/pyenv.run"
 pyenvVersion: 3.7.3
-magmaRootDir: "{{ dirLocalInventory }}/magma"
+magmaRootDir: "{{ dirHome }}/magma"
 magmaBuildDir: "{{ magmaRootDir }}/orc8r/cloud/docker"
 magmaNmsDir: "{{ magmaRootDir }}/nms/app/packages/magmalte"
 magmaPublishTag: latest

@@ -1,0 +1,11 @@
+---
+
+- name: Delete KeyBoot
+  ec2_key:
+    name: "{{ keyBoot }}"
+    state: absent
+
+- name: Delete KeyHost
+  ec2_key:
+    name: "{{ keyHost }}"
+    state: absent
