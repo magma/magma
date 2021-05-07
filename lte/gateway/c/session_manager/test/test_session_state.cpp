@@ -686,10 +686,10 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
   EXPECT_EQ(update_criteria.gy_dynamic_rules_to_install.size(), 1);
 
   PolicyRule rule_out;
-  optional<uint32_t> op_version =
+  optional<RuleToProcess> op_to_process =
       session_state->remove_gy_rule("redirect", &rule_out, update_criteria);
-  EXPECT_TRUE(op_version);
-  EXPECT_EQ(*op_version, 2);
+  EXPECT_TRUE(op_to_process);
+  EXPECT_EQ(op_to_process->version, 2);
 
   // basic sanity checks to see it's properly deleted
   rules_out = {};
@@ -979,11 +979,11 @@ TEST_F(SessionStateTest, test_apply_session_rule_set) {
   EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule-dynamic-3"));
 
   // Check the RulesToProcess is properly filled out
-  EXPECT_EQ(to_activate.rules.size(), 2);
-  const std::string activate_rule1   = to_activate.rules[0].id();
-  const std::string activate_rule2   = to_activate.rules[1].id();
-  const std::string deactivate_rule1 = to_deactivate.rules[0].id();
-  const std::string deactivate_rule2 = to_deactivate.rules[1].id();
+  EXPECT_EQ(to_activate.size(), 2);
+  const std::string activate_rule1   = to_activate[0].rule.id();
+  const std::string activate_rule2   = to_activate[1].rule.id();
+  const std::string deactivate_rule1 = to_deactivate[0].rule.id();
+  const std::string deactivate_rule2 = to_deactivate[1].rule.id();
   EXPECT_TRUE(
       activate_rule1 == "rule-static-3" || activate_rule1 == "rule-dynamic-3");
   EXPECT_TRUE(

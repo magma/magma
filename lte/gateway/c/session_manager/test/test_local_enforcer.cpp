@@ -828,8 +828,10 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
       .deactivation_time = std::time_t(20),
   };
   auto& uc    = session_update[IMSI1][SESSION_ID_1];
-  uint32_t v1 = session_map_2[IMSI1].front()->activate_static_rule(
-      "rule1", lifetime1, uc);
+  uint32_t v1 = session_map_2[IMSI1]
+                    .front()
+                    ->activate_static_rule("rule1", lifetime1, uc)
+                    .version;
   session_map_2[IMSI1].front()->schedule_static_rule("rule2", lifetime2, uc);
   session_map_2[IMSI1].front()->schedule_static_rule("rule3", lifetime3, uc);
   session_map_2[IMSI1].front()->schedule_static_rule("rule4", lifetime4, uc);
@@ -1358,8 +1360,7 @@ TEST_F(LocalEnforcerTest, test_reauth_with_redirected_suspended_credit) {
   UpdateSessionResponse update_response;
   auto updates = update_response.mutable_responses();
   create_credit_update_response(IMSI1, SESSION_ID_1, 1, 4096, updates->Add());
-  std::vector<std::string> rules_to_activate;
-  rules_to_activate.push_back("rule1");
+  std::vector<std::string> rules_to_activate = {"rule1"};
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
                              testing::_, testing::_, testing::_, testing::_,
@@ -2787,7 +2788,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
       local_enforcer->collect_updates(session_map, actions, update);
   EXPECT_EQ(actions.size(), 1);
   EXPECT_EQ(actions[0]->get_type(), REDIRECT);
-  PolicyRule redirect_rule = actions[0]->get_gy_rules_to_install().rules[0];
+  PolicyRule redirect_rule = actions[0]->get_gy_rules_to_install()[0].rule;
   EXPECT_EQ(redirect_rule.redirect().server_address(), "12.7.7.4");
 
   EXPECT_CALL(
@@ -2803,10 +2804,12 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
       session_map, IMSI1, SESSION_ID_1, credit_key, true);
 
   // the request should has no rules so PipelineD deletes all rules
+  std::vector<Teids> expected_teids_vec{teids};
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             IMSI1, ip_addr, ipv6_addr, CheckTeids(teids),
-                             RequestOriginType::WILDCARD));
+      *pipelined_client,
+      deactivate_flows_for_rules_for_termination(
+          IMSI1, ip_addr, ipv6_addr, CheckTeidVector(expected_teids_vec),
+          RequestOriginType::WILDCARD));
   local_enforcer->handle_termination_from_access(
       session_map, IMSI1, APN1, update);
 }
@@ -2866,7 +2869,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
       local_enforcer->collect_updates(session_map, actions, update);
   EXPECT_EQ(actions.size(), 1);
   EXPECT_EQ(actions[0]->get_type(), RESTRICT_ACCESS);
-  EXPECT_EQ(actions[0]->get_gy_rules_to_install().rules[0].id(), "rule1");
+  EXPECT_EQ(actions[0]->get_gy_rules_to_install()[0].rule.id(), "rule1");
 
   EXPECT_CALL(
       *pipelined_client, add_gy_final_action_flow(
@@ -2982,7 +2985,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   EXPECT_EQ(actions.size(), 1);
   EXPECT_EQ(actions[0]->get_type(), RESTRICT_ACCESS);
   EXPECT_EQ(
-      actions[0]->get_gy_rules_to_install().rules[0].id(), "restrict_rule");
+      actions[0]->get_gy_rules_to_install()[0].rule.id(), "restrict_rule");
 
   EXPECT_CALL(
       *pipelined_client,
@@ -3073,12 +3076,14 @@ TEST_F(LocalEnforcerTest, test_dead_session_in_usage_report) {
   Teids expected_teids;
   expected_teids.set_agw_teid(teid);
   expected_teids.set_enb_teid(0);  // we don't care about this one
+  std::vector<Teids> expected_teids_vec{expected_teids};
   // no sessions exist at this point
   // We expect to empty calls for both Gx + Gy
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             IMSI1, IP1, testing::_, CheckTeids(expected_teids),
-                             RequestOriginType::WILDCARD))
+      *pipelined_client,
+      deactivate_flows_for_rules_for_termination(
+          IMSI1, IP1, testing::_, CheckTeidVector(expected_teids_vec),
+          RequestOriginType::WILDCARD))
       .Times(1);
 
   RuleRecordTable table;

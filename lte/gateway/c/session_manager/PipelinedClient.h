@@ -41,8 +41,17 @@ class PipelinedClient {
   virtual ~PipelinedClient() = default;
 
   /**
-   * Activates all rules for provided SessionInfos
-   * @param infos - list of SessionInfos to setup flows for
+   * @brief Activates all rules for provided SessionInfos
+   *
+   * @param infos - list of SessionInfos to setup flows
+   * @param quota_updates
+   * @param ue_mac_addrs
+   * @param msisdns
+   * @param apn_mac_addrs
+   * @param apn_names
+   * @param pdp_start_times
+   * @param epoch
+   * @param callback
    */
   virtual void setup_cwf(
       const std::vector<SessionState::SessionInfo>& infos,
@@ -56,8 +65,11 @@ class PipelinedClient {
       std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
   /**
-   * Activates all rules for provided SessionInfos
-   * @param infos - list of SessionInfos to setup flows for
+   * @brief Set the up lte object
+   *
+   * @param infos
+   * @param epoch
+   * @param callback
    */
   virtual void setup_lte(
       const std::vector<SessionState::SessionInfo>& infos,
@@ -65,40 +77,67 @@ class PipelinedClient {
       std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
   /**
-   * Deactivate all flows for the specified rules plus any drop default rule
-   * added by pipelined
-   * @param imsi - UE to delete flows for
-   * @param rule_ids - rules to deactivate
+   * @brief Send a DeactivateFlowsRequest for each of the teid pair.
+   * The rules field will not be set to indicate that all flows should be
+   * removed
+   * @param imsi
+   * @param ip_addr
+   * @param ipv6_addr
+   * @param teids
+   * @param origin_type
    */
   virtual void deactivate_flows_for_rules_for_termination(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
+      const std::string& ipv6_addr, const std::vector<Teids>& teids,
       const RequestOriginType_OriginType origin_type) = 0;
 
   /**
-   * Deactivate all flows for the specified rules
-   * @param imsi - UE to delete flows for
-   * @param rule_ids - rules to deactivate
+   * @brief Send DeactivateFlowRequests to PipelineD
+   *
+   * @param imsi
+   * @param ip_addr
+   * @param ipv6_addr
+   * @param default_teids teids corresponding to the default bearer
+   * @param to_process vector of RuleToProcess. If this value is empty, the
+   * function will send an empty request with the default teid value
+   * @param origin_type
    */
   virtual void deactivate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
+      const std::string& ipv6_addr, const Teids default_teids,
       const RulesToProcess to_process,
       const RequestOriginType_OriginType origin_type) = 0;
 
   /**
-   * Activate all rules for the specified rules, using a normal vector
+   * @brief Send ActivateFlowRequests to PipelineD
+   *
+   * @param imsi
+   * @param ip_addr
+   * @param ipv6_addr
+   * @param default_teids teids corresponding to the default bearer
+   * @param msisdn
+   * @param ambr
+   * @param to_process vector of RuleToProcess. If this value is empty, the
+   * function will send an empty request with the default teid value
+   * @param callback
    */
   virtual void activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
+      const std::string& ipv6_addr, const Teids default_teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
       const RulesToProcess to_process,
       std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
 
   /**
-   * Send the MAC address of UE and the subscriberID
+   * @brief Send the MAC address of UE and the subscriberID
    * for pipelined to add a flow for the subscriber by matching the MAC
+   *
+   * @param sid
+   * @param ue_mac_addr
+   * @param msisdn
+   * @param ap_mac_addr
+   * @param ap_name
+   * @param callback
    */
   virtual void add_ue_mac_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr,
@@ -107,7 +146,14 @@ class PipelinedClient {
       std::function<void(Status status, FlowResponse)> callback) = 0;
 
   /**
-   * Update the IPFIX export rule in pipeliend
+   * @brief Update the IPFIX export rule in pipeliend
+   *
+   * @param sid
+   * @param ue_mac_addr
+   * @param msisdn
+   * @param ap_mac_addr
+   * @param ap_name
+   * @param pdp_start_time
    */
   virtual void update_ipfix_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr,
@@ -115,28 +161,43 @@ class PipelinedClient {
       const std::string& ap_name, const uint64_t& pdp_start_time) = 0;
 
   /**
-   * Send the MAC address of UE and the subscriberID
+   * @brief Send the MAC address of UE and the subscriberID
    * for pipelined to delete a flow for the subscriber by matching the MAC
+   *
+   * @param sid
+   * @param ue_mac_addr
    */
   virtual void delete_ue_mac_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr) = 0;
 
   /**
-   * Propagate whether a subscriber has quota / no quota / or terminated
+   * @brief Propagate whether a subscriber has quota / no quota / or terminated
+   *
+   * @param updates
    */
   virtual void update_subscriber_quota_state(
       const std::vector<SubscriberQuotaUpdate>& updates) = 0;
 
   /**
-   * Activate the GY final action policy
+   * @brief Activate the GY final action policies
+   *
+   * @param imsi
+   * @param ip_addr
+   * @param ipv6_addr
+   * @param default_teids
+   * @param msisdn
+   * @param to_process
    */
   virtual void add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
+      const std::string& ipv6_addr, const Teids default_teids,
       const std::string& msisdn, const RulesToProcess to_process) = 0;
 
   /**
-   * Set up a Session of type SetMessage to be sent to UPF
+   * @brief Set up a Session of type SetMessage to be sent to UPF
+   *
+   * @param info
+   * @param callback
    */
   virtual void set_upf_session(
       const SessionState::SessionInfo info,
@@ -149,6 +210,7 @@ class PipelinedClient {
 /**
  * AsyncPipelinedClient implements PipelinedClient but sends calls
  * asynchronously to pipelined.
+ * Please refer to PipelinedClient for documentation
  */
 class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
  public:
@@ -156,11 +218,6 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   AsyncPipelinedClient(std::shared_ptr<grpc::Channel> pipelined_channel);
 
-  /**
-   * Activates all rules for provided SessionInfos
-   * @param infos - list of SessionInfos to setup flows for
-   * @return true if the operation was successful
-   */
   void setup_cwf(
       const std::vector<SessionState::SessionInfo>& infos,
       const std::vector<SubscriberQuotaUpdate>& quota_updates,
@@ -172,74 +229,42 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback);
 
-  /**
-   * Activates all rules for provided SessionInfos
-   * @param infos - list of SessionInfos to setup flows for
-   */
   void setup_lte(
       const std::vector<SessionState::SessionInfo>& infos,
       const std::uint64_t& epoch,
       std::function<void(Status status, SetupFlowsResult)> callback);
 
-  /**
-   * Deactivate all flows related to a specific charging key plus any default
-   * rule installed by pipelined. Used for session termination.
-   * @param imsi - UE to delete flows for
-   * @param charging_key - key to deactivate
-   */
   void deactivate_flows_for_rules_for_termination(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
+      const std::string& ipv6_addr, const std::vector<Teids>& teids,
       const RequestOriginType_OriginType origin_type);
 
-  /**
-   * Deactivate all flows related to a specific charging key
-   * @param imsi - UE to delete flows for
-   * @param charging_key - key to deactivate
-   */
   void deactivate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
+      const std::string& ipv6_addr, const Teids default_teids,
       const RulesToProcess to_process,
       const RequestOriginType_OriginType origin_type);
 
-  /**
-   * Deactivate all flows included on the request
-   * @param request
-   */
   void deactivate_flows(DeactivateFlowsRequest& request);
 
-  /**
-   * Activate all rules for the specified rules, using a normal vector
-   */
   void activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
+      const std::string& ipv6_addr, const Teids default_teids,
       const std::string& msisdn, const optional<AggregatedMaximumBitrate>& ambr,
       const RulesToProcess to_process,
       std::function<void(Status status, ActivateFlowsResult)> callback);
 
-  /**
-   * Send the MAC address of UE and the subscriberID
-   * for pipelined to add a flow for the subscriber by matching the MAC
-   */
   void add_ue_mac_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr,
       const std::string& msisdn, const std::string& ap_mac_addr,
       const std::string& ap_name,
       std::function<void(Status status, FlowResponse)> callback);
 
-  /**
-   * Update the IPFIX export rule in pipeliend
-   */
   void update_ipfix_flow(
       const SubscriberID& sid, const std::string& ue_mac_addr,
       const std::string& msisdn, const std::string& ap_mac_addr,
       const std::string& ap_name, const uint64_t& pdp_start_time);
 
-  /**
-   * Propagate whether a subscriber has quota / no quota / or terminated
-   */
   void update_subscriber_quota_state(
       const std::vector<SubscriberQuotaUpdate>& updates);
 
@@ -248,7 +273,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   void add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const Teids teids,
+      const std::string& ipv6_addr, const Teids default_teids,
       const std::string& msisdn, const RulesToProcess to_process);
 
   void set_upf_session(

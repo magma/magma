@@ -104,13 +104,13 @@ you will use something else for managing AWS credentials.
 ### Access Gateways
 
 Access gateways (AGWs) can be deployed on to any AMD64 architecture machine
-which can support a Debian Linux installation. The basic system requirements
-for the AGW production hardware are:
+which can support a Debian or Ubuntu 20.04 Linux installation. The basic system
+requirements for the AGW production hardware are:
 
-1. 2+ physical ethernet interfaces
+1. 2+ physical Ethernet interfaces
 2. AMD64 dual-core processor around 2GHz clock speed or faster
-3. 2GB RAM
-4. 128GB-256GB SSD storage
+3. 4GB RAM
+4. 32GB or greater SSD storage
 
 In addition, in order to build the AGW, you should have on hand:
 

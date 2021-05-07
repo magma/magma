@@ -95,7 +95,6 @@ RUN yum install -y \
     libgcrypt-devel \
     # Install libgtpnl requirements
     libmnl-devel \
-    libtins-dev \
     # Install Nettle requirements
     libconfig-devel \
     libxml2-devel \
@@ -131,7 +130,6 @@ COPY  lte/gateway/c/oai/patches/folly-gflagslib-fix.patch .
 COPY  lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch .
 COPY  lte/gateway/c/oai/patches/libzmq-strncpy.patch .
 COPY  lte/gateway/c/oai/patches/czmq-strncat.patch .
-COPY  lte/gateway/c/oai/patches/CMake-warnings-not-errors.patch .
 
 # In some network environments, GIT proxy is required
 RUN /bin/bash -c "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"
@@ -427,8 +425,6 @@ RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
 WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml
-WORKDIR /usr/local/etc/redis
-RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
 
 WORKDIR /etc/magma
 RUN cp $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
@@ -436,9 +432,12 @@ RUN cp $MAGMA_ROOT/lte/gateway/configs/redis.yml .
 RUN cp $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 
 WORKDIR /magma-mme/scripts
-RUN cp $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
-RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
-RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
+RUN cp $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate . && \
+    sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
+           -e "s@\$SUDO@@" \
+           -e "s@echo_error@echo@" \
+           -e "s@echo_success@echo@" \
+           -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
 WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
@@ -457,7 +456,7 @@ RUN yum update -y && \
       libubsan \
       libasan \
       psmisc \
-      psmisc \
+      tcpdump \
       openssl \
       net-tools \
       tzdata && \
@@ -506,7 +505,7 @@ WORKDIR /usr/local/lib/freeDiameter
 COPY --from=magma-mme-builder /usr/local/lib/freeDiameter/* ./
 
 # Refresh library cache
-RUN ldconfig -v
+RUN ldconfig
 
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
@@ -522,8 +521,6 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.
 WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml
-WORKDIR /usr/local/etc/redis
-COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
 
 WORKDIR /etc/magma
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
@@ -533,11 +530,20 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.y
 # Adding means to re-generate certificates
 WORKDIR /magma-mme/scripts
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
-RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
-RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
+RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
+           -e "s@\$SUDO@@" \
+           -e "s@echo_error@echo@" \
+           -e "s@echo_success@echo@" \
+           -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
 WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
+
+# use this label for CI purpose
+LABEL use-separate-hss-realm="true"
+
+# expose ports
+EXPOSE 3870/tcp 5870/tcp 2123/udp
 
 # For the moment, let have a dummy command
 CMD ["sleep", "infinity"]

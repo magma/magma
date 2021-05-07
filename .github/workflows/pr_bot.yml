@@ -1,0 +1,41 @@
+---
+name: PR Hello
+on:  # yamllint disable-line rule:truthy
+  # Use pull_request_target to gain write permissions.
+  # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/
+  pull_request_target:
+    types: [opened]
+
+jobs:
+  # This job is a manual approximation of https://github.com/peter-evans/create-or-update-comment
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v3
+        with:
+          github-token: ${{secrets.GITHUB_TOKEN}}
+          script: |
+            var msg = `Thanks for opening a PR! :100: Please note that [all commits must be signed off](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines). This is enforced by the \`DCO check\`.
+
+            ### Howto
+
+            - ***Reviews.*** The "Reviewers" listed for this PR are the Magma maintainers who will shepherd it.
+            - ***Checks.*** All required CI checks must pass before merge.
+            - ***Merge.*** Once approved and passing CI checks, use the [\`ready2merge\`](https://github.com/magma/magma/labels/ready2merge) label to indicate the maintainers can merge your PR.
+
+            ### More info
+
+            Please take a moment to read through the Magma project's
+            - [Contributing Conventions](https://docs.magmacore.org/docs/next/contributing/contribute_conventions) for norms around contributed code
+
+            If this is your first Magma PR, also consider reading
+            - [Developer Onboarding](https://docs.magmacore.org/docs/next/contributing/contribute_onboarding) for onboarding as a new Magma developer
+            - [Development Workflow](https://docs.magmacore.org/docs/next/contributing/contribute_workflow) for guidance on your first pull request
+            - [CI Checks](https://magma.github.io/magma/docs/next/contributing/contribute_ci_checks) for points of contact for failing or flaky CI checks`
+
+            github.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: msg,
+            })

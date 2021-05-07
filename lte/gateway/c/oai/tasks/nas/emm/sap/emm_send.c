@@ -329,8 +329,7 @@ int emm_send_attach_accept(
       "TRACKING_AREA_IDENTITY_LIST_LENGTH(%d*%d)  (%d) for (ue_id = %u)\n",
       TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH,
       emm_msg->tailist.numberoflists, size, ue_id);
-  AssertFatal(
-      emm_msg->tailist.numberoflists <= 16, "Too many TAIs in TAI list");
+
   for (int p = 0; p < emm_msg->tailist.numberoflists; p++) {
     if (TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
         emm_msg->tailist.partial_tai_list[p].typeoflist) {

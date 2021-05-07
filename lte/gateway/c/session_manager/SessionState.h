@@ -320,9 +320,9 @@ class SessionState {
    * @param rule
    * @param lifetime
    * @param session_uc
-   * @return uint32_t updated version
+   * @return RuleToProcess
    */
-  uint32_t insert_dynamic_rule(
+  RuleToProcess insert_dynamic_rule(
       const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& session_uc);
 
@@ -333,9 +333,9 @@ class SessionState {
    * @param rule_id
    * @param lifetime
    * @param session_uc
-   * @return uint32_t updated version
+   * @return RuleToProcess
    */
-  uint32_t activate_static_rule(
+  RuleToProcess activate_static_rule(
       const std::string& rule_id, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& session_uc);
   /**
@@ -344,9 +344,9 @@ class SessionState {
    * @param rule
    * @param lifetime
    * @param update_criteria
-   * @return uint32_t updated version
+   * @return RuleToProcess
    */
-  uint32_t insert_gy_rule(
+  RuleToProcess insert_gy_rule(
       const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& session_uc);
 
@@ -358,9 +358,10 @@ class SessionState {
    * @param update_criteria Tracks updates to the session. To be passed back to
    *                        the SessionStore to resolve issues of concurrent
    *                        updates to a session.
-   * @return optional<uint32_t> updated version if success, {} if failure
+   * @return optional<RuleToProcess> updated RuleToProcess if success, {} if
+   * failure
    */
-  optional<uint32_t> remove_dynamic_rule(
+  optional<RuleToProcess> remove_dynamic_rule(
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& update_criteria);
 
@@ -375,9 +376,9 @@ class SessionState {
    * @param rule_id
    * @param rule_out
    * @param session_uc
-   * @return optional<uint32_t> updated version if success, {} if failure
+   * @return optional<RuleToProcess> if success, {} if failure
    */
-  optional<uint32_t> remove_gy_rule(
+  optional<RuleToProcess> remove_gy_rule(
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& session_uc);
 
@@ -388,9 +389,9 @@ class SessionState {
    * @param session_uc Tracks updates to the session. To be passed back to
    *                        the SessionStore to resolve issues of concurrent
    *                        updates to a session.
-   * @return new version if successfully removed. otherwise returns {}
+   * @return RuleToProcess if successfully removed. otherwise returns {}
    */
-  optional<uint32_t> deactivate_static_rule(
+  optional<RuleToProcess> deactivate_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
 
   bool deactivate_scheduled_static_rule(const std::string& rule_id);
@@ -543,6 +544,15 @@ class SessionState {
   optional<PolicyRule> policy_needs_bearer_creation(
       const PolicyType policy_type, const std::string& rule_id,
       const SessionConfig& config);
+
+  /**
+   * @brief Return the list of teids used in this session
+   * The teids will be the union of config.common_context.teids and any teids
+   * tied to dedicated bearers in bearer_id_by_policy_
+   * @return std::vector<Teids>
+   */
+  std::vector<Teids> get_active_teids();
+
   /**
    *
    * @param rule_set
@@ -838,6 +848,8 @@ class SessionState {
       const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
       uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
       SessionStateUpdateCriteria& uc);
+
+  RuleToProcess make_rule_to_process(const PolicyRule& rule);
 };
 
 }  // namespace magma
