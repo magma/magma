@@ -498,17 +498,17 @@ void SessionState::add_rule_usage(
 }
 
 void SessionState::apply_session_rule_set(
-    RuleSetToApply& rule_set, RulesToProcess& rules_to_activate,
-    RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc) {
+    const RuleSetToApply& rule_set, RulesToProcess* to_activate,
+    RulesToProcess* to_deactivate, SessionStateUpdateCriteria& uc) {
   apply_session_static_rule_set(
-      rule_set.static_rules, rules_to_activate, rules_to_deactivate, uc);
+      rule_set.static_rules, to_activate, to_deactivate, uc);
   apply_session_dynamic_rule_set(
-      rule_set.dynamic_rules, rules_to_activate, rules_to_deactivate, uc);
+      rule_set.dynamic_rules, to_activate, to_deactivate, uc);
 }
 
 void SessionState::apply_session_static_rule_set(
-    std::unordered_set<std::string> static_rules,
-    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+    const std::unordered_set<std::string> static_rules,
+    RulesToProcess* to_activate, RulesToProcess* to_deactivate,
     SessionStateUpdateCriteria& uc) {
   // No activation time / deactivation support yet for rule set interface
   RuleLifetime lifetime;
@@ -523,12 +523,12 @@ void SessionState::apply_session_static_rule_set(
     if (!is_static_rule_installed(static_rule_id)) {
       MLOG(MINFO) << "Installing static rule " << static_rule_id << " for "
                   << session_id_;
-      // Set up rules_to_activate
-      rules_to_activate.push_back(
+      // Set up to_activate
+      to_activate->push_back(
           activate_static_rule(static_rule_id, lifetime, uc));
     }
   }
-  std::vector<PolicyRule> static_rules_to_deactivate;
+  std::vector<PolicyRule> static_to_deactivate;
 
   // Go through the existing rules and uninstall any rule not in the rule set
   for (const auto static_rule_id : active_static_rules_) {
@@ -539,12 +539,12 @@ void SessionState::apply_session_static_rule_set(
                      << " is not found. Skipping deactivation";
         continue;
       }
-      static_rules_to_deactivate.push_back(rule);
+      static_to_deactivate.push_back(rule);
     }
   }
   // Do the actual removal separately so we're not modifying the vector while
   // looping
-  for (const PolicyRule static_rule : static_rules_to_deactivate) {
+  for (const PolicyRule static_rule : static_to_deactivate) {
     MLOG(MINFO) << "Removing static rule " << static_rule.id() << " for "
                 << session_id_;
     optional<RuleToProcess> op_rule_info =
@@ -553,14 +553,14 @@ void SessionState::apply_session_static_rule_set(
       MLOG(MWARNING) << "Failed to deactivate static rule " << static_rule.id()
                      << " for " << session_id_;
     } else {
-      rules_to_deactivate.push_back(*op_rule_info);
+      to_deactivate->push_back(*op_rule_info);
     }
   }
 }
 
 void SessionState::apply_session_dynamic_rule_set(
-    std::unordered_map<std::string, PolicyRule> dynamic_rules,
-    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+    const std::unordered_map<std::string, PolicyRule> dynamic_rules,
+    RulesToProcess* to_activate, RulesToProcess* to_deactivate,
     SessionStateUpdateCriteria& uc) {
   // No activation time / deactivation support yet for rule set interface
   RuleLifetime lifetime;
@@ -568,7 +568,7 @@ void SessionState::apply_session_dynamic_rule_set(
     if (!is_dynamic_rule_installed(dynamic_rule_pair.first)) {
       MLOG(MINFO) << "Installing dynamic rule " << dynamic_rule_pair.first
                   << " for " << session_id_;
-      rules_to_activate.push_back(
+      to_activate->push_back(
           insert_dynamic_rule(dynamic_rule_pair.second, lifetime, uc));
     }
   }
@@ -578,7 +578,7 @@ void SessionState::apply_session_dynamic_rule_set(
     if (dynamic_rules.find(dynamic_rule.id()) == dynamic_rules.end()) {
       MLOG(MINFO) << "Removing dynamic rule " << dynamic_rule.id() << " for "
                   << session_id_;
-      rules_to_deactivate.push_back(
+      to_deactivate->push_back(
           *remove_dynamic_rule(dynamic_rule.id(), nullptr, uc));
     }
   }
@@ -994,7 +994,9 @@ RuleToProcess SessionState::activate_static_rule(
   static_rules_.get_rule(rule_id, &rule);
 
   rule_lifetimes_[rule_id] = lifetime;
-  active_static_rules_.push_back(rule_id);
+  if (!is_static_rule_installed(rule_id)) {
+    active_static_rules_.push_back(rule_id);
+  }
   session_uc.static_rules_to_install.insert(rule_id);
   session_uc.new_rule_lifetimes[rule_id] = lifetime;
   increment_rule_stats(rule_id, session_uc);
@@ -1083,6 +1085,98 @@ bool SessionState::deactivate_scheduled_static_rule(
   }
   scheduled_static_rules_.erase(rule_id);
   return true;
+}
+
+void SessionState::process_static_rule_installs(
+    const std::vector<StaticRuleInstall>& rule_installs,
+    RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+    RulesToSchedule* to_schedule, SessionStateUpdateCriteria* session_uc) {
+  std::time_t current_time = std::time(nullptr);
+  for (const StaticRuleInstall& rule_install : rule_installs) {
+    const std::string& rule_id = rule_install.rule_id();
+    RuleLifetime lifetime(rule_install);
+    if (is_static_rule_installed(rule_id)) {
+      // Session proxy may ask for duplicate rule installs.
+      // Ignore them here.
+      MLOG(MWARNING) << "Ignoring static rule install for " << session_id_
+                     << " for rule " << rule_id
+                     << " since it is alreday installed";
+      continue;
+    }
+    PolicyRule static_rule;
+    if (!static_rules_.get_rule(rule_id, &static_rule)) {
+      MLOG(MERROR) << "static rule " << rule_id
+                   << " is not found, skipping install...";
+      continue;
+    }
+
+    // If the rule should be deactivated already, deactivate just in case and
+    // continue
+    if (lifetime.exceeded_lifetime(current_time)) {
+      optional<RuleToProcess> op_remove_info =
+          deactivate_static_rule(rule_id, *session_uc);
+      if (op_remove_info) {
+        to_deactivate->push_back(*op_remove_info);
+      }
+      continue;
+    }
+    // If the rule should be active now, install
+    if (lifetime.is_within_lifetime(current_time)) {
+      to_activate->push_back(
+          activate_static_rule(rule_id, lifetime, *session_uc));
+    }
+    // If the rule is for future activation, schedule
+    if (lifetime.before_lifetime(current_time)) {
+      schedule_static_rule(rule_id, lifetime, *session_uc);
+      to_schedule->push_back(
+          RuleToSchedule(STATIC, rule_id, ACTIVATE, lifetime.activation_time));
+    }
+    // Schedule deactivation time in the future
+    if (lifetime.should_schedule_deactivation(current_time)) {
+      to_schedule->push_back(RuleToSchedule(
+          STATIC, rule_id, DEACTIVATE, lifetime.deactivation_time));
+    }
+  }
+}
+
+void SessionState::process_dynamic_rule_installs(
+    const std::vector<DynamicRuleInstall>& rule_installs,
+    RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+    RulesToSchedule* to_schedule, SessionStateUpdateCriteria* session_uc) {
+  std::time_t current_time = std::time(nullptr);
+
+  for (const DynamicRuleInstall& rule_install : rule_installs) {
+    const PolicyRule& dynamic_rule = rule_install.policy_rule();
+    const std::string& rule_id     = dynamic_rule.id();
+    RuleLifetime lifetime(rule_install);
+
+    // If the rule should be deactivated already, deactivate just in case and
+    // continue
+    if (lifetime.exceeded_lifetime(current_time)) {
+      optional<RuleToProcess> op_remove_info =
+          remove_dynamic_rule(rule_id, nullptr, *session_uc);
+      if (op_remove_info) {
+        to_deactivate->push_back(*op_remove_info);
+      }
+      continue;
+    }
+    // If the rule should be active now, install
+    if (lifetime.is_within_lifetime(current_time)) {
+      to_activate->push_back(
+          insert_dynamic_rule(dynamic_rule, lifetime, *session_uc));
+    }
+    // If the rule is for future activation, schedule
+    if (lifetime.before_lifetime(current_time)) {
+      schedule_dynamic_rule(dynamic_rule, lifetime, *session_uc);
+      to_schedule->push_back(
+          RuleToSchedule(DYNAMIC, rule_id, ACTIVATE, lifetime.activation_time));
+    }
+    // Schedule deactivation time in the future
+    if (lifetime.should_schedule_deactivation(current_time)) {
+      to_schedule->push_back(RuleToSchedule(
+          DYNAMIC, rule_id, DEACTIVATE, lifetime.deactivation_time));
+    }
+  }
 }
 
 void SessionState::sync_rules_to_time(
@@ -1408,8 +1502,8 @@ bool SessionState::is_credit_suspended(const CreditKey& charging_key) {
 }
 
 void SessionState::get_rules_per_credit_key(
-    CreditKey charging_key, RulesToProcess& to_activate,
-    SessionStateUpdateCriteria& session_uc) {
+    const CreditKey& charging_key, RulesToProcess* to_process,
+    SessionStateUpdateCriteria* session_uc) {
   std::vector<PolicyRule> static_rules, dynamic_rules;
   static_rules_.get_rule_definitions_for_charging_key(
       charging_key, static_rules);
@@ -1418,15 +1512,15 @@ void SessionState::get_rules_per_credit_key(
     // that the rule is activated for the session
     bool is_installed = is_static_rule_installed(rule.id());
     if (is_installed) {
-      increment_rule_stats(rule.id(), session_uc);
-      to_activate.push_back(make_rule_to_process(rule));
+      increment_rule_stats(rule.id(), *session_uc);
+      to_process->push_back(make_rule_to_process(rule));
     }
   }
   dynamic_rules_.get_rule_definitions_for_charging_key(
       charging_key, dynamic_rules);
   for (PolicyRule rule : dynamic_rules) {
-    increment_rule_stats(rule.id(), session_uc);
-    to_activate.push_back(make_rule_to_process(rule));
+    increment_rule_stats(rule.id(), *session_uc);
+    to_process->push_back(make_rule_to_process(rule));
   }
 }
 
@@ -1962,11 +2056,11 @@ void SessionState::set_session_level_key(const std::string new_key) {
 }
 
 BearerUpdate SessionState::get_dedicated_bearer_updates(
-    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
-    SessionStateUpdateCriteria& uc) {
+    const RulesToProcess& to_activate, const RulesToProcess& to_deactivate,
+    SessionStateUpdateCriteria* session_uc) {
   BearerUpdate update;
   // Rule Installs
-  for (const auto& to_process : rules_to_activate) {
+  for (const auto& to_process : to_activate) {
     const auto& rule_id = to_process.rule.id();
     PolicyType p_type;
     if (static_rules_.get_rule(rule_id, nullptr)) {
@@ -1974,11 +2068,11 @@ BearerUpdate SessionState::get_dedicated_bearer_updates(
     } else {
       p_type = DYNAMIC;
     }
-    update_bearer_creation_req(p_type, rule_id, config_, update);
+    update_bearer_creation_req(p_type, rule_id, &update);
   }
 
   // Rule Removals
-  for (const auto& to_process : rules_to_deactivate) {
+  for (const auto& to_process : to_deactivate) {
     const auto& rule_id = to_process.rule.id();
     PolicyType p_type;
     if (static_rules_.get_rule(rule_id, nullptr)) {
@@ -1986,7 +2080,7 @@ BearerUpdate SessionState::get_dedicated_bearer_updates(
     } else {
       p_type = DYNAMIC;
     }
-    update_bearer_deletion_req(p_type, rule_id, config_, update, uc);
+    update_bearer_deletion_req(p_type, rule_id, update, *session_uc);
   }
   return update;
 }
@@ -2156,9 +2250,8 @@ bool SessionState::policy_has_qos(
 }
 
 optional<PolicyRule> SessionState::policy_needs_bearer_creation(
-    const PolicyType policy_type, const std::string& id,
-    const SessionConfig& config) {
-  if (!config.rat_specific_context.has_lte_context()) {
+    const PolicyType policy_type, const std::string& id) {
+  if (!config_.rat_specific_context.has_lte_context()) {
     return {};
   }
   if (bearer_id_by_policy_.find(PolicyID(policy_type, id)) !=
@@ -2172,7 +2265,7 @@ optional<PolicyRule> SessionState::policy_needs_bearer_creation(
     return {};
   }
   auto default_qci = FlowQos_Qci(
-      config.rat_specific_context.lte_context().qos_info().qos_class_id());
+      config_.rat_specific_context.lte_context().qos_info().qos_class_id());
   if (policy.qos().qci() == default_qci) {
     // This QCI is already covered by the default bearer
     return {};
@@ -2182,31 +2275,30 @@ optional<PolicyRule> SessionState::policy_needs_bearer_creation(
 
 void SessionState::update_bearer_creation_req(
     const PolicyType policy_type, const std::string& rule_id,
-    const SessionConfig& config, BearerUpdate& update) {
-  auto policy = policy_needs_bearer_creation(policy_type, rule_id, config);
+    BearerUpdate* update) {
+  auto policy = policy_needs_bearer_creation(policy_type, rule_id);
   if (!policy) {
     return;
   }
 
   // If it is first time filling in the CreationReq, fill in other info
-  if (!update.needs_creation) {
-    update.needs_creation = true;
-    update.create_req.mutable_sid()->CopyFrom(config.common_context.sid());
-    update.create_req.set_ip_addr(config.common_context.ue_ipv4());
+  if (!update->needs_creation) {
+    update->needs_creation = true;
+    update->create_req.mutable_sid()->CopyFrom(config_.common_context.sid());
+    update->create_req.set_ip_addr(config_.common_context.ue_ipv4());
     // TODO ipv6 add to the bearer request or remove ipv4
-    update.create_req.set_link_bearer_id(
-        config.rat_specific_context.lte_context().bearer_id());
+    update->create_req.set_link_bearer_id(
+        config_.rat_specific_context.lte_context().bearer_id());
   }
-  update.create_req.mutable_policy_rules()->Add()->CopyFrom(*policy);
+  update->create_req.mutable_policy_rules()->Add()->CopyFrom(*policy);
   // We will add the new policyID to bearerID association, once we receive a
   // message from SGW.
 }
 
 void SessionState::update_bearer_deletion_req(
     const PolicyType policy_type, const std::string& rule_id,
-    const SessionConfig& config, BearerUpdate& update,
-    SessionStateUpdateCriteria& uc) {
-  if (!config.rat_specific_context.has_lte_context()) {
+    BearerUpdate& update, SessionStateUpdateCriteria& uc) {
+  if (!config_.rat_specific_context.has_lte_context()) {
     return;
   }
   if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) ==
@@ -2224,11 +2316,11 @@ void SessionState::update_bearer_deletion_req(
   if (!update.needs_deletion) {
     update.needs_deletion = true;
     auto& req             = update.delete_req;
-    req.mutable_sid()->CopyFrom(config.common_context.sid());
-    req.set_ip_addr(config.common_context.ue_ipv4());
+    req.mutable_sid()->CopyFrom(config_.common_context.sid());
+    req.set_ip_addr(config_.common_context.ue_ipv4());
     // TODO ipv6 add to the bearer request or remove ipv4
     req.set_link_bearer_id(
-        config.rat_specific_context.lte_context().bearer_id());
+        config_.rat_specific_context.lte_context().bearer_id());
   }
   update.delete_req.mutable_eps_bearer_ids()->Add(
       bearer_id_to_delete.bearer_id);
