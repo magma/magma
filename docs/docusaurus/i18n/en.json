@@ -283,6 +283,9 @@
       "orc8r/deploy_orcl": {
         "title": "Experimental Orc8r Deployer"
       },
+      "orc8r/dev_aws_stack": {
+        "title": "Orchestrator AWS Stack"
+      },
       "orc8r/dev_dependencies": {
         "title": "Module Dependencies"
       },
@@ -300,9 +303,6 @@
       },
       "orc8r/hold_terraform_state_on_s3": {
         "title": "Hold Terraform state outside my local machine"
-      },
-      "orc8r/development/orc8r_stack_on_aws": {
-        "title": "Orchestrator Stack on AWS"
       },
       "orc8r/legacy/docker_setup": {
         "title": "Docker Setup"

@@ -75,7 +75,6 @@
           "orc8r/architecture_overview",
           "orc8r/architecture_modularity",
           "orc8r/architecture_security",
-          "orc8r/development/orc8r_stack_on_aws"
           "nms/nms_arch_overview"
         ]
       },
@@ -203,7 +202,8 @@
           "orc8r/dev_minikube",
           "orc8r/dev_security",
           "orc8r/dev_indexers",
-          "orc8r/dev_dependencies"
+          "orc8r/dev_dependencies",
+          "orc8r/dev_aws_stack"
         ]
       },
       {

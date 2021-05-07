@@ -1,6 +1,6 @@
 ---
-id: orc8r_stack_on_aws
-title: Orchestrator Stack on AWS
+id: dev_aws_stack
+title: Orchestrator AWS Stack
 hide_title: true
 ---
 
@@ -10,27 +10,24 @@ hide_title: true
 
 ## What does terraform deploy in my AWS account?
 
-These following resources are the basic infrastructure necessary to deploy Magma services:
+The following resources are the basic infrastructure necessary to deploy Magma services:
 
 * **Kubernetes cluster:** Orc8r runs over a Kubernetes (K8s) cluster, Magma uses Elastic Kubernetes Service (EKS) to deploy the cluster. Other resources are created to support this cluster.
-* **Elastic File System:** File system to hold persistent data for Kubernetes cluster.
+* **Elastic File System (EFS):** File system to hold persistent data for Kubernetes cluster.
 * **Secrets:** Magma creates an instance in AWS Secret Manager to hold all the certificates and keys used in K8s cluster.
-* **Network and Security:** In order to provide networking a Virtual Private Cloud is configured in AWS and to protect it's access a Security Group is configured for it.
+* **Network and Security:** In order to provide networking a Virtual Private Cloud (VPC) is configured in AWS and to protect it's access a Security Group (SG) is configured for it.
 
 * **ElasticSearch Domain:** This is used to store logs of the K8s pods and services
-* **Database instances:** Magma needs two database instances one for Orc8r another for NMS, these instances are deployed using AWS Relational Databases Services (RDS)
+* **Database instances:** Magma needs a database instance for Orc8r and NMS, this instance is deployed using AWS Relational Databases Services (RDS)
 * **DNS:** Magma uses AWS Route53 service to configure external DNS to access Orc8r's UI and API resources.
 
 Magma provides a set of configuration parameters to control these resources, follow a short list with some configurations:
 
 |Name	|Type	|Description	|Default Value	|
 |---	|---	|---	|---	|
-|nms_db_password	|Mandatory	|Password for the NMS DB. Must be at least 8 characters.	|-	|
 |orc8r_db_password	|Mandatory	|Password for the Orchestrator DB. Must be at least 8 characters.	|-	|
 |orc8r_db_storage_gb	|Optional	|Capacity in GB to allocate for Orchestrator RDS instance.	|64	|
-|nms_db_storage_gb	|Optional	|Capacity in GB to allocate for NMS RDS instance.	|16	|
 |orc8r_db_engine_version	|Optional	|Postgres engine version for Orchestrator DB.	|9.6.15	|
-|nms_db_engine_version	|Optional	|MySQL engine version for NMS DB.	|5.7	|
 |cluster_version	|Optional	|Kubernetes version for the EKS cluster.	|1.17	|
 |elasticsearch_version	|Optional	|ES version for ES domain.	|7.1	|
 
@@ -94,32 +91,11 @@ Orc8r Helm chart is composed of 5 other charts:
 
 ## Which certificates Magma use?
 
-Orc8r needs certificates to assure messages traveling over the internet are encrypted and secure. Certificates are created in pairs with a public certificate (.crt or .pem) and a private key (.key). The former needs to be safely stored and kept secret, while the latter can be distributed to clients.
+Orc8r needs certificates to assure messages traveling over the internet are encrypted and secure. Certificates are created in pairs with a public certificate (.crt or .pem) and a private key (.key). The former needs to be safely stored and kept secret, while the latter can be distributed to clients. Please [read the certificates section on Orchestrator architecture](https://magma.github.io/magma/docs/next/orc8r/dev_security#certificates).
+
 
 <span style="color:red">
 **Attention:** All the certificates are created with validity time period, so make sure you know when your certificates expire and schedule a maintenance to update them.
 </span>
 
-### Certificate Authority (and rootCA)
 
-Depending on the application you are running, it may require your certificate to be issued by an Authority, this means the certificate is signed by a third party that is trusted by both client and server application. You can create your own Authority certificate (rootCA) at the price of not being trusted by some applications (like browsers).
-
-If you choose to self-sign your certificates, you will need to create a rootCA:
-
-**rootCA.key, rootCA.pem:** certs for trusted root Certificate Authority, will be used to sign other certificates.
-
-Follows the list of applications that need certificates in Magma:
-
-* **Controller Certificate (controller.key, controller.crt):**
-    * Certs for Orc8r deployment's public domain name,
-    * Needs to be signed by a Certificate Authority
-* **Admin Certificate** (**admin_operator.key.pem, admin_operator.pem):**
-    * Admin certs for the initial admin operator (e.g. whoever's deploying Orc8r) to authenticate to the Orc8r proxy
-        * are the files that NMS will use to authenticate itself with the Orchestrator API
-    * Admin certs are used to access the Swagger API in the Orc8r and it is also used by NMS to connect to the Orc8r controller.
-* **Fluentd Certificate (fluentd.key, fluentd.pem):**
-    * Certs for fluentd endpoint, allowing gateways to securely send logs (fluentd is currently outside Orc8r proxy)
-* **Certifier Certificate (certifier.key, certifier.pem):**
-    * Certs for the controller's certifier service, providing more fine-grained access to controller services
-* **Bootstrapper Key (bootstrapper.key):**
-    * Private key for controller's bootstrapper service, used in gateway bootstrapping challenges
