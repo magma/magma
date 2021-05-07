@@ -164,10 +164,6 @@ class Classifier(MagmaController):
         self._install_default_tunnel_flows()
         self._install_internal_pkt_fwd_flow()
         self._install_internal_conntrack_flow()
-       # ue_ip_addr = "192.168.128.30"
-       # self.add_tunnel_flows(65525, 5, 1000,
-       #               IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-       #               "192.168.60.141", 5000, True)
 
     def _delete_all_flows(self):
         flows.delete_all_flows_from_table(self._datapath, self.tbl_num)
