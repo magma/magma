@@ -11,24 +11,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
 
 
-class TestSecondaryPdnNoDisconnect(unittest.TestCase):
+class TestAttachDetachSecondaryPdnNoDisconnect(unittest.TestCase):
+    """Test secondary pdn connection without disconnection"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
-    def test_secondary_pdn_conn_req(self):
-        """ Attach a single UE , send standalone PDN Connectivity
-        Request and detach without sending PDN Disconnect """
-
+    def test_attach_detach_secondary_pdn_no_disconnect(self):
+        """Attach a single UE , send standalone PDN Connectivity
+        Request and detach without sending PDN Disconnect
+        """
         num_ue = 1
 
         self._s1ap_wrapper.configUEDevice(num_ue)
@@ -49,7 +54,7 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
         # APN list to be configured
         apn_list = [ims]
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
 
         print(
@@ -57,12 +62,14 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
             ue_id,
         )
         # Attach
-        self._s1ap_wrapper.s1_util.attach(
+        attach = self._s1ap_wrapper.s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -73,15 +80,33 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
         )
+
+        act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+
+        addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+        sec_ip = ipaddress.ip_address(bytes(addr[:4]))
+
         print(
             "************************* Sending Activate default EPS bearer "
             "context accept for UE id ",
             ue_id,
         )
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify if flow rules are created
+        # No dedicated bearers, so flowlist is empty for the default bearers
+        dl_flow_rules = {
+            default_ip: [],
+            sec_ip: [],
+        }
+        # 1 UL flow is created per bearer
+        num_ul_flows = 2
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules,
+        )
 
-        time.sleep(2)
         # Do not send PDN Disconnect, send detach
         print(
             "************************* Running UE detach (switch-off) for ",
@@ -90,7 +115,7 @@ class TestSecondaryPdnNoDisconnect(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
 

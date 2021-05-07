@@ -542,6 +542,15 @@ class SessionState {
   optional<PolicyRule> policy_needs_bearer_creation(
       const PolicyType policy_type, const std::string& rule_id,
       const SessionConfig& config);
+
+  /**
+   * @brief Return the list of teids used in this session
+   * The teids will be the union of config.common_context.teids and any teids
+   * tied to dedicated bearers in bearer_id_by_policy_
+   * @return std::vector<Teids>
+   */
+  std::vector<Teids> get_active_teids();
+
   /**
    *
    * @param rule_set
