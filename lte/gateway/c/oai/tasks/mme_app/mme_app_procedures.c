@@ -203,8 +203,24 @@ void mme_app_s11_procedure_create_bearer_send_response(
     ebi_t ebi = INDEX_TO_EBI(ebix);
     if (S11_PROC_BEARER_FAILED == s11_proc_create->bearer_status[ebix]) {
       bearer_context_t* bc = mme_app_get_bearer_context(ue_context_p, ebi);
-      // should not fail (bc != NULL)
+      if (bc == NULL) {
+        OAILOG_ERROR_UE(
+            LOG_MME_APP, ue_context_p->emm_context._imsi64,
+            "bc is NULL for "
+            "MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "ebi-%u\n",
+            ue_context_p->mme_ue_s1ap_id, ebi);
+        OAILOG_FUNC_OUT(LOG_MME_APP);
+      }
+
       // Find remote S11 teid == find pdn
+      if (ue_context_p->pdn_contexts[bc->pdn_cx_id] == NULL) {
+        OAILOG_ERROR_UE(
+            LOG_MME_APP, ue_context_p->emm_context._imsi64,
+            "pdn_contexts is NULL for "
+            "MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "ebi-%u\n",
+            ue_context_p->mme_ue_s1ap_id, ebi);
+        OAILOG_FUNC_OUT(LOG_MME_APP);
+      }
       s11_create_bearer_response->teid =
           ue_context_p->pdn_contexts[bc->pdn_cx_id]->s_gw_teid_s11_s4;
 

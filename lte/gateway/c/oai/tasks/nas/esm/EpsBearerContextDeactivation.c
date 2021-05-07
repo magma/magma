@@ -322,6 +322,15 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
     }
   }
 
+  if (ue_context_p->pdn_contexts[pid] == NULL) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "pdn_contexts is NULL for "
+        "MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "ebi-%u\n",
+        ue_context_p->mme_ue_s1ap_id, ebi);
+    OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+  }
+
   s_gw_teid_s11_s4 = ue_context_p->pdn_contexts[pid]->s_gw_teid_s11_s4;
 
   // If bearer id == 0, default bearer is deleted
@@ -336,9 +345,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
        */
       pdn_connectivity_delete(emm_context_p, pid);
       // Free PDN context
-      if (ue_context_p->pdn_contexts[pid]) {
-        free_wrapper((void**) &ue_context_p->pdn_contexts[pid]);
-      }
+      free_wrapper((void**) &ue_context_p->pdn_contexts[pid]);
       // Free bearer context entry
       if (ue_context_p->bearer_contexts[bid]) {
         free_wrapper((void**) &ue_context_p->bearer_contexts[bid]);
