@@ -54,6 +54,16 @@ bool directoryd_update_location(char* imsi, char* location) {
   return true;
 }
 
+bool directoryd_update_field(char* imsi, char* key, char* value) {
+  // Actual GW_ID will be filled in the cloud
+  magma::GatewayDirectoryServiceClient::UpdateRecordField(
+      "IMSI" + std::string(imsi), std::string(key), std::string(value),
+      [&](grpc::Status status, magma::Void response) {
+        directoryd_rpc_call_done(status);
+      });
+  return true;
+}
+
 void directoryd_rpc_call_done(const grpc::Status& status) {
   if (!status.ok()) {
     std::cerr << "Directoryd RPC failed with code " << status.error_code()

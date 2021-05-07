@@ -25,6 +25,8 @@ limitations under the License.
 #include "gtpv1u.h"
 #include "dynamic_memory_check.h"
 #include "sgw_handlers.h"
+#include "directoryd.h"
+#include "conversions.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;
@@ -506,6 +508,13 @@ void sgw_s8_handle_create_session_response(
     sgw_remove_sgw_bearer_context_information(
         sgw_state, session_rsp_p->context_teid, imsi64);
   }
+
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+  char teidString[16];
+  sprintf(teidString, "%u", session_rsp_p->context_teid);
+  directoryd_update_field(imsi_str, "sgw_c_teid", teidString);
+
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 

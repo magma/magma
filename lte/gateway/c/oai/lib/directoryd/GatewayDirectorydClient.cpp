@@ -57,22 +57,26 @@ GatewayDirectoryServiceClient::GatewayDirectoryServiceClient() {
 bool GatewayDirectoryServiceClient::UpdateRecord(
     const std::string& id, const std::string& location,
     std::function<void(Status, Void)> callback) {
-  GatewayDirectoryServiceClient& client = get_instance();
-
   UpdateRecordRequest request;
-  Void response;
-
   request.set_id(id);
   request.set_location(location);
+  return GatewayDirectoryServiceClient::updateRecordImpl(request, callback);
+}
 
-  // No values for fields param in UpdateRecord
-  auto fields = request.fields();
-  std::unordered_map<std::string, std::string> fields_map;
+bool GatewayDirectoryServiceClient::UpdateRecordField(
+    const std::string& id, const std::string& field_key,
+    const std::string& field_value,
+    std::function<void(Status, Void)> callback) {
+  UpdateRecordRequest request;
+  request.set_id(id);
+  auto update_fields = request.mutable_fields();
+  update_fields->insert({field_key, field_value});
+  return GatewayDirectoryServiceClient::updateRecordImpl(request, callback);
+}
 
-  Map<std::string, std::string> proto_fields(
-      fields_map.begin(), fields_map.end());
-  fields = proto_fields;
-
+bool GatewayDirectoryServiceClient::updateRecordImpl(
+    UpdateRecordRequest& request, std::function<void(Status, Void)> callback) {
+  GatewayDirectoryServiceClient& client = get_instance();
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
   auto local_response =

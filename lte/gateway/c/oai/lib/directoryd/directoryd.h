@@ -36,6 +36,8 @@ bool directoryd_remove_location(char* imsi);
 
 bool directoryd_update_location(char* imsi, char* location);
 
+bool directoryd_update_field(char* imsi, char* key, char* value);
+
 #ifdef __cplusplus
 }
 #endif
