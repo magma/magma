@@ -90,7 +90,7 @@ func (c *RecordExporter) sendMessage(message []byte) error {
 	return err
 }
 
-// getDiamConnection returns the existing connection or
+// getTlsConnection returns the existing connection or
 // dials and initializes a connection if it doesn't exist
 func (c *RecordExporter) getTlsConnection() (*gtcp.Conn, error) {
 	c.mutex.Lock()
@@ -121,18 +121,4 @@ func (c *RecordExporter) destroyConnection(conn *gtcp.Conn) {
 		c.conn = nil
 	}
 	conn.Close()
-}
-
-// cleanupConnection is similar to destroyConnection, but it closes and
-// cleans up connection unconditionally
-func (c *RecordExporter) cleanupConnection() {
-	c.mutex.Lock()
-	conn := c.conn
-	if conn != nil {
-		c.conn = nil
-		c.mutex.Unlock()
-		conn.Close()
-	} else {
-		c.mutex.Unlock()
-	}
 }

@@ -142,6 +142,7 @@ func (np *NProbeManager) processNProbeTask(networkID string, task *models.Networ
 		return err
 	}
 
+	var nerr error
 	seq := state.SequenceNumber
 	for _, event := range events {
 		record, err := encoding.MakeRecord(&event, task, np.OperatorID, seq)
@@ -150,9 +151,9 @@ func (np *NProbeManager) processNProbeTask(networkID string, task *models.Networ
 			continue
 		}
 
-		err = np.Exporter.SendMessageWithRetries(record, np.MaxExportRetries)
-		if err != nil {
-			glog.Errorf("Failed to export record for targetID %s: %s\n", state.TargetID, err)
+		nerr = np.Exporter.SendMessageWithRetries(record, np.MaxExportRetries)
+		if nerr != nil {
+			glog.Errorf("Failed to export record for targetID %s: %s\n", state.TargetID, nerr)
 			break
 		}
 		seq++
@@ -166,7 +167,7 @@ func (np *NProbeManager) processNProbeTask(networkID string, task *models.Networ
 			return err
 		}
 	}
-	return nil
+	return nerr
 }
 
 // ProcessNProbeTasks runs in loop, retrieves all nprobe tasks and process them.
