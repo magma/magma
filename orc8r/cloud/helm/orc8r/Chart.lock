@@ -1,4 +1,7 @@
 dependencies:
+- name: certs
+  repository: ""
+  version: 0.1.0
 - name: secrets
   repository: ""
   version: 0.1.10
@@ -7,7 +10,7 @@ dependencies:
   version: 1.4.24
 - name: nms
   repository: ""
-  version: 0.1.11
+  version: 0.1.12
 - name: logging
   repository: ""
   version: 0.1.10
