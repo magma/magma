@@ -43,7 +43,7 @@ require (
 	github.com/imdario/mergo v0.3.5
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
-	github.com/lib/pq v1.2.0
+	github.com/lib/pq v1.10.1
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/olivere/elastic/v7 v7.0.6
