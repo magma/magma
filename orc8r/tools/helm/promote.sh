@@ -11,20 +11,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# promote.sh copies specified artifacts from one repo to another
+# promote.sh copies specified artifacts from one repo to another.
 
 set -e -o pipefail
 
 promote_artifact () {
   ARTIFACT="$1"
-  curl -X POST -u "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" --fail \
+  curl --request POST --user "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" --fail \
    "$HELM_CHART_MUSEUM_API_URL/copy/$HELM_CHART_MUSEUM_ORIGIN_REPO/$ARTIFACT?to=/$HELM_CHART_MUSEUM_DEST_REPO/$ARTIFACT"
 } 
 
 get_artifact () {
   ARTIFACT="$1"
-  curl -o /dev/null -s -w "%{http_code}" \
-   "$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_ORIGIN_REPO/$ARTIFACT"
+  curl --output /dev/null --silent  --write-out "%{http_code}" \
+   "$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_ORIGIN_REPO/$ARTIFACT" || :
 } 
 
 usage() {
@@ -40,17 +40,10 @@ exitmsg() {
 # Check if the required args and env-vars present
 [ $# -eq 0 ] && usage
 
-if [[ -z $HELM_CHART_ARTIFACTORY_URL ]]; then
-  HELM_CHART_ARTIFACTORY_URL="https://artifactory.magmacore.org:443/artifactory"
-fi
-
-if [[ -z $HELM_CHART_MUSEUM_ORIGIN_REPO ]]; then
-  HELM_CHART_MUSEUM_ORIGIN_REPO="helm-test"
-fi
-
-if [[ -z $HELM_CHART_MUSEUM_DEST_REPO ]]; then
-  HELM_CHART_MUSEUM_DEST_REPO="helm-prod"
-fi
+# Define default values
+HELM_CHART_ARTIFACTORY_URL="${HELM_CHART_ARTIFACTORY_URL:-https://artifactory.magmacore.org:443/artifactory}"
+HELM_CHART_MUSEUM_ORIGIN_REPO="${HELM_CHART_MUSEUM_ORIGIN_REPO:-helm-test}"
+HELM_CHART_MUSEUM_DEST_REPO="${HELM_CHART_MUSEUM_DEST_REPO:-helm-prod}"
 
 if [[ -z $HELM_CHART_MUSEUM_USERNAME ]]; then
   exitmsg "Environment variable HELM_CHART_MUSEUM_USERNAME must be set"
@@ -66,12 +59,10 @@ HELM_CHART_ARTIFACTORY_URL="$(echo "$HELM_CHART_ARTIFACTORY_URL" | sed 's:/$::')
 # shellcheck enable=SC2001
 
 # Verify existence of the helm repo
-set +e +o pipefail
-RESPONSE_CODE_REPO="$(curl -o /dev/null -s -w "%{http_code}"  "$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_ORIGIN_REPO/")"
+RESPONSE_CODE_REPO="$(curl --output /dev/null --stderr /dev/null --silent --write-out "%{http_code}"  "$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_ORIGIN_REPO/" || :)"
 if [ "$RESPONSE_CODE_REPO" != "200" ]; then
   exitmsg "There was an error connecting to the artifactory repository $HELM_CHART_MUSEUM_ORIGIN_REPO"
 fi
-set -e -o pipefail
 
 # Form API URL
 HELM_CHART_MUSEUM_API_URL="$HELM_CHART_ARTIFACTORY_URL/api"
@@ -79,9 +70,7 @@ HELM_CHART_MUSEUM_API_URL="$HELM_CHART_ARTIFACTORY_URL/api"
 # iterate through artifacts to promote
 for artifact in "$@"
 do
-    set +e +o pipefail
     RESPONSE_CODE_ARTIFACT="$(get_artifact "$artifact")"
-    set -e -o pipefail
     if [ "$RESPONSE_CODE_ARTIFACT" == "200" ]; then
       promote_artifact "$artifact"
     elif [ "$RESPONSE_CODE_ARTIFACT" == "404" ]; then
@@ -92,4 +81,4 @@ do
 done
 
 printf '\n'
-echo "Promoted orc8r chart artifacts $* from $HELM_CHART_MUSEUM_ORIGIN_REPO to $HELM_CHART_MUSEUM_DEST_REPO successfully."
+echo "Promoted Orc8r chart artifacts $* from $HELM_CHART_MUSEUM_ORIGIN_REPO to $HELM_CHART_MUSEUM_DEST_REPO successfully."
