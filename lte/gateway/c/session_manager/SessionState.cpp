@@ -535,14 +535,10 @@ void SessionState::add_rule_usage(
     SessionStateUpdateCriteria& update_criteria) {
   CreditKey charging_key;
 
-  // TODO: Rework logic to work with flat rate, below is a temp hack
+  // TODO: Rework logic to work with flat rate, below is a hacky solution
   RuleStats delta = get_rule_delta(
       rule_id, rule_version, used_tx, used_rx, dropped_tx, dropped_rx,
       update_criteria);
-  //  if (delta.tx == 0 && delta.rx == 0 && delta.dropped_tx == 0 &&
-  //      delta.dropped_rx == 0) {
-  //    return;
-  //  }
   uint64_t delta_tx         = delta.tx;
   uint64_t delta_rx         = delta.rx;
   uint64_t delta_dropped_tx = delta.dropped_tx;
