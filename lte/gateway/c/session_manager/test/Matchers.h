@@ -57,6 +57,23 @@ MATCHER_P(CheckRuleNames, list_static_rules, "") {
   return true;
 }
 
+MATCHER_P(CheckRulesToProcess, expected, "") {
+  std::vector<RuleToProcess> to_process = arg;
+  // basic size check
+  if (to_process.size() != expected.size()) {
+    return false;
+  }
+  for (RuleToProcess val : to_process) {
+    for (uint32_t i = 0; i < expected.size(); i++) {
+      if (val.rule.id() == expected[i].rule.id()) {
+        // check teids
+        return val.teids == expected[i].teids;
+      }
+    }
+  }
+  return false;
+}
+
 MATCHER_P(CheckTeids, configured_teids, "") {
   Teids pipelined_req_teids = static_cast<const Teids>(arg);
 

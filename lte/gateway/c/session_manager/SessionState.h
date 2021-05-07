@@ -306,6 +306,14 @@ class SessionState {
   optional<PolicyType> get_policy_type(const std::string& rule_id);
 
   /**
+   * @brief Get the policy definition object
+   *
+   * @param rule_id
+   * @return optional<PolicyRule> {} if rule is not found, PolicyType if it is
+   */
+  optional<PolicyRule> get_policy_definition(const std::string rule_id);
+
+  /**
    * @brief Get the current rule version object
    *
    * @param rule_id
@@ -556,15 +564,20 @@ class SessionState {
   std::vector<Teids> get_active_teids();
 
   /**
+   * @brief apply RuleSetToApply, which is a set of all rules that should be
+   * active for the session
    *
    * @param rule_set
    * @param subscriber_wide_rule_set
-   * @param to_activate
-   * @param to_deactivate
+   * @param to_activate all rules that should be activated now
+   * @param to_deactivate all rules that should be deactivated now
+   * @param to_get_bearer all rules that need dedicated bearer creation before
+   * activating
    */
   void apply_session_rule_set(
       const RuleSetToApply& rule_set, RulesToProcess* to_activate,
-      RulesToProcess* to_deactivate, SessionStateUpdateCriteria& uc);
+      RulesToProcess* to_deactivate, RulesToProcess* to_get_bearer,
+      SessionStateUpdateCriteria& uc);
 
   /**
    * Add the association of policy -> bearerID into bearer_id_by_policy_
@@ -587,6 +600,30 @@ class SessionState {
   bool is_dynamic_rule_scheduled(const std::string& rule_id);
 
   /**
+   * @brief For rules mentioned in both static_rule_installs and
+   * dynamic_rule_installs, classify them into the three RulesToProcess vectors.
+   * to_activate, to_deactivate, to_get_bearer will not intersect in the set of
+   * rules they contain to_schedule may contain some deactivation scheduling for
+   * rules mentioned in the above three sets
+   * @param static_rule_installs
+   * @param dynamic_rule_installs
+   * @param to_activate contains rules that need to be activated now
+   * @param to_deactivate contains rules that need to be deactivated now
+   * @param to_get_bearer contains rules that need to get dedicated bearers
+   * before they can be activated. The rules will be activated once MME sends a
+   * BindPolicy2Bearer with the dedicated bearer Teids.
+   * @param to_schedule contains rules that need to be scheduled to be
+   * activated/deactivated
+   * @param session_uc
+   */
+  void process_rules_to_install(
+      const std::vector<StaticRuleInstall>& static_rule_installs,
+      const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+      RulesToProcess* to_get_bearer, RulesToSchedule* to_schedule,
+      SessionStateUpdateCriteria* session_uc);
+
+  /**
    * @brief Go through static rule install instructions and return
    * what needs to be propagated to PipelineD
    *
@@ -594,13 +631,15 @@ class SessionState {
    * PCF/PCRF/PolicyDB
    * @param to_activate output parameter
    * @param to_deactivate output parameter
-   * @param rules_to_schedule output parameter
+   * @param to_get_bearer output parameter all policies that need dedicated
+   * bearer to be created
+   * @param to_schedule output parameter
    * @param session_uc
    */
   void process_static_rule_installs(
       const std::vector<StaticRuleInstall>& rule_installs,
       RulesToProcess* to_activate, RulesToProcess* to_deactivate,
-      RulesToSchedule* rules_to_schedule,
+      RulesToProcess* to_get_bearer, RulesToSchedule* to_schedule,
       SessionStateUpdateCriteria* session_uc);
 
   /**
@@ -611,14 +650,36 @@ class SessionState {
    * PCF/PCRF/PolicyDB
    * @param to_activate output parameter
    * @param to_deactivate output parameter
-   * @param rules_to_schedule output parameter
+   * @param to_get_bearer output parameter all policies that need dedicated
+   * bearer to be created
+   * @param to_schedule output parameter
    * @param session_uc
    */
   void process_dynamic_rule_installs(
       const std::vector<DynamicRuleInstall>& rule_installs,
       RulesToProcess* to_activate, RulesToProcess* to_deactivate,
-      RulesToSchedule* rules_to_schedule,
+      RulesToProcess* to_get_bearer, RulesToSchedule* to_schedule,
       SessionStateUpdateCriteria* session_uc);
+
+  /**
+   * @brief Process the list of rule names given and fill in to_deactivate
+   * by determining whether each one is dynamic or static. Modifies session
+   * state.
+   * @param rules_to_remove
+   * @param to_deactivate
+   * @param session_uc
+   */
+  void process_rules_to_remove(
+      const google::protobuf::RepeatedPtrField<std::basic_string<char>>
+          rules_to_remove,
+      RulesToProcess* to_deactivate, SessionStateUpdateCriteria* session_uc);
+
+  /**
+   * @brief fill out and return a RuleToProcess
+   * @param rule
+   * @return RuleToProcess
+   */
+  RuleToProcess make_rule_to_process(const PolicyRule& rule);
 
   /**
    * Clear all per-session metrics
@@ -810,13 +871,13 @@ class SessionState {
   void apply_session_static_rule_set(
       const std::unordered_set<std::string> static_rules,
       RulesToProcess* to_activate, RulesToProcess* to_deactivate,
-      SessionStateUpdateCriteria& uc);
+      RulesToProcess* to_get_bearer, SessionStateUpdateCriteria& uc);
 
   /** apply dynamic_rules which is the desired state for the session's rules **/
   void apply_session_dynamic_rule_set(
       const std::unordered_map<std::string, PolicyRule> dynamic_rules,
       RulesToProcess* to_activate, RulesToProcess* to_deactivate,
-      SessionStateUpdateCriteria& uc);
+      RulesToProcess* to_get_bearer, SessionStateUpdateCriteria& uc);
 
   /**
    * Check if a new bearer has to be created for the given policy. If a creation
@@ -874,7 +935,9 @@ class SessionState {
   void increment_rule_stats(
       const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
 
-  RuleToProcess make_rule_to_process(const PolicyRule& rule);
+  void classify_policy_activation(
+      const RuleToProcess& to_process, const PolicyType p_type,
+      RulesToProcess* to_activate, RulesToProcess* to_get_bearer);
 };
 
 }  // namespace magma

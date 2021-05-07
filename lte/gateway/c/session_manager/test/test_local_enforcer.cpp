@@ -95,16 +95,13 @@ class LocalEnforcerTest : public ::testing::Test {
   void insert_static_rule(
       uint32_t rating_group, const std::string& m_key,
       const std::string& rule_id) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, m_key, rating_group, &rule);
-    rule_store->insert_rule(rule);
+    rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
   void insert_static_rule_with_qos(
       uint32_t rating_group, const std::string& m_key,
       const std::string& rule_id, const int qci) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, m_key, rating_group, &rule);
+    PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     rule.mutable_qos()->set_qci(static_cast<magma::lte::FlowQos_Qci>(qci));
     rule_store->insert_rule(rule);
   }
@@ -163,6 +160,16 @@ class LocalEnforcerTest : public ::testing::Test {
         }
       }
     }
+  }
+
+  RuleToProcess make_rule_to_process(
+      const std::string rule_id, const uint32_t agw_teid,
+      const uint32_t enb_teid) {
+    RuleToProcess to_process;
+    to_process.rule.set_id(rule_id);
+    to_process.teids.set_enb_teid(enb_teid);
+    to_process.teids.set_agw_teid(agw_teid);
+    return to_process;
   }
 
  protected:
@@ -1983,6 +1990,27 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   response.mutable_static_rules()->Add()->set_rule_id("rule3");
   response.mutable_static_rules()->Add()->set_rule_id("rule4");
 
+  // We only expect non-QoS policies to be installed immediately
+  RuleToProcess expected_rule4 =
+      make_rule_to_process("rule4", teids1.agw_teid(), teids1.enb_teid());
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, IP1, testing::_, CheckTeids(test_cfg_.common_context.teids()),
+          test_cfg_.common_context.msisdn(), testing::_,
+          CheckRulesToProcess(RulesToProcess{expected_rule4}), testing::_))
+      .Times(1);
+
+  std::unordered_set<std::string> no_install_ids({"rule1", "rule2", "rule3"});
+  // Expect NO call to PipelineD for rule1,rule2,rule3 since they need bearer
+  // activation
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, IP1, testing::_, CheckTeids(test_cfg_.common_context.teids()),
+          test_cfg_.common_context.msisdn(), testing::_,
+          CheckSubset(no_install_ids), testing::_))
+      .Times(0);
   // expect only 1 rule in the request since only rules with a QoS field
   // should be mapped to a bearer
   EXPECT_CALL(
@@ -2004,6 +2032,7 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   auto update = SessionStore::get_default_session_update(session_map);
   // Progress the loop to run the scheduled bearer creation request
   evb->loopOnce();
+
   // Test successful creation of dedicated bearer for rule1 + rule2
   PolicyBearerBindingRequest bearer_bind_req_success1 =
       create_policy_bearer_bind_req(
@@ -2018,14 +2047,46 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
                              IMSI1, testing::_, testing::_, testing::_,
                              CheckSubset(rule_ids), testing::_))
       .Times(0);
+  // All the policies that now have dedicated bearers can be activated now with
+  // dedicated teids
+  RuleToProcess expected_rule1 = make_rule_to_process("rule1", 1, 2);
+  RuleToProcess expected_rule2 = make_rule_to_process("rule2", 3, 4);
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, IP1, testing::_, CheckTeids(test_cfg_.common_context.teids()),
+          test_cfg_.common_context.msisdn(), testing::_,
+          CheckRulesToProcess(RulesToProcess{expected_rule1}), testing::_))
+      .Times(1);
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, IP1, testing::_, CheckTeids(test_cfg_.common_context.teids()),
+          test_cfg_.common_context.msisdn(), testing::_,
+          CheckRulesToProcess(RulesToProcess{expected_rule2}), testing::_))
+      .Times(1);
+
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_success1, update);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_success2, update);
 
+  std::vector<Teids> existing_teids = session_map[IMSI1][0]->get_active_teids();
+  EXPECT_EQ(3, existing_teids.size());  // default bearer + 2 dedicated bearers
+
   // Test unsuccessful creation of dedicated bearer for rule3 (bearer_id = 0)
   PolicyBearerBindingRequest bearer_bind_req_fail =
       create_policy_bearer_bind_req(IMSI1, default_bearer_id, "rule3", 0, 0, 0);
+  // Since the dedicated bearer binding failed for rule3, we expect deactivate
+  // request but not activate request
+  no_install_ids = std::unordered_set<std::string>{"rule3"};
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, IP1, testing::_, CheckTeids(test_cfg_.common_context.teids()),
+          test_cfg_.common_context.msisdn(), testing::_,
+          CheckSubset(no_install_ids), testing::_))
+      .Times(0);
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules(
                              IMSI1, testing::_, testing::_, testing::_,
@@ -2113,9 +2174,8 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
   insert_static_rule_with_qos(0, "m1", "static1", 2);
   insert_static_rule(0, "m1", "static2");
   insert_static_rule_with_qos(0, "m1", "static3", 3);
-  PolicyRule dynamic_1, dynamic_2;
-  create_policy_rule("dynamic1", "m1", 0, &dynamic_1);
-  create_policy_rule("dynamic2", "m1", 0, &dynamic_2);
+  PolicyRule dynamic_1 = create_policy_rule("dynamic1", "m1", 0);
+  PolicyRule dynamic_2 = create_policy_rule("dynamic2", "m1", 0);
 
   // Create a session with static1/static2/dynamic1
   CreateSessionResponse response;
@@ -2150,8 +2210,14 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
   // apn2 -> static2
   // subscriber_wide -> dynamic2
   // This should lead to the following actions:
-  // apn1 -> (add static3,dynamic_2 + remove static2,dynamic_1)
-  // apn2 -> (add dynamic_2 + remove static2,dynamic_1)
+  // apn1 ->
+  //          add          : dynamic_2
+  //          remove       : static2, dynamic1
+  //          create bearer: static3
+  // apn2 ->
+  //          add          : dynamic_2
+  //          remove       : static2, dynamic1
+  //          create bearer:
   SessionRules session_rules;
   auto rule_set_per_sub = session_rules.mutable_rules_per_subscriber()->Add();
   rule_set_per_sub->set_imsi(IMSI1);
@@ -2167,16 +2233,16 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
       *pipelined_client,
       activate_flows_for_rules(
           IMSI1, IP1, testing::_, CheckTeids(config1.common_context.teids()),
-          config1.common_context.msisdn(), testing::_, CheckRuleCount(2),
-          testing::_))
+          config1.common_context.msisdn(), testing::_,
+          CheckRuleNames(std::vector<std::string>{"dynamic2"}), testing::_))
       .Times(1);
   // PipelineD expectations for Session2
   EXPECT_CALL(
       *pipelined_client,
       activate_flows_for_rules(
           IMSI1, IP2, testing::_, CheckTeids(config2.common_context.teids()),
-          config2.common_context.msisdn(), testing::_, CheckRuleCount(1),
-          testing::_))
+          config2.common_context.msisdn(), testing::_,
+          CheckRuleNames(std::vector<std::string>{"dynamic2"}), testing::_))
       .Times(1);
   // For both Session1 + Session2
   std::unordered_set<std::string> deactivate_ids = {"dynamic1", "static2"};

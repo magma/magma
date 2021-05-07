@@ -385,26 +385,29 @@ class LocalEnforcer {
       UpdateChargingCreditActions& actions, SessionUpdate& session_update);
 
   /**
-   * Process the list of rule names given and fill in to_deactivate by
-   * determining whether each one is dynamic or static. Modifies session state.
-   * TODO separate out logic that modifies state vs logic that does not.
-   */
-  void process_rules_to_remove(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      const google::protobuf::RepeatedPtrField<std::basic_string<char>>
-          rules_to_remove,
-      RulesToProcess* to_deactivate, SessionStateUpdateCriteria* uc);
-
-  /**
-   * Process protobuf StaticRuleInstalls and DynamicRuleInstalls to fill in
-   * to_activate and to_deactivate. Modifies session state.
-   * TODO separate out logic that modifies state vs logic that does not.
+   * @brief For rules mentioned in both static_rule_installs and
+   * dynamic_rule_installs, classify them into the three RulesToProcess vectors.
+   * to_activate, to_deactivate, to_get_bearer will not intersect in the set of
+   * rules they contain to_schedule may contain some deactivation scheduling for
+   * rules mentioned in the above three sets
+   * @param session
+   * @param static_rule_installs
+   * @param dynamic_rule_installs
+   * @param to_activate contains rules that need to be activated now
+   * @param to_deactivate contains rules that need to be deactivated now
+   * @param to_get_bearer contains rules that need to get dedicated bearers
+   * before they can be activated. The rules will be activated once MME sends a
+   * BindPolicy2Bearer with the dedicated bearer Teids.
+   * @param to_schedule contains rules that need to be scheduled to be
+   * activated/deactivated
+   * @param session_uc
    */
   void process_rules_to_install(
-      SessionState& session, const std::string& imsi,
+      SessionState& session,
       const std::vector<StaticRuleInstall>& static_rule_installs,
       const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
       RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+      RulesToProcess* to_get_bearer, RulesToSchedule* to_schedule,
       SessionStateUpdateCriteria* session_uc);
 
   /**
@@ -419,6 +422,18 @@ class LocalEnforcer {
   void propagate_rule_updates_to_pipelined(
       const SessionConfig& config, const RulesToProcess& to_activate,
       const RulesToProcess& to_deactivate, bool always_send_activate);
+
+  /**
+   * @brief for each element in RulesToSchedule, schedule rule
+   * activation/deactivation on the event loop
+   *
+   * @param imsi
+   * @param session_id
+   * @param to_schedules
+   */
+  void handle_rule_scheduling(
+      const std::string& imsi, const std::string& session_id,
+      const RulesToSchedule& to_schedules);
 
   /**
    * For the matching session ID, activate and/or deactivate the specified
@@ -645,8 +660,18 @@ class LocalEnforcer {
    * @param uc
    */
   void remove_rule_due_to_bearer_creation_failure(
-      const std::string& imsi, SessionState& session,
-      const std::string& rule_id, SessionStateUpdateCriteria& uc);
+      SessionState& session, const std::string& rule_id,
+      SessionStateUpdateCriteria& uc);
+
+  /**
+   * @brief Activate the rule after successfully binding it to a dedicated
+   * bearer
+   *
+   * @param session
+   * @param request
+   */
+  void install_rule_after_bearer_creation(
+      SessionState& session, const PolicyBearerBindingRequest& request);
 
   static std::unique_ptr<Timezone> compute_access_timezone();
 

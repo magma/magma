@@ -29,22 +29,27 @@ namespace magma {
 class SessionStateTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
-    SessionConfig test_sstate_cfg;
     auto tgpp_ctx       = TgppContext();
     auto pdp_start_time = 12345;
     create_tgpp_context("gx.dest.com", "gy.dest.com", &tgpp_ctx);
     rule_store    = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
-        "imsi", "session", test_sstate_cfg, *rule_store, tgpp_ctx,
-        pdp_start_time, CreateSessionResponse{});
+        IMSI1, SESSION_ID_1, cfg, *rule_store, tgpp_ctx, pdp_start_time,
+        CreateSessionResponse{});
     update_criteria = get_default_update_criteria();
   }
 
   void insert_static_rule_into_store(
       uint32_t rating_group, const std::string& m_key,
       const std::string& rule_id) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, m_key, rating_group, &rule);
+    rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
+  }
+
+  void insert_static_rule_with_qos_into_store(
+      uint32_t rating_group, const std::string& m_key, const int qci,
+      const std::string& rule_id) {
+    PolicyRule rule =
+        create_policy_rule_with_qos(rule_id, m_key, rating_group, qci);
     rule_store->insert_rule(rule);
   }
 
@@ -52,8 +57,7 @@ class SessionStateTest : public ::testing::Test {
       uint32_t rating_group, const std::string& m_key,
       const std::string& rule_id, PolicyType rule_type,
       std::time_t activation_time, std::time_t deactivation_time) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, m_key, rating_group, &rule);
+    PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
       case STATIC:
@@ -76,8 +80,7 @@ class SessionStateTest : public ::testing::Test {
       uint32_t rating_group, const std::string& m_key,
       const std::string& rule_id, PolicyType rule_type,
       std::time_t activation_time, std::time_t deactivation_time) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, m_key, rating_group, &rule);
+    PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
       case STATIC:
@@ -90,6 +93,20 @@ class SessionStateTest : public ::testing::Test {
         session_state->schedule_dynamic_rule(rule, lifetime, update_criteria);
         break;
     }
+  }
+
+  void initialize_session_with_qos() {
+    SessionConfig cfg;
+    Teids teids;
+    cfg.common_context =
+        build_common_context(IMSI1, IP1, IPv6_1, teids, APN1, MSISDN, TGPP_LTE);
+    QosInformationRequest qos_info;
+    qos_info.set_apn_ambr_dl(32);
+    qos_info.set_apn_ambr_dl(64);
+    const auto& lte_context =
+        build_lte_context(IP2, "", "", "", "", BEARER_ID_1, &qos_info);
+    cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
+    session_state->set_config(cfg);
   }
 
   // TODO: make session_manager.proto and policydb.proto to use common field
@@ -169,8 +186,7 @@ class SessionStateTest : public ::testing::Test {
       uint32_t rating_group, const std::string& m_key,
       const std::string& rule_id, PolicyType rule_type,
       std::time_t activation_time, std::time_t deactivation_time) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, m_key, rating_group, &rule);
+    PolicyRule rule = create_policy_rule(rule_id, m_key, rating_group);
     RuleLifetime lifetime(activation_time, deactivation_time);
     switch (rule_type) {
       case STATIC:
@@ -194,5 +210,6 @@ class SessionStateTest : public ::testing::Test {
   std::shared_ptr<StaticRuleStore> rule_store;
   std::shared_ptr<SessionState> session_state;
   SessionStateUpdateCriteria update_criteria;
+  SessionConfig cfg;
 };
 };  // namespace magma
