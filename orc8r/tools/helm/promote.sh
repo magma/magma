@@ -61,7 +61,7 @@ HELM_CHART_ARTIFACTORY_URL="$(echo "$HELM_CHART_ARTIFACTORY_URL" | sed 's:/$::')
 # Verify existence of the helm repo
 RESPONSE_CODE_REPO="$(curl --output /dev/null --stderr /dev/null --silent --write-out "%{http_code}"  "$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_ORIGIN_REPO/" || :)"
 if [ "$RESPONSE_CODE_REPO" != "200" ]; then
-  exitmsg "There was an error connecting to the artifactory repository $HELM_CHART_MUSEUM_ORIGIN_REPO"
+  exitmsg "There was an error connecting to the artifactory repository $HELM_CHART_MUSEUM_ORIGIN_REPO, the http error code was $RESPONSE_CODE_REPO"
 fi
 
 # Form API URL
@@ -76,7 +76,7 @@ do
     elif [ "$RESPONSE_CODE_ARTIFACT" == "404" ]; then
       exitmsg "The artifact $artifact was not found in repository $HELM_CHART_MUSEUM_ORIGIN_REPO"
     else
-      exitmsg "There was an error retrieving $artifact from repository $HELM_CHART_MUSEUM_ORIGIN_REPO"
+      exitmsg "There was an error retrieving $artifact from repository $HELM_CHART_MUSEUM_ORIGIN_REPO, the http error code was $RESPONSE_CODE_ARTIFACT"
     fi
 done
 
