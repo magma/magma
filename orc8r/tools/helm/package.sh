@@ -30,14 +30,12 @@ update_and_send_to_artifactory () {
   MD5_CHECKSUM="$(md5sum "$ARTIFACT_PATH" | awk '{print $1}')"
   SHA1_CHECKSUM="$(shasum -a 1 "$ARTIFACT_PATH" | awk '{ print $1 }')"
   SHA256_CHECKSUM="$(shasum -a 256 "$ARTIFACT_PATH" | awk '{ print $1 }')"
-  curl -u "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" --fail \
+  curl --user "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" --fail \
               --header "X-Checksum-MD5:${MD5_CHECKSUM}" \
               --header "X-Checksum-Sha1:${SHA1_CHECKSUM}" \
               --header "X-Checksum-Sha256:${SHA256_CHECKSUM}" \
-               -T "$ARTIFACT_PATH" "$HELM_CHART_MUSEUM_URL/$(basename "$ARTIFACT_PATH")"
-
+              --upload-file "$ARTIFACT_PATH" "$HELM_CHART_MUSEUM_URL/$(basename "$ARTIFACT_PATH")"
 } 
-
 
 usage() {
   echo "Usage: $0 -d DEPLOYMENT_TYPE"
@@ -92,7 +90,7 @@ if [[ -z $HELM_CHART_MUSEUM_URL ]]; then
   mkdir -p ~/magma-charts && cd ~/magma-charts
   git init
 
-  # Begin packaging necessary helm charts
+  # Begin packaging necessary Helm charts
   helm dependency update "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/"
   helm package "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/" && helm repo index .
 
@@ -136,7 +134,7 @@ if [[ -z $HELM_CHART_MUSEUM_URL ]]; then
         "https://raw.githubusercontent.com/$GITHUB_USERNAME/$GITHUB_REPO/master/"
   helm repo update
 
-  # The helm command returns 0 even when no results are found. Search for err str
+  # The Helm command returns 0 even when no results are found. Search for err str
   # instead
   HELM_SEARCH_RESULTS="$(helm search repo "$GITHUB_REPO")" # should list the uploaded charts
   if [ "$HELM_SEARCH_RESULTS" == "No results found" ]; then
@@ -156,7 +154,7 @@ else
     exitmsg "Environment variable MAGMA_ROOT must be set"
   fi
 
-  # Begin packaging necessary helm charts
+  # Begin packaging necessary Helm charts
   update_and_send_to_artifactory "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/"
 
   if [ "$DEPLOYMENT_TYPE" == "$FWA" ]; then
@@ -165,19 +163,14 @@ else
 
   if [ "$DEPLOYMENT_TYPE" == "$FFWA" ]; then
     update_and_send_to_artifactory "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
-
     update_and_send_to_artifactory "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
   fi
 
   if  [ "$DEPLOYMENT_TYPE" == "$ALL" ]; then
     update_and_send_to_artifactory "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/"
-
     update_and_send_to_artifactory "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
-    
     update_and_send_to_artifactory "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
-
-    update_and_send_to_artifactory "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"
-    
+    update_and_send_to_artifactory "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"  
     update_and_send_to_artifactory "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"
   fi
 
@@ -185,17 +178,17 @@ else
   INDEX_MD5_CHECKSUM="$(md5sum "$MAGMA_ROOT/index.yaml" | awk '{print $1}')"
   INDEX_SHA1_CHECKSUM="$(shasum -a 1 "$MAGMA_ROOT/index.yaml" | awk '{ print $1 }')"
   INDEX_SHA256_CHECKSUM="$(shasum -a 256 "$MAGMA_ROOT/index.yaml" | awk '{ print $1 }')"
-  curl -u "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" \
+  curl --user "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" \
               --header "X-Checksum-MD5:${INDEX_MD5_CHECKSUM}" \
               --header "X-Checksum-Sha1:${INDEX_SHA1_CHECKSUM}" \
               --header "X-Checksum-Sha256:${INDEX_SHA256_CHECKSUM}" \
-              -T "$MAGMA_ROOT/index.yaml" "$HELM_CHART_MUSEUM_URL/index.yaml"
+              --upload-file "$MAGMA_ROOT/index.yaml" "$HELM_CHART_MUSEUM_URL/index.yaml"
 
   # Ensure push was successful
   helm repo add "$(basename "$HELM_CHART_MUSEUM_URL")" "$HELM_CHART_MUSEUM_URL" --username "$HELM_CHART_MUSEUM_USERNAME" --password "$HELM_CHART_MUSEUM_TOKEN" 
   helm repo update
 
-  # The helm command returns 0 even when no results are found. Search for err str
+  # The Helm command returns 0 even when no results are found. Search for err str
   # instead
   HELM_SEARCH_RESULTS="$(helm search repo "$(basename "$HELM_CHART_MUSEUM_URL")")" # should list the uploaded charts
   if [ "$HELM_SEARCH_RESULTS" == "No results found" ]; then

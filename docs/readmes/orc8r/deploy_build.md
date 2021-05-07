@@ -79,7 +79,7 @@ COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_T
 ```
 
 ## Build and publish Helm charts
-
+*Only Choose one option below*
 ### First option: Publish to artifactory
 
 We'll build the Orchestrator Helm charts, as well as publish them to an artifactory.
@@ -97,7 +97,7 @@ necessary helm charts to the artifactory. The script expects a deployment
 type to be provided, which will determine which orc8r modules are deployed.
 
 
-### Second option: Publish to a private github repo
+### Second option: Publish to a private Github repo
 
 We'll build the Orchestrator Helm charts, as well as publish them to a
 [GitHub repo acting as a Helm chart repo](https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7).
@@ -115,7 +115,7 @@ export GITHUB_ACCESS_TOKEN=GITHUB_ACCESS_TOKEN
 ```
 
 Next we'll run the package script. This script will package and publish the
-necessary helm charts to the `GITHUB_REPO`. The script expects a deployment
+necessary Helm charts to the `GITHUB_REPO`. The script expects a deployment
 type to be provided, which will determine which orc8r modules are deployed.
 
 
