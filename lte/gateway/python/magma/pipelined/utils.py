@@ -11,11 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+
 from magma.pipelined.openflow import flows
 from ryu import cfg
 from ryu.lib.ovs import bridge
 
+
 class Utils:
+    # Packet drop priority
     DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
     # For allowing unlcassified flows for app/service type rules.
     UNCLASSIFIED_ALLOW_PRIORITY = DROP_PRIORITY + 1
@@ -24,6 +27,14 @@ class Utils:
     MAX_PROGRAMMED_PRIORITY = flows.MAXIMUM_PRIORITY
     # Effectively range is 3 -> 65535
     APP_PRIORITY_RANGE = MAX_PROGRAMMED_PRIORITY - MIN_PROGRAMMED_PRIORITY
+
+    # Resume tunnel flows
+    RESUME_RULE_PRIORITY = flows.DEFAULT_PRIORITY + 1
+    # Discard tunnel flows
+    DISCARD_RULE_PRIORITY = RESUME_RULE_PRIORITY
+    # Paging tunnel flows
+    PAGING_RULE_PRIORITY = 5
+    PAGING_RULE_DROP_PRIORITY = PAGING_RULE_PRIORITY + 1
 
     OVSDB_PORT = 6640  # The IANA registered port for OVSDB [RFC7047]
     CONF = cfg.CONF

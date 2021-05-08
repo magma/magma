@@ -79,6 +79,9 @@ This section lists some of the commonly asked questions related to Magma operati
   - Restart the mme service with `sudo service magma@mme restart`.
   - **NOTE** Expect impact of service while doing above procedure.
 
+### What's the command to flush the redis state?
+  - The command in AGW`redis-cli -p 6380 FLUSHALL` will flush the redis state
+
 ### Where can I get more information about services running in Magma?
   - https://github.com/magma/magma/tree/master/docs/readmes/lte
 

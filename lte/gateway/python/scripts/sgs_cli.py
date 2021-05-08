@@ -14,12 +14,16 @@ limitations under the License.
 """
 
 import argparse
-import grpc
 
-from magma.common.rpc_utils import cloud_grpc_wrapper
-from feg.protos.csfb_pb2 import AlertAck, AlertReject, EPSDetachIndication, \
-    IMSIDetachIndication
+import grpc
+from feg.protos.csfb_pb2 import (
+    AlertAck,
+    AlertReject,
+    EPSDetachIndication,
+    IMSIDetachIndication,
+)
 from feg.protos.csfb_pb2_grpc import CSFBFedGWServiceStub
+from magma.common.rpc_utils import cloud_grpc_wrapper
 
 
 @cloud_grpc_wrapper

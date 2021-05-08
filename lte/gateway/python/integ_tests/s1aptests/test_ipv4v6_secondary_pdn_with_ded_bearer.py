@@ -173,7 +173,11 @@ class TestIPv4v6SecondaryPdnWithDedBearer(unittest.TestCase):
         print(
             "********************** Added default bearer for apn-%s,"
             " bearer id-%d, pdn type-%d"
-            % (apn, act_def_bearer_req.m.pdnInfo.epsBearerId, pdn_type,)
+            % (
+                apn,
+                act_def_bearer_req.m.pdnInfo.epsBearerId,
+                pdn_type,
+            )
         )
 
         # Receive Router Advertisement message
@@ -202,7 +206,7 @@ class TestIPv4v6SecondaryPdnWithDedBearer(unittest.TestCase):
             "********************** Sending RAR for IMSI",
             "".join([str(i) for i in req.imsi]),
         )
-        self._sessionManager_util.create_ReAuthRequest(
+        self._sessionManager_util.send_ReAuthRequest(
             "IMSI" + "".join([str(i) for i in req.imsi]),
             policy_id,
             flow_list,

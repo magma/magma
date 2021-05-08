@@ -43,6 +43,12 @@ variable "orc8r_route53_zone_id" {
   type        = string
 }
 
+variable "external_dns_deployment_name" {
+  description = "Name of the external dns helm deployment"
+  type        = string
+  default     = "external-dns"
+}
+
 variable "external_dns_role_arn" {
   description = "IAM role ARN for ExternalDNS."
   type        = string
@@ -161,7 +167,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.19"
+  default     = "1.5.21"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -179,13 +185,13 @@ variable "fbinternal_orc8r_chart_version" {
 variable "feg_orc8r_chart_version" {
   description = "Version of the orchestrator feg module Helm chart to install."
   type        = string
-  default     = "0.2.2"
+  default     = "0.2.3"
 }
 
 variable "lte_orc8r_chart_version" {
   description = "Version of the orchestrator lte module Helm chart to install."
   type        = string
-  default     = "0.2.2"
+  default     = "0.2.4"
 }
 
 variable "wifi_orc8r_chart_version" {
@@ -212,6 +218,18 @@ variable "efs_file_system_id" {
 variable "efs_provisioner_role_arn" {
   description = "ARN of the IAM role for the EFS provisioner."
   type        = string
+}
+
+variable "efs_provisioner_name" {
+  description = "Name of the efs provisioner helm deployment"
+  type        = string
+  default     = "efs-provisioner"
+}
+
+variable "efs_storage_class_name" {
+  description = "Name of the Storage class"
+  type        = string
+  default     = "efs"
 }
 
 ##############################################################################
@@ -246,6 +264,18 @@ variable "elasticsearch_curator_log_level" {
   description = "Defines Elasticsearch curator logging level."
   type        = string
   default     = "INFO"
+}
+
+variable "elasticsearch_curator_name" {
+  description = "Name of the elasticsearch-curator helm deployment"
+  type        = string
+  default     = "elasticsearch-curator"
+}
+
+variable "fluentd_deployment_name" {
+  description = "Name of the fluentd helm deployment"
+  type        = string
+  default     = "fluentd"
 }
 
 ##############################################################################

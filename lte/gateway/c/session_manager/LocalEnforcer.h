@@ -38,6 +38,27 @@ using std::experimental::optional;
 
 typedef std::pair<std::string, std::string> ImsiAndSessionID;
 
+struct RuleRecord_equal {
+  bool operator()(const RuleRecord& l, const RuleRecord& r) const {
+    // TODO replace IP comparison to tunnelID comparison
+    // return l.sid() == r.sid() && l.teid();
+    return l.sid() == r.sid() && l.ue_ipv4() == r.ue_ipv4() &&
+           l.ue_ipv6() == r.ue_ipv6();
+  }
+};
+struct RuleRecord_hash {
+  std::size_t operator()(const RuleRecord& el) const {
+    size_t h1 = std::hash<std::string>()(el.sid());
+    // TODO replace IP hash to tunnelID hash
+    // size_t h2 = std::hash<uint32_t>()(el.teid());
+    size_t h2 = std::hash<std::string>()(el.ue_ipv4());
+    size_t h3 = std::hash<std::string>()(el.ue_ipv6());
+    return h1 ^ h2 ^ h3;
+  }
+};
+typedef std::unordered_set<RuleRecord, RuleRecord_hash, RuleRecord_equal>
+    RuleRecordSet;
+
 struct ImsiSessionIDAndCreditkey {
   std::string imsi;
   std::string session_id;
@@ -160,7 +181,7 @@ class LocalEnforcer {
    * CreateSessionResponse.
    */
   void handle_session_activate_rule_updates(
-      const std::string& imsi, SessionState& session_state,
+      const std::string& imsi, SessionState& session,
       const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
 
@@ -291,6 +312,10 @@ class LocalEnforcer {
   // If this is set to true, we will send the timezone along with
   // CreateSessionRequest
   static bool SEND_ACCESS_TIMEZONE;
+  // If true, for any rule reported as part of ReportRuleStats,
+  // remove it if the rule's IMSI+TEIDs pair do no exist as
+  // a session
+  static bool CLEANUP_DANGLING_FLOWS;
 
  private:
   std::shared_ptr<SessionReporter> reporter_;
@@ -357,7 +382,7 @@ class LocalEnforcer {
       UpdateChargingCreditActions& actions, SessionUpdate& session_update);
 
   /**
-   * Process the list of rule names given and fill in rules_to_deactivate by
+   * Process the list of rule names given and fill in to_deactivate by
    * determining whether each one is dynamic or static. Modifies session state.
    * TODO separate out logic that modifies state vs logic that does not.
    */
@@ -365,34 +390,32 @@ class LocalEnforcer {
       const std::string& imsi, const std::unique_ptr<SessionState>& session,
       const google::protobuf::RepeatedPtrField<std::basic_string<char>>
           rules_to_remove,
-      RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc);
+      RulesToProcess* to_deactivate, SessionStateUpdateCriteria* uc);
 
   /**
    * Process protobuf StaticRuleInstalls and DynamicRuleInstalls to fill in
-   * rules_to_activate and rules_to_deactivate. Modifies session state.
+   * to_activate and to_deactivate. Modifies session state.
    * TODO separate out logic that modifies state vs logic that does not.
    */
   void process_rules_to_install(
       SessionState& session, const std::string& imsi,
-      std::vector<StaticRuleInstall> static_rule_installs,
-      std::vector<DynamicRuleInstall> dynamic_rule_installs,
-      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
-      SessionStateUpdateCriteria& uc);
+      const std::vector<StaticRuleInstall>& static_rule_installs,
+      const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * propagate_rule_updates_to_pipelined calls the PipelineD RPC calls to
    * install/uninstall flows
-   * @param imsi
    * @param config
-   * @param rules_to_activate
-   * @param rules_to_deactivate
+   * @param to_activate
+   * @param to_deactivate
    * @param always_send_activate : if this is set activate call will be sent
-   * even if rules_to_activate is empty
+   * even if to_activate is empty
    */
   void propagate_rule_updates_to_pipelined(
-      const std::string& imsi, const SessionConfig& config,
-      const RulesToProcess& rules_to_activate,
-      const RulesToProcess& rules_to_deactivate, bool always_send_activate);
+      const SessionConfig& config, const RulesToProcess& to_activate,
+      const RulesToProcess& to_deactivate, bool always_send_activate);
 
   /**
    * For the matching session ID, activate and/or deactivate the specified
@@ -461,7 +484,7 @@ class LocalEnforcer {
   void create_bearer(
       const std::unique_ptr<SessionState>& session,
       const PolicyReAuthRequest& request,
-      const std::vector<PolicyRule>& dynamic_rules);
+      const std::vector<RuleToProcess>& dynamic_rules);
 
   /**
    * Check if REVALIDATION_TIMEOUT is one of the event triggers
@@ -602,9 +625,9 @@ class LocalEnforcer {
    * the session to be terminated in a configured amount of time.
    */
   void handle_session_activate_subscriber_quota_state(
-      const std::string& imsi, SessionState& session_state);
+      const std::string& imsi, SessionState& session);
 
-  bool is_wallet_exhausted(SessionState& session_state);
+  bool is_wallet_exhausted(SessionState& session);
 
   bool terminate_on_wallet_exhaust();
 
@@ -631,6 +654,15 @@ class LocalEnforcer {
   void add_rules_for_unsuspended_credit(
       const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
       SessionStateUpdateCriteria& session_uc);
+
+  /**
+   * Given a set of IMSI+IPs that are no longer tracked in SessionD, send a
+   * deactivate flows request to PipelineD for all flows associated with those
+   * IDs. The function sends the request for all types (ANY), because the set
+   * does not specify the origin type (Gx/Gy/N4).
+   * @param dead_sessions_to_cleanup
+   */
+  void cleanup_dead_sessions(const RuleRecordSet dead_sessions_to_cleanup);
 };
 
 }  // namespace magma

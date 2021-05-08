@@ -68,9 +68,9 @@
 
 #define BUFFER_PRINT_LOG(bUFFER, lEN)                                          \
   {                                                                            \
-    uint32_t iLEN = 0;                                                         \
+    int iLEN = 0;                                                              \
     if (bUFFER != NULL) {                                                      \
-      while (iLEN < lEN) {                                                     \
+      while (iLEN < ((int) lEN)) {                                             \
         MLOG(MDEBUG) << " 0x" << std::hex << int(*(bUFFER + iLEN));            \
         iLEN++;                                                                \
       }                                                                        \

@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -10,15 +10,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/*****************************************************************************
-  Source      3gpp_38401.h
-  Date        2020/09/07
-  Subsystem   NG Application Protocol IEs
-  Description Defines NG Application Protocol Messages
-
-*****************************************************************************/
 
 #pragma once
+
 //------------------------------------------------------------------------------
 // 6.2 5G Identifiers
 //------------------------------------------------------------------------------

@@ -16,11 +16,8 @@ package mock_pgw
 import (
 	"context"
 	"fmt"
-	"net"
 	"sync"
 	"time"
-
-	"github.com/wmnsk/go-gtp/gtpv1"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
@@ -81,7 +78,6 @@ func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 		message.MsgTypeCreateSessionRequest:       mPgw.getHandleCreateSessionRequest(),
 		message.MsgTypeModifyAccessBearersRequest: mPgw.getHandleModifyBearerRequest(),
 		message.MsgTypeDeleteSessionRequest:       mPgw.getHandleDeleteSessionRequest(),
-		//message.MsgTypeEchoRequest: mPgw.getHandleEchoRequest(), // ONLY FOR DEBUGGING PURPOSES
 	})
 	return nil
 }
@@ -89,23 +85,17 @@ func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 func (mPgw *MockPgw) SetCreateSessionWithErrorCause(errorCause uint8) {
 	mPgw.AddHandler(
 		message.MsgTypeCreateSessionRequest,
-		mPgw.getHandleCreateSessionRequestWithDeniedService(errorCause))
+		mPgw.getHandleCreateSessionRequestWithErrorCause(errorCause))
 }
 
-func (mPgw *MockPgw) SetCreateSessionWithMissingIE() {
+func (mPgw *MockPgw) SetCreateSessionResponseWithMissingIE() {
 	mPgw.AddHandler(
 		message.MsgTypeCreateSessionRequest,
-		mPgw.getHandleCreateSessionRequestWithMissingIE())
+		mPgw.getHandleCreateSessionResponseWithMissingIE())
 }
 
-// ONLY FOR DEBUGGING PURPOSES
-// getHandleEchoResponse is the same method as the one found in Go-GTP gtpv1.handleEchoResponse
-func (mPgw *MockPgw) getHandleEchoRequest() gtpv2.HandlerFunc {
-	return func(c *gtpv2.Conn, sgwAddr net.Addr, msg message.Message) error {
-		if _, ok := msg.(*message.EchoRequest); !ok {
-			return gtpv1.ErrUnexpectedType
-		}
-		// respond with EchoResponse.
-		return c.RespondTo(sgwAddr, msg, message.NewEchoResponse(0, ie.NewRecovery(c.RestartCounter)))
-	}
+func (mPgw *MockPgw) SetCreateSessionRequestWithMissingIE(missingIE *ie.IE) {
+	mPgw.AddHandler(
+		message.MsgTypeCreateSessionRequest,
+		mPgw.getHandleCreateSessionRequestWithMissingIE(missingIE))
 }

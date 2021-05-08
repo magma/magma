@@ -164,10 +164,10 @@ func getConnectionToTestHSS(t *testing.T, clientHandler diam.HandlerFunc) (diam.
 
 	// Create a client to receive the server's messages.
 	clientMux := sm.New(&sm.Settings{
-		OriginHost:       datatype.DiameterIdentity("magma.com"),
-		OriginRealm:      datatype.DiameterIdentity("magma.com"),
+		OriginHost:       "magma.com",
+		OriginRealm:      "magma.com",
 		VendorID:         datatype.Unsigned32(diameter.Vendor3GPP),
-		ProductName:      datatype.UTF8String("magma"),
+		ProductName:      "magma",
 		OriginStateID:    datatype.Unsigned32(time.Now().Unix()),
 		FirmwareRevision: 1,
 	})

@@ -30,17 +30,18 @@ apt-get update
 apt-get install -y openssh-server gcc rsync dirmngr
 
 # Add the Etagecom magma repo
-bash -c 'echo -e "deb http://packages.magma.etagecom.io magma-custom main" > /etc/apt/sources.list.d/packages_magma_etagecom_io.list'
+bash -c 'echo -e "deb https://artifactory.magmacore.org/artifactory/debian-test stretch-1.5.0 main" > /etc/apt/sources.list.d/packages_magma_etagecom_io.list'
 
 # Create the preferences file for backports
 bash -c 'cat <<EOF > /etc/apt/preferences.d/magma-preferences
 Package: *
-Pin: origin packages.magma.etagecom.io
+Pin: origin artifactory.magmacore.org
 Pin-Priority: 900
 EOF'
 
 # Add the Etagecom key
-apt-key adv --fetch-keys http://packages.magma.etagecom.io/pubkey.gpg
+wget https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public -O /tmp/public
+apt-key add /tmp/public
 apt-get update
 
 # Disable daily auto updates, so that vagrant ansible scripts can

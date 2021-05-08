@@ -36,8 +36,8 @@ extern "C" {
 #define INITIAL_SGW_S8_S1U_TEID 0x7FFFFFFF
 void sgw_display_sgw_eps_bearer_context(
     const sgw_eps_bearer_ctxt_t* eps_bearer_ctxt);
-void sgw_display_s11teid2mme(mme_sgw_tunnel_t* mme_sgw_tunnel);
 void sgw_display_s11_bearer_context_information(
+    log_proto_t module,
     sgw_eps_bearer_context_information_t* sgw_context_information);
 void pgw_lite_cm_free_apn(pgw_apn_t** apnP);
 
@@ -45,10 +45,8 @@ void sgw_get_new_S11_tunnel_id(teid_t* tunnel_id);
 mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(
     teid_t remote_teid, teid_t local_teid);
 s_plus_p_gw_eps_bearer_context_information_t*
-sgw_cm_create_bearer_context_information_in_collection(
-    spgw_state_t* spgw_state, teid_t teid, imsi64_t imsi64);
-int sgw_cm_remove_bearer_context_information(
-    spgw_state_t* state, teid_t teid, imsi64_t imsi64);
+sgw_cm_create_bearer_context_information_in_collection(teid_t teid);
+int sgw_cm_remove_bearer_context_information(teid_t teid, imsi64_t imsi64);
 sgw_eps_bearer_ctxt_t* sgw_cm_create_eps_bearer_ctxt_in_collection(
     sgw_pdn_connection_t* const sgw_pdn_connection, const ebi_t eps_bearer_idP);
 sgw_eps_bearer_ctxt_t* sgw_cm_insert_eps_bearer_ctxt_in_collection(
@@ -61,11 +59,9 @@ int sgw_cm_remove_eps_bearer_entry(
 // Returns SPGW state pointer for given UE indexed by IMSI
 s_plus_p_gw_eps_bearer_context_information_t* sgw_cm_get_spgw_context(
     teid_t teid);
-spgw_ue_context_t* spgw_create_or_get_ue_context(
-    spgw_state_t* spgw_state, imsi64_t imsi64);
+spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64);
 
-int spgw_update_teid_in_ue_context(
-    spgw_state_t* spgw_state, imsi64_t imsi64, teid_t teid);
+int spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid);
 
 #ifdef __cplusplus
 }

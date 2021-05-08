@@ -12,24 +12,24 @@ limitations under the License.
 """
 
 import json
+import os
 from collections import namedtuple
 from typing import Any, Dict, List, NamedTuple, Optional, Tuple, Union
 
-import os
 from lte.protos.enodebd_pb2 import SingleEnodebStatus
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common import serialization_utils
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.device_config.configuration_util import \
-    get_enb_rf_tx_desired
+from magma.enodebd.device_config.configuration_util import (
+    find_enb_by_cell_id,
+    get_enb_rf_tx_desired,
+)
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger as logger
-from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
-from magma.enodebd.state_machines.enb_acs_manager import \
-    StateMachineManager
 from magma.enodebd.s1ap_client import get_all_enb_state
-from magma.enodebd.device_config.configuration_util import find_enb_by_cell_id
+from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
+from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from orc8r.protos.service303_pb2 import State
 
 # There are 2 levels of caching for GPS coordinates from the enodeB: module

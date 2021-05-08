@@ -14,25 +14,29 @@ limitations under the License.
 """
 import glob
 import ipaddress
-
 import math
 from os import path
 
 from lte.protos.enodebd_pb2_grpc import EnodebdStub
-from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from lte.protos.mobilityd_pb2 import IPAddress
-from orc8r.protos.common_pb2 import Void
+from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
-from magma.health.entities import AGWHealthSummary, RegistrationSuccessRate, \
-    CoreDumps
+from magma.health.entities import (
+    AGWHealthSummary,
+    CoreDumps,
+    RegistrationSuccessRate,
+)
+from orc8r.protos.common_pb2 import Void
 
 
 class AGWHealth:
 
     def get_allocated_ips(self):
-        chan = ServiceRegistry.get_rpc_channel('mobilityd',
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            'mobilityd',
+            ServiceRegistry.LOCAL,
+        )
         client = MobilityServiceStub(chan)
         res = []
 
@@ -51,8 +55,10 @@ class AGWHealth:
         return res
 
     def get_subscriber_table(self):
-        chan = ServiceRegistry.get_rpc_channel('mobilityd',
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            'mobilityd',
+            ServiceRegistry.LOCAL,
+        )
         client = MobilityServiceStub(chan)
 
         table = client.GetSubscriberIPTable(Void())
@@ -64,12 +70,15 @@ class AGWHealth:
 
         return RegistrationSuccessRate(
             attach_requests=log.count('Attach Request'),
-            attach_accepts=log.count('Attach Accept'))
+            attach_accepts=log.count('Attach Accept'),
+        )
 
-    def get_core_dumps(self,
-                       directory='/var/core',
-                       start_timestamp=0,
-                       end_timestamp=math.inf):
+    def get_core_dumps(
+        self,
+        directory='/var/core',
+        start_timestamp=0,
+        end_timestamp=math.inf,
+    ):
         res = []
         for filename in glob.glob(path.join(directory, 'core-*')):
             # core-1565125801-python3-8042_bundle
@@ -82,7 +91,9 @@ class AGWHealth:
         config = load_service_mconfig_as_json('mme')
 
         # eNB status for #eNBs connected
-        chan = ServiceRegistry.get_rpc_channel('enodebd', ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            'enodebd', ServiceRegistry.LOCAL,
+        )
         client = EnodebdStub(chan)
         status = client.GetStatus(Void())
 
@@ -94,7 +105,7 @@ class AGWHealth:
             subscriber_table=self.get_subscriber_table(),
             core_dumps=self.get_core_dumps(),
             registration_success_rate=self.get_registration_success_rate(
-                mme_log_path
+                mme_log_path,
             ),
         )
         return health_summary

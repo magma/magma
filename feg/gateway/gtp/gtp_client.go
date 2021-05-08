@@ -38,11 +38,12 @@ const (
 
 type Client struct {
 	*gtpv2.Conn
-	connType   uint8
-	GtpTimeout time.Duration
+	connType    uint8
+	GtpTimeout  time.Duration
+	echoChannel chan (error)
 }
 
-// NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incomming calls
+// NewRunningClient creates a GTP-C client. It also runs the GTP-C server waiting for incoming calls
 // localIpAndPort is in form ip:port  (127.0.0.1:1)
 // 	- In case localIpAndPort is empty it uses any IP and a random port
 // 	- In case ip is not provided ( :port, or 0.0.0.0:port) it uses any interface
@@ -76,6 +77,7 @@ func NewRunningClient(ctx context.Context, localIpAndPort string, connType uint8
 		return nil, err
 	}
 
+	c.AddDefaultHandlers()
 	// We need to disable GTP validation in order to support stateless operation
 	// Otherwise if we receive a message which doesnt have an actie session, the message
 	// will be discarded.
@@ -110,6 +112,7 @@ func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr,
 	if err != nil {
 		return nil, fmt.Errorf("could not connect to GTP-C %s server: %s", remoteAddr.String(), err)
 	}
+	c.AddDefaultHandlers()
 	c.DisableValidation()
 	return c, nil
 }
@@ -117,13 +120,15 @@ func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr,
 // NewClient creates basic configuration structure for a GTP-C client. It does
 // not starts any connection or server.
 func newClient(localAddr *net.UDPAddr, connType uint8, gtpTimeout time.Duration) *Client {
-	cli := &Client{
-		connType:   connType,
-		GtpTimeout: configOrDefaultTimeout(gtpTimeout),
+	c := &Client{
+		connType:    connType,
+		echoChannel: make(chan error),
+		GtpTimeout:  configOrDefaultTimeout(gtpTimeout),
 	}
-	return cli
+	return c
 }
 
+// TODO: remove ctx (just create it outside the go routine)
 // run starts the listener and launches the actual GTP-C routine
 func (c *Client) run(ctx context.Context, localAddr *net.UDPAddr) error {
 	c.Conn = gtpv2.NewConn(localAddr, c.connType, 0)
@@ -132,6 +137,7 @@ func (c *Client) run(ctx context.Context, localAddr *net.UDPAddr) error {
 	}
 	go func() {
 		if ctx == nil {
+			// Do not pass a nil context, pass context.TODO(). But just in case, handle it locally
 			ctx = context.Background()
 		}
 		if err := c.Serve(ctx); err != nil {
@@ -139,8 +145,20 @@ func (c *Client) run(ctx context.Context, localAddr *net.UDPAddr) error {
 			return
 		}
 	}()
-	//TODO: remove this wait once there is a way to check when the listener is ready
 	return nil
+}
+
+func (c *Client) SendEchoRequest(cPgwUDPAddr *net.UDPAddr) error {
+	_, err := c.Conn.EchoRequest(cPgwUDPAddr)
+	if err != nil {
+		return err
+	}
+	select {
+	case res := <-c.echoChannel:
+		return res
+	case <-time.After(c.GtpTimeout):
+		return fmt.Errorf("waitEchoResponse timeout")
+	}
 }
 
 // Get preferred outbound ip of this machine

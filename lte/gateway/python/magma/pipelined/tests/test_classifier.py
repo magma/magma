@@ -11,28 +11,30 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import os
-import warnings
 import ipaddress
+import os
 import socket
+import unittest
+import warnings
 from concurrent.futures import Future
-from magma.pipelined.tests.app.start_pipelined import (
-    TestSetup,
-    PipelinedController,
-)
-from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.pipelined_test_util import (
-    start_ryu_app_thread,
-    stop_ryu_app_thread,
-    create_service_manager,
-    assert_bridge_snapshot_match,
-)
-from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
-     stop_ryu_app_thread, create_service_manager, wait_after_send, \
-     SnapshotVerifier
-from magma.pipelined.app.classifier import Classifier
+from unittest.mock import MagicMock
+
 from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.pipelined_pb2 import IPFlowDL
+from magma.pipelined.app.classifier import Classifier
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.app.start_pipelined import (PipelinedController,
+                                                       TestSetup)
+from magma.pipelined.tests.pipelined_test_util import (SnapshotVerifier,
+                                                       assert_bridge_snapshot_match,
+                                                       create_service_manager,
+                                                       start_ryu_app_thread,
+                                                       stop_ryu_app_thread,
+                                                       wait_after_send)
+
+from lte.protos.pipelined_pb2 import (
+    IPFlowDL
+)
 
 class ClassifierTest(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -80,11 +82,14 @@ class ClassifierTest(unittest.TestCase):
                 'ovs_internal_conntrack_fwd_tbl_number': 202,
                 'clean_restart': True,
                 'ovs_multi_tunnel': True,
+                'paging_timeout': 30,
+                'classifier_controller_id': 5,
             },
             mconfig=None,
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False,
+            rpc_stubs={'sessiond_setinterface': MagicMock()}
         )
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
         cls.thread = start_ryu_app_thread(test_setup)
@@ -133,15 +138,16 @@ class ClassifierTest(unittest.TestCase):
 
         seid1 = 5000
         ue_ip_addr = "192.168.128.30"
+        ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller.add_tunnel_flows(65525, 1, 100000,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1)
+                                                    self.EnodeB_IP, seid1, True, ip_flow_dl=ip_flow_dl)
 
         seid2 = 5001
         ue_ip_addr = "192.168.128.31"
         self.classifier_controller.add_tunnel_flows(65525, 2,100001,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid2)
+                                                    self.EnodeB_IP, seid2, True, ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -151,10 +157,13 @@ class ClassifierTest(unittest.TestCase):
     def test_detach_tunnel_flows(self):
 
         ue_ip_addr = "192.168.128.30"
-        self.classifier_controller.delete_tunnel_flows(1, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
+        ip_flow_dl = IPFlowDL(set_params=0)
+        self.classifier_controller.delete_tunnel_flows(1, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                       ip_flow_dl=ip_flow_dl)
 
         ue_ip_addr = "192.168.128.31"
-        self.classifier_controller.delete_tunnel_flows(2, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
+        self.classifier_controller.delete_tunnel_flows(2, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                       ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -175,9 +184,10 @@ class ClassifierTest(unittest.TestCase):
 
         seid1 = 5000
         ue_ip_addr = "192.168.128.30"
+        ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller.add_tunnel_flows(65525, 1, 100000,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1)
+                                                    self.EnodeB_IP, seid1, True, ip_flow_dl=ip_flow_dl)
 
         ip_no = hex(socket.htonl(int(ipaddress.ip_address(self.EnodeB2_IP))))
         buf = "g_{}".format(ip_no[2:])
@@ -189,12 +199,12 @@ class ClassifierTest(unittest.TestCase):
         ue_ip_addr = "192.168.128.31"
         self.classifier_controller.add_tunnel_flows(65525, 2,100001,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB2_IP, seid2)
+                                                    self.EnodeB2_IP, seid2, True, ip_flow_dl=ip_flow_dl)
 
         ue_ip_addr = "192.168.128.51"
         self.classifier_controller.add_tunnel_flows(65525, 5,1001,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB2_IP, seid2)
+                                                    self.EnodeB2_IP, seid2, True, ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -204,13 +214,17 @@ class ClassifierTest(unittest.TestCase):
     def test_detach_multi_tunnel_flows(self):
 
         ue_ip_addr = "192.168.128.30"
-        self.classifier_controller.delete_tunnel_flows(1, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')), self.EnodeB_IP)
+        ip_flow_dl = IPFlowDL(set_params=0)
+        self.classifier_controller.delete_tunnel_flows(1, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                       self.EnodeB_IP, ip_flow_dl=ip_flow_dl)
 
         ue_ip_addr = "192.168.128.31"
-        self.classifier_controller.delete_tunnel_flows(2, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')), self.EnodeB2_IP)
+        self.classifier_controller.delete_tunnel_flows(2, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                       self.EnodeB2_IP, ip_flow_dl=ip_flow_dl)
 
         ue_ip_addr = "192.168.128.51"
-        self.classifier_controller.delete_tunnel_flows(5, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')), self.EnodeB2_IP)
+        self.classifier_controller.delete_tunnel_flows(5, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                       self.EnodeB2_IP, ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -222,18 +236,18 @@ class ClassifierTest(unittest.TestCase):
         # Need to delete all default flows in table 0 before
         # install the specific flows test case.
         self.test_detach_default_tunnel_flows()
-
+        ip_flow_dl = IPFlowDL(set_params=0)
         seid1 = 5000
         ue_ip_addr = "2001::1"
         self.classifier_controller.add_tunnel_flows(65525, 1, 10000,
                                                     IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1)
+                                                    self.EnodeB_IP, seid1, True, ip_flow_dl=ip_flow_dl)
 
         seid2 = 5001
         ue_ip_addr = "2001:db8::1"
         self.classifier_controller.add_tunnel_flows(65525, 2,100001,
                                                     IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid2)
+                                                    self.EnodeB_IP, seid2, True, ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -242,11 +256,14 @@ class ClassifierTest(unittest.TestCase):
 
     def test_detach_tunnel_flows_ipv6(self):
 
+        ip_flow_dl = IPFlowDL(set_params=0)
         ue_ip_addr = "2001::1"
-        self.classifier_controller.delete_tunnel_flows(1, IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')))
+        self.classifier_controller.delete_tunnel_flows(1, IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
+                                                       ip_flow_dl=ip_flow_dl)
 
         ue_ip_addr = "2001:db8::1"
-        self.classifier_controller.delete_tunnel_flows(2, IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')))
+        self.classifier_controller.delete_tunnel_flows(2, IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
+                                                       ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -255,26 +272,30 @@ class ClassifierTest(unittest.TestCase):
 
 
     def test_discard_tunnel_flows(self):
-
+        ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller._delete_all_flows()
         ue_ip_addr = "192.168.128.80"
-        self.classifier_controller._discard_tunnel_flows(65525, 3,
-                                                         IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
+        self.classifier_controller._discard_tunnel_flows(3,
+                                                         IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                         ip_flow_dl=ip_flow_dl)
 
         ue_ip_addr = "192.168.128.82"
-        self.classifier_controller._discard_tunnel_flows(65525, 4,
-                                                         IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
+        self.classifier_controller._discard_tunnel_flows(4,
+                                                         IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                         ip_flow_dl=ip_flow_dl)
+
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
         with snapshot_verifier:
             pass
 
     def test_discard_tunnel_flows_ipv6(self):
-
+        ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller._delete_all_flows()
         ue_ip_addr = "2001::4"
-        self.classifier_controller._discard_tunnel_flows(65525, 3,
-                                                         IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')))
+        self.classifier_controller._discard_tunnel_flows(3,
+                                                         IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
+                                                         ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -286,12 +307,15 @@ class ClassifierTest(unittest.TestCase):
         # Need to delete all default flows in table 0 before
         # install the specific flows test case.
         self.test_detach_default_tunnel_flows()
+        ip_flow_dl = IPFlowDL(set_params=0)
         ue_ip_addr = "192.168.128.80"
-        self.classifier_controller._resume_tunnel_flows(65525, 3,
-                                                        IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
+        self.classifier_controller._resume_tunnel_flows(3,
+                                                        IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                        ip_flow_dl=ip_flow_dl)
         ue_ip_addr = "192.168.128.82"
-        self.classifier_controller._resume_tunnel_flows(65525, 4,
-                                                        IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
+        self.classifier_controller._resume_tunnel_flows(4,
+                                                        IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                        ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -303,9 +327,11 @@ class ClassifierTest(unittest.TestCase):
         # Need to delete all default flows in table 0 before
         # install the specific flows test case.
         self.test_detach_default_tunnel_flows()
+        ip_flow_dl = IPFlowDL(set_params=0)
         ue_ip_addr = "2001::4"
-        self.classifier_controller._resume_tunnel_flows(65525, 3,
-                                                        IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')))
+        self.classifier_controller._resume_tunnel_flows(3,
+                                                        IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
+                                                        ip_flow_dl=ip_flow_dl)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)

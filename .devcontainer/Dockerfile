@@ -47,6 +47,8 @@ RUN echo "Install general purpose packages" && \
         automake \
         build-essential \
         ca-certificates \
+        clang-11 \
+        clang-format-7 \
         clang-format-11 \
         clang-tidy-11 \
         curl \
@@ -57,7 +59,9 @@ RUN echo "Install general purpose packages" && \
         git \
         gnupg \
         golang \
+        libclang-11-dev \
         libgmp3-dev \
+        libpcap-dev \
         libssl-dev \
         libtool \
         make \
@@ -70,7 +74,6 @@ RUN echo "Install general purpose packages" && \
         rubygems \
         ruby-dev \
         software-properties-common \
-        tig \
         tzdata \
         unzip \
         vim \
@@ -78,6 +81,7 @@ RUN echo "Install general purpose packages" && \
         gem install fpm && \
         update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
         update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10 && \
+        update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-7/bin/clang-format 10 && \
         update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
         update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
 
@@ -116,22 +120,22 @@ RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.pr
 #  see https://gist.github.com/electronjoe/a899e4bfbc2904cb353444386296c38e
 # Note the CFLAGS define below due to glibc deprecation of critical flag,
 #  see https://github.com/rdslw/openwrt/blob/e5d47f32131849a69a9267de51a30d6be1f0d0ac/tools/bison/patches/110-glibc-change-work-around.patch
-RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
+RUN wget --progress=dot:giga https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
     tar -xf nettle-2.5.tar.gz && \
     cd nettle-2.5 && \
     mkdir build && \
     cd build/ && \
     ../configure --disable-openssl --enable-shared --libdir=/usr/local/lib && \
-    make -j`nproc` && \
+    make -j"$(nproc)" && \
     make install && \
     ldconfig -v && \
     cd / && \
-    wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    wget --progress=dot:giga http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     mkdir build && cd build && \
     CFLAGS=-D_IO_ftrylockfile ../configure --with-libnettle-prefix=/usr/local && \
-    make -j`nproc` && \
+    make -j"$(nproc)" && \
     make install && \
     ldconfig -v && \
     cd / && \
@@ -144,7 +148,7 @@ RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
     mkdir -p cmake/build && \
     cd cmake/build && \
     cmake -DgRPC_INSTALL=ON -DgRPC_BUILD_TESTS=OFF -DBUILD_SHARED_LIBS=ON ../.. && \
-    make -j`nproc` && \
+    make -j"$(nproc)" && \
     make install && \
     cd / && \
     rm -rf grpc
@@ -157,7 +161,7 @@ RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \
     mkdir _build && \
     cd _build/ && \
     cmake .. && \
-    make -j`nproc` && \
+    make -j"$(nproc)" && \
     make install && \
     rm -rf /prometheus-cpp
 
@@ -168,17 +172,18 @@ RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
     git submodule init && git submodule update && \
     mkdir build && cd build && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
-    make -j`nproc` && \
+    make -j"$(nproc)" && \
     make install && \
     rm -rf /cpp_redis
 
 ##### liblfds
 # https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
-RUN wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
+RUN wget --progress=dot:giga https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
     tar -xf liblfds\ release\ 7.1.0\ source.tar.bz2  && \
     cd liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
-    make -j`nproc` && \
+    make -j"$(nproc)" && \
     make ar_install && \
+    cd / && \
     rm -rf liblfds
 
 ##### libgtpnl
@@ -188,9 +193,10 @@ RUN git clone https://git.osmocom.org/libgtpnl && \
     git reset --hard 345d687 && \
     autoreconf -fi && \
     ./configure && \
-    make -j`nproc` && \
+    make -j"$(nproc)" && \
     make install && \
     ldconfig && \
+    cd / && \
     rm -rf libgtpnl
 
 #####  asn1c
@@ -199,16 +205,15 @@ RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
     git checkout f12568d617dbf48497588f8e227d70388fa217c9 && \
     autoreconf -iv && \
     ./configure && \
-    make -j`nproc` && \
+    make -j"$(nproc)" && \
     make install && \
     ldconfig
-
 
 ## Install Fmt (Folly Dep)
 RUN git clone https://github.com/fmtlib/fmt.git && cd fmt && \
     mkdir _build && cd _build && \
     cmake -DBUILD_SHARED_LIBS=ON .. && \
-    make -j$(nproc) && \
+    make -j"$(nproc)" && \
     make install && \
     cd / && \
     rm -rf fmt
@@ -221,7 +226,7 @@ RUN git clone https://github.com/facebook/folly && cd folly && \
     git checkout tags/v2021.02.15.00 && \
     mkdir _build && cd _build && \
     cmake -DBUILD_SHARED_LIBS=ON .. && \
-    make -j$(nproc) && \
+    make -j"$(nproc)" && \
     make install && \
     cd / && \
     rm -rf folly
@@ -237,6 +242,37 @@ RUN cd /usr/src/googletest && \
     make install && \
     ldconfig -v
 
+#### libtins is required to build the connection_tracker
+RUN git clone --branch v4.3 https://github.com/mfontanini/libtins.git && \
+    cd libtins && \
+    mkdir build && \
+    cd build && \
+    cmake ../ -DLIBTINS_ENABLE_CXX11=1 && \
+    make -j"$(nproc)" && \
+    make install && \
+    cd / && \
+    rm -rf libtins
+
+###### Install Include What You Use for c/cpp header include fixup tooling
+# Tag 0.15 tracks Clang 11.0 per https://github.com/include-what-you-use/include-what-you-use/tags
+RUN git clone https://github.com/include-what-you-use/include-what-you-use && \
+    cd include-what-you-use && \
+    git checkout 0.15 && \
+    cd .. && \
+    mkdir build_iwyu && cd build_iwyu && \
+    cmake -G "Unix Makefiles" -DIWHYU_LLVM_ROOT_PATH=/usr/lib/llvm-11 ../include-what-you-use/ && \
+    make && \
+    make install && \
+    cd / && \
+    rm -rf include-what-you-use && \
+    rm -rf build_liwyu
+
+#### libfluid is requird to build MME with OVS support
+COPY third_party /tmp/third_party/
+RUN /tmp/third_party/build/bin/libfluid_build.sh && \
+     find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
+     rm -rf /tmp/*
+
 ##### FreeDiameter
 COPY lte/gateway/c/oai/patches/ /tmp/
 RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
@@ -245,13 +281,7 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     mkdir build && \
     cd build && \
     cmake -DDISABLE_SCTP:BOOL=ON ../ && \
-    make -j`nproc` && \
+    make -j"$(nproc)" && \
     make install && \
     cd / && \
     rm -rf freediameter
-
-#### libfluid is requird to build MME with OVS support
-COPY third_party /tmp/third_party/
-RUN /tmp/third_party/build/bin/libfluid_build.sh && \
-     find . -name magma-libfluid_0.1* -exec dpkg -i {} \; && \
-     rm -rf /tmp/*

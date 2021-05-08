@@ -15,13 +15,12 @@ import logging
 from typing import List
 
 import grpc
+import lte.protos.sms_orc8r_pb2 as sms_orc8r_pb2
+import lte.protos.sms_orc8r_pb2_grpc as sms_orc8r_pb2_grpc
+from lte.protos.mconfig.mconfigs_pb2 import MME
 from magma.common.job import Job
-
 from magma.common.rpc_utils import grpc_async_wrapper, return_void
 from magma.configuration.mconfig_managers import load_service_mconfig
-from lte.protos.mconfig.mconfigs_pb2 import MME
-import lte.protos.sms_orc8r_pb2_grpc as sms_orc8r_pb2_grpc
-import lte.protos.sms_orc8r_pb2 as sms_orc8r_pb2
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
@@ -50,15 +49,17 @@ class SmsRelay(Job):
     async def _run(self) -> None:
         if not self._is_enabled():
             # sleep, and don't poll for messages
-            logging.info("mme non_eps_service_config is not SMS_ORC8R, sleeping.")
-            return 
+            logging.info(
+                "mme non_eps_service_config is not SMS_ORC8R, sleeping.",
+            )
+            return
 
         imsis = await self._get_attached_imsis()
         if len(imsis) == 0:
             logging.debug("No active subs")
             return
 
-        logging.info("Checking SMS for %d IMSIs" % len(imsis))
+        logging.info("Checking SMS for %d IMSIs", len(imsis))
         try:
             smsd_resp = await grpc_async_wrapper(
                 self._smsd.GetMessages.future(
@@ -97,19 +98,23 @@ class SmsRelay(Job):
 
     @return_void
     def SMOUplink(self, request: sms_orc8r_pb2.SMOUplinkUnitdata, context):
-        logging.debug("got an uplink: %s: %s",
-                      request.imsi, request.nas_message_container.hex())
+        logging.debug(
+            "got an uplink: %s: %s",
+            request.imsi, request.nas_message_container.hex(),
+        )
 
         if not self._is_enabled():
             # sleep, and don't poll for messages
-            logging.info("mme non_eps_service_config is not SMS_ORC8R, ignoring uplink message.")
-            return 
+            logging.info(
+                "mme non_eps_service_config is not SMS_ORC8R, ignoring uplink message.",
+            )
+            return
 
         try:
             self._smsd.ReportDelivery(
                 sms_orc8r_pb2.ReportDeliveryRequest(
                     report=sms_orc8r_pb2.SMOUplinkUnitdata(
-                        imsi="IMSI"+request.imsi,
+                        imsi="IMSI" + request.imsi,
                         nas_message_container=request.nas_message_container,
                     ),
                 ),
@@ -119,14 +124,14 @@ class SmsRelay(Job):
             context.set_code(grpc.StatusCode.INTERNAL)
             return
 
-    def _is_enabled(self):
-        """ 
-        Returns True if MME's NON_EPS_SERVICE_CONFIG is set to SMS_ORC8R, False
-        otherwise. smsd should only act as a relay when that config paramater
-        is set to SMS_ORC8R (value 3).
+    def _is_enabled(self) -> bool:
+        """Return whether SMS should act as a relay
+
+        SMS_ORC8R has value 3
+        Returns:
+        bool: True if MME's NON_EPS_SERVICE_CONFIG is set to SMS_ORC8R
+        False otherwise
         """
         mme_service_config = load_service_mconfig("mme", MME())
         non_eps_service_control = mme_service_config.non_eps_service_control
-        if non_eps_service_control and non_eps_service_control == 3:
-            return True
-        return False
+        return non_eps_service_control and non_eps_service_control == 3

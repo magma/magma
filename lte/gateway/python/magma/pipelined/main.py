@@ -20,26 +20,27 @@ import logging
 import threading
 
 import aioeventlet
-from ryu import cfg
-from ryu.base.app_manager import AppManager
-from scapy.arch import get_if_hwaddr
-from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-
+from lte.protos.mconfig import mconfigs_pb2
 from magma.common.misc_utils import call_process, get_ip_from_if
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration import environment
 from magma.pipelined.app import of_rest_server
-from magma.pipelined.check_quota_server import run_flask
-from magma.pipelined.service_manager import ServiceManager
-from magma.pipelined.ifaces import monitor_ifaces
-from magma.pipelined.rpc_servicer import PipelinedRpcServicer
-from magma.pipelined.gtp_stats_collector import GTPStatsCollector, \
-    MIN_OVSDB_DUMP_POLLING_INTERVAL
-
 from magma.pipelined.app.he import PROXY_PORT_NAME
 from magma.pipelined.bridge_util import BridgeTools
-from lte.protos.mconfig import mconfigs_pb2
+from magma.pipelined.check_quota_server import run_flask
+from magma.pipelined.gtp_stats_collector import (
+    MIN_OVSDB_DUMP_POLLING_INTERVAL,
+    GTPStatsCollector,
+)
+from magma.pipelined.ifaces import monitor_ifaces
+from magma.pipelined.rpc_servicer import PipelinedRpcServicer
+from magma.pipelined.service_manager import ServiceManager
+from ryu import cfg
+from ryu.base.app_manager import AppManager
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
+from scapy.arch import get_if_hwaddr
+from magma.pipelined.app.uplink_bridge import UPLINK_OVS_BRIDGE_NAME
 
 
 def main():
@@ -82,8 +83,17 @@ def main():
                                         service.mconfig.sgi_management_iface_gw)
     service.config['sgi_management_iface_gw'] = sgi_gateway_ip
 
+    # Keep router mode off for smooth upgrade path
+    service.config['dp_router_enabled'] = service.config.get('dp_router_enabled',
+                                                             False)
     if 'virtual_mac' not in service.config:
-        service.config['virtual_mac'] = get_if_hwaddr(service.config.get('bridge_name'))
+        if service.config['dp_router_enabled']:
+            up_bridge_name = service.config.get('uplink_bridge', UPLINK_OVS_BRIDGE_NAME)
+            mac_addr = get_if_hwaddr(up_bridge_name)
+        else:
+            mac_addr = get_if_hwaddr(service.config.get('bridge_name'))
+
+        service.config['virtual_mac'] = mac_addr
 
     # this is not read from yml file.
     service.config['uplink_port'] = OFPP_LOCAL
@@ -124,8 +134,7 @@ def main():
                      )
 
     service.loop.create_task(monitor_ifaces(
-        service.config['monitored_ifaces'],
-        service.loop),
+        service.config['monitored_ifaces']),
     )
 
     manager = AppManager.get_instance()

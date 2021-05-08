@@ -14,6 +14,9 @@
       "basics/quick_start_guide": {
         "title": "Quick Start Guide"
       },
+      "contributing/contribute_ci_checks": {
+        "title": "Continuous Integration Checks"
+      },
       "contributing/contribute_codeowners": {
         "title": "Codeowners Workflow"
       },
@@ -57,6 +60,9 @@
       "feg/deploy_intro": {
         "title": "Introduction"
       },
+      "feg/docker_setup": {
+        "title": "FeG Docker Setup"
+      },
       "feg/legacy/docker_setup": {
         "title": "FeG Docker Setup"
       },
@@ -67,6 +73,9 @@
         "title": "Federated Gateway (FeG)",
         "sidebar_label": "Overview"
       },
+      "feg/session_proxy": {
+        "title": "feg/session_proxy"
+      },
       "howtos/call_tracing": {
         "title": "Call Tracing"
       },
@@ -76,6 +85,9 @@
       "howtos/he_api": {
         "title": "Header Enrichment"
       },
+      "howtos/inbound_roaming": {
+        "title": "Inbound Roaming"
+      },
       "howtos/readme_package": {
         "title": "Packaging"
       },
@@ -84,6 +96,9 @@
       },
       "howtos/troubleshooting/agw_unable_to_checkin": {
         "title": "Access Gateway Unable to Check-in to Orchestrator"
+      },
+      "howtos/troubleshooting/analyze_service_crashes_in_agw": {
+        "title": "Analyze Service crashes in AGW"
       },
       "howtos/troubleshooting/generate_admin_operator_certificates": {
         "title": "Generate and update admin_operator certificates"
@@ -100,8 +115,14 @@
       "howtos/ue_metering": {
         "title": "UE Usage Metering"
       },
+      "lte/access_service_restrictions": {
+        "title": "Restricting Network Access"
+      },
       "lte/architecture_overview": {
         "title": "Overview"
+      },
+      "lte/build_install_magma_pkg_in_agw": {
+        "title": "Build and install a magma package in AGW"
       },
       "lte/openvswitch": {
         "title": "Magma Datapath"
@@ -121,17 +142,26 @@
       "lte/deploy_config_enodebd": {
         "title": "Configure eNodeB"
       },
+      "lte/deploy_install_ubuntu": {
+        "title": "Install AGW on Ubuntu 20.04"
+      },
       "lte/deploy_install": {
         "title": "Install AGW"
       },
       "lte/dev_notes": {
         "title": "Developer Notes"
       },
+      "lte/dev_unit_testing": {
+        "title": "Unit Testing"
+      },
       "lte/eventd": {
         "title": "Event Reporting"
       },
       "lte/deploy_config_agw_ha": {
         "title": "Configure AGW for HA"
+      },
+      "lte/integrate_sentry": {
+        "title": "Sentry Integration"
       },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"
@@ -178,8 +208,14 @@
       "lte/upgrade_1_4": {
         "title": "Upgrade to v1.4"
       },
+      "lte/upgrade_1_5": {
+        "title": "Upgrade to v1.5"
+      },
       "nms/alerts": {
         "title": "Alerts"
+      },
+      "nms/nms_arch_overview": {
+        "title": "Overview"
       },
       "nms/dashboard": {
         "title": "Dashboard"
@@ -244,6 +280,9 @@
       "orc8r/deploy_intro": {
         "title": "Introduction"
       },
+      "orc8r/deploy_orcl": {
+        "title": "Experimental Orc8r Deployer"
+      },
       "orc8r/dev_dependencies": {
         "title": "Module Dependencies"
       },
@@ -258,6 +297,9 @@
       },
       "orc8r/dev_testing": {
         "title": "Testing Tips"
+      },
+      "orc8r/hold_terraform_state_on_s3": {
+        "title": "Hold Terraform state outside my local machine"
       },
       "orc8r/legacy/docker_setup": {
         "title": "Docker Setup"
@@ -282,6 +324,9 @@
       "orc8r/legacy/testing": {
         "title": "Testing in Orchestrator",
         "sidebar_label": "Testing"
+      },
+      "orc8r/override_values_of_terraform_files": {
+        "title": "Override values of Terraform files"
       },
       "orc8r/upgrade_1_1": {
         "title": "Upgrade to v1.1"
@@ -340,17 +385,32 @@
       "proposals/p010_vendor_neutral_dp": {
         "title": "proposals/p010_vendor_neutral_dp"
       },
+      "proposals/p011_intra_agw_mobility": {
+        "title": "Intra-AGW Mobility (S1 Mobility)"
+      },
       "proposals/p011_victoriametrics": {
         "title": "VictoriaMetrics as Magma's TSDB"
       },
       "proposals/p012_resource-tagging": {
         "title": "proposals/p012_resource-tagging"
       },
+      "proposals/p013_Ubuntu_upgrade": {
+        "title": "AGW Ubuntu upgrade"
+      },
+      "proposals/p014_proposal_process": {
+        "title": "Magma Proposals"
+      },
+      "proposals/p015_tech_debt_week": {
+        "title": "Tech Debt Week Processes"
+      },
+      "proposals/p016_nms_regression_test": {
+        "title": "NMS Regression Testing"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },
-      "proposals/proposal_process": {
-        "title": "Magma Proposals"
+      "proposals/README": {
+        "title": "proposals/README"
       },
       "proposals/proposal_template": {
         "title": "Title of Design Doc"
@@ -819,6 +879,18 @@
       "version-1.4.0/basics/version-1.4.0-quick_start_guide": {
         "title": "Quick Start Guide"
       },
+      "version-1.4.0/contributing/version-1.4.0-contribute_codeowners": {
+        "title": "Codeowners Workflow"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_conventions": {
+        "title": "Contributing Conventions"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_onboarding": {
+        "title": "Developer Onboarding"
+      },
+      "version-1.4.0/contributing/version-1.4.0-contribute_workflow": {
+        "title": "Development Workflow"
+      },
       "version-1.4.0/debugging_tools/version-1.4.0-show_tech": {
         "title": "Show Tech"
       },
@@ -980,6 +1052,228 @@
       },
       "version-1.4.0/proposals/version-1.4.0-proposal_template": {
         "title": "Title of Design Doc"
+      },
+      "version-1.5.0/basics/version-1.5.0-prerequisites": {
+        "title": "Prerequisites"
+      },
+      "version-1.5.0/contributing/version-1.5.0-contribute_ci_checks": {
+        "title": "Continuous Integration Checks"
+      },
+      "version-1.5.0/contributing/version-1.5.0-contribute_codeowners": {
+        "title": "Codeowners Workflow"
+      },
+      "version-1.5.0/contributing/version-1.5.0-contribute_conventions": {
+        "title": "Contributing Conventions"
+      },
+      "version-1.5.0/cwf/version-1.5.0-deploy_install": {
+        "title": "Installing Carrier Wifi Gateway"
+      },
+      "version-1.5.0/faq/version-1.5.0-faq_magma": {
+        "title": "Frequently Asked Questions"
+      },
+      "version-1.5.0/feg/version-1.5.0-deploy_build": {
+        "title": "Build FeG"
+      },
+      "version-1.5.0/feg/version-1.5.0-deploy_configure": {
+        "title": "Configure FeG"
+      },
+      "version-1.5.0/feg/version-1.5.0-deploy_install": {
+        "title": "Install FeG"
+      },
+      "version-1.5.0/feg/version-1.5.0-deploy_intro": {
+        "title": "Introduction"
+      },
+      "version-1.5.0/feg/version-1.5.0-docker_setup": {
+        "title": "FeG Docker Setup"
+      },
+      "version-1.5.0/howtos/version-1.5.0-inbound_roaming": {
+        "title": "Inbound Roaming"
+      },
+      "version-1.5.0/howtos/version-1.5.0-readme_package": {
+        "title": "Packaging"
+      },
+      "version-1.5.0/howtos/version-1.5.0-thanos": {
+        "title": "Thanos"
+      },
+      "version-1.5.0/howtos/troubleshooting/version-1.5.0-agw_unable_to_checkin": {
+        "title": "Access Gateway Unable to Check-in to Orchestrator"
+      },
+      "version-1.5.0/howtos/troubleshooting/version-1.5.0-analyze_service_crashes_in_agw": {
+        "title": "Analyze Service crashes in AGW"
+      },
+      "version-1.5.0/howtos/troubleshooting/version-1.5.0-generate_admin_operator_certificates": {
+        "title": "Generate and update admin_operator certificates"
+      },
+      "version-1.5.0/howtos/troubleshooting/version-1.5.0-update_certificates": {
+        "title": "Update rootCA and controller SSL certificates"
+      },
+      "version-1.5.0/howtos/troubleshooting/version-1.5.0-user_unable_to_attach": {
+        "title": "User is unable to attach to Magma"
+      },
+      "version-1.5.0/lte/version-1.5.0-access_service_restrictions": {
+        "title": "Restricting Network Access"
+      },
+      "version-1.5.0/lte/version-1.5.0-architecture_overview": {
+        "title": "Overview"
+      },
+      "version-1.5.0/lte/version-1.5.0-build_install_magma_pkg_in_agw": {
+        "title": "Build and install a magma package in AGW"
+      },
+      "version-1.5.0/lte/version-1.5.0-debug_dp_probe": {
+        "title": "Datapath Probe CLI"
+      },
+      "version-1.5.0/lte/version-1.5.0-debug_show_tech": {
+        "title": "Show Tech"
+      },
+      "version-1.5.0/lte/version-1.5.0-deploy_config_agw": {
+        "title": "Configure AGW"
+      },
+      "version-1.5.0/lte/version-1.5.0-deploy_config_apn": {
+        "title": "Configure an APN"
+      },
+      "version-1.5.0/lte/version-1.5.0-deploy_config_enodebd": {
+        "title": "Configure eNodeB"
+      },
+      "version-1.5.0/lte/version-1.5.0-deploy_install_ubuntu": {
+        "title": "Install AGW on Ubuntu 20.04"
+      },
+      "version-1.5.0/lte/version-1.5.0-deploy_install": {
+        "title": "Install AGW"
+      },
+      "version-1.5.0/lte/version-1.5.0-dev_notes": {
+        "title": "Developer Notes"
+      },
+      "version-1.5.0/lte/version-1.5.0-dev_unit_testing": {
+        "title": "Unit Testing"
+      },
+      "version-1.5.0/lte/version-1.5.0-eventd": {
+        "title": "Event Reporting"
+      },
+      "version-1.5.0/lte/version-1.5.0-deploy_config_agw_ha": {
+        "title": "Configure AGW for HA"
+      },
+      "version-1.5.0/lte/version-1.5.0-integrate_sentry": {
+        "title": "Sentry Integration"
+      },
+      "version-1.5.0/lte/version-1.5.0-tr069": {
+        "title": "Add eNB TR-069 Support"
+      },
+      "version-1.5.0/lte/version-1.5.0-upgrade_1_1": {
+        "title": "Upgrade to v1.1"
+      },
+      "version-1.5.0/lte/version-1.5.0-upgrade_1_2": {
+        "title": "Upgrade to v1.2"
+      },
+      "version-1.5.0/lte/version-1.5.0-upgrade_1_3": {
+        "title": "Upgrade to v1.3"
+      },
+      "version-1.5.0/lte/version-1.5.0-upgrade_1_4": {
+        "title": "Upgrade to v1.4"
+      },
+      "version-1.5.0/lte/version-1.5.0-upgrade_1_5": {
+        "title": "Upgrade to v1.5"
+      },
+      "version-1.5.0/nms/version-1.5.0-alerts": {
+        "title": "Alerts"
+      },
+      "version-1.5.0/nms/version-1.5.0-nms_arch_overview": {
+        "title": "Overview"
+      },
+      "version-1.5.0/nms/version-1.5.0-deploy_config": {
+        "title": "Configure NMS"
+      },
+      "version-1.5.0/nms/version-1.5.0-dev_components": {
+        "title": "Components"
+      },
+      "version-1.5.0/nms/version-1.5.0-dev_spacing": {
+        "title": "Spacing Guidelines"
+      },
+      "version-1.5.0/nms/version-1.5.0-dev_themes": {
+        "title": "Themes"
+      },
+      "version-1.5.0/nms/version-1.5.0-equipment": {
+        "title": "Equipment"
+      },
+      "version-1.5.0/nms/version-1.5.0-metrics": {
+        "title": "Metrics"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-architecture_modularity": {
+        "title": "Modularity"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-architecture_overview": {
+        "title": "Overview"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-debug_logs": {
+        "title": "View Logs"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-deploy_faq": {
+        "title": "FAQs"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-deploy_install": {
+        "title": "Install Orchestrator"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-deploy_intro": {
+        "title": "Introduction"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-deploy_orcl": {
+        "title": "Experimental Orc8r Deployer"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-dev_dependencies": {
+        "title": "Module Dependencies"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-dev_indexers": {
+        "title": "State Indexers"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-dev_minikube": {
+        "title": "Deploy on Minikube"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-dev_security": {
+        "title": "Security"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-dev_testing": {
+        "title": "Testing Tips"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-hold_terraform_state_on_s3": {
+        "title": "Hold Terraform state outside my local machine"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-override_values_of_terraform_files": {
+        "title": "Override values of Terraform files"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-upgrade_1_1": {
+        "title": "Upgrade to v1.1"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-upgrade_1_2": {
+        "title": "Upgrade to v1.2"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-upgrade_1_3": {
+        "title": "Upgrade to v1.3"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-upgrade_1_4": {
+        "title": "Upgrade to v1.4"
+      },
+      "version-1.5.0/orc8r/version-1.5.0-upgrade_1_5": {
+        "title": "Upgrade to v1.5"
+      },
+      "version-1.5.0/proposals/version-1.5.0-p008_inbound_roaming_with_SubscriberDb": {
+        "title": "Header enrichment"
+      },
+      "version-1.5.0/proposals/version-1.5.0-p010_subscriber_scaling": {
+        "title": "Subscriber Scaling"
+      },
+      "version-1.5.0/proposals/version-1.5.0-p011_intra_agw_mobility": {
+        "title": "Intra-AGW Mobility (S1 Mobility)"
+      },
+      "version-1.5.0/proposals/version-1.5.0-p011_victoriametrics": {
+        "title": "VictoriaMetrics as Magma's TSDB"
+      },
+      "version-1.5.0/proposals/version-1.5.0-p013_Ubuntu_upgrade": {
+        "title": "AGW Ubuntu upgrade"
+      },
+      "version-1.5.0/proposals/version-1.5.0-p014_proposal_process": {
+        "title": "Magma Proposals"
+      },
+      "version-1.5.0/proposals/version-1.5.0-p015_tech_debt_week": {
+        "title": "Tech Debt Week Processes"
       }
     },
     "links": {
@@ -997,8 +1291,8 @@
       "Deploy": "Deploy",
       "Upgrade": "Upgrade",
       "Debug": "Debug",
+      "Contribute": "Contribute",
       "Technical Reference": "Technical Reference",
-      "Contributing": "Contributing",
       "Proposals": "Proposals",
       "FAQ": "FAQ",
       "Basics": "Basics",

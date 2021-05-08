@@ -19,7 +19,6 @@ package servicers
 import (
 	"fmt"
 	"net"
-	"time"
 
 	"magma/feg/cloud/go/protos"
 
@@ -38,6 +37,8 @@ func (s *S8Proxy) sendAndReceiveCreateSession(
 		cPgwUDPAddr.String(), csReq.String())
 	glog.V(2).Infof("Send Create Session Request (gtp) to %s:\n%s",
 		cPgwUDPAddr.String(), csReqMsg.(*message.CreateSessionRequest).String())
+	//glog.V(4).Infof("Send Create Session Request (gtp) to %s:\n%s",
+	//	cPgwUDPAddr.String(), message.Prettify(csReqMsg))
 
 	grpcMessage, err := s.gtpClient.SendMessageAndExtractGrpc(csReq.Imsi, csReq.CAgwTeid, cPgwUDPAddr, csReqMsg)
 	if err != nil {
@@ -63,6 +64,8 @@ func (s *S8Proxy) sendAndReceiveDeleteSession(req *protos.DeleteSessionRequestPg
 		dsReqMsg)
 	glog.V(2).Infof("Send Delete Session Request (gtp) to %s:\n%s",
 		cPgwUDPAddr.String(), dsReqMsg.(*message.DeleteSessionRequest).String())
+	//glog.V(4).Infof("Send Delete Session Request (gtp) to %s:\n%s",
+	//	cPgwUDPAddr.String(), message.Prettify(dsReqMsg))
 	grpcMessage, err := s.gtpClient.SendMessageAndExtractGrpc(req.Imsi, req.CAgwTeid, cPgwUDPAddr, dsReqMsg)
 	if err != nil {
 		return nil, fmt.Errorf("no response message to DeleteSessionRequest: %s", err)
@@ -73,17 +76,4 @@ func (s *S8Proxy) sendAndReceiveDeleteSession(req *protos.DeleteSessionRequestPg
 	}
 	glog.V(2).Infof("Delete Session Response (grpc):\n%s", dsRes.String())
 	return dsRes, err
-}
-
-func (s *S8Proxy) sendAndReceiveEchoRequest(cPgwUDPAddr *net.UDPAddr) error {
-	_, err := s.gtpClient.Conn.EchoRequest(cPgwUDPAddr)
-	if err != nil {
-		return err
-	}
-	select {
-	case res := <-s.echoChannel:
-		return res
-	case <-time.After(s.gtpClient.GtpTimeout):
-		return fmt.Errorf("waitEchoResponse timeout")
-	}
 }

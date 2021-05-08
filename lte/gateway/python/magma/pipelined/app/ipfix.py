@@ -12,13 +12,15 @@ limitations under the License.
 """
 import shlex
 import subprocess
-from typing import NamedTuple, Dict
+from typing import Dict, NamedTuple
 
-from magma.pipelined.app.base import MagmaController, ControllerType
-from magma.pipelined.openflow import flows
-from ryu.controller.controller import Datapath
-from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.openflow import flows
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from ryu.controller.controller import Datapath
+
 
 class IPFIXController(MagmaController):
     """
@@ -45,6 +47,9 @@ class IPFIXController(MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
+        self._app_set_tbl_num = self._service_manager.INTERNAL_APP_SET_TABLE_NUM
+        self._imsi_set_tbl_num = \
+            self._service_manager.INTERNAL_IMSI_SET_TABLE_NUM
         self._dpi_enabled = kwargs['config']['dpi']['enabled']
         self._bridge_name = kwargs['config']['bridge_name']
         self._conntrackd_enabled = kwargs['config']['conntrackd']['enabled']
@@ -158,6 +163,10 @@ class IPFIXController(MagmaController):
 
     def _delete_all_flows(self, datapath: Datapath) -> None:
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._app_set_tbl_num,
+                                          cookie=self.tbl_num)
+        flows.delete_all_flows_from_table(datapath, self._imsi_set_tbl_num,
+                                          cookie=self.tbl_num)
         flows.delete_all_flows_from_table(datapath, self._ipfix_sample_tbl_num)
 
     def _install_default_flows(self, datapath: Datapath) -> None:
@@ -172,6 +181,17 @@ class IPFIXController(MagmaController):
             datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
+
+        if not self._service_manager.is_app_enabled(DPIController.APP_NAME):
+            flows.add_resubmit_next_service_flow(
+                self._datapath, self._app_set_tbl_num, MagmaMatch(),
+                priority=flows.MINIMUM_PRIORITY, cookie=self.tbl_num,
+                resubmit_table=self._imsi_set_tbl_num)
+
+        flows.add_resubmit_next_service_flow(
+            self._datapath, self._imsi_set_tbl_num, MagmaMatch(),
+            priority=flows.MINIMUM_PRIORITY, cookie=self.tbl_num,
+            resubmit_table=self._ipfix_sample_tbl_num)
 
     def add_ue_sample_flow(self, imsi: str, msisdn: str,
                            apn_mac_addr: str, apn_name: str,

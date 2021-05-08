@@ -60,8 +60,8 @@ class TestAttachDetachWithCorruptStatelessMME(unittest.TestCase):
             self._s1ap_wrapper.magmad_util.corrupt_agw_state(
                 services_state_dict[s])
 
-            print("************************* Restarting %s service on" % s)
-            self._s1ap_wrapper.magmad_util.restart_services(s)
+            print("************************* Restarting %s service" % s)
+            self._s1ap_wrapper.magmad_util.restart_services([s])
 
             for j in range(100):
                 print("Waiting for", j, "seconds")

@@ -120,7 +120,7 @@ void MmeNasStateConverter::guti_table_to_proto(
     FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
     return;
   }
-  for (auto i = 0; i < size; i++) {
+  for (unsigned int i = 0; i < size; i++) {
     uint64_t mme_ue_id;
 
     char* str = mme_app_convert_guti_to_string((guti_t*) (*key_array_p)[i]);

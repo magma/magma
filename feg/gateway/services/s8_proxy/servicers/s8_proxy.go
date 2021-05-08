@@ -30,9 +30,8 @@ type echoResponse struct {
 }
 
 type S8Proxy struct {
-	config      *S8ProxyConfig
-	gtpClient   *gtp.Client
-	echoChannel chan (error)
+	config    *S8ProxyConfig
+	gtpClient *gtp.Client
 }
 
 type S8ProxyConfig struct {
@@ -67,9 +66,8 @@ func NewS8ProxyWithEcho(config *S8ProxyConfig) (*S8Proxy, error) {
 func newS8ProxyImp(cli *gtp.Client, config *S8ProxyConfig) (*S8Proxy, error) {
 	// TODO: validate config
 	s8p := &S8Proxy{
-		config:      config,
-		gtpClient:   cli,
-		echoChannel: make(chan error),
+		config:    config,
+		gtpClient: cli,
 	}
 	addS8GtpHandlers(s8p)
 	return s8p, nil
@@ -92,7 +90,7 @@ func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 	// build csReq IE message
 	csReqMsg, err := buildCreateSessionRequestMsg(cPgwUDPAddr, req)
 	if err != nil {
-		err = fmt.Errorf("Create Session failed for IMSI %s: %s", req.Imsi, err)
+		err = fmt.Errorf("Create Session failed to build IEs for IMSI %s: %s", req.Imsi, err)
 		glog.Error(err)
 		return nil, err
 	}
@@ -120,7 +118,13 @@ func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRe
 		glog.Error(err)
 		return nil, err
 	}
-	dsReqMsg := buildDeleteSessionRequestMsg(req)
+	dsReqMsg, err := buildDeleteSessionRequestMsg(cPgwUDPAddr, req)
+	if err != nil {
+		err = fmt.Errorf("Delete Session failed to build IEs for IMSI %s: %s", req.Imsi, err)
+		glog.Error(err)
+		return nil, err
+	}
+
 	cdRes, err := s.sendAndReceiveDeleteSession(req, cPgwUDPAddr, dsReqMsg)
 	if err != nil {
 		err = fmt.Errorf("Delete Session failed for IMSI %s:, %s", req.Imsi, err)
@@ -130,14 +134,14 @@ func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRe
 	return cdRes, nil
 }
 
-func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*protos.EchoResponse, error) {
+func (s *S8Proxy) SendEcho(_ context.Context, req *protos.EchoRequest) (*protos.EchoResponse, error) {
 	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
 	if err != nil {
 		err = fmt.Errorf("SendEcho to %s failed: %s", cPgwUDPAddr, err)
 		glog.Error(err)
 		return nil, err
 	}
-	err = s.sendAndReceiveEchoRequest(cPgwUDPAddr)
+	err = s.gtpClient.SendEchoRequest(cPgwUDPAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -149,7 +153,7 @@ func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*proto
 func (s *S8Proxy) configOrRequestedPgwAddress(pgwAddrsFromRequest string) (*net.UDPAddr, error) {
 	addrs := ParseAddress(pgwAddrsFromRequest)
 	if addrs != nil {
-		// address comming from string has precednece
+		// address coming from string has precedence
 		return addrs, nil
 	}
 	if s.config.ServerAddr != nil {
@@ -159,14 +163,15 @@ func (s *S8Proxy) configOrRequestedPgwAddress(pgwAddrsFromRequest string) (*net.
 }
 
 func validateCreateSessionRequest(csr *protos.CreateSessionRequestPgw) error {
-	if csr.BearerContext == nil || csr.BearerContext.UserPlaneFteid == nil || csr.BearerContext.Id == 0 {
+	if csr.BearerContext == nil || csr.BearerContext.UserPlaneFteid == nil || csr.BearerContext.Id == 0 ||
+		csr.BearerContext.Qos == nil || csr.Uli == nil || csr.ServingNetwork == nil {
 		return fmt.Errorf("CreateSessionRequest missing fields %+v", csr)
 	}
 	return nil
 }
 
 func validateDeleteSessionRequest(dsr *protos.DeleteSessionRequestPgw) error {
-	if dsr.CPgwFteid == nil || dsr.Imsi == "" {
+	if dsr.Imsi == "" || dsr.Uli == nil || dsr.ServingNetwork == nil {
 		return fmt.Errorf("DeleteSessionRequest missing fields %+v", dsr)
 	}
 	return nil

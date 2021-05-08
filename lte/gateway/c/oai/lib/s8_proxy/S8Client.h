@@ -47,6 +47,11 @@ class S8Client : public GRPCReceiver {
       const CreateSessionRequestPgw& csr_req,
       std::function<void(grpc::Status, CreateSessionResponsePgw)> callback);
 
+  // Send Delete Session Request
+  static void s8_delete_session_request(
+      const DeleteSessionRequestPgw& dsr_req,
+      std::function<void(grpc::Status, DeleteSessionResponsePgw)> callback);
+
  public:
   S8Client(S8Client const&) = delete;
   void operator=(S8Client const&) = delete;

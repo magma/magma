@@ -75,8 +75,9 @@ bool pcef_end_session(char* imsi, char* apn);
  * uniquely identified by imsi and default bearer id.
  */
 void pcef_send_policy2bearer_binding(
-    const char* imsi, uint8_t default_bearer_id, char* policy_rule_name,
-    uint8_t eps_bearer_id);
+    const char* imsi, const uint8_t default_bearer_id,
+    const char* policy_rule_name, const uint8_t eps_bearer_id,
+    const uint32_t eps_bearer_agw_teid, const uint32_t eps_bearer_enb_teid);
 
 void get_session_req_data(
     spgw_state_t* spgw_state,
@@ -98,6 +99,8 @@ int get_msisdn_from_session_req(
 
 char convert_digit_to_char(char digit);
 
+int get_imeisv_from_session_req(
+    const itti_s11_create_session_request_t* saved_req, char* imeisv);
 #ifdef __cplusplus
 }
 #endif

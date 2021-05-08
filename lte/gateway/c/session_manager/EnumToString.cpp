@@ -213,4 +213,22 @@ std::string event_trigger_to_str(EventTrigger event_trigger) {
   }
 }
 
+std::string request_origin_type_to_str(
+    RequestOriginType_OriginType request_type) {
+  switch (request_type) {
+    case RequestOriginType_OriginType_GX:
+      return "GX";
+    case RequestOriginType_OriginType_GY:
+      return "GY";
+    case RequestOriginType_OriginType_N4:
+      return "N4";
+    case RequestOriginType_OriginType_WILDCARD:
+      return "WILDCARD";
+    default:
+      std::ostringstream message;
+      message << "Unimplemented RequestOriginType: " << request_type;
+      return message.str();
+  }
+}
+
 }  // namespace magma

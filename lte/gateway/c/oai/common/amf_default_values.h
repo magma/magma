@@ -22,10 +22,20 @@
 /*******************************************************************************
  * NGAP Constants
  ******************************************************************************/
-
+#define NGAP_OUTCOME_TIMER_DEFAULT (5)
+#define AMF_STATISTIC_TIMER_S (60)
 #define NGAP_PORT_NUMBER (38412)
 ///< IANA assigned port number for NGAP payloads on SCTP endpoint
 #define NGAP_SCTP_PPID (60)  ///< NGAP SCTP Payload Protocol Identifier (PPID)
+
+/*******************************************************************************
+ * SCTP Constants
+ ******************************************************************************/
+
+#define SCTP_RECV_BUFFER_SIZE (1 << 16)
+#define SCTP_OUT_STREAMS (32)
+#define SCTP_IN_STREAMS (32)
+#define SCTP_MAX_ATTEMPTS (5)
 
 /*******************************************************************************
  * AMF global definitions
@@ -33,6 +43,7 @@
 
 #define AMFC (1)
 #define AMFGID (1)
+#define AMFPOINTER (1)
 #define PLMN_MCC (208)
 #define PLMN_MNC (34)
 #define PLMN_MNC_LEN (2)

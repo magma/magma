@@ -10,14 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      ngap_types.h
-  Date        2020/07/28
-  Author      Ashish Prajapati
-  Subsystem   Access and Mobility Management Function
-  Description Defines NG Application Protocol Messages
-
-*****************************************************************************/
 
 #pragma once
 
@@ -31,6 +23,9 @@
 #define NGAP_MAX_BROADCAST_PLMNS 6
 /* Maximum TAI Items configured, can be upto 256 */
 #define NGAP_MAX_TAI_ITEMS 16
+
+#define NGAP_TIMER_INACTIVE_ID (-1)
+#define NGAP_UE_CONTEXT_REL_COMP_TIMER 1  // in seconds
 
 // Forward declarations
 struct gnb_description_s;

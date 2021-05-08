@@ -35,9 +35,11 @@ using google::protobuf::Message;
 namespace magma {
 namespace lte {
 
-RedisClient::RedisClient()
+RedisClient::RedisClient(bool init_connection)
     : db_client_(std::make_unique<cpp_redis::client>()), is_connected_(false) {
-  init_db_connection();
+  if (init_connection) {
+    init_db_connection();
+  }
 }
 
 void RedisClient::init_db_connection() {
@@ -168,25 +170,6 @@ int RedisClient::read_redis_state(
   } catch (const std::runtime_error& e) {
     return RETURNerror;
   }
-}
-
-bool RedisClient::key_exists(const std::string& key) {
-  auto exists_vec = std::vector<std::string>();
-  exists_vec.push_back(key);
-
-  auto reply_future = db_client_->exists(exists_vec);
-  db_client_->sync_commit();
-  auto reply = reply_future.get();
-
-  if (reply.is_null()) {
-    return false;
-  }
-  if (reply.is_error() || !reply.is_integer()) {
-    throw std::runtime_error("Could not check for existence in redis");
-  }
-
-  // EXISTS returns how many of the queried keys exist as an integer
-  return reply.as_integer() == 1;
 }
 
 int RedisClient::serialize(

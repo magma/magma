@@ -14,10 +14,15 @@ limitations under the License.
 """
 
 import argparse
-from magma.common.rpc_utils import grpc_wrapper
-from lte.protos.enodebd_pb2 import GetParameterRequest, SetParameterRequest, \
-    EnodebIdentity, SingleEnodebStatus
+
+from lte.protos.enodebd_pb2 import (
+    EnodebIdentity,
+    GetParameterRequest,
+    SetParameterRequest,
+    SingleEnodebStatus,
+)
 from lte.protos.enodebd_pb2_grpc import EnodebdStub
+from magma.common.rpc_utils import grpc_wrapper
 from orc8r.protos.common_pb2 import Void
 
 

@@ -1,0 +1,10 @@
+- hosts: localhost
+  roles:
+    - role: deploy
+    - role: services/orc8r
+    - role: services
+    - role: platform
+    - role: infra/aws
+  vars_files:
+    - roles/deploy/vars/all.yml
+    - roles/services/vars/all.yml

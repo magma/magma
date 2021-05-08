@@ -80,9 +80,7 @@ func handleCommands(cmd string) error {
 		return sendCLR(username, clType)
 	case "RSR":
 		req := &protos.ResetRequest{UserId: []string{}}
-		for _, uid := range flag.Args() {
-			req.UserId = append(req.UserId, uid)
-		}
+		req.UserId = append(req.UserId, flag.Args()...)
 		rsa, err := s6a_proxy.GWS6AProxyReset(req)
 		if err != nil {
 			return fmt.Errorf("err sending RSR: %v", err)

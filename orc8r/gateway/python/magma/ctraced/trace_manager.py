@@ -12,27 +12,27 @@ limitations under the License.
 """
 
 import errno
-import grpc
 import logging
 import os
 import pathlib
 import subprocess
 import threading
 import time
-from typing import List
-from subprocess import SubprocessError
-from .command_builder import get_trace_builder
 from collections import namedtuple
+from subprocess import SubprocessError
+from typing import List
 
+import grpc
+from magma.ctraced.command_builder import get_trace_builder
 from orc8r.protos.ctraced_pb2 import ReportEndedTraceRequest
 from orc8r.protos.ctraced_pb2_grpc import CallTraceControllerStub
 
 _TRACE_FILE_NAME = "call_trace"
 _TRACE_FILE_NAME_POSTPROCESSED = "call_trace_postprocessed"
 _TRACE_FILE_EXT = "pcapng"
-_TRACE_FILE_WRITE_TIMEOUT = 20 # 20 seconds for TShark to write a trace to disk
+_TRACE_FILE_WRITE_TIMEOUT = 20  # 20 seconds for TShark to write a trace to disk
 _MAX_FILESIZE = 4000  # ~ 4 MiB for a trace
-_POSTPROCESSING_TIMEOUT = 10 # 10 seconds for TShark to apply display filters
+_POSTPROCESSING_TIMEOUT = 10  # 10 seconds for TShark to apply display filters
 
 EndTraceResult = namedtuple('EndTraceResult', ['success', 'data'])
 
@@ -44,23 +44,28 @@ class TraceManager:
 
     Only a single trace can be captured at a time.
     """
+
     def __init__(self, config, ctraced_stub: CallTraceControllerStub):
         self._trace_id = ""
-        self._is_active = False # is call trace being captured
-        self._is_stopping_trace = False # is manual stop initiated
+        self._is_active = False  # is call trace being captured
+        self._is_stopping_trace = False  # is manual stop initiated
         self._proc = None
-        self._trace_directory = config.get("trace_directory",
-                                           "/var/opt/magma/trace")  # type: str
+        self._trace_directory = config.get(
+            "trace_directory",
+            "/var/opt/magma/trace",
+        )  # type: str
         # Specify southbound interfaces
-        self._trace_interfaces = config.get("trace_interfaces",
-                                           ["eth0"])  # type: List[str]
+        self._trace_interfaces = config.get(
+            "trace_interfaces",
+            ["eth0"],
+        )  # type: List[str]
 
         # Should specify absolute path of trace filename if trace is active
         self._trace_filename = ""  # type: str
         self._trace_filename_postprocessed = ""  # type: str
 
         # TShark display filters are saved to postprocess packet capture files
-        self._display_filters = "" # type: str
+        self._display_filters = ""  # type: str
 
         self._tool_name = config.get("trace_tool", "tshark")  # type: str
         self._trace_builder = get_trace_builder(self._tool_name)
@@ -91,8 +96,10 @@ class TraceManager:
             True if successfully started call trace
         """
         if self._is_active:
-            logging.error("TraceManager: Failed to start trace: "
-                          "Trace already active")
+            logging.error(
+                "TraceManager: Failed to start trace: "
+                "Trace already active",
+            )
             return False
 
         self._trace_id = trace_id
@@ -130,7 +137,7 @@ class TraceManager:
         if not succeeded:
             return EndTraceResult(False, None)
 
-        data = self._get_final_trace_data() # type: bytes
+        data = self._get_final_trace_data()  # type: bytes
 
         self._cleanup_trace()
         logging.info("TraceManager: Call trace has ended")
@@ -148,8 +155,10 @@ class TraceManager:
         Returns:
             True if successfully executed command
         """
-        logging.info("TraceManager: Starting trace with %s, command: [%s]",
-                     self._tool_name, ' '.join(command))
+        logging.info(
+            "TraceManager: Starting trace with %s, command: [%s]",
+            self._tool_name, ' '.join(command),
+        )
 
         self._ensure_trace_directory_exists()
 
@@ -157,28 +166,35 @@ class TraceManager:
         #                  process can be running, and may have been started
         #                  by something external as well.
 
-
         # TODO(andreilee): Make sure that a fast failure is detected
+
         def run_tracing_in_thread(on_exit, command: List[str]):
             try:
                 self._proc = subprocess.Popen(
                     command,
                     stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT)
+                    stderr=subprocess.STDOUT,
+                )
             except SubprocessError as e:
-                logging.error("TraceManager: Failed to start trace: %s",
-                              str(e))
+                logging.error(
+                    "TraceManager: Failed to start trace: %s",
+                    str(e),
+                )
 
             self._is_active = True
-            logging.info("TraceManager: Successfully started trace with %s",
-                         self._tool_name)
+            logging.info(
+                "TraceManager: Successfully started trace with %s",
+                self._tool_name,
+            )
 
             self._proc.wait()
             on_exit()
             return
 
-        thread = threading.Thread(target=run_tracing_in_thread,
-                                  args=(self._on_trace_exit, command))
+        thread = threading.Thread(
+            target=run_tracing_in_thread,
+            args=(self._on_trace_exit, command),
+        )
         thread.start()
         return True
 
@@ -193,8 +209,10 @@ class TraceManager:
             return
         self._proc.poll()
         return_code = self._proc.returncode
-        logging.debug("TraceManager: Tracing process return code: %s",
-                      return_code)
+        logging.debug(
+            "TraceManager: Tracing process return code: %s",
+            return_code,
+        )
         self._dump_trace_logs()
 
         if return_code != 0:
@@ -209,7 +227,7 @@ class TraceManager:
             self._report_trace_failure()
             return
 
-        data = self._get_final_trace_data() # type: bytes
+        data = self._get_final_trace_data()  # type: bytes
 
         self._cleanup_trace()
         logging.info("TraceManager: Reporting call trace timeout")
@@ -225,8 +243,10 @@ class TraceManager:
             )
             self._ctraced_stub.ReportEndedCallTrace(req)
         except grpc.RpcError:
-            logging.error('Unable to report successful call trace for %s. ',
-                          self._trace_id)
+            logging.error(
+                'Unable to report successful call trace for %s. ',
+                self._trace_id,
+            )
 
     def _report_trace_failure(self):
         try:
@@ -236,8 +256,10 @@ class TraceManager:
             )
             self._ctraced_stub.ReportEndedCallTrace(req)
         except grpc.RpcError:
-            logging.error('Unable to report failed call trace for %s. ',
-                          self._trace_id)
+            logging.error(
+                'Unable to report failed call trace for %s. ',
+                self._trace_id,
+            )
 
     def _stop_trace(self) -> bool:
         # If the process has ended, then _proc isn't None
@@ -247,8 +269,10 @@ class TraceManager:
             logging.info("TraceManager: Ending call trace")
             self._proc.terminate()
         else:
-            logging.debug("TraceManager: Tracing process return code: %s",
-                          return_code)
+            logging.debug(
+                "TraceManager: Tracing process return code: %s",
+                return_code,
+            )
 
         self._dump_trace_logs()
 
@@ -266,19 +290,24 @@ class TraceManager:
         command = self._trace_builder.build_postprocess_command(
             self._trace_filename,
             self._display_filters,
-            self._trace_filename_postprocessed
+            self._trace_filename_postprocessed,
         )
-        logging.info("TraceManager: Starting postprocess, command: [%s]",
-                     ' '.join(command))
+        logging.info(
+            "TraceManager: Starting postprocess, command: [%s]",
+            ' '.join(command),
+        )
         try:
             self._proc = subprocess.Popen(
                 command,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT)
+                stderr=subprocess.STDOUT,
+            )
         except subprocess.CalledProcessError as e:
             self._is_active = False
-            logging.error("TraceManager: Failed to postprocess trace: %s",
-                          str(e))
+            logging.error(
+                "TraceManager: Failed to postprocess trace: %s",
+                str(e),
+            )
             return False
 
         self._proc.wait()
@@ -319,13 +348,15 @@ class TraceManager:
             self._trace_directory,
             _TRACE_FILE_NAME,
             int(time.time()),
-            _TRACE_FILE_EXT)
+            _TRACE_FILE_EXT,
+        )
 
         self._trace_filename_postprocessed = "{0}/{1}_{2}.{3}".format(
             self._trace_directory,
             _TRACE_FILE_NAME_POSTPROCESSED,
             int(time.time()),
-            _TRACE_FILE_EXT)
+            _TRACE_FILE_EXT,
+        )
 
     def _should_postprocess(self) -> bool:
         return len(self._display_filters) > 0
@@ -345,10 +376,14 @@ class TraceManager:
 
     def _wait_until_trace_file_exists(self):
         time_pending = 0
-        while (not self._does_trace_file_exist() and
-               time_pending < _TRACE_FILE_WRITE_TIMEOUT):
-            logging.debug("TraceManager: Waiting 1s for trace file to be "
-                         "written...")
+        while (
+            not self._does_trace_file_exist()
+            and time_pending < _TRACE_FILE_WRITE_TIMEOUT
+        ):
+            logging.debug(
+                "TraceManager: Waiting 1s for trace file to be "
+                "written...",
+            )
             time.sleep(1)
             time_pending += 1
         if time_pending >= _TRACE_FILE_WRITE_TIMEOUT:
@@ -370,8 +405,10 @@ class TraceManager:
                 os.remove(filename)
         except OSError as e:
             if e.errno != errno.ENOENT:
-                logging.error("TraceManager: Error when deleting tmp trace "
-                              "file: %s", str(e))
+                logging.error(
+                    "TraceManager: Error when deleting tmp trace "
+                    "file: %s", str(e),
+                )
 
     def _ensure_trace_directory_exists(self) -> None:
         pathlib.Path(self._trace_directory).mkdir(parents=True, exist_ok=True)

@@ -21,6 +21,7 @@ package reindex_test
 
 import (
 	"context"
+	"flag"
 	"fmt"
 	"testing"
 	"time"
@@ -103,7 +104,8 @@ var (
 )
 
 func init() {
-	// _ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+	// TODO(hcgatewood) after resolving racy CI issue, revert most changes from #6329
+	_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
 }
 
 func TestRun(t *testing.T) {

@@ -15,10 +15,8 @@ import logging
 
 import aioh2
 import h2.events
-
-from orc8r.protos.sync_rpc_service_pb2 import GatewayResponse, SyncRPCResponse
-
 from magma.common.service_registry import ServiceRegistry
+from orc8r.protos.sync_rpc_service_pb2 import GatewayResponse, SyncRPCResponse
 
 
 class ControlProxyHttpClient(object):

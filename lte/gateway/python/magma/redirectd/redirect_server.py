@@ -14,12 +14,11 @@ limitations under the License.
 import logging
 from collections import namedtuple
 
+import wsgiserver
+from flask import Flask, redirect, render_template, request
 from magma.redirectd.redirect_store import RedirectDict
 
-import wsgiserver
-from flask import Flask, redirect, request, render_template
-
-""" Use 404 when subscriber not found, 302 for 'Found' redirect """
+# Use 404 when subscriber not found, 302 for 'Found' redirect
 HTTP_NOT_FOUND = 404
 HTTP_REDIRECT = 302
 
@@ -27,7 +26,7 @@ NOT_FOUND_HTML = '404.html'
 
 RedirectInfo = namedtuple('RedirectInfo', ['subscriber_ip', 'server_response'])
 ServerResponse = namedtuple(
-    'ServerResponse', ['redirect_address', 'http_code']
+    'ServerResponse', ['redirect_address', 'http_code'],
 )
 
 
@@ -37,16 +36,15 @@ def flask_redirect(**kwargs):
     redirect_info = RedirectInfo(request.remote_addr, response)
 
     logging.info(
-        "Request from {}: sent http code {} - redirected to {}".format(
-            redirect_info.subscriber_ip, response.http_code,
-            response.redirect_address
-        )
+        "Request from %s: sent http code %s - redirected to %s",
+        redirect_info.subscriber_ip, response.http_code,
+        response.redirect_address,
     )
 
     if response.http_code is HTTP_NOT_FOUND:
         return render_template(
             response.redirect_address,
-            subscriber={'ip': redirect_info.subscriber_ip}
+            subscriber={'ip': redirect_info.subscriber_ip},
         ), HTTP_NOT_FOUND
 
     return redirect(response.redirect_address, code=response.http_code)
@@ -82,14 +80,14 @@ def setup_flask_server():
         '/<path:path>',
         'index',
         flask_redirect,
-        defaults={'get_redirect_response': get_redirect_response}
+        defaults={'get_redirect_response': get_redirect_response},
     )
     return app
 
 
 def run_flask(ip, port, exit_callback):
     """
-    Runs the flask server, this is a daemon, so it exits when redirectd exits
+    Run the flask server. this is a daemon, so it exits when redirectd exits
     """
 
     app = setup_flask_server()

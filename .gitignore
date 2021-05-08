@@ -56,6 +56,9 @@ orc8r/cloud/swagger/specs
 # Node
 node_modules/
 
+# Docusaurus
+docs/docusaurus/build/
+
 # Ignore apt/build cache
 .cache/*
 
@@ -88,6 +91,7 @@ tags
 # CI files
 archives/
 test_results_magma_converged_mme.html
+orc8r/cloud/test-results/
 
 # IntelliJ
 .idea/

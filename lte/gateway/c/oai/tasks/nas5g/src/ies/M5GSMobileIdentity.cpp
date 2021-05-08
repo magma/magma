@@ -311,7 +311,7 @@ int M5GSMobileIdentityMsg::DecodeM5GSMobileIdentityMsg(
     uint32_t len) {
   int decoded_rc = TLV_VALUE_DOESNT_MATCH;
   int decoded    = 0;
-  uint8_t ielen  = 0;
+  uint16_t ielen = 0;
 
   MLOG(MDEBUG) << "M5GS Mobile Identity : ";
   if (iei > 0) {
@@ -526,8 +526,8 @@ int M5GSMobileIdentityMsg::EncodeSuciMobileIdentityMsg(
       (const char*) (buffer + encoded), suci->suci_nai.size());
   MLOG(MDEBUG) << "ielen = " << hex << (unsigned char) suci->suci_nai.size();
   MLOG(MDEBUG) << "contents";
-  int i = 0;
-  for (i; i < suci->suci_nai.size(); i++) {
+
+  for (size_t i = 0; i < suci->suci_nai.size(); i++) {
     MLOG(MDEBUG) << hex << int(suci->suci_nai[i]);
   }
 

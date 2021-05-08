@@ -92,10 +92,11 @@ services:
     echo_port: 10121
     proxy_type: "clientcert"
     labels:
+      orc8r.io/obsidian_handlers: "true"
       orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
-        /magma/v1/networks/logs,
+        /magma/v1/networks/:network_id/logs,
         /magma/v1/events,
 
   obsidian:

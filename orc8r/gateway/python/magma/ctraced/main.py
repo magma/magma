@@ -11,13 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from magma.common.service import MagmaService
 from magma.common.sentry import sentry_init
+from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
-from .rpc_servicer import CtraceDRpcServicer
-from .trace_manager import TraceManager
+from magma.ctraced.rpc_servicer import CtraceDRpcServicer
+from magma.ctraced.trace_manager import TraceManager
 from orc8r.protos.ctraced_pb2_grpc import CallTraceControllerStub
 from orc8r.protos.mconfig.mconfigs_pb2 import CtraceD
+
 
 def main():
     """ main() for ctraced """

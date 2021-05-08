@@ -56,7 +56,7 @@ func GetSwxProxyConfig() []*SwxProxyConfig {
 		glog.V(2).Infof("%s Managed Configs Load Error: %v", SwxProxyServiceName, err)
 
 		return []*SwxProxyConfig{
-			&SwxProxyConfig{
+			{
 				ClientCfg: &diameter.DiameterClientConfig{
 					Host:        diameter.GetValueOrEnv(diameter.HostFlag, SwxDiamHostEnv, DefaultSwxDiamHost),
 					Realm:       diameter.GetValueOrEnv(diameter.RealmFlag, SwxDiamRealmEnv, DefaultSwxDiamRealm),

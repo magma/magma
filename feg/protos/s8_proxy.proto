@@ -44,9 +44,10 @@ message CreateSessionRequestPgw {
     BearerContext bearer_context = 13;   // Contains AGW user plane FTEID
     uint32 c_agw_teid = 14;              // AGW control plane TEID
 
-    bytes indication_flag = 15;
-    string charging_characteristics = 16;
-    TimeZone time_zone = 17;
+    ProtocolConfigurationOptions protocol_configuration_options = 15;
+    bytes indication_flag = 16;
+    string charging_characteristics = 17;
+    TimeZone time_zone = 18;
 }
 
 enum PDNType {
@@ -89,8 +90,18 @@ message UserLocationInformation {
 }
 
 message ServingNetwork {
-    string mcc = 1;             //TODO: change to bytes
-    string mnc = 2;             //TODO: change to bytes
+    string mcc = 1;
+    string mnc = 2;
+}
+
+message ProtocolConfigurationOptions {
+    uint32 config_protocol = 1;
+    repeated PcoProtocolOrContainerId proto_or_container_id = 2;
+}
+
+message PcoProtocolOrContainerId {
+    uint32 id = 1;
+    bytes contents = 2;
 }
 
 message BearerContext {
@@ -139,8 +150,8 @@ message CreateSessionResponsePgw {
     uint32 c_agw_teid = 4;
     Fteid c_pgw_fteid = 5;
     BearerContext bearer_context = 6;
-    GtpError gtp_error = 7;
-
+    ProtocolConfigurationOptions protocol_configuration_options = 7;
+    GtpError gtp_error = 8;
 }
 
 message DeleteSessionRequestPgw {
@@ -148,7 +159,9 @@ message DeleteSessionRequestPgw {
     string imsi = 2;
     uint32 bearer_id = 3;
     uint32 c_agw_teid = 4;          // AGW control plane TEID
-    Fteid c_pgw_fteid = 5;
+    uint32 c_pgw_teid = 5;
+    ServingNetwork serving_network = 6;
+    UserLocationInformation uli = 7;
 }
 
 message DeleteSessionResponsePgw{
@@ -166,5 +179,4 @@ message EchoResponse{
 message GtpError {
     uint32 cause = 1;
     string msg= 2;
-
 }

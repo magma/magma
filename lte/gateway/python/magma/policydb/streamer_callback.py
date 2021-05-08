@@ -11,21 +11,32 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import grpc
 import logging
 from typing import Any, List, Set
-from lte.protos.policydb_pb2 import PolicyRule, ChargingRuleNameSet,\
-    RatingGroup, SubscriberPolicySet, ApnPolicySet
-from lte.protos.session_manager_pb2 import StaticRuleInstall, SessionRules,\
-    RulesPerSubscriber, RuleSet, DynamicRuleInstall
+
+import grpc
+from lte.protos.policydb_pb2 import (
+    ApnPolicySet,
+    ChargingRuleNameSet,
+    PolicyRule,
+    RatingGroup,
+    SubscriberPolicySet,
+)
+from lte.protos.session_manager_pb2 import (
+    DynamicRuleInstall,
+    RuleSet,
+    RulesPerSubscriber,
+    SessionRules,
+    StaticRuleInstall,
+)
 from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
 from magma.common.streamer import StreamerClient
-from orc8r.protos.streamer_pb2 import DataUpdate
 from magma.policydb.apn_rule_map_store import ApnRuleAssignmentsDict
+from magma.policydb.basename_store import BaseNameDict
 from magma.policydb.default_rules import get_allow_all_policy_rule
 from magma.policydb.rating_group_store import RatingGroupsDict
 from magma.policydb.rule_store import PolicyRuleDict
-from magma.policydb.basename_store import BaseNameDict
+from orc8r.protos.streamer_pb2 import DataUpdate
 
 
 class PolicyDBStreamerCallback(StreamerClient.Callback):

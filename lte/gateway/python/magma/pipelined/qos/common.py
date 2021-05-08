@@ -10,20 +10,27 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List, Dict  # noqa
-
-import logging
 import json
+import logging
+import threading
+import traceback
 from enum import Enum
+from typing import Dict, List  # noqa
+
 from lte.protos.policydb_pb2 import FlowMatch
+from magma.configuration.service_configs import load_service_config
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.qos.qos_tc_impl import TCManager, TrafficClass
-from magma.pipelined.qos.types import QosInfo, get_key_json, get_key, get_subscriber_key,\
-    get_subscriber_data, get_data_json, get_data
+from magma.pipelined.qos.types import (
+    QosInfo,
+    get_data,
+    get_data_json,
+    get_key,
+    get_key_json,
+    get_subscriber_data,
+    get_subscriber_key,
+)
 from magma.pipelined.qos.utils import QosStore
-from magma.configuration.service_configs import load_service_config
-import traceback
-import threading
 
 LOG = logging.getLogger("pipelined.qos.common")
 # LOG.setLevel(logging.DEBUG)
@@ -363,7 +370,7 @@ class QosManager(object):
                 LOG.debug("add_subscriber_qos: not enabled or initialized")
                 return None, None
 
-            LOG.debug("adding qos for imsi %s rule_num %d direction %d apn_ambr %d, qos_info %s",
+            LOG.debug("adding qos for imsi %s rule_num %d direction %d apn_ambr %d, %s",
                       imsi, rule_num, direction, apn_ambr, qos_info)
 
             imsi = normalize_imsi(imsi)

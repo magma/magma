@@ -70,7 +70,8 @@ int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p) {
   // Allocate the local mme state
   create_state();
 
-  int rc = read_state_from_db();
+  redis_client = std::make_unique<RedisClient>(persist_state_enabled);
+  int rc       = read_state_from_db();
   read_ue_state_from_db();
   is_initialized = true;
   return rc;
@@ -100,6 +101,9 @@ mme_app_desc_t* MmeNasStateManager::get_state(bool read_from_db) {
     create_hashtables();
     // read the state from data store
     int rc = read_state_from_db();
+    if (rc != RETURNok) {
+      OAILOG_ERROR(LOG_MME_APP, "Failed to read task state from redis");
+    }
     read_ue_state_from_db();
     AssertFatal(state_cache_p, "mme_nas_state is NULL");
   }
@@ -231,7 +235,7 @@ int MmeNasStateManager::read_ue_state_from_db() {
       oai::UeContext ue_proto = oai::UeContext();
       auto* ue_context =
           (ue_mm_context_t*) (calloc(1, sizeof(ue_mm_context_t)));
-      if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
+      if (redis_client->read_proto(key, ue_proto) != RETURNok) {
         return RETURNerror;
       }
       MmeNasStateConverter::proto_to_ue(ue_proto, ue_context);

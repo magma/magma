@@ -15,7 +15,6 @@ from magma.common.health.service_state_wrapper import ServiceStateWrapper
 from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration.service_configs import load_service_config
-
 from magma.health.state_recovery import StateRecoveryJob
 
 

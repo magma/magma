@@ -178,6 +178,7 @@ data "template_file" "orc8r_values" {
     orc8r_db_port    = var.orc8r_db_port
     orc8r_db_dialect = var.orc8r_db_dialect
     orc8r_db_user    = var.orc8r_db_user
+    orc8r_db_pass    = var.orc8r_db_pass
 
     deploy_nms  = var.deploy_nms
 

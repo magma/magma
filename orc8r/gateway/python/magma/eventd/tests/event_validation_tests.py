@@ -13,9 +13,10 @@ limitations under the License.
 
 import json
 from unittest import TestCase
-from jsonschema import ValidationError
 
+from jsonschema import ValidationError
 from magma.eventd.event_validator import EventValidator
+
 
 class EventValidationTests(TestCase):
 
@@ -64,7 +65,7 @@ class EventValidationTests(TestCase):
                 'foo': 'asdf',
                 'bar': 123
             })
-            self.validator.validate_event(data,'simple_event')
+            self.validator.validate_event(data, 'simple_event')
 
         # Errors when there are missing AND excess fields
         with self.assertRaises(ValidationError):

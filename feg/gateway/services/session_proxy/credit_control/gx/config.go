@@ -62,7 +62,7 @@ func GetPCRFConfiguration() []*diameter.DiameterServerConfig {
 	if err != nil || !validGxConfig(configsPtr) {
 		log.Printf("%s Managed Gx PCRF Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
 		return []*diameter.DiameterServerConfig{
-			&diameter.DiameterServerConfig{
+			{
 				DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 					Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, PCRFAddrEnv, "127.0.0.1:3870"),
 					Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, GxNetworkEnv, "tcp"),
@@ -117,7 +117,7 @@ func GetGxClientConfiguration() []*diameter.DiameterClientConfig {
 	if err != nil {
 		log.Printf("%s Managed Gx Client Configs Load Error: %v", credit_control.SessionProxyServiceName, err)
 		return []*diameter.DiameterClientConfig{
-			&diameter.DiameterClientConfig{
+			{
 				Host:               diameter.GetValueOrEnv(diameter.HostFlag, GxDiamHostEnv, diameter.DiamHost),
 				Realm:              diameter.GetValueOrEnv(diameter.RealmFlag, GxDiamRealmEnv, diameter.DiamRealm),
 				ProductName:        diameter.GetValueOrEnv(diameter.ProductFlag, GxDiamProductEnv, diameter.DiamProductName),

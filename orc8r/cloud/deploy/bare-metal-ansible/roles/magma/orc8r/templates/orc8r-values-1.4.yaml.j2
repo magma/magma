@@ -1,0 +1,204 @@
+controller:
+  image:
+    repository: {{ orc8r_image_repo | mandatory }}/controller
+    tag: {{ orc8r_image_tag }}
+  podDisruptionBudget:
+    enabled: true
+  replicas: 2
+  spec:
+    database:
+      driver: mysql
+      sql_dialect: maria
+      db: {{ orc8r_db_user }}
+      host: {{ orc8r_db_host }}
+      pass: {{ orc8r_db_pass }}
+      port: 3306
+      user: {{ orc8r_db_user }}
+imagePullSecrets:
+- name: artifactory
+logging:
+  enabled: false
+metrics:
+  alertmanager:
+    create: true
+  alertmanagerConfigurer:
+    alertmanagerURL: orc8r-alertmanager:9093
+    create: true
+    image:
+      repository: {{ orc8r_alertmanager_image_repo }}
+      tag: {{ orc8r_alertmanager_image_tag }}
+  grafana:
+    create: false
+  imagePullSecrets:
+  - name: artifactory
+  metrics:
+    volumes:
+      prometheusConfig:
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: promcfg
+      prometheusData:
+        volumeSpec:
+          persistentVolumeClaim:
+            claimName: promdata
+  prometheus:
+    create: true
+    includeOrc8rAlerts: true
+  prometheusCache:
+    create: true
+    image:
+      repository: {{ orc8r_prometheus_cache_image_repo }}
+      tag: {{ orc8r_prometheus_cache_image_tag }}
+    limit: 500000
+  prometheusConfigurer:
+    create: true
+    image:
+      repository: {{ orc8r_prometheus_configurer_image_repo }}
+      tag: {{ orc8r_prometheus_configurer_image_tag }}
+    prometheusURL: orc8r-prometheus:9090
+  thanos:
+    enabled: false
+  userGrafana:
+    create: true
+    image:
+      repository: {{ orc8r_grafana_image_repo }}
+      tag: {{ orc8r_grafana_image_tag }}
+    volumes:
+      dashboardproviders:
+        persistentVolumeClaim:
+          claimName: grafanaproviders
+      dashboards:
+        persistentVolumeClaim:
+          claimName: grafanadashboards
+      datasources:
+        persistentVolumeClaim:
+          claimName: grafanadatasources
+      grafanaData:
+        persistentVolumeClaim:
+          claimName: grafanadata
+nginx:
+  create: true
+  image:
+    repository: {{ orc8r_image_repo | mandatory }}/nginx
+    tag: {{ orc8r_nginx_image_tag }}
+  podDisruptionBudget:
+    enabled: true
+  replicas: 2
+  service:
+    enabled: true
+    extraAnnotations:
+      bootstrapLagacy:
+        external-dns.alpha.kubernetes.io/hostname: bootstrapper-controller.{{ orc8r_domain }}
+      clientcertLegacy:
+        external-dns.alpha.kubernetes.io/hostname: controller.{{ orc8r_domain }}
+      proxy:
+        external-dns.alpha.kubernetes.io/hostname: api.{{ orc8r_domain }}
+    legacyEnabled: true
+    name: orc8r-bootstrap-legacy
+    type: LoadBalancer
+  spec:
+    hostname: controller.{{ orc8r_domain }}
+    resolver: coredns.kube-system.svc.{{ dns_domain }} valid=10s
+nms:
+  enabled: true
+  imagePullSecrets:
+  - name: artifactory
+  magmalte:
+    env:
+      api_host: api.{{ orc8r_domain }}
+      grafana_address: orc8r-user-grafana:3000
+      mysql_db: {{ orc8r_nms_db_name }}
+      mysql_host: {{ orc8r_nms_db_host }}
+      mysql_pass: {{ orc8r_nms_db_pass }}
+      mysql_port: 3306
+      mysql_user: {{ orc8r_nms_db_user }}
+      mysql_dialect: mariadb
+    image:
+      pullPolicy: IfNotPresent
+      repository: {{ orc8r_image_repo | mandatory }}/magmalte
+      tag: {{ orc8r_nms_image_tag }}
+    manifests:
+      deployment: true
+      rbac: false
+      secrets: true
+      service: false
+  nginx:
+    create: true
+    deployment:
+      spec:
+        ssl_cert_key_name: controller.key
+        ssl_cert_name: controller.crt
+    manifests:
+      configmap: true
+      deployment: true
+      rbac: false
+      secrets: true
+      service: true
+    service:
+      annotations:
+        external-dns.alpha.kubernetes.io/hostname: '*.nms.{{ orc8r_domain }}'
+      type: LoadBalancer
+  secret:
+    certs: nms-certs
+
+secret:
+  certs: orc8r-certs
+  configs:
+    orc8r: orc8r-configs
+  envdir: orc8r-envdir
+secrets:
+  create: false
+
+# certs sub-chart configuration
+certs:
+  create: false
+  domainName: localhost
+
+orchestrator:
+  service:
+    labels:
+      orc8r.io/analytics_collector: "true"
+      orc8r.io/mconfig_builder: "true"
+      orc8r.io/metrics_exporter: "true"
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/state_indexer: "true"
+      orc8r.io/stream_provider: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/state_indexer_types: "directory_record"
+      orc8r.io/state_indexer_version: "1"
+      orc8r.io/stream_provider_streams: "configs"
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /,
+        /magma/v1/channels,
+        /magma/v1/networks,
+        /magma/v1/networks/:network_id,
+
+tenants:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/tenants,
+        /magma/v1/tenants/:tenants_id,
+
+eventd:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/logs,
+        /magma/v1/events,
+
+ctraced:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/tracing,

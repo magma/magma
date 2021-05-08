@@ -12,11 +12,15 @@ limitations under the License.
 """
 
 import unittest
-from unittest.mock import MagicMock
 
 from lte.protos.policydb_pb2 import RedirectInformation
-from magma.redirectd.redirect_server import HTTP_NOT_FOUND, HTTP_REDIRECT, \
-    NOT_FOUND_HTML, RedirectInfo, ServerResponse, setup_flask_server
+from magma.redirectd.redirect_server import (
+    HTTP_NOT_FOUND,
+    HTTP_REDIRECT,
+    NOT_FOUND_HTML,
+    ServerResponse,
+    setup_flask_server,
+)
 
 
 class RedirectdTest(unittest.TestCase):
@@ -32,17 +36,18 @@ class RedirectdTest(unittest.TestCase):
                 RedirectInformation(
                     support=1,
                     address_type=2,
-                    server_address='http://www.example.com/'
-                )
+                    server_address='http://www.example.com/',
+                ),
         }
 
         def get_resp(src_ip):
             if src_ip not in test_dict:
                 return ServerResponse(NOT_FOUND_HTML, HTTP_NOT_FOUND)
             return ServerResponse(
-                test_dict[src_ip].server_address, HTTP_REDIRECT
+                test_dict[src_ip].server_address, HTTP_REDIRECT,
             )
         # Replaces all url_dict polls with a mocked dict (for all url rules)
+        # pylint: disable=protected-access
         for rule in app.url_map._rules:
             if rule is not None and rule.defaults is not None:
                 rule.defaults['get_redirect_response'] = get_resp
@@ -61,8 +66,10 @@ class RedirectdTest(unittest.TestCase):
         """
         Assert 302 http response, proper reponse headers with new dest url
         """
-        resp = self.client.get('/generate_204',
-                               environ_base={'REMOTE_ADDR': '192.5.82.1'})
+        resp = self.client.get(
+            '/generate_204',
+            environ_base={'REMOTE_ADDR': '192.5.82.1'},
+        )
 
         self.assertEqual(resp.status_code, HTTP_REDIRECT)
         self.assertEqual(resp.headers['Location'], 'http://www.example.com/')

@@ -9,17 +9,22 @@ hide_title: true
 This page walks through a full, vanilla Orchestrator install using Ansible on bare metal or a virtual machine.
 
 If you want to install a specific release version, see the notes in the
-[deployment intro](./deploy_intro.md).
+[deployment intro](https://docs.magmacore.org/docs/orc8r/deploy_intro).
+
+## Advanced users
+
+If you have an existing Kubernetes cluster or want to make changes to the
+deployment, refer to the [advanced deployment notes](docs/advanced_notes.md).
 
 ## Prerequisites
 
 We assume `MAGMA_ROOT` is set as described in the
-[deployment intro](./deploy_intro.md).
+[deployment intro](https://docs.magmacore.org/docs/orc8r/deploy_intro).
 
 This walkthrough assumes you already have the following
 
 - a registered domain name
-- a physical or virutal server with at least 4 vCPU, 16 RAM, and 100Gb free storage
+- a physical or virtual server with at least 4 vCPU, 16 RAM, and 100Gb free storage
 
 ## Preparing for the install
 
@@ -128,25 +133,18 @@ upstream_dns_servers:
 # orc8r_nms_db_pass:
 # orc8r_nms_admin_pass:
 ```
-Once you've configured Ansible it's time to run the deployment.
+
+Once you've configured the Ansible vars file, it's time to run the deployment.
+
 ## Deploy the Orchestrator
 
-We're almost ready to deploy the orchestrator. First edit the deployment script:
-```bash
-vi $MAGMA_ROOT/orc8r/cloud/deploy/bare-metal-ansible/deploy.sh
-```
-Search for a line that reads:
-```bash
-# Copy ``inventory/sample`` as ``inventory/$CLUSTER_NAME``                     
-```
-and edit the script to read:
-```bash
-mkdir -p ../inventory/$CLUSTER_NAME
-# Copy ``inventory/sample`` as ``inventory/$CLUSTER_NAME`` 
-```
-The last step is to set the IP for the target host, as in:
+We're almost ready to deploy the orchestrator. The last step is to set the IP for the target host(s), as in:
 ```bash
 export IPS=192.168.1.180
+```
+or if you have multiple hosts:
+```bash
+export IPS=192.168.1.180 192.168.181 192.168.1.182
 ```
 
 Now you're ready to run the deployment.  From the `$MAGMA_ROOT/orc8r/cloud/deploy/bare-metal-ansible' directory, execute:
@@ -158,6 +156,6 @@ Now you're ready to run the deployment.  From the `$MAGMA_ROOT/orc8r/cloud/deplo
 
 Once you've begun a deployment, if you find that you need to go back and start again, it's best to completely reset the environment with:
 ```bash
-cd $MAGMA_ROOT
+cd $MAGMA_ROOT/orc8r/cloud/deploy/bare-metal-ansible/
 ansible-playbook -i inventory/cluster.local/hosts.yaml -b kubespray/reset.yml
 ```

@@ -11,8 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
@@ -20,17 +21,22 @@ from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
+    """Test secondary pdn connection and disconnection"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_secondary_pdn_disconn_ded_bearer(self):
-        """ Attach a single UE and send standalone PDN Connectivity
+        """Attach a single UE and send standalone PDN Connectivity
         Request + add dedicated bearer to each default bearer + disconnect
-        dedicated bearer"""
+        dedicated bearer
+        """
         num_ues = 1
 
         self._s1ap_wrapper.configUEDevice(num_ues)
@@ -53,7 +59,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
             apn_list = [ims]
 
             self._s1ap_wrapper.configAPN(
-                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
             )
 
             print(
@@ -67,6 +73,8 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
                 s1ap_types.ueAttachAccept_t,
             )
+            addr = attach_accept.esmInfo.pAddr.addrInfo
+            default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -76,20 +84,22 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
+            # Create default flow list
+            flow_list1 = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 attach_accept.esmInfo.epsBearerId,
+                flow_list1,
             )
-
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId
+                req.ue_id, act_ded_ber_ctxt_req.bearerId,
             )
 
             print("********************* Sleeping for 5 seconds")
@@ -100,9 +110,11 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
             # Receive PDN CONN RSP/Activate default EPS bearer context request
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
             )
             act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+            addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+            sec_ip = ipaddress.ip_address(bytes(addr[:4]))
 
             print(
                 "********************** Sending Activate default EPS bearer "
@@ -115,24 +127,38 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
                 "********************** Adding dedicated bearer to IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
+            # Create default flow list
+            flow_list2 = self._spgw_util.create_default_ipv4_flows()
             self._spgw_util.create_bearer(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 act_def_bearer_req.m.pdnInfo.epsBearerId,
+                flow_list2,
             )
-
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId
+                req.ue_id, act_ded_ber_ctxt_req.bearerId,
             )
 
             print("********************* Sleeping for 5 seconds")
             time.sleep(5)
+            # Verify if flow rules are created
+            dl_flow_rules = {
+                default_ip: [flow_list1],
+                sec_ip: [flow_list2],
+            }
+            # 2 UL flows for default and secondary pdns +
+            # 2 for dedicated bearers
+            num_ul_flows = 4
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules,
+            )
+
             # Send PDN Disconnect for dedicated bearer
             print(
                 "******************** Sending PDN Disconnect for bearer ",
@@ -142,7 +168,7 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
             pdn_disconnect_req.ue_Id = ue_id
             pdn_disconnect_req.epsBearerId = act_ded_ber_ctxt_req.bearerId
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req
+                s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req,
             )
 
             # Receive PDN Disconnect reject
@@ -156,6 +182,12 @@ class TestSecondaryPdnDisConnDedBearerReq(unittest.TestCase):
                 "******************** Received PDN Disconnect Reject for "
                 "bearer ",
                 act_ded_ber_ctxt_req.bearerId,
+            )
+            print("********************* Sleeping for 5 seconds")
+            time.sleep(5)
+            # Verify that flow rules are not deleted as PDN disconnect failed
+            self._s1ap_wrapper.s1_util.verify_flow_rules(
+                num_ul_flows, dl_flow_rules,
             )
 
             print(

@@ -11,15 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from ryu.lib import hub
-from ryu.controller import ofp_event
-from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
-
-from magma.pipelined.app.base import ControllerNotReadyException, \
-    MagmaController, ControllerType
+from magma.pipelined.app.base import (
+    ControllerNotReadyException,
+    ControllerType,
+    MagmaController,
+)
 from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.exceptions import MagmaOFError
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
+from ryu.lib import hub
+from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
 
 
 class StartupFlows(MagmaController):

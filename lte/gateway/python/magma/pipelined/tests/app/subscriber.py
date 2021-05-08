@@ -11,18 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import abc
 import logging
 import time
 from collections import namedtuple
 
-import abc
 import grpc
-from lte.protos.pipelined_pb2 import ActivateFlowsRequest, \
-    DeactivateFlowsRequest
-from ryu.lib import hub
-
-from magma.subscriberdb.sid import SIDUtils
+from lte.protos.pipelined_pb2 import (
+    ActivateFlowsRequest,
+    DeactivateFlowsRequest,
+)
 from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
+from magma.subscriberdb.sid import SIDUtils
+from ryu.lib import hub
 
 SubContextConfig = namedtuple('ContextConfig', ['imsi', 'ip', 'ambr',
                                                 'table_id'])
