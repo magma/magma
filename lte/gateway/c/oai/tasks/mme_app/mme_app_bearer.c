@@ -886,7 +886,8 @@ void mme_app_handle_delete_session_rsp(
         &ue_context_p->emm_context, delete_sess_resp_pP->lbi, &pid,
         &bearer_idx);
     if (ue_context_p->pdn_contexts[pid]) {
-      mme_app_free_pdn_context(&ue_context_p->pdn_contexts[pid]);
+      mme_app_free_pdn_context(
+          &ue_context_p->pdn_contexts[pid], ue_context_p->emm_context._imsi64);
     }
     if (ue_context_p->nb_active_pdn_contexts == 0) {
       nas_delete_all_emm_procedures(&ue_context_p->emm_context);
