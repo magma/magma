@@ -95,24 +95,20 @@ message ServingNetwork {
 }
 
 message ProtocolConfigurationOptions {
-    bool is_valid = 1;
-    uint32 config_protocol = 2;
-    uint32 num_protocol_or_container_id = 3;
-    repeated PcoProtocolOrContainerId proto_or_container_id = 4;
+    uint32 config_protocol = 1;
+    repeated PcoProtocolOrContainerId proto_or_container_id = 2;
 }
 
 message PcoProtocolOrContainerId {
     uint32 id = 1;
-    uint32 length = 2;
-    bytes contents = 3;
+    bytes contents = 2;
 }
 
 message BearerContext {
     uint32 id = 1;
     Fteid user_plane_fteid = 2;
-    bool valid_qos = 3;
-    QosInformation qos = 4;
-    uint32 charging_id = 5;
+    QosInformation qos = 3;
+    uint32 charging_id = 4;
 }
 
 message QosInformation {

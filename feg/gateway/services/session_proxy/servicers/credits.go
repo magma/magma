@@ -88,7 +88,6 @@ func makeCCRInit(
 					ApnAggMaxBitRateUL: lteContext.GetQosInfo().GetApnAmbrUl(),
 				}
 			}
-			break
 		}
 	} else {
 		glog.Warning("No RatSpecificContext is specified")

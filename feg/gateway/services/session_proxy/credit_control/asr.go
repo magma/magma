@@ -14,11 +14,12 @@ limitations under the License.
 package credit_control
 
 import (
+	"context"
+
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/relay"

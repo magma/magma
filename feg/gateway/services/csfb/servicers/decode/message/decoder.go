@@ -16,6 +16,7 @@ package message
 import (
 	"errors"
 	"fmt"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/decode/ie"
@@ -145,7 +146,6 @@ func DecodeSGsAPLocationUpdateReject(chunk []byte) (*any.Any, error) {
 	}
 
 	rejectCause := chunk[readIdx : readIdx+decode.LengthRejectCause]
-	readIdx += decode.LengthRejectCause
 
 	marshalledMsg, err := ptypes.MarshalAny(&protos.LocationUpdateReject{
 		Imsi:                   imsi,

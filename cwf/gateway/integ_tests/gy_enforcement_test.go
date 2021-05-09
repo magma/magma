@@ -463,8 +463,11 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		// Check ReAuth success
+		assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	}
 
 	// Assert that a CCR-I and CCR-U were sent to the OCS
 	tr.AssertAllGyExpectationsMetNoError()
@@ -544,8 +547,11 @@ func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		// Check ReAuth success
+		assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	}
 
 	// Wait for a termination to propagate
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
@@ -634,8 +640,11 @@ func TestGyAbortSessionRequest(t *testing.T) {
 	// module throws this error here. coa_dynamic module isn't enabled during
 	// authentication and hence it isn't aware of the sessionID used when
 	// processing disconnect
-	assert.Contains(t, asa.SessionId, "IMSI"+imsi)
-	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
+	assert.NotNil(t, asa)
+	if asa != nil {
+		assert.Contains(t, asa.SessionId, "IMSI"+imsi)
+		assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
+	}
 
 	// check if all session related info is cleaned up
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
@@ -733,8 +742,11 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	raa, err := sendChargingReAuthRequest(imsi, 1)
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
-	// Check ReAuth success
-	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		// Check ReAuth success
+		assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	}
 
 	// Assert that a CCR-I and CCR-U were sent to the OCS
 	tr.AssertAllGyExpectationsMetNoError()
@@ -856,8 +868,11 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		// Check ReAuth success
+		assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	}
 
 	// Assert that a CCR-I and reauth were sent
 	tr.AssertAllGyExpectationsMetNoError()

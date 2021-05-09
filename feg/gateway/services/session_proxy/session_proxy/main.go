@@ -68,6 +68,9 @@ func main() {
 	// Add servicers to the service
 	sessionManagerAndHealthServer, err := servicers.
 		NewCentralSessionControllerDefaultMultiplexWithHealth(controllerParms, policyDBClient)
+	if err != nil {
+		glog.Fatalf("Could not add Health Server to servicer: %s", err)
+	}
 	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessionManagerAndHealthServer)
 	protos.RegisterServiceHealthServer(srv.GrpcServer, sessionManagerAndHealthServer)
 
@@ -114,7 +117,7 @@ func generateClientsConfsAndDiameterConnection() (
 	glog.Info("------ Done reading configuration ------")
 
 	// ---- Create diammeter connections and build parameters for CentralSessionControllersn ----
-	glog.Info("------ Create diameter connexions ------")
+	glog.Info("------ Create diameter connections ------")
 	totalLen := len(OCSConfs)
 	controllerParms := make([]*servicers.ControllerParam, 0, totalLen)
 	for i := 0; i < totalLen; i++ {
@@ -184,6 +187,6 @@ func generateClientsConfsAndDiameterConnection() (
 		}
 		controllerParms = append(controllerParms, controlParam)
 	}
-	glog.Infof("------ Done creating %d diameter connexions ------", totalLen)
+	glog.Infof("------ Done creating %d diameter connections ------", totalLen)
 	return controllerParms, policyDBClient, nil
 }

@@ -41,6 +41,7 @@
     - lighttpd
     - sessiond
     - connectiond
+    - liagentd
   when: full_provision
 
 - name: Copy sctpd service file
@@ -134,6 +135,10 @@
 
 - name: Create symlink for connectiond binary
   file: src='{{ c_build }}/connection_tracker/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
+  when: full_provision
+
+- name: Create symlink for li agent binary
+  file: src='{{ c_build }}/li_agent/liagentd' path=/usr/local/bin/liagentd state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for corefile collection script
@@ -370,7 +375,7 @@
     ifdown gtp_br0
     /etc/init.d/openvswitch-switch  force-reload-kmod
   when: ansible_distribution == "Ubuntu"
- 
+
 - name: Bring up ovs bridge
   shell: ifup -i /etc/network/interfaces.d/gtp {{ item }}
   with_items:
@@ -385,6 +390,7 @@
     - eth0
     - mtr0
     - ipfix0
+    - li_port
   when: full_provision
 
 - name: Copy ryu ipfix patch
@@ -405,3 +411,15 @@
     src: patches/aioeventlet.py38.patch
     dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
   when: ansible_distribution == "Ubuntu"
+
+- name: Patch python aioeventlet lib crash ubuntu
+  patch:
+    src: patches/aioeventlet_fd_exception.patch
+    dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
+  when: ansible_distribution == "Ubuntu"
+
+- name: Patch python aioeventlet lib crash debian
+  patch:
+    src: patches/aioeventlet_fd_exception.patch
+    dest: /usr/lib/python3/dist-packages/aioeventlet.py
+  when: ansible_distribution == "Debian"

@@ -1,0 +1,5 @@
+orc8r_alertmanager_image_tag: 1.0.4
+orc8r_alertmanager_configurer_image_tag: 1.0.4
+orc8r_prometheus_cache_image_tag: 1.1.0
+orc8r_prometheus_configurer_image_tag: 1.0.4
+orc8r_grafana_image_tag: 6.6.2

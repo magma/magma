@@ -81,9 +81,8 @@ yarn build
 Now you can create a new versioned release
 
 ```bash
-yarn run version X.Y.0
+yarn run version X.Y.0  # e.g. version 1.5.0
 ```
 
-Commit all the new generated files **except the `docusaurus/node_modules`
-directory** and tweak the sidebars if you need to. Run
-`create_docusaurus_website.sh` to preview your changes.
+Commit all the new generated files and tweak the sidebars if you need to.
+Run `create_docusaurus_website.sh` to preview your changes.

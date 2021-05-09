@@ -18,10 +18,12 @@ import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
+import adminRoutes from '../admin/routes';
 import apiControllerRoutes from '../apicontroller/routes';
 import asyncHandler from '@fbcnms/util/asyncHandler';
 import express from 'express';
 import networkRoutes from '../network/routes';
+import path from 'path';
 import staticDist from '@fbcnms/webpack-config/staticDist';
 import userMiddleware from '@fbcnms/auth/express';
 import {AccessRoles} from '@fbcnms/auth/roles';
@@ -70,14 +72,11 @@ const handleReact = tab =>
   };
 
 router.use('/healthz', (req: FBCNMSRequest, res) => res.send('OK'));
-router.use(
-  '/admin',
-  access(AccessRoles.SUPERUSER),
-  require('@fbcnms/platform-server/admin/routes').default,
-);
+router.use('/admin', access(AccessRoles.SUPERUSER), adminRoutes);
 router.get('/admin*', access(AccessRoles.SUPERUSER), handleReact('admin'));
 router.use('/nms/apicontroller', apiControllerRoutes);
 router.use('/nms/network', networkRoutes);
+router.use('/nms/static', express.static(path.join(__dirname, '../static')));
 
 router.use('/logger', require('@fbcnms/platform-server/logger/routes'));
 router.use('/test', require('@fbcnms/platform-server/test/routes'));

@@ -18,7 +18,7 @@ import snowflake
 from magma.configuration.service_configs import get_service_config_value
 
 CONTROL_PROXY = 'control_proxy'
-SENTRY_URL = 'sentry_url'
+SENTRY_URL = 'sentry_url_python'
 SENTRY_SAMPLE_RATE = 'sentry_sample_rate'
 COMMIT_HASH = 'COMMIT_HASH'
 HWID = 'hwid'

@@ -14,23 +14,22 @@ limitations under the License.
 package main_test
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"testing"
 	"time"
 
-	"magma/feg/gateway/services/eap"
-	"magma/feg/gateway/services/eap/providers/aka"
-
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	cp "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
+	"magma/feg/gateway/services/eap"
 	eap_client "magma/feg/gateway/services/eap/client"
 	eapp "magma/feg/gateway/services/eap/protos"
+	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
 	eap_test "magma/feg/gateway/services/eap/test"
@@ -42,7 +41,7 @@ type testEapRouter struct {
 	supportedMethods []byte
 }
 
-func (s *testEapRouter) HandleIdentity(ctx context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
+func (s *testEapRouter) HandleIdentity(_ context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
 	resp, err := eap_client.HandleIdentityResponse(
 		uint8(in.GetMethod()), &protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
@@ -50,7 +49,7 @@ func (s *testEapRouter) HandleIdentity(ctx context.Context, in *protos.EapIdenti
 	}
 	return resp, err
 }
-func (s *testEapRouter) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, error) {
+func (s *testEapRouter) Handle(_ context.Context, in *protos.Eap) (*protos.Eap, error) {
 	resp, err := eap_client.Handle(in)
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
 		err = nil
@@ -58,7 +57,7 @@ func (s *testEapRouter) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap
 	return resp, err
 
 }
-func (s *testEapRouter) SupportedMethods(ctx context.Context, in *protos.Void) (*protos.EapMethodList, error) {
+func (s *testEapRouter) SupportedMethods(_ context.Context, _ *protos.Void) (*protos.EapMethodList, error) {
 	return &protos.EapMethodList{Methods: s.supportedMethods}, nil
 }
 
@@ -156,21 +155,21 @@ func TestEAPPeerNak(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), permIdReq) {
+	if !reflect.DeepEqual(peap.GetPayload(), permIdReq) {
 		t.Fatalf("Unexpected Identity Responsen\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), permIdReq)
 	}
 	peap, err = client.Handle(&protos.Eap{Payload: akaPrimeNak, Ctx: peap.Ctx})
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), failureEAP) {
+	if !reflect.DeepEqual(peap.GetPayload(), failureEAP) {
 		t.Fatalf("Unexpected AKA' Nak Response\n\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), failureEAP)
 	}
 	peap, err = client.Handle(&protos.Eap{Payload: akaAkaPrimeNak, Ctx: eapCtx})
 	if err != nil {
 		t.Fatalf("Unexpected Error: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), permIdReq) {
+	if !reflect.DeepEqual(peap.GetPayload(), permIdReq) {
 		t.Fatalf("Unexpected AKA['] Nak Response\n\tReceived: %.3v\n\tExpected: %.3v", peap.GetPayload(), permIdReq)
 	}
 }
@@ -204,7 +203,7 @@ func TestEAPAkaWrongPlmnId(t *testing.T) {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
 	notifAkaEap := aka.NewAKANotificationReq(eap.Packet(tst.EapIdentityResp).Identifier(), aka.NOTIFICATION_FAILURE)
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), []byte(notifAkaEap)) {
+	if !reflect.DeepEqual(peap.GetPayload(), []byte(notifAkaEap)) {
 		t.Fatalf(
 			"Unexpected identityResponse Notification\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), notifAkaEap)
@@ -241,7 +240,7 @@ func TestEAPAkaPlmnId5(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), tst.ExpectedChallengeReq) {
+	if !reflect.DeepEqual(peap.GetPayload(), tst.ExpectedChallengeReq) {
 		t.Fatalf(
 			"Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), tst.ExpectedChallengeReq)
@@ -277,7 +276,7 @@ func TestEAPAkaPlmnId6(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Error Handling Test EAP: %v", err)
 	}
-	if !reflect.DeepEqual([]byte(peap.GetPayload()), tst.ExpectedChallengeReq) {
+	if !reflect.DeepEqual(peap.GetPayload(), tst.ExpectedChallengeReq) {
 		t.Fatalf(
 			"Unexpected identityResponse EAP\n\tReceived: %.3v\n\tExpected: %.3v",
 			peap.GetPayload(), tst.ExpectedChallengeReq)

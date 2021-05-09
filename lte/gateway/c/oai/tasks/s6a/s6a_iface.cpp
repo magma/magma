@@ -87,9 +87,3 @@ bool s6a_viface_purge_ue(const char* imsi) {
   }
   return false;
 }
-//------------------------------------------------------------------------------
-void s6a_viface_timer_expired(const long timer_idP) {
-  if (s6a_interface) {
-    s6a_interface->timer_expired(timer_idP);
-  }
-}

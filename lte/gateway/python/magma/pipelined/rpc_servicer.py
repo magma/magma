@@ -21,27 +21,16 @@ from typing import List, Tuple
 import grpc
 from lte.protos import pipelined_pb2_grpc
 from lte.protos.mobilityd_pb2 import IPAddress
-from lte.protos.pipelined_pb2 import (
-    ActivateFlowsRequest,
-    ActivateFlowsResult,
-    AllTableAssignments,
-    CauseIE,
-    DeactivateFlowsRequest,
-    DeactivateFlowsResult,
-    FlowResponse,
-    OffendingIE,
-    PdrState,
-    RequestOriginType,
-    RuleModResult,
-    SessionSet,
-    SetupFlowsResult,
-    SetupPolicyRequest,
-    SetupQuotaRequest,
-    SetupUEMacRequest,
-    TableAssignment,
-    UPFSessionContextState,
-    VersionedPolicy,
-)
+from lte.protos.pipelined_pb2 import (ActivateFlowsRequest,
+                                      ActivateFlowsResult, AllTableAssignments,
+                                      CauseIE, DeactivateFlowsRequest,
+                                      DeactivateFlowsResult, FlowResponse,
+                                      OffendingIE, RequestOriginType,
+                                      RuleModResult, SessionSet,
+                                      SetupFlowsResult, SetupPolicyRequest,
+                                      SetupQuotaRequest, SetupUEMacRequest,
+                                      TableAssignment, UPFSessionContextState,
+                                      VersionedPolicy)
 from lte.protos.session_manager_pb2 import RuleRecordTable
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
 from magma.pipelined.app.check_quota import CheckQuotaController
@@ -54,19 +43,13 @@ from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.ue_mac import UEMacAddressController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.imsi import encode_imsi
-from magma.pipelined.ipv6_prefix_store import (
-    get_ipv6_interface_id,
-    get_ipv6_prefix,
-)
-from magma.pipelined.metrics import (
-    ENFORCEMENT_RULE_INSTALL_FAIL,
-    ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
-)
+from magma.pipelined.ipv6_prefix_store import (get_ipv6_interface_id,
+                                               get_ipv6_prefix)
+from magma.pipelined.metrics import (ENFORCEMENT_RULE_INSTALL_FAIL,
+                                     ENFORCEMENT_STATS_RULE_INSTALL_FAIL)
 from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
-from magma.pipelined.policy_converters import (
-    convert_ipv4_str_to_ip_proto,
-    convert_ipv6_bytes_to_ip_proto,
-)
+from magma.pipelined.policy_converters import (convert_ipv4_str_to_ip_proto,
+                                               convert_ipv6_bytes_to_ip_proto)
 
 grpc_msg_queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 15
@@ -403,17 +386,27 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
             ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
-            if request.request_origin.type == RequestOriginType.GX:
+            if self._should_remove_from_gx(request):
                 self._deactivate_flows_gx(request, ipv4)
-            else:
+            if self._should_remove_from_gy(request):
                 self._deactivate_flows_gy(request, ipv4)
         if request.ipv6_addr:
             ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
             self._update_ipv6_prefix_store(request.ipv6_addr)
-            if request.request_origin.type == RequestOriginType.GX:
+            if self._should_remove_from_gx(request):
                 self._deactivate_flows_gx(request, ipv6)
-            else:
+            if self._should_remove_from_gy(request):
                 self._deactivate_flows_gy(request, ipv6)
+
+    def _should_remove_from_gy(self, request: DeactivateFlowsRequest) -> bool:
+        is_gy = request.request_origin.type == RequestOriginType.GY
+        is_wildcard = request.request_origin.type == RequestOriginType.WILDCARD
+        return is_gy or is_wildcard
+
+    def _should_remove_from_gx(self, request: DeactivateFlowsRequest) -> bool:
+        is_gx = request.request_origin.type == RequestOriginType.GX
+        is_wildcard = request.request_origin.type == RequestOriginType.WILDCARD
+        return is_gx or is_wildcard
 
     def _deactivate_flows_gx(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GX flows for %s', request.sid.id)
@@ -783,16 +776,15 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut.set_result(response)
 
     def _ng_tunnel_update(self, pdr_entry: PDRRuleEntry, subscriber_id: str) -> bool:
-        if pdr_entry.pdr_state == PdrState.Value('INSTALL'):
-            ret = self._classifier_app.add_tunnel_flows(\
-                           pdr_entry.precedence, pdr_entry.local_f_teid,\
-                           pdr_entry.far_action.o_teid, pdr_entry.ue_ip_addr,\
-                           pdr_entry.far_action.gnb_ip_addr, encode_imsi(subscriber_id))
 
-        elif pdr_entry.pdr_state in \
-             [PdrState.Value('REMOVE'), PdrState.Value('IDLE')]:
-            ret = self._classifier_app.delete_tunnel_flows(\
-                           pdr_entry.local_f_teid, pdr_entry.ue_ip_addr)
+        ret = self._classifier_app.gtp_handler(pdr_entry.pdr_state,
+                                                pdr_entry.precedence,
+                                                pdr_entry.local_f_teid,
+                                                pdr_entry.far_action.o_teid,
+                                                pdr_entry.ue_ip_addr,
+                                                pdr_entry.far_action.gnb_ip_addr,
+                                                encode_imsi(subscriber_id),
+                                                True)
 
         return ret
 

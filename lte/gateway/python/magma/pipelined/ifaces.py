@@ -19,7 +19,7 @@ POLL_INTERVAL_SECONDS = 3
 
 
 @asyncio.coroutine
-def monitor_ifaces(iface_names, loop):
+def monitor_ifaces(iface_names):
     """
     Call to poll the network interfaces and set the corresponding metric
     """
@@ -28,4 +28,4 @@ def monitor_ifaces(iface_names, loop):
         for iface in iface_names:
             status = 1 if iface in active else 0
             NETWORK_IFACE_STATUS.labels(iface_name=iface).set(status)
-        yield from asyncio.sleep(POLL_INTERVAL_SECONDS, loop=loop)
+        yield from asyncio.sleep(POLL_INTERVAL_SECONDS)

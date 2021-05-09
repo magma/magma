@@ -14,7 +14,7 @@ If you want to install a specific release version, see the notes in the
 ## Advanced users
 
 If you have an existing Kubernetes cluster or want to make changes to the
-deployment, refer to the [advanced deployment notes](docs/other_scenarios.md).
+deployment, refer to the [advanced deployment notes](docs/advanced_notes.md).
 
 ## Prerequisites
 

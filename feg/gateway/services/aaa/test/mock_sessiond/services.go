@@ -15,10 +15,9 @@
 package mock_sessiond
 
 import (
+	"context"
 	"fmt"
 	"testing"
-
-	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
 	"magma/lte/cloud/go/protos"

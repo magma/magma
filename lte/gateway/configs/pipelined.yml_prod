@@ -74,6 +74,9 @@ dpi:
   mon_port_number: 32769
   idle_timeout: 5
 
+conntrackd:
+  enabled: false
+
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
 # metering for auto-clearing the sessions
@@ -95,6 +98,9 @@ nat_iface: eth0
 
 # Interface to eNodeB
 enodeb_iface: eth1
+
+# By default enable routing for NonNAT
+dp_router_enabled: true
 
 # Bridge name comes from magma_magmad.service.j2
 bridge_name: gtp_br0

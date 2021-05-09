@@ -145,3 +145,6 @@
 [OUTPUT]
     Name              stdout
     Match_Regex       eventd*
+
+# LEAVE THIS LINE HERE, FLUENT-BIT REQUIRES NEWLINE
+

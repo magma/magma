@@ -236,8 +236,7 @@ int spgw_handle_nw_initiated_bearer_actv_req(
       "Received Create Bearer Req from PCRF with lbi:%d IMSI\n" IMSI_64_FMT,
       bearer_req_p->lbi, imsi64);
 
-  // TODO: Revisit this if UE context struct manages multiple PDN connections
-  hashtblP = get_spgw_ue_state();
+  hashtblP = get_spgw_teid_state();
   if (!hashtblP) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
@@ -344,7 +343,7 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
       "Received nw_initiated_deactv_bearer_req from SPGW service \n");
   print_bearer_ids_helper(bearer_req_p->ebi, bearer_req_p->no_of_bearers);
 
-  hashtblP = get_spgw_ue_state();
+  hashtblP = get_spgw_teid_state();
   if (hashtblP == NULL) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
@@ -478,7 +477,8 @@ static int32_t spgw_build_and_send_s11_deactivate_bearer_req(
 
 //------------------------------------------------------------------------------
 int spgw_send_nw_init_activate_bearer_rsp(
-    gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id,
+    gtpv2c_cause_value_t cause, imsi64_t imsi64,
+    bearer_context_within_create_bearer_response_t* bearer_ctx,
     uint8_t default_bearer_id, char* policy_rule_name) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint32_t rc = RETURNok;
@@ -487,19 +487,21 @@ int spgw_send_nw_init_activate_bearer_rsp(
       LOG_SPGW_APP, imsi64,
       "Sending Create Bearer Rsp to PCRF with EBI %d with "
       "cause: %d linked bearer id: %d policy rule name: %s\n",
-      eps_bearer_id, cause, default_bearer_id, policy_rule_name);
+      bearer_ctx->eps_bearer_id, cause, default_bearer_id, policy_rule_name);
   // Send Dedicated Bearer ID and Policy Rule ID binding to PCRF
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
   if (cause == REQUEST_ACCEPTED) {
     pcef_send_policy2bearer_binding(
-        imsi_str, default_bearer_id, policy_rule_name, eps_bearer_id);
+        imsi_str, default_bearer_id, policy_rule_name,
+        bearer_ctx->eps_bearer_id, bearer_ctx->s1u_sgw_fteid.teid,
+        bearer_ctx->s1u_enb_fteid.teid);
   } else {
     // Send 0 as dedicated bearer id if the create bearer request
     // was not accepted. Session manager should delete the policy rule
-    // for this bearer.
+    // for this bearer. Set the tunnel IDs to zero as well.
     pcef_send_policy2bearer_binding(
-        imsi_str, default_bearer_id, policy_rule_name, 0);
+        imsi_str, default_bearer_id, policy_rule_name, 0, 0, 0);
   }
 
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);

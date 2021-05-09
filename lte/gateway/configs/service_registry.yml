@@ -101,3 +101,6 @@ services:
   connectiond:
     ip_address: 127.0.0.1
     port: 50082
+  liagentd:
+    ip_address: 127.0.0.1
+    port: 50083

@@ -80,18 +80,24 @@ int s1ap_mme_itti_s1ap_path_switch_request(
     uint16_t integrity_algorithm_capabilities, imsi64_t imsi64);
 
 int s1ap_mme_itti_s1ap_handover_required(
-    const sctp_assoc_id_t assoc_id, uint32_t enb_id,
-    const S1ap_Cause_t const cause,
-    const S1ap_HandoverType_t const handover_type,
-    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    const bstring const src_tgt_container, imsi64_t imsi64);
+    const sctp_assoc_id_t assoc_id, uint32_t enb_id, const S1ap_Cause_t cause,
+    const S1ap_HandoverType_t handover_type,
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id, const bstring src_tgt_container,
+    imsi64_t imsi64);
 
 int s1ap_mme_itti_s1ap_handover_request_ack(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
     const enb_ue_s1ap_id_t src_enb_ue_s1ap_id,
     const enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id,
-    const S1ap_HandoverType_t const handover_type,
-    const sctp_assoc_id_t source_assoc_id,
-    const sctp_assoc_id_t target_assoc_id,
-    const bstring const tgt_src_container, imsi64_t imsi64);
+    const S1ap_HandoverType_t handover_type,
+    const sctp_assoc_id_t source_assoc_id, const bstring tgt_src_container,
+    const uint32_t source_enb_id, const uint32_t target_enb_id,
+    imsi64_t imsi64);
+
+int s1ap_mme_itti_s1ap_handover_notify(
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    const s1ap_handover_state_t handover_state,
+    const enb_ue_s1ap_id_t target_ue_s1ap_id,
+    const sctp_assoc_id_t target_sctp_assoc_id, const ecgi_t ecgi,
+    imsi64_t imsi64);
 #endif /* FILE_S1AP_MME_ITTI_MESSAGING_SEEN */

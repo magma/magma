@@ -63,6 +63,7 @@
 #include "service303.h"
 #include "shared_ts_log.h"
 #include "grpc_service.h"
+#include "timer.h"
 
 static void send_timer_recovery_message(void);
 
@@ -98,6 +99,10 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(itti_init(
       TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
       NULL));
+  CHECK_INIT_RETURN(timer_init());
+  // Could not be launched before ITTI initialization
+  shared_log_itti_connect();
+  OAILOG_ITTI_CONNECT();
   CHECK_INIT_RETURN(main_init());
 
   /*

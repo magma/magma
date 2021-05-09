@@ -44,6 +44,8 @@ void put_spgw_state(void);
  */
 hash_table_ts_t* get_spgw_ue_state(void);
 
+hash_table_ts_t* get_spgw_teid_state(void);
+
 /**
  * Populates SPGW UE hashtable from db
  * @return response code
@@ -55,7 +57,7 @@ int read_spgw_ue_state_db(void);
  * @param s11_bearer_context_info SPGW ue context pointer
  * @param imsi64
  */
-void put_spgw_ue_state(spgw_state_t* spgw_state, imsi64_t imsi64);
+void put_spgw_ue_state(imsi64_t imsi64);
 
 /**
  * Removes entry for SPGW UE state in db

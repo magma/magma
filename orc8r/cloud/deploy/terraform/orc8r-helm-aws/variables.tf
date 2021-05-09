@@ -167,7 +167,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.19"
+  default     = "1.5.21"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -185,13 +185,13 @@ variable "fbinternal_orc8r_chart_version" {
 variable "feg_orc8r_chart_version" {
   description = "Version of the orchestrator feg module Helm chart to install."
   type        = string
-  default     = "0.2.2"
+  default     = "0.2.3"
 }
 
 variable "lte_orc8r_chart_version" {
   description = "Version of the orchestrator lte module Helm chart to install."
   type        = string
-  default     = "0.2.2"
+  default     = "0.2.4"
 }
 
 variable "wifi_orc8r_chart_version" {

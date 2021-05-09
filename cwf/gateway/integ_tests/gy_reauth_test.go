@@ -110,7 +110,10 @@ func TestGyReAuth(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 	// Check ReAuth success
-	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
+	}
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)

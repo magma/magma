@@ -40,6 +40,7 @@ from ryu import cfg
 from ryu.base.app_manager import AppManager
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from scapy.arch import get_if_hwaddr
+from magma.pipelined.app.uplink_bridge import UPLINK_OVS_BRIDGE_NAME
 
 
 def main():
@@ -82,8 +83,17 @@ def main():
                                         service.mconfig.sgi_management_iface_gw)
     service.config['sgi_management_iface_gw'] = sgi_gateway_ip
 
+    # Keep router mode off for smooth upgrade path
+    service.config['dp_router_enabled'] = service.config.get('dp_router_enabled',
+                                                             False)
     if 'virtual_mac' not in service.config:
-        service.config['virtual_mac'] = get_if_hwaddr(service.config.get('bridge_name'))
+        if service.config['dp_router_enabled']:
+            up_bridge_name = service.config.get('uplink_bridge', UPLINK_OVS_BRIDGE_NAME)
+            mac_addr = get_if_hwaddr(up_bridge_name)
+        else:
+            mac_addr = get_if_hwaddr(service.config.get('bridge_name'))
+
+        service.config['virtual_mac'] = mac_addr
 
     # this is not read from yml file.
     service.config['uplink_port'] = OFPP_LOCAL
@@ -124,8 +134,7 @@ def main():
                      )
 
     service.loop.create_task(monitor_ifaces(
-        service.config['monitored_ifaces'],
-        service.loop),
+        service.config['monitored_ifaces']),
     )
 
     manager = AppManager.get_instance()

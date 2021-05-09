@@ -13,7 +13,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN mkdir -p $C_BUILD
 
-RUN ["/bin/bash", "-c", "echo \"Install general purpouse packages\" && \
+RUN [ "/bin/bash", "-c", "echo \"Install general purpose packages\" && \
     apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg wget software-properties-common autoconf automake \
@@ -28,11 +28,7 @@ RUN ["/bin/bash", "-c", "echo \"Install general purpouse packages\" && \
     echo \"Add required package repository for CMake\" && \
     wget -O - https://apt.kitware.com/keys/kitware-archive-latest.asc 2>/dev/null | apt-key add - && \
     apt-add-repository 'deb https://apt.kitware.com/ubuntu/ bionic main' && \
-    echo \"Add required package repository for Prometheus\" && \
-    wget -qO- https://repos.influxdata.com/influxdb.key | apt-key add - && \
-    ln -s /usr/bin/clang-format-7 /usr/bin/clang-format && \
-    source /etc/lsb-release && \
-    echo \"deb https://repos.influxdata.com/${DISTRIB_ID,,} ${DISTRIB_CODENAME} stable\" | tee /etc/apt/sources.list.d/influxdb.list"]
+    ln -s /usr/bin/clang-format-7 /usr/bin/clang-format" ]
 
 RUN echo "Install 3rd party dependencies" && \
     apt-get update && \
@@ -53,15 +49,18 @@ RUN echo "Install 3rd party dependencies" && \
     apt-get install -y libgoogle-glog-dev libconfig-dev libxml2-dev \
     libyaml-cpp-dev nlohmann-json-dev && \
     echo "Install Prometheus requirements" && \
-    apt-get -y install telegraf && \
+    wget --quiet https://dl.influxdata.com/telegraf/releases/telegraf_1.18.2-1_amd64.deb && \
+    dpkg -i telegraf_1.18.2-1_amd64.deb && \
     echo "Install ZeroMQ" && \
     apt-get install -y libczmq-dev=4.1.0-2 && \
+    echo "Install libtins" && \
+    apt-get install -y libtins-dev && \
     ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
 
 ##### NETTLE
-RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
+RUN wget --quiet https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
     tar -xf nettle-2.5.tar.gz && \
     cd nettle-2.5 && \
     mkdir build && \
@@ -71,7 +70,7 @@ RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
     make install && \
     ldconfig -v && \
     cd / && \
-    wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    wget --quiet http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     ./configure --with-libnettle-prefix=/usr/local && \
@@ -151,7 +150,7 @@ RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
 
 ##### liblfds
 # https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
-RUN wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
+RUN wget --quiet https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
     tar -xf liblfds\ release\ 7.1.0\ source.tar.bz2  && \
     cd liblfds/liblfds7.1.0/liblfds710/build/gcc_gnumake/ && \
     make -j`nproc` && \
@@ -172,7 +171,7 @@ RUN git clone https://git.osmocom.org/libgtpnl && \
 RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
     cd asn1c && \
     git checkout f12568d617dbf48497588f8e227d70388fa217c9 && \
-    autoreconf -iv && \    
+    autoreconf -iv && \
     ./configure && \
     make -j`nproc` && \
     make install && \
@@ -201,7 +200,7 @@ RUN echo "Install fmtlib required by Folly" && \
 COPY ./ $MAGMA_ROOT
 
 ##### FreeDiameter
-RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \ 
+RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
     cd freediameter && \
     patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch && \
     mkdir build && \
@@ -210,29 +209,11 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
     make -j`nproc` && \
     make install
-    
-### Following  is required to build MME with OVS support
-# WARNING!!! for the moment it'snot working well cause libfluid linked with Ubuntu incorrectly 
-# ENV FEATURES=agw_of
-# RUN git clone https://github.com/facebookincubator/magma.git /fb_magma
-# Clone repos and checkout latest commit
-# ENV LIBFLUID_BASE_COMMIT=56df5e20c49387ab8e6b5cd363c6c10d309f263e
-# Latest master commit with fixes passed v0.1.0
-# ENV LIBFLUID_MSG_COMMIT=71a4fccdedfabece730082fbe87ef8ae5f92059f
-# ENV SCRIPT_DIR=/fb_magma/third_party/libfluid
-# RUN git clone https://github.com/OpenNetworkingFoundation/libfluid_base.git && \
-#     git -C libfluid_base checkout $LIBFLUID_BASE_COMMIT
-# RUN git clone https://github.com/OpenNetworkingFoundation/libfluid_msg.git && \
-#     git -C libfluid_msg checkout $LIBFLUID_MSG_COMMIT
-# TODO(119vik): (move patch_libfluid.sh in to main magma repo third_party folder)
-# COPY patch_libfluid.sh /patch_libfluid.sh
-# COPY patch_libfluid.sh /
-# RUN . /patch_libfluid.sh
 
 # Build MME executables
 RUN ldconfig && \
     cd $MAGMA_ROOT/lte/gateway && \
-    echo $FEATURES && \ 
+    echo $FEATURES && \
     make build_oai && \
     make build_sctpd
 
@@ -278,8 +259,6 @@ RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
 WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml
-WORKDIR /usr/local/etc/redis
-RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
 
 WORKDIR /etc/magma
 RUN cp $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
@@ -287,9 +266,12 @@ RUN cp $MAGMA_ROOT/lte/gateway/configs/redis.yml .
 RUN cp $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 
 WORKDIR /magma-mme/scripts
-RUN cp $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
-RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
-RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
+RUN cp $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate . && \
+    sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
+           -e "s@\$SUDO@@" \
+           -e "s@echo_error@echo@" \
+           -e "s@echo_success@echo@" \
+           -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
 WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
@@ -381,8 +363,6 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.
 WORKDIR /var/opt/magma/configs
 # Adding mme configuration for stateful run
 RUN echo "use_stateless: false" > mme.yml
-WORKDIR /usr/local/etc/redis
-COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
 
 WORKDIR /etc/magma
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
@@ -392,11 +372,20 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.y
 # Adding means to re-generate certificates
 WORKDIR /magma-mme/scripts
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
-RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
-RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
+RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
+           -e "s@\$SUDO@@" \
+           -e "s@echo_error@echo@" \
+           -e "s@echo_success@echo@" \
+           -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
 WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
+
+# use this label for CI purpose
+LABEL use-separate-hss-realm="true"
+
+# expose ports
+EXPOSE 3870/tcp 5870/tcp 2123/udp
 
 # For the moment, let have a dummy command
 CMD ["sleep", "infinity"]

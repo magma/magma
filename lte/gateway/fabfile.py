@@ -70,7 +70,7 @@ def test():
     env.debug_mode = False
 
 
-def package(vcs='hg', all_deps="False",
+def package(vcs='git', all_deps="False",
             cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
             destroy_vm='False',
             vm='magma', os="debian"):
@@ -332,6 +332,7 @@ def get_test_logs(gateway_host=None,
     local('mkdir /tmp/build_logs/trfserver')
     dev_files = ['/var/log/mme.log',
                  '/var/log/syslog',
+                 '/var/log/envoy.log',
                  '/var/log/openvswitch/ovs*.log']
     test_files = ['/var/log/syslog', '/tmp/fw/']
     trf_files = ['/home/admin/nohup.out']

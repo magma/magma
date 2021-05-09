@@ -16,7 +16,7 @@
 #include "DiameterCodes.h"
 #include "EnumToString.h"
 #include "SessionCredit.h"
-#include "magma_logging.h"
+#include "magma_logging_init.h"
 #include "Utilities.h"
 
 namespace magma {

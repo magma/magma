@@ -17,6 +17,7 @@ import "orc8r/protos/common.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/session_manager.proto";
 import "lte/protos/subscriberdb.proto";
+import "lte/protos/mobilityd.proto";
 
 option go_package = "magma/lte/cloud/go/protos";
 
@@ -70,6 +71,7 @@ message RequestOriginType {
     GX = 0;
     GY = 1;
     N4 = 2;
+    WILDCARD = 3; //  should only be used for deactivation
   }
   OriginType type = 1;
 }
@@ -404,6 +406,53 @@ message OffendingIE {
     DeactivateFlowsResult del_qer_results = 4;
 }
 
+// DOWNLINK FLOW
+message IPFlowDL {
+    uint32 set_params = 1;
+    uint32 tcp_dst_port = 2;
+    uint32 tcp_src_port = 3;
+    uint32 udp_dst_port = 4;
+    uint32 udp_src_port = 5;
+    uint32 ip_proto  = 6;
+    IPAddress src_ip = 7;
+    IPAddress dest_ip = 8;
+    uint32 precedence = 9;
+}
+
+message UESessionState {
+  enum UEConfigState {
+      ACTIVE         = 0;  // Session TUNNEL ADD
+      UNREGISTERED   = 1;  // Session TUNNEL DELETE
+      INSTALL_IDLE   = 2;  // Session ADD PAGING
+      UNINSTALL_IDLE = 3;  // Session REMOVE PAGING
+      SUSPENDED_DATA = 4;  // Discard Data on Tunnel
+      RESUME_DATA    = 5;  // Resume Data on Tunnel
+  }
+  UEConfigState ue_config_state = 1;
+}
+
+// Message from MME to UPF
+message UESessionSet {
+    SubscriberID subscriber_id = 1;
+    uint32 precedence = 2;
+    IPAddress ue_ipv4_address = 3;
+    IPAddress ue_ipv6_address = 4;
+    IPAddress enb_ip_address = 5;
+    string apn = 6;
+    uint32 vlan = 7;
+    uint32 in_teid = 8;
+    uint32 out_teid = 9;
+    UESessionState ue_session_state = 10;
+    IPFlowDL ip_flow_dl = 13;
+};
+
+message UESessionContextResponse {
+    IPAddress ue_ipv4_address = 1;
+    IPAddress ue_ipv6_address = 2;
+    uint32 operation_type = 3;
+    CauseIE cause_info = 4;
+}
+
 // --------------------------------------------------------------------------
 // Pipelined gateway RPC service
 // --------------------------------------------------------------------------
@@ -488,4 +537,6 @@ service Pipelined {
   // Get the flow table assignment for all apps ordered by main table number
   // and name
   rpc GetAllTableAssignments (magma.orc8r.Void) returns (AllTableAssignments);
+
+  rpc UpdateUEState (UESessionSet) returns (UESessionContextResponse);
 }
