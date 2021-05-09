@@ -213,7 +213,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 
 # Non-Sanity: Failing Test Cases
 # s1aptests/test_attach_detach_with_corrupt_stateless_mme.py \
-# s1aptests/test_attach_detach_setsessionrules_tcp_data.py \
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \
 # s1aptests/test_attach_with_multiple_mme_restarts.py \
 #---------------
