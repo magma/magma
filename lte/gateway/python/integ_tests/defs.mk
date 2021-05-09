@@ -190,7 +190,7 @@ s1aptests/test_restore_config_after_non_sanity.py
 
 #---------------
 # Non-Sanity: MME crash generating test case
-# s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \
+# s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \ GitHubIssue 5992
 # s1aptests/test_3495_timer_for_default_bearer_with_mme_restart.py \
 # s1aptests/test_3495_timer_for_dedicated_bearer_with_mme_restart.py \
 
@@ -209,12 +209,18 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_no_identity_rsp_with_mme_restart.py \
 # s1aptests/test_data_flow_after_service_request.py \
 # s1aptests/test_agw_offload_idle_active_ue.py \
-# s1aptests/test_agw_offload_mixed_idle_active_multiue.py \
+# s1aptests/test_agw_offload_mixed_idle_active_multiue.py \ GitHubIssue 6063
 
 # Non-Sanity: Failing Test Cases
-# s1aptests/test_attach_detach_with_corrupt_stateless_mme.py \
-# s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \
-# s1aptests/test_attach_with_multiple_mme_restarts.py \
+# s1aptests/test_attach_detach_with_corrupt_stateless_mme.py \ GitHubIssue 5991
+# s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \ GitHubIssue 5997
+# s1aptests/test_attach_with_multiple_mme_restarts.py \ GitHubIssue 5997
+
+# Non-Sanity: Not tested test cases
+# s1aptests/test_attach_detach_with_pco_ipcp.py \
+# s1aptests/test_attach_complete_after_ics_timer_expiry.py \
+# s1aptests/test_send_error_ind_for_dl_nas_with_auth_req.py \
+# s1aptests/test_send_error_ind_for_erab_setup_req.py \
 #---------------
 
 # Enable these tests once the CI job time-out has increased
@@ -225,6 +231,9 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_attach_dl_udp_data.py \
 # s1aptests/test_attach_dl_tcp_data.py \
 # s1aptests/test_attach_detach_attach_dl_tcp_data.py
+
+# Test cases passing in local setup, but failing in CI
+# s1aptests/test_attach_detach_with_he_policy.py \ GitHubIssue 6439 & PR 6411
 
 # TODO flaky tests we should look at
 # s1aptests/test_attach_detach_ps_service_not_available.py \
