@@ -962,7 +962,6 @@ jobs:
     steps:
       - checkout
       - python/set_version
-      #- aws-cli/setup
       - run:
           command: |
             pip install wheel
