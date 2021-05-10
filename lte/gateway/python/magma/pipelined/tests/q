@@ -1,0 +1,280 @@
+/home/vagrant/build/python/lib/python3.5/site-packages/scapy/config.py:411: CryptographyDeprecationWarning: Python 3.5 support will be dropped in the next release of cryptography. Please upgrade your Python.
+  import cryptography
+.....F.
+======================================================================
+FAIL: Adds a policy to a subscriber, deletes it by incrementing the
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/test_enforcement_stats.py", line 667, in test_rule_reactivation
+    pkt_sender.send(packet)
+  File "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/pipelined_test_util.py", line 613, in __exit__
+    self._snapshot_name, self._include_stats)
+  File "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/pipelined_test_util.py", line 506, in assert_bridge_snapshot_match
+    current_snapshot)
+  File "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/pipelined_test_util.py", line 446, in fail
+    return test_case.fail(msg)
+AssertionError: Snapshot mismatch with error:
+--- previous snapshot
+
++++ current snapshot
+
+@@ -2,6 +2,8 @@
+
+  cookie=0x0, table=mme(main_table), n_packets=0, n_bytes=0, priority=65535,ip,nw_dst=192.168.128.74 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,enforcement(main_table))
+  cookie=0x1, table=enforcement(main_table), n_packets=128, n_bytes=4352, priority=65532,ip,reg1=0x1,reg9=0x1234,metadata=0x7594587a06d,nw_src=192.168.128.74,nw_dst=45.10.0.0/25 actions=note:b'rule1',set_field:0x1->reg2,set_field:0x2->reg4,resubmit(,enforcement_stats(main_table)),resubmit(,egress(main_table))
+  cookie=0xfffffffffffffffe, table=enforcement(main_table), n_packets=7936, n_bytes=269824, priority=0 actions=resubmit(,enforcement_stats(main_table)),set_field:0->reg0,set_field:0->reg3
++ cookie=0x1, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=10,ip,reg1=0x10,reg2=0x1,reg3=0,reg4=0x1,reg9=0x1234,metadata=0x7594587a06d actions=drop
++ cookie=0x1, table=enforcement_stats(main_table), n_packets=128, n_bytes=4352, priority=10,ip,reg1=0x1,reg2=0x1,reg3=0,reg4=0x1,reg9=0x1234,metadata=0x7594587a06d actions=drop
+  cookie=0x1, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=10,ip,reg1=0x10,reg2=0x1,reg3=0,reg4=0x2,reg9=0x1234,metadata=0x7594587a06d actions=drop
+  cookie=0x1, table=enforcement_stats(main_table), n_packets=128, n_bytes=4352, priority=10,ip,reg1=0x1,reg2=0x1,reg3=0,reg4=0x2,reg9=0x1234,metadata=0x7594587a06d actions=drop
+  cookie=0x0, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=1,ip,reg1=0x10,reg2=0,reg4=0,reg9=0x1234,metadata=0x7594587a06d actions=drop
+To fix the error, update "/home/vagrant/magma/lte/gateway/python/magma/pipelined/tests/snapshots/test_enforcement_stats.EnforcementStatsTest.test_rule_reactivation.snapshot" to the current snapshot:
+ cookie=0x0, table=mme(main_table), n_packets=8192, n_bytes=278528, priority=65535,ip,nw_src=192.168.128.74 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x1->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,enforcement(main_table))
+ cookie=0x0, table=mme(main_table), n_packets=0, n_bytes=0, priority=65535,ip,nw_dst=192.168.128.74 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,enforcement(main_table))
+ cookie=0x1, table=enforcement(main_table), n_packets=128, n_bytes=4352, priority=65532,ip,reg1=0x1,reg9=0x1234,metadata=0x7594587a06d,nw_src=192.168.128.74,nw_dst=45.10.0.0/25 actions=note:b'rule1',set_field:0x1->reg2,set_field:0x2->reg4,resubmit(,enforcement_stats(main_table)),resubmit(,egress(main_table))
+ cookie=0xfffffffffffffffe, table=enforcement(main_table), n_packets=7936, n_bytes=269824, priority=0 actions=resubmit(,enforcement_stats(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x1, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=10,ip,reg1=0x10,reg2=0x1,reg3=0,reg4=0x1,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0x1, table=enforcement_stats(main_table), n_packets=128, n_bytes=4352, priority=10,ip,reg1=0x1,reg2=0x1,reg3=0,reg4=0x1,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0x1, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=10,ip,reg1=0x10,reg2=0x1,reg3=0,reg4=0x2,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0x1, table=enforcement_stats(main_table), n_packets=128, n_bytes=4352, priority=10,ip,reg1=0x1,reg2=0x1,reg3=0,reg4=0x2,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0x0, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=1,ip,reg1=0x10,reg2=0,reg4=0,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0x0, table=enforcement_stats(main_table), n_packets=7936, n_bytes=269824, priority=1,ip,reg1=0x1,reg2=0,reg4=0,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0xfffffffffffffffe, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=0 actions=drop
+-------------------- >> begin captured logging << --------------------
+ryu.base.app_manager: INFO: loading app magma.pipelined.app.enforcement
+ryu.base.app_manager: INFO: loading app magma.pipelined.app.enforcement_stats
+ryu.base.app_manager: INFO: loading app magma.pipelined.app.testing
+ryu.base.app_manager: INFO: loading app magma.pipelined.app.startup_flows
+ryu.base.app_manager: INFO: loading app ryu.controller.ofp_handler
+ryu.base.app_manager: INFO: instantiating app None of DPSet
+ryu.base.app_manager: INFO: creating context dpset
+ryu.base.app_manager: INFO: instantiating app magma.pipelined.app.enforcement_stats of EnforcementStatsController
+ryu.base.app_manager: INFO: instantiating app magma.pipelined.app.testing of TestingController
+ryu.base.app_manager: INFO: instantiating app ryu.controller.ofp_handler of OFPHandler
+ryu.base.app_manager: INFO: instantiating app magma.pipelined.app.enforcement of EnforcementController
+ryu.base.app_manager: INFO: instantiating app magma.pipelined.app.startup_flows of StartupFlows
+StartupFlows: INFO: Clean restart enabled, startup flows will not query flows.
+ryu.base.app_manager: DEBUG: BRICK ofp_event
+ryu.base.app_manager: DEBUG:   PROVIDES EventOFPStateChange TO {'dpset': {'dead', 'main'}}
+ryu.base.app_manager: DEBUG:   PROVIDES EventOFPSwitchFeatures TO {'dpset': {'config'}}
+ryu.base.app_manager: DEBUG:   PROVIDES EventOFPPortStatus TO {'dpset': {'main'}}
+ryu.base.app_manager: DEBUG:   PROVIDES EventOFPFlowStatsReply TO {'EnforcementStatsController': {'main'}, 'StartupFlows': {'main'}, 'TestingController': {'main'}}
+ryu.base.app_manager: DEBUG:   PROVIDES EventOFPMeterConfigStatsReply TO {'EnforcementController': {'main'}}
+ryu.base.app_manager: DEBUG:   PROVIDES EventOFPMeterFeaturesStatsReply TO {'EnforcementController': {'main'}}
+ryu.base.app_manager: DEBUG:   PROVIDES EventOFPErrorMsg TO {'EnforcementStatsController': {'config', 'main', 'handshake'}, 'EnforcementController': {'config', 'main', 'handshake'}, 'StartupFlows': {'config', 'main', 'handshake'}, 'TestingController': {'config', 'main', 'handshake'}}
+ryu.base.app_manager: DEBUG:   PROVIDES EventOFPBarrierReply TO {'EnforcementController': {'main'}, 'EnforcementStatsController': {'main'}}
+ryu.base.app_manager: DEBUG:   PROVIDES EventOFPTableStatsReply TO {'TestingController': {'main'}}
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPEchoRequest
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPSwitchFeatures
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPHello
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPPortDescStatsReply
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPEchoReply
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPErrorMsg
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPPortStatus
+ryu.base.app_manager: DEBUG: BRICK StartupFlows
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPFlowStatsReply
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPErrorMsg
+ryu.base.app_manager: DEBUG:   CONSUMES EventDP
+ryu.base.app_manager: DEBUG: BRICK dpset
+ryu.base.app_manager: DEBUG:   PROVIDES EventDP TO {'EnforcementStatsController': {'main'}, 'EnforcementController': {'main'}, 'StartupFlows': {'main'}, 'TestingController': {'main'}}
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPStateChange
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPSwitchFeatures
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPPortStatus
+ryu.base.app_manager: DEBUG: BRICK TestingController
+ryu.base.app_manager: DEBUG:   CONSUMES EventDP
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPTableStatsReply
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPErrorMsg
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPFlowStatsReply
+ryu.base.app_manager: DEBUG: BRICK EnforcementController
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPMeterConfigStatsReply
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPBarrierReply
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPErrorMsg
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPMeterFeaturesStatsReply
+ryu.base.app_manager: DEBUG:   CONSUMES EventDP
+ryu.base.app_manager: DEBUG: BRICK EnforcementStatsController
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPBarrierReply
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPErrorMsg
+ryu.base.app_manager: DEBUG:   CONSUMES EventDP
+ryu.base.app_manager: DEBUG:   CONSUMES EventOFPFlowStatsReply
+ryu.controller.controller: DEBUG: connected socket:<eventlet.greenio.base.GreenSocket object at 0x7fbadfe849b0> address:('127.0.0.1', 39448)
+OFPHandler: DEBUG: hello ev <ryu.controller.ofp_event.EventOFPHello object at 0x7fbadfdacf98>
+OFPHandler: DEBUG: move onto config mode
+ryu.base.app_manager: DEBUG: EVENT ofp_event->dpset EventOFPStateChange
+ryu.base.app_manager: DEBUG: EVENT ofp_event->dpset EventOFPSwitchFeatures
+OFPHandler: DEBUG: switch features ev version=0x5,msg_type=0x6,msg_len=0x20,xid=0x6e756d18,OFPSwitchFeatures(auxiliary_id=0,capabilities=591,datapath_id=108624177611595,n_buffers=0,n_tables=254)
+OFPHandler: DEBUG: move onto main mode
+ryu.base.app_manager: DEBUG: EVENT ofp_event->dpset EventOFPStateChange
+ryu.controller.dpset: DEBUG: DPSET: register datapath <ryu.controller.controller.Datapath object at 0x7fbadfe25eb8>
+ryu.base.app_manager: DEBUG: EVENT dpset->EnforcementStatsController EventDP
+ryu.base.app_manager: DEBUG: EVENT dpset->EnforcementController EventDP
+ryu.base.app_manager: DEBUG: EVENT dpset->StartupFlows EventDP
+ryu.base.app_manager: DEBUG: EVENT dpset->TestingController EventDP
+pipelined.qos.common: DEBUG: Got QosManager instance
+EnforcementController: INFO: Received Setup request with epoch - 1620597792, current epoch  is - 1620597792
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=3,cookie=0,cookie_mask=0,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[],match=OFPMatch(oxm_fields={}),out_group=4294967295,out_port=4294967295,priority=32768,table_id=12) (table 12)
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=3,cookie=0,cookie_mask=0,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[],match=OFPMatch(oxm_fields={}),out_group=4294967295,out_port=4294967295,priority=32768,table_id=21) (table 21)
+EnforcementController: INFO: Controller is in clean restart mode, remaining flows were removed, continuing with setup.
+EnforcementController: DEBUG: Startup flows before filtering: tbl 12-> []
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPBarrierReply
+EnforcementController: DEBUG: Startup flows to be deleted: tbl 12 -> []
+EnforcementController: INFO: Initialized proxy_controller None
+EnforcementStatsController: INFO: Received Setup request with epoch - 1620597792, current epoch  is - 1620597792
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=3,cookie=0,cookie_mask=0,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[],match=OFPMatch(oxm_fields={}),out_group=4294967295,out_port=4294967295,priority=32768,table_id=13) (table 13)
+EnforcementStatsController: INFO: Controller is in clean restart mode, remaining flows were removed, continuing with setup.
+EnforcementStatsController: DEBUG: Startup flows before filtering: tbl 13-> []
+EnforcementStatsController: INFO: Recovered enforcement stats
+EnforcementStatsController: DEBUG: defaultdict(<class 'lte.protos.session_manager_pb2.RuleRecord'>, {})
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPBarrierReply
+EnforcementStatsController: DEBUG: Startup flows to be deleted: tbl 13 -> []
+EnforcementStatsController: INFO: Initialized proxy_controller None
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=0,cookie=0,cookie_mask=0,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[OFPInstructionGotoTable(len=8,table_id=12,type=1), OFPInstructionActions(actions=[OFPActionSetField(metadata=8080000000109), OFPActionSetField(reg1=<Direction.OUT: 1>), OFPActionSetField(reg9=4660)],type=4)],match=OFPMatch(oxm_fields={'ipv4_src': '192.168.128.74', 'eth_type': 2048}),out_group=0,out_port=0,priority=65535,table_id=0) (table 0)
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=0,cookie=0,cookie_mask=0,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[OFPInstructionGotoTable(len=8,table_id=12,type=1), OFPInstructionActions(actions=[OFPActionSetField(metadata=8080000000109), OFPActionSetField(reg1=<Direction.IN: 16>), OFPActionSetField(reg9=4660)],type=4)],match=OFPMatch(oxm_fields={'ipv4_dst': '192.168.128.74', 'eth_type': 2048}),out_group=0,out_port=0,priority=65535,table_id=0) (table 0)
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPBarrierReply
+EnforcementStatsController: DEBUG: Installing flow for IMSI001010000000013 with rule num 1 (version 1)
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPBarrierReply
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=3,cookie=1,cookie_mask=4294967295,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[],match=OFPMatch(oxm_fields={'reg9': 4660, 'metadata': 8080000000109, 'eth_type': 2048}),out_group=4294967295,out_port=4294967295,priority=32768,table_id=12) (table 12)
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=3,cookie=1,cookie_mask=4294967295,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[],match=OFPMatch(oxm_fields={'metadata': 8080000000109}),out_group=4294967295,out_port=4294967295,priority=32768,table_id=21) (table 21)
+pipelined.qos.common: DEBUG: remove_subscriber_qos: not enabled or initialized
+ryu.base.app_manager: DEBUG: EVENT ofp_event->dpset EventOFPPortStatus
+ryu.base.app_manager: DEBUG: EVENT ofp_event->dpset EventOFPPortStatus
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39412) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 0/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39412) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 1/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39412) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 2/3)
+root: ERROR: Send msg error! Type: MagmaDPDisconnectedError, Reason: 
+EnforcementStatsController: WARNING: Couldn't poll datapath stats: 
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39404) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 0/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39404) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 1/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39404) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 2/3)
+root: ERROR: Send msg error! Type: MagmaDPDisconnectedError, Reason: 
+EnforcementStatsController: WARNING: Couldn't poll datapath stats: 
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39420) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 0/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39420) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 1/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39420) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 2/3)
+root: ERROR: Send msg error! Type: MagmaDPDisconnectedError, Reason: 
+EnforcementStatsController: WARNING: Couldn't poll datapath stats: 
+ryu.controller.dpset: DEBUG: DPSET: A port was modified.(datapath id = 000062cb0985434b, port number = 4294967294)
+ryu.controller.dpset: DEBUG: DPSET: A port was modified.(datapath id = 000062cb0985434b, port number = 4294967294)
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPBarrierReply
+EnforcementStatsController: DEBUG: Installing flow for IMSI001010000000013 with rule num 1 (version 2)
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPFlowStatsReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->StartupFlows EventOFPFlowStatsReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->TestingController EventOFPFlowStatsReply
+EnforcementStatsController: DEBUG: Ignoring stats from different bridge
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPBarrierReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->dpset EventOFPPortStatus
+ryu.base.app_manager: DEBUG: EVENT ofp_event->dpset EventOFPPortStatus
+ryu.controller.dpset: DEBUG: DPSET: A port was modified.(datapath id = 000062cb0985434b, port number = 4294967294)
+ryu.controller.dpset: DEBUG: DPSET: A port was modified.(datapath id = 000062cb0985434b, port number = 4294967294)
+ryu.base.app_manager: DEBUG: EVENT ofp_event->dpset EventOFPPortStatus
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39432) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 0/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39432) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 1/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39432) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 2/3)
+root: ERROR: Send msg error! Type: MagmaDPDisconnectedError, Reason: 
+EnforcementStatsController: WARNING: Couldn't poll datapath stats: 
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39444) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 0/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39444) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 1/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39444) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 2/3)
+root: ERROR: Send msg error! Type: MagmaDPDisconnectedError, Reason: 
+EnforcementStatsController: WARNING: Couldn't poll datapath stats: 
+ryu.controller.dpset: DEBUG: DPSET: A port was modified.(datapath id = 000062cb0985434b, port number = 4294967294)
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPFlowStatsReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->StartupFlows EventOFPFlowStatsReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->TestingController EventOFPFlowStatsReply
+EnforcementStatsController: DEBUG: Processing 1 stats responses
+EnforcementStatsController: DEBUG: Processing stats of 7 flows
+root: ERROR: cmd ofctl_dump: NXST_FLOW reply (xid=0x4):
+ cookie=0x0, duration=2.530s, table=0, n_packets=8192, n_bytes=278528, idle_age=1, priority=65535,ip,nw_src=192.168.128.74 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x1->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,12)
+ cookie=0x0, duration=2.529s, table=0, n_packets=0, n_bytes=0, idle_age=2, priority=65535,ip,nw_dst=192.168.128.74 actions=load:0x7594587a06d->OXM_OF_METADATA[],load:0x10->NXM_NX_REG1[],load:0x1234->NXM_NX_REG9[],resubmit(,12)
+ cookie=0x1, duration=1.735s, table=12, n_packets=128, n_bytes=4352, idle_age=1, priority=65532,ip,reg1=0x1,reg9=0x1234,metadata=0x7594587a06d,nw_src=192.168.128.74,nw_dst=45.10.0.0/25 actions=note:72.75.6c.65.31.00,set_field:0x1->reg2,set_field:0x2->reg4,resubmit(,13),resubmit(,20)
+ cookie=0xfffffffffffffffe, duration=2.533s, table=12, n_packets=7936, n_bytes=269824, idle_age=1, priority=0 actions=resubmit(,13),set_field:0->reg0,set_field:0->reg3
+ cookie=0x1, duration=2.527s, table=13, n_packets=0, n_bytes=0, idle_age=2, priority=10,ip,reg1=0x10,reg2=0x1,reg3=0,reg4=0x1,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0x1, duration=2.527s, table=13, n_packets=128, n_bytes=4352, idle_age=2, priority=10,ip,reg1=0x1,reg2=0x1,reg3=0,reg4=0x1,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0x1, duration=1.734s, table=13, n_packets=0, n_bytes=0, idle_age=1, priority=10,ip,reg1=0x10,reg2=0x1,reg3=0,reg4=0x2,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0x1, duration=1.734s, table=13, n_packets=128, n_bytes=4352, idle_age=1, priority=10,ip,reg1=0x1,reg2=0x1,reg3=0,reg4=0x2,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0x0, duration=1.733s, table=13, n_packets=0, n_bytes=0, idle_age=2, priority=1,ip,reg1=0x10,reg2=0,reg4=0,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0x0, duration=1.733s, table=13, n_packets=7936, n_bytes=269824, idle_age=1, priority=1,ip,reg1=0x1,reg2=0,reg4=0,reg9=0x1234,metadata=0x7594587a06d actions=drop
+ cookie=0xfffffffffffffffe, duration=2.532s, table=13, n_packets=0, n_bytes=0, idle_age=2, priority=0 actions=drop
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=3,cookie=0,cookie_mask=0,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[],match=OFPMatch(oxm_fields={'reg9': 4660, 'metadata': 8080000000109, 'eth_type': 2048}),out_group=4294967295,out_port=4294967295,priority=32768,table_id=12) (table 12)
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=3,cookie=0,cookie_mask=0,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[],match=OFPMatch(oxm_fields={'reg9': 4660, 'metadata': 8080000000109, 'eth_type': 2048}),out_group=4294967295,out_port=4294967295,priority=32768,table_id=12) (table 12)
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=3,cookie=0,cookie_mask=0,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[],match=OFPMatch(oxm_fields={'metadata': 8080000000109}),out_group=4294967295,out_port=4294967295,priority=32768,table_id=21) (table 21)
+pipelined.qos.common: DEBUG: remove_subscriber_qos: not enabled or initialized
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=3,cookie=0,cookie_mask=0,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[OFPInstructionGotoTable(len=8,table_id=12,type=1), OFPInstructionActions(actions=[OFPActionSetField(metadata=8080000000109), OFPActionSetField(reg1=<Direction.OUT: 1>), OFPActionSetField(reg9=4660)],type=4)],match=OFPMatch(oxm_fields={'ipv4_src': '192.168.128.74', 'eth_type': 2048}),out_group=4294967295,out_port=4294967295,priority=65535,table_id=0) (table 0)
+magma.pipelined.openflow.flows: DEBUG: flowmod: version=None,msg_type=None,msg_len=None,xid=None,OFPFlowMod(buffer_id=4294967295,command=3,cookie=0,cookie_mask=0,flags=0,hard_timeout=0,idle_timeout=0,importance=0,instructions=[OFPInstructionGotoTable(len=8,table_id=12,type=1), OFPInstructionActions(actions=[OFPActionSetField(metadata=8080000000109), OFPActionSetField(reg1=<Direction.IN: 16>), OFPActionSetField(reg9=4660)],type=4)],match=OFPMatch(oxm_fields={'ipv4_dst': '192.168.128.74', 'eth_type': 2048}),out_group=4294967295,out_port=4294967295,priority=65535,table_id=0) (table 0)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39412) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 0/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39412) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 1/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39412) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 2/3)
+root: ERROR: Send msg error! Type: MagmaDPDisconnectedError, Reason: 
+EnforcementStatsController: WARNING: Couldn't poll datapath stats: 
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39404) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 0/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39404) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 1/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39404) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 2/3)
+root: ERROR: Send msg error! Type: MagmaDPDisconnectedError, Reason: 
+EnforcementStatsController: WARNING: Couldn't poll datapath stats: 
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39420) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 0/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39420) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 1/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39420) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 2/3)
+root: ERROR: Send msg error! Type: MagmaDPDisconnectedError, Reason: 
+EnforcementStatsController: WARNING: Couldn't poll datapath stats: 
+ryu.base.app_manager: DEBUG: EVENT ofp_event->EnforcementStatsController EventOFPFlowStatsReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->StartupFlows EventOFPFlowStatsReply
+ryu.base.app_manager: DEBUG: EVENT ofp_event->TestingController EventOFPFlowStatsReply
+EnforcementStatsController: DEBUG: Ignoring stats from different bridge
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39432) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 0/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39432) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 1/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39432) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 2/3)
+root: ERROR: Send msg error! Type: MagmaDPDisconnectedError, Reason: 
+EnforcementStatsController: WARNING: Couldn't poll datapath stats: 
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39444) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 0/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39444) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 1/3)
+ryu.controller.controller: DEBUG: Datapath in process of terminating; send() to ('127.0.0.1', 39444) discarded.
+magma.pipelined.openflow.messages: WARNING: Error sending message, retrying again (attempt 2/3)
+root: ERROR: Send msg error! Type: MagmaDPDisconnectedError, Reason: 
+EnforcementStatsController: WARNING: Couldn't poll datapath stats: 
+ryu.base.app_manager: DEBUG: EVENT LOST ofp_event->EnforcementStatsController EventOFPFlowStatsReply
+ryu.base.app_manager: DEBUG: EVENT LOST ofp_event->StartupFlows EventOFPFlowStatsReply
+ryu.base.app_manager: DEBUG: EVENT LOST ofp_event->TestingController EventOFPFlowStatsReply
+--------------------- >> end captured logging << ---------------------
+
+----------------------------------------------------------------------
+Ran 7 tests in 32.552s
+
+FAILED (failures=1)

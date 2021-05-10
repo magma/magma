@@ -192,8 +192,8 @@ class EnforcementStatsTest(unittest.TestCase):
                 version=1,
             )
         ]
-        enf_stat_name = [imsi + '|tx_match' + '|' + str(uplink_tunnel),
-                         imsi + '|rx_match' + '|' + str(uplink_tunnel)]
+        enf_stat_name = [imsi + '|tx_match' + '|' + str(uplink_tunnel) + '|' + "1",
+                         imsi + '|rx_match' + '|' + str(uplink_tunnel) + '|' + "1"]
         self.service_manager.session_rule_version_mapper.save_version(
             imsi, uplink_tunnel, 'tx_match', 1)
         self.service_manager.session_rule_version_mapper.save_version(
@@ -282,7 +282,7 @@ class EnforcementStatsTest(unittest.TestCase):
             ),
             version=1,
         )
-        stat_name = imsi + '|redir_test' + '|' + str(uplink_tunnel)
+        stat_name = imsi + '|redir_test' + '|' + str(uplink_tunnel) + '|' + "1"
         self.service_manager.session_rule_version_mapper.save_version(
             imsi, uplink_tunnel, 'redir_test', 1)
 
@@ -426,8 +426,8 @@ class EnforcementStatsTest(unittest.TestCase):
 
         with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet)
-
-        enf_stat_name = imsi + '|' + self.DEFAULT_DROP_FLOW_NAME + '|' + str(uplink_tunnel)
+        enf_stat_name = imsi + '|' + self.DEFAULT_DROP_FLOW_NAME + '|' \
+                        + str(uplink_tunnel) + '|' + "0"
         wait_for_enforcement_stats(self.enforcement_stats_controller,
                                    [enf_stat_name])
         stats = get_enforcement_stats(
@@ -512,7 +512,7 @@ class EnforcementStatsTest(unittest.TestCase):
             rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
             version=1,
         )
-        enf_stat_name = imsi + '|rule1' + '|' + str(uplink_tunnel)
+        enf_stat_name = imsi + '|rule1' + '|' + str(uplink_tunnel) + '|' + "1"
         self.service_manager.session_rule_version_mapper.save_version(
             imsi, uplink_tunnel, 'rule1', 1)
 
@@ -554,10 +554,13 @@ class EnforcementStatsTest(unittest.TestCase):
                 imsi, convert_ipv4_str_to_ip_proto(sub_ip), uplink_tunnel,
                 [policy.rule.id])
 
-        wait_for_enforcement_stats(self.enforcement_stats_controller,
-                                   [enf_stat_name])
-        stats = get_enforcement_stats(
-            self.enforcement_stats_controller._report_usage.call_args_list)
+            wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                       [enf_stat_name])
+            stats = get_enforcement_stats(
+                self.enforcement_stats_controller._report_usage.call_args_list)
+            for args in self.enforcement_stats_controller._report_usage.call_args_list:
+                self.enforcement_stats_controller._delete_old_flows(args[0][0].values())
+
 
         self.assertEqual(stats[enf_stat_name].sid, imsi)
         self.assertEqual(stats[enf_stat_name].rule_id, "rule1")
@@ -606,7 +609,6 @@ class EnforcementStatsTest(unittest.TestCase):
             rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
             version=1,
         )
-        enf_stat_name = imsi + '|rule1' + '|' + str(uplink_tunnel)
         self.service_manager.session_rule_version_mapper.save_version(
             imsi, uplink_tunnel, 'rule1', 1)
 
@@ -639,10 +641,8 @@ class EnforcementStatsTest(unittest.TestCase):
         packet. Wait until it is received by ovs and enf stats.
         """
         with isolator, sub_context, snapshot_verifier:
-            self.enforcement_stats_controller._report_usage.reset_mock()
             pkt_sender.send(packet)
 
-            self.enforcement_stats_controller._report_usage.reset_mock()
             self.service_manager.session_rule_version_mapper. \
                 save_version(imsi, uplink_tunnel, 'rule1', 2)
             self.enforcement_controller.deactivate_rules(
@@ -657,18 +657,36 @@ class EnforcementStatsTest(unittest.TestCase):
                 convert_ipv4_str_to_ip_proto(sub_ip), None, [policy])
             pkt_sender.send(packet)
 
+            enf_stat_names = [
+                imsi + '|rule1' + '|' + str(uplink_tunnel) + '|' + "1",
+                imsi + '|rule1' + '|' + str(uplink_tunnel) + '|' + "2"
+            ]
+            wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                       enf_stat_names)
+            stats = get_enforcement_stats(
+                self.enforcement_stats_controller._report_usage.call_args_list)
+            for args in self.enforcement_stats_controller._report_usage.call_args_list:
+                self.enforcement_stats_controller._delete_old_flows(args[0][0].values())
+
+            self.assertEqual(stats[enf_stat_names[0]].sid, imsi)
+            self.assertEqual(stats[enf_stat_names[0]].rule_id, "rule1")
+            self.assertEqual(stats[enf_stat_names[0]].rule_version, 1)
+            self.assertEqual(stats[enf_stat_names[0]].bytes_rx, 0)
+            self.assertEqual(len(stats), 3)
+
+        self.enforcement_stats_controller._report_usage.reset_mock()
         wait_for_enforcement_stats(self.enforcement_stats_controller,
-                                   [enf_stat_name])
+                                   [enf_stat_names[1]])
         stats = get_enforcement_stats(
             self.enforcement_stats_controller._report_usage.call_args_list)
 
         """
         Verify both packets are reported after reactivation.
         """
-        self.assertEqual(stats[enf_stat_name].sid, imsi)
-        self.assertEqual(stats[enf_stat_name].rule_id, "rule1")
-        self.assertEqual(stats[enf_stat_name].rule_version, 2)
-        self.assertEqual(stats[enf_stat_name].bytes_rx, 0)
+        self.assertEqual(stats[enf_stat_names[1]].sid, imsi)
+        self.assertEqual(stats[enf_stat_names[1]].rule_id, "rule1")
+        self.assertEqual(stats[enf_stat_names[1]].rule_version, 2)
+        self.assertEqual(stats[enf_stat_names[1]].bytes_rx, 0)
         # TODO Figure out why this one fails.
         #self.assertEqual(stats[enf_stat_name].bytes_tx,
         #                 num_pkts_tx_match * len(packet))

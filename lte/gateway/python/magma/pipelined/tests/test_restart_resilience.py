@@ -199,7 +199,7 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             ),
         ]
-        enf_stat_name = [imsi + '|ipv6_rule' + '|' + str(uplink_tunnel)]
+        enf_stat_name = [imsi + '|ipv6_rule' + '|' + str(uplink_tunnel) + "|" + "1"]
         setup_flows_request = SetupFlowsRequest(
             requests=[ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(imsi),
@@ -363,11 +363,9 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             ),
         ]
-#
-#         self.service_manager.session_rule_version_mapper.save_version(
-#             imsi2, uplink_tunnel2, 'sub2_new_rule', 1)
-        enf_stat_name = [imsi2 + '|sub2_new_rule' + '|' + str(uplink_tunnel2),
-                         imsi2 + '|sub2_rule_keep' + '|' + str(uplink_tunnel2)]
+
+        enf_stat_name = [imsi2 + '|sub2_new_rule' + '|' + str(uplink_tunnel2) + "|" + "1",
+                         imsi2 + '|sub2_rule_keep' + '|' + str(uplink_tunnel2) + "|" + "1"]
         setup_flows_request = SetupFlowsRequest(
             requests=[ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(imsi2),
@@ -453,8 +451,8 @@ class RestartResilienceTest(unittest.TestCase):
                 version=1,
             ),
         ]
-        enf_stat_name = [imsi + '|tx_match' + '|' + str(uplink_tunnel),
-                         imsi + '|rx_match' + '|' + str(uplink_tunnel)]
+        enf_stat_name = [imsi + '|tx_match' + '|' + str(uplink_tunnel) + "|" + "1",
+                         imsi + '|rx_match' + '|' + str(uplink_tunnel) + "|" + "1"]
         self.service_manager.session_rule_version_mapper.save_version(
             imsi, uplink_tunnel, 'tx_match', 1)
         self.service_manager.session_rule_version_mapper.save_version(
