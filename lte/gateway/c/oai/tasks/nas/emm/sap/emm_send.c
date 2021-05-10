@@ -329,8 +329,7 @@ int emm_send_attach_accept(
       "TRACKING_AREA_IDENTITY_LIST_LENGTH(%d*%d)  (%d) for (ue_id = %u)\n",
       TRACKING_AREA_IDENTITY_LIST_MINIMUM_LENGTH,
       emm_msg->tailist.numberoflists, size, ue_id);
-  AssertFatal(
-      emm_msg->tailist.numberoflists <= 16, "Too many TAIs in TAI list");
+
   for (int p = 0; p < emm_msg->tailist.numberoflists; p++) {
     if (TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS ==
         emm_msg->tailist.partial_tai_list[p].typeoflist) {
@@ -1594,7 +1593,9 @@ int emm_send_emm_information(
   /*
    * optional - Local Time Zone
    */
-  if ((emm_msg->localtimezone = get_time_zone()) != RETURNerror) {
+  int result = get_time_zone();
+  if (result != RETURNerror) {
+    emm_msg->localtimezone = result;
     size += TIME_ZONE_IE_MAX_LENGTH;
     emm_msg->presencemask |= EMM_INFORMATION_LOCAL_TIME_ZONE_PRESENT;
   }
@@ -1647,7 +1648,7 @@ int emm_send_emm_information(
   formatted = (string[1] - '0') << 4;
   formatted |= (string[0] - '0');
   emm_msg->universaltimeandlocaltimezone.second = formatted;
-  if (emm_msg->localtimezone != RETURNerror) {
+  if ((emm_msg->presencemask && EMM_INFORMATION_LOCAL_TIME_ZONE_PRESENT) != 0) {
     emm_msg->universaltimeandlocaltimezone.timezone = emm_msg->localtimezone;
   }
   /*

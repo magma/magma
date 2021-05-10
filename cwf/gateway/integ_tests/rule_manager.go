@@ -145,9 +145,7 @@ func (manager *RuleManager) GetInstalledRulesByIMSI() map[string][]string {
 		if !exists {
 			rules = []string{}
 		}
-		for _, ruleID := range accountRules.StaticRuleNames {
-			rules = append(rules, ruleID)
-		}
+		rules = append(rules, accountRules.StaticRuleNames...)
 		for _, dynamicRule := range accountRules.DynamicRuleDefinitions {
 			rules = append(rules, dynamicRule.RuleName)
 		}
@@ -159,7 +157,7 @@ func (manager *RuleManager) GetInstalledRulesByIMSI() map[string][]string {
 // RemoveInstalledRules removes previously installed rules from PCRF and policyDB
 func (manager *RuleManager) RemoveInstalledRules() error {
 	rulesIDsByIMSI := manager.GetInstalledRulesByIMSI()
-	for imsi, _ := range rulesIDsByIMSI {
+	for imsi := range rulesIDsByIMSI {
 		err := deactivateAllFlowsPerSub(imsi)
 		if err != nil {
 			return err

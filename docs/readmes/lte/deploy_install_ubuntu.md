@@ -53,7 +53,7 @@ installation process to get an IP using DHCP.
 ```bash
 su
 wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install_ubuntu.sh
-bash agw_post_install_ubuntu.sh
+bash agw_install_ubuntu.sh
 ```
 
 The script will run a pre-check script that will prompt you what will change
@@ -87,7 +87,9 @@ service magma@* status
 
 *Post Install Check*
 
-``` bash
-cd ~/magma/lte/gateway/deploy
-./agw_post_install_ubuntu.sh
+Make sure you have `control_proxy.yml` file in directory /var/opt/magma/configs/
+before running post install script.
+
+```bash
+bash /root/agw_post_install_ubuntu.sh
 ```

@@ -217,7 +217,7 @@ class TestAttachStandaloneActvDfltBearCtxtRejDedBerActivation(
         print("Sleeping for 5 seconds")
         time.sleep(5)
 
-        # Dedicated bearer will not be established as the seconday PDN
+        # Dedicated bearer will not be established as the secondary PDN
         # establishment failed
         print(
             "********************** Sending RAR for IMSI",
@@ -232,7 +232,7 @@ class TestAttachStandaloneActvDfltBearCtxtRejDedBerActivation(
 
         print("Sleeping for 5 seconds")
         time.sleep(5)
-        # Verify that ovs rules are not created for the seconday pdn and
+        # Verify that ovs rules are not created for the secondary pdn and
         # dedicated bearer as UE rejected the establishment of secondary pdn
 
         self._s1ap_wrapper.s1_util.verify_flow_rules(

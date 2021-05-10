@@ -513,7 +513,10 @@ class HtmlReport():
                         if (my_res is not None) and section_status:
                             section_status = False
                         if section_status:
-                            my_res = re.search('magma-mme *ci-tmp', line)
+                            if self.git_merge_request:
+                                my_res = re.search('magma-mme *ci-tmp', line)
+                            else:
+                                my_res = re.search('magma-mme *master *', line)
                             if my_res is not None:
                                 my_res = re.search('ago *([0-9 A-Z]+)', line)
                                 if my_res is not None:

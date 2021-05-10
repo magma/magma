@@ -88,7 +88,7 @@ class StateConverter {
       return;
     }
 
-    for (uint32_t i = 0; i < ht_keys->num_keys; i++) {
+    for (int i = 0; i < ht_keys->num_keys; i++) {
       NodeType* node;
       ht_rc = hashtable_ts_get(
           state_ht, (hash_key_t) ht_keys->keys[i], (void**) &node);

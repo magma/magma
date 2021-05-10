@@ -1,14 +1,14 @@
-esJavaOpts: -Xmx2G -Xms2G
+esJavaOpts: -Xmx1G -Xms1G
 imageTag: {{ elasticsearch_image_tag }}
 minimumMasterNodes: 1
 replicas: 1
 resources:
   limits:
     cpu: "2"
-    memory: 4Gi
+    memory: 2Gi
   requests:
-    cpu: "2"
-    memory: 4Gi
+    cpu: 500m
+    memory: 1Gi
 roles:
   data: "false"
   ingest: "false"

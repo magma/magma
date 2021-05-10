@@ -32,19 +32,25 @@ class ICMPMonitoring(Job):
     Class that handles main loop to send ICMP ping to valid subscribers.
     """
 
-    def __init__(self, monitoring_module, polling_interval: int, service_loop,
-                 mtr_interface: str):
+    def __init__(
+        self, monitoring_module, polling_interval: int, service_loop,
+        mtr_interface: str,
+    ):
         super().__init__(interval=CHECKIN_INTERVAL, loop=service_loop)
         self._MTR_PORT = mtr_interface
-        logging.info("Running on interface %s..." % self._MTR_PORT)
+        logging.info("Running on interface %s...", self._MTR_PORT)
         # Matching response time output to get latency
-        self._polling_interval = max(polling_interval,
-                                     DEFAULT_POLLING_INTERVAL)
+        self._polling_interval = max(
+            polling_interval,
+            DEFAULT_POLLING_INTERVAL,
+        )
         self._loop = service_loop
         self._module = monitoring_module
 
-    async def _ping_targets(self, hosts: List[str],
-                            targets: Optional[Dict] = None):
+    async def _ping_targets(
+        self, hosts: List[str],
+        targets: Optional[Dict] = None,
+    ):
         """
         Sends a count of ICMP pings to target IP address, returns response.
         Args:
@@ -55,15 +61,20 @@ class ICMPMonitoring(Job):
         """
         if targets:
             ping_params = [
-                PingInterfaceCommandParams(host, NUM_PACKETS, self._MTR_PORT,
-                                           TIMEOUT_SECS) for host in hosts]
+                PingInterfaceCommandParams(
+                    host, NUM_PACKETS, self._MTR_PORT,
+                    TIMEOUT_SECS,
+                ) for host in hosts
+            ]
             ping_results = await ping_interface_async(ping_params, self._loop)
             ping_results_list = list(ping_results)
             for host, sub, result in zip(hosts, targets, ping_results_list):
                 self._save_ping_response(sub, host, result)
 
-    def _save_ping_response(self, target_id: str, ip_addr: str,
-                            ping_resp: PingCommandResult) -> None:
+    def _save_ping_response(
+        self, target_id: str, ip_addr: str,
+        ping_resp: PingCommandResult,
+    ) -> None:
         """
         Saves ping response to in-memory subscriber dict.
         Args:
@@ -72,8 +83,10 @@ class ICMPMonitoring(Job):
             ping_resp: response of ICMP ping command
         """
         if ping_resp.error:
-            logging.debug('Failed to ping %s with error: %s',
-                          target_id, ping_resp.error)
+            logging.debug(
+                'Failed to ping %s with error: %s',
+                target_id, ping_resp.error,
+            )
         else:
             self._module.save_ping_response(target_id, ip_addr, ping_resp)
 

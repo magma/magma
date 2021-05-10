@@ -181,9 +181,9 @@ func TestGxReauthConversions(t *testing.T) {
 		SessionID:  "epc.mnc001.mcc001.3gppnetwork.org;698;729;IMSI001010000000122",
 		OriginHost: "pcrf.epc.mnc001.mcc001.3gppnetwork.org",
 		RulesToInstall: []*gx.RuleInstallAVP{
-			&gx.RuleInstallAVP{
+			{
 				RuleDefinitions: []*gx.RuleDefinition{
-					&gx.RuleDefinition{
+					{
 						RuleName: "Dedi bearer data Q100000212",
 						FlowDescriptions: []string{
 							"permit in ip from 0.0.0.0/0 to 4.2.2.4",

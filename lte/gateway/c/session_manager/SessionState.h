@@ -320,9 +320,9 @@ class SessionState {
    * @param rule
    * @param lifetime
    * @param session_uc
-   * @return uint32_t updated version
+   * @return RuleToProcess
    */
-  uint32_t insert_dynamic_rule(
+  RuleToProcess insert_dynamic_rule(
       const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& session_uc);
 
@@ -333,9 +333,9 @@ class SessionState {
    * @param rule_id
    * @param lifetime
    * @param session_uc
-   * @return uint32_t updated version
+   * @return RuleToProcess
    */
-  uint32_t activate_static_rule(
+  RuleToProcess activate_static_rule(
       const std::string& rule_id, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& session_uc);
   /**
@@ -344,9 +344,9 @@ class SessionState {
    * @param rule
    * @param lifetime
    * @param update_criteria
-   * @return uint32_t updated version
+   * @return RuleToProcess
    */
-  uint32_t insert_gy_rule(
+  RuleToProcess insert_gy_rule(
       const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& session_uc);
 
@@ -358,9 +358,10 @@ class SessionState {
    * @param update_criteria Tracks updates to the session. To be passed back to
    *                        the SessionStore to resolve issues of concurrent
    *                        updates to a session.
-   * @return optional<uint32_t> updated version if success, {} if failure
+   * @return optional<RuleToProcess> updated RuleToProcess if success, {} if
+   * failure
    */
-  optional<uint32_t> remove_dynamic_rule(
+  optional<RuleToProcess> remove_dynamic_rule(
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& update_criteria);
 
@@ -375,9 +376,9 @@ class SessionState {
    * @param rule_id
    * @param rule_out
    * @param session_uc
-   * @return optional<uint32_t> updated version if success, {} if failure
+   * @return optional<RuleToProcess> if success, {} if failure
    */
-  optional<uint32_t> remove_gy_rule(
+  optional<RuleToProcess> remove_gy_rule(
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& session_uc);
 
@@ -388,9 +389,9 @@ class SessionState {
    * @param session_uc Tracks updates to the session. To be passed back to
    *                        the SessionStore to resolve issues of concurrent
    *                        updates to a session.
-   * @return new version if successfully removed. otherwise returns {}
+   * @return RuleToProcess if successfully removed. otherwise returns {}
    */
-  optional<uint32_t> deactivate_static_rule(
+  optional<RuleToProcess> deactivate_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
 
   bool deactivate_scheduled_static_rule(const std::string& rule_id);
@@ -448,8 +449,8 @@ class SessionState {
   SessionFsmState get_state();
 
   void get_rules_per_credit_key(
-      CreditKey charging_key, RulesToProcess& rulesToProcess,
-      SessionStateUpdateCriteria& session_uc);
+      const CreditKey& charging_key, RulesToProcess* to_process,
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * Remove all active/scheduled static/dynamic rules and reflect the change in
@@ -522,35 +523,42 @@ class SessionState {
   /**
    * get_dedicated_bearer_updates processes the two rule update inputs and
    * produces a BearerUpdate based on whether a bearer has to be create/deleted.
-   * @param rules_to_activate
-   * @param rules_to_deactivate
+   * @param to_activate
+   * @param to_deactivate
    * @param uc: update criteria needs to be updated if the bearer mapping is
    * modified
    * @return BearerUpdate with Create/DeleteBearerRequest
    */
   BearerUpdate get_dedicated_bearer_updates(
-      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
-      SessionStateUpdateCriteria& uc);
+      const RulesToProcess& to_activate, const RulesToProcess& to_deactivate,
+      SessionStateUpdateCriteria* session_uc);
   /**
    * Determine whether a policy with type+ID needs a bearer to be created
    * @param policy_type
    * @param rule_id
-   * @param config
    * @return an optional wrapped PolicyRule if creation is needed, {} otherwise
    */
   optional<PolicyRule> policy_needs_bearer_creation(
-      const PolicyType policy_type, const std::string& rule_id,
-      const SessionConfig& config);
+      const PolicyType policy_type, const std::string& rule_id);
+
+  /**
+   * @brief Return the list of teids used in this session
+   * The teids will be the union of config.common_context.teids and any teids
+   * tied to dedicated bearers in bearer_id_by_policy_
+   * @return std::vector<Teids>
+   */
+  std::vector<Teids> get_active_teids();
+
   /**
    *
    * @param rule_set
    * @param subscriber_wide_rule_set
-   * @param rules_to_activate
-   * @param rules_to_deactivate
+   * @param to_activate
+   * @param to_deactivate
    */
   void apply_session_rule_set(
-      RuleSetToApply& rule_set, RulesToProcess& rules_to_activate,
-      RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc);
+      const RuleSetToApply& rule_set, RulesToProcess* to_activate,
+      RulesToProcess* to_deactivate, SessionStateUpdateCriteria& uc);
 
   /**
    * Add the association of policy -> bearerID into bearer_id_by_policy_
@@ -571,6 +579,40 @@ class SessionState {
    */
   bool should_rule_be_active(const std::string& rule_id, std::time_t time);
   bool is_dynamic_rule_scheduled(const std::string& rule_id);
+
+  /**
+   * @brief Go through static rule install instructions and return
+   * what needs to be propagated to PipelineD
+   *
+   * @param rule_installs StaticRuleInstall received from
+   * PCF/PCRF/PolicyDB
+   * @param to_activate output parameter
+   * @param to_deactivate output parameter
+   * @param rules_to_schedule output parameter
+   * @param session_uc
+   */
+  void process_static_rule_installs(
+      const std::vector<StaticRuleInstall>& rule_installs,
+      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+      RulesToSchedule* rules_to_schedule,
+      SessionStateUpdateCriteria* session_uc);
+
+  /**
+   * @brief Go through dynamic rule install instructions and return
+   * what needs to be propagated to PipelineD
+   *
+   * @param rule_installs DynamicRuleInstall received from
+   * PCF/PCRF/PolicyDB
+   * @param to_activate output parameter
+   * @param to_deactivate output parameter
+   * @param rules_to_schedule output parameter
+   * @param session_uc
+   */
+  void process_dynamic_rule_installs(
+      const std::vector<DynamicRuleInstall>& rule_installs,
+      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+      RulesToSchedule* rules_to_schedule,
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * Clear all per-session metrics
@@ -760,14 +802,14 @@ class SessionState {
 
   /** apply static_rules which is the desired state for the session's rules **/
   void apply_session_static_rule_set(
-      std::unordered_set<std::string> static_rules,
-      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+      const std::unordered_set<std::string> static_rules,
+      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
       SessionStateUpdateCriteria& uc);
 
   /** apply dynamic_rules which is the desired state for the session's rules **/
   void apply_session_dynamic_rule_set(
-      std::unordered_map<std::string, PolicyRule> dynamic_rules,
-      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+      const std::unordered_map<std::string, PolicyRule> dynamic_rules,
+      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
       SessionStateUpdateCriteria& uc);
 
   /**
@@ -779,7 +821,7 @@ class SessionState {
    */
   void update_bearer_creation_req(
       const PolicyType policy_type, const std::string& rule_id,
-      const SessionConfig& config, BearerUpdate& update);
+      BearerUpdate* update);
 
   /**
    * Check if a bearer has to be deleted for the given policy. If a deletion is
@@ -790,8 +832,7 @@ class SessionState {
    */
   void update_bearer_deletion_req(
       const PolicyType policy_type, const std::string& rule_id,
-      const SessionConfig& config, BearerUpdate& update,
-      SessionStateUpdateCriteria& uc);
+      BearerUpdate& update, SessionStateUpdateCriteria& uc);
 
   /**
    * Set bearer_id_by_policy_ to the input
@@ -826,6 +867,8 @@ class SessionState {
    */
   void increment_rule_stats(
       const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
+
+  RuleToProcess make_rule_to_process(const PolicyRule& rule);
 };
 
 }  // namespace magma

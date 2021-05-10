@@ -15,6 +15,7 @@ limitations under the License.
 package gx_test
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -34,7 +35,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 const (
@@ -195,7 +195,6 @@ func TestGxClient(t *testing.T) {
 	assert.Equal(t, ipv6addr[:6], []byte{0, 0x80, 0xfd, 0xfa, 0xce, 0xb0})
 	assert.NotEqual(t, ipv6addr[6:10], []byte{0x0c, 0xab, 0xcd, 0xef})
 	assert.Equal(t, ipv6addr[10:], []byte{0x2, 0x0, 0x5e, 0xff, 0xfe, 0x0, 0x53, 0x1})
-
 }
 
 // TestGxClient tests CCR init and terminate messages using a fake PCRF and a specific GxGlobalConfig
@@ -464,6 +463,7 @@ func TestDefaultFramedIpv4Addr(t *testing.T) {
 	gx.GetAnswer(done)
 
 	lastMsg, err := pcrf.GetLastAVPreceived()
+	assert.NoError(t, err)
 	avpValue, err := lastMsg.FindAVP(avp.FramedIPAddress, 0)
 	assert.NoError(t, err)
 	actualIPv4, err := datatype.DecodeIPv4(avpValue.Data.Serialize())

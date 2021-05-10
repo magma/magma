@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import subprocess
-import threading
 from collections import namedtuple
 
 import netaddr
@@ -19,6 +18,9 @@ import netifaces
 from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.openflow import flows
+from ryu.lib import hub
+
+UPLINK_OVS_BRIDGE_NAME = 'uplink_br0'
 
 
 class UplinkBridgeController(MagmaController):
@@ -31,11 +33,11 @@ class UplinkBridgeController(MagmaController):
     APP_TYPE = ControllerType.SPECIAL
     UPLINK_DHCP_PORT_NAME = 'dhcp0'
     UPLINK_PATCH_PORT_NAME = 'patch-agw'
-    UPLINK_OVS_BRIDGE_NAME = 'uplink_br0'
     DEFAULT_UPLINK_PORT_NANE = 'eth3'
     DEFAULT_UPLINK_MAC = '11:22:33:44:55:66'
     DEFAULT_DEV_VLAN_IN = 'vlan_pop_in'
     DEFAULT_DEV_VLAN_OUT = 'vlan_pop_out'
+    SGI_INGRESS_FLOW_UPDATE_FREQ = 60
 
     UplinkConfig = namedtuple(
         'UplinkBridgeConfig',
@@ -55,8 +57,7 @@ class UplinkBridgeController(MagmaController):
     def _get_config(self, config_dict) -> namedtuple:
 
         enable_nat = config_dict.get('enable_nat', True)
-        bridge_name = config_dict.get('uplink_bridge',
-                                      self.UPLINK_OVS_BRIDGE_NAME)
+        bridge_name = config_dict.get('uplink_bridge', UPLINK_OVS_BRIDGE_NAME)
         dhcp_port = config_dict.get('uplink_dhcp_port',
                                     self.UPLINK_DHCP_PORT_NAME)
         uplink_patch = config_dict.get('uplink_patch',
@@ -99,6 +100,7 @@ class UplinkBridgeController(MagmaController):
         self._delete_all_flows()
         self._add_eth_port()
         self._setup_vlan_pop_dev()
+
         # flows to forward traffic between patch port to eth port
         # 1. Setup SGi management iface flows
         if self.config.sgi_management_iface_vlan:
@@ -114,21 +116,16 @@ class UplinkBridgeController(MagmaController):
                                                                       self.config.uplink_eth_port_name)
             self._install_flow(flows.MAXIMUM_PRIORITY, match, actions)
         else:
-            # 1.a. Ingress
-            match = "in_port=%s,ip" % self.config.uplink_eth_port_name
-            actions = "output:LOCAL"
-            self._install_flow(flows.MINIMUM_PRIORITY, match, actions)
-
-            # 1.b. Egress
+            # 1.a. Egress
             match = "in_port=LOCAL"
             actions = "output:%s" % self.config.uplink_eth_port_name
             self._install_flow(flows.MINIMUM_PRIORITY, match, actions)
 
-        # 2.a. DHCP Req traffic
+        # 2.a Ingress: DHCP reply flows
         match = "in_port=%s,ip,udp,tp_dst=68" % self.config.uplink_eth_port_name
         actions = "output:%s,output:LOCAL" % self.config.dhcp_port
         self._install_flow(flows.MAXIMUM_PRIORITY - 1, match, actions)
-        # 2.b DHCP reply flows
+        # 2.b. Egress: DHCP Req traffic
         match = "in_port=%s" % self.config.dhcp_port
         actions = "output:%s" % self.config.uplink_eth_port_name
         self._install_flow(flows.MAXIMUM_PRIORITY - 1, match, actions)
@@ -138,6 +135,8 @@ class UplinkBridgeController(MagmaController):
         actions = "mod_dl_src=%s, output:%s" % (self.config.virtual_mac,
                                                 self.config.uplink_eth_port_name)
         self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
+
+        # 4. Remaining Ingress traffic
 
         if self.config.ovs_vlan_workaround:
             # 4.a. All ingress IP traffic for UE mac
@@ -173,12 +172,16 @@ class UplinkBridgeController(MagmaController):
                                                         self.config.uplink_patch)
         self._install_flow(flows.MINIMUM_PRIORITY, match, actions)
 
-        # everything else:
+        # config interfaces:
         self._kill_dhclient(self.config.uplink_eth_port_name)
+        self._flush_ip(self.config.uplink_eth_port_name)
 
         self._set_sgi_ip_addr(self.config.uplink_bridge)
         self._set_sgi_gw(self.config.uplink_bridge)
         self._set_arp_ignore('all', '1')
+
+        # 6. After setting IP, setup SGi interface Ingress flow
+        self._set_sgi_interface_ingress_flows()
 
     def cleanup_on_disconnect(self, datapath):
         self._del_eth_port()
@@ -186,6 +189,16 @@ class UplinkBridgeController(MagmaController):
 
     def delete_all_flows(self, datapath):
         self._delete_all_flows()
+
+    def _set_sgi_interface_ingress_flows(self):
+        if_addrs = netifaces.ifaddresses(self.config.uplink_bridge).get(netifaces.AF_INET, [])
+        for addr in if_addrs:
+            addr = "/".join((addr['addr'], addr['netmask']))
+
+            match = "in_port=%s,ip,ip_dst=%s" % (self.config.uplink_eth_port_name,
+                                                 addr)
+            actions = "output:LOCAL"
+            self._install_flow(flows.MEDIUM_PRIORITY + 1, match, actions)
 
     def _delete_all_flows(self):
         if self.config.uplink_bridge is None:
@@ -203,7 +216,6 @@ class UplinkBridgeController(MagmaController):
         flow_cmd = "ovs-ofctl add-flow -Oopenflow13 %s \"priority=%s,%s, actions=%s\"" % (
             self.config.uplink_bridge, priority,
             flow_match, flow_action)
-
         self.logger.info("Create flow %s", flow_cmd)
 
         try:
@@ -282,6 +294,7 @@ class UplinkBridgeController(MagmaController):
                 self.config.sgi_management_iface_ip_addr == "":
             if if_name == self.config.uplink_bridge:
                 self._restart_dhclient(if_name)
+
             else:
                 if_addrs = netifaces.ifaddresses(if_name).get(netifaces.AF_INET, [])
                 if len(if_addrs) != 0:
@@ -348,7 +361,7 @@ class UplinkBridgeController(MagmaController):
 
     def _restart_dhclient(self, if_name):
         # restart DHCP client can take loooong time, process it in separate thread:
-        threading.Thread(target=self._restart_dhclient_if(if_name))
+        hub.spawn(self._restart_dhclient_if(if_name))
 
     def _setup_vlan_pop_dev(self):
         if self.config.ovs_vlan_workaround:
@@ -380,6 +393,11 @@ class UplinkBridgeController(MagmaController):
             self.logger.info("could not flush ip addr: %s, %s", if_name, ex)
 
         self.logger.info("SGi DHCP: port [%s] ip removed", if_name)
+        while True:
+            # keep updating flow to handle IP address change.
+            self._set_sgi_interface_ingress_flows()
+            hub.sleep(self.SGI_INGRESS_FLOW_UPDATE_FREQ)
+
 
     def _restart_dhclient_if(self, if_name):
         self._cleanup_if(if_name, False)

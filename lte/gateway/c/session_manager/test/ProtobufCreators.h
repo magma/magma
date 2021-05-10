@@ -188,7 +188,8 @@ magma::mconfig::SessionD get_default_mconfig();
 
 PolicyBearerBindingRequest create_policy_bearer_bind_req(
     const std::string& imsi, const uint32_t linked_bearer_id,
-    const std::string& rule_id, const uint32_t bearer_id);
+    const std::string& rule_id, const uint32_t bearer_id,
+    const uint32_t agw_teid, const uint32_t enb_teid);
 
 UpdateTunnelIdsRequest create_update_tunnel_ids_request(
     const std::string& imsi, const uint32_t bearer_id, const Teids teids);

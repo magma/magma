@@ -13,14 +13,13 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"os"
 	"reflect"
 	"testing"
 
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/providers/sim"
-
-	"golang.org/x/net/context"
 
 	cp "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
@@ -42,7 +41,7 @@ func (s testSwxProxy) Authenticate(
 	return &cp.AuthenticationAnswer{
 		UserName: req.GetUserName(),
 		SipAuthVectors: []*cp.AuthenticationAnswer_SIPAuthVector{
-			&cp.AuthenticationAnswer_SIPAuthVector{
+			{
 				AuthenticationScheme: req.AuthenticationScheme,
 				RandAutn: []byte{57, 22, 40, 33, 82, 189, 193, 89, 219, 31, 18, 64, 95, 197, 50,
 					240, 188, 167, 68, 25, 19, 11, 128, 0, 228, 20, 201, 246, 253, 57, 224, 99},
@@ -50,7 +49,7 @@ func (s testSwxProxy) Authenticate(
 				ConfidentialityKey: []byte{235, 74, 254, 58, 73, 108, 112, 173, 61, 24, 169, 176, 219, 233, 85, 180},
 				IntegrityKey:       []byte{8, 114, 43, 29, 82, 150, 220, 38, 242, 123, 82, 108, 116, 174, 27, 212},
 			},
-			&cp.AuthenticationAnswer_SIPAuthVector{
+			{
 				AuthenticationScheme: req.AuthenticationScheme,
 				RandAutn: []byte{127, 70, 44, 220, 221, 96, 68, 186, 152, 38, 223, 29, 92, 21, 1, 60,
 					131, 208, 242, 222, 202, 147, 128, 0, 154, 211, 214, 217, 92, 43, 101, 232},
@@ -58,7 +57,7 @@ func (s testSwxProxy) Authenticate(
 				ConfidentialityKey: []byte{79, 73, 201, 197, 199, 254, 178, 13, 168, 21, 85, 129, 186, 164, 41, 106},
 				IntegrityKey:       []byte{16, 75, 4, 255, 189, 104, 158, 100, 49, 214, 172, 248, 77, 102, 249, 214},
 			},
-			&cp.AuthenticationAnswer_SIPAuthVector{
+			{
 				AuthenticationScheme: req.AuthenticationScheme,
 				RandAutn: []byte{209, 140, 161, 3, 11, 175, 197, 177, 85, 62, 129, 182, 231, 17, 8, 115,
 					197, 218, 91, 111, 30, 12, 128, 0, 180, 179, 86, 226, 118, 89, 17, 228},
@@ -120,7 +119,7 @@ func TestChallengeEAPTemplate(t *testing.T) {
 	if challengeReqTemplateLen != 80 {
 		t.Fatalf("Invalid challengeReqTemplateLen: %d", challengeReqTemplateLen)
 	}
-	scanner, err := eap.NewAttributeScanner(challengeReqTemplate)
+	scanner, _ := eap.NewAttributeScanner(challengeReqTemplate)
 	if scanner == nil {
 		t.Fatal("Nil Attribute Scanner")
 	}
@@ -168,7 +167,7 @@ func TestSimChallenge(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected identityResponse error: %v", err)
 	}
-	scanner, err := eap.NewAttributeScanner(p)
+	scanner, _ := eap.NewAttributeScanner(p)
 	if scanner == nil {
 		t.Fatal("Nil Attribute Scanner")
 	}

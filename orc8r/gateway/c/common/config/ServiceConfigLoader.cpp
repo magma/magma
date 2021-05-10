@@ -31,7 +31,7 @@ YAML::Node ServiceConfigLoader::load_service_config(
   try {
     auto override_file = std::string(OVERRIDE_DIR) + service_name + ".yml";
     return YAMLUtils::merge_nodes(base_config, YAML::LoadFile(override_file));
-  } catch (YAML::BadFile e) {
+  } catch (YAML::BadFile&) {
     MLOG(MDEBUG) << "Override file not found for service " << service_name;
   }
   return base_config;

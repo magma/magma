@@ -93,6 +93,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           sgw_state, &received_message_p->ittiMsg.s8_delete_session_rsp,
           imsi64);
     } break;
+    case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
+      sgw_s8_handle_release_access_bearers_request(
+          &received_message_p->ittiMsg.s11_release_access_bearers_request,
+          imsi64);
+    } break;
+
     default: {
       OAILOG_DEBUG(
           LOG_SGW_S8, "Unkwnon message ID %d: %s\n",

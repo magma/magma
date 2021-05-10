@@ -99,6 +99,9 @@ nat_iface: eth0
 # Interface to eNodeB
 enodeb_iface: eth1
 
+# By default enable routing for NonNAT
+dp_router_enabled: true
+
 # Bridge name comes from magma_magmad.service.j2
 bridge_name: gtp_br0
 # Bridge ip comes from magma_ifaces_gtp

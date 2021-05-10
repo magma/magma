@@ -33,8 +33,8 @@ func (tr *TestRunner) AuthenticateAndAssertSuccess(imsi string) {
 	assert.NoError(tr.t, err)
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	assert.NotNil(tr.t, eapMessage, "EAP Message from authentication is nil")
+	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
 }
 
 // Trigger a UE Authentication with the IMSI and called station ID.
@@ -44,8 +44,8 @@ func (tr *TestRunner) AuthenticateWithCalledIDAndAssertSuccess(imsi, calledStati
 	assert.NoError(tr.t, err)
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	assert.NotNil(tr.t, eapMessage, "EAP Message from authentication is nil")
+	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
 }
 
 // AuthenticateAndAssertSuccessWithRetries triggers a UE Authentication with the IMSI. Assert that the authentication
@@ -71,7 +71,7 @@ func (tr *TestRunner) AuthenticateAndAssertSuccessWithRetries(imsi string, maxRe
 				time.Sleep(1 * time.Second)
 				continue
 			}
-			if eapMessage == nil || reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode) == false {
+			if eapMessage == nil || !reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode) {
 				fmt.Printf("...Authentication failed with eap message either nul or not succelful: %+v. Retrying...!\n", eapMessage)
 				time.Sleep(1 * time.Second)
 				continue
@@ -80,8 +80,8 @@ func (tr *TestRunner) AuthenticateAndAssertSuccessWithRetries(imsi string, maxRe
 		break
 	}
 	assert.NoError(tr.t, err)
-	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	assert.NotNil(tr.t, eapMessage, "EAP Message from authentication is nil")
+	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
 
 }
 

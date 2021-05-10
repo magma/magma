@@ -60,7 +60,7 @@ func Auth(t *testing.T, client EapClient, imsi string, iter int, done chan error
 			err = fmt.Errorf("Error Handling Test EAP: %v", err)
 			return
 		}
-		if !reflect.DeepEqual([]byte(peap.GetPayload()), tst.ExpectedChallengeReq) {
+		if !reflect.DeepEqual(peap.GetPayload(), tst.ExpectedChallengeReq) {
 			err = fmt.Errorf("Unexpected identityResponse EAP\n\tReceived: %s\n\tExpected: %s",
 				eap_client.BytesToStr(peap.GetPayload()), eap_client.BytesToStr(tst.ExpectedChallengeReq))
 			return
@@ -73,10 +73,10 @@ func Auth(t *testing.T, client EapClient, imsi string, iter int, done chan error
 			return
 		}
 		successp := []byte{eap.SuccessCode, eap.Packet(tst.EapChallengeResp).Identifier(), 0, 4}
-		if !reflect.DeepEqual([]byte(peap.GetPayload()), []byte(successp)) {
+		if !reflect.DeepEqual(peap.GetPayload(), successp) {
 			err = fmt.Errorf(
 				"Unexpected Challenge Response EAP for Session: %s in %s\n\tReceived: %.3v\n\tExpected: %.3v",
-				peap.GetCtx().GetSessionId(), time.Since(startTime), peap.GetPayload(), []byte(successp))
+				peap.GetCtx().GetSessionId(), time.Since(startTime), peap.GetPayload(), successp)
 			return
 		}
 		// Check that we got expected MSISDN with the success EAP

@@ -16,10 +16,9 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"time"
-
-	"magma/feg/gateway/services/hlr_proxy"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
@@ -27,12 +26,12 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/hlr_proxy"
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/feg/gateway/services/swx_proxy/metrics"
 	orcprotos "magma/orc8r/lib/go/protos"
@@ -246,7 +245,7 @@ func (s *swxProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*p
 	if err != nil {
 		return &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: fmt.Sprintf("Error occured while retrieving health metrics: %s", err),
+			HealthMessage: fmt.Sprintf("Error occurred while retrieving health metrics: %s", err),
 		}, err
 	}
 	deltaMetrics, err := s.healthTracker.Metrics.GetDelta(currentMetrics)

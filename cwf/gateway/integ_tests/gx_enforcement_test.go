@@ -381,8 +381,11 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	// module throws this error here. coa_dynamic module isn't enabled during
 	// authentication and hence it isn't aware of the sessionID used when
 	// processing disconnect
-	assert.Contains(t, asa.SessionId, "IMSI"+imsi)
-	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
+	assert.NotNil(t, asa)
+	if asa != nil {
+		assert.Contains(t, asa.SessionId, "IMSI"+imsi)
+		assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
+	}
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 

@@ -30,9 +30,8 @@ type echoResponse struct {
 }
 
 type S8Proxy struct {
-	config      *S8ProxyConfig
-	gtpClient   *gtp.Client
-	echoChannel chan (error)
+	config    *S8ProxyConfig
+	gtpClient *gtp.Client
 }
 
 type S8ProxyConfig struct {
@@ -67,9 +66,8 @@ func NewS8ProxyWithEcho(config *S8ProxyConfig) (*S8Proxy, error) {
 func newS8ProxyImp(cli *gtp.Client, config *S8ProxyConfig) (*S8Proxy, error) {
 	// TODO: validate config
 	s8p := &S8Proxy{
-		config:      config,
-		gtpClient:   cli,
-		echoChannel: make(chan error),
+		config:    config,
+		gtpClient: cli,
 	}
 	addS8GtpHandlers(s8p)
 	return s8p, nil
@@ -136,14 +134,14 @@ func (s *S8Proxy) DeleteSession(ctx context.Context, req *protos.DeleteSessionRe
 	return cdRes, nil
 }
 
-func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*protos.EchoResponse, error) {
+func (s *S8Proxy) SendEcho(_ context.Context, req *protos.EchoRequest) (*protos.EchoResponse, error) {
 	cPgwUDPAddr, err := s.configOrRequestedPgwAddress(req.PgwAddrs)
 	if err != nil {
 		err = fmt.Errorf("SendEcho to %s failed: %s", cPgwUDPAddr, err)
 		glog.Error(err)
 		return nil, err
 	}
-	err = s.sendAndReceiveEchoRequest(cPgwUDPAddr)
+	err = s.gtpClient.SendEchoRequest(cPgwUDPAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -155,7 +153,7 @@ func (s *S8Proxy) SendEcho(ctx context.Context, req *protos.EchoRequest) (*proto
 func (s *S8Proxy) configOrRequestedPgwAddress(pgwAddrsFromRequest string) (*net.UDPAddr, error) {
 	addrs := ParseAddress(pgwAddrsFromRequest)
 	if addrs != nil {
-		// address comming from string has precednece
+		// address coming from string has precedence
 		return addrs, nil
 	}
 	if s.config.ServerAddr != nil {
