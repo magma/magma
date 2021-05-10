@@ -1,6 +1,6 @@
 ---
 
-- hosts: localhost
+- hosts: "{{ devops }}"
   roles:
     - { role: ansible-server, become: yes }
     - golang-host
