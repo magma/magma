@@ -11,9 +11,12 @@
  * limitations under the License.
  */
 
+#include <memory>
+#include <utility>
+
 #include "DirectorydClient.h"
-#include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
+#include "ServiceRegistrySingleton.h"
 
 using grpc::Status;
 

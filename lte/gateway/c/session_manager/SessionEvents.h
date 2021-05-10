@@ -11,18 +11,18 @@
  * limitations under the License.
  */
 
+#include <folly/dynamic.h>
+#include <folly/Format.h>
+#include <folly/json.h>
+#include <orc8r/protos/eventd.pb.h>
+
 #include <memory>
 #include <string>
 #include <utility>
 
-#include <folly/Format.h>
-#include <folly/dynamic.h>
-#include <folly/json.h>
-#include <orc8r/protos/eventd.pb.h>
-
 #include "EventdClient.h"
-#include "SessionState.h"
 #include "magma_logging.h"
+#include "SessionState.h"
 
 namespace magma {
 namespace lte {
@@ -59,7 +59,7 @@ class EventsReporter {
  */
 class EventsReporterImpl : public EventsReporter {
  public:
-  EventsReporterImpl(EventdClient& eventd_client);
+  explicit EventsReporterImpl(EventdClient& eventd_client);
 
   void session_created(
       const std::string& imsi, const std::string& session_id,

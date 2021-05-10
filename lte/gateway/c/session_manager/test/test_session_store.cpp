@@ -11,20 +11,20 @@
  * limitations under the License.
  */
 
-#include <memory>
-
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "Consts.h"
+#include "magma_logging.h"
+#include "MagmaService.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "SessionID.h"
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "StoredState.h"
-#include "MagmaService.h"
-#include "magma_logging.h"
 
 using magma::orc8r::MetricsContainer;
 using ::testing::Test;

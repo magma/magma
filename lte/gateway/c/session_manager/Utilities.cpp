@@ -10,10 +10,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
-#include <sstream>
-#include <iomanip>
 #include <google/protobuf/util/time_util.h>
+
+#include <algorithm>
+#include <chrono>
+#include <iomanip>
+#include <sstream>
 
 #include "Utilities.h"
 

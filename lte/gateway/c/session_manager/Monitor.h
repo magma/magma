@@ -12,8 +12,8 @@
  */
 #pragma once
 
-#include "StoredState.h"
 #include "SessionCredit.h"
+#include "StoredState.h"
 
 namespace magma {
 // Monitor is a structure to keep track of grants of bytes given used for
@@ -31,7 +31,7 @@ struct Monitor {
 
   Monitor() {}
 
-  Monitor(const StoredMonitor& marshaled) {
+  explicit Monitor(const StoredMonitor& marshaled) {
     credit = SessionCredit(marshaled.credit);
     level  = marshaled.level;
   }

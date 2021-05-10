@@ -11,14 +11,14 @@
  * limitations under the License.
  */
 
-#include <memory>
-
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
+#include "magma_logging.h"
 #include "ProtobufCreators.h"
 #include "StoredState.h"
-#include "magma_logging.h"
 
 using ::testing::Test;
 

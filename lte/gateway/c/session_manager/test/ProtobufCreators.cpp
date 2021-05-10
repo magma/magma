@@ -11,8 +11,11 @@
  * limitations under the License.
  */
 
-#include "ProtobufCreators.h"
+#include <vector>
+#include <string>
+
 #include "Consts.h"
+#include "ProtobufCreators.h"
 
 namespace magma {
 

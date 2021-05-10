@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include <string>
+
 #include "MagmaService.h"
 #include "MeteringReporter.h"
 #include "MetricsHelpers.h"

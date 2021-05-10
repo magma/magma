@@ -11,10 +11,12 @@
  * limitations under the License.
  */
 
+#include <utility>
+
+#include "magma_logging.h"
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "StoredState.h"
-#include "magma_logging.h"
 
 namespace magma {
 namespace lte {

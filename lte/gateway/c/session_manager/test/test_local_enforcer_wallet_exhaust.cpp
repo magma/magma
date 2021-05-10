@@ -10,25 +10,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
-#include <future>
-#include <memory>
-#include <string.h>
-#include <time.h>
-
 #include <folly/io/async/EventBaseManager.h>
 #include <gtest/gtest.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <string.h>
+#include <time.h>
+
+#include <chrono>
+#include <future>
+#include <memory>
 
 #include "Consts.h"
 #include "LocalEnforcer.h"
+#include "magma_logging.h"
 #include "MagmaService.h"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
 #include "ServiceRegistrySingleton.h"
-#include "SessionStore.h"
 #include "SessiondMocks.h"
-#include "magma_logging.h"
+#include "SessionStore.h"
 
 #define SECONDS_A_DAY 86400
 

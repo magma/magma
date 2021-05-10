@@ -11,25 +11,25 @@
  * limitations under the License.
  */
 
+#include <lte/protos/mconfig/mconfigs.pb.h>
+
 #include <cstdlib>
 #include <iostream>
 
-#include <lte/protos/mconfig/mconfigs.pb.h>
-
-#include "SessionManagerServer.h"
+#include "GrpcMagmaUtils.h"
 #include "LocalEnforcer.h"
-#include "SessionReporter.h"
+#include "magma_logging_init.h"
 #include "MagmaService.h"
+#include "MConfigLoader.h"
+#include "OperationalStatesHandler.h"
+#include "PolicyLoader.h"
 #include "RedisStoreClient.h"
 #include "RestartHandler.h"
 #include "ServiceRegistrySingleton.h"
-#include "PolicyLoader.h"
-#include "MConfigLoader.h"
-#include "magma_logging_init.h"
-#include "OperationalStatesHandler.h"
 #include "SessionCredit.h"
+#include "SessionManagerServer.h"
+#include "SessionReporter.h"
 #include "SessionStore.h"
-#include "GrpcMagmaUtils.h"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"

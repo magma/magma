@@ -14,9 +14,12 @@
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
 
-#include "StoredState.h"
+#include <string>
+#include <unordered_map>
+
 #include "CreditKey.h"
 #include "magma_logging.h"
+#include "StoredState.h"
 
 namespace magma {
 using google::protobuf::util::TimeUtil;

@@ -14,6 +14,7 @@
 #include <ctime>
 #include <limits>
 #include <sstream>
+#include <string>
 
 #include "ChargingGrant.h"
 #include "EnumToString.h"
