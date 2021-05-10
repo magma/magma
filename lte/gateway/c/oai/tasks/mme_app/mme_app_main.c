@@ -113,6 +113,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       mme_app_handle_create_sess_resp(
           mme_app_desc_p,
           &received_message_p->ittiMsg.s11_create_session_response);
+      put_mme_nas_state();
     } break;
 
     case S11_MODIFY_BEARER_RESPONSE: {
@@ -165,6 +166,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
           mme_app_handle_ue_offload(ue_context_p);
         }
+        put_mme_nas_state();
       }
     } break;
 
@@ -172,17 +174,20 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       mme_app_handle_release_access_bearers_resp(
           mme_app_desc_p,
           &received_message_p->ittiMsg.s11_release_access_bearers_response);
+      put_mme_nas_state();
     } break;
 
     case S11_DELETE_SESSION_RESPONSE: {
       mme_app_handle_delete_session_rsp(
           mme_app_desc_p,
           &received_message_p->ittiMsg.s11_delete_session_response);
+      put_mme_nas_state();
     } break;
 
     case S11_SUSPEND_ACKNOWLEDGE: {
       mme_app_handle_suspend_acknowledge(
           mme_app_desc_p, &received_message_p->ittiMsg.s11_suspend_acknowledge);
+      put_mme_nas_state();
     } break;
 
     case S1AP_E_RAB_SETUP_RSP: {
@@ -201,6 +206,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S1AP_INITIAL_UE_MESSAGE: {
       imsi64 = mme_app_handle_initial_ue_message(
           mme_app_desc_p, &S1AP_INITIAL_UE_MESSAGE(received_message_p));
+      put_mme_nas_state();
     } break;
 
     case S6A_UPDATE_LOCATION_ANS: {
@@ -222,11 +228,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       OAILOG_DEBUG(LOG_MME_APP, "MME handling paging request \n");
       imsi64 = mme_app_handle_initial_paging_request(
           mme_app_desc_p, &received_message_p->ittiMsg.s11_paging_request);
+        put_mme_nas_state();
     } break;
 
     case MME_APP_INITIAL_CONTEXT_SETUP_FAILURE: {
       mme_app_handle_initial_context_setup_failure(
           &MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(received_message_p));
+      put_mme_nas_state();
     } break;
 
     case TIMER_HAS_EXPIRED: {
@@ -262,6 +270,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S1AP_UE_CONTEXT_RELEASE_REQ: {
       mme_app_handle_s1ap_ue_context_release_req(
           &received_message_p->ittiMsg.s1ap_ue_context_release_req);
+      put_mme_nas_state();
     } break;
 
     case S1AP_UE_CONTEXT_MODIFICATION_RESPONSE: {
@@ -277,11 +286,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       mme_app_handle_s1ap_ue_context_release_complete(
           mme_app_desc_p,
           &received_message_p->ittiMsg.s1ap_ue_context_release_complete);
+      put_mme_nas_state();
     } break;
 
     case S1AP_ENB_DEREGISTERED_IND: {
       mme_app_handle_enb_deregister_ind(
           &received_message_p->ittiMsg.s1ap_eNB_deregistered_ind);
+      put_mme_nas_state();
     } break;
 
     case ACTIVATE_MESSAGE: {
@@ -314,6 +325,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       mme_app_handle_sgsap_location_update_rej(
           mme_app_desc_p,
           &received_message_p->ittiMsg.sgsap_location_update_rej);
+      put_mme_nas_state();
     } break;
 
     case SGSAP_ALERT_REQUEST: {
@@ -373,21 +385,23 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S1AP_PATH_SWITCH_REQUEST: {
       mme_app_handle_path_switch_request(
           mme_app_desc_p, &S1AP_PATH_SWITCH_REQUEST(received_message_p));
+      put_mme_nas_state();
     } break;
 
     case S1AP_HANDOVER_REQUIRED: {
       mme_app_handle_handover_required(
-          mme_app_desc_p, &S1AP_HANDOVER_REQUIRED(received_message_p));
+          &S1AP_HANDOVER_REQUIRED(received_message_p));
     } break;
 
     case S1AP_HANDOVER_REQUEST_ACK: {
       mme_app_handle_handover_request_ack(
-          mme_app_desc_p, &S1AP_HANDOVER_REQUEST_ACK(received_message_p));
+          &S1AP_HANDOVER_REQUEST_ACK(received_message_p));
     } break;
 
     case S1AP_HANDOVER_NOTIFY: {
       mme_app_handle_handover_notify(
           mme_app_desc_p, &S1AP_HANDOVER_NOTIFY(received_message_p));
+      put_mme_nas_state();
     } break;
 
     case S6A_AUTH_INFO_ANS: {
@@ -438,6 +452,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S1AP_REMOVE_STALE_UE_CONTEXT: {
       mme_app_remove_stale_ue_context(
           mme_app_desc_p, &S1AP_REMOVE_STALE_UE_CONTEXT(received_message_p));
+      put_mme_nas_state();
     } break;
 
     case TERMINATE_MESSAGE: {
@@ -458,7 +473,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  put_mme_nas_state();
   put_mme_ue_state(mme_app_desc_p, imsi64);
 
   itti_free_msg_content(received_message_p);
