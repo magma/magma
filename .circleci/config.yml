@@ -1277,7 +1277,7 @@ workflows:
           <<: *only_master
       - mme-clang-warnings:
           <<: *only_master
-      - lte-integ-test:
+      - lte-integ-test
       - lte-agw-deploy:
           requires:
             - lte-test
