@@ -159,14 +159,14 @@ func createSubscriber(imsi string, authKey []byte, non3gppEnabled bool) *protos.
 			Msisdn:              msisdn,
 			Non_3GppIpAccess:    protos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
 			Non_3GppIpAccessApn: protos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
-			ApnConfig:           []*protos.APNConfiguration{&protos.APNConfiguration{}},
+			ApnConfig:           []*protos.APNConfiguration{{}},
 		}
 	} else {
 		non3gppProfile = &protos.Non3GPPUserProfile{
 			Msisdn:              msisdn,
 			Non_3GppIpAccess:    protos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_BARRED,
 			Non_3GppIpAccessApn: protos.Non3GPPUserProfile_NON_3GPP_APNS_DISABLE,
-			ApnConfig:           []*protos.APNConfiguration{&protos.APNConfiguration{}},
+			ApnConfig:           []*protos.APNConfiguration{{}},
 		}
 	}
 	return &protos.SubscriberData{

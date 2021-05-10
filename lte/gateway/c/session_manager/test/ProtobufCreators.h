@@ -15,6 +15,7 @@
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include "StoredState.h"
 
 #include "DiameterCodes.h"
 
@@ -23,7 +24,7 @@ using namespace lte;
 
 CommonSessionContext build_common_context(
     const std::string& imsi, const std::string& ue_ipv4,
-    const std::string& ue_ipv6, const std::string& apn,
+    const std::string& ue_ipv6, const Teids teids, const std::string& apn,
     const std::string& msisdn, const RATType rat_type);
 
 LTESessionContext build_lte_context(
@@ -43,6 +44,11 @@ RuleSet create_rule_set(
 void create_rule_record(
     const std::string& imsi, const std::string& rule_id, uint64_t bytes_rx,
     uint64_t bytes_tx, RuleRecord* rule_record);
+
+void create_rule_record(
+    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    uint64_t bytes_rx, uint64_t bytes_tx, uint32_t teid,
+    RuleRecord* rule_record);
 
 void create_rule_record(
     const std::string& imsi, const std::string& ip, const std::string& rule_id,
@@ -182,5 +188,13 @@ magma::mconfig::SessionD get_default_mconfig();
 
 PolicyBearerBindingRequest create_policy_bearer_bind_req(
     const std::string& imsi, const uint32_t linked_bearer_id,
-    const std::string& rule_id, const uint32_t bearer_id);
+    const std::string& rule_id, const uint32_t bearer_id,
+    const uint32_t agw_teid, const uint32_t enb_teid);
+
+UpdateTunnelIdsRequest create_update_tunnel_ids_request(
+    const std::string& imsi, const uint32_t bearer_id, const Teids teids);
+
+UpdateTunnelIdsRequest create_update_tunnel_ids_request(
+    const std::string& imsi, const uint32_t bearer_id, const uint32_t agw_teid,
+    const uint32_t enb_teid);
 }  // namespace magma

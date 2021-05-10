@@ -26,6 +26,12 @@ class TestAttachEnbRlf(unittest.TestCase):
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
+        print(
+            "Restart sctpd service to clear Redis state as test case doesn't"
+            " intend to initiate detach procedure"
+        )
+        self._s1ap_wrapper.magmad_util.restart_sctpd()
+        self._s1ap_wrapper.magmad_util.print_redis_state()
 
     def test_attach_enb_rlf(self):
         """
@@ -100,7 +106,7 @@ class TestAttachEnbRlf(unittest.TestCase):
         sec_ctxt = s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT
         id_type = s1ap_types.TFW_MID_TYPE_IMSI
         eps_type = s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH
-        attach_req.ue_Id = 2
+        attach_req.ue_Id = 1
         attach_req.mIdType = id_type
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt

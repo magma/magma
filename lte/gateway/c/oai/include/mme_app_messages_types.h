@@ -45,6 +45,10 @@
 #include "common_types.h"
 #include "nas/securityDef.h"
 #include "nas/as_message.h"
+#include "s1ap_messages_types.h"
+
+#include "S1ap_Source-ToTarget-TransparentContainer.h"
+#include "S1ap_HandoverType.h"
 
 #define MME_APP_CONNECTION_ESTABLISHMENT_CNF(mSGpTR)                           \
   (mSGpTR)->ittiMsg.mme_app_connection_establishment_cnf
@@ -57,6 +61,10 @@
 #define MME_APP_UL_DATA_IND(mSGpTR) (mSGpTR)->ittiMsg.mme_app_ul_data_ind
 #define MME_APP_DL_DATA_CNF(mSGpTR) (mSGpTR)->ittiMsg.mme_app_dl_data_cnf
 #define MME_APP_DL_DATA_REJ(mSGpTR) (mSGpTR)->ittiMsg.mme_app_dl_data_rej
+#define MME_APP_HANDOVER_REQUEST(mSGpTR)                                       \
+  (mSGpTR)->ittiMsg.mme_app_handover_request
+#define MME_APP_HANDOVER_COMMAND(mSGpTR)                                       \
+  (mSGpTR)->ittiMsg.mme_app_handover_command
 
 typedef struct itti_mme_app_connection_establishment_cnf_s {
   mme_ue_s1ap_id_t ue_id;
@@ -86,6 +94,10 @@ typedef struct itti_mme_app_connection_establishment_cnf_s {
   // UE Security Capabilities
   uint16_t ue_security_capabilities_encryption_algorithms;
   uint16_t ue_security_capabilities_integrity_algorithms;
+
+  // NR UE Security Capabilities
+  uint16_t nr_ue_security_capabilities_encryption_algorithms;
+  uint16_t nr_ue_security_capabilities_integrity_algorithms;
 
   // Security key
   uint8_t kenb[AUTH_KENB_SIZE];
@@ -151,5 +163,31 @@ typedef struct itti_mme_app_ul_data_ind_s {
   /* Indicating the cell from which the UE has sent the NAS message  */
   ecgi_t cgi;
 } itti_mme_app_ul_data_ind_t;
+
+typedef struct itti_mme_app_handover_request_s {
+  uint32_t target_sctp_assoc_id;
+  uint32_t target_enb_id;
+  S1ap_Cause_t cause;
+  S1ap_HandoverType_t handover_type;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  ambr_t ue_ambr;
+  e_rab_to_be_setup_list_ho_req_t e_rab_list;
+  bstring src_tgt_container;
+  uint16_t encryption_algorithm_capabilities;
+  uint16_t integrity_algorithm_capabilities;
+  uint8_t nh[AUTH_NEXT_HOP_SIZE]; /* Next Hop security key*/
+  uint8_t ncc;                    /* next hop chaining count */
+} itti_mme_app_handover_request_t;
+
+typedef struct itti_mme_app_handover_command_s {
+  uint32_t source_assoc_id;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id;
+  enb_ue_s1ap_id_t src_enb_ue_s1ap_id;
+  enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id;
+  S1ap_HandoverType_t handover_type;
+  bstring tgt_src_container;
+  uint32_t source_enb_id;
+  uint32_t target_enb_id;
+} itti_mme_app_handover_command_t;
 
 #endif /* FILE_MME_APP_MESSAGES_TYPES_SEEN */

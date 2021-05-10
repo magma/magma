@@ -1,0 +1,27 @@
+---
+#installing golang so that go modules can be run on this host
+#particularly useful when working with cloud provider platforms
+#need to be run as sudo
+
+- name: download golang version 
+  get_url: 
+    url: "https://golang.org/dl/go{{ goVersion }}.{{ goDistro }}-{{ goArch }}.tar.gz"
+    dest: /tmp/goBin.tar.gz
+
+- name: install on host
+  unarchive:
+    src: /tmp/goBin.tar.gz
+    dest: /usr/local
+    remote_src: yes
+  become: yes
+
+- name: add go to path
+  lineinfile:
+    path: "{{ usrProfile }}"
+    regexp: '^export PATH=$PATH:/usr/local/go/bin'
+    line: "{{ item }}"
+  with_items:
+    - "export export PATH=$PATH:/usr/local/go/bin"
+    - 'export PS1="cloudstrapper:\w #"'
+    - 'alias play="cd {{ dirHome }}/code/mantle/experimental/cloudstrapper/playbooks"'
+

@@ -17,6 +17,7 @@ import json
 import os
 import re
 import time
+import sys
 
 from fabric.api import cd, env, hide, local, run, settings
 from fabric.operations import put, sudo
@@ -55,7 +56,7 @@ def upgrade_to_latest_and_run_3gpp_tests(
     latest_tag = _get_latest_agw_tag(setup, key_filename)
     latest_hash = _parse_hash_from_tag(latest_tag)
 
-    return upgrade_and_run_3gpp_tests(
+    upgrade_and_run_3gpp_tests(
         setup, latest_hash, key_filename,
         custom_test_file, upgrade_agw, upgrade_feg)
 
@@ -83,13 +84,12 @@ def upgrade_and_run_3gpp_tests(
     err = upgrade_teravm(setup, hash, key_filename,
                          upgrade_agw, upgrade_feg)
     if err:
-        return None
+        sys.exit(1)
 
     fastprint("\nSleeping for 30 seconds to make sure system is read\n\n")
     time.sleep(30)
 
     verdicts = run_3gpp_tests(setup, key_filename, custom_test_file)
-    return verdicts
 
 
 def upgrade_teravm_latest(
@@ -134,14 +134,10 @@ def upgrade_teravm(
     upgrade_agw = _prep_bool_arg(upgrade_agw)
 
     if upgrade_agw:
-        err = upgrade_teravm_agw(setup, hash, key_filename)
-        if err:
-            return err
+        upgrade_teravm_agw(setup, hash, key_filename)
 
     if upgrade_feg:
-        err = upgrade_teravm_feg(setup, hash, key_filename)
-        if err:
-            return err
+        upgrade_teravm_feg(setup, hash, key_filename)
 
 
 def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
@@ -161,7 +157,7 @@ def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
     _setup_env("magma", VM_IP_MAP[setup]["gateway"], key_filename)
     err = _set_magma_apt_repo()
     if err:
-        return err
+        sys.exit(1)
     sudo("apt update")
     fastprint("Install version with hash %s\n" % hash)
     # Get the whole version string containing that hash and 'apt install' it
@@ -169,21 +165,25 @@ def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
         try:
             if hash is None or hash.lower() == "latest":
                 # install latest on the repository
-                sudo("apt install -f -y --allow-downgrades magma")
+                sudo("apt install -f -y --allow-downgrades -o Dpkg::Options::=\"--force-confnew\" magma")
             else:
                 sudo(
                     "version=$("
                     "apt-cache madison magma | grep {hash} | awk 'NR==1{{print $3}}');"
-                    "apt install -f -y --allow-downgrades magma=$version".format(
+                    "apt install -f -y --allow-downgrades -o Dpkg::Options::=\"--force-confnew\" magma=$version".format(
                         hash=hash
                     )
                 )
+            # restart sctpd to force clean start
+            sudo("service sctpd restart")
+
         except Exception:
             err = (
                 "Error during install of version {} on AGW. "
                 "Maybe the version doesn't exist. Not installing.\n".format(hash)
             )
             fastprint(err)
+            sys.exit(1)
 
 
 def upgrade_teravm_agw_AWS(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
@@ -238,7 +238,6 @@ def upgrade_teravm_feg(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
     the remote host. IIf empty file name is passed, password-based ssh will
     work instead. This can be used if the script is run manually.
     """
-    err = None
     fastprint("\nUpgrade teraVM FEG to %s\n" % hash)
     _setup_env("magma", VM_IP_MAP[setup]["feg"], key_filename)
 
@@ -265,7 +264,7 @@ def upgrade_teravm_feg(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
                 sudo("mv docker-compose.yml.backup docker-compose.yml")
                 sudo("mv .env.backup .env")
                 sudo("docker-compose up -d")
-    return err
+            sys.exit(1)
 
 
 def run_3gpp_tests(
@@ -286,10 +285,13 @@ def run_3gpp_tests(
         test_files = [test_files]
     test_output = []
 
-    for test_file in test_files:
-        fastprint("Run test for file %s\n" % (test_file))
-        _setup_env("ng40", VM_IP_MAP[setup]["ng40"], key_filename)
-        with cd("/home/ng40/magma/automation"):
+    _setup_env("ng40", VM_IP_MAP[setup]["ng40"], key_filename)
+
+    with cd("/home/ng40/magma/automation"):
+        for test_file in test_files:
+            fastprint("Check ng40 status (if any test is currently running\n")
+            run("ng40test state.ntl")
+            fastprint("Run test for file %s\n" % (test_file))
             with hide("warnings", "running", "stdout"), settings(warn_only=True):
                 output = run("ng40test %s" % test_file)
                 test_output.append(output)
@@ -382,7 +384,7 @@ def _get_latest_agw_tag(setup, key_filename):
     _setup_env("magma", VM_IP_MAP[setup]["gateway"], key_filename)
     err = _set_magma_apt_repo()
     if err:
-        return err
+        sys.exit(1)
     sudo("apt update")
     tag = sudo(
             "apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'")
@@ -395,7 +397,7 @@ def _parse_hash_from_tag(tag):
     split_tag = tag.split("-")
     if len(split_tag) != 3:
         fastprint("not valid tag %s\n" % split_tag)
-        return
+        sys.exit(1)
     fastprint("Latest hash is %s \n" % split_tag[2])
     return split_tag[2]
 

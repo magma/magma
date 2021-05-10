@@ -10,6 +10,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Fix resove conf
+  when: ansible_distribution == "Ubuntu"
+  shell: ln -sf /var/run/systemd/resolve/resolv.conf /etc/resolv.conf
+
 - name: Include vars of all.yaml
   include_vars:
     file: all.yaml
@@ -32,11 +36,12 @@
     - redis
     - pipelined
     - redirectd
-    - envoy
     - envoy_controller
     # Manhattan services
     - lighttpd
     - sessiond
+    - connectiond
+    - liagentd
   when: full_provision
 
 - name: Copy sctpd service file
@@ -45,7 +50,19 @@
     dest: /etc/systemd/system/sctpd.service
   when: full_provision
 
-- name: Copy logrotate config file
+- name: Copy envoy service file
+  copy:
+    src: systemd/magma_dp_envoy.service
+    dest: /etc/systemd/system/magma_dp@envoy.service
+  when: full_provision
+
+- name: Copy syslog logrotate config file
+  copy:
+    src: logrotate_rsyslog.conf
+    dest: /etc/logrotate.d/rsyslog
+  when: full_provision
+
+- name: Copy OAI logrotate config file
   copy:
     src: logrotate_oai.conf
     dest: /etc/logrotate.d/oai
@@ -58,6 +75,18 @@
 - name: Copy sysctl file for core dumps
   copy: src=99-magma.conf dest=/etc/sysctl.d/99-magma.conf
   when: full_provision
+
+- name: Add the sysctl config from the step before
+  become: yes
+  command: 'sysctl -p /etc/sysctl.d/99-magma.conf'
+  when: full_provision
+
+- name: Set core ulimit to unlimited
+  pam_limits:
+    domain: '*'
+    limit_item: core
+    limit_type: '-'
+    value: unlimited
 
 - name: Create the /var/core directory
   file: path=/var/core state=directory
@@ -84,16 +113,6 @@
   copy: src=configure_envoy_namespace.sh dest=/usr/local/bin/configure_envoy_namespace.sh
   when: full_provision
 
-- name: Create symlink for stateless scripts
-  file: src="{{ magma_root }}/lte/gateway/deploy/roles/magma/files/config_stateless_{{ item }}.sh" path="/usr/local/bin/config_stateless_{{ item }}.sh" state=link force=yes follow=no
-  with_items:
-    - agw
-    - mobilityd
-    - mme
-    - pipelined
-    - sctpd
-    - sessiond
-
 - name: Create symlink for sctpd binary
   file: src='{{ c_build }}/sctpd/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
   when: full_provision
@@ -112,6 +131,14 @@
 
 - name: Create symlink for dpid binary
   file: src='{{ c_build }}/dpi/dpid' path=/usr/local/bin/dpid state=link force=yes follow=no
+  when: full_provision
+
+- name: Create symlink for connectiond binary
+  file: src='{{ c_build }}/connection_tracker/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
+  when: full_provision
+
+- name: Create symlink for li agent binary
+  file: src='{{ c_build }}/li_agent/liagentd' path=/usr/local/bin/liagentd state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for corefile collection script
@@ -145,12 +172,13 @@
   when: full_provision
 
 - name: Install OpenAirInterface (OAI) dependencies
+  retries: 5
+  when: preburn
   apt:
     state: present
     update_cache: yes
     pkg:
       - check
-      - libconfig8-dev
       - libgtest-dev
       - liblfds710
       - google-mock
@@ -163,15 +191,42 @@
       - oai-freediameter
       - prometheus-cpp-dev
       - libczmq-dev
+
+- name: Fix vport-gtp kernel module for Ubuntu Focal
+  when: ansible_distribution == "Ubuntu"
+  become: yes
+  block:
+    - shell: rmmod openvswitch
+      ignore_errors: yes
+    - shell: modprobe vport-gtp
+      ignore_errors: yes
+
+- name: Install Debian Magma gateway dev dependencies
   retries: 5
-  when: preburn
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libconfig8-dev
+
+- name: Install Ubuntu Magma gateway dev dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libconfig-dev
 
 - name: Overwrite linux 4.9 GTP module with patched module
-  apt: pkg=oai-gtp=4.9-5 state=present update_cache=yes dpkg_options=force-overwrite
+  apt: pkg=oai-gtp=4.9-9 state=present update_cache=yes dpkg_options=force-overwrite
+  retries: 5
+  when: preburn and ansible_distribution == "Debian"
+
+- name: Install common Magma dependencies
   retries: 5
   when: preburn
-
-- name: Install Magma dependencies
   apt:
     state: present
     update_cache: yes
@@ -179,10 +234,16 @@
       # install prometheus
       - prometheus-cpp-dev
       # install openvswitch
-      - openvswitch-datapath-module-4.9.0-9-amd64
       - openvswitch-switch
       - openvswitch-test
-      - python-openvswitch
+      - libopenvswitch
+      - openvswitch-datapath-dkms
+      - openvswitch-common
+      - libopenvswitch-dev
+      - python3-openvswitch
+      - openvswitch-doc
+      - openvswitch-pki
+      - openvswitch-test
       - magma-libfluid
       # install lxml
       - python3-lxml
@@ -194,7 +255,6 @@
       - libfolly-dev
       - libdouble-conversion-dev
       - libboost-chrono-dev
-      - nlohmann-json-dev
       - redis-server
       - python-redis
       - magma-cpp-redis
@@ -202,8 +262,30 @@
       - ntpdate
       # For call tracing
       - tshark
+      - getenvoy-envoy
+
+- name: Install debian Magma dependencies
   retries: 5
-  when: preburn
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - openvswitch-datapath-module-4.9.0-9-amd64
+      - python-openvswitch
+      - nlohmann-json-dev
+
+- name: Install ubuntu Magma dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - python3-openvswitch
+      - nlohmann-json3-dev
+      # managing gtp interface
+      - ifupdown
 
 - name: Copy the gtp interface initialization definition
   copy:
@@ -215,13 +297,13 @@
   modprobe:
     name: gtp
     state: present
-  when: full_provision
+  when: full_provision and ansible_distribution == "Debian"
 
 - name: Persist preloading the GTP module on boot
   copy:
     src: magma_modules_load
     dest: /etc/modules-load.d/magma.conf
-  when: full_provision
+  when: full_provision and ansible_distribution == "Debian"
 
 - name: Delete the OVS bridge on system initialization
   lineinfile: dest=/etc/default/openvswitch-switch regexp='.*OVS_CTL_OPTS=.*' line='OVS_CTL_OPTS=\'--delete-bridges\'' state=present
@@ -239,6 +321,7 @@
 
 - name: Install gmock and gtest for C++ testing
   become: yes
+  ignore_errors: yes
   shell: cmake CMakeLists.txt && make && cp *.a /usr/lib
   args:
     chdir: /usr/src/{{ item }}
@@ -280,22 +363,63 @@
   when: preburn
 
 - name: Restart networking to bring up linux bridge
+  ignore_errors: yes
   service:
     name: networking
     state: restarted
   when: full_provision
 
+- name: Restart OVS
+  ignore_errors: yes
+  shell: |
+    ifdown gtp_br0
+    /etc/init.d/openvswitch-switch  force-reload-kmod
+  when: ansible_distribution == "Ubuntu"
+
 - name: Bring up ovs bridge
-  shell: ifup --allow=ovs {{ item }}
+  shell: ifup -i /etc/network/interfaces.d/gtp {{ item }}
   with_items:
     - gtp_br0
     - uplink_br0
   when: full_provision
 
 - name: Bring up interfaces
+  ignore_errors: yes
   shell: ifup {{ item }}
   with_items:
     - eth0
     - mtr0
     - ipfix0
+    - li_port
   when: full_provision
+
+- name: Copy ryu ipfix patch
+  copy:
+    src: nx_actions.py
+    dest: /home/vagrant/build/python/lib/python3.5/site-packages/ryu/ofproto/
+  when: full_provision
+
+- name: Change build folder ownership
+  ansible.builtin.file:
+    path: /home/vagrant/build
+    owner: vagrant
+    group: vagrant
+    recurse: yes
+
+- name: Patch python aio lib
+  patch:
+    src: patches/aioeventlet.py38.patch
+    dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
+  when: ansible_distribution == "Ubuntu"
+
+- name: Patch python aioeventlet lib crash ubuntu
+  patch:
+    src: patches/aioeventlet_fd_exception.patch
+    dest: /usr/local/lib/python3.8/dist-packages/aioeventlet.py
+  when: ansible_distribution == "Ubuntu"
+
+- name: Patch python aioeventlet lib crash debian
+  patch:
+    src: patches/aioeventlet_fd_exception.patch
+    dest: /usr/lib/python3/dist-packages/aioeventlet.py
+  when: ansible_distribution == "Debian"

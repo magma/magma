@@ -18,6 +18,9 @@ import (
 	"fmt"
 	"sort"
 
+	feg "magma/feg/cloud/go/feg"
+	feg_serdes "magma/feg/cloud/go/serdes"
+	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/serdes"
@@ -55,7 +58,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return nil, err
 	}
 
-	// Only build an mconfig if cellular network and gateway configs exist
+	// Only build mconfig if cellular network and gateway configs exist
 	inwConfig, found := network.Configs[lte.CellularNetworkConfigType]
 	if !found || inwConfig == nil {
 		return ret, nil
@@ -78,6 +81,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return nil, err
 	}
 
+	federatedNetworkConfigs, err := getFederatedNetworkConfigs(network.Type, cellularNwConfig.FegNetworkID, request)
+	if err != nil {
+		glog.Errorf("Failed to retrieve LTE_federated network config while building lte mconfig")
+		return nil, err
+	}
+
 	enodebs, err := graph.GetAllChildrenOfType(cellGW, lte.CellularEnodebEntityType)
 	if err != nil {
 		return nil, err
@@ -97,6 +106,11 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
 	heConfig := getHEConfig(cellularGwConfig.HeConfig)
+
+	mmePoolRecord, mmeGroupID, err := getMMEPoolConfigs(network.ID, cellularGwConfig.Pooling, cellGW, graph)
+	if err != nil {
+		return nil, err
+	}
 
 	vals := map[string]proto.Message{
 		"enodebd": &lte_mconfig.EnodebD{
@@ -126,8 +140,9 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Mcc:                      nwEpc.Mcc,
 			Mnc:                      nwEpc.Mnc,
 			Tac:                      int32(nwEpc.Tac),
-			MmeCode:                  1,
-			MmeGid:                   1,
+			MmeCode:                  int32(mmePoolRecord.MmeCode),
+			MmeGid:                   int32(mmeGroupID),
+			MmeRelativeCapacity:      int32(mmePoolRecord.MmeRelativeCapacity),
 			EnableDnsCaching:         shouldEnableDNSCaching(cellularGwConfig.DNS),
 			NonEpsServiceControl:     nonEPSServiceMconfig.nonEpsServiceControl,
 			CsfbMcc:                  nonEPSServiceMconfig.csfbMcc,
@@ -142,6 +157,11 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Ipv6DnsAddress:           string(gwEpc.IPV6DNSAddr),
 			Ipv6PCscfAddress:         string(gwEpc.IPV6pCscfAddr),
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
+			Ipv4SgwS1UAddr:           gwEpc.IPV4SgwS1uAddr,
+			RestrictedPlmns:          getRestrictedPlmns(nwEpc.RestrictedPlmns),
+			RestrictedImeis:          getRestrictedImeis(nwEpc.RestrictedImeis),
+			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
+			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -249,7 +269,7 @@ var networkServicesByName = map[string]lte_mconfig.PipelineD_NetworkServices{
 
 // move this out of this package eventually
 func getPipelineDServicesConfig(networkServices []string) ([]lte_mconfig.PipelineD_NetworkServices, error) {
-	if networkServices == nil || len(networkServices) == 0 {
+	if len(networkServices) == 0 {
 		return []lte_mconfig.PipelineD_NetworkServices{
 			lte_mconfig.PipelineD_ENFORCEMENT,
 		}, nil
@@ -293,14 +313,42 @@ func getHEConfig(gwConfig *lte_models.GatewayHeConfig) *lte_mconfig.PipelineD_HE
 	}
 
 	return &lte_mconfig.PipelineD_HEConfig{
-		EnableHeaderEnrichment: gwConfig.EnableHeaderEnrichment,
-		EnableEncryption:       gwConfig.EnableEncryption,
+		EnableHeaderEnrichment: swag.BoolValue(gwConfig.EnableHeaderEnrichment),
+		EnableEncryption:       swag.BoolValue(gwConfig.EnableEncryption),
 		EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm(lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm_value[gwConfig.HeEncryptionAlgorithm]),
 		HashFunction:           lte_mconfig.PipelineD_HEConfig_HashFunction(lte_mconfig.PipelineD_HEConfig_HashFunction_value[gwConfig.HeHashFunction]),
 		EncodingType:           lte_mconfig.PipelineD_HEConfig_EncodingType(lte_mconfig.PipelineD_HEConfig_EncodingType_value[gwConfig.HeEncodingType]),
 		EncryptionKey:          gwConfig.EncryptionKey,
+		HmacKey:                gwConfig.HmacKey,
 	}
 }
+
+// getMMEPoolConfigs returns the gateway pool record and a uint32 specifying
+// the MME group ID for a given gateway. If a gateway does not exist in a pool,
+// default values are returned.
+func getMMEPoolConfigs(networkID string, poolingConfig lte_models.CellularGatewayPoolRecords, cellGateway configurator.NetworkEntity, graph configurator.EntityGraph) (*lte_models.CellularGatewayPoolRecord, uint32, error) {
+	// Currently, having multiple (mme group ID, mme code, mme relative
+	// capacity) tuples is unsupported. As such, use the first pool record
+	// to set all of these values.
+	if len(poolingConfig) == 0 {
+		return &lte_models.CellularGatewayPoolRecord{
+			MmeCode:             1,
+			MmeRelativeCapacity: 10,
+		}, 1, nil
+	}
+	pool, err := graph.GetFirstAncestorOfType(cellGateway, lte.CellularGatewayPoolEntityType)
+	if err != nil {
+		return nil, 0, err
+	}
+	poolRecord := poolingConfig[0]
+	cfg, ok := pool.Config.(*lte_models.CellularGatewayPoolConfigs)
+	if !ok {
+		err := fmt.Errorf("unable to convert gateway pool config for pool '%s'; pool has invalid config", pool.Key)
+		return nil, 0, err
+	}
+	return poolRecord, cfg.MmeGroupID, nil
+}
+
 func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_models.GatewayCellularConfigs, enodebs []configurator.NetworkEntity) map[string]*lte_mconfig.EnodebD_EnodebConfig {
 	ret := make(map[string]*lte_mconfig.EnodebD_EnodebConfig, len(enodebs))
 	for _, ent := range enodebs {
@@ -446,9 +494,7 @@ func getGatewayDnsRecords(dns *lte_models.GatewayDNSConfigs) []*lte_mconfig.Gate
 		recordProto.ARecord = funk.Map(record.ARecord, func(a strfmt.IPv4) string { return string(a) }).([]string)
 		recordProto.AaaaRecord = funk.Map(record.AaaaRecord, func(a strfmt.IPv6) string { return string(a) }).([]string)
 		recordProto.CnameRecord = make([]string, 0, len(record.CnameRecord))
-		for _, cRecord := range record.CnameRecord {
-			recordProto.CnameRecord = append(recordProto.CnameRecord, cRecord)
-		}
+		recordProto.CnameRecord = append(recordProto.CnameRecord, record.CnameRecord...)
 		ret = append(ret, recordProto)
 	}
 	return ret
@@ -459,4 +505,62 @@ func shouldEnableDNSCaching(dns *lte_models.GatewayDNSConfigs) bool {
 		return false
 	}
 	return swag.BoolValue(dns.EnableCaching)
+}
+
+func getRestrictedPlmns(plmns []*lte_models.PlmnConfig) []*lte_mconfig.MME_PlmnConfig {
+	ret := make([]*lte_mconfig.MME_PlmnConfig, len(plmns))
+	for idx, plmn := range plmns {
+		ret[idx] = &lte_mconfig.MME_PlmnConfig{Mcc: plmn.Mcc, Mnc: plmn.Mnc}
+	}
+	return ret
+}
+
+func getServiceAreaMaps(serviceAreaMaps map[string]lte_models.TacList) map[string]*lte_mconfig.MME_TacList {
+	ret := make(map[string]*lte_mconfig.MME_TacList)
+	for k, v := range serviceAreaMaps {
+		tacList := &lte_mconfig.MME_TacList{}
+		for _, tac := range v {
+			tacList.Tac = append(tacList.Tac, uint32(tac))
+		}
+		ret[k] = tacList
+	}
+	return ret
+}
+
+// getFederatedNetworkConfigs in case this is a federated LTE networkm this function will try to parse out
+// feg_models.FederatedNetworkConfigs out of it
+func getFederatedNetworkConfigs(networkType string, fegId lte_models.FegNetworkID, request *builder_protos.BuildRequest) (*feg_models.FederatedNetworkConfigs, error) {
+	if networkType != feg.FederatedLteNetworkType {
+		// this is a non federated network, return nothing
+		return nil, nil
+	}
+	if fegId == "" {
+		glog.Warning("federated_id is empty. Ignoring Federated LTE Network config and movign on")
+		return nil, nil
+	}
+	network, err := (configurator.Network{}).FromProto(request.Network, feg_serdes.Network)
+	if err != nil {
+		return nil, err
+	}
+	inwConfig, found := network.Configs[feg.FederatedNetworkType]
+	if !found || inwConfig == nil {
+		return nil, err
+	}
+	return inwConfig.(*feg_models.FederatedNetworkConfigs), nil
+}
+
+// getFederatedModeMap extracts the mapping configuration in case of being a federated network
+func getFederatedModeMap(fedNetworkConfigs *feg_models.FederatedNetworkConfigs) *lte_mconfig.FederatedModeMap {
+	if fedNetworkConfigs == nil {
+		return nil
+	}
+	return feg_models.ToFederatedModesMap(fedNetworkConfigs.FederatedModesMapping)
+}
+
+func getRestrictedImeis(imeis []*lte_models.Imei) []*lte_mconfig.MME_ImeiConfig {
+	ret := make([]*lte_mconfig.MME_ImeiConfig, len(imeis))
+	for idx, imei := range imeis {
+		ret[idx] = &lte_mconfig.MME_ImeiConfig{Tac: imei.Tac, Snr: imei.Snr}
+	}
+	return ret
 }

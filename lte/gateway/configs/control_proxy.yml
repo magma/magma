@@ -39,3 +39,12 @@ proxy_cloud_connections: True
 
 # Allows http_proxy usage if the environment variable is present
 allow_http_proxy: False
+
+# [Experimental] Sentry related configs
+# If set, the Sentry Python SDK will be initialized for all python services
+sentry_url_python: ""
+# If set, the Sentry Native SDK will be initialized for MME and SessionD
+sentry_url_native: ""
+# If set, /var/log/mme.log will be uploaded along MME crashreports
+sentry_upload_mme_log: false
+sentry_sample_rate: 1.0

@@ -46,12 +46,12 @@ func (m *FederatedNetworkConfigs) ValidateModel() error {
 	}
 	nid := *m.FegNetworkID
 	if !swag.IsZero(nid) {
-		exists, err := configurator.DoesNetworkExist(string(nid))
+		exists, err := configurator.DoesNetworkExist(nid)
 		if err != nil {
-			return errors.Wrap(err, fmt.Sprintf("Failed to search for network %s", string(nid)))
+			return errors.Wrap(err, fmt.Sprintf("Failed to search for network %s", nid))
 		}
 		if !exists {
-			return fmt.Errorf("Network: %s does not exist", string(nid))
+			return fmt.Errorf("Network: %s does not exist", nid)
 		}
 	}
 	return nil

@@ -57,7 +57,7 @@ func TestVLRServer_GetNextRequestReplyPair(t *testing.T) {
 	assert.Equal(t, *nextPair, testPair)
 
 	// fail to get the next pair since the queue is empty
-	nextPair, err = srv.GetNextRequestReplyPair()
+	_, err = srv.GetNextRequestReplyPair()
 	assert.Error(t, err, errors.New("reply queue is used up"))
 }
 

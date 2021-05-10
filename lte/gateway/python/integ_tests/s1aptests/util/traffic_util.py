@@ -127,7 +127,7 @@ class TrafficUtil(object):
         """ Update downlink route in TRF server """
         ret_code = self.exec_command(
             "sudo ip route flush via 192.168.129.1 && sudo ip route "
-            "add " + ue_ip_block + " via 192.168.129.1 dev eth2"
+            "replace " + ue_ip_block + " via 192.168.129.1 dev eth2"
         )
         if ret_code != 0:
             return False
@@ -387,6 +387,13 @@ class TrafficTest(object):
             sc_in = sc.makefile('rb')
             sc_out = sc.makefile('wb')
 
+            # Flush all the addresses left by previous failed tests
+            net_iface_index = TrafficTest._iproute.link_lookup(
+                ifname=TrafficTest._net_iface)[0]
+            for instance in instances:
+                TrafficTest._iproute.flush_addr(index=net_iface_index,
+                                                address=instance.ip.exploded)
+
             # Set up network ifaces and get UL port assignments for DL
             aliases = ()
             for instance in instances:
@@ -469,9 +476,9 @@ class TrafficTest(object):
             # For some reason the first call to flush this address flushes all
             # the addresses brought up during testing. But subsequent flushes
             # do nothing if the address doesn't exist
-            for i in range(len(instances)):
+            for instance in instances:
                 TrafficTest._iproute.flush_addr(index=net_iface_index,
-                                                address=instances[i].ip.exploded)
+                                                address=instance.ip.exploded)
             # Do socket cleanup
             sc_in.close()
             sc_out.close()
@@ -564,7 +571,10 @@ class TrafficTest(object):
                     raise RuntimeError(
                         'Cached results are not iperf3.TestResult objects')
                 if result.error:
-                    raise RuntimeError(result.error)
+                    # iPerf dumps out-of-order packet information on stderr,
+                    # ignore these while verifying the test results
+                    if "OUT OF ORDER" not in result.error:
+                        raise RuntimeError(result.error)
 
     def wait(self):
         ''' Wait for this test to complete '''

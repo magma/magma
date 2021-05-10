@@ -15,11 +15,11 @@ limitations under the License.
 package session_manager
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
 	"magma/lte/cloud/go/protos"
@@ -73,4 +73,15 @@ func EndSession(in *protos.LocalEndSessionRequest) (*protos.LocalEndSessionRespo
 		return nil, err
 	}
 	return cli.EndSession(context.Background(), in)
+}
+
+func UpdateTunnelIds(in *protos.UpdateTunnelIdsRequest) (*protos.UpdateTunnelIdsResponse, error) {
+	if in == nil {
+		return nil, errors.New("Nil LocalEndSessionRequest")
+	}
+	cli, err := getSessionManagerClient()
+	if err != nil {
+		return nil, err
+	}
+	return cli.UpdateTunnelIds(context.Background(), in)
 }

@@ -14,6 +14,7 @@
  * @format
  */
 import 'jest-dom/extend-expect';
+import * as hooks from '../../../components/context/RefreshContext';
 
 import AddSubscriberButton from '../SubscriberAddDialog';
 import ApnContext from '../../../components/context/ApnContext';
@@ -217,10 +218,12 @@ describe('<AddSubscriberButton />', () => {
 
   const AddWrapper = () => {
     const [subscribers, setSubscribers] = useState(subscribersMock);
+    const [sessionState, setSessionState] = useState({});
+
     const subscriberCtx = {
       state: subscribers,
       gwSubscriberMap: {},
-      sessionState: {},
+      sessionState: sessionState,
       setState: async (key, value?) =>
         setSubscriberState({
           networkId: 'test',
@@ -228,6 +231,7 @@ describe('<AddSubscriberButton />', () => {
           setSubscriberMap: setSubscribers,
           key: key,
           value: value,
+          setSessionState: setSessionState,
         }),
     };
     const policyCtx = {
@@ -255,6 +259,10 @@ describe('<AddSubscriberButton />', () => {
       updateNetworks: async () => {},
     };
 
+    jest
+      .spyOn(hooks, 'useRefreshingContext')
+      .mockImplementation(() => subscriberCtx);
+
     return (
       <MemoryRouter initialEntries={['/nms/test/subscribers']} initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
@@ -265,7 +273,7 @@ describe('<AddSubscriberButton />', () => {
                   <SubscriberContext.Provider value={subscriberCtx}>
                     <Route
                       path="/nms/:networkId/subscribers"
-                      render={() => <AddSubscriberButton />}
+                      render={() => <AddSubscriberButton onClose={() => {}} />}
                     />
                   </SubscriberContext.Provider>
                 </ApnContext.Provider>
@@ -279,6 +287,7 @@ describe('<AddSubscriberButton />', () => {
 
   const DetailWrapper = () => {
     const [subscribers, setSubscribers] = useState(subscribersMock);
+    const [sessionState, setSessionState] = useState({});
     const policyCtx = {
       state: policies,
       qosProfiles: {},
@@ -320,12 +329,13 @@ describe('<AddSubscriberButton />', () => {
                         IMSI00000000001002: subscribers['IMSI00000000001002'],
                       },
                       gwSubscriberMap: {},
-                      sessionState: {},
+                      sessionState: sessionState,
                       setState: (key, value?) =>
                         setSubscriberState({
                           networkId: 'test',
                           subscriberMap: subscribers,
                           setSubscriberMap: setSubscribers,
+                          setSessionState,
                           key: key,
                           value: value,
                         }),

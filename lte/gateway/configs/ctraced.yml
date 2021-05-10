@@ -17,10 +17,9 @@ trace_directory: /var/opt/magma/tmp/trace
 
 # Interface to capture on
 trace_interfaces:
-  - eth0
+  - any
 
 # Options available:
 #   - tshark
-#   - tcpdump
 # tshark has more capabilities - see command_builder.py
 trace_tool: tshark

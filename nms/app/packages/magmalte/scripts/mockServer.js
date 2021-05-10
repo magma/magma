@@ -136,9 +136,9 @@ networks.forEach(network => {
     }
   });
 
-  server.get(`/magma/v1/lte/${network}/subscribers`, (req, res) => {
+  server.get(`/magma/v1/lte/${network}/subscribers_v2`, (req, res) => {
     if (req.method === 'GET') {
-      res.status(200).jsonp(db['subscribers']);
+      res.status(200).jsonp(db['subscribers_v2']);
     }
   });
 
@@ -276,6 +276,11 @@ networks.forEach(network => {
   server.get(`/magma/v1/lte/${network}/enodebs`, (req, res) => {
     if (req.method === 'GET') {
       res.status(200).jsonp(db['lte']['enodebs']);
+    }
+  });
+  server.get(`/magma/v1/networks/${network}/tracing`, (req, res) => {
+    if (req.method === 'GET') {
+      res.status(200).jsonp([]);
     }
   });
   server.get(

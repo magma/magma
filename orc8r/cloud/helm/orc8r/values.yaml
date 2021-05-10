@@ -52,6 +52,12 @@ secret:
     orc8r: orc8r-secrets-configs-orc8r
   envdir: orc8r-secrets-envdir
 
+# certs sub-chart configuration.
+certs:
+  create: false
+
+  domainName: localhost
+
 nginx:
   create: true
 
@@ -96,7 +102,7 @@ nginx:
 
   # nginx image
   image:
-    repository:
+    repository: <registry>/nginx
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -140,22 +146,9 @@ controller:
     minAvailable: 1
     maxUnavailable: ""
 
-  # Service configuration.
-  service:
-    annotations: {}
-    labels: {}
-    type: ClusterIP
-    port: 8080
-    targetPort: 8080
-    # port range exposed by controller
-    portStart: 9079
-    portEnd: 9117
-    httpPortStart: 10079
-    httpPortEnd: 10117
-
-  # controller image
+  # orc8r_base image
   image:
-    repository:
+    repository: <registry>/orc8r_base
     tag: latest
     pullPolicy: IfNotPresent
 
@@ -171,12 +164,7 @@ controller:
       user: postgres
       pass: postgres
     service_registry:
-      mode: "yaml"
-
-  migration:
-    new_handlers: 0
-    new_mconfigs: 0
-    mconfig_whitelist: ""
+      mode: "k8s"
 
   podAnnotations: {}
 
@@ -209,6 +197,11 @@ accessd:
     labels: {}
     annotations: {}
 
+analytics:
+  service:
+    labels: {}
+    annotations: {}
+
 bootstrapper:
   service:
     labels: {}
@@ -223,6 +216,15 @@ configurator:
   service:
     labels: {}
     annotations: {}
+
+ctraced:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/tracing,
 
 device:
   service:
@@ -239,10 +241,21 @@ dispatcher:
     labels: {}
     annotations: {}
 
+eventd:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/logs,
+        /magma/v1/events,
+
 metricsd:
   service:
     labels:
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/networks/:network_id/alerts,
@@ -259,11 +272,13 @@ obsidian:
 orchestrator:
   service:
     labels:
+      orc8r.io/analytics_collector: "true"
       orc8r.io/mconfig_builder: "true"
       orc8r.io/metrics_exporter: "true"
       orc8r.io/obsidian_handlers: "true"
       orc8r.io/state_indexer: "true"
       orc8r.io/stream_provider: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/state_indexer_types: "directory_record"
       orc8r.io/state_indexer_version: "1"
@@ -271,7 +286,6 @@ orchestrator:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /,
         /magma/v1/channels,
-        /magma/v1/events,
         /magma/v1/networks,
         /magma/v1/networks/:network_id,
 
@@ -294,6 +308,7 @@ tenants:
   service:
     labels:
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/tenants,

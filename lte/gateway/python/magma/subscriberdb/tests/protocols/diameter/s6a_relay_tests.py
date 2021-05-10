@@ -13,20 +13,26 @@ limitations under the License.
 
 # pylint:disable=protected-access
 
-import asyncio
 import unittest
 from unittest.mock import Mock, patch
 
 import grpc
-from feg.protos.s6a_proxy_pb2 import (AuthenticationInformationAnswer,
-                                      AuthenticationInformationRequest,
-                                      ErrorCode, UpdateLocationAnswer,
-                                      UpdateLocationRequest)
-from magma.subscriberdb.protocols.diameter import avp, message, server
-from magma.subscriberdb.protocols.diameter.application import base, s6a, \
-    s6a_relay
-
+from feg.protos.s6a_proxy_pb2 import (
+    AuthenticationInformationAnswer,
+    AuthenticationInformationRequest,
+    ErrorCode,
+    UpdateLocationAnswer,
+    UpdateLocationRequest,
+)
 from magma.common.service_registry import ServiceRegistry
+from magma.subscriberdb.protocols.diameter import avp, message, server
+from magma.subscriberdb.protocols.diameter.application import (
+    base,
+    s6a,
+    s6a_relay,
+)
+
+from .common import MockTransport
 
 
 class S6AApplicationTests(unittest.TestCase):
@@ -76,7 +82,7 @@ class S6AApplicationTests(unittest.TestCase):
             """ Deep copy the memoryview for checking later  """
             return self._writes(memview.tobytes())
 
-        self._transport = asyncio.Transport()
+        self._transport = MockTransport()
         self._transport.write = Mock(side_effect=convert_memview_to_bytes)
 
         # Here goes nothing..

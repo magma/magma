@@ -1,0 +1,52 @@
+---
+################################################################################
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+################################################################################
+
+- name: Set up Magma dev build environment on a local machine
+  hosts: focal_dev
+  become: yes
+
+  vars:
+    magma_root: /home/{{ ansible_user }}/magma
+    preburn: true
+    full_provision: true
+
+  roles:
+    # This role is commented out for now because as it turns out, it's very
+    # difficult to install Debian on a box without also installing packages
+    # from an upstream mirror. Even if we pin a snapshot to before the 4.9.0-11
+    # cutover, a freshly installed box will still end up with some packages
+    # from after the cutover (e.g. libsystemd0). Pinning to the snapshot
+    # repository after these packages are installed will result in a situation
+    # where it's impossible to proceed with provisioning.
+    #- role: stretch_snapshot
+    - role: gateway_dev
+      vars:
+        distribution: "focal"
+        repo: "dev-focal"
+        config_dir: "lte/gateway/configs"
+    - role: dev_common
+      vars:
+        c_build: /home/{{ ansible_user }}/build/c/
+        oai_build: "{{ c_build }}/oai"
+        go_build: /home/{{ ansible_user }}/go/bin/
+    - role: magma
+      vars:
+        c_build: /home/{{ ansible_user }}/build/c/
+        oai_build: "{{ c_build }}/oai"
+        go_build: /home/{{ ansible_user }}/go/bin/
+        magma_repo: /home/{{ ansible_user }}/magma-packages
+        magma_deps: /home/{{ ansible_user }}/magma-deps
+    - role: fluent_bit
+    - role: pyvenv
+    - role: focal_hacks

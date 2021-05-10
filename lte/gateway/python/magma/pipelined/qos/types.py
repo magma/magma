@@ -17,17 +17,34 @@ QosInfo = namedtuple('QosInfo', 'gbr mbr')
 
 # key_type - identifies the type of QosKey. This ideally should be in base type
 # Will modify this when dataclasses are available
-SubscriberKey = namedtuple('SubscriberKey', 'key_type imsi ip_addr rule_num direction')
+SubscriberRuleKey = namedtuple('SubscriberRuleKey', 'key_type imsi ip_addr rule_num direction')
 
 
 def get_subscriber_key(*args):
     keyType = "Subscriber"
-    return SubscriberKey(keyType, *args)
+    return SubscriberRuleKey(keyType, *args)
 
 
-def get_json(key):
+def get_key_json(key):
     return json.dumps(key)
 
 
 def get_key(json_val):
-    return SubscriberKey(*json.loads(json_val))
+    return SubscriberRuleKey(*json.loads(json_val))
+
+
+SubscriberRuleData = namedtuple('SubscriberRuleData', 'data_type qid ambr leaf')
+
+
+def get_subscriber_data(*args):
+    keyType = "qos_data"
+    return SubscriberRuleData(keyType, *args)
+
+
+def get_data_json(key):
+    return json.dumps(key)
+
+
+def get_data(json_val):
+    return SubscriberRuleData(*json.loads(json_val))
+

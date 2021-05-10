@@ -30,6 +30,8 @@ message RuleRecord {
   string ue_ipv6 = 6;
   uint64 dropped_tx = 7;
   uint64 dropped_rx = 8;
+  uint64 rule_version = 9;
+  uint32 teid = 10;
 }
 
 message RuleRecordTable {
@@ -51,6 +53,11 @@ message LocalCreateSessionRequest {
   RatSpecificContext rat_specific_context = 17;
 }
 
+message Teids{
+  uint32 enb_teid = 3;
+  uint32 agw_teid = 4;
+}
+
 message CommonSessionContext {
   SubscriberID sid = 1;
   string ue_ipv4 = 3;
@@ -61,6 +68,7 @@ message CommonSessionContext {
   SMSessionFSMState sm_session_state = 7;
   uint32 sm_session_version = 9;
   string ue_ipv6 = 10;
+  Teids teids = 11;
 }
 
 message RatSpecificContext {
@@ -120,6 +128,7 @@ message UpdateTunnelIdsRequest {
   uint32 bearer_id = 2;
   uint32 enb_teid = 3;
   uint32 agw_teid = 4;
+  string session_id = 5;
 }
 
 message UpdateTunnelIdsResponse {
@@ -130,6 +139,7 @@ message PolicyBearerBindingRequest {
   uint32 linked_bearer_id = 2;
   string policy_rule_id = 3;
   uint32 bearer_id = 4;
+  Teids teids = 5; // teids tied to the dedicated bearer
 }
 
 message PolicyBearerBindingResponse {
@@ -406,20 +416,16 @@ message CreditUsageUpdate {
   CreditUsage usage = 1;
   string session_id = 2;
   uint32 request_number = 3; // unique among session
-  string sid = 4; // TODO deprecate with common_context
-  bytes msisdn = 5; // TODO deprecate with common_context
-  string ue_ipv4 = 6; // TODO deprecate with common_context
   string spgw_ipv4 = 7;
-  string apn = 8; // TODO deprecate with common_context
   string imei = 9;
   string plmn_id = 10;
   string imsi_plmn_id = 11;
   bytes user_location = 12;
-  RATType rat_type = 13; // TODO deprecate with common_context
   bytes hardware_addr = 14; // MAC Address for WLAN
   TgppContext tgpp_ctx = 15;
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;
+  string charging_characteristics = 18;
 }
 
 enum CreditLimitType {
@@ -482,6 +488,7 @@ message UsageMonitoringUpdateRequest {
   RATType rat_type = 7;
   TgppContext tgpp_ctx = 8;
   EventTrigger event_trigger = 9;
+  string charging_characteristics = 10;
 }
 
 // Response to a usage monitor update with the credit received and session info
@@ -567,23 +574,19 @@ message SessionTerminateResponse {
 }
 
 message SessionTerminateRequest {
-  string sid = 1; // TODO deprecate with common_context
   string session_id = 2;
-  string apn = 3; // TODO deprecate with common_context
   uint32 request_number = 4;
   repeated CreditUsage credit_usages = 5;
   repeated UsageMonitorUpdate monitor_usages = 6;
-  string ue_ipv4 = 7; // TODO deprecate with common_context
-  bytes msisdn = 8; // TODO deprecate with common_context
   string spgw_ipv4 = 9;
   string imei = 10;
   string plmn_id = 11;
   string imsi_plmn_id = 12;
   bytes user_location = 13;
-  RATType rat_type = 14; // TODO deprecate with common_context
   bytes hardware_addr = 15; // MAC Address for WLAN
   TgppContext tgpp_ctx = 16;
   CommonSessionContext common_context = 17;
+  string charging_characteristics = 18;
 }
 
 service CentralSessionController {
@@ -791,7 +794,7 @@ message RatSpecificContextAccess {
 }
 
 //AuthorizedQosRules
-//The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE, 
+//The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE,
 //where each QoS rule is a set of parameters.
 //a) for classification and marking of uplink user traffic; and
 //b) for identification of a QoS flow which the network is to use for a particular downlink user traffic.
@@ -800,19 +803,19 @@ message RatSpecificContextAccess {
 //description provided by the UE in an IMS session.
 
 message M5GSMSessionContextAccess{
-    //One byte, received from UE. For 5G pdu_session_id. 
+    //One byte, received from UE. For 5G pdu_session_id.
     bytes pdu_session_id = 1;
     //selected PDU session TS-24501 - 9.11.4.11
     PduSessionType    pdu_session_type = 2;
     //selected session and service continuty mode TS-24501 - 9.11.4.16
-    SscMode selected_ssc_mode = 3; 
+    SscMode selected_ssc_mode = 3;
     //TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
-    repeated QosRules authorized_qos_rules = 4; 
+    repeated QosRules authorized_qos_rules = 4;
     //TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
     AggregatedMaximumBitrate session_ambr = 5;
     M5GSMCause M5gsm_cause = 6; //TS-24501 - 9.11.4.2
     //PDU session is requested to be established as always-on PDU session.
-    bool always_on_pdu_session_indication = 7; 
+    bool always_on_pdu_session_indication = 7;
     SscMode allowed_ssc_mode = 8; //Indicates SSC mode.
     bool M5gsm_congetion_re_attempt_indicator = 9;
     //IP address. Imported from session_manager.proto file.
@@ -951,10 +954,17 @@ message UPFSessionConfigState {
      repeated UPFSessionState upf_session_state = 1;
 }
 
+
+message UPFPagingInfo {
+  uint32 local_f_teid = 1;
+  string ue_ip_addr = 2;
+}
+
 //Set Interface from Pipelined
 service SetInterfaceForUserPlane {
     rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
     rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
+    rpc SendPagingReuest(UPFPagingInfo) returns (magma.orc8r.Void) {}
 }
 
 // RPC service and method

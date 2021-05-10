@@ -188,6 +188,7 @@ type SubscriptionData struct {
 	APNConfigurationProfile       APNConfigurationProfile `avp:"APN-Configuration-Profile"`
 	SubscribedPeriodicRauTauTimer uint32                  `avp:"Subscribed-Periodic-RAU-TAU-Timer"`
 	TgppChargingCharacteristics   string                  `avp:"TGPP-Charging-Characteristics"`
+	RegionalSubscriptionZoneCode  []datatype.OctetString  `avp:"Regional-Subscription-Zone-Code"`
 }
 
 type ULA struct {
@@ -199,6 +200,7 @@ type ULA struct {
 	OriginHost         datatype.DiameterIdentity `avp:"Origin-Host"`
 	OriginRealm        datatype.DiameterIdentity `avp:"Origin-Realm"`
 	ExperimentalResult ExperimentalResult        `avp:"Experimental-Result"`
+	SupportedFeatures  []SupportedFeatures       `avp:"Supported-Features"`
 }
 
 type CLR struct {
@@ -370,12 +372,13 @@ type AIR struct {
 
 // ULR is an update location request. It is used to update location information in the HSS.
 type ULR struct {
-	SessionID        datatype.UTF8String       `avp:"Session-Id"`
-	OriginHost       datatype.DiameterIdentity `avp:"Origin-Host"`
-	OriginRealm      datatype.DiameterIdentity `avp:"Origin-Realm"`
-	AuthSessionState datatype.Unsigned32       `avp:"Auth-Session-State"`
-	UserName         datatype.UTF8String       `avp:"User-Name"`
-	VisitedPLMNID    datatype.Unsigned32       `avp:"Visited-PLMN-Id"`
-	RATType          datatype.Unsigned32       `avp:"RAT-Type"`
-	ULRFlags         datatype.Unsigned32       `avp:"ULR-Flags"`
+	SessionID         datatype.UTF8String       `avp:"Session-Id"`
+	OriginHost        datatype.DiameterIdentity `avp:"Origin-Host"`
+	OriginRealm       datatype.DiameterIdentity `avp:"Origin-Realm"`
+	AuthSessionState  datatype.Unsigned32       `avp:"Auth-Session-State"`
+	UserName          datatype.UTF8String       `avp:"User-Name"`
+	VisitedPLMNID     datatype.Unsigned32       `avp:"Visited-PLMN-Id"`
+	RATType           datatype.Unsigned32       `avp:"RAT-Type"`
+	ULRFlags          datatype.Unsigned32       `avp:"ULR-Flags"`
+	SupportedFeatures []SupportedFeatures       `avp:"Supported-Features"`
 }

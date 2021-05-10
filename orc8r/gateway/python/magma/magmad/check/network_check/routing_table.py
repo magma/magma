@@ -13,7 +13,7 @@ limitations under the License.
 Util module for executing multiple `dpkg` commands via subprocess.
 """
 
-from typing import List, NamedTuple, Optional, Dict, Any
+from typing import Any, Dict, List, NamedTuple, Optional
 
 from magma.magmad.check import subprocess_workflow
 

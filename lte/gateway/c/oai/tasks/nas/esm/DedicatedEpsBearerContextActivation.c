@@ -56,17 +56,14 @@
 /*
    Timer handlers
 */
-static void _dedicated_eps_bearer_activate_t3485_handler(
-    void*, imsi64_t* imsi64);
-
 /* Maximum value of the activate dedicated EPS bearer context request
    retransmission counter */
 #define DEDICATED_EPS_BEARER_ACTIVATE_COUNTER_MAX 5
 
-static int _dedicated_eps_bearer_activate(
+static int dedicated_eps_bearer_activate(
     emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg);
 
-static void _erab_setup_rsp_tmr_exp_ded_bearer_handler(
+static void erab_setup_rsp_tmr_exp_ded_bearer_handler(
     void* args, imsi64_t* imsi64);
 
 /****************************************************************************/
@@ -197,7 +194,7 @@ int esm_proc_dedicated_eps_bearer_context_request(
    * Send activate dedicated EPS bearer context request message and
    * * * * start timer T3485
    */
-  rc = _dedicated_eps_bearer_activate(emm_context, ebi, msg);
+  rc = dedicated_eps_bearer_activate(emm_context, ebi, msg);
 
   if (rc != RETURNerror) {
     /*
@@ -286,7 +283,7 @@ int esm_proc_dedicated_eps_bearer_context_accept(
     } else {
       rc = esm_ebr_start_timer(
           emm_context, ebi, NULL, ERAB_SETUP_RSP_TMR,
-          _erab_setup_rsp_tmr_exp_ded_bearer_handler);
+          erab_setup_rsp_tmr_exp_ded_bearer_handler);
       if (rc != RETURNerror) {
         OAILOG_DEBUG(
             LOG_NAS_ESM,
@@ -381,7 +378,7 @@ int esm_proc_dedicated_eps_bearer_context_reject(
 */
 /****************************************************************************
  **                                                                        **
- ** Name:    _dedicated_eps_bearer_activate_t3485_handler()                **
+ ** Name:    dedicated_eps_bearer_activate_t3485_handler()                **
  **                                                                        **
  ** Description: T3485 timeout handler                                     **
  **                                                                        **
@@ -402,8 +399,7 @@ int esm_proc_dedicated_eps_bearer_context_reject(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-static void _dedicated_eps_bearer_activate_t3485_handler(
-    void* args, imsi64_t* imsi64) {
+void dedicated_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
 
@@ -431,7 +427,7 @@ static void _dedicated_eps_bearer_activate_t3485_handler(
        * * * * to the UE
        */
       bstring b = bstrcpy(esm_ebr_timer_data->msg);
-      rc        = _dedicated_eps_bearer_activate(
+      rc        = dedicated_eps_bearer_activate(
           esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       bdestroy_wrapper(&b);
     } else {
@@ -491,7 +487,7 @@ static void _dedicated_eps_bearer_activate_t3485_handler(
  **      Others:    T3485                                                  **
  **                                                                        **
  ***************************************************************************/
-static int _dedicated_eps_bearer_activate(
+static int dedicated_eps_bearer_activate(
     emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   emm_sap_t emm_sap = {0};
@@ -530,7 +526,7 @@ static int _dedicated_eps_bearer_activate(
      */
     rc = esm_ebr_start_timer(
         emm_context, ebi, msg_dup, mme_config.nas_config.t3485_sec,
-        _dedicated_eps_bearer_activate_t3485_handler);
+        dedicated_eps_bearer_activate_t3485_handler);
   }
   bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -552,7 +548,7 @@ static int _dedicated_eps_bearer_activate(
  **                                                                        **
  ***************************************************************************/
 
-static void _erab_setup_rsp_tmr_exp_ded_bearer_handler(
+static void erab_setup_rsp_tmr_exp_ded_bearer_handler(
     void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -590,7 +586,7 @@ static void _erab_setup_rsp_tmr_exp_ded_bearer_handler(
         // Restart the timer
         rc = esm_ebr_start_timer(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
-            ERAB_SETUP_RSP_TMR, _erab_setup_rsp_tmr_exp_ded_bearer_handler);
+            ERAB_SETUP_RSP_TMR, erab_setup_rsp_tmr_exp_ded_bearer_handler);
         if (rc != RETURNerror) {
           OAILOG_INFO(
               LOG_NAS_ESM,

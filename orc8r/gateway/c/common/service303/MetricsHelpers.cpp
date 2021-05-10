@@ -12,11 +12,18 @@
  */
 
 #include "MetricsHelpers.h"
-
-#include "MetricsSingleton.h"
+#include <stdarg.h>            // for va_end, va_list, va_start
+#include "MetricsSingleton.h"  // for MetricsSingleton
 
 namespace magma {
 namespace service303 {
+
+void remove_counter(const char* name, size_t n_labels, ...) {
+  va_list ap;
+  va_start(ap, n_labels);
+  MetricsSingleton::Instance().RemoveCounter(name, n_labels, ap);
+  va_end(ap);
+}
 
 void increment_counter(
     const char* name, double increment, size_t n_labels, ...) {
@@ -56,5 +63,5 @@ void observe_histogram(
   va_end(ap);
 }
 
-} // namespace service303
-} // namespace magma
+}  // namespace service303
+}  // namespace magma

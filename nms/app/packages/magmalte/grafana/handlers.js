@@ -25,6 +25,7 @@ import {
   CWFNetworkDBData,
   CWFSubscriberDBData,
 } from './dashboards/CWFDashboards';
+
 import {
   GatewayDBData,
   InternalDBData,
@@ -351,8 +352,12 @@ async function updateDatasourceIfChanged({
   errorTask?: Task,
 }> {
   const completedTasks: Array<Task> = [];
-  // Make sure API Endpoint matches
-  if (oldDS.url === makeAPIUrl(newDSParams.apiHost, newDSParams.nmsOrgID)) {
+  // Make sure API Endpoint matches and certs match
+  if (
+    oldDS.url === makeAPIUrl(newDSParams.apiHost, newDSParams.nmsOrgID) &&
+    oldDS.secureJsonData?.tlsClientCert === newDSParams.cert.toString() &&
+    oldDS.secureJsonData?.tlsClientKey === newDSParams.key.toString()
+  ) {
     return {completedTasks};
   }
   const updatedDS = makeDatasourceConfig(newDSParams);
@@ -488,25 +493,29 @@ export async function syncDashboards(
     dashboardData(createDashboard(NetworkDBData(networks)).generate()),
     dashboardData(createDashboard(GatewayDBData(networks)).generate()),
     dashboardData(createDashboard(InternalDBData(networks)).generate()),
-    dashboardData(createDashboard(SubscriberDBData(networks)).generate()),
   ];
-
-  // If an org contains CWF networks, add the CWF-specific dashboards
-  if (await hasNetworkOfType(CWF, networks)) {
-    posts.push(
-      dashboardData(createDashboard(CWFNetworkDBData(networks)).generate()),
-      dashboardData(createDashboard(CWFAccessPointDBData(networks)).generate()),
-      dashboardData(createDashboard(CWFSubscriberDBData).generate()),
-      dashboardData(createDashboard(CWFGatewayDBData(networks)).generate()),
-    );
-    // Analytics Dashboard
-    posts.push(
-      dashboardData(createDashboard(AnalyticsDBData(networks)).generate()),
-    );
-  }
-  // TODO: When XWFM networks are a real thing change this to XWFM
-  if (await hasNetworkOfType(CWF, networks)) {
+  if (await hasNetworkOfXWFMType(networks)) {
     posts.push(dashboardData(createDashboard(XWFMDBData(networks)).generate()));
+  } else {
+    posts.push(
+      dashboardData(createDashboard(SubscriberDBData(networks)).generate()),
+    );
+
+    // If an org contains CWF networks, add the CWF-specific dashboards
+    if (await hasNetworkOfType(CWF, networks)) {
+      posts.push(
+        dashboardData(createDashboard(CWFNetworkDBData(networks)).generate()),
+        dashboardData(
+          createDashboard(CWFAccessPointDBData(networks)).generate(),
+        ),
+        dashboardData(createDashboard(CWFSubscriberDBData).generate()),
+        dashboardData(createDashboard(CWFGatewayDBData(networks)).generate()),
+      );
+      // Analytics Dashboard
+      posts.push(
+        dashboardData(createDashboard(AnalyticsDBData(networks)).generate()),
+      );
+    }
   }
 
   for (const post of posts) {
@@ -627,6 +636,22 @@ async function hasNetworkOfType(
     } catch (error) {
       logger.error(
         `Error retrieving network info for network while building dashboards: ${networkId}. Error: ${error}`,
+      );
+    }
+  }
+  return false;
+}
+
+async function hasNetworkOfXWFMType(networks: Array<string>): Promise<boolean> {
+  for (const networkId of networks) {
+    try {
+      const cwfNetwork = await MagmaV1API.getCwfByNetworkId({networkId});
+      return cwfNetwork.carrier_wifi?.is_xwfm_variant ?? false;
+    } catch (error) {
+      // not a real error, we are attempting to get all networks as cwf networks
+      // few of them can result in errors. These can be ignored
+      logger.error(
+        `Error attempting to retrieve ${networkId} as CWF network. Error: ${error}`,
       );
     }
   }

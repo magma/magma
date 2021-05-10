@@ -43,6 +43,7 @@ Description Defines the EMM primitives available at the EMMAS Service
 #include "TrackingAreaIdentityList.h"
 #include "3gpp_36.401.h"
 #include "3gpp_23.003.h"
+#include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 
 /****************************************************************************/
@@ -120,12 +121,15 @@ typedef struct emm_as_security_s {
   /*
    * Security Mode Command
    */
+  uint8_t nea; /* Replayed NR encryption algorithms   */
+  uint8_t nia; /* Replayed NR integrity algorithms    */
   uint8_t eea; /* Replayed EPS encryption algorithms   */
   uint8_t eia; /* Replayed EPS integrity algorithms    */
   uint8_t uea; /* Replayed UMTS encryption algorithms  */
   uint8_t ucs2;
   uint8_t uia; /* Replayed UMTS integrity algorithms   */
   uint8_t gea; /* Replayed GPRS encryption algorithms   */
+  bool nr_present;
   bool umts_present;
   bool gprs_present;
   bool imeisv_request;
@@ -204,9 +208,10 @@ typedef struct emm_as_establish_s {
   uint32_t* t3423;                /* TAU GPRS T3423 timer   */
   void* equivalent_plmns;         /* TAU Equivalent PLMNs   */
   void* emergency_number_list;    /* TAU Emergency number list   */
-  uint8_t* eps_network_feature_support; /* TAU Network feature support   */
-  uint8_t* additional_update_result;    /* TAU Additional update result   */
-  uint32_t* t3412_extended;             /* TAU GPRS timer   */
+  eps_network_feature_support_t*
+      eps_network_feature_support;   /* TAU Network feature support   */
+  uint8_t* additional_update_result; /* TAU Additional update result   */
+  uint32_t* t3412_extended;          /* TAU GPRS timer   */
   uint8_t csfb_response; /* CSFB MT call accepted or rejected by ue */
 #define SERVICE_TYPE_PRESENT (1 << 0)
   uint8_t presencemask; /* Indicates the presence of some params like service
@@ -244,10 +249,11 @@ typedef struct emm_as_data_s {
                        identify a cell */
   const tai_t* tai; /* Code of the first tracking area identity the UE is
                        registered to          */
-  tai_list_t tai_list;                  /* Valid field if num tai > 0 */
-  uint8_t* eps_network_feature_support; /* TAU Network feature support */
-  bool switch_off;                      /* true if the UE is switched off   */
-  uint8_t type;                         /* Network detach type          */
+  tai_list_t tai_list; /* Valid field if num tai > 0 */
+  eps_network_feature_support_t*
+      eps_network_feature_support; /* TAU Network feature support */
+  bool switch_off;                 /* true if the UE is switched off   */
+  uint8_t type;                    /* Network detach type          */
 #define EMM_AS_DATA_DELIVERED_LOWER_LAYER_FAILURE 0
 #define EMM_AS_DATA_DELIVERED_TRUE 1
 #define EMM_AS_DATA_DELIVERED_LOWER_LAYER_NON_DELIVERY_INDICATION_DUE_TO_HO 2

@@ -80,6 +80,7 @@
 #define LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH 5
 #define LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH 6
 #define LOG_FUNC_INDENT_SPACES 3
+#define LOG_INDENT_MAX 30
 #define LOG_LEVEL_NAME_MAX_LENGTH 10
 
 #define LOG_CTXT_INFO_FMT                                                      \
@@ -88,6 +89,7 @@
   "%06" PRIu64 " %s %08lX %-*.*s %-*.*s %-*.*s:%04u   [%lu]%*s"
 
 #define LOG_MAGMA_REPO_ROOT "/oai/"
+#define MAX_TIME_STR_LEN 32
 //-------------------------------
 
 typedef unsigned long log_message_number_t;
@@ -160,14 +162,14 @@ typedef struct oai_log_s {
       shared_log_handler; /*!< \brief Logging handler function pointers */
 } oai_log_t;
 
-#define _LOG_START_USE g_oai_log.log_handler.log_start_use
-#define _LOG g_oai_log.log_handler.log
-#define _LOG_GET_ITEM g_oai_log.log_handler.get_log_queue_item
-#define _LOG_FREE_ITEM g_oai_log.log_handler.free_log_queue_item
+#define LOG_START_USE g_oai_log.log_handler.log_start_use
+#define LOG g_oai_log.log_handler.log
+#define LOG_GET_ITEM g_oai_log.log_handler.get_log_queue_item
+#define LOG_FREE_ITEM g_oai_log.log_handler.free_log_queue_item
 
-#define _LOG_ASYNC g_oai_log.shared_log_handler.log
-#define _LOG_GET_ITEM_ASYNC g_oai_log.shared_log_handler.get_log_queue_item
-#define _LOG_FREE_ITEM_ASYNC g_oai_log.shared_log_handler.free_log_queue_item
+#define LOG_ASYNC g_oai_log.shared_log_handler.log
+#define LOG_GET_ITEM_ASYNC g_oai_log.shared_log_handler.get_log_queue_item
+#define LOG_FREE_ITEM_ASYNC g_oai_log.shared_log_handler.free_log_queue_item
 static oai_log_t g_oai_log = {
     0}; /*!< \brief  logging utility internal variables global var definition*/
 
@@ -284,7 +286,7 @@ static void get_thread_context(log_thread_ctxt_t** thread_ctxt) {
         g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) thread_ctxt);
     if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
       // Initialize thread context
-      _LOG_START_USE();
+      LOG_START_USE();
       hash_rc = hashtable_ts_get(
           g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) thread_ctxt);
       AssertFatal(
@@ -295,19 +297,17 @@ static void get_thread_context(log_thread_ctxt_t** thread_ctxt) {
 }
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case TERMINATE_MESSAGE: {
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       log_exit();
     } break;
 
     default: { } break; }
 
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -338,7 +338,7 @@ static void* log_thread(__attribute__((unused)) void* args_p) {
       &log_task_zmq_ctx, LOG_FLUSH_PERIOD_MSEC, TIMER_REPEAT_ONCE, handle_timer,
       NULL);
 
-  _LOG_START_USE();
+  LOG_START_USE();
 
   zloop_start(log_task_zmq_ctx.event_loop);
   log_exit();
@@ -473,8 +473,13 @@ void log_configure(const log_config_t* const config) {
       (MIN_LOG_LEVEL <= config->s1ap_log_level))
     g_oai_log.log_level[LOG_S1AP] = config->s1ap_log_level;
   if ((MAX_LOG_LEVEL > config->mme_app_log_level) &&
-      (MIN_LOG_LEVEL <= config->mme_app_log_level))
+      (MIN_LOG_LEVEL <= config->mme_app_log_level)) {
     g_oai_log.log_level[LOG_MME_APP] = config->mme_app_log_level;
+    g_oai_log.log_level[LOG_AMF_APP] = config->mme_app_log_level;
+    g_oai_log.log_level[LOG_NGAP]    = config->mme_app_log_level;
+    g_oai_log.log_level[LOG_NAS_AMF] = config->mme_app_log_level;
+  }
+
   if ((MAX_LOG_LEVEL > config->nas_log_level) &&
       (MIN_LOG_LEVEL <= config->nas_log_level)) {
     g_oai_log.log_level[LOG_NAS]     = config->nas_log_level;
@@ -559,11 +564,15 @@ static void log_get_elapsed_time_since_start(struct timeval * const elapsed_time
 }
 #endif
 //------------------------------------------------------------------------------
-static char* log_get_readable_cur_time(time_t* cur_time) {
+static void log_get_readable_cur_time(time_t* cur_time, char* time_str) {
   // get the current local time
-  *cur_time = time(NULL);
+  time(cur_time);
+  struct tm* cur_local_time;
+  cur_local_time = localtime(cur_time);
   // get the current local time in readable string format
-  return (strtok(ctime(cur_time), "\n"));
+  strftime(
+      time_str, MAX_TIME_STR_LEN, "%a %b %d %H:%M:%S %Y",
+      (const struct tm*) cur_local_time);
 }
 
 //------------------------------------------------------------------------------
@@ -636,6 +645,14 @@ int log_init(
       &g_oai_log.log_proto2str[LOG_MME_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
       "MME-APP");
   snprintf(
+      &g_oai_log.log_proto2str[LOG_AMF_APP][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "AMF-APP");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_NGAP][0], LOG_MAX_PROTO_NAME_LENGTH, "NGAP");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_NAS_AMF][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "NAS-AMF");
+  snprintf(
       &g_oai_log.log_proto2str[LOG_NAS][0], LOG_MAX_PROTO_NAME_LENGTH, "NAS");
   snprintf(
       &g_oai_log.log_proto2str[LOG_NAS_EMM][0], LOG_MAX_PROTO_NAME_LENGTH,
@@ -650,6 +667,9 @@ int log_init(
       &g_oai_log.log_proto2str[LOG_S11][0], LOG_MAX_PROTO_NAME_LENGTH, "S11");
   snprintf(
       &g_oai_log.log_proto2str[LOG_S6A][0], LOG_MAX_PROTO_NAME_LENGTH, "S6A");
+  snprintf(
+      &g_oai_log.log_proto2str[LOG_SGW_S8][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "SGW_S8");
   snprintf(
       &g_oai_log.log_proto2str[LOG_SECU][0], LOG_MAX_PROTO_NAME_LENGTH, "SECU");
   snprintf(
@@ -871,7 +891,7 @@ static void log_stream_hex_async(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
   if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
     // make the thread safe LFDS collections usable by this thread
-    _LOG_START_USE();
+    LOG_START_USE();
   }
   hash_rc = hashtable_ts_get(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
@@ -1023,11 +1043,11 @@ static void log_message_finish_sync(log_queue_item_t* messageP) {
     OAI_FPRINTF_ERR("Error while logging message\n");
     goto error_event;
   }
-  _LOG(messageP);
+  LOG(messageP);
   return;
 
 error_event:
-  _LOG_FREE_ITEM(&messageP);
+  LOG_FREE_ITEM(&messageP);
 }
 //------------------------------------------------------------------------------
 void log_message_finish_async(struct shared_log_queue_item_s* messageP) {
@@ -1108,7 +1128,7 @@ void log_message_start_async(
         g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
     if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
       // make the thread safe LFDS collections usable by this thread
-      _LOG_START_USE();
+      LOG_START_USE();
       hash_rc = hashtable_ts_get(
           g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
       AssertFatal(
@@ -1207,7 +1227,7 @@ void log_func(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
   if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
     // make the thread safe LFDS collections usable by this thread
-    _LOG_START_USE();
+    LOG_START_USE();
   }
   hash_rc = hashtable_ts_get(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
@@ -1217,9 +1237,14 @@ void log_func(
         thread_ctxt, OAILOG_LEVEL_TRACE, protoP, source_fileP, line_numP,
         "Entering %s()\n", functionP);
     thread_ctxt->indent += LOG_FUNC_INDENT_SPACES;
+    if (thread_ctxt->indent > LOG_INDENT_MAX) {
+      thread_ctxt->indent = LOG_INDENT_MAX;
+    }
   } else {
     thread_ctxt->indent -= LOG_FUNC_INDENT_SPACES;
-    if (thread_ctxt->indent < 0) thread_ctxt->indent = 0;
+    if (thread_ctxt->indent < 0) {
+      thread_ctxt->indent = 0;
+    }
     log_message(
         thread_ctxt, OAILOG_LEVEL_TRACE, protoP, source_fileP, line_numP,
         "Leaving %s()\n", functionP);
@@ -1239,7 +1264,7 @@ void log_func_return(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
   if (HASH_TABLE_KEY_NOT_EXISTS == hash_rc) {
     // make the thread safe LFDS collections usable by this thread
-    _LOG_START_USE();
+    LOG_START_USE();
   }
   hash_rc = hashtable_ts_get(
       g_oai_log.thread_context_htbl, (hash_key_t) p, (void**) &thread_ctxt);
@@ -1274,13 +1299,13 @@ void log_message(
     if (g_oai_log.is_ansi_codes) {
       bformata(new_item_p_async->bstr, "%s", ANSI_COLOR_RESET);
     }
-    _LOG_ASYNC(new_item_p_async);
+    LOG_ASYNC(new_item_p_async);
   } else {
     new_item_p_sync = (log_queue_item_t*) new_item_p;
     if (g_oai_log.is_ansi_codes) {
       bformata(new_item_p_sync->bstr, "%s", ANSI_COLOR_RESET);
     }
-    _LOG(new_item_p_sync);
+    LOG(new_item_p_sync);
   }
 }
 
@@ -1307,13 +1332,13 @@ void log_message_prefix_id(
     if (g_oai_log.is_ansi_codes) {
       bformata(new_item_p_async->bstr, "%s", ANSI_COLOR_RESET);
     }
-    _LOG_ASYNC(new_item_p_async);
+    LOG_ASYNC(new_item_p_async);
   } else {
     new_item_p_sync = (log_queue_item_t*) new_item_p;
     if (g_oai_log.is_ansi_codes) {
       bformata(new_item_p_sync->bstr, "%s", ANSI_COLOR_RESET);
     }
-    _LOG(new_item_p_sync);
+    LOG(new_item_p_sync);
   }
 }
 
@@ -1334,7 +1359,7 @@ void log_message_int(
   get_thread_context(&thread_ctxt);
 
   assert(thread_ctxt != NULL);
-  *contextP = _LOG_GET_ITEM();
+  *contextP = LOG_GET_ITEM();
 #if 0
   struct timeval elapsed_time;
   log_get_elapsed_time_since_start(&elapsed_time);
@@ -1390,9 +1415,13 @@ void log_message_int(
 
 error_event:
   if (!(g_oai_log.is_async)) {
-    _LOG_FREE_ITEM(sync_context_p);
+    LOG_FREE_ITEM(sync_context_p);
+  } else if (async_context_p == NULL) {
+    // To guard against mutation of is_async during post-init
+    // runtime, though this should not be mutated.
+    return;
   } else {
-    _LOG_FREE_ITEM_ASYNC(*async_context_p);
+    LOG_FREE_ITEM_ASYNC(*async_context_p);
   }
 }
 
@@ -1412,7 +1441,7 @@ void log_message_int_prefix_id(
   get_thread_context(&thread_ctxt);
 
   assert(thread_ctxt != NULL);
-  *contextP = _LOG_GET_ITEM();
+  *contextP = LOG_GET_ITEM();
   time_t cur_time;
 
   // get the short file name to use for printing in log
@@ -1464,9 +1493,11 @@ void log_message_int_prefix_id(
 
 error_event:
   if (!(g_oai_log.is_async)) {
-    _LOG_FREE_ITEM(sync_context_p);
+    LOG_FREE_ITEM(sync_context_p);
+  } else if (async_context_p == NULL) {
+    return;
   } else {
-    _LOG_FREE_ITEM_ASYNC(*async_context_p);
+    LOG_FREE_ITEM_ASYNC(*async_context_p);
   }
 }
 
@@ -1476,11 +1507,12 @@ int append_log_ctx_info(
     const log_thread_ctxt_t* thread_ctxt, time_t* cur_time,
     const char* short_source_fileP) {
   int rv;
+  char time_str[MAX_TIME_STR_LEN];
+  log_get_readable_cur_time(cur_time, time_str);
   rv = bformata(
       bstr, LOG_CTXT_INFO_FMT,
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
-      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1), time_str,
+      thread_ctxt->tid, LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       &g_oai_log.log_level2str[(*log_levelP)][0],
       LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
@@ -1496,11 +1528,12 @@ int append_log_ctx_info_prefix_id(
     size_t filename_length, const log_thread_ctxt_t* thread_ctxt,
     time_t* cur_time, const char* short_source_fileP) {
   int rv;
+  char time_str[MAX_TIME_STR_LEN];
+  log_get_readable_cur_time(cur_time, time_str);
   rv = bformata(
       bstr, LOG_CTXT_INFO_ID_FMT,
-      __sync_fetch_and_add(&g_oai_log.log_message_number, 1),
-      log_get_readable_cur_time(cur_time), thread_ctxt->tid,
-      LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
+      __sync_fetch_and_add(&g_oai_log.log_message_number, 1), time_str,
+      thread_ctxt->tid, LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       LOG_DISPLAYED_LOG_LEVEL_NAME_MAX_LENGTH,
       &g_oai_log.log_level2str[(*log_levelP)][0],
       LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH, LOG_DISPLAYED_PROTO_NAME_MAX_LENGTH,
@@ -1517,7 +1550,7 @@ int append_log_ctx_info_prefix_id(
 //    input: /home/vagrant/magma/lte/gateway/c/oai/tasks/nas/emm/sap/emm_cn.c
 //           Assume root is /oai/
 //    output: tasks/nas/emm/sap/emm_cn.c
-const char* const get_short_file_name(const char* const source_file_nameP) {
+const char* get_short_file_name(const char* const source_file_nameP) {
   if (!source_file_nameP) return source_file_nameP;
 
   char* root_startP = strstr(source_file_nameP, LOG_MAGMA_REPO_ROOT);

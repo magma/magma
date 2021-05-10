@@ -129,6 +129,22 @@ export type base_name_record = {
 };
 export type base_names = Array < base_name >
 ;
+export type call_trace = {
+    config: call_trace_config,
+    state ? : call_trace_state,
+};
+export type call_trace_config = {
+    capture_filters ? : string,
+    display_filters ? : string,
+    gateway_id ? : string,
+    timeout ? : number,
+    trace_id: string,
+    trace_type: "GATEWAY",
+};
+export type call_trace_state = {
+    call_trace_available ? : boolean,
+    call_trace_ending ? : boolean,
+};
 export type carrier_wifi_gateway_health_status = {
     description: string,
     status: "HEALTHY" | "UNHEALTHY",
@@ -360,6 +376,7 @@ export type enodeb_state = {
     rf_tx_desired: boolean,
     rf_tx_on: boolean,
     time_reported ? : number,
+    ues_connected ? : number,
 };
 export type enodebd_e2e_test = {
     config: enodebd_test_config,
@@ -389,7 +406,13 @@ export type event = {
     timestamp: string,
     value: {},
 };
+export type federated_mode_map = {
+    enabled ? : boolean,
+    mapping ? : Array < mode_map_item >
+        ,
+};
 export type federated_network_configs = {
+    federated_modes_mapping ? : federated_mode_map,
     feg_network_id: string,
 };
 export type federation_gateway = {
@@ -479,6 +502,7 @@ export type gateway_epc_configs = {
     dns_secondary ? : string,
     ip_block: string,
     ipv4_p_cscf_addr ? : string,
+    ipv4_sgw_s1u_addr ? : string,
     ipv6_block ? : string,
     ipv6_dns_addr ? : string,
     ipv6_p_cscf_addr ? : string,
@@ -499,6 +523,7 @@ export type gateway_federation_configs = {
     hss: hss,
     nh_routes ? : nh_routes,
     s6a: s6a,
+    s8 ? : s8,
     served_network_ids: served_network_ids,
     served_nh_ids ? : served_nh_ids,
     swx: swx,
@@ -507,9 +532,10 @@ export type gateway_he_config = {
     enable_encryption: boolean,
     enable_header_enrichment: boolean,
     encryption_key ? : string,
-    he_encoding_type: "BASE64",
-    he_encryption_algorithm: "RC4",
-    he_hash_function: "MD5",
+    he_encoding_type: "BASE64" | "HEX2BIN",
+    he_encryption_algorithm: "RC4" | "AES256_CBC_HMAC_MD5" | "AES256_ECB_HMAC_MD5" | "GZIPPED_AES256_ECB_SHA1",
+    he_hash_function: "MD5" | "HEX" | "SHA256",
+    hmac_key ? : string,
 };
 export type gateway_health_configs = {
     cpu_util_threshold_pct ? : number,
@@ -667,6 +693,10 @@ export type icmp_status = {
     last_reported_time ? : number,
     latency_ms: number,
 };
+export type imei = {
+    snr ? : string,
+    tac: string,
+};
 export type ip_address = {
     address ? : string,
     version ? : "IPv4" | "IPv6",
@@ -678,6 +708,10 @@ export type ipdr_export_dst = {
 export type label_pair = {
     name: string,
     value: string,
+};
+export type latest_script_execution = {
+    timestamp: number,
+    version: string,
 };
 export type li_ues = {
     imsis: Array < string >
@@ -776,10 +810,19 @@ export type metric_datapoint = Array < string >
 ;
 export type metric_datapoints = Array < metric_datapoint >
 ;
+export type mode_map_item = {
+    apn ? : string,
+    imsi_range ? : string,
+    mode ? : "local_subscriber" | "s8_subscriber",
+    plmn ? : string,
+};
 export type msisdn = string;
 export type msisdn_assignment = {
     id: subscriber_id,
     msisdn: msisdn,
+};
+export type mutable_call_trace = {
+    requested_end: boolean,
 };
 export type mutable_cellular_gateway_pool = {
     config: cellular_gateway_pool_configs,
@@ -840,8 +883,7 @@ export type mutable_sms_message = {
 };
 export type mutable_subscriber = {
     active_apns ? : apn_list,
-    active_base_names ? : Array < base_name >
-        ,
+    active_base_names ? : base_names,
     active_policies ? : policy_ids,
     active_policies_by_apn ? : policy_ids_by_apn,
     id: subscriber_id,
@@ -871,6 +913,7 @@ export type network_carrier_wifi_configs = {
     default_rule_id: string,
     eap_aka: eap_aka,
     eap_sim ? : eap_sim,
+    is_xwfm_variant ? : boolean,
     li_ues ? : li_ues,
     network_services: Array < "dpi" | "policy_enforcement" >
         ,
@@ -917,6 +960,13 @@ export type network_epc_configs = {
     },
     network_services ? : Array < "dpi" | "policy_enforcement" >
         ,
+    restricted_imeis ? : Array < imei >
+        ,
+    restricted_plmns ? : Array < plmn_config >
+        ,
+    service_area_maps ? : {
+        [string]: tac_list,
+    },
     sub_profiles ? : {
         [string]: {
             max_dl_bit_rate: number,
@@ -941,6 +991,7 @@ export type network_federation_configs = {
     hss: hss,
     nh_routes ? : nh_routes,
     s6a: s6a,
+    s8 ? : s8,
     served_network_ids: served_network_ids,
     served_nh_ids ? : served_nh_ids,
     swx: swx,
@@ -956,6 +1007,28 @@ export type network_interface = {
     status ? : "UP" | "DOWN" | "UNKNOWN",
 };
 export type network_name = string;
+export type network_probe_destination = {
+    destination_details: network_probe_destination_details,
+    destination_id: network_probe_destination_id,
+};
+export type network_probe_destination_details = {
+    delivery_address: string,
+    delivery_type: "all" | "events_only",
+};
+export type network_probe_destination_id = string;
+export type network_probe_task = {
+    task_details: network_probe_task_details,
+    task_id: network_probe_task_id,
+};
+export type network_probe_task_details = {
+    correlation_id ? : number,
+    delivery_type: "all" | "events_only",
+    duration ? : number,
+    target_id: string,
+    target_type: "imsi" | "imei" | "msisdn",
+    timestamp ? : string,
+};
+export type network_probe_task_id = string;
 export type network_ran_configs = {
     bandwidth_mhz: 3 | 5 | 10 | 15 | 20,
     fdd_config ? : {
@@ -998,6 +1071,7 @@ export type network_wifi_configs = {
     xwf_radius_shared_secret ? : string,
     xwf_uam_secret ? : string,
 };
+export type next_page_token = string;
 export type nh_routes = {
     [string]: string,
 };
@@ -1009,6 +1083,13 @@ export type node_lease = {
 export type package_type = {
     name ? : string,
     version ? : string,
+};
+export type paginated_subscribers = {
+    next_page_token: next_page_token,
+    subscribers: {
+        [string]: subscriber,
+    },
+    total_count: number,
 };
 export type ping_request = {
     hosts: Array < string >
@@ -1035,6 +1116,10 @@ export type platform_info = {
     packages ? : Array < package_type >
         ,
     vpn_ip ? : string,
+};
+export type plmn_config = {
+    mcc: string,
+    mnc: string,
 };
 export type policy_id = string;
 export type policy_ids = Array < policy_id >
@@ -1193,6 +1278,10 @@ export type s6a = {
         ,
     server ? : diameter_client_configs,
 };
+export type s8 = {
+    local_address ? : string,
+    pgw_address ? : string,
+};
 export type sctp_client_configs = {
     local_address ? : string,
     server_address ? : string,
@@ -1257,8 +1346,7 @@ export type sms_message = {
 export type sub_profile = string;
 export type subscriber = {
     active_apns ? : apn_list,
-    active_base_names ? : Array < base_name >
-        ,
+    active_base_names ? : base_names,
     active_policies ? : policy_ids,
     active_policies_by_apn ? : policy_ids_by_apn,
     config: subscriber_config,
@@ -1328,6 +1416,9 @@ export type system_status = {
     time ? : number,
     uptime_secs ? : number,
 };
+export type tac = number;
+export type tac_list = Array < tac >
+;
 export type tail_logs_request = {
     service ? : string,
 };
@@ -1365,6 +1456,7 @@ export type untyped_subscriber_state = {};
 export type virtual_apn_rule = {
     apn_filter ? : string,
     apn_overwrite ? : string,
+    charging_characteristics_filter ? : string,
 };
 export type webhook_receiver = {
     http_config ? : http_config,
@@ -4874,6 +4966,38 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'GET', query, body);
         }
+    static async putLteByNetworkIdGatewayPoolsByGatewayPoolId(
+        parameters: {
+            'networkId': string,
+            'gatewayPoolId': string,
+            'haGatewayPool': mutable_cellular_gateway_pool,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/gateway_pools/{gateway_pool_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayPoolId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayPoolId');
+        }
+
+        path = path.replace('{gateway_pool_id}', `${parameters['gatewayPoolId']}`);
+
+        if (parameters['haGatewayPool'] === undefined) {
+            throw new Error('Missing required  parameter: haGatewayPool');
+        }
+
+        if (parameters['haGatewayPool'] !== undefined) {
+            body = parameters['haGatewayPool'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
     static async getLteByNetworkIdGateways(
             parameters: {
                 'networkId': string,
@@ -6006,6 +6130,248 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getLteByNetworkIdNetworkProbeDestinations(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < network_probe_destination >
+        {
+            let path = '/lte/{network_id}/network_probe/destinations';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postLteByNetworkIdNetworkProbeDestinations(
+        parameters: {
+            'networkId': string,
+            'networkProbeDestination': network_probe_destination,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/network_probe/destinations';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['networkProbeDestination'] === undefined) {
+            throw new Error('Missing required  parameter: networkProbeDestination');
+        }
+
+        if (parameters['networkProbeDestination'] !== undefined) {
+            body = parameters['networkProbeDestination'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteLteByNetworkIdNetworkProbeDestinationsByDestinationId(
+        parameters: {
+            'networkId': string,
+            'destinationId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/network_probe/destinations/{destination_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['destinationId'] === undefined) {
+            throw new Error('Missing required  parameter: destinationId');
+        }
+
+        path = path.replace('{destination_id}', `${parameters['destinationId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getLteByNetworkIdNetworkProbeDestinationsByDestinationId(
+            parameters: {
+                'networkId': string,
+                'destinationId': string,
+            }
+        ): Promise < network_probe_destination >
+        {
+            let path = '/lte/{network_id}/network_probe/destinations/{destination_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['destinationId'] === undefined) {
+                throw new Error('Missing required  parameter: destinationId');
+            }
+
+            path = path.replace('{destination_id}', `${parameters['destinationId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putLteByNetworkIdNetworkProbeDestinationsByDestinationId(
+        parameters: {
+            'networkId': string,
+            'destinationId': string,
+            'networkProbeDestination': network_probe_destination,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/network_probe/destinations/{destination_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['destinationId'] === undefined) {
+            throw new Error('Missing required  parameter: destinationId');
+        }
+
+        path = path.replace('{destination_id}', `${parameters['destinationId']}`);
+
+        if (parameters['networkProbeDestination'] === undefined) {
+            throw new Error('Missing required  parameter: networkProbeDestination');
+        }
+
+        if (parameters['networkProbeDestination'] !== undefined) {
+            body = parameters['networkProbeDestination'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getLteByNetworkIdNetworkProbeTasks(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < network_probe_task >
+        {
+            let path = '/lte/{network_id}/network_probe/tasks';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postLteByNetworkIdNetworkProbeTasks(
+        parameters: {
+            'networkId': string,
+            'networkProbeTask': network_probe_task,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/network_probe/tasks';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['networkProbeTask'] === undefined) {
+            throw new Error('Missing required  parameter: networkProbeTask');
+        }
+
+        if (parameters['networkProbeTask'] !== undefined) {
+            body = parameters['networkProbeTask'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteLteByNetworkIdNetworkProbeTasksByTaskId(
+        parameters: {
+            'networkId': string,
+            'taskId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/network_probe/tasks/{task_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['taskId'] === undefined) {
+            throw new Error('Missing required  parameter: taskId');
+        }
+
+        path = path.replace('{task_id}', `${parameters['taskId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getLteByNetworkIdNetworkProbeTasksByTaskId(
+            parameters: {
+                'networkId': string,
+                'taskId': string,
+            }
+        ): Promise < network_probe_task >
+        {
+            let path = '/lte/{network_id}/network_probe/tasks/{task_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['taskId'] === undefined) {
+                throw new Error('Missing required  parameter: taskId');
+            }
+
+            path = path.replace('{task_id}', `${parameters['taskId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putLteByNetworkIdNetworkProbeTasksByTaskId(
+        parameters: {
+            'networkId': string,
+            'taskId': string,
+            'networkProbeTask': network_probe_task,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/network_probe/tasks/{task_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['taskId'] === undefined) {
+            throw new Error('Missing required  parameter: taskId');
+        }
+
+        path = path.replace('{task_id}', `${parameters['taskId']}`);
+
+        if (parameters['networkProbeTask'] === undefined) {
+            throw new Error('Missing required  parameter: networkProbeTask');
+        }
+
+        if (parameters['networkProbeTask'] !== undefined) {
+            body = parameters['networkProbeTask'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
     static async getLteByNetworkIdPolicyQosProfiles(
             parameters: {
                 'networkId': string,
@@ -6692,6 +7058,43 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getLteByNetworkIdSubscribersV2(
+            parameters: {
+                'networkId': string,
+                'msisdn' ? : string,
+                'ip' ? : string,
+                'pageSize' ? : number,
+                'pageToken' ? : string,
+            }
+        ): Promise < paginated_subscribers >
+        {
+            let path = '/lte/{network_id}/subscribers_v2';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['msisdn'] !== undefined) {
+                query['msisdn'] = parameters['msisdn'];
+            }
+
+            if (parameters['ip'] !== undefined) {
+                query['ip'] = parameters['ip'];
+            }
+
+            if (parameters['pageSize'] !== undefined) {
+                query['page_size'] = parameters['pageSize'];
+            }
+
+            if (parameters['pageToken'] !== undefined) {
+                query['page_token'] = parameters['pageToken'];
+            }
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getNetworks(): Promise < Array < string >
         >
         {
@@ -9135,6 +9538,153 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getNetworksByNetworkIdTracing(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < Array < {} >
+        >
+        {
+            let path = '/networks/{network_id}/tracing';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postNetworksByNetworkIdTracing(
+            parameters: {
+                'networkId': string,
+                'callTraceConfiguration': call_trace_config,
+            }
+        ): Promise < string >
+        {
+            let path = '/networks/{network_id}/tracing';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['callTraceConfiguration'] === undefined) {
+                throw new Error('Missing required  parameter: callTraceConfiguration');
+            }
+
+            if (parameters['callTraceConfiguration'] !== undefined) {
+                body = parameters['callTraceConfiguration'];
+            }
+
+            return await this.request(path, 'POST', query, body);
+        }
+    static async deleteNetworksByNetworkIdTracingByTraceId(
+        parameters: {
+            'networkId': string,
+            'traceId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/networks/{network_id}/tracing/{trace_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['traceId'] === undefined) {
+            throw new Error('Missing required  parameter: traceId');
+        }
+
+        path = path.replace('{trace_id}', `${parameters['traceId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getNetworksByNetworkIdTracingByTraceId(
+            parameters: {
+                'networkId': string,
+                'traceId': string,
+            }
+        ): Promise < call_trace >
+        {
+            let path = '/networks/{network_id}/tracing/{trace_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['traceId'] === undefined) {
+                throw new Error('Missing required  parameter: traceId');
+            }
+
+            path = path.replace('{trace_id}', `${parameters['traceId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putNetworksByNetworkIdTracingByTraceId(
+        parameters: {
+            'networkId': string,
+            'traceId': string,
+            'callTraceConfiguration': mutable_call_trace,
+        }
+    ): Promise < "Success" > {
+        let path = '/networks/{network_id}/tracing/{trace_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['traceId'] === undefined) {
+            throw new Error('Missing required  parameter: traceId');
+        }
+
+        path = path.replace('{trace_id}', `${parameters['traceId']}`);
+
+        if (parameters['callTraceConfiguration'] === undefined) {
+            throw new Error('Missing required  parameter: callTraceConfiguration');
+        }
+
+        if (parameters['callTraceConfiguration'] !== undefined) {
+            body = parameters['callTraceConfiguration'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getNetworksByNetworkIdTracingByTraceIdDownload(
+            parameters: {
+                'networkId': string,
+                'traceId': string,
+            }
+        ): Promise < {} >
+        {
+            let path = '/networks/{network_id}/tracing/{trace_id}/download';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['traceId'] === undefined) {
+                throw new Error('Missing required  parameter: traceId');
+            }
+
+            path = path.replace('{trace_id}', `${parameters['traceId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getNetworksByNetworkIdType(
             parameters: {
                 'networkId': string,

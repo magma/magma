@@ -63,3 +63,6 @@ MESSAGE_DEF(GENERIC_LOG, IttiMsgEmpty, generic_log)
 
 // This message leads to recovery of timers for all tasks after MME restart
 MESSAGE_DEF(RECOVERY_MESSAGE, IttiMsgEmpty, recovery_message)
+
+// This message leads to recovery of timers for all tasks after MME restart
+MESSAGE_DEF(TEST_MESSAGE, IttiMsgEmpty, test_message)

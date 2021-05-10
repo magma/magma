@@ -16,7 +16,6 @@
 package integration
 
 import (
-	"encoding/json"
 	"fmt"
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
@@ -47,21 +46,14 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 	}
 	// Wait for the traffic to go through
 	time.Sleep(6 * time.Second)
-	if resp != nil {
-		var perfResp map[string]interface{}
-		json.Unmarshal([]byte(resp.Output), &perfResp)
-		respEndRecd := perfResp["end"].(map[string]interface{})
-		respEndRcvMap := respEndRecd["sum_received"].(map[string]interface{})
-		b := respEndRcvMap["bits_per_second"].(float64)
-
-		errRate := math.Abs((b-expRate)/expRate) * 100
-		fmt.Printf("bit rate observed at server %.0fbps, err rate %.2f%%\n", b, errRate)
-		if (b > expRate) && (errRate > ErrMargin) {
-			fmt.Printf("recd bps %f exp bps %f\n", b, expRate)
-			// dump pipelined service state
-			dumpPipelinedState(tr)
-			assert.Fail(t, "error greater than acceptable margin")
-		}
+	bitsPerSecond := resp.GetEndOutput().GetSumReceived().GetBitsPerSecond()
+	errRate := math.Abs((bitsPerSecond-expRate)/expRate) * 100
+	fmt.Printf("bit rate observed at server %.0fbps, err rate %.2f%%\n", bitsPerSecond, errRate)
+	if (bitsPerSecond > expRate) && (errRate > ErrMargin) {
+		fmt.Printf("recd bps %f exp bps %f\n", bitsPerSecond, expRate)
+		// dump pipelined service state
+		dumpPipelinedState(tr)
+		assert.Fail(t, "error greater than acceptable margin")
 	}
 }
 
@@ -73,6 +65,7 @@ func verifyEgressRate(t *testing.T, tr *TestRunner, req *cwfprotos.GenTrafficReq
 // - Generate traffic and verify if the traffic observed bitrate matches the configured
 // bitrate
 func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
+	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxUplinkTrafficQosEnforcement")
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -131,8 +124,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
@@ -156,6 +148,7 @@ func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
 // - Generate traffic from server to client and verify if the traffic observed bitrate
 //   matches the configured bitrate
 func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
+	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxDownlinkTrafficQosEnforcement")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
@@ -196,30 +189,21 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 		protos.NewGxCCAnswer(diam.Success)))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, ruleKey), time.Minute, 2*time.Second)
+
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:        imsi,
 		ReverseMode: true,
 		Volume:      &wrappers.StringValue{Value: *swag.String("5M")},
 		Timeout:     60,
 	}
-
-	// wait for rule to be installed
-	waitForRuleToBeInstalled := func() bool {
-		return checkIfRuleInstalled(tr, ruleKey)
-	}
-	assert.Eventually(t, waitForRuleToBeInstalled, time.Minute, 2*time.Second)
-
 	verifyEgressRate(t, tr, req, float64(downlinkBwMax))
 
 	// Assert that enforcement_stats rules are properly installed and the right
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi][ruleKey]
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, ruleKey), 2*time.Minute, 2*time.Second)
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 //TestGxQosDowngradeWithCCAUpdate
@@ -236,6 +220,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 // - Send another CCA-update which upgrades the QOS through a dynamic rule and verify
 // that the observed bitrate maches the newly configured bitrate
 func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
+	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxQosDowngradeWithCCAUpdate")
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -337,8 +322,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(6 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()
@@ -356,6 +340,7 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 // - Generate traffic and verify if the traffic observed bitrate matches the newly
 // downgraded bitrate
 func TestGxQosDowngradeWithReAuth(t *testing.T) {
+	t.Skip("Temporarily skipping test due to CWF QOS issues")
 	fmt.Println("\nRunning TestGxQosDowngradeWithReAuth")
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
@@ -417,7 +402,10 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -435,6 +423,5 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }

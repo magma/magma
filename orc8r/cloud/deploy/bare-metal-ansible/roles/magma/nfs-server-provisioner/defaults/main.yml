@@ -1,0 +1,6 @@
+infra_charts_namespace: infra
+charts_dir: /etc/orc8r/charts
+storage_class: nfs
+nfs_host: "{{ kube_override_hostname | default(inventory_hostname) }}"
+
+nfs_pv_path: /mnt/persistentvols/nfs

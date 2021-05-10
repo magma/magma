@@ -21,6 +21,7 @@
 #include "sctpd_event_handler.h"
 #include "sctpd_uplink_client.h"
 #include "util.h"
+#include "magma_logging_init.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;
@@ -28,9 +29,7 @@ using magma::sctpd::SctpdDownlinkImpl;
 using magma::sctpd::SctpdEventHandler;
 using magma::sctpd::SctpdUplinkClient;
 
-
-int signalMask(void)
-{
+int signalMask(void) {
   sigset_t set;
   sigemptyset(&set);
   sigaddset(&set, SIGSEGV);
@@ -44,10 +43,7 @@ int signalMask(void)
 }
 
 int signalHandler(
-  int *end,
-  std::unique_ptr<Server> &server,
-  SctpdDownlinkImpl &downLink)
-{
+    int* end, std::unique_ptr<Server>& server, SctpdDownlinkImpl& downLink) {
   int ret;
   siginfo_t info;
   sigset_t set;
@@ -79,15 +75,14 @@ int signalHandler(
   return 0;
 }
 
-int main()
-{
+int main() {
   signalMask();
 
   magma::init_logging("sctpd");
   magma::set_verbosity(MDEBUG);
 
   auto channel =
-    grpc::CreateChannel(UPSTREAM_SOCK, grpc::InsecureChannelCredentials());
+      grpc::CreateChannel(UPSTREAM_SOCK, grpc::InsecureChannelCredentials());
 
   SctpdUplinkClient client(channel);
   SctpdEventHandler handler(client);

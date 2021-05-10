@@ -1,0 +1,259 @@
+From 824b89cbee63c1c6e06b2a04497c701104d05c78 Mon Sep 17 00:00:00 2001
+From: Jiannan Ouyang <ouyangj@fb.com>
+Date: Wed, 14 Jun 2017 22:28:11 +0000
+Subject: [PATCH 1/7] datapath: add vport-gtp for GPRS Tunneling Protocol
+
+Add vport-gtp which uses gtp_create_flow_based_dev exported by the Linux GTP
+module to create a flow based net_device
+
+Signed-off-by: Jiannan Ouyang <ouyangj@fb.com>
+---
+ datapath/Modules.mk                               |   2 +
+ datapath/linux/Modules.mk                         |   1 +
+ datapath/linux/compat/include/linux/openvswitch.h |   1 +
+ datapath/linux/compat/include/net/gtp.h           |  35 ++++++
+ datapath/vport-gtp.c                              | 146 ++++++++++++++++++++++
+ 5 files changed, 185 insertions(+)
+ create mode 100644 datapath/linux/compat/include/net/gtp.h
+ create mode 100644 datapath/vport-gtp.c
+
+diff --git a/datapath/Modules.mk b/datapath/Modules.mk
+index 21f04a0ea..771758dc1 100644
+--- a/datapath/Modules.mk
++++ b/datapath/Modules.mk
+@@ -8,6 +8,7 @@ both_modules = \
+ 	$(build_multi_modules) \
+ 	vport_geneve \
+ 	vport_gre \
++	vport_gtp \
+ 	vport_lisp \
+ 	vport_stt \
+ 	vport_vxlan
+@@ -31,6 +32,7 @@ openvswitch_sources = \
+ vport_geneve_sources = vport-geneve.c
+ vport_vxlan_sources = vport-vxlan.c
+ vport_gre_sources = vport-gre.c
++vport_gtp_sources = vport-gtp.c
+ vport_lisp_sources = vport-lisp.c
+ vport_stt_sources = vport-stt.c
+ 
+diff --git a/datapath/linux/Modules.mk b/datapath/linux/Modules.mk
+index eec9f2338..fc4a6efcd 100644
+--- a/datapath/linux/Modules.mk
++++ b/datapath/linux/Modules.mk
+@@ -71,6 +71,7 @@ openvswitch_headers += \
+ 	linux/compat/include/net/genetlink.h \
+ 	linux/compat/include/net/geneve.h \
+ 	linux/compat/include/net/gre.h \
++	linux/compat/include/net/gtp.h \
+ 	linux/compat/include/net/inet_ecn.h \
+ 	linux/compat/include/net/inet_frag.h \
+ 	linux/compat/include/net/inetpeer.h \
+diff --git a/datapath/linux/compat/include/linux/openvswitch.h b/datapath/linux/compat/include/linux/openvswitch.h
+index 561f89502..72d16aabf 100644
+--- a/datapath/linux/compat/include/linux/openvswitch.h
++++ b/datapath/linux/compat/include/linux/openvswitch.h
+@@ -236,6 +236,7 @@ enum ovs_vport_type {
+ 	OVS_VPORT_TYPE_GRE,      /* GRE tunnel. */
+ 	OVS_VPORT_TYPE_VXLAN,	 /* VXLAN tunnel. */
+ 	OVS_VPORT_TYPE_GENEVE,	 /* Geneve tunnel. */
++	OVS_VPORT_TYPE_GTP,	 /* GTP tunnel. */
+ 	OVS_VPORT_TYPE_LISP = 105,  /* LISP tunnel */
+ 	OVS_VPORT_TYPE_STT = 106, /* STT tunnel */
+ 	__OVS_VPORT_TYPE_MAX
+diff --git a/datapath/linux/compat/include/net/gtp.h b/datapath/linux/compat/include/net/gtp.h
+new file mode 100644
+index 000000000..d76b03a66
+--- /dev/null
++++ b/datapath/linux/compat/include/net/gtp.h
+@@ -0,0 +1,35 @@
++#ifndef __NET_GTP_WRAPPER_H
++#define __NET_GTP_WRAPPER_H  1
++
++#ifdef CONFIG_INET
++#include <net/udp_tunnel.h>
++#endif /* ifdef CONFIG_INET */
++
++#ifdef USE_UPSTREAM_TUNNEL
++#include_next <net/gtp.h>
++
++static inline int rpl_gtp_init_module(void)
++{
++	return 0;
++}
++static inline void rpl_gtp_cleanup_module(void)
++{}
++
++#define gtp_xmit dev_queue_xmit
++
++#ifdef CONFIG_INET
++#ifndef HAVE_NAME_ASSIGN_TYPE
++static inline struct net_device *rpl_gtp_dev_create_fb(
++	struct net *net, const char *name, u8 name_assign_type, u16 dst_port) {
++	return gtp_dev_create_fb(net, name, dst_port);
++}
++#define gtp_create_flow_based_dev rpl_gtp_dev_create_fb
++#endif
++#endif
++
++#endif /* USE_UPSTREAM_TUNNEL */
++
++#define gtp_init_module rpl_gtp_init_module
++#define gtp_cleanup_module rpl_gtp_cleanup_module
++
++#endif /* __NET_GTP_WRAPPER_H */
+diff --git a/datapath/vport-gtp.c b/datapath/vport-gtp.c
+new file mode 100644
+index 000000000..7d9df6dce
+--- /dev/null
++++ b/datapath/vport-gtp.c
+@@ -0,0 +1,146 @@
++/*
++ * Copyright 2020 The Magma Authors.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
++ */
++
++#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
++
++#include <linux/in.h>
++#include <linux/ip.h>
++#include <linux/net.h>
++#include <linux/rculist.h>
++#include <linux/udp.h>
++#include <linux/if_vlan.h>
++#include <linux/module.h>
++
++#include <net/gtp.h>
++#include <net/icmp.h>
++#include <net/ip.h>
++#include <net/route.h>
++#include <net/udp.h>
++#include <net/xfrm.h>
++
++#include "datapath.h"
++#include "vport.h"
++#include "vport-netdev.h"
++
++extern struct net_device *gtp_create_flow_based_dev(struct net *net, const char *name,
++						u8 name_assign_type, u16 dst_port);
++
++static struct vport_ops ovs_gtp_vport_ops;
++/**
++ * struct gtp_port - Keeps track of open UDP ports
++ * @dst_port: destination port.
++ */
++struct gtp_port {
++    u16 port_no;
++};
++
++static inline struct gtp_port *gtp_vport(const struct vport *vport)
++{
++    return vport_priv(vport);
++}
++
++static int gtp_get_options(const struct vport *vport,
++                           struct sk_buff *skb)
++{
++    struct gtp_port *gtp_port = gtp_vport(vport);
++
++    if (nla_put_u16(skb, OVS_TUNNEL_ATTR_DST_PORT, gtp_port->port_no))
++        return -EMSGSIZE;
++    return 0;
++}
++
++static struct vport *gtp_tnl_create(const struct vport_parms *parms)
++{
++    struct net *net = ovs_dp_get_net(parms->dp);
++    struct nlattr *options = parms->options;
++    struct gtp_port *gtp_port;
++    struct net_device *dev;
++    struct vport *vport;
++    struct nlattr *a;
++    u16 dst_port;
++    int err;
++
++    if (!options) {
++        err = -EINVAL;
++        goto error;
++    }
++
++    a = nla_find_nested(options, OVS_TUNNEL_ATTR_DST_PORT);
++    if (a && nla_len(a) == sizeof(u16)) {
++        dst_port = nla_get_u16(a);
++    } else {
++        /* Require destination port from userspace. */
++        err = -EINVAL;
++        goto error;
++    }
++
++    vport = ovs_vport_alloc(sizeof(struct gtp_port),
++                            &ovs_gtp_vport_ops, parms);
++    if (IS_ERR(vport))
++        return vport;
++
++    gtp_port = gtp_vport(vport);
++    gtp_port->port_no = dst_port;
++
++    rtnl_lock();
++    dev = gtp_create_flow_based_dev(net, parms->name, NET_NAME_USER, dst_port);
++    if (IS_ERR(dev)) {
++        rtnl_unlock();
++        ovs_vport_free(vport);
++        return ERR_CAST(dev);
++    }
++
++    err = dev_change_flags(dev, dev->flags | IFF_UP);
++    if (err < 0) {
++	rtnl_delete_link(dev);
++	rtnl_unlock();
++	ovs_vport_free(vport);
++	goto error;
++    }
++
++    rtnl_unlock();
++    return vport;
++error:
++    return ERR_PTR(err);
++}
++
++static struct vport *gtp_create(const struct vport_parms *parms)
++{
++    struct vport *vport;
++    vport = gtp_tnl_create(parms);
++    if (IS_ERR(vport))
++        return vport;
++
++    return ovs_netdev_link(vport, parms->name);
++}
++
++static struct vport_ops ovs_gtp_vport_ops = {
++    .type                = OVS_VPORT_TYPE_GTP,
++    .create              = gtp_create,
++    .destroy             = ovs_netdev_tunnel_destroy,
++    .get_options         = gtp_get_options,
++    .send                = gtp_xmit,
++};
++
++static int __init ovs_gtp_tnl_init(void)
++{
++    return ovs_vport_ops_register(&ovs_gtp_vport_ops);
++}
++
++static void __exit ovs_gtp_tnl_exit(void)
++{
++    ovs_vport_ops_unregister(&ovs_gtp_vport_ops);
++}
++
++module_init(ovs_gtp_tnl_init);
++module_exit(ovs_gtp_tnl_exit);
++
++MODULE_DESCRIPTION("OVS: GTP switching port");
++MODULE_LICENSE("GPL");
++MODULE_ALIAS("vport-type-6");
+-- 
+2.11.0
+

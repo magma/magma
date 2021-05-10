@@ -15,12 +15,13 @@ limitations under the License.
 from unittest import TestCase
 
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
-from magma.enodebd.tests.test_utils.enb_acs_builder import \
-    EnodebAcsStateMachineBuilder
-from magma.enodebd.tests.test_utils.spyne_builder import \
-    get_spyne_context_with_ip
-from magma.enodebd.tests.test_utils.tr069_msg_builder import \
-    Tr069MessageBuilder
+from magma.enodebd.tests.test_utils.enb_acs_builder import (
+    EnodebAcsStateMachineBuilder,
+)
+from magma.enodebd.tests.test_utils.spyne_builder import (
+    get_spyne_context_with_ip,
+)
+from magma.enodebd.tests.test_utils.tr069_msg_builder import Tr069MessageBuilder
 from magma.enodebd.tr069 import models
 
 

@@ -12,13 +12,21 @@
  */
 #pragma once
 
+#include <iosfwd>  // for ifstream
+#include <string>  // for string
+namespace google {
+namespace protobuf {
+class Message;
+}
+}  // namespace google
+
 namespace magma {
 
 /**
  * MConfigLoader is used to load mconfig files for service configurations
  */
 class MConfigLoader {
-public:
+ public:
   /**
    * load_service_mconfig loads an mconfig from the statically defined files.
    * @param service_name - name of service to load
@@ -29,17 +37,16 @@ public:
    *          passed is not the right type
    */
   bool load_service_mconfig(
-    const std::string& service_name,
-    google::protobuf::Message* message);
+      const std::string& service_name, google::protobuf::Message* message);
 
-private:
-  static constexpr const char* DYNAMIC_MCONFIG_PATH
-    = "/var/opt/magma/configs/gateway.mconfig";
-  static constexpr const char* CONFIG_DIR = "/etc/magma";
+ private:
+  static constexpr const char* DYNAMIC_MCONFIG_PATH =
+      "/var/opt/magma/configs/gateway.mconfig";
+  static constexpr const char* CONFIG_DIR        = "/etc/magma";
   static constexpr const char* MCONFIG_FILE_NAME = "gateway.mconfig";
 
-private:
+ private:
   void get_mconfig_file(std::ifstream* file);
 };
 
-}
+}  // namespace magma

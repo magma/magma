@@ -14,11 +14,23 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
-#include <memory>
-#include <gtest/gtest.h>
-#include <fluid/of10msg.hh>
-#include <fluid/of13msg.hh>
-#include "openflow_mocks.h"
+#include <gtest/gtest-message.h>    // for Message
+#include <gtest/gtest-test-part.h>  // for TestPartResult
+#include <gtest/gtest.h>            // for TestInfo (ptr only), InitGoog...
+#include <stddef.h>                 // for NULL
+#include <stdint.h>                 // for uint8_t
+#include <fluid/base/EventLoop.hh>  // for fluid_base
+#include <fluid/util/ethaddr.hh>    // for fluid_msg
+#include <memory>                   // for unique_ptr
+// TODO: Once #5146 is resolved this can be re-ordered above <memory>
+#include <fluid/OFConnection.hh>        // for OFConnection, OFConnection::E...
+#include <stdexcept>                    // for runtime_error
+#include "ControllerEvents.h"           // for EVENT_PACKET_IN, EVENT_SWITCH...
+#include "OpenflowController.h"         // for OpenflowController, OFPT_PACK...
+#include "gmock/gmock-matchers.h"       // for AnythingMatcher, _
+#include "gmock/gmock-spec-builders.h"  // for EXPECT_CALL, TypedExpectation
+#include "gmock/gmock.h"                // for InitGoogleMock
+#include "openflow_mocks.h"             // for MockApplication
 
 using ::testing::_;
 using ::testing::InSequence;

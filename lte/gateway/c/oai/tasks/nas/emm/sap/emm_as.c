@@ -66,7 +66,7 @@
 /*
    String representation of EMMAS-SAP primitives
 */
-static const char* _emm_as_primitive_str[] = {
+static const char* emm_as_primitive_str[] = {
     "EMMAS_SECURITY_REQ",   "EMMAS_SECURITY_IND",   "EMMAS_SECURITY_RES",
     "EMMAS_SECURITY_REJ",   "EMMAS_ESTABLISH_REQ",  "EMMAS_ESTABLISH_CNF",
     "EMMAS_ESTABLISH_REJ",  "EMMAS_RELEASE_REQ",    "EMMAS_RELEASE_IND",
@@ -79,48 +79,48 @@ static const char* _emm_as_primitive_str[] = {
    Functions executed to process EMM procedures upon receiving
    data from the network
 */
-static int _emm_as_recv(
+static int emm_as_recv(
     mme_ue_s1ap_id_t ue_id, tai_t const* originating_tai,
     ecgi_t const* originating_ecgi, bstring msg, size_t len, int* emm_cause,
     nas_message_decode_status_t* decode_status);
 
-static int _emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause);
-static int _emm_as_data_ind(emm_as_data_t* msg, int* emm_cause);
-static int _emm_as_release_ind(
+static int emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause);
+static int emm_as_data_ind(emm_as_data_t* msg, int* emm_cause);
+static int emm_as_release_ind(
     const emm_as_release_t* const release, int* emm_cause);
 
 /*
    Functions executed to send data to the network when requested
    within EMM procedure processing
 */
-static EMM_msg* _emm_as_set_header(
+static EMM_msg* emm_as_set_header(
     nas_message_t* msg, const emm_as_security_data_t* security);
 
-static int _emm_as_encode(
+static int emm_as_encode(
     bstring* info, nas_message_t* msg, size_t length,
     emm_security_context_t* emm_security_context);
 
-static int _emm_as_encrypt(
+static int emm_as_encrypt(
     bstring* info, const nas_message_security_header_t* header,
     const unsigned char* buffer, size_t length,
     emm_security_context_t* emm_security_context);
 
-static int _emm_as_send(const emm_as_t* msg);
-static int _emm_as_security_req(
+static int emm_as_send_a(const emm_as_t* msg);
+static int emm_as_security_req(
     const emm_as_security_t*, dl_info_transfer_req_t*);
-static int _emm_as_security_rej(
+static int emm_as_security_rej(
     const emm_as_security_t*, dl_info_transfer_req_t*);
-static int _emm_as_establish_cnf(
+static int emm_as_establish_cnf(
     const emm_as_establish_t*, nas_establish_rsp_t*);
-static int _emm_as_establish_rej(
+static int emm_as_establish_rej(
     const emm_as_establish_t*, nas_establish_rsp_t*);
-static int _emm_as_data_req(const emm_as_data_t*, dl_info_transfer_req_t*);
-static int _emm_as_status_ind(const emm_as_status_t*, dl_info_transfer_req_t*);
-static int _emm_as_release_req(const emm_as_release_t*, nas_release_req_t*);
-static int _emm_as_erab_setup_req(
+static int emm_as_data_req(const emm_as_data_t*, dl_info_transfer_req_t*);
+static int emm_as_status_ind(const emm_as_status_t*, dl_info_transfer_req_t*);
+static int emm_as_release_req(const emm_as_release_t*, nas_release_req_t*);
+static int emm_as_erab_setup_req(
     const emm_as_activate_bearer_context_req_t*,
     activate_bearer_context_req_t*);
-static int _emm_as_erab_rel_cmd(
+static int emm_as_erab_rel_cmd(
     const emm_as_deactivate_bearer_context_req_t* msg,
     deactivate_bearer_context_req_t* as_msg);
 
@@ -173,21 +173,21 @@ int emm_as_send(emm_as_t* msg) {
 
   OAILOG_INFO(
       LOG_NAS_EMM, "EMMAS-SAP - Received primitive %s (%d)\n",
-      _emm_as_primitive_str[primitive - _EMMAS_START - 1], primitive);
+      emm_as_primitive_str[primitive - _EMMAS_START - 1], primitive);
 
   switch (primitive) {
     case _EMMAS_DATA_IND:
-      rc    = _emm_as_data_ind(&msg->u.data, &emm_cause);
+      rc    = emm_as_data_ind(&msg->u.data, &emm_cause);
       ue_id = msg->u.data.ue_id;
       break;
 
     case _EMMAS_ESTABLISH_REQ:
-      rc    = _emm_as_establish_req(&msg->u.establish, &emm_cause);
+      rc    = emm_as_establish_req(&msg->u.establish, &emm_cause);
       ue_id = msg->u.establish.ue_id;
       break;
 
     case _EMMAS_RELEASE_IND:
-      rc    = _emm_as_release_ind(&msg->u.release, &emm_cause);
+      rc    = emm_as_release_ind(&msg->u.release, &emm_cause);
       ue_id = msg->u.release.ue_id;
       break;
 
@@ -195,14 +195,14 @@ int emm_as_send(emm_as_t* msg) {
       /*
        * Other primitives are forwarded to lower layers (S1AP)
        */
-      rc = _emm_as_send(msg);
+      rc = emm_as_send_a(msg);
 
       if (rc != RETURNok) {
         OAILOG_ERROR(
             LOG_NAS_EMM,
             "EMMAS-SAP - "
             "Failed to process primitive %s (%d)\n",
-            _emm_as_primitive_str[primitive - _EMMAS_START - 1], primitive);
+            emm_as_primitive_str[primitive - _EMMAS_START - 1], primitive);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
       }
 
@@ -248,7 +248,7 @@ int emm_as_send(emm_as_t* msg) {
   if (rc != RETURNok) {
     OAILOG_ERROR(
         LOG_NAS_EMM, "EMMAS-SAP - Failed to process primitive %s (%d)\n",
-        _emm_as_primitive_str[primitive - _EMMAS_START - 1], primitive);
+        emm_as_primitive_str[primitive - _EMMAS_START - 1], primitive);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -282,7 +282,7 @@ int emm_as_send(emm_as_t* msg) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_recv(
+static int emm_as_recv(
     mme_ue_s1ap_id_t ue_id, tai_t const* originating_tai,
     ecgi_t const* originating_ecgi, bstring msg, size_t len, int* emm_cause,
     nas_message_decode_status_t* decode_status) {
@@ -453,6 +453,7 @@ static int _emm_as_recv(
 
       rc = emm_recv_attach_complete(
           ue_id, &emm_msg->attach_complete, emm_cause, decode_status);
+      bdestroy((bstring)(emm_msg->attach_complete.esmmessagecontainer));
       break;
 
     case TRACKING_AREA_UPDATE_COMPLETE:
@@ -610,7 +611,7 @@ static int _emm_as_recv(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_data_ind(emm_as_data_t* msg, int* emm_cause) {
+static int emm_as_data_ind(emm_as_data_t* msg, int* emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
@@ -675,7 +676,7 @@ static int _emm_as_data_ind(emm_as_data_t* msg, int* emm_cause) {
           tai_t originating_tai = {0};  // originating TAI
           memcpy(&originating_tai, msg->tai, sizeof(originating_tai));
 
-          rc = _emm_as_recv(
+          rc = emm_as_recv(
               msg->ue_id, &originating_tai, &msg->ecgi, plain_msg, bytes,
               emm_cause, &decode_status);
         } else if (
@@ -728,7 +729,7 @@ static int _emm_as_data_ind(emm_as_data_t* msg, int* emm_cause) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause) {
+static int emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   struct emm_context_s* emm_ctx                = NULL;
   emm_security_context_t* emm_security_context = NULL;
@@ -944,7 +945,7 @@ static int _emm_as_establish_req(emm_as_establish_t* msg, int* emm_cause) {
 }
 
 //------------------------------------------------------------------------------
-static int _emm_as_release_ind(
+static int emm_as_release_ind(
     const emm_as_release_t* const release, int* emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = lowerlayer_release(release->ue_id, release->cause);
@@ -975,7 +976,7 @@ static int _emm_as_release_ind(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static EMM_msg* _emm_as_set_header(
+static EMM_msg* emm_as_set_header(
     nas_message_t* msg, const emm_as_security_data_t* security) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   msg->header.protocol_discriminator = EPS_MOBILITY_MANAGEMENT_MESSAGE;
@@ -1059,7 +1060,7 @@ static EMM_msg* _emm_as_set_header(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_encode(
+static int emm_as_encode(
     bstring* info, nas_message_t* msg, size_t length,
     emm_security_context_t* emm_security_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -1121,7 +1122,7 @@ static int _emm_as_encode(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_encrypt(
+static int emm_as_encrypt(
     bstring* info, const nas_message_security_header_t* header,
     const unsigned char* msg, size_t length,
     emm_security_context_t* emm_security_context) {
@@ -1159,7 +1160,7 @@ static int _emm_as_encrypt(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _emm_as_send()                                            **
+ ** Name:    emm_as_send_a()                                            **
  **                                                                        **
  ** Description: Builds NAS message according to the given EMMAS Service   **
  **      Access Point primitive and sends it to the Access Stratum **
@@ -1173,55 +1174,55 @@ static int _emm_as_encrypt(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_send(const emm_as_t* msg) {
+static int emm_as_send_a(const emm_as_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   as_message_t as_msg = {0};
 
   switch (msg->primitive) {
     case _EMMAS_DATA_REQ:
       as_msg.msg_id =
-          _emm_as_data_req(&msg->u.data, &as_msg.msg.dl_info_transfer_req);
+          emm_as_data_req(&msg->u.data, &as_msg.msg.dl_info_transfer_req);
       break;
 
     case _EMMAS_ERAB_SETUP_REQ:
-      as_msg.msg_id = _emm_as_erab_setup_req(
+      as_msg.msg_id = emm_as_erab_setup_req(
           &msg->u.activate_bearer_context_req,
           &as_msg.msg.activate_bearer_context_req);
       break;
 
     case _EMMAS_ERAB_REL_CMD:
-      as_msg.msg_id = _emm_as_erab_rel_cmd(
+      as_msg.msg_id = emm_as_erab_rel_cmd(
           &msg->u.deactivate_bearer_context_req,
           &as_msg.msg.deactivate_bearer_context_req);
       break;
 
     case _EMMAS_STATUS_IND:
       as_msg.msg_id =
-          _emm_as_status_ind(&msg->u.status, &as_msg.msg.dl_info_transfer_req);
+          emm_as_status_ind(&msg->u.status, &as_msg.msg.dl_info_transfer_req);
       break;
 
     case _EMMAS_RELEASE_REQ:
       as_msg.msg_id =
-          _emm_as_release_req(&msg->u.release, &as_msg.msg.nas_release_req);
+          emm_as_release_req(&msg->u.release, &as_msg.msg.nas_release_req);
       break;
 
     case _EMMAS_SECURITY_REQ:
-      as_msg.msg_id = _emm_as_security_req(
+      as_msg.msg_id = emm_as_security_req(
           &msg->u.security, &as_msg.msg.dl_info_transfer_req);
       break;
 
     case _EMMAS_SECURITY_REJ:
-      as_msg.msg_id = _emm_as_security_rej(
+      as_msg.msg_id = emm_as_security_rej(
           &msg->u.security, &as_msg.msg.dl_info_transfer_req);
       break;
 
     case _EMMAS_ESTABLISH_CNF:
-      as_msg.msg_id = _emm_as_establish_cnf(
+      as_msg.msg_id = emm_as_establish_cnf(
           &msg->u.establish, &as_msg.msg.nas_establish_rsp);
       break;
 
     case _EMMAS_ESTABLISH_REJ:
-      as_msg.msg_id = _emm_as_establish_rej(
+      as_msg.msg_id = emm_as_establish_rej(
           &msg->u.establish, &as_msg.msg.nas_establish_rsp);
       break;
 
@@ -1239,7 +1240,7 @@ static int _emm_as_send(const emm_as_t* msg) {
         "EMMAS-SAP - "
         "Sending msg with id 0x%x, primitive %s (%d) to S1AP layer for "
         "transmission\n",
-        as_msg.msg_id, _emm_as_primitive_str[msg->primitive - _EMMAS_START - 1],
+        as_msg.msg_id, emm_as_primitive_str[msg->primitive - _EMMAS_START - 1],
         msg->primitive);
 
     switch (as_msg.msg_id) {
@@ -1330,7 +1331,7 @@ static int _emm_as_send(const emm_as_t* msg) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_data_req(
+static int emm_as_data_req(
     const emm_as_data_t* msg, dl_info_transfer_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size       = 0;
@@ -1354,7 +1355,7 @@ static int _emm_as_data_req(
   /*
    * Setup the NAS security header
    */
-  EMM_msg* emm_msg = _emm_as_set_header(&nas_msg, &msg->sctx);
+  EMM_msg* emm_msg = emm_as_set_header(&nas_msg, &msg->sctx);
 
   /*
    * Setup the NAS information message
@@ -1438,13 +1439,13 @@ static int _emm_as_data_req(
       /*
        * Encode the NAS information message
        */
-      bytes = _emm_as_encode(
-          &as_msg->nas_msg, &nas_msg, size, emm_security_context);
+      bytes =
+          emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
     } else {
       /*
        * Encrypt the NAS information message
        */
-      bytes = _emm_as_encrypt(
+      bytes = emm_as_encrypt(
           &as_msg->nas_msg, &nas_msg.header, msg->nas_msg->data, size,
           emm_security_context);
     }
@@ -1503,7 +1504,7 @@ static int _emm_as_data_req(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_status_ind(
+static int emm_as_status_ind(
     const emm_as_status_t* msg, dl_info_transfer_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = 0;
@@ -1528,7 +1529,7 @@ static int _emm_as_status_ind(
   /*
    * Setup the NAS security header
    */
-  EMM_msg* emm_msg = _emm_as_set_header(&nas_msg, &msg->sctx);
+  EMM_msg* emm_msg = emm_as_set_header(&nas_msg, &msg->sctx);
 
   /*
    * Setup the NAS information message
@@ -1563,7 +1564,7 @@ static int _emm_as_status_ind(
      * Encode the NAS information message
      */
     int bytes =
-        _emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
+        emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
 
     if (bytes > 0) {
       as_msg->err_code = AS_SUCCESS;
@@ -1591,7 +1592,7 @@ static int _emm_as_status_ind(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_release_req(
+static int emm_as_release_req(
     const emm_as_release_t* msg, nas_release_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Send AS release request\n");
@@ -1631,7 +1632,7 @@ static int _emm_as_release_req(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_security_req(
+static int emm_as_security_req(
     const emm_as_security_t* msg, dl_info_transfer_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = 0;
@@ -1653,7 +1654,7 @@ static int _emm_as_security_req(
   /*
    * Setup the NAS security header
    */
-  EMM_msg* emm_msg = _emm_as_set_header(&nas_msg, &msg->sctx);
+  EMM_msg* emm_msg = emm_as_set_header(&nas_msg, &msg->sctx);
 
   /*
    * Setup the NAS security message
@@ -1708,7 +1709,7 @@ static int _emm_as_security_req(
      * Encode the NAS security message
      */
     int bytes =
-        _emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
+        emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
     // Free any allocated data
     switch (msg->msg_type) {
       // authentication_request is the only message with allocated mem
@@ -1744,7 +1745,7 @@ static int _emm_as_security_req(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_security_rej(
+static int emm_as_security_rej(
     const emm_as_security_t* msg, dl_info_transfer_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = 0;
@@ -1767,7 +1768,7 @@ static int _emm_as_security_rej(
   /*
    * Setup the NAS security header
    */
-  EMM_msg* emm_msg = _emm_as_set_header(&nas_msg, &msg->sctx);
+  EMM_msg* emm_msg = emm_as_set_header(&nas_msg, &msg->sctx);
 
   /*
    * Setup the NAS security message
@@ -1815,7 +1816,7 @@ static int _emm_as_security_rej(
      * Encode the NAS security message
      */
     int bytes =
-        _emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
+        emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
 
     if (bytes > 0) {
       /*
@@ -1831,7 +1832,7 @@ static int _emm_as_security_rej(
 }
 
 //------------------------------------------------------------------------------
-static int _emm_as_erab_setup_req(
+static int emm_as_erab_setup_req(
     const emm_as_activate_bearer_context_req_t* msg,
     activate_bearer_context_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -1856,7 +1857,7 @@ static int _emm_as_erab_setup_req(
   /*
    * Setup the NAS security header
    */
-  EMM_msg* emm_msg = _emm_as_set_header(&nas_msg, &msg->sctx);
+  EMM_msg* emm_msg = emm_as_set_header(&nas_msg, &msg->sctx);
 
   /*
    * Setup the NAS information message
@@ -1893,13 +1894,13 @@ static int _emm_as_erab_setup_req(
       /*
        * Encode the NAS information message
        */
-      bytes = _emm_as_encode(
-          &as_msg->nas_msg, &nas_msg, size, emm_security_context);
+      bytes =
+          emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
     } else {
       /*
        * Encrypt the NAS information message
        */
-      bytes = _emm_as_encrypt(
+      bytes = emm_as_encrypt(
           &as_msg->nas_msg, &nas_msg.header, msg->nas_msg->data, size,
           emm_security_context);
     }
@@ -1913,7 +1914,7 @@ static int _emm_as_erab_setup_req(
 }
 
 //------------------------------------------------------------------------------
-static int _emm_as_erab_rel_cmd(
+static int emm_as_erab_rel_cmd(
     const emm_as_deactivate_bearer_context_req_t* msg,
     deactivate_bearer_context_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -1934,7 +1935,7 @@ static int _emm_as_erab_rel_cmd(
   /*
    * Setup the NAS security header
    */
-  EMM_msg* emm_msg = _emm_as_set_header(&nas_msg, &msg->sctx);
+  EMM_msg* emm_msg = emm_as_set_header(&nas_msg, &msg->sctx);
 
   /*
    * Setup the NAS information message
@@ -1971,13 +1972,13 @@ static int _emm_as_erab_rel_cmd(
       /*
        * Encode the NAS information message
        */
-      bytes = _emm_as_encode(
-          &as_msg->nas_msg, &nas_msg, size, emm_security_context);
+      bytes =
+          emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
     } else {
       /*
        * Encrypt the NAS information message
        */
-      bytes = _emm_as_encrypt(
+      bytes = emm_as_encrypt(
           &as_msg->nas_msg, &nas_msg.header, msg->nas_msg->data, size,
           emm_security_context);
     }
@@ -2007,7 +2008,7 @@ static int _emm_as_erab_rel_cmd(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_establish_cnf(
+static int emm_as_establish_cnf(
     const emm_as_establish_t* msg, nas_establish_rsp_t* as_msg) {
   EMM_msg* emm_msg = NULL;
   int size         = 0;
@@ -2074,7 +2075,7 @@ static int _emm_as_establish_cnf(
       /*
        * Setup the NAS security header
        */
-      emm_msg = _emm_as_set_header(&nas_msg, &msg->sctx);
+      emm_msg = emm_as_set_header(&nas_msg, &msg->sctx);
       if (emm_msg) {
         OAILOG_TRACE(
             LOG_NAS_EMM, "EMMAS-SAP - emm_as_establish.nasMSG.length=%d\n",
@@ -2087,7 +2088,7 @@ static int _emm_as_establish_cnf(
       /*
        * Setup the NAS security header
        */
-      emm_msg = _emm_as_set_header(&nas_msg, &msg->sctx);
+      emm_msg = emm_as_set_header(&nas_msg, &msg->sctx);
       if (emm_msg) {
         size = emm_send_tracking_area_update_accept(
             msg, &emm_msg->tracking_area_update_accept);
@@ -2118,7 +2119,7 @@ static int _emm_as_establish_cnf(
    * Encode the initial NAS information message
    */
   int bytes =
-      _emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
+      emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
 
   // Free any allocated data
   if (msg->nas_info == EMM_AS_NAS_INFO_ATTACH) {
@@ -2149,7 +2150,7 @@ static int _emm_as_establish_cnf(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int _emm_as_establish_rej(
+static int emm_as_establish_rej(
     const emm_as_establish_t* msg, nas_establish_rsp_t* as_msg) {
   EMM_msg* emm_msg      = NULL;
   int size              = 0;
@@ -2173,7 +2174,7 @@ static int _emm_as_establish_rej(
   /*
    * Setup the NAS security header
    */
-  emm_msg = _emm_as_set_header(&nas_msg, &msg->sctx);
+  emm_msg = emm_as_set_header(&nas_msg, &msg->sctx);
 
   /*
    * Setup the NAS information messag
@@ -2227,7 +2228,7 @@ static int _emm_as_establish_rej(
      * Encode the initial NAS information message
      */
     int bytes =
-        _emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
+        emm_as_encode(&as_msg->nas_msg, &nas_msg, size, emm_security_context);
     if (bytes > 0) {
       // This is to indicate MME-APP to release the S1AP UE context after
       // sending the message.

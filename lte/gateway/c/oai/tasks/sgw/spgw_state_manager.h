@@ -38,10 +38,9 @@ namespace lte {
  * that contains functions to maintain SGW and PGW state, allocating and
  * freeing state structs, and writing / reading state to db.
  */
-class SpgwStateManager
-    : public StateManager<
-          spgw_state_t, s_plus_p_gw_eps_bearer_context_information_t,
-          oai::SpgwState, oai::S11BearerContext, SpgwStateConverter> {
+class SpgwStateManager : public StateManager<
+                             spgw_state_t, spgw_ue_context_t, oai::SpgwState,
+                             oai::SpgwUeContext, SpgwStateConverter> {
  public:
   /**
    * Returns an instance of SpgwStateManager, guaranteed to be thread safe and
@@ -71,6 +70,8 @@ class SpgwStateManager
 
   int read_ue_state_from_db() override;
 
+  hash_table_ts_t* get_state_teid_ht();
+
  private:
   SpgwStateManager();
   ~SpgwStateManager();
@@ -81,6 +82,7 @@ class SpgwStateManager
    */
   void create_state() override;
 
+  hash_table_ts_t* state_teid_ht_;
   const spgw_config_t* config_;
 };
 

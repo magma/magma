@@ -98,6 +98,15 @@ void itti_free_msg_content(MessageDef* const message_p) {
           "TODO clean pointer");
       break;
 
+    case MME_APP_HANDOVER_REQUEST:
+      bdestroy_wrapper(
+          &message_p->ittiMsg.mme_app_handover_request.src_tgt_container);
+      break;
+    case MME_APP_HANDOVER_COMMAND:
+      bdestroy_wrapper(
+          &message_p->ittiMsg.mme_app_handover_command.tgt_src_container);
+      break;
+
     case S11_CREATE_SESSION_REQUEST: {
       clear_protocol_configuration_options(
           &message_p->ittiMsg.s11_create_session_request.pco);
@@ -138,18 +147,6 @@ void itti_free_msg_content(MessageDef* const message_p) {
       message_p->ittiMsg.s11_paging_request.imsi = NULL;
     } break;
 
-    case S1AP_UPLINK_NAS_LOG:
-    case S1AP_UE_CAPABILITY_IND_LOG:
-    case S1AP_INITIAL_CONTEXT_SETUP_LOG:
-    case S1AP_NAS_NON_DELIVERY_IND_LOG:
-    case S1AP_DOWNLINK_NAS_LOG:
-    case S1AP_S1_SETUP_LOG:
-    case S1AP_INITIAL_UE_MESSAGE_LOG:
-    case S1AP_UE_CONTEXT_RELEASE_REQ_LOG:
-    case S1AP_UE_CONTEXT_RELEASE_COMMAND_LOG:
-    case S1AP_UE_CONTEXT_RELEASE_LOG:
-      // DO nothing
-      break;
     case S1AP_ENB_INITIATED_RESET_ACK:
       free_wrapper((void**) &message_p->ittiMsg.s1ap_enb_initiated_reset_ack
                        .ue_to_reset_list);
@@ -183,6 +180,14 @@ void itti_free_msg_content(MessageDef* const message_p) {
     case S1AP_NAS_DL_DATA_REQ:
       bdestroy_wrapper(&message_p->ittiMsg.s1ap_nas_dl_data_req.nas_msg);
       break;
+    case S1AP_HANDOVER_REQUIRED:
+      bdestroy_wrapper(
+          &message_p->ittiMsg.s1ap_handover_required.src_tgt_container);
+      break;
+    case S1AP_HANDOVER_REQUEST_ACK:
+      bdestroy_wrapper(
+          &message_p->ittiMsg.s1ap_handover_request_ack.tgt_src_container);
+      break;
     case S6A_UPDATE_LOCATION_REQ:
     case S6A_UPDATE_LOCATION_ANS:
     case S6A_AUTH_INFO_REQ:
@@ -207,8 +212,11 @@ void itti_free_msg_content(MessageDef* const message_p) {
       bdestroy_wrapper(&message_p->ittiMsg.sctp_data_ind.payload);
       break;
 
-    case SCTP_DATA_CNF:
     case SCTP_NEW_ASSOCIATION:
+      bdestroy_wrapper(&message_p->ittiMsg.sctp_new_peer.ran_cp_ipaddr);
+      break;
+
+    case SCTP_DATA_CNF:
     case SCTP_CLOSE_ASSOCIATION:
       // DO nothing
       break;

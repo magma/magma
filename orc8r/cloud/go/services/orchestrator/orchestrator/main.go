@@ -15,6 +15,8 @@ package main
 
 import (
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
@@ -22,7 +24,7 @@ import (
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	exporter_protos "magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/services/orchestrator"
-	orc8r_analytics "magma/orc8r/cloud/go/services/orchestrator/analytics"
+	analytics_service "magma/orc8r/cloud/go/services/orchestrator/analytics"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/orchestrator/servicers"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
@@ -30,10 +32,20 @@ import (
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
+	"google.golang.org/grpc"
+)
+
+const (
+	// Set max msg received to 50MB
+	DefaultMaxGRPCMsgRecvSize = 50 * 1024 * 1024
 )
 
 func main() {
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, orchestrator.ServiceName)
+	srv, err := service.NewOrchestratorService(
+		orc8r.ModuleName,
+		orchestrator.ServiceName,
+		grpc.MaxRecvMsgSize(DefaultMaxGRPCMsgRecvSize),
+	)
 	if err != nil {
 		glog.Fatalf("Error creating orchestrator service %s", err)
 	}
@@ -49,7 +61,7 @@ func main() {
 		return
 	}
 
-	if serviceConfig.UseGRPCExporter == true {
+	if serviceConfig.UseGRPCExporter {
 		grpcAddress := serviceConfig.PrometheusGRPCPushAddress
 		exporterServicer = servicers.NewGRPCPushExporterServicer(grpcAddress)
 	} else {
@@ -60,8 +72,16 @@ func main() {
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
-	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer,
-		analytics.NewCollectorService(analytics.GetPrometheusClient(), orc8r_analytics.GetAnalyticsCalculations(&serviceConfig)))
+
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(orchestrator.ServiceName))
+
+	collectorServicer := analytics.NewCollectorServicer(
+		&serviceConfig.Analytics,
+		analytics.GetPrometheusClient(),
+		analytics_service.GetAnalyticsCalculations(&serviceConfig.Analytics),
+		nil,
+	)
+	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
 
 	err = srv.Run()
 	if err != nil {

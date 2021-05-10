@@ -304,15 +304,34 @@ message UeNetworkCapability {
   uint32 uea = 3;
   uint32 ucs2 = 4;
   uint32 uia = 5;
-  uint32 spare = 6;
+  uint32 spare = 6 [deprecated = true];
   uint32 csfb = 7;
   uint32 lpp = 8;
   uint32 lcs = 9;
   uint32 srvcc = 10;
   uint32 nf = 11;
-
+  uint32 prosedd = 12;
+  uint32 prose = 13;
+  uint32 h245ash = 14;
+  uint32 epco = 15;
+  uint32 hccpciot = 16;
+  uint32 erwfopdn = 17;
+  uint32 s1udata = 18;
+  uint32 upciot = 19;
   bool umts_present = 20;
-  bool misc_present = 21;
+  bool misc_present = 21 [deprecated = true];
+  uint32 cpciot = 22;
+  uint32 proserelay = 23;
+  uint32 prosedc = 24;
+  uint32 bearer = 25;
+  uint32 sgc = 26;
+  uint32 n1mod = 27;
+  uint32 dcnr = 28;
+  uint32 cpbackoff = 29;
+  uint32 restrictec = 30;
+  uint32 v2xpc5 = 31;
+  uint32 multipledrb = 32;
+  uint32 length = 33;
 }
 
 // bearer_qos_t
@@ -341,6 +360,14 @@ message ProtocolConfigurationOptions {
   repeated PcoProtocolOrContainerId proto_or_container_id = 5;
 }
 
+// 3485 and 3495 Timer argument
+message EsmEbrTimerData {
+  uint32 ue_id = 1;
+  uint32 ebi = 2;
+  uint32 count = 3;
+  bytes esm_msg = 4;
+}
+
 // esm_proc_data_t
 message EsmProcData {
   uint32 pti= 1;
@@ -361,6 +388,7 @@ message EsmContext {
   EsmProcData esm_proc_data = 5;
 
   Timer t3489 = 199;
+  bool is_standalone = 200;
 }
 
 // esm_ebr_context_t
@@ -373,6 +401,7 @@ message EsmEbrContext {
   TrafficFlowTemplate tft = 6;
   ProtocolConfigurationOptions pco = 7;
   Timer timer = 100; // nas_timer_t
+  EsmEbrTimerData esm_ebr_timer_data = 101;
 }
 
 // t3422_arg is nw_detach_data_t
@@ -380,6 +409,13 @@ message EsmEbrContext {
   uint32 ue_id = 1;
   uint32 retransmission_count = 2;
   uint32 detach_type = 3;
+}
+
+// Re-transmitted Attach Req info
+message NewAttachInfo {
+  uint32 mme_ue_s1ap_id = 1;
+  bool is_mm_ctx_new = 2;
+  AttachRequestIes ies = 3;
 }
 
 // emm_context_t
@@ -426,5 +462,6 @@ message EmmContext {
 
   UeNetworkCapability ue_network_capability = 65;
   NwDetachData nw_detach_data = 66;
+  NewAttachInfo new_attach_info = 67;
   // TODO: add remaining emm_context elements
   }

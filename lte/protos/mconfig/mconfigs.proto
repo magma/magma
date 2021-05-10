@@ -146,14 +146,12 @@ message PipelineD {
         HashFunction hashFunction = 4;
         EncodingType encodingType = 5;
         string encryption_key = 6;
+        string hmac_key = 7;
     }
     HEConfig he_config = 17;
 
     // DEPRECATED
     reserved 4, 11;
-    // repeated string apps = 4;
-    // repeated string li_imsis = 11;
-    bool disable_header_enrichment = 16 [deprecated = true];;
 }
 
 //------------------------------------------------------------------------------
@@ -272,6 +270,8 @@ message MME {
     // Overrides field 4 if this is not empty. Field 4 is in the process of
     // being deprecated
     repeated int32 attached_enodeb_tacs = 15;
+    // MME relative capacity - capacity within an MME group. 8-bit
+    int32 mme_relative_capacity = 16;
 
     // DEPRECATED
     // Use relay_enabled instead
@@ -302,8 +302,44 @@ message MME {
     // IPv6 DNS server
     string ipv6_dns_address = 30;
 
+    // SGW S1U endpoint on AGW
+    string ipv4_sgw_s1u_addr = 31;
+
+    message PlmnConfig {
+        string mcc = 1;
+        string mnc = 2;
+    }
+    repeated PlmnConfig restricted_plmns = 32;
+
+    message TacList {
+        repeated uint32 tac = 1;
+    }
+    map<string, TacList> service_area_maps = 33;
+
+    FederatedModeMap federated_mode_map = 34;
+    message ImeiConfig {
+        string tac = 1;
+        string snr = 2;
+    }
+    repeated ImeiConfig restricted_imeis = 35;
 }
 
+message FederatedModeMap {
+    bool enabled = 1;
+    repeated ModeMapItem mapping = 2;
+}
+
+message ModeMapItem {
+    enum FederatedMode {
+        SPGW_SUBSCRIBER = 0;           // default mode is HSS + spgw_task
+        LOCAL_SUBSCRIBER = 1;          // will use subscriberDb + policydb
+        S8_SUBSCRIBER = 2;             // will use HSS (feg) + s8_task
+    }
+    FederatedMode mode = 1;
+    string plmn = 2;
+    string imsi_range = 3;
+    string apn = 4;
+}
 
 //------------------------------------------------------------------------------
 // SubscriberDB configs
@@ -351,6 +387,20 @@ message MonitorD {
 // DPID configs
 //------------------------------------------------------------------------------
 message DPID {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// ConnectionD configs
+//------------------------------------------------------------------------------
+message ConnectionD {
+    orc8r.LogLevel log_level = 1;
+}
+
+//------------------------------------------------------------------------------
+// LIAgentD configs
+//------------------------------------------------------------------------------
+message LIAgentD {
     orc8r.LogLevel log_level = 1;
 }
 

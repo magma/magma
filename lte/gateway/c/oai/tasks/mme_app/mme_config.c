@@ -63,6 +63,7 @@
 #include "bstrlib.h"
 #include "mme_default_values.h"
 #include "service303.h"
+#include "conversions.h"
 #if EMBEDDED_SGW
 #include "sgw_config.h"
 #endif
@@ -161,6 +162,7 @@ void s1ap_config_init(s1ap_config_t* s1ap_conf) {
 
 void s6a_config_init(s6a_config_t* s6a_conf) {
   s6a_conf->hss_host_name = NULL;
+  s6a_conf->hss_realm     = NULL;
   s6a_conf->conf_file     = bfromcstr(S6A_CONF_FILE);
 }
 
@@ -227,6 +229,11 @@ void service303_config_init(service303_data_t* service303_conf) {
   service303_conf->version = bfromcstr(SERVICE303_MME_PACKAGE_VERSION);
 }
 
+void blocked_imei_config_init(blocked_imei_list_t* blocked_imeis) {
+  blocked_imeis->num       = 0;
+  blocked_imeis->imei_htbl = NULL;
+}
+
 //------------------------------------------------------------------------------
 void mme_config_init(mme_config_t* config) {
   memset(config, 0, sizeof(*config));
@@ -251,6 +258,7 @@ void mme_config_init(mme_config_t* config) {
   gummei_config_init(&config->gummei);
   served_tai_config_init(&config->served_tai);
   service303_config_init(&config->service303_config);
+  blocked_imei_config_init(&config->blocked_imei);
 }
 
 //------------------------------------------------------------------------------
@@ -276,6 +284,10 @@ void mme_config_exit(void) {
   for (int i = 0; i < mme_config.e_dns_emulation.nb_sgw_entries; i++) {
     bdestroy_wrapper(&mme_config.e_dns_emulation.sgw_id[i]);
   }
+
+  if (mme_config.blocked_imei.imei_htbl) {
+    hashtable_uint64_ts_destroy(mme_config.blocked_imei.imei_htbl);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -295,6 +307,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   char* s1_mme         = NULL;
   char* if_name_s11    = NULL;
   char* s11            = NULL;
+  char* imsi_low_tmp   = NULL;
+  char* imsi_high_tmp  = NULL;
 #if !EMBEDDED_SGW
   char* sgw_ip_address_for_s11 = NULL;
 #endif
@@ -308,6 +322,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   const char* csfb_mcc       = NULL;
   const char* csfb_mnc       = NULL;
   const char* lac            = NULL;
+  const char* tac_str        = NULL;
+  const char* snr_str        = NULL;
 
   config_init(&cfg);
 
@@ -502,6 +518,23 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     }
 
     if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_ENABLE_CONVERGED_CORE,
+            (const char**) &astring))) {
+      config_pP->enable_converged_core = parse_bool(astring);
+    }
+
+    if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_USE_HA, (const char**) &astring))) {
+      config_pP->use_ha = parse_bool(astring);
+    }
+
+    if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION,
+            (const char**) &astring))) {
+      config_pP->enable_gtpu_private_ip_correction = parse_bool(astring);
+    }
+
+    if ((config_setting_lookup_string(
             setting_mme,
             EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE,
             (const char**) &astring))) {
@@ -577,6 +610,20 @@ int mme_config_parse_file(mme_config_t* config_pP) {
               1 == 0, "You have to provide a valid HSS hostname %s=...\n",
               MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
       }
+      if ((config_setting_lookup_string(
+              setting, MME_CONFIG_STRING_S6A_HSS_REALM,
+              (const char**) &astring))) {
+        if (astring != NULL) {
+          if (config_pP->s6a_config.hss_realm) {
+            bassigncstr(config_pP->s6a_config.hss_realm, astring);
+          } else {
+            config_pP->s6a_config.hss_realm = bfromcstr(astring);
+          }
+        } else
+          AssertFatal(
+              1 == 0, "You have to provide a valid HSS realm %s=...\n",
+              MME_CONFIG_STRING_S6A_HSS_REALM);
+      }
     }
 #endif /* !S6A_OVER_GRPC */
     // SCTP SETTING
@@ -614,14 +661,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_TAI_LIST);
     if (setting != NULL) {
       num = config_setting_length(setting);
-      OAILOG_INFO(LOG_MME_APP, "Number of TAIs configured: %d\n", num);
-      AssertFatal(
-          num >= MIN_TAI_SUPPORTED,
-          "Not even one TAI is configured, configure minimum one TAI\n");
-      AssertFatal(
-          num <= MAX_TAI_SUPPORTED,
-          "Too many TAIs configured: %d (Maximum supported: %d)", num,
-          MAX_TAI_SUPPORTED);
+      if (num < MIN_TAI_SUPPORTED) {
+        fprintf(
+            stderr,
+            "ERROR: No TAI is configured.  At least one TAI must be "
+            "configured.\n");
+      }
 
       if (config_pP->served_tai.nb_tai != num) {
         if (config_pP->served_tai.plmn_mcc != NULL)
@@ -674,9 +719,11 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                   sub2setting, MME_CONFIG_STRING_TAC, &tac))) {
             config_pP->served_tai.tac[i] = (uint16_t) atoi(tac);
 
-            AssertFatal(
-                TAC_IS_VALID(config_pP->served_tai.tac[i]),
-                "Invalid TAC value " TAC_FMT, config_pP->served_tai.tac[i]);
+            if (!TAC_IS_VALID(config_pP->served_tai.tac[i])) {
+              fprintf(
+                  stderr, "ERROR: Invalid TAC value " TAC_FMT,
+                  config_pP->served_tai.tac[i]);
+            }
           }
         }
       }
@@ -715,6 +762,11 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->served_tai.plmn_mnc[i - 1] =
                 config_pP->served_tai.plmn_mnc[i];
             config_pP->served_tai.plmn_mnc[i] = swap16;
+
+            swap16 = config_pP->served_tai.plmn_mnc_len[i - 1];
+            config_pP->served_tai.plmn_mnc_len[i - 1] =
+                config_pP->served_tai.plmn_mnc_len[i];
+            config_pP->served_tai.plmn_mnc_len[i] = swap16;
 
             swap16                           = config_pP->served_tai.tac[i - 1];
             config_pP->served_tai.tac[i - 1] = config_pP->served_tai.tac[i];
@@ -819,6 +871,253 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         }
       }
     }
+
+    // RESTRICTED PLMN SETTING
+    setting = config_setting_get_member(
+        setting_mme, MME_CONFIG_STRING_RESTRICTED_PLMN_LIST);
+    config_pP->restricted_plmn.num = 0;
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_RESTRICTED_PLMN_LIST \n");
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      OAILOG_INFO(
+          LOG_MME_APP, "Number of restricted PLMNs configured =%d\n", num);
+      AssertFatal(
+          num <= MAX_RESTRICTED_PLMN,
+          "Number of restricted PLMNs configured:%d exceeds number of "
+          "restricted PLMNs supported :%d \n",
+          num, MAX_RESTRICTED_PLMN);
+
+      for (i = 0; i < num; i++) {
+        sub2setting = config_setting_get_elem(setting, i);
+
+        if (sub2setting != NULL) {
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
+            AssertFatal(
+                strlen(mcc) == MAX_MCC_LENGTH,
+                "Bad MCC length (%ld), it must be %u digit ex: 001\n",
+                strlen(mcc), MAX_MCC_LENGTH);
+            // NULL terminated string
+            AssertFatal(
+                mcc[0] >= '0' && mcc[0] <= '9',
+                "MCC[0] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit1 = mcc[0] - '0';
+            AssertFatal(
+                mcc[1] >= '0' && mcc[1] <= '9',
+                "MCC[1] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit2 = mcc[1] - '0';
+            AssertFatal(
+                mcc[2] >= '0' && mcc[2] <= '9',
+                "MCC[2] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mcc_digit3 = mcc[2] - '0';
+          }
+
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
+            AssertFatal(
+                (strlen(mnc) == MIN_MNC_LENGTH) ||
+                    (strlen(mnc) == MAX_MNC_LENGTH),
+                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
+                "123\n",
+                strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
+            // NULL terminated string
+            AssertFatal(
+                mnc[0] >= '0' && mnc[0] <= '9',
+                "MNC[0] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mnc_digit1 = mnc[0] - '0';
+            AssertFatal(
+                mnc[1] >= '0' && mnc[1] <= '9',
+                "MNC[1] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mnc_digit2 = mnc[1] - '0';
+            if (3 == strlen(mnc)) {
+              AssertFatal(
+                  mnc[2] >= '0' && mnc[2] <= '9',
+                  "MNC[2] is not a decimal digit\n");
+              config_pP->restricted_plmn.plmn[i].mnc_digit3 = mnc[2] - '0';
+            } else {
+              config_pP->restricted_plmn.plmn[i].mnc_digit3 = 0x0F;
+            }
+          }
+          config_pP->restricted_plmn.num += 1;
+        }
+      }
+    }
+
+    // MODE MAP SETTING
+    setting =
+        config_setting_get_member(setting_mme, MME_CONFIG_STRING_FED_MODE_MAP);
+    memset(&config_pP->mode_map_config, 0, sizeof(fed_mode_map_t));
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_FED_MODE_MAP \n");
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      OAILOG_INFO(LOG_MME_APP, "Number of mode maps configured =%d\n", num);
+      AssertFatal(
+          num <= MAX_FED_MODE_MAP_CONFIG,
+          "Number of mode maps configured:%d exceeds number of "
+          "mode maps supported :%d \n",
+          num, MAX_FED_MODE_MAP_CONFIG);
+
+      for (i = 0; i < num; i++) {
+        sub2setting = config_setting_get_elem(setting, i);
+        if (sub2setting != NULL) {
+          OAILOG_INFO(LOG_MME_APP, "sub2setting\n");
+          // MODE
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_MODE, &astring))) {
+            config_pP->mode_map_config.mode_map[i].mode = atoi(astring);
+          }
+
+          // PLMN
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_PLMN, &astring))) {
+            // NULL terminated string
+            char fed_mode_mcc[MAX_MCC_LENGTH + 1],
+                fed_mode_mnc[MAX_MNC_LENGTH + 1];
+            // Convert to 3gpp PLMN (MCC and MNC) format
+            // First 3 chars in astring is MCC next 3 or 2 chars is MNC
+            memcpy(fed_mode_mcc, astring, MAX_MCC_LENGTH);
+            fed_mode_mcc[MAX_MCC_LENGTH] = '\0';  // null terminated string
+            n                            = strlen(astring) - MAX_MCC_LENGTH;
+            memcpy(fed_mode_mnc, astring + MAX_MCC_LENGTH, n);
+            fed_mode_mnc[n] = '\0';  // null terminated string
+            AssertFatal(
+                strlen(fed_mode_mcc) == MAX_MCC_LENGTH,
+                "Bad MCC length (%ld), it must be %u digit ex: 001\n",
+                strlen(fed_mode_mcc), MAX_MCC_LENGTH);
+            AssertFatal(
+                fed_mode_mcc[0] >= '0' && fed_mode_mcc[0] <= '9',
+                "MCC[0] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit1 =
+                fed_mode_mcc[0] - '0';
+            AssertFatal(
+                fed_mode_mcc[1] >= '0' && fed_mode_mcc[1] <= '9',
+                "MCC[1] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit2 =
+                fed_mode_mcc[1] - '0';
+            AssertFatal(
+                fed_mode_mcc[2] >= '0' && fed_mode_mcc[2] <= '9',
+                "MCC[2] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit3 =
+                fed_mode_mcc[2] - '0';
+
+            // MNC
+            AssertFatal(
+                (strlen(fed_mode_mnc) == MIN_MNC_LENGTH) ||
+                    (strlen(fed_mode_mnc) == MAX_MNC_LENGTH),
+                "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
+                "123\n",
+                strlen(fed_mode_mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
+
+            // NULL terminated string
+            AssertFatal(
+                fed_mode_mnc[0] >= '0' && fed_mode_mnc[0] <= '9',
+                "MNC[0] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mnc_digit1 =
+                fed_mode_mnc[0] - '0';
+            AssertFatal(
+                fed_mode_mnc[1] >= '0' && fed_mode_mnc[1] <= '9',
+                "MNC[1] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mnc_digit2 =
+                fed_mode_mnc[1] - '0';
+            if (3 == strlen(fed_mode_mnc)) {
+              AssertFatal(
+                  fed_mode_mnc[2] >= '0' && fed_mode_mnc[2] <= '9',
+                  "MNC[2] is not a decimal digit\n");
+              config_pP->mode_map_config.mode_map[i].plmn.mnc_digit3 =
+                  fed_mode_mnc[2] - '0';
+            } else {
+              config_pP->mode_map_config.mode_map[i].plmn.mnc_digit3 = 0x0F;
+            }
+          }
+          // IMSI range
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_IMSI_RANGE, &astring))) {
+            if (strlen(astring)) {
+              imsi_high_tmp = strdup(astring);
+              imsi_low_tmp  = strsep(&imsi_high_tmp, ":");
+              memcpy(
+                  (char*) config_pP->mode_map_config.mode_map[i].imsi_low,
+                  imsi_low_tmp, strlen(imsi_low_tmp));
+              AssertFatal(
+                  strlen((char*) config_pP->mode_map_config.mode_map[i]
+                             .imsi_low) <= MAX_IMSI_LENGTH,
+                  "Invalid imsi_low length\n");
+              memcpy(
+                  (char*) config_pP->mode_map_config.mode_map[i].imsi_high,
+                  imsi_high_tmp, strlen(imsi_high_tmp));
+              AssertFatal(
+                  strlen((char*) config_pP->mode_map_config.mode_map[i]
+                             .imsi_high) <= MAX_IMSI_LENGTH,
+                  "Invalid imsi_high length\n");
+            }
+          }
+          // APN
+          if ((config_setting_lookup_string(
+                  sub2setting, MME_CONFIG_STRING_APN, &astring))) {
+            config_pP->mode_map_config.mode_map[i].apn = bfromcstr(astring);
+          }
+          config_pP->mode_map_config.num += 1;
+        }
+      }
+    }
+
+    // BLOCKED IMEI LIST SETTING
+    setting = config_setting_get_member(
+        setting_mme, MME_CONFIG_STRING_BLOCKED_IMEI_LIST);
+    char imei_str[MAX_LEN_IMEI + 1] = {0};
+    imei64_t imei64                 = 0;
+    config_pP->blocked_imei.num     = 0;
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_BLOCKED_IMEI_LIST \n");
+    if (setting != NULL) {
+      num = config_setting_length(setting);
+      OAILOG_INFO(LOG_MME_APP, "Number of blocked IMEIs configured =%d\n", num);
+      if (num > 0) {
+        // Create IMEI hashtable
+        hashtable_rc_t h_rc = HASH_TABLE_OK;
+        bstring b           = bfromcstr("mme_app_config_imei_htbl");
+        config_pP->blocked_imei.imei_htbl =
+            hashtable_uint64_ts_create(MAX_IMEI_HTBL_SZ, NULL, b);
+        bdestroy_wrapper(&b);
+        AssertFatal(
+            config_pP->blocked_imei.imei_htbl != NULL,
+            "Error creating IMEI hashtable\n");
+
+        for (i = 0; i < num; i++) {
+          memset(imei_str, 0, (MAX_LEN_IMEI + 1));
+          sub2setting = config_setting_get_elem(setting, i);
+          if (sub2setting != NULL) {
+            if ((config_setting_lookup_string(
+                    sub2setting, MME_CONFIG_STRING_IMEI_TAC, &tac_str))) {
+              AssertFatal(
+                  strlen(tac_str) == MAX_LEN_TAC,
+                  "Bad TAC length (%ld), it must be %u digits\n",
+                  strlen(tac_str), MAX_LEN_TAC);
+              memcpy(imei_str, tac_str, strlen(tac_str));
+            }
+            if ((config_setting_lookup_string(
+                    sub2setting, MME_CONFIG_STRING_SNR, &snr_str))) {
+              if (strlen(snr_str)) {
+                AssertFatal(
+                    strlen(snr_str) == MAX_LEN_SNR,
+                    "Bad SNR length (%ld), it must be %u digits\n",
+                    strlen(snr_str), MAX_LEN_SNR);
+                memcpy(&imei_str[strlen(tac_str)], snr_str, strlen(snr_str));
+              }
+            }
+            // Store IMEI into hashlist
+            imei64 = 0;
+            IMEI_STRING_TO_IMEI64(imei_str, &imei64);
+            h_rc = hashtable_uint64_ts_insert(
+                config_pP->blocked_imei.imei_htbl, (const hash_key_t) imei64,
+                0);
+            AssertFatal(h_rc == HASH_TABLE_OK, "Hashtable insertion failed\n");
+
+            config_pP->blocked_imei.num += 1;
+          }
+        }
+      }
+    }
+
     // NETWORK INTERFACE SETTING
     setting = config_setting_get_member(
         setting_mme, MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG);
@@ -1268,6 +1567,9 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
       config_pP->use_stateless ? "true" : "false");
+  OAILOG_INFO(
+      LOG_CONFIG, "- enable_converged_core .......: %s\n\n",
+      config_pP->enable_converged_core ? "true" : "false");
   OAILOG_INFO(LOG_CONFIG, "- CSFB:\n");
   OAILOG_INFO(
       LOG_CONFIG,
@@ -1364,6 +1666,29 @@ void mme_config_display(mme_config_t* config_pP) {
           config_pP->served_tai.plmn_mcc[j], config_pP->served_tai.plmn_mnc[j],
           config_pP->served_tai.tac[j]);
     }
+  }
+  for (j = 0; j < config_pP->mode_map_config.num; j++) {
+    OAILOG_INFO(LOG_CONFIG, "- MODE MAP : \n");
+    OAILOG_INFO(
+        LOG_CONFIG, "  - MODE : %d \n",
+        config_pP->mode_map_config.mode_map[j].mode);
+    OAILOG_INFO(
+        LOG_CONFIG, "  - MCC MNC : %u,%u,%u,%u,%u,%u\n",
+        config_pP->mode_map_config.mode_map[j].plmn.mcc_digit1,
+        config_pP->mode_map_config.mode_map[j].plmn.mcc_digit2,
+        config_pP->mode_map_config.mode_map[j].plmn.mcc_digit3,
+        config_pP->mode_map_config.mode_map[j].plmn.mnc_digit1,
+        config_pP->mode_map_config.mode_map[j].plmn.mnc_digit2,
+        config_pP->mode_map_config.mode_map[j].plmn.mnc_digit3);
+    OAILOG_INFO(
+        LOG_CONFIG, "  - IMSI_LOW : %s\n",
+        config_pP->mode_map_config.mode_map[j].imsi_low);
+    OAILOG_INFO(
+        LOG_CONFIG, "  - IMSI_HIGH : %s\n",
+        config_pP->mode_map_config.mode_map[j].imsi_high);
+    OAILOG_INFO(
+        LOG_CONFIG, "  - APN : %s\n",
+        bdata(config_pP->mode_map_config.mode_map[j].apn));
   }
   OAILOG_INFO(LOG_CONFIG, "- NAS:\n");
   OAILOG_INFO(

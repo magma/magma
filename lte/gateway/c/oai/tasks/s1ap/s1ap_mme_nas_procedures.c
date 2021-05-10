@@ -98,8 +98,8 @@ int s1ap_mme_handle_initial_ue_message(
   OAILOG_INFO(
       LOG_S1AP,
       "Received S1AP INITIAL_UE_MESSAGE ENB_UE_S1AP_ID " ENB_UE_S1AP_ID_FMT
-      "\n",
-      (enb_ue_s1ap_id_t) ie->value.choice.ENB_UE_S1AP_ID);
+      " assoc-id:%d \n",
+      (enb_ue_s1ap_id_t) ie->value.choice.ENB_UE_S1AP_ID, assoc_id);
 
   if ((eNB_ref = s1ap_state_get_enb(state, assoc_id)) == NULL) {
     OAILOG_ERROR(LOG_S1AP, "Unknown eNB on assoc_id %d\n", assoc_id);
@@ -111,8 +111,8 @@ int s1ap_mme_handle_initial_ue_message(
   OAILOG_INFO(
       LOG_S1AP,
       "New Initial UE message received with eNB UE S1AP ID: " ENB_UE_S1AP_ID_FMT
-      "\n",
-      enb_ue_s1ap_id);
+      " assoc-id :%d \n",
+      enb_ue_s1ap_id, eNB_ref->sctp_assoc_id);
   ue_ref = s1ap_state_get_ue_enbid(eNB_ref->sctp_assoc_id, enb_ue_s1ap_id);
 
   if (ue_ref == NULL) {
@@ -138,6 +138,8 @@ int s1ap_mme_handle_initial_ue_message(
           enb_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
+
+    OAILOG_DEBUG(LOG_S1AP, "Creating new UE Ref on S1ap");
 
     ue_ref->s1_ue_state = S1AP_UE_WAITING_CSR;
 
@@ -280,12 +282,17 @@ int s1ap_mme_handle_uplink_nas_transport(
       S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
   mme_ue_s1ap_id = (mme_ue_s1ap_id_t) ie->value.choice.MME_UE_S1AP_ID;
 
+  enb_ref = s1ap_state_get_enb(state, assoc_id);
+  if (enb_ref == NULL) {
+    OAILOG_ERROR(
+        LOG_S1AP, "No eNB reference exists for association id %d\n", assoc_id);
+    return RETURNerror;
+  }
+
   if (mme_ue_s1ap_id == INVALID_MME_UE_S1AP_ID) {
     OAILOG_WARNING(
         LOG_S1AP,
         "Received S1AP UPLINK_NAS_TRANSPORT message MME_UE_S1AP_ID unknown\n");
-
-    enb_ref = s1ap_state_get_enb(state, assoc_id);
 
     if (!(ue_ref = s1ap_state_get_ue_enbid(
               enb_ref->sctp_assoc_id, enb_ue_s1ap_id))) {
@@ -309,6 +316,19 @@ int s1ap_mme_handle_uplink_nas_transport(
           "Received S1AP UPLINK_NAS_TRANSPORT No UE is attached to this "
           "mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT "\n",
           mme_ue_s1ap_id);
+      imsi64_t imsi64                = INVALID_IMSI64;
+      s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
+      hashtable_uint64_ts_get(
+          s1ap_imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
+          &imsi64);
+
+      s1ap_mme_generate_ue_context_release_command(
+          state, ue_ref, S1AP_INVALID_MME_UE_S1AP_ID, imsi64, assoc_id, stream,
+          mme_ue_s1ap_id, enb_ue_s1ap_id);
+      /* If UE context doesn't exist for received mme_ue_s1ap_id
+       * remove the corresponding enb_ue_s1ap_id_key entry in mme_app
+       */
+      s1ap_mme_remove_stale_ue_context(enb_ue_s1ap_id, enb_ref->enb_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
@@ -347,7 +367,8 @@ int s1ap_mme_handle_uplink_nas_transport(
   TBCD_TO_PLMN_T(&ie->value.choice.EUTRAN_CGI.pLMNidentity, &ecgi.plmn);
   BIT_STRING_TO_CELL_IDENTITY(
       &ie->value.choice.EUTRAN_CGI.cell_ID, ecgi.cell_identity);
-
+  // set the eNB ID
+  ecgi.cell_identity.enb_id = enb_ref->enb_id;
   // TODO optional GW Transport Layer Address
 
   bstring b = blk2bstr(
@@ -450,7 +471,7 @@ int s1ap_mme_handle_nas_non_delivery(
 int s1ap_generate_downlink_nas_transport(
     s1ap_state_t* state, const enb_ue_s1ap_id_t enb_ue_s1ap_id,
     const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload,
-    const imsi64_t imsi64) {
+    const imsi64_t imsi64, bool* is_state_same) {
   ue_description_t* ue_ref = NULL;
   uint8_t* buffer_p        = NULL;
   uint32_t length          = 0;
@@ -459,7 +480,7 @@ int s1ap_generate_downlink_nas_transport(
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
-  // Try to retrieve SCTP assoication id using mme_ue_s1ap_id
+  // Try to retrieve SCTP association id using mme_ue_s1ap_id
   if (HASH_TABLE_OK ==
       hashtable_ts_get(
           &state->mmeid2associd, (const hash_key_t) ue_id, (void**) &id)) {
@@ -492,12 +513,15 @@ int s1ap_generate_downlink_nas_transport(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   } else {
     /*
-     * We have fount the UE in the list.
+     * We have found the UE in the list.
      * * * * Create new IE list message and encode it.
      */
     s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-    hashtable_uint64_ts_insert(
-        imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, imsi64);
+    if (hashtable_uint64_ts_insert(
+            imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, imsi64) ==
+        HASH_TABLE_SAME_KEY_VALUE_EXISTS) {
+      *is_state_same = true;
+    }
 
     S1ap_DownlinkNASTransport_IEs_t* ie = NULL;
     S1ap_DownlinkNASTransport_t* out    = NULL;
@@ -515,7 +539,7 @@ int s1ap_generate_downlink_nas_transport(
     if (ue_ref->s1_ue_state == S1AP_UE_WAITING_CRR) {
       OAILOG_ERROR_UE(
           LOG_S1AP, imsi64,
-          "Already triggred UE Context Release Command and UE is"
+          "Already triggered UE Context Release Command and UE is"
           "in S1AP_UE_WAITING_CRR, so dropping the DownlinkNASTransport \n");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     } else {
@@ -608,7 +632,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
      * * * * the MME shall allocate a unique MME UE S1AP ID to be used for the
      * UE.
      */
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
         LOG_S1AP,
         "Unknown UE MME ID " MME_UE_S1AP_ID_FMT
         ", This case is not handled right now\n",
@@ -824,10 +848,11 @@ void s1ap_handle_conn_est_cnf(
    * At least one bearer has been established. We can now send s1ap initial
    * context setup request message to eNB.
    */
-  uint8_t* buffer_p        = NULL;
-  uint8_t err              = 0;
-  uint32_t length          = 0;
-  ue_description_t* ue_ref = NULL;
+  uint8_t* buffer_p                           = NULL;
+  uint8_t err                                 = 0;
+  uint32_t length                             = 0;
+  ue_network_capability_t uenetworkcapability = {0};
+  ue_description_t* ue_ref                    = NULL;
   S1ap_InitialContextSetupRequest_t* out;
   S1ap_InitialContextSetupRequestIEs_t* ie = NULL;
   S1ap_S1AP_PDU_t pdu                      = {0};  // yes, alloc on stack
@@ -865,7 +890,7 @@ void s1ap_handle_conn_est_cnf(
       S1ap_ProcedureCode_id_InitialContextSetup;
   pdu.choice.initiatingMessage.value.present =
       S1ap_InitiatingMessage__value_PR_InitialContextSetupRequest;
-  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_ignore;
+  pdu.choice.initiatingMessage.criticality = S1ap_Criticality_reject;
   out = &pdu.choice.initiatingMessage.value.choice.InitialContextSetupRequest;
 
   /* mandatory */
@@ -998,6 +1023,48 @@ void s1ap_handle_conn_est_cnf(
         conn_est_cnf_pP->ue_security_capabilities_integrity_algorithms);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
   }
+  if (uenetworkcapability.dcnr == 1) {
+    OAILOG_DEBUG(
+        LOG_S1AP, " EN_DC dual connectivity indicator = %d \n",
+        uenetworkcapability.dcnr);
+    {
+      ie = (S1ap_InitialContextSetupRequestIEs_t*) calloc(
+          1, sizeof(S1ap_InitialContextSetupRequestIEs_t));
+      ie->id          = S1ap_ProtocolIE_ID_id_NRUESecurityCapabilities;
+      ie->criticality = S1ap_Criticality_reject;
+      ie->value.present =
+          S1ap_InitialContextSetupRequestIEs__value_PR_NRUESecurityCapabilities;
+
+      S1ap_NRUESecurityCapabilities_t* const nr_ue_security_capabilities =
+          &ie->value.choice.NRUESecurityCapabilities;
+
+      nr_ue_security_capabilities->nRencryptionAlgorithms.buf =
+          calloc(1, sizeof(uint16_t));
+      memcpy(
+          nr_ue_security_capabilities->nRencryptionAlgorithms.buf,
+          &conn_est_cnf_pP->nr_ue_security_capabilities_encryption_algorithms,
+          sizeof(uint16_t));
+      nr_ue_security_capabilities->nRencryptionAlgorithms.size        = 2;
+      nr_ue_security_capabilities->nRencryptionAlgorithms.bits_unused = 0;
+      OAILOG_DEBUG(
+          LOG_S1AP, "security_capabilities_encryption_algorithms 0x%04X\n",
+          conn_est_cnf_pP->nr_ue_security_capabilities_encryption_algorithms);
+
+      nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.buf =
+          calloc(1, sizeof(uint16_t));
+      memcpy(
+          nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.buf,
+          &conn_est_cnf_pP->nr_ue_security_capabilities_integrity_algorithms,
+          sizeof(uint16_t));
+      nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.size = 2;
+      nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.bits_unused =
+          0;
+      OAILOG_DEBUG(
+          LOG_S1AP, "security_capabilities_integrity_algorithms 0x%04X\n",
+          conn_est_cnf_pP->nr_ue_security_capabilities_integrity_algorithms);
+      ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    }
+  }
   /* mandatory */
   ie = (S1ap_InitialContextSetupRequestIEs_t*) calloc(
       1, sizeof(S1ap_InitialContextSetupRequestIEs_t));
@@ -1033,10 +1100,9 @@ void s1ap_handle_conn_est_cnf(
         S1ap_InitialContextSetupRequestIEs__value_PR_UERadioCapability;
     OCTET_STRING_fromBuf(
         &ie->value.choice.UERadioCapability,
-        (const char*) conn_est_cnf_pP->ue_radio_capability,
-        conn_est_cnf_pP->ue_radio_cap_length);
+        (const char*) conn_est_cnf_pP->ue_radio_capability->data,
+        conn_est_cnf_pP->ue_radio_capability->slen);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-    free_wrapper((void**) &(conn_est_cnf_pP->ue_radio_capability));
   }
 
   if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
@@ -1087,6 +1153,10 @@ void s1ap_handle_mme_ue_id_notification(
       hashtable_uint64_ts_insert(
           &enb_ref->ue_id_coll, (const hash_key_t) mme_ue_s1ap_id,
           ue_ref->comp_s1ap_id);
+
+      OAILOG_DEBUG(
+          LOG_S1AP, "Num elements in ue_id_coll %zu and num ue associated %u",
+          enb_ref->ue_id_coll.num_elements, enb_ref->nb_ue_associated);
 
       OAILOG_DEBUG(
           LOG_S1AP,

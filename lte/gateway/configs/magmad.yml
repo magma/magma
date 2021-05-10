@@ -14,6 +14,8 @@
 
 # log_level is set in mconfig. it can be overridden here
 
+print_grpc_payload: False
+
 # List of services for magmad to control
 magma_services:
   - control_proxy
@@ -24,6 +26,7 @@ magma_services:
   - sessiond
   - mme
   - pipelined
+  - envoy_controller
   - redis
   - dnsd
   - policydb
@@ -105,7 +108,6 @@ metricsd:
   collect_interval: 60 # How frequently to collect metrics samples in seconds
   sync_interval: 60 # How frequently to sync to cloud in seconds
   grpc_timeout: 30 # Timeout in seconds
-  queue_length: 1000 # Number of failed samples to enqueue for resend
   max_grpc_msg_size_mb: 4 # Max message size for gRPC channel in MBs
 
   # An optional function  to mutate metrics before they are sent to the cloud
@@ -154,3 +156,16 @@ generic_command_config:
     - name: get_subscriber_table
       command: "mobility_cli.py get_subscriber_table"
       allow_params: False
+    - name: check_stateless
+      command: "magmad_cli.py check_stateless"
+      allow_params: False
+    - name: configure_stateless
+      command: "magmad_cli.py config_stateless {}"
+      allow_params: True
+
+# Services for which magmad grpc status check restart recovery is enabled
+services_to_restart:
+  - pipelined
+
+# How many times can grpc status check fail before restarting the services above
+restart_timeout_threshold: 15

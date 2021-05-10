@@ -67,6 +67,11 @@ output "orc8r_db_port" {
   value       = aws_db_instance.default.port
 }
 
+output "orc8r_db_dialect" {
+  description = "Database dialect for Orchestrator RDS instance"
+  value       = var.orc8r_db_dialect
+}
+
 output "orc8r_db_user" {
   description = "Database username for Orchestrator RDS instance"
   value       = aws_db_instance.default.username
@@ -75,27 +80,6 @@ output "orc8r_db_user" {
 output "orc8r_db_pass" {
   description = "Orchestrator DB password"
   value       = aws_db_instance.default.password
-  sensitive   = true
-}
-
-output "nms_db_host" {
-  description = "Hostname of the NMS RDS instance"
-  value       = aws_db_instance.nms.address
-}
-
-output "nms_db_name" {
-  description = "Database name for NMS RDS instance"
-  value       = aws_db_instance.nms.name
-}
-
-output "nms_db_user" {
-  description = "Database username for NMS RDS instance"
-  value       = aws_db_instance.nms.username
-}
-
-output "nms_db_pass" {
-  description = "NMS DB password"
-  value       = aws_db_instance.nms.password
   sensitive   = true
 }
 

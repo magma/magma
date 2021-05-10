@@ -11,20 +11,27 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+from abc import ABC, abstractmethod
 from collections import namedtuple
 from typing import Any, Optional
 
-from abc import ABC, abstractmethod
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.device_config.configuration_init import build_desired_config
 from magma.enodebd.exceptions import ConfigurationError, Tr069Error
 from magma.enodebd.logger import EnodebdLogger as logger
-from magma.enodebd.state_machines.acs_state_utils import \
-    does_inform_have_event, get_all_objects_to_add, get_all_objects_to_delete, \
-    get_all_param_values_to_set, get_obj_param_values_to_set, \
-    get_object_params_to_get, get_optional_param_to_check, \
-    get_param_values_to_set, get_params_to_get, \
-    parse_get_parameter_values_response, process_inform_message
+from magma.enodebd.state_machines.acs_state_utils import (
+    does_inform_have_event,
+    get_all_objects_to_add,
+    get_all_objects_to_delete,
+    get_all_param_values_to_set,
+    get_obj_param_values_to_set,
+    get_object_params_to_get,
+    get_optional_param_to_check,
+    get_param_values_to_set,
+    get_params_to_get,
+    parse_get_parameter_values_response,
+    process_inform_message,
+)
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.timer import StateMachineTimer
 from magma.enodebd.tr069 import models
@@ -658,7 +665,7 @@ class DeleteObjectsState(EnodebAcsState):
         if len(obj_list_to_delete) > 0:
             return AcsReadMsgResult(True, None)
         if len(get_all_objects_to_add(self.acs.desired_cfg,
-                                      self.acs.device_cfg)) is 0:
+                                      self.acs.device_cfg)) == 0:
             return AcsReadMsgResult(True, self.skip_transition)
         return AcsReadMsgResult(True, self.add_obj_transition)
 

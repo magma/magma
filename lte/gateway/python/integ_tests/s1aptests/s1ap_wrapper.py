@@ -56,12 +56,16 @@ class TestWrapper(object):
 
     def __init__(
         self,
-        stateless_mode=MagmadUtil.stateless_cmds.DISABLE,
+        stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
+        health_service=MagmadUtil.health_service_cmds.DISABLE,
     ):
         """
         Initialize the various classes required by the tests and setup.
         """
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S", t)
+        print("Start time", current_time)
         self._s1_util = S1ApUtil()
         self._enBConfig()
 
@@ -82,6 +86,7 @@ class TestWrapper(object):
         self._magmad_util = MagmadUtil(magmad_client)
         self._magmad_util.config_stateless(stateless_mode)
         self._magmad_util.config_apn_correction(apn_correction)
+        self._magmad_util.config_health_service(health_service)
         # gateway tests don't require restart, just wait for healthy now
         self._gateway_services = GatewayServicesUtil()
         if not self.wait_gateway_healthy:
@@ -413,10 +418,12 @@ class TestWrapper(object):
         time.sleep(0.5)
         print("************************* send SCTP SHUTDOWN")
         self._s1_util.issue_cmd(s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None)
+
         self._s1_util.cleanup()
         self._sub_util.cleanup()
         self._trf_util.cleanup()
         self._mobility_util.cleanup()
+        self._magmad_util.print_redis_state()
 
         # Cloud cleanup needs to happen after cleanup for
         # subscriber util and mobility util

@@ -1,0 +1,481 @@
+#!/bin/groovy
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this
+ * source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+
+def GIT_URL = "github.com/magma/magma"
+
+def GIT_BRANCH = "master"
+def GIT_COMMIT
+
+// Location of the executor node
+def nodeExecutor = params.nodeExecutor
+
+// lock mechanism
+def cn_ci_resource = params.MagmaDockerResources
+
+// We are using a base image to speed up CI build.
+// This base image is potentially subject to changes over time.
+def MAGMA_U18_BASE_IMAGE_TAG = params.MagmaBaseImageTag
+
+// Name of the DsTester child pipeline
+def dsTesterPipelineName = params.dsTesterPipelineName
+// Name of the DsTester child pipeline HTML report file
+def dsTesterPipelineReport = params.dsTesterPipelineReport
+
+// This pipeline is triggered automatically
+// We are analyzing if the modified files are suitable to run it
+def runAllPipelineStages = true
+def runAllRHELPipelineStages = true
+
+// Parameters for trusted scripts
+def trustedGHuser = params.trustedGHuser
+def trustedBranch = params.trustedBranch
+
+// Location of the Remote RHEL CN executor
+def rem_rhel_host_flag = false
+def rem_rhel_host = ""
+def rem_rhel8_resource = params.MagmaPodmanResources
+def MAGMA_RHEL8_BASE_IMAGE_TAG = params.MagmaRhel8BaseImageTag
+
+// Tag of images
+def u18_image_tag = 'ci-tmp'
+def rhel8_image_tag = 'ci-tmp'
+
+pipeline {
+  agent {
+    label nodeExecutor
+  }
+  parameters {
+    booleanParam(name: 'REGRESSION_TEST', defaultValue: false, description: 'Test master branch for regressions and submit a Github issue')
+  }
+  options {
+    timestamps()
+    ansiColor('xterm')
+    lock (cn_ci_resource)
+    disableConcurrentBuilds()
+  }
+  stages {
+    stage ("Verify Parameters") {
+      steps {
+        script {
+          cleanWs()
+          JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
+          JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
+
+          echo '\u2705 \u001B[32mVerify Parameters\u001B[0m'
+          // Can we run also the RHEL8 build stage
+          if (params.Remote_RHEL_Server_Flag != null) {
+            rem_rhel_host_flag = params.Remote_RHEL_Server_Flag
+            if (rem_rhel_host_flag) {
+              rem_rhel_host = params.Remote_RHEL_Server_Name
+              rem_rhel_host_user = params.Remote_RHEL_Server_Login
+              echo "RHEL Node  is ${rem_rhel_host}"
+            }
+          }
+        }
+      }
+    }
+    stage ("Variant Operating Systems") {
+      parallel {
+        stage ("Ubuntu 18") {
+          stages {
+            stage ("Verify RHEL8 Base") {
+              steps {
+                script {
+                  try {
+                    sh('docker image inspect --format="Size = {{.Size}} bytes" magma-dev-mme:' + MAGMA_U18_BASE_IMAGE_TAG)
+                  } catch (Exception e) {
+                    currentBuild.result = 'FAILURE'
+                    echo '\u26D4 \u001B[31mUbuntu18 Base Image does not exist\u001B[0m'
+                    error "Stopping pipeline!"
+                  }
+                }
+              }
+            }
+            stage ("Retrieve U18 Code") {
+              steps {
+                script {
+                  echo '\u2705 \u001B[32mRetrieve Source Code on Ubuntu18 node\u001B[0m'
+                  def branch
+                  if (params.REGRESSION_TEST) {
+                    branch = 'master'
+                    u18_image_tag = 'master'
+                    u18_docker_file = 'lte/gateway/docker/mme/Dockerfile.ubuntu18.04'
+                    u18_options = ' --build-arg GIT_PROXY="http://proxy.eurecom.fr:8080"'
+                  } else {
+                    branch = sha1
+                    u18_docker_file = 'ci-scripts/docker/Dockerfile.mme.ci.ubuntu18'
+                    u18_options = ''
+                  }
+                  checkout(
+                    changelog: false,
+                    poll: false,
+                    scm: [$class: 'GitSCM',
+                          branches: [[name: "$branch"]],
+                          doGenerateSubmoduleConfigurations: false,
+                          extensions: [[$class: 'CheckoutOption', timeout: 1]],
+                          submoduleCfg: [],
+                          userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
+                  )
+                  if (!params.REGRESSION_TEST) {
+                    try {
+                      // Check if the pull request has files that will impact MME behavior
+                      // If so, we will run the OAI pipeline
+                      // For security reasons, we retrieve from a trusted forked repository
+                      sh 'wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/check_pr_modified_files_for_oai_pipeline.py -O ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py || true'
+                      sh 'git fetch --unshallow || true'
+                      sh 'python3 ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
+                      // If the previous command is OK, no need to run
+                      // All the following stages will be bypassed and the CI
+                      // will report a passing status on the GitHub PR web-page.
+                      echo '\u2705 \u001B[32mOAI Pipeline is not required to be run on this Pull Request\u001B[0m'
+                      runAllPipelineStages = false
+                    } catch (Exception e) {
+                      echo '\u2705 \u001B[32mOAI Pipeline is mandatory to be run on this Pull Request\u001B[0m'
+                      runAllPipelineStages = true
+                    }
+                  }
+                  sh "git clean -x -d -f > /dev/null 2>&1"
+                  sh "mkdir -p archives"
+                }
+              }
+            }
+            stage ("Build U18 MME Image") {
+              when { expression {runAllPipelineStages} }
+              steps {
+                script {
+                  echo '\u2705 \u001B[32mBuild Ubuntu18 Target Image to Test\u001B[0m'
+                  if (!params.REGRESSION_TEST) {
+                    try {
+                      // Checking if the CI Base image is still there.
+                      // If the inspect command fails, it's not there. If it passes, let remove tag.
+                      sh('docker image inspect magma-dev-mme:ci-base-image > /dev/null 2>&1')
+                      sh('docker rmi magma-dev-mme:ci-base-image')
+                    } catch (Exception e) {
+                      echo 'No need to remove the CI base image'
+                    }
+                    // "ci-base-image" is the tag used in the docker file.
+                    sh('docker image tag magma-dev-mme:' + MAGMA_U18_BASE_IMAGE_TAG + ' magma-dev-mme:ci-base-image')
+                  }
+
+                  // Removing the .dockerignore file (troublesome for us)
+                  sh('mv .dockerignore .fockerignore')
+                  // Clean any residual images
+                  sh('docker image prune --force')
+                  try {
+                    sh('docker image rm magma-mme:' + u18_image_tag)
+                  } catch (Exception e) {
+                    echo 'OK if not present'
+                  }
+                  // Create the image to use
+                  // Once again, we are not using the full dockerfile from scratch: too long --> when it is a pull request
+                  // On the daily master build, we are doing from scratch
+                  sh('docker build --no-cache --target magma-mme --tag magma-mme:' + u18_image_tag + ' --file ' + u18_docker_file + u18_options + ' . > archives/build_magma_mme.log 2>&1')
+                  sh('docker image prune --force > /dev/null 2>&1')
+                  sh('docker image ls >> archives/build_magma_mme.log')
+                }
+              }
+              post {
+                success {
+                  script {
+                    sh 'echo "MAGMA-OAI-MME DOCKER IMAGE BUILD: OK" >> archives/build_magma_mme.log'
+                  }
+                }
+                unsuccessful {
+                  script {
+                    sh 'echo "MAGMA-OAI-MME DOCKER IMAGE BUILD: KO" >> archives/build_magma_mme.log'
+                    // Remove any (at least the last one) dangling build container and any dangling image
+                    sh 'docker ps --quiet --filter "status=exited" -n1 | xargs docker rm -f || true'
+                    sh('docker image prune --force > /dev/null 2>&1')
+                  }
+                }
+              }
+            }
+          }
+        }
+        stage ("RHEL8") {
+          when { expression {rem_rhel_host_flag} }
+          agent { label rem_rhel_host }
+          stages {
+            stage ("Verify RHEL8 Base") {
+              steps {
+                script {
+                  try {
+                    sh('sudo podman image inspect --format="Size = {{.Size}} bytes" magma-dev-mme:' + MAGMA_RHEL8_BASE_IMAGE_TAG)
+                  } catch (Exception e) {
+                    currentBuild.result = 'FAILURE'
+                    echo '\u26D4 \u001B[31mRHEL8 Base Image does not exist\u001B[0m'
+                    error "Stopping pipeline!"
+                  }
+                }
+              }
+            }
+            stage ("Retrieve RHEL8 Code") {
+              steps {
+                script {
+                  cleanWs()
+                  echo '\u2705 \u001B[32mRetrieve Source Code on RHEL8 node\u001B[0m'
+                  def branch
+                  if (params.REGRESSION_TEST) {
+                    branch = 'master'
+                    rhel8_image_tag = 'master'
+                    rhel8_docker_file = 'lte/gateway/docker/mme/Dockerfile.rhel8'
+                    rhel8_options = ' --build-arg GIT_PROXY="http://proxy.eurecom.fr:8080"'
+                  } else {
+                    branch = sha1
+                    rhel8_docker_file = 'ci-scripts/docker/Dockerfile.mme.ci.rhel8'
+                    rhel8_options = ''
+                  }
+                  checkout(
+                    changelog: false,
+                    poll: false,
+                    scm: [$class: 'GitSCM',
+                          branches: [[name: "$branch"]],
+                          doGenerateSubmoduleConfigurations: false,
+                          extensions: [[$class: 'CheckoutOption', timeout: 1]],
+                          submoduleCfg: [],
+                          userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
+                  )
+                  if (!params.REGRESSION_TEST) {
+                    try {
+                      sh 'wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/check_pr_modified_files_for_oai_pipeline.py -O ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py || true'
+                      sh 'git fetch --unshallow || true'
+                      sh 'python3 ci-scripts/ci-check_pr_modified_files_for_oai_pipeline.py'
+                      runAllRHELPipelineStages = false
+                    } catch (Exception e) {
+                      runAllRHELPipelineStages = true
+                    }
+                  }
+                  sh "git clean -x -d -f > /dev/null 2>&1"
+                  sh "mkdir -p archives"
+                }
+              }
+            }
+            stage ("Build RHEL8 MME Image") {
+              when { expression {runAllRHELPipelineStages} }
+              steps {
+                lock (rem_rhel8_resource) {
+                  script {
+                    echo '\u2705 \u001B[32mBuild RHEL8 Target Image to Test\u001B[0m'
+                    if (!params.REGRESSION_TEST) {
+                      try {
+                        // Checking if the CI Base image is still there.
+                        // If the inspect command fails, it's not there. If it passes, let remove tag.
+                        sh('sudo podman image inspect magma-dev-mme:ci-base-image > /dev/null 2>&1')
+                        sh('sudo podman rmi magma-dev-mme:ci-base-image')
+                      } catch (Exception e) {
+                        echo 'No need to remove the CI base image'
+                      }
+                      // "ci-base-image" is the tag used in the docker file.
+                      sh('sudo podman image tag magma-dev-mme:' + MAGMA_RHEL8_BASE_IMAGE_TAG + ' magma-dev-mme:ci-base-image')
+                    }
+
+                    // Removing the .dockerignore file (troublesome for us)
+                    sh('mv .dockerignore .fockerignore')
+                    // Clean any residual images
+                    sh('sudo podman image prune --force')
+                    try {
+                      sh('sudo podman image rm magma-mme:' + rhel8_image_tag)
+                    } catch (Exception e) {
+                      echo 'OK if not present'
+                    }
+                    // In case of the full build, we need the host RHEL8 credentials.
+                    if (params.REGRESSION_TEST) {
+                      sh('mkdir -p tmp/ca tmp/entitlement')
+                      sh('cp /etc/pki/entitlement/*pem tmp/entitlement')
+                      sh('sudo cp /etc/rhsm/ca/redhat-uep.pem tmp/ca')
+                    }
+                    // Create the image to use
+                    // Once again, we are not using the full dockerfile from scratch: too long --> when it is a pull request
+                    // On the daily master build, we are doing from scratch
+                    sh('sudo podman build --no-cache --target magma-mme --tag magma-mme:' + rhel8_image_tag + ' --file ' + rhel8_docker_file + rhel8_options + ' . > archives/build_magma_mme_rhel8.log 2>&1')
+                    sh('sudo podman image prune --force > /dev/null 2>&1')
+                    sh('sudo podman image ls >> archives/build_magma_mme_rhel8.log')
+                  }
+                }
+              }
+              post {
+                success {
+                  script {
+                    sh 'echo "MAGMA-OAI-MME RHEL8 PODMAN IMAGE BUILD: OK" >> archives/build_magma_mme_rhel8.log'
+                  }
+                }
+                unsuccessful {
+                  script {
+                    sh 'echo "MAGMA-OAI-MME RHEL8 PODMAN IMAGE BUILD: KO" >> archives/build_magma_mme_rhel8.log'
+                    sh 'sudo buildah rm --all || true'
+                    sh 'sudo podman image prune --force'
+                  }
+                }
+                cleanup {
+                  script {
+                    if (!params.REGRESSION_TEST) {
+                      sh('sudo podman rmi magma-dev-mme:ci-base-image || true')
+                    }
+                    stash includes: 'archives/build_magma_mme_rhel8.log', name: 'podmanBuildLog'
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      post {
+        always {
+          script {
+            if (runAllPipelineStages) {
+              // Again for security reason
+              sh 'wget --quiet https://raw.githubusercontent.com/' + trustedGHuser + '/magma/' + trustedBranch + '/ci-scripts/generateHtmlReport-OAI-pipeline.py -O ci-scripts/ci-generateHtmlReport-OAI-pipeline.py'
+              if (runAllRHELPipelineStages) {
+                unstash 'podmanBuildLog'
+              }
+              if (env.ghprbPullId != null) {
+                commitID = sh returnStdout: true, script: 'git rev-parse origin/master'
+                commitID = commitID.trim()
+                sh 'python3 ./ci-scripts/ci-generateHtmlReport-OAI-pipeline.py --mode=Build --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --git_url=' + GIT_URL + ' --git_merge_request=True --git_src_branch=' + env.ghprbSourceBranch + ' --git_src_commit=' + env.ghprbActualCommit + ' --git_target_branch=master --git_target_commit=' + commitID
+                if (fileExists('build_results_magma_oai_mme.html')) {
+                  sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_LINK#' + env.ghprbPullLink + '#g" build_results_magma_oai_mme.html'
+                  if (env.ghprbPullTitle.contains('#')) {
+                    sh 'sed -i -e "s@TEMPLATE_PULL_REQUEST_TEMPLATE@' + env.ghprbPullTitle + '@g" build_results_magma_oai_mme.html'
+                  } else {
+                    sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_TEMPLATE#' + env.ghprbPullTitle + '#g" build_results_magma_oai_mme.html'
+                  }
+                }
+              } else {
+                commitID = sh returnStdout: true, script: 'git rev-parse HEAD'
+                commitID = commitID.trim()
+                sh 'python3 ./ci-scripts/ci-generateHtmlReport-OAI-pipeline.py --mode=Build --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --git_url=' + GIT_URL + ' --git_src_branch=' + GIT_BRANCH + ' --git_src_commit=' + commitID
+              }
+              sh "sed -i -e 's#TEMPLATE_TIME#${JOB_TIMESTAMP}#' build_results_magma_oai_mme.html"
+              if (fileExists('build_results_magma_oai_mme.html')) {
+                archiveArtifacts artifacts: 'build_results_magma_oai_mme.html'
+              }
+            }
+          }
+        }
+      }
+    }
+    stage ("Test Image in Unified DsTester Framework") {
+      when { expression {runAllPipelineStages} }
+      steps {
+        script {
+          localStatus = build job: dsTesterPipelineName,
+              parameters: [
+                  string(name: 'MAGMA_MME_TAG', value: u18_image_tag)
+              ], propagate: false
+          localResult = localStatus.getResult()
+          echo "${dsTesterPipelineName} Slave Job status is ${localResult}"
+          if (localStatus.resultIsBetterOrEqualTo('SUCCESS')) {
+             echo "${dsTesterPipelineName} Slave Job is OK"
+          } else {
+             echo "${dsTesterPipelineName} Slave Job is KO"
+             error('DsTester pipeline failed')
+          }
+        }
+      }
+      post {
+        unsuccessful {
+          script {
+            // In case of failure during DsTester pipeline
+            // Retrieve the logs so developer does not need to look for them
+            copyArtifacts(projectName: dsTesterPipelineName,
+                          filter: 'fed_docker_logs.zip',
+                          elector: lastCompleted())
+            if (fileExists('fed_docker_logs.zip')) {
+              sh "mv fed_docker_logs.zip ds_tester_fed_docker_logs.zip"
+              archiveArtifacts artifacts: 'ds_tester_fed_docker_logs.zip'
+            }
+          }
+        }
+        always {
+          script {
+            copyArtifacts(projectName: dsTesterPipelineName,
+                          filter: dsTesterPipelineReport,
+                          selector: lastCompleted())
+            if (fileExists(dsTesterPipelineReport)) {
+              if (env.ghprbPullId != null) {
+                commitID = sh returnStdout: true, script: 'git rev-parse origin/master'
+                commitID = commitID.trim()
+                sh 'python3 ./ci-scripts/ci-generateHtmlReport-OAI-pipeline.py --mode=TestWithDsTest --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --git_url=' + GIT_URL + ' --git_merge_request=True --git_src_branch=' + env.ghprbSourceBranch + ' --git_src_commit=' + env.ghprbActualCommit + ' --git_target_branch=master --git_target_commit=' + commitID
+                sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_LINK#' + env.ghprbPullLink + '#g" ' + dsTesterPipelineReport
+                if (env.ghprbPullTitle.contains('#')) {
+                  sh 'sed -i -e "s@TEMPLATE_PULL_REQUEST_TEMPLATE@' + env.ghprbPullTitle + '@g" ' + dsTesterPipelineReport
+                } else {
+                  sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_TEMPLATE#' + env.ghprbPullTitle + '#g" ' + dsTesterPipelineReport
+                }
+              } else {
+                commitID = sh returnStdout: true, script: 'git rev-parse HEAD'
+                commitID = commitID.trim()
+                sh 'python3 ./ci-scripts/ci-generateHtmlReport-OAI-pipeline.py --mode=TestWithDsTest --job_name=' + JOB_NAME + ' --job_id=' + BUILD_ID + ' --job_url=' + BUILD_URL + ' --git_url=' + GIT_URL + ' --git_src_branch=' + GIT_BRANCH + ' --git_src_commit=' + commitID
+              }
+              sh 'sed -i -e "s#TEMPLATE_TIME#' + JOB_TIMESTAMP + '#" ' + dsTesterPipelineReport
+              archiveArtifacts artifacts: dsTesterPipelineReport
+            }
+          }
+        }
+      }
+    }
+  }
+  post {
+    always {
+      script {
+        if (runAllPipelineStages) {
+          // Clean any residual images
+          sh('docker image prune --force > /dev/null 2>&1')
+          // Delete image only in case of pull requests
+          if (!params.REGRESSION_TEST) {
+            // Remove CI Base image tag
+            sh('docker rmi magma-dev-mme:ci-base-image')
+            try {
+              sh('docker image rm magma-mme:' + u18_image_tag + ' > /dev/null 2>&1')
+            } catch (Exception e) {
+              echo 'OK if not present'
+            }
+          }
+          // Zipping all archived log files
+          sh "zip -r -qq magma_logs.zip archives"
+          if (fileExists('magma_logs.zip')) {
+            archiveArtifacts artifacts: 'magma_logs.zip'
+          }
+        }
+      }
+    }
+    success {
+      script {
+        def color = "good"
+        def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
+        echo message
+      }
+    }
+    unsuccessful {
+      script {
+        def color = "danger"
+        def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
+        echo message
+      }
+    }
+  }
+}
+
+//-------------------------------------------------------------------------------
+// Abstraction function to send social media messages:
+// like on Slack or Mattermost
+def sendSocialMediaMessage(pipeChannel, pipeColor, pipeMessage) {
+    slackSend channel: pipeChannel, color: pipeColor, message: pipeMessage
+}

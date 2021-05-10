@@ -13,6 +13,8 @@
 
 log_level: INFO
 
+sync_interval: 60
+
 #state_protos:
 #  - proto_file:  - file to load proto from
 #    proto_msg:   - msg to load from proto file

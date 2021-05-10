@@ -1,0 +1,6 @@
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,tun_id=0x3,in_port=32768 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,tun_id=0x4,in_port=32768 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,ip,in_port=LOCAL,nw_dst=192.168.128.80 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,ip,in_port=15577,nw_dst=192.168.128.80 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,ip,in_port=LOCAL,nw_dst=192.168.128.82 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,ip,in_port=15577,nw_dst=192.168.128.82 actions=resubmit(,ingress(main_table))

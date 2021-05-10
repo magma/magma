@@ -38,26 +38,29 @@ using ::testing::Test;
 
 namespace magma {
 
+Teids teids0;
+
 class LocalEnforcerTest : public ::testing::Test {
  protected:
   void SetUpWithMConfig(magma::mconfig::SessionD mconfig) {
-    reporter          = std::make_shared<MockSessionReporter>();
-    rule_store        = std::make_shared<StaticRuleStore>();
-    session_store     = std::make_shared<SessionStore>(rule_store);
-    pipelined_client  = std::make_shared<MockPipelinedClient>();
-    directoryd_client = std::make_shared<MockDirectorydClient>();
-    spgw_client       = std::make_shared<MockSpgwServiceClient>();
-    aaa_client        = std::make_shared<MockAAAClient>();
-    events_reporter   = std::make_shared<MockEventsReporter>();
-    local_enforcer    = std::make_unique<LocalEnforcer>(
-        reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, events_reporter, spgw_client, aaa_client, 0, 0,
-        mconfig);
+    reporter      = std::make_shared<MockSessionReporter>();
+    rule_store    = std::make_shared<StaticRuleStore>();
+    session_store = std::make_shared<SessionStore>(
+        rule_store, std::make_shared<MeteringReporter>());
+    pipelined_client = std::make_shared<MockPipelinedClient>();
+    spgw_client      = std::make_shared<MockSpgwServiceClient>();
+    aaa_client       = std::make_shared<MockAAAClient>();
+    events_reporter  = std::make_shared<MockEventsReporter>();
+    local_enforcer   = std::make_unique<LocalEnforcer>(
+        reporter, rule_store, *session_store, pipelined_client, events_reporter,
+        spgw_client, aaa_client, 0, 0, mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
     session_map = SessionMap{};
+    teids0.set_agw_teid(0);
+    teids0.set_enb_teid(0);
     cwf_session_config.common_context =
-        build_common_context(IMSI1, "", "", "", "", TGPP_WLAN);
+        build_common_context(IMSI1, "", "", teids0, "", "", TGPP_WLAN);
   }
 
   virtual void SetUp() {}
@@ -95,7 +98,6 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<SessionStore> session_store;
   std::unique_ptr<LocalEnforcer> local_enforcer;
   std::shared_ptr<MockPipelinedClient> pipelined_client;
-  std::shared_ptr<MockDirectorydClient> directoryd_client;
   std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockAAAClient> aaa_client;
   std::shared_ptr<MockEventsReporter> events_reporter;
@@ -122,8 +124,10 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_VALID_QUOTA)));
-  local_enforcer->init_session_credit(
+  local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  local_enforcer->update_tunnel_ids(
+      session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   bool success =
@@ -186,10 +190,11 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_VALID_QUOTA)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-  local_enforcer->init_session_credit(
+      .Times(1);
+  local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  local_enforcer->update_tunnel_ids(
+      session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 }
 
 TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
@@ -207,10 +212,11 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_NO_QUOTA)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-  local_enforcer->init_session_credit(
+      .Times(1);
+  local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  local_enforcer->update_tunnel_ids(
+      session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 }
 
 TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
@@ -222,8 +228,10 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
   CreateSessionResponse response;
   create_session_create_response(
       IMSI1, SESSION_ID_1, "m1", static_rules, &response);
-  local_enforcer->init_session_credit(
+  local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  local_enforcer->update_tunnel_ids(
+      session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 
   // send a policy reauth request with rule removals for "static_1" to indicate
   // total monitoring quota exhaustion
@@ -238,8 +246,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_TERMINATE)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+      .Times(1);
 
   PolicyReAuthAnswer answer;
   auto update = SessionStore::get_default_session_update(session_map);
@@ -256,8 +263,10 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
   CreateSessionResponse response;
   create_session_create_response(
       IMSI1, SESSION_ID_1, "m1", static_rules, &response);
-  local_enforcer->init_session_credit(
+  local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, cwf_session_config, response);
+  local_enforcer->update_tunnel_ids(
+      session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 
   // remove only static_2, should not change anything in terms of quota since
   // static_1 is still active
@@ -285,8 +294,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
       *pipelined_client,
       update_subscriber_quota_state(
           CheckSubscriberQuotaUpdate(SubscriberQuotaUpdate_Type_TERMINATE)))
-      .Times(1)
-      .WillOnce(testing::Return(true));
+      .Times(1);
 
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);

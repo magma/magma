@@ -34,7 +34,6 @@
 #include "itti_types.h"
 #include "s6a_messages_types.h"
 #include "service303.h"
-#include "timer_messages_types.h"
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -46,7 +45,6 @@
 #include "s6a_defs.h"
 #include "s6a_messages.h"
 #include "mme_config.h"
-#include "timer.h"
 #include "s6a_client_api.h"
 #include "s6a_c_iface.h"
 
@@ -56,9 +54,7 @@ struct session_handler* ts_sess_hdl;
 task_zmq_ctx_t s6a_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
   int rc                         = RETURNerror;
 
   switch (ITTI_MSG_ID(received_message_p)) {
@@ -91,10 +87,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             received_message_p->ittiMsg.s6a_auth_info_req.imsi);
       }
     } break;
-    case TIMER_HAS_EXPIRED: {
-      s6a_viface_timer_expired(
-          received_message_p->ittiMsg.timer_has_expired.timer_id);
-    } break;
     case S6A_CANCEL_LOCATION_ANS: {
       s6a_viface_send_cancel_location_ans(
           &received_message_p->ittiMsg.s6a_cancel_location_ans);
@@ -121,7 +113,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       s6a_exit();
     } break;
     default: {
@@ -132,7 +124,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   }
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -169,10 +161,8 @@ int s6a_init(const mme_config_t* mme_config_p) {
 
 //------------------------------------------------------------------------------
 static void s6a_exit(void) {
-  destroy_task_context(&s6a_task_zmq_ctx);
-
   s6a_viface_close();
-
+  destroy_task_context(&s6a_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_S6A terminated\n");
   pthread_exit(NULL);
 }

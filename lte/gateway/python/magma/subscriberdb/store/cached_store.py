@@ -13,15 +13,13 @@ limitations under the License.
 
 import copy
 import threading
-
 from collections import OrderedDict
 from contextlib import contextmanager
 
 from magma.subscriberdb.sid import SIDUtils
 
+from .base import BaseStore, DuplicateSubscriberError
 from .onready import OnDataReady
-from .base import BaseStore
-from .base import DuplicateSubscriberError
 
 
 class CachedStore(BaseStore):
@@ -119,8 +117,8 @@ class CachedStore(BaseStore):
         """
         return self._persistent_store.list_subscribers()
 
-    def on_ready(self):
-        return self._on_ready.event.wait()
+    async def on_ready(self):
+        return await self._on_ready.event.wait()
 
     def _cache_get(self, k):
         """

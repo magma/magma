@@ -25,28 +25,6 @@
 #define MLOG(VERBOSITY) VLOG(VERBOSITY)
 #define MLOG_IF(VERBOSITY, CONDITION) VLOG_IF(VERBOSITY, CONDITION)
 
-namespace magma {
-
-// set_verbosity sets the global logging verbosity. The higher the verbosity,
-// the more is logged
-static void set_verbosity(uint32_t verbosity) {
-  VLOG(0) << "Setting verbosity to " << verbosity;
-  FLAGS_v = verbosity;
-}
-
-// get_verbosity gets the the global logging verbosity
-static google::int32 get_verbosity(){
-  return FLAGS_v;
-}
-
-// init_logging initializes glog, sets logging to use std::err, and sets the
-// initial verbosity
-static void init_logging(const char* service_name) {
-  google::InitGoogleLogging(service_name);
-  // log to stderr to automatically log to syslog with systemd
-  FLAGS_logtostderr = 1;
-}
-}
 #endif
 
 // NON GLOG LOGGING
@@ -60,13 +38,4 @@ struct _MLOG_NEWLINE {
 #define MLOG(VERBOSITY)                                                        \
   (_MLOG_NEWLINE(), std::cout << "[" << __FILE__ << ":" << __LINE__ << "] ")
 
-namespace magma {
-static void set_verbosity(uint32_t verbosity) {}
-// get_verbosity gets the the global logging verbosity
-static uint32_t get_verbosity() {
-  return 0;
-}
-static void init_logging(const char* service_name) {}
-
-}  // namespace magma
 #endif

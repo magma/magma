@@ -13,10 +13,13 @@ limitations under the License.
 
 import logging
 from collections import deque
+
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisHashDict
-from magma.common.redis.serializers import get_json_serializer, \
-    get_json_deserializer
+from magma.common.redis.serializers import (
+    get_json_deserializer,
+    get_json_serializer,
+)
 
 LOG = logging.getLogger('pipelined.qos.id_manager')
 
@@ -30,6 +33,7 @@ class IdManager(object):
         self._max_idx = max_idx
         self._counter = start_idx
         self._free_idx_list = deque()
+        self._restore_done = False
 
     def allocate_idx(self,) -> int:
         idx = self._get_free_idx()
@@ -50,6 +54,8 @@ class IdManager(object):
         self._free_idx_list.append(idx)
 
     def restore_state(self, id_set):
+        if self._restore_done:
+            return
         if not id_set:
             return
 
@@ -57,6 +63,7 @@ class IdManager(object):
         for idx in range(self._start_idx, self._counter):
             if idx not in id_set:
                 self._free_idx_list.append(idx)
+        self._restore_done = True
 
     def _get_free_idx(self) -> int:
         if self._free_idx_list:

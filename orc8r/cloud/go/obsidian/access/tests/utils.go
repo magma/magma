@@ -100,7 +100,7 @@ func StartMockAccessControl(t *testing.T, adminId string) string {
 
 	// create and sign admin's csr
 	csrMsg, err := certifier_test_utils.CreateCSR(
-		time.Duration(time.Hour*4), adminId, adminId)
+		time.Hour*4, adminId, adminId)
 	assert.NoError(t, err)
 	certMsg, err := certifier.SignCSR(csrMsg)
 	assert.NoError(t, err, "Failed to sign Admin's CSR")
@@ -156,7 +156,7 @@ func MockAccessControl(t *testing.T) (certSn string, superCertSn string) {
 
 	// create and sign operator's csr
 	csrMsg, err := certifier_test_utils.CreateCSR(
-		time.Duration(time.Hour*12), TEST_OPERATOR_ID, TEST_OPERATOR_ID)
+		time.Hour*12, TEST_OPERATOR_ID, TEST_OPERATOR_ID)
 	assert.NoError(t, err)
 	certMsg, err := certifier.SignCSR(csrMsg)
 	assert.NoError(t, err, "Failed to sign CSR")

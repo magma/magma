@@ -27,39 +27,6 @@ import (
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
 )
 
-func TestSqlBlobStorage_ListKeys(t *testing.T) {
-	happyPath := &testCase{
-		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT \"key\" FROM network_table").
-				WithArgs("network", "type").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"key"}).AddRow("key1").AddRow("key2"),
-				)
-		},
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.ListKeys("network", "type")
-		},
-		expectedError:  nil,
-		expectedResult: []string{"key1", "key2"},
-	}
-
-	queryError := &testCase{
-		setup: func(mock sqlmock.Sqlmock) {
-			mock.ExpectQuery("SELECT \"key\" FROM network_table").
-				WithArgs("network", "type").
-				WillReturnError(errors.New("mock query error"))
-		},
-		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
-			return store.ListKeys("network", "type")
-		},
-		expectedError:  errors.New("mock query error"),
-		expectedResult: nil,
-	}
-
-	runCase(t, happyPath)
-	runCase(t, queryError)
-}
-
 func TestSqlBlobStorage_Get(t *testing.T) {
 	happyPath := &testCase{
 		setup: func(mock sqlmock.Sqlmock) {
@@ -144,7 +111,7 @@ func TestSqlBlobStorage_GetMany(t *testing.T) {
 		},
 
 		expectedError: nil,
-		expectedResult: []blobstore.Blob{
+		expectedResult: blobstore.Blobs{
 			{Type: "t1", Key: "k1", Value: []byte("value1"), Version: 42},
 			{Type: "t2", Key: "k2", Value: []byte("value2"), Version: 43},
 		},
@@ -189,7 +156,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 		},
 
 		expectedError: nil,
-		expectedResult: map[string][]blobstore.Blob{
+		expectedResult: map[string]blobstore.Blobs{
 			"network": {
 				{Type: "t1", Key: "k1", Value: []byte("value1"), Version: 42},
 				{Type: "t2", Key: "k2", Value: []byte("value2"), Version: 43},
@@ -216,7 +183,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 		},
 
 		expectedError: nil,
-		expectedResult: map[string][]blobstore.Blob{
+		expectedResult: map[string]blobstore.Blobs{
 			"network": {
 				{Type: "t1", Key: "kprefix1", Value: []byte("value1"), Version: 42},
 				{Type: "t2", Key: "kprefix2", Value: []byte("value2"), Version: 43},
@@ -244,7 +211,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 		},
 
 		expectedError: nil,
-		expectedResult: map[string][]blobstore.Blob{
+		expectedResult: map[string]blobstore.Blobs{
 			"network1": {
 				{Type: "t1", Key: "k1", Value: []byte("value1"), Version: 42},
 				{Type: "t2", Key: "k2", Value: []byte("value2"), Version: 43},
@@ -274,7 +241,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 		},
 
 		expectedError: nil,
-		expectedResult: map[string][]blobstore.Blob{
+		expectedResult: map[string]blobstore.Blobs{
 			"network1": {
 				{Type: "t1", Key: "k1", Value: []byte("value1"), Version: 42},
 			},
@@ -303,7 +270,7 @@ func TestSqlBlobStorage_Search(t *testing.T) {
 		},
 
 		expectedError: nil,
-		expectedResult: map[string][]blobstore.Blob{
+		expectedResult: map[string]blobstore.Blobs{
 			"network1": {
 				{Type: "t1", Key: "k1", Value: nil, Version: 42},
 			},
@@ -345,7 +312,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			expectGetMany(
 				mock,
 				[]driver.Value{"network", "t1", "k1", "network", "t2", "k2"},
-				[]blobstore.Blob{
+				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 42},
 				},
 			)
@@ -364,7 +331,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
 			err := store.CreateOrUpdate(
 				"network",
-				[]blobstore.Blob{
+				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 0},
 					{Type: "t2", Key: "k2", Value: []byte("world"), Version: 1000},
 				},
@@ -381,7 +348,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			expectGetMany(
 				mock,
 				[]driver.Value{"network", "t1", "k1", "network", "t2", "k2"},
-				[]blobstore.Blob{
+				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 42},
 					{Type: "t2", Key: "k2", Value: []byte("world"), Version: 43},
 				},
@@ -400,7 +367,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
 			err := store.CreateOrUpdate(
 				"network",
-				[]blobstore.Blob{
+				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 100},
 					{Type: "t2", Key: "k2", Value: []byte("foo"), Version: 0},
 				},
@@ -431,7 +398,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
 			err := store.CreateOrUpdate(
 				"network",
-				[]blobstore.Blob{
+				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 0},
 					{Type: "t2", Key: "k2", Value: []byte("world"), Version: 1000},
 				},
@@ -448,7 +415,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			expectGetMany(
 				mock,
 				[]driver.Value{"network", "t1", "k1", "network", "t2", "k2"},
-				[]blobstore.Blob{
+				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 42},
 				},
 			)
@@ -463,7 +430,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
 			err := store.CreateOrUpdate(
 				"network",
-				[]blobstore.Blob{
+				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 0},
 					{Type: "t2", Key: "k2", Value: []byte("world"), Version: 1000},
 				},
@@ -480,7 +447,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 			expectGetMany(
 				mock,
 				[]driver.Value{"network", "t1", "k1", "network", "t2", "k2"},
-				[]blobstore.Blob{
+				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("hello"), Version: 42},
 				},
 			)
@@ -499,7 +466,7 @@ func TestSqlBlobStorage_CreateOrUpdate(t *testing.T) {
 		run: func(store blobstore.TransactionalBlobStorage) (interface{}, error) {
 			err := store.CreateOrUpdate(
 				"network",
-				[]blobstore.Blob{
+				blobstore.Blobs{
 					{Type: "t1", Key: "k1", Value: []byte("goodbye"), Version: 0},
 					{Type: "t2", Key: "k2", Value: []byte("world"), Version: 1000},
 				},
@@ -637,7 +604,7 @@ func expectCreateTable(mock sqlmock.Sqlmock) {
 	mock.ExpectCommit()
 }
 
-func expectGetMany(mock sqlmock.Sqlmock, args []driver.Value, blobs []blobstore.Blob) {
+func expectGetMany(mock sqlmock.Sqlmock, args []driver.Value, blobs blobstore.Blobs) {
 	rows := sqlmock.NewRows([]string{"type", "key", "value", "version"})
 	for _, blob := range blobs {
 		rows.AddRow(blob.Type, blob.Key, blob.Value, blob.Version)

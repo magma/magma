@@ -16,6 +16,11 @@
 # proxy_aliases refers to proxy config when a service might have more than one
 # port. Example in magma/feg/cloud/configs/service_registry.yml
 
+# poll_frequency sets how frequently the service registry service should reach
+# out to the kube-apiserver to refresh its cache of tracked services.
+# Ref: https://pkg.go.dev/github.com/robfig/cron#hdr-CRON_Expression_Format
+poll_frequency: "@every 30s"
+
 services:
   analytics:
     host: "localhost"
@@ -34,6 +39,7 @@ services:
       orc8r.io/state_indexer: "true"
       orc8r.io/stream_provider: "true"
       orc8r.io/analytics_collector: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/state_indexer_types: "directory_record"
       orc8r.io/state_indexer_version: "1"
@@ -41,7 +47,6 @@ services:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /,
         /magma/v1/channels,
-        /magma/v1/events,
         /magma/v1/networks,
         /magma/v1/networks/:network_id,
 
@@ -57,6 +62,7 @@ services:
     proxy_type: "clientcert"
     labels:
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/networks/:network_id/alerts,
@@ -79,6 +85,19 @@ services:
     host: "localhost"
     port: 9091
     proxy_type: "clientcert"
+
+  eventd:
+    host: "localhost"
+    port: 9121
+    echo_port: 10121
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/logs,
+        /magma/v1/events,
 
   obsidian:
     host: "localhost"
@@ -110,6 +129,18 @@ services:
     port: 9108
     proxy_type: "clientcert"
 
+  ctraced:
+    host: "localhost"
+    port: 9118
+    echo_port: 10118
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/tracing,
+
   tenants:
     host: "localhost"
     port: 9110
@@ -117,6 +148,7 @@ services:
     proxy_type: "clientcert"
     labels:
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/swagger_spec: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/tenants,

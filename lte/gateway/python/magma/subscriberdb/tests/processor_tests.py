@@ -11,18 +11,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import tempfile
 import unittest
 
 from lte.protos.mconfig.mconfigs_pb2 import SubscriberDB
-from lte.protos.subscriberdb_pb2 import (GSMSubscription, LTESubscription,
-                                         SubscriberData, SubscriberState)
+from lte.protos.subscriberdb_pb2 import (
+    GSMSubscription,
+    LTESubscription,
+    SubscriberData,
+    SubscriberState,
+)
 from magma.subscriberdb import processor
 from magma.subscriberdb.crypto.milenage import BaseLTEAuthAlgo, Milenage
 from magma.subscriberdb.crypto.utils import CryptoError
+from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.base import SubscriberNotFoundError
 from magma.subscriberdb.store.sqlite import SqliteStore
-
-from magma.subscriberdb.sid import SIDUtils
 
 
 def _dummy_auth_tuple():
@@ -80,7 +84,9 @@ class ProcessorTests(unittest.TestCase):
         processor.Milenage = Milenage
 
     def setUp(self):
-        store = SqliteStore('file::memory:')
+        # Create sqlite3 database for testing
+        self._tmpfile = tempfile.TemporaryDirectory()
+        store = SqliteStore(self._tmpfile.name +'/')
         op = 16*b'\x11'
         amf = b'\x80\x00'
         self._sub_profiles = {
@@ -122,6 +128,9 @@ class ProcessorTests(unittest.TestCase):
         store.add_subscriber(sub3)
         store.add_subscriber(sub4)
         store.add_subscriber(sub5)
+
+    def tearDown(self):
+        self._tmpfile.cleanup()
 
     def test_gsm_auth_success(self):
         """

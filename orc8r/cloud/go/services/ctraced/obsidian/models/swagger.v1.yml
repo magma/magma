@@ -1,0 +1,213 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/services/ctraced/swagger
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+  temp-gen-filename: ctraced-swagger.yml
+  output-dir: orc8r/cloud/go/services/ctraced/obsidian
+  types:
+    - go-struct-name: CallTrace
+      filename: call_trace_swaggergen.go
+    - go-struct-name: MutableCallTrace
+      filename: mutable_call_trace_swaggergen.go
+    - go-struct-name: CallTraceConfig
+      filename: call_trace_config_swaggergen.go
+    - go-struct-name: CallTraceState
+      filename: call_trace_state_swaggergen.go
+
+info:
+  title: Call Tracing definitions and paths
+  description: Magma Call Tracing REST APIs
+  version: 1.0.0
+
+basePath: /magma/v1
+
+tags:
+  - name: Call Tracing
+    description: Endpoints related to call tracing
+
+paths:
+  /networks/{network_id}/tracing:
+    get:
+      summary: List all call traces for a network
+      tags:
+        - Call Tracing
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Success
+          schema:
+            type: array
+            items:
+              - $ref: '#/definitions/call_trace'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Start a new call trace
+      tags:
+        - Call Tracing
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: Call Trace Configuration
+          description: Configuration of call trace to start
+          required: true
+          schema:
+            $ref: '#/definitions/call_trace_config'
+      responses:
+        '201':
+          description: ID of created call trace
+          schema:
+            type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/tracing/{trace_id}:
+    get:
+      summary: Get tracing status
+      tags:
+        - Call Tracing
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/trace_id'
+      responses:
+        '200':
+          description: Show tracing status
+          schema:
+            $ref: '#/definitions/call_trace'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a call trace
+      tags:
+        - Call Tracing
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/trace_id'
+        - in: body
+          name: Call Trace Configuration
+          description: Call trace
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_call_trace'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a call trace record
+      tags:
+        - Call Tracing
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/trace_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/tracing/{trace_id}/download:
+    get:
+      summary: Get the call trace in PCAP format
+      tags:
+        - Call Tracing
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/trace_id'
+      responses:
+        '200':
+          description: Show tracing status
+          schema:
+            type: file
+            format: binary
+          headers:
+            Content-Disposition:
+              type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+parameters:
+  trace_id:
+    description: Unique ID of call trace
+    in: path
+    name: trace_id
+    required: true
+    type: string
+
+definitions:
+  call_trace:
+    description: Call Trace
+    type: object
+    required:
+      - config
+    properties:
+      config:
+        $ref: '#/definitions/call_trace_config'
+      state:
+        $ref: '#/definitions/call_trace_state'
+
+  mutable_call_trace:
+    description: Subset of call trace fields which are mutable
+    type: object
+    required:
+      - requested_end
+    properties:
+      requested_end:
+        description: True if requesting call trace to end
+        type: boolean
+
+  call_trace_config:
+    type: object
+    description: Call Trace spec
+    required:
+      - trace_id
+      - trace_type
+    properties:
+      trace_id:
+        type: string
+        x-nullable: false
+        example: "gateway_trace_1"
+      trace_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'GATEWAY'
+        description: >
+          Trace Type:
+           * GATEWAY - Call trace for a gateway
+      gateway_id:
+        description: ID of gateway to run call tracing on
+        type: string
+        example: "gateway_1"
+      timeout:
+        description: Timeout of call trace in seconds
+        type: integer
+        format: uint32
+      capture_filters:
+        description: >
+          Capture filter options for TShark as it would be typed out in shell.
+          Only applies if trace_type is GATEWAY_CUSTOM.
+        type: string
+        example: tcp and port 80
+      display_filters:
+        description: >
+          Display filter options for TShark as it would be typed out in shell.
+          Only applies if trace_type is GATEWAY_CUSTOM.
+        type: string
+        example: ip.addr == 10.0.0.1
+
+  call_trace_state:
+    type: object
+    description: Full state object of a call trace
+    properties:
+      call_trace_available:
+        description: True if the trace is available for download
+        type: boolean
+      call_trace_ending:
+        description: True if trace has been requested to end
+        type: boolean

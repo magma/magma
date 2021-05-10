@@ -261,9 +261,9 @@ func (gxClient *GxClient) createCreditControlMessage(
 		}
 	}
 
-	apn := getAPNfromConfig(globalConfig, request.Apn)
+	apn := getAPNFromConfig(globalConfig, request.Apn, request.ChargingCharacteristics)
 	if len(apn) > 0 {
-		m.NewAVP(avp.CalledStationID, avp.Mbit, 0, datatype.UTF8String(apn))
+		m.NewAVP(avp.CalledStationID, avp.Mbit, 0, apn)
 	}
 
 	if request.Type == credit_control.CRTInit {
@@ -275,8 +275,8 @@ func (gxClient *GxClient) createCreditControlMessage(
 		m.NewAVP(avp.TerminationCause, avp.Mbit, 0, datatype.Enumerated(1))
 	}
 
-	for _, avp := range additionalAVPs {
-		m.InsertAVP(avp)
+	for _, additionalAvp := range additionalAVPs {
+		m.InsertAVP(additionalAvp)
 	}
 
 	// SessionID must be the first AVP
@@ -331,7 +331,7 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 		m.NewAVP(avp.TGPPSGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID))
 	}
 	if len(request.UserLocation) > 0 {
-		m.NewAVP(avp.TGPPUserLocationInfo, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string(request.UserLocation)))
+		m.NewAVP(avp.TGPPUserLocationInfo, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(request.UserLocation))
 	}
 	if len(request.GcID) > 0 {
 		m.NewAVP(avp.AccessNetworkChargingIdentifierGx, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
@@ -377,7 +377,7 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 	}
 	if request.AccessTimezone != nil {
 		timezone := GetTimezoneByte(request.AccessTimezone)
-		m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(datatype.OctetString(string([]byte{timezone, 0}))))
+		m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString([]byte{timezone, 0}))
 	}
 }
 
@@ -430,15 +430,17 @@ func (gxClient *GxClient) getEventTriggerAVP(eventTrigger EventTrigger) *diam.AV
 	return diam.NewAVP(avp.EventTrigger, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(eventTrigger))
 }
 
-// getAPNfromConfig returns a new apn value to overwrite the one in the request based on list of regex definied in Gx config.
-// If Virtual APN config is not defined, the function returns OCSOverwriteApn instead.
-// Input: GxGlobalConfig and the APN received from the request
+// getAPNFromConfig returns a new apn value to overwrite the one in the request
+// based on list of regex definied in Gx config.
+// If Virtual APN config is not defined, the function returns OCSOverwriteApn
+// instead.
+// Input: GxGlobalConfig and the APN/CC received from the request
 // Output: Overwritten apn value
-func getAPNfromConfig(gxGlobalConfig *GxGlobalConfig, request_apn string) datatype.UTF8String {
-	apn := datatype.UTF8String(request_apn)
+func getAPNFromConfig(gxGlobalConfig *GxGlobalConfig, requestAPN, chargingCharacteristics string) datatype.UTF8String {
+	apn := datatype.UTF8String(requestAPN)
 	if gxGlobalConfig != nil {
 		if len(gxGlobalConfig.VirtualApnRules) > 0 {
-			apn = datatype.UTF8String(credit_control.MatchAndGetOverwriteApn(request_apn, gxGlobalConfig.VirtualApnRules))
+			apn = datatype.UTF8String(credit_control.MatchAndGetOverwriteApn(requestAPN, chargingCharacteristics, gxGlobalConfig.VirtualApnRules))
 		} else if len(gxGlobalConfig.PCFROverwriteApn) > 0 {
 			// OverwriteApn is deprecated transition to VirtualApnRules
 			apn = datatype.UTF8String(gxGlobalConfig.PCFROverwriteApn)
@@ -499,7 +501,7 @@ func getDefaultFramedIpv4Addr() net.IP {
 	return ipV4V6
 }
 
-// TS 23.040 Section 9.2.3.11
+// GetTimezoneByte TS 23.040 Section 9.2.3.11
 // https://osqa-ask.wireshark.org/questions/26682/3gpp-timezone-decoding-logic
 func GetTimezoneByte(timezone *protos.Timezone) byte {
 	// AVP expects time difference from UTC in increments of 15 minutes
@@ -518,5 +520,5 @@ func GetTimezoneByte(timezone *protos.Timezone) byte {
 	}
 	ones := (increments % 10) & 0x0F // range 0-9
 	encodedTimezone := byte(ones<<4 + tens)
-	return byte(encodedTimezone)
+	return encodedTimezone
 }

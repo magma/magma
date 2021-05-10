@@ -25,6 +25,12 @@
 #include "ServiceRegistrySingleton.h"
 #include "itti_msg_to_proto_msg.h"
 #include "feg/protos/s6a_proxy.pb.h"
+#include "mme_config.h"
+#include "common_defs.h"
+#include "common_utility_funs.h"
+extern "C" {
+#include "log.h"
+}
 
 namespace grpc {
 class Status;
@@ -88,17 +94,24 @@ static bool read_mme_cloud_subscriberdb_enabled(void) {
   return mconfig.cloud_subscriberdb_enabled();
 }
 
-S6aClient& S6aClient::get_instance() {
-  static S6aClient client_instance;
-  return client_instance;
+S6aClient& S6aClient::get_s6a_proxy_instance() {
+  static S6aClient s6a_proxy_instance(true);
+  return s6a_proxy_instance;
 }
 
-S6aClient::S6aClient() {
-  // Create channel based on relay_enabled and cloud_subscriberdb_enabled
-  // flags. If relay_enabled is true, then create a channel towards the FeG.
+S6aClient& S6aClient::get_subdb_instance() {
+  static S6aClient subdb_instance(false);
+  return subdb_instance;
+}
+S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
+  // Create channel based on relay_enabled, enable_s6a_proxy_channel and
+  // cloud_subscriberdb_enabled flags.
+  // If relay_enabled is true and enable_s6a_proxy_channel is true i.e federated
+  // mode is SPGW_SUBSCRIBER or S8_SUBSCRIBER,
+  // then create a channel towards the FeG.
   // Otherwise, create a channel towards either local or cloud-based
   // subscriberdb.
-  if (get_s6a_relay_enabled() == true) {
+  if ((get_s6a_relay_enabled() == true) && (enable_s6a_proxy_channel)) {
     auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
         "s6a_proxy", ServiceRegistrySingleton::CLOUD);
     // Create stub for S6aProxy gRPC service
@@ -116,7 +129,19 @@ S6aClient::S6aClient() {
 
 void S6aClient::purge_ue(
     const char* imsi, std::function<void(Status, PurgeUEAnswer)> callbk) {
-  S6aClient& client = get_instance();
+  S6aClient* client_tmp;
+  int fed_mode = match_fed_mode_map(imsi, LOG_S6A);
+  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
+      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
+    client_tmp = &get_s6a_proxy_instance();
+  } else if (
+      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
+    client_tmp = &get_subdb_instance();
+  } else {
+    return;
+  }
+
+  S6aClient& client = *client_tmp;
 
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
@@ -140,7 +165,19 @@ void S6aClient::purge_ue(
 void S6aClient::authentication_info_req(
     const s6a_auth_info_req_t* const msg,
     std::function<void(Status, feg::AuthenticationInformationAnswer)> callbk) {
-  S6aClient& client = get_instance();
+  S6aClient* client_tmp;
+  int fed_mode = match_fed_mode_map(msg->imsi, LOG_S6A);
+  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
+      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
+    client_tmp = &get_s6a_proxy_instance();
+  } else if (
+      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
+    client_tmp = &get_subdb_instance();
+  } else {
+    return;
+  }
+
+  S6aClient& client = *client_tmp;
   AuthenticationInformationRequest proto_msg =
       convert_itti_s6a_authentication_info_req_to_proto_msg(msg);
   // Create a raw response pointer that stores a callback to be called when the
@@ -164,7 +201,19 @@ void S6aClient::authentication_info_req(
 void S6aClient::update_location_request(
     const s6a_update_location_req_t* const msg,
     std::function<void(Status, feg::UpdateLocationAnswer)> callbk) {
-  S6aClient& client = get_instance();
+  S6aClient* client_tmp;
+  int fed_mode = match_fed_mode_map(msg->imsi, LOG_S6A);
+  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
+      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
+    client_tmp = &get_s6a_proxy_instance();
+  } else if (
+      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
+    client_tmp = &get_subdb_instance();
+  } else {
+    return;
+  }
+
+  S6aClient& client = *client_tmp;
   UpdateLocationRequest proto_msg =
       convert_itti_s6a_update_location_request_to_proto_msg(msg);
   // Create a raw response pointer that stores a callback to be called when the

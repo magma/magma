@@ -13,10 +13,10 @@ limitations under the License.
 
 import asyncio
 from typing import Any
-from .metrics import SERVICE_ERRORS
-from .log_count_handler import MsgCounterHandler
-from magma.common.job import Job
 
+from magma.common.job import Job
+from magma.common.log_count_handler import MsgCounterHandler
+from magma.common.metrics import SERVICE_ERRORS
 
 # How frequently to poll systemd for error logs, in seconds
 POLL_INTERVAL = 10

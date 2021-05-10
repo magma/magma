@@ -81,13 +81,13 @@ func makeCCRInit(
 			request.Imei = lteContext.GetImei()
 			request.PlmnID = lteContext.GetPlmnId()
 			request.UserLocation = lteContext.GetUserLocation()
+			request.ChargingCharacteristics = lteContext.GetChargingCharacteristics()
 			if lteContext.GetQosInfo() != nil {
 				request.Qos = &gy.QosRequestInfo{
 					ApnAggMaxBitRateDL: lteContext.GetQosInfo().GetApnAmbrDl(),
 					ApnAggMaxBitRateUL: lteContext.GetQosInfo().GetApnAmbrUl(),
 				}
 			}
-			break
 		}
 	} else {
 		glog.Warning("No RatSpecificContext is specified")
@@ -344,29 +344,7 @@ func getSingleChargingCreditFromCCA(
 func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.CreditControlRequest {
 	requests := []*gy.CreditControlRequest{}
 	for _, update := range updates {
-		requests = append(requests, &gy.CreditControlRequest{
-			SessionID:     update.SessionId,
-			RequestNumber: update.RequestNumber,
-			IMSI:          credit_control.RemoveIMSIPrefix(update.Sid),
-			Msisdn:        update.Msisdn,
-			UeIPV4:        update.UeIpv4,
-			SpgwIPV4:      update.SpgwIpv4,
-			Apn:           update.Apn,
-			Imei:          update.Imei,
-			PlmnID:        update.PlmnId,
-			UserLocation:  update.UserLocation,
-			Type:          credit_control.CRTUpdate,
-			Credits: []*gy.UsedCredits{&gy.UsedCredits{
-				RatingGroup:    update.Usage.ChargingKey,
-				InputOctets:    update.Usage.BytesTx, // transmit == input
-				OutputOctets:   update.Usage.BytesRx, // receive == output
-				TotalOctets:    update.Usage.BytesTx + update.Usage.BytesRx,
-				Type:           gy.UsedCreditsType(update.Usage.Type),
-				RequestedUnits: update.Usage.GetRequestedUnits(),
-			}},
-			RatType: gy.GetRATType(update.GetRatType()),
-			TgppCtx: update.GetTgppCtx(),
-		})
+		requests = append(requests, (&gy.CreditControlRequest{}).FromCreditUsageUpdate(update))
 	}
 	return requests
 }
@@ -377,21 +355,23 @@ func getTerminateRequestFromUsage(termination *protos.SessionTerminateRequest) *
 	for _, usage := range termination.CreditUsages {
 		usedCredits = append(usedCredits, (&gy.UsedCredits{}).FromCreditUsage(usage))
 	}
+	common := termination.GetCommonContext()
 	return &gy.CreditControlRequest{
-		SessionID:     termination.SessionId,
-		IMSI:          credit_control.RemoveIMSIPrefix(termination.Sid),
-		Apn:           termination.Apn,
-		RequestNumber: termination.RequestNumber,
-		Credits:       usedCredits,
-		UeIPV4:        termination.UeIpv4,
-		Msisdn:        termination.Msisdn,
-		SpgwIPV4:      termination.SpgwIpv4,
-		Imei:          termination.Imei,
-		PlmnID:        termination.PlmnId,
-		UserLocation:  termination.UserLocation,
-		Type:          credit_control.CRTTerminate,
-		RatType:       gy.GetRATType(termination.GetRatType()),
-		TgppCtx:       termination.GetTgppCtx(),
+		SessionID:               termination.SessionId,
+		IMSI:                    credit_control.RemoveIMSIPrefix(common.GetSid().GetId()),
+		Apn:                     common.GetApn(),
+		RequestNumber:           termination.RequestNumber,
+		Credits:                 usedCredits,
+		UeIPV4:                  common.GetUeIpv4(),
+		Msisdn:                  common.GetMsisdn(),
+		SpgwIPV4:                termination.SpgwIpv4,
+		Imei:                    termination.Imei,
+		PlmnID:                  termination.PlmnId,
+		UserLocation:            termination.UserLocation,
+		Type:                    credit_control.CRTTerminate,
+		RatType:                 gy.GetRATType(common.GetRatType()),
+		TgppCtx:                 termination.GetTgppCtx(),
+		ChargingCharacteristics: termination.ChargingCharacteristics,
 	}
 }
 

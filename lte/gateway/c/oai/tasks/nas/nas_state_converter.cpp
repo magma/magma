@@ -34,7 +34,19 @@ NasStateConverter::~NasStateConverter() = default;
 
 void NasStateConverter::proto_to_guti(
     const oai::Guti& guti_proto, guti_t* state_guti) {
-  memcpy(&state_guti->gummei.plmn, (guti_proto.plmn()).c_str(), sizeof(plmn_t));
+  state_guti->gummei.plmn.mcc_digit1 =
+      ((int) guti_proto.plmn()[0]) - ASCII_ZERO;
+  state_guti->gummei.plmn.mcc_digit2 =
+      ((int) guti_proto.plmn()[1]) - ASCII_ZERO;
+  state_guti->gummei.plmn.mcc_digit3 =
+      ((int) guti_proto.plmn()[2]) - ASCII_ZERO;
+  state_guti->gummei.plmn.mnc_digit1 =
+      ((int) guti_proto.plmn()[3]) - ASCII_ZERO;
+  state_guti->gummei.plmn.mnc_digit2 =
+      ((int) guti_proto.plmn()[4]) - ASCII_ZERO;
+  state_guti->gummei.plmn.mnc_digit3 =
+      ((int) guti_proto.plmn()[5]) - ASCII_ZERO;
+
   state_guti->gummei.mme_gid  = guti_proto.mme_gid();
   state_guti->gummei.mme_code = guti_proto.mme_code();
   state_guti->m_tmsi          = (tmsi_t) guti_proto.m_tmsi();
@@ -42,7 +54,13 @@ void NasStateConverter::proto_to_guti(
 
 void NasStateConverter::proto_to_ecgi(
     const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi) {
-  strcpy((char*) &state_ecgi->plmn, ecgi_proto.plmn().c_str());
+  state_ecgi->plmn.mcc_digit1 = (int) (ecgi_proto.plmn()[0]) - ASCII_ZERO;
+  state_ecgi->plmn.mcc_digit2 = (int) (ecgi_proto.plmn()[1]) - ASCII_ZERO;
+  state_ecgi->plmn.mcc_digit3 = (int) (ecgi_proto.plmn()[2]) - ASCII_ZERO;
+  state_ecgi->plmn.mnc_digit1 = (int) (ecgi_proto.plmn()[3]) - ASCII_ZERO;
+  state_ecgi->plmn.mnc_digit2 = (int) (ecgi_proto.plmn()[4]) - ASCII_ZERO;
+  state_ecgi->plmn.mnc_digit3 = (int) (ecgi_proto.plmn()[5]) - ASCII_ZERO;
+
   state_ecgi->cell_identity.enb_id  = ecgi_proto.enb_id();
   state_ecgi->cell_identity.cell_id = ecgi_proto.cell_id();
   state_ecgi->cell_identity.empty   = ecgi_proto.empty();
@@ -298,6 +316,40 @@ void NasStateConverter::proto_to_protocol_configuration_options(
       state_protocol_configuration_options);
 }
 
+void NasStateConverter::esm_ebr_timer_data_to_proto(
+    const esm_ebr_timer_data_t& state_esm_ebr_timer_data,
+    oai::EsmEbrTimerData* proto_esm_ebr_timer_data) {
+  OAILOG_FUNC_IN(LOG_NAS_ESM);
+  proto_esm_ebr_timer_data->set_ue_id(state_esm_ebr_timer_data.ue_id);
+  proto_esm_ebr_timer_data->set_ebi(state_esm_ebr_timer_data.ebi);
+  proto_esm_ebr_timer_data->set_count(state_esm_ebr_timer_data.count);
+  if (state_esm_ebr_timer_data.msg) {
+    BSTRING_TO_STRING(
+        state_esm_ebr_timer_data.msg,
+        proto_esm_ebr_timer_data->mutable_esm_msg());
+  }
+  OAILOG_FUNC_OUT(LOG_NAS_ESM);
+}
+
+void NasStateConverter::proto_to_esm_ebr_timer_data(
+    const oai::EsmEbrTimerData& proto_esm_ebr_timer_data,
+    esm_ebr_timer_data_t** state_esm_ebr_timer_data) {
+  OAILOG_FUNC_IN(LOG_NAS_ESM);
+  *state_esm_ebr_timer_data =
+      (esm_ebr_timer_data_t*) calloc(1, sizeof(esm_ebr_timer_data_t));
+  if (*state_esm_ebr_timer_data) {
+    (*state_esm_ebr_timer_data)->ue_id = proto_esm_ebr_timer_data.ue_id();
+    (*state_esm_ebr_timer_data)->ebi   = proto_esm_ebr_timer_data.ebi();
+    (*state_esm_ebr_timer_data)->count = proto_esm_ebr_timer_data.count();
+    if (!proto_esm_ebr_timer_data.esm_msg().empty()) {
+      (*state_esm_ebr_timer_data)->msg = bfromcstr_with_str_len(
+          proto_esm_ebr_timer_data.esm_msg().c_str(),
+          proto_esm_ebr_timer_data.esm_msg().length());
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_NAS_ESM);
+}
+
 void NasStateConverter::esm_proc_data_to_proto(
     const esm_proc_data_t* state_esm_proc_data,
     oai::EsmProcData* esm_proc_data_proto) {
@@ -355,8 +407,6 @@ void NasStateConverter::esm_context_to_proto(
         state_esm_context->esm_proc_data,
         esm_context_proto->mutable_esm_proc_data());
   }
-  nas_timer_to_proto(
-      state_esm_context->T3489, esm_context_proto->mutable_t3489());
 }
 
 void NasStateConverter::proto_to_esm_context(
@@ -371,7 +421,6 @@ void NasStateConverter::proto_to_esm_context(
     proto_to_esm_proc_data(
         esm_context_proto.esm_proc_data(), state_esm_context->esm_proc_data);
   }
-  proto_to_nas_timer(esm_context_proto.t3489(), &state_esm_context->T3489);
 }
 
 void NasStateConverter::esm_ebr_context_to_proto(
@@ -389,8 +438,11 @@ void NasStateConverter::esm_ebr_context_to_proto(
     protocol_configuration_options_to_proto(
         *state_esm_ebr_context.pco, esm_ebr_context_proto->mutable_pco());
   }
-  nas_timer_to_proto(
-      state_esm_ebr_context.timer, esm_ebr_context_proto->mutable_timer());
+  if (state_esm_ebr_context.args != nullptr) {
+    esm_ebr_timer_data_to_proto(
+        *state_esm_ebr_context.args,
+        esm_ebr_context_proto->mutable_esm_ebr_timer_data());
+  }
 }
 
 void NasStateConverter::proto_to_esm_ebr_context(
@@ -408,25 +460,16 @@ void NasStateConverter::proto_to_esm_ebr_context(
     proto_to_protocol_configuration_options(
         esm_ebr_context_proto.pco(), state_esm_ebr_context->pco);
   }
-  proto_to_nas_timer(
-      esm_ebr_context_proto.timer(), &state_esm_ebr_context->timer);
+  if (esm_ebr_context_proto.has_esm_ebr_timer_data()) {
+    proto_to_esm_ebr_timer_data(
+        esm_ebr_context_proto.esm_ebr_timer_data(),
+        &state_esm_ebr_context->args);
+  }
 }
 
 /*************************************************/
 /*        EMM State <-> Proto                  */
 /*************************************************/
-void NasStateConverter::nas_timer_to_proto(
-    const nas_timer_t& state_nas_timer, oai::Timer* timer_proto) {
-  timer_proto->set_id(state_nas_timer.id);
-  timer_proto->set_sec(state_nas_timer.sec);
-}
-
-void NasStateConverter::proto_to_nas_timer(
-    const oai::Timer& timer_proto, nas_timer_t* state_nas_timer) {
-  state_nas_timer->id  = timer_proto.id();
-  state_nas_timer->sec = timer_proto.sec();
-}
-
 void NasStateConverter::ue_network_capability_to_proto(
     const ue_network_capability_t* state_ue_network_capability,
     oai::UeNetworkCapability* ue_network_capability_proto) {
@@ -435,36 +478,86 @@ void NasStateConverter::ue_network_capability_to_proto(
   ue_network_capability_proto->set_uea(state_ue_network_capability->uea);
   ue_network_capability_proto->set_ucs2(state_ue_network_capability->ucs2);
   ue_network_capability_proto->set_uia(state_ue_network_capability->uia);
-  ue_network_capability_proto->set_spare(state_ue_network_capability->spare);
+  ue_network_capability_proto->set_prosedd(
+      state_ue_network_capability->prosedd);
+  ue_network_capability_proto->set_prose(state_ue_network_capability->prose);
+  ue_network_capability_proto->set_h245ash(
+      state_ue_network_capability->h245ash);
   ue_network_capability_proto->set_csfb(state_ue_network_capability->csfb);
   ue_network_capability_proto->set_lpp(state_ue_network_capability->lpp);
   ue_network_capability_proto->set_lcs(state_ue_network_capability->lcs);
   ue_network_capability_proto->set_srvcc(state_ue_network_capability->srvcc);
   ue_network_capability_proto->set_nf(state_ue_network_capability->nf);
+  ue_network_capability_proto->set_epco(state_ue_network_capability->epco);
+  ue_network_capability_proto->set_hccpciot(
+      state_ue_network_capability->hccpciot);
+  ue_network_capability_proto->set_erwfopdn(
+      state_ue_network_capability->erwfopdn);
+  ue_network_capability_proto->set_s1udata(
+      state_ue_network_capability->s1udata);
+  ue_network_capability_proto->set_upciot(state_ue_network_capability->upciot);
+  ue_network_capability_proto->set_cpciot(state_ue_network_capability->cpciot);
+  ue_network_capability_proto->set_proserelay(
+      state_ue_network_capability->proserelay);
+  ue_network_capability_proto->set_prosedc(
+      state_ue_network_capability->prosedc);
+  ue_network_capability_proto->set_bearer(state_ue_network_capability->bearer);
+  ue_network_capability_proto->set_sgc(state_ue_network_capability->sgc);
+  ue_network_capability_proto->set_n1mod(state_ue_network_capability->n1mod);
+  ue_network_capability_proto->set_dcnr(state_ue_network_capability->dcnr);
+  ue_network_capability_proto->set_cpbackoff(
+      state_ue_network_capability->cpbackoff);
+  ue_network_capability_proto->set_restrictec(
+      state_ue_network_capability->restrictec);
+  ue_network_capability_proto->set_v2xpc5(state_ue_network_capability->v2xpc5);
+  ue_network_capability_proto->set_multipledrb(
+      state_ue_network_capability->multipledrb);
   ue_network_capability_proto->set_umts_present(
       state_ue_network_capability->umts_present);
-  ue_network_capability_proto->set_misc_present(
-      state_ue_network_capability->misc_present);
+  ue_network_capability_proto->set_length(state_ue_network_capability->length);
 }
 
 void NasStateConverter::proto_to_ue_network_capability(
     const oai::UeNetworkCapability& ue_network_capability_proto,
     ue_network_capability_t* state_ue_network_capability) {
-  state_ue_network_capability->eea   = ue_network_capability_proto.eea();
-  state_ue_network_capability->eia   = ue_network_capability_proto.eia();
-  state_ue_network_capability->uea   = ue_network_capability_proto.uea();
-  state_ue_network_capability->ucs2  = ue_network_capability_proto.ucs2();
-  state_ue_network_capability->uia   = ue_network_capability_proto.uia();
-  state_ue_network_capability->spare = ue_network_capability_proto.spare();
-  state_ue_network_capability->csfb  = ue_network_capability_proto.csfb();
-  state_ue_network_capability->lpp   = ue_network_capability_proto.lpp();
-  state_ue_network_capability->lcs   = ue_network_capability_proto.lcs();
-  state_ue_network_capability->srvcc = ue_network_capability_proto.srvcc();
-  state_ue_network_capability->nf    = ue_network_capability_proto.nf();
+  state_ue_network_capability->eea     = ue_network_capability_proto.eea();
+  state_ue_network_capability->eia     = ue_network_capability_proto.eia();
+  state_ue_network_capability->uea     = ue_network_capability_proto.uea();
+  state_ue_network_capability->ucs2    = ue_network_capability_proto.ucs2();
+  state_ue_network_capability->uia     = ue_network_capability_proto.uia();
+  state_ue_network_capability->prosedd = ue_network_capability_proto.prosedd();
+  state_ue_network_capability->prose   = ue_network_capability_proto.prose();
+  state_ue_network_capability->h245ash = ue_network_capability_proto.h245ash();
+  state_ue_network_capability->csfb    = ue_network_capability_proto.csfb();
+  state_ue_network_capability->lpp     = ue_network_capability_proto.lpp();
+  state_ue_network_capability->lcs     = ue_network_capability_proto.lcs();
+  state_ue_network_capability->srvcc   = ue_network_capability_proto.srvcc();
+  state_ue_network_capability->nf      = ue_network_capability_proto.nf();
+  state_ue_network_capability->epco    = ue_network_capability_proto.epco();
+  state_ue_network_capability->hccpciot =
+      ue_network_capability_proto.hccpciot();
+  state_ue_network_capability->erwfopdn =
+      ue_network_capability_proto.erwfopdn();
+  state_ue_network_capability->s1udata = ue_network_capability_proto.s1udata();
+  state_ue_network_capability->upciot  = ue_network_capability_proto.upciot();
+  state_ue_network_capability->cpciot  = ue_network_capability_proto.cpciot();
+  state_ue_network_capability->proserelay =
+      ue_network_capability_proto.proserelay();
+  state_ue_network_capability->prosedc = ue_network_capability_proto.prosedc();
+  state_ue_network_capability->bearer  = ue_network_capability_proto.bearer();
+  state_ue_network_capability->sgc     = ue_network_capability_proto.sgc();
+  state_ue_network_capability->n1mod   = ue_network_capability_proto.n1mod();
+  state_ue_network_capability->dcnr    = ue_network_capability_proto.dcnr();
+  state_ue_network_capability->cpbackoff =
+      ue_network_capability_proto.cpbackoff();
+  state_ue_network_capability->restrictec =
+      ue_network_capability_proto.restrictec();
+  state_ue_network_capability->v2xpc5 = ue_network_capability_proto.v2xpc5();
+  state_ue_network_capability->multipledrb =
+      ue_network_capability_proto.multipledrb();
   state_ue_network_capability->umts_present =
       ue_network_capability_proto.umts_present();
-  state_ue_network_capability->misc_present =
-      ue_network_capability_proto.misc_present();
+  state_ue_network_capability->length = ue_network_capability_proto.length();
 }
 
 void NasStateConverter::classmark2_to_proto(
@@ -687,8 +780,6 @@ void NasStateConverter::nas_attach_proc_to_proto(
   attach_proc_proto->set_ue_id(state_nas_attach_proc->ue_id);
   attach_proc_proto->set_ksi(state_nas_attach_proc->ksi);
   attach_proc_proto->set_emm_cause(state_nas_attach_proc->emm_cause);
-  nas_timer_to_proto(
-      state_nas_attach_proc->T3450, attach_proc_proto->mutable_t3450());
 }
 
 void NasStateConverter::proto_to_nas_emm_attach_proc(
@@ -720,8 +811,7 @@ void NasStateConverter::proto_to_nas_emm_attach_proc(
   state_nas_emm_attach_proc->ue_id     = attach_proc_proto.ue_id();
   state_nas_emm_attach_proc->ksi       = attach_proc_proto.ksi();
   state_nas_emm_attach_proc->emm_cause = attach_proc_proto.emm_cause();
-  proto_to_nas_timer(
-      attach_proc_proto.t3450(), &state_nas_emm_attach_proc->T3450);
+  state_nas_emm_attach_proc->T3450.sec = T3450_DEFAULT_VALUE;
   set_callbacks_for_attach_proc(state_nas_emm_attach_proc);
 }
 
@@ -823,8 +913,6 @@ void NasStateConverter::nas_emm_auth_proc_to_proto(
         auth_proc_proto->mutable_unchecked_imsi(), IMSI_BCD8_SIZE);
   }
   auth_proc_proto->set_emm_cause(state_nas_emm_auth_proc->emm_cause);
-  nas_timer_to_proto(
-      state_nas_emm_auth_proc->T3460, auth_proc_proto->mutable_t3460());
 }
 
 void NasStateConverter::proto_to_nas_emm_auth_proc(
@@ -860,7 +948,7 @@ void NasStateConverter::proto_to_nas_emm_auth_proc(
   }
 
   state_nas_emm_auth_proc->emm_cause = auth_proc_proto.emm_cause();
-  proto_to_nas_timer(auth_proc_proto.t3460(), &state_nas_emm_auth_proc->T3460);
+  state_nas_emm_auth_proc->T3460.sec = T3460_DEFAULT_VALUE;
   // update callback functions for auth proc
   set_callbacks_for_auth_proc(state_nas_emm_auth_proc);
   set_notif_callbacks_for_auth_proc(state_nas_emm_auth_proc);
@@ -1036,8 +1124,11 @@ void NasStateConverter::proto_to_emm_specific_proc(
   switch (proto_emm_proc_with_type.MessageTypes_case()) {
     case oai::NasEmmProcWithType::kAttachProc: {
       OAILOG_DEBUG(LOG_MME_APP, "Reading attach proc from proto");
-      state_emm_procedures->emm_specific_proc =
-          (nas_emm_specific_proc_t*) calloc(1, sizeof(nas_emm_attach_proc_t));
+      state_emm_procedures
+          ->emm_specific_proc = (nas_emm_specific_proc_t*) calloc(
+          1,
+          sizeof(
+              nas_emm_attach_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
       nas_emm_attach_proc_t* attach_proc =
           (nas_emm_attach_proc_t*) state_emm_procedures->emm_specific_proc;
 
@@ -1050,8 +1141,11 @@ void NasStateConverter::proto_to_emm_specific_proc(
       break;
     }
     case oai::NasEmmProcWithType::kDetachProc: {
-      state_emm_procedures->emm_specific_proc =
-          (nas_emm_specific_proc_t*) calloc(1, sizeof(nas_emm_detach_proc_t));
+      state_emm_procedures
+          ->emm_specific_proc = (nas_emm_specific_proc_t*) calloc(
+          1,
+          sizeof(
+              nas_emm_detach_proc_t));  // NOLINT(clang-analyzer-unix.MallocSizeof)
       nas_emm_detach_proc_t* detach_proc =
           (nas_emm_detach_proc_t*) state_emm_procedures->emm_specific_proc;
       // read the emm proc content
@@ -1210,9 +1304,6 @@ void NasStateConverter::nas_auth_info_proc_to_proto(
       state_nas_auth_info_proc->vector, state_nas_auth_info_proc->nb_vectors,
       auth_info_proc_proto);
   auth_info_proc_proto->set_nas_cause(state_nas_auth_info_proc->nas_cause);
-  nas_timer_to_proto(
-      state_nas_auth_info_proc->timer_s6a,
-      auth_info_proc_proto->mutable_timer_s6a());
   auth_info_proc_proto->set_ue_id(state_nas_auth_info_proc->ue_id);
   auth_info_proc_proto->set_resync(state_nas_auth_info_proc->resync);
 }
@@ -1225,8 +1316,6 @@ void NasStateConverter::proto_to_nas_auth_info_proc(
   state_nas_auth_info_proc->nas_cause = auth_info_proc_proto.nas_cause();
   state_nas_auth_info_proc->ue_id     = auth_info_proc_proto.ue_id();
   state_nas_auth_info_proc->resync    = auth_info_proc_proto.resync();
-  proto_to_nas_timer(
-      auth_info_proc_proto.timer_s6a(), &state_nas_auth_info_proc->timer_s6a);
   // update success_notif and failure_notif
   set_callbacks_for_auth_info_proc(state_nas_auth_info_proc);
 }
@@ -1608,6 +1697,11 @@ void NasStateConverter::emm_context_to_proto(
         (nw_detach_data_t*) state_emm_context->t3422_arg,
         emm_context_proto->mutable_nw_detach_data());
   }
+  if (state_emm_context->new_attach_info) {
+    new_attach_info_to_proto(
+        state_emm_context->new_attach_info,
+        emm_context_proto->mutable_new_attach_info());
+  }
 }
 
 void NasStateConverter::proto_to_emm_context(
@@ -1691,6 +1785,45 @@ void NasStateConverter::proto_to_emm_context(
         emm_context_proto.nw_detach_data(),
         (nw_detach_data_t**) &state_emm_context->t3422_arg);
   }
+  if (emm_context_proto.has_new_attach_info()) {
+    state_emm_context->new_attach_info =
+        (new_attach_info_t*) calloc(1, sizeof(new_attach_info_t));
+    proto_to_new_attach_info(
+        emm_context_proto.new_attach_info(),
+        state_emm_context->new_attach_info);
+  }
+}
+
+void NasStateConverter::new_attach_info_to_proto(
+    const new_attach_info_t* state_new_attach_info,
+    oai::NewAttachInfo* proto_new_attach_info) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  proto_new_attach_info->set_mme_ue_s1ap_id(
+      state_new_attach_info->mme_ue_s1ap_id);
+  proto_new_attach_info->set_is_mm_ctx_new(
+      state_new_attach_info->is_mm_ctx_new);
+
+  if (state_new_attach_info->ies) {
+    emm_attach_request_ies_to_proto(
+        state_new_attach_info->ies, proto_new_attach_info->mutable_ies());
+  }
+  OAILOG_FUNC_OUT(LOG_NAS_EMM);
+}
+
+void NasStateConverter::proto_to_new_attach_info(
+    const oai::NewAttachInfo& proto_new_attach_info,
+    new_attach_info_t* state_new_attach_info) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  state_new_attach_info->mme_ue_s1ap_id =
+      proto_new_attach_info.mme_ue_s1ap_id();
+  state_new_attach_info->is_mm_ctx_new = proto_new_attach_info.is_mm_ctx_new();
+  if (proto_new_attach_info.has_ies()) {
+    state_new_attach_info->ies = (emm_attach_request_ies_t*) calloc(
+        1, sizeof(*(state_new_attach_info->ies)));
+    proto_to_emm_attach_request_ies(
+        proto_new_attach_info.ies(), state_new_attach_info->ies);
+  }
+  OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
 
 }  // namespace lte

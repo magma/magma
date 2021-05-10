@@ -1,0 +1,100 @@
+#!/bin/groovy
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this
+ * source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+
+def GIT_URL = "github.com/magma/magma"
+
+def GIT_BRANCH = "master"
+def GIT_COMMIT
+def GITHUB_USER = "magmabot"
+def REPO = "magma/magma"
+
+// Location of the executor node
+def nodeExecutor = params.nodeExecutor
+def slack_channel = "#magma-ci-bot"
+
+def changedFiles
+def hasLteChanges
+def hasCwagChanges
+
+pipeline {
+  agent {
+    label "CWAG"
+  }
+  options {
+    timestamps()
+    ansiColor('xterm')
+  }
+
+  stages {
+    stage ("Retrieve and Prepare Source Code") {
+      steps {
+        script {
+            cleanWs()
+            checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: 'master', name: '${sha1}']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
+            GIT_COMMIT = sh returnStdout: true, script: 'git log -1 --pretty="%H"'
+        }
+      }
+      post {
+        failure {
+          script {
+            def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): Merge Conflicts -- Cannot perform CI"
+            echo message
+            currentBuild.result = 'FAILURE'
+          }
+        }
+      }
+    }
+    stage ("Check for changes") {
+        steps {
+            script {
+                changedFiles = sh(returnStdout: true, script: "git --no-pager diff --name-only HEAD `git merge-base HEAD origin/master`")
+                hasLteChanges = changedFiles.split().any { it.startsWith("lte/")}
+                hasCwagChanges = changedFiles.split().any { it.startsWith("cwf/")}
+                echo "Changed files: $changedFiles"
+                echo "Has LTE: $hasLteChanges"
+                echo "Has CWAG: $hasCwagChanges"
+            }
+        }
+    }
+    stage ("Apply labels") {
+        steps {
+            script {
+                withCredentials([string(credentialsId: 'magma_bot_github_api_token', variable: 'TOKEN')]) {
+                    if (hasLteChanges) {
+                        sh("""curl --user "${GITHUB_USER}:${TOKEN}" \
+                           -X POST   -H "Accept: application/vnd.github.v3+json" \
+                           https://api.github.com/repos/${REPO}/issues/${params.ghprbPullId}/labels \
+                           --data '{"labels": ["component: agw"]}' """)
+                        echo "Applied component: agw label"
+                    }
+                    if (hasCwagChanges) {
+                       sh("""curl --user "${GITHUB_USER}:${TOKEN}" \
+                          -X POST   -H "Accept: application/vnd.github.v3+json" \
+                          https://api.github.com/repos/${REPO}/issues/${params.ghprbPullId}/labels \
+                          --data '{"labels": ["component: cwag"]}' """)
+                        echo "Applied component: cwag label"
+                    }
+                }
+            }
+        }
+    }
+  }
+}
+

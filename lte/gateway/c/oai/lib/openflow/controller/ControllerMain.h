@@ -17,6 +17,9 @@
 
 #pragma once
 
+#include <stdbool.h>
+#include "gtpv1u.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -50,6 +53,16 @@ int openflow_controller_forward_data_on_tunnel(
 int openflow_controller_add_paging_rule(struct in_addr ue_ip);
 
 int openflow_controller_delete_paging_rule(struct in_addr ue_ip);
+
+int openflow_controller_add_gtp_s8_tunnel(
+    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
+    struct in_addr pgw, uint32_t i_tei, uint32_t o_tei, uint32_t pgw_i_tei,
+    uint32_t pgw_o_tei, const char* imsi, struct ip_flow_dl* flow_dl,
+    uint32_t flow_precedence_dl, uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
+
+int openflow_controller_del_gtp_s8_tunnel(
+    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
+    struct ip_flow_dl* flow_dl, uint32_t enb_gtp_port, uint32_t pgw_gtp_port);
 
 #ifdef __cplusplus
 }

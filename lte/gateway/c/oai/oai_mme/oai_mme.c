@@ -31,17 +31,21 @@
 #include "assertions.h"
 #include "log.h"
 #include "mme_config.h"
+#include "amf_config.h"
 #include "shared_ts_log.h"
+#include "sentry_wrapper.h"
 #include "common_defs.h"
 
 #include "intertask_interface_init.h"
 #include "sctp_primitives_server.h"
 #include "s1ap_mme.h"
+#include "ngap_amf.h"
 #include "mme_app_extern.h"
 /* FreeDiameter headers for support of S6A interface */
 #include "s6a_defs.h"
 #include "sgs_defs.h"
 #include "sms_orc8r_defs.h"
+#include "ha_defs.h"
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
@@ -52,12 +56,14 @@
 #include "mme_app_embedded_spgw.h"
 #include "spgw_config.h"
 #include "sgw_defs.h"
+#include "sgw_s8_defs.h"
 #endif
 #include "udp_primitives_server.h"
 #include "s11_mme.h"
 #include "service303.h"
 #include "shared_ts_log.h"
 #include "grpc_service.h"
+#include "timer.h"
 
 static void send_timer_recovery_message(void);
 
@@ -66,12 +72,15 @@ task_zmq_ctx_t main_zmq_ctx;
 static int main_init(void) {
   // Initialize main thread ZMQ context
   // We dont use the PULL socket nor the ZMQ loop
+  // Don't include optional services such as CSFB, SMS, HA
+  // into target task list (i.e., they will not receive any
+  // broadcast messages or timer messages)
   init_task_context(
       TASK_MAIN,
       (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
-                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP,
+                    TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP, TASK_SGW_S8,
                     TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
-      10, NULL, &main_zmq_ctx);
+      11, NULL, &main_zmq_ctx);
 
   return RETURNok;
 }
@@ -90,6 +99,10 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(itti_init(
       TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
       NULL));
+  CHECK_INIT_RETURN(timer_init());
+  // Could not be launched before ITTI initialization
+  shared_log_itti_connect();
+  OAILOG_ITTI_CONNECT();
   CHECK_INIT_RETURN(main_init());
 
   /*
@@ -109,6 +122,10 @@ int main(int argc, char* argv[]) {
   }
   free_wrapper((void**) &pid_file_name);
 
+  // Initialize Sentry error collection (Currently only supported on
+  // Ubuntu 20.04)
+  initialize_sentry();
+
   /*
    * Calling each layer init function
    */
@@ -122,11 +139,16 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(sctp_init(&mme_config));
 #if EMBEDDED_SGW
   CHECK_INIT_RETURN(spgw_app_init(&spgw_config, mme_config.use_stateless));
+  CHECK_INIT_RETURN(sgw_s8_init(&spgw_config.sgw_config));
 #else
   CHECK_INIT_RETURN(udp_init());
   CHECK_INIT_RETURN(s11_mme_init(&mme_config));
 #endif
   CHECK_INIT_RETURN(s1ap_mme_init(&mme_config));
+
+  if (mme_config.enable_converged_core) {
+    CHECK_INIT_RETURN(ngap_amf_init(&amf_config));
+  }
   CHECK_INIT_RETURN(s6a_init(&mme_config));
 
   // Create SGS Task only if non_eps_service_control is not set to OFF
@@ -140,6 +162,9 @@ int main(int argc, char* argv[]) {
     OAILOG_DEBUG(LOG_MME_APP, "SMS_ORC8R Task initialized\n");
   }
   CHECK_INIT_RETURN(grpc_service_init());
+  if (mme_config.use_ha) {
+    CHECK_INIT_RETURN(ha_init(&mme_config));
+  }
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
 #if EMBEDDED_SGW
@@ -159,7 +184,7 @@ int main(int argc, char* argv[]) {
 #if EMBEDDED_SGW
   free_spgw_config(&spgw_config);
 #endif
-
+  shutdown_sentry();
   main_exit();
   pid_file_unlock();
 

@@ -73,14 +73,6 @@ type entStorage struct {
 	*ent.Tx
 }
 
-func (e *entStorage) ListKeys(networkID string, typ string) ([]string, error) {
-	ctx := context.Background()
-	return e.Blob.Query().
-		Where(blob.NetworkID(networkID), blob.Type(typ)).
-		Select(blob.FieldKey).
-		Strings(ctx)
-}
-
 func (e *entStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) {
 	blobs, err := e.GetMany(networkID, []storage.TypeAndKey{id})
 	if err != nil {
@@ -92,9 +84,9 @@ func (e *entStorage) Get(networkID string, id storage.TypeAndKey) (Blob, error) 
 	return blobs[0], nil
 }
 
-func (e *entStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob, error) {
+func (e *entStorage) GetMany(networkID string, ids []storage.TypeAndKey) (Blobs, error) {
 	ctx := context.Background()
-	var blobs []Blob
+	var blobs Blobs
 	err := e.Blob.Query().
 		Where(P(networkID, ids)).
 		Select(blob.FieldKey, blob.FieldType, blob.FieldValue, blob.FieldVersion).
@@ -105,7 +97,7 @@ func (e *entStorage) GetMany(networkID string, ids []storage.TypeAndKey) ([]Blob
 	return blobs, nil
 }
 
-func (e *entStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string][]Blob, error) {
+func (e *entStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[string]Blobs, error) {
 	ctx := context.Background()
 
 	// Get fields from load criteria
@@ -131,7 +123,7 @@ func (e *entStorage) Search(filter SearchFilter, criteria LoadCriteria) (map[str
 		}
 	}
 
-	ret := map[string][]Blob{}
+	ret := map[string]Blobs{}
 	var blobs []blobWithNetworkID
 	err := e.Blob.Query().
 		Where(blob.And(preds...)).
@@ -178,7 +170,7 @@ func (e *entStorage) Delete(networkID string, ids []storage.TypeAndKey) error {
 	return err
 }
 
-func (e *entStorage) CreateOrUpdate(networkID string, blobs []Blob) error {
+func (e *entStorage) CreateOrUpdate(networkID string, blobs Blobs) error {
 	ctx := context.Background()
 	existingBlobs, err := e.GetMany(networkID, getBlobIDs(blobs))
 	if err != nil {

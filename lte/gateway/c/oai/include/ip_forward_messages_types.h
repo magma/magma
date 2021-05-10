@@ -80,8 +80,6 @@ typedef struct {
 
 typedef struct {
   teid_t context_teid;  ///< Tunnel Endpoint Identifier S11
-  SGIStatus_t status;   ///< Status of  endpoint creation (Failed = 0xFF or
-                        ///< Success = 0x0)
   uint8_t num_bearers_modified;
   bearer_cxt_t bearer_contexts_to_be_modified[BEARERS_PER_UE];
   uint8_t num_bearers_removed;
@@ -107,5 +105,19 @@ typedef struct {
   pdn_type_t pdn_type;  ///< PDN Type
   paa_t paa;            ///< PDN Address Allocation
 } itti_sgi_delete_end_point_response_t;
+
+//-----------------------------------------------------------------------------
+/**
+ * IP Allocation response from MobilityServiceClient, sent from GRPC task to
+ * SPGW as part of IP allocation process, notifying the SPGW task if it was
+ * successful or not.
+ */
+typedef struct itti_ip_allocation_response_s {
+  SGIStatus_t status;  ///< Status of  endpoint creation (Failed = 0xFF or
+  ///< Success = 0x0)
+  teid_t context_teid;  ///< Tunnel Endpoint Identifier S11
+  ebi_t eps_bearer_id;  ///< EPS bearer identifier
+  paa_t paa;            ///< PDN Address Allocation
+} itti_ip_allocation_response_t;
 
 #endif /* FILE_SGI_FORWARD_MESSAGES_TYPES_SEEN */

@@ -12,14 +12,13 @@ limitations under the License.
 """
 
 import traceback
+from abc import abstractmethod
 from typing import Any, Dict
 
-from abc import abstractmethod
 from magma.common.service import MagmaService
 from magma.enodebd import metrics
 from magma.enodebd.data_models.data_model_parameters import ParameterName
-from magma.enodebd.device_config.enodeb_configuration import \
-    EnodebConfiguration
+from magma.enodebd.device_config.enodeb_configuration import EnodebConfiguration
 from magma.enodebd.exceptions import ConfigurationError
 from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine

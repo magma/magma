@@ -84,19 +84,23 @@ func NewLocalBootstrapper(bootstrapCompletionChan chan interface{}) *Bootstrappe
 	return &Bootstrapper{CompletionChan: bootstrapCompletionChan, useLocalService: true}
 }
 
-// Initialize loads HW ID & challenge key and verifies it's validity
-func (b *Bootstrapper) Initialize() error {
+// Initialize loads HW ID and challenge key and verifies its validity.
+// snowflakeArgs by index
+//	- 0: set snowflake filepath, overriding default
+func (b *Bootstrapper) Initialize(snowflakeArgs ...string) error {
 	if b == nil {
 		return fmt.Errorf("Invalid (nil) Bootstrapper")
 	}
-	hwId, err := snowflake.Make()
+
+	hwID, err := snowflake.Make(snowflakeArgs...)
 	if err != nil {
-		return fmt.Errorf("Bootstrapper failed to get gateway Hardware ID: %v", err)
+		return fmt.Errorf("Bootstrapper failed to get gateway Hardware ID with args %v: %v", snowflakeArgs, err)
 	}
+
 	b.Lock()
 	defer b.Unlock()
 
-	b.HardwareId = hwId.String()
+	b.HardwareId = hwID.String()
 
 	privKey, err := GetChallengeKey()
 	if err != nil {
@@ -169,8 +173,7 @@ func (b *Bootstrapper) PeriodicCheck(now time.Time) (err error) {
 	if err != nil {
 		return
 	}
-	oldCertFile, oldCertKeyFile, newCertFile, newCertKeyFile :=
-		certFile+".old", certKeyFile+".old", certFile+".new", certKeyFile+".new"
+	oldCertFile, oldCertKeyFile, newCertFile, newCertKeyFile := certFile+".old", certKeyFile+".old", certFile+".new", certKeyFile+".new"
 
 	if err = key.WriteKey(newCertKeyFile, newCertKey); err != nil {
 		return

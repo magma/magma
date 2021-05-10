@@ -11,23 +11,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import netifaces
-import ipaddress
-
 from collections import namedtuple
 
+import netifaces
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupUEMacRequest
-
 from magma.common.misc_utils import cidr_to_ip_netmask_tuple
-from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.base import ControllerType, MagmaController
+from magma.pipelined.directoryd_client import get_all_records
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, load_passthrough
-from magma.pipelined.directoryd_client import get_all_records
-from magma.pipelined.mobilityd_client import mobilityd_list_ip_blocks
-
 from ryu.controller import dpset
-from ryu.lib.packet import ether_types, arp
+from ryu.lib.packet import arp, ether_types
 
 # This is used to determine valid ip-blocks.
 MAX_SUBNET_PREFIX_LEN = 31
@@ -58,7 +53,7 @@ class ArpController(MagmaController):
     ArpdConfig = namedtuple(
         'ArpdConfig',
         ['virtual_iface', 'virtual_mac', 'ue_ip_blocks', 'cwf_check_quota_ip',
-         'cwf_bridge_mac', 'mtr_ip', 'mtr_mac', 'enable_nat', 'dp_router_enabled'],
+         'cwf_bridge_mac', 'mtr_ip', 'mtr_mac', 'enable_nat'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -80,9 +75,6 @@ class ArpController(MagmaController):
             return virt_ifaddresses[netifaces.AF_LINK][0]['addr']
 
         enable_nat = config_dict.get('enable_nat', True)
-        # if NAT is disabled, enable router by default.
-        dp_router_enabled = config_dict.get('dp_router_enabled', not enable_nat)
-
         setup_type = config_dict.get('setup_type', None)
 
         virtual_iface = config_dict.get('virtual_interface', None)
@@ -116,7 +108,6 @@ class ArpController(MagmaController):
             mtr_ip=mtr_ip,
             mtr_mac=mtr_mac,
             enable_nat=enable_nat,
-            dp_router_enabled=dp_router_enabled,
         )
 
     def initialize_on_connect(self, datapath):
@@ -152,10 +143,6 @@ class ArpController(MagmaController):
             #                       zero would tag ARP requests for valid UE IPs.
             self.logger.info("APR: Non-Nat special mac %s",
                              self.config.virtual_mac)
-
-            if self.config.dp_router_enabled:
-                self._install_router_arp_for_conf_ip_blocks(datapath, flows.UE_FLOW_PRIORITY)
-                self._install_router_arp_flows_from_mobility(datapath, flows.UE_FLOW_PRIORITY)
 
             self._install_drop_rule_for_untagged_arps(datapath)
 
@@ -374,32 +361,3 @@ class ArpController(MagmaController):
         flows.add_resubmit_next_service_flow(datapath, self.table_num, match,
                                              actions=actions, priority=flows.UE_FLOW_PRIORITY - 1,
                                              resubmit_table=self.next_table)
-
-    def _install_router_arp_flows_from_mobility(self, datapath, priority):
-        resp = mobilityd_list_ip_blocks()
-        if not resp:
-            return
-        for block_msg in resp.ip_block_list:
-            try:
-                if block_msg.prefix_len >= MAX_SUBNET_PREFIX_LEN:
-                    continue
-                ip = ipaddress.ip_address(block_msg.net_address)
-                net_str = "%s/%d" % (ip, block_msg.prefix_len)
-                self._install_subnet_first_host_arp_flows(datapath,
-                                                          net_str,
-                                                          priority)
-            except ValueError as e:
-                self.logger.error("could not install router ARP: %s", e)
-                # ignore
-
-    def _install_router_arp_for_conf_ip_blocks(self, datapath, priority):
-        for ip_block in self.config.ue_ip_blocks:
-            self._install_subnet_first_host_arp_flows(datapath, ip_block, priority)
-
-    def _install_subnet_first_host_arp_flows(self, datapath, subnet, priority):
-        block = ipaddress.ip_network(subnet)
-        first_ip = list(block.hosts())[0]
-        self.logger.info("Adding logical router: %s", str(first_ip))
-        self.set_incoming_arp_flows_req(datapath, str(first_ip),
-                                        self.config.virtual_mac,
-                                        flow_priority=priority)

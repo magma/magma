@@ -33,8 +33,8 @@ func (tr *TestRunner) AuthenticateAndAssertSuccess(imsi string) {
 	assert.NoError(tr.t, err)
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	assert.NotNil(tr.t, eapMessage, "EAP Message from authentication is nil")
+	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
 }
 
 // Trigger a UE Authentication with the IMSI and called station ID.
@@ -44,8 +44,8 @@ func (tr *TestRunner) AuthenticateWithCalledIDAndAssertSuccess(imsi, calledStati
 	assert.NoError(tr.t, err)
 
 	eapMessage := radiusP.Attributes.Get(rfc2869.EAPMessage_Type)
-	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	assert.NotNil(tr.t, eapMessage, "EAP Message from authentication is nil")
+	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
 }
 
 // AuthenticateAndAssertSuccessWithRetries triggers a UE Authentication with the IMSI. Assert that the authentication
@@ -71,7 +71,7 @@ func (tr *TestRunner) AuthenticateAndAssertSuccessWithRetries(imsi string, maxRe
 				time.Sleep(1 * time.Second)
 				continue
 			}
-			if eapMessage == nil || reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode) == false {
+			if eapMessage == nil || !reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode) {
 				fmt.Printf("...Authentication failed with eap message either nul or not succelful: %+v. Retrying...!\n", eapMessage)
 				time.Sleep(1 * time.Second)
 				continue
@@ -80,8 +80,8 @@ func (tr *TestRunner) AuthenticateAndAssertSuccessWithRetries(imsi string, maxRe
 		break
 	}
 	assert.NoError(tr.t, err)
-	assert.NotNil(tr.t, eapMessage, fmt.Sprintf("EAP Message from authentication is nil"))
-	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), fmt.Sprintf("UE Authentication did not return success"))
+	assert.NotNil(tr.t, eapMessage, "EAP Message from authentication is nil")
+	assert.True(tr.t, reflect.DeepEqual(int(eapMessage[0]), eap.SuccessCode), "UE Authentication did not return success")
 
 }
 
@@ -112,6 +112,22 @@ func (tr *TestRunner) AssertPolicyEnforcementRecordIsNil(imsi string) {
 	assert.Empty(tr.t, recordsBySubID[prependIMSIPrefix(imsi)])
 }
 
+func (tr *TestRunner) AssertEventuallyAllRulesRemovedAfterDisconnect(imsi string) {
+	checkFn := func() bool {
+		fmt.Printf("Waiting until all rules are removed in enforcement stats for %s...\n", imsi)
+		records, err := tr.GetPolicyUsage()
+		if err != nil {
+			return false
+		}
+		if len(records[prependIMSIPrefix(imsi)]) == 0 {
+			return true
+		}
+		return false
+	}
+	assert.Eventually(tr.t, checkFn, 10*time.Second, 2*time.Second)
+	fmt.Println("All enforcement stats are gone!")
+}
+
 // Query assertion result from MockPCRF and assert all expectations were met.
 // Only applicable when MockDriver is used.
 func (tr *TestRunner) AssertAllGxExpectationsMetNoError() {
@@ -139,7 +155,7 @@ func (tr *TestRunner) assertAllExpectationsMetNoError(resByIdx []*protos.Expecta
 	}
 }
 
-func (tr *TestRunner) AssertPolicyUsage(imsi, rule string, minBytes, maxBytes uint64) {
+func (tr *TestRunner) AssertPolicyUsage(imsi, rule string, minBytes, maxBytes uint64) uint64 {
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(tr.t, err)
 	assert.NotNil(tr.t, recordsBySubID[prependIMSIPrefix(imsi)], fmt.Sprintf("Policy usage record for %s not found", imsi))
@@ -148,7 +164,9 @@ func (tr *TestRunner) AssertPolicyUsage(imsi, rule string, minBytes, maxBytes ui
 	if record != nil {
 		assert.GreaterOrEqual(tr.t, record.BytesTx, minBytes, fmt.Sprintf("%s actual=%d < expected=%d", record.RuleId, record.BytesTx, minBytes))
 		assert.LessOrEqual(tr.t, record.BytesTx, maxBytes, fmt.Sprintf("%s actual=%d > expected=%d", record.RuleId, record.BytesTx, maxBytes))
+		return record.BytesTx
 	}
+	return 0
 }
 
 func makeDefaultExpectationResults(n int) []*protos.ExpectationResult {

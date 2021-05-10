@@ -43,6 +43,12 @@ variable "orc8r_route53_zone_id" {
   type        = string
 }
 
+variable "external_dns_deployment_name" {
+  description = "Name of the external dns helm deployment"
+  type        = string
+  default     = "external-dns"
+}
+
 variable "external_dns_role_arn" {
   description = "IAM role ARN for ExternalDNS."
   type        = string
@@ -91,14 +97,13 @@ variable "orc8r_proxy_replicas" {
   default     = 2
 }
 
-variable "use_nginx_proxy" {
-  description = "Feature flag for Nginx proxy."
-  type        = bool
-  default     = true
-}
-
 variable "orc8r_db_name" {
   description = "DB name for Orchestrator database connection."
+  type        = string
+}
+
+variable "orc8r_db_dialect" {
+  description = "DB dialect for Orchestrator database connection."
   type        = string
 }
 
@@ -115,21 +120,6 @@ variable "orc8r_db_port" {
 
 variable "orc8r_db_user" {
   description = "DB username for Orchestrator database connection."
-  type        = string
-}
-
-variable "nms_db_name" {
-  description = "DB name for NMS database connection."
-  type        = string
-}
-
-variable "nms_db_host" {
-  description = "DB hostname for NMS database connection."
-  type        = string
-}
-
-variable "nms_db_user" {
-  description = "DB username for NMS database connection."
   type        = string
 }
 
@@ -161,9 +151,53 @@ variable "helm_deployment_name" {
   default     = "orc8r"
 }
 
-variable "orc8r_chart_version" {
-  description = "Version of the Orchestrator Helm chart to install."
+variable "orc8r_deployment_type" {
+  description = "Type of orc8r deployment (fixed wireless access, federated fixed wireless access, or all modules)"
   type        = string
+  validation {
+    condition = (
+      var.orc8r_deployment_type == "fwa" ||
+      var.orc8r_deployment_type == "federated_fwa" ||
+      var.orc8r_deployment_type == "all"
+    )
+    error_message = "The orc8r_deployment_type value must be one of ['fwa', 'federated_fwa', 'all']."
+  }
+}
+
+variable "orc8r_chart_version" {
+  description = "Version of the core orchestrator Helm chart to install."
+  type        = string
+  default     = "1.5.21"
+}
+
+variable "cwf_orc8r_chart_version" {
+  description = "Version of the orchestrator cwf module Helm chart to install."
+  type        = string
+  default     = "0.2.1"
+}
+
+variable "fbinternal_orc8r_chart_version" {
+  description = "Version of the orchestrator fbinternal module Helm chart to install."
+  type        = string
+  default     = "0.2.1"
+}
+
+variable "feg_orc8r_chart_version" {
+  description = "Version of the orchestrator feg module Helm chart to install."
+  type        = string
+  default     = "0.2.3"
+}
+
+variable "lte_orc8r_chart_version" {
+  description = "Version of the orchestrator lte module Helm chart to install."
+  type        = string
+  default     = "0.2.4"
+}
+
+variable "wifi_orc8r_chart_version" {
+  description = "Version of the orchestrator wifi module Helm chart to install."
+  type        = string
+  default     = "0.2.1"
 }
 
 variable "orc8r_tag" {
@@ -186,6 +220,18 @@ variable "efs_provisioner_role_arn" {
   type        = string
 }
 
+variable "efs_provisioner_name" {
+  description = "Name of the efs provisioner helm deployment"
+  type        = string
+  default     = "efs-provisioner"
+}
+
+variable "efs_storage_class_name" {
+  description = "Name of the Storage class"
+  type        = string
+  default     = "efs"
+}
+
 ##############################################################################
 # Log aggregation configuration
 ##############################################################################
@@ -202,6 +248,36 @@ variable "elasticsearch_retention_days" {
   default     = 7
 }
 
+variable "elasticsearch_port" {
+  description = "Port Elastic search is listening."
+  type        = number
+  default     = 443
+}
+
+variable "elasticsearch_use_ssl" {
+  description = "Defines if elasicsearch curator should speak to ELK HTTP or HTTPS."
+  type        = string
+  default     = "True"
+}
+
+variable "elasticsearch_curator_log_level" {
+  description = "Defines Elasticsearch curator logging level."
+  type        = string
+  default     = "INFO"
+}
+
+variable "elasticsearch_curator_name" {
+  description = "Name of the elasticsearch-curator helm deployment"
+  type        = string
+  default     = "elasticsearch-curator"
+}
+
+variable "fluentd_deployment_name" {
+  description = "Name of the fluentd helm deployment"
+  type        = string
+  default     = "fluentd"
+}
+
 ##############################################################################
 # Secret configuration and values
 ##############################################################################
@@ -213,11 +289,6 @@ variable "secretsmanager_orc8r_name" {
 
 variable "orc8r_db_pass" {
   description = "Orchestrator DB password."
-  type        = string
-}
-
-variable "nms_db_pass" {
-  description = "NMS DB password."
   type        = string
 }
 
@@ -280,4 +351,80 @@ variable "thanos_object_store_bucket_name" {
   description = "Bucket name for s3 object storage. Must be globally unique"
   type        = string
   default     = ""
+}
+
+variable "thanos_query_node_selector" {
+  description = "NodeSelector value to specify which node to run thanos query pod on. Default is 'thanos' to be deployed on the default thanos worker group."
+  type        = string
+  default     = "thanos"
+}
+
+
+variable "thanos_compact_node_selector" {
+  description = "NodeSelector value to specify which node to run thanos compact pod on. Label is 'compute-type:<value>'"
+  type        = string
+  default     = ""
+}
+
+variable "thanos_store_node_selector" {
+  description = "NodeSelector value to specify which node to run thanos store pod on. Label is 'compute-type:<value>'"
+  type        = string
+  default     = ""
+}
+
+##############################################################################
+# Analytics Service
+##############################################################################
+variable "analytics_export_enabled" {
+  description = "Deploy thanos components and object storage"
+  type        = bool
+  default     = false
+}
+
+variable "analytics_metrics_prefix" {
+  description = "Bucket name for s3 object storage. Must be globally unique"
+  type        = string
+  default     = ""
+}
+
+variable "analytics_app_secret" {
+  description = "App secret for which the metrics is to be exported to"
+  type = string
+  default = ""
+}
+
+
+variable "analytics_app_id" {
+  description = "App ID for which the metrics is to be exported to"
+  type = string
+  default = ""
+}
+
+variable "analytics_metric_export_url" {
+  description = "Metric Export URL"
+  type = string
+  default = ""
+}
+
+variable "analytics_category_name" {
+  description = "Category under which the exported metrics will be placed under"
+  type = string
+  default = "magma"
+}
+
+
+##############################################################################
+# Other dependency variables
+##############################################################################
+
+variable "prometheus_configurer_version" {
+  description = "Image version for prometheus configurer."
+  type        = string
+  default     = "1.0.4"
+}
+
+variable "alertmanager_configurer_version" {
+  description = "Image version for alertmanager configurer."
+  type        = string
+  default     = "1.0.4"
 }

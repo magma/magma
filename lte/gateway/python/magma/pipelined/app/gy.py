@@ -10,30 +10,26 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-from typing import List
-
 from lte.protos.pipelined_pb2 import RuleModResult
-
-from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
+from magma.pipelined.app.inout import EGRESS
 from magma.pipelined.app.policy_mixin import PolicyMixin
-
+from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub
 from magma.pipelined.policy_converters import FlowMatchError
-from magma.pipelined.redirect import RedirectionManager, RedirectException
-from magma.pipelined.app.inout import EGRESS
 from magma.pipelined.qos.common import QosManager
 from magma.pipelined.qos.qos_meter_impl import MeterManager
-
+from magma.pipelined.redirect import RedirectException, RedirectionManager
+from magma.pipelined.utils import Utils
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
-from magma.pipelined.utils import Utils
 
-class GYController(PolicyMixin, MagmaController):
+
+class GYController(PolicyMixin, RestartMixin, MagmaController):
     """
     GYController
 
@@ -91,11 +87,7 @@ class GYController(PolicyMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
-        self._qos_mgr = QosManager(datapath, self.loop, self._config)
-        self._qos_mgr.setup()
-
-        self._delete_all_flows(datapath)
-        self._install_default_flows(datapath)
+        self._qos_mgr = QosManager.get_qos_manager(datapath, self.loop, self._config)
 
     def deactivate_rules(self, imsi, ip_addr, rule_ids):
         """
@@ -165,7 +157,7 @@ class GYController(PolicyMixin, MagmaController):
         self._qos_mgr.remove_subscriber_qos(imsi, num)
         self._remove_he_flows(ip_addr, rule_id)
 
-    def _install_flow_for_rule(self, imsi, msisdn:bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn:bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -177,7 +169,7 @@ class GYController(PolicyMixin, MagmaController):
             rule (PolicyRule): policy rule proto
         """
         if rule.redirect.support == rule.redirect.ENABLED:
-            self._install_redirect_flow(imsi, ip_addr, rule)
+            self._install_redirect_flow(imsi, ip_addr, rule, version)
             return RuleModResult.SUCCESS
 
         if not rule.flow_list:
@@ -187,7 +179,7 @@ class GYController(PolicyMixin, MagmaController):
 
         flow_adds = []
         try:
-            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+            flow_adds = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
         except FlowMatchError:
             return RuleModResult.FAILURE
 
@@ -220,11 +212,8 @@ class GYController(PolicyMixin, MagmaController):
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
 
-    def _install_redirect_flow(self, imsi, ip_addr, rule):
+    def _install_redirect_flow(self, imsi, ip_addr, rule, version):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        rule_version = self._session_rule_version_mapper.get_version(imsi,
-                                                                     ip_addr,
-                                                                     rule.id)
         # CWF generates an internal IP for redirection so ip_addr is not needed
         if self._setup_type == 'CWF':
             ip_addr_str = None
@@ -238,7 +227,7 @@ class GYController(PolicyMixin, MagmaController):
             ip_addr=ip_addr_str,
             rule=rule,
             rule_num=rule_num,
-            rule_version=rule_version,
+            rule_version=version,
             priority=priority)
         try:
             if self._setup_type == 'CWF':
@@ -255,35 +244,24 @@ class GYController(PolicyMixin, MagmaController):
             )
             return RuleModResult.FAILURE
 
-    def _install_default_flows_if_not_installed(self, datapath,
-            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
+    def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
-        For each direction set the default flows to just forward to next app.
-        The enforcement flows for each subscriber would be added when the
-        IP session is created, by reaching out to the controller/PCRF.
-        If default flows are already installed, do nothing.
+        Gets the default flow msg that forwards to next service
 
         Args:
             datapath: ryu datapath struct
         Returns:
-            The list of flows that remain after inserting default flows
+            The list of default msgs to add
         """
         match = MagmaMatch()
-
         msg = flows.get_add_resubmit_next_service_flow_msg(
             datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
 
-        msgs, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list([msg], existing_flows)
-        if msgs:
-            chan = self._msg_hub.send(msgs, datapath)
-            self._wait_for_responses(chan, len(msgs))
+        return {self.tbl_num: [msg]}
 
-        return remaining_flows
-
-    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -301,8 +279,6 @@ class GYController(PolicyMixin, MagmaController):
         flow_adds = []
         for flow in rule.flow_list:
             try:
-                version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
-                                                                        rule.id)
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
@@ -341,3 +317,6 @@ class GYController(PolicyMixin, MagmaController):
     @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
+
+    def recover_state(self, _):
+        pass

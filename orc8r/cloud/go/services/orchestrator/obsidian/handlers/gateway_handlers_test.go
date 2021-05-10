@@ -22,8 +22,6 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
@@ -43,7 +41,6 @@ import (
 )
 
 func TestListGateways(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -107,7 +104,6 @@ func TestListGateways(t *testing.T) {
 }
 
 func TestCreateGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -320,8 +316,6 @@ func TestCreateGateway(t *testing.T) {
 }
 
 func TestGetGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 
@@ -451,7 +445,6 @@ func TestGetGateway(t *testing.T) {
 }
 
 func TestUpdateGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	stateTestInit.StartTestService(t)
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
@@ -595,8 +588,6 @@ func TestUpdateGateway(t *testing.T) {
 }
 
 func TestDeleteGateway(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
@@ -668,8 +659,6 @@ func TestDeleteGateway(t *testing.T) {
 }
 
 func TestGetPartialReadHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 
@@ -825,8 +814,6 @@ func TestGetPartialReadHandlers(t *testing.T) {
 }
 
 func TestGetGatewayTierHandler(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -850,6 +837,7 @@ func TestGetGatewayTierHandler(t *testing.T) {
 		},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	// 404 tier
 	tc := tests.Test{
 		Method:         "GET",
@@ -893,8 +881,6 @@ func TestGetGatewayTierHandler(t *testing.T) {
 }
 
 func TestUpdateGatewayTierHandler(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -918,6 +904,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 		},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	// 404 tier
 	tc := tests.Test{
 		Method:         "PUT",
@@ -1014,6 +1001,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	expectedTiers = configurator.NetworkEntities{
 		{
 			NetworkID: "n1",
@@ -1040,8 +1028,6 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 }
 
 func TestGetPartialUpdateHandlers(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 

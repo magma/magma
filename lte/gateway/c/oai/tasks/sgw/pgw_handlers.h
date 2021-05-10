@@ -32,6 +32,11 @@ void handle_s5_create_session_request(
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     teid_t context_teid, ebi_t eps_bearer_id);
 
+void spgw_handle_pcef_create_session_response(
+    spgw_state_t* spgw_state,
+    const itti_pcef_create_session_response_t* const pcef_csr_resp_p,
+    imsi64_t imsi64);
+
 uint32_t spgw_handle_nw_init_deactivate_bearer_rsp(
     gtpv2c_cause_t cause, ebi_t lbi);
 
@@ -41,11 +46,11 @@ int spgw_handle_nw_initiated_bearer_actv_req(
     imsi64_t imsi64, gtpv2c_cause_value_t* failed_cause);
 
 int32_t spgw_handle_nw_initiated_bearer_deactv_req(
-    spgw_state_t* spgw_state,
     const itti_gx_nw_init_deactv_bearer_request_t* const bearer_req_p,
     imsi64_t imsi64);
 
 int spgw_send_nw_init_activate_bearer_rsp(
-    gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id,
+    gtpv2c_cause_value_t cause, imsi64_t imsi64,
+    bearer_context_within_create_bearer_response_t* bearer_ctx,
     uint8_t default_bearer_id, char* policy_rule_name);
 #endif /* FILE_PGW_HANDLERS_SEEN */

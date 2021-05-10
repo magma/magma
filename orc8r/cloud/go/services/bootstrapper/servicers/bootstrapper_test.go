@@ -23,6 +23,7 @@ import (
 	"io/ioutil"
 	"net"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -244,11 +245,18 @@ func testWithGatewayBootstrapper(t *testing.T, networkId string) {
 	mdc.BootstrapConfig.ChallengeKey = dir + "/gw_challenge.key"
 	config.OverwriteMagmadConfigs(mdc)
 
+	// Create tmp file for holding snowflake info.
+	// File name needs to be "snowflake".
+	tmpDir, err := ioutil.TempDir("", "magma_tmp_test_dir")
+	assert.NoError(t, err)
+	defer os.Remove(tmpDir)
+	snowflakePath := filepath.Join(tmpDir, "snowflake")
+
 	b := bootstrap_client.NewLocalBootstrapper(completeChan)
-	err = b.Initialize()
+	err = b.Initialize(snowflakePath)
 	assert.NoError(t, err)
 
-	uuid, err := snowflake.Get()
+	uuid, err := snowflake.Get(snowflakePath)
 	assert.NoError(t, err)
 	gwHwId := uuid.String()
 
@@ -391,6 +399,7 @@ func TestBootstrapperServer(t *testing.T) {
 	err := configurator.CreateNetwork(configurator.Network{ID: testNetworkID, Name: "Test Network Name"}, serdes.Network)
 	assert.NoError(t, err)
 	exists, err := configurator.DoesNetworkExist(testNetworkID)
+	assert.NoError(t, err)
 	assert.True(t, exists)
 
 	ctx := context.Background()
@@ -405,6 +414,7 @@ func TestBootstrapperServer(t *testing.T) {
 	privateKey, err = key.GenerateKey("", 2048)
 	assert.NoError(t, err)
 	srv, err := servicers.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
+	assert.NoError(t, err)
 
 	// for signing csr
 	certifier_test_init.StartTestService(t)

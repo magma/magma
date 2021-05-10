@@ -33,12 +33,10 @@ require (
 	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-logr/glogr v0.1.0
 	github.com/go-redis/redis v6.15.8+incompatible
-	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975 // indirect
 	google.golang.org/grpc v1.31.0
 	helm.sh/helm/v3 v3.1.2 // indirect
 	k8s.io/api v0.17.2

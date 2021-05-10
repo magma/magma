@@ -1,0 +1,12 @@
+--- a/build/fbcode_builder/CMake/FindGflags.cmake
++++ b/build/fbcode_builder/CMake/FindGflags.cmake
+@@ -34,6 +34,9 @@ IF (LIBGFLAGS_INCLUDE_DIR)
+ ENDIF ()
+ 
+ find_package(gflags CONFIG QUIET)
++get_filename_component (_LIB_PATH "${gflags_CONFIG}/../../../" ABSOLUTE)
++unset(gflags_LIBRARIES)
++find_library(gflags_LIBRARIES gflags PATHS ${_LIB_PATH})
+ if (gflags_FOUND)
+   if (NOT Gflags_FIND_QUIETLY)
+     message(STATUS "Found gflags from package config ${gflags_CONFIG}")

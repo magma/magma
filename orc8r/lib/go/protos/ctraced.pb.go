@@ -31,6 +31,7 @@ const (
 	StartTraceRequest_SUBSCRIBER StartTraceRequest_TraceType = 1
 	StartTraceRequest_PROTOCOL   StartTraceRequest_TraceType = 2
 	StartTraceRequest_INTERFACE  StartTraceRequest_TraceType = 3
+	StartTraceRequest_CUSTOM     StartTraceRequest_TraceType = 4
 )
 
 var StartTraceRequest_TraceType_name = map[int32]string{
@@ -38,6 +39,7 @@ var StartTraceRequest_TraceType_name = map[int32]string{
 	1: "SUBSCRIBER",
 	2: "PROTOCOL",
 	3: "INTERFACE",
+	4: "CUSTOM",
 }
 
 var StartTraceRequest_TraceType_value = map[string]int32{
@@ -45,6 +47,7 @@ var StartTraceRequest_TraceType_value = map[string]int32{
 	"SUBSCRIBER": 1,
 	"PROTOCOL":   2,
 	"INTERFACE":  3,
+	"CUSTOM":     4,
 }
 
 func (x StartTraceRequest_TraceType) String() string {
@@ -55,6 +58,7 @@ func (StartTraceRequest_TraceType) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_74b70534723ed60d, []int{0, 0}
 }
 
+// SPECIFIED ONLY IF trace_type is PROTOCOL
 type StartTraceRequest_ProtocolName int32
 
 const (
@@ -108,17 +112,43 @@ func (StartTraceRequest_InterfaceName) EnumDescriptor() ([]byte, []int) {
 	return fileDescriptor_74b70534723ed60d, []int{0, 2}
 }
 
+// StartTraceRequest specifies options for a call trace started on a gateway
 type StartTraceRequest struct {
+	TraceId   string                      `protobuf:"bytes,8,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
 	TraceType StartTraceRequest_TraceType `protobuf:"varint,1,opt,name=trace_type,json=traceType,proto3,enum=magma.orc8r.StartTraceRequest_TraceType" json:"trace_type,omitempty"`
-	// IMSI specified only if trace_type is SUBSCRIBER
-	Imsi string `protobuf:"bytes,2,opt,name=imsi,proto3" json:"imsi,omitempty"`
-	// Protocol name specified only if trace_type is PROTOCOL
+	// SPECIFIED ONLY IF trace_type is SUBSCRIBER
+	Imsi     string                         `protobuf:"bytes,2,opt,name=imsi,proto3" json:"imsi,omitempty"`
 	Protocol StartTraceRequest_ProtocolName `protobuf:"varint,3,opt,name=protocol,proto3,enum=magma.orc8r.StartTraceRequest_ProtocolName" json:"protocol,omitempty"`
-	// Interface name specified only if trace_type is INTERFACE
-	Interface            StartTraceRequest_InterfaceName `protobuf:"varint,4,opt,name=interface,proto3,enum=magma.orc8r.StartTraceRequest_InterfaceName" json:"interface,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                        `json:"-"`
-	XXX_unrecognized     []byte                          `json:"-"`
-	XXX_sizecache        int32                           `json:"-"`
+	// SPECIFIED IF trace_type is INTERFACE
+	Interface StartTraceRequest_InterfaceName `protobuf:"varint,4,opt,name=interface,proto3,enum=magma.orc8r.StartTraceRequest_InterfaceName" json:"interface,omitempty"`
+	// SPECIFIED FOR ALL
+	// After the timeout runs out, the call trace stops automatically.
+	Timeout uint32 `protobuf:"varint,5,opt,name=timeout,proto3" json:"timeout,omitempty"`
+	// SPECIFIED ONLY IF trace_type is CUSTOM
+	// TShark capture filters to be used for call tracing, based on BPF syntax
+	// Custom traces are performed using TShark, and capture filters specified
+	// are equivalent to running tshark with the -f option
+	// Example:
+	//    capture_filters = "tcp and port 80"
+	//    Runs `tshark -f 'tcp and port 80'`
+	CaptureFilters string `protobuf:"bytes,6,opt,name=capture_filters,json=captureFilters,proto3" json:"capture_filters,omitempty"`
+	// SPECIFIED ONLY IF trace_type is CUSTOM
+	// TShark display filters to be used for call tracing
+	// Custom traces are performed using TShark, and display filters specified
+	// are equivalent to running tshark with the -Y option
+	// Example:
+	//    display_filters = "ip.addr == 10.0.0.1"
+	//    Runs `tshark -Y 'ip.addr == 10.0.0.1'`
+	// NOTE:
+	//    While TShark is used to capture traffic during call tracing with
+	//    capture filters, when TShark is stopped, the resultant capture is
+	//    passed through the display filters and saved again, so the final
+	//    capture received has been processed by both the capture and display
+	//    filters.
+	DisplayFilters       string   `protobuf:"bytes,7,opt,name=display_filters,json=displayFilters,proto3" json:"display_filters,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *StartTraceRequest) Reset()         { *m = StartTraceRequest{} }
@@ -146,6 +176,13 @@ func (m *StartTraceRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_StartTraceRequest proto.InternalMessageInfo
 
+func (m *StartTraceRequest) GetTraceId() string {
+	if m != nil {
+		return m.TraceId
+	}
+	return ""
+}
+
 func (m *StartTraceRequest) GetTraceType() StartTraceRequest_TraceType {
 	if m != nil {
 		return m.TraceType
@@ -172,6 +209,27 @@ func (m *StartTraceRequest) GetInterface() StartTraceRequest_InterfaceName {
 		return m.Interface
 	}
 	return StartTraceRequest_S1AP
+}
+
+func (m *StartTraceRequest) GetTimeout() uint32 {
+	if m != nil {
+		return m.Timeout
+	}
+	return 0
+}
+
+func (m *StartTraceRequest) GetCaptureFilters() string {
+	if m != nil {
+		return m.CaptureFilters
+	}
+	return ""
+}
+
+func (m *StartTraceRequest) GetDisplayFilters() string {
+	if m != nil {
+		return m.DisplayFilters
+	}
+	return ""
 }
 
 type StartTraceResponse struct {
@@ -214,6 +272,7 @@ func (m *StartTraceResponse) GetSuccess() bool {
 }
 
 type EndTraceRequest struct {
+	TraceId              string   `protobuf:"bytes,1,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -243,6 +302,13 @@ func (m *EndTraceRequest) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_EndTraceRequest proto.InternalMessageInfo
+
+func (m *EndTraceRequest) GetTraceId() string {
+	if m != nil {
+		return m.TraceId
+	}
+	return ""
+}
 
 type EndTraceResponse struct {
 	Success              bool     `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
@@ -291,6 +357,92 @@ func (m *EndTraceResponse) GetTraceContent() []byte {
 	return nil
 }
 
+type ReportEndedTraceRequest struct {
+	TraceId              string   `protobuf:"bytes,1,opt,name=trace_id,json=traceId,proto3" json:"trace_id,omitempty"`
+	Success              bool     `protobuf:"varint,2,opt,name=success,proto3" json:"success,omitempty"`
+	TraceContent         []byte   `protobuf:"bytes,3,opt,name=trace_content,json=traceContent,proto3" json:"trace_content,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReportEndedTraceRequest) Reset()         { *m = ReportEndedTraceRequest{} }
+func (m *ReportEndedTraceRequest) String() string { return proto.CompactTextString(m) }
+func (*ReportEndedTraceRequest) ProtoMessage()    {}
+func (*ReportEndedTraceRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_74b70534723ed60d, []int{4}
+}
+
+func (m *ReportEndedTraceRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReportEndedTraceRequest.Unmarshal(m, b)
+}
+func (m *ReportEndedTraceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReportEndedTraceRequest.Marshal(b, m, deterministic)
+}
+func (m *ReportEndedTraceRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReportEndedTraceRequest.Merge(m, src)
+}
+func (m *ReportEndedTraceRequest) XXX_Size() int {
+	return xxx_messageInfo_ReportEndedTraceRequest.Size(m)
+}
+func (m *ReportEndedTraceRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReportEndedTraceRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReportEndedTraceRequest proto.InternalMessageInfo
+
+func (m *ReportEndedTraceRequest) GetTraceId() string {
+	if m != nil {
+		return m.TraceId
+	}
+	return ""
+}
+
+func (m *ReportEndedTraceRequest) GetSuccess() bool {
+	if m != nil {
+		return m.Success
+	}
+	return false
+}
+
+func (m *ReportEndedTraceRequest) GetTraceContent() []byte {
+	if m != nil {
+		return m.TraceContent
+	}
+	return nil
+}
+
+type ReportEndedTraceResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *ReportEndedTraceResponse) Reset()         { *m = ReportEndedTraceResponse{} }
+func (m *ReportEndedTraceResponse) String() string { return proto.CompactTextString(m) }
+func (*ReportEndedTraceResponse) ProtoMessage()    {}
+func (*ReportEndedTraceResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_74b70534723ed60d, []int{5}
+}
+
+func (m *ReportEndedTraceResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ReportEndedTraceResponse.Unmarshal(m, b)
+}
+func (m *ReportEndedTraceResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ReportEndedTraceResponse.Marshal(b, m, deterministic)
+}
+func (m *ReportEndedTraceResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ReportEndedTraceResponse.Merge(m, src)
+}
+func (m *ReportEndedTraceResponse) XXX_Size() int {
+	return xxx_messageInfo_ReportEndedTraceResponse.Size(m)
+}
+func (m *ReportEndedTraceResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ReportEndedTraceResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_ReportEndedTraceResponse proto.InternalMessageInfo
+
 func init() {
 	proto.RegisterEnum("magma.orc8r.StartTraceRequest_TraceType", StartTraceRequest_TraceType_name, StartTraceRequest_TraceType_value)
 	proto.RegisterEnum("magma.orc8r.StartTraceRequest_ProtocolName", StartTraceRequest_ProtocolName_name, StartTraceRequest_ProtocolName_value)
@@ -299,39 +451,50 @@ func init() {
 	proto.RegisterType((*StartTraceResponse)(nil), "magma.orc8r.StartTraceResponse")
 	proto.RegisterType((*EndTraceRequest)(nil), "magma.orc8r.EndTraceRequest")
 	proto.RegisterType((*EndTraceResponse)(nil), "magma.orc8r.EndTraceResponse")
+	proto.RegisterType((*ReportEndedTraceRequest)(nil), "magma.orc8r.ReportEndedTraceRequest")
+	proto.RegisterType((*ReportEndedTraceResponse)(nil), "magma.orc8r.ReportEndedTraceResponse")
 }
 
 func init() { proto.RegisterFile("orc8r/protos/ctraced.proto", fileDescriptor_74b70534723ed60d) }
 
 var fileDescriptor_74b70534723ed60d = []byte{
-	// 428 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x84, 0x93, 0xcf, 0x6e, 0xd3, 0x40,
-	0x10, 0xc6, 0xe3, 0x24, 0x6a, 0xe3, 0xc1, 0x09, 0xdb, 0x39, 0x99, 0xf0, 0xaf, 0x5a, 0x24, 0x14,
-	0x04, 0x72, 0x44, 0xb9, 0x70, 0x75, 0x8c, 0x89, 0x82, 0xd2, 0x26, 0xac, 0x8d, 0x84, 0xb8, 0x20,
-	0x77, 0xb3, 0x54, 0x96, 0x12, 0x3b, 0x78, 0xb7, 0x48, 0x7d, 0x16, 0xde, 0x83, 0xe7, 0x43, 0x19,
-	0xd7, 0x89, 0x0b, 0x4a, 0x73, 0xda, 0xdd, 0x99, 0xef, 0xfb, 0xe9, 0x1b, 0x8d, 0x16, 0xfa, 0x79,
-	0x21, 0xdf, 0x17, 0xc3, 0x75, 0x91, 0x9b, 0x5c, 0x0f, 0xa5, 0x29, 0x12, 0xa9, 0x16, 0x1e, 0x3d,
-	0xf1, 0xc1, 0x2a, 0xb9, 0x5a, 0x25, 0x1e, 0x29, 0xf8, 0xef, 0x16, 0x9c, 0x44, 0x26, 0x29, 0x4c,
-	0xbc, 0x91, 0x08, 0xf5, 0xf3, 0x5a, 0x69, 0x83, 0x63, 0x00, 0xb2, 0x7c, 0x37, 0x37, 0x6b, 0xe5,
-	0x5a, 0xa7, 0xd6, 0xa0, 0x77, 0x36, 0xf0, 0x6a, 0x3e, 0xef, 0x3f, 0x8f, 0x47, 0x8f, 0xf8, 0x66,
-	0xad, 0x84, 0x6d, 0xaa, 0x2b, 0x22, 0xb4, 0xd3, 0x95, 0x4e, 0xdd, 0xe6, 0xa9, 0x35, 0xb0, 0x05,
-	0xdd, 0x71, 0x0c, 0x1d, 0x0a, 0x22, 0xf3, 0xa5, 0xdb, 0x22, 0xf4, 0xeb, 0x03, 0xe8, 0xf9, 0xad,
-	0xfc, 0x22, 0x59, 0x29, 0xb1, 0x35, 0xe3, 0x27, 0xb0, 0xd3, 0xcc, 0xa8, 0xe2, 0x47, 0x22, 0x95,
-	0xdb, 0x26, 0xd2, 0x9b, 0x03, 0xa4, 0x49, 0xa5, 0x27, 0xd4, 0xce, 0xce, 0x7d, 0xb0, 0xb7, 0x03,
-	0xe0, 0x31, 0xb4, 0xfc, 0xe9, 0x94, 0x35, 0xb0, 0x07, 0x10, 0x7d, 0x19, 0x45, 0x81, 0x98, 0x8c,
-	0x42, 0xc1, 0x2c, 0x74, 0xa0, 0x33, 0x17, 0xb3, 0x78, 0x16, 0xcc, 0xa6, 0xac, 0x89, 0x5d, 0xb0,
-	0x27, 0x17, 0x71, 0x28, 0x3e, 0xfa, 0x41, 0xc8, 0x5a, 0xfc, 0x25, 0x38, 0xf5, 0xa0, 0xd8, 0x81,
-	0x76, 0x14, 0xc4, 0x73, 0xd6, 0xd8, 0xd8, 0x3e, 0x4c, 0xfc, 0xf3, 0x30, 0xde, 0x40, 0xf8, 0x2b,
-	0xe8, 0xde, 0x89, 0x41, 0xc2, 0xb7, 0xfe, 0x46, 0x78, 0x04, 0xcd, 0xf1, 0x57, 0x66, 0xd1, 0x19,
-	0xb3, 0x26, 0xf7, 0x00, 0xeb, 0x33, 0xe8, 0x75, 0x9e, 0x69, 0x85, 0x2e, 0x1c, 0xeb, 0x6b, 0x29,
-	0x95, 0xd6, 0xb4, 0x9a, 0x8e, 0xa8, 0x9e, 0xfc, 0x04, 0x1e, 0x86, 0xd9, 0xa2, 0x3e, 0x31, 0xff,
-	0x0c, 0x6c, 0x57, 0x3a, 0x04, 0xc0, 0x17, 0xd0, 0x2d, 0x17, 0x2f, 0xf3, 0xcc, 0xa8, 0xcc, 0xd0,
-	0xe2, 0x1c, 0xe1, 0x50, 0x31, 0x28, 0x6b, 0x67, 0x7f, 0x2c, 0x60, 0x41, 0xb2, 0x5c, 0x12, 0x34,
-	0x52, 0xc5, 0xaf, 0x54, 0x2a, 0x8c, 0xa0, 0x47, 0x51, 0xb7, 0x0d, 0x7c, 0x76, 0xff, 0x2e, 0xfa,
-	0xcf, 0xf7, 0xf6, 0xcb, 0x98, 0xbc, 0x81, 0xe7, 0xe0, 0x84, 0xd9, 0x62, 0x87, 0x7c, 0x72, 0xc7,
-	0xf2, 0xcf, 0xa8, 0xfd, 0xa7, 0x7b, 0xba, 0x15, 0x6e, 0xf4, 0xf8, 0xdb, 0x23, 0x52, 0x0c, 0xcb,
-	0xdf, 0xb1, 0x4c, 0x2f, 0x87, 0x57, 0xf9, 0xed, 0x27, 0xb9, 0x3c, 0xa2, 0xf3, 0xdd, 0xdf, 0x00,
-	0x00, 0x00, 0xff, 0xff, 0x0f, 0x50, 0xc9, 0xf2, 0x3b, 0x03, 0x00, 0x00,
+	// 576 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x94, 0x5b, 0x8f, 0xd2, 0x40,
+	0x14, 0xc7, 0x29, 0x20, 0x94, 0x23, 0xb0, 0x75, 0x34, 0xb1, 0xd4, 0x1b, 0xa9, 0x37, 0x8c, 0x9b,
+	0x12, 0xf1, 0xc5, 0x57, 0xa8, 0x5d, 0x82, 0x81, 0x05, 0xa7, 0xdd, 0xc4, 0xf8, 0xb2, 0xe9, 0xb6,
+	0xb3, 0x9b, 0x26, 0x6d, 0xa7, 0x4e, 0x07, 0x13, 0x12, 0x3f, 0x93, 0x8f, 0x7e, 0x3e, 0xd3, 0x29,
+	0xe5, 0xe2, 0x8a, 0xf8, 0xd4, 0x9e, 0x33, 0xff, 0xf3, 0xfb, 0xf7, 0x9c, 0x9e, 0x0c, 0x68, 0x94,
+	0x79, 0x1f, 0x58, 0x3f, 0x61, 0x94, 0xd3, 0xb4, 0xef, 0x71, 0xe6, 0x7a, 0xc4, 0x37, 0x44, 0x88,
+	0xee, 0x46, 0xee, 0x4d, 0xe4, 0x1a, 0x42, 0xa1, 0x75, 0xf6, 0x85, 0x34, 0x8a, 0x68, 0x9c, 0xeb,
+	0xf4, 0x9f, 0x55, 0xb8, 0x67, 0x73, 0x97, 0x71, 0x27, 0xab, 0xc6, 0xe4, 0xdb, 0x92, 0xa4, 0x1c,
+	0x75, 0x40, 0x16, 0xb4, 0xcb, 0xc0, 0x57, 0xe5, 0xae, 0xd4, 0x6b, 0xe0, 0xba, 0x88, 0x27, 0x3e,
+	0x1a, 0x03, 0xe4, 0x47, 0x7c, 0x95, 0x10, 0x55, 0xea, 0x4a, 0xbd, 0xf6, 0xa0, 0x67, 0xec, 0xb8,
+	0x19, 0xb7, 0x70, 0x86, 0x08, 0x9c, 0x55, 0x42, 0x70, 0x83, 0x17, 0xaf, 0x08, 0x41, 0x35, 0x88,
+	0xd2, 0x40, 0x2d, 0x0b, 0xbe, 0x78, 0x47, 0x63, 0x90, 0xc5, 0x67, 0x79, 0x34, 0x54, 0x2b, 0x02,
+	0xfd, 0xf6, 0x08, 0x7a, 0xb1, 0x96, 0x9f, 0xbb, 0x11, 0xc1, 0x9b, 0x62, 0xf4, 0x09, 0x1a, 0x41,
+	0xcc, 0x09, 0xbb, 0x76, 0x3d, 0xa2, 0x56, 0x05, 0xe9, 0xf4, 0x08, 0x69, 0x52, 0xe8, 0x05, 0x6a,
+	0x5b, 0x8e, 0x54, 0xa8, 0xf3, 0x20, 0x22, 0x74, 0xc9, 0xd5, 0x3b, 0x5d, 0xa9, 0xd7, 0xc2, 0x45,
+	0x88, 0x5e, 0xc3, 0x89, 0xe7, 0x26, 0x7c, 0xc9, 0xc8, 0xe5, 0x75, 0x10, 0x72, 0xc2, 0x52, 0xb5,
+	0x26, 0xba, 0x69, 0xaf, 0xd3, 0x67, 0x79, 0x36, 0x13, 0xfa, 0x41, 0x9a, 0x84, 0xee, 0x6a, 0x23,
+	0xac, 0xe7, 0xc2, 0x75, 0x7a, 0x2d, 0xd4, 0x67, 0xd0, 0xd8, 0x0c, 0x0b, 0xd5, 0xa1, 0x32, 0x9c,
+	0x4e, 0x95, 0x12, 0x6a, 0x03, 0xd8, 0x17, 0x23, 0xdb, 0xc4, 0x93, 0x91, 0x85, 0x15, 0x09, 0x35,
+	0x41, 0x5e, 0xe0, 0xb9, 0x33, 0x37, 0xe7, 0x53, 0xa5, 0x8c, 0x5a, 0xd0, 0x98, 0x9c, 0x3b, 0x16,
+	0x3e, 0x1b, 0x9a, 0x96, 0x52, 0x41, 0x00, 0x35, 0xf3, 0xc2, 0x76, 0xe6, 0x33, 0xa5, 0xaa, 0xbf,
+	0x82, 0xe6, 0xee, 0x80, 0x90, 0x0c, 0x55, 0xdb, 0x74, 0x16, 0x4a, 0x29, 0x43, 0x7c, 0x9c, 0x0c,
+	0x67, 0x96, 0x93, 0x01, 0xf5, 0x37, 0xd0, 0xda, 0x6b, 0x5f, 0x08, 0xdf, 0x0d, 0x33, 0x61, 0x0d,
+	0xca, 0xe3, 0x2f, 0x8a, 0x24, 0x9e, 0x8e, 0x52, 0xd6, 0x0d, 0x40, 0xbb, 0xb3, 0x4b, 0x13, 0x1a,
+	0xa7, 0x62, 0x46, 0xe9, 0xd2, 0xf3, 0x48, 0x9a, 0x8a, 0x95, 0x90, 0x71, 0x11, 0xea, 0xa7, 0x70,
+	0x62, 0xc5, 0xfe, 0xc1, 0xed, 0x92, 0xf6, 0xb6, 0x4b, 0xff, 0x0c, 0xca, 0x56, 0x7d, 0x8c, 0x8d,
+	0x9e, 0x43, 0x2b, 0x07, 0x79, 0x34, 0xe6, 0x24, 0xe6, 0x62, 0x97, 0x9a, 0xb8, 0x29, 0x92, 0x66,
+	0x9e, 0xd3, 0x53, 0x78, 0x88, 0x49, 0x42, 0x19, 0xb7, 0x62, 0x9f, 0xfc, 0xef, 0x87, 0xec, 0x9a,
+	0x96, 0x8f, 0x98, 0x56, 0xfe, 0x62, 0xaa, 0x81, 0x7a, 0xdb, 0x34, 0xef, 0x67, 0xf0, 0x4b, 0x02,
+	0xc5, 0x74, 0xc3, 0x50, 0x64, 0x6d, 0xc2, 0xbe, 0x07, 0x1e, 0x41, 0x36, 0xb4, 0xc5, 0x58, 0x37,
+	0x07, 0xe8, 0xe9, 0xbf, 0xf7, 0x55, 0x7b, 0x76, 0xf0, 0x3c, 0xf7, 0xd1, 0x4b, 0x68, 0x06, 0x4d,
+	0x2b, 0xf6, 0xb7, 0xc8, 0xc7, 0x7b, 0x25, 0x7f, 0xfc, 0x16, 0xed, 0xc9, 0x81, 0xd3, 0x02, 0x37,
+	0xf8, 0x01, 0xf7, 0x37, 0xac, 0xac, 0x51, 0x46, 0xc3, 0x90, 0x30, 0x44, 0xe0, 0xc1, 0x4e, 0xaf,
+	0x5b, 0xb7, 0x17, 0x7b, 0xbc, 0x03, 0xff, 0x40, 0x7b, 0x79, 0x44, 0x55, 0xb8, 0x8f, 0x1e, 0x7d,
+	0xed, 0x08, 0x65, 0x3f, 0xbf, 0xcc, 0xc2, 0xe0, 0xaa, 0x7f, 0x43, 0xd7, 0x77, 0xda, 0x55, 0x4d,
+	0x3c, 0xdf, 0xff, 0x0e, 0x00, 0x00, 0xff, 0xff, 0x99, 0x9c, 0x1a, 0xed, 0x13, 0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -346,7 +509,12 @@ const _ = grpc.SupportPackageIsVersion6
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type CallTraceServiceClient interface {
+	// Start a call trace on the gateway with the specified options.
+	// Only a single call trace can be active on a gateway at a time.
+	//
 	StartCallTrace(ctx context.Context, in *StartTraceRequest, opts ...grpc.CallOption) (*StartTraceResponse, error)
+	// End the call trace that is currently active on the gateway.
+	//
 	EndCallTrace(ctx context.Context, in *EndTraceRequest, opts ...grpc.CallOption) (*EndTraceResponse, error)
 }
 
@@ -378,7 +546,12 @@ func (c *callTraceServiceClient) EndCallTrace(ctx context.Context, in *EndTraceR
 
 // CallTraceServiceServer is the server API for CallTraceService service.
 type CallTraceServiceServer interface {
+	// Start a call trace on the gateway with the specified options.
+	// Only a single call trace can be active on a gateway at a time.
+	//
 	StartCallTrace(context.Context, *StartTraceRequest) (*StartTraceResponse, error)
+	// End the call trace that is currently active on the gateway.
+	//
 	EndCallTrace(context.Context, *EndTraceRequest) (*EndTraceResponse, error)
 }
 
@@ -444,6 +617,82 @@ var _CallTraceService_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EndCallTrace",
 			Handler:    _CallTraceService_EndCallTrace_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "orc8r/protos/ctraced.proto",
+}
+
+// CallTraceControllerClient is the client API for CallTraceController service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
+type CallTraceControllerClient interface {
+	// Report that a call trace has ended
+	//
+	ReportEndedCallTrace(ctx context.Context, in *ReportEndedTraceRequest, opts ...grpc.CallOption) (*ReportEndedTraceResponse, error)
+}
+
+type callTraceControllerClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewCallTraceControllerClient(cc grpc.ClientConnInterface) CallTraceControllerClient {
+	return &callTraceControllerClient{cc}
+}
+
+func (c *callTraceControllerClient) ReportEndedCallTrace(ctx context.Context, in *ReportEndedTraceRequest, opts ...grpc.CallOption) (*ReportEndedTraceResponse, error) {
+	out := new(ReportEndedTraceResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.CallTraceController/ReportEndedCallTrace", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// CallTraceControllerServer is the server API for CallTraceController service.
+type CallTraceControllerServer interface {
+	// Report that a call trace has ended
+	//
+	ReportEndedCallTrace(context.Context, *ReportEndedTraceRequest) (*ReportEndedTraceResponse, error)
+}
+
+// UnimplementedCallTraceControllerServer can be embedded to have forward compatible implementations.
+type UnimplementedCallTraceControllerServer struct {
+}
+
+func (*UnimplementedCallTraceControllerServer) ReportEndedCallTrace(ctx context.Context, req *ReportEndedTraceRequest) (*ReportEndedTraceResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ReportEndedCallTrace not implemented")
+}
+
+func RegisterCallTraceControllerServer(s *grpc.Server, srv CallTraceControllerServer) {
+	s.RegisterService(&_CallTraceController_serviceDesc, srv)
+}
+
+func _CallTraceController_ReportEndedCallTrace_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ReportEndedTraceRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(CallTraceControllerServer).ReportEndedCallTrace(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.orc8r.CallTraceController/ReportEndedCallTrace",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(CallTraceControllerServer).ReportEndedCallTrace(ctx, req.(*ReportEndedTraceRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+var _CallTraceController_serviceDesc = grpc.ServiceDesc{
+	ServiceName: "magma.orc8r.CallTraceController",
+	HandlerType: (*CallTraceControllerServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "ReportEndedCallTrace",
+			Handler:    _CallTraceController_ReportEndedCallTrace_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

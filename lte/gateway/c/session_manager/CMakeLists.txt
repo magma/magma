@@ -33,7 +33,14 @@ if (NOT BUILD_TESTS)
   #   "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
   #set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
   #   "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
+else() # BUILD_TESTS
 endif ()
+
+message("Adding code coverage build and linker flags for BUILD_TESTS")
+set (CMAKE_CXX_FLAGS_DEBUG
+  "${CMAKE_CXX_FLAGS_DEBUG} -g -O0 -fprofile-arcs -ftest-coverage")
+set(CMAKE_LINKER_FLAGS_DEBUG
+  "${CMAKE_LINKER_FLAGS_DEBUG} -fprofile-arcs -ftest-coverage")
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
@@ -42,7 +49,7 @@ add_definitions(-DLOG_WITH_GLOG)
 
 message("Build type is ${CMAKE_BUILD_TYPE}")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Werror -Wno-unused-function")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unused-function")
 endif ()
 
 include_directories("${OUTPUT_DIR}")
@@ -165,15 +172,28 @@ add_library(SESSION_MANAGER
     Utilities.h
     OperationalStatesHandler.cpp
     OperationalStatesHandler.h
+    Types.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
-
+## Find + link sentry if it exists
+find_library(SENTRY_LIB NAMES sentry sentry-native)
+if (SENTRY_LIB)
+# Include dir
+message("Building with sentry!")
+find_path(SENTRY_INCLUDE_DIR
+    NAMES
+    sentry.h
+)
+target_link_libraries(SESSION_MANAGER ${SENTRY_LIB})
+set (CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DSENTRY_ENABLED=1")
+set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_ENABLED=1")
+endif()
 
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
   DATASTORE
-  glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
+  glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie
   )
 

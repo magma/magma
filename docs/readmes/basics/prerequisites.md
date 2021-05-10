@@ -15,17 +15,17 @@ Install the following tools:
 1. [Docker](https://www.docker.com) and Docker Compose
 2. [Homebrew](https://brew.sh/) *only* for MacOS users
 3. [VirtualBox](https://www.virtualbox.org/)
-3. [Vagrant](https://vagrantup.com)
+4. [Vagrant](https://vagrantup.com)
 
-Replace `brew` with your OS-appropriate package manager as necessary, or see
-the [pyenv installation instructions](https://github.com/pyenv/pyenv#installation).
+Replace `brew` with your OS-appropriate package manager as necessary.
 
 ```bash
-brew install pyenv
+brew install go@1.13 pyenv
 
 # Replace .zshrc with your appropriate shell RC file
 # IMPORTANT: Use .bash_profile, not .bashrc for bash
-echo -e 'if command -v pyenv 1>/dev/null 2>&1; then\n  eval "$(pyenv init -)"\nfi' >> ~/.zshrc
+echo 'export PATH="/usr/local/opt/go@1.13/bin:$PATH"' >> ~/.zshrc
+echo 'if command -v pyenv 1>/dev/null 2>&1; then eval "$(pyenv init -)"; fi' >> ~/.zshrc
 exec $SHELL
 pyenv install 3.7.3
 pyenv global 3.7.3
@@ -35,9 +35,28 @@ vagrant plugin install vagrant-vbguest
 ```
 
 If you are on MacOS, you should start Docker for Mac and increase the memory
-allocation for the Docker engine to at least 4GB (Preferences -> Advanced).
+allocation for the Docker engine to at least 4GB (Preferences -> Resources ->
+Advanced). If you are running into build/test failures with Go that report
+"signal killed", you likely need to increase Docker's allocated resources.
 
 ![Increasing docker engine resources](assets/docker-config.png)
+
+## Downloading Magma
+
+You can find Magma code on [Github](https://github.com/magma/magma).
+
+To download Magma current version, or a specific release do the following:
+
+```bash
+git clone https://github.com/magma/magma.git
+cd magma
+
+# in case you want to use a specific version of Magma (for example v1.4)
+git checkout v1.4
+
+# to list all available releases
+git tag -l
+```
 
 ## Build/Deploy Tooling
 
@@ -85,13 +104,13 @@ you will use something else for managing AWS credentials.
 ### Access Gateways
 
 Access gateways (AGWs) can be deployed on to any AMD64 architecture machine
-which can support a Debian Linux installation. The basic system requirements
-for the AGW production hardware are:
+which can support a Debian or Ubuntu 20.04 Linux installation. The basic system
+requirements for the AGW production hardware are:
 
-1. 2+ physical ethernet interfaces
+1. 2+ physical Ethernet interfaces
 2. AMD64 dual-core processor around 2GHz clock speed or faster
-3. 2GB RAM
-4. 128GB-256GB SSD storage
+3. 4GB RAM
+4. 32GB or greater SSD storage
 
 In addition, in order to build the AGW, you should have on hand:
 

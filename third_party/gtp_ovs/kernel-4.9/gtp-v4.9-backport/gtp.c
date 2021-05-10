@@ -47,6 +47,20 @@ enum ifla_gtp_role {
 
 #define GTP_PDP_HASHSIZE 1024
 #define GTPA_PEER_ADDRESS GTPA_SGSN_ADDRESS /* maintain legacy attr name */
+#define GTP_EXTENSION_HDR_FLAG 0x04
+
+struct gtpu_ext_hdr {
+	__be16 seq_num;
+	u8 n_pdu;
+        u8 type;
+};
+
+struct gtpu_ext_hdr_pdu_sc {
+	u8 len;
+	u8 pdu_type;
+	u8 qfi;
+        u8 next_type;
+};
 
 /* An active session for the subscriber. */
 struct pdp_ctx {
@@ -221,11 +235,9 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
 				!net_eq(sock_net(sk), dev_net(gtp->dev))))
 		return -1;
 
-	netdev_dbg(gtp->dev, "forwarding packet from GGSN to uplink\n");
-
 	if (tun_dst) {
 		skb_dst_set(skb, (struct dst_entry *)tun_dst);
-		netdev_dbg(gtp->dev, "attaching metadata_dst to skb\n");
+		netdev_dbg(gtp->dev, "rcv: attaching metadata_dst to skb\n");
 	}
 
 	/* Now that the UDP and the GTP header have been removed, set up the
@@ -234,19 +246,19 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
 	 */
 	skb_reset_network_header(skb);
         if (check_header(skb, sizeof(struct iphdr))) {
-                netdev_dbg(gtp->dev, "inner pkt: could not parse");
+                netdev_dbg(gtp->dev, "rcv: inner pkt: could not parse");
                 goto rx_err;
         }
 
         iph = ip_hdr(skb);
         if (iph->version == 4) {
-                netdev_dbg(gtp->dev, "inner pkt: ipv4");
+                netdev_dbg(gtp->dev, "rcv: inner pkt: ipv4, len %d", skb->len);
                 skb->protocol = htons(ETH_P_IP);
         } else if (iph->version == 6) {
-                netdev_dbg(gtp->dev, "inner pkt: ipv6");
+                netdev_dbg(gtp->dev, "rcv: inner pkt: ipv6, len %d", skb->len);
                 skb->protocol = htons(ETH_P_IPV6);
         } else {
-                netdev_dbg(gtp->dev, "inner pkt error: Unknown type");
+                netdev_dbg(gtp->dev, "rcv: inner pkt error: Unknown type");
                 goto rx_err;
         }
 	skb->dev = gtp->dev;
@@ -324,7 +336,29 @@ static int gtp1u_udp_encap_recv(struct gtp_dev *gtp, struct sk_buff *skb)
 	 * If any of the bit is set, then the remaining ones also have to be
 	 * set.
 	 */
-	if (gtp1->flags & GTP1_F_MASK)
+	if (gtp1->flags & GTP_EXTENSION_HDR_FLAG) {
+		struct gtpu_ext_hdr *geh;
+		u8 next_hdr;
+
+		geh = (struct gtpu_ext_hdr *) (gtp1 + 1);
+		netdev_dbg(gtp->dev, "ext type type %d\n", geh->type);
+
+		hdrlen += sizeof (struct gtpu_ext_hdr);
+		next_hdr = geh->type;
+		while (next_hdr) {
+			u8 len = *(u8 *) (skb->data + hdrlen);
+
+			hdrlen += (len * 4);
+			if (!pskb_may_pull(skb, hdrlen)) {
+				netdev_dbg(gtp->dev, "malformed packet %d", hdrlen);
+				return -1;
+			}
+			next_hdr = *(u8*) (skb->data + hdrlen - 1);
+			netdev_dbg(gtp->dev, "current hdr len %d next hdr type: %d\n", len, next_hdr);
+		}
+		netdev_dbg(gtp->dev, "pkt type: %x", *(u8*) (skb->data + hdrlen));
+		netdev_dbg(gtp->dev, "skb-len %d gtp len %d hdr len %d\n", skb->len, (int) ntohs(gtp1->length), hdrlen);
+	} else if (gtp1->flags & GTP1_F_MASK)
 		hdrlen += 4;
 
 	/* Make sure the header is larger enough, including extensions. */
@@ -390,8 +424,6 @@ static int gtp_encap_recv(struct sock *sk, struct sk_buff *skb)
 	gtp = rcu_dereference_sk_user_data(sk);
 	if (!gtp)
 		return 1;
-
-	netdev_dbg(gtp->dev, "encap_recv sk=%p\n", sk);
 
 	switch (udp_sk(sk)->encap_type) {
 	case UDP_ENCAP_GTP0:
@@ -474,12 +506,32 @@ static inline void gtp0_push_header(struct sk_buff *skb, struct pdp_ctx *pctx)
 	gtp0->tid	= cpu_to_be64(pctx->u.v0.tid);
 }
 
-static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid)
-{
-	int payload_len = skb->len;
-	struct gtp1_header *gtp1;
+const struct gtpu_ext_hdr n_hdr = {
+	.type = 0x85,
+};
 
-	gtp1 = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1));
+const struct gtpu_ext_hdr_pdu_sc pdu_sc_hdr = {
+	.len = 1,
+	.pdu_type = 0x0, /* PDU_TYPE_DL_PDU_SESSION_INFORMATION */
+	.qfi = 5,
+        .next_type = 0,
+};
+
+static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid, __u8 qfi)
+{
+	struct gtpu_ext_hdr *next_hdr;
+	struct gtpu_ext_hdr_pdu_sc *pdu_sc;
+	struct gtp1_header *gtp1;
+	int payload_len = skb->len;
+	__u8 flags = 0x30;
+
+	if (qfi) {
+		gtp1 = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1) + sizeof (*next_hdr) + sizeof (*pdu_sc));
+		payload_len += (sizeof(*next_hdr) + sizeof(*pdu_sc));
+		flags = flags | GTP_EXTENSION_HDR_FLAG;
+	} else {
+		gtp1 = (struct gtp1_header *) skb_push(skb, sizeof(*gtp1));
+	}
 
 	/* Bits    8  7  6  5  4  3  2	1
 	 *	  +--+--+--+--+--+--+--+--+
@@ -487,14 +539,21 @@ static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid)
 	 *	  +--+--+--+--+--+--+--+--+
 	 *	    0  0  1  1	1  0  0  0
 	 */
-	gtp1->flags	= 0x30; /* v1, GTP-non-prime. */
+	gtp1->flags	= flags; /* v1, GTP-non-prime. */
 	gtp1->type	= GTP_TPDU;
 	gtp1->length	= htons(payload_len);
 	gtp1->tid	= tid;
 
-	/* TODO: Suppport for extension header, sequence number and N-PDU.
-	 *	 Update the length field if any of them is available.
-	 */
+	if (qfi) {
+		/* TODO: Suppport for extension header, sequence number and N-PDU.
+		 *	 Update the length field if any of them is available.
+		 */
+		next_hdr = (struct gtpu_ext_hdr *) (gtp1 + 1);
+		*next_hdr = n_hdr;
+		pdu_sc = (struct gtpu_ext_hdr_pdu_sc *) (next_hdr + 1);
+		*pdu_sc = pdu_sc_hdr;
+		pdu_sc->qfi = qfi;
+	}
 }
 
 struct gtp_pktinfo {
@@ -534,6 +593,7 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 	int mtu;
         __u8 tos;
         __be16 df = 0;
+        __u8 set_qfi = 0;
 
 	// flow-based GTP1U encap
 	info = skb_tunnel_info(skb);
@@ -545,11 +605,15 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 		saddr = info->key.u.ipv4.src;
 		sk = gtp->sk1u;
                 tos = info->key.tos;
+
                 if (info->key.tun_flags & TUNNEL_DONT_FRAGMENT)
                         df = htons(IP_DF);
 
-		netdev_dbg(dev, "flow-based GTP1U encap: tunnel id %d\n",
-			   be32_to_cpu(tun_id));
+		if (info->key.tun_flags & TUNNEL_OAM)
+		    set_qfi = 5;
+
+		netdev_dbg(dev, "xmit: flow-based GTP1U encap: tunnel id %x len %d\n",
+			   be32_to_cpu(tun_id), skb->len);
 	} else {
 	        struct iphdr *iph;
 
@@ -567,7 +631,7 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 			pctx = ipv4_pdp_find(gtp, iph->daddr);
 
 		if (!pctx) {
-			netdev_dbg(dev, "no PDP ctx found for %pI4, skip\n",
+			netdev_dbg(dev, "xmit: no PDP ctx found for %pI4, skip\n",
 				   &iph->daddr);
 			return -ENOENT;
 		}
@@ -580,19 +644,19 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 		sk = pctx->sk;
                 tos = iph->tos;
 	        df = iph->frag_off;
-		netdev_dbg(dev, "gtp -> IP src: %pI4 dst: %pI4\n",
+		netdev_dbg(dev, "xmit: gtp -> IP src: %pI4 dst: %pI4\n",
 			   &iph->saddr, &iph->daddr);
 	}
 
 	rt = ip4_route_output_gtp(&fl4, sk, daddr, saddr);
 	if (IS_ERR(rt)) {
-		netdev_dbg(dev, "no route to SSGN %pI4\n", &daddr);
+		netdev_dbg(dev, "xmit: no route to SSGN %pI4\n", &daddr);
 		dev->stats.tx_carrier_errors++;
 		goto err;
 	}
 
 	if (rt->dst.dev == dev) {
-		netdev_dbg(dev, "circular route to SSGN %pI4\n", &daddr);
+		netdev_dbg(dev, "xmit: circular route to SSGN %pI4\n", &daddr);
 		dev->stats.collisions++;
 		goto err_rt;
 	}
@@ -619,7 +683,7 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 
 	if (!skb_is_gso(skb) && (df & htons(IP_DF)) &&
 	    mtu < skb->len) {
-		netdev_dbg(dev, "packet too big, fragmentation needed\n");
+		netdev_dbg(dev, "xmit: packet too big, fragmentation needed\n");
 		memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
 		icmp_send(skb, ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED,
 			  htonl(mtu));
@@ -635,7 +699,7 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 		break;
 	case GTP_V1:
 		pktinfo->gtph_port = htons(GTP1U_PORT);
-		gtp1_push_header(skb, tun_id);
+		gtp1_push_header(skb, tun_id, set_qfi);
 		break;
 	}
 
@@ -666,6 +730,7 @@ static netdev_tx_t gtp_dev_xmit(struct sk_buff *skb, struct net_device *dev)
 		err = gtp_build_skb_ip4(skb, dev, &pktinfo);
 		break;
 	default:
+		netdev_dbg(dev, "xmit: invalid proto %x", proto);
 		err = -EOPNOTSUPP;
 		break;
 	}
@@ -682,6 +747,7 @@ static netdev_tx_t gtp_dev_xmit(struct sk_buff *skb, struct net_device *dev)
 			    pktinfo.gtph_port, pktinfo.gtph_port,
 			    false, false);
 
+	netdev_dbg(dev, "xmit: sent src: %pI4 dst: %pI4\n", &pktinfo.fl4.saddr, &pktinfo.fl4.daddr);
 	return NETDEV_TX_OK;
 tx_err:
 	dev->stats.tx_errors++;
@@ -1637,7 +1703,7 @@ static int __init gtp_init(void)
 	if (err < 0)
 		goto unreg_genl_family;
 
-	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v7\n",
+	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v9\n",
 		sizeof(struct pdp_ctx));
 	return 0;
 

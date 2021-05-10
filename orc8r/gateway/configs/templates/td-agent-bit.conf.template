@@ -3,6 +3,8 @@
     # =====
     # Set an interval of seconds before to flush records to a destination
     Flush        5
+    # Path for filesystem based buffering
+    storage.path /tmp/flb-storage
 
     # Daemon
     # ======
@@ -49,12 +51,19 @@
     Listen   0.0.0.0
     port     24224
 
+# Input from the EventD service
 [INPUT]
-    Name        tcp
-    Listen      0.0.0.0
-    Port        5170
-    Format      json
-    Tag eventd
+    Name          tcp
+    Alias         eventlogs
+    Listen        0.0.0.0
+    Port          5170
+    Format        json
+    Tag           eventd
+    # Set the maximum in-memory buffer to 5MB. We will use the filesystem once
+    # we exceed the limit. Since we retry forwarding for some events, we need
+    # to place a limit to avoid OOM.
+    mem_buf_limit 5MB
+    storage.type  filesystem
 
 {% for t,f in files %}
 [INPUT]
@@ -65,6 +74,12 @@
     Refresh_Interval 5
     Key message
 {% endfor %}
+
+# Modify eventd logs with retry-on-failure set
+[FILTER]
+    Name          rewrite_tag
+    Match         eventd
+    Rule          $retry_on_failure True $TAG.retry_on_failure false
 
 [FILTER]
     Name grep
@@ -86,9 +101,33 @@
     Window   {{ throttle_window }}
     Interval {{ throttle_interval}}
 
+# For any logs with retry_on_failure tag, set the retry limit to false
+# At the moment, this only applies to event logs with retry_on_failure flag set
 [OUTPUT]
     Name          forward
-    Match         *
+    Alias         eventlogs_with_retries
+    Match_Regex   ^(eventd).*(retry_on_failure).*$
+    Host          {{ host }}
+    Port          {{ port }}
+    # Re-tag as eventd so we don't affect FluentD
+    Tag           eventd
+    Retry_Limit   False
+
+    {% if is_tls_enabled %}
+    tls on
+    {% else %}
+    tls off
+    {% endif %}
+    tls.verify off
+    tls.debug 3
+    tls.ca_file {{ cacert }}
+    tls.crt_file {{ certfile }}
+    tls.key_file {{ keyfile }}
+
+# Everything else is forwarded without retry
+[OUTPUT]
+    Name          forward
+    Match_Regex   ^((?!retry_on_failure).)*$
     Host          {{ host }}
     Port          {{ port }}
 
@@ -104,6 +143,8 @@
     tls.key_file {{ keyfile }}
 
 [OUTPUT]
-    Name        stdout
-    Match       eventd
+    Name              stdout
+    Match_Regex       eventd*
+
+# LEAVE THIS LINE HERE, FLUENT-BIT REQUIRES NEWLINE
 

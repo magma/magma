@@ -12,9 +12,18 @@ limitations under the License.
 """
 from typing import Optional
 
-from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
-    is_valid_direction, Direction, RULE_VERSION_REG, PASSTHROUGH_REG, \
-    VLAN_TAG_REG, DPI_REG, RULE_NUM_REG, PROXY_TAG_REG
+from magma.pipelined.openflow.registers import (
+    DIRECTION_REG,
+    DPI_REG,
+    IMSI_REG,
+    PASSTHROUGH_REG,
+    PROXY_TAG_REG,
+    RULE_NUM_REG,
+    RULE_VERSION_REG,
+    VLAN_TAG_REG,
+    Direction,
+    is_valid_direction,
+)
 
 
 class MagmaMatch(object):
@@ -72,6 +81,9 @@ class MagmaMatch(object):
                 not is_valid_direction(self.direction):
             raise Exception("Invalid direction: %s" % self.direction)
 
+        # Avoid double register sets to ease debuggability
         for k in self._match_kwargs:
-            if k in [DIRECTION_REG, IMSI_REG]:
+            if k == DIRECTION_REG and self.direction:
+                raise Exception("Register %s should not be directly set" % k)
+            if k == IMSI_REG and self.imsi:
                 raise Exception("Register %s should not be directly set" % k)

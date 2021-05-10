@@ -18,7 +18,7 @@ locals {
 resource "helm_release" "fluentd" {
   count = var.elasticsearch_endpoint == null ? 0 : 1
 
-  name       = "fluentd"
+  name       = var.fluentd_deployment_name
   namespace  = kubernetes_namespace.orc8r.metadata[0].name
   repository = local.stable_helm_repo
   chart      = "fluentd"
@@ -55,6 +55,35 @@ resource "helm_release" "fluentd" {
         </transport>
       </source>
     output.conf: |-
+      <match eventd>
+        @id eventd_elasticsearch
+        @type elasticsearch
+        @log_level info
+        include_tag_key true
+        host "#{ENV['OUTPUT_HOST']}"
+        port "#{ENV['OUTPUT_PORT']}"
+        scheme "#{ENV['OUTPUT_SCHEME']}"
+        ssl_version "#{ENV['OUTPUT_SSL_VERSION']}"
+        logstash_format true
+        logstash_prefix "eventd"
+        reconnect_on_error true
+        reload_on_failure true
+        reload_connections false
+        log_es_400_reason true
+        <buffer>
+          @type file
+          path /var/log/fluentd-buffers/eventd.kubernetes.system.buffer
+          flush_mode interval
+          retry_type exponential_backoff
+          flush_thread_count 2
+          flush_interval 5s
+          retry_forever
+          retry_max_interval 30
+          chunk_limit_size "#{ENV['OUTPUT_BUFFER_CHUNK_LIMIT']}"
+          queue_limit_length "#{ENV['OUTPUT_BUFFER_QUEUE_LIMIT']}"
+          overflow_action block
+        </buffer>
+      </match>
       <match **>
         @id elasticsearch
         @type elasticsearch
@@ -69,6 +98,7 @@ resource "helm_release" "fluentd" {
         reconnect_on_error true
         reload_on_failure true
         reload_connections false
+        log_es_400_reason true
         <buffer>
           @type file
           path /var/log/fluentd-buffers/kubernetes.system.buffer
@@ -100,7 +130,7 @@ resource "helm_release" "fluentd" {
 resource "helm_release" "elasticsearch_curator" {
   count = var.elasticsearch_endpoint == null ? 0 : 1
 
-  name       = "elasticsearch-curator"
+  name       = var.elasticsearch_curator_name
   repository = local.stable_helm_repo
   chart      = "elasticsearch-curator"
   namespace  = kubernetes_namespace.monitoring.metadata[0].name
@@ -114,6 +144,10 @@ resource "helm_release" "elasticsearch_curator" {
       client:
         hosts:
           - "${var.elasticsearch_endpoint}"
+        port: "${var.elasticsearch_port}"
+        use_ssl: "${var.elasticsearch_use_ssl}"
+      logging:
+        loglevel: "${var.elasticsearch_curator_log_level}"
 
     action_file_yml: |-
       ---

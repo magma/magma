@@ -95,7 +95,7 @@ func (r *ReverseProxyHandler) activeBackendMiddleware(next echo.HandlerFunc) ech
 		path = strings.TrimSuffix(path, "/*")
 		backend, exists := r.proxyBackendsByPathPrefix[path]
 		if exists && !backend.active {
-			return echo.NewHTTPError(http.StatusNotFound, fmt.Sprintf("Service not found"))
+			return echo.NewHTTPError(http.StatusNotFound, "service not found")
 		}
 		return next(c)
 	}

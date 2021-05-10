@@ -13,6 +13,15 @@
 
 # log_level is set in mconfig. it can be overridden here
 
+# Append GRPC content to the log
+print_grpc_payload: False
+
+# Size of subscriber pages returned from cloud
+subscriber_page_size: 3000
+
+# Interval in seconds between gateway and cloud sync
+subscriberdb_sync_interval: 180
+
 # Host address of the Diameter/S6A MME server
 host_address: 0.0.0.0 # Bind to all interfaces
 
@@ -20,8 +29,11 @@ host_address: 0.0.0.0 # Bind to all interfaces
 enable_streaming: True
 
 # Keep subscriberdb in a file.
-# Change filename to :memory: to store subscribers in memory.
-db_path: file:/var/opt/magma/subscriber.db?cache=shared
+# If this is omitted default path of /var/opt/magma/ will be assumed.
+db_path: /var/opt/magma/
+
+# Bucketize subscribers based on last sid_last_n digits
+sid_last_n: 2
 
 # S6A Peer Configurations
 mme_host_name: hss.magma.com
@@ -43,3 +55,6 @@ relay_retry_count: 0
 # shall set to false if intend to use Free-Diameter for s6a interface
 # TODO replace boolean with list of protocols: "s6a_over_grpc", "s6a_over_fd"
 s6a_over_grpc: True
+
+# Number of thread workers for the gRPC server
+grpc_workers: 10

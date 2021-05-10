@@ -16,7 +16,7 @@ from typing import Any
 
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
-from lte.protos.subscriberdb_pb2 import SubscriberData, LTESubscription
+from lte.protos.subscriberdb_pb2 import LTESubscription, SubscriberData
 from magma.common.service_registry import ServiceRegistry
 from magma.common.streamer import StreamerClient
 

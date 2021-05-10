@@ -158,7 +158,7 @@ func testSendMAA(w io.Writer, m *diam.Message, vectors int) (n int64, err error)
 		m.NewAVP(avp.SIPAuthDataItem, avp.Mbit|avp.Vbit, VENDOR_3GPP, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
 				diam.NewAVP(avp.SIPAuthenticationScheme, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.UTF8String("EAP-AKA")),
-				diam.NewAVP(avp.SIPAuthenticate, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.OctetString(DefaultSIPAuthenticate+strconv.Itoa(int(14+i)))),
+				diam.NewAVP(avp.SIPAuthenticate, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.OctetString(DefaultSIPAuthenticate+strconv.Itoa(14+i))),
 				diam.NewAVP(avp.SIPAuthorization, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.OctetString(DefaultSIPAuthorization)),
 				diam.NewAVP(avp.ConfidentialityKey, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.OctetString(DefaultCK)),
 				diam.NewAVP(avp.IntegrityKey, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.OctetString(DefaultIK)),

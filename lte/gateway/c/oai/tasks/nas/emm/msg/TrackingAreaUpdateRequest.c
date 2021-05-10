@@ -374,6 +374,22 @@ int decode_tracking_area_update_request(
             TRACKING_AREA_UPDATE_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT;
         break;
 
+      case TRACKING_AREA_UPDATE_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI:
+        if ((decoded_result = decode_ue_additional_security_capability(
+                 &tracking_area_update_request->ueadditionalsecuritycapability,
+                 TRACKING_AREA_UPDATE_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI,
+                 buffer + decoded, len - decoded)) <= 0) {
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, decoded_result);
+        }
+
+        decoded += decoded_result;
+        /*
+         * Set corresponding mask to 1 in presencemask
+         */
+        tracking_area_update_request->presencemask |=
+            TRACKING_AREA_UPDATE_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI;
+        break;
+
       default:
         errorCodeDecoder = TLV_UNEXPECTED_IEI;
         return TLV_UNEXPECTED_IEI;

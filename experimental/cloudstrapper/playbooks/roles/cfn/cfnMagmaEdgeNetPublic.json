@@ -1,0 +1,139 @@
+{
+  "Parameters": {
+    "paramCidr" : {
+      "Type": "String",
+      "Default": "10.0.0.0/16",
+      "Description": "CIDR for Edge network to host SGi and S1 networks"
+    },
+    "paramSgiCidr" : {
+      "Type": "String",
+      "Default": "10.0.4.0/24",
+      "Description": "CIDR for SGi subnet"
+    },
+    "paramEnbCidr" : {
+      "Type": "String",
+      "Default": "10.0.2.0/24",
+      "Description": "CIDR for S1 subnet"
+    },
+    "paramAvlZone" : {
+      "Type": "AWS::EC2::AvailabilityZone::Name",
+      "Default": "us-east-2c",
+      "Description": "Availability Zone"
+    },
+    "paramVpcTagName" : {
+      "Type": "String",
+      "Default": "SGi VPC",
+      "Description": "Tag Name for VPC"
+    },
+    "paramSgiSubnetTagName" : {
+      "Type": "String",
+      "Default": "SGi Subnet",
+      "Description": "Tag Name for SGi Subnet"
+    },
+    "paramEnodebSubnetTagName" : {
+      "Type": "String",
+      "Default": "S1 Subnet",
+      "Description": "Tag Name for eNodeB Subnet"
+    },
+    "paramRouteTableTagName" : {
+      "Type": "String",
+      "Default": "Route Table for SGi Subnet",
+      "Description": "Tag Name for SGi Route Table"
+    },
+    "paramSecGroupName" : {
+      "Type": "String",
+      "Default": "secGroupMagma",
+      "Description": "Security Group Name"
+    },
+    "paramGwTagName" : {
+      "Type": "String",
+      "Default": "SGi Internet Gateway",
+      "Description": "Tag Name for Internet Gateway"
+    }
+  },
+  "Resources": {
+    "vpcSgi": {
+      "Type" : "AWS::EC2::VPC",
+        "Properties" : {
+          "CidrBlock" : { "Ref": "paramCidr" },
+      	  "EnableDnsHostnames" : "true",
+      	  "EnableDnsSupport" : "true",
+      	  "InstanceTenancy" : "default",
+      	  "Tags" : [ {"Key": "Name", "Value": { "Ref" : "paramVpcTagName"}}, {"Key": "Purpose", "Value": "SGi Gateway Proto"} ]
+    	}
+    },
+    "netGwSgi" : {
+      "Type" : "AWS::EC2::InternetGateway",
+        "Properties" : {
+          "Tags" : [ {"Key" : "Name", "Value" : { "Ref" : "paramGwTagName"}} ]
+        }
+     },
+     "gWAttach" : {
+       "Type" : "AWS::EC2::VPCGatewayAttachment",
+         "Properties" : {
+           "VpcId" : { "Ref" : "vpcSgi" },
+           "InternetGatewayId" : { "Ref" : "netGwSgi" }
+         }
+    },
+    "subEnb" : {
+     "Type" : "AWS::EC2::Subnet",
+     "Properties" : {
+       "VpcId" : {  "Ref": "vpcSgi" },
+       "CidrBlock" : { "Ref": "paramEnbCidr" },
+       "AvailabilityZone" : { "Ref": "paramAvlZone" },
+       "Tags" : [ { "Key" : "Name", "Value" : { "Ref": "paramEnodebSubnetTagName" }} ]
+     }
+    },
+    "subSgi" : {
+     "Type" : "AWS::EC2::Subnet",
+     "Properties" : {
+       "VpcId" : { "Ref" : "vpcSgi" },
+       "CidrBlock" : { "Ref": "paramSgiCidr" },
+       "AvailabilityZone" : { "Ref": "paramAvlZone" },
+       "Tags" : [ { "Key" : "Name", "Value" : { "Ref": "paramSgiSubnetTagName" }} ]
+      }
+    },
+    "rttGwSgi" : {
+      "Type" : "AWS::EC2::RouteTable",
+      "Properties" : {
+        "VpcId" : { "Ref" : "vpcSgi" },
+        "Tags" : [ { "Key" : "Name", "Value" : "Route Table for Internet Traffic" } ]
+       }
+    },
+    "rtGwSgi" : {
+      "Type" : "AWS::EC2::Route",
+      "Properties" : {
+        "RouteTableId" : { "Ref" : "rttGwSgi" },
+        "DestinationCidrBlock" : "0.0.0.0/0",
+        "GatewayId" : { "Ref" : "netGwSgi" }
+       }
+    },
+    "rtAssocSubnet" : {
+      "Type" : "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties" : {
+        "SubnetId" : { "Ref" : "subSgi" },
+        "RouteTableId" : { "Ref" : "rttGwSgi" }
+       }
+    },
+    "sgSgi": {
+      "Type" : "AWS::EC2::SecurityGroup",
+      "Properties" : {
+        "GroupDescription" : "Allow all TCP to client host",
+	"GroupName": { "Ref": "paramSecGroupName" },
+        "VpcId" : {"Ref" : "vpcSgi"},
+        "SecurityGroupIngress" : [{
+          "IpProtocol" : "-1",
+          "FromPort" : 0,
+          "ToPort" : 65535,
+          "CidrIp" : "0.0.0.0/0"
+        }],
+        "SecurityGroupEgress" : [{
+          "IpProtocol" : "-1",
+          "FromPort" : 0,
+          "ToPort" : 65535,
+          "CidrIp" : "0.0.0.0/0"
+        }]
+      }
+    }
+  }
+}

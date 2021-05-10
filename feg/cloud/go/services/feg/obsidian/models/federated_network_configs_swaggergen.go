@@ -17,6 +17,9 @@ import (
 // swagger:model federated_network_configs
 type FederatedNetworkConfigs struct {
 
+	// federated modes mapping
+	FederatedModesMapping *FederatedModeMap `json:"federated_modes_mapping,omitempty"`
+
 	// feg network id
 	// Required: true
 	FegNetworkID *string `json:"feg_network_id"`
@@ -26,6 +29,10 @@ type FederatedNetworkConfigs struct {
 func (m *FederatedNetworkConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateFederatedModesMapping(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateFegNetworkID(formats); err != nil {
 		res = append(res, err)
 	}
@@ -33,6 +40,24 @@ func (m *FederatedNetworkConfigs) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *FederatedNetworkConfigs) validateFederatedModesMapping(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.FederatedModesMapping) { // not required
+		return nil
+	}
+
+	if m.FederatedModesMapping != nil {
+		if err := m.FederatedModesMapping.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("federated_modes_mapping")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 

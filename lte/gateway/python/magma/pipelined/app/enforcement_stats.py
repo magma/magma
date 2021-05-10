@@ -11,40 +11,38 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os
-from typing import List
 from collections import defaultdict
 
-from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
-from lte.protos.session_manager_pb2 import RuleRecord, \
-    RuleRecordTable
+from lte.protos.session_manager_pb2 import RuleRecord, RuleRecordTable
+from magma.pipelined.app.base import (ControllerType, MagmaController,
+                                      global_epoch)
+from magma.pipelined.app.policy_mixin import (DROP_FLOW_STATS, IGNORE_STATS,
+                                              PROCESS_STATS, PolicyMixin)
+from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
+from magma.pipelined.imsi import decode_imsi, encode_imsi
+from magma.pipelined.openflow import flows, messages
+from magma.pipelined.openflow.exceptions import (MagmaDPDisconnectedError,
+                                                 MagmaOFError)
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.openflow.messages import MessageHub, MsgChannel
+from magma.pipelined.openflow.registers import (DIRECTION_REG, IMSI_REG,
+                                                RULE_VERSION_REG, SCRATCH_REGS,
+                                                Direction)
+from magma.pipelined.policy_converters import (get_eth_type,
+                                               get_ue_ip_match_args)
+from magma.pipelined.utils import Utils
 from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
-from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
-
-from magma.pipelined.app.base import MagmaController, ControllerType, \
-    global_epoch
-from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
-    PROCESS_STATS, DROP_FLOW_STATS
-from magma.pipelined.policy_converters import get_ue_ip_match_args, \
-    get_eth_type
-from magma.pipelined.openflow import messages, flows
-from magma.pipelined.openflow.exceptions import MagmaOFError
-from magma.pipelined.imsi import decode_imsi, encode_imsi
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.messages import MsgChannel, MessageHub
-from magma.pipelined.utils import Utils
-from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
-    IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
-
 
 ETH_FRAME_SIZE_BYTES = 14
 
 
-class EnforcementStatsController(PolicyMixin, MagmaController):
+class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     """
     This openflow controller installs flows for aggregating policy usage
     statistics, which are sent to sessiond for tracking.
@@ -79,11 +77,12 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self._msg_hub = MessageHub(self.logger)
         self.unhandled_stats_msgs = []  # Store multi-part responses from ovs
         self.total_usage = {}  # Store total usage
+        self._clean_restart = kwargs['config']['clean_restart']
+        self._redis_enabled = kwargs['config'].get('redis_enabled', False)
         # Store last usage excluding deleted flows for calculating deltas
-        self.last_usage_for_delta = {}
+        self.last_usage_for_delta = defaultdict(RuleRecord)
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
         self._unmatched_bytes = 0  # Store bytes matched by default rule if any
-        self._clean_restart = kwargs['config']['clean_restart']
         self._default_drop_flow_name = \
             kwargs['config']['enforcement']['default_drop_flow_name']
         self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
@@ -102,9 +101,9 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         """
         self.unhandled_stats_msgs = []
         self.total_usage = {}
-        self.last_usage_for_delta = {}
         self.failed_usage = {}
         self._unmatched_bytes = 0
+        self.last_usage_for_delta = defaultdict(RuleRecord)
 
     def initialize_on_connect(self, datapath):
         """
@@ -115,14 +114,14 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         """
         self._datapath = datapath
 
-    def _install_default_flows_if_not_installed(self, datapath,
-            existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
+    def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
-        Install default flows(if not already installed) to forward the traffic,
-        If no other flows are matched.
+        Gets the default flow msg that drops traffic
 
+        Args:
+            datapath: ryu datapath struct
         Returns:
-            The list of flows that remain after inserting default flows
+            The list of default msgs to add
         """
         match = MagmaMatch()
         msg = flows.get_add_drop_flow_msg(
@@ -130,13 +129,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             priority=flows.MINIMUM_PRIORITY,
             cookie=self.DEFAULT_FLOW_COOKIE)
 
-        msg, remaining_flows = \
-            self._msg_hub.filter_msgs_if_not_in_flow_list([msg], existing_flows)
-        if msg:
-            chan = self._msg_hub.send(msg, datapath)
-            self._wait_for_responses(chan, 1)
-
-        return remaining_flows
+        return {self.tbl_num: [msg]}
 
     def cleanup_on_disconnect(self, datapath):
         """
@@ -148,7 +141,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if self._clean_restart:
             self.delete_all_flows(datapath)
 
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, version):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -166,9 +159,14 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 rule.id, imsi, err)
             return RuleModResult.FAILURE
 
-        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule, version)
 
-        chan = self._msg_hub.send(msgs, self._datapath)
+        try:
+            chan = self._msg_hub.send(msgs, self._datapath)
+        except MagmaDPDisconnectedError:
+            self.logger.error("Datapath disconnected, failed to install rule %s"
+                              "for imsi %s", rule, imsi)
+            return RuleModResult.FAILURE
         for _ in range(len(msgs)):
             try:
                 result = chan.get()
@@ -188,13 +186,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self._msg_hub.handle_error(ev)
 
     # pylint: disable=protected-access,unused-argument
-    def _get_rule_match_flow_msgs(self, imsi, _, __, ip_addr, ambr, rule):
+    def _get_rule_match_flow_msgs(self, imsi, _, __, ip_addr, ambr, rule, version):
         """
         Returns flow add messages used for rule matching.
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
-                                                                rule.id)
         self.logger.debug(
             'Installing flow for %s with rule num %s (version %s)', imsi,
             rule_num, version)
@@ -270,8 +266,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
                                         priority=Utils.DROP_PRIORITY)]
 
-
-    def _install_redirect_flow(self, imsi, ip_addr, rule):
+    def _install_redirect_flow(self, imsi, ip_addr, rule, version):
         pass
 
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
@@ -363,12 +358,22 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 if stat.table_id != self.tbl_num:
                     # this update is not intended for policy
                     return
-                current_usage = self._update_usage_from_flow_stat(
-                    current_usage, stat)
+                try:
+                    current_usage = self._update_usage_from_flow_stat(
+                        current_usage, stat)
+                except ConnectionError:
+                    self.logger.error('Failed processing stats, redis unavailable')
+                    self.unhandled_stats_msgs.append(stats_msgs)
+                    return
 
         # Calculate the delta values from last stat update
-        delta_usage = self._delta_usage_maps(current_usage,
-                                             self.last_usage_for_delta)
+        try:
+            delta_usage = self._delta_usage_maps(current_usage,
+                                                 self.last_usage_for_delta)
+        except ConnectionError:
+            self.logger.error('Failed processing delta stats, redis unavailable')
+            self.unhandled_stats_msgs.append(stats_msgs)
+            return
         self.total_usage = current_usage
 
         # Append any records which we couldn't send to session manager earlier
@@ -379,9 +384,17 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         # recognize when flows have ended
         self._report_usage(delta_usage)
 
-        self._delete_old_flows(stats_msgs)
+        try:
+            self._delete_old_flows(stats_msgs)
+        except ConnectionError:
+            self.logger.error('Failed remove old flows, redis unavailable')
+            return
 
     def deactivate_default_flow(self, imsi, ip_addr):
+        if self._datapath is None:
+            self.logger.error('Datapath not initialized')
+            return
+
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
         match_out = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.OUT)
 
@@ -454,6 +467,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         record.rule_id = rule_id
         record.sid = sid
 
+        rule_version = _get_version(flow_stat)
+        if not rule_version:
+            rule_version = 0
+        record.rule_version = rule_version
+
         if ipv4_addr:
             record.ue_ipv4 = ipv4_addr
         elif ipv6_addr:
@@ -513,7 +531,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                     stat_sid, rule_version, e)
 
         self.last_usage_for_delta = self._delta_usage_maps(self.total_usage,
-                                                           deleted_flow_usage)
+            deleted_flow_usage)
 
     def _old_flow_stats(self, stats_msgs):
         """
@@ -534,7 +552,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                     ipv4_addr = IPAddress(version=IPAddress.IPV4,
                                           address=ipv4_addr_str.encode('utf-8'))
                 rule_version = _get_version(stat)
-                if rule_id == "":
+                if rule_id == "" or rule_version == None:
                     continue
 
                 current_ver = \
@@ -600,6 +618,14 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             else:
                 new_usage[key] = current
         return new_usage
+
+    def recover_state(self, stat_flows):
+        for flow in stat_flows[self.tbl_num]:
+            self.last_usage_for_delta = self._update_usage_from_flow_stat(
+                self.last_usage_for_delta, flow)
+        self.logger.info("Recovered enforcement stats")
+        self.logger.debug(self.last_usage_for_delta)
+
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """

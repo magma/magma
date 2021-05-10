@@ -656,11 +656,14 @@ func DoesInternalEntityExist(entityType, entityKey string) (bool, error) {
 	return DoesEntityExist(storage.InternalNetworkID, entityType, entityKey)
 }
 
-// LoadAllEntitiesOfType fetches all entities of specified type in a network
-func LoadAllEntitiesOfType(networkID string, entityType string, criteria EntityLoadCriteria, serdes serde.Registry) (NetworkEntities, error) {
+// LoadAllEntitiesOfType fetches all entities of specified type in a network.
+// Loads can be paginated by specifying a page size and token in the entity
+// load criteria. To exhaustively read all pages, clients must continue
+// querying until an empty page token is received in the load result.
+func LoadAllEntitiesOfType(networkID string, entityType string, criteria EntityLoadCriteria, serdes serde.Registry) (NetworkEntities, string, error) {
 	client, err := getNBConfiguratorClient()
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	res, err := client.LoadEntities(
@@ -674,15 +677,37 @@ func LoadAllEntitiesOfType(networkID string, entityType string, criteria EntityL
 		},
 	)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 
 	ret, err := (NetworkEntities{}).fromProtos(res.Entities, serdes)
 	if err != nil {
-		return nil, errors.Wrap(err, "request succeeded but deserialization failed")
+		return nil, "", errors.Wrap(err, "request succeeded but deserialization failed")
 	}
 
-	return ret, nil
+	return ret, res.NextPageToken, nil
+}
+
+// CountEntitiesOfType provides total count of entities of this type
+func CountEntitiesOfType(networkID string, entityType string, criteria EntityLoadCriteria, serdes serde.Registry) (uint64, error) {
+	client, err := getNBConfiguratorClient()
+	if err != nil {
+		return 0, err
+	}
+	res, err := client.CountEntities(
+		context.Background(),
+		&protos.LoadEntitiesRequest{
+			NetworkID: networkID,
+			Filter: &storage.EntityLoadFilter{
+				TypeFilter: &wrappers.StringValue{Value: entityType},
+			},
+			Criteria: criteria.toProto(),
+		},
+	)
+	if err != nil {
+		return 0, err
+	}
+	return res.Count, nil
 }
 
 func getNBConfiguratorClient() (protos.NorthboundConfiguratorClient, error) {

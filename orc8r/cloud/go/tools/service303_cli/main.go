@@ -19,7 +19,6 @@ import (
 	"os"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/lib/go/registry"
@@ -42,7 +41,6 @@ var gatewayID string
 
 func main() {
 	flag.Parse()
-	plugin.LoadAllPluginsFatalOnError(&plugin.DefaultOrchestratorPluginLoader{})
 	registry.MustPopulateServices()
 
 	var err error

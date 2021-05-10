@@ -42,8 +42,7 @@ import (
 // - Assert that the traffic goes through. This means the network wide rules
 //   gets installed properly.
 // - Trigger a Gx RAR with a rule removal for the block all rule. Assert the
-//   answer is successful. Since the only rule with a usage monitor is removed,
-//   the session will terminate. Assert that policy usage is empty.
+//   answer is successful.
 func TestOmnipresentRules(t *testing.T) {
 	fmt.Println("\nRunning TestOmnipresentRules...")
 	tr := NewTestRunner(t)
@@ -140,22 +139,18 @@ func TestOmnipresentRules(t *testing.T) {
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	fmt.Printf("RAA result code=%v, should be=%v\n", int(raa.ResultCode), diam.Success)
-	//assert.Equal(t, diam.Success, int(raa.ResultCode))
-
-	// With all monitored rules gone, the session should terminate
-	recordsBySubID, err = tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)])
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // TODO: test disabled for now. Need to modify mconfig to enable/disable Gx
-func testGxDisabledOmnipresentRules(t *testing.T) {
+func TestGxDisabledOmnipresentRules(t *testing.T) {
+	t.Skip()
 	fmt.Println("\nRunning TestOmnipresentRulesGxDisabled...")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
@@ -226,6 +221,5 @@ func testGxDisabledOmnipresentRules(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }

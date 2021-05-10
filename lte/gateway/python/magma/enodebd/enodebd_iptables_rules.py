@@ -15,17 +15,18 @@ limitations under the License.
 
 
 import asyncio
-from magma.enodebd.logger import EnodebdLogger as logger
+import re
 import shlex
 import subprocess
-import re
 from typing import List
+
 from magma.common.misc_utils import (
     IpPreference,
+    get_if_ip_with_netmask,
     get_ip_from_if,
-    get_if_ip_with_netmask
 )
 from magma.configuration.service_configs import load_service_config
+from magma.enodebd.logger import EnodebdLogger as logger
 
 IPTABLES_RULE_FMT = """sudo iptables -t nat
     -{add} PREROUTING

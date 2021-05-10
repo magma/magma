@@ -14,18 +14,29 @@
 package analytics
 
 import (
+	"magma/orc8r/cloud/go/services/analytics"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
-	orchestrator_service "magma/orc8r/cloud/go/services/orchestrator"
-
-	"github.com/golang/glog"
+	orchestrator_calcs "magma/orc8r/cloud/go/services/orchestrator/analytics/calculations"
 )
 
-//GetAnalyticsCalculations - entrypoint for analytics service
-func GetAnalyticsCalculations(config *orchestrator_service.Config) []calculations.Calculation {
-	glog.Info("Orchesterator: GetAnalyticsCalculations")
+// GetAnalyticsCalculations returns all calculations computed by the component
+func GetAnalyticsCalculations(config *calculations.AnalyticsConfig) []calculations.Calculation {
 	if config == nil {
 		return nil
 	}
 
-	return calculations.GetRawMetricsCalculations(config.Analytics.Metrics)
+	calcs := make([]calculations.Calculation, 0)
+	calcs = append(calcs, analytics.GetLogMetricsCalculations(config)...)
+	calcs = append(calcs, analytics.GetRawMetricsCalculations(config)...)
+	calcs = append(calcs, &orchestrator_calcs.NetworkMetricsCalculation{
+		BaseCalculation: calculations.BaseCalculation{
+			CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},
+		},
+	})
+	calcs = append(calcs, &orchestrator_calcs.SiteMetricsCalculation{
+		BaseCalculation: calculations.BaseCalculation{
+			CalculationParams: calculations.CalculationParams{AnalyticsConfig: config},
+		},
+	})
+	return calcs
 }

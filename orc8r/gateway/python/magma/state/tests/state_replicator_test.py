@@ -11,29 +11,37 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import asyncio
-from unittest import TestCase, mock
-import grpc
 import json
-import jsonpickle
 from concurrent import futures
-import orc8r.protos.state_pb2_grpc as state_pb2_grpc
-from orc8r.protos.state_pb2 import ReportStatesResponse, \
-    SyncStatesResponse, IDAndVersion, IDAndError
+from unittest import TestCase, mock
 from unittest.mock import MagicMock
-from orc8r.protos.service303_pb2 import LogVerbosity
-from magma.common.redis.client import get_default_client
-from magma.common.redis.containers import RedisFlatDict
-from magma.common.redis.serializers import get_proto_deserializer, \
-    get_proto_serializer, get_json_deserializer, get_json_serializer, \
-    RedisSerde
-from magma.common.grpc_client_manager import GRPCClientManager
-from magma.state.keys import make_mem_key
-from magma.state.garbage_collector import GarbageCollector
-from magma.state.state_replicator import StateReplicator
-from magma.common.redis.mocks.mock_redis import MockRedis
-from orc8r.protos.state_pb2_grpc import StateServiceStub
-from orc8r.protos.common_pb2 import NetworkID, IDList
+
+import fakeredis
+import grpc
+import jsonpickle
+import orc8r.protos.state_pb2_grpc as state_pb2_grpc
 from google.protobuf.json_format import MessageToDict
+from magma.common.grpc_client_manager import GRPCClientManager
+from magma.common.redis.containers import RedisFlatDict
+from magma.common.redis.serializers import (
+    RedisSerde,
+    get_json_deserializer,
+    get_json_serializer,
+    get_proto_deserializer,
+    get_proto_serializer,
+)
+from magma.state.garbage_collector import GarbageCollector
+from magma.state.keys import make_mem_key
+from magma.state.state_replicator import StateReplicator
+from orc8r.protos.common_pb2 import IDList, NetworkID
+from orc8r.protos.service303_pb2 import LogVerbosity
+from orc8r.protos.state_pb2 import (
+    IDAndError,
+    IDAndVersion,
+    ReportStatesResponse,
+    SyncStatesResponse,
+)
+from orc8r.protos.state_pb2_grpc import StateServiceStub
 
 NID_TYPE = 'network_id'
 IDList_TYPE = 'id_list'
@@ -46,6 +54,7 @@ CS = "magma.state.state_replicator._collect_states_to_replicate"
 RS = "magma.state.state_replicator._resync"
 SS = "magma.state.state_replicator._send_to_state_service"
 SV = "magma.state.state_replicator._state_versions"
+
 
 def get_mock_snowflake():
     return "aaa-bbb"
@@ -92,8 +101,8 @@ class Foo:
 
 
 class StateReplicatorTests(TestCase):
-    @mock.patch("redis.Redis", MockRedis)
     def setUp(self):
+        self.mock_redis = fakeredis.FakeStrictRedis()
 
         self.loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self.loop)
@@ -142,10 +151,10 @@ class StateReplicatorTests(TestCase):
                             get_json_serializer(),
                             get_json_deserializer())
 
-        self.nid_client = RedisFlatDict(get_default_client(), serde1)
-        self.idlist_client = RedisFlatDict(get_default_client(), serde2)
-        self.log_client = RedisFlatDict(get_default_client(), serde3)
-        self.foo_client = RedisFlatDict(get_default_client(), serde4)
+        self.nid_client = RedisFlatDict(self.mock_redis, serde1)
+        self.idlist_client = RedisFlatDict(self.mock_redis, serde2)
+        self.log_client = RedisFlatDict(self.mock_redis, serde3)
+        self.foo_client = RedisFlatDict(self.mock_redis, serde4)
 
         # Set up and start state replicating loop
         grpc_client_manager = GRPCClientManager(
@@ -154,16 +163,21 @@ class StateReplicatorTests(TestCase):
             max_client_reuse=60,
         )
 
-        garbage_collector = GarbageCollector(service, grpc_client_manager)
+        # mock the get_default_client function used to return the same
+        # fakeredis object
+        func_mock = mock.MagicMock(return_value=self.mock_redis)
+        with mock.patch(
+                'magma.state.redis_dicts.get_default_client',
+                func_mock):
+            garbage_collector = GarbageCollector(service, grpc_client_manager)
 
-        self.state_replicator = StateReplicator(
-            service=service,
-            garbage_collector=garbage_collector,
-            grpc_client_manager=grpc_client_manager,
-        )
+            self.state_replicator = StateReplicator(
+                service=service,
+                garbage_collector=garbage_collector,
+                grpc_client_manager=grpc_client_manager,
+            )
         self.state_replicator.start()
 
-    @mock.patch("redis.Redis", MockRedis)
     def tearDown(self):
         self._rpc_server.stop(None)
         self.state_replicator.stop()
@@ -177,7 +191,6 @@ class StateReplicatorTests(TestCase):
             serialized_json_state = jsonpickle.encode(redis_state)
         return serialized_json_state.encode("utf-8")
 
-    @mock.patch("redis.Redis", MockRedis)
     @mock.patch('snowflake.snowflake', get_mock_snowflake)
     def test_collect_states_to_replicate(self):
         async def test():
@@ -219,7 +232,6 @@ class StateReplicatorTests(TestCase):
         self.state_replicator._periodic_task.cancel()
         self.loop.run_until_complete(test())
 
-    @mock.patch("redis.Redis", MockRedis)
     @mock.patch('snowflake.snowflake', get_mock_snowflake)
     @mock.patch('magma.magmad.state_reporter.ServiceRegistry.get_rpc_channel')
     def test_replicate_states_success(self, get_rpc_mock):
@@ -248,7 +260,7 @@ class StateReplicatorTests(TestCase):
             self.assertEqual(3, len(self.state_replicator._state_versions))
             mem_key1 = make_mem_key('id1', NID_TYPE)
             mem_key2 = make_mem_key('aaa-bbb:id1',
-                                                          IDList_TYPE)
+                                    IDList_TYPE)
             mem_key3 = make_mem_key('id1', FOO_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
@@ -281,7 +293,6 @@ class StateReplicatorTests(TestCase):
         self.state_replicator._periodic_task.cancel()
         self.loop.run_until_complete(test())
 
-    @mock.patch("redis.Redis", MockRedis)
     @mock.patch('snowflake.snowflake', get_mock_snowflake)
     @mock.patch('magma.magmad.state_reporter.ServiceRegistry.get_rpc_channel')
     def test_unreplicated_states(self, get_grpc_mock):
@@ -311,7 +322,7 @@ class StateReplicatorTests(TestCase):
             self.assertEqual(2, len(self.state_replicator._state_versions))
             mem_key1 = make_mem_key('id1', NID_TYPE)
             mem_key2 = make_mem_key('aaa-bbb:id1',
-                                                          IDList_TYPE)
+                                    IDList_TYPE)
             self.assertEqual(1,
                              self.state_replicator._state_versions[mem_key1])
             self.assertEqual(2,
@@ -328,7 +339,6 @@ class StateReplicatorTests(TestCase):
         self.state_replicator._periodic_task.cancel()
         self.loop.run_until_complete(test())
 
-    @mock.patch("redis.Redis", MockRedis)
     @mock.patch('snowflake.snowflake', get_mock_snowflake)
     @mock.patch('magma.magmad.state_reporter.ServiceRegistry.get_rpc_channel')
     def test_resync_success(self, get_grpc_mock):
@@ -350,14 +360,13 @@ class StateReplicatorTests(TestCase):
             self.assertEqual(True, self.state_replicator._has_resync_completed)
             self.assertEqual(1, len(self.state_replicator._state_versions))
             mem_key = make_mem_key('aaa-bbb:id1',
-                                                         IDList_TYPE)
+                                   IDList_TYPE)
             self.assertEqual(2, self.state_replicator._state_versions[mem_key])
 
         # Cancel the replicator's loop so there are no other activities
         self.state_replicator._periodic_task.cancel()
         self.loop.run_until_complete(test())
 
-    @mock.patch("redis.Redis", MockRedis)
     @mock.patch('snowflake.snowflake', get_mock_snowflake)
     @mock.patch('magma.magmad.state_reporter.ServiceRegistry.get_rpc_channel')
     def test_resync_failure(self, get_grpc_mock):
@@ -385,7 +394,6 @@ class StateReplicatorTests(TestCase):
         self.state_replicator._periodic_task.cancel()
         self.loop.run_until_complete(test())
 
-    @mock.patch("redis.Redis", MockRedis)
     @mock.patch('snowflake.snowflake', get_mock_snowflake)
     @mock.patch('magma.magmad.state_reporter.ServiceRegistry.get_rpc_channel')
     def test_deleted_replicated_state(self, get_grpc_mock):

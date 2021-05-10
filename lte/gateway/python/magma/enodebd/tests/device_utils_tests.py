@@ -14,8 +14,12 @@ limitations under the License.
 # pylint: disable=protected-access
 
 from unittest import TestCase
-from magma.enodebd.devices.device_utils import get_device_name, \
-    _parse_sw_version, EnodebDeviceName
+
+from magma.enodebd.devices.device_utils import (
+    EnodebDeviceName,
+    _parse_sw_version,
+    get_device_name,
+)
 from magma.enodebd.exceptions import UnrecognizedEnodebError
 
 

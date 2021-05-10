@@ -39,6 +39,7 @@
 #include "mme_app_extern.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
+#include "mme_app_ha.h"
 #include "mme_app_statistics.h"
 #include "service303_message_utils.h"
 #include "service303.h"
@@ -58,8 +59,8 @@
 #include "sctp_messages_types.h"
 #include "timer_messages_types.h"
 
-static void _check_mme_healthy_and_notify_service(void);
-static bool _is_mme_app_healthy(void);
+static void check_mme_healthy_and_notify_service(void);
+static bool is_mme_app_healthy(void);
 static void mme_app_exit(void);
 
 bool mme_hss_associated = false;
@@ -67,10 +68,7 @@ bool mme_sctp_bounded   = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
-
+  MessageDef* received_message_p = receive_msg(reader);
   imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
 
@@ -135,20 +133,37 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             "S11 MODIFY BEARER RESPONSE local S11 teid = " TEID_FMT "\n",
             received_message_p->ittiMsg.s11_modify_bearer_response.teid);
 
-        if (!ue_context_p->path_switch_req) {
+        if ((!ue_context_p->path_switch_req) && (!ue_context_p->erab_mod_ind)) {
           /* Updating statistics */
           mme_app_handle_modify_bearer_rsp(
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
           update_mme_app_stats_s1u_bearer_add();
-          mme_app_handle_modify_bearer_rsp(
-              &received_message_p->ittiMsg.s11_modify_bearer_response,
-              ue_context_p);
-        } else {
+        } else if (ue_context_p->path_switch_req) {
           mme_app_handle_path_switch_req_ack(
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
           ue_context_p->path_switch_req = false;
+        } else if (ue_context_p->erab_mod_ind) {
+          mme_app_handle_modify_bearer_rsp_erab_mod_ind(
+              &received_message_p->ittiMsg.s11_modify_bearer_response,
+              ue_context_p);
+          ue_context_p->erab_mod_ind = false;
+        }
+
+        // Check if an offloading request is pending for this UE as part
+        // of HA implementation
+        if (ue_context_p->ue_context_rel_cause ==
+            S1AP_NAS_MME_PENDING_OFFLOADING) {
+          OAILOG_INFO(
+              LOG_MME_APP,
+              "UE CONTEXT REL CAUSE is S1AP_NAS_MME_PENDING_OFFLOADING");
+          // This will be again overwritten when a release request is received.
+          // It is safe to set it any value other than
+          // S1AP_NAS_MME_PENDING_OFFLOADING to allow a UE be able to reattach
+          // to this AGW instance.
+          ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
+          mme_app_handle_ue_offload(ue_context_p);
         }
       }
     } break;
@@ -176,6 +191,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S1AP_E_RAB_REL_RSP: {
       mme_app_handle_e_rab_rel_rsp(&S1AP_E_RAB_REL_RSP(received_message_p));
+    } break;
+
+    case S1AP_E_RAB_MODIFICATION_IND: {
+      mme_app_handle_e_rab_modification_ind(
+          &S1AP_E_RAB_MODIFICATION_IND(received_message_p));
     } break;
 
     case S1AP_INITIAL_UE_MESSAGE: {
@@ -272,13 +292,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case ACTIVATE_MESSAGE: {
       mme_hss_associated = true;
-      _check_mme_healthy_and_notify_service();
+      check_mme_healthy_and_notify_service();
     } break;
 
     case SCTP_MME_SERVER_INITIALIZED: {
       mme_sctp_bounded =
           &received_message_p->ittiMsg.sctp_mme_server_initialized.successful;
-      _check_mme_healthy_and_notify_service();
+      check_mme_healthy_and_notify_service();
     } break;
 
     case S6A_PURGE_UE_ANS: {
@@ -361,6 +381,21 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           mme_app_desc_p, &S1AP_PATH_SWITCH_REQUEST(received_message_p));
     } break;
 
+    case S1AP_HANDOVER_REQUIRED: {
+      mme_app_handle_handover_required(
+          mme_app_desc_p, &S1AP_HANDOVER_REQUIRED(received_message_p));
+    } break;
+
+    case S1AP_HANDOVER_REQUEST_ACK: {
+      mme_app_handle_handover_request_ack(
+          mme_app_desc_p, &S1AP_HANDOVER_REQUEST_ACK(received_message_p));
+    } break;
+
+    case S1AP_HANDOVER_NOTIFY: {
+      mme_app_handle_handover_notify(
+          mme_app_desc_p, &S1AP_HANDOVER_NOTIFY(received_message_p));
+    } break;
+
     case S6A_AUTH_INFO_ANS: {
       /*
        * We received the authentication vectors from HSS,
@@ -406,9 +441,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &SGSAP_MM_INFORMATION_REQ(received_message_p));
     } break;
 
+    case S1AP_REMOVE_STALE_UE_CONTEXT: {
+      mme_app_remove_stale_ue_context(
+          mme_app_desc_p, &S1AP_REMOVE_STALE_UE_CONTEXT(received_message_p));
+    } break;
+
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       mme_app_exit();
     } break;
 
@@ -428,7 +468,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   put_mme_ue_state(mme_app_desc_p, imsi64);
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -438,8 +478,8 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   init_task_context(
       TASK_MME_APP,
       (task_id_t[]){TASK_SPGW_APP, TASK_SGS, TASK_SMS_ORC8R, TASK_S11, TASK_S6A,
-                    TASK_S1AP, TASK_SERVICE303},
-      7, handle_message, &mme_app_task_zmq_ctx);
+                    TASK_S1AP, TASK_SERVICE303, TASK_HA, TASK_SGW_S8},
+      9, handle_message, &mme_app_task_zmq_ctx);
 
   // Service started, but not healthy yet
   send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, false);
@@ -473,26 +513,24 @@ int mme_app_init(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
-static void _check_mme_healthy_and_notify_service(void) {
-  if (_is_mme_app_healthy()) {
+static void check_mme_healthy_and_notify_service(void) {
+  if (is_mme_app_healthy()) {
     send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, true);
   }
 }
 
-static bool _is_mme_app_healthy(void) {
+static bool is_mme_app_healthy(void) {
   return mme_hss_associated && mme_sctp_bounded;
 }
 
 //------------------------------------------------------------------------------
 static void mme_app_exit(void) {
-  destroy_task_context(&mme_app_task_zmq_ctx);
-  put_mme_nas_state();
   mme_app_edns_exit();
   clear_mme_nas_state();
   // Clean-up NAS module
   nas_network_cleanup();
   mme_config_exit();
-
+  destroy_task_context(&mme_app_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_MME_APP terminated\n");
   pthread_exit(NULL);
 }

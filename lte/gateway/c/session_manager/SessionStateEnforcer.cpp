@@ -36,10 +36,10 @@
 std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
 namespace magma {
 void call_back_upf(grpc::Status, magma::UPFSessionContextState response) {
-  std::string imsi             = response.session_snaphot().subscriber_id();
-  uint32_t version             = response.session_snaphot().session_version();
-  uint32_t fteid               = response.session_snaphot().local_f_teid();
-  const std::string session_id = response.session_snaphot().subscriber_id();
+  std::string imsi             = response.session_snapshot().subscriber_id();
+  uint32_t version             = response.session_snapshot().session_version();
+  uint32_t fteid               = response.session_snapshot().local_f_teid();
+  const std::string session_id = response.session_snapshot().subscriber_id();
   MLOG(MINFO) << " Async Response received from UPF: imsi " << imsi
               << " local fteid : " << fteid;
   conv_session_enforcer->get_event_base().runInEventBaseThread(
@@ -499,8 +499,11 @@ bool SessionStateEnforcer::static_rule_init() {
   fd1.mutable_match()->set_direction(FlowMatch_Direction_UPLINK);
   fd1.set_action(FlowDescription_Action_PERMIT);
   rule1.mutable_flow_list()->Add()->CopyFrom(fd1);
-  reqpdr1.mutable_activate_flow_req()->mutable_dynamic_rules()->Add()->CopyFrom(
-      rule1);
+  VersionedPolicy versioned_rule1;
+  versioned_rule1.set_version(reqpdr1.pdr_version());
+  versioned_rule1.mutable_rule()->CopyFrom(rule1);
+  reqpdr1.mutable_activate_flow_req()->mutable_policies()->Add()->CopyFrom(
+      versioned_rule1);
   GlobalRuleList.insert_rule(1, reqpdr1);
   // PDR 2 details
   SetGroupPDR reqpdr2;
@@ -526,7 +529,7 @@ bool SessionStateEnforcer::static_rule_init() {
   reqpdr2.mutable_pdi()->set_net_instance("downlink");
   reqpdr2.mutable_activate_flow_req()->mutable_request_origin()->set_type(
       RequestOriginType_OriginType_N4);
-  // For rule 1 change the driection alone
+  // For rule 2 change the direction alone
   PolicyRule rule2;
   rule2.set_id("rule2");
   rule2.set_priority(10);
@@ -535,8 +538,11 @@ bool SessionStateEnforcer::static_rule_init() {
   fd2.mutable_match()->set_direction(FlowMatch_Direction_DOWNLINK);
   fd2.set_action(FlowDescription_Action_PERMIT);
   rule2.mutable_flow_list()->Add()->CopyFrom(fd2);
-  reqpdr2.mutable_activate_flow_req()->mutable_dynamic_rules()->Add()->CopyFrom(
-      rule2);
+  VersionedPolicy versioned_rule2;
+  versioned_rule2.set_version(reqpdr2.pdr_version());
+  versioned_rule2.mutable_rule()->CopyFrom(rule2);
+  reqpdr2.mutable_activate_flow_req()->mutable_policies()->Add()->CopyFrom(
+      versioned_rule2);
   GlobalRuleList.insert_rule(2, reqpdr2);
 
   // subscriber Id 1 to PDR 1 and FAR 1

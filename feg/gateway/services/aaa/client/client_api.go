@@ -17,11 +17,11 @@ limitations under the License.
 package client
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"

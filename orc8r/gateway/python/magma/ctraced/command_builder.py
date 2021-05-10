@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from abc import ABC, abstractmethod
 from typing import List
 
 
@@ -19,21 +18,20 @@ class TraceBuildException(Exception):
     pass
 
 
-class TraceBuilder(ABC):
-    """Builds commands to run call tracing.
+class TraceBuilder:
+    """Builds commands to run call tracing with TShark.
 
     TODO(andreilee): Support tracing for subscriber
     TODO(andreilee): Support tracing by 3gpp protocol
     """
-    def __init__(self):
-        super().__init__()
 
-    @abstractmethod
     def build_trace_command(
-            self,
-            interfaces: List[str],
-            max_filesize: int,
-            output_filename: str,
+        self,
+        interfaces: List[str],
+        max_filesize: int,
+        timeout: int,
+        output_filename: str,
+        capture_filters: str,
     ) -> List[str]:
         """Builds command to start a trace. Does not execute the command.
 
@@ -50,6 +48,8 @@ class TraceBuilder(ABC):
               stop after reaching the specified size. Value of -1 specifies
               no limit.
             output_filename: Where the output file will be saved.
+            capture_filters: TShark capture filters.
+              Filters are applied while packet capture is occurring.
 
         Returns:
             A command that can be run by subprocess.Popen to start the trace.
@@ -61,23 +61,6 @@ class TraceBuilder(ABC):
             TraceBuildException: Could not successfully build a command to
               start a call trace with the specified arguments
         """
-        pass
-
-
-class TSharkTraceBuilder(TraceBuilder):
-    """Builds commands to run call tracing with tshark.
-
-    This is the most feature complete TraceBuilder.
-    """
-    def __init__(self):
-        super().__init__()
-
-    def build_trace_command(
-            self,
-            interfaces: List[str],
-            max_filesize: int,
-            output_filename: str,
-    ) -> List[str]:
         command = ["tshark"]
 
         # Specify interfaces
@@ -87,67 +70,49 @@ class TSharkTraceBuilder(TraceBuilder):
             for interface in interfaces:
                 command.extend(["-i", interface])
 
+        if len(capture_filters) > 0:
+            command.extend(["-f", capture_filters])
+
         # Specify max filesize. tshark will terminate after it is reached.
         if max_filesize != -1:
             command.extend(["-a", "filesize:" + str(max_filesize)])
+
+        command.extend(["-a", "duration:" + str(timeout)])
 
         # Specify output file
         command.extend(["-w", output_filename])
 
         return command
 
-
-class TcpdumpTraceBuilder(TraceBuilder):
-    """Builds commands to run call tracing with tcpdump.
-
-    This is a less feature complete TraceBuilder, as tcpdump has less options
-    than a tool such as tshark.
-    """
-    def __init__(self):
-        super().__init__()
-
-    def build_trace_command(
-            self,
-            interfaces: List[str],
-            max_filesize: int,
-            output_filename: str,
+    def build_postprocess_command(
+        self,
+        input_filename: str,
+        display_filters: str,
+        output_filename: str,
     ) -> List[str]:
-        """Builds command to start a trace using tcpdump. Does not execute it.
+        """Builds command to postprocess a trace with display filters.
 
-        SEE PARENT CLASS FOR DETAILS.
+        Does not execute the command.
 
-        Details here only specify argument restrictions.
+        Args:
+            input_filename: Input file path
+            display_filters: TShark display filters.
+            output_filename: Output file path
 
-        Argument Restrictions:
-            interfaces: Only one interface can be specified.
-            max_filesize: Only value of -1 supported (no limit).
-            output_filename:
+        Returns:
+            A command that can be run by subprocess.Popen to postprocess the
+            trace.
 
-        TODO(andreilee): Support max_filesize.
-                         Add postrotate command to stop after max filesize
-                         reached.
-        TODO(andreilee): Support multiple interfaces.
+            Example:
+            ["tshark", "-r", "in.pcap", "-R", "displayfilter",
+             "-w", "out.pcap"]
         """
-        command = ["tcpdump"]
-
-        # Specify southbound interfaces
-        if len(interfaces) == 1:
-            command.extend(["-i", interfaces[0]])
-        elif len(interfaces) > 1:
-            raise TraceBuildException("""Cannot start trace with tcpdump with
-                                         more than one interface specified""")
-
-        # Currently unsupported.
-        # While a max filesize can be specified, tcpdump will rotate to new
-        # output files after the maximum is reached.
-        if max_filesize != -1:
-            raise TraceBuildException("""Cannot start trace with tcpdump with
-                                         max filesize""")
-
-        # Specify output file
-        command.extend(["-w", self._trace_filename])
-
-        return command
+        return [
+            "tshark",
+            "-r", input_filename,
+            "-Y", display_filters,
+            "-w", output_filename,
+        ]
 
 
 def get_trace_builder(tool_name: str) -> TraceBuilder:
@@ -164,9 +129,9 @@ def get_trace_builder(tool_name: str) -> TraceBuilder:
       TraceBuildException: If an unsupported tool name is specified.
     """
     if tool_name == "tshark":
-        return TSharkTraceBuilder()
-    elif tool_name == "tcpdump":
-        return TcpdumpTraceBuilder()
-    raise TraceBuildException("Failed to create trace builder, "
-                              "invalid tool name specified: {}"
-                              .format(tool_name))
+        return TraceBuilder()
+    raise TraceBuildException(
+        "Failed to create trace builder, "
+        "invalid tool name specified: {}"
+        .format(tool_name),
+    )

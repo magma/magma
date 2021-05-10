@@ -54,15 +54,16 @@ task_zmq_ctx_t spgw_app_task_zmq_ctx;
 extern __pid_t g_pid;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
-  zframe_t* msg_frame = zframe_recv(reader);
-  assert(msg_frame);
-  MessageDef* received_message_p = (MessageDef*) zframe_data(msg_frame);
+  MessageDef* received_message_p = receive_msg(reader);
 
   imsi64_t imsi64          = itti_get_associated_imsi(received_message_p);
   spgw_state_t* spgw_state = get_spgw_state(false);
 
+  bool is_state_same = false;
+
   switch (ITTI_MSG_ID(received_message_p)) {
     case MESSAGE_TEST:
+      is_state_same = true;  // task state is not changed
       OAILOG_DEBUG(LOG_SPGW_APP, "Received MESSAGE_TEST\n");
       break;
 
@@ -82,23 +83,26 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S11_DELETE_SESSION_REQUEST: {
       sgw_handle_delete_session_request(
           &received_message_p->ittiMsg.s11_delete_session_request, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case S11_MODIFY_BEARER_REQUEST: {
       sgw_handle_modify_bearer_request(
-          spgw_state, &received_message_p->ittiMsg.s11_modify_bearer_request,
-          imsi64);
+          &received_message_p->ittiMsg.s11_modify_bearer_request, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case S11_RELEASE_ACCESS_BEARERS_REQUEST: {
       sgw_handle_release_access_bearers_request(
           &received_message_p->ittiMsg.s11_release_access_bearers_request,
           imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case S11_SUSPEND_NOTIFICATION: {
       sgw_handle_suspend_notification(
           &received_message_p->ittiMsg.s11_suspend_notification, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case SGI_CREATE_ENDPOINT_RESPONSE: {
@@ -110,18 +114,28 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case SGI_UPDATE_ENDPOINT_RESPONSE: {
       sgw_handle_sgi_endpoint_updated(
           &received_message_p->ittiMsg.sgi_update_end_point_response, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
       // Handle Dedicated bearer Activation Rsp from MME
       sgw_handle_nw_initiated_actv_bearer_rsp(
           &received_message_p->ittiMsg.s11_nw_init_actv_bearer_rsp, imsi64);
+      is_state_same = true;  // task state is not changed
     } break;
 
     case S11_NW_INITIATED_DEACTIVATE_BEARER_RESP: {
       // Handle Dedicated bearer deactivation Rsp from MME
       sgw_handle_nw_initiated_deactv_bearer_rsp(
+          spgw_state,
           &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp, imsi64);
+      is_state_same = true;  // task state is not changed
+    } break;
+
+    case PCEF_CREATE_SESSION_RESPONSE: {
+      spgw_handle_pcef_create_session_response(
+          spgw_state, &received_message_p->ittiMsg.pcef_create_session_response,
+          imsi64);
     } break;
 
     case GX_NW_INITIATED_ACTIVATE_BEARER_REQ: {
@@ -149,9 +163,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case GX_NW_INITIATED_DEACTIVATE_BEARER_REQ: {
       int32_t rc = spgw_handle_nw_initiated_bearer_deactv_req(
-          spgw_state,
           &received_message_p->ittiMsg.gx_nw_init_deactv_bearer_request,
           imsi64);
+      is_state_same = true;  // task state is not changed
       if (rc != RETURNok) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64,
@@ -163,9 +177,21 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
          */
       }
     } break;
+
+    case IP_ALLOCATION_RESPONSE: {
+      int32_t rc = sgw_handle_ip_allocation_rsp(
+          spgw_state, &received_message_p->ittiMsg.ip_allocation_response,
+          imsi64);
+      if (rc != RETURNok) {
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, imsi64,
+            "Failed to handle IP_ALLOCATION_RESPONSE, \n");
+      }
+    } break;
+
     case TERMINATE_MESSAGE: {
       itti_free_msg_content(received_message_p);
-      zframe_destroy(&msg_frame);
+      free(received_message_p);
       spgw_app_exit();
     } break;
 
@@ -176,11 +202,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  put_spgw_state();
-  put_spgw_ue_state(spgw_state, imsi64);
+  if (!is_state_same) {
+    put_spgw_state();
+  }
+  put_spgw_ue_state(imsi64);
 
   itti_free_msg_content(received_message_p);
-  zframe_destroy(&msg_frame);
+  free(received_message_p);
   return 0;
 }
 
@@ -226,14 +254,6 @@ int spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
     return RETURNerror;
   }
 
-  FILE* fp         = NULL;
-  bstring filename = bformat("/tmp/spgw_%d.status", g_pid);
-  fp               = fopen(bdata(filename), "w+");
-  bdestroy_wrapper(&filename);
-  fprintf(fp, "STARTED\n");
-  fflush(fp);
-  fclose(fp);
-
   OAILOG_DEBUG(LOG_SPGW_APP, "Initializing SPGW-APP task interface: DONE\n");
   return RETURNok;
 }
@@ -241,12 +261,10 @@ int spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
 //------------------------------------------------------------------------------
 static void spgw_app_exit(void) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Cleaning SGW\n");
-
-  destroy_task_context(&spgw_app_task_zmq_ctx);
   put_spgw_state();
   gtpv1u_exit();
   spgw_state_exit();
-
+  destroy_task_context(&spgw_app_task_zmq_ctx);
   OAILOG_DEBUG(LOG_SPGW_APP, "Finished cleaning up SGW\n");
   OAI_FPRINTF_INFO("TASK_SPGW_APP terminated\n");
   pthread_exit(NULL);

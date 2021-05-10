@@ -138,33 +138,84 @@ const int UeNetworkInfo::get_vlan() const {
 AddGTPTunnelEvent::AddGTPTunnelEvent(
     const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
     const struct in_addr enb_ip, const uint32_t in_tei, const uint32_t out_tei,
-    const char* imsi, uint32_t gtp_port_no)
+    const char* imsi, uint32_t enb_gtp_port)
     : ue_info_(ue_ip, ue_ipv6, vlan),
       enb_ip_(enb_ip),
+      pgw_ip_(INADDR_ZERO),
       in_tei_(in_tei),
       out_tei_(out_tei),
+      pgw_in_tei_(0),
+      pgw_out_tei_(0),
       imsi_(imsi),
       dl_flow_valid_(false),
       dl_flow_(),
       dl_flow_precedence_(DEFAULT_PRECEDENCE),
       ExternalEvent(EVENT_ADD_GTP_TUNNEL),
-      gtp_portno_(gtp_port_no) {}
+      enb_gtp_port_(enb_gtp_port),
+      pgw_gtp_port_(0) {}
 
 AddGTPTunnelEvent::AddGTPTunnelEvent(
     const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
     const struct in_addr enb_ip, const uint32_t in_tei, const uint32_t out_tei,
     const char* imsi, const struct ip_flow_dl* dl_flow,
-    const uint32_t dl_flow_precedence, uint32_t gtp_port_no)
+    const uint32_t dl_flow_precedence, uint32_t enb_gtp_port)
     : ue_info_(ue_ip, vlan),
       enb_ip_(enb_ip),
+      pgw_ip_(INADDR_ZERO),
       in_tei_(in_tei),
       out_tei_(out_tei),
+      pgw_in_tei_(0),
+      pgw_out_tei_(0),
       imsi_(imsi),
       dl_flow_valid_(true),
       dl_flow_(*dl_flow),
       dl_flow_precedence_(dl_flow_precedence),
       ExternalEvent(EVENT_ADD_GTP_TUNNEL),
-      gtp_portno_(gtp_port_no) {}
+      enb_gtp_port_(enb_gtp_port),
+      pgw_gtp_port_(0) {}
+
+AddGTPTunnelEvent::AddGTPTunnelEvent(
+    const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
+    const struct in_addr enb_ip, const struct in_addr pgw_ip,
+    const uint32_t in_tei, const uint32_t out_tei, const uint32_t pgw_in_tei,
+    const uint32_t pgw_out_tei, const char* imsi,
+    const struct ip_flow_dl* dl_flow, const uint32_t dl_flow_precedence,
+    uint32_t enb_gtp_port, uint32_t pgw_gtp_port)
+    : ue_info_(ue_ip, ue_ipv6, vlan),
+      enb_ip_(enb_ip),
+      pgw_ip_(pgw_ip),
+      in_tei_(in_tei),
+      out_tei_(out_tei),
+      pgw_in_tei_(pgw_in_tei),
+      pgw_out_tei_(pgw_out_tei),
+      imsi_(imsi),
+      dl_flow_valid_(false),
+      dl_flow_(),
+      dl_flow_precedence_(DEFAULT_PRECEDENCE),
+      ExternalEvent(EVENT_ADD_GTP_S8_TUNNEL),
+      enb_gtp_port_(enb_gtp_port),
+      pgw_gtp_port_(pgw_gtp_port) {}
+
+AddGTPTunnelEvent::AddGTPTunnelEvent(
+    const struct in_addr ue_ip, struct in6_addr* ue_ipv6, int vlan,
+    const struct in_addr enb_ip, const struct in_addr pgw_ip,
+    const uint32_t in_tei, const uint32_t out_tei, const uint32_t pgw_in_tei,
+    const uint32_t pgw_out_tei, const char* imsi, uint32_t enb_gtp_port,
+    uint32_t pgw_gtp_port)
+    : ue_info_(ue_ip, vlan),
+      enb_ip_(enb_ip),
+      pgw_ip_(pgw_ip),
+      in_tei_(in_tei),
+      out_tei_(out_tei),
+      pgw_in_tei_(pgw_in_tei),
+      pgw_out_tei_(pgw_out_tei),
+      imsi_(imsi),
+      dl_flow_valid_(false),
+      dl_flow_(),
+      dl_flow_precedence_(DEFAULT_PRECEDENCE),
+      ExternalEvent(EVENT_ADD_GTP_S8_TUNNEL),
+      enb_gtp_port_(enb_gtp_port),
+      pgw_gtp_port_(pgw_gtp_port) {}
 
 const struct in_addr& AddGTPTunnelEvent::get_ue_ip() const {
   return ue_info_.get_ip();
@@ -178,12 +229,24 @@ const struct in_addr& AddGTPTunnelEvent::get_enb_ip() const {
   return enb_ip_;
 }
 
+const struct in_addr& AddGTPTunnelEvent::get_pgw_ip() const {
+  return pgw_ip_;
+}
+
 const uint32_t AddGTPTunnelEvent::get_in_tei() const {
   return in_tei_;
 }
 
 const uint32_t AddGTPTunnelEvent::get_out_tei() const {
   return out_tei_;
+}
+
+const uint32_t AddGTPTunnelEvent::get_pgw_in_tei() const {
+  return pgw_in_tei_;
+}
+
+const uint32_t AddGTPTunnelEvent::get_pgw_out_tei() const {
+  return pgw_out_tei_;
 }
 
 const std::string& AddGTPTunnelEvent::get_imsi() const {
@@ -202,29 +265,58 @@ const uint32_t AddGTPTunnelEvent::get_dl_flow_precedence() const {
   return dl_flow_precedence_;
 }
 
-const uint32_t AddGTPTunnelEvent::get_gtp_portno() const {
-  return gtp_portno_;
+const uint32_t AddGTPTunnelEvent::get_enb_gtp_portno() const {
+  return enb_gtp_port_;
+}
+
+const uint32_t AddGTPTunnelEvent::get_pgw_gtp_portno() const {
+  return pgw_gtp_port_;
 }
 
 DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
     const struct in_addr ue_ip, struct in6_addr* ue_ipv6, const uint32_t in_tei,
-    const struct ip_flow_dl* dl_flow, uint32_t gtp_port_no)
+    const struct ip_flow_dl* dl_flow, uint32_t enb_gtp_port)
     : ue_info_(ue_ip, ue_ipv6),
       in_tei_(in_tei),
       dl_flow_valid_(true),
       dl_flow_(*dl_flow),
       ExternalEvent(EVENT_DELETE_GTP_TUNNEL),
-      gtp_portno_(gtp_port_no) {}
+      enb_gtp_port_(enb_gtp_port),
+      pgw_gtp_port_(0) {}
 
 DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
     const struct in_addr ue_ip, struct in6_addr* ue_ipv6, const uint32_t in_tei,
-    uint32_t gtp_port_no)
+    uint32_t enb_gtp_port)
     : ue_info_(ue_ip, ue_ipv6),
       in_tei_(in_tei),
       dl_flow_valid_(false),
       dl_flow_(),
       ExternalEvent(EVENT_DELETE_GTP_TUNNEL),
-      gtp_portno_(gtp_port_no) {}
+      enb_gtp_port_(enb_gtp_port),
+      pgw_gtp_port_(0) {}
+
+DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
+    const struct in_addr ue_ip, struct in6_addr* ue_ipv6, const uint32_t in_tei,
+    const struct ip_flow_dl* dl_flow, uint32_t enb_gtp_port,
+    uint32_t pgw_gtp_port)
+    : ue_info_(ue_ip, ue_ipv6),
+      in_tei_(in_tei),
+      dl_flow_valid_(true),
+      dl_flow_(*dl_flow),
+      ExternalEvent(EVENT_DELETE_GTP_S8_TUNNEL),
+      enb_gtp_port_(enb_gtp_port),
+      pgw_gtp_port_(pgw_gtp_port) {}
+
+DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
+    const struct in_addr ue_ip, struct in6_addr* ue_ipv6, const uint32_t in_tei,
+    uint32_t enb_gtp_port, uint32_t pgw_gtp_port)
+    : ue_info_(ue_ip, ue_ipv6),
+      in_tei_(in_tei),
+      dl_flow_valid_(false),
+      dl_flow_(),
+      ExternalEvent(EVENT_DELETE_GTP_S8_TUNNEL),
+      enb_gtp_port_(enb_gtp_port),
+      pgw_gtp_port_(pgw_gtp_port) {}
 
 const struct UeNetworkInfo& DeleteGTPTunnelEvent::get_ue_info() const {
   return ue_info_;
@@ -246,8 +338,12 @@ const struct ip_flow_dl& DeleteGTPTunnelEvent::get_dl_flow() const {
   return dl_flow_;
 }
 
-const uint32_t DeleteGTPTunnelEvent::get_gtp_portno() const {
-  return gtp_portno_;
+const uint32_t DeleteGTPTunnelEvent::get_enb_gtp_portno() const {
+  return enb_gtp_port_;
+}
+
+const uint32_t DeleteGTPTunnelEvent::get_pgw_gtp_portno() const {
+  return pgw_gtp_port_;
 }
 
 HandleDataOnGTPTunnelEvent::HandleDataOnGTPTunnelEvent(

@@ -1,0 +1,317 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/lte/cloud/go/services/nprobe/obsidian/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+    - 'orc8r/cloud/go/services/orchestrator/obsidian/models/swagger.v1.yml'
+  temp-gen-filename: lte-nprobe-swagger.yml
+  output-dir: lte/cloud/go/services/nprobe/obsidian
+  types:
+    - go-struct-name: NetworkProbeTaskID
+      filename: network_probe_task_id_swaggergen.go
+    - go-struct-name: NetworkProbeTaskDetails
+      filename: network_probe_task_details_swaggergen.go
+    - go-struct-name: NetworkProbeTask
+      filename: network_probe_task_swaggergen.go
+    - go-struct-name: NetworkProbeDestinationID
+      filename: network_probe_destination_id_swaggergen.go
+    - go-struct-name: NetworkProbeDestinationDetails
+      filename: network_probe_destination_details_swaggergen.go
+    - go-struct-name: NetworkProbeDestination
+      filename: network_probe_destination_swaggergen.go
+
+info:
+  title: LTE Network Probes Management
+  description: LTE REST APIs
+  version: 1.0.0
+
+basePath: /magma/v1
+
+paths:
+  /lte/{network_id}/network_probe/tasks:
+    get:
+      summary: List NetworkProbeTask in the network
+      tags:
+        - Network Probes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Provisioned NetworkProbeTasks
+          schema:
+            $ref: '#/definitions/network_probe_task'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new NetworkProbeTask to the network
+      tags:
+        - Network Probes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: network_probe_task
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/network_probe_task'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/network_probe/tasks/{task_id}:
+    get:
+      summary: Retrieve the NetworkProbeTask info
+      tags:
+        - Network Probes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/task_id'
+      responses:
+        '200':
+          description: NetworkProbeTask Info
+          schema:
+            $ref: '#/definitions/network_probe_task'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an existing NetworkProbeTask in the network
+      tags:
+        - Network Probes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/task_id'
+        - in: body
+          name: network_probe_task
+          description: New NetworkProbeTask configuration
+          required: true
+          schema:
+            $ref: '#/definitions/network_probe_task'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Remove an NetworkProbeTask from the network
+      tags:
+        - Network Probes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/task_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/network_probe/destinations:
+    get:
+      summary: List NetworkProbe Destinations in the network
+      tags:
+        - Network Probes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Provisioned NetworkProbe Destinations
+          schema:
+            $ref: '#/definitions/network_probe_destination'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new NetworkProbeDestination to the network
+      tags:
+        - Network Probes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: network_probe_destination
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/network_probe_destination'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/network_probe/destinations/{destination_id}:
+    get:
+      summary: Retrieve a NetworkProbe Destination
+      tags:
+        - Network Probes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/destination_id'
+      responses:
+        '200':
+          description: NetworkProbeDestination Info
+          schema:
+            $ref: '#/definitions/network_probe_destination'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update an existing NetworkProbe Destination in the network
+      tags:
+        - Network Probes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/destination_id'
+        - in: body
+          name: network_probe_destination
+          description: New NetworkProbeDestination configuration
+          required: true
+          schema:
+            $ref: '#/definitions/network_probe_destination'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Remove a NetworkProbe Destination from the network
+      tags:
+        - Network Probes
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/destination_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+parameters:
+  task_id:
+    in: path
+    name: task_id
+    description: Network Probe Task ID
+    required: true
+    type: string
+
+  destination_id:
+    in: path
+    name: destination_id
+    description: Network Probe Destination ID
+    required: true
+    type: string
+
+definitions:
+  network_probe_task:
+    description: Network Probe Task
+    type: object
+    required:
+      - task_id
+      - task_details
+    properties:
+      task_id:
+        $ref: "#/definitions/network_probe_task_id"
+      task_details:
+        $ref: '#/definitions/network_probe_task_details'
+
+  network_probe_task_id:
+    type: string
+    x-nullable: false
+    example: 'imsi1023001'
+
+  network_probe_task_details:
+    type: object
+    required:
+      - target_id
+      - target_type
+      - delivery_type
+    properties:
+      target_id:
+        type: string
+        x-nullable: false
+      target_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'imsi'
+          - 'imei'
+          - 'msisdn'
+        example: 'imsi'
+      delivery_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'all'
+          - 'events_only'
+        example: 'events_only'
+      correlation_id:
+        type: integer
+        format: uint64
+        example: 605394647632969700
+      duration:
+        type: integer
+        default: 0
+        minimum: 0
+        example: 300
+        description: the duration in seconds after which the task will expire.
+      timestamp:
+        type: string
+        format: date-time
+        example: 2020-03-11T00:36:59.65Z
+        description: The timestamp in ISO 8601 format
+
+  network_probe_destination:
+    description: Network Probe Destination
+    type: object
+    required:
+      - destination_id
+      - destination_details
+    properties:
+      destination_id:
+        $ref: '#/definitions/network_probe_destination_id'
+      destination_details:
+        $ref: '#/definitions/network_probe_destination_details'
+
+  network_probe_destination_id:
+    type: string
+    x-nullable: false
+    example: 'xxxx-yyyy-zzzz'
+
+  network_probe_destination_details:
+    type: object
+    required:
+      - delivery_type
+      - delivery_address
+    properties:
+      delivery_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'all'
+          - 'events_only'
+        example: 'events_only'
+      delivery_address:
+        type: string
+        x-nullable: false
+        example: '127.0.0.1:4040'
+
+  network_probe_data:
+    description: Network Probe State
+    type: object
+    required:
+      - target_id
+      - sequence_number
+      - last_exported
+    properties:
+      target_id:
+        type: string
+        x-nullable: false
+      sequence_number:
+        type: integer
+        format: uint32
+        default: 0
+        x-nullable: false
+      last_exported:
+        type: string
+        format: date-time
+        example: 2020-03-11T00:36:59.65Z
+        description: The timestamp in ISO 8601 format of last exported record
+        x-nullable: false

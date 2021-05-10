@@ -34,8 +34,125 @@ resource "helm_release" "orc8r" {
   version             = var.orc8r_chart_version
   keyring             = ""
   timeout             = 600
+  values              = [data.template_file.orc8r_values.rendered]
 
-  values = [templatefile("${path.module}/templates/orc8r-values.tpl", {
+  set_sensitive {
+    name  = "controller.spec.database.pass"
+    value = var.orc8r_db_pass
+  }
+}
+
+resource "helm_release" "lte-orc8r" {
+  count = (
+    var.orc8r_deployment_type == "fwa" ||
+    var.orc8r_deployment_type == "federated_fwa" ||
+    var.orc8r_deployment_type == "all"
+  ) ? 1 : 0
+
+  name                = "lte-orc8r"
+  namespace           = kubernetes_namespace.orc8r.metadata[0].name
+  repository          = var.helm_repo
+  repository_username = var.helm_user
+  repository_password = var.helm_pass
+  chart               = "lte-orc8r"
+  version             = var.lte_orc8r_chart_version
+  keyring             = ""
+  timeout             = 600
+  values              = [data.template_file.orc8r_values.rendered]
+
+  set_sensitive {
+    name  = "controller.spec.database.pass"
+    value = var.orc8r_db_pass
+  }
+}
+
+resource "helm_release" "feg-orc8r" {
+  count = (
+    var.orc8r_deployment_type == "federated_fwa" ||
+    var.orc8r_deployment_type == "all"
+  ) ? 1 : 0
+
+  name                = "feg-orc8r"
+  namespace           = kubernetes_namespace.orc8r.metadata[0].name
+  repository          = var.helm_repo
+  repository_username = var.helm_user
+  repository_password = var.helm_pass
+  chart               = "feg-orc8r"
+  version             = var.feg_orc8r_chart_version
+  keyring             = ""
+  timeout             = 600
+  values              = [data.template_file.orc8r_values.rendered]
+
+  set_sensitive {
+    name  = "controller.spec.database.pass"
+    value = var.orc8r_db_pass
+  }
+}
+
+resource "helm_release" "cwf-orc8r" {
+  count               = var.orc8r_deployment_type == "all" ? 1 : 0
+  name                = "cwf-orc8r"
+  namespace           = kubernetes_namespace.orc8r.metadata[0].name
+  repository          = var.helm_repo
+  repository_username = var.helm_user
+  repository_password = var.helm_pass
+  chart               = "cwf-orc8r"
+  version             = var.cwf_orc8r_chart_version
+  keyring             = ""
+  timeout             = 600
+  values              = [data.template_file.orc8r_values.rendered]
+
+  set_sensitive {
+    name  = "controller.spec.database.pass"
+    value = var.orc8r_db_pass
+  }
+}
+
+
+resource "helm_release" "fbinternal-orc8r" {
+  count = var.orc8r_deployment_type == "all" ? 1 : 0
+
+  name                = "fbinternal-orc8r"
+  namespace           = kubernetes_namespace.orc8r.metadata[0].name
+  repository          = var.helm_repo
+  repository_username = var.helm_user
+  repository_password = var.helm_pass
+  chart               = "fbinternal-orc8r"
+  version             = var.fbinternal_orc8r_chart_version
+  keyring             = ""
+  timeout             = 600
+  values              = [data.template_file.orc8r_values.rendered]
+
+  set_sensitive {
+    name  = "controller.spec.database.pass"
+    value = var.orc8r_db_pass
+  }
+}
+
+resource "helm_release" "wifi-orc8r" {
+  count = var.orc8r_deployment_type == "all" ? 1 : 0
+
+  name                = "wifi-orc8r"
+  namespace           = kubernetes_namespace.orc8r.metadata[0].name
+  repository          = var.helm_repo
+  repository_username = var.helm_user
+  repository_password = var.helm_pass
+  chart               = "wifi-orc8r"
+  version             = var.wifi_orc8r_chart_version
+  keyring             = ""
+  timeout             = 600
+  values              = [data.template_file.orc8r_values.rendered]
+
+  set_sensitive {
+    name  = "controller.spec.database.pass"
+    value = var.orc8r_db_pass
+  }
+}
+
+
+data "template_file" "orc8r_values" {
+  template = file("${path.module}/templates/orc8r-values.tpl")
+  vars = {
     image_pull_secret = kubernetes_secret.artifactory.metadata.0.name
     docker_registry   = var.docker_registry
     docker_tag        = local.orc8r_tag
@@ -56,15 +173,14 @@ resource "helm_release" "orc8r" {
     api_hostname        = format("api.%s", var.orc8r_domain_name)
     nms_hostname        = format("*.nms.%s", var.orc8r_domain_name)
 
-    orc8r_db_name = var.orc8r_db_name
-    orc8r_db_host = var.orc8r_db_host
-    orc8r_db_port = var.orc8r_db_port
-    orc8r_db_user = var.orc8r_db_user
+    orc8r_db_name    = var.orc8r_db_name
+    orc8r_db_host    = var.orc8r_db_host
+    orc8r_db_port    = var.orc8r_db_port
+    orc8r_db_dialect = var.orc8r_db_dialect
+    orc8r_db_user    = var.orc8r_db_user
+    orc8r_db_pass    = var.orc8r_db_pass
 
     deploy_nms  = var.deploy_nms
-    nms_db_name = var.nms_db_name
-    nms_db_host = var.nms_db_host
-    nms_db_user = var.nms_db_user
 
     metrics_pvc_promcfg  = kubernetes_persistent_volume_claim.storage["promcfg"].metadata.0.name
     metrics_pvc_promdata = kubernetes_persistent_volume_claim.storage["promdata"].metadata.0.name
@@ -81,20 +197,18 @@ resource "helm_release" "orc8r" {
     alertmanager_url          = format("%s-alertmanager:9093", var.helm_deployment_name)
     prometheus_url            = format("%s-prometheus:9090", var.helm_deployment_name)
 
-    thanos_enabled         = var.thanos_enabled
-    thanos_bucket          = var.thanos_enabled ? aws_s3_bucket.thanos_object_store_bucket[0].bucket : ""
-    thanos_aws_access_key  = var.thanos_enabled ? aws_iam_access_key.thanos_s3_access_key[0].id : ""
-    thanos_aws_secret_key  = var.thanos_enabled ? aws_iam_access_key.thanos_s3_access_key[0].secret : ""
-    region                 = var.region
-  })]
+    prometheus_configurer_version = var.prometheus_configurer_version
+    alertmanager_configurer_version = var.alertmanager_configurer_version
 
-  set_sensitive {
-    name  = "controller.spec.database.pass"
-    value = var.orc8r_db_pass
-  }
+    thanos_enabled        = var.thanos_enabled
+    thanos_bucket         = var.thanos_enabled ? aws_s3_bucket.thanos_object_store_bucket[0].bucket : ""
+    thanos_aws_access_key = var.thanos_enabled ? aws_iam_access_key.thanos_s3_access_key[0].id : ""
+    thanos_aws_secret_key = var.thanos_enabled ? aws_iam_access_key.thanos_s3_access_key[0].secret : ""
 
-  set_sensitive {
-    name  = "nms.magmalte.env.mysql_pass"
-    value = var.nms_db_pass
+    thanos_compact_selector = var.thanos_compact_node_selector != "" ? format("compute-type: %s", var.thanos_compact_node_selector) : "{}"
+    thanos_query_selector   = var.thanos_query_node_selector != "" ? format("compute-type: %s", var.thanos_query_node_selector) : "{}"
+    thanos_store_selector   = var.thanos_store_node_selector != "" ? format("compute-type: %s", var.thanos_store_node_selector) : "{}"
+
+    region = var.region
   }
 }

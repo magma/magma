@@ -12,6 +12,7 @@
 module magma/feg/cloud/go
 
 replace (
+	magma/feg/cloud/go => ../../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../../feg/cloud/go/protos
 	magma/gateway => ../../../orc8r/gateway/go
 	magma/lte/cloud/go => ../../../lte/cloud/go
@@ -21,7 +22,6 @@ replace (
 )
 
 require (
-	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/strfmt v0.19.4
 	github.com/go-openapi/swag v0.19.5
@@ -29,10 +29,10 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/labstack/echo v3.3.10+incompatible
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	golang.org/x/net v0.0.0-20201021035429-f5854403a974
 	google.golang.org/grpc v1.31.0
 	magma/feg/cloud/go/protos v0.0.0
 	magma/lte/cloud/go v0.0.0

@@ -16,10 +16,9 @@ import asyncio
 import queue
 import unittest.mock
 
-from orc8r.protos.sync_rpc_service_pb2 import GatewayRequest
-
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.proxy_client import ControlProxyHttpClient
+from orc8r.protos.sync_rpc_service_pb2 import GatewayRequest
 
 
 class MockUnaryClient(object):

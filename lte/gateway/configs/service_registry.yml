@@ -71,6 +71,9 @@ services:
   amf_service:
     ip_address: 127.0.0.1
     port: 50073
+  ha_service:
+    ip_address: 127.0.0.1
+    port: 50073
   state:
     ip_address: 127.0.0.1
     port: 50074
@@ -95,3 +98,9 @@ services:
   envoy_controller:
     ip_address: 127.0.0.1
     port: 50081
+  connectiond:
+    ip_address: 127.0.0.1
+    port: 50082
+  liagentd:
+    ip_address: 127.0.0.1
+    port: 50083

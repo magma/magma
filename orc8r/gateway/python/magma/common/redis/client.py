@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import redis
-
 from magma.configuration.service_configs import get_service_config_value
 
 

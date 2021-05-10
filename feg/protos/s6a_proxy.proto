@@ -94,6 +94,8 @@ message AuthenticationInformationRequest {
     uint32 num_requested_utran_geran_vectors = 6;
     // UTRAN/GERAN Resync Info (optional)
     bytes utran_geran_resync_info = 7;
+    // Feature List ID as a part of Supported features AVP(Optional)
+    FeatureListId2 feature_list_id_2 = 8;
 }
 
 // Authentication Information Answer (Section 7.2.6)
@@ -140,6 +142,10 @@ message UpdateLocationRequest {
     bool skip_subscriber_data = 3; // bit 2
     // Send Cancel Location to other EPCs serving the UE
     bool initial_attach = 4; // bit 5
+    // Send Dual Registration 5G Indicator
+    bool dual_registration_5g_indicator = 5; // bit 8
+    // Feature List ID as a part of Supported features AVP(Optional)
+    FeatureListId2 feature_list_id_2 = 6;
 }
 
 // Update Location Answer (Section 7.2.4)
@@ -167,6 +173,11 @@ message UpdateLocationAnswer {
     }
 
     NetworkAccessMode network_access_mode = 8;
+
+    repeated bytes regional_subscription_zone_code = 9;
+
+    // Feature List ID as a part of Supported features AVP(Optional)
+    FeatureListId2 feature_list_id_2 = 10;
 
     message APNConfiguration {
         // APN identifier
@@ -203,6 +214,13 @@ message UpdateLocationAnswer {
         uint32 max_bandwidth_ul = 1;
         // Maximum downlink bitrate
         uint32 max_bandwidth_dl = 2;
+        // Unit (either bps or Kbps)
+        BitrateUnitsAMBR unit = 3;
+
+        enum BitrateUnitsAMBR {
+         BPS = 0;
+         KBPS = 1;
+        }
     }
 }
 
@@ -249,4 +267,10 @@ message ResetRequest {
 message ResetAnswer {
     // EPC error code on failure
     ErrorCode error_code = 1;
+}
+
+// Feature ID list (3GPP TS 29.229 Table 7.1.1)
+message FeatureListId2 {
+    // NR as secondary RAT indicator
+    bool nr_as_secondary_rat = 1;
 }

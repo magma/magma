@@ -11,18 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import logging
-
 import asyncio
-from typing import List, NamedTuple, Optional
-
+import logging
 import re
+from typing import List, NamedTuple, Optional
 
 from magma.common.job import Job
 from magma.magmad.check import subprocess_workflow
-
-from magma.pipelined.metrics import GTP_PORT_USER_PLANE_DL_BYTES, \
-    GTP_PORT_USER_PLANE_UL_BYTES
+from magma.pipelined.metrics import (
+    GTP_PORT_USER_PLANE_DL_BYTES,
+    GTP_PORT_USER_PLANE_UL_BYTES,
+)
 
 OVSDBDumpCommandParams = NamedTuple('OVSDBCommandParams',
                                     [('table', str), ('columns', List[str])])
@@ -80,10 +79,10 @@ class GTPStatsCollector(Job):
         for r in list(dump_stats_results)[0].out:
             if GTP_IP_INTERFACE_PREFIX in r.Interface or \
                     r.Interface == GTP_INTERFACE_PREFIX:
-                GTP_PORT_USER_PLANE_DL_BYTES.labels(r.remote_ip).inc(
-                    float(r.rx_bytes))
-                GTP_PORT_USER_PLANE_UL_BYTES.labels(r.remote_ip).inc(
+                GTP_PORT_USER_PLANE_DL_BYTES.labels(r.remote_ip).set(
                     float(r.tx_bytes))
+                GTP_PORT_USER_PLANE_UL_BYTES.labels(r.remote_ip).set(
+                    float(r.rx_bytes))
 
 
 def _get_ovsdb_dump_params(params: OVSDBDumpCommandParams) -> List[str]:

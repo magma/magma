@@ -23,53 +23,54 @@ import (
 )
 
 type internalEntityGraph struct {
-	entsByPk map[string]*NetworkEntity
-	edges    []loadedAssoc
+	entsByTK EntitiesByTK
+	edges    loadedAssocs
 }
 
-// loadGraphInternal will load all entities and assocs for a given graph ID.
-// This function will NOT fill entities with associations.
+// loadGraphInternal will load all loadEntities and assocs for a given graph ID.
+// This function will NOT fill loadEntities with associations.
 func (store *sqlConfiguratorStorage) loadGraphInternal(networkID string, graphID string, criteria EntityLoadCriteria) (internalEntityGraph, error) {
 	loadFilter := EntityLoadFilter{GraphID: &wrappers.StringValue{Value: graphID}}
-	entsByPk, err := store.loadFromEntitiesTable(networkID, loadFilter, criteria)
+	ents, err := store.loadEntities(networkID, loadFilter, criteria)
 	if err != nil {
 		return internalEntityGraph{}, errors.Wrap(err, "failed to load entities for graph")
 	}
-	if funk.IsEmpty(entsByPk) {
+	if funk.IsEmpty(ents) {
 		return internalEntityGraph{}, nil
 	}
 
-	// always load all edges for a graph load
-	criteria.LoadAssocsFromThis, criteria.LoadAssocsToThis = true, true
-	assocs, _, err := store.loadFromAssocsTable(loadFilter, criteria, entsByPk)
+	// Just loading children is sufficient, since this will load all assocs
+	// in the graph
+	assocs, err := store.loadAssocs(networkID, loadFilter, criteria, loadChildren)
 	if err != nil {
-		return internalEntityGraph{}, errors.Wrap(err, "failed to load edges for graph")
+		return internalEntityGraph{}, errors.Wrap(err, "error loading child edges for graph")
 	}
 
-	return internalEntityGraph{entsByPk: entsByPk, edges: assocs}, nil
+	return internalEntityGraph{entsByTK: ents, edges: assocs}, nil
 }
 
-// fixGraph will load a a graph which may have been partitioned, do a connected
+// fixGraph will load a graph which may have been partitioned, do a connected
 // component search on it, and relabel components if a partition is detected.
 // entToUpdateOut is an output parameter
-func (store *sqlConfiguratorStorage) fixGraph(networkID string, graphID string, entToUpdateOut *entWithPk) error {
+func (store *sqlConfiguratorStorage) fixGraph(networkID string, graphID string, entToUpdateOut *NetworkEntity) error {
 	internalGraph, err := store.loadGraphInternal(networkID, graphID, EntityLoadCriteria{})
 	if err != nil {
 		return errors.Wrap(err, "failed to load graph of updated entity")
 	}
-	if funk.IsEmpty(internalGraph.entsByPk) {
+	if funk.IsEmpty(internalGraph.entsByTK) {
 		return nil
 	}
 
 	edges := map[string][]string{}
-	funk.ForEach(internalGraph.edges, func(assoc loadedAssoc) { edges[assoc.fromPk] = append(edges[assoc.fromPk], assoc.toPk) })
+	funk.ForEach(internalGraph.edges, func(assoc loadedAssoc) { edges[assoc.fromPK] = append(edges[assoc.fromPK], assoc.toPK) })
 
 	// Do a looped DFS over the graph to record connected components in a
 	// union-find structure
-	seenPks := map[string]bool{}
-	uf := newUnionFind(funk.Keys(internalGraph.entsByPk).([]string))
-	for pk := range internalGraph.entsByPk {
-		dfsFrom(pk, edges, seenPks, uf)
+	allPKs := internalGraph.entsByTK.PKs()
+	seenPKs := map[string]bool{}
+	uf := newUnionFind(allPKs)
+	for _, pk := range allPKs {
+		dfsFrom(pk, edges, seenPKs, uf)
 	}
 
 	// If the graph is fully connected, we don't have to do anything.
@@ -111,7 +112,6 @@ func dfsFrom(startPk string, edges map[string][]string, seenPKsOut map[string]bo
 		ufOut.union(startPk, nextPk)
 		dfsFrom(nextPk, edges, seenPKsOut, ufOut)
 	}
-	return
 }
 
 func findRootNodes(graph internalEntityGraph) []string {
@@ -119,13 +119,13 @@ func findRootNodes(graph internalEntityGraph) []string {
 	// To make computation easier, we'll make a reverse adjacency list first
 	reverseEdges := map[string][]string{}
 	for _, edge := range graph.edges {
-		reverseEdges[edge.toPk] = append(reverseEdges[edge.toPk], edge.fromPk)
+		reverseEdges[edge.toPK] = append(reverseEdges[edge.toPK], edge.fromPK)
 	}
 
 	// Set of root nodes is the set difference between node IDs and reverse
 	// edge keyset.
 	rootNodes := funk.Filter(
-		funk.Keys(graph.entsByPk),
+		graph.entsByTK.PKs(),
 		func(pk string) bool {
 			_, hasEdgesTo := reverseEdges[pk]
 			return !hasEdgesTo

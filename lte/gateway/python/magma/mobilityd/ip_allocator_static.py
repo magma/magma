@@ -15,20 +15,25 @@ The IP allocator accepts IP blocks (range of IP addresses), and supports
 allocating and releasing IP addresses from the assigned IP blocks.
 """
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import logging
 from ipaddress import ip_address, ip_network
 from typing import List, Optional
 
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
+from magma.mobilityd.ip_allocator_base import (
+    DuplicateIPAssignmentError,
+    IPAllocator,
+)
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
-from magma.mobilityd.ip_allocator_base import IPAllocator, \
-    DuplicateIPAssignmentError
-from magma.mobilityd.subscriberdb_client import SubscriberDbClient, \
-    StaticIPInfo
 from magma.mobilityd.mobility_store import MobilityStore
+from magma.mobilityd.subscriberdb_client import StaticIPInfo, SubscriberDbClient
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
@@ -88,7 +93,7 @@ class IPAllocatorStaticWrapper(IPAllocator):
             self._store.ip_state_map.remove_ip_from_state(ip_desc.ip,
                                                           IPState.FREE)
             ip_block_network = ip_network(ip_desc.ip_block)
-            if ip_block_network in self._assigned_ip_blocks:
+            if ip_block_network in self._store.assigned_ip_blocks:
                 self._store.assigned_ip_blocks.remove(ip_block_network)
         else:
             self._ip_allocator.release_ip(ip_desc)

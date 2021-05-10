@@ -14,6 +14,7 @@ limitations under the License.
 package registry_test
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strconv"
@@ -21,14 +22,12 @@ import (
 	"testing"
 	"time"
 
-	"magma/feg/gateway/registry"
-
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/registry"
 	"magma/gateway/service_registry"
 	platform_registry "magma/orc8r/lib/go/registry"
 	"magma/orc8r/lib/go/service/config"

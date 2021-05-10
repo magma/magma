@@ -12,12 +12,12 @@ limitations under the License.
 """
 
 import asyncio
-from enum import Enum
 import ipaddress
 import os
-import snowflake
+from enum import Enum
 
 import netifaces
+import snowflake
 
 
 class IpPreference(Enum):

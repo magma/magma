@@ -14,34 +14,38 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {subscriber} from '@fbcnms/magma-api';
+import type {subscriber, subscriber_state} from '@fbcnms/magma-api';
 
-import AppBar from '@material-ui/core/AppBar';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DataGrid from '../../components/DataGrid';
 import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberChart from './SubscriberChart';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetailConfig from './SubscriberDetailConfig';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import Text from '../../theme/design-system/Text';
+import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
+import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
+import {
+  REFRESH_INTERVAL,
+  useRefreshingContext,
+} from '../../components/context/RefreshContext';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext} from 'react';
+import {useCallback, useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -98,55 +102,68 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function SubscriberDetail() {
-  const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const subscriberId: string = nullthrows(match.params.subscriberId);
+  const networkId: string = nullthrows(match.params.networkId);
   const ctx = useContext(SubscriberContext);
-  // TODO: render a "Not found" component if the IMSI is not found
-  const subscriberInfo = ctx.state?.[subscriberId] || {};
+  const [subscriberConfig, setSubscriberConfig] = useState<subscriber>({});
+  const {isLoading, response: _subscriberResponse} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId,
+    {
+      networkId: networkId,
+      subscriberId: subscriberId,
+    },
+    useCallback(
+      response => {
+        setSubscriberConfig(response);
+        if (!ctx.state[subscriberId]) {
+          ctx.setState?.('', undefined, {
+            ...ctx.state,
+            [subscriberId]: response,
+          });
+        }
+      },
+      [ctx, subscriberId],
+    ),
+  );
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
 
+  const subscriberInfo = ctx.state?.[subscriberId] || subscriberConfig;
   return (
     <>
-      <div className={classes.topBar}>
-        <Text variant="body2">
-          Subscriber/{subscriberInfo.name ?? subscriberId}
-        </Text>
-      </div>
+      <TopBar
+        header={`Subscriber/${subscriberInfo.name ?? subscriberId}`}
+        tabs={
+          !Object.keys(subscriberInfo).length
+            ? [
+                {
+                  label: 'Event',
+                  to: '/event',
+                  icon: MyLocationIcon,
+                },
+              ]
+            : [
+                {
+                  label: 'Overview',
+                  to: '/overview',
+                  icon: DashboardIcon,
+                },
+                {
+                  label: 'Event',
+                  to: '/event',
+                  icon: MyLocationIcon,
+                },
+                {
+                  label: 'Config',
+                  to: '/config',
+                  icon: SettingsIcon,
+                },
+              ]
+        }
+      />
 
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container direction="row" justify="flex-end" alignItems="center">
-          <Grid item xs={12}>
-            <Tabs
-              value={GetCurrentTabPos(match.url, DetailTabItems)}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Overview"
-                component={NestedRouteLink}
-                label={<OverviewTabLabel />}
-                to="/overview"
-                className={classes.tab}
-              />
-              <Tab
-                key="Event"
-                component={NestedRouteLink}
-                label={<EventTabLabel />}
-                to="/event"
-                className={classes.tab}
-              />
-              <Tab
-                key="Config"
-                component={NestedRouteLink}
-                label={<ConfigTabLabel />}
-                to="/config"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-        </Grid>
-      </AppBar>
       <Switch>
         <Route
           path={relativePath('/config/json')}
@@ -160,12 +177,63 @@ export default function SubscriberDetail() {
         <Route
           path={relativePath('/event')}
           render={() => (
-            <EventsTable sz="lg" eventStream="SUBSCRIBER" tags={subscriberId} />
+            <EventsTable
+              sz="lg"
+              eventStream="SUBSCRIBER"
+              isAutoRefreshing={true}
+              tags={subscriberId}
+            />
           )}
         />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
     </>
+  );
+}
+function StatusInfo() {
+  const {match} = useRouter();
+  const subscriberId: string = nullthrows(match.params.subscriberId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [refresh, setRefresh] = useState(false);
+  const ctx = useContext(SubscriberContext);
+  // $FlowIgnore
+  const subscriberInfo: subscriber = ctx.state?.[subscriberId];
+  const networkId: string = nullthrows(match.params.networkId);
+  const refreshingSessionState = useRefreshingContext({
+    context: SubscriberContext,
+    networkId,
+    type: 'subscriber',
+    interval: REFRESH_INTERVAL,
+    enqueueSnackbar,
+    refresh,
+    id: subscriberId,
+  });
+  // $FlowIgnore
+  const sessions: subscriber_state = refreshingSessionState.sessionState;
+  function refreshFilter() {
+    return (
+      <AutorefreshCheckbox
+        autorefreshEnabled={refresh}
+        onToggle={() => setRefresh(current => !current)}
+      />
+    );
+  }
+  return (
+    <Grid container spacing={4}>
+      <Grid item xs={12} md={6}>
+        <CardTitleRow icon={PersonIcon} label="Subscriber" />
+        <Info subscriberInfo={subscriberInfo} />
+      </Grid>
+      <Grid item xs={12} md={6}>
+        <CardTitleRow
+          icon={GraphicEqIcon}
+          label="Status"
+          filter={() => refreshFilter()}
+        />
+
+        <Status sessionState={sessions} subscriberInfo={subscriberInfo} />
+      </Grid>
+    </Grid>
   );
 }
 
@@ -175,6 +243,7 @@ function Overview() {
   const subscriberId: string = nullthrows(match.params.subscriberId);
   const ctx = useContext(SubscriberContext);
   const subscriberInfo = ctx.state?.[subscriberId];
+
   if (!subscriberInfo) {
     return null;
   }
@@ -183,16 +252,7 @@ function Overview() {
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <Grid container spacing={4}>
-            <Grid item xs={12} md={6}>
-              <CardTitleRow icon={PersonIcon} label="Subscriber" />
-              <Info subscriberInfo={subscriberInfo} />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <Status subscriberInfo={subscriberInfo} />
-            </Grid>
-          </Grid>
+          <StatusInfo />
         </Grid>
         <Grid item xs={12}>
           <SubscriberChart />
@@ -234,12 +294,17 @@ function Info(props: {subscriberInfo: subscriber}) {
 
   return <DataGrid data={kpiData} />;
 }
-
-function Status({subscriberInfo}: {subscriberInfo: subscriber}) {
+type statusProps = {
+  sessionState?: subscriber_state,
+  subscriberInfo: subscriber,
+};
+function Status(props: statusProps) {
   const featureUnsupported = 'Unsupported';
   const statusUnknown = 'Unknown';
+
   const gwId =
-    subscriberInfo?.state?.directory?.location_history?.[0] ?? statusUnknown;
+    // $FlowIgnore
+    props.sessionsState?.directory?.location_history?.[0] ?? statusUnknown;
 
   const kpiData: DataRows[] = [
     [
@@ -265,41 +330,13 @@ function Status({subscriberInfo}: {subscriberInfo: subscriber}) {
       },
       {
         category: 'UE Latency',
-        value: subscriberInfo.monitoring?.icmp?.latency_ms ?? statusUnknown,
-        unit: subscriberInfo.monitoring?.icmp?.latency_ms ? 'ms' : '',
+        value:
+          props.subscriberInfo.monitoring?.icmp?.latency_ms ?? statusUnknown,
+        unit: props.subscriberInfo.monitoring?.icmp?.latency_ms ? 'ms' : '',
         statusCircle: false,
       },
     ],
   ];
 
   return <DataGrid data={kpiData} />;
-}
-
-function OverviewTabLabel() {
-  const classes = useStyles();
-  return (
-    <div className={classes.tabLabel}>
-      <DashboardIcon className={classes.tabIconLabel} /> Overview
-    </div>
-  );
-}
-
-function ConfigTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <SettingsIcon className={classes.tabIconLabel} /> Config
-    </div>
-  );
-}
-
-function EventTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <MyLocationIcon className={classes.tabIconLabel} /> Event
-    </div>
-  );
 }

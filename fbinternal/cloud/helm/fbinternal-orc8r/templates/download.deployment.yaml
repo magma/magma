@@ -1,0 +1,49 @@
+{{/*
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+*/}}
+{{- include "orc8rlib.deployment" (list . "download.deployment") -}}
+{{- define "download.deployment" -}}
+metadata:
+  name: orc8r-download
+  labels:
+    app.kubernetes.io/component: download
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: download
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: download
+    spec:
+      containers:
+      -
+{{ include "orc8rlib.container" (list . "download.container")}}
+{{- end -}}
+{{- define "download.container" -}}
+name: download
+command: ["/usr/bin/envdir"]
+args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/download", "-logtostderr=true", "-v=0"]
+ports:
+  - name: grpc
+    containerPort: 9102
+livenessProbe:
+  tcpSocket:
+    port: 9102
+  initialDelaySeconds: 10
+  periodSeconds: 30
+readinessProbe:
+  tcpSocket:
+    port: 9102
+  initialDelaySeconds: 5
+  periodSeconds: 10
+{{- end -}}

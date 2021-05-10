@@ -10,17 +10,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import logging
 from typing import List
 
 import grpc
-import logging
-
-from magma.common.service_registry import ServiceRegistry
+from feg.protos.envoy_controller_pb2 import (
+    AddUEHeaderEnrichmentRequest,
+    AddUEHeaderEnrichmentResult,
+    DeactivateUEHeaderEnrichmentRequest,
+    DeactivateUEHeaderEnrichmentResult,
+    Header,
+)
 from feg.protos.envoy_controller_pb2_grpc import EnvoyControllerStub
-from feg.protos.envoy_controller_pb2 import AddUEHeaderEnrichmentRequest, \
-    DeactivateUEHeaderEnrichmentRequest, Header, AddUEHeaderEnrichmentResult, \
-    DeactivateUEHeaderEnrichmentResult
 from lte.protos.mobilityd_pb2 import IPAddress
+from magma.common.service_registry import ServiceRegistry
 
 SERVICE_NAME = "envoy_controller"
 IMSI_HDR = 'imsi'

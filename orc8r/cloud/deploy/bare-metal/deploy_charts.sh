@@ -43,7 +43,7 @@ kubectl -n $namespace create secret generic nms-certs \
   --from-file controller.key \
   --from-file controller.crt \
   --dry-run=client -oyaml > ../secrets/nms-certs.yaml
-cd .. 
+cd ..
 kubectl -n $namespace apply -f secrets/
 
 echo "Checking kube-dns service..."
@@ -53,37 +53,39 @@ if ! kubectl -n kube-system get svc kube-dns &>/dev/null; then
 fi
 
 echo "Setting up infra helm charts..."
-helm repo add stable https://kubernetes-charts.storage.googleapis.com
+helm repo add stable https://charts.helm.sh/stable/
 helm repo add jetstack https://charts.jetstack.io
 helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add elastic https://helm.elastic.co
 
 # This should point to a repo where built charts are located
 #helm repo add github-repo
 
 kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.6/deploy/manifests/00-crds.yaml
 sleep 3
-helm -n mariadb upgrade --install mariadb-galera bitnami/mariadb-galera -f charts/mariadb-galera.yaml --wait
+helm -n mariadb upgrade --install mariadb bitnami/mariadb --version 7.3.14 -f charts/mariadb.yaml --wait
 
 helm -n infra upgrade --install cert-manager jetstack/cert-manager
 helm -n infra upgrade --install metallb stable/metallb -f charts/metallb.yaml --wait
 
 echo "Setting up DB..."
 envsubst < db_setup.sql.tpl > db_setup.sql
-mysql -h mariadb-galera.mariadb -u root --password=$db_root_password < db-setup-sql
-
+kubectl -n mariadb exec -it mariadb-master-0 -- mysql -u root --password=$db_root_password < db_setup.sql
 
 echo "Setting up Magma helm charts..."
 helm -n $namespace upgrade --install fluentd stable/fluentd -f charts/fluentd.yaml
-helm -n $namespace upgrade --install elasticsearch stable/elasticsearch -f charts/elasticsearch.yaml
+helm -n $namespace upgrade --install elasticsearch-master elastic/elasticsearch -f charts/elasticsearch-master.yaml
+helm -n $namespace upgrade --install elasticsearch-data elastic/elasticsearch -f charts/elasticsearch-data.yaml
+helm -n $namespace upgrade --install elasticsearch-data2 elastic/elasticsearch -f charts/elasticsearch-data2.yaml
 helm -n $namespace upgrade --install elasticsearch-curator stable/elasticsearch-curator -f charts/elasticsearch-curator.yaml
 helm -n $namespace upgrade --install kibana stable/kibana -f charts/kibana.yaml
 
 helm -n $namespace upgrade --install orc8r github-repo/orc8r -f charts/orc8r.yaml --wait
 
-export CNTLR_POD=$(kubectl -n $namespace get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
+export ORC_POD=$(kubectl -n $namespace get pod -l app.kubernetes.io/component=orchestrator -o jsonpath='{.items[0].metadata.name}')
 export NMS_POD=$(kubectl -n $namespace get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
 
-kubectl -n $namespace exec -it ${CNTLR_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || :
+kubectl -n $namespace exec -it ${ORC_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator || :
 kubectl -n $namespace exec -it ${NMS_POD} -- yarn setAdminPassword master $admin_email $admin_password
 
 NMS_ADDR="master.nms.$dns_domain"

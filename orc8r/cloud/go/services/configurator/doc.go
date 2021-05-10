@@ -36,6 +36,13 @@
 	Code calling configurator should take care to define entity types and
 	relations which would invariably result in an acyclic graph.
 
+	Configurator supports token based pagination for entity loads. Clients can
+	specify a page size and token for a given entity type. The load response
+	will contain the entity page and a page token to be used on subsequent
+	requests. If a page size is not specified, configurator defaults to the
+	maximum supported page size (15k). The max size is configurable via
+	configurator's service config.
+
 	Generating configs
 
 	Configurator provides two interfaces: northbound and southbound. The
@@ -64,12 +71,12 @@
 package configurator
 
 const (
-	// ServiceName is the name of this service
+	// ServiceName is the name of this service.
 	ServiceName = "CONFIGURATOR"
 
-	// NetworkConfigSerdeDomain is the Serde domain for network configs
+	// NetworkConfigSerdeDomain is the Serde domain for network configs.
 	NetworkConfigSerdeDomain = "configurator_network_configs"
 
-	// NetworkEntitySerdeDomain is the Serde domain for network entity configs
+	// NetworkEntitySerdeDomain is the Serde domain for network entity configs.
 	NetworkEntitySerdeDomain = "configurator_entity_configs"
 )

@@ -463,3 +463,19 @@ func (m *PolicyQosProfile) ToProto() *protos.FlowQos {
 	}
 	return proto
 }
+
+func (m PolicyIds) ToTKs() []storage.TypeAndKey {
+	var tks []storage.TypeAndKey
+	for _, policyID := range m {
+		tks = append(tks, storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: string(policyID)})
+	}
+	return tks
+}
+
+func (m BaseNames) ToTKs() []storage.TypeAndKey {
+	var tks []storage.TypeAndKey
+	for _, baseName := range m {
+		tks = append(tks, storage.TypeAndKey{Type: lte.BaseNameEntityType, Key: string(baseName)})
+	}
+	return tks
+}

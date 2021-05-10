@@ -17,10 +17,7 @@
 import * as React from 'react';
 import AdminContextProvider from './AdminContextProvider';
 import AdminMain from './AdminMain';
-import AlarmIcon from '@material-ui/icons/Alarm';
-import Alerts from './Alerts';
-import AppContext from '@fbcnms/ui/context/AppContext';
-import ApplicationMain from '@fbcnms/ui/components/ApplicationMain';
+import ApplicationMain from '../ApplicationMain';
 import AssignmentIcon from '@material-ui/icons/Assignment';
 import AuditLog from './AuditLog';
 import NavListItem from '@fbcnms/ui/components/NavListItem';
@@ -31,7 +28,6 @@ import SecuritySettings from '../SecuritySettings';
 import SignalCellularAlt from '@material-ui/icons/SignalCellularAlt';
 import UsersSettings from '../UsersSettings';
 import {Redirect, Route, Switch} from 'react-router-dom';
-
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -44,8 +40,6 @@ const useStyles = makeStyles(theme => ({
 
 function NavItems() {
   const {relativeUrl} = useRouter();
-  const {isFeatureEnabled} = React.useContext(AppContext);
-  const auditLogEnabled = isFeatureEnabled('audit_log_view');
 
   return (
     <>
@@ -54,22 +48,15 @@ function NavItems() {
         path={relativeUrl('/users')}
         icon={<PeopleIcon />}
       />
-      {auditLogEnabled && (
-        <NavListItem
-          label="Audit Log"
-          path={relativeUrl('/audit_log')}
-          icon={<AssignmentIcon />}
-        />
-      )}
+      <NavListItem
+        label="Audit Log"
+        path={relativeUrl('/audit_log')}
+        icon={<AssignmentIcon />}
+      />
       <NavListItem
         label="Networks"
         path={relativeUrl('/networks')}
         icon={<SignalCellularAlt />}
-      />
-      <NavListItem
-        label="Alerts"
-        path={relativeUrl('/alerts')}
-        icon={<AlarmIcon />}
       />
     </>
   );
@@ -83,7 +70,6 @@ function NavRoutes() {
       <Route path={relativeUrl('/users')} component={UsersSettings} />
       <Route path={relativeUrl('/audit_log')} component={AuditLog} />
       <Route path={relativeUrl('/networks')} component={Networks} />
-      <Route path={relativeUrl('/alerts')} component={Alerts} />
       <Route
         path={relativeUrl('/settings')}
         render={() => (

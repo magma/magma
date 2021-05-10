@@ -15,27 +15,33 @@ import logging
 import os
 import re
 import subprocess
-import netifaces
-
 from collections import namedtuple
 from concurrent.futures import Future
 from difflib import unified_diff
 from typing import Dict, List, Optional
-from unittest import TestCase
+from unittest import TestCase, mock
 from unittest.mock import MagicMock
-from ryu.lib import hub
 
+import fakeredis
+import netifaces
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupPolicyRequest, \
-    UpdateSubscriberQuotaStateRequest, SetupUEMacRequest
+from lte.protos.pipelined_pb2 import (
+    SetupFlowsResult,
+    SetupPolicyRequest,
+    SetupUEMacRequest,
+    UpdateSubscriberQuotaStateRequest,
+)
+from magma.pipelined.app.base import global_epoch
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.openflow import flows
 from magma.pipelined.service_manager import ServiceManager
-from magma.pipelined.tests.app.exceptions import BadConfigError, \
-    ServiceRunningError
+from magma.pipelined.tests.app.exceptions import (
+    BadConfigError,
+    ServiceRunningError,
+)
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery
 from magma.pipelined.tests.app.start_pipelined import StartThread
-from magma.pipelined.app.base import global_epoch
-from magma.pipelined.openflow import flows
+from ryu.lib import hub
 
 """
 Pipelined test util functions can be used for testing pipelined, the usage of
@@ -229,7 +235,7 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
 def setup_controller(controller, setup_req, sleep_time: float = 1,
                      retries: int = 5):
     for _ in range(0, retries):
-        ret = controller.check_setup_request_epoch( setup_req.epoch)
+        ret = controller.check_setup_request_epoch(setup_req.epoch)
         if ret == SetupFlowsResult.SUCCESS:
             return ret
         else:
@@ -238,6 +244,12 @@ def setup_controller(controller, setup_req, sleep_time: float = 1,
                 return SetupFlowsResult.SUCCESS
         hub.sleep(sleep_time)
     return res.result
+
+
+def fake_inout_setup(inout_controller):
+    TestCase().assertEqual(setup_controller(
+        inout_controller, SetupPolicyRequest(requests=[], epoch=global_epoch)),
+        SetupFlowsResult.SUCCESS)
 
 
 def fake_controller_setup(enf_controller=None,
@@ -271,6 +283,7 @@ def fake_controller_setup(enf_controller=None,
         SetupFlowsResult.SUCCESS)
     if enf_stats_controller:
         enf_stats_controller.init_finished = False
+        enf_stats_controller.cleanup_state()
         TestCase().assertEqual(setup_controller(
             enf_stats_controller, setup_flows_request),
             SetupFlowsResult.SUCCESS)
@@ -370,7 +383,12 @@ def create_service_manager(services: List[int],
         'static_services': static_services,
         '5G_feature_set': {'enable': False}
     }
-    service_manager = ServiceManager(magma_service)
+    # mock the get_default_client function used to return a fakeredis object
+    func_mock = MagicMock(return_value=fakeredis.FakeStrictRedis())
+    with mock.patch(
+            'magma.pipelined.rule_mappers.get_default_client',
+            func_mock):
+        service_manager = ServiceManager(magma_service)
 
     # Workaround as we don't use redis in unit tests
     service_manager.rule_id_mapper._rule_nums_by_rule = {}

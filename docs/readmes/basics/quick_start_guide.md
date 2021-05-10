@@ -52,7 +52,7 @@ Here, we'll be building the Orchestrator docker containers.
 
 ```bash
 HOST [magma]$ cd orc8r/cloud/docker
-HOST [magma/orc8r/cloud/docker]$ ./build.py -a
+HOST [magma/orc8r/cloud/docker]$ ./build.py --all
 ```
 
 This will build all the docker images for Orchestrator. The `vagrant up` from

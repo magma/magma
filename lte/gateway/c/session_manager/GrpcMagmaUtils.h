@@ -12,7 +12,12 @@
  */
 #pragma once
 
-#include "GRPCReceiver.h"
+#include <string>  // for string
+namespace google {
+namespace protobuf {
+class Message;
+}
+}  // namespace google
 
 std::string get_env_var(std::string const& key);
 

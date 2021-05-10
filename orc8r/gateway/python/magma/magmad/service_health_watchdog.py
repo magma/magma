@@ -12,14 +12,14 @@ limitations under the License.
 """
 # pylint: disable=broad-except
 
+import asyncio
 import logging
 from typing import Any
-import asyncio
 
 from magma.common.job import Job
-
-from magma.magmad.service_poller import ServicePoller
 from magma.magmad.service_manager import ServiceManager
+from magma.magmad.service_poller import ServicePoller
+
 
 class ServiceHealthWatchdog(Job):
     """

@@ -16,7 +16,7 @@
 import puppeteer from 'puppeteer';
 
 const ADD_NETWORK_SELECTOR = `//span[text()='Add Network']`;
-const ADD_NETWORK_DIALOG = `//h2[text()='Add Network']`;
+const ADD_NETWORK_DIALOG = `//span[text()='Add Network']`;
 const ADD_NETWORK_SAVE = `//span[text()='Save']`;
 
 type AddParams = {
@@ -35,6 +35,11 @@ export async function addFegNetwork(
   buttonSelector[0].click();
 
   await page.waitForXPath(ADD_NETWORK_DIALOG);
+
+  await page.waitForSelector('input[name=networkId]');
+  await page.click('input[name=networkId]');
+  await page.type('input[name=networkId]', params.name);
+
   await page.waitForSelector('input[name=name]');
   await page.click('input[name=name]');
   await page.type('input[name=name]', params.name);
@@ -51,7 +56,7 @@ export async function addFegNetwork(
   );
 
   //  TODO  need to figure out why we need to add this delay
-  await page.waitFor(500);
+  await page.waitForTimeout(500);
   const [saveButton] = await page.$x(ADD_NETWORK_SAVE);
   await saveButton.click();
   await page.waitForXPath(`//td[text()='${params.name}']`);
@@ -67,6 +72,10 @@ export async function addFegLteNetwork(
   buttonSelector[0].click();
 
   await page.waitForXPath(ADD_NETWORK_DIALOG);
+
+  await page.waitForSelector('input[name=networkId]');
+  await page.click('input[name=networkId]');
+  await page.type('input[name=networkId]', params.name);
 
   await page.waitForSelector('input[name=name]');
   await page.click('input[name=name]');
@@ -90,7 +99,7 @@ export async function addFegLteNetwork(
   }
 
   // need to figure out why we need to add this delay
-  await page.waitFor(500);
+  await page.waitForTimeout(500);
   const [saveButton] = await page.$x(ADD_NETWORK_SAVE);
   await saveButton.click();
 

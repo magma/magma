@@ -14,23 +14,26 @@ limitations under the License.
 
 import asyncio
 import datetime
-import sys
 import json
+import sys
+import textwrap
 
 # NOTE: Uncomment following lines to get verbose logs on GRPC error.
 # import os
 # os.environ['GRPC_TRACE'] = 'all'
 # os.environ['GRPC_VERBOSITY'] = 'DEBUG'
 import snowflake
-from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.cert_utils import load_cert
-from magma.common.cert_validity import create_ssl_connection, \
-    create_tcp_connection
+from magma.common.cert_validity import (
+    create_ssl_connection,
+    create_tcp_connection,
+)
+from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration.service_configs import load_service_config
-from orc8r.protos.state_pb2_grpc import StateServiceStub
-from orc8r.protos.state_pb2 import ReportStatesRequest
 from orc8r.protos.service303_pb2 import State
+from orc8r.protos.state_pb2 import ReportStatesRequest
+from orc8r.protos.state_pb2_grpc import StateServiceStub
 
 
 def main():
@@ -42,51 +45,72 @@ def main():
     loop = asyncio.get_event_loop()
 
     err_suggestions = {
+        'err': '(There was an error with the checkin_cli.py script)',
         'tcp':
             """
-            - Verify hostname in /etc/magma/control_proxy.yml &
-              /var/opt/magma/configs/control_proxy.yml.
-            - Verify correct port.
-            - Check DNS (nslookup hostname).
-            - Make sure you are disconnected from VPN.
-            - Check nghttpx is running on cloud VM.
+            - Verify services are running
+                - Ensure non-empty service status (sudo service magma@* status)
+            - Verify cloud address and port in
+                - /etc/magma/control_proxy.yml
+                - /var/opt/magma/configs/control_proxy.yml
+            - Check DNS
+                - [prod] Check DNS mapping (nslookup hostname)
+                - [dev] Check hosts mapping (cat /etc/hosts)
+            - Make sure you are disconnected from VPN
+            - Ensure cloud's nginx service is healthy
+                - Connect to cloud cluster
+                - View cloud pods (kubectl get pods --selector app.kubernetes.io/component=nginx-proxy)
+                - Tail cloud logs (stern orc8r-nginx --since 2m)
+                - Pods should indicate minimal restarts, tailed logs should
+                  be free of crashes or fatal logs
             """,
         'certs':
             """
-            - Delete certs:
-                1. Delete gateway.key and gateway.crt in /var/opt/magma/certs.
-                2. Restart magmad (sudo service magma@magmad restart).
-            - Double check that cloud is up and gateway has been added with
-              correct hardware id and key to allow bootstrap.
+            - Regenerate session certs
+                1. Delete gateway.key and gateway.crt in /var/opt/magma/certs
+                2. Restart magmad (sudo service magma@magmad restart)
+            - Ensure gateway has been registered in the cloud, with correct
+              hardware ID and key
                 1. Run show_gateway_info.py.
                 2. Go to cloud swagger
-                   (EG. https://127.0.0.1:9443/apidocs/v1/#/).
-                3. POST to add a new gateway. Fill JSON with corresponding
+                    - E.g. https://127.0.0.1:9443/swagger/v1/ui/
+                    - Query the list gateways endpoint
+                3. POST to add a new gateway, filling JSON with corresponding
                    values from step 1.
             """,
         'ssl':
             """
-            - Certificate may be valid but invalid for this host.
-            - Delete certs:
-                1. Delete gateway.key and gateway.crt in /var/opt/magma/certs.
-                2. Restart magmad (sudo service magma@magmad restart).
+            - Certificate may be valid but invalid for this gateway
+            - Regenerate session certs
+                1. Delete gateway.key and gateway.crt in /var/opt/magma/certs
+                2. Restart magmad (sudo service magma@magmad restart)
             """,
         'direct_checkin':
             """
-            - Verify state service is running on cloud VM.
-            - Double check the gateway has been registered with the cloud. You
-              can check by going to cloud swagger,
-              (EG. https://127.0.0.1:9443/apidocs/v1/#/), and query the list
-              gateways endpoint.
-            - Check logs for more information (sudo tail -f /var/log/syslog).
+            - Ensure gateway has been registered in the cloud, with correct
+              hardware ID and key
+                1. Run show_gateway_info.py.
+                2. Go to cloud swagger
+                    - E.g. https://127.0.0.1:9443/swagger/v1/ui/
+                    - Query the list gateways endpoint
+            - Ensure cloud's state service is healthy
+                - Connect to cloud cluster
+                - View cloud pods (kubectl get pods --selector app.kubernetes.io/component=state)
+                - Tail cloud logs (stern orc8r-state --since 2m)
+                - Pods should indicate minimal restarts, tailed logs should
+                  be free of crashes or fatal logs
+            - Check gateway's logs for more information (sudo tail -f /var/log/syslog)
             """,
         'proxy_checkin':
             """
-            - Verify control_proxy service is running.
-            - Check logs for more information (sudo tail -f /var/log/syslog).
+            - Verify gateway's control_proxy service is running
+            - Check gateway's logs for more information (sudo tail -f /var/log/syslog)
             """,
     }
+    for k, v in err_suggestions.items():
+        err_suggestions[k] = textwrap.dedent(v).strip()
 
+    stage = 'err'
     try:
         print('1. -- Testing TCP connection to %s:%d -- ' % (host, port))
         stage = 'tcp'
@@ -112,12 +136,22 @@ def main():
         stage = 'proxy_checkin'
         loop.run_until_complete(test_checkin(proxy_cloud_connections=True))
 
+        print()
         print('Success!')
+        print()
         sys.exit(0)
 
     except Exception as e:
-        print('> Error: %s' % e, )
-        print("Suggestions:", err_suggestions[stage])
+        msg = textwrap.dedent(
+            """
+            > Error: {}
+
+            Suggestions
+            -----------
+            {}
+            """
+        )
+        print(msg.format(e, err_suggestions[stage]))
         sys.exit(1)
 
 

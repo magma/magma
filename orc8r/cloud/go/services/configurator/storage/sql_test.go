@@ -16,20 +16,26 @@ package storage_test
 import (
 	"context"
 	"database/sql/driver"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log"
-	"strings"
+	"regexp"
 	"testing"
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
-	storage2 "magma/orc8r/cloud/go/storage"
+	orc8r_storage "magma/orc8r/cloud/go/storage"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 	"github.com/thoas/go-funk"
 	"gopkg.in/DATA-DOG/go-sqlmock.v1"
+)
+
+const (
+	sqlTestMaxLoadSize = 5
 )
 
 var mockResult = sqlmock.NewResult(1, 1)
@@ -275,8 +281,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 		},
 		run: runFactory(storage.Network{ID: "n4"}),
 
-		expectedResult: storage.Network{ID: "n4"},
-		expectedError:  errors.New("error inserting network: mock exec error"),
+		expectedError: errors.New("error inserting network: mock exec error"),
 	}
 
 	configTableErrNw := storage.Network{
@@ -305,8 +310,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 		},
 		run: runFactory(configTableErrNw),
 
-		expectedResult: configTableErrNw,
-		expectedError:  errors.New("error inserting network configs: mock exec error"),
+		expectedError: errors.New("error inserting network configs: mock exec error"),
 	}
 
 	networkExists := &testCase{
@@ -317,8 +321,7 @@ func TestSqlConfiguratorStorage_CreateNetwork(t *testing.T) {
 		},
 		run: runFactory(storage.Network{ID: "n5"}),
 
-		expectedResult: storage.Network{ID: "n5"},
-		expectedError:  errors.New("a network with ID n5 already exists"),
+		expectedError: errors.New("a network with ID n5 already exists"),
 	}
 
 	runCase(t, idOnly)
@@ -459,15 +462,15 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 
 		expectedResult: storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
-				{NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1},
-				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2},
+				{NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1, Pk: "def"},
+				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2, Pk: "abc"},
 			},
 			EntitiesNotFound: []*storage.EntityID{{Type: "hello", Key: "world"}},
 		},
 	}
 
 	// Load everything, no assocs
-	// foobar has 2 permissions, bazquz has 1 wildcarded permission
+	// Side benefit: ensure redundant rows don't break anything
 	loadEverything := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
 			m.ExpectQuery("SELECT .* FROM cfg_entities").
@@ -477,10 +480,10 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 					"network", "world", "hello",
 				).
 				WillReturnRows(
-					sqlmock.NewRows([]string{"network_id", "pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config", "id", "scope", "permission", "type", "id_filter", "acl.version"}).
-						AddRow("network", "abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_1", "n1,n2,n3", storage.ACL_OWN, "foo", nil, 1).
-						AddRow("network", "abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_2", "n4", storage.ACL_READ, "baz", nil, 2).
-						AddRow("network", "def", "quz", "baz", nil, 1, "42", "bazquz", "bazquz ent", []byte("bazquz"), "bazquz_acl_1", storage.ACL_WILDCARD_ALL.String(), storage.ACL_WRITE, storage.ACL_WILDCARD_ALL.String(), "1,2,3", 3),
+					sqlmock.NewRows([]string{"network_id", "pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config"}).
+						AddRow("network", "abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar")).
+						AddRow("network", "abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar")).
+						AddRow("network", "def", "quz", "baz", nil, 1, "42", "bazquz", "bazquz ent", []byte("bazquz")),
 				)
 		},
 		run: runFactory(
@@ -492,51 +495,166 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 					{Type: "hello", Key: "world"},
 				},
 			},
-			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadPermissions: true},
+			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true},
 		),
 
 		expectedResult: storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
-					NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1,
+					NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1, Pk: "def",
 					Name:        "bazquz",
 					Description: "bazquz ent",
 					Config:      []byte("bazquz"),
-					Permissions: []*storage.ACL{
-						{
-							ID:         "bazquz_acl_1",
-							Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-							Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-							Permission: storage.ACL_WRITE,
-							IDFilter:   []string{"1", "2", "3"},
-							Version:    3,
-						},
-					},
 				},
 				{
-					NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2,
+					NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2, Pk: "abc",
 					Name:        "foobar",
 					Description: "foobar ent",
 					Config:      []byte("foobar"),
-					Permissions: []*storage.ACL{
-						{
-							ID:         "foobar_acl_1",
-							Type:       &storage.ACL_EntityType{EntityType: "foo"},
-							Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1", "n2", "n3"}}},
-							Permission: storage.ACL_OWN,
-							Version:    1,
-						},
-						{
-							ID:         "foobar_acl_2",
-							Type:       &storage.ACL_EntityType{EntityType: "baz"},
-							Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n4"}}},
-							Permission: storage.ACL_READ,
-							Version:    2,
-						},
-					},
 				},
 			},
 			EntitiesNotFound: []*storage.EntityID{{Type: "hello", Key: "world"}},
+		},
+	}
+
+	loadPageBaseQuery := `SELECT ent.network_id, ent.pk, ent."key", ent.type, ent.physical_id, ent.version, ent.graph_id, ent.name, ent.description, ent.config ` +
+		`FROM cfg_entities AS ent `
+	emptyPageTokenWhere := `WHERE (ent.network_id = $1 AND ent.type = $2) `
+	nonEmptyPageTokenWhere := `WHERE (ent.network_id = $1 AND ent.type = $2 AND ent."key" > $3) `
+	orderbyLimit := `ORDER BY ent."key" LIMIT %d`
+	loadPageEmptyToken := loadPageBaseQuery + emptyPageTokenWhere + orderbyLimit
+	loadPageNonEmptyToken := loadPageBaseQuery + nonEmptyPageTokenWhere + orderbyLimit
+
+	nextToken := &storage.EntityPageToken{
+		LastIncludedEntity: "rou",
+	}
+	expectedNextToken := serializeToken(t, nextToken)
+	loadFullPage := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(loadPageEmptyToken, 2))).
+				WithArgs(
+					"network", "foo",
+				).
+				WillReturnRows(
+					sqlmock.NewRows([]string{"network_id", "pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config"}).
+						AddRow("network", "abc", "bar", "foo", nil, 2, "42", "foobar", "foobar ent", []byte("foobar")).
+						AddRow("network", "bbb", "rou", "foo", nil, 2, "43", "foobar", "barbar ent", []byte("foobar")),
+				)
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
+			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, PageSize: 2, PageToken: ""},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				{
+					NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2, Pk: "abc",
+					Name:        "foobar",
+					Description: "foobar ent",
+					Config:      []byte("foobar"),
+				},
+				{
+					NetworkID: "network", Type: "foo", Key: "rou", GraphID: "43", Version: 2, Pk: "bbb",
+					Name:        "foobar",
+					Description: "barbar ent",
+					Config:      []byte("foobar"),
+				},
+			},
+			NextPageToken: expectedNextToken,
+		},
+	}
+
+	loadFinalPage := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(regexp.QuoteMeta(fmt.Sprintf(loadPageNonEmptyToken, 2))).
+				WithArgs(
+					"network", "foo", "rou",
+				).
+				WillReturnRows(
+					sqlmock.NewRows([]string{"network_id", "pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config"}).
+						AddRow("network", "abc", "zed", "foo", nil, 2, "42", "zedbar", "foobar ent", []byte("foobar")),
+				)
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
+			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, PageSize: 2, PageToken: expectedNextToken},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				{
+					NetworkID: "network", Type: "foo", Key: "zed", GraphID: "42", Version: 2, Pk: "abc",
+					Name:        "zedbar",
+					Description: "foobar ent",
+					Config:      []byte("foobar"),
+				},
+			},
+			NextPageToken: "",
+		},
+	}
+	nextToken = &storage.EntityPageToken{
+		LastIncludedEntity: "eee",
+	}
+	expectedNextToken = serializeToken(t, nextToken)
+	loadPageMaxRegex := regexp.QuoteMeta(fmt.Sprintf(loadPageEmptyToken, sqlTestMaxLoadSize))
+	loadPageSizeGreaterThanMax := &testCase{
+		setup: func(m sqlmock.Sqlmock) {
+			m.ExpectQuery(loadPageMaxRegex).
+				WithArgs(
+					"network", "foo",
+				).
+				WillReturnRows(
+					sqlmock.NewRows([]string{"network_id", "pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config"}).
+						AddRow("network", "aaa", "aaa", "foo", nil, 2, "42", "aaafoo", "aaafoo ent", []byte("aaafoo")).
+						AddRow("network", "bbb", "bbb", "foo", nil, 2, "43", "bbbfoo", "bbbfoo ent", []byte("bbbfoo")).
+						AddRow("network", "ccc", "ccc", "foo", nil, 2, "44", "cccfoo", "cccfoo ent", []byte("cccfoo")).
+						AddRow("network", "ddd", "ddd", "foo", nil, 2, "45", "dddfoo", "dddfoo ent", []byte("dddfoo")).
+						AddRow("network", "eee", "eee", "foo", nil, 2, "46", "eeefoo", "eeefoo ent", []byte("eeefoo")),
+				)
+		},
+		run: runFactory(
+			"network",
+			storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}},
+			storage.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, PageSize: 10, PageToken: ""},
+		),
+
+		expectedResult: storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				{
+					NetworkID: "network", Type: "foo", Key: "aaa", GraphID: "42", Version: 2, Pk: "aaa",
+					Name:        "aaafoo",
+					Description: "aaafoo ent",
+					Config:      []byte("aaafoo"),
+				},
+				{
+					NetworkID: "network", Type: "foo", Key: "bbb", GraphID: "43", Version: 2, Pk: "bbb",
+					Name:        "bbbfoo",
+					Description: "bbbfoo ent",
+					Config:      []byte("bbbfoo"),
+				},
+				{
+					NetworkID: "network", Type: "foo", Key: "ccc", GraphID: "44", Version: 2, Pk: "ccc",
+					Name:        "cccfoo",
+					Description: "cccfoo ent",
+					Config:      []byte("cccfoo"),
+				},
+				{
+					NetworkID: "network", Type: "foo", Key: "ddd", GraphID: "45", Version: 2, Pk: "ddd",
+					Name:        "dddfoo",
+					Description: "dddfoo ent",
+					Config:      []byte("dddfoo"),
+				},
+				{
+					NetworkID: "network", Type: "foo", Key: "eee", GraphID: "46", Version: 2, Pk: "eee",
+					Name:        "eeefoo",
+					Description: "eeefoo ent",
+					Config:      []byte("eeefoo"),
+				},
+			},
+			NextPageToken: expectedNextToken,
 		},
 	}
 
@@ -556,11 +674,20 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 						AddRow("network", "ghi", "world", "hello", nil, 3, "42"),
 				)
 
+			ents := entsByPK{
+				"abc": {"abc", "bar", "foo"},
+				"def": {"def", "quz", "baz"},
+				"ghi": {"ghi", "world", "hello"},
+			}
 			expectAssocQuery(
-				m, []driver.Value{"abc", "def", "ghi"},
-				"abc", "def",
-				"abc", "ghi",
-				"ghi", "def",
+				m,
+				"network",
+				ents.getAssocArgs("abc", "def", "ghi"),
+				[][]driver.Value{
+					ents.getParentAssocReturns(t, "abc", "def"),
+					ents.getParentAssocReturns(t, "abc", "ghi"),
+					ents.getParentAssocReturns(t, "ghi", "def"),
+				},
 			)
 		},
 		run: runFactory(
@@ -578,21 +705,22 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		expectedResult: storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
-					NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1,
+					NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1, Pk: "def",
 					ParentAssociations: []*storage.EntityID{
 						{Type: "foo", Key: "bar"},
 						{Type: "hello", Key: "world"},
 					},
 				},
-				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2},
 				{
-					NetworkID: "network", Type: "hello", Key: "world", GraphID: "42", Version: 3,
+					NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2, Pk: "abc",
+				},
+				{
+					NetworkID: "network", Type: "hello", Key: "world", GraphID: "42", Version: 3, Pk: "ghi",
 					ParentAssociations: []*storage.EntityID{
 						{Type: "foo", Key: "bar"},
 					},
 				},
 			},
-			EntitiesNotFound: []*storage.EntityID{},
 		},
 	}
 
@@ -612,12 +740,20 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 						AddRow("network", "ghi", "world", "hello", nil, 3, "42"),
 				)
 
+			ents := entsByPK{
+				"abc": {"abc", "bar", "foo"},
+				"def": {"def", "quz", "baz"},
+				"ghi": {"ghi", "world", "hello"},
+			}
 			expectAssocQuery(
 				m,
-				[]driver.Value{"abc", "def", "ghi"},
-				"def", "abc",
-				"ghi", "abc",
-				"def", "ghi",
+				"network",
+				ents.getAssocArgs("abc", "def", "ghi"),
+				[][]driver.Value{
+					ents.getAssocReturns(t, "def", "abc"),
+					ents.getAssocReturns(t, "ghi", "abc"),
+					ents.getAssocReturns(t, "def", "ghi"),
+				},
 			)
 		},
 		run: runFactory(
@@ -635,59 +771,69 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		expectedResult: storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
-					NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1,
+					NetworkID: "network", Type: "baz", Key: "quz", GraphID: "42", Version: 1, Pk: "def",
 					Associations: []*storage.EntityID{
 						{Type: "foo", Key: "bar"},
 						{Type: "hello", Key: "world"},
 					},
 				},
-				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2},
 				{
-					NetworkID: "network", Type: "hello", Key: "world", GraphID: "42", Version: 3,
+					NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2, Pk: "abc",
+				},
+				{
+					NetworkID: "network", Type: "hello", Key: "world", GraphID: "42", Version: 3, Pk: "ghi",
 					Associations: []*storage.EntityID{
 						{Type: "foo", Key: "bar"},
 					},
 				},
 			},
-			EntitiesNotFound: []*storage.EntityID{},
 		},
 	}
 
-	// Load everything with type filter
-	// (foo, bar) will have 2 permissions and 2 assocs - one to (foo, baz) and one to (bar, baz)
-	// (foo, baz) will have 1 wildcard permission and 1 assoc to (baz, quz)
-	// (hello, world) will have 1 assoc to (foo, bar)
-	// We will only load entities of type foo
+	// Load everything with type filter (type foo)
 	fullLoadTypeFilter := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
 			m.ExpectQuery("SELECT .* FROM cfg_entities").
 				WithArgs("network", "foo").
 				WillReturnRows(
-					sqlmock.NewRows([]string{"network_id", "pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config", "id", "scope", "permission", "type", "id_filter", "acl.version"}).
-						// (foo, bar) comes from test case for full load above
-						AddRow("network", "foobar", "bar", "foo", nil, 1, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_1", "n1,n2,n3", storage.ACL_OWN, "foo", nil, 1).
-						AddRow("network", "foobar", "bar", "foo", nil, 1, "42", "foobar", "foobar ent", []byte("foobar"), "foobar_acl_2", "n4", storage.ACL_READ, "baz", nil, 2).
-						AddRow("network", "foobaz", "baz", "foo", nil, 2, "42", "foobaz", "foobaz ent", []byte("foobaz"), "foobaz_acl_1", "WILDCARD_ALL", storage.ACL_WRITE, "WILDCARD_ALL", nil, 3),
+					sqlmock.NewRows([]string{"network_id", "pk", "key", "type", "physical_id", "version", "graph_id", "name", "description", "config"}).
+						// return foobar twice, to test DAO resiliency
+						AddRow("network", "foobar", "bar", "foo", nil, 1, "42", "foobar", "foobar ent", []byte("foobar")).
+						AddRow("network", "foobar", "bar", "foo", nil, 1, "42", "foobar", "foobar ent", []byte("foobar")).
+						AddRow("network", "foobaz", "baz", "foo", nil, 2, "42", "foobaz", "foobaz ent", []byte("foobaz")),
 				)
 
+			ents := entsByPK{
+				"foobar":     {"foobar", "bar", "foo"},
+				"foobaz":     {"foobaz", "baz", "foo"},
+				"barbaz":     {"barbaz", "baz", "bar"},
+				"bazquz":     {"bazquz", "quz", "baz"},
+				"helloworld": {"helloworld", "world", "hello"},
+			}
+			// Child assocs
 			expectAssocQuery(
 				m,
-				[]driver.Value{"foobar", "foobaz", "foobar", "foobaz"},
-				"foobar", "foobaz",
-				"foobar", "barbaz",
-				"foobaz", "bazquz",
-				"helloworld", "foobar",
+				"network",
+				[][]driver.Value{{"foo"}},
+				[][]driver.Value{
+					ents.getAssocReturns(t, "foobar", "foobaz"),
+					ents.getAssocReturns(t, "foobar", "barbaz"),
+					ents.getAssocReturns(t, "foobaz", "bazquz"),
+					ents.getAssocReturns(t, "helloworld", "foobar"),
+				},
 			)
-
-			// Since we don't query for (hello, world), we expect a query for its type and key given its PK
-			m.ExpectQuery("SELECT pk, type, \"key\" FROM cfg_entities").
-				WithArgs("barbaz", "bazquz", "helloworld").
-				WillReturnRows(
-					sqlmock.NewRows([]string{"pk", "type", "key"}).
-						AddRow("barbaz", "bar", "baz").
-						AddRow("bazquz", "baz", "quz").
-						AddRow("helloworld", "hello", "world"),
-				)
+			// Parent assocs
+			expectAssocQuery(
+				m,
+				"network",
+				[][]driver.Value{{"foo"}},
+				[][]driver.Value{
+					ents.getParentAssocReturns(t, "foobar", "foobaz"),
+					ents.getParentAssocReturns(t, "foobar", "barbaz"),
+					ents.getParentAssocReturns(t, "foobaz", "bazquz"),
+					ents.getParentAssocReturns(t, "helloworld", "foobar"),
+				},
+			)
 		},
 		run: runFactory(
 			"network",
@@ -700,26 +846,10 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 		expectedResult: storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
 				{
-					NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 1,
+					NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 1, Pk: "foobar",
 					Name:        "foobar",
 					Description: "foobar ent",
 					Config:      []byte("foobar"),
-					Permissions: []*storage.ACL{
-						{
-							ID:         "foobar_acl_1",
-							Type:       &storage.ACL_EntityType{EntityType: "foo"},
-							Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1", "n2", "n3"}}},
-							Permission: storage.ACL_OWN,
-							Version:    1,
-						},
-						{
-							ID:         "foobar_acl_2",
-							Type:       &storage.ACL_EntityType{EntityType: "baz"},
-							Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n4"}}},
-							Permission: storage.ACL_READ,
-							Version:    2,
-						},
-					},
 					Associations: []*storage.EntityID{
 						{Type: "bar", Key: "baz"},
 						{Type: "foo", Key: "baz"},
@@ -729,19 +859,10 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 					},
 				},
 				{
-					NetworkID: "network", Type: "foo", Key: "baz", GraphID: "42", Version: 2,
+					NetworkID: "network", Type: "foo", Key: "baz", GraphID: "42", Version: 2, Pk: "foobaz",
 					Name:        "foobaz",
 					Description: "foobaz ent",
 					Config:      []byte("foobaz"),
-					Permissions: []*storage.ACL{
-						{
-							ID:         "foobaz_acl_1",
-							Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-							Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-							Permission: storage.ACL_WRITE,
-							Version:    3,
-						},
-					},
 					Associations: []*storage.EntityID{
 						{Type: "baz", Key: "quz"},
 					},
@@ -750,7 +871,6 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 					},
 				},
 			},
-			EntitiesNotFound: []*storage.EntityID{},
 		},
 	}
 
@@ -775,9 +895,8 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 
 		expectedResult: storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
-				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2},
+				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", Version: 2, Pk: "abc"},
 			},
-			EntitiesNotFound: []*storage.EntityID{},
 		},
 	}
 
@@ -801,14 +920,16 @@ func TestSqlConfiguratorStorage_LoadEntities(t *testing.T) {
 
 		expectedResult: storage.EntityLoadResult{
 			Entities: []*storage.NetworkEntity{
-				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", PhysicalID: "p1", Version: 2},
+				{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "42", PhysicalID: "p1", Version: 2, Pk: "abc"},
 			},
-			EntitiesNotFound: []*storage.EntityID{},
 		},
 	}
 
 	runCase(t, basicOnly)
 	runCase(t, loadEverything)
+	runCase(t, loadFullPage)
+	runCase(t, loadFinalPage)
+	runCase(t, loadPageSizeGreaterThanMax)
 	runCase(t, assocsTo)
 	runCase(t, assocsFrom)
 	runCase(t, fullLoadTypeFilter)
@@ -851,70 +972,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 			Name:        "foobar",
 			Description: "foobar ent",
 			GraphID:     "2",
-		},
-	}
-
-	perms := []*storage.ACL{
-		{
-			ID:         "ignore this",
-			Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-			Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-			Permission: storage.ACL_WRITE,
-		},
-		{
-			Type:       &storage.ACL_EntityType{EntityType: "foo"},
-			Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1", "n2"}}},
-			Permission: storage.ACL_READ,
-			IDFilter:   []string{"foo", "bar"},
-		},
-	}
-
-	// with permissions
-	withPerms := &testCase{
-		setup: func(m sqlmock.Sqlmock) {
-			m.ExpectQuery(`SELECT COUNT\(1\) FROM cfg_entities`).
-				WithArgs("network", "foo", "bar").
-				WillReturnRows(sqlmock.NewRows([]string{"count"}))
-
-			m.ExpectExec("INSERT INTO cfg_entities").
-				WithArgs("1", "network", "foo", "bar", "2", "foobar", "foobar ent", nil, nil).
-				WillReturnResult(mockResult)
-
-			expectPermissionCreation(m, "1", 3, perms...)
-		},
-		run: runFactory(
-			"network",
-			storage.NetworkEntity{
-				Type:        "foo",
-				Key:         "bar",
-				Name:        "foobar",
-				Description: "foobar ent",
-				Permissions: perms,
-			},
-		),
-
-		expectedResult: storage.NetworkEntity{
-			NetworkID:   "network",
-			Type:        "foo",
-			Key:         "bar",
-			Name:        "foobar",
-			Description: "foobar ent",
-			GraphID:     "2",
-			Permissions: []*storage.ACL{
-				{
-					ID:         "3",
-					Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-					Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-					Permission: storage.ACL_WRITE,
-				},
-				{
-					ID:         "4",
-					Type:       &storage.ACL_EntityType{EntityType: "foo"},
-					Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1", "n2"}}},
-					Permission: storage.ACL_READ,
-					IDFilter:   []string{"foo", "bar"},
-				},
-			},
+			Pk:          "1",
 		},
 	}
 
@@ -930,11 +988,12 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 				WillReturnResult(mockResult)
 
 			assocs := []*storage.EntityID{{Type: "bar", Key: "baz"}, {Type: "baz", Key: "quz"}}
-			edgesByTk := map[storage2.TypeAndKey]expectedEntQueryResult{
+			assocsWithDuplicate := []*storage.EntityID{{Type: "bar", Key: "baz"}, {Type: "baz", Key: "quz"}, {Type: "bar", Key: "baz"}}
+			edgesByTk := map[orc8r_storage.TypeAndKey]expectedEntQueryResult{
 				{Type: "bar", Key: "baz"}: {"bar", "baz", "42", "", "1", 1},
 				{Type: "baz", Key: "quz"}: {"baz", "quz", "43", "", "3", 2},
 			}
-			expectEdgeQueries(m, assocs, edgesByTk)
+			expectEdgeQueries(m, assocsWithDuplicate, edgesByTk)
 			expectEdgeInsertions(m, assocsToEdges("1", assocs, edgesByTk))
 			expectMergeGraphs(m, [][2]string{{"2", "1"}, {"3", "1"}})
 		},
@@ -948,13 +1007,13 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 				Associations: []*storage.EntityID{
 					{Type: "bar", Key: "baz"},
 					{Type: "baz", Key: "quz"},
-					// Duplicate edge should only be loaded once
+					// Duplicate edge, should be coalesced properly
 					{Type: "bar", Key: "baz"},
 				},
 			},
 		),
 
-		// We expect "aaa" as the returned graphID since we merged graphs
+		// Merged graphs
 		expectedResult: storage.NetworkEntity{
 			NetworkID:   "network",
 			Type:        "foo",
@@ -962,6 +1021,7 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 			Name:        "foobar",
 			Description: "foobar ent",
 			GraphID:     "1",
+			Pk:          "1",
 			Associations: []*storage.EntityID{
 				{Type: "bar", Key: "baz"},
 				{Type: "baz", Key: "quz"},
@@ -987,11 +1047,10 @@ func TestSqlConfiguratorStorage_CreateEntity(t *testing.T) {
 		),
 
 		expectedResult: storage.NetworkEntity{},
-		expectedError:  errors.New("an entity (foo-bar) already exists"),
+		expectedError:  errors.New("an entity 'foo-bar' already exists"),
 	}
 
 	runCase(t, basicCase)
-	runCase(t, withPerms)
 	runCase(t, mergeGraphs)
 	runCase(t, alreadyExists)
 }
@@ -1034,11 +1093,21 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 				expectedEntQueryResult{"baz", "bar", "bazbar", "", "g1", 0},
 				expectedEntQueryResult{"bar", "foo", "barfoo", "", "g1", 0},
 			)
+			ents := entsByPK{
+				"barbaz": {"barbaz", "baz", "bar"},
+				"bazquz": {"bazquz", "quz", "baz"},
+				"quzbaz": {"quzbaz", "baz", "quz"},
+				"bazbar": {"bazbar", "bar", "baz"},
+				"barfoo": {"barfoo", "foo", "bar"},
+			}
 			expectAssocQuery(
 				m,
-				[]driver.Value{"barbaz", "barfoo", "bazbar", "bazquz", "quzbaz", "barbaz", "barfoo", "bazbar", "bazquz", "quzbaz"},
-				"barbaz", "bazquz",
-				"barbaz", "quzbaz",
+				"network",
+				[][]driver.Value{{"g1"}},
+				[][]driver.Value{
+					ents.getAssocReturns(t, "barbaz", "bazquz"),
+					ents.getAssocReturns(t, "barbaz", "quzbaz"),
+				},
 			)
 			m.ExpectExec("UPDATE cfg_entities").WithArgs("1", "barfoo").WillReturnResult(mockResult)
 			m.ExpectExec("UPDATE cfg_entities").WithArgs("2", "bazbar").WillReturnResult(mockResult)
@@ -1085,108 +1154,6 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 				NewDescription: stringPointer("foobar desc"),
 				NewPhysicalID:  stringPointer("phys2"),
 				NewConfig:      bytesPointer([]byte("foobar config")),
-			},
-			expectedFooBarQuery,
-			nil,
-		),
-	)
-
-	// Test cases for permissions
-	runCase(
-		t,
-		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
-				Type: "foo",
-				Key:  "bar",
-				PermissionsToCreate: []*storage.ACL{
-					{
-						Permission: storage.ACL_WRITE,
-						Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-						Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n3"}}},
-					},
-				},
-			},
-			expectedFooBarQuery,
-			nil,
-		),
-	)
-
-	runCase(
-		t,
-		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
-				Type: "foo",
-				Key:  "bar",
-				PermissionsToUpdate: []*storage.ACL{
-					{
-						ID:         "42",
-						Permission: storage.ACL_READ,
-						Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-						Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-						IDFilter:   []string{"n1", "n2"},
-					},
-					{
-						ID:         "43",
-						Permission: storage.ACL_WRITE,
-						Type:       &storage.ACL_EntityType{EntityType: "bar"},
-						Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n3"}}},
-					},
-				},
-			},
-			expectedFooBarQuery,
-			nil,
-		),
-	)
-
-	runCase(
-		t,
-		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
-				Type:                "foo",
-				Key:                 "bar",
-				PermissionsToDelete: []string{"100", "101"},
-			},
-			expectedFooBarQuery,
-			nil,
-		),
-	)
-
-	runCase(
-		t,
-		getTestCaseForEntityUpdate(
-			storage.EntityUpdateCriteria{
-				Type: "foo",
-				Key:  "bar",
-				PermissionsToCreate: []*storage.ACL{
-					{
-						ID:         "ignore me",
-						Permission: storage.ACL_WRITE,
-						Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-						Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-						IDFilter:   []string{"n1", "n2"},
-					},
-					{
-						Permission: storage.ACL_READ,
-						Type:       &storage.ACL_EntityType{EntityType: "foo"},
-						Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1", "n2"}}},
-					},
-				},
-				PermissionsToUpdate: []*storage.ACL{
-					{
-						ID:         "42",
-						Permission: storage.ACL_READ,
-						Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-						Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-						IDFilter:   []string{"n1", "n2"},
-					},
-					{
-						ID:         "43",
-						Permission: storage.ACL_WRITE,
-						Type:       &storage.ACL_EntityType{EntityType: "bar"},
-						Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n3"}}},
-					},
-				},
-				PermissionsToDelete: []string{"42", "101"},
 			},
 			expectedFooBarQuery,
 			nil,
@@ -1278,8 +1245,9 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 	)
 
 	// Graph partition:
-	// foobar -> barbaz -> bazquz -> (quzbaz, bazbar -> barfoo)
-	// delete edges bazquz -> quzbaz, bazquz -> bazbar
+	// delete edges (bazquz -> quzbaz), (bazquz -> bazbar)
+	// before:	foobar -> barbaz -> bazquz -> (quzbaz, bazbar -> barfoo)
+	// after: 	foobar -> barbaz -> bazquz | quzbaz | bazbar -> barfoo
 	// partitions graph into 3 components
 	partitionCase := &testCase{
 		setup: func(m sqlmock.Sqlmock) {
@@ -1288,9 +1256,9 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 			expectEdgeQueries(
 				m,
 				[]*storage.EntityID{{Type: "quz", Key: "baz"}, {Type: "baz", Key: "bar"}},
-				map[storage2.TypeAndKey]expectedEntQueryResult{
-					{"quz", "baz"}: getBasicQueryExpect("quz", "baz"),
-					{"baz", "bar"}: getBasicQueryExpect("baz", "bar"),
+				map[orc8r_storage.TypeAndKey]expectedEntQueryResult{
+					{Type: "quz", Key: "baz"}: getBasicQueryExpect("quz", "baz"),
+					{Type: "baz", Key: "bar"}: getBasicQueryExpect("baz", "bar"),
 				},
 			)
 			expectEdgeDeletions(m, [][2]string{{"bazquz", "quzbaz"}, {"bazquz", "bazbar"}})
@@ -1298,25 +1266,36 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 			expectBulkEntityQuery(
 				m,
 				[]driver.Value{"g1"},
-				getBasicQueryExpect("foo", "bar"),
 				getBasicQueryExpect("bar", "baz"),
-				getBasicQueryExpect("baz", "quz"),
-				getBasicQueryExpect("quz", "baz"),
-				getBasicQueryExpect("baz", "bar"),
 				getBasicQueryExpect("bar", "foo"),
+				getBasicQueryExpect("baz", "bar"),
+				getBasicQueryExpect("baz", "quz"),
+				getBasicQueryExpect("foo", "bar"),
+				getBasicQueryExpect("quz", "baz"),
 			)
+			ents := entsByPK{
+				"barbaz": {"barbaz", "baz", "bar"},
+				"barfoo": {"barfoo", "foo", "bar"},
+				"bazbar": {"bazbar", "bar", "baz"},
+				"bazquz": {"bazquz", "quz", "baz"},
+				"foobar": {"foobar", "bar", "foo"},
+				"quzbaz": {"quzbaz", "baz", "quz"},
+			}
 			expectAssocQuery(
 				m,
-				[]driver.Value{"barbaz", "barfoo", "bazbar", "bazquz", "foobar", "quzbaz", "barbaz", "barfoo", "bazbar", "bazquz", "foobar", "quzbaz"},
-				"foobar", "barbaz",
-				"barbaz", "bazquz",
-				"bazbar", "barfoo",
+				"network",
+				[][]driver.Value{{"g1"}},
+				[][]driver.Value{
+					ents.getAssocReturns(t, "barbaz", "bazquz"),
+					ents.getAssocReturns(t, "bazbar", "barfoo"),
+					ents.getAssocReturns(t, "foobar", "barbaz"),
+				},
 			)
 			m.ExpectExec("UPDATE cfg_entities").WithArgs("1", "quzbaz").WillReturnResult(mockResult)
 			m.ExpectExec("UPDATE cfg_entities").WithArgs("2", "barfoo", "bazbar").WillReturnResult(mockResult)
 		},
 		run:            runFactory("network", storage.EntityUpdateCriteria{Type: "baz", Key: "quz", AssociationsToDelete: []*storage.EntityID{{Type: "quz", Key: "baz"}, {Type: "baz", Key: "bar"}}}),
-		expectedResult: storage.NetworkEntity{NetworkID: "network", Type: "baz", Key: "quz", GraphID: "g1", Version: 1},
+		expectedResult: storage.NetworkEntity{NetworkID: "network", Type: "baz", Key: "quz", GraphID: "g1", Pk: "bazquz", Version: 1},
 	}
 	runCase(t, partitionCase)
 
@@ -1334,13 +1313,18 @@ func TestSqlConfiguratorStorage_UpdateEntity(t *testing.T) {
 				getBasicQueryExpect("foo", "bar"),
 				getBasicQueryExpect("bar", "baz"),
 			)
-			expectAssocQuery(m, []driver.Value{"barbaz", "foobar", "barbaz", "foobar"})
+			expectAssocQuery(
+				m,
+				"network",
+				[][]driver.Value{{"g1"}},
+				[][]driver.Value{},
+			)
 
 			// Graph partition update
 			m.ExpectExec("UPDATE cfg_entities").WithArgs("1", "barbaz").WillReturnResult(mockResult)
 		},
 		run:            runFactory("network", storage.EntityUpdateCriteria{Type: "foo", Key: "bar", AssociationsToSet: &storage.EntityAssociationsToSet{}}),
-		expectedResult: storage.NetworkEntity{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "g1", Version: 1},
+		expectedResult: storage.NetworkEntity{NetworkID: "network", Type: "foo", Key: "bar", GraphID: "g1", Pk: "foobar", Version: 1},
 	}
 	runCase(t, clearEdgesCase)
 
@@ -1357,8 +1341,6 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 	expectedBarBaz := expectedEntQueryResult{"bar", "baz", "barbaz", "p1", "g1", 1}
 	expectedBazQuz := expectedEntQueryResult{"baz", "quz", "bazquz", "p2", "g1", 2}
 
-	assocQueryArgs := []driver.Value{"barbaz", "bazquz", "foobar", "barbaz", "bazquz", "foobar"}
-
 	// load a linked list of 3 nodes
 	linkedList := &testCase{
 		run: runFactory("network", storage.EntityID{Type: "foo", Key: "bar"}, storage.EntityLoadCriteria{}),
@@ -1367,27 +1349,40 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 			expectBasicEntityQueries(m, expectedFooBar)
 			expectBulkEntityQuery(m, []driver.Value{"g1"}, expectedFooBar, expectedBarBaz, expectedBazQuz)
 			// foobar -> barbaz -> bazquz
-			expectAssocQuery(m, assocQueryArgs, "foobar", "barbaz", "barbaz", "bazquz")
+			ents := entsByPK{
+				"foobar": {"foobar", "bar", "foo"},
+				"barbaz": {"barbaz", "baz", "bar"},
+				"bazquz": {"bazquz", "quz", "baz"},
+			}
+			expectAssocQuery(
+				m,
+				"network",
+				[][]driver.Value{{"g1"}},
+				[][]driver.Value{
+					ents.getAssocReturns(t, "foobar", "barbaz"),
+					ents.getAssocReturns(t, "barbaz", "bazquz"),
+				},
+			)
 		},
 
 		expectedResult: storage.EntityGraph{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "bar", Key: "baz",
-					PhysicalID: "p1", GraphID: "g1",
+					PhysicalID: "p1", GraphID: "g1", Pk: "barbaz",
 					Associations:       []*storage.EntityID{{Type: "baz", Key: "quz"}},
 					ParentAssociations: []*storage.EntityID{{Type: "foo", Key: "bar"}},
 					Version:            1,
 				},
 				{
 					NetworkID: "network", Type: "baz", Key: "quz",
-					PhysicalID: "p2", GraphID: "g1",
+					PhysicalID: "p2", GraphID: "g1", Pk: "bazquz",
 					ParentAssociations: []*storage.EntityID{{Type: "bar", Key: "baz"}},
 					Version:            2,
 				},
 				{
 					NetworkID: "network", Type: "foo", Key: "bar",
-					GraphID:      "g1",
+					GraphID: "g1", Pk: "foobar",
 					Associations: []*storage.EntityID{{Type: "bar", Key: "baz"}},
 				},
 			},
@@ -1407,26 +1402,39 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 			expectBasicEntityQueries(m, expectedBazQuz)
 			expectBulkEntityQuery(m, []driver.Value{"g1"}, expectedFooBar, expectedBarBaz, expectedBazQuz)
 			// foobar -> barbaz; foobar -> bazquz
-			expectAssocQuery(m, assocQueryArgs, "foobar", "barbaz", "foobar", "bazquz")
+			ents := entsByPK{
+				"foobar": {"foobar", "bar", "foo"},
+				"barbaz": {"barbaz", "baz", "bar"},
+				"bazquz": {"bazquz", "quz", "baz"},
+			}
+			expectAssocQuery(
+				m,
+				"network",
+				[][]driver.Value{{"g1"}},
+				[][]driver.Value{
+					ents.getAssocReturns(t, "foobar", "barbaz"),
+					ents.getAssocReturns(t, "foobar", "bazquz"),
+				},
+			)
 		},
 
 		expectedResult: storage.EntityGraph{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "bar", Key: "baz",
-					PhysicalID: "p1", GraphID: "g1",
+					PhysicalID: "p1", GraphID: "g1", Pk: "barbaz",
 					ParentAssociations: []*storage.EntityID{{Type: "foo", Key: "bar"}},
 					Version:            1,
 				},
 				{
 					NetworkID: "network", Type: "baz", Key: "quz",
-					PhysicalID: "p2", GraphID: "g1",
+					PhysicalID: "p2", GraphID: "g1", Pk: "bazquz",
 					ParentAssociations: []*storage.EntityID{{Type: "foo", Key: "bar"}},
 					Version:            2,
 				},
 				{
 					NetworkID: "network", Type: "foo", Key: "bar",
-					GraphID:      "g1",
+					GraphID: "g1", Pk: "foobar",
 					Associations: []*storage.EntityID{{Type: "bar", Key: "baz"}, {Type: "baz", Key: "quz"}},
 				},
 			},
@@ -1446,26 +1454,39 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 			expectBasicEntityQueries(m, expectedFooBar)
 			expectBulkEntityQuery(m, []driver.Value{"g1"}, expectedFooBar, expectedBarBaz, expectedBazQuz)
 			// barbaz -> foobar; bazquz -> foobar
-			expectAssocQuery(m, assocQueryArgs, "barbaz", "foobar", "bazquz", "foobar")
+			ents := entsByPK{
+				"foobar": {"foobar", "bar", "foo"},
+				"barbaz": {"barbaz", "baz", "bar"},
+				"bazquz": {"bazquz", "quz", "baz"},
+			}
+			expectAssocQuery(
+				m,
+				"network",
+				[][]driver.Value{{"g1"}},
+				[][]driver.Value{
+					ents.getAssocReturns(t, "barbaz", "foobar"),
+					ents.getAssocReturns(t, "bazquz", "foobar"),
+				},
+			)
 		},
 
 		expectedResult: storage.EntityGraph{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "bar", Key: "baz",
-					PhysicalID: "p1", GraphID: "g1",
+					PhysicalID: "p1", GraphID: "g1", Pk: "barbaz",
 					Associations: []*storage.EntityID{{Type: "foo", Key: "bar"}},
 					Version:      1,
 				},
 				{
 					NetworkID: "network", Type: "baz", Key: "quz",
-					PhysicalID: "p2", GraphID: "g1",
+					PhysicalID: "p2", GraphID: "g1", Pk: "bazquz",
 					Associations: []*storage.EntityID{{Type: "foo", Key: "bar"}},
 					Version:      2,
 				},
 				{
 					NetworkID: "network", Type: "foo", Key: "bar",
-					GraphID:            "g1",
+					GraphID: "g1", Pk: "foobar",
 					ParentAssociations: []*storage.EntityID{{Type: "bar", Key: "baz"}, {Type: "baz", Key: "quz"}},
 				},
 			},
@@ -1485,28 +1506,42 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 			expectBasicEntityQueries(m, expectedFooBar)
 			expectBulkEntityQuery(m, []driver.Value{"g1"}, expectedFooBar, expectedBarBaz, expectedBazQuz)
 			// foobar -> barbaz; barbaz <-> bazquz
-			expectAssocQuery(m, assocQueryArgs, "foobar", "barbaz", "barbaz", "bazquz", "bazquz", "barbaz")
+			ents := entsByPK{
+				"foobar": {"foobar", "bar", "foo"},
+				"barbaz": {"barbaz", "baz", "bar"},
+				"bazquz": {"bazquz", "quz", "baz"},
+			}
+			expectAssocQuery(
+				m,
+				"network",
+				[][]driver.Value{{"g1"}},
+				[][]driver.Value{
+					ents.getAssocReturns(t, "foobar", "barbaz"),
+					ents.getAssocReturns(t, "barbaz", "bazquz"),
+					ents.getAssocReturns(t, "bazquz", "barbaz"),
+				},
+			)
 		},
 
 		expectedResult: storage.EntityGraph{
 			Entities: []*storage.NetworkEntity{
 				{
 					NetworkID: "network", Type: "bar", Key: "baz",
-					PhysicalID: "p1", GraphID: "g1",
+					PhysicalID: "p1", GraphID: "g1", Pk: "barbaz",
 					Associations:       []*storage.EntityID{{Type: "baz", Key: "quz"}},
 					ParentAssociations: []*storage.EntityID{{Type: "baz", Key: "quz"}, {Type: "foo", Key: "bar"}},
 					Version:            1,
 				},
 				{
 					NetworkID: "network", Type: "baz", Key: "quz",
-					PhysicalID: "p2", GraphID: "g1",
+					PhysicalID: "p2", GraphID: "g1", Pk: "bazquz",
 					Associations:       []*storage.EntityID{{Type: "bar", Key: "baz"}},
 					ParentAssociations: []*storage.EntityID{{Type: "bar", Key: "baz"}},
 					Version:            2,
 				},
 				{
 					NetworkID: "network", Type: "foo", Key: "bar",
-					GraphID:      "g1",
+					GraphID: "g1", Pk: "foobar",
 					Associations: []*storage.EntityID{{Type: "bar", Key: "baz"}},
 				},
 			},
@@ -1527,10 +1562,24 @@ func TestSqlConfiguratorStorage_LoadGraphForEntity(t *testing.T) {
 			expectBasicEntityQueries(m, expectedFooBar)
 			expectBulkEntityQuery(m, []driver.Value{"g1"}, expectedFooBar, expectedBarBaz, expectedBazQuz)
 			// foobar -> barbaz -> bazquz -> foobar -> ...
-			expectAssocQuery(m, assocQueryArgs, "foobar", "barbaz", "barbaz", "bazquz", "bazquz", "foobar")
+			ents := entsByPK{
+				"foobar": {"foobar", "bar", "foo"},
+				"barbaz": {"barbaz", "baz", "bar"},
+				"bazquz": {"bazquz", "quz", "baz"},
+			}
+			expectAssocQuery(
+				m,
+				"network",
+				[][]driver.Value{{"g1"}},
+				[][]driver.Value{
+					ents.getAssocReturns(t, "foobar", "barbaz"),
+					ents.getAssocReturns(t, "barbaz", "bazquz"),
+					ents.getAssocReturns(t, "bazquz", "foobar"),
+				},
+			)
 		},
 
-		expectedError: errors.New("graph does not have root nodes because it is a ring"),
+		expectedError: errors.New("graph does not have root nodes"),
 	}
 
 	runCase(t, linkedList)
@@ -1555,9 +1604,7 @@ type testCase struct {
 
 func runCase(t *testing.T, test *testCase) {
 	db, mock, err := sqlmock.New()
-	if err != nil {
-		t.Fatalf("Error opening stub DB conn: %s", err)
-	}
+	assert.NoError(t, err)
 	defer func() {
 		err = db.Close()
 		if err != nil {
@@ -1568,7 +1615,7 @@ func runCase(t *testing.T, test *testCase) {
 	mock.ExpectBegin()
 	test.setup(mock)
 
-	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sqorc.GetSqlBuilder())
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sqorc.GetSqlBuilder(), sqlTestMaxLoadSize)
 	store, err := factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
 	actual, err := test.run(store)
@@ -1604,6 +1651,7 @@ func getTestCaseForEntityUpdate(
 		Type:      entToUpdate.entType,
 		Key:       entToUpdate.key,
 		GraphID:   entToUpdate.graphID,
+		Pk:        entToUpdate.pk,
 		Version:   entToUpdate.version + 1,
 
 		Name:        stringValue(update.NewName),
@@ -1616,25 +1664,12 @@ func getTestCaseForEntityUpdate(
 		expectedResult.PhysicalID = entToUpdate.physicalID
 	}
 
-	delPermIdsSet := funk.Map(update.PermissionsToDelete, func(i string) (string, bool) { return i, true }).(map[string]bool)
-	permID := 1
-	for _, perm := range update.PermissionsToCreate {
-		perm.ID = fmt.Sprintf("%d", permID)
-		expectedResult.Permissions = append(expectedResult.Permissions, perm)
-		permID++
-	}
-	for _, perm := range update.PermissionsToUpdate {
-		if _, wasDeleted := delPermIdsSet[perm.ID]; !wasDeleted {
-			expectedResult.Permissions = append(expectedResult.Permissions, perm)
-		}
-	}
-
 	edgeLoadsByTk := funk.Map(
 		expectedEdgeLoads,
-		func(e expectedEntQueryResult) (storage2.TypeAndKey, expectedEntQueryResult) {
-			return storage2.TypeAndKey{Type: e.entType, Key: e.key}, e
+		func(e expectedEntQueryResult) (orc8r_storage.TypeAndKey, expectedEntQueryResult) {
+			return orc8r_storage.TypeAndKey{Type: e.entType, Key: e.key}, e
 		},
-	).(map[storage2.TypeAndKey]expectedEntQueryResult)
+	).(map[orc8r_storage.TypeAndKey]expectedEntQueryResult)
 
 	if !funk.IsEmpty(update.AssociationsToAdd) {
 		expectedResult.Associations = append(expectedResult.Associations, update.AssociationsToAdd...)
@@ -1668,22 +1703,6 @@ func getTestCaseForEntityUpdate(
 
 			m.ExpectExec("UPDATE cfg_entities").WithArgs(updateWithArgs...).WillReturnResult(mockResult)
 
-			// Permissions
-			if !funk.IsEmpty(update.PermissionsToCreate) {
-				expectPermissionCreation(m, entToUpdate.pk, 1, update.PermissionsToCreate...)
-			}
-			if !funk.IsEmpty(update.PermissionsToUpdate) {
-				m.ExpectQuery(`SELECT COUNT\(\*\) FROM cfg_acls`).WithArgs(funk.Map(update.PermissionsToUpdate, func(acl *storage.ACL) driver.Value { return acl.ID }).([]driver.Value)...).
-					WillReturnRows(
-						sqlmock.NewRows([]string{"count"}).
-							AddRow(len(update.PermissionsToUpdate)),
-					)
-				expectPermissionUpdates(m, entToUpdate.pk, update.PermissionsToUpdate...)
-			}
-			if !funk.IsEmpty(update.PermissionsToDelete) {
-				expectPermissionDeletes(m, update.PermissionsToDelete...)
-			}
-
 			// Graph
 			if update.AssociationsToSet != nil {
 				m.ExpectExec("DELETE FROM cfg_assocs").WithArgs(entToUpdate.pk).WillReturnResult(mockResult)
@@ -1695,7 +1714,12 @@ func getTestCaseForEntityUpdate(
 
 				// fix graph, but no partition detected
 				expectBulkEntityQuery(m, []driver.Value{entToUpdate.graphID}, entToUpdate)
-				expectAssocQuery(m, []driver.Value{entToUpdate.pk, entToUpdate.pk})
+				expectAssocQuery(
+					m,
+					"network",
+					[][]driver.Value{{entToUpdate.graphID}},
+					[][]driver.Value{},
+				)
 			}
 
 			if !funk.IsEmpty(update.AssociationsToAdd) {
@@ -1712,7 +1736,12 @@ func getTestCaseForEntityUpdate(
 
 				// fix graph, but no partition detected
 				expectBulkEntityQuery(m, []driver.Value{entToUpdate.graphID}, entToUpdate)
-				expectAssocQuery(m, []driver.Value{entToUpdate.pk, entToUpdate.pk})
+				expectAssocQuery(
+					m,
+					"network",
+					[][]driver.Value{{entToUpdate.graphID}},
+					[][]driver.Value{},
+				)
 			}
 		},
 		run: func(store storage.ConfiguratorStorage) (interface{}, error) {
@@ -1736,7 +1765,9 @@ func expectBasicEntityQueries(m sqlmock.Sqlmock, expectations ...expectedEntQuer
 }
 
 func expectBulkEntityQuery(m sqlmock.Sqlmock, queryArgs []driver.Value, expectations ...expectedEntQueryResult) {
-	m.ExpectQuery("SELECT .* FROM cfg_entities").WithArgs(queryArgs...).
+	queryArgs = append([]driver.Value{"network"}, queryArgs...)
+	m.ExpectQuery(`SELECT .* FROM cfg_entities AS ent WHERE \(ent.network_id = \$1 AND ent.graph_id = \$2\)`).
+		WithArgs(queryArgs...).
 		WillReturnRows(expectedEntQueriesToRows(expectations...))
 }
 
@@ -1756,12 +1787,21 @@ func expectedEntQueriesToRows(expectations ...expectedEntQueryResult) *sqlmock.R
 	return rows
 }
 
-func expectAssocQuery(m sqlmock.Sqlmock, queryArgs []driver.Value, assocPks ...string) {
-	rows := sqlmock.NewRows([]string{"from_pk", "to_pk"})
-	for i := 0; i < len(assocPks); i += 2 {
-		rows.AddRow(assocPks[i], assocPks[i+1])
+func expectAssocQuery(m sqlmock.Sqlmock, networkID string, queryArgs [][]driver.Value, queryReturn [][]driver.Value) {
+	rows := sqlmock.NewRows([]string{`ent."key"`, "ent.type", `assoc."key"`, "assoc.type", "ent.pk", "assoc.pk"})
+	for _, row := range queryReturn {
+		rows.AddRow(row...)
 	}
-	m.ExpectQuery("SELECT assoc.from_pk, assoc.to_pk FROM cfg_assocs").WithArgs(queryArgs...).WillReturnRows(rows)
+
+	var withArgs []driver.Value
+	for _, args := range queryArgs {
+		withArgs = append(withArgs, networkID)
+		withArgs = append(withArgs, args...)
+	}
+
+	m.ExpectQuery(`SELECT ent."key", ent.type, assoc."key", assoc.type, ent.pk, assoc.pk FROM cfg_entities AS ent JOIN cfg_assocs`).
+		WithArgs(withArgs...).
+		WillReturnRows(rows)
 }
 
 // [(old graph ID, new graph ID)]
@@ -1772,7 +1812,7 @@ func expectMergeGraphs(m sqlmock.Sqlmock, graphIDChanges [][2]string) {
 	}
 }
 
-func expectEdgeQueries(m sqlmock.Sqlmock, assocs []*storage.EntityID, edgeLoadsByTk map[storage2.TypeAndKey]expectedEntQueryResult) {
+func expectEdgeQueries(m sqlmock.Sqlmock, assocs []*storage.EntityID, edgeLoadsByTk map[orc8r_storage.TypeAndKey]expectedEntQueryResult) {
 	expectedLoads := funk.Map(
 		assocs,
 		func(id *storage.EntityID) expectedEntQueryResult { return edgeLoadsByTk[id.ToTypeAndKey()] },
@@ -1797,71 +1837,11 @@ func expectEdgeDeletions(m sqlmock.Sqlmock, edges [][2]string) {
 	m.ExpectExec("DELETE FROM cfg_assocs").WithArgs(args...).WillReturnResult(mockResult)
 }
 
-func expectPermissionCreation(m sqlmock.Sqlmock, entPk string, startId int, perms ...*storage.ACL) {
-	args := make([]driver.Value, 0, len(perms)*6)
-	for _, perm := range perms {
-		exp := getExpectedACLInsert(entPk, &startId, perm)
-		args = append(args, exp.id, exp.entPk, exp.scope, exp.perm, exp.aclType, exp.filter)
-		startId++
-	}
-	m.ExpectExec("INSERT INTO cfg_acls").WillReturnResult(mockResult)
-}
-
-func expectPermissionUpdates(m sqlmock.Sqlmock, entPk string, perms ...*storage.ACL) {
-	stmt := m.ExpectPrepare("UPDATE cfg_acls").WillBeClosed()
-	for _, perm := range perms {
-		exp := getExpectedACLInsert(entPk, nil, perm)
-		stmt.ExpectExec().WithArgs(exp.scope, exp.perm, exp.aclType, exp.filter, exp.id).WillReturnResult(mockResult)
-	}
-}
-
-func expectPermissionDeletes(m sqlmock.Sqlmock, permIDs ...string) {
-	args := make([]driver.Value, 0, len(permIDs))
-	funk.ConvertSlice(permIDs, &args)
-	m.ExpectExec("DELETE FROM cfg_acls").WithArgs(args...).WillReturnResult(mockResult)
-}
-
-type expectedACLInsert struct {
-	id, entPk, scope, perm, aclType, filter driver.Value
-}
-
-func getExpectedACLInsert(entPk string, idOverride *int, perm *storage.ACL) expectedACLInsert {
-	var scope, typeVal, filter driver.Value
-
-	switch perm.Scope.(type) {
-	case *storage.ACL_ScopeWildcard:
-		scope = perm.GetScopeWildcard().String()
-	default:
-		scope = strings.Join(perm.GetScopeNetworkIDs().IDs, ",")
-	}
-
-	switch perm.Type.(type) {
-	case *storage.ACL_TypeWildcard:
-		typeVal = perm.GetTypeWildcard().String()
-	default:
-		typeVal = perm.GetEntityType()
-	}
-
-	if funk.IsEmpty(perm.IDFilter) {
-		filter = nil
-	} else {
-		filter = strings.Join(perm.IDFilter, ",")
-	}
-
-	ret := expectedACLInsert{entPk: entPk, perm: perm.Permission, aclType: typeVal, scope: scope, filter: filter}
-	if idOverride == nil {
-		ret.id = perm.ID
-	} else {
-		ret.id = fmt.Sprintf("%d", *idOverride)
-	}
-	return ret
-}
-
 func getBasicQueryExpect(entType string, entKey string) expectedEntQueryResult {
 	return expectedEntQueryResult{entType, entKey, entType + entKey, "", "g1", 0}
 }
 
-func assocsToEdges(entPk string, assocs []*storage.EntityID, edgeLoadsByTk map[storage2.TypeAndKey]expectedEntQueryResult) [][2]string {
+func assocsToEdges(entPk string, assocs []*storage.EntityID, edgeLoadsByTk map[orc8r_storage.TypeAndKey]expectedEntQueryResult) [][2]string {
 	return funk.Map(
 		assocs,
 		func(id *storage.EntityID) [2]string {
@@ -1896,4 +1876,54 @@ func bytesVal(val *wrappers.BytesValue) []byte {
 		return nil
 	}
 	return val.Value
+}
+
+func serializeToken(t *testing.T, token *storage.EntityPageToken) string {
+	marshalledToken, err := proto.Marshal(token)
+	assert.NoError(t, err)
+	return base64.StdEncoding.EncodeToString(marshalledToken)
+}
+
+type ent struct{ pk, key, typ string }
+
+type entsByPK map[string]ent
+
+func (e entsByPK) getAssoc(t *testing.T, pkFrom, pkTo string) assoc {
+	from, ok := e[pkFrom]
+	assert.True(t, ok)
+	to, ok := e[pkTo]
+	assert.True(t, ok)
+	a := assoc{
+		fromKey:  from.key,
+		fromType: from.typ,
+		fromPK:   from.pk,
+		toKey:    to.key,
+		toType:   to.typ,
+		toPK:     to.pk,
+	}
+	return a
+}
+
+func (e entsByPK) getAssocArgs(pks ...string) [][]driver.Value {
+	var args [][]driver.Value
+	for _, pk := range pks {
+		ee := e[pk]
+		args = append(args, []driver.Value{ee.key, ee.typ})
+	}
+	return args
+}
+
+func (e entsByPK) getAssocReturns(t *testing.T, pkFrom, pkTo string) []driver.Value {
+	a := e.getAssoc(t, pkFrom, pkTo)
+	return []driver.Value{a.fromKey, a.fromType, a.toKey, a.toType, a.fromPK, a.toPK}
+}
+
+func (e entsByPK) getParentAssocReturns(t *testing.T, pkFrom, pkTo string) []driver.Value {
+	a := e.getAssoc(t, pkFrom, pkTo)
+	return []driver.Value{a.toKey, a.toType, a.fromKey, a.fromType, a.toPK, a.fromPK}
+}
+
+type assoc struct {
+	fromKey, fromType, fromPK string
+	toKey, toType, toPK       string
 }

@@ -57,6 +57,8 @@
   itti_get_task_name(ITTI_MSG_ORIGIN_ID(mSGpTR))
 #define ITTI_MSG_DESTINATION_NAME(mSGpTR)                                      \
   itti_get_task_name(ITTI_MSG_DESTINATION_ID(mSGpTR))
+#define ITTI_MSG_LATENCY(mSGpTR)                                               \
+  itti_get_message_latency((mSGpTR)->ittiMsgHeader.timestamp)
 
 /* Make the message number platform specific */
 typedef unsigned long message_number_t;
@@ -67,10 +69,11 @@ typedef struct task_zmq_ctx_s {
   zloop_t* event_loop;
   zsock_t* pull_sock;
   zsock_t* push_socks[TASK_MAX];
+  pthread_mutex_t send_mutex;
 } task_zmq_ctx_t;
 
 typedef struct message_info_s {
-  task_id_t id;
+  MessagesIds id;
   /* Message payload size */
   MessageHeaderSize size;
   /* Printable name */
@@ -99,6 +102,12 @@ typedef enum timer_repeat_s {
 int send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message);
+
+/** \brief Receive a message from zsock
+ \param reader Pointer to ZMQ socket
+ @returns Pointer to the message read (caller to free)
+ **/
+MessageDef* receive_msg(zsock_t* reader);
 
 /** \brief Start timer on the ZMQ loop
  \param task_zmq_ctx_p Pointer to task ZMQ context
@@ -196,5 +205,12 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx);
 void send_terminate_message(task_zmq_ctx_t* task_zmq_ctx);
 
 int itti_send_broadcast_message(MessageDef* message_p);
+
+/**
+ * \brief Returns the latency of the message
+ * @param timestamp timespec struct
+ * @return long Message Latency in micro seconds
+ */
+long itti_get_message_latency(struct timespec timestamp);
 #endif /* INTERTASK_INTERFACE_H_ */
 /* @} */

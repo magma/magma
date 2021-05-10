@@ -16,9 +16,9 @@
 import type {
   gateway_id,
   mutable_subscriber,
-  policy_rule,
   subscriber,
   subscriber_id,
+  subscriber_state,
 } from '@fbcnms/magma-api';
 
 import React from 'react';
@@ -28,28 +28,24 @@ export type Metrics = {
   dailyAvg: string,
 };
 
-type Session = {
-  active_policy_rules: Array<policy_rule>,
-  lifecycle_state:
-    | 'SESSION_TERMINATED'
-    | 'SESSION_TERMINATING'
-    | 'SESSION_ACTIVE',
-  session_id: string,
-  active_duration_sec: number,
-  msisdn: string,
-  apn: string,
-  session_start_time: number,
-  ipv4: string,
-};
-
-export type ActiveApnSessions = {[string]: Array<Session>};
-
+/* SubscriberContextType
+state: paginated subscribers
+sessionState: paginated subscribers session state
+metrics: subscriber metrics
+gwSubscriberMap: gateway subscriber map
+setState: POST, PUT, DELETE subscriber
+*/
 export type SubscriberContextType = {
   state: {[string]: subscriber},
+  sessionState: {[string]: subscriber_state},
   metrics?: {[string]: Metrics},
   gwSubscriberMap: {[gateway_id]: Array<subscriber_id>},
-  sessionState: {[string]: ActiveApnSessions},
-  setState?: (key: string, val?: mutable_subscriber) => Promise<void>,
+  setState?: (
+    key: string,
+    val?: mutable_subscriber,
+    newState?: {[string]: subscriber},
+    newSessionState?: {[string]: subscriber_state},
+  ) => Promise<void>,
 };
 
 export default React.createContext<SubscriberContextType>({});

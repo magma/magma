@@ -11,18 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
-import datetime
 import base64
+import datetime
+import os
+from tempfile import TemporaryDirectory
 from unittest import TestCase
 
+import magma.common.cert_utils as cu
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
-from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric import ec
-
-from tempfile import TemporaryDirectory
-import magma.common.cert_utils as cu
 
 
 class CertUtilsTest(TestCase):
@@ -69,7 +68,8 @@ class CertUtilsTest(TestCase):
         with TemporaryDirectory(prefix='/tmp/test_cert_utils') as temp_dir:
             cert = _create_dummy_cert()
             cert_file = os.path.join(temp_dir, 'test.cert')
-            cu.write_cert(cert.public_bytes(serialization.Encoding.DER), cert_file)
+            cu.write_cert(cert.public_bytes(
+                serialization.Encoding.DER), cert_file)
             cert_load = cu.load_cert(cert_file)
         self.assertEqual(cert, cert_load)
 

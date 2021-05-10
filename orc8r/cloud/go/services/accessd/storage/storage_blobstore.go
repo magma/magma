@@ -46,37 +46,43 @@ func NewAccessdBlobstore(factory blobstore.BlobStorageFactory) AccessdStorage {
 }
 
 func (a *accessdBlobstore) ListAllIdentity() ([]*protos.Identity, error) {
+	var ids []*protos.Identity
+
 	store, err := a.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "failed to start transaction: %s", err)
 	}
 	defer store.Rollback()
 
-	idHashes, err := store.ListKeys(placeholderNetworkID, AccessdDefaultType)
+	idHashes, err := blobstore.ListKeys(store, placeholderNetworkID, AccessdDefaultType)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to list keys: %s", err)
 	}
 
-	tks := blobstore.GetTKsFromKeys(AccessdDefaultType, idHashes)
+	if len(idHashes) == 0 {
+		return ids, store.Commit()
+	}
+
+	tks := storage.MakeTKs(AccessdDefaultType, idHashes)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get many acls: %s", err)
 	}
 
-	ret := make([]*protos.Identity, 0, len(tks))
+	ids = make([]*protos.Identity, 0, len(tks))
 	for _, blob := range blobs {
 		acl := &accessprotos.AccessControl_List{}
 		err = proto.Unmarshal(blob.Value, acl)
 		if err != nil {
 			return nil, status.Errorf(codes.Internal, "failed to unmarshal acl: %s", err)
 		}
-		ret = append(ret, acl.Operator)
+		ids = append(ids, acl.Operator)
 	}
 	err = store.Commit()
 	if err != nil {
 		return nil, status.Errorf(codes.Unavailable, "failed to commit transaction: %s", err)
 	}
-	return ret, nil
+	return ids, nil
 }
 
 func (a *accessdBlobstore) GetACL(id *protos.Identity) (*accessprotos.AccessControl_List, error) {
@@ -108,7 +114,7 @@ func (a *accessdBlobstore) GetManyACL(ids []*protos.Identity) ([]*accessprotos.A
 		}
 		idHashes = append(idHashes, id.HashString())
 	}
-	tks := blobstore.GetTKsFromKeys(AccessdDefaultType, idHashes)
+	tks := storage.MakeTKs(AccessdDefaultType, idHashes)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to get many acls: %s", err)
@@ -151,7 +157,7 @@ func (a *accessdBlobstore) PutACL(id *protos.Identity, acl *accessprotos.AccessC
 	}
 
 	blob := blobstore.Blob{Type: AccessdDefaultType, Key: id.HashString(), Value: marshaledACL}
-	err = store.CreateOrUpdate(placeholderNetworkID, []blobstore.Blob{blob})
+	err = store.CreateOrUpdate(placeholderNetworkID, blobstore.Blobs{blob})
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to put acl: %s", err)
 	}
@@ -199,7 +205,7 @@ func (a *accessdBlobstore) UpdateACLWithEntities(id *protos.Identity, entities [
 	}
 
 	blobPut := blobstore.Blob{Type: AccessdDefaultType, Key: id.HashString(), Value: marshaledACL}
-	err = store.CreateOrUpdate(placeholderNetworkID, []blobstore.Blob{blobPut})
+	err = store.CreateOrUpdate(placeholderNetworkID, blobstore.Blobs{blobPut})
 	if err != nil {
 		return status.Errorf(codes.Internal, "failed to put acl: %s", err)
 	}

@@ -1,0 +1,14 @@
+---
+#Global variables
+
+
+#Image types
+imageDebian: ami-0c305b7817e9fd559
+imageUbuntu: ami-0a91cd140a1fc148a
+imageDebianOvs: ami-0da0db84b262f28d4
+
+#Sites
+siteNames: 
+  - MenloPark
+  - SanRamon
+

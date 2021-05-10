@@ -16,11 +16,10 @@ package access
 import (
 	"strings"
 
-	"magma/orc8r/cloud/go/obsidian"
-
 	"github.com/labstack/echo"
 
 	"magma/orc8r/cloud/go/identity"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/lib/go/protos"
 )
 

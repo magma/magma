@@ -13,7 +13,6 @@ limitations under the License.
 
 from prometheus_client import Counter
 
-
 # Counters for IP address management
 IP_ALLOCATED_TOTAL = Counter('ip_address_allocated',
                              'Total IP addresses allocated')

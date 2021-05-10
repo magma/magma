@@ -28,8 +28,11 @@ class StoredStateTest : public ::testing::Test {
  protected:
   SessionConfig get_stored_session_config() {
     SessionConfig stored;
+    Teids teids;
+    teids.set_agw_teid(1);
+    teids.set_enb_teid(2);
     stored.common_context = build_common_context(
-        "IMSI1", "ue_ipv4", "ue_ipv6", "apn", "msisdn", TGPP_WLAN);
+        "IMSI1", "ue_ipv4", "ue_ipv6", teids, "apn", "msisdn", TGPP_WLAN);
     const auto& lte_context = build_lte_context(
         "192.168.0.2", "imei", "plmn_id", "imsi_plmn_id", "user_location", 321,
         nullptr);
@@ -112,8 +115,12 @@ class StoredStateTest : public ::testing::Test {
 
   BearerIDByPolicyID get_bearer_id_by_policy() {
     BearerIDByPolicyID stored;
-    stored[PolicyID(DYNAMIC, "rule1")] = 32;
-    stored[PolicyID(STATIC, "rule1")]  = 64;
+    stored[PolicyID(DYNAMIC, "rule1")].bearer_id = 32;
+    stored[PolicyID(DYNAMIC, "rule1")].teids.set_agw_teid(1);
+    stored[PolicyID(DYNAMIC, "rule1")].teids.set_enb_teid(2);
+    stored[PolicyID(STATIC, "rule1")].bearer_id = 64;
+    stored[PolicyID(STATIC, "rule1")].teids.set_agw_teid(3);
+    stored[PolicyID(STATIC, "rule1")].teids.set_enb_teid(4);
     return stored;
   }
 
@@ -199,7 +206,7 @@ TEST_F(StoredStateTest, test_stored_bearer_id_by_policy) {
   auto stored       = get_bearer_id_by_policy();
   auto serialized   = serialize_bearer_id_by_policy(stored);
   auto deserialized = deserialize_bearer_id_by_policy(serialized);
-  EXPECT_EQ(stored[PolicyID(DYNAMIC, "rule1")], 32);
+  EXPECT_EQ(stored[PolicyID(DYNAMIC, "rule1")].bearer_id, 32);
   EXPECT_EQ(stored.size(), deserialized.size());
   EXPECT_EQ(
       stored[PolicyID(DYNAMIC, "rule1")],
@@ -344,6 +351,42 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(deserialized.request_number, 1);
   EXPECT_EQ(deserialized.pdp_start_time, 112233);
   EXPECT_EQ(deserialized.pdp_end_time, 332211);
+}
+
+TEST_F(StoredStateTest, test_policy_stats_map) {
+  PolicyStatsMap original;
+  StatsPerPolicy og_stats1, og_stats2;
+  const std::string rule1 = "rule1";
+  const std::string rule2 = "rule2";
+
+  og_stats1.current_version       = 2;
+  og_stats1.last_reported_version = 1;
+  original[rule1]                 = og_stats1;
+
+  og_stats2.current_version       = 4;
+  og_stats2.last_reported_version = 3;
+  original[rule2]                 = og_stats2;
+
+  std::string serialized      = serialize_policy_stats_map(original);
+  PolicyStatsMap deserialized = deserialize_policy_stats_map(serialized);
+
+  EXPECT_EQ(2, deserialized.size());
+
+  StatsPerPolicy deserialized_stats1 = deserialized[rule1];
+  StatsPerPolicy deserialized_stats2 = deserialized[rule2];
+
+  EXPECT_EQ(og_stats1.current_version, deserialized_stats1.current_version);
+  EXPECT_EQ(
+      og_stats1.last_reported_version,
+      deserialized_stats1.last_reported_version);
+
+  EXPECT_EQ(og_stats2.current_version, deserialized_stats2.current_version);
+  EXPECT_EQ(
+      og_stats2.last_reported_version,
+      deserialized_stats2.last_reported_version);
+
+  // Check that the value is empty by default
+  EXPECT_FALSE(get_default_update_criteria().policy_version_and_stats);
 }
 
 int main(int argc, char** argv) {

@@ -64,15 +64,7 @@ class TestAttachDetachWithSctpdRestart(unittest.TestCase):
                 "gateway",
             )
 
-            # The Sctpd service is not managed by magmad, hence needs to be
-            # restarted explicitly
-            self._s1ap_wrapper.magmad_util.exec_command(
-                "sudo service sctpd restart"
-            )
-
-            for j in range(30):
-                print("Waiting for", j, "seconds")
-                time.sleep(1)
+            self._s1ap_wrapper.magmad_util.restart_sctpd()
 
             # Re-establish S1 connection between eNB and MME
             self._s1ap_wrapper._s1setup()

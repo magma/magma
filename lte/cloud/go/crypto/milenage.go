@@ -378,7 +378,7 @@ func validateGenerateSIPAuthVectorInputs(key []byte, opc []byte, sqn uint64) err
 	if len(opc) != ExpectedOpcBytes {
 		return fmt.Errorf("incorrect opc size. Expected %v bytes, but got %v bytes", ExpectedOpcBytes, len(opc))
 	}
-	if uint64(sqn) > maxSqn {
+	if sqn > maxSqn {
 		return fmt.Errorf("sequence number too large, expected a number which can fit in 48 bits. Got: %v", sqn)
 	}
 	return nil
@@ -397,14 +397,14 @@ func validateGenerateSIPAuthVectorWithRandInputs(rand []byte, key []byte, opc []
 	if len(opc) != ExpectedOpcBytes {
 		return fmt.Errorf("incorrect opc size. Expected %v bytes, but got %v bytes", ExpectedOpcBytes, len(opc))
 	}
-	if uint64(sqn) > maxSqn {
+	if sqn > maxSqn {
 		return fmt.Errorf("sequence number too large, expected a number which can fit in 48 bits. Got: %v", sqn)
 	}
 	return nil
 }
 
 // f1 and f1* implementation, the network authentication function and
-// the re-synchronisation message authentication function according to
+// the re-synchronization message authentication function according to
 // 3GPP 35.206 4.1
 //
 // Inputs:

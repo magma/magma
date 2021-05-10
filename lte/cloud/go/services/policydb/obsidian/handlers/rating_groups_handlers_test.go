@@ -17,14 +17,11 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
-	lteplugin "magma/lte/cloud/go/plugin"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
-	"magma/orc8r/cloud/go/plugin"
-	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 
@@ -35,8 +32,6 @@ import (
 
 // Basic API workflow tests
 func TestRatingGroupHandlersBasic(t *testing.T) {
-	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	_ = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	e := echo.New()
 

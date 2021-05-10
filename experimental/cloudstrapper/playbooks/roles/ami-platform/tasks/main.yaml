@@ -1,0 +1,22 @@
+---
+- name: locate instance info
+  ec2_instance_info:
+    filters:
+      "tag:Name": "{{ buildGwTagName }}"
+      instance-state-name: "running"
+  register: inst_val
+
+- name: retrieve instance id from instance info
+  set_fact:
+    factIid: "{{ inst_val.instances[0].instance_id }}" 
+
+- name: create snapshot of instance
+  ec2_ami:
+    instance_id: "{{ factIid }}"
+    wait: yes
+    name: "{{ buildAgwAmiName }}"
+    tags:
+      Name: "{{ buildAgwAmiName }}"
+      Service: BuildAgwAMI
+
+

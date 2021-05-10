@@ -10,16 +10,16 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import asyncio
+import logging
 # pylint: disable=broad-except
 import os
-import asyncio
 from collections import OrderedDict
-import logging
-import psutil
-from prometheus_client import Gauge, Counter
 
+import psutil
 from magma.common.health.service_state_wrapper import ServiceStateWrapper
 from magma.magmad.check.network_check import ping
+from prometheus_client import Counter, Gauge
 
 POLL_INTERVAL_SECONDS = 10
 
@@ -58,9 +58,10 @@ UNATTENDED_UPGRADE_STATUS = Gauge('unattended_upgrade_status',
                                   '1 for active, 0 for inactive')
 
 
-SERVICE_RESTART_STATUS = Gauge('service_restart_status',
-                               'Count of service restarts',
-                               ['service_name', 'status'])
+SERVICE_RESTART_STATUS = Counter('service_restart_status',
+                                 'Count of service restarts',
+                                 ['service_name', 'status'])
+
 
 def _get_ping_params(config):
     ping_params = []

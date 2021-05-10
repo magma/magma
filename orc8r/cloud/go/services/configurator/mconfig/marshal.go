@@ -44,12 +44,15 @@ func UnmarshalConfigs(configs ConfigsByKey) (map[string]proto.Message, error) {
 		anyVal := &any.Any{}
 		err := protos.Unmarshal(v, anyVal)
 		if err != nil {
-			return nil, err
+			return nil, errors.Wrapf(err, "unmarshal mconfig from bytes to proto for key %s and bytes %v", k, v)
 		}
 		msgVal, err := ptypes.Empty(anyVal)
+		if err != nil {
+			return nil, errors.Wrapf(err, "create concrete proto.Message, for proto.Any %+v", anyVal)
+		}
 		err = ptypes.UnmarshalAny(anyVal, msgVal)
 		if err != nil {
-			return nil, errors.WithStack(err)
+			return nil, errors.Wrapf(err, "unmarshal proto.Any into proto.Message, for proto.Any %+v", anyVal)
 		}
 		ret[k] = msgVal
 	}

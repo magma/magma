@@ -38,14 +38,17 @@
 typedef struct s5_create_session_request_s {
   teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier
   ebi_t eps_bearer_id;
+  SGIStatus_t status;  ///< Status of  endpoint creation (Failed = 0xFF or ///<
+                       ///< Success = 0x0)
 } s5_create_session_request_t;
 
-enum s5_failure_cause { S5_OK = 0, PCEF_FAILURE };
+enum s5_failure_cause { S5_OK = 0, PCEF_FAILURE, IP_ALLOCATION_FAILURE };
 
 typedef struct s5_create_session_response_s {
   teid_t context_teid;  ///< local SGW S11 Tunnel Endpoint Identifier
   ebi_t eps_bearer_id;
-  itti_sgi_create_end_point_response_t sgi_create_endpoint_resp;
+  SGIStatus_t status;  ///< Status of  endpoint creation (Failed = 0xFF or ///<
+                       ///< Success = 0x0)
   enum s5_failure_cause failure_cause;
 } s5_create_session_response_t;
 
@@ -65,11 +68,30 @@ typedef struct s_plus_p_gw_eps_bearer_context_information_s {
   pgw_eps_bearer_context_information_t pgw_eps_bearer_context_information;
 } s_plus_p_gw_eps_bearer_context_information_t;
 
+typedef struct sgw_s11_teid_s {
+  teid_t sgw_s11_teid;
+  LIST_ENTRY(sgw_s11_teid_s) entries;
+} sgw_s11_teid_t;
+
+typedef struct spgw_ue_context_s {
+  LIST_HEAD(teid_list_head_s, sgw_s11_teid_s) sgw_s11_teid_list;
+} spgw_ue_context_t;
+
 // Data entry for s11teid2mme
 typedef struct mme_sgw_tunnel_s {
   uint32_t local_teid;   ///< Local tunnel endpoint Identifier
   uint32_t remote_teid;  ///< Remote tunnel endpoint Identifier
 } mme_sgw_tunnel_t;
+
+// AGW-wide state for SGW task
+typedef struct sgw_state_s {
+  teid_t tunnel_id;
+  teid_t s1u_teid;
+  teid_t s5s8u_teid;
+  struct in_addr sgw_ip_address_S1u_S12_S4_up;
+  struct in_addr sgw_ip_address_S5S8_up;
+  hash_table_ts_t* imsi_ue_context_htbl;
+} sgw_state_t;
 
 // AGW-wide state for SPGW task
 typedef struct spgw_state_s {
@@ -80,7 +102,6 @@ typedef struct spgw_state_s {
   teid_t tunnel_id;
   uint32_t gtpv1u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
-  hash_table_uint64_ts_t* imsi_teid_htbl;
 } spgw_state_t;
 
 void handle_s5_create_session_response(

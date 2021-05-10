@@ -20,8 +20,11 @@ import (
 	"magma/cwf/cloud/go/services/cwf/obsidian/handlers"
 	"magma/cwf/cloud/go/services/cwf/servicers"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/obsidian/swagger"
+	swagger_protos "magma/orc8r/cloud/go/obsidian/swagger/protos"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
+	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/lib/go/service/config"
@@ -39,14 +42,19 @@ func main() {
 
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
 
+	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(cwf_service.ServiceName))
+
 	var serviceConfig cwf_service.Config
 	_, _, err = config.GetStructuredServiceConfig(cwf.ModuleName, cwf_service.ServiceName, &serviceConfig)
 	if err != nil {
 		glog.Infof("Failed unmarshalling service config %v", err)
 		return
 	}
-	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer,
-		analytics.NewCollectorService(analytics.GetPrometheusClient(), cwf_analytics.GetAnalyticsCalculations(&serviceConfig)))
+	promQLClient := analytics.GetPrometheusClient()
+	calcs := cwf_analytics.GetAnalyticsCalculations(&serviceConfig.Analytics)
+	userStateManager := calculations.NewUserStateManager(promQLClient, "active_sessions")
+	collectorServicer := analytics.NewCollectorServicer(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
+	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
 
 	err = srv.Run()
 	if err != nil {

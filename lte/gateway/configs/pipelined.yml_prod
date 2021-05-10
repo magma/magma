@@ -74,6 +74,9 @@ dpi:
   mon_port_number: 32769
   idle_timeout: 5
 
+conntrackd:
+  enabled: false
+
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
 # metering for auto-clearing the sessions
@@ -96,6 +99,9 @@ nat_iface: eth0
 # Interface to eNodeB
 enodeb_iface: eth1
 
+# By default enable routing for NonNAT
+dp_router_enabled: true
+
 # Bridge name comes from magma_magmad.service.j2
 bridge_name: gtp_br0
 # Bridge ip comes from magma_ifaces_gtp
@@ -107,6 +113,7 @@ ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
 qos:
  enable: true
  impl: linux_tc
+ enable_pyroute2: True
  max_rate: 1000000000
  linux_tc:
   min_idx: 2
@@ -121,12 +128,15 @@ monitored_ifaces: ['gtp_br0',
                   ]
 
 # Whether pipelined should cleanup flows on restarts
-clean_restart: true
+clean_restart: false
 
-redis_enabled: false
+redis_enabled: true
 
 # Logs grpc payload content
 magma_print_grpc_payload: false
+
+# MTR iface
+mtr_interface: mtr0
 
 ###############
 ## IMPORTANT ##
@@ -149,4 +159,10 @@ uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 
 he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
 
-ovs_gtp_stats_polling_interval: 60
+ovs_gtp_stats_polling_interval: 180
+
+# Internal port for processing internal conntrack
+ovs_internal_conntrack_port_number: 15579
+
+# Table to forward packets from the internal conntrack
+ovs_internal_conntrack_fwd_tbl_number: 202

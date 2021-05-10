@@ -98,7 +98,8 @@ typedef struct esm_ebr_context_s {
   bitrate_t mbr_ul;
   traffic_flow_template_t* tft;
   protocol_configuration_options_t* pco;
-  struct nas_timer_s timer; /* Retransmission timer         */
+  struct nas_timer_s timer;   /* Retransmission timer         */
+  esm_ebr_timer_data_t* args; /* Retransmission timer parameters */
 } esm_ebr_context_t;
 
 typedef struct esm_ebr_data_s {

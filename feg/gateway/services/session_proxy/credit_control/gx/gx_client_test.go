@@ -15,6 +15,7 @@ limitations under the License.
 package gx_test
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net"
@@ -23,6 +24,7 @@ import (
 	"time"
 
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
@@ -33,7 +35,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 const (
@@ -61,7 +62,7 @@ var (
 func TestGxClient(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	globalConfig := getGxGlobalConfig("", "")
+	globalConfig := getGxGlobalConfig("", "", "")
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
 
@@ -194,7 +195,6 @@ func TestGxClient(t *testing.T) {
 	assert.Equal(t, ipv6addr[:6], []byte{0, 0x80, 0xfd, 0xfa, 0xce, 0xb0})
 	assert.NotEqual(t, ipv6addr[6:10], []byte{0x0c, 0xab, 0xcd, 0xef})
 	assert.Equal(t, ipv6addr[10:], []byte{0x2, 0x0, 0x5e, 0xff, 0xfe, 0x0, 0x53, 0x1})
-
 }
 
 // TestGxClient tests CCR init and terminate messages using a fake PCRF and a specific GxGlobalConfig
@@ -202,8 +202,9 @@ func TestGxClientWithGyGlobalConf(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
 	matchApn := ".*\\.magma.*"
+	matchCC := "12"
 	overwriteApn := "gx.overwritten.Apn.magma.com"
-	globalConfig := getGxGlobalConfig(matchApn, overwriteApn)
+	globalConfig := getGxGlobalConfig(matchApn, matchCC, overwriteApn)
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
 
@@ -217,13 +218,14 @@ func TestGxClientWithGyGlobalConf(t *testing.T) {
 
 	// send init
 	ccrInit := &gx.CreditControlRequest{
-		SessionID:     "1",
-		Type:          credit_control.CRTInit,
-		IMSI:          testIMSI1,
-		RequestNumber: 0,
-		IPAddr:        "192.168.1.1",
-		SpgwIPV4:      "10.10.10.10",
-		Apn:           "gx.Apn.magma.com",
+		SessionID:               "1",
+		Type:                    credit_control.CRTInit,
+		IMSI:                    testIMSI1,
+		RequestNumber:           0,
+		IPAddr:                  "192.168.1.1",
+		SpgwIPV4:                "10.10.10.10",
+		Apn:                     "gx.Apn.magma.com",
+		ChargingCharacteristics: "12",
 	}
 	done := make(chan interface{}, 1000)
 
@@ -235,10 +237,63 @@ func TestGxClientWithGyGlobalConf(t *testing.T) {
 	assertReceivedAPNonPCRF(t, pcrf, overwriteApn)
 }
 
+// Test VirtualAPN configuration when one of the APN/ChargingCharacteristics
+// RegEx is not satisfied. (We expect the APN to be not modified in this case)
+func TestGxClientVirtualAPNNoMatch(t *testing.T) {
+	serverConfig := defaultLocalServerConfig
+	clientConfig := getClientConfig()
+	matchApn := ".*\\.magma.*"
+	matchCC := "13"
+	overwriteApn := "gx.overwritten.Apn.magma.com"
+	globalConfig := getGxGlobalConfig(matchApn, matchCC, overwriteApn)
+	pcrf := startServer(clientConfig, &serverConfig)
+	seedAccountConfigurations(pcrf)
+
+	gxClient := gx.NewGxClient(
+		clientConfig,
+		&serverConfig,
+		getMockReAuthHandler(),
+		nil,
+		globalConfig,
+	)
+
+	// 1. First fail the charging characteristics regex
+	originalAPN := "gx.Apn.magma.com"
+	ccrInit := &gx.CreditControlRequest{
+		SessionID:               "1",
+		Type:                    credit_control.CRTInit,
+		IMSI:                    testIMSI1,
+		RequestNumber:           0,
+		IPAddr:                  "192.168.1.1",
+		SpgwIPV4:                "10.10.10.10",
+		Apn:                     originalAPN,
+		ChargingCharacteristics: "12",
+	}
+	done := make(chan interface{}, 1000)
+
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	answer := gx.GetAnswer(done)
+	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
+	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
+	assertReceivedAPNonPCRF(t, pcrf, originalAPN)
+
+	// 2. Now fail the APN regex
+	originalAPN = "gx.Apn.m-a-g-m-a.com"
+	ccrInit.Apn = originalAPN
+	ccrInit.ChargingCharacteristics = "13"
+	done = make(chan interface{}, 1000)
+
+	assert.NoError(t, gxClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	answer = gx.GetAnswer(done)
+	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
+	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
+	assertReceivedAPNonPCRF(t, pcrf, originalAPN)
+}
+
 func TestGxClientUsageMonitoring(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	globalConfig := getGxGlobalConfig("", "")
+	globalConfig := getGxGlobalConfig("", "", "")
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
 
@@ -326,7 +381,7 @@ func TestGxReAuthRemoveRules(t *testing.T) {
 	}
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	globalConfig := getGxGlobalConfig("", "")
+	globalConfig := getGxGlobalConfig("", "", "")
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
 
@@ -381,7 +436,7 @@ func TestDefaultFramedIpv4Addr(t *testing.T) {
 
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	globalConfig := getGxGlobalConfig("", "")
+	globalConfig := getGxGlobalConfig("", "", "")
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
 
@@ -408,6 +463,7 @@ func TestDefaultFramedIpv4Addr(t *testing.T) {
 	gx.GetAnswer(done)
 
 	lastMsg, err := pcrf.GetLastAVPreceived()
+	assert.NoError(t, err)
 	avpValue, err := lastMsg.FindAVP(avp.FramedIPAddress, 0)
 	assert.NoError(t, err)
 	actualIPv4, err := datatype.DecodeIPv4(avpValue.Data.Serialize())
@@ -448,14 +504,19 @@ func getClientConfig() *diameter.DiameterClientConfig {
 	}
 }
 
-func getGxGlobalConfig(apnFilter, apnOverwrite string) *gx.GxGlobalConfig {
-	rules := []*credit_control.VirtualApnRule{}
-	rule, err := credit_control.GetVirtualApnRule(apnFilter, apnOverwrite)
-	if err == nil {
-		rules = append(rules, rule)
+func getGxGlobalConfig(apnFilter, chargingCharacteristicsFilter, apnOverwrite string) *gx.GxGlobalConfig {
+	rule := &credit_control.VirtualApnRule{}
+	mconfigRule := &mconfig.VirtualApnRule{
+		ApnFilter:                     apnFilter,
+		ChargingCharacteristicsFilter: chargingCharacteristicsFilter,
+		ApnOverwrite:                  apnOverwrite,
+	}
+	err := rule.FromMconfig(mconfigRule)
+	if err != nil {
+		return &gx.GxGlobalConfig{}
 	}
 	return &gx.GxGlobalConfig{
-		VirtualApnRules: rules,
+		VirtualApnRules: []*credit_control.VirtualApnRule{rule},
 	}
 }
 

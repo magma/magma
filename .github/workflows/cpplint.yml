@@ -1,0 +1,48 @@
+---
+name: Reviewdog
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - .github/workflows/cpplint.yml
+      - lte/gateway/c/**
+      - orc8r/gateway/c/**
+
+##
+#  Cpplint aims to lint to the Google Style guide. For detailed
+#  rationale on each linting rule, see
+#  https://google.github.io/styleguide/cppguide.html
+##
+#  To suppress false-positive errors of a certain category, add a
+#  'NOLINT(category)' comment to the line.  NOLINT or NOLINT(*)
+#  suppresses errors of all categories on that line.
+##
+#  For details on cpplint optinos see the detailed comments in
+#  https://github.com/google/styleguide/blob/gh-pages/cpplint/cpplint.py
+##
+
+jobs:
+  cpplint:
+    runs-on: ubuntu-latest
+    steps:
+      -
+        uses: actions/checkout@master
+      -
+        name: Install CPP Lint and ReviewDog
+        run: |
+          wget -O - -q https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh \
+           | sh -s -- -b .
+          pip install cpplint
+      -
+        name: Run CPP Lint and push Annotations
+        env:
+          REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cpplint --recursive ${{ github.workspace }} \
+            --extensions=hh,c,hpp,cpp,cuh,cc,cxx,c++,hxx,h,h++,cu \
+            --filter=build/include_subdir,build/c++11 \
+            --linelength=120 2>&1 \
+             | ./reviewdog -efm="%f:%l: %m" -name="cpplint" -reporter="github-pr-review" -level="warning"

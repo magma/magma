@@ -14,6 +14,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -36,6 +37,22 @@ import (
 
 // how often to report gateway status
 const gatewayStatusReportInterval = time.Second * 60
+
+const nonPostgresDriverMessage = `Configuration warning:
+
+This deployment has automatic state reindexing enabled, but is targeting a
+database driver other than Postgres. This will cause the state service
+to log a (harmless) DB syntax error, due to its use of Postgres-specific
+syntax for automatic reindexing.
+
+(Option 1) Continue using non-Postgres driver. To clear this warning, update
+the state.yml cloud config to set enable_automatic_reindexing to false.
+Keep in mind that, for this option, you will have to perform manual state
+reindexing on every Orc8r upgrade. We provide a CLI to manage this, and will
+provide directions in the upgrade notes.
+
+(Option 2) Switch to a Postgres driver.
+`
 
 func main() {
 	srv, err := service.NewOrchestratorService(orc8r.ModuleName, state.ServiceName)
@@ -88,9 +105,13 @@ func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstor
 	reindexer := reindex.NewReindexer(queue, reindex.NewStore(store))
 	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
+	if autoReindex && storage.SQLDriver != sqorc.PostgresDriver {
+		glog.Warning(nonPostgresDriverMessage)
+	}
+
 	if autoReindex {
 		glog.Info("Automatic reindexing enabled for state service")
-		go reindexer.Run(nil)
+		go reindexer.Run(context.Background())
 	} else {
 		glog.Info("Automatic reindexing disabled for state service")
 	}

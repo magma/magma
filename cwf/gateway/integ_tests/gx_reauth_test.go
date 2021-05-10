@@ -112,7 +112,10 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 
 	// Check that enforcement flows were deleted for rule 2 and 3
 	tr.WaitForEnforcementStatsToSync()
@@ -129,8 +132,7 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 
 	// Trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
@@ -154,6 +156,9 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	imsi := ue.GetImsi()
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	// Wait for flows to be installed
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(
+		imsi, "static-pass-all-raa1", "static-pass-all-raa2"), time.Minute, 2*time.Second)
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
@@ -167,7 +172,7 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that enforcement flow is installed and traffic is less than the quota
-	tr.AssertPolicyUsage(imsi, "static-pass-all-raa1", 0, 500*KiloBytes+Buffer)
+	tr.AssertPolicyUsage(imsi, "static-pass-all-raa1", 100*KiloBytes, 500*KiloBytes+Buffer)
 
 	// Send ReAuth Request to update quota
 	rulesRemoval := &fegprotos.RuleRemovals{
@@ -179,8 +184,10 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// Check that all UE mac flows are deleted
 	tr.WaitForEnforcementStatsToSync()
 
@@ -196,8 +203,7 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
@@ -220,6 +226,9 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 	imsi := ue.GetImsi()
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	// Wait for flows to be installed
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(
+		imsi, "static-pass-all-raa1", "static-pass-all-raa2"), time.Minute, 2*time.Second)
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
@@ -264,8 +273,10 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// Generate more traffic
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -276,8 +287,7 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
@@ -301,6 +311,9 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 	imsi := ue.GetImsi()
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	// Wait for flows to be installed
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(
+		imsi, "static-pass-all-raa1", "static-pass-all-raa2"), time.Minute, 2*time.Second)
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
@@ -352,8 +365,10 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// Generate more traffic
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -364,15 +379,14 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }
 
 // - Install two static rules "static-pass-all-raa1" and "static-pass-all-raa2"
 //   and a rule base "base-raa1"
 // - Generate traffic and assert that there's > 0 data usage for the rule with the
 //   highest priority.
-// - Send a PCRF ReAuth request to refill quoto for a session
+// - Send a PCRF ReAuth request to refill quota for a session
 // - Assert that the response is successful
 // - Generate traffic and assert that there's > 0 data usage for the newly installed
 //   rule.
@@ -389,6 +403,9 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 	imsi := ue.GetImsi()
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	// Wait for flows to be installed
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(
+		imsi, "static-pass-all-raa1", "static-pass-all-raa2"), time.Minute, 2*time.Second)
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
@@ -399,7 +416,7 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-raa1"), time.Minute, 2*time.Second)
 
 	// Check that enforcement flow is installed and traffic is less than the quota
 	tr.AssertPolicyUsage(imsi, "static-pass-all-raa1", 0, 500*KiloBytes+Buffer)
@@ -415,8 +432,10 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// Generate more traffic
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -429,6 +448,5 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)
 }

@@ -1,0 +1,158 @@
+From 605c7bf97554d9ca630414456b87ce9123e46bc1 Mon Sep 17 00:00:00 2001
+From: vagrant <vagrant@magma-dev>
+Date: Sat, 6 Mar 2021 01:09:31 +0000
+Subject: [PATCH 4/4] Add Reg field match support
+
+---
+ fluid/of13/of13match.cc  | 79 ++++++++++++++++++++++++++++++++++++++++++++++++
+ fluid/of13/of13match.hh  | 32 ++++++++++++++++++++
+ fluid/of13/openflow-13.h |  1 +
+ 3 files changed, 112 insertions(+)
+
+diff --git a/fluid/of13/of13match.cc b/fluid/of13/of13match.cc
+index f198f19..522f415 100644
+--- a/fluid/of13/of13match.cc
++++ b/fluid/of13/of13match.cc
+@@ -2868,5 +2868,84 @@ of_error NXMReg8::unpack(uint8_t *buffer) {
+     return 0;
+ }
+ 
++// ----- Reg 6
++//
++NXMRegX::NXMRegX()
++    : OXMTLV(of13::OFPXMC_NXM_1, 0, false,
++          of13::OFP_NXM_REGx_LEN),
++      value_((uint32_t) 0),
++      mask_((uint32_t) 0) {
++    create_oxm_req(0x0800, 0, 0, 0);
++}
++
++NXMRegX::NXMRegX(uint32_t type)
++    : OXMTLV(of13::OFPXMC_NXM_1, type, false,
++          of13::OFP_NXM_REGx_LEN),
++      value_((uint32_t) 0),
++      mask_((uint32_t) 0) {
++    create_oxm_req(0x0800, 0, 0, 0);
++}
++
++NXMRegX::NXMRegX(uint32_t type, uint32_t value)
++    : OXMTLV(of13::OFPXMC_NXM_1, type, false,
++          of13::OFP_NXM_REGx_LEN),
++      value_(value),
++      mask_((uint32_t) 0) {
++    create_oxm_req(0x0800, 0, 0, 0);
++}
++
++NXMRegX::NXMRegX(uint32_t type, uint32_t value, uint32_t mask)
++    : OXMTLV(of13::OFPXMC_NXM_1, type, true,
++          of13::OFP_NXM_REGx_LEN),
++      value_(value),
++      mask_(mask) {
++    create_oxm_req(0x0800, 0, 0, 0);
++}
++
++bool NXMRegX::equals(const OXMTLV &other) {
++
++    if (const NXMRegX * field = dynamic_cast<const NXMRegX *>(&other)) {
++        return ((OXMTLV::equals(other)) && (this->value_ == field->value_)
++            && (this->has_mask_ ? this->mask_ == field->mask_ : true));
++    }
++    else {
++        return false;
++    }
++}
++
++OXMTLV& NXMRegX::operator=(const OXMTLV& field) {
++    const NXMRegX& dst = dynamic_cast<const NXMRegX&>(field);
++    OXMTLV::operator=(field);
++    this->value_ = dst.value_;
++    this->mask_ = dst.mask_;
++    return *this;
++}
++
++size_t NXMRegX::pack(uint8_t *buffer) {
++    OXMTLV::pack(buffer);
++    size_t len = this->length_;
++    if (this->has_mask_) {
++        len = this->length_ / 2;
++        uint32_t mask = hton32(this->mask_);
++        memcpy(buffer + (of13::OFP_OXM_HEADER_LEN + len), &mask, len);
++    }
++    uint32_t val = hton32(this->value_);
++    memcpy(buffer + of13::OFP_OXM_HEADER_LEN, &val, len);
++    return 0;
++}
++
++of_error NXMRegX::unpack(uint8_t *buffer) {
++    uint32_t val = *((uint32_t*) (buffer + of13::OFP_OXM_HEADER_LEN));
++    OXMTLV::unpack(buffer);
++    this->value_ = ntoh32(val);
++    if (this->has_mask_) {
++        size_t len = this->length_ / 2;
++        uint32_t mask = *((uint32_t*) (buffer + of13::OFP_OXM_HEADER_LEN
++            + len));
++        this->mask_ = ntoh32(mask);
++    }
++    return 0;
++}
++
+ } //End of namespace of13
+ } //End of namespace fluid_msg
+diff --git a/fluid/of13/of13match.hh b/fluid/of13/of13match.hh
+index 5fb9699..9fd35cd 100644
+--- a/fluid/of13/of13match.hh
++++ b/fluid/of13/of13match.hh
+@@ -1208,6 +1208,38 @@ public:
+     }
+ };
+ 
++class NXMRegX: public OXMTLV {
++protected:
++    uint32_t value_;
++    uint32_t mask_;
++public:
++    NXMRegX();
++    NXMRegX(uint32_t type);
++    NXMRegX(uint32_t type, uint32_t value);
++    NXMRegX(uint32_t type, uint32_t value, uint32_t mask);
++    ~NXMRegX() {
++    }
++    virtual bool equals(const OXMTLV & other);
++    OXMTLV& operator=(const OXMTLV& field);
++    virtual NXMRegX* clone() const {
++        return new NXMRegX(*this);
++    }
++    size_t pack(uint8_t *buffer);
++    of_error unpack(uint8_t *buffer);
++    IPAddress value() const {
++        return this->value_;
++    }
++    IPAddress mask() const {
++        return this->mask_;
++    }
++    void value(uint32_t value) {
++        this->value_ = value;
++    }
++    void mask(uint32_t mask) {
++        this->mask_ = mask;
++    }
++};
++
+ class Match: public MatchHeader {
+ private:
+     /*Current tlvs present by field*/
+diff --git a/fluid/of13/openflow-13.h b/fluid/of13/openflow-13.h
+index 62a8500..e96bd1c 100644
+--- a/fluid/of13/openflow-13.h
++++ b/fluid/of13/openflow-13.h
+@@ -257,6 +257,7 @@ const uint8_t OFP_OXM_IPV6_PBB_ISID_LEN = 4;
+ const uint8_t OFP_OXM_TUNNEL_ID_LEN = 8;
+ const uint8_t OFP_OXM_IPV6_EXTHDR_LEN = 2;
+ const uint8_t OFP_NXM_REG8_LEN = 4;
++const uint8_t OFP_NXM_REGx_LEN = 4;
+ 
+ /* Fields to match against flows */
+ struct ofp_match {
+-- 
+2.11.0
+

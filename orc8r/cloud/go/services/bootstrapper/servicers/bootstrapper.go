@@ -32,10 +32,11 @@ import (
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
-	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes"
+	"github.com/pkg/errors"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -52,16 +53,15 @@ type BootstrapperServer struct {
 }
 
 func NewBootstrapperServer(privKey *rsa.PrivateKey) (*BootstrapperServer, error) {
-	srv := new(BootstrapperServer)
+	srv := &BootstrapperServer{}
 	if privKey.N.BitLen() < MinKeyLength {
-		return nil, errorLogger(fmt.Errorf("Private key is too short"))
+		return nil, errorLogger(errors.Errorf("private key is too short: actual len (%d) is less than minimum len (%d)", privKey.N.BitLen(), MinKeyLength))
 	}
 	srv.privKey = privKey
 	return srv, nil
 }
 
 // generate challenge in the format of [randomText : timestamp : signature]
-// the format is designed mainly for demo/interface design, subjects to change in the future
 func (srv *BootstrapperServer) GetChallenge(ctx context.Context, hwId *protos.AccessGatewayID) (*protos.Challenge, error) {
 	var keyType protos.ChallengeKey_KeyType
 
@@ -101,9 +101,7 @@ func (srv *BootstrapperServer) GetChallenge(ctx context.Context, hwId *protos.Ac
 }
 
 // verify the response by client and return signed certificate if response is correct
-func (srv *BootstrapperServer) RequestSign(
-	ctx context.Context, resp *protos.Response) (*protos.Certificate, error) {
-
+func (srv *BootstrapperServer) RequestSign(ctx context.Context, resp *protos.Response) (*protos.Certificate, error) {
 	hwId := resp.HwId.Id
 	keyType, key, err := getChallengeKey(hwId)
 	if err != nil {
@@ -112,8 +110,7 @@ func (srv *BootstrapperServer) RequestSign(
 
 	err = srv.verifyChallenge(resp.Challenge)
 	if err != nil {
-		return nil, errorLogger(status.Errorf(
-			codes.Aborted, "Failed to verify challenge: %s", err))
+		return nil, errorLogger(status.Errorf(codes.Aborted, "Failed to verify challenge: %s", err))
 	}
 
 	// verify authentication / real response
@@ -128,8 +125,7 @@ func (srv *BootstrapperServer) RequestSign(
 		err = fmt.Errorf("Unsupported key type: %s", keyType)
 	}
 	if err != nil {
-		return nil, errorLogger(status.Errorf(
-			codes.Aborted, "Failed to verify response: %s", err))
+		return nil, errorLogger(status.Errorf(codes.Aborted, "Failed to verify response: %s", err))
 	}
 
 	// Ignore requested cert duration & overwrite it with our own if it's
@@ -176,7 +172,7 @@ func (srv *BootstrapperServer) verifyChallenge(challenge []byte) error {
 	randLen := ChallengeLength - TimeLength - srv.signatureLength()
 	timeBytes := challenge[randLen : randLen+TimeLength]
 	issueTime := time.Unix(int64(binary.BigEndian.Uint64(timeBytes)), 0)
-	expireTime := issueTime.Add(time.Duration(ChallengeExpireTime))
+	expireTime := issueTime.Add(ChallengeExpireTime)
 	now := time.Now().UTC()
 	if issueTime.After(now) {
 		return fmt.Errorf("Challenge is not valid yet")
@@ -270,7 +266,7 @@ func getChallengeKey(hwID string) (protos.ChallengeKey_KeyType, []byte, error) {
 	if err != nil {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Failed to find gateway record: %s", err))
 	}
-	record, ok := iRecord.(*models2.GatewayDevice)
+	record, ok := iRecord.(*models.GatewayDevice)
 	if !ok {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Failed to find gateway record"))
 	}

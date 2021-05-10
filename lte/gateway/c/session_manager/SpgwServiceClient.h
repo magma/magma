@@ -12,12 +12,43 @@
  */
 #pragma once
 
-#include <mutex>
-
-#include <lte/protos/policydb.pb.h>
-#include <lte/protos/spgw_service.grpc.pb.h>
-
-#include "GRPCReceiver.h"
+#include <lte/protos/spgw_service.grpc.pb.h>  // for SpgwService::Stub, Spgw...
+#include <stdint.h>                           // for uint32_t
+#include <functional>                         // for function
+#include <memory>                             // for shared_ptr, unique_ptr
+#include <string>                             // for string
+#include <vector>                             // for vector
+#include "GRPCReceiver.h"                     // for GRPCReceiver
+#include "lte/protos/subscriberdb.pb.h"       // for lte
+namespace grpc {
+class Channel;
+}
+namespace grpc {
+class Status;
+}
+namespace grpc {
+class Status;
+}
+namespace magma {
+namespace lte {
+class CreateBearerRequest;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class CreateBearerResult;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class DeleteBearerRequest;
+}
+}  // namespace magma
+namespace magma {
+namespace lte {
+class DeleteBearerResult;
+}
+}  // namespace magma
 
 using grpc::Status;
 
@@ -30,6 +61,8 @@ using namespace lte;
  */
 class SpgwServiceClient {
  public:
+  virtual ~SpgwServiceClient() = default;
+
   /**
    * Delete a default bearer (all session bearers)
    * @param imsi - msi to identify a UE

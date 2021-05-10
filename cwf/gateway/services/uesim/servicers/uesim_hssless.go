@@ -93,9 +93,10 @@ func (srv *UESimServerHssLess) Authenticate(ctx context.Context, id *cwfprotos.A
 		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
+	sid := makeSubscriberId(ue.GetImsi())
 	req := &lte_protos.LocalCreateSessionRequest{
 		CommonContext: &lte_protos.CommonSessionContext{
-			Sid:     makeSubscriberId(ue.GetImsi()),
+			Sid:     sid,
 			UeIpv4:  DEFAULT_UE_IP,
 			Apn:     ue.GetHsslessCfg().GetApn(),
 			Msisdn:  ([]byte)(ue.GetHsslessCfg().GetMsisdn()),
@@ -112,10 +113,23 @@ func (srv *UESimServerHssLess) Authenticate(ctx context.Context, id *cwfprotos.A
 		},
 	}
 	resp, err := session_manager.CreateSession(req)
-	if err == nil {
-		return &cwfprotos.AuthenticateResponse{SessionId: resp.GetSessionId()}, nil
+	if err != nil {
+		return &cwfprotos.AuthenticateResponse{SessionId: ""}, err
 	}
-	return &cwfprotos.AuthenticateResponse{SessionId: ""}, err
+	activateReq := &lte_protos.UpdateTunnelIdsRequest{
+		Sid:      sid,
+		BearerId: 0,
+		EnbTeid:  0,
+		AgwTeid:  0,
+	}
+
+	// activate is needed to install all hte flows
+	_, err = session_manager.UpdateTunnelIds(activateReq)
+	if err != nil {
+		return &cwfprotos.AuthenticateResponse{SessionId: ""}, err
+	}
+
+	return &cwfprotos.AuthenticateResponse{SessionId: resp.GetSessionId()}, nil
 }
 func (srv *UESimServerHssLess) GenTraffic(ctx context.Context, req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
 	glog.V(2).Infof("Reached GenTraffic...")

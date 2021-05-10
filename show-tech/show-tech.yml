@@ -21,8 +21,8 @@
   gather_facts: yes
   roles:
     - role: load_vars
-    - role: install_ansible_modules
     - role: destdir
     - role: files
     - role: commands
+    - role: cores
     - role: package

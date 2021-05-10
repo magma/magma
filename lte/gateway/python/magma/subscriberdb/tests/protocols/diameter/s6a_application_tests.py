@@ -13,7 +13,6 @@ limitations under the License.
 
 # pylint:disable=protected-access
 
-import asyncio
 import unittest
 from unittest.mock import Mock
 
@@ -21,9 +20,14 @@ from lte.protos.mconfig.mconfigs_pb2 import SubscriberDB
 from magma.subscriberdb.crypto.utils import CryptoError
 from magma.subscriberdb.processor import LTEProcessor
 from magma.subscriberdb.protocols.diameter import avp, message, server
-from magma.subscriberdb.protocols.diameter.application import base, s6a, \
-    s6a_relay
+from magma.subscriberdb.protocols.diameter.application import (
+    base,
+    s6a,
+    s6a_relay,
+)
 from magma.subscriberdb.store.base import SubscriberNotFoundError
+
+from .common import MockTransport
 
 
 def _dummy_eutran_vector():
@@ -98,7 +102,7 @@ class S6AApplicationTests(unittest.TestCase):
             """ Deep copy the memoryview for checking later  """
             return self._writes(memview.tobytes())
 
-        self._transport = asyncio.Transport()
+        self._transport = MockTransport()
         self._transport.write = Mock(side_effect=convert_memview_to_bytes)
 
         # Here goes nothing..

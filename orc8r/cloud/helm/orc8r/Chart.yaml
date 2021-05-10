@@ -9,14 +9,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: v1
+apiVersion: v2
 appVersion: "1.0"
 description: A Helm chart for magma orchestrator
 name: orc8r
-version: 1.4.43
+version: 1.5.21
 engine: gotpl
 sources:
-  - https://github.com/facebookincubator/magma
+  - https://github.com/magma/magma
 keywords:
   - magma
   - or8cr
+
+dependencies:
+  - name: secrets
+    version: 0.1.10
+    repository: ""
+    condition: secrets.create
+  - name: metrics
+    version: 1.4.22
+    repository: ""
+    condition: metrics.enabled
+  - name: nms
+    version: 0.1.11
+    repository: ""
+    condition: nms.enabled
+  - name: logging
+    version: 0.1.10
+    repository: ""
+    condition: logging.enabled
+  - name: orc8rlib
+    version: 0.1.2
+    repository: file://../orc8rlib

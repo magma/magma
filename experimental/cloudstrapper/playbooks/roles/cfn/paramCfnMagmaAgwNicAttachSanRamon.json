@@ -1,0 +1,10 @@
+[
+  {
+    "ParameterKey":"paramGatewayInstance",
+    "ParameterValue": "i-03cfa4016b239d197"
+  }, 
+  {
+    "ParameterKey":"paramNicEnb",
+    "ParameterValue": "eni-0855b8d7d4ecb9ba4"
+  }
+]

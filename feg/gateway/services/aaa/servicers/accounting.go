@@ -15,13 +15,13 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strings"
 	"time"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -172,10 +172,16 @@ func (srv *accountingService) CreateSession(
 	}
 
 	csResp, err := createSessionOnSessionManager(mac, subscriberId, aaaCtx)
+	if err != nil {
+		glog.Errorf("Not activating flows because CreateSession failed: %s", err)
+		pipelined.DeleteUeMacFlow(subscriberId, aaaCtx)
+		return nil, err
+	}
+
+	_, err = activateSessionOnSessionManager(subscriberId)
 	if err == nil {
 		metrics.CreateSessionLatency.Observe(time.Since(startime).Seconds())
 	} else {
-		// TODO: do we really need to remove the flow?
 		pipelined.DeleteUeMacFlow(subscriberId, aaaCtx)
 	}
 
@@ -220,7 +226,7 @@ func (srv *accountingService) TerminateSession(
 // session. It should be called for a timed out and recently removed from the sessions table session.
 func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 	if aaaCtx == nil {
-		errMsg := fmt.Sprintf("Nil AAA Context")
+		errMsg := "Nil AAA Context"
 		if srv.config.GetEventLoggingEnabled() {
 			events.LogSessionTerminationFailedEvent(aaaCtx, "Session Timeout Notification", errMsg)
 		}
@@ -319,6 +325,18 @@ func createSessionOnSessionManager(mac net.HardwareAddr, subscriberId *lte_proto
 		},
 	}
 	return session_manager.CreateSession(req)
+}
+
+func activateSessionOnSessionManager(subscriberId *lte_protos.SubscriberID) (*lte_protos.UpdateTunnelIdsResponse, error) {
+	// BearerID, EnbTeid and AgwTeid are defaulted to 0 because they are not
+	// needed by sessiond for CWF
+	req := &lte_protos.UpdateTunnelIdsRequest{
+		Sid:      subscriberId,
+		BearerId: 0,
+		EnbTeid:  0,
+		AgwTeid:  0,
+	}
+	return session_manager.UpdateTunnelIds(req)
 }
 
 func (srv *accountingService) timeoutSessionNotifier(s aaa.Session) error {

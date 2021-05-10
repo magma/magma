@@ -19,16 +19,15 @@ import sys
 import threading
 import time
 import unittest
+
 from freezegun import freeze_time
-
-from magma.pipelined.bridge_util import BridgeTools
-
 from magma.mobilityd.dhcp_client import DHCPClient
+from magma.mobilityd.dhcp_desc import DHCPDescriptor, DHCPState
 from magma.mobilityd.mac import MacAddress
-from magma.mobilityd.dhcp_desc import DHCPState, DHCPDescriptor
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
+from magma.pipelined.bridge_util import BridgeTools
 from scapy.layers.dhcp import DHCP
-from scapy.layers.l2 import Ether, Dot1Q
+from scapy.layers.l2 import Dot1Q, Ether
 from scapy.sendrecv import AsyncSniffer
 
 LOG = logging.getLogger('mobilityd.dhcp.test')
@@ -262,6 +261,7 @@ class DhcpClient(unittest.TestCase):
 
         self._sniffer = AsyncSniffer(iface=self._br,
                                      filter="udp and (port 67 or 68)",
+                                     store=False,
                                      prn=self._handle_dhcp_req_packet)
 
         self.pkt_list = []

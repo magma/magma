@@ -17,6 +17,7 @@ package initflag
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
 )
 
@@ -24,22 +25,22 @@ func init() {
 	flag.Var(
 		&syslogDest,
 		syslogFlag,
-		"Redirect stderr to syslog, optional syslog destination in network::address format (system default otherwise)")
+		"Redirect stderr to syslog, optional syslog destination in network::address format (system default otherwise)",
+	)
 
-	// only if not already parsed
-	if !flag.Parsed() {
-		// save original settings
+	if shouldParse() {
+		// Save original settings
 		orgUsage := flag.CommandLine.Usage
 		origOut := flag.CommandLine.Output()
 		origErrorHandling := flag.CommandLine.ErrorHandling()
 
-		// set to 'silent'
+		// Set to 'silent'
 		flag.CommandLine.Init(flag.CommandLine.Name(), flag.ContinueOnError)
 		flag.CommandLine.Usage = func() {}
-		flag.CommandLine.SetOutput(devNull{})
+		flag.CommandLine.SetOutput(ioutil.Discard)
 		flag.Parse()
 
-		// restore original settings
+		// Restore original settings
 		flag.CommandLine.Init(flag.CommandLine.Name(), origErrorHandling)
 		flag.CommandLine.Usage = orgUsage
 		flag.CommandLine.SetOutput(origOut)
@@ -58,10 +59,4 @@ func init() {
 	if *stdoutToStderr {
 		stdout, os.Stdout = os.Stdout, os.Stderr
 	}
-}
-
-type devNull struct{}
-
-func (devNull) Write(b []byte) (int, error) {
-	return len(b), nil
 }

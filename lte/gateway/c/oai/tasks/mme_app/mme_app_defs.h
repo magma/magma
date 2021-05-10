@@ -36,6 +36,7 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_sgs_fsm.h"
 #include "emm_proc.h"
+#include <czmq.h>
 
 #define INVALID_BEARER_INDEX -1
 #define IPV6_ADDRESS_SIZE 16
@@ -44,11 +45,11 @@
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 
 int mme_app_handle_s1ap_ue_capabilities_ind(
-    const itti_s1ap_ue_cap_ind_t const* s1ap_ue_cap_ind_pP);
+    const itti_s1ap_ue_cap_ind_t* const s1ap_ue_cap_ind_pP);
 
 void mme_app_handle_s1ap_ue_context_release_complete(
     mme_app_desc_t* mme_app_desc_p,
-    const itti_s1ap_ue_context_release_complete_t const*
+    const itti_s1ap_ue_context_release_complete_t* const
         s1ap_ue_context_release_complete);
 
 int mme_app_send_s6a_update_location_req(
@@ -73,11 +74,11 @@ void mme_app_handle_sgs_detach_req(
 
 int mme_app_handle_sgs_eps_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
-    const const itti_sgsap_eps_detach_ack_t* const eps_detach_ack_p);
+    const itti_sgsap_eps_detach_ack_t* const eps_detach_ack_p);
 
 int mme_app_handle_sgs_imsi_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
-    const const itti_sgsap_imsi_detach_ack_t* const imsi_detach_ack_p);
+    const itti_sgsap_imsi_detach_ack_t* const imsi_detach_ack_p);
 
 void mme_app_handle_conn_est_cnf(
     nas_establish_rsp_t* const nas_conn_est_cnf_pP);
@@ -123,6 +124,13 @@ void mme_app_handle_initial_context_setup_failure(
     const itti_mme_app_initial_context_setup_failure_t* const
         initial_ctxt_setup_failure_pP);
 
+void mme_app_handle_e_rab_modification_ind(
+    const itti_s1ap_e_rab_modification_ind_t* const e_rab_modification_ind);
+
+void mme_app_handle_modify_bearer_rsp_erab_mod_ind(
+    itti_s11_modify_bearer_response_t* const s11_modify_bearer_response,
+    ue_mm_context_t* ue_context_p);
+
 bool mme_app_dump_ue_context(
     const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
     void** unused_result_pP);
@@ -144,32 +152,35 @@ void mme_ue_context_update_ue_sig_connection_state(
     mme_ue_context_t* const mme_ue_context_p,
     struct ue_mm_context_s* ue_context_p, ecm_state_t new_ecm_state);
 
-void mme_app_handle_mobile_reachability_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_mobile_reachability_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_implicit_detach_timer_expiry(void* args, imsi64_t* imsi64);
+int mme_app_handle_implicit_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_initial_context_setup_rsp_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_initial_context_setup_rsp_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_ue_context_modification_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_ue_context_modification_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
 void mme_app_handle_enb_reset_req(
-    const itti_s1ap_enb_initiated_reset_req_t const* enb_reset_req);
+    const itti_s1ap_enb_initiated_reset_req_t* const enb_reset_req);
 
 int mme_app_handle_initial_paging_request(
     mme_app_desc_t* mme_app_desc_p, const char* imsi);
 
-void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64);
-void mme_app_handle_ulr_timer_expiry(void* args, imsi64_t* imsi64);
+int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
 
-void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64);
-void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args, imsi64_t* imsi64);
-void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
-    void* args, imsi64_t* imsi64);
-void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
-    void* args, imsi64_t* imsi64);
+int mme_app_handle_sgs_eps_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_sgs_imsi_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
+int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
+    zloop_t* loop, int timer_id, void* args);
 
 int mme_app_send_s6a_cancel_location_ans(
     int cla_result, const char* imsi, uint8_t imsi_length, void* msg_cla_p);
@@ -210,7 +221,7 @@ int mme_app_handle_sgsap_location_update_rej(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej);
 
-void mme_app_handle_ts6_1_timer_expiry(void* args, imsi64_t* imsi64);
+int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args);
 
 int mme_app_handle_sgsap_reset_indication(
     itti_sgsap_vlr_reset_indication_t* const reset_indication_pP);
@@ -271,6 +282,18 @@ void mme_app_handle_nw_init_bearer_deactv_req(
     itti_s11_nw_init_deactv_bearer_request_t* const
         nw_init_bearer_deactv_req_p);
 
+void mme_app_handle_handover_required(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_handover_required_t* const handover_required_p);
+
+void mme_app_handle_handover_request_ack(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_handover_request_ack_t* const handover_request_ack_p);
+
+void mme_app_handle_handover_notify(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_handover_notify_t* const handover_notify_p);
+
 void mme_app_handle_path_switch_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_path_switch_request_t* const path_switch_req_p);
@@ -315,9 +338,13 @@ void mme_app_handle_modify_bearer_rsp(
 void mme_app_get_user_location_information(
     Uli_t* uli_t_p, const ue_mm_context_t* ue_context_p);
 
+void mme_app_remove_stale_ue_context(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_remove_stale_ue_context_t* s1ap_remove_stale_ue_context);
+
 #define ATTACH_REQ (1 << 0)
 #define TAU_REQUEST (1 << 1)
-#define INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED 0x00
+#define INITIAL_CONTEXT_SETUP_PROCEDURE_FAILED 0x00
 #define UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED 0x01
 #define MME_APP_PAGING_ID_IMSI 0X00
 #define MME_APP_PAGING_ID_TMSI 0X01

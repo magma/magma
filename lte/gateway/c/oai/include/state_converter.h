@@ -33,7 +33,10 @@ extern "C" {
 }
 #endif
 
+#include <functional>
+
 #include <google/protobuf/map.h>
+#include <functional>
 
 #include "lte/protos/oai/common_types.pb.h"
 
@@ -85,7 +88,7 @@ class StateConverter {
       return;
     }
 
-    for (uint32_t i = 0; i < ht_keys->num_keys; i++) {
+    for (int i = 0; i < ht_keys->num_keys; i++) {
       NodeType* node;
       ht_rc = hashtable_ts_get(
           state_ht, (hash_key_t) ht_keys->keys[i], (void**) &node);
@@ -95,7 +98,7 @@ class StateConverter {
         (*proto_map)[ht_keys->keys[i]] = proto;
       } else {
         OAILOG_ERROR(
-            log_task_level, "Key %u not found on %s hashtable",
+            log_task_level, "Key %lu not found on %s hashtable",
             ht_keys->keys[i], state_ht->name->data);
       }
     }

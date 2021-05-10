@@ -20,12 +20,14 @@ import (
 
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/cloud/go/sqorc"
-	orc8rStorage "magma/orc8r/cloud/go/storage"
+	orc8r_storage "magma/orc8r/cloud/go/storage"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/ptypes/wrappers"
-	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/assert"
+)
+
+const (
+	integTestMaxLoadSize = 5
 )
 
 type mockIDGenerator struct {
@@ -38,13 +40,13 @@ func (g *mockIDGenerator) New() string {
 }
 
 func TestSqlConfiguratorStorage_Integration(t *testing.T) {
-	// sqlite's default behavior is to disable foreign keys (wat): https://www.sqlite.org/draft/pragma.html#pragma_foreign_keys
-	// thankfully the sqlite3 driver supports the apporpriate pragma: https://github.com/mattn/go-sqlite3/issues/255
+	// sqlite's default behavior is to disable foreign keys: https://www.sqlite.org/draft/pragma.html#pragma_foreign_keys
+	// thankfully the sqlite3 driver supports the appropriate pragma: https://github.com/mattn/go-sqlite3/issues/255
 	db, err := sqorc.Open("sqlite3", ":memory:?_foreign_keys=1")
 	if err != nil {
 		t.Fatalf("Could not initialize sqlite DB: %s", err)
 	}
-	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sqorc.GetSqlBuilder())
+	factory := storage.NewSQLConfiguratorStorageFactory(db, &mockIDGenerator{}, sqorc.GetSqlBuilder(), integTestMaxLoadSize)
 	err = factory.InitializeServiceStorage()
 	assert.NoError(t, err)
 
@@ -106,6 +108,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// ========================================================================
 
 	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
 	loadedNetworks, err := store.LoadAllNetworks(storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
 	assert.Equal(t, "n1", loadedNetworks[0].ID)
@@ -140,7 +143,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NoError(t, store.Commit())
 
-	store, err = factory.StartTransaction(context.Background(), &orc8rStorage.TxOptions{ReadOnly: true})
+	store, err = factory.StartTransaction(context.Background(), &orc8r_storage.TxOptions{ReadOnly: true})
 	assert.NoError(t, err)
 	loadNetworksActual, err = store.LoadNetworks(storage.NetworkLoadFilter{Ids: []string{"n1", "n2", "n3"}}, storage.FullNetworkLoadCriteria)
 	assert.NoError(t, err)
@@ -193,15 +196,13 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// ========================================================================
 
 	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
 
 	actualEntityLoad, err := store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
 	assert.Equal(
 		t,
-		storage.EntityLoadResult{
-			Entities:         []*storage.NetworkEntity{},
-			EntitiesNotFound: []*storage.EntityID{},
-		},
+		storage.EntityLoadResult{},
 		actualEntityLoad,
 	)
 
@@ -219,10 +220,9 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.Equal(
 		t,
 		storage.EntityLoadResult{
-			Entities: []*storage.NetworkEntity{},
 			EntitiesNotFound: []*storage.EntityID{
-				{Type: "foo", Key: "bar"},
 				{Type: "baz", Key: "quz"},
+				{Type: "foo", Key: "bar"},
 			},
 		},
 		actualEntityLoad,
@@ -249,6 +249,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 		// should be ignored
 		GraphID: "1",
+		// should be ignored
+		Pk: "0xdeadbeef",
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, "2", expectedFoobarEnt.GraphID)
@@ -261,24 +263,9 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		Description: "barbaz ent",
 
 		Config: []byte("barbaz"),
-
-		Permissions: []*storage.ACL{
-			{
-				Permission: storage.ACL_NO_PERM,
-				Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-				Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-			},
-			{
-				Permission: storage.ACL_WRITE,
-				Type:       &storage.ACL_EntityType{EntityType: "foo"},
-				Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1"}}},
-			},
-		},
 	})
 	assert.NoError(t, err)
 	assert.Equal(t, "4", expectedBarbazEnt.GraphID)
-	assert.Equal(t, "5", expectedBarbazEnt.Permissions[0].ID)
-	assert.Equal(t, "6", expectedBarbazEnt.Permissions[1].ID)
 
 	// bazquz should link foobar and barbaz into 1 graph
 	// that graph ID should be 2
@@ -295,11 +282,25 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		},
 	})
 	assert.NoError(t, err)
+
+	// Try and fail to create ent with physical ID that already exists
+	_, err = store.CreateEntity("n1", storage.NetworkEntity{
+		Type:       "apple_type",
+		Key:        "apple_key",
+		PhysicalID: "1",
+	})
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "an entity with physical ID '1' already exists")
+
 	assert.NoError(t, store.Commit())
 	assert.Equal(t, "2", expectedBazquzEnt.GraphID)
 
 	expectedFoobarEnt.GraphID = "2"
 	expectedBarbazEnt.GraphID = "2"
+
+	expectedFoobarEnt.Pk = "1"
+	expectedBarbazEnt.Pk = "3"
+	expectedBazquzEnt.Pk = "5"
 
 	expectedFoobarEnt.ParentAssociations = []*storage.EntityID{
 		{Type: "baz", Key: "quz"},
@@ -320,7 +321,6 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 				&expectedBazquzEnt,
 				&expectedFoobarEnt,
 			},
-			EntitiesNotFound: []*storage.EntityID{},
 		},
 		actualEntityLoad,
 	)
@@ -329,7 +329,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// Load from physical ID
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
-	// network ID shouldn't matter in this query
+	// network ID shouldn't matter in this query, since searching on
+	// physical ID intentionally doesn't scope to a particular network
 	actualEntityLoad, err = store.LoadEntities("placeholder", storage.EntityLoadFilter{PhysicalID: stringPointer("1")}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
 	assert.Equal(
@@ -338,7 +339,6 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			Entities: []*storage.NetworkEntity{
 				&expectedFoobarEnt,
 			},
-			EntitiesNotFound: []*storage.EntityID{},
 		},
 		actualEntityLoad,
 	)
@@ -355,7 +355,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	// ========================================================================
 
 	// create a new ent helloworld without assocs
-	// pk should be 9, graph id should be 10, permission id should be 11
+	// pk should be 9, graph id should be 10
 
 	store, err = factory.StartTransaction(context.Background(), nil)
 	assert.NoError(t, err)
@@ -367,18 +367,10 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		Description: "helloworld ent",
 
 		Config: []byte("first config"),
-
-		Permissions: []*storage.ACL{
-			{
-				Permission: storage.ACL_NO_PERM,
-				Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-				Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-			},
-		},
 	})
 	assert.NoError(t, err)
 
-	// update basic fields and permissions on it
+	// update basic fields
 
 	newName := "helloworld2"
 	newDesc := "helloworld2 ent"
@@ -393,22 +385,6 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		NewPhysicalID:  &wrappers.StringValue{Value: newPhysID},
 
 		NewConfig: &wrappers.BytesValue{Value: newConfig},
-
-		PermissionsToCreate: []*storage.ACL{
-			{
-				Permission: storage.ACL_WRITE,
-				Type:       &storage.ACL_EntityType{EntityType: "foo"},
-				Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1"}}},
-			},
-		},
-		PermissionsToUpdate: []*storage.ACL{
-			{
-				ID:         "11",
-				Permission: storage.ACL_WRITE,
-				Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-				Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-			},
-		},
 	})
 	assert.NoError(t, err)
 
@@ -419,30 +395,15 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			Type:      "hello",
 			Key:       "world",
 
-			GraphID: "10",
+			Pk:      "7",
+			GraphID: "8",
 
 			PhysicalID: newPhysID,
 
 			Name:        newName,
 			Description: newDesc,
 			Config:      newConfig,
-
-			Permissions: []*storage.ACL{
-				{
-					ID:         "12",
-					Permission: storage.ACL_WRITE,
-					Type:       &storage.ACL_EntityType{EntityType: "foo"},
-					Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1"}}},
-				},
-				{
-					ID:         "11",
-					Permission: storage.ACL_WRITE,
-					Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-					Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-				},
-			},
-
-			Version: 1,
+			Version:     1,
 		},
 		updateHelloWorldEntResult,
 	)
@@ -479,7 +440,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			NetworkID:  "n1",
 			Type:       "hello",
 			Key:        "world",
-			GraphID:    "10",
+			Pk:         "7",
+			GraphID:    "2",
 			PhysicalID: newPhysID,
 			Associations: []*storage.EntityID{
 				{Type: "foo", Key: "bar"},
@@ -497,22 +459,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		{Type: "baz", Key: "quz"},
 		{Type: "foo", Key: "bar"},
 	}
-	expectedHelloWorldEnt.GraphID = "10"
-	expectedHelloWorldEnt.Permissions = []*storage.ACL{
-		{
-			ID:         "11",
-			Permission: storage.ACL_WRITE,
-			Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-			Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-			Version:    1,
-		},
-		{
-			ID:         "12",
-			Permission: storage.ACL_WRITE,
-			Type:       &storage.ACL_EntityType{EntityType: "foo"},
-			Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1"}}},
-		},
-	}
+	expectedHelloWorldEnt.GraphID = "2"
 	expectedHelloWorldEnt.Version = 2
 
 	actualEntityLoad, err = store.LoadEntities(
@@ -524,8 +471,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.Equal(
 		t,
 		storage.EntityLoadResult{
-			Entities:         []*storage.NetworkEntity{&expectedHelloWorldEnt},
-			EntitiesNotFound: []*storage.EntityID{},
+			Entities: []*storage.NetworkEntity{&expectedHelloWorldEnt},
 		},
 		actualEntityLoad,
 	)
@@ -540,7 +486,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Load a graph directly via ID
-	actualGraph10, err := store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.EntityLoadCriteria{})
+	actualGraph2, err := store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.EntityLoadCriteria{})
 	assert.NoError(t, err)
 
 	expectedFoobarEnt.ParentAssociations = append(expectedFoobarEnt.ParentAssociations, &storage.EntityID{Type: "hello", Key: "world"})
@@ -551,7 +497,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		NetworkID:  "n1",
 		Type:       "foo",
 		Key:        "bar",
-		GraphID:    "10",
+		Pk:         "1",
+		GraphID:    "2",
 		PhysicalID: "1",
 		ParentAssociations: []*storage.EntityID{
 			{Type: "baz", Key: "quz"},
@@ -563,7 +510,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		NetworkID: "n1",
 		Type:      "bar",
 		Key:       "baz",
-		GraphID:   "10",
+		Pk:        "3",
+		GraphID:   "2",
 		ParentAssociations: []*storage.EntityID{
 			{Type: "baz", Key: "quz"},
 			{Type: "hello", Key: "world"},
@@ -574,7 +522,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		NetworkID: "n1",
 		Type:      "baz",
 		Key:       "quz",
-		GraphID:   "10",
+		Pk:        "5",
+		GraphID:   "2",
 		ParentAssociations: []*storage.EntityID{
 			{Type: "hello", Key: "world"},
 		},
@@ -588,7 +537,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		NetworkID:  "n1",
 		Type:       "hello",
 		Key:        "world",
-		GraphID:    "10",
+		Pk:         "7",
+		GraphID:    "2",
 		PhysicalID: "asdf",
 		Associations: []*storage.EntityID{
 			{Type: "bar", Key: "baz"},
@@ -598,7 +548,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 		Version: 2,
 	}
 
-	expectedGraph10 := storage.EntityGraph{
+	expectedGraph2 := storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
 			&expectedBarbazEnt,
 			&expectedBazquzEnt,
@@ -614,15 +564,15 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "hello", Key: "world"}, To: &storage.EntityID{Type: "foo", Key: "bar"}},
 		},
 	}
-	assert.Equal(t, expectedGraph10, actualGraph10)
+	assert.Equal(t, expectedGraph2, actualGraph2)
 
 	// Load a graph from the ID of a node in the middle
-	actualGraph10, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "baz", Key: "quz"}, storage.EntityLoadCriteria{})
+	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "baz", Key: "quz"}, storage.EntityLoadCriteria{})
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph10, actualGraph10)
+	assert.Equal(t, expectedGraph2, actualGraph2)
 
 	// Load a graph with full load criteria
-	actualGraph10, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
+	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
 
 	expectedFoobarEnt.Name = "foobar"
@@ -632,20 +582,6 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedBarbazEnt.Name = "barbaz"
 	expectedBarbazEnt.Description = "barbaz ent"
 	expectedBarbazEnt.Config = []byte("barbaz")
-	expectedBarbazEnt.Permissions = []*storage.ACL{
-		{
-			ID:         "5",
-			Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-			Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-			Permission: storage.ACL_NO_PERM,
-		},
-		{
-			ID:         "6",
-			Type:       &storage.ACL_EntityType{EntityType: "foo"},
-			Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1"}}},
-			Permission: storage.ACL_WRITE,
-		},
-	}
 
 	expectedBazquzEnt.Name = "bazquz"
 	expectedBazquzEnt.Description = "bazquz ent"
@@ -653,23 +589,8 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedHelloWorldEnt.Name = "helloworld2"
 	expectedHelloWorldEnt.Description = "helloworld2 ent"
 	expectedHelloWorldEnt.Config = []byte("second config")
-	expectedHelloWorldEnt.Permissions = []*storage.ACL{
-		{
-			ID:         "11",
-			Permission: storage.ACL_WRITE,
-			Type:       &storage.ACL_TypeWildcard{TypeWildcard: storage.ACL_WILDCARD_ALL},
-			Scope:      &storage.ACL_ScopeWildcard{ScopeWildcard: storage.ACL_WILDCARD_ALL},
-			Version:    1,
-		},
-		{
-			ID:         "12",
-			Permission: storage.ACL_WRITE,
-			Type:       &storage.ACL_EntityType{EntityType: "foo"},
-			Scope:      &storage.ACL_ScopeNetworkIDs{ScopeNetworkIDs: &storage.ACL_NetworkIDs{IDs: []string{"n1"}}},
-		},
-	}
 
-	expectedGraph10 = storage.EntityGraph{
+	expectedGraph2 = storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
 			&expectedBarbazEnt,
 			&expectedBazquzEnt,
@@ -685,7 +606,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "hello", Key: "world"}, To: &storage.EntityID{Type: "foo", Key: "bar"}},
 		},
 	}
-	assert.Equal(t, expectedGraph10, actualGraph10)
+	assert.Equal(t, expectedGraph2, actualGraph2)
 	assert.NoError(t, store.Commit())
 
 	// TODO: orphan some graph nodes (blocked on impl of fixGraph)
@@ -724,7 +645,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedFoobarEnt.ParentAssociations = []*storage.EntityID{{Type: "baz", Key: "quz"}}
 	expectedBarbazEnt.ParentAssociations = []*storage.EntityID{{Type: "baz", Key: "quz"}}
 
-	expectedGraph10 = storage.EntityGraph{
+	expectedGraph2 = storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
 			&expectedBarbazEnt,
 			&expectedBazquzEnt,
@@ -738,9 +659,9 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "hello", Key: "world"}, To: &storage.EntityID{Type: "baz", Key: "quz"}},
 		},
 	}
-	actualGraph10, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.FullEntityLoadCriteria)
+	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph10, actualGraph10)
+	assert.Equal(t, expectedGraph2, actualGraph2)
 
 	// delete assoc to bazquz, helloworld should have a new graph ID
 	_, err = store.UpdateEntity(
@@ -756,11 +677,11 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	expectedHelloWorldEnt.Associations = nil
 	expectedHelloWorldEnt.Version = 4
-	expectedHelloWorldEnt.GraphID = "13"
+	expectedHelloWorldEnt.GraphID = "9"
 	expectedBazquzEnt.ParentAssociations = nil
 
 	// first, check graph of foobar which should be unchanged
-	expectedGraph10 = storage.EntityGraph{
+	expectedGraph2 = storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
 			&expectedBarbazEnt,
 			&expectedBazquzEnt,
@@ -772,21 +693,21 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 			{From: &storage.EntityID{Type: "baz", Key: "quz"}, To: &storage.EntityID{Type: "foo", Key: "bar"}},
 		},
 	}
-	actualGraph10, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
+	actualGraph2, err = store.LoadGraphForEntity("n1", storage.EntityID{Type: "foo", Key: "bar"}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph10, actualGraph10)
+	assert.Equal(t, expectedGraph2, actualGraph2)
 
-	// helloworld should be in its own graph now. ID generator was at 13
-	expectedGraph13 := storage.EntityGraph{
+	// helloworld should be in its own graph now. ID generator was at 9.
+	expectedGraph9 := storage.EntityGraph{
 		Entities: []*storage.NetworkEntity{
 			&expectedHelloWorldEnt,
 		},
 		RootEntities: []*storage.EntityID{{Type: "hello", Key: "world"}},
 		Edges:        []*storage.GraphEdge{},
 	}
-	actualGraph13, err := store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.FullEntityLoadCriteria)
+	actualGraph9, err := store.LoadGraphForEntity("n1", storage.EntityID{Type: "hello", Key: "world"}, storage.FullEntityLoadCriteria)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedGraph13, actualGraph13)
+	assert.Equal(t, expectedGraph9, actualGraph9)
 
 	// now, delete bazquz. this should partition the network into 3 different
 	// graphs each with a single element
@@ -798,7 +719,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	assert.NotNil(t, allEnts)
 
 	expectedBarbazEnt.ParentAssociations = nil
-	expectedFoobarEnt.GraphID = "14"
+	expectedFoobarEnt.GraphID = "10"
 	expectedFoobarEnt.ParentAssociations = nil
 
 	assert.Equal(
@@ -809,7 +730,6 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 				&expectedFoobarEnt,
 				&expectedHelloWorldEnt,
 			},
-			EntitiesNotFound: []*storage.EntityID{},
 		},
 		allEnts,
 	)
@@ -845,7 +765,7 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 	expectedBarbazEnt.ParentAssociations = []*storage.EntityID{{Type: "hello", Key: "world"}}
 	expectedBarbazEnt.GraphID = "10"
 	expectedHelloWorldEnt.GraphID = "10"
-	expectedFoobarEnt.GraphID = "15"
+	expectedFoobarEnt.GraphID = "11"
 	expectedHelloWorldEnt.Version = 6
 
 	allEnts, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
@@ -860,7 +780,6 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 				&expectedFoobarEnt,
 				&expectedHelloWorldEnt,
 			},
-			EntitiesNotFound: []*storage.EntityID{},
 		},
 		allEnts,
 	)
@@ -880,9 +799,9 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 
 	expectedHelloWorldEnt.Associations = nil
 	expectedBarbazEnt.ParentAssociations = nil
-	expectedBarbazEnt.GraphID = "16"
+	expectedBarbazEnt.GraphID = "12"
 	expectedHelloWorldEnt.GraphID = "10"
-	expectedFoobarEnt.GraphID = "15"
+	expectedFoobarEnt.GraphID = "11"
 	expectedHelloWorldEnt.Version = 7
 
 	allEnts, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, storage.FullEntityLoadCriteria)
@@ -897,8 +816,106 @@ func TestSqlConfiguratorStorage_Integration(t *testing.T) {
 				&expectedFoobarEnt,
 				&expectedHelloWorldEnt,
 			},
-			EntitiesNotFound: []*storage.EntityID{},
 		},
 		allEnts,
 	)
+	assert.NoError(t, store.Commit())
+
+	// ========================================================================
+	// Paginated load tests
+	// ========================================================================
+
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+
+	// Create two more entities of type foo for paginated load
+	expectedFoozedEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+		Type: "foo",
+		Key:  "zed",
+
+		Name:        "foozed",
+		Description: "foozed ent",
+
+		PhysicalID: "6",
+
+		Config: []byte("foozed"),
+	})
+	assert.NoError(t, err)
+	assert.Equal(t, "14", expectedFoozedEnt.GraphID)
+
+	expectedFoohueEnt, err := store.CreateEntity("n1", storage.NetworkEntity{
+		Type: "foo",
+		Key:  "hue",
+
+		Name:        "foohue",
+		Description: "foozed ent",
+
+		PhysicalID: "7",
+
+		Config: []byte("foohue"),
+	})
+	assert.NoError(t, err)
+	assert.NoError(t, store.Commit())
+	assert.Equal(t, "15", expectedFoohueEnt.Pk)
+	assert.Equal(t, "16", expectedFoohueEnt.GraphID)
+
+	// Load paginated entities of the same type
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	paginatedLoadCriteria := storage.FullEntityLoadCriteria
+	paginatedLoadCriteria.PageToken = ""
+	paginatedLoadCriteria.PageSize = 2
+	actualEntityLoad, err = store.LoadEntities("n1", storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}}, paginatedLoadCriteria)
+	assert.NoError(t, err)
+	nextToken := &storage.EntityPageToken{
+		LastIncludedEntity: "hue",
+	}
+	expectedNextToken := serializeToken(t, nextToken)
+
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				&expectedFoobarEnt, // type: foo, key: bar
+				&expectedFoohueEnt, // type: foo, key: hue
+			},
+			NextPageToken: expectedNextToken,
+		},
+		actualEntityLoad,
+	)
+	assert.NoError(t, store.Commit())
+
+	// Load paginated entities (page 2)
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	paginatedLoadCriteria.PageToken = expectedNextToken
+	actualEntityLoad, err = store.LoadEntities("n1", storage.EntityLoadFilter{TypeFilter: &wrappers.StringValue{Value: "foo"}}, paginatedLoadCriteria)
+	assert.NoError(t, err)
+	assert.Equal(
+		t,
+		storage.EntityLoadResult{
+			Entities: []*storage.NetworkEntity{
+				&expectedFoozedEnt, // type: foo, key: zed
+			},
+			NextPageToken: "",
+		},
+		actualEntityLoad,
+	)
+	assert.NoError(t, store.Commit())
+
+	// Ensure multi-type pagination loads fail
+	paginatedLoadCriteria.PageToken = ""
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	_, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, paginatedLoadCriteria)
+	assert.Error(t, err)
+	assert.NoError(t, store.Commit())
+
+	paginatedLoadCriteria.PageToken = "aaa"
+	paginatedLoadCriteria.PageSize = 0
+	store, err = factory.StartTransaction(context.Background(), nil)
+	assert.NoError(t, err)
+	_, err = store.LoadEntities("n1", storage.EntityLoadFilter{}, paginatedLoadCriteria)
+	assert.Error(t, err)
+	assert.NoError(t, store.Commit())
 }

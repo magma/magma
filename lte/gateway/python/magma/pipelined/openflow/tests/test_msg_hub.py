@@ -13,11 +13,10 @@ limitations under the License.
 
 import logging
 import unittest
-from unittest.mock import Mock, MagicMock
-
-from ryu.lib import hub
+from unittest.mock import MagicMock, Mock
 
 from magma.pipelined.openflow.messages import MessageHub
+from ryu.lib import hub
 
 
 class MockBarrierRequest(object):

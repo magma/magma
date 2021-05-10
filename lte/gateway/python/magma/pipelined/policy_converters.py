@@ -12,12 +12,23 @@ limitations under the License.
 """
 import ipaddress
 
-from lte.protos.policydb_pb2 import FlowMatch
 from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, load_direction, \
-    DPI_REG
+from magma.pipelined.openflow.registers import (
+    DPI_REG,
+    Direction,
+    load_direction,
+)
 from ryu.lib.packet import ether_types
+
+MATCH_ATTRIBUTES = ['metadata', 'reg0', 'reg1', 'reg2', 'reg3', 'reg4', 'reg5',
+                    'reg6', 'reg8', 'reg9', 'reg10',
+                    'in_port', 'dl_vlan', 'vlan_tci',
+                    'eth_type', 'dl_dst', 'dl_src',
+                    'arp_tpa', 'arp_spa', 'arp_op',
+                    'ipv4_dst', 'ipv4_src', 'ipv6_src', 'ipv6_dst',
+                    'ip_proto', 'tcp_src', 'tcp_dst', 'udp_src', 'udp_dst']
 
 
 class FlowMatchError(Exception):
@@ -245,3 +256,12 @@ def convert_ip_str_to_ip_proto(ip_str: str):
     else:
         ip_addr = convert_ipv4_str_to_ip_proto(ip_str)
     return ip_addr
+
+
+def ovs_flow_match_to_magma_match(flow):
+    attribute_dict = {}
+    for a in MATCH_ATTRIBUTES:
+        val = flow.match.get(a, None)
+        if val:
+            attribute_dict[a] = val
+    return MagmaMatch(**attribute_dict)

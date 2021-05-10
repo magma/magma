@@ -15,9 +15,7 @@ import json
 from unittest import TestCase
 
 from jsonschema import ValidationError
-
-from magma.eventd.rpc_servicer import EventDRpcServicer
-from magma.common.service import MagmaService
+from magma.eventd.event_validator import EventValidator
 
 
 class EventValidationTests(TestCase):
@@ -37,78 +35,90 @@ class EventValidationTests(TestCase):
                 'null_event': test_events_location,
             },
         }
-        servicer = EventDRpcServicer(config)
-        servicer.load_specs_from_registry()
-        self.validate_event = servicer._validate_event
+        self.validator = EventValidator(config)
 
     def test_event_registration(self):
+        data = json.dumps({
+            'foo': 'magma',  # required
+            'bar': 123
+        })
         # Errors when event is not registered
         with self.assertRaises(Exception):
-            self.validate_event(json.dumps({'foo': 'asdf', 'bar': 123}),
-                                'non_existent_event')
+            self.validator.validate_event(data, 'non_existent_event')
 
         # Does not error when event is registered
-        self.validate_event(json.dumps({'foo': 'asdf', 'bar': 123}),
-                            'simple_event')
+        self.validator.validate_event(data, 'simple_event')
 
     def test_field_consistency(self):
         # Errors when there are missing fields (required fields)
         with self.assertRaises(ValidationError):
             # foo is missing
-            self.validate_event(json.dumps({'bar': 123}), 'simple_event')
+            data = json.dumps({
+                'bar': 123
+            })
+            self.validator.validate_event(data, 'simple_event')
 
         # Errors on excess fields (additionalProperties set to false)
         with self.assertRaises(ValidationError):
-            self.validate_event(
-                json.dumps({'extra_field': 12, 'foo': 'asdf', 'bar': 123}),
-                'simple_event')
+            data = json.dumps({
+                'extra_field': 12,
+                'foo': 'asdf',
+                'bar': 123
+            })
+            self.validator.validate_event(data, 'simple_event')
 
         # Errors when there are missing AND excess fields
         with self.assertRaises(ValidationError):
+            data = json.dumps({
+                'extra_field': 12,
+                'bar': 123
+            })
             # foo is missing
-            self.validate_event(json.dumps({'extra_field': 12, 'bar': 123}),
-                                'simple_event')
+            self.validator.validate_event(data, 'simple_event')
 
         # Does not error when the fields are equivalent
-        self.validate_event(json.dumps({'foo': 'asdf', 'bar': 123}),
-                            'simple_event')
+        data = json.dumps({
+            'foo': 'magma',  # required
+            'bar': 123
+        })
+        self.validator.validate_event(data, 'simple_event')
 
         # Does not error when event has no fields
-        self.validate_event(json.dumps({}), 'null_event')
+        self.validator.validate_event(json.dumps({}), 'null_event')
 
     def test_type_checking(self):
+        data = json.dumps({
+            'an_array': ["a", "b"],
+            'an_object': {
+                "a_key": 1,
+                "b_key": 1
+            }
+        })
         # Does not error when the types match
-        self.validate_event(
-            json.dumps({
-                'an_array': ["a", "b"],
-                'an_object': {
-                    "a_key": 1,
-                    "b_key": 1
-                }
-            }),
-            'array_and_object_event')
+        self.validator.validate_event(data, 'array_and_object_event')
 
         # Errors when the type is wrong for primitive fields
         with self.assertRaises(ValidationError):
-            self.validate_event(json.dumps({'foo': 123, 'bar': 'asdf'}),
-                                'simple_event')
+            data = json.dumps({
+                'foo': 123,
+                'bar': 'asdf'
+            })
+            self.validator.validate_event(data, 'simple_event')
 
         # Errors when the type is wrong for array
         with self.assertRaises(ValidationError):
-            self.validate_event(
-                json.dumps({
-                    'an_array': [1, 2, 3],
-                    'an_object': {}
-                }),
-                'array_and_object_event')
+            data = json.dumps({
+                'an_array': [1, 2, 3],
+                'an_object': {}
+            })
+            self.validator.validate_event(data, 'array_and_object_event')
 
         # Errors when the value type is wrong for object
         with self.assertRaises(ValidationError):
-            self.validate_event(
-                json.dumps({
-                    'an_array': ["a", "b"],
-                    'an_object': {
-                        "a_key": "wrong_value"
-                    }
-                }),
-                'array_and_object_event')
+            data = json.dumps({
+                'an_array': ["a", "b"],
+                'an_object': {
+                    "a_key": "wrong_value"
+                }
+            })
+            self.validator.validate_event(data, 'array_and_object_event')

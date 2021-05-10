@@ -13,17 +13,24 @@
  * @flow strict-local
  * @format
  */
-
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
+import type {EnodebState} from '../../components/context/EnodebContext';
+import type {
+  GatewayPoolRecordsType,
+  gatewayPoolsStateType,
+} from '../../components/context/GatewayPoolsContext';
 import type {
   enodeb_serials,
+  gateway_cellular_configs,
   gateway_dns_configs,
   gateway_epc_configs,
   gateway_id,
+  gateway_pool_id,
   gateway_ran_configs,
   generic_command_params,
   lte_gateway,
   magmad_gateway_configs,
+  mutable_cellular_gateway_pool,
   mutable_lte_gateway,
   network_id,
   ping_request,
@@ -108,6 +115,74 @@ export async function SetTierState(props: TierStateProps) {
 }
 
 /**************************** Enode State ************************************/
+type FetchProps = {
+  networkId: string,
+  id?: string,
+  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+};
+
+export async function FetchEnodebs(props: FetchProps) {
+  const {networkId, id} = props;
+  let enb = {};
+  if (id !== undefined && id !== null) {
+    try {
+      enb = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerial({
+        networkId: networkId,
+        enodebSerial: id,
+      });
+      if (enb) {
+        const newEnbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
+          {
+            networkId: networkId,
+            enodebSerial: id,
+          },
+        );
+        const newEnb = {[id]: {enb_state: newEnbSt, enb: enb}};
+        return newEnb;
+      }
+    } catch (e) {
+      return {[id]: {enb_state: {}, enb: enb}};
+    }
+  } else {
+    enb = await MagmaV1API.getLteByNetworkIdEnodebs({networkId});
+
+    if (!enb) {
+      return;
+    }
+
+    const requests = Object.keys(enb).map(async k => {
+      try {
+        const {serial} = enb[k];
+        // eslint-disable-next-line max-len
+        const enbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
+          {
+            networkId: networkId,
+            enodebSerial: serial,
+          },
+        );
+        return [enb[k], enbSt ?? {}];
+      } catch (e) {
+        return [enb[k], {}];
+      }
+    });
+
+    const enbResp = await Promise.all(requests);
+    const enbInfo = {};
+    enbResp.filter(Boolean).forEach(r => {
+      if (r.length > 0) {
+        const [enb, enbSt] = r;
+        if (enb != null && enbSt != null) {
+          enbInfo[enb.serial] = {
+            enb: enb,
+            enb_state: enbSt,
+          };
+        }
+      }
+    });
+    return enbInfo;
+  }
+}
+
 type InitEnodeStateProps = {
   networkId: network_id,
   setEnbInfo: ({[string]: EnodebInfo}) => void,
@@ -115,58 +190,13 @@ type InitEnodeStateProps = {
 };
 
 export async function InitEnodeState(props: InitEnodeStateProps) {
-  const {networkId, setEnbInfo, enqueueSnackbar} = props;
-  let enb = {};
-  try {
-    enb = await MagmaV1API.getLteByNetworkIdEnodebs({networkId});
-  } catch (e) {
-    enqueueSnackbar?.('failed fetching enodeb information', {
-      variant: 'error',
-    });
-    return;
-  }
-
-  if (!enb) {
-    return;
-  }
-
-  let err = false;
-  const requests = Object.keys(enb).map(async k => {
-    try {
-      const {serial} = enb[k];
-      // eslint-disable-next-line max-len
-      const enbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
-        {
-          networkId: networkId,
-          enodebSerial: serial,
-        },
-      );
-      return [enb[k], enbSt ?? {}];
-    } catch (e) {
-      err = true;
-      return [enb[k], {}];
-    }
+  const enodebInfo = await FetchEnodebs({
+    networkId: props.networkId,
+    enqueueSnackbar: props.enqueueSnackbar,
   });
-
-  const enbResp = await Promise.all(requests);
-  const enbInfo = {};
-  enbResp.filter(Boolean).forEach(r => {
-    if (r.length > 0) {
-      const [enb, enbSt] = r;
-      if (enb != null && enbSt != null) {
-        enbInfo[enb.serial] = {
-          enb: enb,
-          enb_state: enbSt,
-        };
-      }
-    }
-  });
-  if (err) {
-    enqueueSnackbar?.('failed fetching enodeb state information', {
-      variant: 'error',
-    });
+  if (enodebInfo) {
+    props.setEnbInfo(enodebInfo);
   }
-  setEnbInfo(enbInfo);
 }
 
 type EnodebStateProps = {
@@ -175,10 +205,15 @@ type EnodebStateProps = {
   setEnbInfo: ({[string]: EnodebInfo}) => void,
   key: string,
   value?: EnodebInfo,
+  newState?: EnodebState,
 };
 
 export async function SetEnodebState(props: EnodebStateProps) {
-  const {networkId, enbInfo, setEnbInfo, key, value} = props;
+  const {networkId, enbInfo, setEnbInfo, key, value, newState} = props;
+  if (newState) {
+    setEnbInfo(newState.enbInfo);
+    return;
+  }
   if (value != null) {
     // remove attached gateway id read only property
     if (value.enb.hasOwnProperty('attached_gateway_id')) {
@@ -199,19 +234,6 @@ export async function SetEnodebState(props: EnodebStateProps) {
       const prevEnbSt = enbInfo[key].enb_state;
       setEnbInfo({...enbInfo, [key]: {enb_state: prevEnbSt, enb: value.enb}});
     }
-    const newEnb = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerial({
-      networkId: networkId,
-      enodebSerial: key,
-    });
-    if (newEnb) {
-      const newEnbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
-        {
-          networkId: networkId,
-          enodebSerial: key,
-        },
-      );
-      setEnbInfo({...enbInfo, [key]: {enb_state: newEnbSt, enb: newEnb}});
-    }
   } else {
     await MagmaV1API.deleteLteByNetworkIdEnodebsByEnodebSerial({
       networkId: networkId,
@@ -220,20 +242,56 @@ export async function SetEnodebState(props: EnodebStateProps) {
     const newEnbInfo = {...enbInfo};
     delete newEnbInfo[key];
     setEnbInfo(newEnbInfo);
+    return;
   }
 }
 
 /**************************** Gateway State **********************************/
+
+export async function FetchGateways(props: FetchProps) {
+  const {networkId, id, enqueueSnackbar} = props;
+  if (id !== undefined && id !== null) {
+    try {
+      const gateway = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({
+        networkId: networkId,
+        gatewayId: id,
+      });
+      if (gateway) {
+        return {[id]: gateway};
+      }
+    } catch (e) {
+      enqueueSnackbar?.('failed fetching gateway information', {
+        variant: 'error',
+      });
+    }
+  } else {
+    try {
+      return await MagmaV1API.getLteByNetworkIdGateways({
+        networkId: networkId,
+      });
+    } catch (e) {
+      enqueueSnackbar?.('failed fetching gateway information', {
+        variant: 'error',
+      });
+    }
+  }
+}
+
 type GatewayStateProps = {
   networkId: network_id,
   lteGateways: {[string]: lte_gateway},
   setLteGateways: ({[string]: lte_gateway}) => void,
   key: gateway_id,
   value?: mutable_lte_gateway,
+  newState?: {[string]: lte_gateway},
 };
 
 export async function SetGatewayState(props: GatewayStateProps) {
-  const {networkId, lteGateways, setLteGateways, key, value} = props;
+  const {networkId, lteGateways, setLteGateways, key, value, newState} = props;
+  if (newState) {
+    setLteGateways(newState);
+    return;
+  }
   if (value != null) {
     if (!(key in lteGateways)) {
       await MagmaV1API.postLteByNetworkIdGateways({
@@ -248,14 +306,6 @@ export async function SetGatewayState(props: GatewayStateProps) {
         gateway: value,
       });
       setLteGateways({...lteGateways, [key]: value});
-    }
-    const gateway = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({
-      networkId: networkId,
-      gatewayId: key,
-    });
-    if (gateway) {
-      const newLteGateways = {...lteGateways, [key]: gateway};
-      setLteGateways(newLteGateways);
     }
   } else {
     await MagmaV1API.deleteLteByNetworkIdGatewaysByGatewayId({
@@ -275,6 +325,7 @@ export type UpdateGatewayProps = {
   epcConfigs?: gateway_epc_configs,
   ranConfigs?: gateway_ran_configs,
   dnsConfig?: gateway_dns_configs,
+  cellularConfigs?: gateway_cellular_configs,
   enbs?: enodeb_serials,
   networkId: network_id,
   setLteGateways: ({[string]: lte_gateway}) => void,
@@ -337,17 +388,26 @@ export async function UpdateGateway(props: UpdateGatewayProps) {
       }),
     );
   }
+
+  if (props.cellularConfigs) {
+    requests.push(
+      MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellular({
+        networkId,
+        gatewayId: gatewayId,
+        config: props.cellularConfigs,
+      }),
+    );
+  }
   await Promise.all(requests);
   const gateways = await MagmaV1API.getLteByNetworkIdGateways({
     networkId,
   });
   setLteGateways(gateways);
 }
-
 export type GatewayCommandProps = {
   networkId: network_id,
   gatewayId: gateway_id,
-  command: 'reboot' | 'ping' | 'generic',
+  command: 'reboot' | 'ping' | 'restartServices' | 'generic',
   pingRequest?: ping_request,
   params?: generic_command_params,
 };
@@ -359,6 +419,11 @@ export async function RunGatewayCommands(props: GatewayCommandProps) {
     case 'reboot':
       return await MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandReboot(
         {networkId, gatewayId},
+      );
+
+    case 'restartServices':
+      return await MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandRestartServices(
+        {networkId, gatewayId, services: []},
       );
 
     case 'ping':
@@ -374,5 +439,170 @@ export async function RunGatewayCommands(props: GatewayCommandProps) {
           {networkId, gatewayId, parameters: props.params},
         );
       }
+  }
+}
+
+/**************************** Gateway Pools State **********************************/
+
+export async function FetchGatewayPools(props: FetchProps) {
+  const {networkId, id, enqueueSnackbar} = props;
+  if (id !== undefined && id !== null) {
+    try {
+      const gatewayPool = await MagmaV1API.getLteByNetworkIdGatewayPoolsByGatewayPoolId(
+        {
+          networkId: networkId,
+          gatewayPoolId: id,
+        },
+      );
+      return gatewayPool;
+    } catch (e) {
+      enqueueSnackbar?.(`failed fetching gateway pool ${id} information`, {
+        variant: 'error',
+      });
+    }
+  } else {
+    try {
+      return await MagmaV1API.getLteByNetworkIdGatewayPools({
+        networkId: networkId,
+      });
+    } catch (e) {
+      enqueueSnackbar?.('failed fetching gateway pools information', {
+        variant: 'error',
+      });
+    }
+  }
+}
+type GatewayPoolsStateProps = {
+  networkId: network_id,
+  gatewayPools: {[string]: gatewayPoolsStateType},
+  setGatewayPools: ({[string]: gatewayPoolsStateType}) => void,
+  key: gateway_pool_id,
+  value?: mutable_cellular_gateway_pool,
+  resources?: Array<GatewayPoolRecordsType>,
+};
+// update gateway pool config
+export async function SetGatewayPoolsState(props: GatewayPoolsStateProps) {
+  const {networkId, gatewayPools, setGatewayPools, key, value} = props;
+  if (value != null) {
+    if (!(key in gatewayPools)) {
+      await MagmaV1API.postLteByNetworkIdGatewayPools({
+        networkId: networkId,
+        haGatewayPool: value,
+      });
+      setGatewayPools({
+        ...gatewayPools,
+        [key]: {
+          gatewayPool: {...value, gateway_ids: []},
+          gatewayPoolRecords: [],
+        },
+      });
+    } else {
+      await MagmaV1API.putLteByNetworkIdGatewayPoolsByGatewayPoolId({
+        networkId,
+        gatewayPoolId: key,
+        haGatewayPool: value,
+      });
+      const newGwPool = await FetchGatewayPools({networkId, id: key});
+      setGatewayPools({
+        ...gatewayPools,
+        [key]: {
+          gatewayPool: newGwPool,
+          gatewayPoolRecords: gatewayPools[key].gatewayPoolRecords,
+        },
+      });
+    }
+  } else {
+    await MagmaV1API.deleteLteByNetworkIdGatewayPoolsByGatewayPoolId({
+      networkId: networkId,
+      gatewayPoolId: key,
+    });
+    const newGatewayPools = {...gatewayPools};
+    delete newGatewayPools[key];
+    setGatewayPools(newGatewayPools);
+  }
+}
+
+// update gateway pool primary/secondary gateways
+export async function UpdateGatewayPoolRecords(props: GatewayPoolsStateProps) {
+  const {networkId, gatewayPools, setGatewayPools, key, resources} = props;
+
+  // add primary/secondary gateways
+  if (resources != null) {
+    const requests = resources.map(async resource => {
+      if (resource.gateway_id !== '') {
+        const {gateway_id, ...gatewayConfig} = resource;
+        gatewayConfig.gateway_pool_id = key;
+        return await MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellularPooling(
+          {
+            networkId: networkId,
+            gatewayId: gateway_id,
+            resource: [gatewayConfig] || [],
+          },
+        );
+      }
+    });
+    await Promise.all(requests);
+
+    // delete primary/secondary gateways
+    const resourcesIds = resources.map(resource => resource.gateway_id);
+    const deletedGateways = gatewayPools[key].gatewayPool.gateway_ids.filter(
+      gwId => !resourcesIds.includes(gwId),
+    );
+    const deleteRequests = deletedGateways.map(
+      async gwId =>
+        await MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellularPooling({
+          networkId: networkId,
+          gatewayId: gwId,
+          resource: [],
+        }),
+    );
+    await Promise.all(deleteRequests);
+    const newGwPool = await FetchGatewayPools({networkId: networkId, id: key});
+    setGatewayPools({
+      ...gatewayPools,
+      [key]: {gatewayPool: newGwPool, gatewayPoolRecords: resources},
+    });
+    return;
+  }
+}
+type InitGatewayPoolStateType = {
+  setGatewayPools: ({[string]: gatewayPoolsStateType}) => void,
+  networkId: network_id,
+  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+};
+
+export async function InitGatewayPoolState(props: InitGatewayPoolStateType) {
+  const {networkId, setGatewayPools, enqueueSnackbar} = props;
+  const pools = await FetchGatewayPools({networkId: networkId});
+
+  if (pools) {
+    const poolGatewayState = {};
+    Object.keys(pools).map(async poolId => {
+      const pool = pools[poolId];
+      try {
+        // get primary/secondary gateways for each gateway pool
+        const records = pool.gateway_ids?.map(async id => {
+          const gatewayRecords = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayIdCellularPooling(
+            {
+              networkId,
+              gatewayId: id,
+            },
+          );
+          return gatewayRecords.map(record => {
+            return {...record, gateway_id: id};
+          });
+        });
+        const gwPoolRecords = await Promise.all(records);
+        poolGatewayState[poolId] = {
+          gatewayPool: pool,
+          gatewayPoolRecords: gwPoolRecords.flat() || [],
+        };
+      } catch (error) {
+        enqueueSnackbar?.('failed fetching gateway pool records', {
+          variant: 'error',
+        });
+      }
+    });
+    setGatewayPools(poolGatewayState);
   }
 }

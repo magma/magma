@@ -12,20 +12,26 @@ limitations under the License.
 """
 
 
-import grpc
 import logging
-from redis.exceptions import RedisError
 from typing import Dict, List
 
-from orc8r.protos.directoryd_pb2 import DirectoryField, AllDirectoryRecords
-from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceServicer, \
-    add_GatewayDirectoryServiceServicer_to_server
+import grpc
+from google.protobuf.json_format import MessageToJson
 from magma.common.misc_utils import get_gateway_hwid
-from magma.common.rpc_utils import return_void
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisFlatDict
-from magma.common.redis.serializers import RedisSerde, get_json_serializer, \
-    get_json_deserializer
+from magma.common.redis.serializers import (
+    RedisSerde,
+    get_json_deserializer,
+    get_json_serializer,
+)
+from magma.common.rpc_utils import return_void
+from orc8r.protos.directoryd_pb2 import AllDirectoryRecords, DirectoryField
+from orc8r.protos.directoryd_pb2_grpc import (
+    GatewayDirectoryServiceServicer,
+    add_GatewayDirectoryServiceServicer_to_server,
+)
+from redis.exceptions import LockError, RedisError
 
 DIRECTORYD_REDIS_TYPE = "directory_record"
 LOCATION_MAX_LEN = 5
@@ -44,13 +50,18 @@ class DirectoryRecord:
 
 
 class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
-    """ gRPC based server for the Directoryd Gateway service. """
+    """gRPC based server for the Directoryd Gateway service"""
 
-    def __init__(self):
+    def __init__(self, print_grpc_payload: bool = False):
+        """Initialize Directoryd grpc endpoints."""
         serde = RedisSerde(DIRECTORYD_REDIS_TYPE,
                            get_json_serializer(),
                            get_json_deserializer())
         self._redis_dict = RedisFlatDict(get_default_client(), serde)
+        self._print_grpc_payload = print_grpc_payload
+
+        if self._print_grpc_payload:
+            logging.info("Printing GRPC messages")
 
     def add_to_server(self, server):
         """ Add the servicer to a gRPC server """
@@ -63,6 +74,8 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
         Args:
             request (UpdateRecordRequest): update record request
         """
+        logging.debug("UpdateRecord request received")
+        self._print_grpc(request)
         if len(request.id) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details("ID argument cannot be empty in "
@@ -74,8 +87,8 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             with self._redis_dict.lock(request.id):
                 hwid = get_gateway_hwid()
                 record = self._redis_dict.get(request.id) or \
-                         DirectoryRecord(location_history=[hwid],
-                                         identifiers={})
+                    DirectoryRecord(location_history=[hwid],
+                                    identifiers={})
 
                 if record.location_history[0] != hwid:
                     record.location_history = [hwid] + record.location_history
@@ -87,11 +100,10 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                 record.location_history = \
                     record.location_history[:LOCATION_MAX_LEN]
                 self._redis_dict[request.id] = record
-        except RedisError as e:
+        except (RedisError, LockError) as e:
             logging.error(e)
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details("Could not connect to redis: %s" % e)
-
 
     @return_void
     def DeleteRecord(self, request, context):
@@ -99,11 +111,13 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
 
         Args:
              request (DeleteRecordRequest): delete record request
-         """
+        """
+        logging.debug("DeleteRecord request received")
+        self._print_grpc(request)
         if len(request.id) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details("ID argument cannot be empty in "
-                            "DeleteRecordRequest")
+                                "DeleteRecordRequest")
             return
 
         # Lock Redis for requested key until delete is complete
@@ -115,7 +129,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                                         request.id)
                     return
                 self._redis_dict.mark_as_garbage(request.id)
-        except RedisError as e:
+        except (RedisError, LockError) as e:
             logging.error(e)
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details("Could not connect to redis: %s" % e)
@@ -125,17 +139,21 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
 
         Args:
              request (GetDirectoryFieldRequest): get directory field request
-         """
+        """
+        logging.debug("GetDirectoryField request received")
+        self._print_grpc(request)
         if len(request.id) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details("ID argument cannot be empty in "
-                               "GetDirectoryFieldRequest")
+                                "GetDirectoryFieldRequest")
             return
         if len(request.field_key) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details("Field key argument cannot be empty in "
                                 "GetDirectoryFieldRequest")
-            return DirectoryField()
+            response = DirectoryField()
+            self._print_grpc(response)
+            return response
 
         # Lock Redis for requested key until get is complete
         try:
@@ -146,11 +164,13 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                                         request.id)
                     return DirectoryField()
                 record = self._redis_dict[request.id]
-        except RedisError as e:
+        except (RedisError, LockError) as e:
             logging.error(e)
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details("Could not connect to redis: %s" % e)
-            return DirectoryField()
+            response = DirectoryField()
+            self._print_grpc(response)
+            return response
 
         if request.field_key not in record.identifiers:
             context.set_code(grpc.StatusCode.NOT_FOUND)
@@ -158,8 +178,10 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                                 "ID %s" % (request.field_key, request.id))
             return DirectoryField()
 
-        return DirectoryField(key=request.field_key,
-                              value=record.identifiers[request.field_key])
+        response = DirectoryField(key=request.field_key,
+                                  value=record.identifiers[request.field_key])
+        self._print_grpc(response)
+        return response
 
     def GetAllDirectoryRecords(self, request, context):
         """ Get all directory records
@@ -167,6 +189,8 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
         Args:
              request (Void): void
         """
+        logging.debug("GetAllDirectoryRecords request received")
+        self._print_grpc(request)
         response = AllDirectoryRecords()
         try:
             redis_keys = self._redis_dict.keys()
@@ -174,6 +198,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             logging.error(e)
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details("Could not connect to redis: %s" % e)
+            self._print_grpc(request)
             return response
 
         for key in redis_keys:
@@ -182,10 +207,11 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                     # Lookup may produce an exception if the key has been
                     # deleted between the call to __iter__ and lock
                     stored_record = self._redis_dict[key]
-            except RedisError as e:
+            except (RedisError, LockError) as e:
                 logging.error(e)
                 context.set_code(grpc.StatusCode.UNAVAILABLE)
                 context.set_details("Could not connect to redis: %s" % e)
+                self._print_grpc(response)
                 return response
             except KeyError:
                 continue
@@ -198,4 +224,17 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                 directory_record.fields[identifier_key] = \
                     stored_record.identifiers[identifier_key]
 
+        self._print_grpc(response)
         return response
+
+    def _print_grpc(self, message):
+        if self._print_grpc_payload:
+            log_msg = "{} {}".format(message.DESCRIPTOR.full_name,
+                                     MessageToJson(message))
+            # add indentation
+            padding = 2 * ' '
+            log_msg = ''.join("{}{}".format(padding, line)
+                              for line in log_msg.splitlines(True))
+
+            log_msg = "GRPC message:\n{}".format(log_msg)
+            logging.info(log_msg)

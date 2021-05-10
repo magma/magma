@@ -60,7 +60,7 @@ func (l *lookupServicer) GetMSISDNs(ctx context.Context, req *protos.GetMSISDNsR
 	defer store.Rollback()
 
 	tks := storage.MakeTKs(lte.MSISDNBlobstoreType, req.Msisdns)
-	var blobs []blobstore.Blob
+	var blobs blobstore.Blobs
 	if len(tks) == 0 {
 		blobs, err = blobstore.GetAllOfType(store, req.NetworkId, lte.MSISDNBlobstoreType)
 		if err != nil {
@@ -102,7 +102,7 @@ func (l *lookupServicer) SetMSISDN(ctx context.Context, req *protos.SetMSISDNReq
 		return nil, makeErr(err, "get msisdn from blobstore")
 	}
 
-	err = store.CreateOrUpdate(req.NetworkId, []blobstore.Blob{{
+	err = store.CreateOrUpdate(req.NetworkId, blobstore.Blobs{{
 		Type:  lte.MSISDNBlobstoreType,
 		Key:   req.Msisdn,
 		Value: []byte(req.Imsi),

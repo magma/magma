@@ -11,13 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import asyncio
 import unittest
-
 from unittest.mock import Mock
 
-from magma.subscriberdb.protocols.diameter import avp, server, message
-from magma.subscriberdb.protocols.diameter.application import base, s6a, s6a_relay
+from magma.subscriberdb.protocols.diameter import avp, message, server
+from magma.subscriberdb.protocols.diameter.application import (
+    base,
+    s6a,
+    s6a_relay,
+)
+
+from .common import MockTransport
 
 
 class BaseApplicationTests(unittest.TestCase):
@@ -51,7 +55,7 @@ class BaseApplicationTests(unittest.TestCase):
             """ Deep copy the memoryview for checking later  """
             return self._writes(memview.tobytes())
 
-        self._transport = asyncio.Transport()
+        self._transport = MockTransport()
         self._transport.write = Mock(side_effect=convert_memview_to_bytes)
 
         # Here goes nothing..

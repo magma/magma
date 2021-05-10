@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 
+#include <cstdlib>
 #include <iostream>
 
 #include <lte/protos/mconfig/mconfigs.pb.h>
@@ -24,7 +25,7 @@
 #include "ServiceRegistrySingleton.h"
 #include "PolicyLoader.h"
 #include "MConfigLoader.h"
-#include "magma_logging.h"
+#include "magma_logging_init.h"
 #include "OperationalStatesHandler.h"
 #include "SessionCredit.h"
 #include "SessionStore.h"
@@ -41,6 +42,53 @@
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
+#endif
+
+// TODO remove this flag once we are on Ubuntu 20.04 by default in 1.6
+#if SENTRY_ENABLED
+#include "sentry.h"
+
+#define COMMIT_HASH_ENV "COMMIT_HASH"
+#define CONTROL_PROXY_SERVICE_NAME "control_proxy"
+#define SENTRY_NATIVE_URL "sentry_url_native"
+using std::experimental::optional;
+// TODO pull sentry related logic into a common library so it can be shared with
+// MME
+optional<std::string> get_sentry_url(YAML::Node control_proxy_config) {
+  std::string sentry_url;
+  if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
+    const std::string sentry_dns =
+        control_proxy_config[SENTRY_NATIVE_URL].as<std::string>();
+    if (sentry_dns.size()) {
+      return sentry_dns;
+    }
+  }
+  return {};
+}
+
+void initialize_sentry() {
+  auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
+      CONTROL_PROXY_SERVICE_NAME);
+  auto op_sentry_url = get_sentry_url(control_proxy_config);
+  if (op_sentry_url) {
+    MLOG(MINFO) << "Starting SessionD with Sentry!";
+    sentry_options_t* options = sentry_options_new();
+    sentry_options_set_dsn(options, op_sentry_url->c_str());
+    if (const char* commit_hash_p = std::getenv(COMMIT_HASH_ENV)) {
+      sentry_options_set_release(options, commit_hash_p);
+    }
+
+    sentry_init(options);
+    sentry_set_tag("service_name", "SessionD");
+
+    sentry_capture_event(sentry_value_new_message_event(
+        SENTRY_LEVEL_INFO, "", "Starting SessionD with Sentry!"));
+  }
+}
+
+void shutdown_sentry() {
+  sentry_shutdown();
+}
 #endif
 
 static magma::mconfig::SessionD get_default_mconfig() {
@@ -129,11 +177,17 @@ void set_consts(const YAML::Node& config) {
     magma::SessionCredit::DEFAULT_REQUESTED_UNITS =
         config["default_requested_units"].as<uint64_t>();
   }
+  // default value for this config is true
+  if (config["cleanup_all_dangling_flows"].IsDefined()) {
+    magma::LocalEnforcer::CLEANUP_DANGLING_FLOWS =
+        config["cleanup_all_dangling_flows"].as<bool>();
+  }
 }
 
 magma::SessionStore* create_session_store(
     const YAML::Node& config,
-    std::shared_ptr<magma::StaticRuleStore> rule_store) {
+    std::shared_ptr<magma::StaticRuleStore> rule_store,
+    std::shared_ptr<magma::MeteringReporter> metering_reporter) {
   bool is_stateless = config["support_stateless"].IsDefined() &&
                       config["support_stateless"].as<bool>();
   if (is_stateless) {
@@ -147,10 +201,10 @@ magma::SessionStore* create_session_store(
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
     } while (!connected);
     MLOG(MINFO) << "Successfully connected to Redis";
-    return new magma::SessionStore(rule_store, store_client);
+    return new magma::SessionStore(rule_store, metering_reporter, store_client);
   } else {
     MLOG(MINFO) << "Session store in memory";
-    return new magma::SessionStore(rule_store);
+    return new magma::SessionStore(rule_store, metering_reporter);
   }
 }
 
@@ -177,10 +231,15 @@ int main(int argc, char* argv[]) {
   auto config =
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
+
+#ifdef SENTRY_ENABLED
+  initialize_sentry();
+#endif
+
   bool converged_access = false;
-  // Check converged sesiond is enebaled or not
-  if ((config["converged_access"].IsDefined()) &&
-      (config["converged_access"].as<bool>())) {
+  // Check converged SessionD is enabled or not
+  if (config["converged_access"].IsDefined() &&
+      config["converged_access"].as<bool>()) {
     converged_access = true;
   }
   MLOG(MINFO) << "Starting Session Manager";
@@ -262,14 +321,19 @@ int main(int argc, char* argv[]) {
   });
 
   // Case on stateless config, setup the appropriate store client
-  magma::SessionStore* session_store = create_session_store(config, rule_store);
+  auto metering_reporter = std::make_shared<magma::MeteringReporter>();
+  magma::SessionStore* session_store =
+      create_session_store(config, rule_store, metering_reporter);
+  // service restart clears the UE metering metrics, so we need to offset
+  // metering_reporter with existing usage
+  session_store->initialize_metering_counter();
 
   // Some setup work for the SessionCredit class
   set_consts(config);
   // Initialize the main logical component of SessionD
   auto local_enforcer = std::make_shared<magma::LocalEnforcer>(
-      reporter, rule_store, *session_store, pipelined_client, directoryd_client,
-      events_reporter, spgw_client, aaa_client,
+      reporter, rule_store, *session_store, pipelined_client, events_reporter,
+      spgw_client, aaa_client,
       config["session_force_termination_timeout_ms"].as<long>(),
       get_quota_exhaust_termination_time(config), mconfig);
 
@@ -415,7 +479,10 @@ int main(int argc, char* argv[]) {
     free(conv_set_message_service);
     access_common_message_thread.join();
   }
-  free(session_store);
+  delete session_store;
 
+#ifdef SENTRY_ENABLED
+  shutdown_sentry();
+#endif
   return 0;
 }

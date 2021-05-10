@@ -47,7 +47,6 @@ resource "aws_dynamodb_table" "terraform_locks" {
 
 # This secretsmanager secret needs to be manually created and populated in the
 # AWS console. For this example, you would set the following key-value pairs:
-#   nms_db_pass
 #   orc8r_db_pass
 #   docker_registry
 #   docker_user
@@ -63,19 +62,19 @@ data "aws_secretsmanager_secret_version" "root_secrets" {
   secret_id = data.aws_secretsmanager_secret.root_secrets.id
 }
 
-module orc8r {
+module "orc8r" {
   # Change this to pull from github with a specified ref
   source = "../../../orc8r-aws"
 
   region = local.region
 
-  nms_db_password             = jsondecode(data.aws_secretsmanager_secret_version.root_secrets.secret_string)["nms_db_pass"]
   orc8r_db_password           = jsondecode(data.aws_secretsmanager_secret_version.root_secrets.secret_string)["orc8r_db_pass"]
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
 
-  vpc_name     = "orc8r"
-  cluster_name = "orc8r"
+  vpc_name        = "orc8r"
+  cluster_name    = "orc8r"
+  cluster_version = "1.17"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
@@ -88,7 +87,7 @@ module orc8r {
   elasticsearch_ebs_volume_type = "gp2"
 }
 
-module orc8r-app {
+module "orc8r-app" {
   # Change this to pull from github with a specified ref
   source = "../.."
 
@@ -112,15 +111,12 @@ module orc8r-app {
   secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
   seed_certs_dir            = "~/orc8r.test.secrets/certs"
 
-  orc8r_db_host = module.orc8r.orc8r_db_host
-  orc8r_db_name = module.orc8r.orc8r_db_name
-  orc8r_db_user = module.orc8r.orc8r_db_user
-  orc8r_db_pass = module.orc8r.orc8r_db_pass
-
-  nms_db_host = module.orc8r.nms_db_host
-  nms_db_name = module.orc8r.nms_db_name
-  nms_db_user = module.orc8r.nms_db_user
-  nms_db_pass = module.orc8r.nms_db_pass
+  orc8r_db_host    = module.orc8r.orc8r_db_host
+  orc8r_db_port    = module.orc8r.orc8r_db_port
+  orc8r_db_dialect = module.orc8r.orc8r_db_dialect
+  orc8r_db_name    = module.orc8r.orc8r_db_name
+  orc8r_db_user    = module.orc8r.orc8r_db_user
+  orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
   docker_registry = jsondecode(data.aws_secretsmanager_secret_version.root_secrets.secret_string)["docker_registry"]
   docker_user     = jsondecode(data.aws_secretsmanager_secret_version.root_secrets.secret_string)["docker_user"]
@@ -137,9 +133,9 @@ module orc8r-app {
 
   elasticsearch_endpoint = module.orc8r.es_endpoint
 
-  orc8r_chart_version = "1.4.36"
-  orc8r_tag           = "1.3.0"
-  deploy_nms          = true
+  orc8r_deployment_type = "fwa"
+  orc8r_tag             = "1.4.0"
+  deploy_nms            = true
 }
 
 output "nameservers" {

@@ -15,17 +15,26 @@ The IP allocator accepts IP blocks (range of IP addresses), and supports
 allocating and releasing IP addresses from the assigned IP blocks.
 """
 
-from __future__ import absolute_import, division, print_function, \
-    unicode_literals
+from __future__ import (
+    absolute_import,
+    division,
+    print_function,
+    unicode_literals,
+)
 
 import logging
+from copy import deepcopy
 from ipaddress import ip_address, ip_network
 from typing import List
-from copy import deepcopy
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
-from .ip_allocator_base import IPAllocator, NoAvailableIPError, \
-    IPBlockNotFoundError, OverlappedIPBlocksError
+
+from .ip_allocator_base import (
+    IPAllocator,
+    IPBlockNotFoundError,
+    NoAvailableIPError,
+    OverlappedIPBlocksError,
+)
 from .mobility_store import MobilityStore
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
@@ -195,8 +204,8 @@ class IpAllocatorPool(IPAllocator):
         TODO: Add support of per APN IP-POOL
         """
         # if an IP is not yet allocated for the UE, allocate a new IP
-        if self._store.ip_state_map.get_ip_count(IPState.FREE):
-            ip_desc = self._store.ip_state_map.pop_ip_from_state(IPState.FREE)
+        ip_desc = self._store.ip_state_map.pop_ip_from_state(IPState.FREE)
+        if ip_desc:
             ip_desc.sid = sid
             ip_desc.state = IPState.ALLOCATED
             return ip_desc

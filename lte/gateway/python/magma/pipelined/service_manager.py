@@ -32,52 +32,59 @@ should not be accessible to apps from other services.
 # pylint does not play well with aioeventlet, as it uses asyncio.async which
 # produces a parse error
 
-import time
 import asyncio
 import logging
+import time
+from collections import OrderedDict, namedtuple
 from concurrent.futures import Future
-from collections import namedtuple, OrderedDict
 from typing import List
 
 import aioeventlet
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
-from magma.pipelined.app.base import ControllerType
-from magma.pipelined.app import of_rest_server
-from magma.pipelined.app.access_control import AccessControlController
-from magma.pipelined.app.conntrack import ConntrackController
-from magma.pipelined.app.tunnel_learn import TunnelLearnController
-from magma.pipelined.app.vlan_learn import VlanLearnController
-from magma.pipelined.app.arp import ArpController
-from magma.pipelined.app.ipv6_solicitation import \
-    IPV6SolicitationController
-from magma.pipelined.app.dpi import DPIController
-from magma.pipelined.app.gy import GYController
-from magma.pipelined.app.enforcement import EnforcementController
-from magma.pipelined.app.ipfix import IPFIXController
-from magma.pipelined.app.li_mirror import LIMirrorController
-from magma.pipelined.app.enforcement_stats import EnforcementStatsController
-from magma.pipelined.app.inout import EGRESS, INGRESS, PHYSICAL_TO_LOGICAL, \
-    InOutController
-from magma.pipelined.app.ue_mac import UEMacAddressController
-from magma.pipelined.app.xwf_passthru import XWFPassthruController
-from magma.pipelined.app.startup_flows import StartupFlows
-from magma.pipelined.app.check_quota import CheckQuotaController
-from magma.pipelined.app.uplink_bridge import UplinkBridgeController
-
-from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
-    SessionRuleToVersionMapper
-from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
-from magma.pipelined.tunnel_id_store import TunnelToTunnelMapper
-from magma.pipelined.internal_ip_allocator import InternalIPAllocator
-from ryu.base.app_manager import AppManager
-
+from lte.protos.session_manager_pb2_grpc import (
+    LocalSessionManagerStub,
+    SetInterfaceForUserPlaneStub,
+)
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
+from magma.pipelined.app import of_rest_server
+from magma.pipelined.app.access_control import AccessControlController
+from magma.pipelined.app.arp import ArpController
+from magma.pipelined.app.base import ControllerType
+from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.classifier import Classifier
-from magma.pipelined.app.he import HeaderEnrichmentController, PROXY_TABLE
+from magma.pipelined.app.conntrack import ConntrackController
+from magma.pipelined.app.dpi import DPIController
+from magma.pipelined.app.enforcement import EnforcementController
+from magma.pipelined.app.enforcement_stats import EnforcementStatsController
+from magma.pipelined.app.gy import GYController
+from magma.pipelined.app.he import HeaderEnrichmentController
+from magma.pipelined.app.inout import (
+    EGRESS,
+    INGRESS,
+    PHYSICAL_TO_LOGICAL,
+    InOutController,
+)
+from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.app.ipv6_solicitation import IPV6SolicitationController
+from magma.pipelined.app.li_mirror import LIMirrorController
+from magma.pipelined.app.ng_services import NGServiceController
+from magma.pipelined.app.startup_flows import StartupFlows
+from magma.pipelined.app.tunnel_learn import TunnelLearnController
+from magma.pipelined.app.ue_mac import UEMacAddressController
+from magma.pipelined.app.uplink_bridge import UplinkBridgeController
+from magma.pipelined.app.vlan_learn import VlanLearnController
+from magma.pipelined.app.xwf_passthru import XWFPassthruController
+from magma.pipelined.internal_ip_allocator import InternalIPAllocator
+from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
+from magma.pipelined.rule_mappers import (
+    RuleIDToNumMapper,
+    SessionRuleToVersionMapper,
+)
+from magma.pipelined.tunnel_id_store import TunnelToTunnelMapper
+from ryu.base.app_manager import AppManager
 
 # Type is either Physical or Logical, highest order_priority is at zero
 App = namedtuple('App', ['name', 'module', 'type', 'order_priority'])
@@ -224,6 +231,10 @@ class _TableManager:
         return app_name in self._tables_by_app or \
             app_name == InOutController.APP_NAME
 
+    def is_ng_app_enabled(self, app_name: str) -> bool:
+        return app_name in self._tables_by_app or \
+            app_name == NGServiceController.APP_NAME
+
     def allocate_scratch_tables(self, app_name: str, count: int) -> \
             List[int]:
 
@@ -277,6 +288,7 @@ class ServiceManager:
     UPLINK_BRIDGE_NAME = 'uplink_bridge'
     CLASSIFIER_NAME = 'classifier'
     HE_CONTROLLER_NAME = 'proxy'
+    NG_SERVICE_CONTROLLER_NAME = 'ng_services'
 
     INTERNAL_APP_SET_TABLE_NUM = 201
     INTERNAL_IMSI_SET_TABLE_NUM = 202
@@ -408,6 +420,13 @@ class ServiceManager:
                 type=Classifier.APP_TYPE,
                 order_priority=0),
         ],
+        # 5G Related services
+        NG_SERVICE_CONTROLLER_NAME: [
+            App(name=NGServiceController.APP_NAME,
+                module=NGServiceController.__module__,
+                type=None,
+                order_priority=0),
+        ],
     }
 
     # Some apps do not use a table, so they need to be excluded from table
@@ -416,6 +435,7 @@ class ServiceManager:
         RYU_REST_APP_NAME,
         StartupFlows.APP_NAME,
         UplinkBridgeController.APP_NAME,
+        NGServiceController.APP_NAME,
     ]
 
     def __init__(self, magma_service: MagmaService):
@@ -425,6 +445,7 @@ class ServiceManager:
         else:
           ng_flag = magma_service.config.get('5G_feature_set')
           self._5G_flag_enable = ng_flag['enable']
+
         # inout is a mandatory app and it occupies:
         #   table 1(for ingress)
         #   table 10(for middle)
@@ -472,6 +493,9 @@ class ServiceManager:
             logging.info("added uplink bridge controller")
         if self._5G_flag_enable:
             static_services.append(self.__class__.CLASSIFIER_NAME)
+            static_services.append(self.__class__.NG_SERVICE_CONTROLLER_NAME)
+            logging.info("added classifier and ng service controller")
+
         static_apps = \
             [app for service in static_services for app in
              self.STATIC_SERVICE_TO_APPS[service]]
@@ -507,17 +531,14 @@ class ServiceManager:
         """
 
         # Some setups might not use REDIS
-        if (self._magma_service.config['redis_enabled']):
+        if self._magma_service.config['redis_enabled']:
             # Wait for redis as multiple controllers rely on it
             while not redisAvailable(self.rule_id_mapper.redis_cli):
                 logging.warning("Pipelined waiting for redis...")
                 time.sleep(1)
-        else:
-            self.rule_id_mapper._rule_nums_by_rule = {}
-            self.rule_id_mapper._rules_by_rule_num = {}
-            self.session_rule_version_mapper._version_by_imsi_and_rule = {}
-            self.interface_to_prefix_mapper._prefix_by_interface = {}
-            self.tunnel_id_mapper._tunnel_map = {}
+            self.rule_id_mapper.setup_redis()
+            self.interface_to_prefix_mapper.setup_redis()
+            self.tunnel_id_mapper.setup_redis()
 
         manager = AppManager.get_instance()
         manager.load_apps([app.module for app in self._apps])
@@ -543,6 +564,10 @@ class ServiceManager:
             'mobilityd': MobilityServiceStub(mobilityd_chan),
             'sessiond': LocalSessionManagerStub(sessiond_chan),
         }
+
+        if self._5G_flag_enable:
+            contexts['rpc_stubs'].update({'sessiond_setinterface': \
+                                            SetInterfaceForUserPlaneStub(sessiond_chan)})
 
         # Instantiate and schedule apps
         for app in manager.instantiate_apps(**contexts):
@@ -589,6 +614,18 @@ class ServiceManager:
             Whether or not the app is enabled
         """
         return self._table_manager.is_app_enabled(app_name)
+
+    def is_ng_app_enabled(self, app_name: str) -> bool:
+        """
+        Args:
+             app_name: Name of the app
+        Returns:
+            Whether or not the app is enabled
+        """
+        if  self._5G_flag_enable == False:
+            return False
+
+        return self._table_manager.is_ng_app_enabled(app_name)
 
     def allocate_scratch_tables(self, app_name: str, count: int) -> List[int]:
         """

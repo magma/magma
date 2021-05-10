@@ -14,10 +14,10 @@ limitations under the License.
 
 import argparse
 import logging
+import os
 import shlex
 import time
 
-import os
 from magma.configuration.mconfig_managers import load_service_mconfig_as_json
 
 

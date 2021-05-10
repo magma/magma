@@ -27,6 +27,8 @@ using namespace protos;
  */
 class AAAClient {
  public:
+  virtual ~AAAClient() = default;
+
   virtual bool terminate_session(
       const std::string& radius_session_id, const std::string& imsi) = 0;
 

@@ -13,6 +13,7 @@ limitations under the License.
 
 # pylint: disable=protected-access
 from unittest import TestCase
+
 from magma.enodebd.state_machines.timer import StateMachineTimer
 
 
@@ -23,4 +24,3 @@ class StateMachineTimerTests(TestCase):
 
         timer_b = StateMachineTimer(600)
         self.assertFalse(timer_b.is_done(), 'Timer should not be done')
-

@@ -14,14 +14,14 @@ limitations under the License.
 # pylint: disable=protected-access
 
 import asyncio
+import tempfile
 import unittest
 import unittest.mock
 
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
+from magma.common.service_registry import ServiceRegistry
 from magma.subscriberdb.store.sqlite import SqliteStore
 from magma.subscriberdb.streamer_callback import SubscriberDBStreamerCallback
-
-from magma.common.service_registry import ServiceRegistry
 
 
 class MockFuture(object):
@@ -48,7 +48,9 @@ class SubscriberDBStreamerCallbackTests(unittest.TestCase):
     """
 
     def setUp(self):
-        store = SqliteStore('file::memory:')
+        # Create sqlite3 database for testing
+        self._tmpfile = tempfile.TemporaryDirectory()
+        store = SqliteStore(self._tmpfile.name +'/')
         self._streamer_callback = \
             SubscriberDBStreamerCallback(store, loop=asyncio.new_event_loop())
         ServiceRegistry.add_service('test', '0.0.0.0', 0)
@@ -59,6 +61,9 @@ class SubscriberDBStreamerCallbackTests(unittest.TestCase):
                                                   {"ip_address": "0.0.0.0",
                                                    "port": 2345}}
                                      }
+
+    def tearDown(self):
+        self._tmpfile.cleanup()
 
     @unittest.mock.patch('magma.subscriberdb.streamer_callback.S6aServiceStub')
     def test_detach_deleted_subscribers(self, s6a_service_mock_stub):

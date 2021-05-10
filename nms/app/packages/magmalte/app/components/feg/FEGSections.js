@@ -16,12 +16,14 @@
 import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
-import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
+import AlarmsDashboard from '../../views/alarms/Alarms';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import FEGConfigure from './FEGConfigure';
 import FEGGateways from './FEGGateways';
+import FEGMetrics from './FEGMetrics';
 import React from 'react';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
+import ShowChartIcon from '@material-ui/icons/ShowChart';
 
 export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
   const sections = [
@@ -41,7 +43,13 @@ export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
       path: 'alerts',
       label: 'Alerts',
       icon: <AlarmIcon />,
-      component: Alarms,
+      component: AlarmsDashboard,
+    },
+    {
+      path: 'metrics',
+      label: 'Metrics',
+      icon: <ShowChartIcon />,
+      component: FEGMetrics,
     },
   ];
 

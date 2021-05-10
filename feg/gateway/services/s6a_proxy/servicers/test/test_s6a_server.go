@@ -60,9 +60,10 @@ func StartTestS6aServer(network, addr string, useStaticResp bool) error {
 			testHandleAIR(settings))
 	}
 
+	// expected ULRFlags = 290 (100100010) where the fifth 1 is DualRegistration_5GIndicator : true
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_S6A_APP_ID, Code: diam.UpdateLocation, Request: true},
-		testHandleULR(settings))
+		testHandleULR(settings, 290))
 
 	mux.HandleIdx(
 		diam.CommandIndex{AppID: diam.TGPP_S6A_APP_ID, Code: diam.PurgeUE, Request: true},
@@ -286,7 +287,7 @@ func testHandleAIRStatic(settings *sm.Settings) diam.HandlerFunc {
 }
 
 // S6a UL
-func testHandleULR(settings *sm.Settings) diam.HandlerFunc {
+func testHandleULR(settings *sm.Settings, expectedULRFlags uint32) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
 		var req servicers.ULR
 		var code uint32
@@ -294,6 +295,10 @@ func testHandleULR(settings *sm.Settings) diam.HandlerFunc {
 		err := m.Unmarshal(&req)
 		if err != nil {
 			fmt.Printf("ULR Unmarshal for message: %s failed: %s", m, err)
+			code = diam.UnableToComply
+		} else if uint32(req.ULRFlags) != expectedULRFlags {
+			// Flags needs to exist for this test
+			fmt.Printf("error: ULRFlags (%d) doesnt match with the expected ULRFlags (%d)\n", req.ULRFlags, expectedULRFlags)
 			code = diam.UnableToComply
 		} else {
 			code = diam.Success
@@ -306,6 +311,23 @@ func testHandleULR(settings *sm.Settings) diam.HandlerFunc {
 		a.NewAVP(avp.OriginHost, avp.Mbit, 0, settings.OriginHost)
 		a.NewAVP(avp.OriginRealm, avp.Mbit, 0, settings.OriginRealm)
 		a.NewAVP(avp.OriginStateID, avp.Mbit, 0, settings.OriginStateID)
+
+		// Add Feature-List-ID 2 if exists
+		if len(req.SupportedFeatures) > 0 {
+			for _, suportedFeature := range req.SupportedFeatures {
+				if suportedFeature.FeatureListID == 2 {
+					a.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+						AVP: []*diam.AVP{
+							diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
+							diam.NewAVP(avp.FeatureListID, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(2)),
+							diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP,
+								datatype.Unsigned32(suportedFeature.FeatureList)),
+						},
+					})
+				}
+			}
+		}
+
 		_, err = testSendULA(settings, c, a)
 		if err != nil {
 			fmt.Printf("Failed to send ULA: %s", err.Error())
@@ -321,6 +343,8 @@ func testSendULA(settings *sm.Settings, w io.Writer, m *diam.Message) (n int64, 
 			diam.NewAVP(avp.AccessRestrictionData, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(47)),
 			diam.NewAVP(avp.SubscriberStatus, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(0)),
 			diam.NewAVP(avp.NetworkAccessMode, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.Unsigned32(2)),
+			diam.NewAVP(avp.RegionalSubscriptionZoneCode, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.OctetString([]byte{155, 36, 12, 2, 227, 43, 246, 254})),
+			diam.NewAVP(avp.RegionalSubscriptionZoneCode, avp.Mbit|avp.Vbit, VENDOR_3GPP, datatype.OctetString([]byte{1, 1, 0, 1})),
 			diam.NewAVP(avp.AMBR, avp.Mbit|avp.Vbit, VENDOR_3GPP, &diam.GroupedAVP{
 				AVP: []*diam.AVP{
 					diam.NewAVP(

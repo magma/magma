@@ -509,15 +509,6 @@ func (m *Apn) FromBackendModels(ent configurator.NetworkEntity) *Apn {
 	return m
 }
 
-func (m ApnList) ToAssocs() []storage.TypeAndKey {
-	return funk.Map(
-		m,
-		func(rn string) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: lte.APNEntityType, Key: rn}
-		},
-	).([]storage.TypeAndKey)
-}
-
 func LoadAPNResources(networkID string, ids []string) (ApnResources, error) {
 	ret := ApnResources{}
 	if len(ids) == 0 {
@@ -690,6 +681,16 @@ func (m *MutableCellularGatewayPool) ToEntity() configurator.NetworkEntity {
 		Name:   m.GatewayPoolName,
 	}
 	return ent
+}
+
+func (m *MutableCellularGatewayPool) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	update := configurator.EntityUpdateCriteria{
+		Type:      lte.CellularGatewayPoolEntityType,
+		Key:       string(m.GatewayPoolID),
+		NewName:   &m.GatewayPoolName,
+		NewConfig: m.Config,
+	}
+	return update
 }
 
 func (m *CellularGatewayPoolRecords) FromBackendModels(networkID string, gatewayID string) error {

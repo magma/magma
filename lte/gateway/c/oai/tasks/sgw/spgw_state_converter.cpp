@@ -15,16 +15,16 @@
  *      contact@openairinterface.org
  */
 
+#include "spgw_state_converter.h"
+
 extern "C" {
 #include "dynamic_memory_check.h"
+#include "sgw_context_manager.h"
 }
-
-#include "spgw_state_converter.h"
 
 using magma::lte::oai::CreateSessionMessage;
 using magma::lte::oai::GTPV1uData;
 using magma::lte::oai::PacketFilter;
-using magma::lte::oai::PccRule;
 using magma::lte::oai::PgwCbrProcedure;
 using magma::lte::oai::S11BearerContext;
 using magma::lte::oai::SgwBearerQos;
@@ -32,6 +32,7 @@ using magma::lte::oai::SgwEpsBearerContext;
 using magma::lte::oai::SgwEpsBearerContextInfo;
 using magma::lte::oai::SgwPdnConnection;
 using magma::lte::oai::SpgwState;
+using magma::lte::oai::SpgwUeContext;
 using magma::lte::oai::TrafficFlowTemplate;
 
 namespace magma {
@@ -48,18 +49,6 @@ void SpgwStateConverter::state_to_proto(
 
   proto->set_last_tunnel_id(spgw_state->tunnel_id);
   proto->set_gtpv1u_teid(spgw_state->gtpv1u_teid);
-
-  if (spgw_state->predefined_pcc_rules != nullptr) {
-    pcc_rule_ht_to_proto(
-        spgw_state->predefined_pcc_rules,
-        proto->mutable_predefined_pcc_rules());
-  }
-
-  if (spgw_state->deactivated_predefined_pcc_rules != nullptr) {
-    pcc_rule_ht_to_proto(
-        spgw_state->deactivated_predefined_pcc_rules,
-        proto->mutable_deactivated_predefined_pcc_rules());
-  }
 }
 
 void SpgwStateConverter::proto_to_state(
@@ -67,15 +56,6 @@ void SpgwStateConverter::proto_to_state(
   proto_to_gtpv1u_data(proto.gtpv1u_data(), &spgw_state->gtpv1u_data);
   spgw_state->tunnel_id   = proto.last_tunnel_id();
   spgw_state->gtpv1u_teid = proto.gtpv1u_teid();
-
-  proto_to_hashtable_ts<PccRule, pcc_rule_t>(
-      proto.deactivated_predefined_pcc_rules(),
-      spgw_state->deactivated_predefined_pcc_rules, proto_to_pcc_rule,
-      LOG_SPGW_APP);
-
-  proto_to_hashtable_ts<PccRule, pcc_rule_t>(
-      proto.predefined_pcc_rules(), spgw_state->predefined_pcc_rules,
-      proto_to_pcc_rule, LOG_SPGW_APP);
 }
 
 void SpgwStateConverter::spgw_bearer_context_to_proto(
@@ -256,7 +236,7 @@ void SpgwStateConverter::proto_to_sgw_pdn_connection(
   bstring_to_ip_address(ip_addr_bstr, &state_pdn->p_gw_address_in_use_up);
   bdestroy_wrapper(&ip_addr_bstr);
 
-  for (uint32_t i = 0; i < BEARERS_PER_UE; i++) {
+  for (int i = 0; i < BEARERS_PER_UE; i++) {
     if (proto.eps_bearer_list(i).eps_bearer_id()) {
       auto* eps_bearer_entry =
           (sgw_eps_bearer_ctxt_t*) calloc(1, sizeof(sgw_eps_bearer_ctxt_t));
@@ -342,8 +322,7 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
   proto->mutable_ue_time_zone()->set_daylight_saving_time(
       session_request->ue_time_zone.daylight_saving_time);
 
-  for (uint32_t i = 0; i < session_request->pco.num_protocol_or_container_id;
-       i++) {
+  for (int i = 0; i < session_request->pco.num_protocol_or_container_id; i++) {
     auto* pco_protocol = &session_request->pco.protocol_or_container_ids[i];
     auto* pco_protocol_proto = proto->mutable_pco()->add_pco_protocol();
     if (pco_protocol->contents) {
@@ -353,7 +332,7 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
           pco_protocol->contents, pco_protocol_proto->mutable_contents());
     }
   }
-  for (uint32_t i = 0;
+  for (int i = 0;
        i < session_request->bearer_contexts_to_be_created.num_bearer_context;
        i++) {
     auto* bearer =
@@ -449,7 +428,7 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
   session_request->ue_time_zone.daylight_saving_time =
       proto.ue_time_zone().daylight_saving_time();
 
-  for (uint32_t i = 0; i < proto.pco().pco_protocol_size(); i++) {
+  for (int i = 0; i < proto.pco().pco_protocol_size(); i++) {
     auto* protocol_or_container_id =
         &session_request->pco.protocol_or_container_ids[i];
     auto protocol_proto              = proto.pco().pco_protocol(i);
@@ -459,7 +438,7 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
         bfromcstr(protocol_proto.contents().c_str());
   }
 
-  for (uint32_t i = 0; i < proto.bearer_contexts_to_be_created_size(); i++) {
+  for (int i = 0; i < proto.bearer_contexts_to_be_created_size(); i++) {
     auto* eps_bearer =
         &session_request->bearer_contexts_to_be_created.bearer_contexts[i];
     auto eps_bearer_proto     = proto.bearer_contexts_to_be_created(i);
@@ -571,7 +550,7 @@ void SpgwStateConverter::traffic_flow_template_to_proto(
   // parameters_list member conversion
   tft_proto->mutable_parameters_list()->set_num_parameters(
       tft_state->parameterslist.num_parameters);
-  for (uint32_t i = 0; i < tft_state->parameterslist.num_parameters; i++) {
+  for (int i = 0; i < tft_state->parameterslist.num_parameters; i++) {
     auto* parameter = &tft_state->parameterslist.parameter[i];
     if (parameter->contents) {
       auto* param_proto =
@@ -587,25 +566,25 @@ void SpgwStateConverter::traffic_flow_template_to_proto(
   auto pft_state  = tft_state->packetfilterlist;
   switch (tft_state->tftoperationcode) {
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_DELETE_PACKET_FILTERS_FROM_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
         pft_proto->add_delete_packet_filter_identifier(
             pft_state.deletepacketfilter[i].identifier);
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_CREATE_NEW_TFT:
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
         packet_filter_to_proto(
             &pft_state.createnewtft[i], pft_proto->add_create_new_tft());
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_ADD_PACKET_FILTER_TO_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
         packet_filter_to_proto(
             &pft_state.createnewtft[i], pft_proto->add_add_packet_filter());
       }
       break;
     case TRAFFIC_FLOW_TEMPLATE_OPCODE_REPLACE_PACKET_FILTERS_IN_EXISTING_TFT:
-      for (uint32_t i = 0; i < tft_state->numberofpacketfilters; i++) {
+      for (int i = 0; i < tft_state->numberofpacketfilters; i++) {
         packet_filter_to_proto(
             &pft_state.createnewtft[i], pft_proto->add_replace_packet_filter());
       }
@@ -752,7 +731,7 @@ void SpgwStateConverter::proto_to_packet_filter(
       packet_filter_contents_proto.security_parameter_index();
   packet_filter_contents->flowlabel = packet_filter_contents_proto.flow_label();
 
-  for (uint32_t i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
+  for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV4_ADDR_SIZE; i++) {
     packet_filter_contents->ipv4remoteaddr[i].addr =
         packet_filter_contents_proto.ipv4_remote_addresses(i).addr();
     packet_filter_contents->ipv4remoteaddr[i].mask =
@@ -816,72 +795,14 @@ void SpgwStateConverter::proto_to_eps_bearer_qos(
 void SpgwStateConverter::gtpv1u_data_to_proto(
     const gtpv1u_data_t* gtp_data, GTPV1uData* gtp_proto) {
   gtp_proto->Clear();
-
-  if (gtp_data->ip_addr != nullptr) {
-    gtp_proto->set_ip_address(gtp_data->ip_addr);
-  }
-
-  gtp_proto->set_seq_num(gtp_data->seq_num);
-  gtp_proto->set_restart_counter(gtp_data->restart_counter);
   gtp_proto->set_fd0(gtp_data->fd0);
   gtp_proto->set_fd1u(gtp_data->fd1u);
 }
 
 void SpgwStateConverter::proto_to_gtpv1u_data(
     const oai::GTPV1uData& gtp_proto, gtpv1u_data_t* gtp_data) {
-  strncpy(
-      gtp_data->ip_addr, gtp_proto.ip_address().c_str(),
-      gtp_proto.ip_address().length());
-  gtp_data->restart_counter = gtp_proto.restart_counter();
-  gtp_data->fd0             = gtp_proto.fd0();
-  gtp_data->fd1u            = gtp_proto.fd1u();
-}
-
-void SpgwStateConverter::pcc_rule_ht_to_proto(
-    hash_table_ts_t* const state_map,
-    google::protobuf::Map<unsigned int, PccRule>* proto_map) {
-  hashtable_ts_to_proto<pcc_rule_t, PccRule>(
-      state_map, proto_map, pcc_rule_to_proto, LOG_SPGW_APP);
-}
-
-void SpgwStateConverter::pcc_rule_to_proto(
-    const pcc_rule_t* pcc_rule_state, PccRule* proto) {
-  proto->Clear();
-
-  BSTRING_TO_STRING(pcc_rule_state->name, proto->mutable_name());
-  proto->set_is_activated(pcc_rule_state->is_activated);
-  proto->set_sdf_id((unsigned int) pcc_rule_state->sdf_id);
-  proto->set_precedence(pcc_rule_state->precedence);
-
-  eps_bearer_qos_to_proto(
-      &pcc_rule_state->bearer_qos, proto->mutable_bearer_qos());
-
-  proto->mutable_sdf_template()->set_number_of_packet_filters(
-      pcc_rule_state->sdf_template.number_of_packet_filters);
-  for (uint32_t i = 0;
-       i < pcc_rule_state->sdf_template.number_of_packet_filters; i++) {
-    packet_filter_to_proto(
-        &pcc_rule_state->sdf_template.sdf_filter[i],
-        proto->mutable_sdf_template()->add_sdf_filter());
-  }
-}
-
-void SpgwStateConverter::proto_to_pcc_rule(
-    const oai::PccRule& proto, pcc_rule_t* pcc_rule_state) {
-  pcc_rule_state->name         = bfromcstr(proto.name().c_str());
-  pcc_rule_state->sdf_id       = (sdf_id_t) proto.sdf_id();
-  pcc_rule_state->is_activated = proto.is_activated();
-  pcc_rule_state->precedence   = proto.precedence();
-
-  proto_to_eps_bearer_qos(proto.bearer_qos(), &pcc_rule_state->bearer_qos);
-
-  pcc_rule_state->sdf_template.number_of_packet_filters =
-      proto.sdf_template().number_of_packet_filters();
-  for (uint32_t i = 0; i < proto.sdf_template().sdf_filter_size(); i++) {
-    proto_to_packet_filter(
-        proto.sdf_template().sdf_filter(i),
-        &pcc_rule_state->sdf_template.sdf_filter[i]);
-  }
+  gtp_data->fd0  = gtp_proto.fd0();
+  gtp_data->fd1u = gtp_proto.fd1u();
 }
 
 void SpgwStateConverter::sgw_pending_procedures_to_proto(
@@ -898,6 +819,7 @@ void SpgwStateConverter::sgw_pending_procedures_to_proto(
         auto* cbr_procedure_proto = proto->add_pending_procedures();
         cbr_procedure_proto->set_teid(create_proc->teid);
         cbr_procedure_proto->set_sdf_id(create_proc->sdf_id);
+        cbr_procedure_proto->set_type(create_proc->proc.type);
         sgw_eps_bearer_entry_wrapper_t* b1 = nullptr;
         LIST_FOREACH(b1, create_proc->pending_eps_bearers, entries) {
           sgw_eps_bearer_to_proto(
@@ -933,6 +855,7 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
   s11_proc_create_bearer->teid   = proto.teid();
   s11_proc_create_bearer->sdf_id = (sdf_id_t) proto.sdf_id();
   pgw_base_proc_t* base_proc     = (pgw_base_proc_t*) s11_proc_create_bearer;
+  base_proc->type                = (pgw_base_proc_type_t) proto.type();
   LIST_INSERT_HEAD(pending_procedures, base_proc, entries);
 
   s11_proc_create_bearer->pending_eps_bearers =
@@ -955,15 +878,79 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
 }
 
 void SpgwStateConverter::ue_to_proto(
-    const s_plus_p_gw_eps_bearer_context_information_t* ue_state,
-    oai::S11BearerContext* ue_proto) {
-  spgw_bearer_context_to_proto(ue_state, ue_proto);
+    const spgw_ue_context_t* ue_state, oai::SpgwUeContext* ue_proto) {
+  if (ue_state && (!LIST_EMPTY(&ue_state->sgw_s11_teid_list))) {
+    sgw_s11_teid_t* s11_teid_p = nullptr;
+    LIST_FOREACH(s11_teid_p, &ue_state->sgw_s11_teid_list, entries) {
+      if (s11_teid_p) {
+        auto spgw_ctxt = sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid);
+        if (spgw_ctxt) {
+          spgw_bearer_context_to_proto(
+              spgw_ctxt, ue_proto->add_s11_bearer_context());
+        }
+      }
+    }
+  }
 }
 
 void SpgwStateConverter::proto_to_ue(
-    const oai::S11BearerContext& spgw_bearer_proto,
-    s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state) {
-  proto_to_spgw_bearer_context(spgw_bearer_proto, spgw_bearer_state);
+    const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  hash_table_ts_t* state_ue_ht   = nullptr;
+  hash_table_ts_t* state_teid_ht = nullptr;
+  if (ue_proto.s11_bearer_context_size()) {
+    state_teid_ht = get_spgw_teid_state();
+    if (!state_teid_ht) {
+      OAILOG_ERROR(LOG_SPGW_APP, "Failed to get state_teid_ht \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+
+    state_ue_ht = get_spgw_ue_state();
+    if (!state_ue_ht) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP,
+          "Failed to get state_ue_ht from get_spgw_ue_state() \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+
+    // All s11_bearer_context on this UE context will be of same imsi
+    imsi64_t imsi64 =
+        ue_proto.s11_bearer_context(0).sgw_eps_bearer_context().imsi64();
+    if (ue_context_p) {
+      LIST_INIT(&ue_context_p->sgw_s11_teid_list);
+      hashtable_ts_insert(
+          state_ue_ht, (const hash_key_t) imsi64, (void*) ue_context_p);
+    } else {
+      OAILOG_ERROR_UE(
+          LOG_SPGW_APP, imsi64, "Failed to allocate memory for UE context \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+  } else {
+    OAILOG_ERROR(
+        LOG_SPGW_APP, "There are no spgw_context stored to Redis DB \n");
+    OAILOG_FUNC_OUT(LOG_SPGW_APP);
+  }
+  for (int idx = 0; idx < ue_proto.s11_bearer_context_size(); idx++) {
+    oai::S11BearerContext S11BearerContext = ue_proto.s11_bearer_context(idx);
+    s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p =
+        (s_plus_p_gw_eps_bearer_context_information_t*) (calloc(
+            1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
+    if (!spgw_context_p) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP, "Failed to allocate memory for SPGW context \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+
+    proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
+    hashtable_ts_insert(
+        state_teid_ht,
+        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
+        (void*) spgw_context_p);
+    spgw_update_teid_in_ue_context(
+        spgw_context_p->sgw_eps_bearer_context_information.imsi64,
+        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
+  }
+  OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 
 }  // namespace lte

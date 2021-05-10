@@ -39,6 +39,8 @@
 #include "3gpp_24.301.h"
 #include "emm_msg.h"
 #include "common_defs.h"
+#include "common_ies.h"
+#include "conversions.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
@@ -172,6 +174,12 @@ int emm_msg_decode(EMM_msg* msg, uint8_t* buffer, uint32_t len) {
     case SECURITY_MODE_COMPLETE:
       decode_result = decode_security_mode_complete(
           &msg->security_mode_complete, buffer, len);
+      // IMEISV is 16 digits. Extra char for null termination.
+      char imeisv[MAX_IMEISV_SIZE + 1];
+      IMEISV_MOBID_TO_STRING(
+          &msg->security_mode_complete.imeisv.imeisv, imeisv,
+          MAX_IMEISV_SIZE + 1);
+      OAILOG_INFO(LOG_NAS_EMM, "EMM-MSG   - IMEISV: %s", imeisv);
       break;
 
     case TRACKING_AREA_UPDATE_ACCEPT:

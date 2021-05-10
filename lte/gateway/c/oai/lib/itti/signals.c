@@ -67,7 +67,7 @@
 static sigset_t set;
 
 #if LINK_GCOV
-void __gcov_flush(void);
+void gcov_flush(void);
 #endif
 
 // We have had cases where threads have been created before the main thread
@@ -121,7 +121,6 @@ int signal_mask(void) {
   sigemptyset(&set);
   sigaddset(&set, SIGTIMER);
   sigaddset(&set, SIGABRT);
-  sigaddset(&set, SIGSEGV);
   sigaddset(&set, SIGINT);
   sigaddset(&set, SIGTERM);
 
@@ -140,7 +139,6 @@ int signal_handle(int* end, task_zmq_ctx_t* task_ctx) {
   sigemptyset(&set);
   sigaddset(&set, SIGTIMER);
   sigaddset(&set, SIGABRT);
-  sigaddset(&set, SIGSEGV);
   sigaddset(&set, SIGINT);
   sigaddset(&set, SIGTERM);
 
@@ -171,7 +169,6 @@ int signal_handle(int* end, task_zmq_ctx_t* task_ctx) {
      * Dispatch the signal to sub-handlers
      */
     switch (info.si_signo) {
-      case SIGSEGV: /* Fall through */
       case SIGABRT:
         SIG_DEBUG("Received SIGABORT\n");
         backtrace_handle_signal(&info);

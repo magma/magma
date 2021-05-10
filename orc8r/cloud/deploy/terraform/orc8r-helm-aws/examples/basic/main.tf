@@ -11,19 +11,19 @@
 # limitations under the License.
 ################################################################################
 
-module orc8r {
+module "orc8r" {
   # Change this to pull from github with a specified ref
   source = "../../../orc8r-aws"
 
   region = "us-west-2"
 
-  nms_db_password             = "mypassword" # must be at least 8 characters
   orc8r_db_password           = "mypassword" # must be at least 8 characters
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
 
-  vpc_name     = "orc8r"
-  cluster_name = "orc8r"
+  vpc_name        = "orc8r"
+  cluster_name    = "orc8r"
+  cluster_version = "1.17"
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
@@ -36,7 +36,7 @@ module orc8r {
   elasticsearch_ebs_volume_type = "gp2"
 }
 
-module orc8r-app {
+module "orc8r-app" {
   # Change this to pull from github with a specified ref
   source = "../.."
 
@@ -49,15 +49,12 @@ module orc8r-app {
   secretsmanager_orc8r_name = module.orc8r.secretsmanager_secret_name
   seed_certs_dir            = "~/secrets/certs"
 
-  orc8r_db_host = module.orc8r.orc8r_db_host
-  orc8r_db_name = module.orc8r.orc8r_db_name
-  orc8r_db_user = module.orc8r.orc8r_db_user
-  orc8r_db_pass = module.orc8r.orc8r_db_pass
-
-  nms_db_host = module.orc8r.nms_db_host
-  nms_db_name = module.orc8r.nms_db_name
-  nms_db_user = module.orc8r.nms_db_user
-  nms_db_pass = module.orc8r.nms_db_pass
+  orc8r_db_host    = module.orc8r.orc8r_db_host
+  orc8r_db_port    = module.orc8r.orc8r_db_port
+  orc8r_db_dialect = module.orc8r.orc8r_db_dialect
+  orc8r_db_name    = module.orc8r.orc8r_db_name
+  orc8r_db_user    = module.orc8r.orc8r_db_user
+  orc8r_db_pass    = module.orc8r.orc8r_db_pass
 
   # Note that this can be any container registry provider -- the example below
   # provides the URL format for Docker Hub, where the user and pass are your
@@ -80,8 +77,8 @@ module orc8r-app {
 
   elasticsearch_endpoint = module.orc8r.es_endpoint
 
-  orc8r_chart_version = "1.4.36"
-  orc8r_tag           = "1.3.0"
+  orc8r_deployment_type = "fwa"
+  orc8r_tag             = "1.4.0"
 }
 
 output "nameservers" {

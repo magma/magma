@@ -12,11 +12,12 @@ limitations under the License.
 """
 
 import json
-from magma.enodebd.logger import EnodebdLogger as logger
-from typing import List, Any
+from typing import Any, List
+
+from magma.enodebd.data_models.data_model import DataModel
 from magma.enodebd.data_models.data_model_parameters import ParameterName
 from magma.enodebd.exceptions import ConfigurationError
-from magma.enodebd.data_models.data_model import DataModel
+from magma.enodebd.logger import EnodebdLogger as logger
 
 
 class EnodebConfiguration():

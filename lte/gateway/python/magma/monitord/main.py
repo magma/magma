@@ -10,14 +10,21 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+
+import logging
+
 from lte.protos.mconfig import mconfigs_pb2
+from lte.protos.mobilityd_pb2 import IPAddress
+from magma.common.sentry import sentry_init
 from magma.common.service import MagmaService
 from magma.configuration import load_service_config
+from magma.monitord.cpe_monitoring import CpeMonitoringModule
 from magma.monitord.icmp_monitoring import ICMPMonitoring
 from magma.monitord.icmp_state import serialize_subscriber_states
-from magma.monitord.cpe_monitoring import CpeMonitoringModule
-import logging
-from lte.protos.mobilityd_pb2 import IPAddress
+
+
+def _get_serialized_subscriber_states(cpe_monitor: CpeMonitoringModule):
+    return serialize_subscriber_states(cpe_monitor.get_subscriber_state())
 
 
 def main():
@@ -25,30 +32,43 @@ def main():
     manual_ping_targets = {}
     service = MagmaService('monitord', mconfigs_pb2.MonitorD())
 
+    # Optionally pipe errors to Sentry
+    sentry_init()
+
     # Monitoring thread loop
     mtr_interface = load_service_config("monitord")["mtr_interface"]
 
+    # Add manual IP targets from yml file
     try:
         targets = load_service_config("monitord")["ping_targets"]
         for target, data in targets.items():
             if "ip" in data:
-                ip = IPAddress(version=IPAddress.IPV4, address=str.encode(data["ip"]))
-                logging.debug('Adding {}:{}:{} to ping target'.format(target, ip.version, ip.address))
+                ip = IPAddress(
+                    version=IPAddress.IPV4,
+                    address=str.encode(data["ip"]),
+                )
+                logging.debug(
+                    'Adding %s:%s:%s to ping target', target, ip.version,
+                    ip.address,
+                )
                 manual_ping_targets[target] = ip
     except KeyError:
-        logging.error("No ping targets configured")
+        logging.warning("No ping targets configured")
 
-    obj = CpeMonitoringModule()
-    obj.set_manually_configured_targets(manual_ping_targets)
+    cpe_monitor = CpeMonitoringModule()
+    cpe_monitor.set_manually_configured_targets(manual_ping_targets)
 
-    icmp_monitor = ICMPMonitoring(obj, service.mconfig.polling_interval,
-                                  service.loop, mtr_interface)
+    icmp_monitor = ICMPMonitoring(
+        cpe_monitor,
+        service.mconfig.polling_interval,
+        service.loop, mtr_interface,
+    )
     icmp_monitor.start()
 
     # Register a callback function for GetOperationalStates
     service.register_operational_states_callback(
-        lambda: serialize_subscriber_states(
-            icmp_monitor.get_subscriber_state()))
+        _get_serialized_subscriber_states(cpe_monitor),
+    )
 
     # Run the service loop
     service.run()

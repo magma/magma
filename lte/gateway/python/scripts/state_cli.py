@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Copyright 2020 The Magma Authors.
 
@@ -10,24 +12,31 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import fire
-import json
-import jsonpickle
-import random
 import ast
-from typing import Any, Union
+import json
+import random
+from json.decoder import JSONDecodeError
+from typing import Union
 
-from magma.common.redis.client import get_default_client
-from magma.common.redis.serializers import get_json_deserializer, \
-    get_proto_deserializer
-from magma.mobilityd.serialize_utils import deserialize_ip_block, \
-    deserialize_ip_desc
-
+import fire
+import jsonpickle
 from lte.protos.keyval_pb2 import IPDesc
-from lte.protos.policydb_pb2 import PolicyRule, InstalledPolicies
 from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
-from lte.protos.oai.spgw_state_pb2 import SpgwState, S11BearerContext
 from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription
+from lte.protos.oai.spgw_state_pb2 import SpgwState, SpgwUeContext
+from lte.protos.policydb_pb2 import InstalledPolicies, PolicyRule
+from magma.common.redis.client import get_default_client
+from magma.common.redis.serializers import (
+    get_json_deserializer,
+    get_proto_deserializer,
+    get_proto_version_deserializer,
+)
+from magma.mobilityd.serialize_utils import (
+    deserialize_ip_block,
+    deserialize_ip_desc,
+)
+
+NO_DESERIAL_MSG = "No deserializer exists for type '{}'"
 
 
 def _deserialize_session_json(serialized_json_str: bytes) -> str:
@@ -38,6 +47,7 @@ def _deserialize_session_json(serialized_json_str: bytes) -> str:
     res = _deserialize_generic_json(str(serialized_json_str, 'utf-8', 'ignore'))
     dumped = json.dumps(res, indent=2, sort_keys=True)
     return dumped
+
 
 def _deserialize_generic_json(
         element: Union[str, dict, list])-> Union[str, dict, list]:
@@ -68,6 +78,7 @@ def _deserialize_generic_json(
         element[k] = _deserialize_generic_json(element[k])
     return element
 
+
 class StateCLI(object):
     """
     CLI for debugging current Magma services state and displaying it
@@ -81,6 +92,7 @@ class StateCLI(object):
         'rule_names': get_json_deserializer(),
         'rule_ids': get_json_deserializer(),
         'rule_versions': get_json_deserializer(),
+        'rules': get_proto_deserializer(PolicyRule),
     }
 
     STATE_PROTOS = {
@@ -88,7 +100,7 @@ class StateCLI(object):
         'spgw_state': SpgwState,
         's1ap_state': S1apState,
         'mme': UeContext,
-        'spgw': S11BearerContext,
+        'spgw': SpgwUeContext,
         's1ap': UeDescription,
         'mobilityd_ipdesc_record': IPDesc,
         'rules': PolicyRule,
@@ -126,19 +138,19 @@ class StateCLI(object):
         if redis_type == 'hash':
             deserializer = self.STATE_DESERIALIZERS.get(key_type)
             if not deserializer:
-                raise AttributeError('Key not found on redis')
+                raise AttributeError(NO_DESERIAL_MSG.format(key_type))
             self._parse_hash_type(deserializer, key)
         elif redis_type == 'set':
             deserializer = self.STATE_DESERIALIZERS.get(key_type)
             if not deserializer:
-                raise AttributeError('Key not found on redis')
+                raise AttributeError(NO_DESERIAL_MSG.format(key_type))
             self._parse_set_type(deserializer, key)
         else:
             value = self.client.get(key)
             # Try parsing as json first, if there's decoding error, parse proto
             try:
                 self._parse_state_json(value)
-            except UnicodeDecodeError:
+            except (UnicodeDecodeError, JSONDecodeError):
                 self._parse_state_proto(key_type, value)
 
     def corrupt(self, key):
@@ -167,7 +179,10 @@ class StateCLI(object):
         proto = self.STATE_PROTOS.get(key_type.lower())
         if proto:
             deserializer = get_proto_deserializer(proto)
+            version_deserializer = get_proto_version_deserializer()
             print(deserializer(value))
+            print('==================')
+            print('State version: %s' % version_deserializer(value))
         else:
             raise AttributeError('Key not found on redis')
 

@@ -13,16 +13,28 @@ limitations under the License.
 
 import logging
 from typing import List, Set
+
 from lte.protos.mconfig import mconfigs_pb2
-from lte.protos.policydb_pb2 import RatingGroup, ApnPolicySet,\
-    SubscriberPolicySet
-from lte.protos.session_manager_pb2 import CreateSessionRequest, \
-    CreateSessionResponse, UpdateSessionRequest, SessionTerminateResponse, \
-    UpdateSessionResponse, StaticRuleInstall, DynamicRuleInstall,\
-    CreditUpdateResponse, CreditLimitType
-from lte.protos.session_manager_pb2_grpc import \
-    CentralSessionControllerServicer, \
-    add_CentralSessionControllerServicer_to_server
+from lte.protos.policydb_pb2 import (
+    ApnPolicySet,
+    RatingGroup,
+    SubscriberPolicySet,
+)
+from lte.protos.session_manager_pb2 import (
+    CreateSessionRequest,
+    CreateSessionResponse,
+    CreditLimitType,
+    CreditUpdateResponse,
+    DynamicRuleInstall,
+    SessionTerminateResponse,
+    StaticRuleInstall,
+    UpdateSessionRequest,
+    UpdateSessionResponse,
+)
+from lte.protos.session_manager_pb2_grpc import (
+    CentralSessionControllerServicer,
+    add_CentralSessionControllerServicer_to_server,
+)
 from magma.policydb.apn_rule_map_store import ApnRuleAssignmentsDict
 from magma.policydb.basename_store import BaseNameDict
 from magma.policydb.default_rules import get_allow_all_policy_rule
@@ -115,7 +127,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         resp = UpdateSessionResponse()
         for credit_usage_update in request.updates:
             resp.responses.extend(
-                self._get_credits(credit_usage_update.sid),
+                self._get_credits(credit_usage_update.common_context.sid.id),
             )
         return resp
 
@@ -124,10 +136,9 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         request: SessionTerminateResponse,
         context,
     ) -> SessionTerminateResponse:
-        logging.info('Terminating a session for session ID: %s',
-                     request.session_id)
+        logging.info('Terminating session: %s', request.session_id)
         return SessionTerminateResponse(
-            sid=request.sid,
+            sid=request.common_context.sid.id,
             session_id=request.session_id,
         )
 
