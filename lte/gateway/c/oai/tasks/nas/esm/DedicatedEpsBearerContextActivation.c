@@ -516,16 +516,15 @@ static int dedicated_eps_bearer_activate(
     emm_esm_activate->mbr_ul = bearer_context->esm_ebr_context.mbr_ul;
     emm_esm_activate->gbr_dl = bearer_context->esm_ebr_context.gbr_dl;
     emm_esm_activate->gbr_ul = bearer_context->esm_ebr_context.gbr_ul;
-    OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "Rashmi send dedicated bearer activation in erab setup for ebi:%d \n",
-        ebi);
+    OAILOG_DEBUG_UE(
+        LOG_NAS_ESM, emm_context->_imsi64,
+        "Send dedicated bearer activation in erab setup for ebi:%u \n", ebi);
   } else {
     emm_sap.primitive            = EMMESM_UNITDATA_REQ;
     emm_sap.u.emm_esm.u.data.msg = *msg;
-    OAILOG_ERROR(
-        LOG_NAS_ESM,
-        "Rashmi send dedicated bearer activation in DL nas message for ebi:%d "
+    OAILOG_DEBUG_UE(
+        LOG_NAS_ESM, emm_context->_imsi64,
+        "Send dedicated bearer activation in DL nas message for ebi:%u "
         "\n",
         ebi);
   }

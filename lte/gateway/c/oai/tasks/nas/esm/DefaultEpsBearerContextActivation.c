@@ -589,7 +589,6 @@ static int default_eps_bearer_activate(
           ue_id);
     }
   }
-  *msg = NULL;
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
