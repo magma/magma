@@ -1288,6 +1288,8 @@ workflows:
             - mme_test
             - lte-integ-test
       - c-cpp-codecov
+      - lte-agw-aws
+
 
   feg:
     jobs:
