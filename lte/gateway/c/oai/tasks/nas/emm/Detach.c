@@ -142,7 +142,6 @@ void _clear_emm_ctxt(emm_context_t* emm_context) {
   if (!emm_context) {
     return;
   }
-  OAILOG_ERROR(LOG_NAS_EMM, "In _clear_emm_ctxt\n");
   mme_ue_s1ap_id_t ue_id =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
           ->mme_ue_s1ap_id;

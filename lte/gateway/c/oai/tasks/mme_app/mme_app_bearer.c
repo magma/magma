@@ -885,9 +885,6 @@ void mme_app_handle_delete_session_rsp(
   if ((ue_context_p->nb_active_pdn_contexts > 0) &&
       (!ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
     ue_context_p->nb_active_pdn_contexts -= 1;
-    OAILOG_ERROR(
-        LOG_MME_APP, "nb_active_pdn_contexts %d",
-        ue_context_p->nb_active_pdn_contexts);
   }
 
   if (ue_context_p->emm_context.new_attach_info) {

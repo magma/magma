@@ -489,9 +489,6 @@ void MmeNasStateConverter::proto_to_pdn_context(
 void MmeNasStateConverter::pdn_context_list_to_proto(
     const ue_mm_context_t& state_ue_context, oai::UeContext* ue_context_proto,
     int num_active_contexts) {
-  OAILOG_ERROR(
-      LOG_MME_APP, "pdn_context_list_to_proto num_active_contexts %d",
-      num_active_contexts);
   for (int i = 0; i < num_active_contexts; i++) {
     if (state_ue_context.pdn_contexts[i] != nullptr) {
       OAILOG_DEBUG(LOG_MME_APP, "Writing PDN context at index %d", i);
@@ -503,10 +500,6 @@ void MmeNasStateConverter::pdn_context_list_to_proto(
 
 void MmeNasStateConverter::proto_to_pdn_context_list(
     const oai::UeContext& ue_context_proto, ue_mm_context_t* state_ue_context) {
-  OAILOG_DEBUG(
-      LOG_MME_APP,
-      "proto_to_pdn_context_list ue_context_proto.pdn_contexts_size() %d",
-      ue_context_proto.pdn_contexts_size());
   for (int i = 0; i < ue_context_proto.pdn_contexts_size(); i++) {
     OAILOG_DEBUG(LOG_MME_APP, "Reading PDN context at index %d", i);
     auto* pdn_context_p = (pdn_context_t*) calloc(1, sizeof(pdn_context_t));

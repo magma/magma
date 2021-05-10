@@ -1120,9 +1120,6 @@ static int emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
      * Release the associated default EPS bearer context
      */
 
-    OAILOG_ERROR(
-        LOG_NAS_EMM, "Processing bearer deactivation for ebi %u pid %d\n",
-        msg->lbi, pid);
     int bid = 0;
     rc      = esm_proc_eps_bearer_context_deactivate(
         &ue_mm_context_p->emm_context, false /* Release locally */, msg->lbi,
@@ -1138,12 +1135,6 @@ static int emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
         msg->lbi);
     rc = RETURNerror;
   }
-  OAILOG_ERROR(
-      LOG_NAS_EMM,
-      "After Processing bearer deactivation failed for ebi %u pdn context %x "
-      "is_pdn_disconnect %d\n",
-      msg->lbi, ue_mm_context_p->pdn_contexts[pid],
-      ue_mm_context_p->emm_context.esm_ctx.is_pdn_disconnect);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

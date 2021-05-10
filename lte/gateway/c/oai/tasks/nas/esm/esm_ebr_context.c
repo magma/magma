@@ -277,16 +277,9 @@ ebi_t esm_ebr_context_release(
          * The EPS bearer context entry is found
          */
         *pid = ue_mm_context->bearer_contexts[*bid]->pdn_cx_id;
-        OAILOG_ERROR(
-            LOG_NAS_ESM, "In ebi != ESM_EBI_UNASSIGNED ESM-PROC  - PID %d is\n",
-            *pid);
         if (ue_mm_context->pdn_contexts[*pid]) {
           found = true;
-          OAILOG_ERROR(
-              LOG_NAS_ESM,
-              "In ebi != ESM_EBI_UNASSIGNED PDN context for PID %d isvalid \n",
-              *pid);
-          pdn = &ue_mm_context->pdn_contexts[*pid]->esm_data;
+          pdn   = &ue_mm_context->pdn_contexts[*pid]->esm_data;
           break;
         }
       }
@@ -300,10 +293,7 @@ ebi_t esm_ebr_context_release(
      * Default EPS bearer to a given PDN is always identified by the
      * first EPS bearer context entry at index bid = 0
      */
-    OAILOG_ERROR(LOG_NAS_ESM, "ESM-PROC  - PID %d is\n", *pid);
     if (*pid < MAX_APN_PER_UE) {
-      OAILOG_ERROR(
-          LOG_NAS_ESM, "ESM-PROC  - PID %d is < MAX_APN_PER_UE\n", *pid);
       if (!ue_mm_context->pdn_contexts[*pid]) {
         OAILOG_ERROR(
             LOG_NAS_ESM,
@@ -329,11 +319,11 @@ ebi_t esm_ebr_context_release(
 
     if ((!ue_mm_context->pdn_contexts[*pid]) ||
         (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[*bid] != *bid)) {
-      OAILOG_ERROR(
-          LOG_NAS_ESM,
+      OAILOG_ERROR_UE(
+          LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
           "ESM-PROC  - EPS bearer identifier %d is "
-          "not validi for pid %d\n",
-          *bid, *pid);
+          "not valid for ue id " MME_UE_S1AP_ID_FMT "\n",
+          *bid, ue_mm_context->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
     }
 
@@ -466,11 +456,6 @@ ebi_t esm_ebr_context_release(
           "(ebi=%d)\n",
           ebi);
     }
-    OAILOG_INFO(
-        LOG_NAS_ESM,
-        "ESM-PROC  - Finally Released EPS bearer context "
-        "(ebi=%d) pdn_context[0] %x, pdn_context[1]-%x\n",
-        ebi, ue_mm_context->pdn_contexts[0], ue_mm_context->pdn_contexts[1]);
 
     // if (pdn->n_bearers == 0) {
     /*
