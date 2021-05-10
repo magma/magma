@@ -981,8 +981,8 @@ jobs:
             cp ~/magma-experimental/roles/vars/secrets.yaml ~/magma-experimental/files
             sed -i -e "s/AWS_ACCESS_KEY_ID/${AWS_FB_CRED}/g" ~/magma-experimental/files/secrets.yaml
             sed -i -e "s@AWS_SECRET_ACCESS_KEY@${AWS_FB_SECRET}@g" ~/magma-experimental/files/secrets.yaml
-            sed -i -e "s@agwmpboot2@mpboot101@g" ~/magma-experimental/roles/vars/defaults.yaml
-            sed -i -e "s@agwmphost2@mphost101@g" ~/magma-experimental/roles/vars/defaults.yaml
+            sed -i -e "s/agwmpboot2/mpboot101/g" ~/magma-experimental/roles/vars/defaults.yaml
+            sed -i -e "s/agwmphost2/mphost101/g" ~/magma-experimental/roles/vars/defaults.yaml
             sed -i -e "s@imgCloudstrapperBase@CloudStrapper${CIRCLE_BUILD_NUM}@g" ~/magma-experimental/roles/vars/defaults.yaml 
             cp ~/magma-experimental/ansible.cfg ~/.ansible.cfg
             aws s3 cp s3://cloudstrapper-ec2-pems/mpboot101.pem ~/magma-experimental/files/
@@ -992,7 +992,7 @@ jobs:
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
             #ansible-playbook cloudstrapper-provision.yaml  -e "dirLocalInventory=~/magma-experimental/files"
-            ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm -e "dirLocalInventory=~/magma-experimental/files"
+            ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance=tag_Name_ec2MagmaDevopsCloud_aws_ec2.yaml -e "devopsstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-init.yaml  -e "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=CloudStrapper${CIRCLE_BUILD_NUM}"
      # - magma_slack_notify
 
