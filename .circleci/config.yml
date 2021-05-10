@@ -990,7 +990,7 @@ jobs:
             chmod 600 ~/magma-experimental/files/*.pem
             #ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files" --tags keyCreate
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files"
-            ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
+            ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files" -e "keyBoot=mpboot101" -e "keyHosts=mphost101"
             #ansible-playbook cloudstrapper-provision.yaml  -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance=tag_Name_ec2MagmaDevopsCloud_aws_ec2.yaml -e "devopsstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-init.yaml  -e "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=CloudStrapper${CIRCLE_BUILD_NUM}"
