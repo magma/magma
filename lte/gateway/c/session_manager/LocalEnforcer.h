@@ -187,10 +187,6 @@ class LocalEnforcer {
       SessionState& session, const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
 
-  void schedule_session_init_dedicated_bearer_creations(
-      const std::string& imsi, const std::string& session_id,
-      BearerUpdate& bearer_updates);
-
   /**
    * Initialize session on session map. Adds some information comming from
    * the core (cloud). Rules will be installed by init_session_credit
@@ -310,7 +306,6 @@ class LocalEnforcer {
   std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; };
 
   static uint32_t REDIRECT_FLOW_PRIORITY;
-  static uint32_t BEARER_CREATION_DELAY_ON_SESSION_INIT;
   // If this is set to true, we will send the timezone along with
   // CreateSessionRequest
   static bool SEND_ACCESS_TIMEZONE;
