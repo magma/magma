@@ -176,9 +176,10 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
         (pre_emption_capability_t) apn.qos_profile().preemption_capability();
 
     // apn ambr
-    itti_msg_apn->ambr.br_ul    = apn.ambr().max_bandwidth_ul();
-    itti_msg_apn->ambr.br_dl    = apn.ambr().max_bandwidth_dl();
-    itti_msg_apn->ambr.bitsunit = (apn_ambr_bits_unit_t) apn.ambr().unit();
+    itti_msg_apn->ambr.br_ul = apn.ambr().max_bandwidth_ul();
+    itti_msg_apn->ambr.br_dl = apn.ambr().max_bandwidth_dl();
+    itti_msg_apn->ambr.bitrateunit =
+        (apn_ambr_bitrate_unit_t) apn.ambr().unit();
     ++idx;
   }
   return;

@@ -216,9 +216,10 @@ void NasStateConverter::ambr_to_proto(
 
 void NasStateConverter::proto_to_ambr(
     const oai::Ambr& ambr_proto, ambr_t* state_ambr) {
-  state_ambr->br_ul    = ambr_proto.br_ul();
-  state_ambr->br_dl    = ambr_proto.br_dl();
-  state_ambr->bitsunit = (apn_ambr_bits_unit_t) ambr_proto.bitrate_units();
+  state_ambr->br_ul = ambr_proto.br_ul();
+  state_ambr->br_dl = ambr_proto.br_dl();
+  state_ambr->bitrateunit =
+      (apn_ambr_bitrate_unit_t) ambr_proto.bitrate_units();
 }
 
 void NasStateConverter::bearer_qos_to_proto(

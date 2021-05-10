@@ -238,10 +238,10 @@ typedef union {
 typedef enum {
   BPS  = 0,
   KBPS = 1,
-} apn_ambr_bits_unit_t;
+} apn_ambr_bitrate_unit_t;
 
 typedef struct {
-  apn_ambr_bits_unit_t bitsunit;
+  apn_ambr_bitrate_unit_t bitrateunit;
   bitrate_t br_ul;
   bitrate_t br_dl;
 } ambr_t;
