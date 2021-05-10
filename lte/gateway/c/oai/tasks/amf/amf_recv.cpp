@@ -112,16 +112,20 @@ int amf_handle_registration_request(
   /*
    * Handle message checking error
    */
+  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   if (amf_cause != AMF_CAUSE_SUCCESS) {
     rc = amf_proc_registration_reject(ue_id, amf_cause);
+    OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   }
   amf_registration_request_ies_t* params = new (amf_registration_request_ies_t);
+  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   /*
    * Message processing
    */
   /*
    * Get the 5GS Registration type
    */
+  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_RESERVED;
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
@@ -138,17 +142,22 @@ int amf_handle_registration_request(
   } else {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_INITIAL;
   }
+  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_context == NULL) {
     OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL for UE ID:%d \n", ue_id);
     return RETURNerror;
   }
+  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   // Save the UE Security Capability into AMF's UE Context
   memcpy(
       &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
       sizeof(UESecurityCapabilityMsg));
 
+  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
+  OAILOG_DEBUG(
+      LOG_NAS_AMF, "m5gs_reg_type.type_val :%d", msg->m5gs_reg_type.type_val);
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_INITIAL) {
     OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST processing\n");
     /*
@@ -197,6 +206,7 @@ int amf_handle_registration_request(
       }
     }
   }  // end of AMF_REGISTRATION_TYPE_INITIAL
+  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
 
   if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERODIC_UPDATING) {
     /*
@@ -273,56 +283,13 @@ int amf_handle_registration_request(
    * Execute the requested new UE registration procedure
    * This will initiate identity req in DL.
    */
+  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   if (is_amf_ctx_new) {
     rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
+  OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   return rc;
-  /* This is SUCI message identity type is SUPI as IMSI type
-   * Extract the SUPI from SUCI directly as scheme is NULL */
-  if (msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity ==
-      M5GSMobileIdentityMsg_SUCI_IMSI) {
-    // Only considering protection scheme as NULL else return error.
-    if (msg->m5gs_mobile_identity.mobile_identity.imsi.protect_schm_id ==
-        MOBILE_IDENTITY_PROTECTION_SCHEME_NULL) {
-      /*
-       * Extract the SUPI or IMSI from SUCI as scheme output is not encrypted
-       */
-      params->imsi = new (imsi_t);
-      /* Copying PLMN to local supi which is imsi*/
-      supi_imsi.plmn.mcc_digit1 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit1;
-      supi_imsi.plmn.mcc_digit2 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit2;
-      supi_imsi.plmn.mcc_digit3 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit3;
-      supi_imsi.plmn.mnc_digit1 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit1;
-      supi_imsi.plmn.mnc_digit2 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit2;
-      supi_imsi.plmn.mnc_digit3 =
-          msg->m5gs_mobile_identity.mobile_identity.imsi.mnc_digit3;
-      // copy 5 octet scheme_output to msin of supi_imsi
-      memcpy(
-          &supi_imsi.msin,
-          &msg->m5gs_mobile_identity.mobile_identity.imsi.scheme_output,
-          MSIN_MAX_LENGTH);
-      // Copy entire supi_imsi to param->imsi->u.value
-      memcpy(&params->imsi->u.value, &supi_imsi, IMSI_BCD8_SIZE);
-      OAILOG_DEBUG(
-          LOG_AMF_APP, "Value of SUPI/IMSI from params->imsi->u.value\n");
-      OAILOG_DEBUG(
-          LOG_AMF_APP,
-          "SUPI as IMSI derived : %02x%02x%02x%02x%02x%02x%02x%02x \n",
-          params->imsi->u.value[0], params->imsi->u.value[1],
-          params->imsi->u.value[2], params->imsi->u.value[3],
-          params->imsi->u.value[4], params->imsi->u.value[5],
-          params->imsi->u.value[6], params->imsi->u.value[7]);
-    }
-  }
-
-  rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 /****************************************************************************

@@ -38,6 +38,8 @@ struct AmfMsgHeader_s {
   uint8_t extended_protocol_discriminator;
   uint8_t sec_header_type;
   uint8_t message_type;
+  uint32_t message_authentication_code;
+  uint8_t sequence_number;
 };
 
 union MMsg_u {

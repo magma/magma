@@ -93,7 +93,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        */
 
       // Invoke NGAP message decoder
-
       Ngap_NGAP_PDU_t pdu = {0};
 
       if (ngap_amf_decode_pdu(
@@ -123,6 +122,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case NGAP_NAS_DL_DATA_REQ: {  // packets from NAS
+
       /*
        * New message received from NAS task.
        * * * * This corresponds to a NGAP downlink nas transport message.

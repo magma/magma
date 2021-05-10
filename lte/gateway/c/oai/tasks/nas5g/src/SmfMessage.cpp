@@ -139,9 +139,6 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
     return (RETURNerror);
   }
 
-  buffer        = buffer + header_result;
-  encode_result = encode_result + header_result;
-
   switch ((unsigned char) msg->header.message_type) {
     case PDU_SESSION_ESTABLISHMENT_ACCEPT:
       encode_result = msg->msg.pdu_session_estab_accept

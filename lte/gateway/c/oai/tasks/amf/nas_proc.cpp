@@ -17,6 +17,7 @@ extern "C" {
 #include "log.h"
 #include "intertask_interface_types.h"
 #include "intertask_interface.h"
+#include "dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
@@ -26,7 +27,6 @@ extern "C" {
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_authentication.h"
 #include "amf_sap.h"
-#include "dynamic_memory_check.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {
@@ -136,6 +136,7 @@ bool is_nas_specific_procedure_registration_running(const amf_context_t* ctxt) {
   return false;
 }
 
+#if 0
 /***************************************************************************
 **                                                                        **
 ** Name:    nas5g_message_decode()                                        **
@@ -168,6 +169,7 @@ int nas5g_message_decode(
   bytes   = amf_msg_obj.M5gNasMessageDecodeMsg(msg_amf, buffer, length);
   OAILOG_FUNC_RETURN(LOG_NAS, bytes);
 }
+#endif
 
 /***************************************************************************
 **                                                                        **
@@ -213,7 +215,8 @@ nas_amf_ident_proc_t* nas5g_new_identification_procedure(
 static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   amf_sap_t amf_sap;  //             = {0};
-  int rc = RETURNok;
+  int rc         = RETURNok;
+  proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
   OAILOG_DEBUG(LOG_AMF_APP, "Sending AS IDENTITY_REQUEST\n");
   /*
    * Notify AMF-AS SAP that Identity Request message has to be sent

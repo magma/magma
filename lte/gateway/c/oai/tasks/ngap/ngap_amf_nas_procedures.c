@@ -298,15 +298,15 @@ int ngap_amf_handle_uplink_nas_transport(
 
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
-
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_UplinkNASTransport_IEs_t, ie_nas_pdu, container,
       Ngap_ProtocolIE_ID_id_NAS_PDU, true);
   // TAI mandatory IE
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_UplinkNASTransport_IEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_SupportedTAList, true);
-  OCTET_STRING_TO_TAC(
+      Ngap_ProtocolIE_ID_id_UserLocationInformation, true);
+
+  OCTET_STRING_TO_TAC_5G(
       &ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
            .tAI.tAC,
       tai.tac);
@@ -317,11 +317,6 @@ int ngap_amf_handle_uplink_nas_transport(
       &ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
            .tAI.pLMNIdentity,
       &tai.plmn);
-
-  // CGI mandatory IE
-  NGAP_FIND_PROTOCOLIE_BY_ID(
-      Ngap_UplinkNASTransport_IEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_EUTRA_CGI, true);
   DevAssert(
       ie->value.choice.UserLocationInformation.choice
           .userLocationInformationEUTRA.eUTRA_CGI.pLMNIdentity.size == 3);
@@ -680,7 +675,6 @@ int ngap_generate_ngap_pdusession_resource_setup_req(
     ie->value.present =
         Ngap_PDUSessionResourceSetupRequestIEs__value_PR_PDUSessionResourceSetupListSUReq;
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
     for (int i = 0; i < pdusession_resource_setup_req
                             ->pduSessionResource_setup_list.no_of_items;
          i++) {
@@ -853,7 +847,6 @@ int ngap_generate_ngap_pdusession_resource_setup_req(
           ngap_pdusession_setup_item_ies);
 
     } /*for loop*/
-
     if (ngap_amf_encode_pdu(&pdu, &buffer_p, &length) < 0) {
       OAILOG_ERROR(LOG_NGAP, "Encoding of IEs failed \n");
       OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);

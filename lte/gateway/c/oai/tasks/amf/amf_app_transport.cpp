@@ -19,11 +19,11 @@ extern "C" {
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "log.h"
+#include "dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
 #include "common_defs.h"
-#include "dynamic_memory_check.h"
 #include "amf_app_state_manager.h"
 
 namespace magma5g {

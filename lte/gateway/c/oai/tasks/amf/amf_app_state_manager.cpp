@@ -15,12 +15,12 @@
 extern "C" {
 #endif
 #include "log.h"
+#include "dynamic_memory_check.h"
 #ifdef __cplusplus
 }
 #endif
 #include "common_defs.h"
 #include "amf_app_state_manager.h"
-#include "dynamic_memory_check.h"
 
 namespace magma5g {
 constexpr char AMF_NAS_STATE_KEY[] = "amf_nas_state";

@@ -46,9 +46,9 @@ int AuthenticationParameterRANDMsg::EncodeAuthenticationParameterRANDMsg(
     encoded++;
   }
 
-  std::copy(rand->rand_val.begin(), rand->rand_val.end(), buffer + encoded);
-  BUFFER_PRINT_LOG(buffer + encoded, rand->rand_val.length());
-  encoded = encoded + rand->rand_val.length();
+  memcpy(buffer + encoded, rand->rand_val, RAND_MAX_LEN);
+  BUFFER_PRINT_LOG(buffer + encoded, RAND_MAX_LEN);
+  encoded = encoded + RAND_MAX_LEN;
 
   return (encoded);
 };

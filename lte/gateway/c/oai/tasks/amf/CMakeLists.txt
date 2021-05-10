@@ -51,6 +51,7 @@ add_library(TASK_AMF_APP
     amf_Security_Mode.cpp
     deregistration_request.cpp
     amf_app_pdu_resource_setup_req_rel.cpp
+    nas5g_message.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
 )
