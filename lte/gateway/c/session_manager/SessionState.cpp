@@ -479,12 +479,16 @@ RuleStats SessionState::get_rule_delta(
   // ignore other reports as they shoudn't be sent
   auto last_reported_version = it->second.last_reported_version;
   if (rule_version > it->second.current_version) {
-    MLOG(MERROR) << "Reported version higher than tracked one, ignoring";
+    MLOG(MERROR) << "Reported version higher than tracked one("
+                 << it->second.current_version << ") for "
+                 << "Rule_id: " << rule_id << " version: " << rule_version;
     return ret;
   }
 
   if (rule_version < last_reported_version) {
-    MLOG(MERROR) << "Reported rule version too old, ignoring";
+    MLOG(MERROR) << "Reported rule version too old, current one("
+                 << it->second.current_version << ") for "
+                 << "Rule_id: " << rule_id << " version: " << rule_version;
     return ret;
   }
 
@@ -539,10 +543,6 @@ void SessionState::add_rule_usage(
   RuleStats delta = get_rule_delta(
       rule_id, rule_version, used_tx, used_rx, dropped_tx, dropped_rx,
       update_criteria);
-  uint64_t delta_tx         = delta.tx;
-  uint64_t delta_rx         = delta.rx;
-  uint64_t delta_dropped_tx = delta.dropped_tx;
-  uint64_t delta_dropped_rx = delta.dropped_rx;
 
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, &charging_key) ||
       static_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
@@ -552,7 +552,7 @@ void SessionState::add_rule_usage(
     auto it = credit_map_.find(charging_key);
     if (it != credit_map_.end()) {
       auto credit_uc = get_credit_uc(charging_key, update_criteria);
-      it->second->credit.add_used_credit(delta_tx, delta_rx, *credit_uc);
+      it->second->credit.add_used_credit(delta.tx, delta.rx, *credit_uc);
       if (it->second->should_deactivate_service()) {
         it->second->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
       }
@@ -566,17 +566,17 @@ void SessionState::add_rule_usage(
       static_rules_.get_monitoring_key_for_rule_id(rule_id, &monitoring_key)) {
     MLOG(MINFO) << "Updating used monitoring credit for Rule=" << rule_id
                 << " Monitoring Key=" << monitoring_key;
-    add_to_monitor(monitoring_key, delta_tx, delta_rx, update_criteria);
+    add_to_monitor(monitoring_key, delta.tx, delta.rx, update_criteria);
   }
   if (session_level_key_ != "" && monitoring_key != session_level_key_) {
     // Update session level key if its different
-    add_to_monitor(session_level_key_, delta_tx, delta_rx, update_criteria);
+    add_to_monitor(session_level_key_, delta.tx, delta.rx, update_criteria);
   }
   if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
-    update_data_metrics(UE_USED_COUNTER_NAME, delta_tx, delta_rx);
+    update_data_metrics(UE_USED_COUNTER_NAME, delta.tx, delta.rx);
   }
   update_data_metrics(
-      UE_DROPPED_COUNTER_NAME, delta_dropped_tx, delta_dropped_rx);
+      UE_DROPPED_COUNTER_NAME, delta.dropped_tx, delta.dropped_rx);
 }
 
 void SessionState::apply_session_rule_set(

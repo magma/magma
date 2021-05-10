@@ -175,6 +175,7 @@ class SessionState {
 
   /**
    * add_rule_usage adds used TX/RX bytes to a particular rule
+   * TODO instead of passing rule/version/stats pass the full rulerecord
    */
   void add_rule_usage(
       const std::string& rule_id, uint64_t version, uint64_t used_tx,

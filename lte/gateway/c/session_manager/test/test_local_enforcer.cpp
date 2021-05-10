@@ -426,7 +426,7 @@ TEST_F(LocalEnforcerTest, test_multi_version_reporting) {
       record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", uc);
 
   session_map[IMSI1][0]->increment_rule_stats("rule1", uc);
@@ -435,7 +435,6 @@ TEST_F(LocalEnforcerTest, test_multi_version_reporting) {
   local_enforcer->aggregate_records(session_map, table, update);
   assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 30}});
   assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 140}});
-
 }
 
 TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
@@ -550,7 +549,7 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules) {
   auto record_list = table.mutable_records();
   create_rule_record(IMSI1, "rule1", 1024, 1024, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", uc);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -617,7 +616,7 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
       IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 10, 20,
       record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", uc);
   local_enforcer->aggregate_records(session_map, table, update);
   assert_monitor_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{"1", 10}});
@@ -693,7 +692,8 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
       "internal_default_drop_flow_rule", 0, 0, record_list->Add());
 
   auto uc = get_default_update_criteria();
-  session_map[IMSI1][0]->increment_rule_stats("internal_default_drop_flow_rule", uc);
+  session_map[IMSI1][0]->increment_rule_stats(
+      "internal_default_drop_flow_rule", uc);
   local_enforcer->aggregate_records(session_map, only_drop_rule_table, update);
   run_evb();
   run_evb();
@@ -734,7 +734,8 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   auto uc = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", uc);
   session_map[IMSI1][0]->increment_rule_stats("rule2", uc);
-  session_map[IMSI1][0]->increment_rule_stats("internal_default_drop_flow_rule", uc);
+  session_map[IMSI1][0]->increment_rule_stats(
+      "internal_default_drop_flow_rule", uc);
   local_enforcer->aggregate_records(session_map, table, update);
 
   // Collect updates to put key 1 into reporting state
@@ -1004,7 +1005,7 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   create_rule_record(IMSI1, "rule1", 1024, 2048, record_list->Add());
   create_rule_record(IMSI1, "rule2", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", uc);
   session_map[IMSI1][0]->increment_rule_stats("rule2", uc);
   local_enforcer->aggregate_records(session_map, table, update);
@@ -1073,7 +1074,7 @@ TEST_F(LocalEnforcerTest, test_all) {
       IMSI2, cfg2.common_context.ue_ipv4(), "rule3", 1024, 1024,
       record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", uc);
   session_map[IMSI1][0]->increment_rule_stats("rule2", uc);
   session_map[IMSI2][0]->increment_rule_stats("rule3", uc);
@@ -1445,7 +1446,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rules) {
       record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", uc);
   session_map[IMSI1][0]->increment_rule_stats("rule2", uc);
   local_enforcer->aggregate_records(session_map, table, update);
@@ -1503,7 +1504,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
       IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 1024, 2048,
       record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", uc);
   session_map[IMSI1][0]->increment_rule_stats("rule2", uc);
   local_enforcer->aggregate_records(session_map, table, update);
@@ -1641,7 +1642,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   create_rule_record(IMSI1, ip, "pcrf_only", 1024, 1024, record_list->Add());
   create_rule_record(IMSI1, ip, "pcrf_split", 10, 20, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("both_rule", uc);
   session_map[IMSI1][0]->increment_rule_stats("ocs_rule", uc);
   session_map[IMSI1][0]->increment_rule_stats("pcrf_only", uc);
@@ -2778,7 +2779,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
   create_rule_record(
       IMSI1, ip_addr, "static_1", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("static_1", uc);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -2857,7 +2858,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
   create_rule_record(IMSI1, ip_addr, "rule2", 1024, 2048, record_list->Add());
   create_rule_record(IMSI1, ip_addr, "rule3", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", uc);
   session_map[IMSI1][0]->increment_rule_stats("rule2", uc);
   session_map[IMSI1][0]->increment_rule_stats("rule3", uc);
@@ -2961,7 +2962,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   create_rule_record(
       IMSI1, ip_addr, "static_rule1", 1023, 0, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
-  auto uc = get_default_update_criteria();
+  auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("static_rule1", uc);
   local_enforcer->aggregate_records(session_map, table, update);
 
