@@ -7,8 +7,8 @@
 
 secgroupDefault: secgroupMagmaProto
 bucketDefault: lte-agw-aws
-keyBoot: agwmpboot2
-keyHost: agwmphost2
+keyBoot: mpboot2
+keyHost: mphost2
 
 devOpsCloudstrapper: ec2MagmaDevopsCloudstrapper
 primaryCloudstrapper: ec2MagmaCloudstrapper
