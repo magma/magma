@@ -328,6 +328,24 @@ commands:
             mkdir -p versions
             cp *_version versions || true
           no_output_timeout: 20m
+      - run:
+          name: Copy debian packages to new JFROG repo
+          command: |
+            cd ${MAGMA_ROOT}/circleci
+            PACKAGE_FILE=packages.tar.gz
+            if [ -f "${PACKAGE_FILE}" ]; then
+               echo "${PACKAGE_FILE} exists"
+               rm -rf *.deb
+               tar xvf ${PACKAGE_FILE}
+               for i in `ls -a1 *.deb`
+               do
+                  echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/stretch-ci/$i;deb.distribution=stretch-5g;deb.component=main;deb.architecture=amd64" -T $i
+               done
+            else
+               echo "${PACKAGE_FILE} does NOT exist"
+               echo "No debian packages to push to JFROG"
+            fi
       - store_artifacts:
           path: /tmp/logs
       - store_test_results:
@@ -1260,9 +1278,7 @@ workflows:
       - mme-clang-warnings:
           <<: *only_master
       - lte-integ-test:
-          <<: *master_and_develop
       - lte-agw-deploy:
-          <<: *only_master
           requires:
             - lte-test
             - mme_test
