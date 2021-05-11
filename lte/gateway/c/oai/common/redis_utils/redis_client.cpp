@@ -117,6 +117,15 @@ int RedisClient::read_proto(const std::string& key, Message& proto_msg) {
   return RETURNok;
 }
 
+int RedisClient::read_version(const std::string& key) {
+  orc8r::RedisState wrapper_proto = orc8r::RedisState();
+  if (read_redis_state(key, wrapper_proto) != RETURNok) {
+    return RETURNerror;
+  }
+
+  return wrapper_proto.version();
+}
+
 int RedisClient::clear_keys(const std::vector<std::string>& keys_to_clear) {
   auto db_write = db_client_->del(keys_to_clear);
   db_client_->sync_commit();
