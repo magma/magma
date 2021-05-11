@@ -151,7 +151,7 @@ class StateCLI(object):
             # Try parsing as json first, if there's decoding error, parse proto
             try:
                 self._parse_state_json(value)
-            except (UnicodeDecodeError, JSONDecodeError):
+            except (UnicodeDecodeError, JSONDecodeError, AttributeError):
                 self._parse_state_proto(key_type, value)
 
     def corrupt(self, key):
