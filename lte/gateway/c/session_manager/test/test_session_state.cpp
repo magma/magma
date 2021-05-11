@@ -941,9 +941,10 @@ TEST_F(SessionStateTest, test_apply_session_rule_set) {
   rules_to_apply.dynamic_rules["rule-dynamic-3"] = dynamic_3;
 
   SessionStateUpdateCriteria uc;
-  RulesToProcess to_activate, to_deactivate, to_get_bearer;
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
   session_state->apply_session_rule_set(
-      rules_to_apply, &to_activate, &to_deactivate, &to_get_bearer, uc);
+      rules_to_apply, &pending_activation, &pending_deactivation,
+      &pending_bearer_setup, uc);
 
   // First check the active rules in session
   EXPECT_TRUE(!session_state->is_static_rule_installed("rule-static-1"));
@@ -954,11 +955,11 @@ TEST_F(SessionStateTest, test_apply_session_rule_set) {
   EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule-dynamic-3"));
 
   // Check the RulesToProcess is properly filled out
-  EXPECT_EQ(to_activate.size(), 2);
-  const std::string activate_rule1   = to_activate[0].rule.id();
-  const std::string activate_rule2   = to_activate[1].rule.id();
-  const std::string deactivate_rule1 = to_deactivate[0].rule.id();
-  const std::string deactivate_rule2 = to_deactivate[1].rule.id();
+  EXPECT_EQ(pending_activation.size(), 2);
+  const std::string activate_rule1   = pending_activation[0].rule.id();
+  const std::string activate_rule2   = pending_activation[1].rule.id();
+  const std::string deactivate_rule1 = pending_deactivation[0].rule.id();
+  const std::string deactivate_rule2 = pending_deactivation[1].rule.id();
   EXPECT_TRUE(
       activate_rule1 == "rule-static-3" || activate_rule1 == "rule-dynamic-3");
   EXPECT_TRUE(
@@ -1122,15 +1123,15 @@ TEST_F(SessionStateTest, test_process_static_rule_installs) {
       // new qos rule
       create_static_rule_install("static-qos-4"),
   };
-  RulesToProcess to_activate, to_deactivate, to_get_bearer;
-  RulesToSchedule to_schedule;
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
+  RulesToSchedule pending_scheduling;
   session_state->process_static_rule_installs(
-      rule_installs, &to_activate, &to_deactivate, &to_get_bearer, &to_schedule,
-      &uc);
-  EXPECT_EQ(1, to_activate.size());
-  EXPECT_EQ("static-2", to_activate[0].rule.id());
-  EXPECT_EQ(1, to_get_bearer.size());
-  EXPECT_EQ("static-qos-4", to_get_bearer[0].rule.id());
+      rule_installs, &pending_activation, &pending_deactivation,
+      &pending_bearer_setup, &pending_scheduling, &uc);
+  EXPECT_EQ(1, pending_activation.size());
+  EXPECT_EQ("static-2", pending_activation[0].rule.id());
+  EXPECT_EQ(1, pending_bearer_setup.size());
+  EXPECT_EQ("static-qos-4", pending_bearer_setup[0].rule.id());
 }
 
 TEST_F(SessionStateTest, test_process_dynamic_rule_installs) {
@@ -1160,13 +1161,13 @@ TEST_F(SessionStateTest, test_process_dynamic_rule_installs) {
       // new qos rule
       create_dynamic_rule_install(dynamic_qos_4),
   };
-  RulesToProcess to_activate, to_deactivate, to_get_bearer;
-  RulesToSchedule to_schedule;
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
+  RulesToSchedule pending_scheduling;
   session_state->process_dynamic_rule_installs(
-      rule_installs, &to_activate, &to_deactivate, &to_get_bearer, &to_schedule,
-      &uc);
-  EXPECT_EQ(2, to_activate.size());
-  EXPECT_EQ(2, to_get_bearer.size());
+      rule_installs, &pending_activation, &pending_deactivation,
+      &pending_bearer_setup, &pending_scheduling, &uc);
+  EXPECT_EQ(2, pending_activation.size());
+  EXPECT_EQ(2, pending_bearer_setup.size());
 }
 
 int main(int argc, char** argv) {

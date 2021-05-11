@@ -119,7 +119,7 @@ void EventsReporterImpl::session_created(
 void EventsReporterImpl::session_create_failure(
     const SessionConfig& session_context, const std::string& failure_reason) {
   auto event             = magma::orc8r::Event();
-  const std::string imsi = session_context.common_context.sid().id();
+  const std::string imsi = session_context.get_imsi();
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_CREATE_FAILURE_EV);
   event.set_tag(imsi);
@@ -146,7 +146,7 @@ void EventsReporterImpl::session_updated(
     const std::string& session_id, const SessionConfig& session_context,
     const UpdateRequests& update_request) {
   auto event             = magma::orc8r::Event();
-  const std::string imsi = session_context.common_context.sid().id();
+  const std::string imsi = session_context.get_imsi();
 
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_UPDATED_EV);
@@ -177,7 +177,7 @@ void EventsReporterImpl::session_update_failure(
     const std::string& session_id, const SessionConfig& session_context,
     const UpdateRequests& failed_request, const std::string& failure_reason) {
   auto event             = magma::orc8r::Event();
-  const std::string imsi = session_context.common_context.sid().id();
+  const std::string imsi = session_context.get_imsi();
 
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_UPDATE_FAILURE_EV);

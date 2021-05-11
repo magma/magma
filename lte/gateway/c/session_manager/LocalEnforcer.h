@@ -184,8 +184,7 @@ class LocalEnforcer {
    * CreateSessionResponse.
    */
   void handle_session_activate_rule_updates(
-      const std::string& imsi, SessionState& session,
-      const CreateSessionResponse& response,
+      SessionState& session, const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
 
   void schedule_session_init_dedicated_bearer_creations(
@@ -387,18 +386,18 @@ class LocalEnforcer {
   /**
    * @brief For rules mentioned in both static_rule_installs and
    * dynamic_rule_installs, classify them into the three RulesToProcess vectors.
-   * to_activate, to_deactivate, to_get_bearer will not intersect in the set of
-   * rules they contain to_schedule may contain some deactivation scheduling for
-   * rules mentioned in the above three sets
+   * pending_activation, pending_deactivation, pending_bearer_setup will not
+   * intersect in the set of rules they contain pending_scheduling may contain
+   * some deactivation scheduling for rules mentioned in the above three sets
    * @param session
    * @param static_rule_installs
    * @param dynamic_rule_installs
-   * @param to_activate contains rules that need to be activated now
-   * @param to_deactivate contains rules that need to be deactivated now
-   * @param to_get_bearer contains rules that need to get dedicated bearers
-   * before they can be activated. The rules will be activated once MME sends a
-   * BindPolicy2Bearer with the dedicated bearer Teids.
-   * @param to_schedule contains rules that need to be scheduled to be
+   * @param pending_activation contains rules that need to be activated now
+   * @param pending_deactivation contains rules that need to be deactivated now
+   * @param pending_bearer_setup contains rules that need to get dedicated
+   * bearers before they can be activated. The rules will be activated once MME
+   * sends a BindPolicy2Bearer with the dedicated bearer Teids.
+   * @param pending_scheduling contains rules that need to be scheduled to be
    * activated/deactivated
    * @param session_uc
    */
@@ -406,22 +405,22 @@ class LocalEnforcer {
       SessionState& session,
       const std::vector<StaticRuleInstall>& static_rule_installs,
       const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
-      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
-      RulesToProcess* to_get_bearer, RulesToSchedule* to_schedule,
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+      RulesToProcess* pending_bearer_setup, RulesToSchedule* pending_scheduling,
       SessionStateUpdateCriteria* session_uc);
 
   /**
    * propagate_rule_updates_to_pipelined calls the PipelineD RPC calls to
    * install/uninstall flows
    * @param config
-   * @param to_activate
-   * @param to_deactivate
+   * @param pending_activation
+   * @param pending_deactivation
    * @param always_send_activate : if this is set activate call will be sent
-   * even if to_activate is empty
+   * even if pending_activation is empty
    */
   void propagate_rule_updates_to_pipelined(
-      const SessionConfig& config, const RulesToProcess& to_activate,
-      const RulesToProcess& to_deactivate, bool always_send_activate);
+      const SessionConfig& config, const RulesToProcess& pending_activation,
+      const RulesToProcess& pending_deactivation, bool always_send_activate);
 
   /**
    * @brief for each element in RulesToSchedule, schedule rule
@@ -429,11 +428,11 @@ class LocalEnforcer {
    *
    * @param imsi
    * @param session_id
-   * @param to_schedules
+   * @param pending_scheduling
    */
   void handle_rule_scheduling(
       const std::string& imsi, const std::string& session_id,
-      const RulesToSchedule& to_schedules);
+      const RulesToSchedule& pending_scheduling);
 
   /**
    * For the matching session ID, activate and/or deactivate the specified

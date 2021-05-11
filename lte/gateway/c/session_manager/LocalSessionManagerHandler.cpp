@@ -244,9 +244,9 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread(
       [this, context, response_callback, request_cpy]() {
-        const auto& imsi       = request_cpy.common_context().sid().id();
-        const auto& session_id = id_gen_.gen_session_id(imsi);
         SessionConfig cfg(request_cpy);
+        const std::string& imsi = cfg.get_imsi();
+        const auto& session_id  = id_gen_.gen_session_id(imsi);
         log_create_session(cfg);
         if (pipelined_state_ != READY) {
           MLOG(MINFO) << "Rejecting LocalCreateSessionRequest for " << imsi
@@ -296,7 +296,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
     SessionMap& session_map, const std::string& session_id,
     const SessionConfig& cfg,
     std::function<void(grpc::Status, LocalCreateSessionResponse)> cb) {
-  const auto& imsi = cfg.common_context.sid().id();
+  const auto& imsi = cfg.get_imsi();
   auto create_req  = make_create_session_request(
       cfg, session_id, enforcer_->get_access_timezone());
   MLOG(MINFO) << "Sending a CreateSessionRequest to fetch policies for "
@@ -344,7 +344,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
 void LocalSessionManagerHandlerImpl::handle_create_session_cwf(
     SessionMap& session_map, const std::string& session_id, SessionConfig cfg,
     std::function<void(Status, LocalCreateSessionResponse)> cb) {
-  auto imsi = cfg.common_context.sid().id();
+  auto imsi = cfg.get_imsi();
 
   auto it = session_map.find(imsi);
   if (it != session_map.end()) {
@@ -387,7 +387,7 @@ void LocalSessionManagerHandlerImpl::recycle_cwf_session(
 void LocalSessionManagerHandlerImpl::handle_create_session_lte(
     SessionMap& session_map, const std::string& session_id, SessionConfig cfg,
     std::function<void(Status, LocalCreateSessionResponse)> cb) {
-  auto imsi = cfg.common_context.sid().id();
+  auto imsi = cfg.get_imsi();
 
   // If there are no existing sessions for the IMSI, just create a new one
   auto it = session_map.find(imsi);
@@ -658,8 +658,8 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
 }
 
 void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
-  const auto& imsi = cfg.common_context.sid().id();
-  const auto& apn  = cfg.common_context.apn();
+  const std::string& imsi = cfg.get_imsi();
+  const auto& apn         = cfg.common_context.apn();
   std::string create_message =
       "Received a LocalCreateSessionRequest for " + imsi + " with APN:" + apn;
   if (cfg.rat_specific_context.has_lte_context()) {

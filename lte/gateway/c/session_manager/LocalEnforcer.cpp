@@ -837,11 +837,10 @@ void LocalEnforcer::filter_rule_installs(
 }
 
 void LocalEnforcer::handle_session_activate_rule_updates(
-    const std::string& imsi, SessionState& session,
-    const CreateSessionResponse& response,
+    SessionState& session, const CreateSessionResponse& response,
     std::unordered_set<uint32_t>& charging_credits_received) {
-  RulesToProcess to_activate, to_deactivate, to_get_bearer;
-  RulesToSchedule to_schedule;
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
+  RulesToSchedule pending_scheduling;
 
   std::vector<StaticRuleInstall> static_rule_installs =
       to_vec(response.static_rules());
@@ -852,25 +851,28 @@ void LocalEnforcer::handle_session_activate_rule_updates(
 
   SessionStateUpdateCriteria uc;  // TODO remove unused UC
   session.process_rules_to_install(
-      static_rule_installs, dynamic_rule_installs, &to_activate, &to_deactivate,
-      &to_get_bearer, &to_schedule, &uc);
+      static_rule_installs, dynamic_rule_installs, &pending_activation,
+      &pending_deactivation, &pending_bearer_setup, &pending_scheduling, &uc);
 
-  handle_rule_scheduling(imsi, session.get_session_id(), to_schedule);
+  const std::string& imsi       = session.get_imsi();
+  const std::string& session_id = session.get_session_id();
+  handle_rule_scheduling(imsi, session_id, pending_scheduling);
 
   // activate_flows_for_rules() should be called even if there is no rule
   // to activate, because pipelined activates a "drop all packet" rule
   // when no rule is provided as the parameter.
   const SessionConfig& config = session.get_config();
-  propagate_rule_updates_to_pipelined(config, to_activate, to_deactivate, true);
+  propagate_rule_updates_to_pipelined(
+      config, pending_activation, pending_deactivation, true);
 
   if (config.common_context.rat_type() == TGPP_LTE) {
-    BearerUpdate bearer_updates =
-        session.get_dedicated_bearer_updates(to_get_bearer, to_deactivate, &uc);
+    BearerUpdate bearer_updates = session.get_dedicated_bearer_updates(
+        pending_bearer_setup, pending_deactivation, &uc);
     if (bearer_updates.needs_creation) {
       // If a bearer creation is needed, we need to delay this by a few seconds
       // so that the attach fully completes before.
       schedule_session_init_dedicated_bearer_creations(
-          imsi, session.get_session_id(), bearer_updates);
+          imsi, session_id, bearer_updates);
     }
   }
 }
@@ -984,7 +986,7 @@ bool LocalEnforcer::update_tunnel_ids(
   }
 
   handle_session_activate_rule_updates(
-      imsi, *session, csr, charging_credits_received);
+      *session, csr, charging_credits_received);
 
   update_ipfix_flow(imsi, session->get_config(), time_since_epoch);
   if (terminate_on_wallet_exhaust()) {
@@ -1325,7 +1327,7 @@ void LocalEnforcer::update_charging_credits(
         // We need to cancel final unit action flows installed in pipelined here
         // following the reception of new charging credit.
         pipelined_client_->deactivate_flows_for_rules(
-            config.sid().id(), config.ue_ipv4(), config.ue_ipv6(),
+            session->get_imsi(), config.ue_ipv4(), config.ue_ipv6(),
             config.teids(), gy_rules, RequestOriginType::GY);
       }
     }
@@ -1367,21 +1369,23 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
     session->receive_monitor(usage_monitor_resp, uc);
     session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), uc);
 
-    RulesToProcess to_activate, to_deactivate, to_get_bearer;
-    RulesToSchedule to_schedule;
+    RulesToProcess pending_activation, pending_deactivation,
+        pending_bearer_setup;
+    RulesToSchedule pending_scheduling;
 
     session->process_rules_to_remove(
-        usage_monitor_resp.rules_to_remove(), &to_deactivate, &uc);
+        usage_monitor_resp.rules_to_remove(), &pending_deactivation, &uc);
 
     session->process_rules_to_install(
         to_vec(usage_monitor_resp.static_rules_to_install()),
-        to_vec(usage_monitor_resp.dynamic_rules_to_install()), &to_activate,
-        &to_deactivate, &to_get_bearer, &to_schedule, &uc);
+        to_vec(usage_monitor_resp.dynamic_rules_to_install()),
+        &pending_activation, &pending_deactivation, &pending_bearer_setup,
+        &pending_scheduling, &uc);
 
-    handle_rule_scheduling(imsi, session_id, to_schedule);
+    handle_rule_scheduling(imsi, session_id, pending_scheduling);
 
     propagate_rule_updates_to_pipelined(
-        config, to_activate, to_deactivate, false);
+        config, pending_activation, pending_deactivation, false);
 
     if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
       actions.sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
@@ -1404,7 +1408,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 
     if (config.common_context.rat_type() == TGPP_LTE) {
       const BearerUpdate update = session->get_dedicated_bearer_updates(
-          to_get_bearer, to_deactivate, &uc);
+          pending_bearer_setup, pending_deactivation, &uc);
       propagate_bearer_updates_to_mme(update);
     }
   }
@@ -1518,16 +1522,18 @@ void LocalEnforcer::handle_set_session_rules(
 
       // Process the rule sets and get rules that need to be
       // activated/deactivated
-      RulesToProcess to_activate, to_deactivate, to_get_bearer;
+      RulesToProcess pending_activation, pending_deactivation,
+          pending_bearer_setup;
       session->apply_session_rule_set(
-          *rule_set, &to_activate, &to_deactivate, &to_get_bearer, uc);
+          *rule_set, &pending_activation, &pending_deactivation,
+          &pending_bearer_setup, uc);
 
       // Propagate these rule changes to PipelineD and MME (if 4G)
       propagate_rule_updates_to_pipelined(
-          config, to_activate, to_deactivate, false);
+          config, pending_activation, pending_deactivation, false);
       if (config.common_context.rat_type() == TGPP_LTE) {
         const BearerUpdate update = session->get_dedicated_bearer_updates(
-            to_get_bearer, to_deactivate, &uc);
+            pending_bearer_setup, pending_deactivation, &uc);
         propagate_bearer_updates_to_mme(update);
       }
     }
@@ -1609,8 +1615,8 @@ void LocalEnforcer::init_policy_reauth_for_session(
 
   receive_monitoring_credit_from_rar(request, session, uc);
 
-  RulesToProcess to_activate, to_deactivate, to_get_bearer;
-  RulesToSchedule to_schedule;
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
+  RulesToSchedule pending_scheduling;
 
   MLOG(MDEBUG) << "Processing policy reauth for subscriber " << request.imsi();
   if (revalidation_required(request.event_triggers())) {
@@ -1618,46 +1624,47 @@ void LocalEnforcer::init_policy_reauth_for_session(
   }
 
   session->process_rules_to_remove(
-      request.rules_to_remove(), &to_deactivate, &uc);
+      request.rules_to_remove(), &pending_deactivation, &uc);
 
   session->process_rules_to_install(
       to_vec(request.rules_to_install()),
-      to_vec(request.dynamic_rules_to_install()), &to_activate, &to_deactivate,
-      &to_get_bearer, &to_schedule, &uc);
+      to_vec(request.dynamic_rules_to_install()), &pending_activation,
+      &pending_deactivation, &pending_bearer_setup, &pending_scheduling, &uc);
 
-  handle_rule_scheduling(imsi, session->get_session_id(), to_schedule);
+  handle_rule_scheduling(imsi, session->get_session_id(), pending_scheduling);
 
   propagate_rule_updates_to_pipelined(
-      session->get_config(), to_activate, to_deactivate, false);
+      session->get_config(), pending_activation, pending_deactivation, false);
 
   if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
     start_session_termination(imsi, session, true, uc);
     return;
   }
   if (session->get_config().common_context.rat_type() == TGPP_LTE) {
-    create_bearer(session, request, to_get_bearer);
+    create_bearer(session, request, pending_bearer_setup);
   }
 }
 
 void LocalEnforcer::propagate_rule_updates_to_pipelined(
-    const SessionConfig& config, const RulesToProcess& to_activate,
-    const RulesToProcess& to_deactivate, bool always_send_activate) {
-  const std::string& imsi = config.common_context.sid().id();
+    const SessionConfig& config, const RulesToProcess& pending_activation,
+    const RulesToProcess& pending_deactivation, bool always_send_activate) {
+  const std::string& imsi = config.get_imsi();
   const auto ip_addr      = config.common_context.ue_ipv4();
   const auto ipv6_addr    = config.common_context.ue_ipv6();
   const Teids teids       = config.common_context.teids();
   // deactivate_flows_for_rules() should not be called when there is no rule
   // to deactivate, because pipelined deactivates all rules
   // when no rule is provided as the parameter
-  if (!to_deactivate.empty()) {
+  if (!pending_deactivation.empty()) {
     pipelined_client_->deactivate_flows_for_rules(
-        imsi, ip_addr, ipv6_addr, teids, to_deactivate, RequestOriginType::GX);
+        imsi, ip_addr, ipv6_addr, teids, pending_deactivation,
+        RequestOriginType::GX);
   }
-  if (always_send_activate || !to_activate.empty()) {
+  if (always_send_activate || !pending_activation.empty()) {
     const auto ambr   = config.get_apn_ambr();
     const auto msisdn = config.common_context.msisdn();
     pipelined_client_->activate_flows_for_rules(
-        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, to_activate,
+        imsi, ip_addr, ipv6_addr, teids, msisdn, ambr, pending_activation,
         std::bind(
             &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
             ip_addr, ipv6_addr, teids, _1, _2));
@@ -1705,25 +1712,25 @@ void LocalEnforcer::process_rules_to_install(
     SessionState& session,
     const std::vector<StaticRuleInstall>& static_rule_installs,
     const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
-    RulesToProcess* to_activate, RulesToProcess* to_deactivate,
-    RulesToProcess* to_get_bearer, RulesToSchedule* to_schedule,
+    RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+    RulesToProcess* pending_bearer_setup, RulesToSchedule* pending_scheduling,
     SessionStateUpdateCriteria* session_uc) {
   session.process_static_rule_installs(
-      static_rule_installs, to_activate, to_deactivate, to_get_bearer,
-      to_schedule, session_uc);
+      static_rule_installs, pending_activation, pending_deactivation,
+      pending_bearer_setup, pending_scheduling, session_uc);
   session.process_dynamic_rule_installs(
-      dynamic_rule_installs, to_activate, to_deactivate, to_get_bearer,
-      to_schedule, session_uc);
+      dynamic_rule_installs, pending_activation, pending_deactivation,
+      pending_bearer_setup, pending_scheduling, session_uc);
 }
 
 void LocalEnforcer::handle_rule_scheduling(
     const std::string& imsi, const std::string& session_id,
-    const RulesToSchedule& to_schedule) {
-  for (const RuleToSchedule& to_schedule : to_schedule) {
-    const PolicyType& p_type      = to_schedule.p_type;
-    const PolicyAction& p_action  = to_schedule.p_action;
-    const std::string& rule_id    = to_schedule.rule_id;
-    const std::time_t& sched_time = to_schedule.scheduled_time;
+    const RulesToSchedule& pending_scheduling) {
+  for (const RuleToSchedule& pending_scheduling : pending_scheduling) {
+    const PolicyType& p_type      = pending_scheduling.p_type;
+    const PolicyAction& p_action  = pending_scheduling.p_action;
+    const std::string& rule_id    = pending_scheduling.rule_id;
+    const std::time_t& sched_time = pending_scheduling.scheduled_time;
     if (p_type == STATIC && p_action == ACTIVATE) {
       schedule_static_rule_activation(imsi, session_id, rule_id, sched_time);
     } else if (p_type == STATIC && p_action == DEACTIVATE) {
@@ -1984,9 +1991,9 @@ void LocalEnforcer::install_rule_after_bearer_creation(
   MLOG(MINFO) << "Installing " << request.policy_rule_id()
               << " into PipelineD for " << session.get_session_id()
               << " after allocating a dedicated bearer";
-  RulesToProcess to_activate{session.make_rule_to_process(*op_rule)};
+  RulesToProcess pending_activation{session.make_rule_to_process(*op_rule)};
   propagate_rule_updates_to_pipelined(
-      session.get_config(), to_activate, {}, false);
+      session.get_config(), pending_activation, {}, false);
 }
 
 void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
@@ -2014,9 +2021,9 @@ void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
     }
   }
   if (remove_info) {
-    RulesToProcess to_deactivate{*remove_info};
+    RulesToProcess pending_deactivation{*remove_info};
     propagate_rule_updates_to_pipelined(
-        session.get_config(), {}, to_deactivate, false);
+        session.get_config(), {}, pending_deactivation, false);
   }
 }
 
