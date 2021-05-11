@@ -277,7 +277,7 @@ class SessionState {
 
   void set_subscriber_quota_state(
       const magma::lte::SubscriberQuotaUpdate_Type state,
-      SessionStateUpdateCriteria& update_criteria);
+      SessionStateUpdateCriteria* update_criteria);
 
   bool active_monitored_rules_exist();
 

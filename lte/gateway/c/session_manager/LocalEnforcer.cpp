@@ -399,7 +399,7 @@ void LocalEnforcer::start_session_termination(
   }
   if (terminate_on_wallet_exhaust()) {
     handle_subscriber_quota_state_change(
-        *session, SubscriberQuotaUpdate_Type_TERMINATE, session_uc);
+        *session, SubscriberQuotaUpdate_Type_TERMINATE, &session_uc);
   }
   // The termination should be completed when aggregated usage record no
   // longer
@@ -482,25 +482,19 @@ void LocalEnforcer::notify_termination_to_access_service(
 
 void LocalEnforcer::handle_subscriber_quota_state_change(
     SessionState& session, SubscriberQuotaUpdate_Type new_state,
-    SessionStateUpdateCriteria& uc) {
+    SessionStateUpdateCriteria* session_uc) {
   auto config                   = session.get_config();
   const std::string& imsi       = session.get_imsi();
   const std::string& session_id = session.get_session_id();
   MLOG(MINFO) << session_id << " now has subscriber wallet status: "
               << wallet_state_to_str(new_state);
-  session.set_subscriber_quota_state(new_state, uc);
+  session.set_subscriber_quota_state(new_state, session_uc);
   std::string ue_mac_addr = "";
   auto rat_specific       = config.rat_specific_context;
   if (rat_specific.has_wlan_context()) {
     ue_mac_addr = rat_specific.wlan_context().mac_addr();
   }
   report_subscriber_state_to_pipelined(imsi, ue_mac_addr, new_state);
-}
-
-void LocalEnforcer::handle_subscriber_quota_state_change(
-    SessionState& session, SubscriberQuotaUpdate_Type new_state) {
-  SessionStateUpdateCriteria unused;
-  handle_subscriber_quota_state_change(session, new_state, unused);
 }
 
 void LocalEnforcer::install_final_unit_action_flows(
@@ -1072,7 +1066,7 @@ void LocalEnforcer::handle_session_activate_subscriber_quota_state(
     SessionState& session) {
   if (is_wallet_exhausted(session)) {
     handle_subscriber_quota_state_change(
-        session, SubscriberQuotaUpdate_Type_NO_QUOTA);
+        session, SubscriberQuotaUpdate_Type_NO_QUOTA, nullptr);
     // Schedule a session termination for a configured number of seconds after
     // session create
     const std::string& imsi       = session.get_imsi();
@@ -1088,7 +1082,7 @@ void LocalEnforcer::handle_session_activate_subscriber_quota_state(
 
   // Valid Quota
   handle_subscriber_quota_state_change(
-      session, SubscriberQuotaUpdate_Type_VALID_QUOTA);
+      session, SubscriberQuotaUpdate_Type_VALID_QUOTA, nullptr);
   return;
 }
 

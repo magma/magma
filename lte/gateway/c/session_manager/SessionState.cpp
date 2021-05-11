@@ -593,9 +593,11 @@ void SessionState::apply_session_dynamic_rule_set(
 
 void SessionState::set_subscriber_quota_state(
     const magma::lte::SubscriberQuotaUpdate_Type state,
-    SessionStateUpdateCriteria& update_criteria) {
-  update_criteria.updated_subscriber_quota_state = state;
-  subscriber_quota_state_                        = state;
+    SessionStateUpdateCriteria* session_uc) {
+  if (session_uc != nullptr) {
+    session_uc->updated_subscriber_quota_state = state;
+  }
+  subscriber_quota_state_ = state;
 }
 
 bool SessionState::active_monitored_rules_exist() {

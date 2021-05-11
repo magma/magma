@@ -576,14 +576,11 @@ class LocalEnforcer {
    * to the desired new_state and propagate that state PipelineD.
    * @param session
    * @param new_state
-   * @param uc
+   * @param session_uc
    */
   void handle_subscriber_quota_state_change(
       SessionState& session, SubscriberQuotaUpdate_Type new_state,
-      SessionStateUpdateCriteria& uc);
-
-  void handle_subscriber_quota_state_change(
-      SessionState& session, SubscriberQuotaUpdate_Type new_state);
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * Start the termination process for multiple sessions
