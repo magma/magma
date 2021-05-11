@@ -28,7 +28,7 @@ def main():
     service = MagmaService('redirectd', mconfigs_pb2.RedirectD())
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
     redirect_ip = get_service_config_value(
         'pipelined',
@@ -61,7 +61,8 @@ def run_server_thread(target, ip, port, exit_callback):
     """ Start redirectd service server thread """
     thread = threading.Thread(
         target=target,
-        args=(ip, port, exit_callback))
+        args=(ip, port, exit_callback),
+    )
     thread.daemon = True
     thread.start()
 
