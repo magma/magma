@@ -507,14 +507,32 @@ void sgw_s8_handle_create_session_response(
         session_rsp_p->cause, session_rsp_p->context_teid);
     sgw_remove_sgw_bearer_context_information(
         sgw_state, session_rsp_p->context_teid, imsi64);
+  } else {
+    char teidString[16]             = {0};
+    char imsi_str[IMSI_BCD_DIGITS_MAX + 1] = {0};
+    IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+    spgw_ue_context_t* ue_context_p = NULL;
+    hashtable_ts_get(
+        sgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
+        (void**) &ue_context_p);
+    if (ue_context_p) {
+      sgw_s11_teid_t* s11_teid_p = NULL;
+      LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
+        if (s11_teid_p) {
+          if (s11_teid_p->entries.le_next) {
+            sprintf(
+                teidString + strlen(teidString), "%u,",
+                s11_teid_p->sgw_s11_teid);
+          } else {
+            sprintf(
+                teidString + strlen(teidString), "%u",
+                s11_teid_p->sgw_s11_teid);
+          }
+        }
+      }
+      directoryd_update_field(imsi_str, "sgw_c_teid", teidString);
+    }
   }
-
-  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
-  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
-  char teidString[16];
-  sprintf(teidString, "%u", session_rsp_p->context_teid);
-  directoryd_update_field(imsi_str, "sgw_c_teid", teidString);
-
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
