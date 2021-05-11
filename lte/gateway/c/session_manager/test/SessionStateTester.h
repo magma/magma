@@ -18,6 +18,7 @@
 #include <string>
 #include <utility>
 
+#include "Consts.h"
 #include "ProtobufCreators.h"
 #include "SessiondMocks.h"
 #include "SessionState.h"

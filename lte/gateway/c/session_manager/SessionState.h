@@ -940,6 +940,17 @@ class SessionState {
   void increment_rule_stats(
       const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
 
+  /**
+   * @brief Given a policy (to_process) append to either pending_activation or
+   * pending_bearer_setup If a dedicated bearer needs to be created for the
+   * policy, it will be appended to pending_bearer_setup. Otherwise, it will be
+   * appended to pending_activation
+   *
+   * @param to_process
+   * @param p_type
+   * @param pending_activation output parameter
+   * @param pending_bearer_setup output parameter
+   */
   void classify_policy_activation(
       const RuleToProcess& to_process, const PolicyType p_type,
       RulesToProcess* pending_activation, RulesToProcess* pending_bearer_setup);

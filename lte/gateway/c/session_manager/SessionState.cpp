@@ -1072,7 +1072,6 @@ RuleToProcess SessionState::make_rule_to_process(const PolicyRule& rule) {
   RuleToProcess to_process;
   to_process.version = get_current_rule_version(rule.id());
   to_process.rule    = rule;
-  to_process.teids   = config_.common_context.teids();
 
   // At this point, we know the rule exists, so just check if it exists in the
   // static rule store or not
@@ -1081,10 +1080,12 @@ RuleToProcess SessionState::make_rule_to_process(const PolicyRule& rule) {
 
   // If there is a dedicated bearer TEID already in map, use it
   PolicyID policy_id = PolicyID(p_type, rule.id());
-  bool bearer_exists =
+  bool dedicated_bearer_exists =
       bearer_id_by_policy_.find(policy_id) != bearer_id_by_policy_.end();
-  if (bearer_exists) {
+  if (dedicated_bearer_exists) {
     to_process.teids = bearer_id_by_policy_[policy_id].teids;
+  } else {
+    to_process.teids = config_.common_context.teids();
   }
 
   return to_process;
