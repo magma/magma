@@ -61,8 +61,8 @@ var bands = [...]LTEBand{
         {ID: 25, Mode: FDDMode, StartEarfcnDl: 8040, StartEarfcnUl: 26040, CountEarfcn: 650},
         {ID: 26, Mode: FDDMode, StartEarfcnDl: 8690, StartEarfcnUl: 26690, CountEarfcn: 350},
         {ID: 27, Mode: FDDMode, StartEarfcnDl: 9040, StartEarfcnUl: 27040, CountEarfcn: 170},
-	{ID: 28, Mode: FDDMode, StartEarfcnDl: 9210, StartEarfcnUl: 27210, CountEarfcn: 59376},
-	{ID: 71, Mode: FDDMode, StartEarfcnDl: 68586, StartEarfcnUl: 133122, CountEarfcn: 59426},
+	{ID: 28, Mode: FDDMode, StartEarfcnDl: 9210, StartEarfcnUl: 27210, CountEarfcn: 450},
+	{ID: 71, Mode: FDDMode, StartEarfcnDl: 68586, StartEarfcnUl: 133122, CountEarfcn: 350},
 	// TDDMode
 	{ID: 33, Mode: TDDMode, StartEarfcnDl: 36000, CountEarfcn: 200},
 	{ID: 34, Mode: TDDMode, StartEarfcnDl: 36200, CountEarfcn: 150},
