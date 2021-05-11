@@ -12,11 +12,11 @@
  */
 #pragma once
 
-#include <functional>
-#include <ostream>
-
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.pb.h>
+
+#include <functional>
+#include <ostream>
 
 namespace magma {
 using namespace lte;

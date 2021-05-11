@@ -12,18 +12,17 @@
  */
 #pragma once
 
-#include <functional>
-#include <vector>
-#include <unordered_map>
 #include <experimental/optional>
-
-#include <folly/Format.h>
 #include <folly/dynamic.h>
+#include <folly/Format.h>
 #include <folly/json.h>
-
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-#include <lte/protos/session_manager.grpc.pb.h>
+
+#include <functional>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "CreditKey.h"
 
@@ -36,8 +35,8 @@ struct SessionConfig {
   CommonSessionContext common_context;
   RatSpecificContext rat_specific_context;
 
-  SessionConfig(){};
-  SessionConfig(const LocalCreateSessionRequest& request);
+  SessionConfig() {}
+  explicit SessionConfig(const LocalCreateSessionRequest& request);
   bool operator==(const SessionConfig& config) const;
   std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
 };
@@ -142,11 +141,11 @@ enum SessionFsmState {
 struct RuleLifetime {
   std::time_t activation_time;    // Unix timestamp
   std::time_t deactivation_time;  // Unix timestamp
-  RuleLifetime() : activation_time(0), deactivation_time(0){};
+  RuleLifetime() : activation_time(0), deactivation_time(0) {}
   RuleLifetime(const time_t activation, const time_t deactivation)
-      : activation_time(activation), deactivation_time(deactivation){};
-  RuleLifetime(const StaticRuleInstall& rule_install);
-  RuleLifetime(const DynamicRuleInstall& rule_install);
+      : activation_time(activation), deactivation_time(deactivation) {}
+  explicit RuleLifetime(const StaticRuleInstall& rule_install);
+  explicit RuleLifetime(const DynamicRuleInstall& rule_install);
   bool is_within_lifetime(std::time_t time);
   bool exceeded_lifetime(std::time_t time);
   bool before_lifetime(std::time_t time);

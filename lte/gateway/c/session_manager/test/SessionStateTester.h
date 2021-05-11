@@ -10,16 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <future>
-#include <memory>
-#include <utility>
-
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <future>
+#include <memory>
+#include <string>
+#include <utility>
+
 #include "ProtobufCreators.h"
-#include "SessionState.h"
 #include "SessiondMocks.h"
+#include "SessionState.h"
 
 using ::testing::Test;
 

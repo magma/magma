@@ -10,17 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <future>
-#include <memory>
-#include <utility>
+#include <glog/logging.h>
+#include <google/protobuf/util/message_differencer.h>
+#include <gtest/gtest.h>
 #include <stdio.h>
 
-#include <glog/logging.h>
-#include <gtest/gtest.h>
+#include <future>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "SessiondMocks.h"
-
-#include <google/protobuf/util/message_differencer.h>
 
 using ::testing::Test;
 

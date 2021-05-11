@@ -13,11 +13,14 @@
 #pragma once
 
 #include <lte/protos/mconfig/mconfigs.pb.h>
-#include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
-#include "StoredState.h"
+#include <lte/protos/session_manager.grpc.pb.h>
+
+#include <string>
+#include <vector>
 
 #include "DiameterCodes.h"
+#include "StoredState.h"
 
 namespace magma {
 using namespace lte;

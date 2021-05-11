@@ -11,23 +11,24 @@
  * limitations under the License.
  */
 
-#include <string>
-#include <time.h>
-#include <utility>
-#include <vector>
-#include <tuple>
-
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
-#include <lte/protos/session_manager.pb.h>
 #include <grpcpp/channel.h>
+#include <lte/protos/session_manager.pb.h>
+#include <time.h>
+
+#include <memory>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
 #include "DiameterCodes.h"
 #include "EnumToString.h"
 #include "LocalEnforcer.h"
-#include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
+#include "ServiceRegistrySingleton.h"
 #include "Utilities.h"
 
 namespace magma {

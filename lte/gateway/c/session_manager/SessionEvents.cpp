@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
+#include "EnumToString.h"
 #include "SessionEvents.h"
 #include "Utilities.h"
-#include "EnumToString.h"
 
 using magma::orc8r::Event;
 using magma::orc8r::Void;

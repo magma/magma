@@ -12,20 +12,26 @@
  */
 #pragma once
 
-#include <functional>
 #include <experimental/optional>
-#include <utility>
-
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/spgw_service.grpc.pb.h>
 
+#include <functional>
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <unordered_set>
+#include <utility>
+#include <vector>
+
+#include "ChargingGrant.h"
+#include "CreditKey.h"
+#include "Monitor.h"
 #include "RuleStore.h"
+#include "SessionCredit.h"
 #include "SessionReporter.h"
 #include "StoredState.h"
-#include "CreditKey.h"
-#include "SessionCredit.h"
-#include "Monitor.h"
-#include "ChargingGrant.h"
 #include "Types.h"
 
 namespace magma {
