@@ -182,6 +182,7 @@
         "type": "subcategory",
         "label": "General",
         "ids": [
+          "howtos/troubleshooting/agw_healthcheck",
           "howtos/troubleshooting/agw_unable_to_checkin",
           "howtos/troubleshooting/user_unable_to_attach",
           "howtos/troubleshooting/update_certificates",
