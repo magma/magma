@@ -18,9 +18,9 @@ extern "C" {
 #include "log.h"
 }
 
-class EMMDecodeTest : public ::testing::Test{
-virtual void SetUp() {}
-virtual void TearDown() {}
+class EMMDecodeTest : public ::testing::Test {
+  virtual void SetUp() {}
+  virtual void TearDown() {}
 };
 
 TEST_F(EMMDecodeTest, TestDecodeAttachRequest1) {
@@ -31,7 +31,6 @@ TEST_F(EMMDecodeTest, TestDecodeAttachRequest1) {
                       0x04, 0x00, 0x02, 0x1c, 0x00};
   uint32_t len     = 29;
   attach_request_msg attach_request;
- 
 
   int rc = decode_attach_request(&attach_request, buffer, len);
   ASSERT_EQ(rc, len);
@@ -41,7 +40,6 @@ TEST_F(EMMDecodeTest, TestDecodeAttachRequest1) {
 
   bdestroy_wrapper(&attach_request.esmmessagecontainer);
 }
-
 
 TEST_F(EMMDecodeTest, TestDecodeAttachRequest2) {
   //   Combined attach, NAS message generated from Pixel 4
@@ -72,5 +70,5 @@ TEST_F(EMMDecodeTest, TestDecodeAttachRequest2) {
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   OAILOG_INIT("MME", OAILOG_LEVEL_DEBUG, MAX_LOG_PROTOS);
-  return RUN_ALL_TESTS(); 
+  return RUN_ALL_TESTS();
 }
