@@ -63,7 +63,7 @@ StoredSessionState SessionState::marshal() {
 
   marshaled.fsm_state  = curr_state_;
   marshaled.config     = config_;
-  marshaled.imsi       = imsi_;
+  marshaled.imsi       = get_imsi();
   marshaled.session_id = session_id_;
   marshaled.local_teid = local_teid_;
   // 5G session version handling
@@ -287,7 +287,7 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   std::string imsi_num;
   // TODO we cud eventually  migrate to SMF-UPF proto enum directly.
   info->state = get_proto_fsm_state();
-  info->subscriber_id.assign(imsi_);
+  info->subscriber_id.assign(get_imsi());
   info->ver_no              = get_current_version();
   info->nodeId.node_id_type = SessionInfo::IPv4;
   strcpy(info->nodeId.node_id, "192.168.2.1");
@@ -661,7 +661,7 @@ void SessionState::add_common_fields_to_usage_monitor_update(
     UsageMonitoringUpdateRequest* req) {
   req->set_session_id(session_id_);
   req->set_request_number(request_number_);
-  req->set_sid(imsi_);
+  req->set_sid(get_imsi());
   req->set_ue_ipv4(config_.common_context.ue_ipv4());
   req->set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req->mutable_tgpp_ctx());
@@ -831,7 +831,7 @@ bool SessionState::is_radius_cwf_session() const {
 }
 
 void SessionState::get_session_info(SessionState::SessionInfo& info) {
-  info.imsi      = imsi_;
+  info.imsi      = get_imsi();
   info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
   info.teids     = config_.common_context.teids();
@@ -1820,7 +1820,7 @@ optional<CreditUsageUpdate> SessionState::get_update_for_continue_service(
   }
 
   // Create Update struct
-  MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
+  MLOG(MDEBUG) << "Subscriber " << get_imsi() << " rating group " << key
                << " updating due to type "
                << credit_update_type_to_str(update_type)
                << " with request number " << request_number_;
@@ -1924,10 +1924,10 @@ void SessionState::fill_service_action_for_redirect(
 void SessionState::fill_service_action_with_context(
     std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
     const CreditKey& key) {
-  MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
+  MLOG(MDEBUG) << "Subscriber " << get_imsi() << " rating group " << key
                << " action type " << service_action_type_to_str(action_type);
   action->set_credit_key(key);
-  action->set_imsi(imsi_);
+  action->set_imsi(get_imsi());
   action->set_ambr(config_.get_apn_ambr());
   action->set_ip_addr(config_.common_context.ue_ipv4());
   action->set_ipv6_addr(config_.common_context.ue_ipv6());
@@ -2088,13 +2088,13 @@ bool SessionState::init_new_monitor(
     const UsageMonitoringUpdateResponse& update,
     SessionStateUpdateCriteria& update_criteria) {
   if (!update.success()) {
-    MLOG(MERROR) << "Monitoring init failed for imsi " << imsi_
+    MLOG(MERROR) << "Monitoring init failed for imsi " << get_imsi()
                  << " and monitoring key " << update.credit().monitoring_key();
     return false;
   }
   if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
     MLOG(MWARNING) << "Monitoring init has action disabled for subscriber "
-                   << imsi_ << " and monitoring key "
+                   << get_imsi() << " and monitoring key "
                    << update.credit().monitoring_key();
     return false;
   }

@@ -510,7 +510,7 @@ class LocalEnforcer {
       const google::protobuf::RepeatedField<int>& event_triggers);
 
   void schedule_revalidation(
-      const std::string& imsi, SessionState& session,
+      SessionState& session,
       const google::protobuf::Timestamp& revalidation_time,
       SessionStateUpdateCriteria& uc);
 
@@ -532,15 +532,14 @@ class LocalEnforcer {
    * 4. Propagate subscriber wallet status
    * 5. Schedule a callback to force termination if termination is not completed
    *    in a set amount of time
-   * @param imsi
    * @param session
    * @param notify_access: bool to determine whether the access component needs
    * notification
    * @param uc
    */
   void start_session_termination(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      bool notify_access, SessionStateUpdateCriteria& uc);
+      const std::unique_ptr<SessionState>& session, bool notify_access,
+      SessionStateUpdateCriteria& uc);
 
   /**
    * handle_force_termination_timeout is scheduled to run when a termination
@@ -555,12 +554,11 @@ class LocalEnforcer {
   /**
    * remove_all_rules_for_termination talks to PipelineD and removes all rules
    * (Gx/Gy/static/dynamic/everything) attached to the session
-   * @param imsi
    * @param session
    * @param uc
    */
   void remove_all_rules_for_termination(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
+      const std::unique_ptr<SessionState>& session,
       SessionStateUpdateCriteria& uc);
 
   /**
@@ -568,28 +566,24 @@ class LocalEnforcer {
    * communicates to the appropriate access client to notify the session's
    * termination.
    * LTE -> MME, WLAN -> AAA
-   * @param imsi
    * @param session_id
    * @param config
    */
   void notify_termination_to_access_service(
-      const std::string& imsi, const std::string& session_id,
-      const SessionConfig& config);
+      const std::string& session_id, const SessionConfig& config);
   /**
    * handle_subscriber_quota_state_change will update the session's wallet state
    * to the desired new_state and propagate that state PipelineD.
-   * @param imsi
    * @param session
    * @param new_state
    * @param uc
    */
   void handle_subscriber_quota_state_change(
-      const std::string& imsi, SessionState& session,
-      SubscriberQuotaUpdate_Type new_state, SessionStateUpdateCriteria& uc);
+      SessionState& session, SubscriberQuotaUpdate_Type new_state,
+      SessionStateUpdateCriteria& uc);
 
   void handle_subscriber_quota_state_change(
-      const std::string& imsi, SessionState& session,
-      SubscriberQuotaUpdate_Type new_state);
+      SessionState& session, SubscriberQuotaUpdate_Type new_state);
 
   /**
    * Start the termination process for multiple sessions
@@ -641,8 +635,7 @@ class LocalEnforcer {
    * Otherwise, mark the subscriber as out of quota to pipelined, and schedule
    * the session to be terminated in a configured amount of time.
    */
-  void handle_session_activate_subscriber_quota_state(
-      const std::string& imsi, SessionState& session);
+  void handle_session_activate_subscriber_quota_state(SessionState& session);
 
   bool is_wallet_exhausted(SessionState& session);
 

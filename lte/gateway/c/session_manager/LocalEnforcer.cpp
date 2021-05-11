@@ -165,7 +165,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
           triggers[REVALIDATION_TIMEOUT] == PENDING) {
         // the bool value indicates whether the trigger has been triggered
         const auto revalidation_time = session->get_revalidation_time();
-        schedule_revalidation(imsi, *session, revalidation_time, uc);
+        schedule_revalidation(*session, revalidation_time, uc);
       }
 
       session->sync_rules_to_time(current_time, uc);
@@ -216,7 +216,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       }
       // Reschedule termination if subscriber has no quota
       if (terminate_on_wallet_exhaust()) {
-        handle_session_activate_subscriber_quota_state(imsi, *session);
+        handle_session_activate_subscriber_quota_state(*session);
       }
     }
   }
@@ -371,9 +371,10 @@ void LocalEnforcer::handle_activate_service_action(
 
 // Terminates sessions that correspond to the given IMSI and session.
 void LocalEnforcer::start_session_termination(
-    const std::string& imsi, const std::unique_ptr<SessionState>& session,
-    bool notify_access, SessionStateUpdateCriteria& session_uc) {
-  auto session_id = session->get_session_id();
+    const std::unique_ptr<SessionState>& session, bool notify_access,
+    SessionStateUpdateCriteria& session_uc) {
+  const std::string& imsi       = session->get_imsi();
+  const std::string& session_id = session->get_session_id();
   if (session->is_terminating()) {
     // If the session is terminating already, do nothing.
     MLOG(MINFO) << "Session " << session_id << " is already terminating, "
@@ -383,12 +384,12 @@ void LocalEnforcer::start_session_termination(
   MLOG(MINFO) << "Initiating session termination for " << session_id;
   session->set_pdp_end_time(magma::get_time_in_sec_since_epoch(), session_uc);
 
-  remove_all_rules_for_termination(imsi, session, session_uc);
+  remove_all_rules_for_termination(session, session_uc);
   session->set_fsm_state(SESSION_RELEASED, session_uc);
   const auto& config         = session->get_config();
   const auto& common_context = config.common_context;
   if (notify_access) {
-    notify_termination_to_access_service(imsi, session_id, config);
+    notify_termination_to_access_service(session_id, config);
   }
   if (common_context.rat_type() == TGPP_WLAN) {
     MLOG(MDEBUG) << "Deleting UE MAC flow for subscriber " << imsi;
@@ -398,7 +399,7 @@ void LocalEnforcer::start_session_termination(
   }
   if (terminate_on_wallet_exhaust()) {
     handle_subscriber_quota_state_change(
-        imsi, *session, SubscriberQuotaUpdate_Type_TERMINATE, session_uc);
+        *session, SubscriberQuotaUpdate_Type_TERMINATE, session_uc);
   }
   // The termination should be completed when aggregated usage record no
   // longer
@@ -438,20 +439,21 @@ void LocalEnforcer::handle_force_termination_timeout(
 }
 
 void LocalEnforcer::remove_all_rules_for_termination(
-    const std::string& imsi, const std::unique_ptr<SessionState>& session,
+    const std::unique_ptr<SessionState>& session,
     SessionStateUpdateCriteria& uc) {
   const std::string ip_addr = session->get_config().common_context.ue_ipv4();
   const auto ipv6_addr      = session->get_config().common_context.ue_ipv6();
   const std::vector<Teids> teids = session->get_active_teids();
   pipelined_client_->deactivate_flows_for_rules_for_termination(
-      imsi, ip_addr, ipv6_addr, teids, RequestOriginType::WILDCARD);
+      session->get_imsi(), ip_addr, ipv6_addr, teids,
+      RequestOriginType::WILDCARD);
   session->remove_all_rules_for_termination(uc);
 }
 
 void LocalEnforcer::notify_termination_to_access_service(
-    const std::string& imsi, const std::string& session_id,
-    const SessionConfig& config) {
-  auto common_context = config.common_context;
+    const std::string& session_id, const SessionConfig& config) {
+  const std::string& imsi = config.get_imsi();
+  auto common_context     = config.common_context;
   switch (common_context.rat_type()) {
     case TGPP_WLAN: {
       // tell AAA service to terminate radius session if necessary
@@ -479,10 +481,11 @@ void LocalEnforcer::notify_termination_to_access_service(
 }
 
 void LocalEnforcer::handle_subscriber_quota_state_change(
-    const std::string& imsi, SessionState& session,
-    SubscriberQuotaUpdate_Type new_state, SessionStateUpdateCriteria& uc) {
-  auto config     = session.get_config();
-  auto session_id = session.get_session_id();
+    SessionState& session, SubscriberQuotaUpdate_Type new_state,
+    SessionStateUpdateCriteria& uc) {
+  auto config                   = session.get_config();
+  const std::string& imsi       = session.get_imsi();
+  const std::string& session_id = session.get_session_id();
   MLOG(MINFO) << session_id << " now has subscriber wallet status: "
               << wallet_state_to_str(new_state);
   session.set_subscriber_quota_state(new_state, uc);
@@ -495,10 +498,9 @@ void LocalEnforcer::handle_subscriber_quota_state_change(
 }
 
 void LocalEnforcer::handle_subscriber_quota_state_change(
-    const std::string& imsi, SessionState& session,
-    SubscriberQuotaUpdate_Type new_state) {
+    SessionState& session, SubscriberQuotaUpdate_Type new_state) {
   SessionStateUpdateCriteria unused;
-  handle_subscriber_quota_state_change(imsi, session, new_state, unused);
+  handle_subscriber_quota_state_change(session, new_state, unused);
 }
 
 void LocalEnforcer::install_final_unit_action_flows(
@@ -990,14 +992,14 @@ bool LocalEnforcer::update_tunnel_ids(
 
   update_ipfix_flow(imsi, session->get_config(), time_since_epoch);
   if (terminate_on_wallet_exhaust()) {
-    handle_session_activate_subscriber_quota_state(imsi, *session);
+    handle_session_activate_subscriber_quota_state(*session);
   }
 
   if (revalidation_required(csr.event_triggers())) {
     // TODO This might not work since the session is not initialized properly
     // at this point
     auto _ = get_default_update_criteria();
-    schedule_revalidation(imsi, *session, csr.revalidation_time(), _);
+    schedule_revalidation(*session, csr.revalidation_time(), _);
   }
 
   // handle transient errors during first init
@@ -1067,13 +1069,14 @@ bool LocalEnforcer::is_wallet_exhausted(SessionState& session) {
 }
 
 void LocalEnforcer::handle_session_activate_subscriber_quota_state(
-    const std::string& imsi, SessionState& session) {
+    SessionState& session) {
   if (is_wallet_exhausted(session)) {
     handle_subscriber_quota_state_change(
-        imsi, session, SubscriberQuotaUpdate_Type_NO_QUOTA);
+        session, SubscriberQuotaUpdate_Type_NO_QUOTA);
     // Schedule a session termination for a configured number of seconds after
     // session create
-    const auto session_id = session.get_session_id();
+    const std::string& imsi       = session.get_imsi();
+    const std::string& session_id = session.get_session_id();
     MLOG(MINFO) << "Scheduling session for session " << session_id
                 << " to be terminated in "
                 << quota_exhaustion_termination_on_init_ms_ << " ms";
@@ -1085,7 +1088,7 @@ void LocalEnforcer::handle_session_activate_subscriber_quota_state(
 
   // Valid Quota
   handle_subscriber_quota_state_change(
-      imsi, session, SubscriberQuotaUpdate_Type_VALID_QUOTA);
+      session, SubscriberQuotaUpdate_Type_VALID_QUOTA);
   return;
 }
 
@@ -1176,7 +1179,7 @@ void LocalEnforcer::terminate_multiple_sessions(
     }
     auto& session = **session_it;
     auto& uc      = session_update[imsi][session_id];
-    start_session_termination(imsi, session, true, uc);
+    start_session_termination(session, true, uc);
   }
 }
 
@@ -1403,7 +1406,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
       // this session
       auto revalidation_time = usage_monitor_resp.revalidation_time();
       sessions_with_revalidation.insert(imsi_and_session_id);
-      schedule_revalidation(imsi, *session, revalidation_time, uc);
+      schedule_revalidation(*session, revalidation_time, uc);
     }
 
     if (config.common_context.rat_type() == TGPP_LTE) {
@@ -1449,8 +1452,7 @@ bool LocalEnforcer::handle_termination_from_access(
   }
   auto& session                 = **session_it;
   const std::string& session_id = session->get_session_id();
-  start_session_termination(
-      imsi, session, false, session_updates[imsi][session_id]);
+  start_session_termination(session, false, session_updates[imsi][session_id]);
   return true;
 }
 
@@ -1463,8 +1465,7 @@ bool LocalEnforcer::find_and_terminate_session(
     return false;
   }
   auto& session = **session_it;
-  start_session_termination(
-      imsi, session, true, session_updates[imsi][session_id]);
+  start_session_termination(session, true, session_updates[imsi][session_id]);
   return true;
 }
 
@@ -1479,7 +1480,7 @@ bool LocalEnforcer::handle_abort_session(
   auto& session    = **session_it;
   auto& session_uc = session_updates[imsi][session_id];
   // Propagate rule removals to PipelineD and notify Access
-  start_session_termination(imsi, session, true, session_uc);
+  start_session_termination(session, true, session_uc);
   // ASRs do not require a CCR-T, this means we can immediately terminate
   // without waiting for final usage reports.
   events_reporter_->session_terminated(imsi, session);
@@ -1620,7 +1621,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
 
   MLOG(MDEBUG) << "Processing policy reauth for subscriber " << request.imsi();
   if (revalidation_required(request.event_triggers())) {
-    schedule_revalidation(imsi, *session, request.revalidation_time(), uc);
+    schedule_revalidation(*session, request.revalidation_time(), uc);
   }
 
   session->process_rules_to_remove(
@@ -1637,7 +1638,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
       session->get_config(), pending_activation, pending_deactivation, false);
 
   if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
-    start_session_termination(imsi, session, true, uc);
+    start_session_termination(session, true, uc);
     return;
   }
   if (session->get_config().common_context.rat_type() == TGPP_LTE) {
@@ -1751,15 +1752,15 @@ bool LocalEnforcer::revalidation_required(
 }
 
 void LocalEnforcer::schedule_revalidation(
-    const std::string& imsi, SessionState& session,
-    const google::protobuf::Timestamp& revalidation_time,
+    SessionState& session, const google::protobuf::Timestamp& revalidation_time,
     SessionStateUpdateCriteria& uc) {
   // Add revalidation info to session and mark as pending
   session.add_new_event_trigger(REVALIDATION_TIMEOUT, uc);
   session.set_revalidation_time(revalidation_time, uc);
-  auto session_id = session.get_session_id();
-  SessionRead req = {imsi};
-  auto delta      = magma::time_difference_from_now(revalidation_time);
+  const std::string& session_id = session.get_session_id();
+  const std::string& imsi       = session.get_imsi();
+  SessionRead req               = {imsi};
+  auto delta = magma::time_difference_from_now(revalidation_time);
   MLOG(MINFO) << "Scheduling revalidation in " << delta.count() << "ms for "
               << session_id;
   evb_->runAfterDelay(
