@@ -77,6 +77,8 @@ info:
 basePath: /magma/v1
 
 tags:
+  - name: APNs
+    description: Access point name
   - name: EnodeBs
     description: eNodeB devices attached to the network
   - name: LTE Networks
