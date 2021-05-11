@@ -245,11 +245,18 @@ int s1ap_mme_handle_initial_ue_message(
     );
 
   } else {
-    OAILOG_ERROR(
-        LOG_S1AP,
+    imsi64_t imsi64                = INVALID_IMSI64;
+    s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
+    hashtable_uint64_ts_get(
+        s1ap_imsi_map->mme_ue_id_imsi_htbl,
+        (const hash_key_t) ue_ref->mme_ue_s1ap_id, &imsi64);
+
+    OAILOG_ERROR_UE(
+        LOG_S1AP, imsi64,
         "Initial UE Message- Duplicate ENB_UE_S1AP_ID. Ignoring the "
-        "message, eNB UE S1AP ID:" ENB_UE_S1AP_ID_FMT "\n",
-        enb_ue_s1ap_id);
+        "message, eNB UE S1AP ID:" ENB_UE_S1AP_ID_FMT
+        "\n, mme UE s1ap ID: " MME_UE_S1AP_ID_FMT "UE state %u",
+        enb_ue_s1ap_id, ue_ref->mme_ue_s1ap_id, ue_ref->s1_ue_state);
   }
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);

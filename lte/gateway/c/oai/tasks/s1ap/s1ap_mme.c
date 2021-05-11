@@ -71,9 +71,6 @@
 #define UE_LIST_OUT(x, args...)
 #endif
 
-bool s1ap_dump_enb_hash_cb(
-    const hash_key_t keyP, void* const enb_void, void* unused_param,
-    void** unused_res);
 bool s1ap_dump_ue_hash_cb(
     const hash_key_t keyP, void* const ue_void, void* parameter,
     void** unused_res);
@@ -363,25 +360,6 @@ void s1ap_mme_exit(void) {
 }
 
 //------------------------------------------------------------------------------
-void s1ap_dump_enb_list(s1ap_state_t* state) {
-  hashtable_ts_apply_callback_on_elements(
-      &state->enbs, s1ap_dump_enb_hash_cb, NULL, NULL);
-}
-
-//------------------------------------------------------------------------------
-bool s1ap_dump_enb_hash_cb(
-    __attribute__((unused)) const hash_key_t keyP, void* const eNB_void,
-    void __attribute__((unused)) * unused_parameterP,
-    void __attribute__((unused)) * *unused_resultP) {
-  const enb_description_t* const enb_ref = (const enb_description_t*) eNB_void;
-  if (enb_ref == NULL) {
-    return false;
-  }
-  s1ap_dump_enb(enb_ref);
-  return false;
-}
-
-//------------------------------------------------------------------------------
 void s1ap_dump_enb(const enb_description_t* const enb_ref) {
 #ifdef S1AP_DEBUG_LIST
   // Reset indentation
@@ -537,7 +515,7 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_ts_free(state_ue_ht, ue_ref->comp_s1ap_id);
   hashtable_ts_free(&state->mmeid2associd, mme_ue_s1ap_id);
-  hashtable_uint64_ts_free(&enb_ref->ue_id_coll, mme_ue_s1ap_id);
+  hashtable_uint64_ts_remove(&enb_ref->ue_id_coll, mme_ue_s1ap_id);
 
   imsi64_t imsi64                = INVALID_IMSI64;
   s1ap_imsi_map_t* s1ap_imsi_map = get_s1ap_imsi_map();
@@ -545,6 +523,8 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
       s1ap_imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) mme_ue_s1ap_id,
       &imsi64);
   delete_s1ap_ue_state(imsi64);
+  hashtable_uint64_ts_remove(
+      s1ap_imsi_map->mme_ue_id_imsi_htbl, mme_ue_s1ap_id);
 
   OAILOG_DEBUG(
       LOG_S1AP, "Num UEs associated %u num ue_id_coll %zu",

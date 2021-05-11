@@ -857,11 +857,17 @@ class MagmadUtil(object):
                 keys_to_be_cleaned.append(state)
             elif "htbl" in state:
                 num_htbl_entries += 1
+
+        s1ap_imsi_map_cmd = "state_cli.py parse s1ap_imsi_map"
+        s1ap_imsi_map_state = self.exec_command_output(magtivate_cmd + " && " + s1ap_imsi_map_cmd)
+        # Remove state version output to get only hashmap entries
+        s1ap_imsi_map_entries = len(s1ap_imsi_map_state.split("\n")[0])
         print(
             "Keys left in Redis (list should be empty)[\n",
             "\n".join(keys_to_be_cleaned),
             "\n]"
         )
+        print("Entries in s1ap_imsi_map (should be zero):", s1ap_imsi_map_entries)
         print("Entries left in hashtables (should be zero):", num_htbl_entries)
 
 

@@ -234,8 +234,6 @@ hashtable_rc_t hashtable_uint64_ts_dump_content(
 hashtable_rc_t hashtable_uint64_ts_insert(
     hash_table_uint64_ts_t* const hashtbl, const hash_key_t key,
     const uint64_t dataP);
-hashtable_rc_t hashtable_uint64_ts_free(
-    hash_table_uint64_ts_t* const hashtbl, const hash_key_t key);
 hashtable_rc_t hashtable_uint64_ts_remove(
     hash_table_uint64_ts_t* const hashtbl, const hash_key_t key);
 hashtable_rc_t hashtable_uint64_ts_get(

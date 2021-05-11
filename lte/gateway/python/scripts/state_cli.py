@@ -22,7 +22,7 @@ import jsonpickle
 import random
 from lte.protos.keyval_pb2 import IPDesc
 from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
-from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription
+from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription, S1apImsiMap
 from lte.protos.oai.spgw_state_pb2 import SpgwState, SpgwUeContext
 from lte.protos.policydb_pb2 import InstalledPolicies, PolicyRule
 
@@ -95,6 +95,7 @@ class StateCLI(object):
         'mme_nas_state': MmeNasState,
         'spgw_state': SpgwState,
         's1ap_state': S1apState,
+        's1ap_imsi_map': S1apImsiMap,
         'mme': UeContext,
         'spgw': SpgwUeContext,
         's1ap': UeDescription,
@@ -146,7 +147,7 @@ class StateCLI(object):
             # Try parsing as json first, if there's decoding error, parse proto
             try:
                 self._parse_state_json(value)
-            except (UnicodeDecodeError, JSONDecodeError):
+            except (UnicodeDecodeError, JSONDecodeError, AttributeError):
                 self._parse_state_proto(key_type, value)
 
     def corrupt(self, key):
