@@ -2178,24 +2178,25 @@ imsi64_t mme_app_handle_initial_paging_request(
     mme_app_send_paging_request(mme_app_desc_p, imsi64);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
   }
-#define MAX_IMSIS_PER_IP 2
-  imsi64_t imsi_list[MAX_IMSIS_PER_IP] = {INVALID_IMSI64};
+  imsi64_t* imsi_list = NULL;
   OAILOG_DEBUG(
       LOG_MME_APP, "paging is requested for ue_ip:%x \n",
       paging_req.ipv4_addr.s_addr);
-  if (mme_app_get_imsi_from_ipv4(paging_req.ipv4_addr.s_addr, imsi_list) !=
-      RETURNok) {
+  int num_imsis =
+      mme_app_get_imsi_from_ipv4(paging_req.ipv4_addr.s_addr, &imsi_list);
+  if (!(num_imsis)) {
     OAILOG_ERROR(
         LOG_MME_APP, "Failed to fetch imsi from ue_ip:%x \n",
         paging_req.ipv4_addr.s_addr);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  for (int idx = 0; idx < MAX_IMSIS_PER_IP; idx++) {
+  for (int idx = 0; idx < num_imsis; idx++) {
     if (imsi_list[idx] != INVALID_IMSI64) {
       imsi64 = imsi_list[idx];
       mme_app_send_paging_request(mme_app_desc_p, imsi64);
     }
   }
+  free_wrapper((void**) &imsi_list);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 

@@ -1325,6 +1325,8 @@ typedef struct itti_s11_delete_bearer_command_s {
 /**
  * Message used to notify MME that a paging message should be sent to the UE
  * at the given imsi
+ * If imsi is available send imsi if not send ue_ip address. Mme app shall
+ * fetch imsi from ue_ip address
  */
 typedef struct itti_s11_paging_request_s {
   const char* imsi;

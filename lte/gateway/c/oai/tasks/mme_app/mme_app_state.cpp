@@ -27,8 +27,8 @@ using magma::lte::MmeNasStateManager;
  * This is only done by the mme_app task.
  */
 int mme_nas_state_init(const mme_config_t* mme_config_p) {
-  return MmeNasStateManager::getInstance().initialize_state(mme_config_p);
   initialize_ipv4_map();
+  return MmeNasStateManager::getInstance().initialize_state(mme_config_p);
 }
 
 /**
