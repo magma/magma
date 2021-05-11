@@ -28,7 +28,8 @@ def main():
 
     # Add servicer to the server
     gateway_directory_servicer = GatewayDirectoryServiceRpcServicer(
-        service_config.get('print_grpc_payload', False))
+        service_config.get('print_grpc_payload', False),
+    )
     gateway_directory_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop

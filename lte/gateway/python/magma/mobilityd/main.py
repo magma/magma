@@ -33,37 +33,47 @@ from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
 DEFAULT_IPV6_PREFIX_ALLOC_MODE = 'RANDOM'
 
 
-def _get_ipv4_allocator(store: MobilityStore, allocator_type: int,
-                        static_ip_enabled: bool, multi_apn: bool,
-                        dhcp_iface: str, dhcp_retry_limit: int,
-                        subscriberdb_rpc_stub: SubscriberDBStub = None):
+def _get_ipv4_allocator(
+    store: MobilityStore, allocator_type: int,
+    static_ip_enabled: bool, multi_apn: bool,
+    dhcp_iface: str, dhcp_retry_limit: int,
+    subscriberdb_rpc_stub: SubscriberDBStub = None,
+):
     # Read default GW, this is required for static IP allocation.
     store.dhcp_gw_info.read_default_gw()
 
     if allocator_type == mconfigs_pb2.MobilityD.IP_POOL:
         ip_allocator = IpAllocatorPool(store)
     elif allocator_type == mconfigs_pb2.MobilityD.DHCP:
-        ip_allocator = IPAllocatorDHCP(store=store,
-                                       iface=dhcp_iface,
-                                       retry_limit=dhcp_retry_limit)
+        ip_allocator = IPAllocatorDHCP(
+            store=store,
+            iface=dhcp_iface,
+            retry_limit=dhcp_retry_limit,
+        )
     else:
         raise ValueError(
-            "Unknown IP allocator type: %s" % allocator_type)
+            "Unknown IP allocator type: %s" % allocator_type,
+        )
 
     if static_ip_enabled:
         ip_allocator = IPAllocatorStaticWrapper(
             store=store, subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-            ip_allocator=ip_allocator)
+            ip_allocator=ip_allocator,
+        )
 
     if multi_apn:
-        ip_allocator = IPAllocatorMultiAPNWrapper(store=store,
-                                                  subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-                                                  ip_allocator=ip_allocator)
+        ip_allocator = IPAllocatorMultiAPNWrapper(
+            store=store,
+            subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+            ip_allocator=ip_allocator,
+        )
 
-    logging.info("Using allocator: %s static ip: %s multi_apn %s",
-                 allocator_type,
-                 static_ip_enabled,
-                 multi_apn)
+    logging.info(
+        "Using allocator: %s static ip: %s multi_apn %s",
+        allocator_type,
+        static_ip_enabled,
+        multi_apn,
+    )
     return ip_allocator
 
 
@@ -109,28 +119,36 @@ def main():
     # TODO: consider adding gateway mconfig to decide whether to
     # persist to Redis
     client = get_default_client()
-    store = MobilityStore(client, config.get('persist_to_redis', False),
-                          config.get('redis_port', 6380))
+    store = MobilityStore(
+        client, config.get('persist_to_redis', False),
+        config.get('redis_port', 6380),
+    )
 
-    chan = ServiceRegistry.get_rpc_channel('subscriberdb',
-                                           ServiceRegistry.LOCAL)
-    ipv4_allocator = _get_ipv4_allocator(store, allocator_type,
-                                         static_ip_enabled, multi_apn,
-                                         dhcp_iface, dhcp_retry_limit,
-                                         SubscriberDBStub(chan))
+    chan = ServiceRegistry.get_rpc_channel(
+        'subscriberdb',
+        ServiceRegistry.LOCAL,
+    )
+    ipv4_allocator = _get_ipv4_allocator(
+        store, allocator_type,
+        static_ip_enabled, multi_apn,
+        dhcp_iface, dhcp_retry_limit,
+        SubscriberDBStub(chan),
+    )
 
     # Init IPv6 allocator, for now only IP_POOL mode is supported for IPv6
     ipv6_prefix_allocation_type = mconfig.ipv6_prefix_allocation_type or \
-                                  DEFAULT_IPV6_PREFIX_ALLOC_MODE
+        DEFAULT_IPV6_PREFIX_ALLOC_MODE
     ipv6_allocator = IPv6AllocatorPool(
-        store=store, session_prefix_alloc_mode=ipv6_prefix_allocation_type)
+        store=store, session_prefix_alloc_mode=ipv6_prefix_allocation_type,
+    )
 
     # Load IPAddressManager
     ip_address_man = IPAddressManager(ipv4_allocator, ipv6_allocator, store)
 
     # Add all servicers to the server
     mobility_service_servicer = MobilityServiceRpcServicer(
-        ip_address_man, config.get('print_grpc_payload', False))
+        ip_address_man, config.get('print_grpc_payload', False),
+    )
     mobility_service_servicer.add_to_server(service.rpc_server)
 
     # Load IPv4 and IPv6 blocks from the configurable mconfig file

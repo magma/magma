@@ -64,19 +64,24 @@ def main():
     services = service.config['magma_services']
     init_system = service.config.get('init_system', 'systemd')
     registered_dynamic_services = service.config.get(
-        'registered_dynamic_services', [])
+        'registered_dynamic_services', [],
+    )
     enabled_dynamic_services = []
     if service.mconfig is not None:
         enabled_dynamic_services = service.mconfig.dynamic_services
 
     # Poll the services' Service303 interface
-    service_poller = ServicePoller(service.loop, service.config,
-                                   enabled_dynamic_services)
+    service_poller = ServicePoller(
+        service.loop, service.config,
+        enabled_dynamic_services,
+    )
     service_poller.start()
 
-    service_manager = ServiceManager(services, init_system, service_poller,
-                                     registered_dynamic_services,
-                                     enabled_dynamic_services)
+    service_manager = ServiceManager(
+        services, init_system, service_poller,
+        registered_dynamic_services,
+        enabled_dynamic_services,
+    )
 
     # Get metrics service config
     metrics_config = service.config['metricsd']
@@ -87,9 +92,13 @@ def main():
     grpc_msg_size = metrics_config.get('max_grpc_msg_size_mb', 4)
     metrics_post_processor_fn = metrics_config.get('post_processing_fn')
 
-    metric_scrape_targets = map(lambda x: ScrapeTarget(x['url'], x['name'],
-                                                       x['interval']),
-                                metrics_config.get('metric_scrape_targets', []))
+    metric_scrape_targets = map(
+        lambda x: ScrapeTarget(
+            x['url'], x['name'],
+            x['interval'],
+        ),
+        metrics_config.get('metric_scrape_targets', []),
+    )
 
     # Create local metrics collector
     metrics_collector = MetricsCollector(
@@ -100,8 +109,9 @@ def main():
         grpc_max_msg_size_mb=grpc_msg_size,
         loop=service.loop,
         post_processing_fn=get_metrics_postprocessor_fn(
-            metrics_post_processor_fn),
-        scrape_targets=metric_scrape_targets
+            metrics_post_processor_fn,
+        ),
+        scrape_targets=metric_scrape_targets,
     )
 
     # Poll and sync the metrics collector loops
@@ -126,7 +136,8 @@ def main():
     if service.config.get('enable_sync_rpc', False):
         sync_rpc_client = SyncRPCClient(
             service.loop, 30,
-            service.config.get('print_grpc_payload', False))
+            service.config.get('print_grpc_payload', False),
+        )
 
     first_time_bootstrap = True
 
@@ -196,7 +207,7 @@ def main():
         config=service.config,
         loop=service.loop,
         service_poller=service_poller,
-        service_manager=service_manager
+        service_manager=service_manager,
     )
 
     # Start _bootstrap_manager
@@ -233,7 +244,7 @@ def main():
         service,
         services, service_manager, get_mconfig_manager(), command_executor,
         service.loop,
-        service.config.get('print_grpc_payload', False)
+        service.config.get('print_grpc_payload', False),
     )
     magmad_servicer.add_to_server(service.rpc_server)
 
@@ -241,7 +252,8 @@ def main():
         # Create systemd watchdog
         sdwatchdog = SDWatchdog(
             tasks=[bootstrap_manager, state_reporter],
-            update_status=True)
+            update_status=True,
+        )
         # Start watchdog loop
         service.loop.create_task(sdwatchdog.run())
 
@@ -274,8 +286,10 @@ def _get_upgrader_impl(service):
         'module and class are required in upgrader_factory config'
 
     # Instantiate factory class
-    FactoryClass = getattr(importlib.import_module(factory_module),
-                           factory_clsname)
+    FactoryClass = getattr(
+        importlib.import_module(factory_module),
+        factory_clsname,
+    )
     factory_impl = FactoryClass()
     assert isinstance(factory_impl, UpgraderFactory),\
         'upgrader_factory must be a subclass of UpgraderFactory'

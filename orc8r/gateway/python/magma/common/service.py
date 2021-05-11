@@ -72,7 +72,8 @@ class MagmaService(Service303Servicer):
         # Init logging before doing anything
         logging.basicConfig(
             level=logging.INFO,
-            format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
+            format='[%(asctime)s %(levelname)s %(name)s] %(message)s',
+        )
         # Add a handler to count errors
         logging.root.addHandler(self._log_count_handler)
 
@@ -118,7 +119,8 @@ class MagmaService(Service303Servicer):
                 # Skip the "feg_gateway_python:" part
                 image = os.popen(
                     'docker ps --filter name=magmad --format "{{.Image}}" | '
-                    'cut -d ":" -f 2')
+                    'cut -d ":" -f 2',
+                )
                 image_tag = image.read().strip('\n')
                 self._version = image_tag
             else:
@@ -128,10 +130,12 @@ class MagmaService(Service303Servicer):
 
         if self._config and 'grpc_workers' in self._config:
             self._server = grpc.server(
-                futures.ThreadPoolExecutor(max_workers=self._config['grpc_workers']))
+                futures.ThreadPoolExecutor(max_workers=self._config['grpc_workers']),
+            )
         else:
             self._server = grpc.server(
-                futures.ThreadPoolExecutor(max_workers=MAX_DEFAULT_WORKER))
+                futures.ThreadPoolExecutor(max_workers=MAX_DEFAULT_WORKER),
+            )
         add_Service303Servicer_to_server(self, self._server)
 
     @property
@@ -140,7 +144,7 @@ class MagmaService(Service303Servicer):
         Returns the current running version of the Magma service
         """
         return self._version
-    
+
     @property
     def name(self):
         """Return the name of service
@@ -306,7 +310,8 @@ class MagmaService(Service303Servicer):
         except ValueError:
             logging.error(
                 'Unknown logging level in config: %s, defaulting to INFO',
-                config_level)
+                config_level,
+            )
             proto_level = LogLevel.Value('INFO')
         self._set_log_level(proto_level)
 
@@ -326,12 +331,16 @@ class MagmaService(Service303Servicer):
         elif proto_level == LogLevel.Value('FATAL'):
             level = logging.FATAL
         else:
-            logging.error('Unknown logging level: %d, defaulting to INFO',
-                          proto_level)
+            logging.error(
+                'Unknown logging level: %d, defaulting to INFO',
+                proto_level,
+            )
             level = logging.INFO
 
-        logging.info("Setting logging level to %s",
-                     logging.getLevelName(level))
+        logging.info(
+            "Setting logging level to %s",
+            logging.getLevelName(level),
+        )
         logger = logging.getLogger('')
         logger.setLevel(level)
 
@@ -343,23 +352,27 @@ class MagmaService(Service303Servicer):
         for signame in ['SIGINT', 'SIGTERM', 'SIGQUIT']:
             self._loop.add_signal_handler(
                 getattr(signal, signame),
-                functools.partial(self._stop, signame))
+                functools.partial(self._stop, signame),
+            )
 
         def _signal_handler():
             logging.info('Handling SIGHUP...')
             faulthandler.dump_traceback()
         self._loop.add_signal_handler(
-            signal.SIGHUP, functools.partial(_signal_handler))
+            signal.SIGHUP, functools.partial(_signal_handler),
+        )
 
     def GetServiceInfo(self, request, context):
         """
         Returns the service info (name, version, state, meta, etc.)
         """
-        service_info = ServiceInfo(name=self._name,
-                                   version=self._version,
-                                   state=self._state,
-                                   health=self._health,
-                                   start_time_secs=self._start_time)
+        service_info = ServiceInfo(
+            name=self._name,
+            version=self._version,
+            state=self._state,
+            health=self._health,
+            start_time_secs=self._start_time,
+        )
         if self._get_status_callback is not None:
             status = self._get_status_callback()
             try:

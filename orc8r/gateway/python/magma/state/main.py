@@ -40,8 +40,10 @@ def main():
     garbage_collector = GarbageCollector(service, grpc_client_manager)
 
     # Start state replication loop
-    state_manager = StateReplicator(service, garbage_collector,
-                                    grpc_client_manager)
+    state_manager = StateReplicator(
+        service, garbage_collector,
+        grpc_client_manager,
+    )
     state_manager.start()
 
     # Run the service loop

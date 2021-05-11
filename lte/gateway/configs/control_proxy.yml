@@ -42,7 +42,7 @@ allow_http_proxy: False
 
 # [Experimental] Sentry related configs
 # If set, the Sentry Python SDK will be initialized for all python services
-sentry_url_python: "https://c47c01b460514b3fa39aa61a41c86bd7@o529355.ingest.sentry.io/5689290"
+sentry_url_python: ""
 # If set, the Sentry Native SDK will be initialized for MME and SessionD
 sentry_url_native: ""
 # If set, /var/log/mme.log will be uploaded along MME crashreports

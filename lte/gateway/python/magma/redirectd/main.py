@@ -61,7 +61,8 @@ def run_server_thread(target, ip, port, exit_callback):
     """ Start redirectd service server thread """
     thread = threading.Thread(
         target=target,
-        args=(ip, port, exit_callback))
+        args=(ip, port, exit_callback),
+    )
     thread.daemon = True
     thread.start()
 
