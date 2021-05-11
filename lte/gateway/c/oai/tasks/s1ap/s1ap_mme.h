@@ -43,11 +43,6 @@ int s1ap_mme_init(const mme_config_t* mme_config);
  **/
 void s1ap_mme_exit(void);
 
-/** \brief Dump the eNB list
- * Calls dump_enb for each eNB in list
- **/
-void s1ap_dump_enb_list(s1ap_state_t* state);
-
 /** \brief Dump eNB related information.
  * Calls dump_ue for each UE in list
  * \param enb_ref eNB structure reference to dump
