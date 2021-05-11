@@ -284,8 +284,6 @@ commands:
         type: string
     steps:
       - checkout
-      - build/determinator:
-          <<: *lte_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           name: Install tools
@@ -944,8 +942,6 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
-      - build/determinator:
-          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'True'
@@ -956,8 +952,6 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
-      - build/determinator:
-          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'False'
