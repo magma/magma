@@ -17,6 +17,7 @@
 import {FetchEnodebs, FetchGateways} from '../../state/lte/EquipmentState';
 import {FetchSubscriberState} from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useRef, useState} from 'react';
+import type {EnqueueSnackbarOptions} from 'notistack';
 
 export const REFRESH_INTERVAL = 30000;
 
@@ -26,7 +27,10 @@ type Props = {
   type: refreshType,
   interval?: number,
   id?: string,
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
   refresh: boolean,
   lastRefreshTime?: string,
 };
@@ -133,7 +137,10 @@ type FetchProps = {
   type: refreshType,
   networkId: string,
   id?: string,
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 async function fetchRefreshState(props: FetchProps) {
   const {type, networkId, id, enqueueSnackbar} = props;
