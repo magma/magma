@@ -283,6 +283,9 @@
       "orc8r/deploy_orcl": {
         "title": "Experimental Orc8r Deployer"
       },
+      "orc8r/dev_aws_stack": {
+        "title": "AWS Stack"
+      },
       "orc8r/dev_dependencies": {
         "title": "Module Dependencies"
       },
