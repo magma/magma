@@ -22,7 +22,7 @@ def main():
     service = MagmaService('directoryd', mconfigs_pb2.DirectoryD())
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
     service_config = service.config
 

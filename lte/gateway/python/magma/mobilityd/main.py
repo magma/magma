@@ -93,7 +93,7 @@ def main():
     service = MagmaService('mobilityd', mconfigs_pb2.MobilityD())
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
     # Load service configs and mconfig
     config = service.config

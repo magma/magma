@@ -140,6 +140,15 @@ class MagmaService(Service303Servicer):
         Returns the current running version of the Magma service
         """
         return self._version
+    
+    @property
+    def name(self):
+        """Return the name of service
+
+        Returns:
+            tr: name of service
+        """
+        return self._name
 
     @property
     def rpc_server(self):

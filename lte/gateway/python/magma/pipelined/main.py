@@ -56,7 +56,7 @@ def main():
     service = MagmaService('pipelined', mconfigs_pb2.PipelineD())
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
     service_config = service.config
 

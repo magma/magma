@@ -42,7 +42,7 @@ def main():
     service = MagmaService('policydb', mconfigs_pb2.PolicyDB())
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
     apn_rules_dict = ApnRuleAssignmentsDict()
     assignments_dict = RuleAssignmentsDict()
