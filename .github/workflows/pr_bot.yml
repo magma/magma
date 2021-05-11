@@ -21,7 +21,7 @@ jobs:
 
             - ***Reviews.*** The "Reviewers" listed for this PR are the Magma maintainers who will shepherd it.
             - ***Checks.*** All required CI checks must pass before merge.
-            - ***Merge.*** Once approved and passing all CI checks, use the [\`ready2merge\`](https://github.com/magma/magma/labels/ready2merge) label to indicate the maintainers can merge your PR.
+            - ***Merge.*** Once approved and passing CI checks, use the [\`ready2merge\`](https://github.com/magma/magma/labels/ready2merge) label to indicate the maintainers can merge your PR.
 
             ### More info
 

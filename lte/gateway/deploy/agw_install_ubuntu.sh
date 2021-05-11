@@ -156,7 +156,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   alias python=python3
   pip3 install ansible
 
-  git clone --depth=1 "${GIT_URL}" /home/$MAGMA_USER/magma
+  git clone "${GIT_URL}" /home/$MAGMA_USER/magma
   cd /home/$MAGMA_USER/magma || exit
   git checkout "$MAGMA_VERSION"
 
