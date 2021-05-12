@@ -68,10 +68,14 @@ set(COMMON_SRC
 add_subdirectory(glogwrapper)
 add_subdirectory(redis_utils)
 
+pkg_search_module(CRYPTO libcrypto REQUIRED)
+
 add_library(COMMON ${COMMON_SRC})
 target_link_libraries (COMMON
   lfds710
   LIB_3GPP LIB_BSTR LIB_HASHTABLE LIB_ITTI glogwrapper
+  ${CRYPTO_LIBRARIES}
+  prometheus-cpp
 )
 
 ## Find + link sentry if it exists

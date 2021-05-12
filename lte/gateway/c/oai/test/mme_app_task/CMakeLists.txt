@@ -15,9 +15,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Check REQUIRED)
 find_package(Threads REQUIRED)
-
-include_directories("/usr/src/googletest/googlemock/include/")
-link_directories(/usr/src/googletest/googlemock/lib/)
+find_package(libprotobuf-mutator CONFIG REQUIRED)
 
 set(MME_APP_UE_CONTEXT_IMSI_SRC
     test_mme_app_ue_context.c
@@ -49,3 +47,21 @@ target_include_directories(test_mme_app_emm_decode PUBLIC
 
 add_test(NAME test_mme_app_ue_context COMMAND test_mme_app_ue_context_imsi)
 add_test(NAME test_mme_app_emm_decode COMMAND test_mme_app_emm_decode)
+
+add_executable(mme_app_state_converter_test mme_app_state_converter_test.cpp)
+
+pkg_search_module(OPENSSL openssl REQUIRED)
+pkg_search_module(CRYPTO libcrypto REQUIRED)
+target_link_libraries(mme_app_state_converter_test
+    -Wl,--start-group
+        TASK_MME_APP COMMON
+    -Wl,--end-group
+        ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
+        gtest gtest_main
+        libprotobuf-mutator::protobuf-mutator libprotobuf-mutator::protobuf-mutator-libfuzzer
+    )
+target_include_directories(mme_app_state_converter_test PUBLIC
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    $ENV{C_BUILD}/oai/tasks/mme_app
+    )
+add_test(NAME mme_app_state_converter_test COMMAND mme_app_state_converter_test) 
