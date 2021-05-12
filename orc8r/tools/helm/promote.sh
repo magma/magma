@@ -19,13 +19,13 @@ promote_artifact () {
   ARTIFACT="$1"
   curl --request POST --user "$HELM_CHART_MUSEUM_USERNAME":"$HELM_CHART_MUSEUM_TOKEN" --fail \
    "$HELM_CHART_MUSEUM_API_URL/copy/$HELM_CHART_MUSEUM_ORIGIN_REPO/$ARTIFACT?to=/$HELM_CHART_MUSEUM_DEST_REPO/$ARTIFACT"
-} 
+}
 
 get_artifact () {
   ARTIFACT="$1"
   curl --output /dev/null --silent  --write-out "%{http_code}" \
    "$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_ORIGIN_REPO/$ARTIFACT" || :
-} 
+}
 
 usage() {
   echo "Supply at least one artifact to promote: $0 ARTIFACT_PATH"
@@ -56,7 +56,6 @@ fi
 # Trim last backslash if exists
 # shellcheck disable=SC2001
 HELM_CHART_ARTIFACTORY_URL="$(echo "$HELM_CHART_ARTIFACTORY_URL" | sed 's:/$::')"
-# shellcheck enable=SC2001
 
 # Verify existence of the helm repo
 RESPONSE_CODE_REPO="$(curl --output /dev/null --stderr /dev/null --silent --write-out "%{http_code}"  "$HELM_CHART_ARTIFACTORY_URL/$HELM_CHART_MUSEUM_ORIGIN_REPO/" || :)"
