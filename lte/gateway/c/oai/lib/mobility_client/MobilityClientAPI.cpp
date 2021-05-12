@@ -18,19 +18,19 @@
 #include "MobilityClientAPI.h"
 
 #include <grpcpp/security/credentials.h>
+
 #include <cstdint>
 #include <cstring>
 #include <string>
 
-#include "conversions.h"
 #include "common_defs.h"
+#include "common_types.h"
+#include "conversions.h"
+#include "intertask_interface.h"
+#include "log.h"
+#include "MobilityServiceClient.h"
 #include "service303.h"
 #include "spgw_types.h"
-#include "intertask_interface.h"
-#include "common_types.h"
-#include "log.h"
-
-#include "MobilityServiceClient.h"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;
@@ -192,7 +192,6 @@ int pgw_handle_allocate_ipv6_address(
               LOG_UTIL,
               " Error in allocating ipv6 address for IMSI <%s> apn <%s>\n",
               subscriber_id_str.c_str(), apn_str.c_str());
-          OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
         }
 
         memcpy(&ip6_addr.s6_addr, ipv6_addr_str.c_str(), sizeof(in6_addr));
@@ -293,7 +292,6 @@ int pgw_handle_allocate_ipv4v6_address(
               " Error in allocating IPv4 and IPv6 addresses for IMSI <%s> apn "
               "<%s>\n",
               subscriber_id_str.c_str(), apn_str.c_str());
-          OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
         }
         memcpy(&ip4_addr, ipv4_addr_str.c_str(), sizeof(in_addr));
         memcpy(&ip6_addr, ipv6_addr_str.c_str(), sizeof(in6_addr));
