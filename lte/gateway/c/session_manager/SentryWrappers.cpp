@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "sentry_wrapper.h"
+#include "SentryWrappers.h"
 
 #if SENTRY_ENABLED
 #include <experimental/optional>
@@ -22,26 +22,20 @@
 #include <sstream>
 #include <string>
 
+#include "magma_logging.h"
 #include "sentry.h"
 #include "ServiceConfigLoader.h"
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"
 #define SENTRY_NATIVE_URL "sentry_url_native"
-#define SHOULD_UPLOAD_MME_LOG "sentry_upload_mme_log"
-#define MME_LOG_PATH "/var/log/mme.log"
 #define SNOWFLAKE_PATH "/etc/snowflake"
 #define HWID "hwid"
 #define SERVICE_NAME "service_name"
 
 using std::experimental::optional;
 
-bool should_upload_mme_log(YAML::Node control_proxy_config) {
-  if (control_proxy_config[SHOULD_UPLOAD_MME_LOG].IsDefined()) {
-    return control_proxy_config[SHOULD_UPLOAD_MME_LOG].as<bool>();
-  }
-  return false;
-}
+// TODO(@themarwhal) pull common sentry functions into lib common
 
 optional<std::string> get_sentry_url(YAML::Node control_proxy_config) {
   std::string sentry_url;
@@ -67,26 +61,29 @@ void initialize_sentry() {
       CONTROL_PROXY_SERVICE_NAME);
   auto op_sentry_url = get_sentry_url(control_proxy_config);
   if (op_sentry_url) {
+    MLOG(MINFO) << "Starting SessionD with Sentry!";
     sentry_options_t* options = sentry_options_new();
     sentry_options_set_dsn(options, op_sentry_url->c_str());
     if (const char* commit_hash_p = std::getenv(COMMIT_HASH_ENV)) {
       sentry_options_set_release(options, commit_hash_p);
     }
-    if (should_upload_mme_log(control_proxy_config)) {
-      sentry_options_add_attachment(options, MME_LOG_PATH);
-    }
 
     sentry_init(options);
-
-    sentry_set_tag(SERVICE_NAME, "MME");
+    sentry_set_tag(SERVICE_NAME, "SessionD");
     sentry_set_tag(HWID, get_snowflake().c_str());
   }
 }
 
-void shutdown_sentry(void) {
+void shutdown_sentry() {
   sentry_shutdown();
 }
+
+void set_sentry_transaction(const std::string& name) {
+  sentry_set_transaction(name.c_str());
+}
+
 #else
-void initialize_sentry(void) {}
-void shutdown_sentry(void) {}
+void initialize_sentry() {}
+void shutdown_sentry() {}
+void set_sentry_transaction(const std::string& name) {}
 #endif
