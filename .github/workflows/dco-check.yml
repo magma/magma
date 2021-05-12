@@ -20,3 +20,21 @@ jobs:
       uses: tim-actions/dco@master
       with:
         commits: ${{ steps.get-pr-commits.outputs.commits }}
+    - name: DCO comment
+      if: failure()
+      uses: actions/github-script@v3
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          var msg = `Oops, Seems like you failed the \`DCO check\`. Make sure to sign all your commits.
+
+          ### Howto
+
+          - ***Managing commit signature verification.***  [\`Official github documentation\`](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification)`
+
+          github.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: msg,
+          })
