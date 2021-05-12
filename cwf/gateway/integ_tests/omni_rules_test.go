@@ -121,8 +121,12 @@ func TestOmnipresentRules(t *testing.T) {
 	assert.NotNil(t, omniRecord, fmt.Sprintf("No policy usage omniRecord for imsi: %v", imsi))
 	assert.NotNil(t, blockAllRecord, fmt.Sprintf("Block all record was not installed for imsi %v", imsi))
 
-	assert.True(t, omniRecord.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", omniRecord.RuleId))
-	assert.Equal(t, uint64(0x0), blockAllRecord.BytesTx)
+	if omniRecord != nil {
+		assert.True(t, omniRecord.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", omniRecord.RuleId))
+	}
+	if blockAllRecord != nil {
+		assert.Equal(t, uint64(0x0), blockAllRecord.BytesTx)
+	}
 
 	tr.AssertAllGyExpectationsMetNoError()
 	tr.AssertAllGxExpectationsMetNoError()
