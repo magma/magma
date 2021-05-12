@@ -129,6 +129,7 @@ RUN yum install -y \
 WORKDIR /patches
 COPY  lte/gateway/c/oai/patches/folly-gflagslib-fix.patch .
 COPY  lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch .
+COPY  lte/gateway/c/oai/patches/0002-opencoord.org.freeDiameter.patch .
 COPY  lte/gateway/c/oai/patches/libzmq-strncpy.patch .
 COPY  lte/gateway/c/oai/patches/czmq-strncat.patch .
 
@@ -327,6 +328,7 @@ RUN cd freediameter && \
     git log -n1 && \
     echo "Patching dict_S6as6d" && \
     patch -p1 < /patches/0001-opencoord.org.freeDiameter.patch && \
+    patch -p1 < /patches/0002-opencoord.org.freeDiameter.patch && \
     mkdir build && \
     cd build && \
     cmake3 ../ && \

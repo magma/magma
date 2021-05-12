@@ -203,6 +203,7 @@ COPY ./ $MAGMA_ROOT
 RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
     cd freediameter && \
     patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch && \
+    patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0002-opencoord.org.freeDiameter.patch && \
     mkdir build && \
     cd build && \
     cmake ../ && \
