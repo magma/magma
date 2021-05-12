@@ -66,3 +66,5 @@ jobs:
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1
+      env:
+        NODE_OPTIONS: --max-old-space-size=5120
