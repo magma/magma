@@ -251,6 +251,7 @@ def _get_context():
         "ovs_internal_sampling_fwd_tbl",
         "ovs_uplink_port_number",
         "ovs_uplink_mac",
+        "pipelined_managed_tbl0",
     ):
         context[key] = get_service_config_value("spgw", key, "")
     context["enable_apn_correction"] = get_service_config_value(
