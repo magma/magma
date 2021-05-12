@@ -11,26 +11,26 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <string.h>
-#include <chrono>
-#include <thread>
-#include <future>
-
+#include <gmock/gmock.h>
 #include <grpc++/grpc++.h>
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
+#include <string.h>
+
+#include <chrono>
+#include <future>
+#include <iostream>
+#include <thread>
 
 #include "Consts.h"
-#include "SessionReporter.h"
+#include "LocalEnforcer.h"
 #include "MagmaService.h"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
 #include "ServiceRegistrySingleton.h"
-#include "SessionManagerServer.h"
 #include "SessiondMocks.h"
+#include "SessionManagerServer.h"
+#include "SessionReporter.h"
 #include "SessionStore.h"
-#include "LocalEnforcer.h"
 
 #define SESSION_TERMINATION_TIMEOUT_MS 100
 #define DEFAULT_PIPELINED_EPOCH 1

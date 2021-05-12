@@ -11,26 +11,26 @@
  * limitations under the License.
  */
 
-#include <memory>
-
 #include <folly/io/async/EventBaseManager.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "Consts.h"
 #include "LocalEnforcer.h"
+#include "magma_logging.h"
 #include "MagmaService.h"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
+#include "SessiondMocks.h"
 #include "SessionID.h"
 #include "SessionProxyResponderHandler.h"
 #include "SessionState.h"
 #include "SessionStore.h"
-#include "SessiondMocks.h"
 #include "StoredState.h"
-#include "magma_logging.h"
 
 using ::testing::Test;
 

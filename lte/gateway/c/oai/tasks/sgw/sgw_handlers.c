@@ -2245,7 +2245,7 @@ void sgw_process_release_access_bearer_request(
           eps_bearer_ctxt->p_gw_address_in_use_up.address.ipv4_address.s_addr;
       OAILOG_DEBUG_UE(
           module, imsi64,
-          "Rashmi Deleting tunnel for bearer_id %u ue addr %x enb %x "
+          "Deleting tunnel for bearer_id %u ue addr %x enb_ip %x "
           "s_gw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x pgw_up_ip %x "
           "pgw_up_teid %x "
           "s_gw_ip_address_S5_S8_up %x"

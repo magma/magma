@@ -12,6 +12,8 @@ schemes:
 - https
 - http
 tags:
+- description: Access point name
+  name: APNs
 - description: Configuring alerting rules on time-series data
   name: Alerts
 - description: Endpoints related to call tracing

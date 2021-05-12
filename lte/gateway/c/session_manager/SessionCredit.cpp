@@ -11,12 +11,14 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <limits>
+#include <string>
 
 #include "DiameterCodes.h"
 #include "EnumToString.h"
-#include "SessionCredit.h"
 #include "magma_logging_init.h"
+#include "SessionCredit.h"
 #include "Utilities.h"
 
 namespace magma {

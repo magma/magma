@@ -14,12 +14,15 @@
 
 #include <lte/protos/spgw_service.grpc.pb.h>  // for SpgwService::Stub, Spgw...
 #include <stdint.h>                           // for uint32_t
-#include <functional>                         // for function
-#include <memory>                             // for shared_ptr, unique_ptr
-#include <string>                             // for string
-#include <vector>                             // for vector
-#include "GRPCReceiver.h"                     // for GRPCReceiver
-#include "lte/protos/subscriberdb.pb.h"       // for lte
+
+#include <functional>  // for function
+#include <memory>      // for shared_ptr, unique_ptr
+#include <string>      // for string
+#include <vector>      // for vector
+
+#include "GRPCReceiver.h"                // for GRPCReceiver
+#include "lte/protos/subscriberdb.pb.h"  // for lte
+
 namespace grpc {
 class Channel;
 }
@@ -99,7 +102,7 @@ class AsyncSpgwServiceClient : public GRPCReceiver, public SpgwServiceClient {
  public:
   AsyncSpgwServiceClient();
 
-  AsyncSpgwServiceClient(std::shared_ptr<grpc::Channel> pgw_channel);
+  explicit AsyncSpgwServiceClient(std::shared_ptr<grpc::Channel> pgw_channel);
   /**
    * Delete a default bearer (all session bearers)
    * @param imsi - msi to identify a UE

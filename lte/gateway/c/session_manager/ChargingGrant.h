@@ -12,10 +12,10 @@
  */
 #pragma once
 
-#include "ServiceAction.h"
-#include "StoredState.h"
-#include "SessionCredit.h"
 #include "DiameterCodes.h"
+#include "ServiceAction.h"
+#include "SessionCredit.h"
+#include "StoredState.h"
 
 namespace magma {
 

@@ -11,8 +11,9 @@
  * limitations under the License.
  */
 #pragma once
-
 #include <lte/protos/session_manager.grpc.pb.h>
+
+#include <string>
 
 #include "StoredState.h"
 

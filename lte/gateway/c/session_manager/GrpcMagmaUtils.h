@@ -13,6 +13,7 @@
 #pragma once
 
 #include <string>  // for string
+
 namespace google {
 namespace protobuf {
 class Message;

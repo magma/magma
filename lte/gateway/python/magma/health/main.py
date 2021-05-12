@@ -25,7 +25,7 @@ def main():
     service = MagmaService('health', None)
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
     # Service state wrapper obj
     service_state = ServiceStateWrapper()
@@ -39,13 +39,15 @@ def main():
 
     redis_dump_src = load_service_config("redis").get("dir", "/var/opt/magma")
 
-    state_recovery_job = StateRecoveryJob(service_state=service_state,
-                                          polling_interval=polling_interval,
-                                          services_check=services_check,
-                                          restart_threshold=restart_threshold,
-                                          redis_dump_src=redis_dump_src,
-                                          snapshots_dir=snapshots_dir,
-                                          service_loop=service.loop)
+    state_recovery_job = StateRecoveryJob(
+        service_state=service_state,
+        polling_interval=polling_interval,
+        services_check=services_check,
+        restart_threshold=restart_threshold,
+        redis_dump_src=redis_dump_src,
+        snapshots_dir=snapshots_dir,
+        service_loop=service.loop,
+    )
     state_recovery_job.start()
 
     # Run the service loop

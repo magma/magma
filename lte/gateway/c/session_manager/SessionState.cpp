@@ -11,23 +11,24 @@
  * limitations under the License.
  */
 
+#include <google/protobuf/timestamp.pb.h>
+#include <google/protobuf/util/time_util.h>
+
 #include <functional>
 #include <string>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-#include <google/protobuf/timestamp.pb.h>
-#include <google/protobuf/util/time_util.h>
 
 #include "CreditKey.h"
+#include "DiameterCodes.h"
 #include "EnumToString.h"
+#include "magma_logging.h"
+#include "MetricsHelpers.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "StoredState.h"
-#include "MetricsHelpers.h"
-#include "magma_logging.h"
 #include "Utilities.h"
-#include "DiameterCodes.h"
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
@@ -1002,7 +1003,7 @@ RuleToProcess SessionState::activate_static_rule(
   increment_rule_stats(rule_id, session_uc);
 
   return make_rule_to_process(rule);
-};
+}
 
 optional<RuleToProcess> SessionState::remove_dynamic_rule(
     const std::string& rule_id, PolicyRule* rule_out,

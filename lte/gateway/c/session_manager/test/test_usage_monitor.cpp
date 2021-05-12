@@ -10,15 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <gtest/gtest.h>
+
 #include <chrono>
 #include <thread>
 
-#include "SessionState.h"
-#include "SessiondMocks.h"
 #include "ProtobufCreators.h"
+#include "SessiondMocks.h"
+#include "SessionState.h"
 #include "SessionStateTester.h"
-
-#include <gtest/gtest.h>
 
 using ::testing::Test;
 

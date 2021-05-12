@@ -11,14 +11,13 @@
  * limitations under the License.
  */
 #include <chrono>
+#include <string>
 #include <thread>
 
 #include "EnumToString.h"
-#include "SessionProxyResponderHandler.h"
-#include "magma_logging.h"
-
-#include "magma_logging.h"
 #include "GrpcMagmaUtils.h"
+#include "magma_logging.h"
+#include "SessionProxyResponderHandler.h"
 
 using grpc::Status;
 

@@ -10,18 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <glog/logging.h>
+#include <gtest/gtest.h>
+
 #include <future>
 #include <memory>
 #include <utility>
 
-#include <glog/logging.h>
-#include <gtest/gtest.h>
-
 #include "Consts.h"
-#include "ProtobufCreators.h"
-#include "SessionState.h"
-#include "SessiondMocks.h"
 #include "magma_logging.h"
+#include "ProtobufCreators.h"
+#include "SessiondMocks.h"
+#include "SessionState.h"
 #include "SessionStateTester.h"
 
 using ::testing::Test;
