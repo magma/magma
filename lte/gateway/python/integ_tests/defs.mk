@@ -142,7 +142,6 @@ s1aptests/test_x2_handover_ping_pong.py \
 s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
-s1aptests/test_attach_detach_rar_tcp_he.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_idle_mode_with_mme_restart.py \
