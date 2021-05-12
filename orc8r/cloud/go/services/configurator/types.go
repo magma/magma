@@ -274,6 +274,14 @@ func (ne NetworkEntities) MakeByParentTK() map[storage2.TypeAndKey]NetworkEntiti
 	return ret
 }
 
+func (ne NetworkEntities) TKs() storage2.TKs {
+	var tks storage2.TKs
+	for _, e := range ne {
+		tks = append(tks, e.GetTypeAndKey())
+	}
+	return tks
+}
+
 func (ne NetworkEntities) GetFirst(typ string) (NetworkEntity, error) {
 	for _, e := range ne {
 		if e.Type == typ {
