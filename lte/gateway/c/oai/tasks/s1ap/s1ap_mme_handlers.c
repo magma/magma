@@ -4120,12 +4120,13 @@ int s1ap_mme_handle_enb_reset(
   }
 
   if (enb_association->nb_ue_associated == 0) {
-    // ignore the message if there are no UEs connected
+    // Even if there are no UEs connected, we proceed -- this can happen if we
+    // receive a reset during a handover procedure, for example.
     OAILOG_INFO(
         LOG_S1AP,
-        "No UEs is connected.Ignoring ENB Initiated Reset.eNB Id = %d\n",
+        "No UEs connected, still proceeding with ENB Initiated Reset. eNB Id = "
+        "%d\n",
         enb_association->enb_id);
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
   }
 
   // Check the reset type - partial_reset OR reset_all
@@ -4162,14 +4163,14 @@ int s1ap_mme_handle_enb_reset(
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
     if (reset_count > enb_association->nb_ue_associated) {
-      OAILOG_ERROR(
+      // We proceed here since we could encounter this situation when we
+      // receive a reset from the target eNB during a handover procedure.
+      OAILOG_WARNING(
           LOG_S1AP,
           "Partial Reset Request. Requested number of UEs %d to be reset is "
           "more "
           "than connected UEs %d \n",
           reset_count, enb_association->nb_ue_associated);
-      // TBD - Here MME should send Error Indication as it is abnormal scenario.
-      OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }
   msg       = itti_alloc_new_message(TASK_S1AP, S1AP_ENB_INITIATED_RESET_REQ);
