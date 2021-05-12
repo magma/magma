@@ -44,6 +44,9 @@ static void sgw_s8_send_failed_delete_session_response(
     const itti_s11_delete_session_request_t* const delete_session_req_p,
     imsi64_t imsi64);
 
+static void insert_sgw_c_teid_to_directoryd(
+    sgw_state_t* state, imsi64_t imsi64);
+
 uint32_t sgw_get_new_s1u_teid(sgw_state_t* state) {
   if (state->s1u_teid == 0) {
     state->s1u_teid = INITIAL_SGW_S8_S1U_TEID;
@@ -360,7 +363,7 @@ static int update_bearer_context_info(
 
 static int sgw_s8_send_create_session_response(
     sgw_state_t* sgw_state, sgw_eps_bearer_context_information_t* sgw_context_p,
-    const s8_create_session_response_t* const session_rsp_p) {
+    s8_create_session_response_t* session_rsp_p) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   MessageDef* message_p                                         = NULL;
   itti_s11_create_session_response_t* create_session_response_p = NULL;
@@ -508,30 +511,42 @@ void sgw_s8_handle_create_session_response(
     sgw_remove_sgw_bearer_context_information(
         sgw_state, session_rsp_p->context_teid, imsi64);
   } else {
-    char teidString[16]             = {0};
-    char imsi_str[IMSI_BCD_DIGITS_MAX + 1] = {0};
-    IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
-    spgw_ue_context_t* ue_context_p = NULL;
-    hashtable_ts_get(
-        sgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
-        (void**) &ue_context_p);
-    if (ue_context_p) {
-      sgw_s11_teid_t* s11_teid_p = NULL;
-      LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
-        if (s11_teid_p) {
-          if (s11_teid_p->entries.le_next) {
-            sprintf(
-                teidString + strlen(teidString), "%u,",
-                s11_teid_p->sgw_s11_teid);
-          } else {
-            sprintf(
-                teidString + strlen(teidString), "%u",
-                s11_teid_p->sgw_s11_teid);
-          }
+    insert_sgw_c_teid_to_directoryd(sgw_state, imsi64);
+  }
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+// The function generates comma separated list of sgw's control plane teid of
+// s8 interface for each pdn session and updates the list to directoryd.
+static void insert_sgw_c_teid_to_directoryd(
+    sgw_state_t* sgw_state, imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  char teidString[16]                    = {0};
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1] = {0};
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+  spgw_ue_context_t* ue_context_p = NULL;
+  // TODO move imsi_ue_context_htbl from sgw_state to sgw_s8's state manager
+  hashtable_ts_get(
+      sgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
+      (void**) &ue_context_p);
+  if (ue_context_p) {
+    sgw_s11_teid_t* s11_teid_p = NULL;
+    LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
+      if (s11_teid_p) {
+        if (s11_teid_p->entries.le_next) {
+          snprintf(
+              teidString + strlen(teidString),
+              sizeof(teidString) - strlen(teidString), "%u,",
+              s11_teid_p->sgw_s11_teid);
+        } else {
+          snprintf(
+              teidString + strlen(teidString),
+              sizeof(teidString) - strlen(teidString), "%u",
+              s11_teid_p->sgw_s11_teid);
         }
       }
-      directoryd_update_field(imsi_str, "sgw_c_teid", teidString);
     }
+    directoryd_update_record_field(imsi_str, "sgw_c_teid", teidString);
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
