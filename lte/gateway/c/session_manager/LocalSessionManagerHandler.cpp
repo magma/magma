@@ -17,6 +17,7 @@
 
 #include "LocalSessionManagerHandler.h"
 #include "magma_logging.h"
+#include "SentryWrappers.h"
 #include "Utilities.h"
 #include "GrpcMagmaUtils.h"
 
@@ -42,6 +43,7 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
 void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
     std::function<void(Status, Void)> response_callback) {
+  set_sentry_transaction("ReportRuleStats");
   auto& request_cpy = *request;
   if (request_cpy.records_size() > 0) {
     PrintGrpcMessage(
@@ -233,6 +235,7 @@ static CreateSessionRequest make_create_session_request(
 void LocalSessionManagerHandlerImpl::CreateSession(
     ServerContext* context, const LocalCreateSessionRequest* request,
     std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
+  set_sentry_transaction("CreateSession");
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread(
@@ -472,6 +475,7 @@ void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
 void LocalSessionManagerHandlerImpl::EndSession(
     ServerContext* context, const LocalEndSessionRequest* request,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
+  set_sentry_transaction("EndSession");
   auto& request_cpy = *request;
   auto& sid         = request->sid();
   auto& apn         = request->apn();
@@ -553,6 +557,7 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
     ServerContext* context, const PolicyBearerBindingRequest* request,
     std::function<void(Status, PolicyBearerBindingResponse)>
         response_callback) {
+  set_sentry_transaction("BindPolicy2Bearer");
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(INFO) << "Received a BindPolicy2Bearer request for "
@@ -585,6 +590,7 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
 void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
     ServerContext* context, UpdateTunnelIdsRequest* request,
     std::function<void(Status, UpdateTunnelIdsResponse)> response_callback) {
+  set_sentry_transaction("UpdateTunnelIds");
   auto& request_cpy = *request;
   auto imsi         = request->sid().id();
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
@@ -619,6 +625,7 @@ void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
 void LocalSessionManagerHandlerImpl::SetSessionRules(
     ServerContext* context, const SessionRules* request,
     std::function<void(Status, Void)> response_callback) {
+  set_sentry_transaction("SetSessionRules");
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(MDEBUG) << "Received session <-> rule associations";
