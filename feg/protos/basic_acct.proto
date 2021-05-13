@@ -49,16 +49,12 @@ message AcctSession {
         bytes  hardware_addr = 3;
         string name = 4;
     }
-    // ID of the user network (MNO, Identity Provider, etc.)
-    string user_network_id = 5;
     // unique session ID
-    string session_id = 6;
-    // ID of the service provider network
-    string serving_network_id = 7;
+    string session_id = 5;
     // ID of the service provider gateway (AP, AGW, enodeb, etc.)
-    string serving_gateway_id = 8;
+    string serving_apn = 6;
     // available QoS at the caller's site
-    AcctQoS    available_qos = 9;
+    AcctQoS available_qos = 7;
 }
 
 // Start session response
