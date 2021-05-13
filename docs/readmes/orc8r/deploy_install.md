@@ -143,7 +143,7 @@ If you don't know what values to put for the `docker_*` and `helm_*` variables,
 go through the [building Orchestrator](./deploy_build.md) section first.
 
 Make sure that the `source` variables for the module definitions point to
-`github.com/magma/magma//orc8r/cloud/deploy/terraform/<module>?ref=v1.4`.
+`github.com/magma/magma//orc8r/cloud/deploy/terraform/<module>?ref=v1.5`.
 Adjust any other parameters as you see fit - check the READMEs for the
 relevant Terraform modules to see additional variables that can be set.
 
