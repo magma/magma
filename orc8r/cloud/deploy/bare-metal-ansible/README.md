@@ -157,5 +157,5 @@ Now you're ready to run the deployment.  From the `$MAGMA_ROOT/orc8r/cloud/deplo
 Once you've begun a deployment, if you find that you need to go back and start again, it's best to completely reset the environment with:
 ```bash
 cd $MAGMA_ROOT/orc8r/cloud/deploy/bare-metal-ansible/
-ansible-playbook -i inventory/cluster.local/hosts.yaml -b kubespray/reset.yml
+ansible-playbook -i inventory/cluster.local/hosts.yml -b kubespray/reset.yml
 ```
