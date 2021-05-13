@@ -151,8 +151,9 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
 
         return {self.tbl_num: [msg]}
 
-    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, 
-                                  version, shard_id, ng_session_id=0):
+    def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int,
+                                  ip_addr, apn_ambr, rule, version, shard_id,
+                                  ng_session_id=0):
         """
         Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -166,7 +167,6 @@ class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
         priority = Utils.get_of_priority(rule.priority)
-
         flow_adds = []
         for flow in rule.flow_list:
             try:

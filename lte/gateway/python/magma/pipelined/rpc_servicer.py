@@ -952,7 +952,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             pdr_entry.precedence,
             pdr_entry.local_f_teid,
             pdr_entry.far_action.o_teid,
-            pdr_entry.ue_ip_addr,
+            convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr),
             pdr_entry.far_action.gnb_ip_addr,
             encode_imsi(subscriber_id),
             True,
@@ -1038,9 +1038,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                 ipv4, session_version)
 
         qos_enforce_rule = pdr_entry.add_qos_enforce_rule
-        if qos_enforce_rule.ipv6_addr:
-            self._update_ipv6_prefix_store(qos_enforce_rule.ipv6_addr)
-
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
                                          subscriber_id, qos_enforce_rule.msisdn,
@@ -1074,13 +1071,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         rule_ids = []
         if pdr_entry.del_qos_enforce_rule:
             policy_rules = pdr_entry.del_qos_enforce_rule
-            logging.info(policy_rules)
             rule_ids = [policy.rule_id for policy in policy_rules.policies]
 
-        #if pdr_entry.add_qos_enforce_rule:
-            #rule_ids.extend(pdr_entry.add_qos_enforce_rule.rule_ids)
-        #    dynamic_rules_ids = list(map(lambda entry: entry.id, pdr_entry.add_qos_enforce_rule.dynamic_rules))
-        #    rule_ids.extend(dynamic_rules_ids)
 
         ipv4 = convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr)
         self._ng_remove_version(subscriber_id, pdr_entry.del_qos_enforce_rule,
