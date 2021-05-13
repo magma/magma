@@ -6873,6 +6873,10 @@ definitions:
         example: true
         type: boolean
         x-nullable: false
+      acct_reporting_enabled:
+        default: false
+        type: boolean
+        x-nullable: false
       create_session_on_auth:
         default: true
         example: true
