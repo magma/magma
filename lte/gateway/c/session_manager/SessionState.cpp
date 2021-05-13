@@ -308,7 +308,7 @@ void SessionState::set_teids(Teids teids) {
 }
 
 static UsageMonitorUpdate make_usage_monitor_update(
-    const SessionCredit::Usage& usage_in, const std::string& monitoring_key,
+    const Usage& usage_in, const std::string& monitoring_key,
     MonitoringLevel level) {
   UsageMonitorUpdate update;
   update.set_bytes_tx(usage_in.bytes_tx);
@@ -472,7 +472,7 @@ void SessionState::add_rule_usage(
     auto it = credit_map_.find(charging_key);
     if (it != credit_map_.end()) {
       auto credit_uc = get_credit_uc(charging_key, update_criteria);
-      it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
+      it->second->credit.add_used_credit(used_tx, used_rx, credit_uc);
       if (it->second->should_deactivate_service()) {
         it->second->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
       }
@@ -646,7 +646,7 @@ void SessionState::get_monitor_updates(
                  << " with request number " << request_number_
                  << last_update_message;
 
-    auto usage = credit.get_usage_for_reporting(*credit_uc);
+    auto usage = credit.get_usage_for_reporting(credit_uc);
     auto update =
         make_usage_monitor_update(usage, mkey, monitor_pair.second->level);
     auto new_req = update_request_out.mutable_usage_monitors()->Add();
@@ -735,14 +735,14 @@ SessionTerminateRequest SessionState::make_termination_request(
     auto credit_uc = get_monitor_uc(credit_pair.first, uc);
     req.mutable_monitor_usages()->Add()->CopyFrom(make_usage_monitor_update(
         credit_pair.second->credit.get_all_unreported_usage_for_reporting(
-            *credit_uc),
+            credit_uc),
         credit_pair.first, credit_pair.second->level));
   }
   // gy credits
   for (auto& credit_pair : credit_map_) {
     auto credit_uc    = get_credit_uc(credit_pair.first, uc);
     auto credit_usage = credit_pair.second->get_credit_usage(
-        CreditUsage::TERMINATED, *credit_uc, true);
+        CreditUsage::TERMINATED, credit_uc, true);
     credit_pair.first.set_credit_usage(&credit_usage);
     req.mutable_credit_usages()->Add()->CopyFrom(credit_usage);
   }
@@ -759,7 +759,7 @@ ChargingCreditSummaries SessionState::get_charging_credit_summaries() {
   return charging_credit_summaries;
 }
 
-SessionCredit::TotalCreditUsage SessionState::get_total_credit_usage() {
+TotalCreditUsage SessionState::get_total_credit_usage() {
   // Collate unique charging/monitoring keys used by rules
   std::unordered_set<CreditKey, decltype(&ccHash), decltype(&ccEqual)>
       used_charging_keys(4, ccHash, ccEqual);
@@ -792,7 +792,7 @@ SessionCredit::TotalCreditUsage SessionState::get_total_credit_usage() {
   }
 
   // Sum up usage
-  SessionCredit::TotalCreditUsage usage{
+  TotalCreditUsage usage{
       .monitoring_tx = 0,
       .monitoring_rx = 0,
       .charging_tx   = 0,
@@ -1691,7 +1691,7 @@ void SessionState::apply_charging_credit_update(
   auto& credit         = charging_grant->credit;
 
   // Credit merging
-  credit.merge(credit_uc);
+  credit.apply_update_criteria(credit_uc);
 
   // set charging grant
   charging_grant->is_final_grant    = credit_uc.is_final;
@@ -1831,7 +1831,7 @@ optional<CreditUsageUpdate> SessionState::get_update_for_continue_service(
   if (update_type == CreditUsage::REAUTH_REQUIRED) {
     grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
   }
-  CreditUsage usage = grant->get_credit_usage(update_type, *credit_uc, false);
+  CreditUsage usage = grant->get_credit_usage(update_type, credit_uc, false);
   key.set_credit_usage(&usage);
 
   auto request = make_credit_usage_update_req(usage);
@@ -1990,7 +1990,7 @@ bool SessionState::receive_monitor(
     MLOG(MINFO) << session_id_ << " Received Disabled action for monitor "
                 << mkey << ". Will remove monitor after update is sent";
     // seting last update will deleted monitor after the update is sent.
-    it->second->credit.set_report_last_credit(true, *credit_uc);
+    it->second->credit.set_report_last_credit(true, credit_uc);
 
   } else {
     MLOG(MINFO) << session_id_ << " Received monitor credit for " << mkey;
@@ -2026,7 +2026,7 @@ void SessionState::apply_monitor_updates(
   auto& credit         = charging_grant->credit;
 
   // Credit merging
-  credit.merge(credit_uc);
+  credit.apply_update_criteria(credit_uc);
 }
 
 uint64_t SessionState::get_monitor(
@@ -2068,13 +2068,13 @@ bool SessionState::add_to_monitor(
 
   auto credit_uc = get_monitor_uc(key, uc);
 
-  it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
+  it->second->credit.add_used_credit(used_tx, used_rx, credit_uc);
 
   // after adding usage we check if monitor is exhausted
   if (it->second->should_delete_monitor()) {
     MLOG(MINFO) << "Quota exhausted for monitor " << key
                 << ". Will remove monitor after update is sent";
-    it->second->credit.set_report_last_credit(true, *credit_uc);
+    it->second->credit.set_report_last_credit(true, credit_uc);
   }
   return true;
 }

@@ -221,7 +221,7 @@ void EventsReporterImpl::session_terminated(
   event_value[APN]           = session_cfg.common_context.apn();
   event_value[SESSION_ID]    = session->get_session_id();
 
-  SessionCredit::TotalCreditUsage usage = session->get_total_credit_usage();
+  TotalCreditUsage usage      = session->get_total_credit_usage();
   event_value[TOTAL_TX]       = usage.charging_tx + usage.monitoring_tx;
   event_value[TOTAL_RX]       = usage.charging_rx + usage.monitoring_rx;
   event_value[CHARGING_TX]    = usage.charging_tx;
