@@ -39,6 +39,7 @@ struct SessionConfig {
   explicit SessionConfig(const LocalCreateSessionRequest& request);
   bool operator==(const SessionConfig& config) const;
   std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
+  std::string get_imsi() const { return common_context.sid().id(); }
 };
 
 // Session Credit

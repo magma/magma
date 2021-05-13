@@ -184,8 +184,7 @@ class LocalEnforcer {
    * CreateSessionResponse.
    */
   void handle_session_activate_rule_updates(
-      const std::string& imsi, SessionState& session,
-      const CreateSessionResponse& response,
+      SessionState& session, const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
 
   void schedule_session_init_dedicated_bearer_creations(
@@ -385,40 +384,55 @@ class LocalEnforcer {
       UpdateChargingCreditActions& actions, SessionUpdate& session_update);
 
   /**
-   * Process the list of rule names given and fill in to_deactivate by
-   * determining whether each one is dynamic or static. Modifies session state.
-   * TODO separate out logic that modifies state vs logic that does not.
-   */
-  void process_rules_to_remove(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      const google::protobuf::RepeatedPtrField<std::basic_string<char>>
-          rules_to_remove,
-      RulesToProcess* to_deactivate, SessionStateUpdateCriteria* uc);
-
-  /**
-   * Process protobuf StaticRuleInstalls and DynamicRuleInstalls to fill in
-   * to_activate and to_deactivate. Modifies session state.
-   * TODO separate out logic that modifies state vs logic that does not.
+   * @brief For rules mentioned in both static_rule_installs and
+   * dynamic_rule_installs, classify them into the three RulesToProcess vectors.
+   * pending_activation, pending_deactivation, pending_bearer_setup will not
+   * intersect in the set of rules they contain pending_scheduling may contain
+   * some deactivation scheduling for rules mentioned in the above three sets
+   * @param session
+   * @param static_rule_installs
+   * @param dynamic_rule_installs
+   * @param pending_activation contains rules that need to be activated now
+   * @param pending_deactivation contains rules that need to be deactivated now
+   * @param pending_bearer_setup contains rules that need to get dedicated
+   * bearers before they can be activated. The rules will be activated once MME
+   * sends a BindPolicy2Bearer with the dedicated bearer Teids.
+   * @param pending_scheduling contains rules that need to be scheduled to be
+   * activated/deactivated
+   * @param session_uc
    */
   void process_rules_to_install(
-      SessionState& session, const std::string& imsi,
+      SessionState& session,
       const std::vector<StaticRuleInstall>& static_rule_installs,
       const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
-      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+      RulesToProcess* pending_bearer_setup, RulesToSchedule* pending_scheduling,
       SessionStateUpdateCriteria* session_uc);
 
   /**
    * propagate_rule_updates_to_pipelined calls the PipelineD RPC calls to
    * install/uninstall flows
    * @param config
-   * @param to_activate
-   * @param to_deactivate
+   * @param pending_activation
+   * @param pending_deactivation
    * @param always_send_activate : if this is set activate call will be sent
-   * even if to_activate is empty
+   * even if pending_activation is empty
    */
   void propagate_rule_updates_to_pipelined(
-      const SessionConfig& config, const RulesToProcess& to_activate,
-      const RulesToProcess& to_deactivate, bool always_send_activate);
+      const SessionConfig& config, const RulesToProcess& pending_activation,
+      const RulesToProcess& pending_deactivation, bool always_send_activate);
+
+  /**
+   * @brief for each element in RulesToSchedule, schedule rule
+   * activation/deactivation on the event loop
+   *
+   * @param imsi
+   * @param session_id
+   * @param pending_scheduling
+   */
+  void handle_rule_scheduling(
+      const std::string& imsi, const std::string& session_id,
+      const RulesToSchedule& pending_scheduling);
 
   /**
    * For the matching session ID, activate and/or deactivate the specified
@@ -496,7 +510,7 @@ class LocalEnforcer {
       const google::protobuf::RepeatedField<int>& event_triggers);
 
   void schedule_revalidation(
-      const std::string& imsi, SessionState& session,
+      SessionState& session,
       const google::protobuf::Timestamp& revalidation_time,
       SessionStateUpdateCriteria& uc);
 
@@ -518,15 +532,14 @@ class LocalEnforcer {
    * 4. Propagate subscriber wallet status
    * 5. Schedule a callback to force termination if termination is not completed
    *    in a set amount of time
-   * @param imsi
    * @param session
    * @param notify_access: bool to determine whether the access component needs
    * notification
    * @param uc
    */
   void start_session_termination(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      bool notify_access, SessionStateUpdateCriteria& uc);
+      const std::unique_ptr<SessionState>& session, bool notify_access,
+      SessionStateUpdateCriteria& uc);
 
   /**
    * handle_force_termination_timeout is scheduled to run when a termination
@@ -541,12 +554,11 @@ class LocalEnforcer {
   /**
    * remove_all_rules_for_termination talks to PipelineD and removes all rules
    * (Gx/Gy/static/dynamic/everything) attached to the session
-   * @param imsi
    * @param session
    * @param uc
    */
   void remove_all_rules_for_termination(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
+      const std::unique_ptr<SessionState>& session,
       SessionStateUpdateCriteria& uc);
 
   /**
@@ -554,28 +566,21 @@ class LocalEnforcer {
    * communicates to the appropriate access client to notify the session's
    * termination.
    * LTE -> MME, WLAN -> AAA
-   * @param imsi
    * @param session_id
    * @param config
    */
   void notify_termination_to_access_service(
-      const std::string& imsi, const std::string& session_id,
-      const SessionConfig& config);
+      const std::string& session_id, const SessionConfig& config);
   /**
    * handle_subscriber_quota_state_change will update the session's wallet state
    * to the desired new_state and propagate that state PipelineD.
-   * @param imsi
    * @param session
    * @param new_state
-   * @param uc
+   * @param session_uc
    */
   void handle_subscriber_quota_state_change(
-      const std::string& imsi, SessionState& session,
-      SubscriberQuotaUpdate_Type new_state, SessionStateUpdateCriteria& uc);
-
-  void handle_subscriber_quota_state_change(
-      const std::string& imsi, SessionState& session,
-      SubscriberQuotaUpdate_Type new_state);
+      SessionState& session, SubscriberQuotaUpdate_Type new_state,
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * Start the termination process for multiple sessions
@@ -627,8 +632,7 @@ class LocalEnforcer {
    * Otherwise, mark the subscriber as out of quota to pipelined, and schedule
    * the session to be terminated in a configured amount of time.
    */
-  void handle_session_activate_subscriber_quota_state(
-      const std::string& imsi, SessionState& session);
+  void handle_session_activate_subscriber_quota_state(SessionState& session);
 
   bool is_wallet_exhausted(SessionState& session);
 
@@ -645,8 +649,18 @@ class LocalEnforcer {
    * @param uc
    */
   void remove_rule_due_to_bearer_creation_failure(
-      const std::string& imsi, SessionState& session,
-      const std::string& rule_id, SessionStateUpdateCriteria& uc);
+      SessionState& session, const std::string& rule_id,
+      SessionStateUpdateCriteria& uc);
+
+  /**
+   * @brief Activate the rule after successfully binding it to a dedicated
+   * bearer
+   *
+   * @param session
+   * @param request
+   */
+  void install_rule_after_bearer_creation(
+      SessionState& session, const PolicyBearerBindingRequest& request);
 
   static std::unique_ptr<Timezone> compute_access_timezone();
 

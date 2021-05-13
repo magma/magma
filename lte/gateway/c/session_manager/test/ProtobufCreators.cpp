@@ -392,21 +392,30 @@ void create_session_create_response(
   }
 }
 
-void create_policy_rule(
-    const std::string& rule_id, const std::string& m_key, uint32_t rating_group,
-    PolicyRule* rule) {
-  rule->set_id(rule_id);
-  rule->set_rating_group(rating_group);
-  rule->set_monitoring_key(m_key);
-  if (rating_group == 0 && m_key.length() > 0) {
-    rule->set_tracking_type(PolicyRule::ONLY_PCRF);
-  } else if (rating_group > 0 && m_key.length() == 0) {
-    rule->set_tracking_type(PolicyRule::ONLY_OCS);
-  } else if (rating_group > 0 && m_key.length() > 0) {
-    rule->set_tracking_type(PolicyRule::OCS_AND_PCRF);
+PolicyRule create_policy_rule(
+    const std::string& rule_id, const std::string& m_key, const uint32_t rg) {
+  PolicyRule rule;
+  rule.set_id(rule_id);
+  rule.set_rating_group(rg);
+  rule.set_monitoring_key(m_key);
+  if (rg == 0 && m_key.length() > 0) {
+    rule.set_tracking_type(PolicyRule::ONLY_PCRF);
+  } else if (rg > 0 && m_key.length() == 0) {
+    rule.set_tracking_type(PolicyRule::ONLY_OCS);
+  } else if (rg > 0 && m_key.length() > 0) {
+    rule.set_tracking_type(PolicyRule::OCS_AND_PCRF);
   } else {
-    rule->set_tracking_type(PolicyRule::NO_TRACKING);
+    rule.set_tracking_type(PolicyRule::NO_TRACKING);
   }
+  return rule;
+}
+
+PolicyRule create_policy_rule_with_qos(
+    const std::string& rule_id, const std::string& m_key, const uint32_t rg,
+    const int qci) {
+  PolicyRule rule = create_policy_rule(rule_id, m_key, rg);
+  rule.mutable_qos()->set_qci(static_cast<magma::lte::FlowQos_Qci>(qci));
+  return rule;
 }
 
 void create_granted_units(
@@ -464,6 +473,18 @@ UpdateTunnelIdsRequest create_update_tunnel_ids_request(
   req.set_agw_teid(agw_teid);
   req.set_enb_teid(enb_teid);
   return req;
+}
+
+StaticRuleInstall create_static_rule_install(const std::string& rule_id) {
+  StaticRuleInstall rule_install;
+  rule_install.set_rule_id(rule_id);
+  return rule_install;
+}
+
+DynamicRuleInstall create_dynamic_rule_install(const PolicyRule& rule) {
+  DynamicRuleInstall rule_install;
+  rule_install.mutable_policy_rule()->CopyFrom(rule);
+  return rule_install;
 }
 
 }  // namespace magma
