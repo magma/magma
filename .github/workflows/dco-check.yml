@@ -24,13 +24,14 @@ jobs:
       if: failure()
       uses: actions/github-script@v3
       with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          var msg = `Oops, Seems like you failed the \`DCO check\`. Make sure to sign all your commits.
+          var msg = `Oops! Looks like you failed the \`DCO check\`. Be sure to sign all your commits.
 
           ### Howto
 
-          - ***Managing commit signature verification.***  [\`Official github documentation\`](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification)`
+          - [Magma guidelines on signing commits](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
+          - [GitHub documentation on signing commits](https://docs.github.com/en/github/authenticating-to-github/managing-commit-signature-verification)`
 
           github.issues.createComment({
             issue_number: context.issue.number,
