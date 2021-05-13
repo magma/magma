@@ -218,13 +218,10 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # vagrant machine
     gateway_ip = '192.168.60.142'
 
-
-    if not gateway_host:
-        gateway_host = vagrant_setup(
-            'magma', destroy_vm, force_provision=provision_vm)
-    else:
-        ansible_setup(gateway_host, "dev", "magma_dev.yml")
+    if gateway_host:
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
+
+    _switch_to_vm(gateway_host, "magma", "magma_dev.yml", destroy_vm=destroy_vm, provision_vm=provision_vm)
 
     execute(_dist_upgrade)
     execute(_build_magma)
@@ -239,20 +236,12 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
 
     # Setup the trfserver: use the provided trfserver if given, else default to the
     # vagrant machine
-    if not trf_host:
-        trf_host = vagrant_setup(
-            'magma_trfserver', destroy_vm, force_provision=provision_vm)
-    else:
-        ansible_setup(trf_host, "trfserver", "magma_trfserver.yml")
+     _switch_to_vm(gateway_host, "magma_trfserver", "magma_trfserver.yml", destroy_vm=destroy_vm, provision_vm=provision_vm)
     execute(_start_trfserver)
 
     # Run the tests: use the provided test machine if given, else default to
     # the vagrant machine
-    if not test_host:
-        test_host = vagrant_setup(
-            'magma_test', destroy_vm, force_provision=provision_vm)
-    else:
-        ansible_setup(test_host, "test", "magma_test.yml")
+     _switch_to_vm(gateway_host, "test", "magma_test.yml", destroy_vm=destroy_vm, provision_vm=provision_vm)
 
     execute(_make_integ_tests)
     execute(_run_integ_tests, gateway_ip)
@@ -295,10 +284,10 @@ def get_test_summaries(
         test_host=None,
         dst_path="/tmp"):
     local('mkdir -p ' + dst_path)
-    _switch_to_vm(gateway_host, "magma", "magma_dev.yml", False)
+    _switch_to_vm(gateway_host, "magma", "magma_dev.yml", destroy_vm=False, provision_vm=False)
     with settings(warn_only=True):
         get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
-    _switch_to_vm(test_host, "magma_test", "magma_test.yml", False)
+    _switch_to_vm(test_host, "magma_test", "magma_test.yml", destroy_vm=False, provision_vm=False)
     with settings(warn_only=True):
         get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
 
@@ -401,12 +390,11 @@ def load_test(gateway_host=None, destroy_vm=True):
     """
     # Setup the gateway: use the provided gateway if given, else default to the
     # vagrant machine
+    gateway_ip = '192.168.60.142'
     if gateway_host:
-        ansible_setup(gateway_host, 'dev', 'magma_dev.yml')
         gateway_ip = gateway_host.split('@')[1].split(':')[0]
-    else:
-        gateway_host = vagrant_setup('magma', destroy_vm)
-        gateway_ip = '192.168.60.142'
+
+    _switch_to_vm(gateway_host, "magma", "magma_dev.yml", destroy_vm=destroy_vm, provision_vm=True)
 
     execute(_build_magma)
     execute(_start_gateway)
@@ -562,8 +550,8 @@ def _run_load_tests(gateway_ip='192.168.60.142'):
           % (key, host, port, gateway_ip))
 
 
-def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
+def _switch_to_vm(addr: str, host_name: str, ansible_file: str, destroy_vm: bool, provision_vm: bool):
     if not addr:
-        vagrant_setup(host_name, destroy_vm)
+        vagrant_setup(host_name, destroy_vm, provision_vm)
     else:
         ansible_setup(addr, host_name, ansible_file)
