@@ -119,10 +119,6 @@ void set_consts(const YAML::Node& config) {
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
       config["terminate_service_when_quota_exhausted"].as<bool>();
 
-  if (config["bearer_creation_delay_on_session_init"].IsDefined()) {
-    magma::LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT =
-        config["bearer_creation_delay_on_session_init"].as<uint32_t>();
-  }
   if (config["send_access_timezone"].IsDefined()) {
     magma::LocalEnforcer::SEND_ACCESS_TIMEZONE =
         config["send_access_timezone"].as<bool>();

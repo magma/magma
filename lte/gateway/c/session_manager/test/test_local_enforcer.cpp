@@ -1870,23 +1870,14 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
   EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
 }
 
-// This test covers some edge cases for the dedicated bearer creation scheduling
-// for a new session. For session creation, we delay the actual call to create
-// bearer by a few seconds. (BEARER_CREATION_DELAY_ON_SESSION_INIT)
-// But since we could have a case where the rule state is modified during the
-// scheduling and the actual call, we want to ensure that we do not create
-// bearers if:
-// 1. Policy is no longer installed.
-// 2. Policy no longer needs a bearer for some reason. One case of this could be
-// that it is already tied to a bearer.
-// The success case where the creation takes place is covered by another test
-// "test_dedicated_bearer_lifecycle"
+// This test covers the case where a dedicated bearer needs to be created when
+// the session is created. See another test 'test_dedicated_bearer_lifecycle'
+// for the update/reauth dedicated bearer flow
 TEST_F(LocalEnforcerTest, test_dedicated_bearer_creation_on_session_init) {
   CreateSessionResponse response1, response2;
   const uint32_t default_bearer_id = 5;
   const uint32_t bearer_1          = 6;
-  insert_static_rule_with_qos(0, "m1", "rule1", 1);             // QCI=1
-  LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT = 1000;  // 1 sec
+  insert_static_rule_with_qos(0, "m1", "qos-rule1", 1);  // QCI=1
 
   // test_cfg_ is initialized with QoSInfo field w/ QCI 5
   test_cfg_.common_context.mutable_sid()->set_id(IMSI1);
@@ -1895,75 +1886,21 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_creation_on_session_init) {
   lte_context->mutable_qos_info()->set_qos_class_id(5);
   lte_context->set_bearer_id(default_bearer_id);  // linked_bearer_id
 
-  // CASE 1: policy has a bearer by the time the scheduled function is executed
-  response1.mutable_static_rules()->Add()->set_rule_id("rule1");
-  // Schedules default bearer install in 1 sec
+  response1.mutable_static_rules()->Add()->set_rule_id("qos-rule1");
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response1);
+  EXPECT_CALL(*spgw_client, create_dedicated_bearer(testing::_)).Times(1);
   local_enforcer->update_tunnel_ids(
       session_map,
-      create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
-  // Write + Read in/from SessionStore
-  bool write_success =
-      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
-  EXPECT_TRUE(write_success);
+      create_update_tunnel_ids_request(IMSI1, default_bearer_id, teids1));
 
-  // Before we hit the 1 second, simulate a case where another call triggered
-  // the policy to be tied a bearer already
-  session_map = session_store->read_sessions({IMSI1});
-  auto update = SessionStore::get_default_session_update(session_map);
   PolicyBearerBindingRequest bearer_bind_req_success1 =
       create_policy_bearer_bind_req(
-          IMSI1, default_bearer_id, "rule1", bearer_1, 1, 2);
+          IMSI1, default_bearer_id, "qos-rule1", bearer_1, 1, 2);
+
+  auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_success1, update);
-  // Write + Read in/from SessionStore
-  write_success = session_store->update_sessions(update);
-  EXPECT_TRUE(write_success);
-  // Since the policy is already tied to a bearer, we should not see an
-  // additional create bearer request when the scheduled creation happens
-  EXPECT_CALL(
-      *spgw_client, create_dedicated_bearer(CheckCreateBearerReq(IMSI1, 1)))
-      .Times(0);
-  evb->loopOnce();
-
-  // CASE 2: policy has been removed
-  session_map = session_store->read_all_sessions();
-  response2.mutable_static_rules()->Add()->set_rule_id("rule1");
-
-  // Schedules default bearer install in 1 sec
-  auto test_cfg_2 = test_cfg_;
-  test_cfg_2.common_context.mutable_teids()->CopyFrom(teids2);
-  test_cfg_2.rat_specific_context.mutable_lte_context()->set_bearer_id(
-      BEARER_ID_2);
-
-  local_enforcer->init_session(
-      session_map, IMSI2, SESSION_ID_2, test_cfg_2, response2);
-  local_enforcer->update_tunnel_ids(
-      session_map,
-      create_update_tunnel_ids_request(IMSI2, BEARER_ID_2, teids2));
-
-  // Write + Read in/from SessionStore
-  write_success =
-      session_store->create_sessions(IMSI2, std::move(session_map[IMSI2]));
-  EXPECT_TRUE(write_success);
-  // Before we hit the 1 second, remove the policy
-  session_map = session_store->read_sessions({IMSI2});
-  update      = SessionStore::get_default_session_update(session_map);
-  SessionRules session_rules;
-  auto rule_set_per_sub = session_rules.mutable_rules_per_subscriber()->Add();
-  rule_set_per_sub->set_imsi(IMSI2);
-  rule_set_per_sub->mutable_rule_set()->Add()->CopyFrom(
-      create_rule_set(false, "apn1", {}, {}));  // Remove all rules
-  local_enforcer->handle_set_session_rules(session_map, session_rules, update);
-  // Write + Read in/from SessionStore
-  write_success = session_store->update_sessions(update);
-  EXPECT_TRUE(write_success);
-  // Rule is removed, expect no bearer creation
-  EXPECT_CALL(
-      *spgw_client, create_dedicated_bearer(CheckCreateBearerReq(IMSI1, 1)))
-      .Times(0);
-  evb->loopOnce();
 }
 
 // Create multiple rules with QoS and assert dedicated bearers are created
@@ -2021,7 +1958,6 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
       .Times(1)
       .WillOnce(testing::Return(true));
   // For testing change the delay to 0 ms.
-  LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT = 0;
   local_enforcer->init_session(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   local_enforcer->update_tunnel_ids(

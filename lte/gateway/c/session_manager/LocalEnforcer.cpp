@@ -32,10 +32,9 @@
 #include "Utilities.h"
 
 namespace magma {
-uint32_t LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT = 2000;
-uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY                = 2000;
-bool LocalEnforcer::SEND_ACCESS_TIMEZONE                      = false;
-bool LocalEnforcer::CLEANUP_DANGLING_FLOWS                    = true;
+uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY = 2000;
+bool LocalEnforcer::SEND_ACCESS_TIMEZONE       = false;
+bool LocalEnforcer::CLEANUP_DANGLING_FLOWS     = true;
 
 using google::protobuf::RepeatedPtrField;
 
@@ -864,76 +863,8 @@ void LocalEnforcer::handle_session_activate_rule_updates(
   if (config.common_context.rat_type() == TGPP_LTE) {
     BearerUpdate bearer_updates = session.get_dedicated_bearer_updates(
         pending_bearer_setup, pending_deactivation, &uc);
-    if (bearer_updates.needs_creation) {
-      // If a bearer creation is needed, we need to delay this by a few seconds
-      // so that the attach fully completes before.
-      schedule_session_init_dedicated_bearer_creations(
-          imsi, session_id, bearer_updates);
-    }
+    propagate_bearer_updates_to_mme(bearer_updates);
   }
-}
-
-void LocalEnforcer::schedule_session_init_dedicated_bearer_creations(
-    const std::string& imsi, const std::string& session_id,
-    BearerUpdate& bearer_updates) {
-  MLOG(MINFO)
-      << "Scheduling a dedicated bearer creation request for newly created "
-      << session_id << " in "
-      << LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT << " ms";
-  evb_->runAfterDelay(
-      [this, imsi, session_id, bearer_updates]() mutable {
-        auto session_map = session_store_.read_sessions({imsi});
-        SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
-        auto session_it = session_store_.find_session(session_map, criteria);
-        if (!session_it) {
-          MLOG(MWARNING) << "Ignoring dedicated bearer creations from session "
-                            "creation for "
-                         << session_id << " since it no longer exists";
-          return;
-        }
-        auto& session = **session_it;
-
-        // Skip bearer update if it is no longer ACTIVE
-        if (session->get_state() != SESSION_ACTIVE) {
-          MLOG(MWARNING) << "Ignoring dedicated bearer create request from"
-                         << " session creation for " << session_id
-                         << " since the session is no longer active";
-          return;
-        }
-        // Check that the policies are still installed and needs a
-        // bearer
-        auto rules = bearer_updates.create_req.mutable_policy_rules();
-        auto it    = rules->begin();
-        while (it != rules->end()) {
-          auto policy_type = session->get_policy_type(it->id());
-          if (!policy_type) {
-            MLOG(MWARNING) << "Ignoring dedicated bearer create request from"
-                           << " session creation for " << session_id
-                           << " policy ID: " << it->id()
-                           << " since the policy is no longer active in the "
-                              "session";
-            it = rules->erase(it);
-            continue;
-          }
-          if (!session->policy_needs_bearer_creation(*policy_type, it->id())) {
-            MLOG(MWARNING) << "Ignoring dedicated bearer create request from "
-                           << "session creation for " << session_id
-                           << " and policy ID: " << it->id()
-                           << " since the policy no longer needs a bearer";
-            it = rules->erase(it);
-            continue;
-          }
-          ++it;
-        }
-        if (rules->size() > 0) {
-          propagate_bearer_updates_to_mme(bearer_updates);
-        }
-        return;
-        // No need to update session store for bearer creations.
-        // SessionStore will be updated once the bearer binding
-        // completes/fails.
-      },
-      LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT);
 }
 
 void LocalEnforcer::init_session(
