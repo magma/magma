@@ -250,7 +250,7 @@ class SessionState {
    * rules (static and dynamic)
    * Should be called after complete_termination.
    */
-  SessionCredit::TotalCreditUsage get_total_credit_usage();
+  TotalCreditUsage get_total_credit_usage();
 
   ChargingCreditSummaries get_charging_credit_summaries();
 

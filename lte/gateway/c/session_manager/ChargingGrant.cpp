@@ -83,7 +83,7 @@ CreditValidity ChargingGrant::is_valid_credit_response(
       !gsu.total().is_valid() && !gsu.rx().is_valid() && !gsu.tx().is_valid();
   if (gsu_all_invalid) {
     if (update.credit().is_final() || credit_validity == TRANSIENT_ERROR) {
-      // TODO @themarwhal look into this case. Before I figure it out, I will
+      // TODO(@themarwhal): look into this case. Before I figure it out, I will
       // allow empty GSU credits with FUA or to be suspended
       // to be on the conservative side.
       MLOG(MWARNING)
@@ -154,10 +154,10 @@ SessionCreditUpdateCriteria ChargingGrant::get_update_criteria() {
 }
 
 CreditUsage ChargingGrant::get_credit_usage(
-    CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria& uc,
+    CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria* uc,
     bool is_terminate) {
   CreditUsage p_usage;
-  SessionCredit::Usage credit_usage;
+  Usage credit_usage;
 
   if (is_final_grant || is_terminate) {
     credit_usage = credit.get_all_unreported_usage_for_reporting(uc);

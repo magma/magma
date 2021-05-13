@@ -57,6 +57,18 @@ enum EventTriggerState {
 typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState>
     EventTriggerStatus;
 
+struct Usage {
+  uint64_t bytes_tx;
+  uint64_t bytes_rx;
+};
+
+struct TotalCreditUsage {
+  uint64_t monitoring_tx;
+  uint64_t monitoring_rx;
+  uint64_t charging_tx;
+  uint64_t charging_rx;
+};
+
 /**
  * A bucket is a counter used for tracking credit volume across sessiond.
  * These are independently incremented and reset
