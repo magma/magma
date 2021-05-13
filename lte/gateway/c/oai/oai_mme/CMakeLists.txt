@@ -13,9 +13,6 @@ include_directories(${LIBXML2_INCLUDE_DIRS})
 pkg_search_module(OPENSSL openssl REQUIRED)
 include_directories(${OPENSSL_INCLUDE_DIRS})
 
-pkg_search_module(CRYPTO libcrypto REQUIRED)
-include_directories(${CRYPTO_INCLUDE_DIRS})
-
 pkg_search_module(NETTLE nettle REQUIRED)
 include_directories(${NETTLE_INCLUDE_DIRS})
 
@@ -47,9 +44,9 @@ target_link_libraries(mme
         TASK_S6A TASK_MME_APP TASK_GRPC_SERVICE TASK_NAS TASK_HA
          ${ITTI_LIB} ${GCOV_LIB}
     -Wl,--end-group
-    ${LFDS} pthread m sctp  rt crypt ${CRYPTO_LIBRARIES} ${OPENSSL_LIBRARIES}
+    ${LFDS} pthread m sctp rt ${OPENSSL_LIBRARIES}
     ${NETTLE_LIBRARIES} ${CONFIG_LIBRARIES} gnutls ${SERVICE303_LIB}
-    prometheus-cpp grpc grpc++ yaml-cpp
+    prometheus-cpp grpc grpc++
 )
 
 if ( NOT EMBEDDED_SGW )
