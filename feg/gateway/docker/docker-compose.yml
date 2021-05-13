@@ -30,7 +30,7 @@ x-generic-service: &service
   restart: always
   network_mode: host
 
-# Use generic anchor to defined dependencie on td-agent-bit container
+# Use generic anchor to defined dependence on td-agent-bit container
 x-log-forward: &depends_on_logs
   depends_on:
     td-agent-bit:

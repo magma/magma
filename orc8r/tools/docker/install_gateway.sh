@@ -194,6 +194,6 @@ fi
 
 echo "Installed successfully!!"
 # Prepare rsyslog config and restart rsyslog
-echo "If You want syslog to be forwardet to the cloud execute following commands as well"
+echo "If you want syslog to be forwarded to the cloud execute following commands as well"
 echo "sudo cp $INSTALL_DIR/magma/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf /etc/rsyslog.d/"
 echo "sudo service rsyslog restart"
