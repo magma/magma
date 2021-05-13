@@ -454,6 +454,39 @@ func (a *Client) PostLTENetworkIDSubscribersSubscriberIDDeactivate(params *PostL
 }
 
 /*
+PostLTENetworkIDSubscribersV2 adds new subscribers to the network
+*/
+func (a *Client) PostLTENetworkIDSubscribersV2(params *PostLTENetworkIDSubscribersV2Params) (*PostLTENetworkIDSubscribersV2Created, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPostLTENetworkIDSubscribersV2Params()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "PostLTENetworkIDSubscribersV2",
+		Method:             "POST",
+		PathPattern:        "/lte/{network_id}/subscribers_v2",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PostLTENetworkIDSubscribersV2Reader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*PostLTENetworkIDSubscribersV2Created)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	unexpectedSuccess := result.(*PostLTENetworkIDSubscribersV2Default)
+	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
+}
+
+/*
 PutLTENetworkIDSubscribersSubscriberID modifies subscriber info
 */
 func (a *Client) PutLTENetworkIDSubscribersSubscriberID(params *PutLTENetworkIDSubscribersSubscriberIDParams) (*PutLTENetworkIDSubscribersSubscriberIDNoContent, error) {
