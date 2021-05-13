@@ -42,7 +42,6 @@ executors:
 orbs:
   artifactory: circleci/artifactory@0.0.7
   codecov: codecov/codecov@1.1.3
-  aws-cli: circleci/aws-cli@2.0
 
   python:
     commands:
@@ -954,8 +953,6 @@ jobs:
 
   lte-agw-aws:
     environment:
-      #AWS_ACCESS_KEY_ID: "$AWS_FB_CRED"
-      #PARAM_AWS_SECRET_ACCESS_KEY: "$(printenv AWS_FB_SECRET)"
       MAGMA_ROOT: /home/circleci/project  
     machine:
       image: ubuntu-1604:201903-01
@@ -964,10 +961,7 @@ jobs:
       - python/set_version
       - run:
           command: |
-            pip install wheel
-            pip install ansible 
-            pip install awscli
-            pip install boto3
+            pip3 install wheel ansible awscli boto3
             echo export AWS_DEFAULT_REGION="us-west-1" >> $BASH_ENV
             echo export AWS_ACCESS_KEY_ID="$(printenv AWS_FB_CRED)" >> $BASH_ENV
             echo export AWS_SECRET_ACCESS_KEY="$(printenv AWS_FB_SECRET)" >> $BASH_ENV
@@ -985,9 +979,9 @@ jobs:
             chmod 600 ~/magma-experimental/files/*.pem
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
-            ansible-playbook build-provision.yaml --tags devopsAgw,inventory -e "dirLocalInventory=~/magma-experimental/files" -e "dirInventory=~/magma-experimental/files"
-            ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
-            ansible-playbook ami-init.yaml "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=agw${CIRCLE_BUILD_NUM}"
+           # ansible-playbook build-provision.yaml --tags devopsAgw,inventory -e "dirLocalInventory=~/magma-experimental/files" -e "dirInventory=~/magma-experimental/files"
+           # ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
+           # ansible-playbook ami-init.yaml "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=agw${CIRCLE_BUILD_NUM}"
             ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-init.yaml  -e "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=CloudStrapper${CIRCLE_BUILD_NUM}"
      # - magma_slack_notify
