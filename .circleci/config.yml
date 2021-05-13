@@ -985,6 +985,9 @@ jobs:
             chmod 600 ~/magma-experimental/files/*.pem
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
+            ansible-playbook build-provision.yaml --tags devopsAgw,inventory -e "dirLocalInventory=~/magma-experimental/files"
+            ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
+            ansible-playbook ami-init.yaml "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=agw${CIRCLE_BUILD_NUM}"
             ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-init.yaml  -e "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=CloudStrapper${CIRCLE_BUILD_NUM}"
      # - magma_slack_notify
