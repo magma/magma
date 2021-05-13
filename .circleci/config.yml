@@ -1301,8 +1301,8 @@ workflows:
              - lte-test
              - mme_test
              - lte-integ-test
-      - lte-agw-aws:
-            <<: *only_master
+      - lte-agw-aws
+
 #
   feg:
     jobs:
