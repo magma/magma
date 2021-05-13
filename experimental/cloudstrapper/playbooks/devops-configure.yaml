@@ -4,9 +4,8 @@
   roles:
     - { role: ansible-server, become: yes }
     - golang-host
-    - mantle-base
     - build-platform
-    - { role: key-manager, tags: keyManager }     
+    - { role: key-manager, tags: keyManager }
   vars_files:
     - roles/vars/defaults.yaml
     - roles/vars/cluster.yaml
