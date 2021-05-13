@@ -977,6 +977,9 @@ jobs:
             aws s3 cp s3://cloudstrapper-ec2-pems/mpboot101.pem ~/magma-experimental/files/
             aws s3 cp s3://cloudstrapper-ec2-pems/mphost101.pem ~/magma-experimental/files/
             chmod 600 ~/magma-experimental/files/*.pem
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm -e "dirLocalInventory=~/magma-experimental/files"
@@ -1283,101 +1286,101 @@ workflows:
 
   agw:
     jobs:
-      # - lte-test
-      # - session_manager_test
-      # - mme_test
-      # - mme-clang-tidy:
-      #     <<: *only_master
-      # - mme-clang-warnings:
-      #     <<: *only_master
-      # - lte-integ-test:
-      #     <<: *master_and_develop
-      # - lte-agw-deploy:
-      #     <<: *only_master
-      #     requires:
-      #       - lte-test
-      #       - mme_test
-      #       - lte-integ-test
+      - lte-test
+      - session_manager_test
+      - mme_test
+      - mme-clang-tidy:
+           <<: *only_master
+      - mme-clang-warnings:
+           <<: *only_master
+      - lte-integ-test:
+           <<: *master_and_develop
+      - lte-agw-deploy:
+           <<: *only_master
+           requires:
+             - lte-test
+             - mme_test
+             - lte-integ-test
       - lte-agw-aws
 
-  # feg:
-  #   jobs:
-  #     - feg-lint
-  #     - feg-precommit
-  #     - feg-build:
-  #         requires:
-  #           - feg-precommit
+  feg:
+    jobs:
+      - feg-lint
+      - feg-precommit
+      - feg-build:
+          requires:
+            - feg-precommit
+  
+  cwag:
+    jobs:
+      - cwag-precommit
+      - cwf-integ-test:
+          <<: *master_and_develop
+      - xwfm-test:
+          <<: *master_and_develop
+      - cwag-deploy:
+          <<: *only_master
+          requires:
+            - cwag-precommit
+            - cwf-integ-test
+      - xwfm-deploy:
+          <<: *only_master
+          name: xwfm-deploy-latest
+          requires:
+            - cwag-deploy
+            - xwfm-test
+          tag-latest: true
+      - cwag-deploy:
+          <<: *only_master
+          name: cwag-deploy-latest
+          requires:
+            - cwag-deploy
+            - xwfm-deploy-latest
+          images: 'gateway_python|gateway_pipelined|gateway_go'
+          tag-latest: true
   #
-  # cwag:
-  #   jobs:
-  #     - cwag-precommit
-  #     - cwf-integ-test:
-  #         <<: *master_and_develop
-  #     - xwfm-test:
-  #         <<: *master_and_develop
-  #     - cwag-deploy:
-  #         <<: *only_master
-  #         requires:
-  #           - cwag-precommit
-  #           - cwf-integ-test
-  #     - xwfm-deploy:
-  #         <<: *only_master
-  #         name: xwfm-deploy-latest
-  #         requires:
-  #           - cwag-deploy
-  #           - xwfm-test
-  #         tag-latest: true
-  #     - cwag-deploy:
-  #         <<: *only_master
-  #         name: cwag-deploy-latest
-  #         requires:
-  #           - cwag-deploy
-  #           - xwfm-deploy-latest
-  #         images: 'gateway_python|gateway_pipelined|gateway_go'
-  #         tag-latest: true
   #
+  cwf_operator:
+    jobs:
+      - cwf-operator-precommit
+      - cwf-operator-build:
+          requires:
+            - cwf-operator-precommit
   #
-  # cwf_operator:
-  #   jobs:
-  #     - cwf-operator-precommit
-  #     - cwf-operator-build:
-  #         requires:
-  #           - cwf-operator-precommit
+  hourly_xwfm:
+    triggers:
+      - schedule:
+          cron: "0 * * * *"
+          <<: *only_master
+    jobs:
+      - xwfm-test:
+          notify_magma_ci: false
   #
-  # hourly_xwfm:
-  #   triggers:
-  #     - schedule:
-  #         cron: "0 * * * *"
-  #         <<: *only_master
-  #   jobs:
-  #     - xwfm-test:
-  #         notify_magma_ci: false
+  nms:
+    jobs:
+      - nms-flow-test
+      - eslint
+      - nms-yarn-test:
+          requires:
+            - nms-flow-test
+      - nms-e2e-test:
+          requires:
+            - nms-flow-test
+            - eslint
+            - nms-yarn-test
+      - nms-build:
+          requires:
+            - nms-flow-test
+            - eslint
+            - nms-yarn-test
+            - nms-e2e-test
   #
-  # nms:
-  #   jobs:
-  #     - nms-flow-test
-  #     - eslint
-  #     - nms-yarn-test:
-  #         requires:
-  #           - nms-flow-test
-  #     - nms-e2e-test:
-  #         requires:
-  #           - nms-flow-test
-  #           - eslint
-  #           - nms-yarn-test
-  #     - nms-build:
-  #         requires:
-  #           - nms-flow-test
-  #           - eslint
-  #           - nms-yarn-test
-  #           - nms-e2e-test
+  docusaurus:
+   jobs:
+    - docusaurus_build_and_deploy:
+        <<: *only_master
   #
-  # docusaurus:
-  #  jobs:
-  #   - docusaurus_build_and_deploy:
-  #       <<: *only_master
-  #
-  # fossa:
-  #   jobs:
-  #     - fossa-analyze:
-  #         <<: *only_master
+  fossa:
+    jobs:
+      - fossa-analyze:
+          <<: *only_master
