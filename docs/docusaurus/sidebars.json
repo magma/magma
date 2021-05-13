@@ -45,6 +45,8 @@
           "nms/traffic",
           "nms/metrics",
           "nms/alerts",
+          "nms/federation",
+          "nms/admin",
           "nms/tips_and_tricks"
         ]
       },
