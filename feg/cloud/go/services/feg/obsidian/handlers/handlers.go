@@ -56,7 +56,7 @@ const (
 
 	FederatedLteNetworks              = "feg_lte"
 	ListFegLteNetworksPath            = obsidian.V1Root + FederatedLteNetworks
-	ManageFegLteNetworkPath           = ListFegLteNetworksPath + "/:network_id"
+	ManageFegLteNetworkPath           = ListFegLteNetworksPath + obsidian.UrlSep + ":network_id"
 	ManageFegLteNetworkFederationPath = ManageFegLteNetworkPath + obsidian.UrlSep + "federation"
 	ManageFegLteNetworkSubscriberPath = ManageFegLteNetworkPath + obsidian.UrlSep + "subscriber_config"
 	ManageFegLteNetworkBaseNamesPath  = ManageFegLteNetworkSubscriberPath + obsidian.UrlSep + "base_names"
