@@ -39,12 +39,13 @@ lte/gateway/Vagrantfile @rdefosse @mattymo @119Vik @tmdzk
 **/*.pb.go @magma/repo-magma-maintain
 **/*_swaggergen.go @magma/repo-magma-maintain
 
-# xwf Magma integrations
+# XWF Magma integrations
 xwf/ @magma/approvers-xwf
 feg/radius @magma/approvers-xwf @magma/approvers-cwf
 
 nms/ @magma/approvers-nms
 
+docs/ @magma/approvers-docs
 docs/readmes/proposals @electronjoe
 
 CODEOWNERS @amarpad @electronjoe
