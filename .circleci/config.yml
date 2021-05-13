@@ -1302,7 +1302,8 @@ workflows:
              - mme_test
              - lte-integ-test
       - lte-agw-aws
-
+           <<:*only_master
+#
   feg:
     jobs:
       - feg-lint
