@@ -977,6 +977,7 @@ jobs:
             aws s3 cp s3://cloudstrapper-ec2-pems/mpboot101.pem ~/magma-experimental/files/
             aws s3 cp s3://cloudstrapper-ec2-pems/mphost101.pem ~/magma-experimental/files/
             chmod 600 ~/magma-experimental/files/*.pem
+      - run:
           command: |
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
