@@ -1,0 +1,8 @@
+---
+
+- name: cleaning up all aws region gateway stacks
+  cloudformation:
+    stack_name: "{{ item }}"
+    state: absent
+  with_items:
+    - "{{ testClusterStacks }}"

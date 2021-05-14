@@ -1,0 +1,23 @@
+---
+
+- name: create magma user
+  user:
+    name: magma
+    password: "{{ defaultPassword | password_hash('sha512') }}"
+    state: present
+    create_home: yes
+    groups: ubuntu
+    append: yes
+  become: yes
+
+- name: download agw install script
+  get_url:
+    url: "{{ urlAgw }}"
+    dest: "{{ pathAgw }}"
+    mode: '0440'
+  become: yes
+
+
+- name: run agw install script as root
+  command: "/usr/bin/bash {{ pathAgw }}"
+  become: yes

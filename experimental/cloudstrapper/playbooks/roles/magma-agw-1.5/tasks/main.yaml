@@ -1,0 +1,11 @@
+---
+
+- include: ansible-setup.yaml
+  become: yes
+  tags: setupPackages
+- include: magma-setup.yaml
+  become: yes
+  tags: setupMagma
+- include: agw-setup.yaml
+  become: yes
+  tags: setupAgw

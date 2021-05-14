@@ -1,0 +1,31 @@
+---
+
+- name: create cert and config directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  become: true
+  with_items:
+    - "{{ agwCertsPath }}"
+    - "{{ agwConfigPath }}"
+
+- name: copy keys to certificate directory
+  copy:
+    src: "{{ dirSecretsLocal }}/rootCA.pem"
+    dest: "{{ agwCertsPath }}/rootCA.pem"
+  become: true
+
+- name: copy control_proxy
+  template:
+    src: roles/agw-platform/files/control_proxy.j2
+    dest: "{{ agwConfigPath }}/control_proxy.yml"
+  become: true
+
+- name: restart magma services
+  systemd:
+    state: restarted
+    name: "{{ item }}"
+  become: true
+  with_items:
+    - "{{ servicesMagma }}"
