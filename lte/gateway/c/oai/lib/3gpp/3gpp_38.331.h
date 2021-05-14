@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -10,13 +10,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-/****************************************************************************
-  Source      3gpp_38.331.h
-  Date        2020/07/28
-  Subsystem   Access and Mobility Management Function
-  Description Defines NG Application Protocol Messages
-
-*****************************************************************************/
 
 #pragma once
 
@@ -28,6 +21,7 @@ typedef enum m5g_EstablishmentCause {
   M5G_MT_ACCESS,
   M5G_MO_SIGNALLING,
   M5G_MO_DATA,
+  M5G_MO_VOICE_CALL,
   M5G_MO_VIDEOCALL,
   M5G_MO_SMS,
   M5G_MPS_PRIORITYACCESS,

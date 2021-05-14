@@ -21,6 +21,7 @@
 #include "sctpd_event_handler.h"
 #include "sctpd_uplink_client.h"
 #include "util.h"
+#include "magma_logging_init.h"
 
 using grpc::Server;
 using grpc::ServerBuilder;

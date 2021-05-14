@@ -15,3 +15,4 @@ limitations under the License.
 package nprobe
 
 const ServiceName = "nprobe"
+const NProbeTableBlobstore = "nprobe_blobstore"

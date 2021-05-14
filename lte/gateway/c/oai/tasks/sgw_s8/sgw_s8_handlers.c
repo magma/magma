@@ -25,6 +25,8 @@ limitations under the License.
 #include "gtpv1u.h"
 #include "dynamic_memory_check.h"
 #include "sgw_handlers.h"
+#include "directoryd.h"
+#include "conversions.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;
@@ -41,6 +43,9 @@ static void sgw_s8_send_failed_delete_session_response(
     gtpv2c_cause_value_t cause, sgw_state_t* sgw_state,
     const itti_s11_delete_session_request_t* const delete_session_req_p,
     imsi64_t imsi64);
+
+static void insert_sgw_c_teid_to_directoryd(
+    sgw_state_t* state, imsi64_t imsi64);
 
 uint32_t sgw_get_new_s1u_teid(sgw_state_t* state) {
   if (state->s1u_teid == 0) {
@@ -358,7 +363,7 @@ static int update_bearer_context_info(
 
 static int sgw_s8_send_create_session_response(
     sgw_state_t* sgw_state, sgw_eps_bearer_context_information_t* sgw_context_p,
-    const s8_create_session_response_t* const session_rsp_p) {
+    s8_create_session_response_t* session_rsp_p) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   MessageDef* message_p                                         = NULL;
   itti_s11_create_session_response_t* create_session_response_p = NULL;
@@ -424,6 +429,11 @@ static int sgw_s8_send_create_session_response(
      */
     create_session_response_p->bearer_contexts_created.bearer_contexts[0]
         .cause.cause_value = session_rsp_p->cause;
+    if (session_rsp_p->pco.num_protocol_or_container_id) {
+      copy_protocol_configuration_options(
+          &create_session_response_p->pco, &session_rsp_p->pco);
+      clear_protocol_configuration_options(&session_rsp_p->pco);
+    }
   } else {
     create_session_response_p->bearer_contexts_marked_for_removal
         .num_bearer_context = 1;
@@ -500,6 +510,43 @@ void sgw_s8_handle_create_session_response(
         session_rsp_p->cause, session_rsp_p->context_teid);
     sgw_remove_sgw_bearer_context_information(
         sgw_state, session_rsp_p->context_teid, imsi64);
+  } else {
+    insert_sgw_c_teid_to_directoryd(sgw_state, imsi64);
+  }
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+// The function generates comma separated list of sgw's control plane teid of
+// s8 interface for each pdn session and updates the list to directoryd.
+static void insert_sgw_c_teid_to_directoryd(
+    sgw_state_t* sgw_state, imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  char teidString[16]                    = {0};
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1] = {0};
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+  spgw_ue_context_t* ue_context_p = NULL;
+  // TODO move imsi_ue_context_htbl from sgw_state to sgw_s8's state manager
+  hashtable_ts_get(
+      sgw_state->imsi_ue_context_htbl, (const hash_key_t) imsi64,
+      (void**) &ue_context_p);
+  if (ue_context_p) {
+    sgw_s11_teid_t* s11_teid_p = NULL;
+    LIST_FOREACH(s11_teid_p, &ue_context_p->sgw_s11_teid_list, entries) {
+      if (s11_teid_p) {
+        if (s11_teid_p->entries.le_next) {
+          snprintf(
+              teidString + strlen(teidString),
+              sizeof(teidString) - strlen(teidString), "%u,",
+              s11_teid_p->sgw_s11_teid);
+        } else {
+          snprintf(
+              teidString + strlen(teidString),
+              sizeof(teidString) - strlen(teidString), "%u",
+              s11_teid_p->sgw_s11_teid);
+        }
+      }
+    }
+    directoryd_update_record_field(imsi_str, "sgw_c_teid", teidString);
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
@@ -842,7 +889,7 @@ void sgw_s8_handle_s11_delete_session_request(
       sgw_context_p->imsi64, sgw_context_p->imsi,
       sgw_context_p->s_gw_teid_S11_S4,
       sgw_context_p->pdn_connection.p_gw_teid_S5_S8_cp,
-      sgw_context_p->pdn_connection.default_bearer);
+      sgw_context_p->pdn_connection.default_bearer, delete_session_req_p);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
@@ -853,6 +900,7 @@ static void delete_userplane_tunnels(
   struct in_addr pgw                   = {.s_addr = 0};
   sgw_eps_bearer_ctxt_t* bearer_ctxt_p = NULL;
   int rv                               = RETURNerror;
+  struct in_addr ue_ipv4               = {.s_addr = 0};
 
   for (int ebix = 0; ebix < BEARERS_PER_UE; ebix++) {
     ebi_t ebi = INDEX_TO_EBI(ebix);
@@ -869,11 +917,11 @@ static void delete_userplane_tunnels(
           (bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
         ue_ipv6 = &bearer_ctxt_p->paa.ipv6_address;
       }
-      // Delete S1-U tunnel
-      rv = openflow_del_s8_tunnel(
-          enb, pgw, bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
-          bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, bearer_ctxt_p->enb_teid_S1u,
-          NULL);
+      ue_ipv4 = bearer_ctxt_p->paa.ipv4_address;
+      // Delete S1-U tunnel and S8-U tunnel
+      rv = gtpv1u_del_s8_tunnel(
+          enb, pgw, ue_ipv4, ue_ipv6, bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          bearer_ctxt_p->enb_teid_S1u, NULL);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, sgw_context_p->imsi64,
@@ -882,18 +930,15 @@ static void delete_userplane_tunnels(
             bearer_ctxt_p->enb_teid_S1u,
             bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
       }
-      // Delete S8-U tunnel
-      rv = openflow_del_s8_tunnel(
-          enb, pgw, bearer_ctxt_p->paa.ipv4_address, ue_ipv6,
-          bearer_ctxt_p->s_gw_teid_S5_S8_up, bearer_ctxt_p->p_gw_teid_S5_S8_up,
-          NULL);
+      // delete paging rule
+      char* ip_str = inet_ntoa(ue_ipv4);
+      rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4);
       if (rv < 0) {
-        OAILOG_ERROR_UE(
-            LOG_SPGW_APP, sgw_context_p->imsi64,
-            "ERROR in deleting S8-U TUNNEL " TEID_FMT
-            " (PGW) <-> (SGW) " TEID_FMT "\n",
-            bearer_ctxt_p->p_gw_teid_S5_S8_up,
-            bearer_ctxt_p->s_gw_teid_S5_S8_up);
+        OAILOG_ERROR(
+            LOG_SPGW_APP, "ERROR in deleting paging rule for IP Addr: %s\n",
+            ip_str);
+      } else {
+        OAILOG_DEBUG(LOG_SPGW_APP, "Stopped paging for IP Addr: %s\n", ip_str);
       }
     }
   }
@@ -1025,6 +1070,41 @@ static void sgw_s8_send_failed_delete_session_response(
         "Failed to send delete session response to mme for "
         "sgw_s11_teid " TEID_FMT "\n",
         teid);
+  }
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+/* From GPP TS 23.401 version 11.11.0 Release 11, section 5.3.5 S1 release
+   procedure: The S-GW releases all eNodeB related information (address and
+   TEIDs) for the UE and responds with a Release Access Bearers Response message
+   to the MME. Other elements of the UE's S-GW context are not affected. The
+   S-GW retains the S1-U configuration that the S-GW allocated for the UE's
+   bearers. The S-GW starts buffering downlink packets received for the UE and
+   initiating the "Network Triggered Service Request" procedure, described in
+   clause 5.3.4.3, if downlink packets arrive for the UE.
+*/
+//------------------------------------------------------------------------------
+void sgw_s8_handle_release_access_bearers_request(
+    const itti_s11_release_access_bearers_request_t* const
+        release_access_bearers_req_pP,
+    imsi64_t imsi64) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  OAILOG_DEBUG_UE(
+      LOG_SGW_S8, imsi64,
+      "Release Access Bearer Request Received in SGW_S8 task \n");
+
+  sgw_eps_bearer_context_information_t* sgw_context_p =
+      sgw_get_sgw_eps_bearer_context(release_access_bearers_req_pP->teid);
+  if (sgw_context_p) {
+    sgw_send_release_access_bearer_response(
+        LOG_SGW_S8, imsi64, REQUEST_ACCEPTED, release_access_bearers_req_pP,
+        sgw_context_p->mme_teid_S11);
+    sgw_process_release_access_bearer_request(
+        LOG_SGW_S8, imsi64, sgw_context_p);
+  } else {
+    sgw_send_release_access_bearer_response(
+        LOG_SGW_S8, imsi64, CONTEXT_NOT_FOUND, release_access_bearers_req_pP,
+        0);
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }

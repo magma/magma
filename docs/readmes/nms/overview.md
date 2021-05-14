@@ -21,6 +21,7 @@ It also aims to simplify operating magma networks by providing:
 * Firing alerts displayed on the dashboard to escalate/remediate the issue appropriately
 * Fault remediation procedures including the ability to remotely reboot gateways
 * The ability to peform gateway software upgrades
+* Ability to remotely troubleshoot through [call tracing features.](../howtos/call_tracing)
 
 ## Navigation
 NMS provides an app sidebar with contextual icons to navigate to the main sections of the NMS.

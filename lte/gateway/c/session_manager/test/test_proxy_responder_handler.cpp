@@ -11,26 +11,26 @@
  * limitations under the License.
  */
 
-#include <memory>
-
 #include <folly/io/async/EventBaseManager.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "Consts.h"
 #include "LocalEnforcer.h"
+#include "magma_logging.h"
 #include "MagmaService.h"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
+#include "SessiondMocks.h"
 #include "SessionID.h"
 #include "SessionProxyResponderHandler.h"
 #include "SessionState.h"
 #include "SessionStore.h"
-#include "SessiondMocks.h"
 #include "StoredState.h"
-#include "magma_logging.h"
 
 using ::testing::Test;
 
@@ -136,9 +136,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   }
 
   void insert_static_rule(const std::string& rule_id) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, "", 0, &rule);
-    rule_store->insert_rule(rule);
+    rule_store->insert_rule(create_policy_rule(rule_id, "", 0));
   }
 
  protected:
@@ -268,7 +266,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   // the request should has no rules so PipelineD deletes all rules
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules_for_termination(
-                             IMSI1, _, _, _, RequestOriginType::GX))
+                             IMSI1, _, _, _, RequestOriginType::WILDCARD))
       .Times(1);
   proxy_responder->AbortSession(
       &create_context, &request,

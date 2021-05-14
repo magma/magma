@@ -12,18 +12,21 @@
  */
 #pragma once
 
-#include <memory>
 #include <experimental/optional>
-
-#include <lte/protos/session_manager.grpc.pb.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <lte/protos/session_manager.grpc.pb.h>
 
-#include "SessionState.h"
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+
 #include "MemoryStoreClient.h"
 #include "MeteringReporter.h"
-#include "StoredState.h"
 #include "RedisStoreClient.h"
 #include "RuleStore.h"
+#include "SessionState.h"
+#include "StoredState.h"
 
 namespace magma {
 namespace lte {

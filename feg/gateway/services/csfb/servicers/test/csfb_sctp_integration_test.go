@@ -14,18 +14,18 @@ limitations under the License.
 package test
 
 import (
+	"context"
 	"testing"
 	"unsafe"
+
+	"github.com/ishidawataru/sctp"
+	"github.com/stretchr/testify/assert"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/csfb/servicers"
 	"magma/feg/gateway/services/csfb/servicers/encode/message"
 	"magma/feg/gateway/services/csfb/test_init"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/ishidawataru/sctp"
-	"github.com/stretchr/testify/assert"
-	"golang.org/x/net/context"
 )
 
 func TestCsfbServer_EPSDetach_Integration(t *testing.T) {

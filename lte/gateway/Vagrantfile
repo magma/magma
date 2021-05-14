@@ -82,7 +82,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - updated vbguest-tool
     magma_focal.vm.box = "ubuntu/focal64"
     magma_focal.vm.hostname = "magma-dev-focal"
-    magma_focal.vm.box_version = "20201117.0.0"
+    magma_focal.vm.box_version = "20210415.0.0"
     magma_focal.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine

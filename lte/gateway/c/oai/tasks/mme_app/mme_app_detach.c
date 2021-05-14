@@ -114,12 +114,12 @@ void mme_app_send_delete_session_request(
       ue_context_p->pdn_contexts[cid]->s_gw_address_s11_s4.address.ipv4_address;
   mme_config_unlock(&mme_config);
 
+  mme_app_get_user_location_information(
+      &(S11_DELETE_SESSION_REQUEST(message_p).uli), ue_context_p);
+  COPY_PLMN_IN_ARRAY_FMT(
+      (S11_DELETE_SESSION_REQUEST(message_p).serving_network),
+      (ue_context_p->e_utran_cgi.plmn));
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-
-  Imsi_t imsi = {0};
-  IMSI64_TO_STRING(
-      ue_context_p->emm_context._imsi64, (char*) (&imsi.digit),
-      ue_context_p->emm_context._imsi.length);
 
   if (ue_context_p->pdn_contexts[cid]->route_s11_messages_to_s8_task) {
     OAILOG_INFO_UE(

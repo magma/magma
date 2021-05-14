@@ -108,7 +108,7 @@ func NewAttributeScanner(eapData Packet) (*attributeScanner, error) {
 	if el <= EapFirstAttribute {
 		return nil, fmt.Errorf("EAP Message is too short (%d bytes) to include attributes", el)
 	}
-	if err := Packet(eapData).Validate(); err != nil {
+	if err := eapData.Validate(); err != nil {
 		return nil, err
 	}
 	dataLen := el - EapFirstAttribute

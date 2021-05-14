@@ -30,7 +30,7 @@
 #include "MetricsSingleton.h"                      // for MetricsSingleton
 #include "ProcFileUtils.h"                         // for ProcFileUtils::mem...
 #include "ServiceRegistrySingleton.h"              // for ServiceRegistrySin...
-#include "magma_logging.h"                         // for set_verbosity
+#include "magma_logging_init.h"                    // for set_verbosity
 #include "orc8r/protos/metrics.pb.h"               // for MetricFamily
 #include "orc8r/protos/metricsd.pb.h"              // for MetricsContainer
 #include "registry.h"                              // for Registry
@@ -57,9 +57,9 @@ using namespace std::chrono;
 MagmaService::MagmaService(const std::string& name, const std::string& version)
     : name_(name),
       version_(version),
-      health_(ServiceInfo::APP_UNKNOWN),
       start_time_(steady_clock::now()),
       wall_start_time_(system_clock::now()),
+      health_(ServiceInfo::APP_UNKNOWN),
       service_info_callback_(nullptr),
       config_reload_callback_(nullptr),
       operational_states_callback_(nullptr) {}

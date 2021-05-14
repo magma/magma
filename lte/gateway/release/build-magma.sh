@@ -20,8 +20,8 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.5.0 # magma version number
-SCTPD_MIN_VERSION=1.5.0 # earliest version of sctpd with which this version is compatible
+VERSION=1.6.0 # magma version number
+SCTPD_MIN_VERSION=1.6.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -413,6 +413,7 @@ ${ANSIBLE_FILES}/99-magma.conf=/etc/sysctl.d/ \
 ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
 ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
+${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.5/dist-packages/ryu/ofproto/nx_actions.py \
 ${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
 ${PY_PROTOS}=${PY_DEST} \

@@ -13,19 +13,21 @@
 
 # This script is intended to install a docker-based gateway deployment
 
+# Both ENV vars are moved in to .env file:
+# GIT_HASH="v1.3.3"
+# IMAGE_VERSION="docker-tag-1.3.3"
 set -e
 
 CWAG="cwag"
 FEG="feg"
 XWF="xwf"
 INSTALL_DIR="/tmp/magmagw_install"
-GIT_HASH="master"
 
 # TODO: Update docker-compose to stable version
 
 # Using RC as opposed to stable (1.24.0) due to
 # SCTP port mapping support
-DOCKER_COMPOSE_VERSION=1.25.0-rc1
+DOCKER_COMPOSE_VERSION=1.29.1
 
 DIR="."
 echo "Setting working directory as: $DIR"
@@ -69,10 +71,6 @@ MAGMA_GITHUB_URL="https://github.com/magma/magma.git"
 git -C "$INSTALL_DIR" clone "$MAGMA_GITHUB_URL"
 
 source .env
-if [[ $IMAGE_VERSION == *"|"* ]]; then
-  GIT_HASH=$(cut -d'|' -f2 <<< "$IMAGE_VERSION")
-  IMAGE_VERSION=$(cut -d'|' -f1 <<< "$IMAGE_VERSION")
-fi
 
 if [ "$IMAGE_VERSION" != "latest" ]; then
     git -C $INSTALL_DIR/magma checkout "$GIT_HASH"
@@ -195,3 +193,7 @@ if [ "$GW_TYPE" == "$CWAG" ] && [ -f "$DPI_LICENSE_NAME" ]; then
 fi
 
 echo "Installed successfully!!"
+# Prepare rsyslog config and restart rsyslog
+echo "If you want syslog to be forwarded to the cloud execute following commands as well"
+echo "sudo cp $INSTALL_DIR/magma/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf /etc/rsyslog.d/"
+echo "sudo service rsyslog restart"

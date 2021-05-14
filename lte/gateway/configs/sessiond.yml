@@ -38,11 +38,6 @@ support_carrier_wifi: false
 # quota.
 cwf_quota_exhaustion_termination_on_init_ms: 30000
 
-# On session creation, we want to delay the bearer creation requests to after
-# the attach has completed. This value indicates how many ms to wait before
-# sending the bearer create request.
-bearer_creation_delay_on_session_init: 2000
-
 # If this flag is set, we will send the GW's timezone information to the policy
 # component as part of CreateSessionRequest.
 send_access_timezone: true
@@ -60,3 +55,10 @@ converged_access: true
 # Sets the amount of octets that will be requested on the CCR-I for credit if
 # credit is given. If unset, defaults to 200000
 default_requested_units: 200000
+
+# [WARNING] only set this to false if you know what you're doing
+# If the config is missing, the value will default to true
+# When set to true, for any rule reported as part of ReportRuleStats,
+# SessionD will remove it if the rule's IMSI+TEIDs pair do no exist as
+# a session
+cleanup_all_dangling_flows: true

@@ -12,11 +12,14 @@
  */
 #pragma once
 
-#include "StoredState.h"
-#include "ServiceAction.h"
-#include "ChargingGrant.h"
 #include <lte/protos/abort_session.pb.h>
 #include <lte/protos/session_manager.pb.h>
+
+#include <string>
+
+#include "ChargingGrant.h"
+#include "ServiceAction.h"
+#include "StoredState.h"
 
 namespace magma {
 std::string reauth_state_to_str(ReAuthState state);
@@ -40,4 +43,7 @@ std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state);
 std::string service_action_type_to_str(ServiceActionType action);
 
 std::string event_trigger_to_str(EventTrigger event_trigger);
+
+std::string request_origin_type_to_str(
+    RequestOriginType_OriginType request_type);
 }  // namespace magma

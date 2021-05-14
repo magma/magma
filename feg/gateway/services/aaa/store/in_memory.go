@@ -169,7 +169,7 @@ func (st *memSessionTable) GetSession(sid string) aaa.Session {
 	var s *memSession
 	if st != nil {
 		st.rwl.RLock()
-		s, _ = st.sm[sid]
+		s = st.sm[sid]
 		st.rwl.RUnlock()
 	}
 	return s
@@ -179,7 +179,7 @@ func (st *memSessionTable) GetSession(sid string) aaa.Session {
 func (st *memSessionTable) FindSession(imsi string) (sid string) {
 	if st != nil {
 		st.rwl.RLock()
-		sid, _ = st.sids[imsi]
+		sid = st.sids[imsi]
 		st.rwl.RUnlock()
 	}
 	return sid
@@ -191,7 +191,7 @@ func (st *memSessionTable) GetSessionByImsi(imsi string) aaa.Session {
 	if st != nil {
 		st.rwl.RLock()
 		if sid, ok := st.sids[imsi]; ok {
-			s, _ = st.sm[sid]
+			s = st.sm[sid]
 		}
 		st.rwl.RUnlock()
 	}
@@ -260,7 +260,7 @@ func cleanupTimer(ctx *cleanupTimerCtx) {
 		ctx.owner.rwl.Lock()
 		if ctx.owner.sm != nil {
 			if ms, ok := ctx.owner.sm[ctx.sidKey]; ok && ms == ctx.s {
-				if atomic.CompareAndSwapPointer((*unsafe.Pointer)(&ms.cleanupTimerCtx), unsafe.Pointer(ctx), nil) {
+				if atomic.CompareAndSwapPointer(&ms.cleanupTimerCtx, unsafe.Pointer(ctx), nil) {
 					delete(ctx.owner.sm, ctx.sidKey)
 					if oldSid, ok := ctx.owner.sids[ms.imsi]; ok && oldSid == ctx.sidKey {
 						delete(ctx.owner.sids, ms.imsi)

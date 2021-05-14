@@ -28,6 +28,7 @@ def os_release():
                 pass
     return release_info
 
+
 # We can use an environment variable to pass in the package version during
 # build. Since we don't distribute this on its own, we don't really care what
 # version this represents. 'None' defaults to 0.0.0.
@@ -92,7 +93,7 @@ if release_info.get('VERSION_CODENAME', '') == 'focal':
             'PyYAML>=3.12',
             'pytz>=2014.4',
             'prometheus_client==0.3.1',
-            'sentry_sdk>=1.0.0',
+            'sentry_sdk>=1.1.0',
             'snowflake>=0.0.3',
             'psutil==5.6.6',
             'cryptography>=1.9',
@@ -108,10 +109,11 @@ if release_info.get('VERSION_CODENAME', '') == 'focal':
             "strict-rfc3339>=0.7",
             "rfc3987>=1.3.0",
             "webcolors>=1.11.1",
+            'systemd-python>=234',
         ],
         extras_require={
             'dev': [
-                "fakeredis[lua]"
+                "fakeredis[lua]",
             ],
         },
     )
@@ -175,7 +177,7 @@ setup(
         'PyYAML>=3.12',
         'pytz>=2014.4',
         'prometheus_client==0.3.1',
-        'sentry_sdk>=1.0.0',
+        'sentry_sdk>=1.1.0',
         'snowflake>=0.0.3',
         'psutil==5.6.6',
         'cryptography>=1.9',
@@ -196,7 +198,7 @@ setup(
     ],
     extras_require={
         'dev': [
-            "fakeredis[lua]"
+            "fakeredis[lua]",
         ],
     },
 )

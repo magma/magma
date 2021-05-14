@@ -15,13 +15,13 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"net"
 	"strings"
 	"time"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -226,7 +226,7 @@ func (srv *accountingService) TerminateSession(
 // session. It should be called for a timed out and recently removed from the sessions table session.
 func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 	if aaaCtx == nil {
-		errMsg := fmt.Sprintf("Nil AAA Context")
+		errMsg := "Nil AAA Context"
 		if srv.config.GetEventLoggingEnabled() {
 			events.LogSessionTerminationFailedEvent(aaaCtx, "Session Timeout Notification", errMsg)
 		}

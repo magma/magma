@@ -104,3 +104,15 @@ def get_json_deserializer() -> Callable[[str], T]:
         return msg
 
     return _deserialize_json
+
+
+def get_proto_version_deserializer() -> Callable[[str], T]:
+    """
+    Return a proto deserializer that takes in a proto type to deserialize
+    the version number stored in the RedisState proto
+    """
+    def _deserialize_version(serialized_rule: str) -> T:
+        proto_wrapper = RedisState()
+        proto_wrapper.ParseFromString(serialized_rule)
+        return proto_wrapper.version
+    return _deserialize_version

@@ -34,12 +34,10 @@
   \email: lionel.gauthier@eurecom.fr
 */
 #include <string.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
 #include <inttypes.h>
 #include <pthread.h>
-#include <stdint.h>
 
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
@@ -708,95 +706,6 @@ hashtable_rc_t hashtable_uint64_ts_insert(
       hashtblP, "%s(%s,key 0x%" PRIx64 " data %p) next %p return OK\n",
       __FUNCTION__, bdata(hashtblP->name), keyP, dataP, node->next);
   return HASH_TABLE_OK;
-}
-
-//------------------------------------------------------------------------------
-/*
-   To free_wrapper an element from the hash table, we just search for it in the
-   linked list for that hash value, and free_wrapper it if it is found. If it
-   was not found, it is an error and -1 is returned.
-*/
-hashtable_rc_t hashtable_uint64_free(
-    hash_table_uint64_t* const hashtblP, const hash_key_t keyP) {
-  hash_node_uint64_t *node, *prevnode = NULL;
-  hash_size_t hash = 0;
-
-  if (!hashtblP) {
-    return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
-  }
-
-  hash = hashtblP->hashfunc(keyP) % hashtblP->size;
-  node = hashtblP->nodes[hash];
-
-  while (node) {
-    if (node->key == keyP) {
-      if (prevnode)
-        prevnode->next = node->next;
-      else
-        hashtblP->nodes[hash] = node->next;
-
-      free_wrapper((void**) &node);
-      __sync_fetch_and_sub(&hashtblP->num_elements, 1);
-      PRINT_HASHTABLE(
-          hashtblP, "%s(%s,key 0x%" PRIx64 ") return OK\n", __FUNCTION__,
-          bdata(hashtblP->name), keyP);
-      return HASH_TABLE_OK;
-    }
-
-    prevnode = node;
-    node     = node->next;
-  }
-
-  PRINT_HASHTABLE(
-      hashtblP, "%s(%s,key 0x%" PRIx64 ") return KEY_NOT_EXISTS\n",
-      __FUNCTION__, bdata(hashtblP->name), keyP);
-  return HASH_TABLE_KEY_NOT_EXISTS;
-}
-
-//------------------------------------------------------------------------------
-/*
-   To free_wrapper an element from the hash table, we just search for it in the
-   linked list for that hash value, and free_wrapper it if it is found. If it
-   was not found, it is an error and -1 is returned.
-*/
-hashtable_rc_t hashtable_uint64_ts_free(
-    hash_table_uint64_ts_t* const hashtblP, const hash_key_t keyP) {
-  hash_node_uint64_t *node, *prevnode = NULL;
-  hash_size_t hash = 0;
-
-  if (!hashtblP) {
-    return HASH_TABLE_BAD_PARAMETER_HASHTABLE;
-  }
-
-  hash = hashtblP->hashfunc(keyP) % hashtblP->size;
-  pthread_mutex_lock(&hashtblP->lock_nodes[hash]);
-  node = hashtblP->nodes[hash];
-
-  while (node) {
-    if (node->key == keyP) {
-      if (prevnode)
-        prevnode->next = node->next;
-      else
-        hashtblP->nodes[hash] = node->next;
-
-      free_wrapper((void**) &node);
-      __sync_fetch_and_sub(&hashtblP->num_elements, 1);
-      pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
-      PRINT_HASHTABLE(
-          hashtblP, "%s(%s,key 0x%" PRIx64 ") return OK\n", __FUNCTION__,
-          bdata(hashtblP->name), keyP);
-      return HASH_TABLE_OK;
-    }
-
-    prevnode = node;
-    node     = node->next;
-  }
-
-  pthread_mutex_unlock(&hashtblP->lock_nodes[hash]);
-  PRINT_HASHTABLE(
-      hashtblP, "%s(%s,key 0x%" PRIx64 ") return KEY_NOT_EXISTS\n",
-      __FUNCTION__, bdata(hashtblP->name), keyP);
-  return HASH_TABLE_KEY_NOT_EXISTS;
 }
 
 //------------------------------------------------------------------------------

@@ -16,6 +16,7 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -24,7 +25,6 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
-	"golang.org/x/net/context"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
@@ -33,9 +33,20 @@ import (
 	orcprotos "magma/orc8r/lib/go/protos"
 )
 
+// Flag definitions
+type FlagBit int
+
+const (
+	EmptyFlagBit FlagBit = 0
+	FlagBit1     FlagBit = 1 << 1
+	FlagBit5     FlagBit = 1 << 5
+	FlagBit8     FlagBit = 1 << 8
+	FlagBit27    FlagBit = 1 << 27
+)
+
 const (
 	ULR_RAT_TYPE     = 1004
-	ULR_FLAGS        = 1<<1 | 1<<5
+	ULR_FLAGS        = FlagBit1 | FlagBit5 // 29.272 Table 7.3.7/1: ULR-Flags S6a/S6d-Indicator (bit 1), and Initial-AttachIndicator (bit 5)
 	TIMEOUT_SECONDS  = 10
 	MAX_DIAM_RETRIES = 1
 )
@@ -208,7 +219,7 @@ func (s *s6aProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*p
 	if err != nil {
 		return &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: fmt.Sprintf("Error occured while retrieving health metrics: %s", err),
+			HealthMessage: fmt.Sprintf("Error occurred while retrieving health metrics: %s", err),
 		}, err
 	}
 	deltaMetrics, err := s.healthTracker.Metrics.GetDelta(currentMetrics)

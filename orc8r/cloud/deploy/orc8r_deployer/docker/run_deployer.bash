@@ -5,16 +5,17 @@ print_help()
 {
     echo "
 ./run_deployer runs the orc8r deployer container
-orc8r deployer contains scripts which enable user to configure, run prechecks
+orc8r deployer contains scripts which enable user to configure, run prechecks,
 install, upgrade, verify and cleanup an orc8r deployment
+
 Usage: run_deployer [-deploy-dir|-root-dir|-build|-h]
 options:
 -h           Print this Help
--deploy-dir  deployment dir containing configs and secrets (mandatory)
--root-dir    magma root directory
--build       build the deployer container
--test        'all' or any specific test function[run_unit_tests,check_helmcharts_insync, check_tfvars_insync ]
-example: ./run_deployer.bash -deploy-dir /tmp/orc8r_14_deployment"
+--deploy-dir  deployment dir containing configs and secrets (mandatory)
+--root-dir    magma root directory
+--build       build the deployer container
+--test        'all' or any specific test function[run_unit_tests,check_helmcharts_insync, check_tfvars_insync ]
+example: ./run_deployer.bash --deploy-dir ~/orc8r_15_deployment"
 }
 
 run_unit_tests()
@@ -68,18 +69,18 @@ TEST_TO_RUN=
 
 while [ -n "${1-}" ]; do
 	case "$1" in
-	-deploy-dir)
+	--deploy-dir)
         DEPLOY_WORKDIR="$2"
         shift
         ;;
-	-root-dir)
+	--root-dir)
         MAGMA_ROOT="$2"
         shift
         ;;
-    -build)
+    --build)
         DOCKER_BUILD=true
         ;;
-    -test)
+    --test)
         TEST_TO_RUN="$2"
         shift
         ;;

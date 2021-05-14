@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include <string>
+
 #include "MagmaService.h"
 #include "MeteringReporter.h"
 #include "MetricsHelpers.h"
@@ -55,7 +57,7 @@ void MeteringReporter::report_usage(
 
 void MeteringReporter::initialize_usage(
     const std::string& imsi, const std::string& session_id,
-    SessionCredit::TotalCreditUsage usage) {
+    TotalCreditUsage usage) {
   auto tx = usage.monitoring_tx + usage.charging_tx;
   auto rx = usage.monitoring_rx + usage.charging_rx;
   report_traffic(imsi, session_id, DIRECTION_UP, tx);

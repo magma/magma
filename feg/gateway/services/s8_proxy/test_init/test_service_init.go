@@ -1,21 +1,22 @@
 package test_init
 
 import (
+	"context"
 	"fmt"
+	"testing"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s8_proxy/servicers"
-	"magma/gateway/mconfig"
-	"testing"
-
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
+	"magma/gateway/mconfig"
 	"magma/orc8r/cloud/go/test_utils"
 )
 
 // StartS8AndPGWService start both S8 proxy service and PGW (GTP service) for testing
 func StartS8AndPGWService(t *testing.T, clientAddr, serverAddr string) (*mock_pgw.MockPgw, error) {
 	// Start pgw and get the server address and real port
-	mockPgw, err := mock_pgw.NewStarted(nil, serverAddr)
+	mockPgw, err := mock_pgw.NewStarted(context.Background(), serverAddr)
 	if err != nil {
 		return nil, err
 	}

@@ -12,6 +12,7 @@
 COMPOSE_PROJECT_NAME=magmad
 DOCKER_REGISTRY=magmad_
 IMAGE_VERSION=latest
+GIT_HASH=master
 BUILD_CONTEXT=https://github.com/magma/magma.git#master
 
 ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem

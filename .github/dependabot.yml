@@ -4,7 +4,3 @@ updates:
   directory: nms/app
   schedule:
     interval: daily
-- package-ecosystem: gomod
-  directory: orc8r/cloud/go
-  schedule:
-    interval: daily

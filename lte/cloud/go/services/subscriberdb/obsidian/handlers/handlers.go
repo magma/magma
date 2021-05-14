@@ -19,6 +19,9 @@ import (
 	"regexp"
 	"strconv"
 
+	"github.com/hashicorp/go-multierror"
+	"github.com/thoas/go-funk"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	ltehandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
@@ -66,6 +69,7 @@ func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
 		{Path: ListSubscribersPath, Methods: obsidian.GET, HandlerFunc: listSubscribersHandler},
 		{Path: ListSubscribersV2Path, Methods: obsidian.GET, HandlerFunc: listSubscribersV2Handler},
+		{Path: ListSubscribersV2Path, Methods: obsidian.POST, HandlerFunc: createSubscribersV2Handler},
 		{Path: ListSubscribersPath, Methods: obsidian.POST, HandlerFunc: createSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.GET, HandlerFunc: getSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberHandler},
@@ -250,7 +254,19 @@ func listSubscribersV2Handler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
+
+	// get total number of subscribers
+	loadCriteria := configurator.EntityLoadCriteria{}
+	count, err := configurator.CountEntitiesOfType(
+		networkID,
+		lte.SubscriberEntityType,
+		loadCriteria,
+		serdes.Entity)
+	if err != nil {
+		return c.JSON(http.StatusOK, nil)
+	}
 	paginatedSubs := subscribermodels.PaginatedSubscribers{
+		TotalCount:    int64(count),
 		NextPageToken: subscribermodels.NextPageToken(nextPageToken),
 		Subscribers:   subs,
 	}
@@ -270,13 +286,38 @@ func createSubscriberHandler(c echo.Context) error {
 	if err := payload.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if nerr := validateSubscriberProfile(networkID, payload.Lte); nerr != nil {
+	if nerr := validateSubscriberProfiles(networkID, string(payload.Lte.SubProfile)); nerr != nil {
 		return nerr
 	}
 
-	err := createSubscriber(networkID, payload)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+	nerr = createSubscribers(networkID, payload)
+	if nerr != nil {
+		return nerr
+	}
+
+	return c.NoContent(http.StatusCreated)
+}
+
+func createSubscribersV2Handler(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	payload := subscribermodels.MutableSubscribers{}
+	if err := c.Bind(&payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := payload.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if nerr := validateSubscriberProfiles(networkID, getSubProfiles(payload)...); nerr != nil {
+		return nerr
+	}
+
+	nerr = createSubscribers(networkID, payload...)
+	if nerr != nil {
+		return nerr
 	}
 
 	return c.NoContent(http.StatusCreated)
@@ -312,7 +353,7 @@ func updateSubscriberHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	if nerr := validateSubscriberProfile(networkID, payload.Lte); nerr != nil {
+	if nerr := validateSubscriberProfiles(networkID, string(payload.Lte.SubProfile)); nerr != nil {
 		return nerr
 	}
 
@@ -460,7 +501,7 @@ func updateSubscriberProfile(c echo.Context) error {
 
 	desiredCfg := currentCfg.(*subscribermodels.SubscriberConfig)
 	desiredCfg.Lte.SubProfile = *payload
-	if nerr := validateSubscriberProfile(networkID, desiredCfg.Lte); nerr != nil {
+	if nerr := validateSubscriberProfiles(networkID, string(desiredCfg.Lte.SubProfile)); nerr != nil {
 		return nerr
 	}
 
@@ -513,24 +554,41 @@ func getNetworkAndMSISDN(c echo.Context) (string, string, *echo.HTTPError) {
 	return vals[0], vals[1], nil
 }
 
-func validateSubscriberProfile(networkID string, sub *subscribermodels.LteSubscription) *echo.HTTPError {
-	// Check the sub profiles available on the network if sub profile is not
-	// default (which is always available)
-	if sub.SubProfile != "default" {
-		netConf, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkConfigType, serdes.Network)
-		switch {
-		case err == merrors.ErrNotFound:
-			return obsidian.HttpError(errors.New("no cellular config found for network"), http.StatusInternalServerError)
-		case err != nil:
-			return obsidian.HttpError(err, http.StatusInternalServerError)
-		}
+func getSubProfiles(subs subscribermodels.MutableSubscribers) []string {
+	profiles := map[string]struct{}{}
+	for _, sub := range subs {
+		profiles[string(sub.Lte.SubProfile)] = struct{}{}
+	}
+	return funk.Keys(profiles).([]string)
+}
 
-		cellNetConf := netConf.(*ltemodels.NetworkCellularConfigs)
-		profName := string(sub.SubProfile)
-		if _, profileExists := cellNetConf.Epc.SubProfiles[profName]; !profileExists {
-			return obsidian.HttpError(errors.Errorf("subscriber profile %s does not exist for the network", profName), http.StatusBadRequest)
+func validateSubscriberProfiles(networkID string, profiles ...string) *echo.HTTPError {
+	nonDefaultProfiles := funk.FilterString(profiles, func(s string) bool { return s != "default" })
+
+	if len(nonDefaultProfiles) == 0 {
+		return nil
+	}
+
+	networkConfig, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkConfigType, serdes.Network)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(errors.New("no cellular config found for network"), http.StatusBadRequest)
+	}
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	networkProfiles := networkConfig.(*ltemodels.NetworkCellularConfigs).Epc.SubProfiles
+	errs := &multierror.Error{}
+	for _, p := range nonDefaultProfiles {
+		if _, ok := networkProfiles[p]; !ok {
+			multierror.Append(errs, errors.Errorf("subscriber profile '%s' does not exist for the network", p))
 		}
 	}
+	err = errs.ErrorOrNil()
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
 	return nil
 }
 
@@ -637,7 +695,42 @@ func loadMutableSubscriberPage(networkID string, pageSize uint32, pageToken stri
 	return subs, nextPageToken, nil
 }
 
-func createSubscriber(networkID string, sub *subscribermodels.MutableSubscriber) error {
+func createSubscribers(networkID string, subs ...*subscribermodels.MutableSubscriber) *echo.HTTPError {
+	var ents configurator.NetworkEntities
+	var ids []string
+	uniqueIDs := map[string]int{}
+
+	for _, s := range subs {
+		ents = append(ents, getCreateSubscriberEnts(s)...)
+
+		id := string(s.ID)
+		ids = append(ids, id)
+		uniqueIDs[id] = uniqueIDs[id] + 1
+	}
+
+	if len(uniqueIDs) != len(ids) {
+		duplicates := funk.FilterString(ids, func(s string) bool { return uniqueIDs[s] > 1 })
+		return obsidian.HttpError(errors.Errorf("found multiple subscriber models for IDs: %+v", duplicates), http.StatusBadRequest)
+	}
+
+	tks := storage.MakeTKs(lte.SubscriberEntityType, ids)
+	found, _, err := configurator.LoadSerializedEntities(networkID, nil, nil, nil, tks, configurator.EntityLoadCriteria{})
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	if len(found) != 0 {
+		return obsidian.HttpError(errors.Errorf("found %v existing subscribers which would have been overwritten: %+v", len(found), found.TKs()), http.StatusBadRequest)
+	}
+
+	_, err = configurator.CreateEntities(networkID, ents, serdes.Entity)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return nil
+}
+
+func getCreateSubscriberEnts(sub *subscribermodels.MutableSubscriber) configurator.NetworkEntities {
 	// New ents
 	//	- active_policies_by_apn
 	//		- Assocs: policy_rule..., apn
@@ -659,12 +752,7 @@ func createSubscriber(networkID string, sub *subscribermodels.MutableSubscriber)
 	ents = append(ents, sub.ActivePoliciesByApn.ToEntities(subEnt.Key)...)
 	ents = append(ents, subEnt)
 
-	_, err := configurator.CreateEntities(networkID, ents, serdes.Entity)
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return ents
 }
 
 func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber) error {

@@ -394,6 +394,16 @@ func (store *sqlConfiguratorStorage) UpdateNetworks(updates []NetworkUpdateCrite
 	return nil
 }
 
+func (store *sqlConfiguratorStorage) CountEntities(networkID string, filter EntityLoadFilter, loadCriteria EntityLoadCriteria) (EntityCountResult, error) {
+	ret := EntityCountResult{Count: 0}
+	count, err := store.countEntities(networkID, filter, loadCriteria)
+	if err != nil {
+		return ret, err
+	}
+	ret.Count = count
+	return ret, nil
+}
+
 func (store *sqlConfiguratorStorage) LoadEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (EntityLoadResult, error) {
 	if err := validatePaginatedLoadParameters(filter, criteria); err != nil {
 		return EntityLoadResult{}, err

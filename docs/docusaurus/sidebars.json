@@ -16,7 +16,9 @@
           "howtos/config_agw_bridged",
           "howtos/call_tracing",
           "howtos/events_monitoring",
-          "howtos/header_enrichment.md"
+          "howtos/he_api",
+          "howtos/inbound_roaming",
+          "howtos/pcap"
         ]
       },
       {
@@ -44,6 +46,8 @@
           "nms/traffic",
           "nms/metrics",
           "nms/alerts",
+          "nms/federation",
+          "nms/admin",
           "nms/tips_and_tricks"
         ]
       },
@@ -54,7 +58,8 @@
           "howtos/troubleshooting/agw_unable_to_checkin",
           "howtos/troubleshooting/user_unable_to_attach",
           "howtos/troubleshooting/update_certificates",
-          "howtos/troubleshooting/generate_admin_operator_certificates"
+          "howtos/troubleshooting/generate_admin_operator_certificates",
+          "howtos/troubleshooting/analyze_service_crashes_in_agw"
         ]
       }
     ],
@@ -72,7 +77,15 @@
         "ids": [
           "orc8r/architecture_overview",
           "orc8r/architecture_modularity",
-          "orc8r/architecture_security"
+          "orc8r/architecture_security",
+          "nms/nms_arch_overview"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/nms_arch_overview"
         ]
       }
     ],
@@ -82,10 +95,13 @@
         "label": "Access Gateway",
         "ids": [
           "lte/deploy_install",
+          "lte/deploy_install_ubuntu",
           "lte/deploy_config_agw",
           "lte/deploy_config_enodebd",
           "lte/deploy_config_apn",
-          "lte/deploy_config_agw_ha"
+          "lte/deploy_config_agw_ha",
+          "lte/build_install_magma_pkg_in_agw",
+          "lte/integrate_sentry"
         ]
       },
       {
@@ -95,6 +111,9 @@
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
           "orc8r/deploy_install",
+          "orc8r/hold_terraform_state_on_s3",
+          "orc8r/override_values_of_terraform_files",
+          "orc8r/deploy_orcl",
           "orc8r/deploy_faq"
         ]
       },
@@ -121,6 +140,7 @@
         "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
+          "lte/upgrade_1_5",
           "lte/upgrade_1_4",
           "lte/upgrade_1_3",
           "lte/upgrade_1_2",
@@ -132,6 +152,7 @@
         "label": "Orchestrator",
         "ids": [
           "orc8r/upgrade_intro",
+          "orc8r/upgrade_1_5",
           "orc8r/upgrade_1_4",
           "orc8r/upgrade_1_3",
           "orc8r/upgrade_1_2",
@@ -166,12 +187,22 @@
     "Technical Reference": [
       {
         "type": "subcategory",
+        "label": "General",
+        "ids": [
+          "resources/ref_pcap",
+          "resources/ref_useful_links"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Access Gateway",
         "ids": [
           "lte/dev_notes",
+          "lte/dev_unit_testing",
           "lte/tr069",
           "lte/s1ap_tests",
-          "lte/eventd"
+          "lte/eventd",
+          "lte/access_service_restrictions"
         ]
       },
       {
@@ -182,7 +213,8 @@
           "orc8r/dev_minikube",
           "orc8r/dev_security",
           "orc8r/dev_indexers",
-          "orc8r/dev_dependencies"
+          "orc8r/dev_dependencies",
+          "orc8r/dev_aws_stack"
         ]
       },
       {
@@ -205,7 +237,10 @@
       "proposals/p008_apn_correction",
       "proposals/p009_nms_mariadb_migration",
       "proposals/p010_subscriber_scaling",
-      "proposals/p011_victoriametrics"
+      "proposals/p011_victoriametrics",
+      "proposals/p013_Ubuntu_upgrade",
+      "proposals/p014_proposal_process",
+      "proposals/p015_tech_debt_week"
     ],
     "FAQ": [
       "faq/faq_magma"

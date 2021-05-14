@@ -19,7 +19,6 @@ package servicers
 import (
 	"fmt"
 	"net"
-	"time"
 
 	"magma/feg/cloud/go/protos"
 
@@ -77,17 +76,4 @@ func (s *S8Proxy) sendAndReceiveDeleteSession(req *protos.DeleteSessionRequestPg
 	}
 	glog.V(2).Infof("Delete Session Response (grpc):\n%s", dsRes.String())
 	return dsRes, err
-}
-
-func (s *S8Proxy) sendAndReceiveEchoRequest(cPgwUDPAddr *net.UDPAddr) error {
-	_, err := s.gtpClient.Conn.EchoRequest(cPgwUDPAddr)
-	if err != nil {
-		return err
-	}
-	select {
-	case res := <-s.echoChannel:
-		return res
-	case <-time.After(s.gtpClient.GtpTimeout):
-		return fmt.Errorf("waitEchoResponse timeout")
-	}
 }

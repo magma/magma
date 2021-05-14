@@ -10,6 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+# Disable pylint warning as ConnectionError overlaps with built-in
+# pylint: disable=redefined-builtin
+
 import logging
 import os
 import shutil
@@ -33,10 +36,12 @@ class StateRecoveryJob(Job):
     restart all services
     """
 
-    def __init__(self, service_state: ServiceStateWrapper,
-                 polling_interval: int, services_check: List[str],
-                 restart_threshold: int, redis_dump_src: str,
-                 snapshots_dir: str, service_loop):
+    def __init__(
+        self, service_state: ServiceStateWrapper,
+        polling_interval: int, services_check: List[str],
+        restart_threshold: int, redis_dump_src: str,
+        snapshots_dir: str, service_loop,
+    ):
         super().__init__(interval=polling_interval, loop=service_loop)
         self._state_wrapper = service_state
         self._services_check = services_check
@@ -58,10 +63,11 @@ class StateRecoveryJob(Job):
         """
         try:
             service_status = self._state_wrapper.get_service_status(
-                service_name)
+                service_name,
+            )
             return service_status
         except (KeyError, ConnectionError) as err:
-            logging.debug('Could not obtain service status: [%s]' % err)
+            logging.debug('Could not obtain service status: [%s]', err)
             return None
 
     def _get_last_service_restarts(self) -> Dict[str, int]:
@@ -104,22 +110,29 @@ class StateRecoveryJob(Job):
                     'Service %s has failed %s times over last %s seconds, '
                     'restarting sctpd to clean state...', service,
                     current_restarts,
-                    self._polling_interval)
+                    self._polling_interval,
+                )
 
                 # Save RDB snapshot
                 os.makedirs(self._snapshots_dir, exist_ok=True)
-                shutil.copy("%s/redis_dump.rdb" % self._redis_dump_src,
-                            "%s/redis_dump_%s.rdb" % (
-                                self._snapshots_dir, time()))
+                shutil.copy(
+                    "%s/redis_dump.rdb" % self._redis_dump_src,
+                    "%s/redis_dump_%s.rdb" % (
+                        self._snapshots_dir, time(),
+                    ),
+                )
 
                 # Restart sctpd
                 await self.restart_service_async('sctpd')
 
             # Update latest number of restarts for services
             self._services_restarts_map[
-                service] = result.num_fail_exits
-            logging.debug('Unexpected restarts for service %s: %s',
-                          service, current_restarts)
+                service
+            ] = result.num_fail_exits
+            logging.debug(
+                'Unexpected restarts for service %s: %s',
+                service, current_restarts,
+            )
 
 
 def _get_service_restart_args(param: SystemdServiceParams) -> List[str]:

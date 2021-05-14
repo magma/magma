@@ -11,6 +11,11 @@ This page walks through a full, vanilla Orchestrator install using Ansible on ba
 If you want to install a specific release version, see the notes in the
 [deployment intro](https://docs.magmacore.org/docs/orc8r/deploy_intro).
 
+## Advanced users
+
+If you have an existing Kubernetes cluster or want to make changes to the
+deployment, refer to the [advanced deployment notes](docs/advanced_notes.md).
+
 ## Prerequisites
 
 We assume `MAGMA_ROOT` is set as described in the
