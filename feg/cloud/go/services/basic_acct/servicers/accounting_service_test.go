@@ -19,6 +19,7 @@ import (
 	"sync"
 	"testing"
 
+	anpb "github.com/magma/augmented-networks/accounting/protos"
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
@@ -28,9 +29,6 @@ import (
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/service/middleware/unary"
 	"magma/orc8r/cloud/go/service/middleware/unary/test_utils"
-
-	//To be switched to: "github.com/magma/augmented-networks/accounting/protos"
-	anpb "magma/feg/cloud/go/services/basic_acct/tests/protos"
 )
 
 func TestAugmentedNetworkAccounting(t *testing.T) {
