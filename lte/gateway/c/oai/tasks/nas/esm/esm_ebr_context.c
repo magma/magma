@@ -103,7 +103,6 @@ ebi_t esm_ebr_context_create(
           "ESM-PROC  - PDN connection %d has not been "
           "allocated for (ue_id = %u)\n",
           pid, ue_mm_context->mme_ue_s1ap_id);
-      OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
     }
     /*
      * Check the total number of active EPS bearers
