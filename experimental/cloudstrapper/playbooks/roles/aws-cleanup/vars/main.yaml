@@ -24,13 +24,10 @@ fullStacks:
   - stackSanRamonAgwA
   - stackSanRamonNetwork
 orc8rDbs:
-  - nmsdb
   - orc8rdb
 orc8rDbSnapshots:
-  - nmsdb-final-snapshot
   - orc8rdb-final-snapshot
 orc8rDbParameterGroups:
-  - default.mysql5.7
   - default.postgres9.6
 
 orc8rSecrets: "{{ orc8rTfSecrets }}"
