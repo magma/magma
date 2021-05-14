@@ -1321,7 +1321,10 @@ workflows:
              - lte-test
              - mme_test
              - lte-integ-test
-      - lte-agw-aws
+      - lte-agw-aws:
+           <<: *only_master
+           requires:
+              - lte-agw-deploy
       - c-cpp-codecov
 
   release:
