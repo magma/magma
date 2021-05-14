@@ -32,9 +32,9 @@ lte/gateway/c/connection_tracker @koolzz
 lte/gateway/python/magma/pipelined @magma/approvers-agw-pipelined
 lte/gateway/python/integ_tests @magma/approvers-agw-integtests
 
-lte/gateway/docker @rdefosse @119Vik @tmdzk
-lte/gateway/release @rdefosse @119Vik @tmdzk
-lte/gateway/Vagrantfile @rdefosse @mattymo @119Vik @tmdzk
+lte/gateway/docker @magma/approvers-ci
+lte/gateway/release @magma/approvers-ci
+lte/gateway/Vagrantfile @magma/approvers-ci
 
 **/*.pb.go @magma/repo-magma-maintain
 **/*_swaggergen.go @magma/repo-magma-maintain
