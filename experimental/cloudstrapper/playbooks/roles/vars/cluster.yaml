@@ -14,11 +14,12 @@ gitHelmRepo: helm14
 #AWS variables
 awsBootKey: "{{ keyBoot }}"
 awsHostKey: "{{ keyHost }}"
-awsAgwRegion: us-west-1
-awsOrc8rRegion: us-west-1
-awsAgwAz: us-west-1
+awsAgwRegion: ap-northeast-1
+awsOrc8rRegion: ap-southeast-1
+awsAgwAz: ap-northeast-1a
+
 #awsAgwAmi: ami-082cfa03978837a23
-awsAgwAmi: ami-0e7b52505c766bf98
+awsAgwAmi: ami-0f568ae27c14ee6ea
 
 #------------------
 #Cluster-specific Presets

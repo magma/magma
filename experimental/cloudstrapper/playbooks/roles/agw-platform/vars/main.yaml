@@ -3,16 +3,13 @@
 servicesMagma:
   - magma@magmad.service
 
-servicesMagmaWildCard:
-  - magma@*
-
-servicesMagmaAll:
+servicesMagmaAll: 
   - magma@control_proxy.service
   - magma@magmad.service
   - magma@pipelined.service
   - magma@sessiond.service
-  - magma@dnsd.service
-  - magma@mme.service
+  - magma@dnsd.service 
+  - magma@mme.service  
   - magma@redirectd.service
   - magma@td-agent-bit.service
   - magma@lighttpd.service

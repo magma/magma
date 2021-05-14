@@ -1,7 +1,7 @@
 ---
 #aws-essentials setup up aws prerequisite resources
 #common magma s3 bucket to store and retrive objects
-#common magma security group that all instances will use.
+#common magma security group that all instances will use. 
 #common magma ssh keypair that will be embedded in all hosts
 #common magma ssh keypair that will be embedded in bootstrap only
 
@@ -12,8 +12,8 @@
   tags: [ never, keyCreate ]
 
 - name: copy .pem file
-  copy:
-    content: "{{ keyboot_val.key.private_key }}"
+  copy: 
+    content: "{{ keyboot_val.key.private_key }}" 
     dest: "{{ dirLocalInventory }}/{{ keyBoot }}.pem"
     mode: 0600
   when: keyboot_val.changed
@@ -26,8 +26,8 @@
   tags: [ never, keyCreate ]
 
 - name: copy .pem file
-  copy:
-    content: "{{ keyhost_val.key.private_key }}"
+  copy: 
+    content: "{{ keyhost_val.key.private_key }}" 
     dest: "{{ dirLocalInventory }}/{{ keyHost }}.pem"
     mode: 0600
   when: keyhost_val.changed
@@ -38,16 +38,14 @@
     filters:
       "isDefault": "true"
   register: return_val
-  tags: [ essentialsCreate ]
 
 - name: assign vpc id to variable
-  set_fact:
+  set_fact: 
     factVpcId: "{{ return_val.vpcs[0].vpc_id }}"
-  tags: [ essentialsCreate ]
 
-- name: create other aws resources
-  cloudformation:
-    stack_name: "{{ stackEssentialsDefault }}"
+- name: create other aws resources 
+  cloudformation: 
+    stack_name: "stackMantleEssentials"
     state: "present"
     region: "{{ awsAgwRegion }}"
     disable_rollback: true
@@ -56,4 +54,3 @@
       paramVpcDefault: "{{ factVpcId }}"
       paramSecgroupMagmaDefault: "{{ secgroupDefault }}"
       paramBucketMagmaDefault: "{{ bucketDefault }}"
-  tags: [ essentialsCreate ]

@@ -1,19 +1,19 @@
 ---
 
-allDeps:
-  - apt-transport-https
+allDeps: 
+  - apt-transport-https 
   - ca-certificates
-  - curl
-  - gnupg-agent
+  - curl 
+  - gnupg-agent 
   - software-properties-common
-  - gnupg2
+  - gnupg2 
 dockerPackages:
   - docker-ce
   - docker-ce-cli
   - containerd.io
   - python3-docker
 pyenvDeps:
-  - build-essential
+  - build-essential 
   - libssl-dev
   - zlib1g-dev
   - libbz2-dev
@@ -24,7 +24,7 @@ pyenvDeps:
   - llvm
   - libncurses5-dev
   - libncursesw5-dev
-  - xz-utils
+  - xz-utils 
   - tk-dev
   - libffi-dev
   - liblzma-dev
@@ -42,15 +42,14 @@ pipPackages:
 k8sPackages:
   - kubectl
   - helm
-  - terraform=0.14.5
-
-#terraform downgraded to work with orc8r.
+  - terraform
 
 usrName: ubuntu
 usrHome: "{{ dirHome }}"
+usrProfile: "{{ dirHome }}/.bashrc"
 binPyenv: "{{ dirHome }}/pyenv.run"
 pyenvVersion: 3.7.3
-magmaRootDir: "{{ dirLocalInventory }}/magma"
+magmaRootDir: "{{ dirExpHome }}/magma"
 magmaBuildDir: "{{ magmaRootDir }}/orc8r/cloud/docker"
 magmaNmsDir: "{{ magmaRootDir }}/nms/app/packages/magmalte"
 magmaPublishTag: latest

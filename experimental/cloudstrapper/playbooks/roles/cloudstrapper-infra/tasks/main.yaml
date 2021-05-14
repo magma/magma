@@ -25,7 +25,7 @@
 
 - name: instantiate ec2 instance using cloudformation
   cloudformation:
-    stack_name: "{{ stackCloudstrapper }}"
+    stack_name: "stackMantlePrimeBootstrap"
     state: present
     region: "{{ awsAgwRegion }}"
     disable_rollback: true
