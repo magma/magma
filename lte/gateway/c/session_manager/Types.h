@@ -39,6 +39,7 @@ struct SessionConfig {
   explicit SessionConfig(const LocalCreateSessionRequest& request);
   bool operator==(const SessionConfig& config) const;
   std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
+  std::string get_imsi() const { return common_context.sid().id(); }
 };
 
 // Session Credit
@@ -55,6 +56,18 @@ enum EventTriggerState {
 };
 typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState>
     EventTriggerStatus;
+
+struct Usage {
+  uint64_t bytes_tx;
+  uint64_t bytes_rx;
+};
+
+struct TotalCreditUsage {
+  uint64_t monitoring_tx;
+  uint64_t monitoring_rx;
+  uint64_t charging_tx;
+  uint64_t charging_rx;
+};
 
 /**
  * A bucket is a counter used for tracking credit volume across sessiond.

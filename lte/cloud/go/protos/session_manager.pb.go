@@ -1962,14 +1962,17 @@ func (m *LocalEndSessionResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_LocalEndSessionResponse proto.InternalMessageInfo
 
 type UpdateTunnelIdsRequest struct {
-	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	BearerId             uint32        `protobuf:"varint,2,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
-	EnbTeid              uint32        `protobuf:"varint,3,opt,name=enb_teid,json=enbTeid,proto3" json:"enb_teid,omitempty"`
-	AgwTeid              uint32        `protobuf:"varint,4,opt,name=agw_teid,json=agwTeid,proto3" json:"agw_teid,omitempty"`
-	SessionId            string        `protobuf:"bytes,5,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	Sid *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	// default bearerID
+	BearerId uint32 `protobuf:"varint,2,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
+	// teid for default bearerID
+	EnbTeid uint32 `protobuf:"varint,3,opt,name=enb_teid,json=enbTeid,proto3" json:"enb_teid,omitempty"`
+	// teid for default bearerID
+	AgwTeid              uint32   `protobuf:"varint,4,opt,name=agw_teid,json=agwTeid,proto3" json:"agw_teid,omitempty"`
+	SessionId            string   `protobuf:"bytes,5,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *UpdateTunnelIdsRequest) Reset()         { *m = UpdateTunnelIdsRequest{} }
@@ -2064,14 +2067,18 @@ func (m *UpdateTunnelIdsResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_UpdateTunnelIdsResponse proto.InternalMessageInfo
 
 type PolicyBearerBindingRequest struct {
-	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	LinkedBearerId       uint32        `protobuf:"varint,2,opt,name=linked_bearer_id,json=linkedBearerId,proto3" json:"linked_bearer_id,omitempty"`
-	PolicyRuleId         string        `protobuf:"bytes,3,opt,name=policy_rule_id,json=policyRuleId,proto3" json:"policy_rule_id,omitempty"`
-	BearerId             uint32        `protobuf:"varint,4,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
-	Teids                *Teids        `protobuf:"bytes,5,opt,name=teids,proto3" json:"teids,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	Sid *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	// default bearer ID
+	LinkedBearerId uint32 `protobuf:"varint,2,opt,name=linked_bearer_id,json=linkedBearerId,proto3" json:"linked_bearer_id,omitempty"`
+	PolicyRuleId   string `protobuf:"bytes,3,opt,name=policy_rule_id,json=policyRuleId,proto3" json:"policy_rule_id,omitempty"`
+	// dedicated bearer ID
+	// 0 means that the binding failed
+	BearerId uint32 `protobuf:"varint,4,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
+	// teids for the dedicated bearer
+	Teids                *Teids   `protobuf:"bytes,5,opt,name=teids,proto3" json:"teids,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *PolicyBearerBindingRequest) Reset()         { *m = PolicyBearerBindingRequest{} }
@@ -6551,6 +6558,7 @@ type LocalSessionManagerClient interface {
 	ReportRuleStats(ctx context.Context, in *RuleRecordTable, opts ...grpc.CallOption) (*protos.Void, error)
 	CreateSession(ctx context.Context, in *LocalCreateSessionRequest, opts ...grpc.CallOption) (*LocalCreateSessionResponse, error)
 	EndSession(ctx context.Context, in *LocalEndSessionRequest, opts ...grpc.CallOption) (*LocalEndSessionResponse, error)
+	// A response to CreateBearer request defined in spgw service. Sends a mapping of dedicated bearer ID <-> policy.
 	BindPolicy2Bearer(ctx context.Context, in *PolicyBearerBindingRequest, opts ...grpc.CallOption) (*PolicyBearerBindingResponse, error)
 	// A set interface of subscribers -> currently active rules
 	SetSessionRules(ctx context.Context, in *SessionRules, opts ...grpc.CallOption) (*protos.Void, error)
@@ -6624,6 +6632,7 @@ type LocalSessionManagerServer interface {
 	ReportRuleStats(context.Context, *RuleRecordTable) (*protos.Void, error)
 	CreateSession(context.Context, *LocalCreateSessionRequest) (*LocalCreateSessionResponse, error)
 	EndSession(context.Context, *LocalEndSessionRequest) (*LocalEndSessionResponse, error)
+	// A response to CreateBearer request defined in spgw service. Sends a mapping of dedicated bearer ID <-> policy.
 	BindPolicy2Bearer(context.Context, *PolicyBearerBindingRequest) (*PolicyBearerBindingResponse, error)
 	// A set interface of subscribers -> currently active rules
 	SetSessionRules(context.Context, *SessionRules) (*protos.Void, error)

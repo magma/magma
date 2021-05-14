@@ -90,7 +90,7 @@ struct ChargingGrant {
   // usage, otherwise we only include unreported usage up to the allocated
   // amount.
   CreditUsage get_credit_usage(
-      CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria& uc,
+      CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria* uc,
       bool is_terminate);
 
   // get_requested_units returns total, tx and rx needed to cover one worth of

@@ -208,9 +208,7 @@ class SessiondTest : public ::testing::Test {
 
   void insert_static_rule(uint32_t charging_key, const std::string& rule_id) {
     auto mkey = "";
-    PolicyRule rule;
-    create_policy_rule(rule_id, mkey, charging_key, &rule);
-    rule_store->insert_rule(rule);
+    rule_store->insert_rule(create_policy_rule(rule_id, mkey, charging_key));
   }
 
   // Timeout to not block test

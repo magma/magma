@@ -25,6 +25,7 @@
 #include "PolicyLoader.h"
 #include "RedisStoreClient.h"
 #include "RestartHandler.h"
+#include "SentryWrappers.h"
 #include "ServiceRegistrySingleton.h"
 #include "SessionCredit.h"
 #include "SessionManagerServer.h"
@@ -42,53 +43,6 @@
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
-#endif
-
-// TODO remove this flag once we are on Ubuntu 20.04 by default in 1.6
-#if SENTRY_ENABLED
-#include "sentry.h"
-
-#define COMMIT_HASH_ENV "COMMIT_HASH"
-#define CONTROL_PROXY_SERVICE_NAME "control_proxy"
-#define SENTRY_NATIVE_URL "sentry_url_native"
-using std::experimental::optional;
-// TODO pull sentry related logic into a common library so it can be shared with
-// MME
-optional<std::string> get_sentry_url(YAML::Node control_proxy_config) {
-  std::string sentry_url;
-  if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
-    const std::string sentry_dns =
-        control_proxy_config[SENTRY_NATIVE_URL].as<std::string>();
-    if (sentry_dns.size()) {
-      return sentry_dns;
-    }
-  }
-  return {};
-}
-
-void initialize_sentry() {
-  auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
-      CONTROL_PROXY_SERVICE_NAME);
-  auto op_sentry_url = get_sentry_url(control_proxy_config);
-  if (op_sentry_url) {
-    MLOG(MINFO) << "Starting SessionD with Sentry!";
-    sentry_options_t* options = sentry_options_new();
-    sentry_options_set_dsn(options, op_sentry_url->c_str());
-    if (const char* commit_hash_p = std::getenv(COMMIT_HASH_ENV)) {
-      sentry_options_set_release(options, commit_hash_p);
-    }
-
-    sentry_init(options);
-    sentry_set_tag("service_name", "SessionD");
-
-    sentry_capture_event(sentry_value_new_message_event(
-        SENTRY_LEVEL_INFO, "", "Starting SessionD with Sentry!"));
-  }
-}
-
-void shutdown_sentry() {
-  sentry_shutdown();
-}
 #endif
 
 static magma::mconfig::SessionD get_default_mconfig() {
@@ -165,10 +119,6 @@ void set_consts(const YAML::Node& config) {
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
       config["terminate_service_when_quota_exhausted"].as<bool>();
 
-  if (config["bearer_creation_delay_on_session_init"].IsDefined()) {
-    magma::LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT =
-        config["bearer_creation_delay_on_session_init"].as<uint32_t>();
-  }
   if (config["send_access_timezone"].IsDefined()) {
     magma::LocalEnforcer::SEND_ACCESS_TIMEZONE =
         config["send_access_timezone"].as<bool>();
@@ -232,9 +182,7 @@ int main(int argc, char* argv[]) {
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
 
-#ifdef SENTRY_ENABLED
   initialize_sentry();
-#endif
 
   bool converged_access = false;
   // Check converged SessionD is enabled or not
@@ -481,8 +429,6 @@ int main(int argc, char* argv[]) {
   }
   delete session_store;
 
-#ifdef SENTRY_ENABLED
   shutdown_sentry();
-#endif
   return 0;
 }

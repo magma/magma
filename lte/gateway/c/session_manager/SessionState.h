@@ -250,11 +250,14 @@ class SessionState {
    * rules (static and dynamic)
    * Should be called after complete_termination.
    */
-  SessionCredit::TotalCreditUsage get_total_credit_usage();
+  TotalCreditUsage get_total_credit_usage();
 
   ChargingCreditSummaries get_charging_credit_summaries();
 
-  std::string get_session_id() const;
+  std::string get_imsi() const { return config_.common_context.sid().id(); }
+
+  std::string get_session_id() const { return session_id_; }
+
   uint32_t get_local_teid() const;
   void set_local_teid(uint32_t teid, SessionStateUpdateCriteria& uc);
 
@@ -270,11 +273,11 @@ class SessionState {
 
   void set_config(const SessionConfig& config);
 
-  SessionConfig get_config() const;
+  SessionConfig get_config() const { return config_; }
 
   void set_subscriber_quota_state(
       const magma::lte::SubscriberQuotaUpdate_Type state,
-      SessionStateUpdateCriteria& update_criteria);
+      SessionStateUpdateCriteria* update_criteria);
 
   bool active_monitored_rules_exist();
 
@@ -304,6 +307,14 @@ class SessionState {
    * @return the type if the rule exists, {} otherwise.
    */
   optional<PolicyType> get_policy_type(const std::string& rule_id);
+
+  /**
+   * @brief Get the policy definition object
+   *
+   * @param rule_id
+   * @return optional<PolicyRule> {} if rule is not found, PolicyType if it is
+   */
+  optional<PolicyRule> get_policy_definition(const std::string rule_id);
 
   /**
    * @brief Get the current rule version object
@@ -529,14 +540,15 @@ class SessionState {
   /**
    * get_dedicated_bearer_updates processes the two rule update inputs and
    * produces a BearerUpdate based on whether a bearer has to be create/deleted.
-   * @param to_activate
-   * @param to_deactivate
+   * @param pending_activation
+   * @param pending_deactivation
    * @param uc: update criteria needs to be updated if the bearer mapping is
    * modified
    * @return BearerUpdate with Create/DeleteBearerRequest
    */
   BearerUpdate get_dedicated_bearer_updates(
-      const RulesToProcess& to_activate, const RulesToProcess& to_deactivate,
+      const RulesToProcess& pending_activation,
+      const RulesToProcess& pending_deactivation,
       SessionStateUpdateCriteria* session_uc);
   /**
    * Determine whether a policy with type+ID needs a bearer to be created
@@ -556,15 +568,20 @@ class SessionState {
   std::vector<Teids> get_active_teids();
 
   /**
+   * @brief apply RuleSetToApply, which is a set of all rules that should be
+   * active for the session
    *
    * @param rule_set
    * @param subscriber_wide_rule_set
-   * @param to_activate
-   * @param to_deactivate
+   * @param pending_activation all rules that should be activated now
+   * @param pending_deactivation all rules that should be deactivated now
+   * @param pending_bearer_setup all rules that need dedicated bearer creation
+   * before activating
    */
   void apply_session_rule_set(
-      const RuleSetToApply& rule_set, RulesToProcess* to_activate,
-      RulesToProcess* to_deactivate, SessionStateUpdateCriteria& uc);
+      const RuleSetToApply& rule_set, RulesToProcess* pending_activation,
+      RulesToProcess* pending_deactivation,
+      RulesToProcess* pending_bearer_setup, SessionStateUpdateCriteria& uc);
 
   /**
    * Add the association of policy -> bearerID into bearer_id_by_policy_
@@ -587,20 +604,46 @@ class SessionState {
   bool is_dynamic_rule_scheduled(const std::string& rule_id);
 
   /**
+   * @brief For rules mentioned in both static_rule_installs and
+   * dynamic_rule_installs, classify them into the three RulesToProcess vectors.
+   * pending_activation, pending_deactivation, pending_bearer_setup will not
+   * intersect in the set of rules they contain pending_scheduling may contain
+   * some deactivation scheduling for rules mentioned in the above three sets
+   * @param static_rule_installs
+   * @param dynamic_rule_installs
+   * @param pending_activation contains rules that need to be activated now
+   * @param pending_deactivation contains rules that need to be deactivated now
+   * @param pending_bearer_setup contains rules that need to get dedicated
+   * bearers before they can be activated. The rules will be activated once MME
+   * sends a BindPolicy2Bearer with the dedicated bearer Teids.
+   * @param pending_scheduling contains rules that need to be scheduled to be
+   * activated/deactivated
+   * @param session_uc
+   */
+  void process_rules_to_install(
+      const std::vector<StaticRuleInstall>& static_rule_installs,
+      const std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+      RulesToProcess* pending_bearer_setup, RulesToSchedule* pending_scheduling,
+      SessionStateUpdateCriteria* session_uc);
+
+  /**
    * @brief Go through static rule install instructions and return
    * what needs to be propagated to PipelineD
    *
    * @param rule_installs StaticRuleInstall received from
    * PCF/PCRF/PolicyDB
-   * @param to_activate output parameter
-   * @param to_deactivate output parameter
-   * @param rules_to_schedule output parameter
+   * @param pending_activation output parameter
+   * @param pending_deactivation output parameter
+   * @param pending_bearer_setup output parameter all policies that need
+   * dedicated bearer to be created
+   * @param pending_scheduling output parameter
    * @param session_uc
    */
   void process_static_rule_installs(
       const std::vector<StaticRuleInstall>& rule_installs,
-      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
-      RulesToSchedule* rules_to_schedule,
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+      RulesToProcess* pending_bearer_setup, RulesToSchedule* pending_scheduling,
       SessionStateUpdateCriteria* session_uc);
 
   /**
@@ -609,16 +652,39 @@ class SessionState {
    *
    * @param rule_installs DynamicRuleInstall received from
    * PCF/PCRF/PolicyDB
-   * @param to_activate output parameter
-   * @param to_deactivate output parameter
-   * @param rules_to_schedule output parameter
+   * @param pending_activation output parameter
+   * @param pending_deactivation output parameter
+   * @param pending_bearer_setup output parameter all policies that need
+   * dedicated bearer to be created
+   * @param pending_scheduling output parameter
    * @param session_uc
    */
   void process_dynamic_rule_installs(
       const std::vector<DynamicRuleInstall>& rule_installs,
-      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
-      RulesToSchedule* rules_to_schedule,
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+      RulesToProcess* pending_bearer_setup, RulesToSchedule* pending_scheduling,
       SessionStateUpdateCriteria* session_uc);
+
+  /**
+   * @brief Process the list of rule names given and fill in
+   * pending_deactivation by determining whether each one is dynamic or static.
+   * Modifies session state.
+   * @param rules_to_remove
+   * @param pending_deactivation
+   * @param session_uc
+   */
+  void process_rules_to_remove(
+      const google::protobuf::RepeatedPtrField<std::basic_string<char>>
+          rules_to_remove,
+      RulesToProcess* pending_deactivation,
+      SessionStateUpdateCriteria* session_uc);
+
+  /**
+   * @brief fill out and return a RuleToProcess
+   * @param rule
+   * @return RuleToProcess
+   */
+  RuleToProcess make_rule_to_process(const PolicyRule& rule);
 
   /**
    * Clear all per-session metrics
@@ -809,14 +875,14 @@ class SessionState {
   /** apply static_rules which is the desired state for the session's rules **/
   void apply_session_static_rule_set(
       const std::unordered_set<std::string> static_rules,
-      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
-      SessionStateUpdateCriteria& uc);
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+      RulesToProcess* pending_bearer_setup, SessionStateUpdateCriteria& uc);
 
   /** apply dynamic_rules which is the desired state for the session's rules **/
   void apply_session_dynamic_rule_set(
       const std::unordered_map<std::string, PolicyRule> dynamic_rules,
-      RulesToProcess* to_activate, RulesToProcess* to_deactivate,
-      SessionStateUpdateCriteria& uc);
+      RulesToProcess* pending_activation, RulesToProcess* pending_deactivation,
+      RulesToProcess* pending_bearer_setup, SessionStateUpdateCriteria& uc);
 
   /**
    * Check if a new bearer has to be created for the given policy. If a creation
@@ -874,7 +940,20 @@ class SessionState {
   void increment_rule_stats(
       const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
 
-  RuleToProcess make_rule_to_process(const PolicyRule& rule);
+  /**
+   * @brief Given a policy (to_process) append to either pending_activation or
+   * pending_bearer_setup If a dedicated bearer needs to be created for the
+   * policy, it will be appended to pending_bearer_setup. Otherwise, it will be
+   * appended to pending_activation
+   *
+   * @param to_process
+   * @param p_type
+   * @param pending_activation output parameter
+   * @param pending_bearer_setup output parameter
+   */
+  void classify_policy_activation(
+      const RuleToProcess& to_process, const PolicyType p_type,
+      RulesToProcess* pending_activation, RulesToProcess* pending_bearer_setup);
 };
 
 }  // namespace magma

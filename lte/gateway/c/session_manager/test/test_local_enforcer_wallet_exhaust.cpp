@@ -87,9 +87,7 @@ class LocalEnforcerTest : public ::testing::Test {
   void insert_static_rule(
       uint32_t rating_group, const std::string& m_key,
       const std::string& rule_id) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, m_key, rating_group, &rule);
-    rule_store->insert_rule(rule);
+    rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
  protected:

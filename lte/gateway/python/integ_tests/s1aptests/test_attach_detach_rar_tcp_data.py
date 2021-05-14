@@ -186,6 +186,8 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
                 req.ue_id, act_ded_ber_ctxt_req.bearerId
             )
+            print("Sleeping again for flow to be installed")
+            time.sleep(2)
 
             # Check if UL and DL OVS flows are created
             # UPLINK

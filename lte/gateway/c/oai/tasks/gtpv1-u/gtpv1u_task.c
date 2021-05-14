@@ -31,6 +31,7 @@
 #include "intertask_interface.h"
 #include "gtpv1u.h"
 #include "gtpv1u_sgw_defs.h"
+#include "gtp_tunnel_upf.h"
 #include "pgw_ue_ip_address_alloc.h"
 #include "intertask_interface_types.h"
 #include "pgw_config.h"
@@ -118,8 +119,14 @@ int gtpv1u_init(
 
   // Init gtp_tunnel_ops
 #if ENABLE_OPENFLOW
-  OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_openflow\n");
-  gtp_tunnel_ops = gtp_tunnel_ops_init_openflow();
+  // If pipeline config is enabled initialize userplane ops
+  if (spgw_config->sgw_config.ovs_config.pipelined_managed_tbl0) {
+    OAILOG_INFO(LOG_GTPV1U, "Initializing upf classifier for gtp apps");
+    gtp_tunnel_ops = upf_gtp_tunnel_ops_init_openflow();
+  } else {
+    OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_openflow\n");
+    gtp_tunnel_ops = gtp_tunnel_ops_init_openflow();
+  }
 #else
   OAILOG_DEBUG(LOG_GTPV1U, "Initializing gtp_tunnel_ops_libgtpnl\n");
   gtp_tunnel_ops = gtp_tunnel_ops_init_libgtpnl();
@@ -168,7 +175,7 @@ int gtpv1u_init(
 int gtpv1u_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
     uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-    uint32_t flow_precedence_dl) {
+    uint32_t flow_precedence_dl, char* apn) {
   OAILOG_DEBUG(LOG_GTPV1U, "Add tunnel ue %s", inet_ntoa(ue));
 
   if (spgw_config.pgw_config.enable_nat) {
@@ -197,7 +204,8 @@ int gtpv1u_add_tunnel(
   }
 
   return gtp_tunnel_ops->add_tunnel(
-      ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl);
+      ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl,
+      apn);
 }
 
 int gtpv1u_add_s8_tunnel(

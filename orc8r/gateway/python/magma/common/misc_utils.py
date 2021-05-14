@@ -47,7 +47,7 @@ def get_if_ip_with_netmask(interface, preference=IpPreference.IPV4_PREFERRED):
     try:
         ipv6_address = (
             ip_addresses[netifaces.AF_INET6][0]["addr"].split("%")[0],
-            ip_addresses[netifaces.AF_INET6][0]["netmask"].split("/")[1],
+            ip_addresses[netifaces.AF_INET6][0]["netmask"],
         )
 
     except KeyError:

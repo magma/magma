@@ -3828,6 +3828,23 @@ paths:
       summary: List subscribers in the network with pagination support
       tags:
       - Subscribers
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: Subscribers to add
+        in: body
+        name: subscribers
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_subscribers'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Add new subscribers to the network
+      tags:
+      - Subscribers
   /networks:
     get:
       responses:
@@ -9709,6 +9726,11 @@ definitions:
     - id
     - lte
     type: object
+  mutable_subscribers:
+    description: List of mutable subscribers
+    items:
+      $ref: '#/definitions/mutable_subscriber'
+    type: array
   mutable_wifi_gateway:
     description: Wifi gateway object with read-only fields omitted
     properties:

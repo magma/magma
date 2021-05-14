@@ -136,9 +136,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   }
 
   void insert_static_rule(const std::string& rule_id) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, "", 0, &rule);
-    rule_store->insert_rule(rule);
+    rule_store->insert_rule(create_policy_rule(rule_id, "", 0));
   }
 
  protected:
