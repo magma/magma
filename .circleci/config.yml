@@ -955,7 +955,7 @@ jobs:
     environment:
       MAGMA_ROOT: /home/circleci/project  
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202010-01
     steps:
       - checkout
       - python/set_version
@@ -1285,20 +1285,20 @@ jobs:
 workflows:
   version: 2.1
 
-  # cloud:
-  #   jobs:
-  #     - insync-checkin
-  #     - cloud_lint
-  #     - cloud-test
-  #     - orc8r-build:
-  #         requires:
-  #           - insync-checkin
-  #           - cloud_lint
-  #           - cloud-test
-  #
-  # lib_gateway:
-  #   jobs:
-  #     - orc8r-gateway-test
+   cloud:
+     jobs:
+       - insync-checkin
+       - cloud_lint
+       - cloud-test
+       - orc8r-build:
+           requires:
+             - insync-checkin
+             - cloud_lint
+             - cloud-test
+  
+   lib_gateway:
+     jobs:
+       - orc8r-gateway-test
 
   agw:
     jobs:
