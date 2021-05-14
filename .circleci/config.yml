@@ -7,10 +7,6 @@ aliases:
     filters:
       branches:
         only: master
-  - &only_release
-    filters:
-      branches:
-        only: v*
   - &master_and_develop
     filters:
       branches:
@@ -25,8 +21,6 @@ aliases:
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos"
   - &mme_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos"
-  - &li_agent_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -36,7 +30,7 @@ aliases:
   - &orc8r_build_verify
     paths: "orc8r"
   - &cwf_build_verify
-    paths: "cwf lte feg"
+    paths: "cwf"
   - &docs_only
     paths: "docs"
 
@@ -48,6 +42,7 @@ executors:
 orbs:
   artifactory: circleci/artifactory@0.0.7
   codecov: codecov/codecov@1.1.3
+  aws-cli: circleci/aws-cli@2.0
 
   python:
     commands:
@@ -72,7 +67,7 @@ orbs:
           compose_version:
             description: Docker-compose version to install
             type: string
-            default: "1.29.1"
+            default: "1.25.4"
         steps:
           - run:
               name: Install Docker Compose
@@ -334,24 +329,6 @@ commands:
             mkdir -p versions
             cp *_version versions || true
           no_output_timeout: 20m
-      - run:
-          name: Copy debian packages to new JFROG repo
-          command: |
-            cd ${MAGMA_ROOT}/circleci
-            PACKAGE_FILE=packages.tar.gz
-            if [ -f "${PACKAGE_FILE}" ]; then
-               echo "${PACKAGE_FILE} exists"
-               rm -rf *.deb
-               tar xvf ${PACKAGE_FILE}
-               for i in `ls -a1 *.deb`
-               do
-                  echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/stretch-ci/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
-               done
-            else
-               echo "${PACKAGE_FILE} does NOT exist"
-               echo "No debian packages to push to JFROG"
-            fi
       - store_artifacts:
           path: /tmp/logs
       - store_test_results:
@@ -493,26 +470,8 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
-  backport:
-    machine:
-      image: ubuntu-1604:201903-01
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - python/set_version
-      - run:
-          command: |
-            mkdir ~/.magma
-            echo ${GITHUB_ACCESS_TOKEN} > ~/.magma/github_access_token
-      - run:
-          name: Install python prerequisites
-          command: pip3 install fabric3 jsonpickle requests PyYAML PyGithub
-      - run:
-          command: |
-            cd ${MAGMA_ROOT}/circleci/release
-            fab find_release_commits
   ### CLOUD
+
   cloud-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -530,8 +489,6 @@ jobs:
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
             python3 build.py --tests --up
           no_output_timeout: 15m
-      - store_test_results:
-          path: /home/circleci/project/orc8r/cloud/test-results
       - magma_slack_notify
 
   # Fail if code doesn't pass formatting requirements.
@@ -610,13 +567,13 @@ jobs:
           project: orc8r
           images: "nginx|controller"
           tag-latest: true
-      - tag-push-docker:
-          project: orc8r
-          images: "nginx|controller"
-          tag-latest: true
-          registry: $JFROG_DOCKER_ORC8R_REGISTRY
-          username: $JFROG_USERNAME
-          password: $JFROG_PASSWORD
+      # - tag-push-docker:
+      #     project: orc8r
+      #     images: "nginx|controller"
+      #     tag-latest: true
+      #     registry: $JFROG_DOCKER_ORC8R_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -664,11 +621,6 @@ jobs:
          command: go mod download
          workdir: ${MAGMA_ROOT}/cwf/gateway
       - run:
-          name: Go lint code
-          command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            make -C ${MAGMA_ROOT}/feg/gateway lint
-      - run:
           name: Generate test coverage
           command: |
             cd ${MAGMA_ROOT}/feg/gateway
@@ -700,8 +652,6 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/feg/gateway
             make -C ${MAGMA_ROOT}/feg/gateway precommit
-      - store_test_results:
-          path: /tmp/test-results
       - magma_slack_notify
 
   feg-build:
@@ -713,41 +663,22 @@ jobs:
       MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
-      - docker/install-dc
       - build/determinator:
           <<: *federated_build_verify
       - run:
-          name: generate test certs and snowflake
-          command: |
-            # TODO add rootCA.pem and snowflake files in the ubuntu-1604:201903-01 image
-            # create directories
-            cd ${MAGMA_ROOT} && mkdir -p .cache/test_certs/ && mkdir -p .cache/feg/
-            # create test certs
-            cd ${MAGMA_ROOT}/.cache/test_certs/
-            openssl genrsa -out rootCA.key 2048
-            openssl req -x509 -new -nodes -key rootCA.key -sha256 -days 365000 -out rootCA.pem -subj "/C=US/CN=rootca.magma.test"
-            # create snowflake
-            cd ${MAGMA_ROOT}/.cache/feg/ && touch snowflake
-      - run:
-          name: build docker
           command: |
             cd ${MAGMA_ROOT}/feg/gateway/docker
             DOCKER_REGISTRY=feg_ docker-compose build --parallel
-      - run:
-          name: run docker containers and check health
-          command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            DOCKER_REGISTRY=feg_ make -C ${MAGMA_ROOT}/feg/gateway docker_healthcheck
       - tag-push-docker:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
-      - tag-push-docker:
-          project: feg
-          images: "gateway_go|gateway_python"
-          registry: $JFROG_DOCKER_FEG_REGISTRY
-          username: $JFROG_USERNAME
-          password: $JFROG_PASSWORD
+      # - tag-push-docker:
+      #     project: feg
+      #     images: "gateway_go|gateway_python"
+      #     registry: $JFROG_DOCKER_FEG_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -776,23 +707,6 @@ jobs:
             cd ${MAGMA_ROOT}/cwf/gateway
             make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
       - magma_slack_notify
-
-  cwag-build:
-    machine:
-      image: ubuntu-1604:201903-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *cwf_build_verify
-      - run-with-retry:
-          retry-count: 2
-          workdir: $MAGMA_ROOT/cwf/gateway/docker
-          command: docker-compose build --parallel
-      # TODO bring up the containers and check for crashloops
 
   cwf-integ-test:
     machine:
@@ -830,24 +744,25 @@ jobs:
       - build/determinator:
           <<: *cwf_build_verify
       - docker/install-dc
-      - run-with-retry:
-          retry-count: 2
-          workdir: $MAGMA_ROOT/cwf/gateway/docker
-          command: docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
+      - run:
+          name: Build CWAG containers
+          command: |
+            cd ${MAGMA_ROOT}/cwf/gateway/docker
+            docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
       - tag-push-docker:
           project: cwf
           images: <<parameters.images>>
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
           tag-latest: <<parameters.tag-latest>>
-      - tag-push-docker:
-          project: cwf
-          images: <<parameters.images>>
-          tag: <<parameters.tag>>
-          tag-latest: <<parameters.tag-latest>>
-          registry: $JFROG_DOCKER_CWF_REGISTRY
-          username: $JFROG_USERNAME
-          password: $JFROG_PASSWORD
+      # - tag-push-docker:
+      #     project: cwf
+      #     images: <<parameters.images>>
+      #     tag: <<parameters.tag>>
+      #     tag-latest: <<parameters.tag-latest>>
+      #     registry: $JFROG_DOCKER_CWF_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -966,33 +881,6 @@ jobs:
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
       - magma_slack_notify
 
-  li_agent_test:
-    machine:
-      image: ubuntu-2004:202010-01
-      docker_layer_caching: true
-    resource_class: large
-    environment:
-      MAGMA_ROOT: /home/circleci/project
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *li_agent_build_verify
-      - run:
-          name: Build the base c/c++ container
-          command: |
-            cd $MAGMA_ROOT/lte/gateway/docker/mme
-            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
-      - run:
-          name: Run common tests
-          command: |
-            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
-      - run:
-          name: Run li agent tests
-          command: |
-            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_li_agent;"
-          no_output_timeout: 5m
-      - magma_slack_notify
-
   lte-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -1066,16 +954,41 @@ jobs:
 
   lte-agw-aws:
     environment:
-      AWS_ACCESS_KEY_ID: "$AWS_FB_CRED"
-      AWS_SECRET_ACCESS_KEY: "$AWS_FB_SECRET"
+      #AWS_ACCESS_KEY_ID: "$AWS_FB_CRED"
+      #PARAM_AWS_SECRET_ACCESS_KEY: "$(printenv AWS_FB_SECRET)"
+      MAGMA_ROOT: /home/circleci/project  
     machine:
-      image: ami-0e7b52505c766bf98
+      image: ubuntu-1604:201903-01
     steps:
+      - checkout
+      - python/set_version
+      #- aws-cli/setup
       - run:
           command: |
-            ansible-playbook ami-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "aminode=tag_Name_buildAgw" -u admin
-            ansible-playbook ami-init.yaml
-      - magma_slack_notify
+            pip install wheel
+            pip install ansible 
+            pip install awscli
+            pip install boto3
+            echo export AWS_DEFAULT_REGION="us-west-1" >> $BASH_ENV
+            echo export AWS_ACCESS_KEY_ID="$(printenv AWS_FB_CRED)" >> $BASH_ENV
+            echo export AWS_SECRET_ACCESS_KEY="$(printenv AWS_FB_SECRET)" >> $BASH_ENV
+            mkdir ~/magma-experimental
+            mkdir ~/magma-experimental/files
+            cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
+            cp -r * ~/magma-experimental
+            cp ~/magma-experimental/roles/vars/secrets.yaml ~/magma-experimental/files
+            sed -i -e "s/AWS_ACCESS_KEY_ID/${AWS_FB_CRED}/g" ~/magma-experimental/files/secrets.yaml
+            sed -i -e "s@AWS_SECRET_ACCESS_KEY@${AWS_FB_SECRET}@g" ~/magma-experimental/files/secrets.yaml
+            sed -i -e "s@imgCloudstrapperBase@CloudStrapper${CIRCLE_BUILD_NUM}@g" ~/magma-experimental/roles/vars/defaults.yaml 
+            cp ~/magma-experimental/ansible.cfg ~/.ansible.cfg
+            aws s3 cp s3://cloudstrapper-ec2-pems/mpboot101.pem ~/magma-experimental/files/
+            aws s3 cp s3://cloudstrapper-ec2-pems/mphost101.pem ~/magma-experimental/files/
+            chmod 600 ~/magma-experimental/files/*.pem
+            ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files"
+            ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
+            ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm -e "dirLocalInventory=~/magma-experimental/files"
+            ansible-playbook devops-init.yaml  -e "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=CloudStrapper${CIRCLE_BUILD_NUM}"
+     # - magma_slack_notify
 
   ## CWF OPERATOR
 
@@ -1118,12 +1031,12 @@ jobs:
           project: cwf
           images: "operator"
           registry: $DOCKER_MAGMA_REGISTRY
-      - tag-push-docker:
-          project: cwf
-          images: "operator"
-          registry: $JFROG_DOCKER_CWF_REGISTRY
-          username: $JFROG_USERNAME
-          password: $JFROG_PASSWORD
+      # - tag-push-docker:
+      #     project: cwf
+      #     images: "operator"
+      #     registry: $JFROG_DOCKER_CWF_REGISTRY
+      #     username: $JFROG_USERNAME
+      #     password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
@@ -1221,13 +1134,6 @@ jobs:
       - tag-push-docker:
           project: magmalte
           images: "magmalte"
-      - tag-push-docker:
-          project: magmalte
-          images: "magmalte"
-          tag-latest: true
-          registry: $JFROG_DOCKER_ORC8R_REGISTRY
-          username: $JFROG_USERNAME
-          password: $JFROG_PASSWORD
       - persist-githash-version:
           file_prefix: nms
       - notify-magma:
@@ -1272,14 +1178,15 @@ jobs:
             mv docs/readmes readmes/
             rm -rf docs/
             mv readmes/ docs/
+      # Yeah I fucked up and created mamga-... instead of magma-... oops
       - run:
           name: Deploying to GitHub Pages
           command: |
-            git config --global user.email "bots@magmacore.org"
-            git config --global user.name "magma-docusaurus-bot"
-            echo "machine github.com login magma-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
+            git config --global user.email "mamga-docusaurus-bot@users.noreply.github.com"
+            git config --global user.name "mamga-docusaurus-bot"
+            echo "machine github.com login mamga-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
             cd website && yarn install
-            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=magma-docusaurus-bot yarn run publish-gh-pages
+            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=mamga-docusaurus-bot yarn run publish-gh-pages
       - magma_slack_notify
   xwfm-test:
     parameters:
@@ -1383,150 +1290,6 @@ workflows:
 
   agw:
     jobs:
-<<<<<<< HEAD
-      - lte-test
-      - session_manager_test
-      - li_agent_test
-      - mme_test
-      - mme-clang-tidy:
-          <<: *only_master
-      - mme-clang-warnings:
-          <<: *only_master
-      - lte-integ-test:
-          <<: *master_and_develop
-      - lte-agw-deploy:
-          <<: *only_master
-          requires:
-            - lte-test
-            - mme_test
-            - lte-integ-test
-      - lte-agw-aws:
-          <<: *only_master
-          requires:
-            - lte-test
-            - mme_test
-            - lte-integ-test
-      
-      - c-cpp-codecov
-
-  release:
-    jobs:
-      - release-hold:
-          <<: *only_release
-          type: approval
-      - lte-agw-deploy:
-          <<: *only_release
-          requires:
-            - release-hold
-      - cwag-deploy:
-          <<: *only_release
-          requires:
-            - release-hold
-      - cwf-operator-build:
-          <<: *only_release
-          requires:
-            - release-hold
-      - feg-build:
-          <<: *only_release
-          requires:
-            - release-hold
-      - orc8r-build:
-          <<: *only_release
-          requires:
-            - release-hold
-      - nms-build:
-          <<: *only_release
-          requires:
-            - release-hold
-
-
-  feg:
-    jobs:
-      - feg-lint
-      - feg-precommit
-      - feg-build:
-          requires:
-            - feg-precommit
-
-  cwag:
-    jobs:
-      - cwag-precommit
-      - cwag-build
-      - cwf-integ-test:
-          <<: *master_and_develop
-      - xwfm-test:
-          <<: *master_and_develop
-      - cwag-deploy:
-          <<: *only_master
-          requires:
-            - cwag-precommit
-            - cwf-integ-test
-      - xwfm-deploy:
-          <<: *only_master
-          name: xwfm-deploy-latest
-          requires:
-            - cwag-deploy
-            - xwfm-test
-          tag-latest: true
-      - cwag-deploy:
-          <<: *only_master
-          name: cwag-deploy-latest
-          requires:
-            - cwag-deploy
-            - xwfm-deploy-latest
-          images: 'gateway_python|gateway_pipelined|gateway_go'
-          tag-latest: true
-
-
-  cwf_operator:
-    jobs:
-      - cwf-operator-precommit
-      - cwf-operator-build:
-          requires:
-            - cwf-operator-precommit
-
-  hourly_xwfm:
-    triggers:
-      - schedule:
-          cron: "0 * * * *"
-          <<: *only_master
-    jobs:
-      - xwfm-test:
-          notify_magma_ci: false
-
-  nms:
-    jobs:
-      - nms-flow-test
-      - eslint
-      - nms-yarn-test:
-          requires:
-            - nms-flow-test
-      - nms-e2e-test:
-          requires:
-            - nms-flow-test
-            - eslint
-            - nms-yarn-test
-      - nms-build:
-          requires:
-            - nms-flow-test
-            - eslint
-            - nms-yarn-test
-            - nms-e2e-test
-
-  docusaurus:
-   jobs:
-    - docusaurus_build_and_deploy:
-        <<: *only_master
-
-  fossa:
-    jobs:
-      - fossa-analyze:
-          <<: *only_master
-  github:
-    jobs:
-      - backport:
-          <<: *only_master
-=======
       # - lte-test
       # - session_manager_test
       # - mme_test
@@ -1543,13 +1306,6 @@ workflows:
       #       - mme_test
       #       - lte-integ-test
       - lte-agw-aws
-      #     <<: *only_master
-      #     requires:
-      #       - lte-test
-      #       - mme_test
-      #       - lte-integ-test
-      #
-      # - c-cpp-codecov
 
   # feg:
   #   jobs:
@@ -1632,4 +1388,3 @@ workflows:
   #   jobs:
   #     - fossa-analyze:
   #         <<: *only_master
->>>>>>> 974c3660f (fix lining issue)
