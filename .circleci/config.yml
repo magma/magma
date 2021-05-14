@@ -1484,7 +1484,7 @@ workflows:
       - feg-build:
           requires:
             - feg-precommit
-  
+ 
   cwag:
     jobs:
       - cwag-precommit
@@ -1513,15 +1513,12 @@ workflows:
             - xwfm-deploy-latest
           images: 'gateway_python|gateway_pipelined|gateway_go'
           tag-latest: true
-  #
-  #
   cwf_operator:
     jobs:
       - cwf-operator-precommit
       - cwf-operator-build:
           requires:
             - cwf-operator-precommit
-  #
   hourly_xwfm:
     triggers:
       - schedule:
@@ -1530,7 +1527,6 @@ workflows:
     jobs:
       - xwfm-test:
           notify_magma_ci: false
-  #
   nms:
     jobs:
       - nms-flow-test
@@ -1549,12 +1545,10 @@ workflows:
             - eslint
             - nms-yarn-test
             - nms-e2e-test
-  #
   docusaurus:
    jobs:
     - docusaurus_build_and_deploy:
         <<: *only_master
-  #
   fossa:
     jobs:
       - fossa-analyze:
