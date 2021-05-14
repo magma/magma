@@ -1063,21 +1063,20 @@ jobs:
       - notify-magma:
           artifact_name: LTE AGW
           version_path: versions/magma_version
-
   lte-agw-aws:
     environment:
-      MAGMA_ROOT: /home/circleci/project  
+      MAGMA_ROOT: /home/circleci/project
     machine:
       image: ubuntu-2004:202010-01
     steps:
       - checkout
+      - python/set_version:3.8.5
       - run:
           name: Setup Creds and session
           command: |
-            python3 --version
-            pip3 install wheel 
-            pip3 install ansible 
-            pip3 install awscli 
+            pip3 install wheel
+            pip3 install ansible
+            pip3 install awscli
             pip3 install boto3
             echo export AWS_DEFAULT_REGION="us-west-1" >> $BASH_ENV
             echo export AWS_ACCESS_KEY_ID="$(printenv AWS_FB_CRED)" >> $BASH_ENV
@@ -1089,7 +1088,7 @@ jobs:
             cp ~/magma-experimental/roles/vars/secrets.yaml ~/magma-experimental/files
             sed -i -e "s@awsAccessKey:@& ${AWS_FB_CRED}@1"  ~/magma-experimental/files/secrets.yaml
             sed -i -e "s@awsSecretKey:@& ${AWS_FB_SECRET}@1"  ~/magma-experimental/files/secrets.yaml
-            sed -i -e "s@imgCloudstrapperBase@CloudStrapper${CIRCLE_BUILD_NUM}@g" ~/magma-experimental/roles/vars/defaults.yaml 
+            sed -i -e "s@imgCloudstrapperBase@CloudStrapper${CIRCLE_BUILD_NUM}@g" ~/magma-experimental/roles/vars/defaults.yaml
             cp ~/magma-experimental/ansible.cfg ~/.ansible.cfg
             aws s3 cp s3://cloudstrapper-ec2-pems/mpboot101.pem ~/magma-experimental/files/
             aws s3 cp s3://cloudstrapper-ec2-pems/mphost101.pem ~/magma-experimental/files/
@@ -1405,19 +1404,19 @@ workflows:
   version: 2.1
 
   cloud:
-     jobs:
-       - insync-checkin
-       - cloud_lint
-       - cloud-test
-       - orc8r-build:
-           requires:
-             - insync-checkin
-             - cloud_lint
-             - cloud-test
+    jobs:
+      - insync-checkin
+      - cloud_lint
+      - cloud-test
+      - orc8r-build:
+         requires:
+            - insync-checkin
+            - cloud_lint
+            - cloud-test
   
   lib_gateway:
      jobs:
-       - orc8r-gateway-test
+      - orc8r-gateway-test
 
   agw:
     jobs:
