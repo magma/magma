@@ -1318,8 +1318,43 @@ workflows:
              - mme_test
              - lte-integ-test
       - lte-agw-aws
-
+      - c-cpp-codecov
 #
+  release:
+    jobs:
+      - release-hold:
+          <<: *only_release
+          type: approval
+      - lte-agw-deploy:
+          <<: *only_release
+          requires:
+            - release-hold
+      - cwag-deploy:
+          <<: *only_release
+          requires:
+            - release-hold
+      - cwf-operator-build:
+          <<: *only_release
+          requires:
+            - release-hold
+      - feg-build:
+          <<: *only_release
+          requires:
+            - release-hold
+      - orc8r-build:
+          <<: *only_release
+          requires:
+            - release-hold
+      - nms-build:
+          <<: *only_release
+          requires:
+            - release-hold          
+      - lte-agw-aws:
+          <<: *only_release
+          requires:
+            - release-hold
+
+
   feg:
     jobs:
       - feg-lint
