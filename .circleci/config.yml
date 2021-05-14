@@ -960,6 +960,7 @@ jobs:
       - checkout
       - python/set_version
       - run:
+          name: Setup Creds and session
           command: |
             pip3 install wheel 
             pip3 install ansible 
@@ -981,18 +982,24 @@ jobs:
             aws s3 cp s3://cloudstrapper-ec2-pems/mphost101.pem ~/magma-experimental/files/
             chmod 600 ~/magma-experimental/files/*.pem
       - run:
+          name: AWS Prereq
           command: |
             cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
             ansible-playbook aws-prerequisites.yaml -e "dirLocalInventory=~/magma-experimental/files"
+      - run:
+          name: CloudStrapper
+          command: |
+            cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
             ansible-playbook devops-provision.yaml -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "devops=tag_Name_ec2MagmaDevopsCloudstrapper" -e "dirInventory=~/magma-experimental/files" -u ubuntu --skip-tags buildMagma,pubMagma,helm -e "dirLocalInventory=~/magma-experimental/files"
             ansible-playbook devops-init.yaml  -e "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=CloudStrapper${CIRCLE_BUILD_NUM}"
       - run:
+          name: AGW
           command: |
-            cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
-            ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=devopsAgw" -e "dirInventory=~/magma-experimental/files" -e "dirLocalInventory=~/magma-experimental/files" --tags createNet,createGw
-            ansible-playbook ami-configure.yaml -i "~/magma-experimental/files/common_instance_aws_ec2.yaml" -e "dirInventory=~/magma-experimental/files" -e "dirLocalInventory=~/magma-experimental/files" -e "aminode=tag_Name_buildAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
-            ansible-playbook ami-init.yaml -e "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=agw${CIRCLE_BUILD_NUM}" -e "dirInventory=~/magma-experimental/files"
+            #cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
+            #ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=devopsAgw" -e "dirInventory=~/magma-experimental/files" -e "dirLocalInventory=~/magma-experimental/files" --tags createNet,createGw
+            #ansible-playbook ami-configure.yaml -i "~/magma-experimental/files/common_instance_aws_ec2.yaml" -e "dirInventory=~/magma-experimental/files" -e "dirLocalInventory=~/magma-experimental/files" -e "aminode=tag_Name_buildAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+            #ansible-playbook ami-init.yaml -e "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=agw${CIRCLE_BUILD_NUM}" -e "dirInventory=~/magma-experimental/files"
       - magma_slack_notify
 
   ## CWF OPERATOR
