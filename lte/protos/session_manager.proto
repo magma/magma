@@ -125,8 +125,11 @@ message LocalEndSessionResponse {
 
 message UpdateTunnelIdsRequest {
   SubscriberID sid = 1;
+  // default bearerID 
   uint32 bearer_id = 2;
+  // teid for default bearerID
   uint32 enb_teid = 3;
+  // teid for default bearerID
   uint32 agw_teid = 4;
   string session_id = 5;
 }
@@ -136,10 +139,14 @@ message UpdateTunnelIdsResponse {
 
 message PolicyBearerBindingRequest {
   SubscriberID sid = 1;
+  // default bearer ID
   uint32 linked_bearer_id = 2;
   string policy_rule_id = 3;
+  // dedicated bearer ID
+  // 0 means that the binding failed
   uint32 bearer_id = 4;
-  Teids teids = 5; // teids tied to the dedicated bearer
+  // teids for the dedicated bearer
+  Teids teids = 5;
 }
 
 message PolicyBearerBindingResponse {
@@ -317,7 +324,9 @@ service LocalSessionManager {
 
   rpc EndSession(LocalEndSessionRequest) returns (LocalEndSessionResponse) {}
 
+  // A response to CreateBearer request defined in spgw service. Sends a mapping of dedicated bearer ID <-> policy.
   rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
+  
   // A set interface of subscribers -> currently active rules
   rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
 

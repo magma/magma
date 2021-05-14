@@ -10,13 +10,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "SessionManagerServer.h"
-#include "magma_logging.h"
 #include <grpc/impl/codegen/port_platform.h>
 #include <stdarg.h>
 #include <stdlib.h>
+
 #include <chrono>
 #include <ctime>
+#include <memory>
+
+#include "magma_logging.h"
+#include "SessionManagerServer.h"
+
 using grpc::Status;
 
 namespace magma {

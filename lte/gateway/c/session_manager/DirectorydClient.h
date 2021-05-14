@@ -12,12 +12,13 @@
  */
 #pragma once
 
+#include <orc8r/protos/common.pb.h>
+#include <orc8r/protos/directoryd.grpc.pb.h>
+#include <orc8r/protos/directoryd.pb.h>
+
+#include <memory>
 #include <mutex>
 #include <unordered_map>
-
-#include <orc8r/protos/common.pb.h>
-#include <orc8r/protos/directoryd.pb.h>
-#include <orc8r/protos/directoryd.grpc.pb.h>
 
 #include "GRPCReceiver.h"
 #include "SessionState.h"

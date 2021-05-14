@@ -64,11 +64,11 @@ echo ""
 # Get DB connection parameters automatically from an orc8r pod env
 # Can't do this through the NMS pod
 database_source=$(kubectl -n $magma_namespace exec $orc8r_pod_name -- /bin/bash -c 'echo $DATABASE_SOURCE')
-orc8r_db_host=$(echo $database_source | grep -E -o '(?:host=)\S*' | sed 's/host=//')
-orc8r_db_port=$(echo $database_source | grep -E -o '(?:port=)\S*' | sed 's/port=//')
-orc8r_db_name=$(echo $database_source | grep -E -o '(?:dbname=)\S*' | sed 's/dbname=//')
-orc8r_db_username=$(echo $database_source | grep -E -o '(?:user=)\S*' | sed 's/user=//')
-orc8r_db_password=$(echo $database_source | grep -E -o '(?:password=)\S*' | sed 's/password=//')
+orc8r_db_host=$(echo $database_source | awk -F= 'BEGIN { RS=" "; } /host/ { print $2; }')
+orc8r_db_port=$(echo $database_source | awk -F= 'BEGIN { RS=" "; } /port/ { print $2; }')
+orc8r_db_name=$(echo $database_source | awk -F= 'BEGIN { RS=" "; } /dbname/ { print $2; }')
+orc8r_db_username=$(echo $database_source | awk -F= 'BEGIN { RS=" "; } /user/ { print $2; }')
+orc8r_db_password=$(echo $database_source | awk -F= 'BEGIN { RS=" "; } /password/ { print $2; }')
 orc8r_db_dialect=$(kubectl -n $magma_namespace exec $orc8r_pod_name -- /bin/bash -c 'echo $SQL_DRIVER')
 
 # Extra whitespacing

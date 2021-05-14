@@ -31,6 +31,7 @@ extern "C" {
 }
 #endif
 
+#include <unordered_map>
 #include <conversions.h>
 #include "redis_utils/redis_client.h"
 
@@ -89,6 +90,10 @@ class StateManager {
         OAILOG_DEBUG(LOG_MME_APP, "Failed to read proto from db \n");
         return RETURNerror;
       }
+
+      // Update the state version from redis
+      this->task_state_version = redis_client->read_version(table_key);
+
       StateConverter::proto_to_state(state_proto, state_cache_p);
     }
     return RETURNok;
@@ -105,6 +110,10 @@ class StateManager {
       if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
         return RETURNerror;
       }
+
+      // Update each UE state version from redis
+      this->ue_state_version[key] = redis_client->read_version(table_key);
+
       StateConverter::proto_to_ue(ue_proto, ue_context);
 
       hashtable_ts_insert(
@@ -160,18 +169,18 @@ class StateManager {
     redis_client->serialize(ue_proto, proto_str);
     std::size_t new_hash = std::hash<std::string>{}(proto_str);
 
-    if (new_hash != this->ue_state_hash) {
+    if (new_hash != this->ue_state_hash[imsi_str]) {
       std::string key = IMSI_PREFIX + imsi_str + ":" + task_name;
-      if (redis_client->write_proto_str(key, proto_str, ue_state_version) !=
-          RETURNok) {
+      if (redis_client->write_proto_str(
+              key, proto_str, ue_state_version[imsi_str]) != RETURNok) {
         OAILOG_ERROR(
             log_task, "Failed to write UE state to db for IMSI %s",
             imsi_str.c_str());
         return;
       }
 
-      this->ue_state_version++;
-      this->ue_state_hash = new_hash;
+      this->ue_state_version[imsi_str]++;
+      this->ue_state_hash[imsi_str] = new_hash;
       OAILOG_DEBUG(
           log_task, "Finished writing UE state for IMSI %s", imsi_str.c_str());
     }
@@ -251,10 +260,10 @@ class StateManager {
   bool persist_state_enabled;
   // State version counters for task and ue context
   uint64_t task_state_version;
-  uint64_t ue_state_version;
+  std::unordered_map<std::string, uint64_t> ue_state_version;
   // Last written hash values for task and ue context
   std::size_t task_state_hash;
-  std::size_t ue_state_hash;
+  std::unordered_map<std::string, std::size_t> ue_state_hash;
 
  protected:
   std::string table_key;

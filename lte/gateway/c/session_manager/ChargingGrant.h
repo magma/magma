@@ -12,10 +12,10 @@
  */
 #pragma once
 
-#include "ServiceAction.h"
-#include "StoredState.h"
-#include "SessionCredit.h"
 #include "DiameterCodes.h"
+#include "ServiceAction.h"
+#include "SessionCredit.h"
+#include "StoredState.h"
 
 namespace magma {
 
@@ -90,7 +90,7 @@ struct ChargingGrant {
   // usage, otherwise we only include unreported usage up to the allocated
   // amount.
   CreditUsage get_credit_usage(
-      CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria& uc,
+      CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria* uc,
       bool is_terminate);
 
   // get_requested_units returns total, tx and rx needed to cover one worth of

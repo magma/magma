@@ -34,7 +34,6 @@ echo "- Check if both interfaces are named eth0 and eth1"
 INTERFACES=$(ip -br a)
 if [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $INTERFACES == *'eth1'* ]] || ! grep -q 'GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"' /etc/default/grub; then
   echo "Interfaces will be renamed to eth0 and eth1"
-  echo "eth0 will be set to dhcp and eth1 10.0.2.1"
-else
-  echo "eth0 will be set to dhcp and eth1 10.0.2.1"
+
+echo "Interface config will be moved from netplan to ifupdown config "
 fi

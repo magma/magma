@@ -33,7 +33,7 @@ def main():
     service = MagmaService('subscriberdb', mconfigs_pb2.SubscriberDB())
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
     # Initialize a store to keep all subscriber data.
     store = SqliteStore(

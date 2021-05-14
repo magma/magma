@@ -12,14 +12,15 @@
  */
 #pragma once
 #include <grpc++/grpc++.h>
-#include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/abort_session.grpc.pb.h>
+#include <lte/protos/session_manager.grpc.pb.h>
+
+#include <memory>
+#include <utility>
 
 #include "LocalSessionManagerHandler.h"
 #include "SessionProxyResponderHandler.h"
 #include "SetMessageManagerHandler.h"
-
-#include <lte/protos/abort_session.grpc.pb.h>
 
 using grpc::ServerCompletionQueue;
 using grpc::ServerContext;

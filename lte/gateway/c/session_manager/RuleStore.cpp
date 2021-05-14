@@ -12,6 +12,10 @@
  */
 #include <glog/logging.h>
 
+#include <memory>
+#include <string>
+#include <vector>
+
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
 
