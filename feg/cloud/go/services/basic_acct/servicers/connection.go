@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/magma/augmented-networks/accounting/protos"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/backoff"
 	"google.golang.org/grpc/codes"
@@ -28,9 +29,6 @@ import (
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/keepalive"
 	"google.golang.org/grpc/status"
-
-	//To be switched to: "github.com/magma/augmented-networks/accounting/protos"
-	"magma/feg/cloud/go/services/basic_acct/tests/protos"
 )
 
 const (
