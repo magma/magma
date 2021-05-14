@@ -38,6 +38,8 @@ lte/gateway/Vagrantfile @magma/approvers-ci
 
 **/*.pb.go @magma/repo-magma-maintain
 **/*_swaggergen.go @magma/repo-magma-maintain
+**/go.mod @magma/repo-magma-maintain
+**/go.sum @magma/repo-magma-maintain
 
 # XWF Magma integrations
 xwf/ @magma/approvers-xwf
