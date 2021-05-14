@@ -987,7 +987,7 @@ jobs:
       - run:
           command: |
             cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
-            ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=publish-amis-to-marketplace-agw" -e "dirLocalInventory=~/magma-experimental/files" --tags createNet,createGw
+            ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=devopsAgw" -e "dirLocalInventory=~/magma-experimental/files" --tags createNet,createGw
             ansible-playbook ami-configure.yaml -i "~/magma-experimental/files/common_instance_aws_ec2.yaml" -e "dirLocalInventory=~/magma-experimental/files" -e "aminode=tag_Name_buildAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
             ansible-playbook ami-init.yaml -e "dirLocalInventory=~/magma-experimental/files" -e "devOpsAmi=agw${CIRCLE_BUILD_NUM}" 
       - magma_slack_notify
