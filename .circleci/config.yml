@@ -962,10 +962,10 @@ jobs:
       image: ubuntu-2004:202010-01
     steps:
       - checkout
-      - python/set_version
       - run:
           name: Setup Creds and session
           command: |
+            python3 --version
             pip3 install wheel 
             pip3 install ansible 
             pip3 install awscli 
