@@ -961,7 +961,10 @@ jobs:
       - python/set_version
       - run:
           command: |
-            pip3 install wheel ansible awscli boto3
+            pip3 install wheel 
+            pip3 install ansible 
+            pip3 install awscli 
+            pip3 install boto3
             echo export AWS_DEFAULT_REGION="us-west-1" >> $BASH_ENV
             echo export AWS_ACCESS_KEY_ID="$(printenv AWS_FB_CRED)" >> $BASH_ENV
             echo export AWS_SECRET_ACCESS_KEY="$(printenv AWS_FB_SECRET)" >> $BASH_ENV
@@ -970,8 +973,10 @@ jobs:
             cd ${MAGMA_ROOT}/experimental/cloudstrapper/playbooks
             cp -r * ~/magma-experimental
             cp ~/magma-experimental/roles/vars/secrets.yaml ~/magma-experimental/files
-            sed -i -e "s/AWS_ACCESS_KEY_ID/${AWS_FB_CRED}/g" ~/magma-experimental/files/secrets.yaml
-            sed -i -e "s@AWS_SECRET_ACCESS_KEY@${AWS_FB_SECRET}@g" ~/magma-experimental/files/secrets.yaml
+            sed -i -e "s@awsAccessKey:@& ${AWS_FB_CRED}@1"  $VARS_DIR/secrets.yaml
+            sed -i -e "s@awsSecretKey:@& ${AWS_FB_SECRET}@1"  $VARS_DIR/secrets.yaml
+            #sed -i -e "s/AWS_ACCESS_KEY_ID/${AWS_FB_CRED}/g" ~/magma-experimental/files/secrets.yaml
+            #sed -i -e "s@AWS_SECRET_ACCESS_KEY@${AWS_FB_SECRET}@g" ~/magma-experimental/files/secrets.yaml
             sed -i -e "s@imgCloudstrapperBase@CloudStrapper${CIRCLE_BUILD_NUM}@g" ~/magma-experimental/roles/vars/defaults.yaml 
             cp ~/magma-experimental/ansible.cfg ~/.ansible.cfg
             aws s3 cp s3://cloudstrapper-ec2-pems/mpboot101.pem ~/magma-experimental/files/
