@@ -350,6 +350,46 @@
 </ul></li>
 <li>We do <em>not</em> recommend other formatters such as <a href="https://black.readthedocs.io/en/stable/installation_and_usage.html">black</a>, as it diverges from pep8 on basic things like line length, etc.</li>
 </ul>
+<h3><a class="anchor" aria-hidden="true" id="c"></a><a href="#c" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>C++</h3>
+<p>The <a href="https://google.github.io/styleguide/cppguide.html">Google C++ Style Guide</a> is authoritative.</p>
+<p><strong>Documentation</strong></p>
+<ul>
+<li>Always document your functions and classes in the header files over source files</li>
+<li>Use Doxygen style documentation for functions
+<ul>
+<li>For VSCode users, the <a href="https://marketplace.visualstudio.com/items?itemName=cschlosser.doxdocgen">doxygen documentation generator plugin</a> is recommended</li>
+</ul></li>
+</ul>
+<p><strong>Types</strong></p>
+<ul>
+<li>Be mindful when choosing input / output types when writing new functions
+<ul>
+<li>Opt for return values over output parameters</li>
+<li>Non-optional input parameters should be values or const references</li>
+<li>Use non-const pointers to represent optional outputs and optional input/output parameters</li>
+</ul></li>
+</ul>
+<p><strong>Headers</strong></p>
+<ul>
+<li>Always include what you use
+<ul>
+<li><a href="https://github.com/cpplint/cpplint">cpplint</a> has include-what-you-use warnings</li>
+</ul></li>
+</ul>
+<p><strong>Linter</strong></p>
+<ul>
+<li>We recommend Google's <a href="https://github.com/cpplint/cpplint">cpplint</a> to lint your changes locally
+<ul>
+<li>For VSCode users, the <a href="https://marketplace.visualstudio.com/items?itemName=mine.cpplint">cpplint plugin</a> is recommended</li>
+</ul></li>
+<li>We also have a <a href="https://github.com/reviewdog/reviewdog">Reviewdog</a> annotatoer that runs <a href="https://github.com/cpplint/cpplint">cpplint</a> to aid the code review process</li>
+</ul>
+<p><strong>Logging</strong></p>
+<ul>
+<li>For non-OAI C++ services, use the <code>MLOG</code> macros defined in <code>orc8r/gateway/c/common/logging/magma_logging.h</code></li>
+<li>For OAI, use the <code>OAILOG_*</code> macros defined in <code>lte/gateway/c/oai/common/log/h</code></li>
+<li>Refer to the Go logging section for deciding between log levels</li>
+</ul>
 <h3><a class="anchor" aria-hidden="true" id="shell"></a><a href="#shell" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Shell</h3>
 <ul>
 <li>Shell script names should be suffixed with the proper file extension
@@ -405,7 +445,7 @@
 <ul>
 <li>Consolidate related functionality into a single CLI</li>
 </ul>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/contributing/contribute_workflow"><span class="arrow-prev">← </span><span>Development Workflow</span></a><a class="docs-next button" href="/magma/docs/next/contributing/contribute_ci_checks"><span>Continuous Integration Checks</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#general">General</a><ul class="toc-headings"><li><a href="#leave-it-better-than-you-found-it">Leave it better than you found it</a></li><li><a href="#add-tests-for-your-changes">Add tests for your changes</a></li><li><a href="#separate-cleanup-prs-from-functional-changes">Separate cleanup PRs from functional changes</a></li><li><a href="#scope-component-responsibilities">Scope component responsibilities</a></li><li><a href="#prefer-immutability-and-idempotency">Prefer immutability and idempotency</a></li><li><a href="#prefer-composition-over-inheritance">Prefer composition over inheritance</a></li><li><a href="#use-simple-constructors">Use simple constructors</a></li><li><a href="#comment-with-why-not-what">Comment with why, not what</a></li><li><a href="#follow-style-conventions">Follow style conventions</a></li></ul></li><li><a href="#documentation">Documentation</a><ul class="toc-headings"><li><a href="#all-documentation">All documentation</a></li><li><a href="#markdown">Markdown</a></li></ul></li><li><a href="#languages">Languages</a><ul class="toc-headings"><li><a href="#go">Go</a></li><li><a href="#python">Python</a></li><li><a href="#shell">Shell</a></li></ul></li><li><a href="#tools">Tools</a><ul class="toc-headings"><li><a href="#grpc">gRPC</a></li><li><a href="#swagger">Swagger</a></li><li><a href="#yaml">YAML</a></li><li><a href="#clis">CLIs</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/contributing/contribute_workflow"><span class="arrow-prev">← </span><span>Development Workflow</span></a><a class="docs-next button" href="/magma/docs/next/contributing/contribute_ci_checks"><span>Continuous Integration Checks</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#general">General</a><ul class="toc-headings"><li><a href="#leave-it-better-than-you-found-it">Leave it better than you found it</a></li><li><a href="#add-tests-for-your-changes">Add tests for your changes</a></li><li><a href="#separate-cleanup-prs-from-functional-changes">Separate cleanup PRs from functional changes</a></li><li><a href="#scope-component-responsibilities">Scope component responsibilities</a></li><li><a href="#prefer-immutability-and-idempotency">Prefer immutability and idempotency</a></li><li><a href="#prefer-composition-over-inheritance">Prefer composition over inheritance</a></li><li><a href="#use-simple-constructors">Use simple constructors</a></li><li><a href="#comment-with-why-not-what">Comment with why, not what</a></li><li><a href="#follow-style-conventions">Follow style conventions</a></li></ul></li><li><a href="#documentation">Documentation</a><ul class="toc-headings"><li><a href="#all-documentation">All documentation</a></li><li><a href="#markdown">Markdown</a></li></ul></li><li><a href="#languages">Languages</a><ul class="toc-headings"><li><a href="#go">Go</a></li><li><a href="#python">Python</a></li><li><a href="#c">C++</a></li><li><a href="#shell">Shell</a></li></ul></li><li><a href="#tools">Tools</a><ul class="toc-headings"><li><a href="#grpc">gRPC</a></li><li><a href="#swagger">Swagger</a></li><li><a href="#yaml">YAML</a></li><li><a href="#clis">CLIs</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
