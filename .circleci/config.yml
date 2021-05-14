@@ -7,6 +7,10 @@ aliases:
     filters:
       branches:
         only: master
+  - &only_release
+    filters:
+      branches:
+        only: v*
   - &master_and_develop
     filters:
       branches:
@@ -1283,7 +1287,7 @@ jobs:
       - magma_slack_notify
 
 workflows:
-  version: 2
+  version: 2.1
 
   cloud:
      jobs:
@@ -1323,30 +1327,34 @@ workflows:
   release:
     jobs:
       - release-hold:
-          <<: only_release
+          <<: *only_release
           type: approval
       - lte-agw-deploy:
-          <<: only_release
+          <<: *only_release
+          requires:
+            - release-hold
+      - lte-agw-aws:
+          <<: *only_release
           requires:
             - release-hold
       - cwag-deploy:
-          <<: only_release
+          <<: *only_release
           requires:
             - release-hold
       - cwf-operator-build:
-          <<: only_release
+          <<: *only_release
           requires:
             - release-hold
       - feg-build:
-          <<: only_release
+          <<: *only_release
           requires:
             - release-hold
       - orc8r-build:
-          <<: only_release
+          <<: *only_release
           requires:
             - release-hold
       - nms-build:
-          <<: only_release
+          <<: *only_release
           requires:
             - release-hold
 
