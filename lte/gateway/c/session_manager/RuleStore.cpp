@@ -51,28 +51,28 @@ void PoliciesByKeyMap<KeyType, hash, equal>::remove(
 
 template<typename KeyType, typename hash, typename equal>
 bool PoliciesByKeyMap<KeyType, hash, equal>::get_rule_ids_for_key(
-    const KeyType& key, std::vector<std::string>& rules_out) {
+    const KeyType& key, std::vector<std::string>* rules_out) {
   auto iter = rules_by_key_.find(key);
   if (iter == rules_by_key_.end()) {
     return false;
   }
 
   for (const auto& rule : iter->second) {
-    rules_out.push_back(rule->id());
+    rules_out->push_back(rule->id());
   }
   return true;
 }
 
 template<typename KeyType, typename hash, typename equal>
 bool PoliciesByKeyMap<KeyType, hash, equal>::get_rule_definitions_for_key(
-    const KeyType& key, std::vector<PolicyRule>& rules_out) {
+    const KeyType& key, std::vector<PolicyRule>* rules_out) {
   auto iter = rules_by_key_.find(key);
   if (iter == rules_by_key_.end()) {
     return false;
   }
 
   for (const auto& rule : iter->second) {
-    rules_out.push_back(*rule);
+    rules_out->push_back(*rule);
   }
   return true;
 }
@@ -143,14 +143,14 @@ bool PolicyRuleBiMap::get_rule(
 
 bool PolicyRuleBiMap::get_rules_by_ids(
     const std::vector<std::string>& rule_ids,
-    std::vector<PolicyRule>& rules_out) {
+    std::vector<PolicyRule>* rules_out) {
   std::lock_guard<std::mutex> lock(map_mutex_);
   for (const std::string rule_id : rule_ids) {
     auto it = rules_by_rule_id_.find(rule_id);
     if (it == rules_by_rule_id_.end()) {
       return false;
     }
-    rules_out.push_back(*it->second);
+    rules_out->push_back(*it->second);
   }
   return true;
 }
@@ -209,32 +209,16 @@ bool PolicyRuleBiMap::get_monitoring_key_for_rule_id(
   return true;
 }
 
-bool PolicyRuleBiMap::get_rule_ids_for_charging_key(
-    const CreditKey& charging_key, std::vector<std::string>& rules_out) {
-  std::lock_guard<std::mutex> lock(map_mutex_);
-  bool success =
-      rules_by_charging_key_.get_rule_ids_for_key(charging_key, rules_out);
-  return success;
-}
-
 bool PolicyRuleBiMap::get_rule_definitions_for_charging_key(
-    const CreditKey& charging_key, std::vector<PolicyRule>& rules_out) {
+    const CreditKey& charging_key, std::vector<PolicyRule>* rules_out) {
   std::lock_guard<std::mutex> lock(map_mutex_);
   bool success = rules_by_charging_key_.get_rule_definitions_for_key(
       charging_key, rules_out);
   return success;
 }
 
-bool PolicyRuleBiMap::get_rule_ids_for_monitoring_key(
-    const std::string& monitoring_key, std::vector<std::string>& rules_out) {
-  std::lock_guard<std::mutex> lock(map_mutex_);
-  bool success =
-      rules_by_monitoring_key_.get_rule_ids_for_key(monitoring_key, rules_out);
-  return success;
-}
-
 bool PolicyRuleBiMap::get_rule_definitions_for_monitoring_key(
-    const std::string& monitoring_key, std::vector<PolicyRule>& rules_out) {
+    const std::string& monitoring_key, std::vector<PolicyRule>* rules_out) {
   std::lock_guard<std::mutex> lock(map_mutex_);
   bool success = rules_by_monitoring_key_.get_rule_definitions_for_key(
       monitoring_key, rules_out);
@@ -246,18 +230,18 @@ uint32_t PolicyRuleBiMap::monitored_rules_count() {
   return rules_by_monitoring_key_.policy_count();
 }
 
-bool PolicyRuleBiMap::get_rule_ids(std::vector<std::string>& rules_ids_out) {
+bool PolicyRuleBiMap::get_rule_ids(std::vector<std::string>* rules_ids_out) {
   std::lock_guard<std::mutex> lock(map_mutex_);
   for (auto kv : rules_by_rule_id_) {
-    rules_ids_out.push_back(kv.first);
+    rules_ids_out->push_back(kv.first);
   }
   return true;
 }
 
-bool PolicyRuleBiMap::get_rules(std::vector<PolicyRule>& rules_out) {
+bool PolicyRuleBiMap::get_rules(std::vector<PolicyRule>* rules_out) {
   std::lock_guard<std::mutex> lock(map_mutex_);
   for (auto kv : rules_by_rule_id_) {
-    rules_out.push_back(*kv.second);
+    rules_out->push_back(*kv.second);
   }
   return true;
 }

@@ -30,7 +30,7 @@ class MeteringReporter {
    */
   void report_usage(
       const std::string& imsi, const std::string& session_id,
-      SessionStateUpdateCriteria& update_criteria);
+      const SessionStateUpdateCriteria& session_uc);
 
   /**
    * Reports the usage as described in TotalCreditUsage

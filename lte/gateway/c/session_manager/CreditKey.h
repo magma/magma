@@ -28,14 +28,14 @@ struct CreditKey {
   CreditKey(uint32_t rg) : rating_group(rg), service_identifier(0) {}
   CreditKey(uint32_t rg, uint32_t si)
       : rating_group(rg), service_identifier(si) {}
-  CreditKey(const PolicyRule* rule) { set(rule); }
-  CreditKey(const PolicyRule& rule) { set(&rule); }
-  CreditKey(const CreditUsage* usage) { set(usage); }
-  CreditKey(const CreditUsage& usage) { set(&usage); }
-  CreditKey(const CreditUpdateResponse* update) { set(update); }
-  CreditKey(const CreditUpdateResponse& update) { set(&update); }
-  CreditKey(const ChargingReAuthRequest* reauth) { set(reauth); }
-  CreditKey(const ChargingReAuthRequest& reauth) { set(&reauth); }
+  explicit CreditKey(const PolicyRule* rule) { set(rule); }
+  explicit CreditKey(const PolicyRule& rule) { set(&rule); }
+  explicit CreditKey(const CreditUsage* usage) { set(usage); }
+  explicit CreditKey(const CreditUsage& usage) { set(&usage); }
+  explicit CreditKey(const CreditUpdateResponse* update) { set(update); }
+  explicit CreditKey(const CreditUpdateResponse& update) { set(&update); }
+  explicit CreditKey(const ChargingReAuthRequest* reauth) { set(reauth); }
+  explicit CreditKey(const ChargingReAuthRequest& reauth) { set(&reauth); }
 
   CreditKey* set(const PolicyRule* rule) {
     if (rule != nullptr) {
@@ -110,12 +110,12 @@ inline size_t ccHash(const CreditKey& k) {
     res += std::hash<uint32_t>()(k.service_identifier);
   }
   return res;
-};
+}
 
 inline bool ccEqual(const CreditKey& l, const CreditKey& r) {
   return (l.rating_group == r.rating_group) &&
          ((!l.service_identifier) ||
           (l.service_identifier == r.service_identifier));
-};
+}
 
 }  // namespace magma

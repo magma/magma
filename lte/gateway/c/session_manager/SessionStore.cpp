@@ -59,8 +59,8 @@ void SessionStore::set_and_save_reporting_flag(
        update_session_request.updates()) {
     const std::string imsi       = credit_update.common_context().sid().id();
     const std::string session_id = credit_update.session_id();
-    const CreditKey& ckey        = credit_update.usage().charging_key();
-    const std::string mkey       = credit_update.usage().monitoring_key();
+    const CreditKey& ckey  = CreditKey(credit_update.usage().charging_key());
+    const std::string mkey = credit_update.usage().monitoring_key();
 
     SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
     auto session_it = find_session(session_map, criteria);

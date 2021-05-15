@@ -360,7 +360,8 @@ void AsyncPipelinedClient::deactivate_flows_for_rules(
   }
 }
 
-void AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
+void AsyncPipelinedClient::deactivate_flows(
+    const DeactivateFlowsRequest& request) {
   auto imsi = request.sid().id();
   deactivate_flows_rpc(
       request, [imsi](Status status, DeactivateFlowsResult resp) {

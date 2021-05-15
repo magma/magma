@@ -134,7 +134,7 @@ FinalActionInfo deserialize_stored_final_action_info(
   return stored;
 }
 
-std::string serialize_stored_charging_grant(StoredChargingGrant& stored) {
+std::string serialize_stored_charging_grant(const StoredChargingGrant& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
   marshaled["is_final"]    = stored.is_final;
   marshaled["final_action_info"] =
@@ -171,7 +171,7 @@ StoredChargingGrant deserialize_stored_charging_grant(
   return stored;
 }
 
-std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
+std::string serialize_stored_session_credit(StoredSessionCredit stored) {
   folly::dynamic marshaled       = folly::dynamic::object;
   marshaled["reporting"]         = stored.reporting;
   marshaled["credit_limit_type"] = static_cast<int>(stored.credit_limit_type);
@@ -225,7 +225,7 @@ StoredSessionCredit deserialize_stored_session_credit(
   return stored;
 }
 
-std::string serialize_stored_monitor(StoredMonitor& stored) {
+std::string serialize_stored_monitor(const StoredMonitor& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   marshaled["credit"] = serialize_stored_session_credit(stored.credit);
@@ -248,7 +248,7 @@ StoredMonitor deserialize_stored_monitor(const std::string& serialized) {
 }
 
 std::string serialize_stored_charging_credit_map(
-    StoredChargingCreditMap& stored) {
+    const StoredChargingCreditMap& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   folly::dynamic credit_keys = folly::dynamic::array;
@@ -272,7 +272,7 @@ std::string serialize_stored_charging_credit_map(
 }
 
 StoredChargingCreditMap deserialize_stored_charging_credit_map(
-    std::string& serialized) {
+    const std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
@@ -293,7 +293,7 @@ StoredChargingCreditMap deserialize_stored_charging_credit_map(
   return stored;
 }
 
-std::string serialize_stored_usage_monitor_map(StoredMonitorMap& stored) {
+std::string serialize_stored_usage_monitor_map(const StoredMonitorMap& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   folly::dynamic monitor_keys = folly::dynamic::array;
@@ -310,7 +310,8 @@ std::string serialize_stored_usage_monitor_map(StoredMonitorMap& stored) {
   return serialized;
 }
 
-StoredMonitorMap deserialize_stored_usage_monitor_map(std::string& serialized) {
+StoredMonitorMap deserialize_stored_usage_monitor_map(
+    const std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
   auto stored              = StoredMonitorMap{};
@@ -323,7 +324,8 @@ StoredMonitorMap deserialize_stored_usage_monitor_map(std::string& serialized) {
   return stored;
 }
 
-EventTriggerStatus deserialize_pending_event_triggers(std::string& serialized) {
+EventTriggerStatus deserialize_pending_event_triggers(
+    const std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
@@ -344,7 +346,7 @@ EventTriggerStatus deserialize_pending_event_triggers(std::string& serialized) {
 }
 
 std::string serialize_pending_event_triggers(
-    EventTriggerStatus event_triggers) {
+    const EventTriggerStatus event_triggers) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   folly::dynamic keys = folly::dynamic::array;
@@ -361,7 +363,7 @@ std::string serialize_pending_event_triggers(
   return serialized;
 }
 
-PolicyStatsMap deserialize_policy_stats_map(std::string& serialized) {
+PolicyStatsMap deserialize_policy_stats_map(const std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
@@ -378,7 +380,7 @@ PolicyStatsMap deserialize_policy_stats_map(std::string& serialized) {
   return stored;
 }
 
-std::string serialize_policy_stats_map(PolicyStatsMap stats_map) {
+std::string serialize_policy_stats_map(const PolicyStatsMap stats_map) {
   folly::dynamic marshaled = folly::dynamic::object;
 
   folly::dynamic keys = folly::dynamic::array;
@@ -400,7 +402,8 @@ std::string serialize_policy_stats_map(PolicyStatsMap stats_map) {
   return serialized;
 }
 
-BearerIDByPolicyID deserialize_bearer_id_by_policy(std::string& serialized) {
+BearerIDByPolicyID deserialize_bearer_id_by_policy(
+    const std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
@@ -420,7 +423,7 @@ BearerIDByPolicyID deserialize_bearer_id_by_policy(std::string& serialized) {
   return stored;
 }
 
-std::string serialize_bearer_id_by_policy(BearerIDByPolicyID bearer_map) {
+std::string serialize_bearer_id_by_policy(const BearerIDByPolicyID bearer_map) {
   folly::dynamic marshaled = folly::dynamic::array;
 
   for (auto& pair : bearer_map) {
@@ -438,7 +441,7 @@ std::string serialize_bearer_id_by_policy(BearerIDByPolicyID bearer_map) {
   return serialized;
 }
 
-std::string serialize_stored_session(StoredSessionState& stored) {
+std::string serialize_stored_session(const StoredSessionState& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
   marshaled["fsm_state"]   = static_cast<int>(stored.fsm_state);
   marshaled["config"]      = serialize_stored_session_config(stored.config);
@@ -499,7 +502,7 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   return serialized;
 }
 
-StoredSessionState deserialize_stored_session(std::string& serialized) {
+StoredSessionState deserialize_stored_session(const std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
@@ -581,22 +584,22 @@ RuleLifetime::RuleLifetime(const DynamicRuleInstall& rule_install) {
       TimeUtil::TimestampToSeconds(rule_install.deactivation_time()));
 }
 
-bool RuleLifetime::is_within_lifetime(std::time_t time) {
+bool RuleLifetime::is_within_lifetime(const std::time_t time) {
   auto past_activation_time = activation_time <= time;
   auto before_deactivation_time =
       (deactivation_time == 0) || (time < deactivation_time);
   return past_activation_time && before_deactivation_time;
 }
 
-bool RuleLifetime::exceeded_lifetime(std::time_t time) {
+bool RuleLifetime::exceeded_lifetime(const std::time_t time) {
   return deactivation_time != 0 && deactivation_time <= time;
 }
 
-bool RuleLifetime::before_lifetime(std::time_t time) {
+bool RuleLifetime::before_lifetime(const std::time_t time) {
   return time < activation_time;
 }
 
-bool RuleLifetime::should_schedule_deactivation(std::time_t time) {
+bool RuleLifetime::should_schedule_deactivation(const std::time_t time) {
   return deactivation_time != 0 && time <= deactivation_time;
 }
 

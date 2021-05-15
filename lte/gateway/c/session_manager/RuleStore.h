@@ -47,10 +47,10 @@ class PoliciesByKeyMap {
   uint32_t policy_count();
 
   bool get_rule_ids_for_key(
-      const KeyType& key, std::vector<std::string>& rules_out);
+      const KeyType& key, std::vector<std::string>* rules_out);
 
   bool get_rule_definitions_for_key(
-      const KeyType& key, std::vector<PolicyRule>& rules_out);
+      const KeyType& key, std::vector<PolicyRule>* rules_out);
 
  private:
   std::unordered_map<
@@ -80,7 +80,7 @@ class PolicyRuleBiMap {
 
   virtual bool get_rules_by_ids(
       const std::vector<std::string>& rule_ids,
-      std::vector<PolicyRule>& rules_out);
+      std::vector<PolicyRule>* rules_out);
 
   // Remove a rule from the store by ID. Returns true if the rule ID was found.
   // The removed rule will be copied into rule_out.
@@ -101,29 +101,20 @@ class PolicyRuleBiMap {
   /**
    * Get all the rules for a given key. Rule ids are copied into rules_out
    */
-  virtual bool get_rule_ids_for_charging_key(
-      const CreditKey& charging_key, std::vector<std::string>& rules_out);
-
-  virtual bool get_rule_ids_for_monitoring_key(
-      const std::string& monitoring_key, std::vector<std::string>& rules_out);
-
-  /**
-   * Get all the rules for a given key. Rule ids are copied into rules_out
-   */
   virtual bool get_rule_definitions_for_charging_key(
-      const CreditKey& charging_key, std::vector<PolicyRule>& rules_out);
+      const CreditKey& charging_key, std::vector<PolicyRule>* rules_out);
 
   virtual bool get_rule_definitions_for_monitoring_key(
-      const std::string& monitoring_key, std::vector<PolicyRule>& rules_out);
+      const std::string& monitoring_key, std::vector<PolicyRule>* rules_out);
 
   /**
    * Get the number of rules tracked by a monitoring key
    */
   virtual uint32_t monitored_rules_count();
 
-  virtual bool get_rule_ids(std::vector<std::string>& rules_ids_out);
+  virtual bool get_rule_ids(std::vector<std::string>* rules_ids_out);
 
-  virtual bool get_rules(std::vector<PolicyRule>& rules_out);
+  virtual bool get_rules(std::vector<PolicyRule>* rules_out);
 
  protected:
   // guards all three maps below

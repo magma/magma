@@ -30,7 +30,7 @@ RestartHandler::RestartHandler(
     std::shared_ptr<DirectorydClient> directoryd_client,
     std::shared_ptr<aaa::AsyncAAAClient> aaa_client,
     std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
-    SessionStore& session_store)
+    SessionStore* session_store)
     : directoryd_client_(directoryd_client),
       aaa_client_(aaa_client),
       enforcer_(enforcer),
@@ -55,7 +55,7 @@ void RestartHandler::cleanup_previous_sessions() {
 }
 
 void RestartHandler::setup_aaa_sessions() {
-  auto session_map = session_store_.read_all_sessions();
+  auto session_map = session_store_->read_all_sessions();
   aaa_client_->add_sessions(session_map);
 }
 

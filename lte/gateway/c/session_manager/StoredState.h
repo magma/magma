@@ -185,36 +185,38 @@ std::string serialize_stored_final_action_info(const FinalActionInfo& stored);
 FinalActionInfo deserialize_stored_final_action_info(
     const std::string& serialized);
 
-std::string serialize_stored_session_credit(StoredSessionCredit& stored);
+std::string serialize_stored_session_credit(StoredSessionCredit stored);
 
 StoredSessionCredit deserialize_stored_session_credit(
     const std::string& serialized);
 
-std::string serialize_stored_charging_grant(StoredChargingGrant& stored);
+std::string serialize_stored_charging_grant(const StoredChargingGrant& stored);
 
-std::string serialize_stored_monitor(StoredMonitor& stored);
+std::string serialize_stored_monitor(const StoredMonitor& stored);
 
 StoredMonitor deserialize_stored_monitor(const std::string& serialized);
 
 std::string serialize_stored_charging_credit_map(
-    StoredChargingCreditMap& stored);
+    const StoredChargingCreditMap& stored);
 
 StoredChargingCreditMap deserialize_stored_charging_credit_map(
-    std::string& serialized);
+    const std::string& serialized);
 
-std::string serialize_stored_usage_monitor_map(StoredMonitorMap& stored);
+std::string serialize_stored_usage_monitor_map(const StoredMonitorMap& stored);
 
-StoredMonitorMap deserialize_stored_usage_monitor_map(std::string& serialized);
+StoredMonitorMap deserialize_stored_usage_monitor_map(
+    const std::string& serialized);
 
-BearerIDByPolicyID deserialize_bearer_id_by_policy(std::string& serialized);
+BearerIDByPolicyID deserialize_bearer_id_by_policy(
+    const std::string& serialized);
 
-std::string serialize_bearer_id_by_policy(BearerIDByPolicyID bearer_map);
+std::string serialize_bearer_id_by_policy(const BearerIDByPolicyID bearer_map);
 
-std::string serialize_stored_session(StoredSessionState& stored);
+std::string serialize_stored_session(const StoredSessionState& stored);
 
-StoredSessionState deserialize_stored_session(std::string& serialized);
+StoredSessionState deserialize_stored_session(const std::string& serialized);
 
-std::string serialize_policy_stats_map(PolicyStatsMap stats_map);
+std::string serialize_policy_stats_map(const PolicyStatsMap stats_map);
 
-PolicyStatsMap deserialize_policy_stats_map(std::string& serialized);
+PolicyStatsMap deserialize_policy_stats_map(const std::string& serialized);
 }  // namespace magma

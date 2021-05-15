@@ -27,12 +27,3 @@ std::string SessionIDGenerator::gen_session_id(const std::string& imsi) {
   // imsi- + random 6 digit number
   return imsi + "-" + std::to_string(idist_(rgen_));
 }
-
-bool SessionIDGenerator::get_imsi_from_session_id(
-    const std::string& session_id, std::string& imsi_out) {
-  std::istringstream ss(session_id);
-  if (std::getline(ss, imsi_out, '-')) {
-    return true;
-  }
-  return false;
-}

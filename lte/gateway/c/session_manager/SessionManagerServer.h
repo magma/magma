@@ -47,7 +47,7 @@ namespace magma {
  */
 class AsyncService {
  public:
-  AsyncService(std::unique_ptr<ServerCompletionQueue> cq);
+  explicit AsyncService(std::unique_ptr<ServerCompletionQueue> cq);
   virtual ~AsyncService() = default;
 
   /**

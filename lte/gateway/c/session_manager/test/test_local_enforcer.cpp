@@ -154,7 +154,8 @@ class LocalEnforcerTest : public ::testing::Test {
     for (const auto& session : session_map.find(imsi)->second) {
       if (session->get_session_id() == session_id) {
         optional<FinalActionInfo> fai =
-            session->get_final_action_if_final_unit_state(charging_key);
+            session->get_final_action_if_final_unit_state(
+                CreditKey(charging_key));
         if (is_final) {
           EXPECT_TRUE(fai);
         } else {

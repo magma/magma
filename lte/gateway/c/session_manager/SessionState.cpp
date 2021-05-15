@@ -103,18 +103,18 @@ StoredSessionState SessionState::marshal() {
   }
 
   std::vector<PolicyRule> dynamic_rules;
-  dynamic_rules_.get_rules(dynamic_rules);
+  dynamic_rules_.get_rules(&dynamic_rules);
   marshaled.dynamic_rules = std::move(dynamic_rules);
 
   std::vector<PolicyRule> gy_dynamic_rules;
-  gy_dynamic_rules_.get_rules(gy_dynamic_rules);
+  gy_dynamic_rules_.get_rules(&gy_dynamic_rules);
   marshaled.gy_dynamic_rules = std::move(gy_dynamic_rules);
 
   for (auto& rule_id : scheduled_static_rules_) {
     marshaled.scheduled_static_rules.insert(rule_id);
   }
   std::vector<PolicyRule> scheduled_dynamic_rules;
-  scheduled_dynamic_rules_.get_rules(scheduled_dynamic_rules);
+  scheduled_dynamic_rules_.get_rules(&scheduled_dynamic_rules);
   marshaled.scheduled_dynamic_rules = std::move(scheduled_dynamic_rules);
 
   for (auto& it : rule_lifetimes_) {
@@ -581,7 +581,7 @@ void SessionState::apply_session_dynamic_rule_set(
         to_process, DYNAMIC, pending_activation, pending_bearer_setup);
   }
   std::vector<PolicyRule> active_dynamic_rules;
-  dynamic_rules_.get_rules(active_dynamic_rules);
+  dynamic_rules_.get_rules(&active_dynamic_rules);
   for (const auto& dynamic_rule : active_dynamic_rules) {
     if (dynamic_rules.find(dynamic_rule.id()) == dynamic_rules.end()) {
       MLOG(MINFO) << "Removing dynamic rule " << dynamic_rule.id() << " for "
@@ -773,8 +773,7 @@ TotalCreditUsage SessionState::get_total_credit_usage() {
   for (auto bimap : bimaps) {
     PolicyRuleBiMap& rules = bimap;
     std::vector<std::string> rule_ids{};
-    std::vector<std::string>& rule_ids_ptr = rule_ids;
-    rules.get_rule_ids(rule_ids_ptr);
+    rules.get_rule_ids(&rule_ids);
 
     for (auto rule_id : rule_ids) {
       CreditKey charging_key;
@@ -843,8 +842,8 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.ambr      = config_.get_apn_ambr();
 
   std::vector<PolicyRule> gx_dynamic_rules, gy_dynamic_rules;
-  dynamic_rules_.get_rules(gx_dynamic_rules);
-  gy_dynamic_rules_.get_rules(gy_dynamic_rules);
+  dynamic_rules_.get_rules(&gx_dynamic_rules);
+  gy_dynamic_rules_.get_rules(&gy_dynamic_rules);
 
   // Set versions
   for (const PolicyRule rule : gx_dynamic_rules) {
@@ -870,8 +869,8 @@ std::vector<PolicyRule> SessionState::get_all_active_policies() {
       policies.push_back(policy);
     }
   }
-  dynamic_rules_.get_rules(policies);
-  gy_dynamic_rules_.get_rules(policies);
+  dynamic_rules_.get_rules(&policies);
+  gy_dynamic_rules_.get_rules(&policies);
   return policies;
 }
 
@@ -879,11 +878,11 @@ void SessionState::remove_all_rules_for_termination(
     SessionStateUpdateCriteria& session_uc) {
   std::vector<PolicyRule> gx_dynamic_rules, gy_dynamic_rules,
       scheduled_dynamic_rules;
-  dynamic_rules_.get_rules(gx_dynamic_rules);
+  dynamic_rules_.get_rules(&gx_dynamic_rules);
   for (PolicyRule& policy : gx_dynamic_rules) {
     remove_dynamic_rule(policy.id(), nullptr, session_uc);
   }
-  gy_dynamic_rules_.get_rules(gy_dynamic_rules);
+  gy_dynamic_rules_.get_rules(&gy_dynamic_rules);
   for (PolicyRule& policy : gy_dynamic_rules) {
     remove_gy_rule(policy.id(), nullptr, session_uc);
   }
@@ -895,7 +894,7 @@ void SessionState::remove_all_rules_for_termination(
   for (const std::string& rule_id : scheduled_static_rules_) {
     deactivate_scheduled_static_rule(rule_id);
   }
-  scheduled_dynamic_rules_.get_rules(scheduled_dynamic_rules);
+  scheduled_dynamic_rules_.get_rules(&scheduled_dynamic_rules);
   for (PolicyRule& policy : scheduled_dynamic_rules) {
     remove_scheduled_dynamic_rule(policy.id(), nullptr, session_uc);
   }
@@ -1283,7 +1282,7 @@ void SessionState::sync_rules_to_time(
   }
   // Update active dynamic rules
   std::vector<std::string> dynamic_rule_ids;
-  dynamic_rules_.get_rule_ids(dynamic_rule_ids);
+  dynamic_rules_.get_rule_ids(&dynamic_rule_ids);
   for (const std::string& rule_id : dynamic_rule_ids) {
     if (should_rule_be_deactivated(rule_id, current_time)) {
       remove_dynamic_rule(rule_id, NULL, session_uc);
@@ -1291,7 +1290,7 @@ void SessionState::sync_rules_to_time(
   }
   // Update scheduled dynamic rules
   dynamic_rule_ids.clear();
-  scheduled_dynamic_rules_.get_rule_ids(dynamic_rule_ids);
+  scheduled_dynamic_rules_.get_rule_ids(&dynamic_rule_ids);
   for (const std::string& rule_id : dynamic_rule_ids) {
     if (should_rule_be_active(rule_id, current_time)) {
       PolicyRule dy_rule;
@@ -1469,7 +1468,7 @@ std::vector<PolicyRule> SessionState::get_all_final_unit_rules() {
       }
     }
   }
-  gy_dynamic_rules_.get_rules(rules);
+  gy_dynamic_rules_.get_rules(&rules);
   return rules;
 }
 
@@ -1589,7 +1588,7 @@ void SessionState::get_rules_per_credit_key(
     SessionStateUpdateCriteria* session_uc) {
   std::vector<PolicyRule> static_rules, dynamic_rules;
   static_rules_.get_rule_definitions_for_charging_key(
-      charging_key, static_rules);
+      charging_key, &static_rules);
   for (PolicyRule rule : static_rules) {
     // Since the static rule store is shared across sessions, we should check
     // that the rule is activated for the session
@@ -1600,7 +1599,7 @@ void SessionState::get_rules_per_credit_key(
     }
   }
   dynamic_rules_.get_rule_definitions_for_charging_key(
-      charging_key, dynamic_rules);
+      charging_key, &dynamic_rules);
   for (PolicyRule rule : dynamic_rules) {
     increment_rule_stats(rule.id(), *session_uc);
     to_process->push_back(make_rule_to_process(rule));
@@ -1843,8 +1842,8 @@ void SessionState::fill_service_action_for_activate(
     SessionStateUpdateCriteria& session_uc) {
   std::vector<PolicyRule> static_rules, dynamic_rules;
   fill_service_action_with_context(action_p, ACTIVATE_SERVICE, key);
-  static_rules_.get_rules_by_ids(active_static_rules_, static_rules);
-  dynamic_rules_.get_rule_definitions_for_charging_key(key, dynamic_rules);
+  static_rules_.get_rules_by_ids(active_static_rules_, &static_rules);
+  dynamic_rules_.get_rule_definitions_for_charging_key(key, &dynamic_rules);
 
   RulesToProcess* to_install = action_p->get_mutable_gx_rules_to_install();
   for (PolicyRule rule : static_rules) {

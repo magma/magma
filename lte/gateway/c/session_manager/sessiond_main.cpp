@@ -289,7 +289,7 @@ int main(int argc, char* argv[]) {
   // care about the return value of this thread.
   auto restart_handler = std::make_shared<magma::sessiond::RestartHandler>(
       directoryd_client, aaa_client, local_enforcer, reporter.get(),
-      *session_store);
+      session_store);
   std::thread restart_handler_thread([&]() {
     MLOG(MINFO) << "Started SessionD restart handler thread";
     bool is_stateless = config["support_stateless"].IsDefined() &&

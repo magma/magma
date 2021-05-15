@@ -249,7 +249,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const RulesToProcess to_process,
       const RequestOriginType_OriginType origin_type);
 
-  void deactivate_flows(DeactivateFlowsRequest& request);
+  void deactivate_flows(const DeactivateFlowsRequest& request);
 
   void activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,

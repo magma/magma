@@ -33,22 +33,22 @@ MeteringReporter::MeteringReporter() {}
 
 void MeteringReporter::report_usage(
     const std::string& imsi, const std::string& session_id,
-    SessionStateUpdateCriteria& update_criteria) {
+    const SessionStateUpdateCriteria& session_uc) {
   double total_tx = 0;
   double total_rx = 0;
 
   // Charging credit
-  for (const auto& it : update_criteria.charging_credit_map) {
+  for (const auto& it : session_uc.charging_credit_map) {
     auto credit_update = it.second;
-    total_tx += (double) credit_update.bucket_deltas[USED_TX];
-    total_rx += (double) credit_update.bucket_deltas[USED_RX];
+    total_tx += static_cast<double>(credit_update.bucket_deltas[USED_TX]);
+    total_rx += static_cast<double>(credit_update.bucket_deltas[USED_RX]);
   }
 
   // Monitoring credit
-  for (const auto& it : update_criteria.monitor_credit_map) {
+  for (const auto& it : session_uc.monitor_credit_map) {
     auto credit_update = it.second;
-    total_tx += (double) credit_update.bucket_deltas[USED_TX];
-    total_rx += (double) credit_update.bucket_deltas[USED_RX];
+    total_tx += static_cast<double>(credit_update.bucket_deltas[USED_TX]);
+    total_rx += static_cast<double>(credit_update.bucket_deltas[USED_RX]);
   }
 
   report_traffic(imsi, session_id, DIRECTION_UP, total_tx);

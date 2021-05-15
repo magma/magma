@@ -13,6 +13,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <experimental/optional>
@@ -39,7 +40,8 @@ enum ServiceActionType {
  */
 class ServiceAction {
  public:
-  ServiceAction(ServiceActionType action_type) : action_type_(action_type) {}
+  explicit ServiceAction(ServiceActionType action_type)
+      : action_type_(action_type) {}
 
   ServiceActionType get_type() const { return action_type_; }
 

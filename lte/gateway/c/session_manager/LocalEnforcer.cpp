@@ -190,7 +190,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       }
 
       std::vector<std::string> rule_ids;
-      session->get_dynamic_rules().get_rule_ids(rule_ids);
+      session->get_dynamic_rules().get_rule_ids(&rule_ids);
       for (std::string rule_id : rule_ids) {
         auto lifetime = session->get_rule_lifetime(rule_id);
         if (lifetime.deactivation_time > current_time) {
@@ -201,7 +201,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
         }
       }
       rule_ids.clear();
-      session->get_scheduled_dynamic_rules().get_rule_ids(rule_ids);
+      session->get_scheduled_dynamic_rules().get_rule_ids(&rule_ids);
       for (auto rule_id : rule_ids) {
         auto lifetime = session->get_rule_lifetime(rule_id);
         auto rule_install =
@@ -1214,7 +1214,7 @@ void LocalEnforcer::update_charging_credits(
       continue;
     }
 
-    const auto& credit_key(credit_update_resp);
+    const CreditKey& credit_key = CreditKey(credit_update_resp);
     // We need to retrieve restrict_rules and is_final_action_state
     // prior to receiving charging credit as they will be updated.
     optional<FinalActionInfo> final_action_info =

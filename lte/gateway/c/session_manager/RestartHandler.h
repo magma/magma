@@ -34,7 +34,7 @@ class RestartHandler {
       std::shared_ptr<DirectorydClient> directoryd_client,
       std::shared_ptr<aaa::AsyncAAAClient> aaa_client,
       std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
-      SessionStore& session_store);
+      SessionStore* session_store);
 
   /**
    * Cleanup previous sessions stored in directoryD
@@ -57,7 +57,7 @@ class RestartHandler {
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client_;
   std::shared_ptr<LocalEnforcer> enforcer_;
   SessionReporter* reporter_;
-  SessionStore& session_store_;
+  SessionStore* session_store_;
   std::mutex sessions_to_terminate_lock_;  // mutex to guard add/remove access
                                            // to sessions_to_terminate
   std::unordered_map<std::string, std::string> sessions_to_terminate_;

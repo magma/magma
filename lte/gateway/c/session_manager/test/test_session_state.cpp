@@ -38,11 +38,10 @@ TEST_F(SessionStateTest, test_session_rules) {
   EXPECT_EQ(2, session_state->total_monitored_rules_count());
 
   std::vector<std::string> rules_out{};
-  std::vector<std::string>& rules_out_ptr = rules_out;
 
-  session_state->get_dynamic_rules().get_rule_ids(rules_out_ptr);
-  EXPECT_EQ(rules_out_ptr.size(), 1);
-  EXPECT_EQ(rules_out_ptr[0], "rule1");
+  session_state->get_dynamic_rules().get_rule_ids(&rules_out);
+  EXPECT_EQ(rules_out.size(), 1);
+  EXPECT_EQ(rules_out[0], "rule1");
 
   EXPECT_EQ(session_state->is_static_rule_installed("rule2"), true);
   EXPECT_EQ(session_state->is_static_rule_installed("rule3"), true);
@@ -62,13 +61,13 @@ TEST_F(SessionStateTest, test_session_rules) {
 
   // basic sanity checks to see it's properly deleted
   rules_out = {};
-  session_state->get_dynamic_rules().get_rule_ids(rules_out_ptr);
-  EXPECT_EQ(rules_out_ptr.size(), 0);
+  session_state->get_dynamic_rules().get_rule_ids(&rules_out);
+  EXPECT_EQ(rules_out.size(), 0);
 
-  rules_out = {};
-  session_state->get_dynamic_rules().get_rule_ids_for_monitoring_key(
-      "m1", rules_out);
-  EXPECT_EQ(0, rules_out.size());
+  std::vector<PolicyRule> rule_defs_out = {};
+  session_state->get_dynamic_rules().get_rule_definitions_for_monitoring_key(
+      "m1", &rule_defs_out);
+  EXPECT_EQ(0, rule_defs_out.size());
 
   std::string mkey;
   // searching for non-existent rule should fail
@@ -648,11 +647,10 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
   EXPECT_EQ(1, version);
 
   std::vector<std::string> rules_out{};
-  std::vector<std::string>& rules_out_ptr = rules_out;
 
-  session_state->get_gy_dynamic_rules().get_rule_ids(rules_out_ptr);
-  EXPECT_EQ(rules_out_ptr.size(), 1);
-  EXPECT_EQ(rules_out_ptr[0], "redirect");
+  session_state->get_gy_dynamic_rules().get_rule_ids(&rules_out);
+  EXPECT_EQ(rules_out.size(), 1);
+  EXPECT_EQ(rules_out[0], "redirect");
 
   EXPECT_TRUE(session_state->is_gy_dynamic_rule_installed("redirect"));
   EXPECT_EQ(update_criteria.gy_dynamic_rules_to_install.size(), 1);
@@ -665,16 +663,16 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
 
   // basic sanity checks to see it's properly deleted
   rules_out = {};
-  session_state->get_gy_dynamic_rules().get_rule_ids(rules_out_ptr);
-  EXPECT_EQ(rules_out_ptr.size(), 0);
+  session_state->get_gy_dynamic_rules().get_rule_ids(&rules_out);
+  EXPECT_EQ(rules_out.size(), 0);
 
   EXPECT_FALSE(session_state->is_gy_dynamic_rule_installed("redirect"));
   EXPECT_EQ(update_criteria.gy_dynamic_rules_to_uninstall.size(), 1);
 
-  rules_out = {};
-  session_state->get_gy_dynamic_rules().get_rule_ids_for_monitoring_key(
-      "m1", rules_out);
-  EXPECT_EQ(0, rules_out.size());
+  std::vector<PolicyRule> rule_defs_out = {};
+  session_state->get_dynamic_rules().get_rule_definitions_for_monitoring_key(
+      "m1", &rule_defs_out);
+  EXPECT_EQ(0, rule_defs_out.size());
 
   std::string mkey;
   // searching for non-existent rule should fail

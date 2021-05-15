@@ -190,7 +190,7 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
 }
 
 std::string RedisStoreClient::serialize_session_vec(
-    SessionVector& session_vec) {
+    const SessionVector& session_vec) {
   folly::dynamic marshaled = folly::dynamic::array;
   for (auto& session_ptr : session_vec) {
     auto stored_session = session_ptr->marshal();

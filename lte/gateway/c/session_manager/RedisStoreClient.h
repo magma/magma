@@ -51,7 +51,7 @@ class RedisStoreClient final : public StoreClient {
 
   bool try_redis_connect();
 
-  bool is_ready() { return client_->is_connected(); };
+  bool is_ready() { return client_->is_connected(); }
 
   SessionMap read_sessions(std::set<std::string> subscriber_ids);
 
@@ -65,7 +65,7 @@ class RedisStoreClient final : public StoreClient {
   std::shared_ptr<StaticRuleStore> rule_store_;
 
  private:
-  std::string serialize_session_vec(SessionVector& session_vec);
+  std::string serialize_session_vec(const SessionVector& session_vec);
 
   SessionVector deserialize_session_vec(std::string serialized);
 };

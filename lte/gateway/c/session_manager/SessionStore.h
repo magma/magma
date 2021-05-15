@@ -96,7 +96,7 @@ class SessionStore {
    * @brief Return a boolean to indicate whether the storage client is ready to
    * accept requests
    */
-  bool is_ready() { return store_client_->is_ready(); };
+  bool is_ready() { return store_client_->is_ready(); }
 
   /**
    * Writes the session map directly to the store. Note that the existing map

@@ -159,10 +159,10 @@ struct RuleLifetime {
       : activation_time(activation), deactivation_time(deactivation) {}
   explicit RuleLifetime(const StaticRuleInstall& rule_install);
   explicit RuleLifetime(const DynamicRuleInstall& rule_install);
-  bool is_within_lifetime(std::time_t time);
-  bool exceeded_lifetime(std::time_t time);
-  bool before_lifetime(std::time_t time);
-  bool should_schedule_deactivation(std::time_t time);
+  bool is_within_lifetime(const std::time_t time);
+  bool exceeded_lifetime(const std::time_t time);
+  bool before_lifetime(const std::time_t time);
+  bool should_schedule_deactivation(const std::time_t time);
 };
 
 // QoS Management
