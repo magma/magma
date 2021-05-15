@@ -313,11 +313,10 @@ int s1ap_mme_itti_s1ap_path_switch_request(
 
 //------------------------------------------------------------------------------
 int s1ap_mme_itti_s1ap_handover_required(
-    const sctp_assoc_id_t assoc_id, uint32_t enb_id,
-    const S1ap_Cause_t const cause,
-    const S1ap_HandoverType_t const handover_type,
-    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    const bstring const src_tgt_container, imsi64_t imsi64) {
+    const sctp_assoc_id_t assoc_id, uint32_t enb_id, const S1ap_Cause_t cause,
+    const S1ap_HandoverType_t handover_type,
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id, const bstring src_tgt_container,
+    imsi64_t imsi64) {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUIRED);
   if (message_p == NULL) {
@@ -335,6 +334,65 @@ int s1ap_mme_itti_s1ap_handover_required(
       LOG_S1AP, imsi64,
       "sending Handover Required to MME_APP for mme_ue_s1ap_id %d\n",
       mme_ue_s1ap_id);
+
+  message_p->ittiMsgHeader.imsi = imsi64;
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
+int s1ap_mme_itti_s1ap_handover_request_ack(
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    const enb_ue_s1ap_id_t src_enb_ue_s1ap_id,
+    const enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id,
+    const S1ap_HandoverType_t handover_type,
+    const sctp_assoc_id_t source_assoc_id, const bstring tgt_src_container,
+    const uint32_t source_enb_id, const uint32_t target_enb_id,
+    imsi64_t imsi64) {
+  MessageDef* message_p = NULL;
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUEST_ACK);
+  if (message_p == NULL) {
+    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  S1AP_HANDOVER_REQUEST_ACK(message_p).mme_ue_s1ap_id     = mme_ue_s1ap_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).src_enb_ue_s1ap_id = src_enb_ue_s1ap_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).tgt_enb_ue_s1ap_id = tgt_enb_ue_s1ap_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).source_assoc_id    = source_assoc_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).source_enb_id      = source_enb_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).target_enb_id      = target_enb_id;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).handover_type      = handover_type;
+  S1AP_HANDOVER_REQUEST_ACK(message_p).tgt_src_container  = tgt_src_container;
+
+  OAILOG_DEBUG_UE(
+      LOG_S1AP, imsi64,
+      "sending Handover Request Ack to MME_APP for mme_ue_s1ap_id %d\n",
+      mme_ue_s1ap_id);
+
+  message_p->ittiMsgHeader.imsi = imsi64;
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
+
+int s1ap_mme_itti_s1ap_handover_notify(
+    const mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    const s1ap_handover_state_t handover_state,
+    const enb_ue_s1ap_id_t target_enb_ue_s1ap_id,
+    const sctp_assoc_id_t target_sctp_assoc_id, const ecgi_t ecgi,
+    imsi64_t imsi64) {
+  MessageDef* message_p = NULL;
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_NOTIFY);
+  if (message_p == NULL) {
+    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  S1AP_HANDOVER_NOTIFY(message_p).mme_ue_s1ap_id = mme_ue_s1ap_id;
+  S1AP_HANDOVER_NOTIFY(message_p).target_enb_id  = handover_state.target_enb_id;
+  S1AP_HANDOVER_NOTIFY(message_p).target_sctp_assoc_id  = target_sctp_assoc_id;
+  S1AP_HANDOVER_NOTIFY(message_p).ecgi                  = ecgi;
+  S1AP_HANDOVER_NOTIFY(message_p).target_enb_ue_s1ap_id = target_enb_ue_s1ap_id;
+  S1AP_HANDOVER_NOTIFY(message_p).e_rab_admitted_list =
+      handover_state.e_rab_admitted_list;
 
   message_p->ittiMsgHeader.imsi = imsi64;
   send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);

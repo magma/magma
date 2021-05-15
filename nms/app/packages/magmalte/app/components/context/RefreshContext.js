@@ -15,10 +15,7 @@
  */
 'use strict';
 import {FetchEnodebs, FetchGateways} from '../../state/lte/EquipmentState';
-import {
-  FetchSubscriberState,
-  FetchSubscribers,
-} from '../../state/lte/SubscriberState';
+import {FetchSubscriberState} from '../../state/lte/SubscriberState';
 import {useContext, useEffect, useRef, useState} from 'react';
 
 export const REFRESH_INTERVAL = 30000;
@@ -39,9 +36,7 @@ type refreshType = 'subscriber' | 'gateway' | 'enodeb';
 export function useRefreshingContext(props: Props) {
   const ctx = useContext(props.context);
   const [state, setState] = useState(
-    props.type === 'subscriber'
-      ? {state: ctx.state, sessionState: ctx.sessionState}
-      : ctx.state,
+    props.type === 'subscriber' ? {sessionState: ctx.sessionState} : ctx.state,
   );
 
   const [autoRefreshTime, setAutoRefreshTime] = useState(props.lastRefreshTime);
@@ -57,7 +52,6 @@ export function useRefreshingContext(props: Props) {
         if (props.type === 'subscriber') {
           return {
             sessionState: newState?.sessionState || {},
-            state: newState?.state || {},
           };
         } else {
           return newState;
@@ -71,11 +65,6 @@ export function useRefreshingContext(props: Props) {
     if (id !== null && id !== undefined) {
       if (props.type === 'subscriber') {
         newState = {
-          state: {
-            ...ctx.state,
-            // $FlowIgnore
-            [id]: state.state?.[id],
-          },
           // $FlowIgnore
           sessionState: Object.keys(state.sessionState || {}).length
             ? {
@@ -91,6 +80,10 @@ export function useRefreshingContext(props: Props) {
       } else {
         newState = {...ctx.state, [id]: state?.[id]};
       }
+    }
+    if (props.type === 'subscriber') {
+      // update subscriber session state
+      return ctx.setState(null, null, null, newState);
     }
     return ctx.setState(null, null, newState);
   }
@@ -145,11 +138,6 @@ type FetchProps = {
 async function fetchRefreshState(props: FetchProps) {
   const {type, networkId, id, enqueueSnackbar} = props;
   if (type === 'subscriber') {
-    const subscribers = await FetchSubscribers({
-      id: id,
-      networkId,
-      enqueueSnackbar,
-    });
     const sessions = await FetchSubscriberState({
       id: id,
       networkId,
@@ -158,10 +146,9 @@ async function fetchRefreshState(props: FetchProps) {
     if (id !== null && id !== undefined) {
       return {
         sessionState: {[id]: sessions || {}},
-        state: {[id]: subscribers || {}},
       };
     }
-    return {sessionState: sessions, state: subscribers};
+    return {sessionState: sessions};
   } else if (type === 'gateway') {
     const gateways = await FetchGateways({
       id: id,

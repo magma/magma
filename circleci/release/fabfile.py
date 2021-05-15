@@ -12,6 +12,7 @@ RELEASE_BRANCHES = [
     'v1.2',
     'v1.3',
     'v1.4',
+    'v1.5',
     'magma-5G',
 ]
 
@@ -64,6 +65,8 @@ def find_release_commits(repo_name: str = 'magma/magma',
     print('Checking out an ephemeral clean Magma copy in .gitclone...\n')
     local('rm -rf .gitclone')
     local('mkdir -p .gitclone/magma')
+    local('git config --global user.email "tim@magmacore.org"')
+    local('git config --global user.name "backport-bot"')
     local(f'git clone git@github.com:{repo_name} .gitclone/magma')
 
     for rel in RELEASE_BRANCHES:

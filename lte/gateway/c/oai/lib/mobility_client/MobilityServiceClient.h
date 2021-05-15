@@ -18,15 +18,14 @@
 
 #include <arpa/inet.h>
 #include <grpc++/grpc++.h>
-#include <cstdint>
-#include <memory>
-#include <functional>
-#include <string>
-#include <memory>
 
-#include "lte/protos/mobilityd.grpc.pb.h"
+#include <cstdint>
+#include <functional>
+#include <memory>
+#include <string>
 
 #include "GRPCReceiver.h"
+#include "lte/protos/mobilityd.grpc.pb.h"
 
 namespace grpc {
 class Channel;

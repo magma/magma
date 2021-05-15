@@ -123,7 +123,6 @@ int mme_app_send_s11_release_access_bearers_req(
   MessageDef* message_p = NULL;
   itti_s11_release_access_bearers_request_t* release_access_bearers_request_p =
       NULL;
-  int rc = RETURNok;
 
   if (ue_mm_context == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Invalid UE MM context received\n");
@@ -148,9 +147,20 @@ int mme_app_send_s11_release_access_bearers_req(
   release_access_bearers_request_p->originating_node = NODE_TYPE_MME;
 
   message_p->ittiMsgHeader.imsi = ue_mm_context->emm_context._imsi64;
-
-  rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  if (pdn_connection->route_s11_messages_to_s8_task) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+        "Send Release Access Bearer Req for teid to sgw_s8 task " TEID_FMT "\n",
+        ue_mm_context->mme_teid_s11);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+        "Send Release Access Bearer Req for teid to spgw task " TEID_FMT "\n",
+        ue_mm_context->mme_teid_s11);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  }
+  OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
 /****************************************************************************
@@ -361,19 +371,8 @@ int mme_app_send_s11_create_session_req(
         &ue_mm_context->emm_context.originating_tai,
         (struct sockaddr* const) & session_request_p->edns_peer_ip);
   }
-
-  session_request_p->serving_network.mcc[0] =
-      ue_mm_context->e_utran_cgi.plmn.mcc_digit1;
-  session_request_p->serving_network.mcc[1] =
-      ue_mm_context->e_utran_cgi.plmn.mcc_digit2;
-  session_request_p->serving_network.mcc[2] =
-      ue_mm_context->e_utran_cgi.plmn.mcc_digit3;
-  session_request_p->serving_network.mnc[0] =
-      ue_mm_context->e_utran_cgi.plmn.mnc_digit1;
-  session_request_p->serving_network.mnc[1] =
-      ue_mm_context->e_utran_cgi.plmn.mnc_digit2;
-  session_request_p->serving_network.mnc[2] =
-      ue_mm_context->e_utran_cgi.plmn.mnc_digit3;
+  COPY_PLMN_IN_ARRAY_FMT(
+      (session_request_p->serving_network), (ue_mm_context->e_utran_cgi.plmn));
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
   int mode =
       match_fed_mode_map((char*) session_request_p->imsi.digit, LOG_MME_APP);

@@ -12,17 +12,19 @@
  */
 #pragma once
 
+#include <folly/io/async/EventBase.h>
 #include <gmock/gmock.h>
 #include <grpc++/grpc++.h>
 #include <gtest/gtest.h>
-
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/pipelined.pb.h>
 #include <lte/protos/policydb.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <orc8r/protos/eventd.pb.h>
 
-#include <folly/io/async/EventBase.h>
+#include <memory>
+#include <string>
+#include <vector>
 
 #include "LocalSessionManagerHandler.h"
 #include "PipelinedClient.h"
@@ -113,7 +115,7 @@ class MockPipelinedClient : public PipelinedClient {
       deactivate_flows_for_rules_for_termination,
       void(
           const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr, const Teids teids,
+          const std::string& ipv6_addr, const std::vector<Teids>& teids,
           const RequestOriginType_OriginType origin_type));
   MOCK_METHOD8(
       activate_flows_for_rules,
@@ -269,7 +271,7 @@ class MockAAAClient : public aaa::AAAClient {
       terminate_session,
       bool(const std::string& radius_session_id, const std::string& imsi));
 
-  MOCK_METHOD1(add_sessions, bool(magma::lte::SessionMap& session_map));
+  MOCK_METHOD1(add_sessions, bool(const magma::lte::SessionMap& session_map));
 };
 
 class MockSpgwServiceClient : public SpgwServiceClient {

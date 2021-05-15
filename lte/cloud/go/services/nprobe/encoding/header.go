@@ -21,7 +21,7 @@ import (
 )
 
 var (
-	HeaderFixLen        int    = 40
+	HeaderFixLen        uint32 = 40
 	HeaderVersion       uint16 = 2
 	HeaderPduType       uint16 = 1  // X2 PDU
 	HeaderPayloadFormat uint16 = 14 // ETSI TS 133 108 [B.9] Defined Payload
@@ -115,10 +115,11 @@ type EpsIRIHeader struct {
 }
 
 // NewEpsIRIHeader creates and returns a new EpsIRIHeader
-func NewEpsIRIHeader(uuid uuid.UUID, corrID uint64, attrs []Attribute) EpsIRIHeader {
+func NewEpsIRIHeader(uuid uuid.UUID, corrID uint64, attrs []Attribute, attrs_len uint32) EpsIRIHeader {
 	return EpsIRIHeader{
 		Version:               HeaderVersion,
 		PduType:               HeaderPduType,
+		HeaderLength:          attrs_len + HeaderFixLen,
 		PayloadFormat:         HeaderPayloadFormat,
 		PayloadDirection:      PayloadDirectionUnkown,
 		XID:                   uuid,
@@ -150,7 +151,7 @@ func (h *EpsIRIHeader) marshalTo(b []byte) {
 
 // Unmarshal parses the BER decoded ASN.1 as defined in ETSI TS 103 221-2.
 func (h *EpsIRIHeader) Unmarshal(b []byte) error {
-	if len(b) < HeaderFixLen {
+	if len(b) < int(HeaderFixLen) {
 		return errors.New("invalid input size")
 	}
 

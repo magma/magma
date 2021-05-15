@@ -10,14 +10,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <gtest/gtest.h>
+
 #include <chrono>
 #include <thread>
 
-#include <gtest/gtest.h>
-
+#include "MagmaService.h"
 #include "MeteringReporter.h"
 #include "MetricsSingleton.h"
-#include "MagmaService.h"
 
 using magma::orc8r::MetricsContainer;
 using ::testing::Test;

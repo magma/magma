@@ -31,6 +31,8 @@ from lte.protos.pipelined_pb2 import (
     SubscriberQuotaUpdate,
     UEMacFlowRequest,
     UpdateSubscriberQuotaStateRequest,
+    VersionedPolicy,
+    VersionedPolicyID,
 )
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import (
@@ -48,14 +50,29 @@ from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.qos.common import QosManager
 from magma.pipelined.service_manager import Tables
-from magma.pipelined.tests.app.ng_set_session_msg import CreateSessionUtil
 from magma.subscriberdb.sid import SIDUtils
+from scripts.helpers.ng_set_session_msg import CreateSessionUtil
+from scripts.helpers.pg_set_session_msg import CreateMMESessionUtils
 from orc8r.protos.common_pb2 import Void
+
+UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
+                               'rule_id'])
+
+def _gen_ue_set(num_of_ues):
+    imsi = 123000000
+    ue_set = set()
+    for _ in range(0, num_of_ues):
+        imsi_str = "IMSI" + str(imsi)
+        ipv4_src = ".".join(str(random.randint(0, 255)) for _ in range(4))
+        ipv4_dst = ".".join(str(random.randint(0, 255)) for _ in range(4))
+        rule_id = "allow." + imsi_str
+        ue_set.add(UEInfo(imsi_str, ipv4_src, ipv4_dst, rule_id))
+        imsi = imsi + 1
+    return ue_set
 
 
 @grpc_wrapper
 def set_smf_session(client, args):
-
     cls_sess = CreateSessionUtil(args.subscriber_id, args.session_id, args.version)
 
     cls_sess.CreateSession(args.subscriber_id, args.pdr_state, args.in_teid, args.out_teid,
@@ -67,53 +84,56 @@ def set_smf_session(client, args):
     response = client.SetSMFSessions(cls_sess._set_session)
     print (response)
 
+
+@grpc_wrapper
+def set_mme_session(client, args):
+    cls_sess = CreateMMESessionUtils(args.imsi, args.priority, args.ue_ipv4_addr,
+                                     args.ue_ipv6_addr, args.enb_ip_addr, args.apn,
+                                     args.vlan, args.in_teid, args.out_teid,
+                                     args.ue_state, args.flow_dl)
+
+    print(cls_sess._set_pg_session)
+    response = client.UpdateUEState(cls_sess._set_pg_session)
+
 # --------------------------
 # Enforcement App
 # --------------------------
+
+@grpc_wrapper
+def deactivate_flows(client, args):
+    policies = [VersionedPolicyID(rule_id=rule_id, version=1) for rule_id
+                in args.rule_ids.split(',') if args.rule_ids]
+    request = DeactivateFlowsRequest(
+        sid=SIDUtils.to_pb(args.imsi),
+        ip_addr=args.ipv4,
+        policies=policies,
+        request_origin=RequestOriginType(type=RequestOriginType.GX))
+    client.DeactivateFlows(request)
+
 
 @grpc_wrapper
 def activate_flows(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         ip_addr=args.ipv4,
-        rule_ids=args.rule_ids.split(','),
+        policies=[VersionedPolicy(
+            rule=PolicyRule(
+                id=args.rule_id,
+                priority=args.priority,
+                hard_timeout=args.hard_timeout,
+                flow_list=[
+                    FlowDescription(match=FlowMatch(
+                        ip_dst=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
+                        direction=FlowMatch.UPLINK)),
+                    FlowDescription(match=FlowMatch(
+                        ip_src=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
+                        direction=FlowMatch.DOWNLINK)),
+                ],
+            ),
+            version=1)],
         request_origin=RequestOriginType(type=RequestOriginType.GX))
     response = client.ActivateFlows(request)
-    _print_rule_mod_results(response.static_rule_results)
-
-
-@grpc_wrapper
-def deactivate_flows(client, args):
-    request = DeactivateFlowsRequest(
-        sid=SIDUtils.to_pb(args.imsi),
-        ip_addr=args.ipv4,
-        rule_ids=args.rule_ids.split(',') if args.rule_ids else [],
-        request_origin=RequestOriginType(type=RequestOriginType.GX))
-    client.DeactivateFlows(request)
-
-
-@grpc_wrapper
-def activate_dynamic_rule(client, args):
-
-    request = ActivateFlowsRequest(
-        sid=SIDUtils.to_pb(args.imsi),
-        ip_addr=args.ipv4,
-        dynamic_rules=[PolicyRule(
-            id=args.rule_id,
-            priority=args.priority,
-            hard_timeout=args.hard_timeout,
-            flow_list=[
-                FlowDescription(match=FlowMatch(
-                    ip_dst=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
-                    direction=FlowMatch.UPLINK)),
-                FlowDescription(match=FlowMatch(
-                    ip_src=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
-                    direction=FlowMatch.DOWNLINK)),
-            ],
-        )],
-        request_origin=RequestOriginType(type=RequestOriginType.GX))
-    response = client.ActivateFlows(request)
-    _print_rule_mod_results(response.dynamic_rule_results)
+    _print_rule_mod_results(response.policy_results)
 
 
 @grpc_wrapper
@@ -121,27 +141,31 @@ def activate_gy_redirect(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         ip_addr=args.ipv4,
-        dynamic_rules=[PolicyRule(
-            id=args.rule_id,
-            priority=999,
-            flow_list=[],
-            redirect=RedirectInformation(
-                support=1,
-                address_type=2,
-                server_address=args.redirect_addr
-            )
-        )],
+        policies=[VersionedPolicy(
+            rule=PolicyRule(
+                id=args.rule_id,
+                priority=999,
+                flow_list=[],
+                redirect=RedirectInformation(
+                    support=1,
+                    address_type=2,
+                    server_address=args.redirect_addr
+                )
+            ),
+            version=1)],
         request_origin=RequestOriginType(type=RequestOriginType.GY))
     response = client.ActivateFlows(request)
-    _print_rule_mod_results(response.dynamic_rule_results)
+    _print_rule_mod_results(response.policy_results)
 
 
 @grpc_wrapper
 def deactivate_gy_flows(client, args):
+    policies = [VersionedPolicyID(rule_id=rule_id, version=1) for rule_id
+                in args.rule_ids.split(',') if args.rule_ids]
     request = DeactivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         ip_addr=args.ipv4,
-        rule_ids=args.rule_ids.split(',') if args.rule_ids else [],
+        policies=policies,
         request_origin=RequestOriginType(type=RequestOriginType.GY))
     client.DeactivateFlows(request)
 
@@ -169,8 +193,6 @@ def get_policy_usage(client, _):
 @grpc_wrapper
 def stress_test_grpc(client, args):
     print("WARNING: DO NOT USE ON PRODUCTION SETUPS")
-    UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
-                                   'rule_id'])
     delta_time = 1/args.attaches_per_sec
     print("Attach every ~{0} seconds".format(delta_time))
 
@@ -184,18 +206,6 @@ def stress_test_grpc(client, args):
             max_bandwidth_dl=1000000000,
         )
 
-    def _gen_ue_set(num_of_ues):
-        imsi = 123000000
-        ue_set = set()
-        for _ in range(0, num_of_ues):
-            imsi_str = "IMSI" + str(imsi)
-            ipv4_src = ".".join(str(random.randint(0, 255)) for _ in range(4))
-            ipv4_dst = ".".join(str(random.randint(0, 255)) for _ in range(4))
-            rule_id = "allow." + imsi_str
-            ue_set.add(UEInfo(imsi_str, ipv4_src, ipv4_dst, rule_id))
-            imsi = imsi + 1
-        return ue_set
-
     for i in range (0, args.test_iterations):
         print("Starting iteration {0} of attach/detach requests".format(i))
         ue_dict = _gen_ue_set(args.num_of_ues)
@@ -207,25 +217,28 @@ def stress_test_grpc(client, args):
             request = ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(ue.imsi_str),
                 ip_addr=ue.ipv4_src,
-                dynamic_rules=[PolicyRule(
-                    id=ue.rule_id,
-                    priority=10,
-                    flow_list=[
-                        FlowDescription(match=FlowMatch(
-                            ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
-                            direction=FlowMatch.UPLINK)),
-                        FlowDescription(match=FlowMatch(
-                            ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
-                            direction=FlowMatch.DOWNLINK)),
+                policies=[VersionedPolicy(
+                    rule=PolicyRule(
+                        id=ue.rule_id,
+                        priority=10,
+                        flow_list=[
+                            FlowDescription(match=FlowMatch(
+                                ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
+                                direction=FlowMatch.UPLINK)),
+                            FlowDescription(match=FlowMatch(
+                                ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
+                                direction=FlowMatch.DOWNLINK)),
+                        ],
+                    ),
+                    version=1)
                     ],
-                )],
                 request_origin=RequestOriginType(type=RequestOriginType.GX),
                 apn_ambr=apn_ambr,
             )
             response = client.ActivateFlows(request)
             if any(r.result != RuleModResult.SUCCESS for
-                   r in response.dynamic_rule_results):
-                _print_rule_mod_results(response.dynamic_rule_results)
+                   r in response.policy_results):
+                _print_rule_mod_results(response.policy_results)
 
             grpc_end_timestamp = datetime.now()
             call_duration = (grpc_end_timestamp - grpc_start_timestamp).total_seconds()
@@ -246,12 +259,16 @@ def stress_test_grpc(client, args):
             request = DeactivateFlowsRequest(
                 sid=SIDUtils.to_pb(ue.imsi_str),
                 ip_addr=ue.ipv4_src,
-                rule_ids=[ue.rule_id],
+                policies=[
+                    VersionedPolicyID(
+                        rule_id=ue.rule_id,
+                        version=1)
+                ],
                 request_origin=RequestOriginType(type=RequestOriginType.GX),
                 remove_default_drop_flows=True)
             response = client.DeactivateFlows(request)
             if response.result != DeactivateFlowsResult.SUCCESS:
-                _print_rule_mod_results(response.dynamic_rule_results)
+                _print_rule_mod_results(response.policy_results)
 
             grpc_end_timestamp = datetime.now()
             call_duration = (grpc_end_timestamp - grpc_start_timestamp).total_seconds()
@@ -297,6 +314,38 @@ def create_ng_services_parser(apps):
 
     subcmd.set_defaults(func=set_smf_session)
 
+def create_pg_services_parser(apps):
+    """
+    Creates the argparse subparser for the pg_services app
+    pg refers to services from MME to PIPELINED
+    """
+    app = apps.add_parser('pg_services')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    subcmd = subparsers.add_parser('set_mme_session',
+                                   help='MME set Session Emulator')
+    subcmd.add_argument('--imsi', help='Subscriber Identity', default='IMSI12345')
+    subcmd.add_argument('--priority', help='priority for rule',
+                        type=int, default=10)
+    subcmd.add_argument('--ue_ipv4_addr', help='UE IPv4 address ',
+                         default='192.168.128.11')
+    subcmd.add_argument('--ue_ipv6_addr', help='UE IPv6 address ',
+                         default='')
+    subcmd.add_argument('--enb_ip_addr', help='IP address of ENB Node',
+                         default='192.168.60.141')
+    subcmd.add_argument('--apn', help='APN for accessing net',
+                        default="magma.com")
+    subcmd.add_argument('--vlan', help='Vlan Configuration for out ports',
+                         type=int, default=0)
+    subcmd.add_argument('--in_teid', help='Match incoming teid from access',
+                         type=int, default=100)
+    subcmd.add_argument('--out_teid', help='Put outgoing teid towards access',
+                         type=int, default=200)
+    subcmd.add_argument('--ue_state', help='ADD/DEL/ADD_IDLE/DEL_IDLE/SUSPENDED/RESUME',
+                         default='ACTIVE')
+    subcmd.add_argument('--flow_dl', help='ENABLE/DISABLE flow dl', default='DISABLE')
+    subcmd.set_defaults(func=set_mme_session)
+
 def create_enforcement_parser(apps):
     """
     Creates the argparse subparser for the enforcement app
@@ -305,21 +354,8 @@ def create_enforcement_parser(apps):
     subparsers = app.add_subparsers(title='subcommands', dest='cmd')
 
     # Add subcommands
-    subcmd = subparsers.add_parser('activate_flows', help='Activate flows')
-    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
-    subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
-    subcmd.add_argument('--rule_ids',
-                        help='Comma separated rule ids', default='rule1,rule2')
-    subcmd.set_defaults(func=activate_flows)
-
-    subcmd = subparsers.add_parser('deactivate_flows', help='Deactivate flows')
-    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
-    subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
-    subcmd.add_argument('--rule_ids', help='Comma separated rule ids')
-    subcmd.set_defaults(func=deactivate_flows)
-
-    subcmd = subparsers.add_parser('activate_dynamic_rule',
-                                   help='Activate dynamic flows')
+    subcmd = subparsers.add_parser('activate_flows',
+                                   help='Activate flows')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
     subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
     subcmd.add_argument('--rule_id', help='rule id to add', default='rule1')
@@ -328,7 +364,14 @@ def create_enforcement_parser(apps):
                         type=int, default=0)
     subcmd.add_argument('--hard_timeout', help='hard timeout for rule',
                         type=int, default=0)
-    subcmd.set_defaults(func=activate_dynamic_rule)
+    subcmd.set_defaults(func=activate_flows)
+
+    subcmd = subparsers.add_parser('deactivate_flows', help='Deactivate flows')
+    subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
+    subcmd.add_argument('--rule_ids', help='Comma separated rule ids',
+                        default="")
+    subcmd.set_defaults(func=deactivate_flows)
 
     subcmd = subparsers.add_parser('activate_gy_redirect',
                                    help='Activate gy final action redirect')
@@ -343,7 +386,8 @@ def create_enforcement_parser(apps):
                                    help='Deactivate gy flows')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
     subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
-    subcmd.add_argument('--rule_ids', help='Comma separated rule ids')
+    subcmd.add_argument('--rule_ids', help='Comma separated rule ids',
+                        default="")
     subcmd.set_defaults(func=deactivate_gy_flows)
 
     subcmd = subparsers.add_parser('display_flows',
@@ -568,6 +612,7 @@ def create_parser():
         description='Management CLI for pipelined',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     apps = parser.add_subparsers(title='apps', dest='cmd')
+    create_pg_services_parser(apps)
     create_ng_services_parser(apps)
     create_enforcement_parser(apps)
     create_ue_mac_parser(apps)

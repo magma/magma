@@ -763,6 +763,11 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                 config_pP->served_tai.plmn_mnc[i];
             config_pP->served_tai.plmn_mnc[i] = swap16;
 
+            swap16 = config_pP->served_tai.plmn_mnc_len[i - 1];
+            config_pP->served_tai.plmn_mnc_len[i - 1] =
+                config_pP->served_tai.plmn_mnc_len[i];
+            config_pP->served_tai.plmn_mnc_len[i] = swap16;
+
             swap16                           = config_pP->served_tai.tac[i - 1];
             config_pP->served_tai.tac[i - 1] = config_pP->served_tai.tac[i];
             config_pP->served_tai.tac[i]     = swap16;

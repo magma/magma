@@ -112,7 +112,10 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 
 	// Check that enforcement flows were deleted for rule 2 and 3
 	tr.WaitForEnforcementStatsToSync()
@@ -181,8 +184,10 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// Check that all UE mac flows are deleted
 	tr.WaitForEnforcementStatsToSync()
 
@@ -268,8 +273,10 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// Generate more traffic
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -358,8 +365,10 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// Generate more traffic
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -423,8 +432,10 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// Generate more traffic
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)

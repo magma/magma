@@ -16,7 +16,7 @@ import os
 import subprocess  # noqa: S404 ignore security warning about subprocess
 from typing import List
 
-from git import Repo
+from git import Repo  # GitPython
 
 HOST_MAGMA_ROOT = '../../../'
 LINT_DOCKER_PATH = os.path.join(
@@ -67,7 +67,10 @@ def _run_add_trailing_comma(path: str):
     abs_path = os.path.join(HOST_MAGMA_ROOT, path)
     if os.path.isfile(abs_path):
         # TODO upgrade to --py36-plus eventually
-        _run_docker_cmd(['add-trailing-comma', '--py35-plus', path])
+        _run_docker_cmd([
+            'add-trailing-comma', '--py35-plus',
+            '--exit-zero-even-if-changed', path,
+        ])
 
 
 def _run_flake8(paths: List[str]):
@@ -76,9 +79,10 @@ def _run_flake8(paths: List[str]):
 
 
 def _run_docker_cmd(commands: List[str]):
-    volume_cmd = os.path.abspath(HOST_MAGMA_ROOT) + ':/code'
+    volume_cmd = ['-v', os.path.abspath(HOST_MAGMA_ROOT) + ':/code']
     docker_image = IMAGE_NAME + ':latest'
-    cmd = ['docker', 'run', '-it', '-v', volume_cmd, docker_image] + commands
+    cmd_prefix = 'docker run -it -u 0'.split(' ')
+    cmd = cmd_prefix + volume_cmd + [docker_image] + commands
     _run(cmd)
 
 
@@ -87,6 +91,7 @@ def _run(cmd: List[str]) -> None:
     try:
         subprocess.run(cmd, check=True)  # noqa: S603
     except subprocess.CalledProcessError as err:
+        print(err)
         exit(err.returncode)
 
 

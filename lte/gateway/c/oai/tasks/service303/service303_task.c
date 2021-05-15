@@ -21,13 +21,11 @@
 
 #include "log.h"
 #include "intertask_interface.h"
-#include "timer.h"
 #include "common_defs.h"
 #include "service303.h"
 #include "bstrlib.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-#include "timer_messages_types.h"
 #include "itti_free_defined_msg.h"
 
 static void service303_server_exit(void);
@@ -74,26 +72,15 @@ static void* service303_server_thread(__attribute__((unused)) void* args) {
   return NULL;
 }
 
+static int handle_timer(zloop_t* loop, int id, void* arg) {
+  service303_statistics_read();
+  return 0;
+}
+
 static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case TIMER_HAS_EXPIRED: {
-      /*
-       * Check statistic timer
-       */
-      if (!timer_exists(
-              received_message_p->ittiMsg.timer_has_expired.timer_id)) {
-        break;
-      }
-      if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-          service303_epc_stats_timer_id) {
-        service303_statistics_read();
-      }
-      timer_handle_expired(
-          received_message_p->ittiMsg.timer_has_expired.timer_id);
-      break;
-    }
     case APPLICATION_HEALTHY_MSG: {
       service303_set_application_health(APP_HEALTHY);
     } break;
@@ -133,20 +120,12 @@ static void* service303_thread(void* args) {
      */
 
     /*
-     * Check if this thread is started by MME service if so start a timer
-     * to trigger reading the mme stats so that it cen be sent to server
-     * for display
-     * Start periodic timer
+     * Start a periodic timer to trigger reading the mme stats so that it can be
+     * sent to server for display
      */
-    if (timer_setup(
-            EPC_STATS_TIMER_VALUE, 0, TASK_SERVICE303, INSTANCE_DEFAULT,
-            TIMER_PERIODIC, NULL, 0, &service303_epc_stats_timer_id) < 0) {
-      OAILOG_ALERT(
-          LOG_UTIL,
-          " TASK SERVICE303_MESSAGE for EPC: Periodic Stat Timer Start: "
-          "ERROR\n");
-      service303_epc_stats_timer_id = 0;
-    }
+    service303_epc_stats_timer_id = start_timer(
+        &service303_message_task_zmq_ctx, EPC_STATS_TIMER_MSEC,
+        TIMER_REPEAT_FOREVER, handle_timer, NULL);
   }
 
   bdestroy(pkg_name);
@@ -186,7 +165,7 @@ static void service303_server_exit(void) {
 }
 
 static void service303_message_exit(void) {
-  timer_remove(service303_epc_stats_timer_id, NULL);
+  stop_timer(&service303_message_task_zmq_ctx, service303_epc_stats_timer_id);
   destroy_task_context(&service303_message_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_SERVICE303 terminated\n");
   pthread_exit(NULL);

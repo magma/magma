@@ -249,7 +249,7 @@ func (tr *TestRunner) GenULTraffic(req *cwfprotos.GenTrafficRequest) (*cwfprotos
 // Remove subscribers, rules, flows, and monitors to clean up the state for
 // consecutive test runs
 func (tr *TestRunner) CleanUp() error {
-	for imsi, _ := range tr.imsis {
+	for imsi := range tr.imsis {
 		err := deleteSubscribersFromHSS(imsi)
 		if err != nil {
 			return err
@@ -460,7 +460,11 @@ func makeUE(imsi string, key []byte, opc []byte, seq uint64) *cwfprotos.UEConfig
 }
 
 func prependIMSIPrefix(imsi string) string {
-	return "IMSI" + imsi
+	if strings.HasPrefix(imsi, "IMSI") {
+		return imsi
+	} else {
+		return "IMSI" + imsi
+	}
 }
 
 // MakeSubcriber creates a new Subscriber using the given values.
@@ -483,7 +487,7 @@ func makeSubscriber(imsi string, key []byte, opc []byte, seq uint64) *lteprotos.
 			Msisdn:              defaultMSISDN,
 			Non_3GppIpAccess:    lteprotos.Non3GPPUserProfile_NON_3GPP_SUBSCRIPTION_ALLOWED,
 			Non_3GppIpAccessApn: lteprotos.Non3GPPUserProfile_NON_3GPP_APNS_ENABLE,
-			ApnConfig:           []*lteprotos.APNConfiguration{&lteprotos.APNConfiguration{}},
+			ApnConfig:           []*lteprotos.APNConfiguration{{}},
 		},
 	}
 }

@@ -50,6 +50,7 @@ async function createUser(userObject: UserObject) {
     password: passwordHash,
     role,
     networkIDs: [],
+    tabs: ['nms'],
     organization: org.name,
     readOnly: false,
   });

@@ -12,6 +12,8 @@
  */
 #pragma once
 
+#include <string>
+
 #include "StoredState.h"
 #include "SessionCredit.h"
 
@@ -38,7 +40,7 @@ class MeteringReporter {
    */
   void initialize_usage(
       const std::string& imsi, const std::string& session_id,
-      SessionCredit::TotalCreditUsage usage);
+      TotalCreditUsage usage);
 
  private:
   /**

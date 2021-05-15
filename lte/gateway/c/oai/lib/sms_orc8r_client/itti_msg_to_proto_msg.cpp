@@ -42,51 +42,6 @@ std::string int_to_hex_string(int input, int num_of_digit) {
   return stream.str();
 }
 
-static magma::mconfig::MME get_default_mconfig() {
-  magma::mconfig::MME mconfig;
-  mconfig.set_csfb_mnc(DEFAULT_CSFB_MNC);
-  mconfig.set_csfb_mcc(DEFAULT_CSFB_MCC);
-  mconfig.set_mme_code(DEFAULT_MME_CODE);
-  mconfig.set_mme_gid(DEFAULT_MME_GID);
-  return mconfig;
-}
-
-static magma::mconfig::MME load_mconfig() {
-  magma::mconfig::MME mconfig;
-  magma::MConfigLoader loader;
-  if (!loader.load_service_mconfig(MME_SERVICE, &mconfig)) {
-    std::cout << "[ERROR] Unable to load mconfig for mme, using default";
-    return get_default_mconfig();
-  }
-  return mconfig;
-}
-
-static std::string make_mme_name() {
-  auto mme_mconfig = load_mconfig();
-
-  std::string mnc = mme_mconfig.csfb_mnc();
-  std::string mcc = mme_mconfig.csfb_mcc();
-  if (mnc.length() == 2) {
-    mnc = "0" + mnc;
-  }
-  std::string mme_code =
-      int_to_hex_string(mme_mconfig.mme_code(), NUM_OF_MMEC_DIGITS);
-  std::string mme_gid =
-      int_to_hex_string(mme_mconfig.mme_gid(), NUM_OF_MMEGID_DIGITS);
-
-  std::string mme_name = ".mmec" + mme_code + ".mmegi" + mme_gid +
-                         ".mme.epc.mnc" + mnc + ".mcc" + mcc +
-                         ".3gppnetwork.org";
-
-  return mme_name;
-}
-
-static std::string get_mme_name() {
-  static std::string mme_name = make_mme_name();
-
-  return mme_name;
-}
-
 namespace magma {
 using namespace lte;
 

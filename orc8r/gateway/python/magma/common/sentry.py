@@ -18,13 +18,14 @@ import snowflake
 from magma.configuration.service_configs import get_service_config_value
 
 CONTROL_PROXY = 'control_proxy'
-SENTRY_URL = 'sentry_url'
+SENTRY_URL = 'sentry_url_python'
 SENTRY_SAMPLE_RATE = 'sentry_sample_rate'
 COMMIT_HASH = 'COMMIT_HASH'
 HWID = 'hwid'
+SERVICE_NAME = 'service_name'
 
 
-def sentry_init():
+def sentry_init(service_name: str):
     """Initialize connection and start piping errors to sentry.io."""
     sentry_url = get_service_config_value(
         CONTROL_PROXY,
@@ -45,3 +46,4 @@ def sentry_init():
         traces_sample_rate=sentry_sample_rate,
     )
     sentry_sdk.set_tag(HWID, snowflake.snowflake())
+    sentry_sdk.set_tag(SERVICE_NAME, service_name)

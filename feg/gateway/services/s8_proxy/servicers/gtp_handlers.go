@@ -21,15 +21,16 @@ import (
 )
 
 func addS8GtpHandlers(s8p *S8Proxy) {
+	// echo hanlders added by gtp_client. Use echoChannel for errors
 	s8p.gtpClient.AddHandlers(
 		map[uint8]gtpv2.HandlerFunc{
-			message.MsgTypeCreateSessionResponse: s8p.createSessionResponseHander(),
+			message.MsgTypeCreateSessionResponse: s8p.createSessionResponseHandler(),
 			message.MsgTypeDeleteSessionResponse: s8p.deleteSessionResponseHandler(),
-			message.MsgTypeEchoResponse:          s8p.echoResponseHandler(),
+			message.MsgTypeCreateBearerRequest:   s8p.createBearerRequestHandler(),
 		})
 }
 
-func (s *S8Proxy) createSessionResponseHander() gtpv2.HandlerFunc {
+func (s *S8Proxy) createSessionResponseHandler() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) (err error) {
 		csRes, err := parseCreateSessionResponse(msg)
 		return s.gtpClient.PassMessage(msg.TEID(), senderAddr, msg, csRes, err)
@@ -38,21 +39,14 @@ func (s *S8Proxy) createSessionResponseHander() gtpv2.HandlerFunc {
 
 func (s *S8Proxy) deleteSessionResponseHandler() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) error {
-		dsRes, err := parseDelteSessionResponse(msg)
+		dsRes, err := parseDeleteSessionResponse(msg)
 		return s.gtpClient.PassMessage(msg.TEID(), senderAddr, msg, dsRes, err)
 	}
 }
 
-// echoResponseHandler handles echo request received in S8_proxy. This is a special handler
-// that does not use gtpv2.PassMessageTo. It instead uses S8proxy echoChannel to pass the error if any
-func (s *S8Proxy) echoResponseHandler() gtpv2.HandlerFunc {
-	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) error {
-		if _, ok := msg.(*message.EchoResponse); !ok {
-			err := &gtpv2.UnexpectedTypeError{Msg: msg}
-			s.echoChannel <- err
-			return err
-		}
-		s.echoChannel <- nil
+// TODO: unimplemented createBearerRequestHandler
+func (s *S8Proxy) createBearerRequestHandler() gtpv2.HandlerFunc {
+	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) (err error) {
 		return nil
 	}
 }

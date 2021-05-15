@@ -37,20 +37,25 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
   // copy over mmeid2associd
   hashtable_rc_t ht_rc;
   mme_ue_s1ap_id_t mmeid;
-  sctp_assoc_id_t associd;
+  // Helper ptr so sctp_assoc_id can be casted from double ptr on
+  // hashtable_ts_get
+  void* sctp_id_ptr  = nullptr;
   auto mmeid2associd = proto->mutable_mmeid2associd();
 
   hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->mmeid2associd);
   if (!keys) {
     OAILOG_DEBUG(LOG_S1AP, "No keys in mmeid2associd hashtable");
   } else {
-    for (uint32_t i = 0; i < keys->num_keys; i++) {
+    for (int i = 0; i < keys->num_keys; i++) {
       mmeid = (mme_ue_s1ap_id_t) keys->keys[i];
       ht_rc = hashtable_ts_get(
-          &state->mmeid2associd, (hash_key_t) mmeid, (void**) &associd);
+          &state->mmeid2associd, (hash_key_t) mmeid, (void**) &sctp_id_ptr);
       AssertFatal(ht_rc == HASH_TABLE_OK, "mmeid not in mmeid2associd");
-
-      (*mmeid2associd)[mmeid] = associd;
+      if (sctp_id_ptr) {
+        sctp_assoc_id_t sctp_assoc_id =
+            (sctp_assoc_id_t)(uintptr_t) sctp_id_ptr;
+        (*mmeid2associd)[mmeid] = sctp_assoc_id;
+      }
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
@@ -154,6 +159,18 @@ void S1apStateConverter::ue_to_proto(
       ue->s1ap_ue_context_rel_timer.id);
   proto->mutable_s1ap_ue_context_rel_timer()->set_sec(
       ue->s1ap_ue_context_rel_timer.sec);
+  proto->mutable_s1ap_handover_state()->set_mme_ue_s1ap_id(
+      ue->s1ap_handover_state.mme_ue_s1ap_id);
+  proto->mutable_s1ap_handover_state()->set_source_enb_id(
+      ue->s1ap_handover_state.source_enb_id);
+  proto->mutable_s1ap_handover_state()->set_target_enb_id(
+      ue->s1ap_handover_state.target_enb_id);
+  proto->mutable_s1ap_handover_state()->set_target_enb_ue_s1ap_id(
+      ue->s1ap_handover_state.target_enb_ue_s1ap_id);
+  proto->mutable_s1ap_handover_state()->set_target_sctp_stream_recv(
+      ue->s1ap_handover_state.target_sctp_stream_recv);
+  proto->mutable_s1ap_handover_state()->set_target_sctp_stream_send(
+      ue->s1ap_handover_state.target_sctp_stream_send);
 }
 void S1apStateConverter::proto_to_ue(
     const oai::UeDescription& proto, ue_description_t* ue) {
@@ -167,6 +184,18 @@ void S1apStateConverter::proto_to_ue(
   ue->sctp_stream_send              = proto.sctp_stream_send();
   ue->s1ap_ue_context_rel_timer.id  = proto.s1ap_ue_context_rel_timer().id();
   ue->s1ap_ue_context_rel_timer.sec = proto.s1ap_ue_context_rel_timer().sec();
+  ue->s1ap_handover_state.mme_ue_s1ap_id =
+      proto.s1ap_handover_state().mme_ue_s1ap_id();
+  ue->s1ap_handover_state.source_enb_id =
+      proto.s1ap_handover_state().source_enb_id();
+  ue->s1ap_handover_state.target_enb_id =
+      proto.s1ap_handover_state().target_enb_id();
+  ue->s1ap_handover_state.target_enb_ue_s1ap_id =
+      proto.s1ap_handover_state().target_enb_ue_s1ap_id();
+  ue->s1ap_handover_state.target_sctp_stream_recv =
+      proto.s1ap_handover_state().target_sctp_stream_recv();
+  ue->s1ap_handover_state.target_sctp_stream_send =
+      proto.s1ap_handover_state().target_sctp_stream_send();
 
   ue->comp_s1ap_id =
       S1AP_GENERATE_COMP_S1AP_ID(ue->sctp_assoc_id, ue->enb_ue_s1ap_id);

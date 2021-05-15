@@ -23,7 +23,6 @@ import (
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
@@ -122,8 +121,12 @@ func TestOmnipresentRules(t *testing.T) {
 	assert.NotNil(t, omniRecord, fmt.Sprintf("No policy usage omniRecord for imsi: %v", imsi))
 	assert.NotNil(t, blockAllRecord, fmt.Sprintf("Block all record was not installed for imsi %v", imsi))
 
-	assert.True(t, omniRecord.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", omniRecord.RuleId))
-	assert.Equal(t, uint64(0x0), blockAllRecord.BytesTx)
+	if omniRecord != nil {
+		assert.True(t, omniRecord.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", omniRecord.RuleId))
+	}
+	if blockAllRecord != nil {
+		assert.Equal(t, uint64(0x0), blockAllRecord.BytesTx)
+	}
 
 	tr.AssertAllGyExpectationsMetNoError()
 	tr.AssertAllGxExpectationsMetNoError()
@@ -140,8 +143,10 @@ func TestOmnipresentRules(t *testing.T) {
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.Equal(t, int(raa.ResultCode), diameter.SuccessCode)
-
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
 	tr.AssertEventuallyAllRulesRemovedAfterDisconnect(imsi)

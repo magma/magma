@@ -1,0 +1,6 @@
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=10,tun_id=0x1,in_port=1 actions=mod_dl_src:02:00:00:00:00:01,mod_dl_dst:ff:ff:ff:ff:ff:ff,set_field:0x1->reg9,load:0x1388->OXM_OF_METADATA[],resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,tun_id=0x1,in_port=32768 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,tcp,in_port=LOCAL,nw_src=192.168.129.64,nw_dst=192.168.128.12,tp_src=5002,tp_dst=0 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=11,tcp,in_port=15577,nw_src=192.168.129.64,nw_dst=192.168.128.12,tp_src=5002,tp_dst=0 actions=resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=10,arp,in_port=LOCAL,arp_tpa=192.168.128.30 actions=load:0x1388->OXM_OF_METADATA[],resubmit(,ingress(main_table))
+ cookie=0x0, table=classifier(main_table), n_packets=0, n_bytes=0, priority=10,arp,in_port=15577,arp_tpa=192.168.128.30 actions=load:0x1388->OXM_OF_METADATA[],resubmit(,ingress(main_table))

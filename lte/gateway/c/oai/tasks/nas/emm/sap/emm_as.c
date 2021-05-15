@@ -453,6 +453,7 @@ static int emm_as_recv(
 
       rc = emm_recv_attach_complete(
           ue_id, &emm_msg->attach_complete, emm_cause, decode_status);
+      bdestroy((bstring)(emm_msg->attach_complete.esmmessagecontainer));
       break;
 
     case TRACKING_AREA_UPDATE_COMPLETE:

@@ -52,8 +52,8 @@ kubelet_cgroup_driver: systemd
 # orc8r_domain:
 # orc8r_nms_admin_email:
 
-# Component versions
-# orc8r_chart_version: 1.3.x
+# Component versions (orc8r 1.3.x or 1.4.x supported)
+# orc8r_chart_version: 1.4.x
 # orc8r_image_tag: 1.3.x
 # orc8r_nms_image_tag: 1.3.x
 # orc8r_nginx_image_tag: 1.3.x
@@ -67,3 +67,13 @@ kubelet_cgroup_driver: systemd
 
 # LoadBalancer settings for Magma services publicly exposed
 # metallb_addresses: 192.168.10.200-192.168.10.230
+
+# Advanced options for enabling/disabling Helm charts
+deploy_nfs_server_provisioner: True
+kubevirt_enabled: False
+deploy_metallb: True
+deploy_mariadb: True
+deploy_elasticsearch: True
+deploy_fluentd: True
+deploy_kibana: False
+

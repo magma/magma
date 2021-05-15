@@ -11,14 +11,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import sys
 import re
+import sys
+
 import yaml
 
 # Following script reads all the variables in vars.yml, variables.tf and output.tf
 # identifies variables missing in vars.yml and asserts. This script is to be used
 # for flagging variables file being out of sync with orcl vars file
-def read_all_vars(constants : dict)-> set:
+
+
+def read_all_vars(constants: dict) -> set:
     """Read all variables present in vars.yml and return the entire set
     Args:
         constants: config read from config.yml
@@ -40,7 +43,7 @@ def read_all_vars(constants : dict)-> set:
     return existing_vars
 
 
-def parse_tf(constants : dict) -> set:
+def parse_tf(constants: dict) -> set:
     """Read user configured variables in variables tf and return the entire set
     Args:
         constants: config read from config.yml
@@ -83,6 +86,7 @@ def parse_tf(constants : dict) -> set:
                         actual_vars.remove(output_var)
     return actual_vars
 
+
 if __name__ == '__main__':
     try:
         with open("/root/config.yml") as f:
@@ -99,4 +103,3 @@ if __name__ == '__main__':
         assert(not diff)
 
     print("vars.yml found to be in sync with terraform modules")
-

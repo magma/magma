@@ -17,21 +17,22 @@
 
 #include "MobilityServiceClient.h"
 
-#include <cassert>
 #include <grpcpp/impl/codegen/client_context.h>
 #include <grpcpp/impl/codegen/status.h>
 #include <netinet/in.h>
+
+#include <cassert>
 #include <cstring>
 #include <iostream>
 #include <memory>
 #include <string>
 #include <thread>
+#include <utility>
 
 #include "lte/protos/mobilityd.grpc.pb.h"
 #include "lte/protos/mobilityd.pb.h"
-#include "orc8r/protos/common.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
-
+#include "orc8r/protos/common.pb.h"
 #include "ServiceRegistrySingleton.h"
 
 using grpc::Channel;
@@ -206,7 +207,6 @@ int MobilityServiceClient::GetAssignedIPv4Block(
   ClientContext context;
   Void request;
   ListAddedIPBlocksResponse response;
-  uint32_t prefix_len = 0;
 
   assert(index == 0 && "Only one IP block is supported currently");
 

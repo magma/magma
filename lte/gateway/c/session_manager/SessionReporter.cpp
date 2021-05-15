@@ -10,12 +10,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <iostream>
 #include <glog/logging.h>
+
+#include <iostream>
+#include <utility>
+
+#include "GrpcMagmaUtils.h"
+#include "magma_logging.h"
 #include "ServiceRegistrySingleton.h"
 #include "SessionReporter.h"
-#include "magma_logging.h"
-#include "GrpcMagmaUtils.h"
 
 namespace magma {
 

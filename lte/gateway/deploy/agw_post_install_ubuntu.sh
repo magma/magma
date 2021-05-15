@@ -1,16 +1,14 @@
 #!/bin/bash
-"""
-Copyright 2021 The Magma Authors.
-
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-"""
+#Copyright 2021 The Magma Authors.
+#
+#This source code is licensed under the BSD-style license found in the
+#LICENSE file in the root directory of this source tree.
+#
+#Unless required by applicable law or agreed to in writing, software
+#distributed under the License is distributed on an AS IS BASIS,
+#WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#See the License for the specific language governing permissions and
+#limitations under the License.
 
 
 # Setting up env variable, user and project path
@@ -31,7 +29,11 @@ if ! grep -q 'Ubuntu' /etc/issue; then
   exit
 fi
 
-/etc/init.d/openvswitch-switch  force-reload-kmod
+service magma@* stop
+
+ifdown gtp_br0
+ifdown uplink_br0
+service openvswitch-switch restart
 ifup gtp_br0
 ifup uplink_br0
 
@@ -39,10 +41,8 @@ apt-get update > /dev/null
 addInfo "$(apt list -qq --upgradable 2> /dev/null)"
 
 if ! grep -q "$MAGMA_USER ALL=(ALL) NOPASSWD:ALL" /etc/sudoers; then
-    addError "Debian is not installed" "Restart installation following agw_install.sh, magma has to be sudoer"
+    addError "Restart installation following agw_install_ubuntu.sh, magma has to be sudoer"
 fi
-
-KVERS=$(uname -r)
 
 interfaces=("eth1" "eth0" "gtp_br0" "uplink_br0")
 for interface in "${interfaces[@]}"; do
@@ -82,7 +82,7 @@ done
 
 packages=("magma" "magma-cpp-redis" "magma-libfluid" "libopenvswitch" "openvswitch-datapath-dkms" "openvswitch-common" "openvswitch-switch")
 for package in "${packages[@]}"; do
-    PACKAGE_INSTALLED=$(dpkg-query -W -f='${Status}' $package  > /dev/null 2>&1 && echo "$SUCCESS_MESSAGE")
+    PACKAGE_INSTALLED=$(dpkg-query -W -f='${Status}' "$package"  > /dev/null 2>&1 && echo "$SUCCESS_MESSAGE")
     if [ "$PACKAGE_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
         addError "$package hasn't been installed" "Rerun the agw_install.sh"
     fi
@@ -119,7 +119,7 @@ if [ -d "/var/opt/magma/configs/" ]; then
         echo "- Check control proxy content"
         cp_content=("cloud_address" "cloud_port" "bootstrap_address" "bootstrap_port" "rootca_cert" "fluentd_address" "fluentd_port")
         for content in "${cp_content[@]}"; do
-            if ! grep -q $content $CP; then
+            if ! grep -q "$content" $CP; then
                 echo "Missing $content in control proxy"
             fi
         done

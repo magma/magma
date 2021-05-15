@@ -125,7 +125,7 @@ if release_info.get('VERSION_CODENAME', '') == 'focal':
             'idna==2.8',
             'python-dateutil==2.8.1',
             'six>=1.12.0',
-            'eventlet>=0.24',
+            'eventlet==0.30.2',
             'h2>=3.2.0',
             'hpack>=3.0',
             'freezegun>=0.3.15',
@@ -134,7 +134,7 @@ if release_info.get('VERSION_CODENAME', '') == 'focal':
             'aiohttp==3.6.2',
             'json-pointer>=0.1.2',
             'ovs>=2.13',
-            'prometheus-client==0.3.1',
+            'prometheus-client>=0.3.1',
             'aioeventlet==0.5.1'   # aioeventlet-build.sh
         ],
         extras_require={
@@ -241,7 +241,7 @@ setup(
         'idna==2.8',
         'python-dateutil==2.8.1',
         'six>=1.12.0',
-        'eventlet>=0.24',
+        'eventlet==0.30.2',
         'h2>=3.2.0',
         'hpack>=3.0',
         'freezegun>=0.3.15',

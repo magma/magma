@@ -17,6 +17,7 @@ limitations under the License.
 package provider
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
@@ -24,7 +25,6 @@ import (
 	"magma/feg/gateway/services/eap/providers/aka/servicers"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	"magma/feg/gateway/registry"

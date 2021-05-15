@@ -54,6 +54,7 @@ func GetMockVLRListenerAndPort(t *testing.T) (*sctp.SCTPListener, int) {
 	//gets the default configuration (servicers.DefaultVLRIPAddress)
 	config := servicers.GetCsfbConfig()
 	ipStr, portNumber, err := servicers.SplitIP(config.Client.ServerAddress)
+	assert.NoError(t, err)
 	assert.Equal(t, servicers.DefaultVLRIPAddress, ipStr)
 	assert.Equal(t, servicers.DefaultVLRPort, portNumber)
 

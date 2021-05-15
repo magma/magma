@@ -49,7 +49,7 @@ func ExtractGrpcMessageFromGtpMessage(incomingMsg message.Message) (proto.Messag
 	case *MessageWithGrpc:
 		withGrpc = m
 	default:
-		return nil, fmt.Errorf("incomming message it is not MessageWithGrpc type %+v", incomingMsg)
+		return nil, fmt.Errorf("incoming message it is not MessageWithGrpc type %+v", incomingMsg)
 	}
 	if withGrpc.err != nil {
 		return nil, withGrpc.err

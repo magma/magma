@@ -19,24 +19,37 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/thoas/go-funk"
-
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/util"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 type loadType int
 
 const (
-	loadEntities loadType = iota
+	countEntities loadType = iota
+	loadEntities
 	loadChildren
 	loadParents
 )
+
+func (store *sqlConfiguratorStorage) countEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (uint64, error) {
+	selectBuilder, err := store.getBuilder(networkID, filter, criteria, countEntities)
+	if err != nil {
+		return 0, err
+	}
+	var count uint64
+	if err = selectBuilder.RunWith(store.tx).Scan(&count); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
 
 func (store *sqlConfiguratorStorage) loadEntities(networkID string, filter EntityLoadFilter, criteria EntityLoadCriteria) (EntitiesByTK, error) {
 	entsByTK := EntitiesByTK{}
@@ -121,18 +134,30 @@ func (store *sqlConfiguratorStorage) getBuilder(networkID string, filter EntityL
 		return fmt.Sprintf("ent.%s", c)
 	}
 	addSuffix := func(b sq.SelectBuilder) sq.SelectBuilder {
-		b = b.OrderBy(entCol(entKeyCol))
-		if loadTyp == loadEntities {
-			b = b.Limit(uint64(pageSize))
+		switch loadTyp {
+		case countEntities:
+			return b
+		case loadEntities:
+			return b.OrderBy(entCol(entKeyCol)).Limit(uint64(pageSize))
+		case loadChildren, loadParents:
+			return b.OrderBy(entCol(entKeyCol))
+		default:
+			glog.Errorf("Unsupported configurator SQL load type '%v'", loadTyp)
+			return b
 		}
-		return b
 	}
 	isInNetwork := sq.Eq{entCol(entNidCol): networkID}
 
-	cols := getLoadEntitiesCols(criteria)
-	// If we're loading assocs: don't need to load everything
-	if loadTyp == loadChildren || loadTyp == loadParents {
+	var cols []string
+	switch loadTyp {
+	case countEntities:
+		cols = []string{"COUNT(1)"}
+	case loadEntities:
+		cols = getLoadEntitiesCols(criteria)
+	case loadChildren, loadParents:
 		cols = getLoadAssocCols()
+	default:
+		return sq.SelectBuilder{}, fmt.Errorf("unsupported load type '%v'", loadTyp)
 	}
 
 	builder := store.builder.Select(cols...).From(fmt.Sprintf("%s AS ent", entityTable))

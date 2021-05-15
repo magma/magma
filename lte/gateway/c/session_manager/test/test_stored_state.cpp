@@ -11,14 +11,14 @@
  * limitations under the License.
  */
 
-#include <memory>
-
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
+#include "magma_logging.h"
 #include "ProtobufCreators.h"
 #include "StoredState.h"
-#include "magma_logging.h"
 
 using ::testing::Test;
 
@@ -115,8 +115,12 @@ class StoredStateTest : public ::testing::Test {
 
   BearerIDByPolicyID get_bearer_id_by_policy() {
     BearerIDByPolicyID stored;
-    stored[PolicyID(DYNAMIC, "rule1")] = 32;
-    stored[PolicyID(STATIC, "rule1")]  = 64;
+    stored[PolicyID(DYNAMIC, "rule1")].bearer_id = 32;
+    stored[PolicyID(DYNAMIC, "rule1")].teids.set_agw_teid(1);
+    stored[PolicyID(DYNAMIC, "rule1")].teids.set_enb_teid(2);
+    stored[PolicyID(STATIC, "rule1")].bearer_id = 64;
+    stored[PolicyID(STATIC, "rule1")].teids.set_agw_teid(3);
+    stored[PolicyID(STATIC, "rule1")].teids.set_enb_teid(4);
     return stored;
   }
 
@@ -202,7 +206,7 @@ TEST_F(StoredStateTest, test_stored_bearer_id_by_policy) {
   auto stored       = get_bearer_id_by_policy();
   auto serialized   = serialize_bearer_id_by_policy(stored);
   auto deserialized = deserialize_bearer_id_by_policy(serialized);
-  EXPECT_EQ(stored[PolicyID(DYNAMIC, "rule1")], 32);
+  EXPECT_EQ(stored[PolicyID(DYNAMIC, "rule1")].bearer_id, 32);
   EXPECT_EQ(stored.size(), deserialized.size());
   EXPECT_EQ(
       stored[PolicyID(DYNAMIC, "rule1")],

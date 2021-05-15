@@ -10,12 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <gtest/gtest.h>
+
 #include <chrono>
 #include <thread>
 
 #include "ChargingGrant.h"
 #include "ProtobufCreators.h"
-#include <gtest/gtest.h>
 
 using ::testing::Test;
 
@@ -94,7 +95,7 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
   grant.is_final_grant = false;
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
 
-  grant.credit.add_used_credit(2000, 0, uc);
+  grant.credit.add_used_credit(2000, 0, &uc);
   EXPECT_TRUE(grant.credit.is_quota_exhausted(0.8));
   // Credit is exhausted, we expect a quota exhaustion update type
   CreditUsage::UpdateType update_type;
@@ -103,7 +104,7 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
 
   // Check how much we will report (we will report everything, even if
   // we go have gone over the allowed quota)
-  auto update = grant.credit.get_usage_for_reporting(uc);
+  auto update = grant.credit.get_usage_for_reporting(&uc);
   EXPECT_EQ(update.bytes_tx, 2000);
   EXPECT_TRUE(grant.credit.is_reporting());
 
@@ -152,7 +153,7 @@ TEST_F(ChargingGrantTest, test_should_deactivate_service) {
 
   // Exhaust quota
   uc = grant.get_update_criteria();
-  grant.credit.add_used_credit(2000, 0, uc);
+  grant.credit.add_used_credit(2000, 0, &uc);
   EXPECT_TRUE(grant.credit.is_quota_exhausted(0.8));
 
   // Test TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED flag && is_final
@@ -187,8 +188,8 @@ TEST_F(ChargingGrantTest, test_get_action) {
   // Not a final grant
   grant.is_final_grant = false;
   grant.credit.receive_credit(gsu, &uc);
-  grant.credit.add_used_credit(1024, 0, uc);
-  auto cont_action = grant.get_action(uc);
+  grant.credit.add_used_credit(1024, 0, &uc);
+  auto cont_action = grant.get_action(&uc);
   EXPECT_EQ(cont_action, CONTINUE_SERVICE);
   // Check both the grant's service_state and update criteria
   EXPECT_EQ(grant.service_state, CONTINUE_SERVICE);
@@ -199,15 +200,15 @@ TEST_F(ChargingGrantTest, test_get_action) {
   grant.final_action_info =
       get_final_action_info(ChargingCredit_FinalAction_TERMINATE);
   grant.credit.receive_credit(gsu, &uc);
-  grant.credit.add_used_credit(2048, 0, uc);
-  grant.credit.add_used_credit(30, 20, uc);
+  grant.credit.add_used_credit(2048, 0, &uc);
+  grant.credit.add_used_credit(30, 20, &uc);
   grant.service_state = SERVICE_NEEDS_DEACTIVATION;
-  auto term_action    = grant.get_action(uc);
+  auto term_action    = grant.get_action(&uc);
   // Check that the update criteria also includes the changes
   EXPECT_EQ(term_action, TERMINATE_SERVICE);
 
   // Termination action only returned once
-  auto repeated_action = grant.get_action(uc);
+  auto repeated_action = grant.get_action(&uc);
   EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
 }
 
@@ -223,15 +224,15 @@ TEST_F(ChargingGrantTest, test_get_action_redirect) {
   grant.final_action_info =
       get_final_action_info(ChargingCredit_FinalAction_REDIRECT);
   grant.credit.receive_credit(gsu, &uc);
-  grant.credit.add_used_credit(2048, 0, uc);
-  grant.credit.add_used_credit(30, 20, uc);
+  grant.credit.add_used_credit(2048, 0, &uc);
+  grant.credit.add_used_credit(30, 20, &uc);
   grant.service_state = SERVICE_NEEDS_DEACTIVATION;
-  auto term_action    = grant.get_action(uc);
+  auto term_action    = grant.get_action(&uc);
   // Check that the update criteria also includes the changes
   EXPECT_EQ(term_action, REDIRECT);
 
   // Termination action only returned once
-  auto repeated_action = grant.get_action(uc);
+  auto repeated_action = grant.get_action(&uc);
   EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
 }
 
@@ -247,15 +248,15 @@ TEST_F(ChargingGrantTest, test_get_action_restrict) {
   grant.final_action_info =
       get_final_action_info(ChargingCredit_FinalAction_RESTRICT_ACCESS);
   grant.credit.receive_credit(gsu, &uc);
-  grant.credit.add_used_credit(2048, 0, uc);
-  grant.credit.add_used_credit(30, 20, uc);
+  grant.credit.add_used_credit(2048, 0, &uc);
+  grant.credit.add_used_credit(30, 20, &uc);
   grant.service_state = SERVICE_NEEDS_DEACTIVATION;
-  auto term_action    = grant.get_action(uc);
+  auto term_action    = grant.get_action(&uc);
   // Check that the update criteria also includes the changes
   EXPECT_EQ(term_action, RESTRICT_ACCESS);
 
   // Termination action only returned once
-  auto repeated_action = grant.get_action(uc);
+  auto repeated_action = grant.get_action(&uc);
   EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
 }
 
@@ -275,17 +276,17 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
 
   // Not a final credit
   grant.is_final_grant = false;
-  credit.add_used_credit(2000, 0, uc);
+  credit.add_used_credit(2000, 0, &uc);
   EXPECT_EQ(uc.bucket_deltas[USED_TX], 2000);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
   // continue the service even we are over the quota (but not final unit)
-  EXPECT_EQ(grant.get_action(uc), CONTINUE_SERVICE);
+  EXPECT_EQ(grant.get_action(&uc), CONTINUE_SERVICE);
 
   // Check how much we will report (we will report everything, even if
   // we go have gone over the allowed quota)
   CreditUsage::UpdateType update_type;
   EXPECT_TRUE(grant.get_update_type(&update_type));
-  auto c_usage = grant.get_credit_usage(update_type, uc, false);
+  auto c_usage = grant.get_credit_usage(update_type, &uc, false);
   EXPECT_EQ(update_type, CreditUsage::QUOTA_EXHAUSTED);
   EXPECT_EQ(c_usage.bytes_tx(), 2000);
   EXPECT_EQ(c_usage.bytes_rx(), 0);
@@ -323,14 +324,14 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
 
   // Use enough credit to exceed the given quota
   uc = grant.get_update_criteria();  // reset UC
-  credit.add_used_credit(2000, 0, uc);
+  credit.add_used_credit(2000, 0, &uc);
   EXPECT_EQ(uc.bucket_deltas[USED_TX], 2000);
   EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 4000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 4000);
   EXPECT_TRUE(credit.is_quota_exhausted(1));  // 100% exceeded
   EXPECT_TRUE(grant.should_deactivate_service());
-  grant.set_service_state(SERVICE_NEEDS_DEACTIVATION, uc);
+  grant.set_service_state(SERVICE_NEEDS_DEACTIVATION, &uc);
 
   // Since this is the final grant, we should not report anything
   EXPECT_FALSE(grant.get_update_type(&update_type));

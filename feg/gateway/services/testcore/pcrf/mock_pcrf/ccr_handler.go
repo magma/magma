@@ -103,7 +103,7 @@ func getCCRHandler(srv *PCRFServer) diam.HandlerFunc {
 			return
 		}
 
-		avps := []*diam.AVP{}
+		var avps []*diam.AVP
 		ccrType := credit_control.CreditRequestType(ccr.RequestType)
 		if ccrType == credit_control.CRTInit {
 			glog.V(2).Infof("\tGot xCRT-Init from %s. Rules will be sent: %v - %v - %v\n", imsi, account.RuleNames, account.RuleBaseNames, account.UsageMonitors)
@@ -237,11 +237,10 @@ func getQuotaGrant(monitorCredit *protos.UsageMonitor) *protos.Octets {
 }
 
 func decrementOrZero(first, second uint64) uint64 {
-	result := first - second
-	if result < 0 {
+	if second > first {
 		return 0
 	}
-	return result
+	return first - second
 }
 
 func getMin(first, second uint64) uint64 {

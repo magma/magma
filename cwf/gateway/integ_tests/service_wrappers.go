@@ -540,7 +540,7 @@ func initializePolicyDBWrapper() (*policyDBWrapper, error) {
 	}
 	redisClientImpl := &object_store.RedisClientImpl{
 		RawClient: redis.NewClient(&redis.Options{
-			Addr:     fmt.Sprintf(address),
+			Addr:     address,
 			Password: "",
 			DB:       0,
 		}),

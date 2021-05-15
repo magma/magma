@@ -15,8 +15,9 @@ limitations under the License.
 package main
 
 import (
+	"context"
+
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"

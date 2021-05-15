@@ -117,7 +117,7 @@ public:
       return SUCCESS;
     }
     auto array = reply.as_array();
-    for (int i = 0; i < array.size(); i += 2) {
+    for (unsigned int i = 0; i < array.size(); i += 2) {
       auto key_reply = array[i];
       if (!key_reply.is_string()) {
         // this should essentially never happen
