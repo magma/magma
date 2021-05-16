@@ -100,9 +100,10 @@ CreditValidity ChargingGrant::is_valid_credit_response(
 }
 
 void ChargingGrant::receive_charging_grant(
-    const CreditUpdateResponse& update, SessionCreditUpdateCriteria* uc) {
+    const CreditUpdateResponse& update,
+    SessionCreditUpdateCriteria* credit_uc) {
   auto p_credit = update.credit();
-  credit.receive_credit(p_credit.granted_units(), uc);
+  credit.receive_credit(p_credit.granted_units(), credit_uc);
 
   // Final Action
   is_final_grant = p_credit.is_final();
@@ -133,36 +134,36 @@ void ChargingGrant::receive_charging_grant(
   }
   log_received_grant(update);
 
-  // Update the UpdateCriteria if not NULL
-  if (uc != NULL) {
-    uc->is_final          = is_final_grant;
-    uc->final_action_info = final_action_info;
-    uc->expiry_time       = expiry_time;
-    uc->suspended         = suspended;
+  // Update the UpdateCriteria if not nullptr
+  if (credit_uc != nullptr) {
+    credit_uc->is_final          = is_final_grant;
+    credit_uc->final_action_info = final_action_info;
+    credit_uc->expiry_time       = expiry_time;
+    credit_uc->suspended         = suspended;
   }
 }
 
 SessionCreditUpdateCriteria ChargingGrant::get_update_criteria() {
-  SessionCreditUpdateCriteria uc = credit.get_update_criteria();
-  uc.is_final                    = is_final_grant;
-  uc.final_action_info           = final_action_info;
-  uc.expiry_time                 = expiry_time;
-  uc.reauth_state                = reauth_state;
-  uc.service_state               = service_state;
-  uc.suspended                   = suspended;
-  return uc;
+  SessionCreditUpdateCriteria credit_uc = credit.get_update_criteria();
+  credit_uc.is_final                    = is_final_grant;
+  credit_uc.final_action_info           = final_action_info;
+  credit_uc.expiry_time                 = expiry_time;
+  credit_uc.reauth_state                = reauth_state;
+  credit_uc.service_state               = service_state;
+  credit_uc.suspended                   = suspended;
+  return credit_uc;
 }
 
 CreditUsage ChargingGrant::get_credit_usage(
-    CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria* uc,
+    CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria* credit_uc,
     bool is_terminate) {
   CreditUsage p_usage;
   Usage credit_usage;
 
   if (is_final_grant || is_terminate) {
-    credit_usage = credit.get_all_unreported_usage_for_reporting(uc);
+    credit_usage = credit.get_all_unreported_usage_for_reporting(credit_uc);
   } else {
-    credit_usage = credit.get_usage_for_reporting(uc);
+    credit_usage = credit.get_usage_for_reporting(credit_uc);
   }
   p_usage.set_bytes_tx(credit_usage.bytes_tx);
   p_usage.set_bytes_rx(credit_usage.bytes_rx);
@@ -230,19 +231,20 @@ bool ChargingGrant::should_deactivate_service() const {
   return false;
 }
 
-ServiceActionType ChargingGrant::get_action(SessionCreditUpdateCriteria& uc) {
+ServiceActionType ChargingGrant::get_action(
+    SessionCreditUpdateCriteria* credit_uc) {
   switch (service_state) {
     case SERVICE_NEEDS_DEACTIVATION:
-      set_service_state(SERVICE_DISABLED, uc);
+      set_service_state(SERVICE_DISABLED, credit_uc);
       if (!is_final_grant) {
         return TERMINATE_SERVICE;
       }
       return final_action_to_action(final_action_info.final_action);
     case SERVICE_NEEDS_ACTIVATION:
-      set_service_state(SERVICE_ENABLED, uc);
+      set_service_state(SERVICE_ENABLED, credit_uc);
       return ACTIVATE_SERVICE;
     case SERVICE_NEEDS_SUSPENSION:
-      set_service_state(SERVICE_DISABLED, uc);
+      set_service_state(SERVICE_DISABLED, credit_uc);
       return final_action_to_action_on_suspension(
           final_action_info.final_action);
     default:
@@ -277,34 +279,39 @@ ServiceActionType ChargingGrant::final_action_to_action_on_suspension(
 }
 
 void ChargingGrant::set_reauth_state(
-    const ReAuthState new_state, SessionCreditUpdateCriteria& uc) {
+    const ReAuthState new_state, SessionCreditUpdateCriteria* credit_uc) {
   if (reauth_state != new_state) {
     MLOG(MDEBUG) << "ReAuth state change from "
                  << reauth_state_to_str(reauth_state) << " to "
                  << reauth_state_to_str(new_state);
   }
-  reauth_state    = new_state;
-  uc.reauth_state = new_state;
+  reauth_state = new_state;
+  if (credit_uc != nullptr) {
+    credit_uc->reauth_state = new_state;
+  }
 }
 
 void ChargingGrant::set_service_state(
-    const ServiceState new_service_state, SessionCreditUpdateCriteria& uc) {
+    const ServiceState new_service_state,
+    SessionCreditUpdateCriteria* credit_uc) {
   if (service_state != new_service_state) {
     MLOG(MDEBUG) << "Service state change from "
                  << service_state_to_str(service_state) << " to "
                  << service_state_to_str(new_service_state);
   }
-  service_state    = new_service_state;
-  uc.service_state = new_service_state;
+  service_state = new_service_state;
+  if (credit_uc != nullptr) {
+    credit_uc->service_state = new_service_state;
+  }
 }
 
 void ChargingGrant::set_suspended(
-    bool new_suspended, SessionCreditUpdateCriteria* uc) {
+    bool new_suspended, SessionCreditUpdateCriteria* credit_uc) {
   if (suspended != new_suspended) {
     MLOG(MDEBUG) << "Credit suspension set to: " << new_suspended;
   }
-  suspended     = new_suspended;
-  uc->suspended = new_suspended;
+  suspended            = new_suspended;
+  credit_uc->suspended = new_suspended;
 }
 
 bool ChargingGrant::get_suspended() {
@@ -315,7 +322,7 @@ void ChargingGrant::reset_reporting_grant(
     SessionCreditUpdateCriteria* credit_uc) {
   credit.reset_reporting_credit(credit_uc);
   if (reauth_state == REAUTH_PROCESSING) {
-    set_reauth_state(REAUTH_REQUIRED, *credit_uc);
+    set_reauth_state(REAUTH_REQUIRED, credit_uc);
   }
 }
 

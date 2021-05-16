@@ -7,7 +7,7 @@
     - roles/vars/defaults.yaml
     - roles/vars/cluster.yaml
     - roles/vars/build.yaml
-    - "{{ dirInventory }}/secrets.yaml"
+    - "{{ dirLocalInventory }}/secrets.yaml"
   environment:
     AWS_ACCESS_KEY_ID: "{{ awsAccessKey }}"
     AWS_SECRET_ACCESS_KEY: "{{ awsSecretKey }}"

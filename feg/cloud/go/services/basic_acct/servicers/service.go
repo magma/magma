@@ -19,15 +19,13 @@ import (
 	"sync"
 
 	"github.com/golang/glog"
+	anpb "github.com/magma/augmented-networks/accounting/protos"
 	"google.golang.org/grpc"
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/basic_acct"
 	"magma/orc8r/lib/go/service/config"
-
-	//To be switched to: "github.com/magma/augmented-networks/accounting/protos"
-	anpb "magma/feg/cloud/go/services/basic_acct/tests/protos"
 )
 
 var (
