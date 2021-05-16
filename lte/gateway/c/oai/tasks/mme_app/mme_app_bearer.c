@@ -1136,7 +1136,7 @@ int mme_app_handle_create_sess_resp(
             (create_sess_resp_pP->paa.pdn_type == IPv4_OR_v6)) {
           OAILOG_DEBUG_UE(
               LOG_MME_APP, ue_context_p->emm_context._imsi64,
-              " ipv4 address received in create session request is :%x \n",
+              " ipv4 address received in create session response is :%x \n",
               create_sess_resp_pP->paa.ipv4_address.s_addr);
           mme_app_insert_ue_ipv4_addr(
               create_sess_resp_pP->paa.ipv4_address.s_addr,
@@ -2168,12 +2168,13 @@ void mme_app_send_paging_request(
 }
 
 imsi64_t mme_app_handle_initial_paging_request(
-    mme_app_desc_t* mme_app_desc_p, itti_s11_paging_request_t paging_req) {
+    mme_app_desc_t* mme_app_desc_p,
+    const itti_s11_paging_request_t const* paging_req) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   imsi64_t imsi64 = INVALID_IMSI64;
 
-  if (paging_req.imsi) {
-    IMSI_STRING_TO_IMSI64(paging_req.imsi, &imsi64);
+  if (paging_req->imsi) {
+    IMSI_STRING_TO_IMSI64(paging_req->imsi, &imsi64);
     OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "paging is requested \n");
     mme_app_send_paging_request(mme_app_desc_p, imsi64);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
@@ -2181,13 +2182,13 @@ imsi64_t mme_app_handle_initial_paging_request(
   imsi64_t* imsi_list = NULL;
   OAILOG_DEBUG(
       LOG_MME_APP, "paging is requested for ue_ip:%x \n",
-      paging_req.ipv4_addr.s_addr);
+      paging_req->ipv4_addr.s_addr);
   int num_imsis =
-      mme_app_get_imsi_from_ipv4(paging_req.ipv4_addr.s_addr, &imsi_list);
+      mme_app_get_imsi_from_ipv4(paging_req->ipv4_addr.s_addr, &imsi_list);
   if (!(num_imsis)) {
     OAILOG_ERROR(
         LOG_MME_APP, "Failed to fetch imsi from ue_ip:%x \n",
-        paging_req.ipv4_addr.s_addr);
+        paging_req->ipv4_addr.s_addr);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   for (int idx = 0; idx < num_imsis; idx++) {
