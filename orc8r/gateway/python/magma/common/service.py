@@ -130,7 +130,9 @@ class MagmaService(Service303Servicer):
 
         if self._config and 'grpc_workers' in self._config:
             self._server = grpc.server(
-                futures.ThreadPoolExecutor(max_workers=self._config['grpc_workers']),
+                futures.ThreadPoolExecutor(
+                    max_workers=self._config['grpc_workers'],
+                ),
             )
         else:
             self._server = grpc.server(
@@ -295,28 +297,51 @@ class MagmaService(Service303Servicer):
         """
         os.environ['GRPC_POLL_STRATEGY'] = 'epoll1,poll'
 
-    def _setup_logging(self):
-        """
-        Setup the logging for the service
-        """
+    def _get_log_level_from_config(self) -> Optional[int]:
         if self._config is None:
-            config_level = None
-        else:
-            config_level = self._config.get('log_level', None)
-            if config_level is None and self._mconfig is not None:
-                config_level = LogLevel.Name(self._mconfig.log_level)
+            return None
+        log_level = self._config.get('log_level', None)
+        if log_level is None:
+            return None
+        # convert from log level string to LogLevel enum value
         try:
-            proto_level = LogLevel.Value(config_level)
+            proto_level = LogLevel.Value(log_level)
         except ValueError:
             logging.error(
-                'Unknown logging level in config: %s, defaulting to INFO',
-                config_level,
+                'Unknown logging level in config: %s, ignoring',
+                log_level,
             )
-            proto_level = LogLevel.Value('INFO')
-        self._set_log_level(proto_level)
+            return None
+        return proto_level
+
+    def _get_log_level_from_mconfig(self) -> Optional[int]:
+        if self._mconfig is None:
+            return None
+        return self._mconfig.log_level
+
+    def _setup_logging(self):
+        """Set up log level from config values
+
+        The config file on the AGW takes precedence over the mconfig
+        If neither config file nor mconfig has the log level config, default to INFO
+        """
+        log_level_from_config = self._get_log_level_from_config()
+        log_level_from_mconfig = self._get_log_level_from_mconfig()
+
+        if log_level_from_config:
+            log_level = log_level_from_config
+        elif log_level_from_mconfig:
+            log_level = log_level_from_mconfig
+        else:
+            logging.warning(
+                'logging level is not specified in either yml config '
+                'or mconfig, defaulting to INFO',
+            )
+            log_level = LogLevel.Value('INFO')
+        self._set_log_level(log_level)
 
     @staticmethod
-    def _set_log_level(proto_level):
+    def _set_log_level(proto_level: int):
         """
         Set log level based on proto-enum level
         """
