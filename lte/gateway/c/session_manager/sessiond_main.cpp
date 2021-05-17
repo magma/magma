@@ -324,6 +324,7 @@ int main(int argc, char* argv[]) {
     std::promise<magma::OpState> result;
     std::future<magma::OpState> future = result.get_future();
     evb->runInEventBaseThread([session_store, &result, &future]() {
+      set_sentry_transaction("GetOperationalStates");
       result.set_value(magma::get_operational_states(session_store));
     });
     return future.get();
