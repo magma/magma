@@ -117,9 +117,6 @@ struct SessionCreditUpdateCriteria {
   uint64_t time_of_last_usage;
 
   bool suspended;
-
-  // Map to maintain per-policy versions. Contains all values, not delta.
-  optional<PolicyStatsMap> policy_version_and_stats;
 };
 
 struct SessionStateUpdateCriteria {
