@@ -949,7 +949,7 @@ class SessionState {
   optional<RuleStats> get_rule_delta(
       const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
       uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
-      SessionStateUpdateCriteria& uc);
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * @brief Given a policy (to_process) append to either pending_activation or
