@@ -148,14 +148,19 @@ class ServiceManager(object):
                 stop.append(s)
         return start, stop
 
-    def _clean_dynamic_services(self, dynamic_services):
-        """ Check for invalid service names, remove them from list """
+    def _clean_dynamic_services(self, dynamic_services: List[str]) -> List[str]:
+        """Filter out any dynamic services that are not registered
+
+        Args:
+            dynamic_services (List[str]): list of services specified in mconfig
+
+        Returns:
+            List[str]: intersection of dynamic_services and registered_dynamic_services
+        """
         clean_dynamic_services = []
         for s in dynamic_services:
             if s not in self._registered_dynamic_services:
-                error_msg = "Magmad mconfig error: " +\
-                    "service {} is not a registered dynamic service".format(s)
-                logging.error(error_msg)
+                logging.error("Not enabling %s as it is not listed as a registered dynamic service in magmad.yml", s)
             else:
                 clean_dynamic_services.append(s)
         return clean_dynamic_services
