@@ -14,6 +14,8 @@
 package models
 
 import (
+	"github.com/hashicorp/go-multierror"
+
 	"magma/orc8r/cloud/go/obsidian/models"
 
 	"github.com/go-openapi/strfmt"
@@ -62,6 +64,16 @@ func (m *MutableSubscriber) ValidateModel() error {
 		}
 	}
 	return nil
+}
+
+func (m MutableSubscribers) ValidateModel() error {
+	errs := &multierror.Error{}
+	for _, s := range m {
+		if err := s.ValidateModel(); err != nil {
+			multierror.Append(errs, err)
+		}
+	}
+	return errs.ErrorOrNil()
 }
 
 func (m *IcmpStatus) ValidateModel() error {

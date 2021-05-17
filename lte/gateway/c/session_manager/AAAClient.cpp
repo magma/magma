@@ -11,10 +11,14 @@
  * limitations under the License.
  */
 
+#include <memory>
+#include <string>
+#include <utility>
+
 #include "AAAClient.h"
-#include "SessionState.h"
-#include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
+#include "ServiceRegistrySingleton.h"
+#include "SessionState.h"
 
 using grpc::Status;
 
@@ -29,7 +33,7 @@ aaa::terminate_session_request create_deactivate_req(
 }
 
 aaa::add_sessions_request create_add_sessions_req(
-    magma::lte::SessionMap& session_map) {
+    const magma::lte::SessionMap& session_map) {
   aaa::add_sessions_request req;
   for (auto it = session_map.begin(); it != session_map.end(); it++) {
     for (const auto& session : it->second) {
@@ -44,7 +48,7 @@ aaa::add_sessions_request create_add_sessions_req(
         continue;
       }
       const auto& wlan_context = config.rat_specific_context.wlan_context();
-      ctx.set_imsi(config.common_context.sid().id());
+      ctx.set_imsi(session->get_imsi());
       ctx.set_session_id(wlan_context.radius_session_id());
       ctx.set_acct_session_id(session->get_session_id());
       ctx.set_mac_addr(wlan_context.mac_addr());
@@ -85,7 +89,7 @@ bool AsyncAAAClient::terminate_session(
   return true;
 }
 
-bool AsyncAAAClient::add_sessions(magma::lte::SessionMap& session_map) {
+bool AsyncAAAClient::add_sessions(const magma::lte::SessionMap& session_map) {
   auto req = create_add_sessions_req(session_map);
   if (req.sessions().size() == 0) {
     MLOG(MINFO) << "Not sending add_sessions request to AAA server. No AAA "

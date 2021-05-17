@@ -12,18 +12,28 @@
  */
 
 #include "sentry_wrapper.h"
+
 #if SENTRY_ENABLED
-#include <cstdlib>
 #include <experimental/optional>
+#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
+#include <string>
+
 #include "sentry.h"
 #include "ServiceConfigLoader.h"
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"
 #define SENTRY_NATIVE_URL "sentry_url_native"
 #define SHOULD_UPLOAD_MME_LOG "sentry_upload_mme_log"
 #define MME_LOG_PATH "/var/log/mme.log"
+#define SNOWFLAKE_PATH "/etc/snowflake"
+#define HWID "hwid"
+#define SERVICE_NAME "service_name"
+
 using std::experimental::optional;
 
 bool should_upload_mme_log(YAML::Node control_proxy_config) {
@@ -45,6 +55,13 @@ optional<std::string> get_sentry_url(YAML::Node control_proxy_config) {
   return {};
 }
 
+std::string get_snowflake() {
+  std::ifstream ifs(SNOWFLAKE_PATH, std::ifstream::in);
+  std::stringstream buffer;
+  buffer << ifs.rdbuf();
+  return buffer.str();
+}
+
 void initialize_sentry() {
   auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
       CONTROL_PROXY_SERVICE_NAME);
@@ -61,7 +78,8 @@ void initialize_sentry() {
 
     sentry_init(options);
 
-    sentry_set_tag("service_name", "MME");
+    sentry_set_tag(SERVICE_NAME, "MME");
+    sentry_set_tag(HWID, get_snowflake().c_str());
     // Send an initial message to indicate service start
     sentry_capture_event(sentry_value_new_message_event(
         SENTRY_LEVEL_INFO, "", "Starting MME with Sentry!"));

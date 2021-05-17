@@ -460,7 +460,11 @@ func makeUE(imsi string, key []byte, opc []byte, seq uint64) *cwfprotos.UEConfig
 }
 
 func prependIMSIPrefix(imsi string) string {
-	return "IMSI" + imsi
+	if strings.HasPrefix(imsi, "IMSI") {
+		return imsi
+	} else {
+		return "IMSI" + imsi
+	}
 }
 
 // MakeSubcriber creates a new Subscriber using the given values.

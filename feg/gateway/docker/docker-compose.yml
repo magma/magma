@@ -30,15 +30,28 @@ x-generic-service: &service
   restart: always
   network_mode: host
 
+# Use generic anchor to defined dependence on td-agent-bit container
+x-log-forward: &depends_on_logs
+  depends_on:
+    td-agent-bit:
+      condition: service_healthy
+
 # Use generic python anchor to avoid repetition for python services
-x-pyservice: &pyservice
+x-pyservice_base: &pyservice_base
   <<: *service
   image: ${DOCKER_REGISTRY}gateway_python:${IMAGE_VERSION}
+
+# Use generic python anchor with logging capabilities to avoid repetition for python services
+x-pyservice: &pyservice
+  <<: *pyservice_base
+  <<: *depends_on_logs
 
 # Use generic go anchor to avoid repetition for go services
 x-goservice: &goservice
   <<: *service
+  <<: *depends_on_logs
   image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
+
 
 services:
   csfb:
@@ -102,6 +115,7 @@ services:
     container_name: s6a_proxy
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/s6a_proxy -logtostderr=true -v=0
 
+
   s8_proxy:
     <<: *goservice
     container_name: s8_proxy
@@ -148,10 +162,16 @@ services:
              /usr/bin/redis-cli shutdown"
 
   td-agent-bit:
-    <<: *pyservice
+    <<: *pyservice_base
     container_name: td-agent-bit
     logging:
       driver: json-file
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://127.0.0.1:2020"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     command: >
         /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
         /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"

@@ -15,6 +15,7 @@
  */
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import type {EnqueueSnackbarOptions} from 'notistack';
 
 import type {
   call_trace,
@@ -26,7 +27,10 @@ import type {
 type InitTraceStateProps = {
   networkId: network_id,
   setTraceMap: ({[string]: call_trace}) => void,
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 
 export async function InitTraceState(props: InitTraceStateProps) {

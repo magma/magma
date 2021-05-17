@@ -16,7 +16,7 @@
 import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
 
 import AlarmIcon from '@material-ui/icons/Alarm';
-import AlarmsDashboard from '../../views/alarms/Alarms';
+import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import FEGConfigure from './FEGConfigure';
 import FEGGateways from './FEGGateways';

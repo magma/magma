@@ -13,11 +13,14 @@
 #pragma once
 
 #include <future>
+#include <memory>
+#include <string>
+#include <unordered_map>
 
 #include "AAAClient.h"
-#include "SessionReporter.h"
 #include "DirectorydClient.h"
 #include "LocalEnforcer.h"
+#include "SessionReporter.h"
 
 namespace magma {
 namespace sessiond {

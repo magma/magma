@@ -22,13 +22,14 @@ def main():
     service = MagmaService('directoryd', mconfigs_pb2.DirectoryD())
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
     service_config = service.config
 
     # Add servicer to the server
     gateway_directory_servicer = GatewayDirectoryServiceRpcServicer(
-        service_config.get('print_grpc_payload', False))
+        service_config.get('print_grpc_payload', False),
+    )
     gateway_directory_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop

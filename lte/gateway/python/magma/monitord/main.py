@@ -33,7 +33,7 @@ def main():
     service = MagmaService('monitord', mconfigs_pb2.MonitorD())
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
     # Monitoring thread loop
     mtr_interface = load_service_config("monitord")["mtr_interface"]

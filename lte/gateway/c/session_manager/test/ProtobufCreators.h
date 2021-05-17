@@ -13,11 +13,14 @@
 #pragma once
 
 #include <lte/protos/mconfig/mconfigs.pb.h>
-#include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
-#include "StoredState.h"
+#include <lte/protos/session_manager.grpc.pb.h>
+
+#include <string>
+#include <vector>
 
 #include "DiameterCodes.h"
+#include "StoredState.h"
 
 namespace magma {
 using namespace lte;
@@ -182,9 +185,12 @@ void create_session_create_response(
     const std::string& monitoring_key, std::vector<std::string>& static_rules,
     CreateSessionResponse* response);
 
-void create_policy_rule(
-    const std::string& rule_id, const std::string& m_key, uint32_t rating_group,
-    PolicyRule* rule);
+PolicyRule create_policy_rule(
+    const std::string& rule_id, const std::string& m_key, const uint32_t rg);
+
+PolicyRule create_policy_rule_with_qos(
+    const std::string& rule_id, const std::string& m_key, const uint32_t rg,
+    const int qci);
 
 void create_granted_units(
     uint64_t* total, uint64_t* tx, uint64_t* rx, GrantedUnits* gsu);
@@ -202,4 +208,9 @@ UpdateTunnelIdsRequest create_update_tunnel_ids_request(
 UpdateTunnelIdsRequest create_update_tunnel_ids_request(
     const std::string& imsi, const uint32_t bearer_id, const uint32_t agw_teid,
     const uint32_t enb_teid);
+
+StaticRuleInstall create_static_rule_install(const std::string& rule_id);
+
+DynamicRuleInstall create_dynamic_rule_install(const PolicyRule& rule);
+
 }  // namespace magma

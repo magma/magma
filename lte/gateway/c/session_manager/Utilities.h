@@ -15,6 +15,8 @@
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
 
+#include <string>
+
 namespace magma {
 std::string bytes_to_hex(const std::string& s);
 uint64_t get_time_in_sec_since_epoch();

@@ -10,18 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+#include <glog/logging.h>
+#include <gtest/gtest.h>
+
 #include <future>
 #include <memory>
 #include <utility>
 
-#include <glog/logging.h>
-#include <gtest/gtest.h>
-
 #include "Consts.h"
-#include "ProtobufCreators.h"
-#include "SessionState.h"
-#include "SessiondMocks.h"
 #include "magma_logging.h"
+#include "ProtobufCreators.h"
+#include "SessiondMocks.h"
+#include "SessionState.h"
 #include "SessionStateTester.h"
 
 using ::testing::Test;
@@ -621,8 +621,7 @@ TEST_F(SessionStateTest, test_tgpp_context_is_set_on_update) {
 TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_no_key) {
   insert_rule(0, "", "rule1", STATIC, 0, 0);
   session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
-  SessionCredit::TotalCreditUsage actual =
-      session_state->get_total_credit_usage();
+  TotalCreditUsage actual = session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 0);
   EXPECT_EQ(actual.monitoring_rx, 0);
   EXPECT_EQ(actual.charging_tx, 0);
@@ -633,8 +632,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_single_key) {
   insert_rule(1, "", "rule1", STATIC, 0, 0);
   receive_credit_from_ocs(1, 3000);
   session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
-  SessionCredit::TotalCreditUsage actual =
-      session_state->get_total_credit_usage();
+  TotalCreditUsage actual = session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 0);
   EXPECT_EQ(actual.monitoring_rx, 0);
   EXPECT_EQ(actual.charging_tx, 2000);
@@ -646,8 +644,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_single_rule_multiple_key) {
   receive_credit_from_ocs(1, 3000);
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
   session_state->add_rule_usage("rule1", 1, 2000, 1000, 0, 0, update_criteria);
-  SessionCredit::TotalCreditUsage actual =
-      session_state->get_total_credit_usage();
+  TotalCreditUsage actual = session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 2000);
   EXPECT_EQ(actual.monitoring_rx, 1000);
   EXPECT_EQ(actual.charging_tx, 2000);
@@ -663,8 +660,7 @@ TEST_F(SessionStateTest, test_get_total_credit_usage_multiple_rule_shared_key) {
   receive_credit_from_pcrf("m1", 3000, MonitoringLevel::PCC_RULE_LEVEL);
   session_state->add_rule_usage("rule1", 1, 1000, 10, 0, 0, update_criteria);
   session_state->add_rule_usage("rule2", 1, 500, 5, 0, 0, update_criteria);
-  SessionCredit::TotalCreditUsage actual =
-      session_state->get_total_credit_usage();
+  TotalCreditUsage actual = session_state->get_total_credit_usage();
   EXPECT_EQ(actual.monitoring_tx, 1500);
   EXPECT_EQ(actual.monitoring_rx, 15);
   EXPECT_EQ(actual.charging_tx, 1000);
@@ -959,16 +955,16 @@ TEST_F(SessionStateTest, test_apply_session_rule_set) {
   rules_to_apply.static_rules.insert("rule-static-2");
   rules_to_apply.static_rules.insert("rule-static-3");
 
-  PolicyRule dynamic_2, dynamic_3;
-  create_policy_rule("rule-dynamic-2", "m1", 2, &dynamic_2);
-  create_policy_rule("rule-dynamic-3", "m1", 3, &dynamic_3);
+  PolicyRule dynamic_2 = create_policy_rule("rule-dynamic-2", "m1", 2);
+  PolicyRule dynamic_3 = create_policy_rule("rule-dynamic-3", "m1", 3);
   rules_to_apply.dynamic_rules["rule-dynamic-2"] = dynamic_2;
   rules_to_apply.dynamic_rules["rule-dynamic-3"] = dynamic_3;
 
   SessionStateUpdateCriteria uc;
-  RulesToProcess to_activate, to_deactivate;
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
   session_state->apply_session_rule_set(
-      rules_to_apply, to_activate, to_deactivate, uc);
+      rules_to_apply, &pending_activation, &pending_deactivation,
+      &pending_bearer_setup, uc);
 
   // First check the active rules in session
   EXPECT_TRUE(!session_state->is_static_rule_installed("rule-static-1"));
@@ -979,11 +975,11 @@ TEST_F(SessionStateTest, test_apply_session_rule_set) {
   EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule-dynamic-3"));
 
   // Check the RulesToProcess is properly filled out
-  EXPECT_EQ(to_activate.size(), 2);
-  const std::string activate_rule1   = to_activate[0].rule.id();
-  const std::string activate_rule2   = to_activate[1].rule.id();
-  const std::string deactivate_rule1 = to_deactivate[0].rule.id();
-  const std::string deactivate_rule2 = to_deactivate[1].rule.id();
+  EXPECT_EQ(pending_activation.size(), 2);
+  const std::string activate_rule1   = pending_activation[0].rule.id();
+  const std::string activate_rule2   = pending_activation[1].rule.id();
+  const std::string deactivate_rule1 = pending_deactivation[0].rule.id();
+  const std::string deactivate_rule2 = pending_deactivation[1].rule.id();
   EXPECT_TRUE(
       activate_rule1 == "rule-static-3" || activate_rule1 == "rule-dynamic-3");
   EXPECT_TRUE(
@@ -1119,6 +1115,80 @@ TEST_F(SessionStateTest, test_get_charging_credit_summaries) {
   EXPECT_EQ(2000, summary_rg1.usage.bytes_tx);
   EXPECT_EQ(2000, summary_rg2.usage.bytes_rx);
   EXPECT_EQ(4000, summary_rg2.usage.bytes_tx);
+}
+
+TEST_F(SessionStateTest, test_process_static_rule_installs) {
+  initialize_session_with_qos();
+  auto uc = get_default_update_criteria();
+
+  // Insert 2 static rules without qos into static rule store
+  insert_static_rule_into_store(0, "mkey1", "static-1");
+  insert_static_rule_into_store(0, "mkey1", "static-2");
+  // Insert 2 static rules with qos into static rule store
+  insert_static_rule_with_qos_into_store(0, "mkey1", 1, "static-qos-3");
+  insert_static_rule_with_qos_into_store(0, "mkey1", 2, "static-qos-4");
+
+  // activate static-1 and static-qos-3 in advance
+  RuleLifetime lifetime;
+  session_state->activate_static_rule("static-1", lifetime, uc);
+  session_state->activate_static_rule("static-qos-3", lifetime, uc);
+
+  // Create a StaticRuleInstall with all four rules above
+  std::vector<StaticRuleInstall> rule_installs{
+      // should be ignored as it is already active
+      create_static_rule_install("static-1"),
+      // new non-qos rule
+      create_static_rule_install("static-2"),
+      // should be ignored as it is already active
+      create_static_rule_install("static-qos-3"),
+      // new qos rule
+      create_static_rule_install("static-qos-4"),
+  };
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
+  RulesToSchedule pending_scheduling;
+  session_state->process_static_rule_installs(
+      rule_installs, &pending_activation, &pending_deactivation,
+      &pending_bearer_setup, &pending_scheduling, &uc);
+  EXPECT_EQ(1, pending_activation.size());
+  EXPECT_EQ("static-2", pending_activation[0].rule.id());
+  EXPECT_EQ(1, pending_bearer_setup.size());
+  EXPECT_EQ("static-qos-4", pending_bearer_setup[0].rule.id());
+}
+
+TEST_F(SessionStateTest, test_process_dynamic_rule_installs) {
+  initialize_session_with_qos();
+  auto uc = get_default_update_criteria();
+
+  PolicyRule dynamic_1 = create_policy_rule("dynamic-1", "", 0);
+  PolicyRule dynamic_2 = create_policy_rule("dynamic-2", "", 0);
+  PolicyRule dynamic_qos_3 =
+      create_policy_rule_with_qos("dynamic-qos-3", "", 0, 1);
+  PolicyRule dynamic_qos_4 =
+      create_policy_rule_with_qos("dynamic-qos-4", "", 0, 2);
+
+  // Install dynamic rules for dynamic-1 and dynamic-qos-3
+  RuleLifetime lifetime;
+  session_state->insert_dynamic_rule(dynamic_1, lifetime, uc);
+  session_state->insert_dynamic_rule(dynamic_qos_3, lifetime, uc);
+
+  // Create a StaticRuleInstall with all four rules above
+  std::vector<DynamicRuleInstall> rule_installs{
+      // should be installed even though it is already active
+      create_dynamic_rule_install(dynamic_1),
+      // new non-qos rule
+      create_dynamic_rule_install(dynamic_2),
+      // should be installed even though it is already active
+      create_dynamic_rule_install(dynamic_qos_3),
+      // new qos rule
+      create_dynamic_rule_install(dynamic_qos_4),
+  };
+  RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
+  RulesToSchedule pending_scheduling;
+  session_state->process_dynamic_rule_installs(
+      rule_installs, &pending_activation, &pending_deactivation,
+      &pending_bearer_setup, &pending_scheduling, &uc);
+  EXPECT_EQ(2, pending_activation.size());
+  EXPECT_EQ(2, pending_bearer_setup.size());
 }
 
 int main(int argc, char** argv) {
