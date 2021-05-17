@@ -68,7 +68,7 @@ class PolicyMixin(metaclass=ABCMeta):
             self.proxy_controller_fut = None
         self.proxy_controller = None
 
-    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, policies, shard_id: int, ng_session_id=0):
+    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, policies, shard_id: int, local_f_teid_ng=0):
         """
         Activate the flows for a subscriber based on the rules stored in Redis.
         During activation, a default flow may be installed for the subscriber.
@@ -93,11 +93,11 @@ class PolicyMixin(metaclass=ABCMeta):
         for policy in policies:
             res = self._install_flow_for_rule(imsi, msisdn, uplink_tunnel,
                                               ip_addr, apn_ambr, policy.rule,
-                                              policy.version, shard_id, ng_session_id)
+                                              policy.version, shard_id, local_f_teid_ng)
             policy_results.append(RuleModResult(rule_id=policy.rule.id, version=policy.version, result=res))
 
         # Install a base flow for when no rule is matched.
-        self._install_default_flow_for_subscriber(imsi, ip_addr, ng_session_id)
+        self._install_default_flow_for_subscriber(imsi, ip_addr, local_f_teid_ng)
         
         return ActivateFlowsResult(
             policy_results=policy_results,
@@ -142,7 +142,7 @@ class PolicyMixin(metaclass=ABCMeta):
     def _get_classify_rule_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, flow, rule_num,
                                      priority, qos, hard_timeout, rule_id, app_name,
                                      app_service_type, next_table, version, qos_mgr,
-                                     copy_table, _, urls: List[str] = None, ng_session_id: int = 0):
+                                     copy_table, _, urls: List[str] = None, local_f_teid_ng: int = 0):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
         will drop the packet. Otherwise, the flow classifies the packet with
@@ -153,7 +153,7 @@ class PolicyMixin(metaclass=ABCMeta):
         flow_match.imsi = encode_imsi(imsi)
         flow_match_actions, instructions = self._get_action_for_rule(
             flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id, version, qos_mgr,
-            ng_session_id)
+            local_f_teid_ng)
         msgs = []
         if app_name:
             # We have to allow initial traffic to pass through, before it gets
@@ -220,7 +220,7 @@ class PolicyMixin(metaclass=ABCMeta):
         return msgs
 
     def _get_action_for_rule(self, flow, rule_num, imsi, ip_addr,
-                             apn_ambr, qos, rule_id, version, qos_mgr, ng_session_id):
+                             apn_ambr, qos, rule_id, version, qos_mgr, local_f_teid_ng):
         """
         Returns an action instructions list to be applied for a specific flow.
         If qos or apn_ambr are set, the appropriate action is returned based
@@ -269,7 +269,7 @@ class PolicyMixin(metaclass=ABCMeta):
         actions.extend(
             [parser.NXActionRegLoad2(dst=RULE_NUM_REG, value=rule_num),
              parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version),
-             parser.NXActionRegLoad2(dst=NG_SESSION_ID_REG, value=ng_session_id)
+             parser.NXActionRegLoad2(dst=NG_SESSION_ID_REG, value=local_f_teid_ng)
              ])
         return actions, instructions
 
@@ -349,7 +349,7 @@ class PolicyMixin(metaclass=ABCMeta):
 
     @abstractmethod
     def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int,
-                               ip_addr, apn_ambr, rule, version, shard_id: int, ng_session_id):
+                               ip_addr, apn_ambr, rule, version, shard_id: int, local_f_teid_ng):
         """
         Install a flow given a rule. Subclass should implement this.
 
@@ -361,7 +361,7 @@ class PolicyMixin(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _install_default_flow_for_subscriber(self, imsi, ip_addr, ng_session_id):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr, local_f_teid_ng):
         """
         Install a flow for the subscriber in the event no rule is matched.
         Subclass should implement this.

@@ -123,7 +123,7 @@ class EnforcementTableTest(unittest.TestCase):
         self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
                                        		   None,  policies = [VersionedPolicy(
                                                    rule=PolicyRule(id='rule1', priority=65530,flow_list=flow_list1),
-                                                   version=1,),],ng_session_id=100)
+                                                   version=1,),],local_f_teid_ng=100)
  
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -149,7 +149,7 @@ class EnforcementTableTest(unittest.TestCase):
         self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
                                        		   None, policies = [VersionedPolicy(
                                                    rule=PolicyRule(id='rule1', priority=65530,flow_list=flow_list),
-                                                   version=2,),],ng_session_id=555)
+                                                   version=2,),],local_f_teid_ng=555)
         imsi = 'IMSI001000000100088'
         sub_ip = '192.168.128.150'
         flow_list = [FlowDescription(match=FlowMatch(
@@ -163,7 +163,7 @@ class EnforcementTableTest(unittest.TestCase):
         self.enforcement_controller.activate_rules(imsi, None, 0, convert_ipv4_str_to_ip_proto(sub_ip),
                                        		   None, policies = [VersionedPolicy(
                                                    rule=PolicyRule(id='rule2', priority=65536,flow_list=flow_list),
-                                                   version=3,),],ng_session_id=5000)
+                                                   version=3,),],local_f_teid_ng=5000)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)

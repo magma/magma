@@ -160,19 +160,19 @@ class SessionRuleToVersionMapper:
             if cur_version == version:
                 del self._version_by_imsi_and_rule[key]
     # Update the rule version for all the existing and new rules
-    def ng_update_rules_version(self, ng_session_id: int, session_version: int):
+    def ng_update_rules_version(self, local_f_teid_ng: int, session_version: int):
         """
         Increment the version number for a given subscriber for 5G subscriber
         """
         with self._lock:
-            self._ng_version_by_teid [ng_session_id] = session_version
+            self._ng_version_by_teid [local_f_teid_ng] = session_version
 
-    def get_ng_version_by_session_teid(self, ng_session_id: int) -> int:
+    def get_ng_version_by_session_teid(self, local_f_teid_ng: int) -> int:
         """
         Returns the version number given a subscriber.
         """
         with self._lock:
-            version = self._ng_version_by_teid.get(ng_session_id)
+            version = self._ng_version_by_teid.get(local_f_teid_ng)
             if version is None:
                 version = 0
         return version

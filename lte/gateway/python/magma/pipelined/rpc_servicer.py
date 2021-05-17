@@ -384,7 +384,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
         shard_id: int,
-        ng_session_id: int=0,
+        local_f_teid_ng: int=0,
     ) -> ActivateFlowsResult:
         if not self._service_manager.is_app_enabled(
                 EnforcementStatsController.APP_NAME,
@@ -392,7 +392,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return ActivateFlowsResult()
 
         enforcement_stats_res = self._enforcement_stats.activate_rules(
-            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies, shard_id, ng_session_id,
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies, shard_id, local_f_teid_ng,
         )
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
@@ -405,13 +405,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         apn_ambr: AggregatedMaximumBitrate,
         policies: List[VersionedPolicy],
         shard_id: int,
-        ng_session_id: int=0,
+        local_f_teid_ng: int=0,
     ) -> ActivateFlowsResult:
         # TODO: this will crash pipelined if called with both static rules
         # and dynamic rules at the same time
         enforcement_res = self._enforcer_app.activate_rules(
             imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, policies,
-            shard_id, ng_session_id,
+            shard_id, local_f_teid_ng,
         )
         # TODO ?? Should the enforcement failure be reported per imsi session
         _report_enforcement_failures(enforcement_res, imsi)
@@ -992,22 +992,22 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         subscriber_id = request.subscriber_id
         session_version = request.session_version
-        ng_session_id = request.local_f_teid
+        local_f_teid_ng = request.local_f_teid
 
         # PDR is deleted with ActiveRules or DelActive rules recieved
         if pdr_entry.pdr_state == PdrState.Value('REMOVE'):
-            self._ng_deactivate_qer_flows(subscriber_id, ng_session_id,
+            self._ng_deactivate_qer_flows(subscriber_id, local_f_teid_ng,
                                           pdr_entry, session_version)
         elif pdr_entry.pdr_state == PdrState.Value('IDLE'):
             self._ng_inactivate_qer_flows(subscriber_id, pdr_entry, session_version)
         #Install PDR rules
         elif pdr_entry.pdr_state == PdrState.Value('INSTALL'):
             if pdr_entry.del_qos_enforce_rule:
-                self._ng_deactivate_qer_flows(subscriber_id, ng_session_id,
+                self._ng_deactivate_qer_flows(subscriber_id, local_f_teid_ng,
                                               pdr_entry, session_version)
 
             enforcement_res = \
-                self._ng_activate_qer_flow(subscriber_id, ng_session_id,
+                self._ng_activate_qer_flow(subscriber_id, local_f_teid_ng,
                                            pdr_entry, session_version)
 
             failed_policy_rules_results = \
@@ -1030,7 +1030,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._enforcer_app.deactivate_rules(subscriber_id, ipv4,
                                                 rule_ids)
 
-    def _ng_activate_qer_flow(self, subscriber_id, ng_session_id,
+    def _ng_activate_qer_flow(self, subscriber_id, local_f_teid_ng,
                               pdr_entry, session_version):
 
         ipv4 = convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr)
@@ -1043,7 +1043,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                          subscriber_id, qos_enforce_rule.msisdn,
                                          pdr_entry.local_f_teid,
                                          ipv4, qos_enforce_rule.apn_ambr,
-                                         qos_enforce_rule.policies, ng_session_id)
+                                         qos_enforce_rule.policies, local_f_teid_ng)
 
         failed_policies_results = \
              _retrieve_failed_results(enforcement_stats_res)
@@ -1056,7 +1056,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                self._activate_rules_in_enforcement(
                     subscriber_id, qos_enforce_rule.msisdn, pdr_entry.local_f_teid,
                     ipv4, qos_enforce_rule.apn_ambr,
-                    policy_rules, ng_session_id)
+                    policy_rules, local_f_teid_ng)
 
         # Include the failed rules from enforcement_stats in the response.
         enforcement_res.policy_results.extend(
@@ -1064,7 +1064,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         return enforcement_res
 
-    def _ng_deactivate_qer_flows(self, subscriber_id, ng_session_id,
+    def _ng_deactivate_qer_flows(self, subscriber_id, local_f_teid_ng,
                                  pdr_entry, session_version):
         logging.debug('Deactivating N4 flows for %s', subscriber_id)
 
@@ -1079,7 +1079,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                 ipv4, session_version)
 
         self._enforcement_stats.deactivate_default_flow(subscriber_id, ipv4,
-                                                        ng_session_id)
+                                                        local_f_teid_ng)
 
         if rule_ids:
             self._enforcer_app.deactivate_rules(subscriber_id, ipv4,

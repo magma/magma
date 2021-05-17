@@ -37,7 +37,7 @@ class MagmaMatch(object):
                  rule_num: int = None, rule_version: int = None,
                  passthrough: int = None, vlan_tag: int = None,
                  app_id: int = None, proxy_tag: int = None,
-                 ng_session_id: int = None, **kwargs):
+                 local_f_teid_ng: int = None, **kwargs):
         self.imsi = imsi
         self.direction = direction
         self.rule_num = rule_num
@@ -46,7 +46,7 @@ class MagmaMatch(object):
         self.vlan_tag = vlan_tag
         self.app_id = app_id
         self.proxy_tag = proxy_tag
-        self.ng_session_id = ng_session_id
+        self.local_f_teid_ng = local_f_teid_ng
         self._match_kwargs = kwargs
         self._check_args()
 
@@ -76,8 +76,8 @@ class MagmaMatch(object):
             ryu_match[DPI_REG] = self.app_id
         if self.proxy_tag is not None:
             ryu_match[PROXY_TAG_REG] = self.proxy_tag
-        if self.ng_session_id is not None:
-            ryu_match[NG_SESSION_ID_REG] = self.ng_session_id
+        if self.local_f_teid_ng is not None:
+            ryu_match[NG_SESSION_ID_REG] = self.local_f_teid_ng
         return ryu_match
 
     def _check_args(self):
