@@ -45,7 +45,7 @@ message Ambr {
         KBPS = 1;
         }
   // Unit (either bps or Kbps)
-  BitrateUnitsAMBR bitrate_units = 3;
+  BitrateUnitsAMBR br_unit = 3;
 
 }
 

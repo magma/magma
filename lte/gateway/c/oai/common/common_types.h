@@ -241,7 +241,7 @@ typedef enum {
 } apn_ambr_bitrate_unit_t;
 
 typedef struct {
-  apn_ambr_bitrate_unit_t bitrateunit;
+  apn_ambr_bitrate_unit_t br_unit;
   bitrate_t br_ul;
   bitrate_t br_dl;
 } ambr_t;
