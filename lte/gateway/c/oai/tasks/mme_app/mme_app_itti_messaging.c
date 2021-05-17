@@ -261,7 +261,8 @@ int mme_app_send_s11_create_session_req(
   if (bc == NULL) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-        "Bearer context is NULL for "
+        "Failed to send create session req to SPGW as the bearer context is "
+        "NULL for "
         "MME UE S1AP Id: " MME_UE_S1AP_ID_FMT " for bearer %u\n",
         ue_mm_context->mme_ue_s1ap_id,
         ue_mm_context->pdn_contexts[pdn_cid]->default_ebi);

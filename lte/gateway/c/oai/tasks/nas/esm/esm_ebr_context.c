@@ -316,8 +316,15 @@ ebi_t esm_ebr_context_release(
      * Delete the specified EPS bearer context entry
      */
 
-    if ((!ue_mm_context->pdn_contexts[*pid]) ||
-        (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[*bid] != *bid)) {
+    if (!ue_mm_context->pdn_contexts[*pid]) {
+      OAILOG_ERROR_UE(
+          LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
+          "ESM-PROC  - PDN context does not exist for bearer id %u,"
+          "for ue id " MME_UE_S1AP_ID_FMT "\n",
+          *bid, ue_mm_context->mme_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
+    }
+    if (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[*bid] != *bid) {
       OAILOG_ERROR_UE(
           LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
           "ESM-PROC  - EPS bearer identifier %d is "

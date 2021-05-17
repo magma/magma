@@ -235,6 +235,7 @@ int send_pcrf_bearer_actv_rsp(
   if (pdn_context == NULL) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Failed to send S11_NW_INITIATED_BEARER_ACTV_RSP to SPGW as the "
         "pdn_contexts is NULL for "
         "MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "ebi-%u\n",
         ue_context_p->mme_ue_s1ap_id, ebi);

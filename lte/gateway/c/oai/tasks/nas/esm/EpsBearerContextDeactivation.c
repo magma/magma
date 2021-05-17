@@ -459,10 +459,7 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
       }
 
       // Fetch pdn id using bearer index
-      pdn_cid_t pdn_id = 0;
-      if (ue_mm_context->bearer_contexts[bid]) {
-        pdn_id = ue_mm_context->bearer_contexts[bid]->pdn_cx_id;
-      }
+      pdn_cid_t pdn_id = ue_mm_context->bearer_contexts[bid]->pdn_cx_id;
 
       if (!ue_mm_context->pdn_contexts[pdn_id]) {
         OAILOG_ERROR(

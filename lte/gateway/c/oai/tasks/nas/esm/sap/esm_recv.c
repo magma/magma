@@ -490,7 +490,7 @@ esm_cause_t esm_recv_pdn_disconnect_request(
           "pdn_contexts is NULL for "
           "MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "ebi-%u\n",
           ue_mm_context_p->mme_ue_s1ap_id, ebi);
-      OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PDN_CONNECTION_DOES_NOT_EXIST);
     }
 
     // Check if the LBI received matches with the default bearer ID
