@@ -206,6 +206,9 @@ struct RuleStats {
   uint64_t rx;
   uint64_t dropped_tx;
   uint64_t dropped_rx;
+  RuleStats() : tx(0), rx(0), dropped_tx(0), dropped_rx(0) {}
+  RuleStats(uint64_t tx, uint64_t rx, uint64_t dropped_tx, uint64_t dropped_rx)
+      : tx(tx), rx(rx), dropped_tx(dropped_tx), dropped_rx(dropped_rx) {}
 };
 
 typedef std::vector<RuleToProcess> RulesToProcess;

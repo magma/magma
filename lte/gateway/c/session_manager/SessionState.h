@@ -710,8 +710,6 @@ class SessionState {
   void apply_charging_credit_update(
       const CreditKey& key, SessionCreditUpdateCriteria& credit_uc);
 
-  void apply_rule_usage_update(const PolicyStatsMap rule_usage_updates);
-
   /**
    * Receive the credit grant if the credit update was successful
    *
@@ -845,7 +843,7 @@ class SessionState {
   /**
    * Computes delta from previous rule report
    */
-  RuleStats get_rule_delta(
+  optional<RuleStats> get_rule_delta(
       const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
       uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
       SessionStateUpdateCriteria& uc);

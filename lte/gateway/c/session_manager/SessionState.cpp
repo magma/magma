@@ -463,18 +463,17 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   return true;
 }
 
-RuleStats SessionState::get_rule_delta(
+optional<RuleStats> SessionState::get_rule_delta(
     const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
     uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
     SessionStateUpdateCriteria& uc) {
-  RuleStats ret = {0};
-
   auto it = policy_version_and_stats_.find(rule_id);
   if (it == policy_version_and_stats_.end()) {
     MLOG(MERROR) << "Reported rule not found, ignoring";
-    return ret;
+    return {};
   }
 
+  RuleStats ret = RuleStats();
   // Only accept rule reports for current_version or last_reported_version
   // ignore other reports as they shoudn't be sent
   auto last_reported_version = it->second.last_reported_version;
@@ -507,27 +506,30 @@ RuleStats SessionState::get_rule_delta(
       return ret;
     }
 
-    ret.tx         = used_tx - prev_usage.tx;
-    ret.rx         = used_rx - prev_usage.rx;
-    ret.dropped_tx = dropped_tx - prev_usage.dropped_tx;
-    ret.dropped_rx = dropped_rx - prev_usage.dropped_rx;
+    ret = RuleStats(
+        used_tx - prev_usage.tx, used_rx - prev_usage.rx,
+        dropped_tx - prev_usage.dropped_tx, dropped_rx - prev_usage.dropped_rx);
   } else {
-    ret.tx         = used_tx;
-    ret.rx         = used_rx;
-    ret.dropped_tx = dropped_tx;
-    ret.dropped_rx = dropped_rx;
+    ret = RuleStats(used_tx, used_rx, dropped_tx, dropped_rx);
   }
 
   policy_version_and_stats_[rule_id].last_reported_version = rule_version;
   policy_version_and_stats_[rule_id].stats_map[rule_version] =
-      RuleStats{used_tx, used_rx, dropped_tx, dropped_rx};
+      RuleStats(used_tx, used_rx, dropped_tx, dropped_rx);
 
-  if (uc.rule_usage_updates.find(rule_id) == policy_version_and_stats_.end()) {
-    uc.rule_usage_updates[rule_id] = StatsPerPolicy();
+  if (!uc.policy_version_and_stats) {
+    uc.policy_version_and_stats = PolicyStatsMap{};
   }
-  uc.rule_usage_updates[rule_id].last_reported_version =
+
+  if (uc.policy_version_and_stats.value().find(rule_id) ==
+      policy_version_and_stats_.end()) {
+    uc.policy_version_and_stats.value()[rule_id] = StatsPerPolicy();
+  }
+  uc.policy_version_and_stats.value()[rule_id].current_version =
+      policy_version_and_stats_[rule_id].current_version;
+  uc.policy_version_and_stats.value()[rule_id].last_reported_version =
       policy_version_and_stats_[rule_id].last_reported_version;
-  uc.rule_usage_updates[rule_id].stats_map[rule_version] =
+  uc.policy_version_and_stats.value()[rule_id].stats_map[rule_version] =
       policy_version_and_stats_[rule_id].stats_map[rule_version];
 
   return ret;
@@ -540,9 +542,13 @@ void SessionState::add_rule_usage(
   CreditKey charging_key;
 
   // TODO: Rework logic to work with flat rate, below is a hacky solution
-  RuleStats delta = get_rule_delta(
+  auto rule_delta = get_rule_delta(
       rule_id, rule_version, used_tx, used_rx, dropped_tx, dropped_rx,
       update_criteria);
+  if (!rule_delta) {
+    return;
+  }
+  RuleStats delta = rule_delta.value();
 
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, &charging_key) ||
       static_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
@@ -1581,9 +1587,6 @@ ReAuthResult SessionState::reauth_all(
   return res;
 }
 
-void SessionState::apply_rule_usage_update(
-    const PolicyStatsMap rule_usage_updates) {}
-
 void SessionState::apply_charging_credit_update(
     const CreditKey& key, SessionCreditUpdateCriteria& credit_uc) {
   auto it = credit_map_.find(key);
@@ -2458,7 +2461,7 @@ void SessionState::increment_rule_stats(
   policy_version_and_stats_[rule_id].current_version++;
   policy_version_and_stats_[rule_id]
       .stats_map[policy_version_and_stats_[rule_id].current_version] =
-      RuleStats{0};
+      RuleStats();
 
   if (!session_uc.policy_version_and_stats) {
     session_uc.policy_version_and_stats = policy_version_and_stats_;

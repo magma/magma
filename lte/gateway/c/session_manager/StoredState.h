@@ -169,8 +169,6 @@ struct SessionStateUpdateCriteria {
   // Only valid if is_bearer_mapping_updated is true
   BearerIDByPolicyID bearer_id_by_policy;
   Teids teids;
-
-  PolicyStatsMap rule_usage_updates;
 };
 
 SessionStateUpdateCriteria get_default_update_criteria();
