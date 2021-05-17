@@ -173,6 +173,8 @@ add_library(SESSION_MANAGER
     OperationalStatesHandler.cpp
     OperationalStatesHandler.h
     Types.h
+    SentryWrappers.cpp
+    SentryWrappers.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 

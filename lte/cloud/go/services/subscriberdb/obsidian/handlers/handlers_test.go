@@ -135,7 +135,7 @@ func TestCreateSubscriber(t *testing.T) {
 		Handler:        createSubscriber,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
-		ExpectedStatus: 500,
+		ExpectedStatus: 400,
 		ExpectedError:  "no cellular config found for network",
 	}
 	tests.RunUnitTest(t, e, tc)
@@ -175,14 +175,14 @@ func TestCreateSubscriber(t *testing.T) {
 		ActiveApns: subscriberModels.ApnList{apn2, apn1},
 	}
 	tc = tests.Test{
-		Method:         "POST",
-		URL:            testURLRoot,
-		Payload:        payload,
-		Handler:        createSubscriber,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		ExpectedStatus: 400,
-		ExpectedError:  "subscriber profile foo does not exist for the network",
+		Method:                 "POST",
+		URL:                    testURLRoot,
+		Payload:                payload,
+		Handler:                createSubscriber,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "subscriber profile 'foo' does not exist for the network",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -234,6 +234,132 @@ func TestCreateSubscriber(t *testing.T) {
 		ExpectedError:  "static IP assigned to APN asdf which is not active for the subscriber",
 	}
 	tests.RunUnitTest(t, e, tc)
+}
+
+func TestCreateSubscribers(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	networkConfigs := map[string]interface{}{
+		lte.CellularNetworkConfigType: &lteModels.NetworkCellularConfigs{
+			Epc: &lteModels.NetworkEpcConfigs{SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{"present-profile": {}}},
+		},
+	}
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Configs: networkConfigs}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/subscribers_v2"
+	handlers := handlers.GetHandlers()
+	createSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
+	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	// Pre: seed 2 apns
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.APNEntityType, Key: "apn0"},
+			{Type: lte.APNEntityType, Key: "apn1"},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	// Pass: happy path
+	sub0 := newMutableSubscriber("IMSI0000000000")
+	sub1 := newMutableSubscriber("IMSI0000000001")
+	sub1.Name = "Johnny Appleseed"
+	payload := subscriberModels.MutableSubscribers{sub0, sub1}
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        tests.JSONMarshaler(payload),
+		Handler:        createSubscriber,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+	expected := subscriberModels.PaginatedSubscribers{TotalCount: 2, NextPageToken: "", Subscribers: map[string]*subscriberModels.Subscriber{
+		"IMSI0000000000": sub0.ToSubscriber(),
+		"IMSI0000000001": sub1.ToSubscriber(),
+	}}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expected),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Fail: create subs that already exists
+	sub2 := newMutableSubscriber("IMSI0000000002")
+	payload = subscriberModels.MutableSubscribers{sub0, sub1, sub2}
+	tc = tests.Test{
+		Method:                 "POST",
+		URL:                    testURLRoot,
+		Payload:                tests.JSONMarshaler(payload),
+		Handler:                createSubscriber,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "found 2 existing subscribers which would have been overwritten",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Fail: create two subs with same IMSI
+	sub3 := newMutableSubscriber("IMSI0000000003")
+	sub4 := newMutableSubscriber("IMSI0000000004")
+	sub5 := newMutableSubscriber("IMSI0000000004") // same as sub4
+	payload = subscriberModels.MutableSubscribers{sub3, sub4, sub5}
+	tc = tests.Test{
+		Method:                 "POST",
+		URL:                    testURLRoot,
+		Payload:                tests.JSONMarshaler(payload),
+		Handler:                createSubscriber,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "found multiple subscriber models for IDs",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Fail: create sub with non-default sub profile that's missing from network config
+	sub6 := newMutableSubscriber("IMSI0000000006")
+	sub6.Lte.SubProfile = "missing-profile"
+	payload = subscriberModels.MutableSubscribers{sub6}
+	tc = tests.Test{
+		Method:                 "POST",
+		URL:                    testURLRoot,
+		Payload:                tests.JSONMarshaler(payload),
+		Handler:                createSubscriber,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "subscriber profile 'missing-profile' does not exist for the network",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Pass: create sub with non-default sub profile that's present in network config
+	sub7 := newMutableSubscriber("IMSI0000000007")
+	sub8 := newMutableSubscriber("IMSI0000000008")
+	sub7.Lte.SubProfile = "present-profile"
+	sub8.Lte.SubProfile = "present-profile"
+	payload = subscriberModels.MutableSubscribers{sub7, sub8}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            testURLRoot,
+		Payload:        tests.JSONMarshaler(payload),
+		Handler:        createSubscriber,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
 }
 
 func TestListSubscribers(t *testing.T) {
@@ -1559,14 +1685,14 @@ func TestUpdateSubscriber(t *testing.T) {
 	// No profile matching
 	payload.Lte.SubProfile = "bar"
 	tc = tests.Test{
-		Method:         "PUT",
-		URL:            testURLRoot,
-		Handler:        updateSubscriber,
-		Payload:        payload,
-		ParamNames:     []string{"network_id", "subscriber_id"},
-		ParamValues:    []string{"n1", "IMSI1234567890"},
-		ExpectedStatus: 400,
-		ExpectedError:  "subscriber profile bar does not exist for the network",
+		Method:                 "PUT",
+		URL:                    testURLRoot,
+		Handler:                updateSubscriber,
+		Payload:                payload,
+		ParamNames:             []string{"network_id", "subscriber_id"},
+		ParamValues:            []string{"n1", "IMSI1234567890"},
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "subscriber profile 'bar' does not exist for the network",
 	}
 	tests.RunUnitTest(t, e, tc)
 }
@@ -1807,14 +1933,14 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	// bad profile
 	payload = "bar"
 	tc = tests.Test{
-		Method:         "PUT",
-		URL:            testURLRoot,
-		Handler:        updateProfile,
-		Payload:        tests.JSONMarshaler(payload),
-		ParamNames:     []string{"network_id", "subscriber_id"},
-		ParamValues:    []string{"n1", "IMSI1234567890"},
-		ExpectedStatus: 400,
-		ExpectedError:  "subscriber profile bar does not exist for the network",
+		Method:                 "PUT",
+		URL:                    testURLRoot,
+		Handler:                updateProfile,
+		Payload:                tests.JSONMarshaler(payload),
+		ParamNames:             []string{"network_id", "subscriber_id"},
+		ParamValues:            []string{"n1", "IMSI1234567890"},
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "subscriber profile 'bar' does not exist for the network",
 	}
 	tests.RunUnitTest(t, e, tc)
 

@@ -1,4 +1,4 @@
-
+---
 #------------------
 #Cluster-specific Variables
 #Use them to customize each deployment
@@ -6,20 +6,21 @@
 #Orc8r deployment variables
 orc8rClusterName: Sydney
 orc8rDomainName: bbbath.fbmagma.ninja
-orc8rLabel: 1.4.0
-orc8rVersion: v1.4
-gitHelmRepo: helm14
-#Ex: If the repo is avaialble from https://github.com/<username>/helm13.git, use the repo name for gitHelmRepo
+orc8rLabel: 1.5.0
+orc8rVersion: v1.5
+gitHelmRepo: helm15
+
 
 #AWS variables
 awsBootKey: "{{ keyBoot }}"
 awsHostKey: "{{ keyHost }}"
 awsAgwRegion: ap-northeast-1
-awsOrc8rRegion: ap-southeast-1
+awsOrc8rRegion: ap-southeast-2
 awsAgwAz: ap-northeast-1a
+awsAgwVersion: v1.5
 
-#awsAgwAmi: ami-082cfa03978837a23
-awsAgwAmi: ami-0f568ae27c14ee6ea
+awsAgwAmi: ami-09265db477af05f54
+awsCloudstrapperAmi: ami-03865ac2b925f8056
 
 #------------------
 #Cluster-specific Presets
@@ -34,5 +35,3 @@ orc8rTfEs: orc8r-es
 #------------------
 #Cluster-specific Variables ends
 #------------------
-
-

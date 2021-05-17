@@ -12,17 +12,17 @@
  */
 #pragma once
 
-#include <functional>
-#include <vector>
 #include <experimental/optional>
-
-#include <folly/Format.h>
 #include <folly/dynamic.h>
+#include <folly/Format.h>
 #include <folly/json.h>
-
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-#include <lte/protos/session_manager.grpc.pb.h>
+
+#include <functional>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "CreditKey.h"
 
@@ -35,10 +35,11 @@ struct SessionConfig {
   CommonSessionContext common_context;
   RatSpecificContext rat_specific_context;
 
-  SessionConfig(){};
-  SessionConfig(const LocalCreateSessionRequest& request);
+  SessionConfig() {}
+  explicit SessionConfig(const LocalCreateSessionRequest& request);
   bool operator==(const SessionConfig& config) const;
   std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
+  std::string get_imsi() const { return common_context.sid().id(); }
 };
 
 // Session Credit
@@ -55,6 +56,18 @@ enum EventTriggerState {
 };
 typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState>
     EventTriggerStatus;
+
+struct Usage {
+  uint64_t bytes_tx;
+  uint64_t bytes_rx;
+};
+
+struct TotalCreditUsage {
+  uint64_t monitoring_tx;
+  uint64_t monitoring_rx;
+  uint64_t charging_tx;
+  uint64_t charging_rx;
+};
 
 /**
  * A bucket is a counter used for tracking credit volume across sessiond.
@@ -141,14 +154,15 @@ enum SessionFsmState {
 struct RuleLifetime {
   std::time_t activation_time;    // Unix timestamp
   std::time_t deactivation_time;  // Unix timestamp
-  RuleLifetime() : activation_time(0), deactivation_time(0){};
+  RuleLifetime() : activation_time(0), deactivation_time(0) {}
   RuleLifetime(const time_t activation, const time_t deactivation)
-      : activation_time(activation), deactivation_time(deactivation){};
-  RuleLifetime(const StaticRuleInstall& rule_install);
-  RuleLifetime(const DynamicRuleInstall& rule_install);
+      : activation_time(activation), deactivation_time(deactivation) {}
+  explicit RuleLifetime(const StaticRuleInstall& rule_install);
+  explicit RuleLifetime(const DynamicRuleInstall& rule_install);
   bool is_within_lifetime(std::time_t time);
   bool exceeded_lifetime(std::time_t time);
   bool before_lifetime(std::time_t time);
+  bool should_schedule_deactivation(std::time_t time);
 };
 
 // QoS Management
@@ -197,9 +211,32 @@ typedef std::unordered_map<PolicyID, BearerIDAndTeid, PolicyIDHash>
 struct RuleToProcess {
   PolicyRule rule;
   uint32_t version;
+  Teids teids;
 };
 
 typedef std::vector<RuleToProcess> RulesToProcess;
+
+enum PolicyAction {
+  ACTIVATE   = 0,
+  DEACTIVATE = 1,
+};
+
+struct RuleToSchedule {
+  PolicyType p_type;
+  std::string rule_id;
+  PolicyAction p_action;
+  std::time_t scheduled_time;
+  RuleToSchedule() {}
+  RuleToSchedule(
+      PolicyType _p_type, std::string _rule_id, PolicyAction _p_action,
+      std::time_t _time)
+      : p_type(_p_type),
+        rule_id(_rule_id),
+        p_action(_p_action),
+        scheduled_time(_time) {}
+};
+
+typedef std::vector<RuleToSchedule> RulesToSchedule;
 
 struct StatsPerPolicy {
   // The version maintained by SessionD for this rule
@@ -208,5 +245,22 @@ struct StatsPerPolicy {
   uint32_t last_reported_version;
 };
 typedef std::unordered_map<std::string, StatsPerPolicy> PolicyStatsMap;
+
+struct TeidHash {
+  std::size_t operator()(const Teids& teid) const {
+    std::size_t h1 = std::hash<uint32_t>{}(teid.enb_teid());
+    std::size_t h2 = std::hash<uint32_t>{}(teid.agw_teid());
+    return h1 ^ h2;
+  }
+};
+struct TeidEqual {
+  bool operator()(const Teids& lhs, const Teids& rhs) const {
+    return lhs.agw_teid() == rhs.agw_teid() && lhs.enb_teid() == rhs.enb_teid();
+  }
+};
+typedef std::unordered_map<Teids, ActivateFlowsRequest, TeidHash, TeidEqual>
+    ActivateReqByTeids;
+typedef std::unordered_map<Teids, DeactivateFlowsRequest, TeidHash, TeidEqual>
+    DeactivateReqByTeids;
 
 }  // namespace magma

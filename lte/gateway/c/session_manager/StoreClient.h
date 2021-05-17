@@ -12,9 +12,13 @@
  */
 #pragma once
 
-#include <memory>
-
 #include <lte/protos/session_manager.grpc.pb.h>
+
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "SessionState.h"
 

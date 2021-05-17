@@ -25,8 +25,9 @@ var _ = math.Inf
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
 type CreateBearerRequest struct {
-	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	IpAddr               string        `protobuf:"bytes,2,opt,name=ip_addr,json=ipAddr,proto3" json:"ip_addr,omitempty"`
+	Sid    *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	IpAddr string        `protobuf:"bytes,2,opt,name=ip_addr,json=ipAddr,proto3" json:"ip_addr,omitempty"`
+	// default bearer ID
 	LinkBearerId         uint32        `protobuf:"varint,3,opt,name=link_bearer_id,json=linkBearerId,proto3" json:"link_bearer_id,omitempty"`
 	PolicyRules          []*PolicyRule `protobuf:"bytes,4,rep,name=policy_rules,json=policyRules,proto3" json:"policy_rules,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
@@ -119,13 +120,15 @@ func (m *CreateBearerResult) XXX_DiscardUnknown() {
 var xxx_messageInfo_CreateBearerResult proto.InternalMessageInfo
 
 type DeleteBearerRequest struct {
-	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	IpAddr               string        `protobuf:"bytes,2,opt,name=ip_addr,json=ipAddr,proto3" json:"ip_addr,omitempty"`
-	LinkBearerId         uint32        `protobuf:"varint,3,opt,name=link_bearer_id,json=linkBearerId,proto3" json:"link_bearer_id,omitempty"`
-	EpsBearerIds         []uint32      `protobuf:"varint,4,rep,packed,name=eps_bearer_ids,json=epsBearerIds,proto3" json:"eps_bearer_ids,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	Sid    *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	IpAddr string        `protobuf:"bytes,2,opt,name=ip_addr,json=ipAddr,proto3" json:"ip_addr,omitempty"`
+	// default bearer ID
+	LinkBearerId uint32 `protobuf:"varint,3,opt,name=link_bearer_id,json=linkBearerId,proto3" json:"link_bearer_id,omitempty"`
+	// dedicated bearer IDs
+	EpsBearerIds         []uint32 `protobuf:"varint,4,rep,packed,name=eps_bearer_ids,json=epsBearerIds,proto3" json:"eps_bearer_ids,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *DeleteBearerRequest) Reset()         { *m = DeleteBearerRequest{} }

@@ -26,6 +26,7 @@ import (
 	healthTestUtils "magma/feg/cloud/go/services/health/test_utils"
 	"magma/lte/cloud/go/lte"
 	models3 "magma/lte/cloud/go/services/lte/obsidian/models"
+	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -644,6 +645,65 @@ func TestFederatedLteNetworks(t *testing.T) {
 		Handler:        listNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{"n3", "n4"}),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	e := echo.New()
+
+	handlers := handlers.GetHandlers()
+	getSubscriberConfig := tests.GetHandlerByPathAndMethod(t, handlers, "/magma/v1/feg_lte/:network_id/subscriber_config", obsidian.GET).HandlerFunc
+	postSubscriberConfig := tests.GetHandlerByPathAndMethod(t, handlers, "/magma/v1/feg_lte/:network_id/subscriber_config", obsidian.PUT).HandlerFunc
+	createNetwork := tests.GetHandlerByPathAndMethod(t, handlers, "/magma/v1/feg_lte", obsidian.POST).HandlerFunc
+
+	// Pre: create network
+	tc := tests.Test{
+		Method: "POST",
+		URL:    "/magma/v1/feg_lte",
+		Payload: tests.JSONMarshaler(
+			&models2.FegLteNetwork{
+				Cellular:    models3.NewDefaultTDDNetworkConfig(),
+				Federation:  models2.NewDefaultFederatedNetworkConfigs(),
+				Description: "Foo Bar",
+				DNS:         models.NewDefaultDNSConfig(),
+				Features:    models.NewDefaultFeaturesConfig(),
+				ID:          "n1",
+				Name:        "network_1",
+			},
+		),
+		Handler:        createNetwork,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	subConfig := &policyModels.NetworkSubscriberConfig{
+		NetworkWideBaseNames: []policyModels.BaseName{"base1"},
+		NetworkWideRuleNames: []string{"rule1"},
+	}
+
+	// Pass: create subscriber config
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/feg_lte/n1/subscriber_config",
+		Payload:        tests.JSONMarshaler(subConfig),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        postSubscriberConfig,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Pass: read subscriber config
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/feg_lte/n1/subscriber_config",
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        getSubscriberConfig,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(subConfig),
 	}
 	tests.RunUnitTest(t, e, tc)
 }

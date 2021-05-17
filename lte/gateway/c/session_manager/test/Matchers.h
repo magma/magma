@@ -10,17 +10,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <future>
-#include <memory>
-#include <utility>
+#include <glog/logging.h>
+#include <google/protobuf/util/message_differencer.h>
+#include <gtest/gtest.h>
 #include <stdio.h>
 
-#include <glog/logging.h>
-#include <gtest/gtest.h>
+#include <future>
+#include <memory>
+#include <string>
+#include <utility>
+#include <vector>
 
 #include "SessiondMocks.h"
-
-#include <google/protobuf/util/message_differencer.h>
 
 using ::testing::Test;
 
@@ -56,6 +57,23 @@ MATCHER_P(CheckRuleNames, list_static_rules, "") {
   return true;
 }
 
+MATCHER_P(CheckRulesToProcess, expected, "") {
+  std::vector<RuleToProcess> to_process = arg;
+  // basic size check
+  if (to_process.size() != expected.size()) {
+    return false;
+  }
+  for (RuleToProcess val : to_process) {
+    for (uint32_t i = 0; i < expected.size(); i++) {
+      if (val.rule.id() == expected[i].rule.id()) {
+        // check teids
+        return val.teids == expected[i].teids;
+      }
+    }
+  }
+  return false;
+}
+
 MATCHER_P(CheckTeids, configured_teids, "") {
   Teids pipelined_req_teids = static_cast<const Teids>(arg);
 
@@ -65,6 +83,24 @@ MATCHER_P(CheckTeids, configured_teids, "") {
   }
 
   return false;
+}
+
+MATCHER_P(CheckTeidVector, expected, "") {
+  const std::vector<Teids> req_teids =
+      static_cast<const std::vector<Teids>>(arg);
+  if (expected.size() != req_teids.size()) {
+    return false;
+  }
+  for (uint32_t i = 0; i < req_teids.size(); i++) {
+    const Teids& expected_teids = expected[i];
+    const Teids& actual_teids   = req_teids[i];
+    if ((expected_teids.agw_teid() != actual_teids.agw_teid()) ||
+        (expected_teids.enb_teid() != actual_teids.enb_teid())) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {

@@ -14,9 +14,12 @@
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
 
-#include "StoredState.h"
+#include <string>
+#include <unordered_map>
+
 #include "CreditKey.h"
 #include "magma_logging.h"
+#include "StoredState.h"
 
 namespace magma {
 using google::protobuf::util::TimeUtil;
@@ -586,11 +589,15 @@ bool RuleLifetime::is_within_lifetime(std::time_t time) {
 }
 
 bool RuleLifetime::exceeded_lifetime(std::time_t time) {
-  return deactivation_time != 0 && deactivation_time < time;
+  return deactivation_time != 0 && deactivation_time <= time;
 }
 
 bool RuleLifetime::before_lifetime(std::time_t time) {
   return time < activation_time;
+}
+
+bool RuleLifetime::should_schedule_deactivation(std::time_t time) {
+  return deactivation_time != 0 && time <= deactivation_time;
 }
 
 };  // namespace magma

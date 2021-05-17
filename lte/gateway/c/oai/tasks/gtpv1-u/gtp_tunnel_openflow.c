@@ -250,7 +250,7 @@ int openflow_reset(void) {
 int openflow_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
     uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
-    uint32_t flow_precedence_dl) {
+    uint32_t flow_precedence_dl, char* apn) {
   uint32_t gtp_portno = find_gtp_port_no(enb);
 
   return openflow_controller_add_gtp_tunnel(

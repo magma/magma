@@ -79,6 +79,9 @@ http {
     ssl_verify_client on;
     ssl_client_certificate /var/opt/magma/certs/certifier.pem;
 
+    # Max allowed size for client requests body
+    client_max_body_size 50M;
+
     location / {
       {%- if resolver %}
       resolver {{ resolver }};
@@ -107,9 +110,6 @@ http {
       grpc_set_header x-magma-client-cert-cn $ssl_client_s_dn_cn;
       grpc_set_header x-magma-client-cert-serial $ssl_client_serial;
     }
-
-    # Setting max allowed size for client requests body to 50MB
-    client_max_body_size 50M;
   }
 
   # Server block for bootstrapper and any other non-clientcert services
@@ -156,6 +156,9 @@ http {
     ssl_certificate_key /var/opt/magma/certs/controller.key;
     ssl_verify_client on;
     ssl_client_certificate /var/opt/magma/certs/certifier.pem;
+
+    # Max allowed size for client requests body
+    client_max_body_size 50M;
 
     location / {
       {%- if resolver %}

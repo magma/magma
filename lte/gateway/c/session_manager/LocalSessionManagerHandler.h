@@ -12,10 +12,12 @@
  */
 #pragma once
 
-#include <functional>
-
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+
+#include <functional>
+#include <memory>
+#include <string>
 
 #include "LocalEnforcer.h"
 #include "SessionID.h"

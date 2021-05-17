@@ -14,6 +14,11 @@
 #include <folly/json.h>
 #include <google/protobuf/util/json_util.h>
 
+#include <list>
+#include <map>
+#include <memory>
+#include <string>
+
 #include "EnumToString.h"
 #include "magma_logging.h"
 #include "OperationalStatesHandler.h"

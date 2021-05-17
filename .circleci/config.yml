@@ -713,6 +713,7 @@ jobs:
       MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
+      - docker/install-dc
       - build/determinator:
           <<: *federated_build_verify
       - run:

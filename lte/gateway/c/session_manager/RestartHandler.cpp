@@ -12,9 +12,13 @@
  */
 #include <chrono>
 #include <future>
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-#include "RestartHandler.h"
 #include "magma_logging.h"
+#include "RestartHandler.h"
 
 namespace magma {
 namespace sessiond {
