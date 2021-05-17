@@ -25,7 +25,7 @@ type EpsIRIContent IRIParameter
 
 type IRIParameter struct {
 	Hi2epsDomainID        asn1.ObjectIdentifier `asn1:"tag:0"`
-	LawInterceptID        []byte                `asn1:"optional,tag:1"`
+	LawInterceptID        []byte                `asn1:"tag:1"`
 	TimeStamp             Timestamp             `asn1:"tag:3"`
 	Initiator             asn1.Enumerated       `asn1:"tag:4"`
 	PartyInformation      []PartyInformation    `asn1:"set,optional,tag:9"`

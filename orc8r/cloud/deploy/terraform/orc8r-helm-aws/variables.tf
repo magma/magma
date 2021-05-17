@@ -469,8 +469,8 @@ variable "nprobe_delivery_server" {
   default     = "10.10.0.2:6666"
 }
 
-variable "nprobe_verify_server" {
+variable "nprobe_skip_verify_server" {
   description = "allows nprobe service to skip tls server verification when exporting records."
   type        = bool
-  default     = false
+  default     = true
 }

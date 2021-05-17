@@ -42,8 +42,8 @@ locals {
     "certifier.pem",
     "bootstrapper.key",
     "admin_operator.pem",
-    "nprobe.key"
-    "nprobe.crt"
+    "nprobe.key",
+    "nprobe.pem",
   ]
 
   fluentd_cert_names = [
@@ -125,17 +125,9 @@ resource "kubernetes_secret" "orc8r_configs" {
     })
 
     "nprobe.yml" = yamlencode({
-      "operatorID": var.nprobe_operator_id == null ? 1 : var.nprobe_operator_id,
-      "updateIntervalSecs" : 60,
-      "backoffIntervalSecs" : 360,
-    })
-
-    "nprobe.yml" = yamlencode({
-      "operatorID": var.nprobe_operator_id == null ? 1 : var.nprobe_operator_id,
-      "updateIntervalSecs" : 60,
-      "backoffIntervalSecs" : 360,
+      "operatorID": var.nprobe_operator_id,
       "deliveryServer" : var.nprobe_delivery_server,
-      "verifyServer" : var.nprobe_verify_server,
+      "skipVerifyServer" : var.nprobe_skip_verify_server,
     })
   }
 }

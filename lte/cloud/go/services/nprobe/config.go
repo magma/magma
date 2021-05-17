@@ -37,10 +37,10 @@ type Config struct {
 	MaxExportRetries    uint32 `yaml:"maxExportRetries"`
 	OperatorID          uint32 `yaml:"operatorID"`
 
-	DeliveryServer string `yaml:"deliveryServer"`
-	ExporterKey    string `yaml:"exporterKey"`
-	ExporterCrt    string `yaml:"exporterCrt"`
-	VerifyServer   bool   `yaml:"skipVerifyServer"`
+	DeliveryServer   string `yaml:"deliveryServer"`
+	ExporterKey      string `yaml:"exporterKey"`
+	ExporterCrt      string `yaml:"exporterCrt"`
+	SkipVerifyServer bool   `yaml:"skipVerifyServer"`
 }
 
 // GetServiceConfig parses nprobe service config and returns Config
@@ -61,18 +61,18 @@ func GetServiceConfig() Config {
 	}
 
 	// overrided nprobe config sits within orc8r module.
-	orc8rConfig, err := config.GetServiceConfig(orc8r.ModuleName, ServiceName)
-	if err != nil {
-		return serviceConfig
-	}
-	if val, err := orc8rConfig.GetInt("operatorID"); err != nil {
-		serviceConfig.OperatorID = uint32(val)
-	}
-	if val, err := orc8rConfig.GetString("deliveryServer"); err != nil {
-		serviceConfig.DeliveryServer = val
-	}
-	if val, err := orc8rConfig.GetBool("verifyServer"); err != nil {
-		serviceConfig.VerifyServer = val
+	var overrideConfig Config
+	_, _, err = config.GetStructuredServiceConfig(orc8r.ModuleName, ServiceName, &overrideConfig)
+	if err == nil {
+		if overrideConfig.OperatorID > 0 {
+			serviceConfig.OperatorID = overrideConfig.OperatorID
+		}
+		if overrideConfig.DeliveryServer != "" {
+			serviceConfig.DeliveryServer = overrideConfig.DeliveryServer
+		}
+		if !overrideConfig.SkipVerifyServer {
+			serviceConfig.SkipVerifyServer = overrideConfig.SkipVerifyServer
+		}
 	}
 	return serviceConfig
 }

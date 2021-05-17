@@ -66,7 +66,7 @@ func main() {
 	tlsConfig, err := exporter.NewTlsConfig(
 		serviceConfig.ExporterCrt,
 		serviceConfig.ExporterKey,
-		serviceConfig.VerifyServer,
+		serviceConfig.SkipVerifyServer,
 	)
 	if err != nil {
 		glog.Fatalf("Failed to create new TlsConfig: %v", err)

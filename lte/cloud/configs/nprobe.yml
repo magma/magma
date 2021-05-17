@@ -24,7 +24,7 @@ updateIntervalSecs: 60
 backoffIntervalSecs: 360
 maxExportRetries: 10
 
-deliveryServer: 10.10.0.2:6666
+deliveryServer: 10.10.0.1:6666
 exporterKey: /var/opt/magma/certs/nprobe.key
-exporterCrt: /var/opt/magma/certs/nprobe.crt
-verifyServer: false
+exporterCrt: /var/opt/magma/certs/nprobe.pem
+skipVerifyServer: true

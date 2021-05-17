@@ -37,12 +37,9 @@ func convertUint32ToBytes(v uint32) []byte {
 
 // encodeGeneralizedTime parses timestamp and marshals it to
 // a byte sequence
-func encodeGeneralizedTime(timestamp string) ([]byte, error) {
-	ptime, err := time.Parse(time.RFC3339Nano, timestamp)
-	if err != nil {
-		return []byte{}, err
-	}
-	return ptime.MarshalBinary()
+func encodeGeneralizedTime(timestamp time.Time) []byte {
+	formatStr := "20060102150405.000"
+	return []byte(timestamp.Format(formatStr))
 }
 
 // decodeRecordType decodes record type (parent structure tag)
@@ -106,10 +103,10 @@ func processEventSpecificData(event *models.Event) EPSSpecificParameters {
 }
 
 // makeTimestamp returns a Timestamp object as defined in the asn1 schema
-func makeTimestamp(timestamp []byte) Timestamp {
+func makeTimestamp(timestamp time.Time) Timestamp {
 	return Timestamp{
 		LocalTime: LocalTimestamp{
-			GeneralizedTime:        timestamp,
+			GeneralizedTime:        encodeGeneralizedTime(timestamp),
 			WinterSummerIndication: IndicationNotAvailable,
 		},
 	}
