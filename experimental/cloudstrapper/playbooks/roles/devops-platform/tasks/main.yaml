@@ -10,6 +10,7 @@
   set_fact:
     factIid: "{{ inst_val.instances[0].instance_id }}"
 
+# Failed when permit to not fail when this version already exists
 - name: create snapshot of instance
   ec2_ami:
     instance_id: "{{ factIid }}"
