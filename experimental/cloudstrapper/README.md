@@ -316,9 +316,9 @@
       - awsOrc8rRegion : Determines which Region hosts the Orc8r instance to be deleted
       - orc8rClusterName : Local folder with terraform state [ex: ~/magma-experimental/<Name of Cluster>]
 
-  - ansible-playbook -e "dirLocalInventory=<Local Dir>" cleanup.yaml  [ --tags *various* ]
+  - ansible-playbook -e "dirLocalInventory=<Local Dir>" -e "{"deleteStacks": [stackName1, stackName2]}" cleanup.yaml  [ --tags *various* ]
 
-  Available tags include: agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc
+  Available tags include: agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc,orc8r,keys
 
 ## Known Issues, Best Practices & Expected Behavior
 

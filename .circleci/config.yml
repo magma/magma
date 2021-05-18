@@ -1402,13 +1402,6 @@ jobs:
             sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
             sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
       - run:
-          name: Propagate docker and helm repository (will be replaced by artifactory repos)
-          command: |
-            sed -i -e "s@gitUser:@& ${GITHUB_USER_READ_ACCESS}@1"  $VARS_DIR/secrets.yaml
-            sed -i -e "s@gitPat:@& ${GITHUB_ACCESS_TOKEN_READ_ACCESS}@1"  $VARS_DIR/secrets.yaml
-            sed -i -e "s@dockerUser:@& ${DOCKER_USERNAME_READ_QUENTIN}@1"  $VARS_DIR/secrets.yaml
-            sed -i -e "s@dockerPassword:@& ${DOCKER_PASSWORD_READ_QUENTIN}@1"  $VARS_DIR/secrets.yaml
-      - run:
           name: Propagate AWS region information
           command: |
             sed -i -e '/^awsAgwRegion: /s/:.*$/: us-west-1/' $VARS_DIR/cluster.yaml
