@@ -88,7 +88,9 @@ def _get_ip_block(ip_block_str: str) -> Optional[ipaddress.ip_network]:
             ip_block(ipaddress.ip_network)
     """
     if not ip_block_str:
-        logging.error("Empty IP block")
+        logging.warning(
+            "given ip block str is empty, cannot convert  to ipaddress.ip_network",
+        )
         return None
     try:
         ip_block = ipaddress.ip_network(ip_block_str)
