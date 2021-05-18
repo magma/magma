@@ -410,7 +410,7 @@ class SessionState {
    * @return RuleToProcess if successfully removed. otherwise returns {}
    */
   optional<RuleToProcess> deactivate_static_rule(
-      const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
+      const std::string rule_id, SessionStateUpdateCriteria& session_uc);
 
   bool deactivate_scheduled_static_rule(const std::string& rule_id);
 

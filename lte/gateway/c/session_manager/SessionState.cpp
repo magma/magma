@@ -1142,7 +1142,7 @@ optional<RuleToProcess> SessionState::remove_gy_rule(
 }
 
 optional<RuleToProcess> SessionState::deactivate_static_rule(
-    const std::string& rule_id, SessionStateUpdateCriteria& session_uc) {
+    const std::string rule_id, SessionStateUpdateCriteria& session_uc) {
   auto it = std::find(
       active_static_rules_.begin(), active_static_rules_.end(), rule_id);
   if (it == active_static_rules_.end()) {
