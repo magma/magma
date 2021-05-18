@@ -3,7 +3,7 @@ add_compile_options(-std=c++14)
 # compile the needed protos
 set(S8C_FEG_CPP_PROTOS s8_proxy)
 set(S8C_FEG_GRPC_PROTOS s8_proxy)
-set(S8C_LTE_CPP_PROTOS mconfig/mconfigs oai/spgw_state oai/sgw_state oai/common_types oai/std_3gpp_types)
+set(S8C_LTE_CPP_PROTOS mconfig/mconfigs)
 
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
