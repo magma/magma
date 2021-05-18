@@ -258,8 +258,8 @@ int amf_as_send_ng(const amf_as_t* msg) {
             as_msg.msg.dl_info_transfer_req.err_code);
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
       } break;
-      case AS_NAS_ESTABLISH_RSP_:
-      case AS_NAS_ESTABLISH_CNF_: {
+      case AS_NAS_ESTABLISH_RSP_: {
+        // case AS_NAS_ESTABLISH_CNF_: {
         if (as_msg.msg.nas_establish_rsp.err_code == M5G_AS_SUCCESS) {
           // This flow is to release the UE context after sending the NAS
           // message.
@@ -274,6 +274,9 @@ int amf_as_send_ng(const amf_as_t* msg) {
         }
       } break;
       case AS_NAS_RELEASE_REQ_:
+        OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+        break;
+      case AS_NAS_ESTABLISH_CNF_:
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
         break;
       default:
@@ -917,9 +920,8 @@ static int amf_as_security_req(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = 0;
   amf_nas_message_t nas_msg;
-  nas_msg.security_protected.header           = {0};
-  nas_msg.security_protected.plain.amf.header = {0};
-  nas_msg.security_protected.plain.amf.header = {0};
+
+  memset(&nas_msg, 0, sizeof(amf_nas_message_t));
 
   /*
    * Setup the AS message
@@ -1226,7 +1228,7 @@ int initial_context_setup_request(
         "Failed to allocate memory for NGAP_INITIAL_CONTEXT_SETUP_REQ\n");
     return RETURNerror;
   }
-  req = &message_p->ittiMsg.ngap_initial_context_setup_request;
+  req = &message_p->ittiMsg.ngap_initial_context_setup_req;
   memset(req, 0, sizeof(Ngap_initial_context_setup_request_t));
   req->amf_ue_ngap_id = ue_id;
   gnb_ue_ngap_id_t gnb_ue_ngap_id =

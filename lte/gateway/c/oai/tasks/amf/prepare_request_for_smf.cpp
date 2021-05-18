@@ -30,7 +30,7 @@ extern "C" {
 #include "SmfServiceClient.h"
 #include "amf_smfDefs.h"
 #include "conversions.h"
-
+#include "lte/protos/session_manager.pb.h"
 #define VERSION_0 0
 
 using grpc::Channel;
@@ -42,6 +42,7 @@ using magma::lte::AllocateIPAddressResponse;
 using magma::lte::IPAddress;
 using magma::lte::MobilityServiceClient;
 using magma::lte::SetSMSessionContext;
+using magma::lte::TeidSet;
 using magma5g::AsyncSmfServiceClient;
 
 /***************************************************************************
@@ -79,6 +80,7 @@ void grpc_prep_estab_req_to_smf(magma::lte::SetSMSessionContext req) {
             ->set_redirect_server_address((char*) ip_str);
         OAILOG_DEBUG(
             LOG_AMF_APP, "Sending PDU session Establishment Request to SMF");
+
         smf_srv_client->set_smf_session(req);
       });
 
@@ -124,8 +126,10 @@ int create_session_grpc_req_on_gnb_setup_rsp(
   req_common->set_sm_session_version(version);
   req_rat_specific->set_pdu_session_id((message->pdu_session_id));
   req_rat_specific->set_rquest_type(magma::lte::RequestType::INITIAL_REQUEST);
-  req_rat_specific->mutable_gnode_endpoint()->mutable_teid()->assign(
-      (char*) message->gnb_gtp_teid);
+
+  TeidSet* gnode_endpoint = req_rat_specific->mutable_gnode_endpoint();
+  gnode_endpoint->set_teid(&message->gnb_gtp_teid, 4);
+
   req_rat_specific->mutable_gnode_endpoint()->mutable_end_ipv4_addr()->assign(
       (char*) message->gnb_gtp_teid_ip_addr);
 

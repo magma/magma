@@ -75,21 +75,28 @@ int amf_handle_security_complete_response(
     OAILOG_ERROR(LOG_AMF_APP, "Timer: After stopping SMC MODE timer \n");
     smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
+    ue_mm_context->ue_context_request_present = true;
     if (amf_ctx && IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
-      /*
-       * Notify AMF that the authentication procedure successfully completed
-       */
-      amf_sap_t amf_sap;
-      amf_sap.primitive                = AMFCN_CS_RESPONSE;
-      amf_sap.u.amf_reg.ue_id          = ue_id;
-      amf_sap.u.amf_reg.ctx            = amf_ctx;
-      amf_sap.u.amf_reg.notify         = true;
-      amf_sap.u.amf_reg.free_proc      = true;
-      amf_sap.u.amf_reg.u.common_proc  = &smc_proc->amf_com_proc;
-      amf_ctx->_security.kenb_ul_count = amf_ctx->_security.ul_count;
-      amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_SECURITY);
-      rc = amf_sap_send(&amf_sap);
+      if (ue_mm_context->ue_context_request_present == false) {
+        /*
+         * Notify AMF that the authentication procedure successfully completed
+         */
+        amf_sap_t amf_sap;
+        amf_sap.primitive                = AMFCN_CS_RESPONSE;
+        amf_sap.u.amf_reg.ue_id          = ue_id;
+        amf_sap.u.amf_reg.ctx            = amf_ctx;
+        amf_sap.u.amf_reg.notify         = true;
+        amf_sap.u.amf_reg.free_proc      = true;
+        amf_sap.u.amf_reg.u.common_proc  = &smc_proc->amf_com_proc;
+        amf_ctx->_security.kenb_ul_count = amf_ctx->_security.ul_count;
+        amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_SECURITY);
+        rc = amf_sap_send(&amf_sap);
+      } else {
+	// Send the intial context setup request
+        amf_registration_success_security_cb(amf_ctx);
+      }
     }
+
     OAILOG_INFO(LOG_AMF_APP, " mm_state %d", ue_mm_context->mm_state);
     OAILOG_INFO(LOG_AMF_APP, "ue_m5gmm_context %p\n", ue_mm_context);
     ue_state_handle_message_initial(

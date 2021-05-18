@@ -36,6 +36,22 @@ class UESecurityCapabilityMsg {
   uint8_t ia5 : 1;
   uint8_t ia6 : 1;
   uint8_t ia7 : 1;
+  uint8_t eea0 : 1;
+  uint8_t ea1_128 : 1;
+  uint8_t ea2_128 : 1;
+  uint8_t ea3_128 : 1;
+  uint8_t eea4 : 1;
+  uint8_t eea5 : 1;
+  uint8_t eea6 : 1;
+  uint8_t eea7 : 1;
+  uint8_t eia0 : 1;
+  uint8_t eia1_128 : 1;
+  uint8_t eia2_128 : 1;
+  uint8_t eia3_128 : 1;
+  uint8_t eia4 : 1;
+  uint8_t eia5 : 1;
+  uint8_t eia6 : 1;
+  uint8_t eia7 : 1;
   uint8_t spare[3];
 
   UESecurityCapabilityMsg();

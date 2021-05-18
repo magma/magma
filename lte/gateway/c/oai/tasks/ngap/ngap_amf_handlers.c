@@ -126,7 +126,8 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
     {0, 0, 0}, /* TraceStart */
     {0, 0, 0}, /* TraceFailureIndication */
     {0, 0, 0}, /* GNBConfigurationUpdate */
-    {0, 0, 0}, /* AMFConfigurationUpdate */
+    {0, ngap_amf_handle_pduSession_setup_response,
+     0},       /* AMFConfigurationUpdate */
     {0, 0, 0}, /* LocationReportingControl */
     {0, 0, 0}, /* LocationReportingFailureIndication */
     {0, 0, 0}, /* LocationReport */
@@ -270,6 +271,10 @@ int ngap_amf_generate_ng_setup_failure(
   bstring b = blk2bstr(buffer_p, length);
   free(buffer_p);
   rc = ngap_amf_itti_send_sctp_request(&b, assoc_id, 0, INVALID_AMF_UE_NGAP_ID);
+
+  /* Free up the bstring */
+  bdestroy(b);
+
   OAILOG_FUNC_RETURN(LOG_NGAP, rc);
 }
 

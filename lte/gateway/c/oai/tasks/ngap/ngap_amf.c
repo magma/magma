@@ -50,7 +50,6 @@
 #include "timer_messages_types.h"
 #include "ngap_amf.h"
 
-amf_config_t amf_config;
 task_zmq_ctx_t ngap_task_zmq_ctx;
 
 static int ngap_send_init_sctp(void) {
@@ -151,6 +150,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           imsi64);
     } break;
 
+    case NGAP_INITIAL_CONTEXT_SETUP_REQ: {
+      ngap_handle_conn_est_cnf(
+          state, &NGAP_INITIAL_CONTEXT_SETUP_REQ(received_message_p));
+    } break;
+
     case NGAP_PDUSESSION_RESOURCE_SETUP_REQ: {
       ngap_generate_ngap_pdusession_resource_setup_req(
           state, &NGAP_PDUSESSION_RESOURCE_SETUP_REQ(received_message_p));
@@ -206,19 +210,6 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
 int ngap_amf_init(const amf_config_t* amf_config_p) {
   OAILOG_DEBUG(LOG_NGAP, "Initializing NGAP interface\n");
   amf_config_t* config = amf_config_p;
-
-  memset(config, 0, sizeof(*config));
-
-  pthread_rwlock_init(&config->rw_lock, NULL);
-
-  config->config_file                    = NULL;
-  config->max_gnbs                       = 2;
-  config->max_ues                        = 2;
-  config->unauthenticated_imsi_supported = 0;
-  config->relative_capacity              = RELATIVE_CAPACITY;
-  config->amf_statistic_timer            = AMF_STATISTIC_TIMER_S;
-
-  guamfi_config_init(&config->guamfi);
 
   if (ngap_state_init(
           amf_config_p->max_ues, amf_config_p->max_gnbs,

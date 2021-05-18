@@ -57,7 +57,7 @@ int amf_sap_send(amf_sap_t* msg) {
     msg->u.amf_as.primitive = (amf_as_primitive_t) primitive;
     rc                      = amf_as_send(&msg->u.amf_as);
   } else {
-    OAILOG_INFO(LOG_NAS_AMF, "Wrong primitive type received\n");
+    OAILOG_ERROR(LOG_NAS_AMF, "Wrong primitive type received\n");
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }

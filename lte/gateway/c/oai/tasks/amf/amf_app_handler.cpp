@@ -595,9 +595,8 @@ int amf_app_handle_pdu_session_accept(
   // AmfHeader
   encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  encode_msg->spare_half_octet.spare = 0x00;
-  encode_msg->sec_header_type.sec_hdr =
-      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+  encode_msg->spare_half_octet.spare     = 0x00;
+  encode_msg->sec_header_type.sec_hdr    = SECURITY_HEADER_TYPE_NOT_PROTECTED;
   encode_msg->message_type.msg_type      = DLNASTRANSPORT;
   encode_msg->payload_container_type.iei = PAYLOAD_CONTAINER_TYPE;
 
@@ -607,6 +606,7 @@ int amf_app_handle_pdu_session_accept(
   encode_msg->pdu_session_identity.iei        = PDU_SESSION_IDENTITY;
   encode_msg->pdu_session_identity.pdu_session_id =
       pdu_session_resp->pdu_session_id;
+
   smf_msg->header.extended_protocol_discriminator =
       M5G_SESSION_MANAGEMENT_MESSAGES;
   smf_msg->header.pdu_session_id = pdu_session_resp->pdu_session_id;
@@ -626,12 +626,14 @@ int amf_app_handle_pdu_session_accept(
   // pdu_session_resp->pdu_session_type;
   smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val = 1;
   // smf_msg->msg.pdu_session_estab_accept.ssc_mode.mode_val = SSC_MODE_ONE;
+
   memset(
-      smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info, '\0', 12);
-  //      sizeof(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info));
-  memcpy(
-      smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info,
-      pdu_session_resp->pdu_address.redirect_server_address, PDU_ADDR_IPV4_LEN);
+      &(smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info), 0, 12);
+
+  for (int i = 0; i < PDU_ADDR_IPV4_LEN; i++) {
+    smf_msg->msg.pdu_session_estab_accept.pdu_address.address_info[i] =
+        pdu_session_resp->pdu_address.redirect_server_address[i];
+  }
   smf_msg->msg.pdu_session_estab_accept.pdu_address.type_val = PDU_ADDR_TYPE;
 
   /* QOSrules are hardcoded as it is not exchanged in AMF-SMF
@@ -664,14 +666,15 @@ int amf_app_handle_pdu_session_accept(
       smf_msg->msg.pdu_session_estab_accept.qos_rules.qos_rule, &qos_rule,
       1 * sizeof(QOSRule));
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_unit =
-      smf_ctx->dl_ambr_unit;
+      pdu_session_resp->session_ambr.downlink_unit_type;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_unit =
-      smf_ctx->ul_ambr_unit;
+      pdu_session_resp->session_ambr.uplink_unit_type;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.dl_session_ambr =
-      smf_ctx->dl_session_ambr;
+      pdu_session_resp->session_ambr.downlink_units;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.ul_session_ambr =
-      smf_ctx->ul_session_ambr;
+      pdu_session_resp->session_ambr.uplink_units;
   smf_msg->msg.pdu_session_estab_accept.session_ambr.length = AMBR_LEN;
+
   //  encode_msg.payload_container.len = PDU_ESTAB_ACCPET_PAYLOAD_CONTAINER_LEN;
   //  len                              = PDU_ESTAB_ACCPET_NAS_PDU_LEN;
   //  buffer                           = bfromcstralloc(len, "\0");
@@ -712,9 +715,7 @@ int amf_app_handle_pdu_session_accept(
     OAILOG_DEBUG(
         LOG_AMF_APP,
         "NAS encode success, sent PDU Establishment Accept to UE\n");
-    buffer->slen =
-        bytes +
-        3;  // TODO fix the buffer length returned in NAS encode function
+    buffer->slen = bytes;
     amf_app_handle_nas_dl_req(ue_id, buffer, rc);
 
   } else {
@@ -803,7 +804,8 @@ void amf_app_handle_resource_setup_response(
     OAILOG_DEBUG(LOG_AMF_APP, "printing both teid and ip_address of gNB\n");
     OAILOG_DEBUG(
         LOG_AMF_APP,
-        "IP address %02x %02x %02x %02x  and TEID %02x %02x %02x %02x \n",
+        "IP address %02x %02x %02x %02x  and TEID %02x "
+        "%02x %02x %02x \n",
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[0],
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[1],
         smf_ctx->gtp_tunnel_id.gnb_gtp_teid_ip_addr[2],
@@ -829,7 +831,9 @@ void amf_app_handle_resource_setup_response(
         &amf_smf_grpc_ies.gnb_gtp_teid, &smf_ctx->gtp_tunnel_id.gnb_gtp_teid,
         4);
     amf_smf_grpc_ies.pdu_session_id =
-        smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+        session_seup_resp.pduSessionResource_setup_list.item[0].Pdu_Session_ID;
+    // smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
     /* Prepare and send gNB setup response message to SMF through gRPC
      * 2nd time PDU session establish message
