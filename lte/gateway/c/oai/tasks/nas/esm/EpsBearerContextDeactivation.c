@@ -457,7 +457,6 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
             ue_id, ebi);
         OAILOG_FUNC_OUT(LOG_NAS_ESM);
       }
-
       // Fetch pdn id using bearer index
       pdn_cid_t pdn_id = ue_mm_context->bearer_contexts[bid]->pdn_cx_id;
 

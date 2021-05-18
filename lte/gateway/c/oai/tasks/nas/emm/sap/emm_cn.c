@@ -574,7 +574,6 @@ static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
         "MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "ebi-%u\n",
         ue_mm_context->mme_ue_s1ap_id, msg_pP->ebi);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
-    ;
   }
 
   // Return default EPS bearer context request message
@@ -1119,7 +1118,6 @@ static int emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
     /*
      * Release the associated default EPS bearer context
      */
-
     int bid = 0;
     rc      = esm_proc_eps_bearer_context_deactivate(
         &ue_mm_context_p->emm_context, false /* Release locally */, msg->lbi,
