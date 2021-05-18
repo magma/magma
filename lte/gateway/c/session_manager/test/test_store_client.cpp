@@ -11,18 +11,18 @@
  * limitations under the License.
  */
 
-#include <memory>
-
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
+#include "Consts.h"
+#include "magma_logging.h"
 #include "MemoryStoreClient.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "SessionID.h"
 #include "SessionState.h"
-#include "magma_logging.h"
-#include "Consts.h"
 
 using ::testing::Test;
 

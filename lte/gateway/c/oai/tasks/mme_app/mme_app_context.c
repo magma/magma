@@ -251,7 +251,8 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   ue_context_p->hss_initiated_detach  = false;
   for (int i = 0; i < MAX_APN_PER_UE; i++) {
     if (ue_context_p->pdn_contexts[i]) {
-      mme_app_free_pdn_context(&ue_context_p->pdn_contexts[i]);
+      mme_app_free_pdn_context(
+          &ue_context_p->pdn_contexts[i], ue_context_p->emm_context._imsi64);
     }
   }
 

@@ -14,6 +14,7 @@
  * @format
  */
 import type {Dataset} from './CustomMetrics';
+import type {EnqueueSnackbarOptions} from 'notistack';
 import type {network_id} from '@fbcnms/magma-api';
 
 import Card from '@material-ui/core/Card';
@@ -47,7 +48,10 @@ type DatasetFetchProps = {
   end: moment,
   delta: number,
   unit: string,
-  enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 
 async function getEventAlertDataset(props: DatasetFetchProps) {

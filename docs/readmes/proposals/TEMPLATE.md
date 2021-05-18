@@ -16,36 +16,56 @@ Last updated: [Date]
 Discussion at
 [https://github.com/magma/magma/issues/4888](https://github.com/magma/magma/issues/4888).
 
-## Abstract
+## Context & scope
 
-[A short summary of the proposal.]
+[Give the reader a very rough overview of the landscape in which the new system 
+is being built.  This isn’t a requirements doc; keep it succinct! Bring the 
+reader up to speed. Focus on objective background facts.]
 
-## Background
+### Goals
 
-[An introduction of the necessary background and the problem being solved by
-the proposed change.]
+[Bulleted points; for example, “ACID compliance” for a database.]
+
+### Non-goals
+
+[Bulleted points; for example, “ACID compliance” for a database.]
 
 ## Proposal
 
-[A precise statement of the proposed change.]
+[Start with an overview of your design, and then go into details. **Focus on 
+the trade-offs that you made in the design** in order to make sure this doc has 
+long-term value. Given the context (facts), and goals vs non-goals, this is the 
+place to suggest a solution and substantiate why it best satisfies those goals.]
 
-## Rationale
+## Alternatives considered
 
-[A discussion of alternate approaches and the trade offs, advantages, and
-disadvantages of the specified approach.]
+[This section lists alternative designs that might have reasonably achieved 
+considerable outcomes.  The focus of each should be on the trade-offs that each 
+alternative makes and how those trade-offs led to the decision to select the 
+primary design. **This is probably the most important section; it shows very 
+explicitly why the selected solution is the best given the goals.** This is 
+important, since your reader is likely wondering about one or more alternative 
+solutions.]
 
-## Compatibility
+## Cross-cutting concerns
+
+[These are relatively short-sections where the template forces the author to 
+write 1-2 sentences to demonstrate consideration of how the design impacts a 
+concern -- and how it is addressed.  Teams should standardize on the set of 
+concerns.]
+
+### Compatibility
 
 [A discussion of the change with regard to backward / forward compatibility.]
 
-## Observability and Debug
+### Observability and Debug
 
 [A description, of how issues with this design would be observed and debugged
 in various stages from development through production.]
 
-## Implementation
+### Security & privacy
 
-[A description of the steps in the implementation, who will do them, and when.]
+[A description of the security and/or privacy impact of the change (if any).]
 
 ## Open issues (if applicable)
 

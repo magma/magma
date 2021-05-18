@@ -22,20 +22,26 @@ package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
 message RuleRecord {
-  string sid = 1; // Session ID - specified as IMSI
+  // IMSI. This value along with teid uniquely identifies a session.
+  string sid = 1;
   string rule_id = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
+  // Used for HE
   string ue_ipv4 = 5;
+  // Used for HE
   string ue_ipv6 = 6;
   uint64 dropped_tx = 7;
   uint64 dropped_rx = 8;
+  // Rule version with which the flow was installed with
   uint64 rule_version = 9;
+  // Uplink TEID
   uint32 teid = 10;
 }
 
 message RuleRecordTable {
   repeated RuleRecord records = 1;
+  // Time at which PipelineD started
   uint64 epoch = 2;
 }
 
@@ -43,8 +49,10 @@ message RuleRecordTable {
 // LocalSessionManager service
 ///////////////////
 enum RATType {
-  TGPP_LTE = 0;  // will map to 06 (EUTRAN, 3GPP TS 29.274) for Gy, 1004 (EUTRAN, 3GPP TS 29.212) S6a, Gx
-  TGPP_WLAN = 1; // will map to 03 (WLAN, 3GPP TS 29.274) for Gy, 0 (WLAN, 3GPP TS 29.212) S6a, Gx
+  // Maps to 06 (EUTRAN, 3GPP TS 29.274) for Gy, 1004 (EUTRAN, 3GPP TS 29.212) S6a, Gx
+  TGPP_LTE = 0;  
+  // Maps to 03 (WLAN, 3GPP TS 29.274) for Gy, 0 (WLAN, 3GPP TS 29.212) S6a, Gx
+  TGPP_WLAN = 1; 
   TGPP_NR = 2;
 }
 
@@ -64,10 +72,11 @@ message CommonSessionContext {
   string apn = 4;
   bytes msisdn = 5;
   RATType rat_type = 6;
-  //PDU session state to mirror with AMF or MME
+  // PDU session state to mirror with AMF or MME
   SMSessionFSMState sm_session_state = 7;
   uint32 sm_session_version = 9;
   string ue_ipv6 = 10;
+  // TEIDs corresponding to the default bearer
   Teids teids = 11;
 }
 
@@ -80,7 +89,8 @@ message RatSpecificContext {
 }
 
 message RatSpecificNotification {
-  bytes pdu_session_id = 1;            //One byte
+  // One byte
+  bytes pdu_session_id = 1;
   RequestType request_type = 2;
   AccessType access_type = 3;
   PduSessionType pdu_session_type = 4;
@@ -89,7 +99,8 @@ message RatSpecificNotification {
 }
 
 message SetSmNotificationContext {
-  CommonSessionContext common_context = 1;                             //Common message for 4g, 5g and WiFi.
+  // Common message for 4g, 5g and WiFi.
+  CommonSessionContext common_context = 1;                       
   RatSpecificNotification rat_specific_notification = 2;
 }
 
@@ -102,7 +113,8 @@ message LTESessionContext {
   bytes user_location = 5;
   QosInformationRequest qos_info = 6;
   uint32 bearer_id = 7;
-  string charging_characteristics = 8; // Taken from S6A UpdateLocationAnswer
+  // Taken from S6A UpdateLocationAnswer
+  string charging_characteristics = 8;
 }
 
 message WLANSessionContext {
@@ -125,8 +137,11 @@ message LocalEndSessionResponse {
 
 message UpdateTunnelIdsRequest {
   SubscriberID sid = 1;
+  // default bearerID 
   uint32 bearer_id = 2;
+  // TEID for default bearerID
   uint32 enb_teid = 3;
+  // TEID for default bearerID
   uint32 agw_teid = 4;
   string session_id = 5;
 }
@@ -136,10 +151,14 @@ message UpdateTunnelIdsResponse {
 
 message PolicyBearerBindingRequest {
   SubscriberID sid = 1;
+  // default bearer ID
   uint32 linked_bearer_id = 2;
   string policy_rule_id = 3;
+  // dedicated bearer ID
+  // 0 means that the binding failed
   uint32 bearer_id = 4;
-  Teids teids = 5; // teids tied to the dedicated bearer
+  // teids for the dedicated bearer
+  Teids teids = 5;
 }
 
 message PolicyBearerBindingResponse {
@@ -295,7 +314,8 @@ message PolicyReAuthAnswer {
 }
 
 message RuleSet {
-  bool apply_subscriber_wide = 1; // Apply the rules to all sessions for IMSI
+  // If true, apply the rules to all sessions for the subscriber
+  bool apply_subscriber_wide = 1;
   string apn = 2;
   repeated StaticRuleInstall static_rules = 3;
   repeated DynamicRuleInstall dynamic_rules = 4;
@@ -317,7 +337,9 @@ service LocalSessionManager {
 
   rpc EndSession(LocalEndSessionRequest) returns (LocalEndSessionResponse) {}
 
+  // A response to CreateBearer request defined in spgw service. Sends a mapping of dedicated bearer ID <-> policy.
   rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
+  
   // A set interface of subscribers -> currently active rules
   rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
 
@@ -328,7 +350,6 @@ service SessionProxyResponder {
   rpc ChargingReAuth(ChargingReAuthRequest) returns (ChargingReAuthAnswer) {}
 
   // NOTE: if no session_id is specified, apply to all sessions for the IMSI
-  //
   rpc PolicyReAuth(PolicyReAuthRequest) returns (PolicyReAuthAnswer) {}
 }
 
@@ -371,7 +392,8 @@ message ChargingCredit {
       SECONDS = 1;
   }
   UnitType type = 2;
-  uint32 validity_time = 3; // seconds
+  // The number of seconds the credit is valid for
+  uint32 validity_time = 3;
   bool is_final = 4;
   enum FinalAction {
     TERMINATE = 0;
@@ -398,12 +420,16 @@ message CreditUsage {
   enum UpdateType {
     THRESHOLD = 0;
     QHT = 1;
-    TERMINATED = 2; // FINAL - UE disconnected, flow not in use
-    QUOTA_EXHAUSTED = 3; // UE hit credit limit
-    VALIDITY_TIMER_EXPIRED = 4; // Credit expired
+    // FINAL - UE disconnected, flow not in use
+    TERMINATED = 2;
+    // UE hit credit limit
+    QUOTA_EXHAUSTED = 3;
+    // Credit expired
+    VALIDITY_TIMER_EXPIRED = 4;
     OTHER_QUOTA_TYPE = 5;
     RATING_CONDITION_CHANGE = 6;
-    REAUTH_REQUIRED = 7; // FORCED_REAUTHORISATION
+    // FORCED_REAUTHORISATION
+    REAUTH_REQUIRED = 7;
     POOL_EXHAUSTED = 8;
   }
   UpdateType type = 5;
@@ -415,13 +441,15 @@ message CreditUsage {
 message CreditUsageUpdate {
   CreditUsage usage = 1;
   string session_id = 2;
-  uint32 request_number = 3; // unique among session
+  // unique among session
+  uint32 request_number = 3;
   string spgw_ipv4 = 7;
   string imei = 9;
   string plmn_id = 10;
   string imsi_plmn_id = 11;
   bytes user_location = 12;
-  bytes hardware_addr = 14; // MAC Address for WLAN
+  // MAC Address for WLAN
+  bytes hardware_addr = 14;
   TgppContext tgpp_ctx = 15;
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;
@@ -436,7 +464,8 @@ enum CreditLimitType {
 
 message CreditUpdateResponse {
   bool success = 1;
-  string sid = 2; // System Identification Number
+  // SubscriberID/IMSI
+  string sid = 2;
   uint32 charging_key = 3;
   ChargingCredit credit = 4;
   uint32 result_code = 6;
@@ -465,9 +494,12 @@ message UsageMonitorUpdate {
 // New received threshold for a usage monitor
 message UsageMonitoringCredit {
   enum Action {
-    CONTINUE = 0; // continue monitoring as normal
-    DISABLE = 1; // no need to monitor any more  `AVP: Usage-Monitor-Support`
-    FORCE = 2; // monitor no matter if credit is exhausted `AVP: Usage-Monitor-Report` // TODO: not implemented on sessiond
+    // continue monitoring as normal
+    CONTINUE = 0;
+    // no need to monitor any more  `AVP: Usage-Monitor-Support`
+    DISABLE = 1;
+    // monitor no matter if credit is exhausted `AVP: Usage-Monitor-Report` TODO: not implemented on sessiond
+    FORCE = 2; 
   }
   Action action = 1;
   bytes monitoring_key = 2;
@@ -481,10 +513,13 @@ message UsageMonitoringCredit {
 message UsageMonitoringUpdateRequest {
   UsageMonitorUpdate update = 1;
   string session_id = 2;
-  uint32 request_number = 3; // unique among session
-  string sid = 4; // System Identification Number
+  // unique among session
+  uint32 request_number = 3;
+  // SubscriberID/IMSI
+  string sid = 4;
   string ue_ipv4 = 5;
-  bytes hardware_addr = 6; // MAC Address for WLAN
+  // MAC Address for WLAN
+  bytes hardware_addr = 6;
   RATType rat_type = 7;
   TgppContext tgpp_ctx = 8;
   EventTrigger event_trigger = 9;
@@ -495,7 +530,8 @@ message UsageMonitoringUpdateRequest {
 message UsageMonitoringUpdateResponse {
   UsageMonitoringCredit credit = 1;
   string session_id = 2;
-  string sid = 3; // System Identification Number
+  // SubscriberID/IMSI
+  string sid = 3;
   bool success = 4;
   repeated EventTrigger event_triggers = 5;
   google.protobuf.Timestamp revalidation_time = 6;
@@ -534,10 +570,12 @@ message CreateSessionRequest {
 }
 
 message CreateSessionResponse {
-  repeated CreditUpdateResponse credits = 1; // these will only have updates
+  // List of charging credits that should be installed for the session
+  repeated CreditUpdateResponse credits = 1;
+  // List of usage monitors that should be installed for the session
   repeated UsageMonitoringUpdateResponse usage_monitors = 6;
-  repeated StaticRuleInstall static_rules = 7; // static rules
-  repeated DynamicRuleInstall dynamic_rules = 8; // dynamic rules
+  repeated StaticRuleInstall static_rules = 7;
+  repeated DynamicRuleInstall dynamic_rules = 8;
   string session_id = 9;
   TgppContext tgpp_ctx = 10;
   repeated EventTrigger event_triggers = 11;
@@ -569,7 +607,8 @@ message UpdateSessionResponse {
 }
 
 message SessionTerminateResponse {
-  string sid = 1; // System Identification Number
+  // IMSI
+  string sid = 1;
   string session_id = 2;
 }
 
@@ -583,7 +622,8 @@ message SessionTerminateRequest {
   string plmn_id = 11;
   string imsi_plmn_id = 12;
   bytes user_location = 13;
-  bytes hardware_addr = 15; // MAC Address for WLAN
+  // MAC Address for WLAN
+  bytes hardware_addr = 15;
   TgppContext tgpp_ctx = 16;
   CommonSessionContext common_context = 17;
   string charging_characteristics = 18;

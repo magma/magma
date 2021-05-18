@@ -29,10 +29,8 @@ env/
 develop-eggs/
 dist/
 eggs/
-lib/
+build/lib/
 lib64/
-!orc8r/lib/
-!feg/radius/lib/
 parts/
 sdist/
 var/

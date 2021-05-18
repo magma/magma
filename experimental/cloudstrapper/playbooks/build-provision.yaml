@@ -9,7 +9,6 @@
     AWS_DEFAULT_REGION: "{{ buildAwsRegion }}"
   vars_files:
     - roles/vars/defaults.yaml
-    - "{{ dirInventory }}/secrets.yaml"
+    - "{{ dirLocalInventory }}/secrets.yaml"
     - roles/vars/cluster.yaml
     - roles/vars/build.yaml
-

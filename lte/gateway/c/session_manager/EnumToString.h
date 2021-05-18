@@ -12,11 +12,14 @@
  */
 #pragma once
 
-#include "StoredState.h"
-#include "ServiceAction.h"
-#include "ChargingGrant.h"
 #include <lte/protos/abort_session.pb.h>
 #include <lte/protos/session_manager.pb.h>
+
+#include <string>
+
+#include "ChargingGrant.h"
+#include "ServiceAction.h"
+#include "StoredState.h"
 
 namespace magma {
 std::string reauth_state_to_str(ReAuthState state);

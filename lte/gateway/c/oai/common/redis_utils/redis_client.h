@@ -79,6 +79,8 @@ class RedisClient {
    */
   int read_proto(const std::string& key, google::protobuf::Message& proto_msg);
 
+  int read_version(const std::string& key);
+
   int clear_keys(const std::vector<std::string>& keys_to_clear);
 
   std::vector<std::string> get_keys(const std::string& pattern);

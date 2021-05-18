@@ -15,6 +15,7 @@
  */
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {EnodebState} from '../../components/context/EnodebContext';
+import type {EnqueueSnackbarOptions} from 'notistack';
 import type {
   GatewayPoolRecordsType,
   gatewayPoolsStateType,
@@ -44,7 +45,10 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 type InitTierStateProps = {
   networkId: network_id,
   setTiers: ({[string]: tier}) => void,
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 
 export async function InitTierState(props: InitTierStateProps) {
@@ -118,7 +122,10 @@ export async function SetTierState(props: TierStateProps) {
 type FetchProps = {
   networkId: string,
   id?: string,
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 
 export async function FetchEnodebs(props: FetchProps) {
@@ -186,7 +193,10 @@ export async function FetchEnodebs(props: FetchProps) {
 type InitEnodeStateProps = {
   networkId: network_id,
   setEnbInfo: ({[string]: EnodebInfo}) => void,
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 
 export async function InitEnodeState(props: InitEnodeStateProps) {
@@ -568,7 +578,10 @@ export async function UpdateGatewayPoolRecords(props: GatewayPoolsStateProps) {
 type InitGatewayPoolStateType = {
   setGatewayPools: ({[string]: gatewayPoolsStateType}) => void,
   networkId: network_id,
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 
 export async function InitGatewayPoolState(props: InitGatewayPoolStateType) {
