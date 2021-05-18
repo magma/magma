@@ -509,6 +509,9 @@ jobs:
   sentry-release:
     docker: 
       - image: circleci/node:4.8.2
+    environment:
+      SENTRY_ORG: lf-9c
+      SENTRY_ENVIRONMENT: staging
     steps:
       - checkout # check out the code in the project directory
       - run: curl -sL https://sentry.io/get-cli/ | bash
@@ -1572,6 +1575,10 @@ workflows:
             - mme_test
             - lte-integ-test
       - c-cpp-codecov
+      - sentry-release:
+          <<: *only_master
+          requires:
+            - lte-agw-deploy
 
   release:
     jobs:
@@ -1701,7 +1708,3 @@ workflows:
     jobs:
       - backport:
           <<: *only_master
-  
-  sentry:
-    jobs:
-      - sentry-release
