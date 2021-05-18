@@ -20,13 +20,13 @@ aliases:
   - &lte_build_verify
     paths: "orc8r lte"
   - &c_cpp_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos feg/protos orc8r/protos"
   - &session_manager_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos feg/protos orc8r/protos"
   - &mme_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos feg/protos orc8r/protos"
   - &li_agent_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos orc8r/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
