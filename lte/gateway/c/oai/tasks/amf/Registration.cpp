@@ -106,15 +106,6 @@ static int amf_start_registration_proc_authentication(
 ***************************************************************************/
 nas_amf_registration_proc_t* nas_new_registration_procedure(
     ue_m5gmm_context_s* ue_ctxt) {
-  ue_m5gmm_context_s* ue_m5gmm_context =
-      amf_ue_context_exists_amf_ue_ngap_id(ue_ctxt->amf_ue_ngap_id);
-
-  if (ue_m5gmm_context == NULL) {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "ue context not found for the ue_id=%u\n",
-        ue_ctxt->amf_ue_ngap_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, NULL);
-  }
   amf_context_t* amf_context = &ue_ctxt->amf_context;
 
   if (!(amf_context->amf_procedures)) {
@@ -142,7 +133,6 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
           amf_context->amf_procedures->amf_specific_proc;
   proc->registration_accept_sent = 0;
 
-  ue_m5gmm_context->amf_context.amf_procedures = amf_context->amf_procedures;
   OAILOG_TRACE(
       LOG_NAS_AMF, "New AMF_SPEC_PROC_TYPE_REGISTRATION initialized\n");
   return proc;
@@ -197,24 +187,25 @@ int amf_proc_registration_request(
         ue_id, imei_str);
   }
 
-  // Initialize the temporary UE context
-  memset(&ue_ctx, 0, sizeof(ue_m5gmm_context_s));
-  ue_ctx.amf_context.is_dynamic = false;
-  ue_ctx.amf_ue_ngap_id         = ue_id;
-
-  if (!(is_nas_specific_procedure_registration_running(&ue_ctx.amf_context))) {
-    amf_proc_create_procedure_registration_request(&ue_ctx, ies);
-  }
   ue_m5gmm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   if (ue_m5gmm_context == NULL) {
     OAILOG_ERROR(LOG_AMF_APP, "ue context not found for the ue_id=%u\n", ue_id);
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
+  ue_m5gmm_context->amf_context.amf_procedures = NULL;
+  ue_m5gmm_context->amf_context.is_dynamic     = false;
+  ue_m5gmm_context->amf_ue_ngap_id             = ue_id;
+
+  if (!(is_nas_specific_procedure_registration_running(
+          &ue_m5gmm_context->amf_context))) {
+    amf_proc_create_procedure_registration_request(ue_m5gmm_context, ies);
+  }
+
   OAILOG_INFO(LOG_AMF_APP, "ue_m5gmm_context %p\n", ue_m5gmm_context);
   rc = ue_state_handle_message_initial(
       ue_m5gmm_context->mm_state, STATE_EVENT_REG_REQUEST, SESSION_NULL,
-      ue_m5gmm_context, &ue_ctx.amf_context);
+      ue_m5gmm_context, &ue_m5gmm_context->amf_context);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
@@ -334,6 +325,20 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
             //{
           (registration_proc->ies->decode_status.integrity_protected_message)) {
         // force authentication, even if not necessary
+        imsi64_t imsi64 = amf_imsi_to_imsi64(registration_proc->ies->imsi);
+        amf_ctx_set_valid_imsi(
+            amf_context, registration_proc->ies->imsi, imsi64);
+        rc = amf_start_registration_proc_authentication(
+            amf_context, registration_proc);
+        if (rc != RETURNok) {
+          OAILOG_ERROR(
+              LOG_NAS_AMF,
+              "Failed to start registration authentication procedure! \n");
+        }
+      } else if (amf_context->reg_id_type == M5GSMobileIdentityMsg_SUCI_IMSI) {
+        OAILOG_INFO(
+            LOG_AMF_APP,
+            "In SUCI Initial request case Send Auth Req directly\n");
         imsi64_t imsi64 = amf_imsi_to_imsi64(registration_proc->ies->imsi);
         amf_ctx_set_valid_imsi(
             amf_context, registration_proc->ies->imsi, imsi64);

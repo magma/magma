@@ -203,6 +203,47 @@ int amf_handle_registration_request(
             params->imsi->u.value[2], params->imsi->u.value[3],
             params->imsi->u.value[4], params->imsi->u.value[5],
             params->imsi->u.value[6], params->imsi->u.value[7]);
+
+        ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit1 =
+            supi_imsi.plmn.mcc_digit1;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit2 =
+            supi_imsi.plmn.mcc_digit2;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mcc_digit3 =
+            supi_imsi.plmn.mcc_digit3;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit1 =
+            supi_imsi.plmn.mnc_digit1;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit2 =
+            supi_imsi.plmn.mnc_digit2;
+        ue_context->amf_context.m5_guti.guamfi.plmn.mnc_digit3 =
+            supi_imsi.plmn.mnc_digit3;
+
+        ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
+
+        amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
+
+        ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
+        imsi64_t imsi64                = amf_imsi_to_imsi64(params->imsi);
+        guti_and_amf_id.amf_guti       = amf_guti;
+        guti_and_amf_id.amf_ue_ngap_id = ue_id;
+        if (amf_supi_guti_map.size() == 0) {
+          // first entry.
+          amf_supi_guti_map.insert(
+              std::pair<imsi64_t, guti_and_amf_id_t>(imsi64, guti_and_amf_id));
+        } else {
+          /* already elements exist then check if same imsi already present
+           * if same imsi then update/overwrite the element
+           */
+          std::unordered_map<imsi64_t, guti_and_amf_id_t>::iterator found_imsi =
+              amf_supi_guti_map.find(imsi64);
+          if (found_imsi == amf_supi_guti_map.end()) {
+            // it is new entry to map
+            amf_supi_guti_map.insert(std::pair<imsi64_t, guti_and_amf_id_t>(
+                imsi64, guti_and_amf_id));
+          } else {
+            // Overwrite the second element.
+            found_imsi->second = guti_and_amf_id;
+          }
+        }
       }
     }
   }  // end of AMF_REGISTRATION_TYPE_INITIAL
