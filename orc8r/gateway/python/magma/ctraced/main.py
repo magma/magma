@@ -25,10 +25,12 @@ def main():
     service = MagmaService('ctraced', CtraceD())
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
-    orc8r_chan = ServiceRegistry.get_rpc_channel('ctraced',
-                                                 ServiceRegistry.CLOUD)
+    orc8r_chan = ServiceRegistry.get_rpc_channel(
+        'ctraced',
+        ServiceRegistry.CLOUD,
+    )
     ctraced_stub = CallTraceControllerStub(orc8r_chan)
 
     trace_manager = TraceManager(service.config, ctraced_stub)

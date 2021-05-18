@@ -14,6 +14,7 @@
  * @format
  */
 import type {ActionQuery} from '../../components/ActionTable';
+import type {EnqueueSnackbarOptions} from 'notistack';
 import type {Metrics} from '../../components/context/SubscriberContext';
 import type {SubscriberContextType} from '../../components/context/SubscriberContext';
 import type {SubscriberRowType} from '../../views/subscriber/SubscriberOverview';
@@ -32,7 +33,10 @@ import {
 } from '../../views/subscriber/SubscriberUtils';
 
 type FetchProps = {
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
   networkId: string,
   id?: string,
   subscriberMap?: {[string]: subscriber},
@@ -46,7 +50,10 @@ type InitSubscriberStateProps = {
   setSubscriberMap: ({[string]: subscriber}) => void,
   setSessionState: ({[string]: subscriber_state}) => void,
   setSubscriberMetrics?: ({[string]: Metrics}) => void,
-  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (
+    msg: string,
+    cfg: EnqueueSnackbarOptions,
+  ) => ?(string | number),
 };
 
 export async function FetchSubscribers(props: FetchProps) {

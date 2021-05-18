@@ -10,13 +10,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <memory>
-#include <chrono>
-#include <thread>
-#include <future>
-
-#include <gtest/gtest.h>
 #include <gmock/gmock.h>
+#include <gtest/gtest.h>
+
+#include <chrono>
+#include <future>
+#include <memory>
+#include <thread>
 
 #include "MagmaService.h"
 #include "ServiceRegistrySingleton.h"

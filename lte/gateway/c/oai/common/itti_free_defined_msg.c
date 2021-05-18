@@ -143,8 +143,9 @@ void itti_free_msg_content(MessageDef* const message_p) {
       // DO nothing (trxn)
       break;
     case S11_PAGING_REQUEST: {
-      free((char*) message_p->ittiMsg.s11_paging_request.imsi);
-      message_p->ittiMsg.s11_paging_request.imsi = NULL;
+      if (message_p->ittiMsg.s11_paging_request.imsi) {
+        free_wrapper((void**) &message_p->ittiMsg.s11_paging_request.imsi);
+      }
     } break;
 
     case S1AP_ENB_INITIATED_RESET_ACK:

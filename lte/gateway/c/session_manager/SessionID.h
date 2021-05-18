@@ -14,6 +14,7 @@
 #pragma once
 
 #include <random>
+#include <string>
 
 class SessionIDGenerator {
  public:

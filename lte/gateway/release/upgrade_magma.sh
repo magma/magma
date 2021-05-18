@@ -24,6 +24,9 @@ if grep -q 'Debian' /etc/issue; then
   OS_VERSION="stretch"
 fi
 
+apt update
+apt install -y apt-transport-https gnupg2
+
 # We have changed the name too many time we have to wipe all versions
 rm -rf /etc/apt/sources.list.d/*
 

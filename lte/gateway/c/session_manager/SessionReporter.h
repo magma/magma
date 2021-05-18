@@ -12,12 +12,12 @@
  */
 #pragma once
 
-#include <functional>
-#include <memory>
-
 #include <folly/io/async/EventBase.h>
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+
+#include <functional>
+#include <memory>
 
 #include "GRPCReceiver.h"
 

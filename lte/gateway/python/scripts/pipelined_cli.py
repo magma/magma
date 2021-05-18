@@ -52,6 +52,7 @@ from magma.pipelined.qos.common import QosManager
 from magma.pipelined.service_manager import Tables
 from magma.subscriberdb.sid import SIDUtils
 from scripts.helpers.ng_set_session_msg import CreateSessionUtil
+from scripts.helpers.pg_set_session_msg import CreateMMESessionUtils
 from orc8r.protos.common_pb2 import Void
 
 UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
@@ -82,6 +83,17 @@ def set_smf_session(client, args):
     print (cls_sess._set_session)
     response = client.SetSMFSessions(cls_sess._set_session)
     print (response)
+
+
+@grpc_wrapper
+def set_mme_session(client, args):
+    cls_sess = CreateMMESessionUtils(args.imsi, args.priority, args.ue_ipv4_addr,
+                                     args.ue_ipv6_addr, args.enb_ip_addr, args.apn,
+                                     args.vlan, args.in_teid, args.out_teid,
+                                     args.ue_state, args.flow_dl)
+
+    print(cls_sess._set_pg_session)
+    response = client.UpdateUEState(cls_sess._set_pg_session)
 
 # --------------------------
 # Enforcement App
@@ -301,6 +313,38 @@ def create_ng_services_parser(apps):
                         type=int, default=0)
 
     subcmd.set_defaults(func=set_smf_session)
+
+def create_pg_services_parser(apps):
+    """
+    Creates the argparse subparser for the pg_services app
+    pg refers to services from MME to PIPELINED
+    """
+    app = apps.add_parser('pg_services')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    subcmd = subparsers.add_parser('set_mme_session',
+                                   help='MME set Session Emulator')
+    subcmd.add_argument('--imsi', help='Subscriber Identity', default='IMSI12345')
+    subcmd.add_argument('--priority', help='priority for rule',
+                        type=int, default=10)
+    subcmd.add_argument('--ue_ipv4_addr', help='UE IPv4 address ',
+                         default='192.168.128.11')
+    subcmd.add_argument('--ue_ipv6_addr', help='UE IPv6 address ',
+                         default='')
+    subcmd.add_argument('--enb_ip_addr', help='IP address of ENB Node',
+                         default='192.168.60.141')
+    subcmd.add_argument('--apn', help='APN for accessing net',
+                        default="magma.com")
+    subcmd.add_argument('--vlan', help='Vlan Configuration for out ports',
+                         type=int, default=0)
+    subcmd.add_argument('--in_teid', help='Match incoming teid from access',
+                         type=int, default=100)
+    subcmd.add_argument('--out_teid', help='Put outgoing teid towards access',
+                         type=int, default=200)
+    subcmd.add_argument('--ue_state', help='ADD/DEL/ADD_IDLE/DEL_IDLE/SUSPENDED/RESUME',
+                         default='ACTIVE')
+    subcmd.add_argument('--flow_dl', help='ENABLE/DISABLE flow dl', default='DISABLE')
+    subcmd.set_defaults(func=set_mme_session)
 
 def create_enforcement_parser(apps):
     """
@@ -568,6 +612,7 @@ def create_parser():
         description='Management CLI for pipelined',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     apps = parser.add_subparsers(title='apps', dest='cmd')
+    create_pg_services_parser(apps)
     create_ng_services_parser(apps)
     create_enforcement_parser(apps)
     create_ue_mac_parser(apps)
