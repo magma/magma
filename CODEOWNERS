@@ -38,6 +38,9 @@ lte/gateway/Vagrantfile @magma/approvers-ci
 
 **/*.pb.go @magma/repo-magma-maintain
 **/*_swaggergen.go @magma/repo-magma-maintain
+orc8r/cloud/go/obsidian/swagger/v1/swagger.yml @magma/repo-magma-maintain
+orc8r/cloud/go/obsidian/swagger/v1/client/ @magma/repo-magma-maintain
+orc8r/cloud/go/obsidian/swagger/v1/models/ @magma/repo-magma-maintain
 **/go.mod @magma/repo-magma-maintain
 **/go.sum @magma/repo-magma-maintain
 

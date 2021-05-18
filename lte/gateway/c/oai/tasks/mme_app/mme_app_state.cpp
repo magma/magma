@@ -17,6 +17,7 @@
 
 #include "mme_app_state.h"
 #include "mme_app_state_manager.h"
+#include "mme_app_ip_imsi.h"
 
 using magma::lte::MmeNasStateManager;
 
@@ -26,6 +27,7 @@ using magma::lte::MmeNasStateManager;
  * This is only done by the mme_app task.
  */
 int mme_nas_state_init(const mme_config_t* mme_config_p) {
+  initialize_ipv4_map();
   return MmeNasStateManager::getInstance().initialize_state(mme_config_p);
 }
 

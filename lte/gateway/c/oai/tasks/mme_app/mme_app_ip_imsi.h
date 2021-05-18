@@ -11,24 +11,19 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-syntax = "proto3";
+#pragma once
+#include <stdint.h>
 
-package aaa.protos;
-option go_package = "magma/feg/gateway/services/aaa/protos";
-
-message context {
-    string session_id = 1;
-    string imsi = 2;
-    bytes msk = 3;
-    string identity = 4;
-    string msisdn = 5;
-    string apn = 6;
-    string mac_addr = 7;
-    string ip_addr = 8;
-    string auth_session_id = 9;
-    string acct_session_id = 10;
-    uint64 created_time_ms = 11;
+#ifdef __cplusplus
+extern "C" {
+#endif
+#include "log.h"
+#include "common_defs.h"
+#include "common_types.h"
+void initialize_ipv4_map(void);
+int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64);
+int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list);
+void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64);
+#ifdef __cplusplus
 }
-
-message Void {
-}
+#endif

@@ -13,7 +13,6 @@ limitations under the License.
 import os
 from collections import defaultdict
 
-from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
 from lte.protos.session_manager_pb2 import RuleRecord, RuleRecordTable
@@ -506,7 +505,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     'version: %s): %s', record.rule_id,
                     record.sid, record.rule_version, e)
 
-
     def _old_records(self, records):
         """
         Generator function to filter the records that are for old rules
@@ -535,7 +533,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                           match_in,
                           cookie=cookie,
                           cookie_mask=mask)
-
         flows.delete_flow(self._datapath,
                           self.tbl_num,
                           match_out,

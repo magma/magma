@@ -26,14 +26,21 @@ import (
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/aaa/servicers"
 	"magma/feg/gateway/services/aaa/store"
+	"magma/feg/gateway/utils"
 	managed_configs "magma/gateway/mconfig"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/service"
 )
 
 const (
-	AAAServiceName = "aaa_server"
-	Version        = "0.1"
+	AAAServiceName                 = "aaa_server"
+	Version                        = "0.1"
+	AccountingReportingEnabledFlag = "acct_reporting_enabled"
+	AccountingReportingEnabledEnv  = "AAA_ACCT_REPORTING_ENABLED"
+)
+
+var (
+	_ = flag.Bool(AccountingReportingEnabledFlag, false, "Enable base accounting reports")
 )
 
 func main() {
@@ -51,8 +58,11 @@ func main() {
 	err = managed_configs.GetServiceConfigs(AAAServiceName, aaaConfigs)
 	if err != nil {
 		glog.Warningf("Error getting AAA Server service configs: %s", err)
-		aaaConfigs = nil
+		aaaConfigs = &mconfig.AAAConfig{}
 	}
+	aaaConfigs.AcctReportingEnabled = utils.GetBoolValueOrEnv(
+		AccountingReportingEnabledFlag, AccountingReportingEnabledEnv, aaaConfigs.AcctReportingEnabled)
+
 	acct, _ := servicers.NewAccountingService(sessions, proto.Clone(aaaConfigs).(*mconfig.AAAConfig))
 	protos.RegisterAccountingServer(srv.GrpcServer, acct)
 	lteprotos.RegisterAbortSessionResponderServer(srv.GrpcServer, acct)
