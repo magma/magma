@@ -354,6 +354,9 @@ typedef struct ue_m5gmm_context_s {
   /* Paging Structure */
   paging_context_t paging_context;
   amf_app_timer_t m5_ulr_response_timer;
+
+  // UEContextRequest in  INITIAL UE MESSAGE
+  bool ue_context_request_present;
 } ue_m5gmm_context_t;
 
 /* Operation on UE context structure

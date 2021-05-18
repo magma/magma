@@ -73,6 +73,7 @@ int pdu_session_resource_setup_request(
   MessageDef* message_p                                             = nullptr;
   uint64_t dl_pdu_ambr;
   uint64_t ul_pdu_ambr;
+
   message_p =
       itti_alloc_new_message(TASK_AMF_APP, NGAP_PDUSESSION_RESOURCE_SETUP_REQ);
   ngap_pdu_ses_setup_req =

@@ -80,4 +80,4 @@ MESSAGE_DEF(
     NGAP_PAGING_REQUEST, itti_ngap_paging_request_t, ngap_paging_request)
 MESSAGE_DEF(
     NGAP_INITIAL_CONTEXT_SETUP_REQ, Ngap_initial_context_setup_request_t,
-    ngap_initial_context_setup_request)
+    ngap_initial_context_setup_req)

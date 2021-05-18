@@ -53,6 +53,9 @@ int sctp_itti_send_new_association(
     sctp_stream_id_t outstreams, STOLEN_REF bstring* ran_cp_ipaddr) {
   MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_NEW_ASSOCIATION);
 
+  sctp_new_peer_t* new_sctp_peer = &(msg->ittiMsg.sctp_new_peer);
+  memset((void*) new_sctp_peer, 0, sizeof(sctp_new_peer_t));
+
   SCTP_NEW_ASSOCIATION(msg).assoc_id   = assoc_id;
   SCTP_NEW_ASSOCIATION(msg).instreams  = instreams;
   SCTP_NEW_ASSOCIATION(msg).outstreams = outstreams;
