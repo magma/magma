@@ -1078,6 +1078,10 @@ definitions:
         type: boolean
         x-nullable: false
         default: false
+      acct_reporting_enabled:
+        type: boolean
+        x-nullable: false
+        default: false
       radius_config:
         $ref: '#/definitions/radius_config'
 
