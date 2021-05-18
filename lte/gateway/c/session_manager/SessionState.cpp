@@ -470,7 +470,7 @@ optional<RuleStats> SessionState::get_rule_delta(
     SessionStateUpdateCriteria* session_uc) {
   auto it = policy_version_and_stats_.find(rule_id);
   if (it == policy_version_and_stats_.end()) {
-    MLOG(MERROR) << "Reported rule not found, ignoring";
+    MLOG(MERROR) << "Reported rule (" << rule_id << ") not found, ignoring";
     return {};
   }
 
