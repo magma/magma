@@ -133,8 +133,10 @@ func (s *AcctServer) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
 			}
 		}
 		stopRequest := &protos.StopRequest{
-			Cause: protos.StopRequest_NAS_REQUEST,
-			Ctx:   aaaCtx,
+			Cause:     protos.StopRequest_NAS_REQUEST,
+			Ctx:       aaaCtx,
+			OctetsIn:  uint32(rfc2866.AcctInputOctets_Get(p)),
+			OctetsOut: uint32(rfc2866.AcctOutputOctets_Get(p)),
 		}
 		_, err = s.accounting.Stop(r.Context(), stopRequest)
 		if err != nil {

@@ -162,6 +162,8 @@ message AAAConfig {
     // enable event logging for aaa events
     bool EventLoggingEnabled = 5;
     RadiusConfig RadiusConfig = 6;
+    // Enable accounting reporting to the module's orc8r service
+    bool AcctReportingEnabled = 7;
 }
 
 message RadiusConfig {
