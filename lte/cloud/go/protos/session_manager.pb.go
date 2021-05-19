@@ -32,7 +32,9 @@ const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 type RATType int32
 
 const (
-	RATType_TGPP_LTE  RATType = 0
+	// Maps to 06 (EUTRAN, 3GPP TS 29.274) for Gy, 1004 (EUTRAN, 3GPP TS 29.212) S6a, Gx
+	RATType_TGPP_LTE RATType = 0
+	// Maps to 03 (WLAN, 3GPP TS 29.274) for Gy, 0 (WLAN, 3GPP TS 29.212) S6a, Gx
 	RATType_TGPP_WLAN RATType = 1
 	RATType_TGPP_NR   RATType = 2
 )
@@ -953,15 +955,19 @@ func (ChargingCredit_FinalAction) EnumDescriptor() ([]byte, []int) {
 type CreditUsage_UpdateType int32
 
 const (
-	CreditUsage_THRESHOLD               CreditUsage_UpdateType = 0
-	CreditUsage_QHT                     CreditUsage_UpdateType = 1
-	CreditUsage_TERMINATED              CreditUsage_UpdateType = 2
-	CreditUsage_QUOTA_EXHAUSTED         CreditUsage_UpdateType = 3
+	CreditUsage_THRESHOLD CreditUsage_UpdateType = 0
+	CreditUsage_QHT       CreditUsage_UpdateType = 1
+	// FINAL - UE disconnected, flow not in use
+	CreditUsage_TERMINATED CreditUsage_UpdateType = 2
+	// UE hit credit limit
+	CreditUsage_QUOTA_EXHAUSTED CreditUsage_UpdateType = 3
+	// Credit expired
 	CreditUsage_VALIDITY_TIMER_EXPIRED  CreditUsage_UpdateType = 4
 	CreditUsage_OTHER_QUOTA_TYPE        CreditUsage_UpdateType = 5
 	CreditUsage_RATING_CONDITION_CHANGE CreditUsage_UpdateType = 6
-	CreditUsage_REAUTH_REQUIRED         CreditUsage_UpdateType = 7
-	CreditUsage_POOL_EXHAUSTED          CreditUsage_UpdateType = 8
+	// FORCED_REAUTHORISATION
+	CreditUsage_REAUTH_REQUIRED CreditUsage_UpdateType = 7
+	CreditUsage_POOL_EXHAUSTED  CreditUsage_UpdateType = 8
 )
 
 var CreditUsage_UpdateType_name = map[int32]string{
@@ -999,9 +1005,12 @@ func (CreditUsage_UpdateType) EnumDescriptor() ([]byte, []int) {
 type UsageMonitoringCredit_Action int32
 
 const (
+	// continue monitoring as normal
 	UsageMonitoringCredit_CONTINUE UsageMonitoringCredit_Action = 0
-	UsageMonitoringCredit_DISABLE  UsageMonitoringCredit_Action = 1
-	UsageMonitoringCredit_FORCE    UsageMonitoringCredit_Action = 2
+	// no need to monitor any more  `AVP: Usage-Monitor-Support`
+	UsageMonitoringCredit_DISABLE UsageMonitoringCredit_Action = 1
+	// monitor no matter if credit is exhausted `AVP: Usage-Monitor-Report` TODO: not implemented on sessiond
+	UsageMonitoringCredit_FORCE UsageMonitoringCredit_Action = 2
 )
 
 var UsageMonitoringCredit_Action_name = map[int32]string{
@@ -1118,15 +1127,20 @@ func (UPFAssociationState_AssociationState) EnumDescriptor() ([]byte, []int) {
 }
 
 type RuleRecord struct {
-	Sid                  string   `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	RuleId               string   `protobuf:"bytes,2,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
-	BytesTx              uint64   `protobuf:"varint,3,opt,name=bytes_tx,json=bytesTx,proto3" json:"bytes_tx,omitempty"`
-	BytesRx              uint64   `protobuf:"varint,4,opt,name=bytes_rx,json=bytesRx,proto3" json:"bytes_rx,omitempty"`
-	UeIpv4               string   `protobuf:"bytes,5,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
-	UeIpv6               string   `protobuf:"bytes,6,opt,name=ue_ipv6,json=ueIpv6,proto3" json:"ue_ipv6,omitempty"`
-	DroppedTx            uint64   `protobuf:"varint,7,opt,name=dropped_tx,json=droppedTx,proto3" json:"dropped_tx,omitempty"`
-	DroppedRx            uint64   `protobuf:"varint,8,opt,name=dropped_rx,json=droppedRx,proto3" json:"dropped_rx,omitempty"`
-	RuleVersion          uint64   `protobuf:"varint,9,opt,name=rule_version,json=ruleVersion,proto3" json:"rule_version,omitempty"`
+	// IMSI. This value along with teid uniquely identifies a session.
+	Sid     string `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	RuleId  string `protobuf:"bytes,2,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	BytesTx uint64 `protobuf:"varint,3,opt,name=bytes_tx,json=bytesTx,proto3" json:"bytes_tx,omitempty"`
+	BytesRx uint64 `protobuf:"varint,4,opt,name=bytes_rx,json=bytesRx,proto3" json:"bytes_rx,omitempty"`
+	// Used for HE
+	UeIpv4 string `protobuf:"bytes,5,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
+	// Used for HE
+	UeIpv6    string `protobuf:"bytes,6,opt,name=ue_ipv6,json=ueIpv6,proto3" json:"ue_ipv6,omitempty"`
+	DroppedTx uint64 `protobuf:"varint,7,opt,name=dropped_tx,json=droppedTx,proto3" json:"dropped_tx,omitempty"`
+	DroppedRx uint64 `protobuf:"varint,8,opt,name=dropped_rx,json=droppedRx,proto3" json:"dropped_rx,omitempty"`
+	// Rule version with which the flow was installed with
+	RuleVersion uint64 `protobuf:"varint,9,opt,name=rule_version,json=ruleVersion,proto3" json:"rule_version,omitempty"`
+	// Uplink TEID
 	Teid                 uint32   `protobuf:"varint,10,opt,name=teid,proto3" json:"teid,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -1229,11 +1243,12 @@ func (m *RuleRecord) GetTeid() uint32 {
 }
 
 type RuleRecordTable struct {
-	Records              []*RuleRecord `protobuf:"bytes,1,rep,name=records,proto3" json:"records,omitempty"`
-	Epoch                uint64        `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	Records []*RuleRecord `protobuf:"bytes,1,rep,name=records,proto3" json:"records,omitempty"`
+	// Time at which PipelineD started
+	Epoch                uint64   `protobuf:"varint,2,opt,name=epoch,proto3" json:"epoch,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *RuleRecordTable) Reset()         { *m = RuleRecordTable{} }
@@ -1375,14 +1390,15 @@ type CommonSessionContext struct {
 	Apn     string        `protobuf:"bytes,4,opt,name=apn,proto3" json:"apn,omitempty"`
 	Msisdn  []byte        `protobuf:"bytes,5,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
 	RatType RATType       `protobuf:"varint,6,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
-	//PDU session state to mirror with AMF or MME
-	SmSessionState       SMSessionFSMState `protobuf:"varint,7,opt,name=sm_session_state,json=smSessionState,proto3,enum=magma.lte.SMSessionFSMState" json:"sm_session_state,omitempty"`
-	SmSessionVersion     uint32            `protobuf:"varint,9,opt,name=sm_session_version,json=smSessionVersion,proto3" json:"sm_session_version,omitempty"`
-	UeIpv6               string            `protobuf:"bytes,10,opt,name=ue_ipv6,json=ueIpv6,proto3" json:"ue_ipv6,omitempty"`
-	Teids                *Teids            `protobuf:"bytes,11,opt,name=teids,proto3" json:"teids,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
-	XXX_unrecognized     []byte            `json:"-"`
-	XXX_sizecache        int32             `json:"-"`
+	// PDU session state to mirror with AMF or MME
+	SmSessionState   SMSessionFSMState `protobuf:"varint,7,opt,name=sm_session_state,json=smSessionState,proto3,enum=magma.lte.SMSessionFSMState" json:"sm_session_state,omitempty"`
+	SmSessionVersion uint32            `protobuf:"varint,9,opt,name=sm_session_version,json=smSessionVersion,proto3" json:"sm_session_version,omitempty"`
+	UeIpv6           string            `protobuf:"bytes,10,opt,name=ue_ipv6,json=ueIpv6,proto3" json:"ue_ipv6,omitempty"`
+	// TEIDs corresponding to the default bearer
+	Teids                *Teids   `protobuf:"bytes,11,opt,name=teids,proto3" json:"teids,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *CommonSessionContext) Reset()         { *m = CommonSessionContext{} }
@@ -1569,6 +1585,7 @@ func (*RatSpecificContext) XXX_OneofWrappers() []interface{} {
 }
 
 type RatSpecificNotification struct {
+	// One byte
 	PduSessionId         []byte           `protobuf:"bytes,1,opt,name=pdu_session_id,json=pduSessionId,proto3" json:"pdu_session_id,omitempty"`
 	RequestType          RequestType      `protobuf:"varint,2,opt,name=request_type,json=requestType,proto3,enum=magma.lte.RequestType" json:"request_type,omitempty"`
 	AccessType           AccessType       `protobuf:"varint,3,opt,name=access_type,json=accessType,proto3,enum=magma.lte.AccessType" json:"access_type,omitempty"`
@@ -1648,6 +1665,7 @@ func (m *RatSpecificNotification) GetM5GsmCause() M5GSMCause {
 }
 
 type SetSmNotificationContext struct {
+	// Common message for 4g, 5g and WiFi.
 	CommonContext           *CommonSessionContext    `protobuf:"bytes,1,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
 	RatSpecificNotification *RatSpecificNotification `protobuf:"bytes,2,opt,name=rat_specific_notification,json=ratSpecificNotification,proto3" json:"rat_specific_notification,omitempty"`
 	XXX_NoUnkeyedLiteral    struct{}                 `json:"-"`
@@ -1695,17 +1713,18 @@ func (m *SetSmNotificationContext) GetRatSpecificNotification() *RatSpecificNoti
 }
 
 type LTESessionContext struct {
-	SpgwIpv4                string                 `protobuf:"bytes,1,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
-	Imei                    string                 `protobuf:"bytes,2,opt,name=imei,proto3" json:"imei,omitempty"`
-	PlmnId                  string                 `protobuf:"bytes,3,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
-	ImsiPlmnId              string                 `protobuf:"bytes,4,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
-	UserLocation            []byte                 `protobuf:"bytes,5,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
-	QosInfo                 *QosInformationRequest `protobuf:"bytes,6,opt,name=qos_info,json=qosInfo,proto3" json:"qos_info,omitempty"`
-	BearerId                uint32                 `protobuf:"varint,7,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
-	ChargingCharacteristics string                 `protobuf:"bytes,8,opt,name=charging_characteristics,json=chargingCharacteristics,proto3" json:"charging_characteristics,omitempty"`
-	XXX_NoUnkeyedLiteral    struct{}               `json:"-"`
-	XXX_unrecognized        []byte                 `json:"-"`
-	XXX_sizecache           int32                  `json:"-"`
+	SpgwIpv4     string                 `protobuf:"bytes,1,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
+	Imei         string                 `protobuf:"bytes,2,opt,name=imei,proto3" json:"imei,omitempty"`
+	PlmnId       string                 `protobuf:"bytes,3,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
+	ImsiPlmnId   string                 `protobuf:"bytes,4,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
+	UserLocation []byte                 `protobuf:"bytes,5,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
+	QosInfo      *QosInformationRequest `protobuf:"bytes,6,opt,name=qos_info,json=qosInfo,proto3" json:"qos_info,omitempty"`
+	BearerId     uint32                 `protobuf:"varint,7,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
+	// Taken from S6A UpdateLocationAnswer
+	ChargingCharacteristics string   `protobuf:"bytes,8,opt,name=charging_characteristics,json=chargingCharacteristics,proto3" json:"charging_characteristics,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{} `json:"-"`
+	XXX_unrecognized        []byte   `json:"-"`
+	XXX_sizecache           int32    `json:"-"`
 }
 
 func (m *LTESessionContext) Reset()         { *m = LTESessionContext{} }
@@ -1962,14 +1981,17 @@ func (m *LocalEndSessionResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_LocalEndSessionResponse proto.InternalMessageInfo
 
 type UpdateTunnelIdsRequest struct {
-	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	BearerId             uint32        `protobuf:"varint,2,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
-	EnbTeid              uint32        `protobuf:"varint,3,opt,name=enb_teid,json=enbTeid,proto3" json:"enb_teid,omitempty"`
-	AgwTeid              uint32        `protobuf:"varint,4,opt,name=agw_teid,json=agwTeid,proto3" json:"agw_teid,omitempty"`
-	SessionId            string        `protobuf:"bytes,5,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	Sid *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	// default bearerID
+	BearerId uint32 `protobuf:"varint,2,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
+	// TEID for default bearerID
+	EnbTeid uint32 `protobuf:"varint,3,opt,name=enb_teid,json=enbTeid,proto3" json:"enb_teid,omitempty"`
+	// TEID for default bearerID
+	AgwTeid              uint32   `protobuf:"varint,4,opt,name=agw_teid,json=agwTeid,proto3" json:"agw_teid,omitempty"`
+	SessionId            string   `protobuf:"bytes,5,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *UpdateTunnelIdsRequest) Reset()         { *m = UpdateTunnelIdsRequest{} }
@@ -2064,14 +2086,18 @@ func (m *UpdateTunnelIdsResponse) XXX_DiscardUnknown() {
 var xxx_messageInfo_UpdateTunnelIdsResponse proto.InternalMessageInfo
 
 type PolicyBearerBindingRequest struct {
-	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
-	LinkedBearerId       uint32        `protobuf:"varint,2,opt,name=linked_bearer_id,json=linkedBearerId,proto3" json:"linked_bearer_id,omitempty"`
-	PolicyRuleId         string        `protobuf:"bytes,3,opt,name=policy_rule_id,json=policyRuleId,proto3" json:"policy_rule_id,omitempty"`
-	BearerId             uint32        `protobuf:"varint,4,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
-	Teids                *Teids        `protobuf:"bytes,5,opt,name=teids,proto3" json:"teids,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
-	XXX_unrecognized     []byte        `json:"-"`
-	XXX_sizecache        int32         `json:"-"`
+	Sid *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	// default bearer ID
+	LinkedBearerId uint32 `protobuf:"varint,2,opt,name=linked_bearer_id,json=linkedBearerId,proto3" json:"linked_bearer_id,omitempty"`
+	PolicyRuleId   string `protobuf:"bytes,3,opt,name=policy_rule_id,json=policyRuleId,proto3" json:"policy_rule_id,omitempty"`
+	// dedicated bearer ID
+	// 0 means that the binding failed
+	BearerId uint32 `protobuf:"varint,4,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
+	// teids for the dedicated bearer
+	Teids                *Teids   `protobuf:"bytes,5,opt,name=teids,proto3" json:"teids,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
 }
 
 func (m *PolicyBearerBindingRequest) Reset()         { *m = PolicyBearerBindingRequest{} }
@@ -2482,6 +2508,7 @@ func (m *PolicyReAuthAnswer) GetFailedRules() map[string]PolicyReAuthAnswer_Fail
 }
 
 type RuleSet struct {
+	// If true, apply the rules to all sessions for the subscriber
 	ApplySubscriberWide  bool                  `protobuf:"varint,1,opt,name=apply_subscriber_wide,json=applySubscriberWide,proto3" json:"apply_subscriber_wide,omitempty"`
 	Apn                  string                `protobuf:"bytes,2,opt,name=apn,proto3" json:"apn,omitempty"`
 	StaticRules          []*StaticRuleInstall  `protobuf:"bytes,3,rep,name=static_rules,json=staticRules,proto3" json:"static_rules,omitempty"`
@@ -2820,7 +2847,8 @@ func (m *RedirectServer) GetRedirectServerAddress() string {
 }
 
 type ChargingCredit struct {
-	Type                 ChargingCredit_UnitType    `protobuf:"varint,2,opt,name=type,proto3,enum=magma.lte.ChargingCredit_UnitType" json:"type,omitempty"`
+	Type ChargingCredit_UnitType `protobuf:"varint,2,opt,name=type,proto3,enum=magma.lte.ChargingCredit_UnitType" json:"type,omitempty"`
+	// The number of seconds the credit is valid for
 	ValidityTime         uint32                     `protobuf:"varint,3,opt,name=validity_time,json=validityTime,proto3" json:"validity_time,omitempty"`
 	IsFinal              bool                       `protobuf:"varint,4,opt,name=is_final,json=isFinal,proto3" json:"is_final,omitempty"`
 	FinalAction          ChargingCredit_FinalAction `protobuf:"varint,5,opt,name=final_action,json=finalAction,proto3,enum=magma.lte.ChargingCredit_FinalAction" json:"final_action,omitempty"`
@@ -3049,14 +3077,16 @@ func (m *CreditUsage) GetRequestedUnits() *RequestedUnits {
 }
 
 type CreditUsageUpdate struct {
-	Usage                   *CreditUsage          `protobuf:"bytes,1,opt,name=usage,proto3" json:"usage,omitempty"`
-	SessionId               string                `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	RequestNumber           uint32                `protobuf:"varint,3,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
-	SpgwIpv4                string                `protobuf:"bytes,7,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
-	Imei                    string                `protobuf:"bytes,9,opt,name=imei,proto3" json:"imei,omitempty"`
-	PlmnId                  string                `protobuf:"bytes,10,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
-	ImsiPlmnId              string                `protobuf:"bytes,11,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
-	UserLocation            []byte                `protobuf:"bytes,12,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
+	Usage     *CreditUsage `protobuf:"bytes,1,opt,name=usage,proto3" json:"usage,omitempty"`
+	SessionId string       `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// unique among session
+	RequestNumber uint32 `protobuf:"varint,3,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
+	SpgwIpv4      string `protobuf:"bytes,7,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
+	Imei          string `protobuf:"bytes,9,opt,name=imei,proto3" json:"imei,omitempty"`
+	PlmnId        string `protobuf:"bytes,10,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
+	ImsiPlmnId    string `protobuf:"bytes,11,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
+	UserLocation  []byte `protobuf:"bytes,12,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
+	// MAC Address for WLAN
 	HardwareAddr            []byte                `protobuf:"bytes,14,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
 	TgppCtx                 *TgppContext          `protobuf:"bytes,15,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
 	CommonContext           *CommonSessionContext `protobuf:"bytes,16,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
@@ -3184,7 +3214,8 @@ func (m *CreditUsageUpdate) GetChargingCharacteristics() string {
 }
 
 type CreditUpdateResponse struct {
-	Success           bool               `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	Success bool `protobuf:"varint,1,opt,name=success,proto3" json:"success,omitempty"`
+	// SubscriberID/IMSI
 	Sid               string             `protobuf:"bytes,2,opt,name=sid,proto3" json:"sid,omitempty"`
 	ChargingKey       uint32             `protobuf:"varint,3,opt,name=charging_key,json=chargingKey,proto3" json:"charging_key,omitempty"`
 	Credit            *ChargingCredit    `protobuf:"bytes,4,opt,name=credit,proto3" json:"credit,omitempty"`
@@ -3419,19 +3450,22 @@ func (m *UsageMonitoringCredit) GetGrantedUnits() *GrantedUnits {
 // TODO this message name is misleading since we don't only use it for
 // usage reporting
 type UsageMonitoringUpdateRequest struct {
-	Update                  *UsageMonitorUpdate `protobuf:"bytes,1,opt,name=update,proto3" json:"update,omitempty"`
-	SessionId               string              `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	RequestNumber           uint32              `protobuf:"varint,3,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
-	Sid                     string              `protobuf:"bytes,4,opt,name=sid,proto3" json:"sid,omitempty"`
-	UeIpv4                  string              `protobuf:"bytes,5,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
-	HardwareAddr            []byte              `protobuf:"bytes,6,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
-	RatType                 RATType             `protobuf:"varint,7,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
-	TgppCtx                 *TgppContext        `protobuf:"bytes,8,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
-	EventTrigger            EventTrigger        `protobuf:"varint,9,opt,name=event_trigger,json=eventTrigger,proto3,enum=magma.lte.EventTrigger" json:"event_trigger,omitempty"`
-	ChargingCharacteristics string              `protobuf:"bytes,10,opt,name=charging_characteristics,json=chargingCharacteristics,proto3" json:"charging_characteristics,omitempty"`
-	XXX_NoUnkeyedLiteral    struct{}            `json:"-"`
-	XXX_unrecognized        []byte              `json:"-"`
-	XXX_sizecache           int32               `json:"-"`
+	Update    *UsageMonitorUpdate `protobuf:"bytes,1,opt,name=update,proto3" json:"update,omitempty"`
+	SessionId string              `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// unique among session
+	RequestNumber uint32 `protobuf:"varint,3,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
+	// SubscriberID/IMSI
+	Sid    string `protobuf:"bytes,4,opt,name=sid,proto3" json:"sid,omitempty"`
+	UeIpv4 string `protobuf:"bytes,5,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
+	// MAC Address for WLAN
+	HardwareAddr            []byte       `protobuf:"bytes,6,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
+	RatType                 RATType      `protobuf:"varint,7,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
+	TgppCtx                 *TgppContext `protobuf:"bytes,8,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
+	EventTrigger            EventTrigger `protobuf:"varint,9,opt,name=event_trigger,json=eventTrigger,proto3,enum=magma.lte.EventTrigger" json:"event_trigger,omitempty"`
+	ChargingCharacteristics string       `protobuf:"bytes,10,opt,name=charging_characteristics,json=chargingCharacteristics,proto3" json:"charging_characteristics,omitempty"`
+	XXX_NoUnkeyedLiteral    struct{}     `json:"-"`
+	XXX_unrecognized        []byte       `json:"-"`
+	XXX_sizecache           int32        `json:"-"`
 }
 
 func (m *UsageMonitoringUpdateRequest) Reset()         { *m = UsageMonitoringUpdateRequest{} }
@@ -3531,20 +3565,21 @@ func (m *UsageMonitoringUpdateRequest) GetChargingCharacteristics() string {
 
 // Response to a usage monitor update with the credit received and session info
 type UsageMonitoringUpdateResponse struct {
-	Credit                *UsageMonitoringCredit `protobuf:"bytes,1,opt,name=credit,proto3" json:"credit,omitempty"`
-	SessionId             string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	Sid                   string                 `protobuf:"bytes,3,opt,name=sid,proto3" json:"sid,omitempty"`
-	Success               bool                   `protobuf:"varint,4,opt,name=success,proto3" json:"success,omitempty"`
-	EventTriggers         []EventTrigger         `protobuf:"varint,5,rep,packed,name=event_triggers,json=eventTriggers,proto3,enum=magma.lte.EventTrigger" json:"event_triggers,omitempty"`
-	RevalidationTime      *timestamp.Timestamp   `protobuf:"bytes,6,opt,name=revalidation_time,json=revalidationTime,proto3" json:"revalidation_time,omitempty"`
-	ResultCode            uint32                 `protobuf:"varint,7,opt,name=result_code,json=resultCode,proto3" json:"result_code,omitempty"`
-	RulesToRemove         []string               `protobuf:"bytes,8,rep,name=rules_to_remove,json=rulesToRemove,proto3" json:"rules_to_remove,omitempty"`
-	StaticRulesToInstall  []*StaticRuleInstall   `protobuf:"bytes,9,rep,name=static_rules_to_install,json=staticRulesToInstall,proto3" json:"static_rules_to_install,omitempty"`
-	DynamicRulesToInstall []*DynamicRuleInstall  `protobuf:"bytes,10,rep,name=dynamic_rules_to_install,json=dynamicRulesToInstall,proto3" json:"dynamic_rules_to_install,omitempty"`
-	TgppCtx               *TgppContext           `protobuf:"bytes,11,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
-	XXX_NoUnkeyedLiteral  struct{}               `json:"-"`
-	XXX_unrecognized      []byte                 `json:"-"`
-	XXX_sizecache         int32                  `json:"-"`
+	Credit    *UsageMonitoringCredit `protobuf:"bytes,1,opt,name=credit,proto3" json:"credit,omitempty"`
+	SessionId string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	// SubscriberID/IMSI
+	Sid                   string                `protobuf:"bytes,3,opt,name=sid,proto3" json:"sid,omitempty"`
+	Success               bool                  `protobuf:"varint,4,opt,name=success,proto3" json:"success,omitempty"`
+	EventTriggers         []EventTrigger        `protobuf:"varint,5,rep,packed,name=event_triggers,json=eventTriggers,proto3,enum=magma.lte.EventTrigger" json:"event_triggers,omitempty"`
+	RevalidationTime      *timestamp.Timestamp  `protobuf:"bytes,6,opt,name=revalidation_time,json=revalidationTime,proto3" json:"revalidation_time,omitempty"`
+	ResultCode            uint32                `protobuf:"varint,7,opt,name=result_code,json=resultCode,proto3" json:"result_code,omitempty"`
+	RulesToRemove         []string              `protobuf:"bytes,8,rep,name=rules_to_remove,json=rulesToRemove,proto3" json:"rules_to_remove,omitempty"`
+	StaticRulesToInstall  []*StaticRuleInstall  `protobuf:"bytes,9,rep,name=static_rules_to_install,json=staticRulesToInstall,proto3" json:"static_rules_to_install,omitempty"`
+	DynamicRulesToInstall []*DynamicRuleInstall `protobuf:"bytes,10,rep,name=dynamic_rules_to_install,json=dynamicRulesToInstall,proto3" json:"dynamic_rules_to_install,omitempty"`
+	TgppCtx               *TgppContext          `protobuf:"bytes,11,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
+	XXX_NoUnkeyedLiteral  struct{}              `json:"-"`
+	XXX_unrecognized      []byte                `json:"-"`
+	XXX_sizecache         int32                 `json:"-"`
 }
 
 func (m *UsageMonitoringUpdateResponse) Reset()         { *m = UsageMonitoringUpdateResponse{} }
@@ -3849,7 +3884,9 @@ func (m *CreateSessionRequest) GetRatSpecificContext() *RatSpecificContext {
 }
 
 type CreateSessionResponse struct {
-	Credits              []*CreditUpdateResponse          `protobuf:"bytes,1,rep,name=credits,proto3" json:"credits,omitempty"`
+	// List of charging credits that should be installed for the session
+	Credits []*CreditUpdateResponse `protobuf:"bytes,1,rep,name=credits,proto3" json:"credits,omitempty"`
+	// List of usage monitors that should be installed for the session
 	UsageMonitors        []*UsageMonitoringUpdateResponse `protobuf:"bytes,6,rep,name=usage_monitors,json=usageMonitors,proto3" json:"usage_monitors,omitempty"`
 	StaticRules          []*StaticRuleInstall             `protobuf:"bytes,7,rep,name=static_rules,json=staticRules,proto3" json:"static_rules,omitempty"`
 	DynamicRules         []*DynamicRuleInstall            `protobuf:"bytes,8,rep,name=dynamic_rules,json=dynamicRules,proto3" json:"dynamic_rules,omitempty"`
@@ -4150,6 +4187,7 @@ func (m *UpdateSessionResponse) GetUsageMonitorResponses() []*UsageMonitoringUpd
 }
 
 type SessionTerminateResponse struct {
+	// IMSI
 	Sid                  string   `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
 	SessionId            string   `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -4197,15 +4235,16 @@ func (m *SessionTerminateResponse) GetSessionId() string {
 }
 
 type SessionTerminateRequest struct {
-	SessionId               string                `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	RequestNumber           uint32                `protobuf:"varint,4,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
-	CreditUsages            []*CreditUsage        `protobuf:"bytes,5,rep,name=credit_usages,json=creditUsages,proto3" json:"credit_usages,omitempty"`
-	MonitorUsages           []*UsageMonitorUpdate `protobuf:"bytes,6,rep,name=monitor_usages,json=monitorUsages,proto3" json:"monitor_usages,omitempty"`
-	SpgwIpv4                string                `protobuf:"bytes,9,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
-	Imei                    string                `protobuf:"bytes,10,opt,name=imei,proto3" json:"imei,omitempty"`
-	PlmnId                  string                `protobuf:"bytes,11,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
-	ImsiPlmnId              string                `protobuf:"bytes,12,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
-	UserLocation            []byte                `protobuf:"bytes,13,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
+	SessionId     string                `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	RequestNumber uint32                `protobuf:"varint,4,opt,name=request_number,json=requestNumber,proto3" json:"request_number,omitempty"`
+	CreditUsages  []*CreditUsage        `protobuf:"bytes,5,rep,name=credit_usages,json=creditUsages,proto3" json:"credit_usages,omitempty"`
+	MonitorUsages []*UsageMonitorUpdate `protobuf:"bytes,6,rep,name=monitor_usages,json=monitorUsages,proto3" json:"monitor_usages,omitempty"`
+	SpgwIpv4      string                `protobuf:"bytes,9,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
+	Imei          string                `protobuf:"bytes,10,opt,name=imei,proto3" json:"imei,omitempty"`
+	PlmnId        string                `protobuf:"bytes,11,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
+	ImsiPlmnId    string                `protobuf:"bytes,12,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
+	UserLocation  []byte                `protobuf:"bytes,13,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
+	// MAC Address for WLAN
 	HardwareAddr            []byte                `protobuf:"bytes,15,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
 	TgppCtx                 *TgppContext          `protobuf:"bytes,16,opt,name=tgpp_ctx,json=tgppCtx,proto3" json:"tgpp_ctx,omitempty"`
 	CommonContext           *CommonSessionContext `protobuf:"bytes,17,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
@@ -6551,6 +6590,7 @@ type LocalSessionManagerClient interface {
 	ReportRuleStats(ctx context.Context, in *RuleRecordTable, opts ...grpc.CallOption) (*protos.Void, error)
 	CreateSession(ctx context.Context, in *LocalCreateSessionRequest, opts ...grpc.CallOption) (*LocalCreateSessionResponse, error)
 	EndSession(ctx context.Context, in *LocalEndSessionRequest, opts ...grpc.CallOption) (*LocalEndSessionResponse, error)
+	// A response to CreateBearer request defined in spgw service. Sends a mapping of dedicated bearer ID <-> policy.
 	BindPolicy2Bearer(ctx context.Context, in *PolicyBearerBindingRequest, opts ...grpc.CallOption) (*PolicyBearerBindingResponse, error)
 	// A set interface of subscribers -> currently active rules
 	SetSessionRules(ctx context.Context, in *SessionRules, opts ...grpc.CallOption) (*protos.Void, error)
@@ -6624,6 +6664,7 @@ type LocalSessionManagerServer interface {
 	ReportRuleStats(context.Context, *RuleRecordTable) (*protos.Void, error)
 	CreateSession(context.Context, *LocalCreateSessionRequest) (*LocalCreateSessionResponse, error)
 	EndSession(context.Context, *LocalEndSessionRequest) (*LocalEndSessionResponse, error)
+	// A response to CreateBearer request defined in spgw service. Sends a mapping of dedicated bearer ID <-> policy.
 	BindPolicy2Bearer(context.Context, *PolicyBearerBindingRequest) (*PolicyBearerBindingResponse, error)
 	// A set interface of subscribers -> currently active rules
 	SetSessionRules(context.Context, *SessionRules) (*protos.Void, error)
@@ -6804,7 +6845,6 @@ var _LocalSessionManager_serviceDesc = grpc.ServiceDesc{
 type SessionProxyResponderClient interface {
 	ChargingReAuth(ctx context.Context, in *ChargingReAuthRequest, opts ...grpc.CallOption) (*ChargingReAuthAnswer, error)
 	// NOTE: if no session_id is specified, apply to all sessions for the IMSI
-	//
 	PolicyReAuth(ctx context.Context, in *PolicyReAuthRequest, opts ...grpc.CallOption) (*PolicyReAuthAnswer, error)
 }
 
@@ -6838,7 +6878,6 @@ func (c *sessionProxyResponderClient) PolicyReAuth(ctx context.Context, in *Poli
 type SessionProxyResponderServer interface {
 	ChargingReAuth(context.Context, *ChargingReAuthRequest) (*ChargingReAuthAnswer, error)
 	// NOTE: if no session_id is specified, apply to all sessions for the IMSI
-	//
 	PolicyReAuth(context.Context, *PolicyReAuthRequest) (*PolicyReAuthAnswer, error)
 }
 

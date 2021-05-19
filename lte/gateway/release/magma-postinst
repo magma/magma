@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -21,7 +21,7 @@ if sudo grep -q "COMMIT_HASH" /etc/environment
 then
     sudo sed -i -e "s/^COMMIT_HASH.*/$value/" /etc/environment
 else
-    sudo cat "$value" >> /etc/environment
+    sudo echo "$value" >> /etc/environment
 fi
 
 # Set magmad service to start on boot

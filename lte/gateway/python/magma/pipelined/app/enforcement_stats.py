@@ -547,17 +547,21 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 rule_id = self._get_rule_id(stat)
                 sid = _get_sid(stat)
                 ipv4_addr_str = _get_ipv4(stat)
-                ipv4_addr = None
+                ipv6_addr_str = _get_ipv6(stat)
+                ip_addr = None
                 if ipv4_addr_str:
-                    ipv4_addr = IPAddress(version=IPAddress.IPV4,
+                    ip_addr = IPAddress(version=IPAddress.IPV4,
                                           address=ipv4_addr_str.encode('utf-8'))
+                elif ipv6_addr_str:
+                    ip_addr = IPAddress(version=IPAddress.IPV6,
+                                          address=ipv6_addr_str.encode('utf-8'))
                 rule_version = _get_version(stat)
                 if rule_id == "" or rule_version == None:
                     continue
 
                 current_ver = \
                     self._session_rule_version_mapper.get_version(sid,
-                                                                  ipv4_addr,
+                                                                  ip_addr,
                                                                   rule_id)
                 if current_ver != rule_version:
                     yield stat

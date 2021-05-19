@@ -11,9 +11,9 @@
  * limitations under the License.
  */
 
+#include "EnumToString.h"
 #include "SessionEvents.h"
 #include "Utilities.h"
-#include "EnumToString.h"
 
 using magma::orc8r::Event;
 using magma::orc8r::Void;
@@ -119,7 +119,7 @@ void EventsReporterImpl::session_created(
 void EventsReporterImpl::session_create_failure(
     const SessionConfig& session_context, const std::string& failure_reason) {
   auto event             = magma::orc8r::Event();
-  const std::string imsi = session_context.common_context.sid().id();
+  const std::string imsi = session_context.get_imsi();
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_CREATE_FAILURE_EV);
   event.set_tag(imsi);
@@ -146,7 +146,7 @@ void EventsReporterImpl::session_updated(
     const std::string& session_id, const SessionConfig& session_context,
     const UpdateRequests& update_request) {
   auto event             = magma::orc8r::Event();
-  const std::string imsi = session_context.common_context.sid().id();
+  const std::string imsi = session_context.get_imsi();
 
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_UPDATED_EV);
@@ -177,7 +177,7 @@ void EventsReporterImpl::session_update_failure(
     const std::string& session_id, const SessionConfig& session_context,
     const UpdateRequests& failed_request, const std::string& failure_reason) {
   auto event             = magma::orc8r::Event();
-  const std::string imsi = session_context.common_context.sid().id();
+  const std::string imsi = session_context.get_imsi();
 
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_UPDATE_FAILURE_EV);
@@ -221,7 +221,7 @@ void EventsReporterImpl::session_terminated(
   event_value[APN]           = session_cfg.common_context.apn();
   event_value[SESSION_ID]    = session->get_session_id();
 
-  SessionCredit::TotalCreditUsage usage = session->get_total_credit_usage();
+  TotalCreditUsage usage      = session->get_total_credit_usage();
   event_value[TOTAL_TX]       = usage.charging_tx + usage.monitoring_tx;
   event_value[TOTAL_RX]       = usage.charging_rx + usage.monitoring_rx;
   event_value[CHARGING_TX]    = usage.charging_tx;

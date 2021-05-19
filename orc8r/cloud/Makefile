@@ -24,7 +24,8 @@ endif
 SWAGGER_ROOT := $(MAGMA_ROOT)/orc8r/cloud/go/obsidian/swagger
 SWAGGER_COMMON := swagger-common.yml
 SWAGGER_V1_ROOT := $(SWAGGER_ROOT)/v1
-SWAGGER_V1_YML := $(SWAGGER_ROOT)/v1/swagger.yml
+SWAGGER_V1_YML := $(SWAGGER_V1_ROOT)/swagger.yml
+SWAGGER_V1_CLIENT := $(SWAGGER_V1_ROOT)/client
 SWAGGER_V1_CONFIG := $(MAGMA_ROOT)/orc8r/cloud/docker/controller/goswagger-config.yml
 SWAGGER_V1_SPECS_DIR := $(MAGMA_ROOT)/orc8r/cloud/swagger/specs
 SWAGGER_V1_PARTIAL_SPECS_DIR := $(SWAGGER_V1_SPECS_DIR)/partial
@@ -34,6 +35,7 @@ SWAGGER_V1_STANDALONE_DIR := $(SWAGGER_V1_SPECS_DIR)/standalone
 export SWAGGER_ROOT
 export SWAGGER_COMMON
 export SWAGGER_V1_ROOT
+export SWAGGER_V1_CLIENT
 export SWAGGER_V1_CONFIG
 export SWAGGER_V1_SPECS_DIR
 export SWAGGER_V1_COMMON_DIR
@@ -82,7 +84,11 @@ clean: $(CLEAN_LIST)
 $(CLEAN_LIST): %_clean:
 	make -C $*/cloud/go clean
 
-clean_gen: $(CLEAN_GEN_LIST)
+clean_gen: clean_gen_pre $(CLEAN_GEN_LIST)
+clean_gen_pre:
+	rm -rf $(SWAGGER_V1_CLIENT)
+	mkdir -p $(SWAGGER_V1_CLIENT)
+
 $(CLEAN_GEN_LIST): %_cleangen:
 	make -C $*/cloud/go clean_gen
 

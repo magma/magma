@@ -1,0 +1,50 @@
+---
+- name: identify sgi subnet id using tag
+  ec2_vpc_subnet_info:
+    filters:
+      "tag:Name": "{{ siteName }}-SgiSubnet"
+  register: valSgiSubnet
+
+- name: identify s1 subnet id using tag
+  ec2_vpc_subnet_info:
+    filters:
+      "tag:Name": "{{ siteName }}-EnodebSubnet"
+  register: valEnodebSubnet
+
+- name: set sgi subnet fact
+  set_fact:
+    factSgiSubnetId: "{{ valSgiSubnet.subnets[0].subnet_id }}"
+
+- name: set sgi subnet fact
+  set_fact:
+    factEnodebSubnetId: "{{ valEnodebSubnet.subnets[0].subnet_id }}"
+
+- name: identify security group using tag, of the form sitename-secgroup
+  ec2_group_info:
+    filters:
+      group-name: "{{ secGroup }}{{ siteName }}"
+  register: valSecGroup
+
+- name: set security group fact
+  set_fact:
+    factSecGroup: "{{ valSecGroup.security_groups[0].group_id }}"
+
+
+- name: provision agw base with dual private nics
+  cloudformation:
+    stack_name: "stack{{ siteName }}{{ item }}"
+    state: present
+    template: "roles/cfn/cfnMagmaAgwPrivateDual.json"
+    template_parameters:
+      paramImageBase: "{{ awsAgwAmi }}"
+      paramSubnetSgi: "{{ factSgiSubnetId }}"
+      paramSubnetEnodeb: "{{ factEnodebSubnetId }}"
+      paramAzHome: "{{ awsAgwAz }}"
+      paramSecGroup: "{{ factSecGroup }}"
+      paramSshKey: "{{ awsHostKey }}"
+      paramAgwTagName: "{{ item }}"
+      paramAgwTagSite: "{{ siteName }}"
+      paramAgwTagUuid: "{{ clusterUuid }}"
+      paramAgwInstanceType: "t2.medium"
+  with_items:
+    - "{{ testClusterStacks }}"

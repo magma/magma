@@ -64,6 +64,7 @@ add_library(TASK_MME_APP
     mme_events.cpp
     mme_app_ha.cpp
     mme_app_timer_management.cpp
+    mme_app_ip_imsi.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     ${S11_RELATED_SRCS}

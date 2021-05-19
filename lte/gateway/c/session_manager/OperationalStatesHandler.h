@@ -14,6 +14,11 @@
 
 #include <folly/dynamic.h>
 
+#include <list>
+#include <map>
+#include <memory>
+#include <string>
+
 #include "SessionStore.h"
 
 namespace magma {

@@ -142,7 +142,7 @@ func GetMultiStreamEvents(ctx context.Context, params MultiStreamEventQueryParam
 		Index("eventd*").
 		From(params.From).
 		Size(params.Size).
-		Sort(elasticFilterTimestamp, false).
+		Sort(elasticFilterTimestamp, true).
 		Query(query)
 	return doSearch(ctx, search)
 }

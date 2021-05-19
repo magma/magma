@@ -14,7 +14,7 @@
 set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "$SCRIPT_DIR/../lib/util.sh"
-PKGVERSION=0.4.8
+PKGVERSION=0.4.9
 ITERATION=1
 PKGNAME=sentry-native
 WORK_DIR=/tmp/build-"$PKGNAME"

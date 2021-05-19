@@ -153,7 +153,7 @@ TEST_F(Service303Test, test_get_service_info) {
 TEST_F(Service303Test, test_counters) {
   service303::increment_counter("test_counter", 3, NO_LABELS);
   MetricsContainer metrics_container;
-  int status = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   const MetricFamily& family =
       Service303Test::findFamily(metrics_container, "test_counter");
   EXPECT_EQ(family.name(), "test_counter");
@@ -168,7 +168,7 @@ TEST_F(Service303Test, test_gauges) {
   service303::increment_gauge(
       "test_gauge", 3, 2, "key", "value", "test", "test");
   MetricsContainer metrics_container;
-  int status = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   const MetricFamily* family =
       &Service303Test::findFamily(metrics_container, "test_gauge");
   EXPECT_EQ(family->name(), "test_gauge");
@@ -178,7 +178,7 @@ TEST_F(Service303Test, test_gauges) {
 
   // Increment another gauge
   service303::increment_gauge("test_gauge", 3, NO_LABELS);
-  status = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   family = &Service303Test::findFamily(metrics_container, "test_gauge");
   EXPECT_EQ(family->name(), "test_gauge");
   auto* gauge = &family->metric().Get(0).gauge();
@@ -186,7 +186,7 @@ TEST_F(Service303Test, test_gauges) {
 
   // Decrement back to zero
   service303::decrement_gauge("test_gauge", 3, NO_LABELS);
-  status = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   family = &Service303Test::findFamily(metrics_container, "test_gauge");
   EXPECT_EQ(family->name(), "test_gauge");
   gauge = &family->metric().Get(0).gauge();
@@ -194,7 +194,7 @@ TEST_F(Service303Test, test_gauges) {
 
   // Set the gauge to 10
   service303::set_gauge("test_gauge", 10, NO_LABELS);
-  status = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   family = &Service303Test::findFamily(metrics_container, "test_gauge");
   EXPECT_EQ(family->name(), "test_gauge");
   gauge = &family->metric().Get(0).gauge();
@@ -206,7 +206,7 @@ TEST_F(Service303Test, test_histograms) {
   // First observation in a histogram without buckets
   service303::observe_histogram("test_hist", 3, NO_LABELS, NO_BOUNDARIES);
   MetricsContainer metrics_container;
-  int status = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   const MetricFamily* family =
       &Service303Test::findFamily(metrics_container, "test_hist");
   EXPECT_EQ(family->name(), "test_hist");
@@ -223,7 +223,7 @@ TEST_F(Service303Test, test_histograms) {
   // Adding another observation with buckets won't add another metric or
   // more buckets but it will add another observation to the metric
   service303::observe_histogram("test_hist", 7, NO_LABELS, 3, 1, 10, 100);
-  status = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   family = &Service303Test::findFamily(metrics_container, "test_hist");
   EXPECT_EQ(family->name(), "test_hist");
   EXPECT_EQ(family->metric().size(), 1);
@@ -240,7 +240,7 @@ TEST_F(Service303Test, test_histograms) {
   // boundary definitions
   service303::observe_histogram(
       "test_hist", 50, 1, "key", "value", 3, 1., 10., 100.);
-  status = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   family = &Service303Test::findFamily(metrics_container, "test_hist");
   EXPECT_EQ(family->metric().size(), 2);
   EXPECT_EQ(family->name(), "test_hist");
@@ -262,7 +262,7 @@ TEST_F(Service303Test, test_histograms) {
 
 TEST_F(Service303Test, test_timing_metrics) {
   MetricsContainer metrics_container;
-  int status        = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   double start_time = Service303Test::findGauge(
       metrics_container,
       std::to_string(magma::orc8r::MetricName::process_start_time_seconds));
@@ -274,7 +274,7 @@ TEST_F(Service303Test, test_timing_metrics) {
   EXPECT_GE(uptime, 0);
 
   sleep(1);
-  service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   double new_start = Service303Test::findGauge(
       metrics_container,
       std::to_string(magma::orc8r::MetricName::process_start_time_seconds));
@@ -288,7 +288,7 @@ TEST_F(Service303Test, test_timing_metrics) {
 
 TEST_F(Service303Test, test_memory_metrics) {
   MetricsContainer metrics_container;
-  int status          = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   double physical_mem = Service303Test::findGauge(
       metrics_container,
       std::to_string(magma::orc8r::MetricName::process_resident_memory_bytes));
@@ -309,7 +309,7 @@ TEST_F(Service303Test, test_enum_conversions) {
       "mme_new_association", 3, 2, "result", "success", "gateway", "1234");
 
   MetricsContainer metrics_container;
-  int status = service303_client->GetMetrics(&metrics_container);
+  EXPECT_EQ(0, service303_client->GetMetrics(&metrics_container));
   const MetricFamily& family =
       Service303Test::findFamily(metrics_container, "500");
   const io::prometheus::client::Counter& counter =
