@@ -98,6 +98,7 @@ class ConntrackController(MagmaController):
 
         # Match all new connections on scratch table
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                           ct_zone=ofs_nbits(14, 15),
                            ct_state=(self.CT_NEW | self.CT_TRK,
                                      self.CT_NEW | self.CT_TRK))
         actions = [parser.NXActionCT(
