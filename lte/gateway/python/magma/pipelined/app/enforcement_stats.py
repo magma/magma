@@ -492,7 +492,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             ip_addr = None
             if record.ue_ipv4:
                 ip_addr = convert_ipv4_str_to_ip_proto(record.ue_ipv4)
-            else:
+            elif record.ue_ipv6:
                 ip_addr = convert_ipv6_str_to_ip_proto(record.ue_ipv6)
 
             current_ver = self._session_rule_version_mapper.get_version(
