@@ -440,7 +440,7 @@ commands:
       project_name:
         type: string
     steps:
-      - run: | 
+      - run: |
           export SENTRY_RELEASE=${CIRCLE_SHA1:0:8}
           sentry-cli releases new -p parameters.project_name $SENTRY_RELEASE
           sentry-cli releases set-commits --auto $SENTRY_RELEASE
@@ -507,19 +507,19 @@ commands:
 
 jobs:
   sentry-release:
-    docker: 
+    docker:
       - image: circleci/node:4.8.2
     environment:
       SENTRY_ORG: lf-9c
       SENTRY_ENVIRONMENT: staging
     steps:
-      - checkout # check out the code in the project directory
+      - checkout  # check out the code in the project directory
       - run: curl -sL https://sentry.io/get-cli/ | bash
       - tag-sentry-release:
           project_name: lab-agws-python
       - tag-sentry-release:
           project_name: lab-agws-native
-      
+
   backport:
     machine:
       image: ubuntu-1604:201903-01
