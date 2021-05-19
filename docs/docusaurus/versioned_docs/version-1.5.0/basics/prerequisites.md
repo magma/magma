@@ -110,7 +110,7 @@ for the AGW production hardware are:
 
 1. 2+ physical ethernet interfaces
 2. AMD64 dual-core processor around 2GHz clock speed or faster
-3. 2GB RAM
+3. 4GB RAM
 4. 128GB-256GB SSD storage
 
 In addition, in order to build the AGW, you should have on hand:

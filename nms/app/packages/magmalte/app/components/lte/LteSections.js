@@ -17,7 +17,7 @@ import type {SectionsConfigs} from '../layout/Section';
 
 import * as React from 'react';
 import AlarmIcon from '@material-ui/icons/Alarm';
-import AlarmsDashboard from '../../views/alarms/Alarms';
+import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import Enodebs from './Enodebs';

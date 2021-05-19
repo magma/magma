@@ -221,7 +221,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S11_PAGING_REQUEST: {
       OAILOG_DEBUG(LOG_MME_APP, "MME handling paging request \n");
       imsi64 = mme_app_handle_initial_paging_request(
-          mme_app_desc_p, received_message_p->ittiMsg.s11_paging_request);
+          mme_app_desc_p, &received_message_p->ittiMsg.s11_paging_request);
     } break;
 
     case MME_APP_INITIAL_CONTEXT_SETUP_FAILURE: {

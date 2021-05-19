@@ -1,3 +1,16 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 #include <bits/stdc++.h>
 #include <unordered_map>
 #include <iostream>
@@ -37,9 +50,8 @@ int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
   auto itr = ipv4map.find(ipv4);
   if (itr == ipv4map.end()) {
-    vector<uint64_t> vec = {};
-    vec.insert(vec.begin(), imsi64);
-    ipv4map[ipv4] = vec;
+    vector<uint64_t> vec = {imsi64};
+    ipv4map[ipv4]        = vec;
     OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "Inserting ue_ip:%x \n", ipv4_addr);
   } else {
     OAILOG_DEBUG_UE(

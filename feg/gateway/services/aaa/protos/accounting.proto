@@ -52,6 +52,8 @@ message stop_request {
     }
     terminate_cause cause = 1;
     context ctx = 2;
+    uint32 octets_in = 3;
+    uint32 octets_out = 4;
 }
 
 // acct_resp message - RPC message definition for Accounting-Response (currently empty)

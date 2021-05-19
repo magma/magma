@@ -189,7 +189,7 @@ TEST_F(ChargingGrantTest, test_get_action) {
   grant.is_final_grant = false;
   grant.credit.receive_credit(gsu, &uc);
   grant.credit.add_used_credit(1024, 0, &uc);
-  auto cont_action = grant.get_action(uc);
+  auto cont_action = grant.get_action(&uc);
   EXPECT_EQ(cont_action, CONTINUE_SERVICE);
   // Check both the grant's service_state and update criteria
   EXPECT_EQ(grant.service_state, CONTINUE_SERVICE);
@@ -203,12 +203,12 @@ TEST_F(ChargingGrantTest, test_get_action) {
   grant.credit.add_used_credit(2048, 0, &uc);
   grant.credit.add_used_credit(30, 20, &uc);
   grant.service_state = SERVICE_NEEDS_DEACTIVATION;
-  auto term_action    = grant.get_action(uc);
+  auto term_action    = grant.get_action(&uc);
   // Check that the update criteria also includes the changes
   EXPECT_EQ(term_action, TERMINATE_SERVICE);
 
   // Termination action only returned once
-  auto repeated_action = grant.get_action(uc);
+  auto repeated_action = grant.get_action(&uc);
   EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
 }
 
@@ -227,12 +227,12 @@ TEST_F(ChargingGrantTest, test_get_action_redirect) {
   grant.credit.add_used_credit(2048, 0, &uc);
   grant.credit.add_used_credit(30, 20, &uc);
   grant.service_state = SERVICE_NEEDS_DEACTIVATION;
-  auto term_action    = grant.get_action(uc);
+  auto term_action    = grant.get_action(&uc);
   // Check that the update criteria also includes the changes
   EXPECT_EQ(term_action, REDIRECT);
 
   // Termination action only returned once
-  auto repeated_action = grant.get_action(uc);
+  auto repeated_action = grant.get_action(&uc);
   EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
 }
 
@@ -251,12 +251,12 @@ TEST_F(ChargingGrantTest, test_get_action_restrict) {
   grant.credit.add_used_credit(2048, 0, &uc);
   grant.credit.add_used_credit(30, 20, &uc);
   grant.service_state = SERVICE_NEEDS_DEACTIVATION;
-  auto term_action    = grant.get_action(uc);
+  auto term_action    = grant.get_action(&uc);
   // Check that the update criteria also includes the changes
   EXPECT_EQ(term_action, RESTRICT_ACCESS);
 
   // Termination action only returned once
-  auto repeated_action = grant.get_action(uc);
+  auto repeated_action = grant.get_action(&uc);
   EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
 }
 
@@ -280,7 +280,7 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   EXPECT_EQ(uc.bucket_deltas[USED_TX], 2000);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
   // continue the service even we are over the quota (but not final unit)
-  EXPECT_EQ(grant.get_action(uc), CONTINUE_SERVICE);
+  EXPECT_EQ(grant.get_action(&uc), CONTINUE_SERVICE);
 
   // Check how much we will report (we will report everything, even if
   // we go have gone over the allowed quota)
@@ -331,7 +331,7 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   EXPECT_EQ(credit.get_credit(USED_TX), 4000);
   EXPECT_TRUE(credit.is_quota_exhausted(1));  // 100% exceeded
   EXPECT_TRUE(grant.should_deactivate_service());
-  grant.set_service_state(SERVICE_NEEDS_DEACTIVATION, uc);
+  grant.set_service_state(SERVICE_NEEDS_DEACTIVATION, &uc);
 
   // Since this is the final grant, we should not report anything
   EXPECT_FALSE(grant.get_update_type(&update_type));

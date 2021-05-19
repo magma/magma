@@ -2,12 +2,11 @@
 
 - name: create magma directory
   file:
-    path: "{{ dirSourceLocal }}"
+    path: "{{ dirLocalInventory }}/magma"
     state: directory
 
 - name: download github repo
   git:
     repo: "{{ buildMagmaRepo }}"
-    dest: "{{ dirSourceLocal }}"
+    dest: "{{ dirLocalInventory }}/magma"
     version: "{{ buildMagmaVersion }}"
-

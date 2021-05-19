@@ -243,6 +243,35 @@ def foo(arg1: str) -> int:
 - We do *not* recommend other formatters such as [black](https://black.readthedocs.io/en/stable/installation_and_usage.html), as it diverges from pep8 on basic things like line length, etc.   
 
 
+### C++
+
+The [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html) is authoritative.
+
+**Documentation**
+- Always document your functions and classes in the header files over source files
+- Use Doxygen style documentation for functions
+  - For VSCode users, the [doxygen documentation generator plugin](https://marketplace.visualstudio.com/items?itemName=cschlosser.doxdocgen) is recommended
+
+**Types**
+- Be mindful when choosing input / output types when writing new functions
+  - Opt for return values over output parameters
+  - Non-optional input parameters should be values or const references 
+  - Use non-const pointers to represent optional outputs and optional input/output parameters
+
+**Headers**
+- Always include what you use
+  - [cpplint](https://github.com/cpplint/cpplint) has include-what-you-use warnings
+
+**Linter**
+- We recommend Google's [cpplint](https://github.com/cpplint/cpplint) to lint your changes locally
+  - For VSCode users, the [cpplint plugin](https://marketplace.visualstudio.com/items?itemName=mine.cpplint) is recommended
+- We also have a [Reviewdog](https://github.com/reviewdog/reviewdog) annotatoer that runs [cpplint](https://github.com/cpplint/cpplint) to aid the code review process
+
+**Logging**
+- For non-OAI C++ services, use the `MLOG` macros defined in `orc8r/gateway/c/common/logging/magma_logging.h`
+- For OAI, use the `OAILOG_*` macros defined in `lte/gateway/c/oai/common/log/h`
+- Refer to the Go logging section for deciding between log levels
+
 ### Shell
 
 - Shell script names should be suffixed with the proper file extension

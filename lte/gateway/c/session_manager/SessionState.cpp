@@ -471,10 +471,11 @@ void SessionState::add_rule_usage(
                 << " Service Identifier=" << charging_key.service_identifier;
     auto it = credit_map_.find(charging_key);
     if (it != credit_map_.end()) {
-      auto credit_uc = get_credit_uc(charging_key, update_criteria);
+      SessionCreditUpdateCriteria* credit_uc =
+          get_credit_uc(charging_key, update_criteria);
       it->second->credit.add_used_credit(used_tx, used_rx, credit_uc);
       if (it->second->should_deactivate_service()) {
-        it->second->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
+        it->second->set_service_state(SERVICE_NEEDS_DEACTIVATION, credit_uc);
       }
     } else {
       MLOG(MDEBUG) << "Rating Group " << charging_key.rating_group
@@ -740,7 +741,8 @@ SessionTerminateRequest SessionState::make_termination_request(
   }
   // gy credits
   for (auto& credit_pair : credit_map_) {
-    auto credit_uc    = get_credit_uc(credit_pair.first, uc);
+    SessionCreditUpdateCriteria* credit_uc =
+        get_credit_uc(credit_pair.first, uc);
     auto credit_usage = credit_pair.second->get_credit_usage(
         CreditUsage::TERMINATED, credit_uc, true);
     credit_pair.first.set_credit_usage(&credit_usage);
@@ -1393,8 +1395,8 @@ void SessionState::suspend_service_if_needed_for_credit(
     }
   }
   if (credit_map_.size() > 0 && suspended_count == credit_map_.size()) {
-    auto credit_uc = get_credit_uc(ckey, update_criteria);
-    it->second->set_service_state(SERVICE_NEEDS_SUSPENSION, *credit_uc);
+    it->second->set_service_state(
+        SERVICE_NEEDS_SUSPENSION, get_credit_uc(ckey, update_criteria));
   }
 }
 
@@ -1510,14 +1512,14 @@ bool SessionState::receive_charging_credit(
     // new credit
     return init_charging_credit(update, session_uc);
   }
-  auto& grant          = it->second;
-  auto credit_uc       = get_credit_uc(key, session_uc);
+  auto& grant                            = it->second;
+  SessionCreditUpdateCriteria* credit_uc = get_credit_uc(key, session_uc);
   auto credit_validity = ChargingGrant::is_valid_credit_response(update);
   if (credit_validity == INVALID_CREDIT) {
     // update unsuccessful, reset credit and return
     grant->credit.mark_failure(update.result_code(), credit_uc);
     if (grant->should_deactivate_service()) {
-      grant->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
+      grant->set_service_state(SERVICE_NEEDS_DEACTIVATION, credit_uc);
     }
     return false;
   }
@@ -1529,7 +1531,7 @@ bool SessionState::receive_charging_credit(
   grant->receive_charging_grant(update, credit_uc);
 
   if (grant->reauth_state == REAUTH_PROCESSING) {
-    grant->set_reauth_state(REAUTH_NOT_NEEDED, *credit_uc);
+    grant->set_reauth_state(REAUTH_NOT_NEEDED, credit_uc);
   }
   if (!grant->credit.is_quota_exhausted(1) &&
       grant->service_state != SERVICE_ENABLED) {
@@ -1537,7 +1539,7 @@ bool SessionState::receive_charging_credit(
     MLOG(MINFO) << "New quota now available. Service is in state: "
                 << service_state_to_str(grant->service_state)
                 << " Activating service RG: " << key << " for " << session_id_;
-    grant->set_service_state(SERVICE_NEEDS_ACTIVATION, *credit_uc);
+    grant->set_service_state(SERVICE_NEEDS_ACTIVATION, credit_uc);
   }
   return true;
 }
@@ -1567,9 +1569,9 @@ void SessionState::set_suspend_credit(
     SessionStateUpdateCriteria& update_criteria) {
   auto it = credit_map_.find(charging_key);
   if (it != credit_map_.end()) {
-    auto credit_uc = get_credit_uc(charging_key, update_criteria);
-    auto& grant    = it->second;
-    grant->set_suspended(new_suspended, credit_uc);
+    auto& grant = it->second;
+    grant->set_suspended(
+        new_suspended, get_credit_uc(charging_key, update_criteria));
   }
 }
 
@@ -1625,16 +1627,14 @@ bool SessionState::set_credit_reporting(
   }
 
   it->second->credit.set_reporting(reporting);
-  if (session_uc != NULL) {
-    auto credit_uc       = get_credit_uc(key, *session_uc);
-    credit_uc->reporting = reporting;
+  if (session_uc != nullptr) {
+    get_credit_uc(key, *session_uc)->reporting = reporting;
   }
   return true;
 }
 
 ReAuthResult SessionState::reauth_key(
-    const CreditKey& charging_key,
-    SessionStateUpdateCriteria& update_criteria) {
+    const CreditKey& charging_key, SessionStateUpdateCriteria& session_uc) {
   auto it = credit_map_.find(charging_key);
   if (it != credit_map_.end()) {
     // if credit is already reporting, don't initiate update
@@ -1642,9 +1642,8 @@ ReAuthResult SessionState::reauth_key(
     if (grant->credit.is_reporting()) {
       return ReAuthResult::UPDATE_NOT_NEEDED;
     }
-    auto uc = grant->get_update_criteria();
-    grant->set_reauth_state(REAUTH_REQUIRED, uc);
-    update_criteria.charging_credit_map[charging_key] = uc;
+    grant->set_reauth_state(
+        REAUTH_REQUIRED, get_credit_uc(charging_key, session_uc));
     return ReAuthResult::UPDATE_INITIATED;
   }
   // charging_key cannot be found, initialize credit and engage reauth
@@ -1652,8 +1651,8 @@ ReAuthResult SessionState::reauth_key(
   grant->credit        = SessionCredit(SERVICE_DISABLED);
   grant->reauth_state  = REAUTH_REQUIRED;
   grant->service_state = SERVICE_DISABLED;
-  update_criteria.charging_credit_to_install[charging_key] = grant->marshal();
-  credit_map_[charging_key]                                = std::move(grant);
+  session_uc.charging_credit_to_install[charging_key] = grant->marshal();
+  credit_map_[charging_key]                           = std::move(grant);
   return ReAuthResult::UPDATE_INITIATED;
 }
 
@@ -1665,9 +1664,8 @@ ReAuthResult SessionState::reauth_all(
     auto& grant = credit_pair.second;
     // Only update credits that aren't reporting
     if (!grant->credit.is_reporting()) {
-      update_criteria.charging_credit_map[key] = grant->get_update_criteria();
       grant->set_reauth_state(
-          REAUTH_REQUIRED, update_criteria.charging_credit_map[key]);
+          REAUTH_REQUIRED, get_credit_uc(key, update_criteria));
       res = ReAuthResult::UPDATE_INITIATED;
     }
   }
@@ -1740,11 +1738,11 @@ void SessionState::get_charging_updates(
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria& uc) {
   for (auto& credit_pair : credit_map_) {
-    auto& key      = credit_pair.first;
-    auto& grant    = credit_pair.second;
-    auto credit_uc = get_credit_uc(key, uc);
+    auto& key                              = credit_pair.first;
+    auto& grant                            = credit_pair.second;
+    SessionCreditUpdateCriteria* credit_uc = get_credit_uc(key, uc);
 
-    auto action_type = grant->get_action(*credit_uc);
+    auto action_type = grant->get_action(credit_uc);
     auto action      = std::make_unique<ServiceAction>(action_type);
     switch (action_type) {
       case CONTINUE_SERVICE: {
@@ -1761,7 +1759,7 @@ void SessionState::get_charging_updates(
           MLOG(MDEBUG) << "Redirection already activated for " << session_id_;
           continue;
         }
-        grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
+        grant->set_service_state(SERVICE_REDIRECTED, credit_uc);
 
         PolicyRule redirect_rule = make_redirect_rule(grant);
         if (!is_gy_dynamic_rule_installed(redirect_rule.id())) {
@@ -1777,7 +1775,7 @@ void SessionState::get_charging_updates(
           MLOG(MDEBUG) << "Restriction already activated for " << session_id_;
           continue;
         }
-        grant->set_service_state(SERVICE_RESTRICTED, *credit_uc);
+        grant->set_service_state(SERVICE_RESTRICTED, credit_uc);
 
         fill_service_action_for_restrict(action, key, grant, uc);
         actions_out->push_back(std::move(action));
@@ -1827,9 +1825,9 @@ optional<CreditUsageUpdate> SessionState::get_update_for_continue_service(
                << credit_update_type_to_str(update_type)
                << " with request number " << request_number_;
 
-  auto credit_uc = get_credit_uc(key, session_uc);
+  SessionCreditUpdateCriteria* credit_uc = get_credit_uc(key, session_uc);
   if (update_type == CreditUsage::REAUTH_REQUIRED) {
-    grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
+    grant->set_reauth_state(REAUTH_PROCESSING, credit_uc);
   }
   CreditUsage usage = grant->get_credit_usage(update_type, credit_uc, false);
   key.set_credit_usage(&usage);
