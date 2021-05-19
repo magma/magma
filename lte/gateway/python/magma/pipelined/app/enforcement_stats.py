@@ -422,7 +422,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             if default_flow_matched:
                 if flow_stat.byte_count != 0 and \
                    self._unmatched_bytes != flow_stat.byte_count:
-                    self.logger.error('%s bytes total not reported.',
+                    self.logger.debug('%s bytes total not reported.',
                                       flow_stat.byte_count)
                     self._unmatched_bytes = flow_stat.byte_count
                 return current_usage
