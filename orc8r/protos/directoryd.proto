@@ -48,6 +48,20 @@ message MapSessionIDToIMSIRequest {
   map<string, string> sessionIDToIMSI = 2;
 }
 
+message GetHWIDForSgwCTeidRequest {
+  string networkID = 1;
+  string teid = 2;
+}
+
+message GetHWIDForSgwCTeidResponse {
+  string hwid = 1;
+}
+
+message MapSgwCTeidToHWIDRequest {
+  string networkID = 1;
+  map<string, string>  teidToHwid = 2;
+}
+
 // DirectoryLookup service associates various identities and locations.
 // This service runs in the controller, generating and consuming mostly derived state.
 service DirectoryLookup {
@@ -62,6 +76,12 @@ service DirectoryLookup {
 
   // MapSessionIDsToIMSIs maps {session ID -> IMSI}.
   rpc MapSessionIDsToIMSIs(MapSessionIDToIMSIRequest) returns (Void) {};
+
+  // GetHWIDForSgwCTeid returns the HwId mapped to by sgw control plane Sgw Teid
+  rpc GetHWIDForSgwCTeid(GetHWIDForSgwCTeidRequest) returns (GetHWIDForSgwCTeidResponse) {};
+
+  // MapSgwCTeidToHWID maps {teid -> HwId}.
+  rpc MapSgwCTeidToHWID(MapSgwCTeidToHWIDRequest) returns (Void) {};
 }
 
 // --------------------------------------------------------------------------
