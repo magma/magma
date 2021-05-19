@@ -52,6 +52,9 @@ func testDirectorydStorageImpl(t *testing.T, store storage.DirectorydStorage) {
 	imsi0 := "some_imsi_0"
 	imsi1 := "some_imsi_1"
 
+	teid0 := "10"
+	teid1 := "20"
+
 	//////////////////////////////
 	// Hostname -> HWID
 	//////////////////////////////
@@ -159,4 +162,65 @@ func testDirectorydStorageImpl(t *testing.T, store storage.DirectorydStorage) {
 	recvd, err = store.GetIMSIForSessionID(nid1, sid0)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi1, recvd)
+
+	//////////////////////////////
+	// Teid -> HwId
+	//////////////////////////////
+
+	// Empty initially
+	_, err = store.GetHWIDForSgwCTeid(nid0, teid0)
+	assert.Exactly(t, err, merrors.ErrNotFound)
+	_, err = store.GetHWIDForSgwCTeid(nid0, teid1)
+	assert.Exactly(t, err, merrors.ErrNotFound)
+
+	// Put and Get teid0->HwId1
+	err = store.MapSgwCTeidToHWID(nid0, map[string]string{teid0: hwid1})
+	assert.NoError(t, err)
+	recvd, err = store.GetHWIDForSgwCTeid(nid0, teid0)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid1, recvd)
+	_, err = store.GetHWIDForSgwCTeid(nid0, teid1)
+	assert.Exactly(t, err, merrors.ErrNotFound)
+
+	// Put and Get teid0->HwId0
+	err = store.MapSgwCTeidToHWID(nid0, map[string]string{teid0: hwid0})
+	assert.NoError(t, err)
+	recvd, err = store.GetHWIDForSgwCTeid(nid0, teid0)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, recvd)
+	_, err = store.GetHWIDForSgwCTeid(nid0, teid1)
+	assert.Exactly(t, err, merrors.ErrNotFound)
+
+	// Put and Get teid1->HwId1
+	err = store.MapSgwCTeidToHWID(nid0, map[string]string{teid1: hwid1})
+	assert.NoError(t, err)
+	recvd, err = store.GetHWIDForSgwCTeid(nid0, teid0)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, recvd)
+	recvd, err = store.GetHWIDForSgwCTeid(nid0, teid1)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid1, recvd)
+
+	// Multi-put: Put and Get teid0->HwId0, teid1->HwId1 for nid1
+	err = store.MapSgwCTeidToHWID(nid1, map[string]string{teid0: hwid0, teid1: hwid1})
+	assert.NoError(t, err)
+	recvd, err = store.GetHWIDForSgwCTeid(nid1, teid0)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, recvd)
+	recvd, err = store.GetHWIDForSgwCTeid(nid1, teid1)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid1, recvd)
+
+	// Correctly network-partitioned: {nid0: teid0->HwId0, nid1: teid0->HwId1}
+	err = store.MapSgwCTeidToHWID(nid0, map[string]string{teid0: hwid0})
+	assert.NoError(t, err)
+	err = store.MapSgwCTeidToHWID(nid1, map[string]string{teid0: hwid1})
+	assert.NoError(t, err)
+	recvd, err = store.GetHWIDForSgwCTeid(nid0, teid0)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, recvd)
+	recvd, err = store.GetHWIDForSgwCTeid(nid1, teid0)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid1, recvd)
+
 }
