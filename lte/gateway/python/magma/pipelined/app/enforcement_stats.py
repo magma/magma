@@ -80,7 +80,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self.total_usage = {}  # Store total usage
         self._clean_restart = kwargs['config']['clean_restart']
         self._redis_enabled = kwargs['config'].get('redis_enabled', False)
-        # Store last usage excluding deleted flows for calculating deltas
         self._unmatched_bytes = 0  # Store bytes matched by default rule if any
         self._default_drop_flow_name = \
             kwargs['config']['enforcement']['default_drop_flow_name']
@@ -380,11 +379,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         flows.delete_flow(self._datapath, self.tbl_num, match_in)
         flows.delete_flow(self._datapath, self.tbl_num, match_out)
 
-    def _report_usage(self, delta_usage):
+    def _report_usage(self, usage):
         """
         Report usage to sessiond using rpc
         """
-        record_table = RuleRecordTable(records=delta_usage.values(),
+        record_table = RuleRecordTable(records=usage.values(),
                                        epoch=global_epoch)
         if self._print_grpc_payload:
             record_msg = 'Sending RPC payload: {0}{{\n{1}}}'.format(
@@ -394,7 +393,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             record_table, self.SESSIOND_RPC_TIMEOUT)
         future.add_done_callback(
             lambda future: self.loop.call_soon_threadsafe(
-                self._report_usage_done, future, delta_usage.values()))
+                self._report_usage_done, future, usage.values()))
 
     def _report_usage_done(self, future, records):
         """
@@ -489,26 +488,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         Check if the version of any record is older than the current version.
         If so, delete the flow.
         """
-        for record in self._old_records(records):
-            ip_addr = None
-            if record.ue_ipv4:
-                ip_addr = convert_ipv4_str_to_ip_proto(record.ue_ipv4)
-            else:
-                ip_addr = convert_ipv6_str_to_ip_proto(record.ue_ipv6)
-
-            try:
-                self._delete_flow(record.sid, ip_addr,
-                                  record.rule_id, record.rule_version)
-            except MagmaOFError as e:
-                self.logger.error(
-                    'Failed to delete rule %s for subscriber %s ('
-                    'version: %s): %s', record.rule_id,
-                    record.sid, record.rule_version, e)
-
-    def _old_records(self, records):
-        """
-        Generator function to filter the records that are for old rules
-        """
         for record in records:
             ip_addr = None
             if record.ue_ipv4:
@@ -518,8 +497,18 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
             current_ver = self._session_rule_version_mapper.get_version(
                     record.sid, ip_addr, record.rule_id)
-            if current_ver != record.rule_version:
-                yield record
+
+            if current_ver == record.rule_version:
+                continue
+
+            try:
+                self._delete_flow(record.sid, ip_addr,
+                                  record.rule_id, record.rule_version)
+            except MagmaOFError as e:
+                self.logger.error(
+                    'Failed to delete rule %s for subscriber %s ('
+                    'version: %s): %s', record.rule_id,
+                    record.sid, record.rule_version, e)
 
     def _delete_flow(self, imsi, ip_addr, rule_id, rule_version):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule_id)
