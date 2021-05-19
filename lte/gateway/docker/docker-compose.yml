@@ -97,6 +97,13 @@ services:
     <<: *cservice
     container_name: mme
     image: mme:latest
+
+  envoy_controller:
+    <<: *cservice
+    container_name: envoy_controller
+    image: envoy_controller:latest
+
+
   # pipelined:
   #   <<: *pyservice
   #   container_name: mobilityd
