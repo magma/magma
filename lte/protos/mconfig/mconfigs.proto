@@ -113,6 +113,7 @@ message PipelineD {
         repeated string msisdns = 2;
         repeated string macs = 3;
         repeated string ips = 4;
+        repeated string imeis = 5;
     }
     LiUes li_ues = 12;
 
@@ -153,6 +154,7 @@ message PipelineD {
     // DEPRECATED
     reserved 4, 11;
 }
+
 
 //------------------------------------------------------------------------------
 // SessionD configs
@@ -402,6 +404,16 @@ message ConnectionD {
 //------------------------------------------------------------------------------
 message LIAgentD {
     orc8r.LogLevel log_level = 1;
+    repeated NProbeTask nprobe_tasks = 2;
+}
+
+message NProbeTask {
+    string task_id = 1;
+    string target_id = 2;
+    string target_type = 3;
+    string delivery_type = 4;
+    uint64 correlation_id = 5;
+    string domain_id = 6;
 }
 
 //------------------------------------------------------------------------------

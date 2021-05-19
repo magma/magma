@@ -139,6 +139,7 @@ func TestBuilder_Build(t *testing.T) {
 			},
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
+			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -160,6 +161,9 @@ func TestBuilder_Build(t *testing.T) {
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
+		},
+		"li-agentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
 		},
 	}
 
@@ -185,6 +189,7 @@ func TestBuilder_Build(t *testing.T) {
 			lte_mconfig.PipelineD_METERING,
 		},
 		HeConfig: &lte_mconfig.PipelineD_HEConfig{},
+		LiUes:    &lte_mconfig.PipelineD_LiUes{},
 	}
 	actual, err = build_non_federated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
@@ -340,6 +345,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			},
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
+			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -361,6 +367,9 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
+		},
+		"li-agentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
 		},
 	}
 	actual, err := build_non_federated(&nw, &graph, "gw1")
@@ -446,6 +455,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		},
 		SgiManagementIfaceVlan: "30",
 		HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
+		LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 	}
 
 	actual, err = build_non_federated(&nw, &graph, "gw1")
@@ -476,6 +486,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceVlan:   "44",
 		SgiManagementIfaceIpAddr: "1.2.3.4",
 		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
+		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
 	}
 
 	actual, err = build_non_federated(&nw, &graph, "gw1")
@@ -507,6 +518,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceIpAddr: "1.2.3.4/24",
 		SgiManagementIfaceGw:     "1.2.3.1",
 		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
+		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
 	}
 
 	actual, err = build_non_federated(&nw, &graph, "gw1")
@@ -610,6 +622,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 				EncryptionKey:          "melting_the_core",
 				HmacKey:                "magmamagma",
 			},
+			LiUes: &lte_mconfig.PipelineD_LiUes{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -631,6 +644,9 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
+		},
+		"li-agentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
 		},
 	}
 
@@ -753,6 +769,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 				EncryptionKey:          "melting_the_core",
 				HmacKey:                "magmamagma",
 			},
+			LiUes: &lte_mconfig.PipelineD_LiUes{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -774,6 +791,9 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
+		},
+		"li-agentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
 		},
 	}
 
@@ -891,6 +911,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			},
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
+			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -912,6 +933,9 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
+		},
+		"li-agentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
 		},
 	}
 
@@ -1014,6 +1038,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			},
 			SgiManagementIfaceVlan: "",
 			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
+			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -1035,6 +1060,9 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
+		},
+		"li-agentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
 		},
 	}
 
@@ -1138,6 +1166,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			HeConfig: &lte_mconfig.PipelineD_HEConfig{},
+			LiUes:    &lte_mconfig.PipelineD_LiUes{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -1159,6 +1188,9 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
+		},
+		"li-agentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
 		},
 	}
 
