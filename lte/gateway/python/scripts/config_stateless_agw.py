@@ -98,6 +98,7 @@ def clear_redis_state():
         "*pipelined:rule_ids",
         "*pipelined:rule_versions",
         "*pipelined:rule_names",
+        "mme_ueip_imsi_map",
     ]:
         for key in redis_client.scan_iter(key_regex):
             redis_client.delete(key)

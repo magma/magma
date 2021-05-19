@@ -460,6 +460,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   put_mme_nas_state();
   put_mme_ue_state(mme_app_desc_p, imsi64);
+  put_mme_ueip_imsi_map();
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);

@@ -15,20 +15,20 @@ limitations under the License.
 #include <unordered_map>
 #include <iostream>
 #include "mme_app_ip_imsi.h"
+#include "mme_app_ueip_imsi_map.h"
+#include "mme_app_state_manager.h"
+
 using namespace std;
-typedef unordered_map<string, vector<uint64_t>> Ipv4Map;
-
-Ipv4Map ipv4map;
-
-void initialize_ipv4_map() {
-  OAILOG_FUNC_IN(LOG_MME_APP);
-  ipv4map = Ipv4Map{};
-  OAILOG_FUNC_OUT(LOG_MME_APP);
-}
 
 void mme_app_log_ipv4_imsi_map() {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  for (auto itr = ipv4map.begin(); itr != ipv4map.end(); ++itr) {
+  UeIpImsiMap* ueip_imsi_map =
+      magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
+  if (!ueip_imsi_map) {
+    OAILOG_ERROR(LOG_MME_APP, "ueip_imsi_map is NULL \n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  for (auto itr = ueip_imsi_map->begin(); itr != ueip_imsi_map->end(); ++itr) {
     for (auto it_vec = itr->second.begin(); it_vec != itr->second.end();
          ++it_vec) {
       OAILOG_TRACE(
@@ -46,18 +46,24 @@ void mme_app_log_ipv4_imsi_map() {
  */
 int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
+  UeIpImsiMap* ueip_imsi_map =
+      magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
+  if (!ueip_imsi_map) {
+    OAILOG_ERROR(LOG_MME_APP, "ueip_imsi_map is NULL \n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
-  auto itr = ipv4map.find(ipv4);
-  if (itr == ipv4map.end()) {
+  auto itr = ueip_imsi_map->find(ipv4);
+  if (itr == ueip_imsi_map->end()) {
     vector<uint64_t> vec = {imsi64};
-    ipv4map[ipv4]        = vec;
+    (*ueip_imsi_map)[ipv4] = vec;
     OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "Inserting ue_ip:%x \n", ipv4_addr);
   } else {
     OAILOG_DEBUG_UE(
         LOG_MME_APP, imsi64, "Inserting imsi for existing ue_ip:%x \n",
         ipv4_addr);
-    ipv4map[ipv4].push_back(imsi64);
+    (*ueip_imsi_map)[ipv4].push_back(imsi64);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
@@ -68,11 +74,17 @@ int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
  */
 int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  int num_imsis              = 0;
+  UeIpImsiMap* ueip_imsi_map =
+      magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
+  int num_imsis = 0;
+  if (!ueip_imsi_map) {
+    OAILOG_ERROR(LOG_MME_APP, "ueip_imsi_map is NULL \n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, num_imsis);
+  }
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
-  auto itr = ipv4map.find(ipv4);
-  if (itr == ipv4map.end()) {
+  auto itr = ueip_imsi_map->find(ipv4);
+  if (itr == ueip_imsi_map->end()) {
     OAILOG_ERROR(LOG_MME_APP, " No imsi found for ip:%x \n", ipv4_addr);
   } else {
     uint8_t idx = 0;
@@ -91,10 +103,16 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
 
 void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
+  UeIpImsiMap* ueip_imsi_map =
+      magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
+  if (!ueip_imsi_map) {
+    OAILOG_ERROR(LOG_MME_APP, "ueip_imsi_map is NULL \n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
-  auto itr = ipv4map.find(ipv4);
-  if (itr == ipv4map.end()) {
+  auto itr = ueip_imsi_map->find(ipv4);
+  if (itr == ueip_imsi_map->end()) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, imsi64, "No imsi found for ip:%x \n", ipv4_addr);
     OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -107,6 +125,9 @@ void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
             ipv4_addr);
         itr->second.erase(vec_it);
         vec_it--;
+        if (itr->second.empty()) {
+          ueip_imsi_map->erase(ipv4);
+        }
         break;
       }
     }
