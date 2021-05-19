@@ -11,6 +11,18 @@
   register: keyboot_val
   tags: [never, keyCreate]
 
+- name: find keyBoot id
+  command: aws ec2 describe-key-pairs --key-names "{{ keyBoot }}" --query 'KeyPairs[0].KeyPairId' --output text
+  register: keyboot_id
+  tags: [never, keyCreate]
+
+- name: Tag keyBoot
+  ec2_tag:
+    resource: "{{ keyboot_id.stdout }}"
+    tags:
+      keyboot: "{{ stackEssentialsDefault }}"
+  tags: [never, keyCreate]
+
 - name: copy .pem file
   copy:
     content: "{{ keyboot_val.key.private_key }}"
@@ -23,6 +35,18 @@
   ec2_key:
     name: "{{ keyHost }}"
   register: keyhost_val
+  tags: [never, keyCreate]
+
+- name: find keyHost id
+  command: aws ec2 describe-key-pairs --key-names "{{ keyHost }}" --query 'KeyPairs[0].KeyPairId' --output text
+  register: keyhost_id
+  tags: [never, keyCreate]
+
+- name: Tag keyHost
+  ec2_tag:
+    resource: "{{ keyhost_id.stdout }}"
+    tags:
+      keyhost: "{{ stackEssentialsDefault }}"
   tags: [never, keyCreate]
 
 - name: copy .pem file

@@ -8,18 +8,21 @@
 
 
 - name: set vpc cidr fact
-  set_fact: 
+  set_fact:
     factVpcCidr: "{{ valVpc.vpcs[0].cidr_block }}"
+  when: valVpc.vpcs is defined and valVpc.vpcs[0].cidr_block is defined
 
 - name: set vpc id fact
-  set_fact: 
+  set_fact:
     factVpcId: "{{ valVpc.vpcs[0].vpc_id }}"
+  when: valVpc.vpcs is defined and valVpc.vpcs[0].vpc_id is defined
 
 - name: gather all NAT gateways for this VPC
   ec2_vpc_nat_gateway_info:
-    filters: 
+    filters:
       vpc-id: "{{ factVpcId }}"
   register: valNatGw
+  when: factVpcId is defined
 
 - name: delete all NAT gateways for this VPC
   ec2_vpc_nat_gateway:
@@ -29,4 +32,5 @@
     wait: yes
   with_items:
     - "{{ valNatGw.result }}"
+  when: valNatGw.result is defined
 

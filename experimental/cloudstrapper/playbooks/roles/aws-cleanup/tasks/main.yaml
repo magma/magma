@@ -10,4 +10,4 @@
 - include: keys.yaml
   environment:
     AWS_DEFAULT_REGION: "{{ awsOrc8rRegion }}"
-  tags: keys
+  tags: [keys, never]

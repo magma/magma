@@ -267,8 +267,11 @@
     ```
 
     - ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and building OVS.
+        - Add ```--skip-tag clearSSHKeys``` if you want to keep ssh keys on the instance
     ```
-    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+
+    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu --skip-tags clearSSHKeys
+
     ```
     - ami-init: Snapshot the AMI instance
     ```

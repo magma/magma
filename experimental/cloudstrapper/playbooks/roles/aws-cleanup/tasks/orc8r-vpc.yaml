@@ -8,16 +8,18 @@
 
 
 - name: set vpc cidr fact
-  set_fact: 
+  set_fact:
     factVpcCidr: "{{ valVpc.vpcs[0].cidr_block }}"
+  when: valVpc.vpcs is defined and valVpc.vpcs[0].cidr_block is defined
 
 - name: set vpc id fact
-  set_fact: 
+  set_fact:
     factVpcId: "{{ valVpc.vpcs[0].vpc_id }}"
+  when: valVpc.vpcs is defined and valVpc.vpcs[0].cidr_block is defined
 
 - name: delete vpc
   ec2_vpc_net:
     state: absent
     name: "{{ orc8rVpc }}"
     cidr_block: "{{ factVpcCidr }}"
-  tags: tagDeleteVpc
+  when: factVpcCidr is defined

@@ -8,12 +8,14 @@
 
 
 - name: set vpc cidr fact
-  set_fact: 
+  set_fact:
     factVpcCidr: "{{ valVpc.vpcs[0].cidr_block }}"
+  when: valVpc.vpcs is defined and valVpc.vpcs[0].cidr_block is defined
 
 - name: set vpc id fact
-  set_fact: 
+  set_fact:
     factVpcId: "{{ valVpc.vpcs[0].vpc_id }}"
+  when: valVpc.vpcs is defined and valVpc.vpcs[0].vpc_id is defined
 
 - name: gather all security groups for this vpc
   ec2_group_info:
@@ -23,6 +25,7 @@
   register: valSecGroup
   with_items:
     - "{{ orc8rSgs }}"
+  when: factVpcId is defined
 
 - name: delete limitedsecurity groups in this VPC
   ec2_group:
@@ -30,12 +33,14 @@
     state: absent
   with_items:
     - "{{ valSecGroup.results }}"
+  when: item.security_groups is defined and item.security_groups[0].group_id
 
 - name: gather all security groups for this vpc
   ec2_group_info:
     filters:
       vpc_id: "{{ factVpcId }}"
   register: valSecGroup
+  when: factVpcId is defined
 
 - name: debug remaining security groups
   debug:
@@ -45,8 +50,7 @@
   ec2_group:
     group_id: "{{ item.group_id }}"
     state: absent
-  when: item.group_name != "default"
+  when: item is defined and item.group_name != "default"
   with_items:
     - "{{ valSecGroup.security_groups }}"
-  ignore_errors: true
 
