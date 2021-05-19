@@ -120,7 +120,7 @@ void GTPApplication::install_internal_pkt_fwd_flow(
     fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger,
     uint32_t port, uint32_t next_table) {
   of13::FlowMod fm =
-      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, LOW_PRIORITY);
+      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, DEFAULT_PRIORITY);
 
   // Set match on the internal pkt sampling port
   of13::InPort port_match(port);

@@ -176,6 +176,7 @@ class IPFIXController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
+        parser = self._datapath.ofproto_parser
         match = MagmaMatch()
         flows.add_resubmit_next_service_flow(
             datapath, self.tbl_num, match, [],
@@ -192,6 +193,21 @@ class IPFIXController(MagmaController):
             self._datapath, self._imsi_set_tbl_num, MagmaMatch(),
             priority=flows.MINIMUM_PRIORITY, cookie=self.tbl_num,
             resubmit_table=self._ipfix_sample_tbl_num)
+
+        if self._dpi_enabled or self._conntrackd_enabled:
+            actions = [parser.NXActionSample2(
+                probability=self.ipfix_config.probability,
+                collector_set_id=self.ipfix_config.collector_set_id,
+                obs_domain_id=self.ipfix_config.obs_domain_id,
+                obs_point_id=self.ipfix_config.obs_point_id,
+                apn_mac_addr=[0, 0, 0, 0, 0, 0],
+                msisdn="default",
+                apn_name="default",
+                pdp_start_epoch=1,
+                sampling_port=self.ipfix_config.sampling_port)]
+            flows.add_drop_flow(
+                self._datapath, self._ipfix_sample_tbl_num, match, actions,
+                priority=flows.DEFAULT_PRIORITY)
 
     def add_ue_sample_flow(self, imsi: str, msisdn: str,
                            apn_mac_addr: str, apn_name: str,
