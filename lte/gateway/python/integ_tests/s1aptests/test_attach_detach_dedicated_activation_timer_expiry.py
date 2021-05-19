@@ -84,10 +84,10 @@ class TestAttachDetachDedicatedActTmrExp(unittest.TestCase):
             # Do not send ACT_DED_BER_ACC
             response = self._s1ap_wrapper.s1_util.get_response()
             while response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ:
-                print (
-                        'Received retransmitted UE_ACT_DED_BER_REQ from ',
-                        'Ignoring...'
-                      )
+                print(
+                    'Received retransmitted UE_ACT_DED_BER_REQ from ',
+                    'Ignoring...',
+                )
                 response = self._s1ap_wrapper.s1_util.get_response()
 
             # Verify that the flow rule is created only for default bearer
