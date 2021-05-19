@@ -172,6 +172,14 @@ int s6a_ula_cb(
     // LG COMMENTED THIS (2014/04/01)-> DevParam(0, 0, 0);
   }
 
+  CHECK_FCT(fd_msg_search_avp(
+      ans_p, s6a_fd_cnf.dataobj_s6a_supported_features, &avp_p));
+
+  if (avp_p) {
+    CHECK_FCT(s6a_parse_supported_features(
+        avp_p, &s6a_update_location_ans_p->supported_features));
+  }
+
 err:
   ans_p = NULL;
   send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
@@ -306,9 +314,35 @@ int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
   if (ulr_pP->dual_regis_5g_ind) {
     FLAGS_SET(value.u32, ULR_DUAL_REGIS_5G_IND);
   }
-
   CHECK_FCT(fd_msg_avp_setvalue(avp_p, &value));
   CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
+
+  /*
+   * Adding Supported-Features
+   */
+  if (ulr_pP->dual_regis_5g_ind) {
+    struct avp* child_avp;
+    CHECK_FCT(
+        fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_supported_features, 0, &avp_p));
+
+    CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_vendor_id, 0, &child_avp));
+    value.u32 = VENDOR_3GPP;
+    CHECK_FCT(fd_msg_avp_setvalue(child_avp, &value));
+    CHECK_FCT(fd_msg_avp_add(avp_p, MSG_BRW_LAST_CHILD, child_avp));
+
+    CHECK_FCT(
+        fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_feature_list_id, 0, &child_avp));
+    value.u32 = 2;
+    CHECK_FCT(fd_msg_avp_setvalue(child_avp, &value));
+    CHECK_FCT(fd_msg_avp_add(avp_p, MSG_BRW_LAST_CHILD, child_avp));
+
+    CHECK_FCT(
+        fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_feature_list, 0, &child_avp));
+    value.u32 = FLID_NR_AS_SECONDARY_RAT;
+    CHECK_FCT(fd_msg_avp_setvalue(child_avp, &value));
+    CHECK_FCT(fd_msg_avp_add(avp_p, MSG_BRW_LAST_CHILD, child_avp));
+    CHECK_FCT(fd_msg_avp_add(msg_p, MSG_BRW_LAST_CHILD, avp_p));
+  }
   CHECK_FCT(fd_msg_send(&msg_p, NULL, NULL));
   OAILOG_DEBUG(LOG_S6A, "Sending s6a ulr for imsi=%s\n", ulr_pP->imsi);
   return RETURNok;

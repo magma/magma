@@ -173,6 +173,17 @@ int s6a_fd_init_dict_objs(void) {
   CHECK_FD_FCT(fd_dict_search(
       fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME_ALL_VENDORS, "PUA-Flags",
       &s6a_fd_cnf.dataobj_s6a_pua_flags, ENOENT));
+  CHECK_FD_FCT(fd_dict_search(
+      fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME_ALL_VENDORS,
+      "Supported-Features", &s6a_fd_cnf.dataobj_s6a_supported_features,
+      ENOENT));
+  CHECK_FD_FCT(fd_dict_search(
+      fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME_ALL_VENDORS,
+      "Feature-List-ID", &s6a_fd_cnf.dataobj_s6a_feature_list_id, ENOENT));
+  CHECK_FD_FCT(fd_dict_search(
+      fd_g_config->cnf_dict, DICT_AVP, AVP_BY_NAME_ALL_VENDORS, "Feature-List",
+      &s6a_fd_cnf.dataobj_s6a_feature_list, ENOENT));
+
   /*
    * Register callbacks
    */

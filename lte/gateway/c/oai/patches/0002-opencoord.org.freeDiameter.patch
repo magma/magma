@@ -29,7 +29,7 @@ index 734a5c8..6fd4d7c 100644
 +				10415,	/* Vendor */
 +				"Extended-Max-Requested-BW-DL",	/* Name */
 +				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
-+				AVP_FLAG_VENDOR,	/* Fixed flag values */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
 +				AVP_TYPE_UNSIGNED32	/* base type of data */
 +			};
 +			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
@@ -41,7 +41,7 @@ index 734a5c8..6fd4d7c 100644
 +				10415,	/* Vendor */
 +				"Extended-Max-Requested-BW-UL",	/* Name */
 +				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
-+				AVP_FLAG_VENDOR,	/* Fixed flag values */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
 +				AVP_TYPE_UNSIGNED32	/* base type of data */
 +			};
 +			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
@@ -53,7 +53,7 @@ index 734a5c8..6fd4d7c 100644
 +				10415,	/* Vendor */
 +				"Extended-Max-Supported-BW-DL",	/* Name */
 +				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
-+				AVP_FLAG_VENDOR,	/* Fixed flag values */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
 +				AVP_TYPE_UNSIGNED32	/* base type of data */
 +			};
 +			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
@@ -65,7 +65,7 @@ index 734a5c8..6fd4d7c 100644
 +				10415,	/* Vendor */
 +				"Extended-Max-Supported-BW-UL",	/* Name */
 +				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
-+				AVP_FLAG_VENDOR,	/* Fixed flag values */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
 +				AVP_TYPE_UNSIGNED32	/* base type of data */
 +			};
 +			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
@@ -77,7 +77,7 @@ index 734a5c8..6fd4d7c 100644
 +				10415,	/* Vendor */
 +				"Extended-Min-Desired-BW-DL",	/* Name */
 +				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
-+				AVP_FLAG_VENDOR,	/* Fixed flag values */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
 +				AVP_TYPE_UNSIGNED32	/* base type of data */
 +			};
 +			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
@@ -89,7 +89,7 @@ index 734a5c8..6fd4d7c 100644
 +				10415,	/* Vendor */
 +				"Extended-Min-Desired-BW-UL",	/* Name */
 +				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
-+				AVP_FLAG_VENDOR,	/* Fixed flag values */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
 +				AVP_TYPE_UNSIGNED32	/* base type of data */
 +			};
 +			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
@@ -101,7 +101,7 @@ index 734a5c8..6fd4d7c 100644
 +				10415,	/* Vendor */
 +				"Extended-Min-Requested-BW-DL",	/* Name */
 +				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
-+				AVP_FLAG_VENDOR,	/* Fixed flag values */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
 +				AVP_TYPE_UNSIGNED32	/* base type of data */
 +			};
 +			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);
@@ -113,7 +113,7 @@ index 734a5c8..6fd4d7c 100644
 +				10415,	/* Vendor */
 +				"Extended-Min-Requested-BW-UL",	/* Name */
 +				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flags */
-+				AVP_FLAG_VENDOR,	/* Fixed flag values */
++				AVP_FLAG_VENDOR | AVP_FLAG_MANDATORY,	/* Fixed flag values */
 +				AVP_TYPE_UNSIGNED32	/* base type of data */
 +			};
 +			CHECK_dict_new( DICT_AVP, &data, NULL, NULL);

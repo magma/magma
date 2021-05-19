@@ -6,6 +6,7 @@ set (S6A_SRC
     s6a_error.c
     s6a_peer.c
     s6a_subscription_data.c
+    s6a_supported_features.c
     s6a_task.c
     s6a_up_loc.c
     s6a_cancel_loc.c
