@@ -116,6 +116,10 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
   amf_context->amf_procedures->amf_specific_proc = new nas_amf_specific_proc_t;
+
+  memset(
+      amf_context->amf_procedures->amf_specific_proc, 0,
+      sizeof(nas_amf_specific_proc_t));
   amf_context->amf_procedures->amf_specific_proc->amf_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   amf_context->amf_procedures->amf_specific_proc->amf_proc.base_proc.type =
@@ -127,6 +131,7 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
   nas_amf_registration_proc_t* proc =
       (nas_amf_registration_proc_t*)
           amf_context->amf_procedures->amf_specific_proc;
+  proc->registration_accept_sent = 0;
 
   OAILOG_TRACE(
       LOG_NAS_AMF, "New AMF_SPEC_PROC_TYPE_REGISTRATION initialized\n");
@@ -609,6 +614,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
 static int registration_accept_t3550_handler(
     zloop_t* loop, int timer_id, void* arg) {
   OAILOG_INFO(LOG_AMF_APP, "Timer: In registration_accept_t3550 handler\n");
+#if 0 /* TIMER_CHANGES_REVIEW */
   amf_context_t* amf_ctx                         = NULL;
   ue_m5gmm_context_s* ue_amf_context             = NULL;
   nas_amf_registration_proc_t* registration_proc = NULL;
@@ -662,6 +668,8 @@ static int registration_accept_t3550_handler(
 
     return 0;
   }
+
+#endif /* TIMER_CHANGES_REVIEW */
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
 }
 

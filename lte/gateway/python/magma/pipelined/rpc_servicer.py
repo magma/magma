@@ -740,6 +740,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         Setup the 5G Session flows for the subscriber
         """
         #if 5G Services are not enabled return UNAVAILABLE
+        logging.info("***************************")
+        logging.info(request)
         if not self._service_manager.is_ng_app_enabled(
                 NGServiceController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)

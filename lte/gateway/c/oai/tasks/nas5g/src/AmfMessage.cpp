@@ -17,7 +17,10 @@
 
 using namespace std;
 namespace magma5g {
-AmfMsg::AmfMsg(){};
+AmfMsg::AmfMsg() {
+  memset(&msg, 0, sizeof(MMsg_u));
+};
+
 AmfMsg::~AmfMsg(){};
 MMsg_u::MMsg_u(){};
 MMsg_u::~MMsg_u(){};
@@ -75,7 +78,9 @@ int AmfMsg::M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
     MLOG(MERROR) << "Error : Encoding AMF Message Failed" << endl;
     return (RETURNerror);
   }
-  return (header_result + encode_result);
+
+  // return (header_result + encode_result);
+  return (encode_result);
 }
 
 // Decode AMF Message Header
@@ -110,15 +115,16 @@ int AmfMsg::AmfMsgEncodeHeaderMsg(
     AmfMsgHeader_s* hdr, uint8_t* buffer, uint32_t len) {
   int size = 0;
 
-  MLOG(MDEBUG) << "AmfMsgEncodeHeaderMsg:";
+  MLOG(MDEBUG) << "AmfMsgEncodeHeaderMsg: ";
+
   if (len > 0 || buffer != NULL) {
     ENCODE_U8(buffer + size, hdr->extended_protocol_discriminator, size);
     ENCODE_U8(buffer + size, hdr->sec_header_type, size);
     ENCODE_U8(buffer + size, hdr->message_type, size);
     MLOG(MDEBUG) << "epd = 0x" << hex
                  << int(hdr->extended_protocol_discriminator)
-                 << "security hdr = 0x" << hex << int(hdr->sec_header_type)
-                 << "hdr type = 0x" << hex << int(hdr->message_type);
+                 << " security hdr = 0x" << hex << int(hdr->sec_header_type)
+                 << " hdr type = 0x" << hex << int(hdr->message_type);
   } else {
     MLOG(MERROR) << "Error : Buffer is Empty ";
     return (RETURNerror);
@@ -128,6 +134,7 @@ int AmfMsg::AmfMsgEncodeHeaderMsg(
     MLOG(MERROR) << "Error : TLV not supported";
     return (TLV_PROTOCOL_NOT_SUPPORTED);
   }
+
   return (size);
 }
 

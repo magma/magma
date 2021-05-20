@@ -129,3 +129,7 @@ int ngap_handle_ue_context_release_command(
 int ngap_amf_handle_ue_context_release_complete(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message_p);
+
+int ngap_amf_handle_pduSession_setup_response(
+    ngap_state_t* state, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu);

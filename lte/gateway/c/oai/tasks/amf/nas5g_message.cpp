@@ -593,8 +593,10 @@ int _nas5g_message_plain_encode(
     OAILOG_DEBUG(LOG_AMF_APP, "msg_type: %x", msg->amf.header.message_type);
     bytes = amf_msg_test.M5gNasMessageEncodeMsg(
         (AmfMsg*) &msg->amf, (uint8_t*) buffer, length);
-    for (int i = 0; i < length; i++)
-      OAILOG_INFO(LOG_AMF_APP, "PAGING: buffer[%d] %2x", i, buffer[i]);
+
+    OAILOG_INFO(LOG_AMF_APP, " nas5g messgage plain encode \n");
+    for (int i = 0; i < bytes; i++)
+      OAILOG_INFO(LOG_AMF_APP, " buffer[%d] %2x", i, buffer[i]);
   } else {
     /*
      * Discard L3 messages with not supported protocol discriminator

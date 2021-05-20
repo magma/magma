@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from typing import NamedTuple
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.pipelined_pb2 import ActivateFlowsRequest, \
             DeactivateFlowsRequest
 
@@ -27,7 +28,7 @@ PDRRuleEntry = NamedTuple(
                  ('pdr_state', int),
                  ('precedence', int),
                  ('local_f_teid', int),
-                 ('ue_ip_addr', str),
+                 ('ue_ip_addr', IPAddress),
                  ('del_qos_enforce_rule', DeactivateFlowsRequest),
                  ('add_qos_enforce_rule', ActivateFlowsRequest),
                  ('far_action', FARRuleEntry)])
@@ -60,7 +61,8 @@ def pdr_create_rule_entry(pdr_entry) -> PDRRuleEntry:
 
     # Get UE IP address
     if pdr_entry.pdi.ue_ip_adr:
-        ue_ip_addr = pdr_entry.pdi.ue_ip_adr
+        ue_ip_addr = IPAddress(version=IPAddress.IPV4,
+                               address=pdr_entry.pdi.ue_ip_adr.encode('utf-8'))
 
     if len(pdr_entry.set_gr_far.ListFields()):
         far_entry = far_create_rule_entry(pdr_entry.set_gr_far)

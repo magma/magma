@@ -30,7 +30,7 @@ int SessionAMBRMsg::DecodeSessionAMBRMsg(
 // Encode SessionAMBR IE
 int SessionAMBRMsg::EncodeSessionAMBRMsg(
     SessionAMBRMsg* session_ambr, uint8_t iei, uint8_t* buffer, uint32_t len) {
-  uint16_t* lenPtr;
+  uint8_t* lenPtr;
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
@@ -43,14 +43,18 @@ int SessionAMBRMsg::EncodeSessionAMBRMsg(
     encoded++;
   }
 
-  lenPtr              = (uint16_t*) (buffer + encoded);
+  lenPtr              = (uint8_t*) (buffer + encoded);
   *(buffer + encoded) = session_ambr->length;
   encoded++;
+
   *(buffer + encoded) = session_ambr->dl_unit;
   encoded++;
+
   IES_ENCODE_U16(buffer, encoded, session_ambr->dl_session_ambr);
+
   *(buffer + encoded) = session_ambr->ul_unit;
   encoded++;
+
   IES_ENCODE_U16(buffer, encoded, session_ambr->ul_session_ambr);
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 
