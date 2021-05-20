@@ -408,9 +408,6 @@ class S1ApUtil(object):
         with self._lock:
             del self._ue_ip_map[ue_id]
 
-        # Verify that all UL/DL flows are deleted
-        self.verify_flow_rules_deletion()
-
 
     def _verify_dl_flow(self, dl_flow_rules=None):
         # try at least 5 times before failing as gateway
@@ -583,7 +580,7 @@ class S1ApUtil(object):
         print("Checking if all uplink/downlink flows were deleted")
         dpath = get_datapath()
         flows = get_flows(
-            dpath, {"table_id": self.SPGW_TABLE, "priority": 0}
+            dpath, {"table_id": self.SPGW_TABLE}
         )
         assert(
             len(flows) == 2), "There should only be 2 default table 0 flows"
