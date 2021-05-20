@@ -11,24 +11,29 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import time
+import unittest
+
 import s1ap_types
 import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
 
 class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
+    """Test 3485 timer expiry for default bearer setup while mme restarts"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_3485_timer_for_default_bearer_with_mme_restart(self):
-        """ Test case validates the functionality of 3485 timer for
+        """Test case validates the functionality of 3485 timer for
         default bearer while MME restarts
         Step1: UE attaches to network
         Step2: Send an indication to S1ap stack to drop E-Rab Setup
@@ -45,7 +50,6 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         """
 
         num_ue = 1
-
         self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
@@ -106,7 +110,8 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         print('************************* Restarting MME service on gateway')
         self._s1ap_wrapper.magmad_util.restart_services(['mme'])
 
-        for j in range(20):
+        wait_for_restart = 20
+        for j in range(wait_for_restart):
             print('Waiting for', j, 'seconds')
             time.sleep(1)
 

@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import time
 import ipaddress
+import time
+import unittest
 
 import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
@@ -22,32 +22,36 @@ from s1ap_utils import MagmadUtil
 
 
 class Test3485TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
+    """Test 3485 timer expiry for dedicated bearer setup while mme restarts"""
+
     def setUp(self):
+        """Initialize"""
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
+        """Cleanup"""
         self._s1ap_wrapper.cleanup()
 
     def test_3485_timer_for_dedicated_bearer_with_mme_restart(self):
-        """ Test case validates the functionality of 3485 timer for
+        """Test case validates the functionality of 3485 timer for
         Dedicated bearer while MME restarts
         Step1: UE attaches to network
         Step2: Send an indication to S1ap stack to drop E-Rab Setup
-               Request message, sent as part of secondary PDN activation
-               procedure.
+        Request message, sent as part of secondary PDN activation
+        procedure.
         Step3: Send an indication to initiate Dedicated bearer activation
         Step4: Send an indication to S1ap stack to not to drop E-Rab Setup
-               Request message, so that re-transmitted message reaches to
-               TFW
+        Request message, so that re-transmitted message reaches to
+        TFW
         Step5: Send command to Magma to restart mme service
-        Step6: TFW shall receive re-transmitted Actiavte Dedicated EPS
-               Bearer Context Request and send Actiavte Dedicated EPS Bearer
-               Context Accept
+        Step6: TFW shall receive re-transmitted Activate Dedicated EPS
+        Bearer Context Request and send Activate Dedicated EPS Bearer
+        Context Accept
         Step7: TFW shall initiate de-activation of deidicated bearer and then
-               initiate Detach procedure.
+        initiate Detach procedure.
         """
 
         num_ues = 1
@@ -105,7 +109,8 @@ class Test3485TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
             print('***** Restarting MME service on gateway')
             self._s1ap_wrapper.magmad_util.restart_services(['mme'])
 
-            for j in range(20):
+            wait_for_restart = 20
+            for j in range(wait_for_restart):
                 print('Waiting for', j, 'seconds')
                 time.sleep(1)
 
@@ -124,11 +129,14 @@ class Test3485TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
                 ''.join([str(idx) for idx in req.imsi]),
             )
             self._spgw_util.delete_bearer(
-                'IMSI' + ''.join([str(idx) for idx in req.imsi]), 5, 6,
+                'IMSI' + ''.join([str(idx) for idx in req.imsi]),
+                attach.esmInfo.epsBearerId, act_ded_ber_ctxt_req.bearerId,
             )
             """During wait time, mme may send multiple times Activate EPS bearer
-               context request, after sending response one message ignore other
-               messages """
+            context request, after sending response for first message ignore
+            the subsequent messages
+            """
+
             response = self._s1ap_wrapper.s1_util.get_response()
             while (
                 response.msg_type
