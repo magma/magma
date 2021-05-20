@@ -214,6 +214,16 @@ struct RuleToProcess {
   Teids teids;
 };
 
+struct RuleStats {
+  uint64_t tx;
+  uint64_t rx;
+  uint64_t dropped_tx;
+  uint64_t dropped_rx;
+  RuleStats() : tx(0), rx(0), dropped_tx(0), dropped_rx(0) {}
+  RuleStats(uint64_t tx, uint64_t rx, uint64_t dropped_tx, uint64_t dropped_rx)
+      : tx(tx), rx(rx), dropped_tx(dropped_tx), dropped_rx(dropped_rx) {}
+};
+
 typedef std::vector<RuleToProcess> RulesToProcess;
 
 enum PolicyAction {
@@ -243,6 +253,14 @@ struct StatsPerPolicy {
   uint32_t current_version;
   // The last reported version from PipelineD
   uint32_t last_reported_version;
+
+  std::unordered_map<int, RuleStats> stats_map;
+  StatsPerPolicy() {
+    current_version       = 0;
+    last_reported_version = 0;
+    RuleStats s           = {0, 0, 0, 0};
+    stats_map             = {{0, s}};
+  }
 };
 typedef std::unordered_map<std::string, StatsPerPolicy> PolicyStatsMap;
 

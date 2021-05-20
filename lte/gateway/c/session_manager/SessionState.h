@@ -181,10 +181,11 @@ class SessionState {
 
   /**
    * add_rule_usage adds used TX/RX bytes to a particular rule
+   * TODO instead of passing rule/version/stats pass the full rulerecord
    */
   void add_rule_usage(
-      const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
-      uint64_t dropped_tx, uint64_t dropped_rx,
+      const std::string& rule_id, uint64_t version, uint64_t used_tx,
+      uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -409,7 +410,7 @@ class SessionState {
    * @return RuleToProcess if successfully removed. otherwise returns {}
    */
   optional<RuleToProcess> deactivate_static_rule(
-      const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
+      const std::string rule_id, SessionStateUpdateCriteria& session_uc);
 
   bool deactivate_scheduled_static_rule(const std::string& rule_id);
 
@@ -535,6 +536,8 @@ class SessionState {
   void set_session_level_key(const std::string new_key);
 
   bool apply_update_criteria(SessionStateUpdateCriteria& uc);
+
+  StatsPerPolicy get_policy_stats(std::string rule_id);
 
   // QoS Management
   /**
@@ -690,6 +693,15 @@ class SessionState {
    * Clear all per-session metrics
    */
   void clear_session_metrics();
+
+  // PolicyStatsMap functions
+  /**
+   *
+   * @param rule_id
+   * @param session_uc
+   */
+  void increment_rule_stats(
+      const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
 
  private:
   std::string imsi_;
@@ -931,14 +943,13 @@ class SessionState {
   void update_data_metrics(
       const char* counter_name, uint64_t bytes_tx, uint64_t bytes_rx);
 
-  // PolicyStatsMap functions
   /**
-   *
-   * @param rule_id
-   * @param session_uc
+   * Computes delta from previous rule report
    */
-  void increment_rule_stats(
-      const std::string& rule_id, SessionStateUpdateCriteria& session_uc);
+  optional<RuleStats> get_rule_delta(
+      const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
+      uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * @brief Given a policy (to_process) append to either pending_activation or
