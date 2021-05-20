@@ -259,8 +259,8 @@ void LocalEnforcer::aggregate_records(
     SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
 
     session->add_rule_usage(
-        record.rule_id(), record.bytes_tx(), record.bytes_rx(),
-        record.dropped_tx(), record.dropped_rx(), uc);
+        record.rule_id(), record.rule_version(), record.bytes_tx(),
+        record.bytes_rx(), record.dropped_tx(), record.dropped_rx(), uc);
   }
   complete_termination_for_released_sessions(
       session_map, sessions_with_reporting_flows, session_update);

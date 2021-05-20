@@ -361,6 +361,21 @@ std::string serialize_pending_event_triggers(
   return serialized;
 }
 
+RuleStats deserialize_rule_stats(std::string& serialized) {
+  auto folly_serialized    = folly::StringPiece(serialized);
+  folly::dynamic marshaled = folly::parseJson(folly_serialized);
+  auto stored              = RuleStats{};
+
+  stored.tx = static_cast<uint64_t>(std::stoul(marshaled["tx"].getString()));
+  stored.rx = static_cast<uint64_t>(std::stoul(marshaled["rx"].getString()));
+  stored.dropped_rx =
+      static_cast<uint64_t>(std::stoul(marshaled["dropped_rx"].getString()));
+  stored.dropped_tx =
+      static_cast<uint64_t>(std::stoul(marshaled["dropped_tx"].getString()));
+
+  return stored;
+}
+
 PolicyStatsMap deserialize_policy_stats_map(std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
@@ -373,6 +388,11 @@ PolicyStatsMap deserialize_policy_stats_map(std::string& serialized) {
         static_cast<uint32_t>(map[key]["current_version"].getInt());
     stats.last_reported_version =
         static_cast<uint32_t>(map[key]["last_reported_version"].getInt());
+    for (auto& key2 : map[key]["stats_keys"]) {
+      int stat_key = static_cast<uint64_t>(std::stoul(key2.getString()));
+      stats.stats_map[stat_key] =
+          deserialize_rule_stats(map[key]["stats_map"][key2].getString());
+    }
     stored[key.getString()] = stats;
   }
   return stored;
@@ -383,16 +403,34 @@ std::string serialize_policy_stats_map(PolicyStatsMap stats_map) {
 
   folly::dynamic keys = folly::dynamic::array;
   folly::dynamic map  = folly::dynamic::object;
-  for (auto& stats_pair : stats_map) {
-    auto key = stats_pair.first;
+
+  for (auto& policy_pair : stats_map) {
+    auto key = policy_pair.first;
     keys.push_back(key);
-    folly::dynamic stats = folly::dynamic::object;
-    stats["current_version"] =
-        static_cast<int>(stats_pair.second.current_version);
-    stats["last_reported_version"] =
-        static_cast<int>(stats_pair.second.last_reported_version);
-    map[key] = stats;
+    folly::dynamic usage = folly::dynamic::object;
+    usage["current_version"] =
+        static_cast<int>(policy_pair.second.current_version);
+    usage["last_reported_version"] =
+        static_cast<int>(policy_pair.second.last_reported_version);
+
+    folly::dynamic stats_keys = folly::dynamic::array;
+    folly::dynamic stats_map  = folly::dynamic::object;
+    for (auto& stat : policy_pair.second.stats_map) {
+      std::string version_str = std::to_string(stat.first);
+      stats_keys.push_back(version_str);
+      folly::dynamic stats   = folly::dynamic::object;
+      stats["tx"]            = std::to_string(stat.second.tx);
+      stats["rx"]            = std::to_string(stat.second.rx);
+      stats["dropped_tx"]    = std::to_string(stat.second.dropped_tx);
+      stats["dropped_rx"]    = std::to_string(stat.second.dropped_rx);
+      stats_map[version_str] = folly::toJson(stats);
+    }
+    usage["stats_keys"] = stats_keys;
+    usage["stats_map"]  = stats_map;
+
+    map[key] = usage;
   }
+
   marshaled["policy_stats_keys"] = keys;
   marshaled["policy_stats_map"]  = map;
 

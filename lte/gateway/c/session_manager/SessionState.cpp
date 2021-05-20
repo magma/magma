@@ -120,7 +120,9 @@ StoredSessionState SessionState::marshal() {
   for (auto& it : rule_lifetimes_) {
     marshaled.rule_lifetimes[it.first] = it.second;
   }
+
   marshaled.policy_version_and_stats = policy_version_and_stats_;
+
   return marshaled;
 }
 
@@ -179,6 +181,9 @@ SessionState::SessionState(
   }
   for (auto& rule : marshaled.gy_dynamic_rules) {
     gy_dynamic_rules_.insert_rule(rule);
+  }
+  for (auto& it : marshaled.policy_version_and_stats) {
+    policy_version_and_stats_[it.first] = it.second;
   }
 }
 
@@ -459,11 +464,94 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   return true;
 }
 
+optional<RuleStats> SessionState::get_rule_delta(
+    const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
+    uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
+    SessionStateUpdateCriteria* session_uc) {
+  auto it = policy_version_and_stats_.find(rule_id);
+  if (it == policy_version_and_stats_.end()) {
+    MLOG(MERROR) << "Reported rule (" << rule_id << ") not found, ignoring";
+    return {};
+  }
+
+  RuleStats ret = RuleStats();
+  // Only accept rule reports for current_version or last_reported_version
+  // ignore other reports as they shoudn't be sent
+  auto last_reported_version = it->second.last_reported_version;
+  if (rule_version > it->second.current_version) {
+    MLOG(MERROR) << "Reported version higher than tracked one("
+                 << it->second.current_version << ") for "
+                 << "Rule_id: " << rule_id << " version: " << rule_version;
+    return ret;
+  }
+
+  if (rule_version < last_reported_version) {
+    MLOG(MERROR) << "Reported rule version too old, current one("
+                 << it->second.current_version << ") for "
+                 << "Rule_id: " << rule_id << " version: " << rule_version;
+    return ret;
+  }
+
+  auto last_tracked =
+      policy_version_and_stats_[rule_id].stats_map.find(last_reported_version);
+
+  RuleStats prev_usage = last_tracked->second;
+
+  if (rule_version == last_reported_version) {
+    if (prev_usage.tx != 0 && prev_usage.tx > used_tx) {
+      MLOG(MERROR) << "Reported stat used_tx less than the current tracked one";
+      return ret;
+    }
+    if (prev_usage.rx != 0 && prev_usage.rx > used_rx) {
+      MLOG(MERROR) << "Reported stat used_rx less than the current tracked one";
+      return ret;
+    }
+
+    ret = RuleStats(
+        used_tx - prev_usage.tx, used_rx - prev_usage.rx,
+        dropped_tx - prev_usage.dropped_tx, dropped_rx - prev_usage.dropped_rx);
+  } else {
+    ret = RuleStats(used_tx, used_rx, dropped_tx, dropped_rx);
+  }
+
+  policy_version_and_stats_[rule_id].last_reported_version = rule_version;
+  policy_version_and_stats_[rule_id].stats_map[rule_version] =
+      RuleStats(used_tx, used_rx, dropped_tx, dropped_rx);
+
+  if (!session_uc->policy_version_and_stats) {
+    session_uc->policy_version_and_stats = PolicyStatsMap{};
+  }
+
+  if (session_uc->policy_version_and_stats.value().find(rule_id) ==
+      policy_version_and_stats_.end()) {
+    session_uc->policy_version_and_stats.value()[rule_id] = StatsPerPolicy();
+  }
+  session_uc->policy_version_and_stats.value()[rule_id].current_version =
+      policy_version_and_stats_[rule_id].current_version;
+  session_uc->policy_version_and_stats.value()[rule_id].last_reported_version =
+      policy_version_and_stats_[rule_id].last_reported_version;
+  session_uc->policy_version_and_stats.value()[rule_id]
+      .stats_map[rule_version] =
+      policy_version_and_stats_[rule_id].stats_map[rule_version];
+
+  return ret;
+}
+
 void SessionState::add_rule_usage(
-    const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
-    uint64_t dropped_tx, uint64_t dropped_rx,
+    const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
+    uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
     SessionStateUpdateCriteria& update_criteria) {
   CreditKey charging_key;
+
+  // TODO: Rework logic to work with flat rate, below is a hacky solution
+  auto rule_delta = get_rule_delta(
+      rule_id, rule_version, used_tx, used_rx, dropped_tx, dropped_rx,
+      &update_criteria);
+  if (!rule_delta) {
+    return;
+  }
+  RuleStats delta = rule_delta.value();
+
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, &charging_key) ||
       static_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
     MLOG(MINFO) << "Updating used charging credit for Rule=" << rule_id
@@ -473,7 +561,7 @@ void SessionState::add_rule_usage(
     if (it != credit_map_.end()) {
       SessionCreditUpdateCriteria* credit_uc =
           get_credit_uc(charging_key, update_criteria);
-      it->second->credit.add_used_credit(used_tx, used_rx, credit_uc);
+      it->second->credit.add_used_credit(delta.tx, delta.rx, credit_uc);
       if (it->second->should_deactivate_service()) {
         it->second->set_service_state(SERVICE_NEEDS_DEACTIVATION, credit_uc);
       }
@@ -487,16 +575,17 @@ void SessionState::add_rule_usage(
       static_rules_.get_monitoring_key_for_rule_id(rule_id, &monitoring_key)) {
     MLOG(MINFO) << "Updating used monitoring credit for Rule=" << rule_id
                 << " Monitoring Key=" << monitoring_key;
-    add_to_monitor(monitoring_key, used_tx, used_rx, update_criteria);
+    add_to_monitor(monitoring_key, delta.tx, delta.rx, update_criteria);
   }
   if (session_level_key_ != "" && monitoring_key != session_level_key_) {
     // Update session level key if its different
-    add_to_monitor(session_level_key_, used_tx, used_rx, update_criteria);
+    add_to_monitor(session_level_key_, delta.tx, delta.rx, update_criteria);
   }
   if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
-    update_data_metrics(UE_USED_COUNTER_NAME, used_tx, used_rx);
+    update_data_metrics(UE_USED_COUNTER_NAME, delta.tx, delta.rx);
   }
-  update_data_metrics(UE_DROPPED_COUNTER_NAME, dropped_tx, dropped_rx);
+  update_data_metrics(
+      UE_DROPPED_COUNTER_NAME, delta.dropped_tx, delta.dropped_rx);
 }
 
 void SessionState::apply_session_rule_set(
@@ -1053,7 +1142,7 @@ optional<RuleToProcess> SessionState::remove_gy_rule(
 }
 
 optional<RuleToProcess> SessionState::deactivate_static_rule(
-    const std::string& rule_id, SessionStateUpdateCriteria& session_uc) {
+    const std::string rule_id, SessionStateUpdateCriteria& session_uc) {
   auto it = std::find(
       active_static_rules_.begin(), active_static_rules_.end(), rule_id);
   if (it == active_static_rules_.end()) {
@@ -2532,6 +2621,14 @@ void SessionState::clear_create_session_response() {
   create_session_response_ = CreateSessionResponse();
 }
 
+StatsPerPolicy SessionState::get_policy_stats(std::string rule_id) {
+  auto it = policy_version_and_stats_.find(rule_id);
+  if (it == policy_version_and_stats_.end()) {
+    return StatsPerPolicy{};
+  }
+  return it->second;
+}
+
 uint32_t SessionState::get_current_rule_version(const std::string& rule_id) {
   if (policy_version_and_stats_.find(rule_id) ==
       policy_version_and_stats_.end()) {
@@ -2547,11 +2644,12 @@ void SessionState::increment_rule_stats(
     const std::string& rule_id, SessionStateUpdateCriteria& session_uc) {
   if (policy_version_and_stats_.find(rule_id) ==
       policy_version_and_stats_.end()) {
-    policy_version_and_stats_[rule_id]                       = StatsPerPolicy();
-    policy_version_and_stats_[rule_id].current_version       = 0;
-    policy_version_and_stats_[rule_id].last_reported_version = 0;
+    policy_version_and_stats_[rule_id] = StatsPerPolicy();
   }
   policy_version_and_stats_[rule_id].current_version++;
+  policy_version_and_stats_[rule_id]
+      .stats_map[policy_version_and_stats_[rule_id].current_version] =
+      RuleStats();
 
   if (!session_uc.policy_version_and_stats) {
     session_uc.policy_version_and_stats = policy_version_and_stats_;
