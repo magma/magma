@@ -100,6 +100,9 @@ to that tab and move on for now.</p>
 MAGMA-VM [/home/vagrant]$ <span class="hljs-built_in">cd</span> magma/lte/gateway
 MAGMA-VM [/home/vagrant/magma/lte/gateway]$ make run
 </code></pre>
+<p><strong>Note</strong>: If you encounter unexpected errors during this process, try running
+<code>vagrant provision magma</code> in the host environment for more debugging
+information.</p>
 <p>This will take a while (we have a lot of CXX files to build). With 2 extensive
 build jobs running, now is a good time to grab a coffee or lunch. The first
 build ever from source will take a while, but afterwards, a persistent ccache
@@ -196,7 +199,8 @@ and password <code>password1234</code>. We recommend Firefox or Chrome. If you s
 NMS can take upto 60 seconds to finish starting up.</p>
 <p>You will probably want to enable this organization (magma-test) to access all networks,
 so go to <a href="https://master.localhost">master.localhost</a> and login with the same credentials.
-Once there, you can click on the organization and then select &quot;Enable all networks&quot;.</p>
+Once there, you can click on the &quot;Organizations&quot; tab on the left sidebar, choose
+<code>magma-test</code>, and then check &quot;Enable all networks&quot; in the subsequent pop-up window.</p>
 <p><strong>Note</strong>: If you want to test the access gateway VM with a physical eNB and UE,
 refer to
 the <a href="/magma/docs/next/lte/dev_notes#connecting-a-physical-enodeb-and-ue-to-gateway-vm">Connecting a physical eNodeb and UE device to gateway
