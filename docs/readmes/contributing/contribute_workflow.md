@@ -60,7 +60,7 @@ This opinionated workflow simplifies the complexities of dealing with Git direct
 It does this by keeping both `your_dev_branch` and `your_dev_branch_base` branches, allowing a straightforward mechanism for rebasing commit stacks.
 
 ```bash
-# Note: see below for the git aliases used in this code block
+# Note: see below for the Git and shell aliases used in this code block
 
 ###############
 # Get started #
