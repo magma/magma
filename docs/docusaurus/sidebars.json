@@ -178,11 +178,29 @@
       }
     ],
     "Contribute": [
-      "contributing/contribute_onboarding",
-      "contributing/contribute_workflow",
-      "contributing/contribute_conventions",
-      "contributing/contribute_ci_checks",
-      "contributing/contribute_codeowners"
+      {
+        "type": "subcategory",
+        "label": "Onboard",
+        "ids": [
+          "contributing/onboard/contribute_onboarding"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Develop",
+        "ids": [
+          "contributing/develop/contribute_workflow",
+          "contributing/develop/contribute_conventions",
+          "contributing/developcontribute_ci_checks"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Maintain",
+        "ids": [
+          "contributing/maintain/contribute_codeowners"
+        ]
+      }
     ],
     "Technical Reference": [
       {

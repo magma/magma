@@ -14,20 +14,20 @@
       "basics/quick_start_guide": {
         "title": "Quick Start Guide"
       },
-      "contributing/contribute_ci_checks": {
+      "contributing/develop/contribute_ci_checks": {
         "title": "Continuous Integration Checks"
       },
-      "contributing/contribute_codeowners": {
-        "title": "Codeowners Workflow"
-      },
-      "contributing/contribute_conventions": {
+      "contributing/develop/contribute_conventions": {
         "title": "Contributing Conventions"
       },
-      "contributing/contribute_onboarding": {
-        "title": "Developer Onboarding"
-      },
-      "contributing/contribute_workflow": {
+      "contributing/develop/contribute_workflow": {
         "title": "Development Workflow"
+      },
+      "contributing/maintain/contribute_codeowners": {
+        "title": "Codeowners Workflow"
+      },
+      "contributing/onboard/contribute_onboarding": {
+        "title": "Developer Onboarding"
       },
       "cwf/deploy_build": {
         "title": "Building Carrier Wifi Gateway"
@@ -211,6 +211,9 @@
       "lte/upgrade_1_5": {
         "title": "Upgrade to v1.5"
       },
+      "nms/admin": {
+        "title": "Admin"
+      },
       "nms/alerts": {
         "title": "Alerts"
       },
@@ -234,6 +237,9 @@
       },
       "nms/equipment": {
         "title": "Equipment"
+      },
+      "nms/federation": {
+        "title": "Federation"
       },
       "nms/legacy/grafana": {
         "title": "Custom Grafana Dashboards"
