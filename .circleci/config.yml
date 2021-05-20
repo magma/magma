@@ -1435,7 +1435,7 @@ jobs:
             sed -i -e '/^primaryCloudstrapper: /s/:.*$/: publishAmisToMarketplacePrimaryCloudstrapper/' $VARS_DIR/defaults.yaml
             sed -i -e '/^stackDevOpsCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-devopscloustrapper/' $VARS_DIR/defaults.yaml
             sed -i -e '/^stackCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-cloustrapper/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^devOpsAmi: /s/:.*$/: cloudstrapper-$VERSION/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^devOpsAmi: /s/:.*$/: cloudstrapper-'"$VERSION"'/' $VARS_DIR/defaults.yaml
             sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-0d382e80be7ffdae5/' $VARS_DIR/build.yaml
       - run:
           name: Generate Cloudstrapper AMI
@@ -1451,7 +1451,7 @@ jobs:
       - run:
           name: Propagate variables for AGW AMI build
           command: |
-            sed -i -e '/^buildAgwAmiName: /s/:.*$/: agw-ami-$VERSION/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAgwAmiName: /s/:.*$/: agw-ami-'"$VERSION"'/' $VARS_DIR/build.yaml
             sed -i -e '/^buildGwTagName: /s/:.*$/: publishAmisToMarketplaceAgw/' $VARS_DIR/build.yaml
             sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-0d382e80be7ffdae5/' $VARS_DIR/cluster.yaml
       - run:
