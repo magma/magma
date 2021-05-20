@@ -146,8 +146,8 @@ class MmeNasStateConverter : public StateConverter {
       pdn_context_t* state_pdn_context);
 
   static void pdn_context_list_to_proto(
-      const ue_mm_context_t& state_ue_context, oai::UeContext* ue_context_proto,
-      int num_active_contexts);
+      const ue_mm_context_t& state_ue_context,
+      oai::UeContext* ue_context_proto);
 
   static void proto_to_pdn_context_list(
       const oai::UeContext& ue_context_proto,

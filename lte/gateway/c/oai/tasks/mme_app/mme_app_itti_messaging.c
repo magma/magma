@@ -258,7 +258,16 @@ int mme_app_send_s11_create_session_req(
   // default bearer already created by NAS
   bearer_context_t* bc = mme_app_get_bearer_context(
       ue_mm_context, ue_mm_context->pdn_contexts[pdn_cid]->default_ebi);
-
+  if (bc == NULL) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+        "Failed to send create session req to SPGW as the bearer context is "
+        "NULL for "
+        "MME UE S1AP Id: " MME_UE_S1AP_ID_FMT " for bearer %u\n",
+        ue_mm_context->mme_ue_s1ap_id,
+        ue_mm_context->pdn_contexts[pdn_cid]->default_ebi);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   // Zero because default bearer (see 29.274)
   session_request_p->bearer_contexts_to_be_created.bearer_contexts[0]
       .bearer_level_qos.gbr.br_ul = bc->esm_ebr_context.gbr_ul;

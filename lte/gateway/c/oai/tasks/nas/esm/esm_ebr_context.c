@@ -275,10 +275,12 @@ ebi_t esm_ebr_context_release(
         /*
          * The EPS bearer context entry is found
          */
-        found = true;
-        *pid  = ue_mm_context->bearer_contexts[*bid]->pdn_cx_id;
-        pdn   = &ue_mm_context->pdn_contexts[*pid]->esm_data;
-        break;
+        *pid = ue_mm_context->bearer_contexts[*bid]->pdn_cx_id;
+        if (ue_mm_context->pdn_contexts[*pid]) {
+          found = true;
+          pdn   = &ue_mm_context->pdn_contexts[*pid]->esm_data;
+          break;
+        }
       }
     }
   } else {
@@ -313,12 +315,21 @@ ebi_t esm_ebr_context_release(
     /*
      * Delete the specified EPS bearer context entry
      */
+
+    if (!ue_mm_context->pdn_contexts[*pid]) {
+      OAILOG_ERROR_UE(
+          LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
+          "ESM-PROC  - PDN context does not exist for bearer id %u,"
+          "for ue id " MME_UE_S1AP_ID_FMT "\n",
+          *bid, ue_mm_context->mme_ue_s1ap_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
+    }
     if (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[*bid] != *bid) {
-      OAILOG_ERROR(
-          LOG_NAS_ESM,
+      OAILOG_ERROR_UE(
+          LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
           "ESM-PROC  - EPS bearer identifier %d is "
-          "not valid\n",
-          *bid);
+          "not valid for ue id " MME_UE_S1AP_ID_FMT "\n",
+          *bid, ue_mm_context->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
     }
 
