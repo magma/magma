@@ -37,6 +37,7 @@ class Test3485TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
 
     def test_3485_timer_for_dedicated_bearer_with_mme_restart(self):
         """Test case validates the functionality of 3485 timer for
+
         Dedicated bearer while MME restarts
         Step1: UE attaches to network
         Step2: Send an indication to initiate Dedicated bearer activation
@@ -47,7 +48,6 @@ class Test3485TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
         Step5: TFW shall initiate de-activation of dedicated bearer and then
         initiate Detach procedure.
         """
-
         num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
@@ -126,16 +126,14 @@ class Test3485TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
                 'IMSI' + ''.join([str(idx) for idx in req.imsi]),
                 attach.esmInfo.epsBearerId, act_ded_ber_ctxt_req.bearerId,
             )
-            """During wait time, mme may send multiple times Activate EPS bearer
-            context request, after sending response for first message ignore
-            the subsequent messages
-            """
+
+            # During wait time, mme may send multiple times Activate EPS bearer
+            # context request, after sending response for first message ignore
+            # the subsequent messages
 
             response = self._s1ap_wrapper.s1_util.get_response()
-            while (
-                response.msg_type
-                != s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
-            ):
+            msg_type = s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+            while (response.msg_type != msg_type):
                 response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
                 response.msg_type,

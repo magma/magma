@@ -34,6 +34,7 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
 
     def test_3485_timer_for_default_bearer_with_mme_restart(self):
         """Test case validates the functionality of 3485 timer for
+
         default bearer while MME restarts
         Step1: UE attaches to network
         Step2: Send an indication to S1ap stack to drop Activate Default
@@ -48,7 +49,6 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         Step7: TFW shall initiate de-activation of secondary PDN and then
         initiate Detach procedure.
         """
-
         num_ue = 1
         self._s1ap_wrapper.configUEDevice(num_ue)
         req = self._s1ap_wrapper.ue_req
@@ -150,9 +150,8 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
 
         # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
-        while (
-            response.msg_type != s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
-        ):
+        msg_type = s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+        while (response.msg_type != msg_type):
             response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
@@ -175,7 +174,8 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
+            wait_for_s1_ctxt_release=False,
         )
 
 
