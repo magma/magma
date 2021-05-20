@@ -228,6 +228,17 @@ int send_pcrf_bearer_actv_rsp(
   // Fetch PDN context
   pdn_cid_t cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(ebi)]->pdn_cx_id;
   pdn_context_t* pdn_context = ue_context_p->pdn_contexts[cid];
+
+  if (pdn_context == NULL) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Failed to send S11_NW_INITIATED_BEARER_ACTV_RSP to SPGW as the "
+        "pdn_contexts is NULL for "
+        "MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "ebi-%u\n",
+        ue_context_p->mme_ue_s1ap_id, ebi);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+
   // Fill SGW S11 CP TEID
   s11_nw_init_actv_bearer_rsp->sgw_s11_teid = pdn_context->s_gw_teid_s11_s4;
   int msg_bearer_index                      = 0;
@@ -869,7 +880,12 @@ void mme_app_handle_delete_session_rsp(
    */
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
-  if (ue_context_p->nb_active_pdn_contexts > 0) {
+  /* In case of pdn disconnect, secondary pdn session gets deleted after
+   * receiving deactivate bearer accept message, do not decrement
+   * nb_active_pdn_contexts here
+   */
+  if ((ue_context_p->nb_active_pdn_contexts > 0) &&
+      (!ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
     ue_context_p->nb_active_pdn_contexts -= 1;
   }
 

@@ -203,53 +203,55 @@ void mme_app_s11_procedure_create_bearer_send_response(
     ebi_t ebi = INDEX_TO_EBI(ebix);
     if (S11_PROC_BEARER_FAILED == s11_proc_create->bearer_status[ebix]) {
       bearer_context_t* bc = mme_app_get_bearer_context(ue_context_p, ebi);
-      // should not fail (bc != NULL)
       // Find remote S11 teid == find pdn
-      s11_create_bearer_response->teid =
-          ue_context_p->pdn_contexts[bc->pdn_cx_id]->s_gw_teid_s11_s4;
+      if ((bc) && (ue_context_p->pdn_contexts[bc->pdn_cx_id])) {
+        s11_create_bearer_response->teid =
+            ue_context_p->pdn_contexts[bc->pdn_cx_id]->s_gw_teid_s11_s4;
 
-      s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .eps_bearer_id = ebi;
-      s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .cause.cause_value = REQUEST_REJECTED;
-      //  FTEID eNB
-      s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .s1u_enb_fteid = bc->enb_fteid_s1u;
-      // FTEID SGW S1U
-      s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .s1u_sgw_fteid =
-          bc->s_gw_fteid_s1u;  ///< This IE shall be sent on the S11 interface.
-                               ///< It shall be used
-      s11_create_bearer_response->bearer_contexts.num_bearer_context++;
+        s11_create_bearer_response->bearer_contexts
+            .bearer_contexts[msg_bearer_index]
+            .eps_bearer_id = ebi;
+        s11_create_bearer_response->bearer_contexts
+            .bearer_contexts[msg_bearer_index]
+            .cause.cause_value = REQUEST_REJECTED;
+        //  FTEID eNB
+        s11_create_bearer_response->bearer_contexts
+            .bearer_contexts[msg_bearer_index]
+            .s1u_enb_fteid = bc->enb_fteid_s1u;
+        // FTEID SGW S1U
+        s11_create_bearer_response->bearer_contexts
+            .bearer_contexts[msg_bearer_index]
+            .s1u_sgw_fteid =
+            bc->s_gw_fteid_s1u;  ///< This IE shall be sent on the S11
+                                 ///< interface. It shall be used
+        s11_create_bearer_response->bearer_contexts.num_bearer_context++;
+      }
     } else if (
         S11_PROC_BEARER_SUCCESS == s11_proc_create->bearer_status[ebix]) {
       bearer_context_t* bc = mme_app_get_bearer_context(ue_context_p, ebi);
-      // should not fail (bc != NULL)
-      // Find remote S11 teid == find pdn
-      s11_create_bearer_response->teid =
-          ue_context_p->pdn_contexts[bc->pdn_cx_id]->s_gw_teid_s11_s4;
+      if ((bc) && (ue_context_p->pdn_contexts[bc->pdn_cx_id])) {
+        // Find remote S11 teid == find pdn
+        s11_create_bearer_response->teid =
+            ue_context_p->pdn_contexts[bc->pdn_cx_id]->s_gw_teid_s11_s4;
 
-      s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .eps_bearer_id = ebi;
-      s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .cause.cause_value = REQUEST_ACCEPTED;
-      //  FTEID eNB
-      s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .s1u_enb_fteid = bc->enb_fteid_s1u;
-      // FTEID SGW S1U
-      s11_create_bearer_response->bearer_contexts
-          .bearer_contexts[msg_bearer_index]
-          .s1u_sgw_fteid =
-          bc->s_gw_fteid_s1u;  ///< This IE shall be sent on the S11 interface.
-                               ///< It shall be used
-      s11_create_bearer_response->bearer_contexts.num_bearer_context++;
+        s11_create_bearer_response->bearer_contexts
+            .bearer_contexts[msg_bearer_index]
+            .eps_bearer_id = ebi;
+        s11_create_bearer_response->bearer_contexts
+            .bearer_contexts[msg_bearer_index]
+            .cause.cause_value = REQUEST_ACCEPTED;
+        //  FTEID eNB
+        s11_create_bearer_response->bearer_contexts
+            .bearer_contexts[msg_bearer_index]
+            .s1u_enb_fteid = bc->enb_fteid_s1u;
+        // FTEID SGW S1U
+        s11_create_bearer_response->bearer_contexts
+            .bearer_contexts[msg_bearer_index]
+            .s1u_sgw_fteid =
+            bc->s_gw_fteid_s1u;  ///< This IE shall be sent on the S11
+                                 ///< interface. It shall be used
+        s11_create_bearer_response->bearer_contexts.num_bearer_context++;
+      }
     }
   }
   if (s11_proc_create->num_bearers == num_rejected) {
