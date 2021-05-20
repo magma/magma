@@ -219,6 +219,13 @@ class QosManager(object):
                     print("AMBR (parent):")
                     TrafficClass.dump_class_state(config[intf], ambr)
 
+        if qos_impl_type == QosImplType.LINUX_TC:
+            dev = config['nat_iface']
+            print("Root stats for: ", dev)
+            TrafficClass.dump_root_class_stats(dev)
+            dev = config['enodeb_iface']
+            print("Root stats for: ", dev)
+            TrafficClass.dump_root_class_stats(dev)
 
     def _is_redis_available(self):
         try:

@@ -36,13 +36,13 @@ class Test3485TimerForDefaultBearerWithMmeRestart(unittest.TestCase):
         """Test case validates the functionality of 3485 timer for
         default bearer while MME restarts
         Step1: UE attaches to network
-        Step2: Send an indication to S1ap stack to drop E-Rab Setup
-        Request message, sent as part of secondary PDN activation
-        procedure.
+        Step2: Send an indication to S1ap stack to drop Activate Default
+        Eps Bearer Context Request message, sent as part of secondary PDN
+        activation procedure.
         Step3: Initiate activation of secondary PDN
-        Step4: Send an indication to S1ap stack to not to drop E-Rab Setup
-        Request message, so that re-transmitted message reaches to
-        TFW
+        Step4: Send an indication to S1ap stack to not to Activate Default
+        Eps Bearer Context Request message, so that re-transmitted message
+        reaches to TFW
         Step5: Send command to Magma to restart mme service
         Step6: TFW shall receive the PDN connectivity response
         Step7: TFW shall initiate de-activation of secondary PDN and then

@@ -42,8 +42,14 @@ const (
 	imsi0             = "some_imsi_0"
 	nid0              = "some_network_id_0"
 	sid0              = "some_session_id_0"
+	teid0             = "10"
+	teids0            = "10,20,30"
 	sidWithoutPrefix  = "155129"
 	sidWithIMSIPrefix = "IMSI156304337849371-" + sidWithoutPrefix
+)
+
+var (
+	teid0Slice = []string{"10", "20", "30"}
 )
 
 func TestGetSessionID(t *testing.T) {
@@ -77,6 +83,31 @@ func TestGetSessionID(t *testing.T) {
 	assert.Equal(t, "", sid)
 }
 
+func TestGetHWIDForSgwCTeid(t *testing.T) {
+	record := &types.DirectoryRecord{
+		LocationHistory: []string{hwid0},
+		Identifiers: map[string]interface{}{
+			types.RecordKeySpgCTeid: teids0,
+		},
+	}
+
+	// Default path
+	teids, err := record.GetSgwCTeids()
+	assert.NoError(t, err)
+	assert.Equal(t, teid0Slice, teids)
+
+	// Err on non-string teid
+	record.Identifiers[types.RecordKeySpgCTeid] = 10
+	_, err = record.GetSgwCTeids()
+	assert.Error(t, err)
+
+	// Error on empty teid
+	record.Identifiers = map[string]interface{}{}
+	teids, err = record.GetSgwCTeids()
+	assert.NoError(t, err)
+	assert.Exactly(t, []string{}, teids)
+}
+
 func TestDirectorydMethods(t *testing.T) {
 	directoryd_test_init.StartTestService(t)
 
@@ -84,6 +115,8 @@ func TestDirectorydMethods(t *testing.T) {
 	_, err := directoryd.GetSessionIDForIMSI(nid0, imsi0)
 	assert.Error(t, err)
 	_, err = directoryd.GetHostnameForHWID(hwid0)
+	assert.Error(t, err)
+	_, err = directoryd.GetHWIDForSgwCTeid(nid0, teid0)
 	assert.Error(t, err)
 
 	// Put sid0->imsi0
@@ -112,6 +145,15 @@ func TestDirectorydMethods(t *testing.T) {
 	hn, err = directoryd.GetHostnameForHWID(hwid1)
 	assert.NoError(t, err)
 	assert.Equal(t, hn1, hn)
+
+	// Put teid->hwid
+	err = directoryd.MapSgwCTeidToHWID(nid0, map[string]string{teid0: hwid0})
+	assert.NoError(t, err)
+
+	// Get teid->hwid
+	hwid, err := directoryd.GetHWIDForSgwCTeid(nid0, teid0)
+	assert.NoError(t, err)
+	assert.Equal(t, hwid0, hwid)
 }
 
 func TestDirectorydStateMethods(t *testing.T) {

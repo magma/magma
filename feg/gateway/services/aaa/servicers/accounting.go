@@ -114,8 +114,8 @@ func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.Update
 	if srv.config.GetAcctReportingEnabled() {
 		_, err = base_acct.Update(&fegpb.AcctUpdateReq{
 			Session:     baseAcctSessionFromCtx(s.GetCtx()),
-			OctetsIn:    octetsIn,
-			OctetsOut:   octetsOut,
+			OctetsIn:    uint64(octetsIn),
+			OctetsOut:   uint64(octetsOut),
 			SessionTime: uint32(uint64(time.Now().UnixNano()/NanoInMilli) - s.GetCtx().GetCreatedTimeMs()),
 		})
 	}
@@ -179,8 +179,8 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	if baseAcctEnabled {
 		_, err = base_acct.Stop(&fegpb.AcctUpdateReq{
 			Session:     acctSession,
-			OctetsIn:    req.GetOctetsIn(),
-			OctetsOut:   req.GetOctetsOut(),
+			OctetsIn:    uint64(req.GetOctetsIn()),
+			OctetsOut:   uint64(req.GetOctetsOut()),
 			SessionTime: uint32(uint64(time.Now().UnixNano()/NanoInMilli) - createdTimeMs),
 		})
 	}

@@ -6873,6 +6873,10 @@ definitions:
         example: true
         type: boolean
         x-nullable: false
+      acct_reporting_enabled:
+        default: false
+        type: boolean
+        x-nullable: false
       create_session_on_auth:
         default: true
         example: true
@@ -9638,7 +9642,6 @@ definitions:
     - description
     - magmad
     - tier
-    - federation
     type: object
   mutable_lte_gateway:
     description: LTE gateway object with read-only fields omitted

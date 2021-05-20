@@ -39,18 +39,12 @@ class Test3485TimerForDedicatedBearerWithMmeRestart(unittest.TestCase):
         """Test case validates the functionality of 3485 timer for
         Dedicated bearer while MME restarts
         Step1: UE attaches to network
-        Step2: Send an indication to S1ap stack to drop E-Rab Setup
-        Request message, sent as part of secondary PDN activation
-        procedure.
-        Step3: Send an indication to initiate Dedicated bearer activation
-        Step4: Send an indication to S1ap stack to not to drop E-Rab Setup
-        Request message, so that re-transmitted message reaches to
-        TFW
-        Step5: Send command to Magma to restart mme service
-        Step6: TFW shall receive re-transmitted Activate Dedicated EPS
+        Step2: Send an indication to initiate Dedicated bearer activation
+        Step3: Send command to Magma to restart mme service
+        Step4: TFW shall receive re-transmitted Activate Dedicated EPS
         Bearer Context Request and send Activate Dedicated EPS Bearer
         Context Accept
-        Step7: TFW shall initiate de-activation of deidicated bearer and then
+        Step5: TFW shall initiate de-activation of dedicated bearer and then
         initiate Detach procedure.
         """
 
