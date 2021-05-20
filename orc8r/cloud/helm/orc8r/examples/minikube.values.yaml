@@ -1,5 +1,4 @@
-# This is a minimum viable values file (tested with 1.4.39) to be used for easy minikube deployments.
-# Make sure to replace <DOCKER_REGISTRY> and <TAG> with your specific values.
+# Be sure to replace IMAGE_REGISTRY_URL and IMAGE_TAG with your specific values.
 
 imagePullSecrets:
   - name: orc8r-secrets-registry
@@ -16,8 +15,8 @@ controller:
   nodeSelector: {}
   replicas: 1
   image:
-    repository: <DOCKER_REGISTRY>/controller
-    tag: <TAG>
+    repository: IMAGE_REGISTRY_URL/controller  # change this
+    tag: IMAGE_TAG  # change this
   migration:
     new_handlers: 1
     new_mconfigs: 1
@@ -60,8 +59,8 @@ nms:
       #node_selector_key: extraRuntime
       #node_selector_value: virtlet
     image:
-      repository: <DOCKER_REGISTRY>/magmalte
-      tag: <TAG>
+      repository: IMAGE_REGISTRY_URL/magmalte  # change this
+      tag: IMAGE_TAG  # change this
   nginx:
     manifests:
       configmap: true
@@ -136,9 +135,9 @@ nginx:
     type: LoadBalancer
 
   image:
-    repository: <DOCKER_REGISTRY>/nginx
-    tag: <TAG>
+    repository: IMAGE_REGISTRY_URL/nginx  # change this
+    tag: IMAGE_TAG  # change this
     pullPolicy: IfNotPresent
 
   spec:
-    hostname: orc8r-nginx-proxy.svc.cluster.local
+    hostname: controller.magma.test
