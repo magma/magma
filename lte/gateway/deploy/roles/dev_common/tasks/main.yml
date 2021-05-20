@@ -140,6 +140,7 @@
       - python3-setuptools
       - python-setuptools
       - libssl-dev
+      - apt-transport-https 
   retries: 5
   when: preburn
 
