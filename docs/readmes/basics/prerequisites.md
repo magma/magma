@@ -34,6 +34,10 @@ pip3 install ansible fabric3 jsonpickle requests PyYAML
 vagrant plugin install vagrant-vbguest
 ```
 
+**Note**: In the case where installation of `fabric3` through pip was unsuccessful,
+try switching to other package installers. For example, for MacOS users, try
+running `brew install fabric`.
+
 If you are on MacOS, you should start Docker for Mac and increase the memory
 allocation for the Docker engine to at least 4GB (Preferences -> Resources ->
 Advanced). If you are running into build/test failures with Go that report
