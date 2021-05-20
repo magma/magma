@@ -53,8 +53,7 @@ class TestAttachDetachWithOVS(unittest.TestCase):
         MAX_NUM_RETRIES = 5
 
         print("Checking for default table 0 flows")
-        flows = get_flows(datapath, {"table_id": self.SPGW_TABLE,
-                                     "priority": 0})
+        flows = get_flows(datapath, {"table_id": self.SPGW_TABLE})
         self.assertEqual(len(flows), 2,
                          "There should only be 2 default table 0 flows")
 
@@ -125,8 +124,7 @@ class TestAttachDetachWithOVS(unittest.TestCase):
             req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True)
 
         print("Checking that uplink/downlink flows were deleted")
-        flows = get_flows(datapath, {"table_id": self.SPGW_TABLE,
-                                     "priority": 0})
+        flows = get_flows(datapath, {"table_id": self.SPGW_TABLE})
         self.assertEqual(len(flows), 2,
                          "There should only be 2 default table 0 flows")
 
