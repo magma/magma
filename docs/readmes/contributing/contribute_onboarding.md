@@ -99,7 +99,7 @@ Install Magma locally and get everything running.
 1. Follow the [prerequisites guide](https://magma.github.io/magma/docs/next/basics/prerequisites) and install all development tools, up to but not including the "Build/Deploy Tooling" section
 2. Run all Orc8r tests
     1. Via Docker build script: `cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py -t ; noti`
-    2. [Via IntelliJ](https://magma.github.io/magma/docs/next/orc8r/development/testing_tips)
+    2. [Via IntelliJ](https://magma.github.io/magma/docs/orc8r/dev_testing#testing-tips)
 3. Follow the [quick start guide](https://magma.github.io/magma/docs/next/basics/quick_start_guide) to get an AGW and Orc8r instance running on your dev machine
 4. Visit the local [Swagger UI](https://swagger.io/tools/swagger-ui/) view of our REST API (URL is in @hcgatewood's Google Chrome bookmarks) and [list the set of managed networks](https://localhost:9443/apidocs/v1/#/Networks/get_networks) -- there should be one named "test"
     - You will need to toggle a Google Chrome preference to [allow insecure localhost](https://superuser.com/questions/772762/how-can-i-disable-security-checks-for-localhost)
