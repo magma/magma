@@ -360,7 +360,9 @@ int esm_proc_default_eps_bearer_context_reject(
     /* Set ue_rej_act_def_ber_req flag in order to delete the PDN session
      * after receiving delete session rsp from spgw
      */
-    ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = true;
+    if (ue_context_p->pdn_contexts[pid]) {
+      ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = true;
+    }
 #endif
   }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
