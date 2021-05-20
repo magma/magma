@@ -84,6 +84,7 @@ void create_rule_record(
   rule_record->set_rule_id(rule_id);
   rule_record->set_bytes_rx(bytes_rx);
   rule_record->set_bytes_tx(bytes_tx);
+  rule_record->set_rule_version(1);
 }
 
 void create_rule_record(
@@ -111,6 +112,20 @@ void create_rule_record(
   rule_record->set_dropped_rx(dropped_rx);
   rule_record->set_dropped_tx(dropped_tx);
   rule_record->set_ue_ipv4(ip);
+}
+
+void create_rule_record(
+    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    uint64_t rule_version, uint64_t bytes_rx, uint64_t bytes_tx,
+    uint64_t dropped_rx, uint64_t dropped_tx, RuleRecord* rule_record) {
+  rule_record->set_sid(imsi);
+  rule_record->set_rule_id(rule_id);
+  rule_record->set_bytes_rx(bytes_rx);
+  rule_record->set_bytes_tx(bytes_tx);
+  rule_record->set_dropped_rx(dropped_rx);
+  rule_record->set_dropped_tx(dropped_tx);
+  rule_record->set_ue_ipv4(ip);
+  rule_record->set_rule_version(rule_version);
 }
 
 void create_charging_credit(
