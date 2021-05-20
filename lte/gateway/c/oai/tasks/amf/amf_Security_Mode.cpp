@@ -92,7 +92,7 @@ int amf_handle_security_complete_response(
         amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_SECURITY);
         rc = amf_sap_send(&amf_sap);
       } else {
-	// Send the intial context setup request
+        // Send the intial context setup request
         amf_registration_success_security_cb(amf_ctx);
       }
     }

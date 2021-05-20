@@ -150,9 +150,7 @@ void amf_config_init(amf_config_t* config) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int amf_config_parse_opt_line(
-    int argc, char* argv[],
-    amf_config_t* config_pP) {
+int amf_config_parse_opt_line(int argc, char* argv[], amf_config_t* config_pP) {
   amf_config_init(config_pP);
   return 0;
 }

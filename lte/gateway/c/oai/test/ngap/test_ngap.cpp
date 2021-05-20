@@ -155,6 +155,27 @@ TEST(test_ngap_pkt_tests, test_ngap_pdusession_resource_setup_stream) {
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decode_pdu);
 }
 
+TEST(test_ngap_pkt_tests, test_ngap_pdusession_resource_rel_cmd_stream) {
+  bool output    = false;
+  int decode_ops = -1;
+  bstring stream;
+  Ngap_NGAP_PDU_t decode_pdu;
+
+  output = generator_ngap_pdusession_resource_rel_cmd_stream(stream);
+
+  // Check if encoding is successful
+  EXPECT_TRUE(output == true);
+  EXPECT_TRUE(blength(stream) != 0);
+
+  memset(&decode_pdu, 0, sizeof(decode_pdu));
+
+  decode_ops = ngap_amf_decode_pdu(&decode_pdu, stream);
+  EXPECT_TRUE(decode_ops == 0);
+  bdestroy(stream);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decode_pdu);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

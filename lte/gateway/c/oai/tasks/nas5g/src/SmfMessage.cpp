@@ -105,6 +105,7 @@ int SmfMsg::SmfMsgDecodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
                               &msg->msg.pdu_session_estab_request, buffer, len);
       break;
     case PDU_SESSION_RELEASE_REQUEST:
+    case PDU_SESSION_RELEASE_COMPELETE:
       decode_result =
           msg->msg.pdu_session_release_request
               .DecodePDUSessionReleaseRequestMsg(
@@ -159,6 +160,12 @@ int SmfMsg::SmfMsgEncodeMsg(SmfMsg* msg, uint8_t* buffer, uint32_t len) {
       encode_result =
           msg->msg.pdu_session_release_reject.EncodePDUSessionReleaseRejectMsg(
               &msg->msg.pdu_session_release_reject, buffer, len);
+      break;
+    case PDU_SESSION_RELEASE_COMMAND:
+      encode_result =
+          msg->msg.pdu_session_release_command
+              .EncodePDUSessionReleaseCommandMsg(
+                  &msg->msg.pdu_session_release_command, buffer, len);
       break;
     default:
       encode_result = TLV_WRONG_MESSAGE_TYPE;

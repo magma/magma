@@ -30,7 +30,7 @@ int PDUSessionIdentityMsg::DecodePDUSessionIdentityMsg(
   pdu_session_identity->pdu_session_id = *(buffer + decoded);
   decoded++;
   MLOG(MDEBUG) << " PDUSessionIdentity = " << hex
-	       << int(pdu_session_identity->pdu_session_id);
+               << int(pdu_session_identity->pdu_session_id);
 
   return (decoded);
 };

@@ -253,7 +253,7 @@ static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
 /* Identification Timer T3570 Expiry Handler */
 static int identification_t3570_handler(
     zloop_t* loop, int timer_id, void* arg) {
-#if 0 /* TIMER_CHANGES_REVIEW */
+#if 0  /* TIMER_CHANGES_REVIEW */
   amf_ue_ngap_id_t ue_id = NULL;
   ue_id                  = *((amf_ue_ngap_id_t*) (arg));
   amf_context_t* amf_ctx = NULL;

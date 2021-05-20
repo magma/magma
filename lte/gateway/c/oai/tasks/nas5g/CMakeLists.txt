@@ -34,6 +34,7 @@ set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GPDUSessionModificationReject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GPDUSessionReleaseRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GPDUSessionReleaseReject.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GPDUSessionReleaseCommand.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SmfMessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GULNASTransport.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/M5GDLNASTransport.cpp

@@ -116,3 +116,5 @@ bool ngap_initiate_ue_message(bstring& stream);
 bool generator_ngap_pdusession_resource_setup_req(bstring& stream);
 
 bool generator_itti_ngap_pdusession_resource_setup_req(bstring& stream);
+
+bool generator_ngap_pdusession_resource_rel_cmd_stream(bstring& stream);

@@ -29,6 +29,10 @@ extern "C" {
 #include "amf_app_ue_context_and_proc.h"
 #include "ngap_messages_types.h"
 
+#define QUADLET 4
+#define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
+  LENGTH += QUADLET - (LENGTH % QUADLET)
+
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 /*
@@ -138,11 +142,104 @@ int pdu_session_resource_setup_request(
 int pdu_session_resource_release_request(
     ue_m5gmm_context_s* ue_context, amf_ue_ngap_id_t amf_ue_ngap_id,
     smf_context_t* smf_ctx) {
+  bstring buffer;
+  uint32_t bytes                = 0;
+  DLNASTransportMsg* encode_msg = NULL;
+  SmfMsg* smf_msg               = NULL;
+  uint32_t len                  = 0;
+  uint32_t container_len        = 0;
+  amf_nas_message_t msg;
+
+  memset(&msg, 0, sizeof(amf_nas_message_t));
+
+  msg.security_protected.plain.amf.header.extended_protocol_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.security_protected.plain.amf.header.message_type = DLNASTRANSPORT;
+  msg.header.security_header_type = SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED;
+  msg.header.extended_protocol_discriminator = M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  msg.header.sequence_number =
+      ue_context->amf_context._security.dl_count.seq_num;
+
+  encode_msg = &msg.security_protected.plain.amf.msg.downlinknas5gtransport;
+  smf_msg    = &encode_msg->payload_container.smf_msg;
+
+  // NAS5g AmfHeader
+  encode_msg->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  len++;
+  encode_msg->spare_half_octet.spare  = 0x00;
+  encode_msg->sec_header_type.sec_hdr = 0x00;
+  len++;
+  encode_msg->message_type.msg_type = DLNASTRANSPORT;
+  len++;
+  encode_msg->payload_container.iei           = PAYLOAD_CONTAINER;
+  encode_msg->payload_container_type.iei      = PAYLOAD_CONTAINER_TYPE;
+  encode_msg->payload_container_type.type_val = N1_SM_INFO;
+  len++;
+  encode_msg->pdu_session_identity.iei = 0x12;
+  len++;
+  encode_msg->pdu_session_identity.pdu_session_id =
+      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+  len++;
+
+  // NAS SmfMsg
+  smf_msg->header.extended_protocol_discriminator =
+      M5G_SESSION_MANAGEMENT_MESSAGES;
+  smf_msg->header.pdu_session_id =
+      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+  OAILOG_INFO(
+      LOG_AMF_APP, "pdu_id:%d \n",
+      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id);
+  smf_msg->header.message_type             = PDU_SESSION_RELEASE_COMMAND;
+  smf_msg->header.procedure_transaction_id = smf_ctx->smf_proc_data.pti.pti;
+  OAILOG_INFO(LOG_AMF_APP, "pti:%d \n", smf_ctx->smf_proc_data.pti.pti);
+  smf_msg->msg.pdu_session_release_command.extended_protocol_discriminator
+      .extended_proto_discriminator = M5G_SESSION_MANAGEMENT_MESSAGES;
+  container_len++;
+  smf_msg->msg.pdu_session_release_command.pdu_session_identity.pdu_session_id =
+      smf_ctx->smf_proc_data.pdu_session_identity.pdu_session_id;
+  container_len++;
+  smf_msg->msg.pdu_session_release_command.pti.pti =
+      smf_ctx->smf_proc_data.pti.pti;
+  container_len++;
+  smf_msg->msg.pdu_session_release_command.message_type.msg_type =
+      PDU_SESSION_RELEASE_COMMAND;
+  container_len++;
+  smf_msg->msg.pdu_session_release_command.m5gsm_cause.cause_value =
+      0x24;  // Regular deactivation
+  container_len++;
+
+  encode_msg->payload_container.len = container_len;
+  OAILOG_INFO(LOG_AMF_APP, "container_len:%d \n", container_len);
+  len += 2;  // 2 bytes for container.len
+  len += container_len;
+  OAILOG_INFO(LOG_AMF_APP, "len:%d \n", len);
+
+  AMF_GET_BYTE_ALIGNED_LENGTH(len);
+  if (msg.header.security_header_type != SECURITY_HEADER_TYPE_NOT_PROTECTED) {
+    amf_msg_header* header = &msg.security_protected.plain.amf.header;
+    /*
+     * Expand size of protected NAS message
+     */
+    len += NAS_MESSAGE_SECURITY_HEADER_SIZE;
+    OAILOG_INFO(
+        LOG_AMF_APP, "AMF_TEST:after adding sec header, length %d ", len);
+    /*
+     * Set header of plain NAS message
+     */
+    header->extended_protocol_discriminator = M5GS_MOBILITY_MANAGEMENT_MESSAGE;
+    header->security_header_type = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  }
+  buffer = bfromcstralloc(len, "\0");
+  bytes  = nas5g_message_encode(
+      buffer->data, &msg, len, &ue_context->amf_context._security);
+  OAILOG_INFO(LOG_AMF_APP, "bytes:%d \n", bytes);
+
   itti_ngap_pdusessionresource_rel_req_t* ngap_pdu_ses_release_req = nullptr;
   MessageDef* message_p                                            = nullptr;
   pdu_session_resource_release_command_transfer amf_pdu_ses_rel_transfer_req;
 
-  OAILOG_DEBUG(
+  OAILOG_INFO(
       LOG_AMF_APP,
       "PDU session resource release request message construction to NGAP\n");
 
@@ -158,7 +255,7 @@ int pdu_session_resource_release_request(
   ngap_pdu_ses_release_req->gnb_ue_ngap_id = ue_context->gnb_ue_ngap_id;
   ngap_pdu_ses_release_req->amf_ue_ngap_id = amf_ue_ngap_id;
 
-  /* Setting the cause of release and sending to gNB
+  /* Setting the cause of release as per OAI PCAP and sending to gNB
    * As it is UE initiated PDU session release, the cause would be
    * NAS & normal release
    */
@@ -171,15 +268,28 @@ int pdu_session_resource_release_request(
       NORMAL_RELEASE;
   amf_pdu_ses_rel_transfer_req.cause.cause_group.cause_group_type = NAS_GROUP;
 
-  OAILOG_DEBUG(
-      LOG_AMF_APP, "filling pdu_session_resource_release_command_transfer\n");
+  // Convert amf_pdu_ses_setup_transfer_req to bstring and assign to message_p
   ngap_pdu_ses_release_req->pduSessionResourceToRelReqList.item[0]
       .PDU_Session_Resource_TO_Release_Command_Transfer =
       amf_pdu_ses_rel_transfer_req;
 
   // Send message to NGAP task
-  send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
+  if (bytes > 0) {
+    OAILOG_INFO(LOG_AMF_APP, "NAS encode success for PDU Release Command\n");
+    //    buffer->slen = bytes;
+    buffer->slen = bytes;
+    for (int i = 0; i < blength(buffer); i++) {
+      OAILOG_INFO(LOG_AMF_APP, "buffer[%d]: %x", i, buffer->data[i]);
+    }
 
+    ngap_pdu_ses_release_req->nas_msg = bstrcpy(buffer);
+    bdestroy(buffer);
+  } else {
+    bdestroy(buffer);
+    OAILOG_ERROR(LOG_AMF_APP, "NAS encode failed for PDU Release Command\n");
+    return RETURNerror;
+  }
+  send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
   return RETURNok;
 }
 }  // namespace magma5g
