@@ -1,15 +1,15 @@
-From 9571fe78e1dd4de4a4307bc0650ef0fb710d21d6 Mon Sep 17 00:00:00 2001
+From 92a98b3eabd8a397cce72cf5a70e45f12088a3a7 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Sat, 28 Nov 2020 23:09:50 -0800
-Subject: [PATCH 11/14] fixes for 2.14
+Subject: [PATCH 11/18] fixes for 2.14
 
 ---
- datapath/flow_netlink.c                           |  2 ++
- datapath/linux/compat/gtp.c                       | 34 +++++++++++++++--------
- datapath/linux/compat/include/linux/openvswitch.h |  3 --
- datapath/linux/compat/include/net/ip_tunnels.h    |  7 +++--
- lib/odp-util.c                                    | 16 +++++++++++
- manpages.mk                                       |  5 ++--
+ datapath/flow_netlink.c                       |  2 ++
+ datapath/linux/compat/gtp.c                   | 34 +++++++++++++------
+ .../linux/compat/include/linux/openvswitch.h  |  3 --
+ .../linux/compat/include/net/ip_tunnels.h     |  7 ++--
+ lib/odp-util.c                                | 16 +++++++++
+ manpages.mk                                   |  5 ++-
  6 files changed, 47 insertions(+), 20 deletions(-)
 
 diff --git a/datapath/flow_netlink.c b/datapath/flow_netlink.c
@@ -149,10 +149,10 @@ index 66bd252ea..21f3676e8 100644
  #define TUNNEL_GTPU_OPT          __cpu_to_be16(0x8000)
  #endif
 diff --git a/lib/odp-util.c b/lib/odp-util.c
-index 99bc25a0e..2591833f6 100644
+index 43f81876d..cce43d9a4 100644
 --- a/lib/odp-util.c
 +++ b/lib/odp-util.c
-@@ -5222,10 +5222,24 @@ scan_gtpu_metadata(const char *s,
+@@ -5223,10 +5223,24 @@ scan_gtpu_metadata(const char *s,
                     struct gtpu_metadata *mask)
  {
      const char *s_base = s;
@@ -177,7 +177,7 @@ index 99bc25a0e..2591833f6 100644
      if (!strncmp(s, "flags=", 6)) {
          s += 6;
          len = scan_u8(s, &flags, mask ? &flags_ma : NULL);
-@@ -5250,9 +5264,11 @@ scan_gtpu_metadata(const char *s,
+@@ -5251,9 +5265,11 @@ scan_gtpu_metadata(const char *s,
  
      if (!strncmp(s, ")", 1)) {
          s += 1;
@@ -227,5 +227,5 @@ index dc201484c..5f04b9c2c 100644
  lib/memory-unixctl.man:
  lib/netdev-dpdk-unixctl.man:
 -- 
-2.13.5
+2.17.1
 
