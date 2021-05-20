@@ -1,0 +1,29 @@
+node('centos-small') {
+    stage('Set Git Config'){
+        sh 'git config --global user.email "test@test.com"'
+        sh 'git config --global user.name "ci-bot"'
+        sh 'git config --global credential.helper cache'
+        sh "git config --global credential.helper 'cache --timeout=3600'"
+    }
+    stage('Set Git Credentials'){
+        git credentialsId: 'JenkinsGit', url: '${TFS_REPO}'
+        git credentialsId: 'Second', url: '${SECOND_REPO}'
+    }
+
+    stage('Syncronize TFS-SECOND'){
+        sh 'git clone --bare ${TFS_REPO} tfs'
+        dir("tfs") {
+            //add a remote repository
+            sh 'git remote add --mirror=fetch second ${SECOND_REPO}'
+            // update the local copy from the first repository
+            sh 'git fetch origin --tags'
+
+            // update the local copy with the second repository
+            sh 'git fetch second --tags'
+
+            // sync back the second repository
+            sh 'git push second --all'
+            sh 'git push second --tags'
+        }
+    }
+}
