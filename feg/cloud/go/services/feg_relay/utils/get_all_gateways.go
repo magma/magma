@@ -15,6 +15,7 @@ limitations under the License.
 package utils
 
 import (
+	"context"
 	"fmt"
 
 	"magma/feg/cloud/go/feg"
@@ -30,7 +31,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc/metadata"
 )
 
