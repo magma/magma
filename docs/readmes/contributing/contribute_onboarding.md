@@ -97,14 +97,55 @@ Install Magma locally and get everything running.
 **Howto**
 
 1. Follow the [prerequisites guide](https://magma.github.io/magma/docs/next/basics/prerequisites) and install all development tools, up to but not including the "Build/Deploy Tooling" section
-2. Run all Orc8r tests
+2. (Optional) If you opt to use IntelliJ IDEA as your local IDE, follow the
+   instructions in the "Setting up IntelliJ" section below before you proceed
+3. Run all Orc8r tests
     1. Via Docker build script: `cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py -t ; noti`
     2. [Via IntelliJ](https://magma.github.io/magma/docs/orc8r/dev_testing#testing-tips)
-3. Follow the [quick start guide](https://magma.github.io/magma/docs/next/basics/quick_start_guide) to get an AGW and Orc8r instance running on your dev machine
-4. Visit the local [Swagger UI](https://swagger.io/tools/swagger-ui/) view of our REST API (URL is in @hcgatewood's Google Chrome bookmarks) and [list the set of managed networks](https://localhost:9443/apidocs/v1/#/Networks/get_networks) -- there should be one named "test"
+4. Follow the [quick start guide](https://magma.github.io/magma/docs/next/basics/quick_start_guide) to get an AGW and Orc8r instance running on your dev machine
+5. Visit the local [Swagger UI](https://swagger.io/tools/swagger-ui/) view of our REST API (URL is in @hcgatewood's Google Chrome bookmarks) and [list the set of managed networks](https://localhost:9443/apidocs/v1/#/Networks/get_networks) -- there should be one named "test"
     - You will need to toggle a Google Chrome preference to [allow insecure localhost](https://superuser.com/questions/772762/how-can-i-disable-security-checks-for-localhost)
 
 Note: remember to periodically call `docker system prune` to clear outdated Docker artifacts from your dev machine.
+
+### Setting Up IntelliJ
+Although the development process could carry out in any IDE of your choice,
+we provide a set of run configurations via IntelliJ that helps running the test
+cases in a faster and more interactive manner. See
+[our Orchestrator testing tips](https://magma.github.io/magma/docs/orc8r/dev_testing#testing-tips)
+for more details.
+
+To set up your local IntelliJ environment, follow the following steps:
+1. After downloading Magma, open the directory in IntelliJ
+2. Ensure that the Go Plugin has been installed by going to Preferences > Plugins >
+   Search for the plugin "Go" > make sure it's been installed
+3. Specify the location of the Go SDK by going to Preferences > Languages &
+   Frameworks > Go > GOROOT > Select location for Go SDK in the drop-down menu.
+   [More information](https://www.jetbrains.com/help/idea/quick-start-guide-goland.html#step-1-open-or-create-a-project)
+4. Create a Go module for the project by going to Files > Project Structure > Project
+   Settings > Modules > Click on "+" sign in the toolbar > New Module > Next.
+   When you reach the New Module creation page, enter the following information:
+    - Module name: magma
+    - Content root & Module file location: the same as the path to your local
+      magma directory. For example, if the path to the root of your magma directory
+      is `/Users/your_username/magma`, then you should fill in the same path here
+
+   Once you're finished, click "Finished" to apply the changes.
+
+After you're finished with the above steps, restart your IDE and make sure the
+environment is properly set up by checking the following:
+
+1. When you open "Project" on the left toolbar, and display "Project Files",
+you should see all the files in your magma directory displayed without a yellow
+background color. This shows IntelliJ is recognizing the directory as a GO project.
+2. At the top-right corner of your window, you should see a drop-down menu showing
+a list of run configurations for the magma test suites, with a green triangular
+button that allows you to run the selected test. Alternatively, when you
+open your run/deploy configurations (Run > Edit Configurations), you should see
+something like this:
+![intellij_initial_run_configs](assets/intellij_initial_run_configs.png).
+Once this is successfully set up, you could run all of our default test suites
+in one click.
 
 ### Complete a starter task
 
