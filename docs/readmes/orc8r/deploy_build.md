@@ -87,8 +87,9 @@ We'll build the Orchestrator Helm charts, as well as publish them to an artifact
 Define some necessary variables
 
 ```bash
-export HELM_CHART_MUSEUM_URL=ARTIFACTORY_URL
-export HELM_CHART_MUSEUM_USERNAMEL=ARTIFACTORY_USERNAME
+export HELM_CHART_ARTIFACTORY_URL=ARTIFACTORY_URL
+export HELM_CHART_MUSEUM_REPO=REPO_NAME
+export HELM_CHART_MUSEUM_USERNAME=ARTIFACTORY_USERNAME
 export HELM_CHART_MUSEUM_TOKEN=ARTIFACTORY_ACCESS_TOKEN
 ```
 
@@ -131,9 +132,10 @@ The valid deployment type options are
 Run the package script
 
 ```bash
-$ ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa  # or chosen deployment type
+$ ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa [-v 1.5] # or chosen deployment type
 
 ...
 
 Uploaded orc8r charts successfully.
 ```
+You can add `-v` option to overwrite the versions of the chart.
