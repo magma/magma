@@ -619,6 +619,8 @@ class HtmlReport():
         cwd = os.getcwd()
         if mode == 'dsTester':
             filename = 'test_results_magma_oai_epc.html'
+        if mode == 'RHELsanity':
+            filename = 'test_results_magma_epc_rhel8.html'
         if os.path.isfile(cwd + '/' + filename):
             new_test_report = open(cwd + '/new_' + filename, 'w')
             build_summary_to_be_done = True
@@ -690,6 +692,8 @@ while len(argvs) > 1:
             HTML.mode = 'build'
         elif match.group(1) == 'TestWithDsTest':
             HTML.mode = 'dsTester'
+        elif match.group(1) == 'RHEL8SanityCheck':
+            HTML.mode = 'RHELsanity'
         else:
             sys.exit('Invalid mode: ' + match.group(1))
     else:
@@ -707,5 +711,5 @@ if HTML.git_merge_request:
 
 if HTML.mode == 'build':
     HTML.generate_build_report()
-elif HTML.mode == 'dsTester':
+elif HTML.mode == 'dsTester' or HTML.mode == 'RHELsanity':
     HTML.append_build_summary(HTML.mode)
