@@ -25,10 +25,6 @@ import (
 	"magma/feg/gateway/gtp"
 )
 
-type echoResponse struct {
-	error
-}
-
 type S8Proxy struct {
 	config    *S8ProxyConfig
 	gtpClient *gtp.Client

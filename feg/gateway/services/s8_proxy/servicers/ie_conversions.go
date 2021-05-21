@@ -105,6 +105,37 @@ func buildDeleteSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.DeleteSe
 	return message.NewDeleteSessionRequest(req.CPgwTeid, 0, ies...), nil
 }
 
+func buildCreateBearerResMsg(seq uint32, res *protos.CreateBearerResponsePgw) (message.Message, error) {
+	if res.Cause != uint32(gtpv2.CauseRequestAccepted) {
+		return buildCreateBearerResWithErrorCauseMsg(res.Cause, res.CPgwTeid, seq), nil
+	}
+	if res.BearerContext == nil {
+		return nil, fmt.Errorf("CreateBearerResponse could not be sent. Missing Bearer Contex")
+	}
+
+	// bearer
+	bearerId := ie.NewEPSBearerID(uint8(res.BearerContext.Id))
+	bearer := ie.NewBearerContext(bearerId)
+
+	//timezone
+	offset := time.Duration(res.TimeZone.DeltaSeconds) * time.Second
+	daylightSavingTime := uint8(res.TimeZone.DaylightSavingTime)
+
+	return message.NewCreateBearerResponse(
+		res.CPgwTeid, seq,
+		ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
+		bearer,
+		getUserLocationIndication(res.ServingNetwork.Mcc, res.ServingNetwork.Mcc, res.Uli),
+		getProtocolConfigurationOptions(res.ProtocolConfigurationOptions),
+		ie.NewUETimeZone(offset, daylightSavingTime),
+	), nil
+}
+
+func buildCreateBearerResWithErrorCauseMsg(cause uint32, cPgwTeid uint32, seq uint32) message.Message {
+	return message.NewCreateBearerResponse(
+		cPgwTeid, seq, ie.NewCause(uint8(cause), 0, 0, 0, nil))
+}
+
 func getPDNAddressAllocation(req *protos.CreateSessionRequestPgw) *ie.IE {
 	var (
 		res        *ie.IE
