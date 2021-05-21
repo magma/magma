@@ -64,7 +64,7 @@ static void sgw_s8_populate_mbr_bearer_contexts_modified(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     itti_s11_modify_bearer_response_t* modify_response_p);
 
-static teid_t sgw_s8_generate_new_cp_teid(imsi64_t imsi64);
+static teid_t sgw_s8_generate_new_cp_teid(void);
 
 void sgw_remove_sgw_bearer_context_information(
     sgw_state_t* sgw_state, teid_t teid, imsi64_t imsi64) {
@@ -206,9 +206,7 @@ void sgw_s8_handle_s11_create_session_request(
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   OAILOG_INFO_UE(
-      LOG_SGW_S8, imsi64,
-      "Received S11 CREATE SESSION REQUEST from MME_APP max rand returns \n",
-      RAND_MAX);
+      LOG_SGW_S8, imsi64, "Received S11 CREATE SESSION REQUEST from MME_APP\n");
   sgw_eps_bearer_context_information_t* new_sgw_eps_context = NULL;
   mme_sgw_tunnel_t sgw_s11_tunnel                           = {0};
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p                  = NULL;
@@ -240,7 +238,7 @@ void sgw_s8_handle_s11_create_session_request(
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
 
-  sgw_s11_tunnel.local_teid  = sgw_s8_generate_new_cp_teid(imsi64);
+  sgw_s11_tunnel.local_teid  = sgw_s8_generate_new_cp_teid();
   sgw_s11_tunnel.remote_teid = session_req_pP->sender_fteid_for_cp.teid;
   OAILOG_DEBUG_UE(
       LOG_SGW_S8, imsi64,
@@ -1115,7 +1113,7 @@ void sgw_s8_handle_release_access_bearers_request(
 /* Generates random control plane teid and is used for both s11 and
  * s8 interface to uniquely identify sgw_s8_context for pdn session
  */
-static teid_t sgw_s8_generate_new_cp_teid(imsi64_t imsi64) {
+static teid_t sgw_s8_generate_new_cp_teid(void) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   sgw_eps_bearer_context_information_t* sgw_context_p = NULL;
   teid_t teid                                         = INVALID_TEID;

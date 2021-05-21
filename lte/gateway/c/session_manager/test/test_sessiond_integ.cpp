@@ -575,8 +575,8 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   }
 
   RuleRecordTable table2;
-  create_rule_record(IMSI1, "rule1", 512, 0, table2.mutable_records()->Add());
-  create_rule_record(IMSI1, "rule2", 0, 512, table2.mutable_records()->Add());
+  create_rule_record(IMSI1, "rule1", 512, 512, table2.mutable_records()->Add());
+  create_rule_record(IMSI1, "rule2", 512, 512, table2.mutable_records()->Add());
   send_update_pipelined_table(stub, table2);
 
   set_timeout(5000, end_promise);

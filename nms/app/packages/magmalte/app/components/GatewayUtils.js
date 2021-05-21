@@ -275,3 +275,23 @@ export const DEFAULT_GW_SECONDARY_CONFIG = {
   mme_code: 1,
   mme_relative_capacity: 1,
 };
+// services running on the LTE AGWq
+export const RUNNING_SERVICES = [
+  'policydb',
+  'control_proxy',
+  'mobilityd',
+  'smsd',
+  'pipelined',
+  'sessiond',
+  'redis',
+  'dnsd',
+  'mme',
+  'directoryd',
+  'eventd',
+  'enodebd',
+  'state',
+  'subscriberdb',
+  'magmad',
+  'health',
+  'ctraced',
+];

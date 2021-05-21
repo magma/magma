@@ -53,37 +53,36 @@ func getHwIDFromIMSI(ctx context.Context, imsi string) (string, error) {
 		return "", err
 	}
 	for _, nid := range servedIds {
-		hwId, err := directoryd.GetHWIDForIMSI(nid, imsi)
-		if err == nil && len(hwId) != 0 {
+		hwID, err := directoryd.GetHWIDForIMSI(nid, imsi)
+		if err == nil && len(hwID) != 0 {
 			glog.V(2).Infof("IMSI to send is %v\n", imsi)
-			return hwId, nil
+			return hwID, nil
 		}
 	}
 	return "", fmt.Errorf("could not find gateway location for IMSI: %s", imsi)
 }
 
-func validateFegContext(ctx context.Context) error {
-	fegId := protos.GetClientGateway(ctx)
-	if fegId == nil {
-		ctxMetadata, _ := metadata.FromIncomingContext(ctx)
-		errorStr := fmt.Sprintf(
-			"Failed to get Identity of calling Federated Gateway from CTX Metadata: %+v",
-			ctxMetadata,
-		)
-		glog.Error(errorStr)
-		return fmt.Errorf(errorStr)
+func getHwIDFromTeid(ctx context.Context, teid string) (string, error) {
+	gw := protos.GetClientGateway(ctx)
+	servedIds, err := getFegServedIds(gw.GetNetworkId())
+	if err != nil {
+		return "", err
 	}
-	if !fegId.Registered() {
-		return fmt.Errorf("federated gateway not registered")
+	for _, nid := range servedIds {
+		hwID, err := directoryd.GetHWIDForSgwCTeid(nid, teid)
+		if err == nil && len(hwID) != 0 {
+			glog.V(2).Infof("TEID to send is %s\n", teid)
+			return hwID, nil
+		}
 	}
-	return nil
+	return "", fmt.Errorf("could not find gateway location for teid: %s", teid)
 }
 
 func getGWSGSServiceConnCtx(ctx context.Context, imsi string) (*grpc.ClientConn, context.Context, error) {
 	if err := validateFegContext(ctx); err != nil {
 		return nil, nil, err
 	}
-	hwId, err := getHwIDFromIMSI(ctx, imsi)
+	hwID, err := getHwIDFromIMSI(ctx, imsi)
 	if err != nil {
 		errorStr := fmt.Sprintf(
 			"unable to get HwID from IMSI %v. err: %v\n",
@@ -94,7 +93,7 @@ func getGWSGSServiceConnCtx(ctx context.Context, imsi string) (*grpc.ClientConn,
 		return nil, nil, fmt.Errorf(errorStr)
 	}
 	conn, ctx, err := gateway_registry.GetGatewayConnection(
-		gateway_registry.GwSgsService, hwId)
+		gateway_registry.GwSgsService, hwID)
 	if err != nil {
 		errorStr := fmt.Sprintf(
 			"unable to get connection to the gateway: %v",
@@ -109,14 +108,14 @@ func getAllGWSGSServiceConnCtx(ctx context.Context) ([]*grpc.ClientConn, []conte
 	var connList []*grpc.ClientConn
 	var ctxList []context.Context
 
-	hwIds, err := utils.GetAllGatewayIDs(ctx)
+	hwIDs, err := utils.GetAllGatewayIDs(ctx)
 	if err != nil {
 		return connList, ctxList, err
 	}
-	for _, hwId := range hwIds {
+	for _, hwID := range hwIDs {
 		conn, ctx, err := gateway_registry.GetGatewayConnection(
 			gateway_registry.GwSgsService,
-			hwId,
+			hwID,
 		)
 		if err != nil {
 			return connList, ctxList, err
@@ -141,4 +140,21 @@ func getFegServedIds(networkId string) ([]string, error) {
 		return []string{}, fmt.Errorf("invalid federation network config found for network: %s", networkId)
 	}
 	return networkFegConfigs.ServedNetworkIds, nil
+}
+
+func validateFegContext(ctx context.Context) error {
+	fegID := protos.GetClientGateway(ctx)
+	if fegID == nil {
+		ctxMetadata, _ := metadata.FromIncomingContext(ctx)
+		errorStr := fmt.Sprintf(
+			"Failed to get Identity of calling Federated Gateway from CTX Metadata: %+v",
+			ctxMetadata,
+		)
+		glog.Error(errorStr)
+		return fmt.Errorf(errorStr)
+	}
+	if !fegID.Registered() {
+		return fmt.Errorf("federated gateway not registered")
+	}
+	return nil
 }
