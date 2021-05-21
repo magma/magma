@@ -40,9 +40,9 @@ type mockStreamProvider struct {
 	Name string
 }
 
-func (m *mockStreamProvider) GetStreamName() string {
-	return m.Name
-}
+// func (m *mockStreamProvider) GetStreamName() string {
+// 	return m.Name
+// }
 
 var (
 	firstUpdateChan = make(chan struct{}, 100)
@@ -159,7 +159,7 @@ func initOnce(t *testing.T) {
 
 func TestPolicyDBBaseNamesWithGRPC(t *testing.T) {
 	onceTestsInit.Do(func() { initOnce(t) })
-	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{Name: "base_names"})
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{Name: "base_names"}, "base_names")
 	dbClient := &policydb.RedisPolicyDBClient{
 		PolicyMap:      &mockObjectStore{},
 		BaseNameMap:    &mockObjectStore{},
@@ -181,7 +181,7 @@ func TestPolicyDBBaseNamesWithGRPC(t *testing.T) {
 
 func TestPolicyDBRulesWithGRPC(t *testing.T) {
 	onceTestsInit.Do(func() { initOnce(t) })
-	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{Name: "policydb"})
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{Name: "policydb"}, "policydb")
 	dbClient := &policydb.RedisPolicyDBClient{
 		PolicyMap:      &mockObjectStore{},
 		BaseNameMap:    &mockObjectStore{},

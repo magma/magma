@@ -35,9 +35,9 @@ import (
 
 type RatingGroupsProvider struct{}
 
-func (p *RatingGroupsProvider) GetStreamName() string {
-	return lte.RatingGroupStreamName
-}
+// func (p *RatingGroupsProvider) GetStreamName() string {
+// 	return lte.RatingGroupStreamName
+// }
 
 func (p *RatingGroupsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
@@ -89,9 +89,9 @@ func ratingGroupsToUpdates(ratingGroups []*lte_protos.RatingGroup) ([]*protos.Da
 
 type PoliciesProvider struct{}
 
-func (p *PoliciesProvider) GetStreamName() string {
-	return lte.PolicyStreamName
-}
+// func (p *PoliciesProvider) GetStreamName() string {
+// 	return lte.PolicyStreamName
+// }
 
 func (p *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gw, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
@@ -170,9 +170,9 @@ func rulesToUpdates(rules []*lte_protos.PolicyRule) ([]*protos.DataUpdate, error
 
 type BaseNamesProvider struct{}
 
-func (p *BaseNamesProvider) GetStreamName() string {
-	return lte.BaseNameStreamName
-}
+// func (p *BaseNamesProvider) GetStreamName() string {
+// 	return lte.BaseNameStreamName
+// }
 
 func (p *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
@@ -217,9 +217,9 @@ func bnsToUpdates(bns []*lte_protos.ChargingRuleBaseNameRecord) ([]*protos.DataU
 
 type ApnRuleMappingsProvider struct{}
 
-func (p *ApnRuleMappingsProvider) GetStreamName() string {
-	return lte.ApnRuleMappingsStreamName
-}
+// func (p *ApnRuleMappingsProvider) GetStreamName() string {
+// 	return lte.ApnRuleMappingsStreamName
+// }
 
 // GetUpdates implements GetUpdates for the rule mappings stream provider
 func (p *ApnRuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
@@ -333,9 +333,9 @@ func sortUpdates(updates []*protos.DataUpdate) {
 
 type NetworkWideRulesProvider struct{}
 
-func (p *NetworkWideRulesProvider) GetStreamName() string {
-	return lte.NetworkWideRulesStreamName
-}
+// func (p *NetworkWideRulesProvider) GetStreamName() string {
+// 	return lte.NetworkWideRulesStreamName
+// }
 
 func (p *NetworkWideRulesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
