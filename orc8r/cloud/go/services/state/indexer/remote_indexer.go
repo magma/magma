@@ -97,8 +97,8 @@ func (r *remoteIndexer) Index(networkID string, states state_types.SerializedSta
 		return nil, err
 	}
 	res, err := c.Index(context.Background(), &state_protos.IndexRequest{
-		States:       pStates,
-		NetworkId:    networkID,
+		States:    pStates,
+		NetworkId: networkID,
 	})
 	if err != nil {
 		return nil, err
