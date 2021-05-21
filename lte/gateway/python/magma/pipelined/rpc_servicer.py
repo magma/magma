@@ -13,7 +13,9 @@ limitations under the License.
 import concurrent.futures
 import logging
 import os
+import traceback
 import queue
+import sys
 from collections import OrderedDict
 from concurrent.futures import Future
 from typing import List, Tuple
@@ -180,12 +182,18 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 context.set_details('Enforcement service not initialized!')
                 return ActivateFlowsResult()
 
+        exc_info = sys.exc_info()
         fut = Future()  # type: Future[ActivateFlowsResult]
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
         try:
             return fut.result(timeout=self._call_timeout)
-        except concurrent.futures.TimeoutError:
+        except concurrent.futures.TimeoutError as ex:
             logging.error("ActivateFlows request processing timed out")
+            tb = traceback.format_tb(ex.__traceback__)
+            logging.error(tb)
+            #Eh this causes the error for some reason(exception in traceback )
+            #tracebackString = traceback.format_exc(ex)
+            #logging.error(tracebackString)
             return ActivateFlowsResult()
 
     def _update_ipv6_prefix_store(self, ipv6_addr: bytes):
@@ -453,7 +461,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # GRPC messages from MME
     #--------------------------
     def UpdateUEState(self, request, context):
-        
+
         self._log_grpc_payload(request)
 
         if not self._service_manager.is_app_enabled(
