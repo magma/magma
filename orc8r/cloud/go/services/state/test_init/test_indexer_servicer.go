@@ -45,10 +45,10 @@ func StartNewTestIndexer(t *testing.T, idx indexer.Indexer) {
 	go srv.RunTest(lis)
 }
 
-func (i *indexerServicer) GetIndexerInfo(ctx context.Context, req *protos.GetIndexerInfoRequest) (*protos.GetIndexerInfoResponse, error) {
-	res := &protos.GetIndexerInfoResponse{Version: uint32(i.idx.GetVersion()), StateTypes: i.idx.GetTypes()}
-	return res, nil
-}
+// func (i *indexerServicer) GetIndexerInfo(ctx context.Context, req *protos.GetIndexerInfoRequest) (*protos.GetIndexerInfoResponse, error) {
+// 	res := &protos.GetIndexerInfoResponse{Version: uint32(i.idx.GetVersion()), StateTypes: i.idx.GetTypes()}
+// 	return res, nil
+// }
 
 func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
 	states, err := types.MakeSerializedStatesByID(req.States)
