@@ -40,6 +40,10 @@ func NewRemoteProvider(serviceName, stream string) StreamProvider {
 	return &remoteProvider{service: strings.ToLower(serviceName), stream: stream}
 }
 
+func (r *remoteProvider) GetStreamName() string {
+	return r.stream
+}
+
 func (r *remoteProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	c, err := r.getProviderClient()
 	if err != nil {
@@ -47,7 +51,7 @@ func (r *remoteProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*pr
 	}
 	res, err := c.GetUpdates(context.Background(), &protos.StreamRequest{
 		GatewayId:  gatewayId,
-		StreamName: r.stream,
+		StreamName: r.GetStreamName(),
 		ExtraArgs:  extraArgs,
 	})
 	if err != nil {

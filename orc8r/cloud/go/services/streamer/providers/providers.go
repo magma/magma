@@ -29,10 +29,6 @@ import (
 // MconfigProvider provides streamer mconfigs (magma configs).
 type MconfigProvider struct{}
 
-// func (p *MconfigProvider) GetStreamName() string {
-// 	return definitions.MconfigStreamName
-// }
-
 func (p *MconfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	res, err := configurator.GetMconfigFor(gatewayId)
 	if err != nil {

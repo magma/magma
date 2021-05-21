@@ -34,10 +34,6 @@ type mockStreamProvider struct {
 	retErr error
 }
 
-// func (m *mockStreamProvider) GetStreamName() string {
-// 	return m.name
-// }
-
 func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	return m.retVal, m.retErr
 }

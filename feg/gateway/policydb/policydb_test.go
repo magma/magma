@@ -40,10 +40,6 @@ type mockStreamProvider struct {
 	Name string
 }
 
-// func (m *mockStreamProvider) GetStreamName() string {
-// 	return m.Name
-// }
-
 var (
 	firstUpdateChan = make(chan struct{}, 100)
 	onceTestsInit   sync.Once
