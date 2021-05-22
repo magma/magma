@@ -99,6 +99,13 @@ int main(int argc, char* argv[]) {
   CHECK_INIT_RETURN(itti_init(
       TASK_MAX, THREAD_MAX, MESSAGES_ID_MAX, tasks_info, messages_info, NULL,
       NULL));
+
+  // Initialize Sentry error collection (Currently only supported on
+  // Ubuntu 20.04)
+  // We have to initialize here for now since itti_init asserts on there being
+  // only 1 thread
+  initialize_sentry();
+
   CHECK_INIT_RETURN(timer_init());
   // Could not be launched before ITTI initialization
   shared_log_itti_connect();
@@ -121,10 +128,6 @@ int main(int argc, char* argv[]) {
     exit(-EDEADLK);
   }
   free_wrapper((void**) &pid_file_name);
-
-  // Initialize Sentry error collection (Currently only supported on
-  // Ubuntu 20.04)
-  initialize_sentry();
 
   /*
    * Calling each layer init function

@@ -80,9 +80,6 @@ void initialize_sentry() {
 
     sentry_set_tag(SERVICE_NAME, "MME");
     sentry_set_tag(HWID, get_snowflake().c_str());
-    // Send an initial message to indicate service start
-    sentry_capture_event(sentry_value_new_message_event(
-        SENTRY_LEVEL_INFO, "", "Starting MME with Sentry!"));
   }
 }
 

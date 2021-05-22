@@ -35,6 +35,8 @@
 
 using std::experimental::optional;
 
+// TODO(@themarwhal) pull common sentry functions into lib common
+
 optional<std::string> get_sentry_url(YAML::Node control_proxy_config) {
   std::string sentry_url;
   if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
@@ -69,9 +71,6 @@ void initialize_sentry() {
     sentry_init(options);
     sentry_set_tag(SERVICE_NAME, "SessionD");
     sentry_set_tag(HWID, get_snowflake().c_str());
-
-    sentry_capture_event(sentry_value_new_message_event(
-        SENTRY_LEVEL_INFO, "", "Starting SessionD with Sentry!"));
   }
 }
 
