@@ -25,6 +25,8 @@ ORC8R_VERSION="1.4"
 update_and_send_to_artifactory () {
   CHART_PATH="$1"
   helm dependency update "$CHART_PATH"
+  # shellcheck disable=SC2086
+  # We want $VERSION to be split as this is an option to the helm command
   ARTIFACT_PATH="$(helm package "$CHART_PATH" $VERSION | awk '{print $8}')"
   helm repo index .
   MD5_CHECKSUM="$(md5sum "$ARTIFACT_PATH" | awk '{print $1}')"
@@ -93,35 +95,45 @@ if [[ -z $HELM_CHART_ARTIFACTORY_URL ]]; then
 
   # Begin packaging necessary Helm charts
   helm dependency update "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/"
+  # shellcheck disable=SC2086
+  # We want $VERSION to be splitted as this is an option to the helm command
   helm package "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/" $VERSION && helm repo index .
 
   if [ "$DEPLOYMENT_TYPE" == "$FWA" ]; then
     helm dependency update "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
+    # shellcheck disable=SC2086
     helm package "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/" $VERSION && helm repo index .
   fi
 
   if [ "$DEPLOYMENT_TYPE" == "$FFWA" ]; then
     helm dependency update "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
+    # shellcheck disable=SC2086
     helm package "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/" $VERSION && helm repo index .
 
     helm dependency update "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
+    # shellcheck disable=SC2086
     helm package "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/" $VERSION && helm repo index .
   fi
 
   if  [ "$DEPLOYMENT_TYPE" == "$ALL" ]; then
     helm dependency update "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/"
+    # shellcheck disable=SC2086
     helm package "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/" $VERSION && helm repo index .
 
     helm dependency update "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"
+    # shellcheck disable=SC2086
     helm package "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/" $VERSION && helm repo index .
 
     helm dependency update "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"
+    # shellcheck disable=SC2086
     helm package "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/" $VERSION && helm repo index .
 
     helm dependency update "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"
+    # shellcheck disable=SC2086
     helm package "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/" $VERSION && helm repo index .
 
     helm dependency update "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"
+    # shellcheck disable=SC2086
     helm package "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/" $VERSION && helm repo index .
   fi
 

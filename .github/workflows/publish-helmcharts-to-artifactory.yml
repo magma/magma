@@ -1,8 +1,9 @@
+---
 name: "Push Helm Charts to Artifactory"
 
-on:
+on:  # yamllint disable-line rule:truthy
   push:
-    branches: [ master, v1.* ]
+    branches: [master, v1.*]
 jobs:
   BuildPublishHelmCharts:
     env:
@@ -15,8 +16,7 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
-
-      # Version is short commit sha when running on master
+      # Version is github job run number when running on master
       # Or is branch name when on release branch
       - name: Set helm chart version
         run: |
@@ -28,7 +28,6 @@ jobs:
       - name: Launch build and publish script
         run: |
           orc8r/tools/helm/package.sh -d all -v $VERSION
-
       # Notify ci-info channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
@@ -40,4 +39,3 @@ jobs:
           SLACK_USERNAME: "Helm charts push to Artifactory "
           SLACK_ICON_EMOJI: ":boom:"
           SLACK_COLOR: "#FF0000"
-
