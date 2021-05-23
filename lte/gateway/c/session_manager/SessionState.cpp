@@ -296,10 +296,6 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   info->subscriber_id.assign(get_imsi());
   info->ver_no              = get_current_version();
   info->nodeId.node_id_type = SessionInfo::IPv4;
-  strcpy(info->nodeId.node_id, "192.168.2.1");
-  /* TODO below to be changed after UPF node association message
-   * completes . Revisit
-   */
 }
 
 void SessionState::set_teids(uint32_t enb_teid, uint32_t agw_teid) {
