@@ -176,10 +176,11 @@ message DeleteSessionResponsePgw{
 }
 
 message CreateBearerRequestPgw {
-    uint32 linked_bearer_id = 1;
-    ProtocolConfigurationOptions protocol_configuration_options = 2;
-    BearerContext bearer_context = 3;
-    bytes indication_flag = 4;
+    uint32 c_agw_teid = 1;
+    uint32 linked_bearer_id = 2;
+    ProtocolConfigurationOptions protocol_configuration_options = 3;
+    BearerContext bearer_context = 4;
+    bytes indication_flag = 5;
     // TODO: PGW-FQ-CSID-1
 }
 
