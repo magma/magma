@@ -64,7 +64,7 @@ func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([
 	var updates []*orcprotos.DataUpdate
 
 	// Determine what streamprovider it is before sending the updates
-	switch m.Name {
+	switch m.name {
 	case "base_names":
 		updates = []*orcprotos.DataUpdate{
 			{Key: "base_1", Value: rs1},
