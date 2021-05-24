@@ -79,8 +79,10 @@ COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_T
 ```
 
 ## Build and publish Helm charts
-*Only Choose one option below*
-### First option: Publish to artifactory
+
+NOTE: only choose one of the below options and then run the script
+
+### Option 1: Publish to artifactory
 
 We'll build the Orchestrator Helm charts, as well as publish them to an artifactory.
 
@@ -98,7 +100,7 @@ necessary helm charts to the artifactory. The script expects a deployment
 type to be provided, which will determine which orc8r modules are deployed.
 
 
-### Second option: Publish to a private Github repo
+### Option 2: Publish to a private Github repo
 
 We'll build the Orchestrator Helm charts, as well as publish them to a
 [GitHub repo acting as a Helm chart repo](https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7).
@@ -119,7 +121,6 @@ Next we'll run the package script. This script will package and publish the
 necessary Helm charts to the `GITHUB_REPO`. The script expects a deployment
 type to be provided, which will determine which orc8r modules are deployed.
 
-
 ### Run the package script
 
 
@@ -132,10 +133,13 @@ The valid deployment type options are
 Run the package script
 
 ```bash
-$ ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa [-v 1.5] # or chosen deployment type
+$ ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa # or chosen deployment type
 
 ...
 
 Uploaded orc8r charts successfully.
 ```
 You can add `-v` option to overwrite the versions of the chart.
+```bash
+$ ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa  -v 1.5
+```

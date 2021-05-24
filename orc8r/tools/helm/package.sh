@@ -40,7 +40,7 @@ update_and_send_to_artifactory () {
 }
 
 usage() {
-  echo "Usage: $0 -d DEPLOYMENT_TYPE"
+  echo "Usage: $0 [-v|--version V] [-d|--deployment-type $FWA|$FFWA|$ALL]"
   exit 2
 }
 
@@ -49,13 +49,29 @@ exitmsg() {
   exit 1
 }
 
-# Parse the args and declare defaults
-while getopts 'd:v:h' OPT; do
-  case "${OPT}" in
-    d) DEPLOYMENT_TYPE=${OPTARG} ;;
-    v) VERSION="--version ${OPTARG}" ;;
-    h|*) usage ;;
-  esac
+# Parse the args
+while [[ $# -gt 0 ]]
+do
+key="$1"
+case $key in
+    -v|--version)
+    VERSION="$2"
+    shift  # pass argument or value
+    ;;
+    -d|--deployment-type)
+    DEPLOYMENT_TYPE="$2"
+    shift
+    ;;
+    -h|--help)
+    usage
+    shift
+    ;;
+    *)
+    echo "Error: unknown cmdline option: $key"
+    usage
+    ;;
+esac
+shift  # past argument or value
 done
 
 # Check if the required args and env-vars present
