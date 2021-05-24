@@ -98,7 +98,7 @@ Install Magma locally and get everything running.
 
 1. Follow the [prerequisites guide](https://magma.github.io/magma/docs/next/basics/prerequisites) and install all development tools, up to but not including the "Build/Deploy Tooling" section
 2. (Optional) If you opt to use IntelliJ IDEA as your local IDE, follow the
-   instructions in the "Setting up IntelliJ" section below before you proceed
+   instructions in the "Set up IntelliJ" section below before you proceed
 3. Run all Orc8r tests
     1. Via Docker build script: `cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py -t ; noti`
     2. [Via IntelliJ](https://magma.github.io/magma/docs/orc8r/dev_testing#testing-tips)
@@ -108,44 +108,47 @@ Install Magma locally and get everything running.
 
 Note: remember to periodically call `docker system prune` to clear outdated Docker artifacts from your dev machine.
 
-### Setting Up IntelliJ
-Although the development process could carry out in any IDE of your choice,
-we provide a set of run configurations via IntelliJ that helps running the test
-cases in a faster and more interactive manner. See
-[our Orchestrator testing tips](https://magma.github.io/magma/docs/orc8r/dev_testing#testing-tips)
+### Set Up IntelliJ
+We recommend using [IntelliJ IDEA](https://www.jetbrains.com/idea/) for general
+Magma development, or [Visual Studio Code](https://code.visualstudio.com/) for
+a free alternative.
+
+For IntelliJ IDEA, we provide a set of run configurations that support rapidly
+testing Magma code. See [Testing Tips](https://magma.github.io/magma/docs/orc8r/dev_testing#testing-tips)
 for more details.
 
-To set up your local IntelliJ environment, follow the following steps:
-1. After downloading Magma, open the directory in IntelliJ
-2. Ensure that the Go Plugin has been installed by going to Preferences > Plugins >
-   Search for the plugin "Go" > make sure it's been installed
-3. Specify the location of the Go SDK by going to Preferences > Languages &
-   Frameworks > Go > GOROOT > Select location for Go SDK in the drop-down menu.
-   [More information](https://www.jetbrains.com/help/idea/quick-start-guide-goland.html#step-1-open-or-create-a-project)
-4. Create a Go module for the project by going to Files > Project Structure > Project
-   Settings > Modules > Click on "+" sign in the toolbar > New Module > Next.
-   When you reach the New Module creation page, enter the following information:
-    - Module name: magma
-    - Content root & Module file location: the same as the path to your local
-      magma directory. For example, if the path to the root of your magma directory
-      is `/Users/your_username/magma`, then you should fill in the same path here
+To set up your local IntelliJ environment, perform the following
+1. After cloning the Magma repo, open the directory in IntelliJ
+2. Ensure the [Go plugin](https://plugins.jetbrains.com/plugin/9568-go) has been
+   installed by going to `Preferences > Plugins > search for the plugin "Go"`
+3. [Specify the location of the Go SDK](https://www.jetbrains.com/help/idea/quick-start-guide-goland.html#step-1-open-or-create-a-project)
+   by going to `Preferences > Languages & Frameworks > Go > GOROOT` and selecting
+   the relevant location
+4. Create a Go module for the project by going to `Files > Project Structure >
+   Project Settings > Modules > Click on "+" sign in the toolbar > New Module >
+   Next`. When you reach the new module creation page, enter the following
+   information:
+    - Module name: `magma`
+    - Content root, module file location: full path to your local Magma clone,
+      e.g. `/Users/your_username/magma`
 
-   Once you're finished, click "Finished" to apply the changes.
+After completing the above steps, restart your IDE and ensure the environment
+is properly set up
 
-After you're finished with the above steps, restart your IDE and make sure the
-environment is properly set up by checking the following:
+1. Open "Project" on the left toolbar, and display "Project Files". All the files
+   in the root `magma` directory should be displayed *without* a yellow background.
+   This indicates IntelliJ recognizes the files as part of the module.
+2. At the top-right corner of your IDE, you should see a drop-down menu showing
+   a list of run configurations for the Magma test suites, with a green triangular
+   button that allows you to run the selected test. Alternatively, when you open
+   your run configurations (`Run > Edit Configurations`), you should see something
+   like the below
 
-1. When you open "Project" on the left toolbar, and display "Project Files",
-you should see all the files in your magma directory displayed without a yellow
-background color. This shows IntelliJ is recognizing the directory as a GO project.
-2. At the top-right corner of your window, you should see a drop-down menu showing
-a list of run configurations for the magma test suites, with a green triangular
-button that allows you to run the selected test. Alternatively, when you
-open your run/deploy configurations (Run > Edit Configurations), you should see
-something like this:
-![intellij_initial_run_configs](assets/intellij_initial_run_configs.png).
-Once this is successfully set up, you could run all of our default test suites
-in one click.
+   ![intellij_initial_run_configs](assets/intellij_initial_run_configs.png).
+
+You can now run all (Orchestrator) test suites in one click.
+
+NOTE: a minority of tests require a running Postgres instance, and will otherwise fail with connection errors. You can use `orc8r/cloud/docker/run.py` to spin up the required test DB.
 
 ### Complete a starter task
 
