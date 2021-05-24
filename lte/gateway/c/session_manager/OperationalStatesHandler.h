@@ -36,7 +36,7 @@ const std::string SESSION_START_TIME     = "session_start_time";
 const std::string ACTIVE_DURATION_SECOND = "active_duration_sec";
 const std::string LIFECYCLE_STATE        = "lifecycle_state";
 
-typedef std::list<std::map<std::string, std::string>> OpState;
+using OpState = std::list<std::map<std::string, std::string>>;
 
 OpState get_operational_states(magma::SessionStore* session_store);
 
