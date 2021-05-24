@@ -16,6 +16,9 @@ other operators to have direct connectivity to their HSS through `S6a`
 (diameter) and PGW through `S8` (gtp) interfaces. VPN is suggested to reach
 those roaming services but is out of scope of Magma.
 
+At the bottom of this document you have
+[configuration example](#configuration-example)
+
 ## Architecture
 
 Currently, we support two Architectures:
@@ -36,7 +39,7 @@ subscribers may also work but are not tested yet.
 Configurations with SubscriberDB, local HSS and remote HSS all at the same
 time is not supported yet.
 
-## Pre Requisites
+## Prerequisites
 
 Before starting to configure roaming setups, first you need to bring up a
 setup to handle your own/local subscribers.
@@ -55,7 +58,7 @@ you need:
 
 At the end of this you will have:
 - A Federated LTE Network with an LTE Gateway (AGW)
-- A Federation Network with a Federation Gateway (FEG)
+- A Federation Network with a Federation Gateway (FeG)
 
 We will refer to them as `local` Networks and Gateways to differentiate them
 from the `roaming`Networks and Gateways we will create in the next step.
@@ -64,7 +67,7 @@ from the `roaming`Networks and Gateways we will create in the next step.
 of the Federated Gateway, but you still need the Federated Gateway Network that will serve your
 Federated LTE Network.*
 
-## Inbound Roaming Configuration
+## Inbound Roaming configuration
 The following instructions use Orc8r Swagger API to configure Inbound Roaming.
 You can do the same using Swagger API or NMS JSON editor.
 
@@ -77,21 +80,23 @@ Below are the steps to add Inbound Roaming to your current setup:
 - Create roaming Federated Networks and Gateways.
 - Configure local Access Gateway Network routing based on PLMN.
 - Configure local Federation Network routing based on PLMN.
+- Configure roaming Federation Network served networks
+- Configure FeG Gateways
 - Check connectivity
 
 ### 1. Create Roaming Federated Networks and Federated Gateways
-Inbound Roaming needs as many FEG Networks as roaming agreements. Don't
-forget to create a Federated Gateway per FEG Network.
+Inbound Roaming needs as many FeG Networks as roaming agreements. Don't
+forget to create a Federated Gateway per FeG Network.
 
-Roaming FEG Networks do not need to serve any Federated LTE Network (only the
-FEG Network created on Pre Requisites needs to serve a Federated LTE Network)
+Roaming FeG Networks do not need to serve any Federated LTE Network (only the
+FeG Network created on Pre Requisites needs to serve a Federated LTE Network)
 
 Those roaming Federated Gateways will need `S6a` and `S8` interfaces
 configured (make sure you have the other operators HSS and PGW
 parameters). To configure those interfaces go to **Swagger API**:
 - Go to`Federation Gateways` GET method `Get a specific
   federation gateway` and search the configuration for one of those roaming
-  FEG Networks.
+  FeG Networks.
 - Copy/paste the response into the PUT method `Update an entire federation
   gateway record`
 - Edit the `6a` and `S8` fields (check the example from the GET method to
@@ -114,13 +119,13 @@ Gateway Network we created in Pre Requisites. On **Swagger API**:
 - Copy/paste the response into PUT method `Update an entire Federated LTE
   network`
 - Find a key `federation`. If you completed Pre Requisites properly, you
-  should have there `feg_network_id` pointing to your FEG Network Modify/add
+  should have there `feg_network_id` pointing to your FeG Network Modify/add
 - Add the routing dictionary following the example, adding an entry per each
 PLMN
 ```text
   "federation": {
     "federated_modes_mapping": {
-      "enabled": false,
+      "enabled": true,
       "mapping": [
         {
           "apn": "",
@@ -144,20 +149,29 @@ PLMN
   `s8_subscriber` to use roam HSS and roam PGW. Leave `apn` and `imsi_range`
   blank since it is not supported yet.
 
+- Note `hss_relay_enabled` must be enabled. The decision to send it to HSS or
+  not will be taken by `federated_modes_mapping`. If you disable, s8_subscribers
+  will not be sent to the FeG to get the HSS
+
+- Flag `gx_gy_relay_enabled` can be enabled or disabled depending if your
+  network works with local policy db or with OCS and PCRF (gx/gy). If your
+  local subscribers authenticate with HSS but use GX/GY, then you will have to
+  leave it as `True`.
+
 ### 3. Configure Local Federation Network routing
 When a request gets to the Orc8r, this will have to be routed to the proper
-FEG Network which serves that PLMN.
+FeG Network which serves that PLMN.
 
-To enable that routing you will have to configure it in your local FEG Network
+To enable that routing you will have to configure it in your local FeG Network
 we created in Pre Requisites. On **Swagger API**:
 - Go to `Federation Networks` and search using GET method `Describe a
-  federation network` your local (non roaming) FEG Network
+  federation network` your local (non roaming) FeG Network
 - Copy/paste the response into PUT method `Update an entire federation network`
 - Modify/add the `nh_routes` (see the example on Swagger API if it is
   missing from your configuration). On the map match the PLMN, and the name
-  of the roam FEG Network.
+  of the roam FeG Network.
 ```
-  "nh_routes": {
+    "nh_routes": {
       "00102": "inbound_feg",
       "9999": "feg_roaming_network_1"
     },
@@ -165,7 +179,27 @@ we created in Pre Requisites. On **Swagger API**:
 - Hit Execute (check no errors are show on the Swagger Responses)
 - Run the GET method again to see the changes.
 
-### 4. Check Connectivity
+### 4. Configure Roaming Federation Network served networks
+Roaming Federation Networks will need a last configuration in order to match
+them with their serving Local Federation Network. To do that, add to the
+Roaming Federation Networks configuration the following key
+```
+    "served_nh_ids": [
+      "example_feg_network"
+    ],
+```
+
+That means that the Inbound FeG Network will be served by the local network
+(in this case called `example_feg_network`)
+
+### 5. Configure FeG Gateways
+If you have a Federated deployment remember to configure `s6a`, `gx`, `gy` on
+the gateway.
+
+Do the same for FeG gateway serving roaming subscribers, but just configure
+`s6a` and `s8`.
+
+### 6. Check connectivity
 - From Access Gateway make sure your Access Gateway is able to reach PGW-U
   IP.
 ```
@@ -181,10 +215,10 @@ Federated Gateway can reach PGW using this command
     # where 123456789012345 is a valid imsi (if you use a not valid imsi
     you can still check the connectivity, but you will get a GTP error back
     from PGW
-    # Add -use_builtincli flag if you don't have a FEG setup properly yet
+    # Add -use_builtincli flag if you don't have a FeG setup properly yet
 ```
 
-## Test and Troubleshooting
+## Test and troubleshooting
 It is recommendable that before running the tests, enable some extra
 logging capabilities in both Access Gateway, and Federated Gateway to
 trace the call.
@@ -210,3 +244,51 @@ For better details Federated Gateway logs:
 - Restart docker process, so the vars are taken `sudo docker-compose down` and
   `sudo docker-compose up -d`
 - Display the logs using for example`sudo docker-compose logs -f s8_proxy`
+
+### Test with s6a_cli and s8_cli
+FeG has a couple of clients to run an HSS Authentication Request (s6a) and
+Create Session Request (s8) without the need of having a UE. You can run them
+either on FeG or AGW.
+
+- Run From FeG
+```
+# Use FeG s6a_proxy
+sudo docker-compose exec s8_proxy /var/opt/magma/bin/s6a_cli air -remote_s6a 001002000000810
+# Use s6a_porxy that runs on the cli
+sudo docker-compose exec s8_proxy /var/opt/magma/bin/s6a_cli air -use_builtincli false  -remote_s6a 001002000000810
+
+# use FeG s8_proxy
+sudo docker-compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -delete 3
+# use s8_porxy that runs on the cli
+sudo docker-compose exec s8_proxy /var/opt/magma/bin/s8_cli cs -server 192.168.32.118:2123 -use_builtincli false -delete 3
+```
+
+- Run from AGW
+```
+# Extract the binaries from docker container from FeG, and move them to AGW
+sudo docker cp s6a_proxy:/var/opt/magma/bin/s6a_cli .
+sudo docker cp s8_proxy:/var/opt/magma/bin/s8_cli .
+```
+
+```
+# Execute from AGW
+./s6a_cli air -remote_s6a 001002000000810
+./s8_cli cs -server 192.168.32.118:2123 -delete 3 -apn inet -remote_s8 001002000000810
+```
+
+## Configuration example
+
+Attached you can find the configuration that handle local subscribers with
+both subscriber db and HSS and roaming subscribers:
+
+- PLMN 88888: uses subscriber DB to authenticate and Gx/Gy for accounting.
+  That is why we have `gx_gy_relay_enabled` as True. Those subscribers are
+  never sent to the FeG.
+- PLMN 00102: MME sends those subscribers to be authenticated through the FeG.
+  When the request reaches Orc8r (in Feg Relay service) and using `nh_routes`
+  configured on the local FeG network, those subscribers are forwarded to
+  `inbound_feg` network
+- Rest of PLMN: MME forwards any other PLMN to be authenticated through the
+  FeG. In the orc8r they are forwarded to the local FeG network `terravm_feg_network`
+
+[[inbound_roaming_sample.zip]](assets/feg/inbound_roaming_sample.zip)
