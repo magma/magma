@@ -1630,6 +1630,9 @@ bool SessionState::receive_charging_credit(
                 << " Activating service RG: " << key << " for " << session_id_;
     grant->set_service_state(SERVICE_NEEDS_ACTIVATION, credit_uc);
   }
+  if (grant->should_deactivate_service()) {
+    grant->set_service_state(SERVICE_NEEDS_DEACTIVATION, credit_uc);
+  }
   return true;
 }
 
@@ -1669,6 +1672,16 @@ bool SessionState::is_credit_suspended(const CreditKey& charging_key) {
   if (it != credit_map_.end()) {
     auto& grant = it->second;
     return grant->get_suspended();
+  }
+  return false;
+}
+
+bool SessionState::is_credit_ready_to_be_activated(
+    const CreditKey& charging_key) {
+  auto it = credit_map_.find(charging_key);
+  if (it != credit_map_.end()) {
+    auto& grant = it->second;
+    return grant->should_be_unsuspended();
   }
   return false;
 }
