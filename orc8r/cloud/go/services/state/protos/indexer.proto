@@ -21,9 +21,6 @@ option go_package = "protos";
 
 // Indexer servicer provides methods for managing a service's indexer.
 service Indexer {
-  // GetIndexerInfo gets info about this indexer.
-  rpc GetIndexerInfo(GetIndexerInfoRequest) returns (GetIndexerInfoResponse) {}
-
   // Index a set of states by forwarding to locally-registered indexers.
   rpc Index(IndexRequest) returns (IndexResponse) {}
 
@@ -34,23 +31,11 @@ service Indexer {
   rpc CompleteReindex(CompleteReindexRequest) returns (CompleteReindexResponse) {}
 }
 
-message GetIndexerInfoRequest {}
-
-message GetIndexerInfoResponse {
-  // version of the indexer's current implementation
-  uint32 version = 1;
-  // state_types is the type of states the indexer will index
-  // utilized for pre-filtering
-  repeated string state_types = 2;
-}
-
 message IndexRequest {
   // states to reindex
   repeated magma.orc8r.State states = 1;
   // network_id of the states
   string network_id = 2;
-  // reporter_hwid is the hwid of the gateway that reported the states
-  string reporter_hwid = 3;
 }
 
 message IndexResponse {

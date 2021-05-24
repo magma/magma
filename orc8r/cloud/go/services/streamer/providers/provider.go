@@ -22,10 +22,6 @@ import (
 // StreamProvider provides a streamer policy. Given a gateway hardware ID,
 // return a serialized data bundle of updates to stream back to the gateway.
 type StreamProvider interface {
-	// GetStreamName returns the name of the stream that this provider
-	// services. This name must be globally unique.
-	GetStreamName() string
-
 	// GetUpdates returns updates to stream updates back to a gateway given its hardware ID
 	// If GetUpdates returns error, the stream will be closed without sending any updates
 	// If GetUpdates returns error == nil, updates will be sent & the stream will be closed after that
