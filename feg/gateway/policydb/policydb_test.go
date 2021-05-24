@@ -37,6 +37,7 @@ import (
 
 // Mock Cloud Streamer
 type mockStreamProvider struct {
+	name string
 }
 
 var (
@@ -154,7 +155,7 @@ func initOnce(t *testing.T) {
 
 func TestPolicyDBBaseNamesWithGRPC(t *testing.T) {
 	onceTestsInit.Do(func() { initOnce(t) })
-	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{}, "base_names")
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{name: "base_names"}, "base_names")
 	dbClient := &policydb.RedisPolicyDBClient{
 		PolicyMap:      &mockObjectStore{},
 		BaseNameMap:    &mockObjectStore{},
@@ -176,7 +177,7 @@ func TestPolicyDBBaseNamesWithGRPC(t *testing.T) {
 
 func TestPolicyDBRulesWithGRPC(t *testing.T) {
 	onceTestsInit.Do(func() { initOnce(t) })
-	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{}, "policydb")
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{name: "policydb"}, "policydb")
 	dbClient := &policydb.RedisPolicyDBClient{
 		PolicyMap:      &mockObjectStore{},
 		BaseNameMap:    &mockObjectStore{},
