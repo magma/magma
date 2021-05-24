@@ -209,19 +209,26 @@ bool ChargingGrant::get_update_type(
 }
 
 bool ChargingGrant::should_deactivate_service() const {
-  if ((final_action_info.final_action ==
-       ChargingCredit_FinalAction_TERMINATE) &&
+  const bool final_action_is_terminate =
+      final_action_info.final_action == ChargingCredit_FinalAction_TERMINATE;
+  const bool is_final_and_credit_exhausted =
+      is_final_grant && credit.is_quota_exhausted(1);
+
+  if (!is_final_and_credit_exhausted) {
+    return false;
+  }
+
+  if (final_action_is_terminate &&
       !SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED) {
     // configured in sessiond.yml
     return false;
   }
-  if (service_state != SERVICE_ENABLED) {
-    // service is not enabled
-    return false;
-  }
-  if (is_final_grant && credit.is_quota_exhausted(1)) {
-    // We only deactivate service when we receive a Final Unit
-    // Indication (final Grant) and we've exhausted all quota
+
+  // 1. Disable if the credit is out of quota and final action is terminate
+  // 2. Disable if the credit is out of quota and final action is
+  //    redirect/restrict IF if it hasn't been acted on already (state is
+  //    ENABLED)
+  if (final_action_is_terminate || service_state == SERVICE_ENABLED) {
     MLOG(MINFO) << "Deactivating service because we have exhausted the given "
                 << "quota and it is the final grant."
                 << "action="
@@ -250,6 +257,18 @@ ServiceActionType ChargingGrant::get_action(
     default:
       return CONTINUE_SERVICE;
   }
+}
+
+bool ChargingGrant::should_be_unsuspended() const {
+  // transitioning out of FUA-redirect/restrict
+  if (service_state == SERVICE_NEEDS_ACTIVATION) {
+    return true;
+  }
+  // transitioning out of credit suspension
+  if (suspended && !credit.is_quota_exhausted(1)) {
+    return true;
+  }
+  return false;
 }
 
 ServiceActionType ChargingGrant::final_action_to_action(
@@ -312,10 +331,6 @@ void ChargingGrant::set_suspended(
   }
   suspended            = new_suspended;
   credit_uc->suspended = new_suspended;
-}
-
-bool ChargingGrant::get_suspended() {
-  return suspended;
 }
 
 void ChargingGrant::reset_reporting_grant(

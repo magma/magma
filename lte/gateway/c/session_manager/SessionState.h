@@ -446,6 +446,8 @@ class SessionState {
 
   bool is_credit_suspended(const CreditKey& charging_key);
 
+  bool is_credit_ready_to_be_activated(const CreditKey& charging_key);
+
   RuleLifetime& get_rule_lifetime(const std::string& rule_id);
 
   DynamicRuleStore& get_gy_dynamic_rules();
