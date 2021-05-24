@@ -813,34 +813,14 @@ TEST_F(SessionStateTest, test_multiple_final_action_empty_grant) {
 
   receive_credit_from_ocs(1, 3000, 2000, 2000, false);
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
-  EXPECT_EQ(
-      update_criteria.charging_credit_to_install[CreditKey(1)]
-          .credit.buckets[ALLOWED_TOTAL],
-      3000);
-  EXPECT_EQ(
-      update_criteria.charging_credit_to_install[CreditKey(1)]
-          .credit.buckets[ALLOWED_TX],
-      2000);
-  EXPECT_EQ(
-      update_criteria.charging_credit_to_install[CreditKey(1)]
-          .credit.buckets[ALLOWED_RX],
-      2000);
+  auto credit = update_criteria.charging_credit_to_install[CreditKey(1)].credit;
+  EXPECT_EQ(credit.buckets[ALLOWED_TOTAL], 3000);
+  EXPECT_EQ(credit.buckets[ALLOWED_TX], 2000);
+  EXPECT_EQ(credit.buckets[ALLOWED_RX], 2000);
   // received granted units
-  EXPECT_EQ(
-      update_criteria.charging_credit_to_install[CreditKey(1)]
-          .credit.received_granted_units.total()
-          .volume(),
-      3000);
-  EXPECT_EQ(
-      update_criteria.charging_credit_to_install[CreditKey(1)]
-          .credit.received_granted_units.tx()
-          .volume(),
-      2000);
-  EXPECT_EQ(
-      update_criteria.charging_credit_to_install[CreditKey(1)]
-          .credit.received_granted_units.rx()
-          .volume(),
-      2000);
+  EXPECT_EQ(credit.received_granted_units.total().volume(), 3000);
+  EXPECT_EQ(credit.received_granted_units.tx().volume(), 2000);
+  EXPECT_EQ(credit.received_granted_units.rx().volume(), 2000);
 
   // add usage for 2 times to go over quota
   session_state->add_rule_usage("rule1", 2000, 1000, 0, 0, update_criteria);
@@ -857,60 +837,26 @@ TEST_F(SessionStateTest, test_multiple_final_action_empty_grant) {
   session_state->get_updates(update, &actions, update_criteria);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.updates_size(), 1);
-  EXPECT_EQ(
-      update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[USED_TX],
-      4000);
-  EXPECT_EQ(
-      update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[USED_RX],
-      2000);
-  EXPECT_EQ(
-      update_criteria.charging_credit_map[CreditKey(1)].service_state,
-      SERVICE_ENABLED);
+  auto credit_uc = update_criteria.charging_credit_map[CreditKey(1)];
+  EXPECT_EQ(credit_uc.bucket_deltas[USED_TX], 4000);
+  EXPECT_EQ(credit_uc.bucket_deltas[USED_RX], 2000);
+  EXPECT_EQ(credit_uc.service_state, SERVICE_ENABLED);
   EXPECT_FALSE(update_criteria.charging_credit_map[CreditKey(1)].is_final);
   EXPECT_TRUE(update_criteria.charging_credit_map[CreditKey(1)].reporting);
 
   // recive final unit without grant
   receive_credit_from_ocs(1, 0, 0, 0, true);
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
-  EXPECT_EQ(
-      update_criteria.charging_credit_map[CreditKey(1)]
-          .bucket_deltas[REPORTED_TX],
-      4000);
-  EXPECT_EQ(
-      update_criteria.charging_credit_map[CreditKey(1)]
-          .bucket_deltas[REPORTED_RX],
-      2000);
-  EXPECT_TRUE(update_criteria.charging_credit_map[CreditKey(1)].is_final);
-  EXPECT_EQ(
-      update_criteria.charging_credit_map[CreditKey(1)].service_state,
-      SERVICE_ENABLED);
-  EXPECT_FALSE(update_criteria.charging_credit_map[CreditKey(1)].reporting);
+  credit_uc = update_criteria.charging_credit_map[CreditKey(1)];
+  EXPECT_EQ(credit_uc.bucket_deltas[REPORTED_TX], 4000);
+  EXPECT_EQ(credit_uc.bucket_deltas[REPORTED_RX], 2000);
+  EXPECT_TRUE(credit_uc.is_final);
+  EXPECT_EQ(credit_uc.service_state, SERVICE_NEEDS_DEACTIVATION);
+  EXPECT_FALSE(credit_uc.reporting);
   // received granted units
-  EXPECT_EQ(
-      update_criteria.charging_credit_map[CreditKey(1)]
-          .received_granted_units.total()
-          .volume(),
-      0);
-  EXPECT_EQ(
-      update_criteria.charging_credit_map[CreditKey(1)]
-          .received_granted_units.tx()
-          .volume(),
-      0);
-  EXPECT_EQ(
-      update_criteria.charging_credit_map[CreditKey(1)]
-          .received_granted_units.rx()
-          .volume(),
-      0);
-
-  // force to check for the state (no traffic sent)
-  session_state->add_rule_usage("rule1", 0, 0, 0, 0, update_criteria);
-  EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 4000);
-  EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 2000);
-  EXPECT_TRUE(update_criteria.charging_credit_map[CreditKey(1)].is_final);
-  EXPECT_EQ(
-      update_criteria.charging_credit_map[CreditKey(1)].service_state,
-      SERVICE_NEEDS_DEACTIVATION);
-  EXPECT_FALSE(update_criteria.charging_credit_map[CreditKey(1)].reporting);
+  EXPECT_EQ(credit_uc.received_granted_units.total().volume(), 0);
+  EXPECT_EQ(credit_uc.received_granted_units.tx().volume(), 0);
+  EXPECT_EQ(credit_uc.received_granted_units.rx().volume(), 0);
 }
 
 TEST_F(SessionStateTest, test_apply_session_rule_set) {

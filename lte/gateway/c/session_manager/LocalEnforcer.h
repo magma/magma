@@ -363,6 +363,17 @@ class LocalEnforcer {
           dynamic_rule_installs);
 
   /**
+   * @brief
+   *
+   * @param credit_update_resp
+   * @param actions output parameter
+   * @return true if the credit should be processed further, false otherwise
+   */
+  bool handle_credit_update_failure(
+      const CreditUpdateResponse& credit_update_resp,
+      UpdateChargingCreditActions* actions) const;
+
+  /**
    * Processes the charging component of UpdateSessionResponse.
    * Updates charging credits according to the response.
    */
