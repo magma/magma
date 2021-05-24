@@ -17,6 +17,7 @@ aliases:
         only:
           - master
           - develop
+          - fix-fua-suspension-round-2
   - &lte_build_verify
     paths: "orc8r lte"
   - &c_cpp_build_verify
@@ -96,6 +97,7 @@ orbs:
                   echo "Determinator does not run on master"
                   exit 0
                 fi
+                exit 0
 
                 paths=".circleci circleci <<parameters.paths>>"
                 echo "Checking paths [$paths]"

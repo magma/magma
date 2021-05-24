@@ -84,6 +84,11 @@ struct ChargingGrant {
   // update. If no action needs to take place, CONTINUE_SERVICE is returned.
   ServiceActionType get_action(SessionCreditUpdateCriteria* update_criteria);
 
+  // Return if the service needs activation
+  bool should_be_unsuspended() const;
+
+  bool get_suspended() const { return suspended; }
+
   // Get unreported usage from credit and return as part of CreditUsage
   // The update_type is also included in CreditUsage
   // If the grant is final or is_terminate is true, we include all unreported
@@ -102,8 +107,6 @@ struct ChargingGrant {
 
   ServiceActionType final_action_to_action_on_suspension(
       const ChargingCredit_FinalAction action) const;
-
-  bool get_suspended();
 
   void set_suspended(bool suspended, SessionCreditUpdateCriteria* credit_uc);
 
