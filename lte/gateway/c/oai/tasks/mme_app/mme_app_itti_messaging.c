@@ -85,7 +85,8 @@ void mme_app_itti_ue_context_release(
 
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending UE Context Release Cmd to S1ap for (ue_id = %u)\n"
+      "Sending UE Context Release Cmd to S1ap for (ue_id = " MME_UE_S1AP_ID_FMT
+      ")\n"
       "UE Context Release Cause = (%d)\n",
       ue_context_p->mme_ue_s1ap_id, cause);
 
@@ -133,7 +134,9 @@ int mme_app_send_s11_release_access_bearers_req(
   if (message_p == NULL) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-        "Failed to allocate memory for S11_RELEASE_ACCESS_BEARERS_REQUEST \n");
+        "Failed to allocate memory for S11_RELEASE_ACCESS_BEARERS_REQUEST  for "
+        "ue id " MME_UE_S1AP_ID_FMT "\n",
+        ue_mm_context->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   release_access_bearers_request_p =
@@ -150,14 +153,16 @@ int mme_app_send_s11_release_access_bearers_req(
   if (pdn_connection->route_s11_messages_to_s8_task) {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-        "Send Release Access Bearer Req for teid to sgw_s8 task " TEID_FMT "\n",
-        ue_mm_context->mme_teid_s11);
+        "Send Release Access Bearer Req for teid to sgw_s8 task " TEID_FMT
+        " for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ue_mm_context->mme_teid_s11, ue_mm_context->mme_ue_s1ap_id);
     send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
   } else {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-        "Send Release Access Bearer Req for teid to spgw task " TEID_FMT "\n",
-        ue_mm_context->mme_teid_s11);
+        "Send Release Access Bearer Req for teid to spgw task " TEID_FMT
+        " for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ue_mm_context->mme_teid_s11, ue_mm_context->mme_ue_s1ap_id);
     send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);

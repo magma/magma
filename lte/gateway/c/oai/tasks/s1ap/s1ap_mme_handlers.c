@@ -3874,6 +3874,11 @@ int s1ap_mme_handle_error_ind_message(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
+  OAILOG_INFO(
+      LOG_S1AP,
+      "ERROR IND RCVD with mme UE s1ap id " MME_UE_S1AP_ID_FMT
+      " and enb UE s1ap id " ENB_UE_S1AP_ID_FMT "\n",
+      mme_ue_s1ap_id, enb_ue_s1ap_id);
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_ErrorIndicationIEs_t, ie, container, S1ap_ProtocolIE_ID_id_Cause,
       true);
