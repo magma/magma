@@ -1044,6 +1044,166 @@ func TestGetSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
+func TestGetSubscriberByExactIMSI(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
+	handlers := handlers.GetHandlers()
+	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+
+	// preseed 2 apns
+	apn1, apn2 := "foo", "bar"
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.APNEntityType, Key: apn1},
+			{Type: lte.APNEntityType, Key: apn2},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	// No sub profile configured, we should return "default"
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.SubscriberEntityType, Key: "IMSI123",
+				Name: "Jane Doe",
+				Config: &subscriberModels.SubscriberConfig{
+					Lte: &subscriberModels.LteSubscription{
+						AuthAlgo: "MILENAGE",
+						AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+						AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+						State:    "ACTIVE",
+					},
+					StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
+				},
+				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
+			},
+			{
+				Type: lte.SubscriberEntityType, Key: "IMSI12345",
+				Name: "John Doe",
+				Config: &subscriberModels.SubscriberConfig{
+					Lte: &subscriberModels.LteSubscription{
+						AuthAlgo:   "MILENAGE",
+						AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+						AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+						State:      "ACTIVE",
+						SubProfile: "foo",
+					},
+					StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
+				},
+				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI123"},
+		ExpectedStatus: 200,
+		ExpectedResult: &subscriberModels.Subscriber{
+			ID:   "IMSI123",
+			Name: "Jane Doe",
+			Lte: &subscriberModels.LteSubscription{
+				AuthAlgo:   "MILENAGE",
+				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:      "ACTIVE",
+				SubProfile: "default",
+			},
+			Config: &subscriberModels.SubscriberConfig{
+				Lte: &subscriberModels.LteSubscription{
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:      "ACTIVE",
+					SubProfile: "default",
+				},
+				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
+			},
+			ActiveApns: subscriberModels.ApnList{apn2, apn1},
+		},
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Now create some AGW-reported state for 123 and 12345
+	// First we need to register a gateway which can report state
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+	frozenClock := int64(1000000)
+	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
+	defer clock.UnfreezeClock(t)
+
+	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI123", icmpStatus, serdes.State)
+	mmeState := state.ArbitraryJSON{"mme": "foo"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI123", &mmeState, serdes.State)
+	spgwState := state.ArbitraryJSON{"spgw": "foo"}
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI12345", &spgwState, serdes.State)
+	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI12345", &s1apState, serdes.State)
+
+	// should only report states for IMSI123, not IMSI12345
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI123"},
+		ExpectedStatus: 200,
+		ExpectedResult: &subscriberModels.Subscriber{
+			ID: "IMSI123",
+			Name: "Jane Doe",
+			Lte: &subscriberModels.LteSubscription{
+				AuthAlgo:   "MILENAGE",
+				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+				State:      "ACTIVE",
+				SubProfile: "default",
+			},
+			Config: &subscriberModels.SubscriberConfig{
+				Lte: &subscriberModels.LteSubscription{
+					AuthAlgo:   "MILENAGE",
+					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+					State:      "ACTIVE",
+					SubProfile: "default",
+				},
+				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
+			},
+			ActiveApns: subscriberModels.ApnList{apn2, apn1},
+			Monitoring: &subscriberModels.SubscriberStatus{
+				Icmp: &subscriberModels.IcmpStatus{
+					// LastReportedTime is calculated in milliseconds
+					LastReportedTime: frozenClock * 1000,
+					LatencyMs:        f32Ptr(12.34),
+				},
+			},
+			State: &subscriberModels.SubscriberState{
+				Mme:  mmeState,
+			},
+		},
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 func TestListSubscriberStates(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
