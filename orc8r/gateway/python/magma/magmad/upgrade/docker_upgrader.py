@@ -13,6 +13,7 @@ limitations under the License.
 
 import asyncio
 import logging
+import os
 import pathlib
 
 from magma.common.service import MagmaService
@@ -211,9 +212,10 @@ async def download_update(
         MAGMA_GITHUB_PATH, target_version,
     )
     await run_command(git_checkout_cmd, shell=True, check=True)
-    docker_login_cmd = "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD " \
-                       "$DOCKER_REGISTRY"
-    await run_command(docker_login_cmd, shell=True, check=True)
+    if os.getenv("DOCKER_USERNAME"):
+        docker_login_cmd = "docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD " \
+                           "$DOCKER_REGISTRY"
+        await run_command(docker_login_cmd, shell=True, check=True)
     docker_pull_cmd = "IMAGE_VERSION={} docker-compose --project-directory " \
                       "/var/opt/magma/docker -f " \
                       "/var/opt/magma/docker/docker-compose.yml pull -q".\
