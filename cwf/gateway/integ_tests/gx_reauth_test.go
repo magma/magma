@@ -181,7 +181,10 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
-	assert.Equal(t, diam.Success, int(raa.ResultCode))
+	assert.NotNil(t, raa)
+	if raa != nil {
+		assert.Equal(t, diam.Success, int(raa.ResultCode))
+	}
 
 	// Check that all UE mac flows are deleted
 	tr.WaitForEnforcementStatsToSync()
