@@ -1411,11 +1411,11 @@ jobs:
       - run:
           name: Propagate AWS region information
           command: |
-            sed -i -e '/^awsAgwRegion: /s/:.*$/: us-west-1/' $VARS_DIR/cluster.yaml
-            sed -i -e '/^awsOrc8rRegion: /s/:.*$/: us-west-1/' $VARS_DIR/cluster.yaml
-            sed -i -e '/^awsAgwAz: /s/:.*$/: us-west-1b/' $VARS_DIR/cluster.yaml
-            sed -i -e '/^buildAwsRegion: /s/:.*$/: us-west-1/' $VARS_DIR/build.yaml
-            sed -i -e '/^buildAwsAz: /s/:.*$/: us-west-1b/' $VARS_DIR/build.yaml
+            sed -i -e '/^awsAgwRegion: /s/:.*$/: us-east-1/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsOrc8rRegion: /s/:.*$/: us-east-1/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsAgwAz: /s/:.*$/: us-east-1b/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^buildAwsRegion: /s/:.*$/: us-east-1/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAwsAz: /s/:.*$/: us-east-1b/' $VARS_DIR/build.yaml
       - run:
           name: Propagate names for AWS essential components
           command: |
@@ -1436,7 +1436,7 @@ jobs:
             sed -i -e '/^stackDevOpsCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-devopscloustrapper/' $VARS_DIR/defaults.yaml
             sed -i -e '/^stackCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-cloustrapper/' $VARS_DIR/defaults.yaml
             sed -i -e '/^devOpsAmi: /s/:.*$/: cloudstrapper-'"$VERSION"'/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-0d382e80be7ffdae5/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/build.yaml
       - run:
           name: Generate Cloudstrapper AMI
           command: |
@@ -1453,7 +1453,7 @@ jobs:
           command: |
             sed -i -e '/^buildAgwAmiName: /s/:.*$/: agw-ami-'"$VERSION"'/' $VARS_DIR/build.yaml
             sed -i -e '/^buildGwTagName: /s/:.*$/: publishAmisToMarketplaceAgw/' $VARS_DIR/build.yaml
-            sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-0d382e80be7ffdae5/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/cluster.yaml
       - run:
           name: Generate AGW AMI
           command: |
@@ -1540,6 +1540,7 @@ workflows:
           requires:
             - release-hold
       - publish-amis-to-marketplace:
+          aws_account: "LF"
           <<: *only_release
           requires:
             - release-hold
