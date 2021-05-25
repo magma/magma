@@ -2,6 +2,8 @@
 .circleci/ @magma/approvers-ci
 circleci/ @magma/approvers-ci
 ci-scripts/ @magma/approvers-ci
+.github/workflows/ @magma/approvers-ci
+third_party/build/ @magma/approvers-ci
 orc8r/tools/packer/ @magma/approvers-ci
 orc8r/cloud/deploy/bare-metal/ @magma/approvers-ci
 orc8r/cloud/deploy/bare-metal-ansible/ @magma/approvers-ci
