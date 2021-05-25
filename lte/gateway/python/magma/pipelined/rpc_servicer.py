@@ -14,6 +14,8 @@ import concurrent.futures
 import logging
 import os
 import queue
+import socket
+import ipaddress
 from collections import OrderedDict
 from concurrent.futures import Future
 from typing import List, Tuple
@@ -31,7 +33,7 @@ from lte.protos.pipelined_pb2 import (ActivateFlowsRequest,
                                       SetupQuotaRequest, SetupUEMacRequest,
                                       TableAssignment, UESessionSet,
                                       UESessionContextResponse, UPFSessionContextState,
-                                      VersionedPolicy)
+                                      VersionedPolicy, UESessionState)
 from lte.protos.session_manager_pb2 import RuleRecordTable
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
 from magma.pipelined.app.check_quota import CheckQuotaController
@@ -52,6 +54,7 @@ from magma.pipelined.metrics import (ENFORCEMENT_RULE_INSTALL_FAIL,
 from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.policy_converters import (convert_ipv4_str_to_ip_proto,
                                                convert_ipv6_bytes_to_ip_proto)
+from lte.protos.subscriberdb_pb2 import SubscriberID
 
 grpc_msg_queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 15
@@ -455,7 +458,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def UpdateUEState(self, request, context):
         
         self._log_grpc_payload(request)
-
         if not self._service_manager.is_app_enabled(
               Classifier.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -472,9 +474,100 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return UESessionContextResponse(operation_type=request.ue_session_state.ue_config_state,
                                             cause_info=CauseIE(cause_ie=CauseIE.REQUEST_REJECTED_NO_REASON))
 
+
     def _setup_pg_tunnel_update(self, request: UESessionSet, fut: 'Future(UESessionContextResponse)'):
-        res = self._classifier_app.process_mme_tunnel_request(request)
-        fut.set_result(res)
+        cause_ie = CauseIE.REQUEST_ACCEPTED
+        result=True
+        res = True
+        ue_ipv4_address = None
+        ue_ipv6_address = None
+
+        if request.ue_ipv4_address.address:
+            addr_str = socket.inet_ntop(
+               socket.AF_INET,
+               request.ue_ipv4_address.address,
+            )
+            ue_ipv4_address = IPAddress(
+                version=IPAddress.IPV4,
+                address=addr_str.encode('utf8'),
+            )
+
+        if request.ue_ipv6_address.address:
+            addr_str6 = socket.inet_ntop(
+                       socket.AF_INET6, request.ue_ipv6_address.address,
+            )
+            ue_ipv6_address = IPAddress(
+                version=IPAddress.IPV6,
+                address=addr_str6.encode('utf8'),
+            )
+
+        if (request.ue_session_state.ue_config_state == \
+                                      UESessionState.ACTIVE):
+            result = self._validate_ue_session(request)
+            if result == False:
+                cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
+            else:
+                res = self._classifier_app.add_tunnel_flows(request.precedence,
+                                                   request.in_teid,
+                                                   request.out_teid,
+                                                   ue_ipv4_address,
+                                                   ipaddress.ip_address(request.enb_ip_address.address),
+                                                   encode_imsi(request.subscriber_id.id),
+                                                   False, ue_ipv6_address,
+                                                   request.apn, request.vlan, request.ip_flow_dl)
+
+        elif (request.ue_session_state.ue_config_state == \
+                                      UESessionState.UNREGISTERED):
+            res = self._classifier_app.delete_tunnel_flows(request.in_teid,
+                                                           ue_ipv4_address,
+                                                           ipaddress.ip_address(request.enb_ip_address.address),
+                                                           request.ip_flow_dl)
+
+        elif (request.ue_session_state.ue_config_state == \
+                                      UESessionState.UNINSTALL_IDLE):
+            res = self._classifier_app.remove_paging_flow(ue_ipv4_address)
+
+        elif (request.ue_session_state.ue_config_state == \
+                                      UESessionState.INSTALL_IDLE):
+            res = self._classifier_app.install_paging_flow(ue_ipv4_address,
+                                                            request.in_teid,
+                                                            False)
+
+        elif (request.ue_session_state.ue_config_state == \
+                                       UESessionState.RESUME_DATA):
+            res = self._classifier_app.resume_tunnel_flows(request.in_teid,
+                                                            ue_ipv4_address,
+                                                            request.ip_flow_dl)
+
+        elif (request.ue_session_state.ue_config_state == \
+                                       UESessionState.SUSPENDED_DATA):
+            res = self._classifier_app.discard_tunnel_flows(request.in_teid,
+                                                             ue_ipv4_address,
+                                                             request.ip_flow_dl)
+
+        if res == False:
+            cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
+
+        fut.set_result(UESessionContextResponse(ue_ipv4_address=request.ue_ipv4_address,
+                                         ue_ipv6_address=request.ue_ipv6_address,
+                                         operation_type=request.ue_session_state.ue_config_state,
+                                         cause_info=CauseIE(cause_ie=cause_ie)))
+
+
+    def _validate_ue_session(self, tunnel_msg:UESessionSet) ->  bool :
+
+        if (len(tunnel_msg.subscriber_id.id) == 0 or \
+              (tunnel_msg.subscriber_id.type) != SubscriberID.IMSI):
+            return False
+
+        if ((tunnel_msg.ue_ipv4_address is None) and \
+              (tunnel_msg.ue_ipv6_address is None)):
+            return False
+
+        if tunnel_msg.enb_ip_address is None:
+            return False
+
+        return True
 
     # --------------------------
     # IPFIX App

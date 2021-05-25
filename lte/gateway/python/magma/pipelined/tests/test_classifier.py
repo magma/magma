@@ -275,12 +275,12 @@ class ClassifierTest(unittest.TestCase):
         ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller._delete_all_flows()
         ue_ip_addr = "192.168.128.80"
-        self.classifier_controller._discard_tunnel_flows(3,
+        self.classifier_controller.discard_tunnel_flows(3,
                                                          IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                          ip_flow_dl=ip_flow_dl)
 
         ue_ip_addr = "192.168.128.82"
-        self.classifier_controller._discard_tunnel_flows(4,
+        self.classifier_controller.discard_tunnel_flows(4,
                                                          IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                          ip_flow_dl=ip_flow_dl)
 
@@ -293,7 +293,7 @@ class ClassifierTest(unittest.TestCase):
         ip_flow_dl = IPFlowDL(set_params=0)
         self.classifier_controller._delete_all_flows()
         ue_ip_addr = "2001::4"
-        self.classifier_controller._discard_tunnel_flows(3,
+        self.classifier_controller.discard_tunnel_flows(3,
                                                          IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
                                                          ip_flow_dl=ip_flow_dl)
 
@@ -309,11 +309,11 @@ class ClassifierTest(unittest.TestCase):
         self.test_detach_default_tunnel_flows()
         ip_flow_dl = IPFlowDL(set_params=0)
         ue_ip_addr = "192.168.128.80"
-        self.classifier_controller._resume_tunnel_flows(3,
+        self.classifier_controller.resume_tunnel_flows(3,
                                                         IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                         ip_flow_dl=ip_flow_dl)
         ue_ip_addr = "192.168.128.82"
-        self.classifier_controller._resume_tunnel_flows(4,
+        self.classifier_controller.resume_tunnel_flows(4,
                                                         IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                         ip_flow_dl=ip_flow_dl)
 
@@ -329,7 +329,7 @@ class ClassifierTest(unittest.TestCase):
         self.test_detach_default_tunnel_flows()
         ip_flow_dl = IPFlowDL(set_params=0)
         ue_ip_addr = "2001::4"
-        self.classifier_controller._resume_tunnel_flows(3,
+        self.classifier_controller.resume_tunnel_flows(3,
                                                         IPAddress(version=IPAddress.IPV6,address=ue_ip_addr.encode('utf-8')),
                                                         ip_flow_dl=ip_flow_dl)
 
