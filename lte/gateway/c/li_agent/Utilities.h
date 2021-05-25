@@ -12,31 +12,19 @@
  */
 #pragma once
 
-#include "PDUGenerator.h"
+#include <lte/protos/mconfig/mconfigs.pb.h>
 
 namespace magma {
 namespace lte {
 
-#define MAX_PKT_SIZE 2048
-#define PROMISCUOUS_MODE 0
-#define PKT_BUF_READ_TIMEOUT_MS 1000
+#define LIAGENTD "liagentd"
+#define LIAGENTD_VERSION "1.0"
 
-class InterfaceMonitor {
- public:
-  InterfaceMonitor(
-      const std::string& iface_name, std::unique_ptr<PDUGenerator> pkt_gen);
+uint64_t get_time_in_sec_since_epoch();
+uint64_t time_difference_from_now(const uint64_t timestamp);
 
-  /**
-   * init_iface_pcap_monitor starts a live pcap sniffing for an interface
-   * provided in service configuration.
-   * @return return positif integer if interface monitoring starts successfuly.
-   */
-  int init_iface_pcap_monitor();
-
- private:
-  std::string iface_name_;
-  std::unique_ptr<PDUGenerator> pkt_gen_;
-};
+magma::mconfig::LIAgentD get_default_mconfig();
+magma::mconfig::LIAgentD load_mconfig();
 
 }  // namespace lte
 }  // namespace magma

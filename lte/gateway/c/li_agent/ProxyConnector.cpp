@@ -11,34 +11,16 @@
  * limitations under the License.
  */
 
-#include "ProxyConnector.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <iostream>
-
-#include <libmnl/libmnl.h>
-#include <linux/netfilter/nfnetlink.h>
-#include <linux/netfilter/nfnetlink_conntrack.h>
-
-#include <linux/if_packet.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <net/if.h>
-#include <netinet/ether.h>
-#include <linux/ip.h>
-#include <memory>
-#include <pcap.h>
-
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 
+#include "ProxyConnector.h"
 #include "magma_logging.h"
 
 namespace magma {
+namespace lte {
 
 ProxyConnectorImpl::ProxyConnectorImpl(
     const std::string& proxy_addr, const int proxy_port,
@@ -66,6 +48,7 @@ int ProxyConnectorImpl::setup_proxy_socket() {
   if (ssl_ == NULL) {
     return -1;
   }
+  SSL_set_options(ssl_, SSL_OP_DONT_INSERT_EMPTY_FRAGMENTS);
   SSL_set_fd(ssl_, proxy_);
   if (SSL_connect(ssl_) == -1) {
     ERR_print_errors_fp(stderr);
@@ -78,11 +61,13 @@ int ProxyConnectorImpl::setup_proxy_socket() {
 int ProxyConnectorImpl::load_certificates(SSL_CTX* ctx) {
   if (SSL_CTX_use_certificate_file(ctx, cert_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
+    MLOG(MERROR) << "Private key does not match the public certificate";
     ERR_print_errors_fp(stderr);
     return -1;
   }
   if (SSL_CTX_use_PrivateKey_file(ctx, key_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
+    MLOG(MERROR) << "Private key does not match the public certificate";
     ERR_print_errors_fp(stderr);
     return -1;
   }
@@ -115,8 +100,7 @@ int ProxyConnectorImpl::open_connection() {
   serv_addr.sin_addr.s_addr = INADDR_ANY;
   serv_addr.sin_port        = htons(proxy_port_);
 
-  // TODO change to proxy addr
-  if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr) <= 0) {
+  if (inet_pton(AF_INET, proxy_addr_.c_str(), &serv_addr.sin_addr) <= 0) {
     MLOG(MERROR) << "Invalid address/ Address not supported";
     return -1;
   }
@@ -130,10 +114,7 @@ int ProxyConnectorImpl::open_connection() {
 }
 
 int ProxyConnectorImpl::send_data(void* data, uint32_t size) {
-  // TODO we probably want to deal with write edge cases here
-  SSL_write(ssl_, data, size);
-
-  return 0;
+  return SSL_write(ssl_, data, size);
 }
 
 void ProxyConnectorImpl::cleanup() {
@@ -142,4 +123,5 @@ void ProxyConnectorImpl::cleanup() {
   SSL_CTX_free(ctx_);
 }
 
+}  // namespace lte
 }  // namespace magma

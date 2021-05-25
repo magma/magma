@@ -15,7 +15,7 @@ PROJECT(LIAgent)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
-if (NOT BUILD_TESTS)
+if (BUILD_TESTS)
   # Add AddressSanitizer (asan) support for debug builds of LiAgentD
   set (CMAKE_CXX_FLAGS_DEBUG
       "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
@@ -93,12 +93,14 @@ link_directories(
   ${MAGMA_LIB_DIR}/service_registry)
 
 add_library(LI_AGENT
+    Utilities.h
+    Utilities.cpp
+    MobilityClient.cpp
+    MobilityClient.h
     PDUGenerator.cpp
     PDUGenerator.h
     InterfaceMonitor.cpp
     InterfaceMonitor.h
-    DirectorydClient.cpp
-    DirectorydClient.h
     ProxyConnector.cpp
     ProxyConnector.h
     ${PROTO_SRCS}
@@ -107,7 +109,7 @@ add_library(LI_AGENT
 target_link_libraries(LI_AGENT
   SERVICE303_LIB SERVICE_REGISTRY MAGMA_CONFIG ASYNC_GRPC
   glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
-  prometheus-cpp tacopie mnl tins pcap ssl crypto
+  prometheus-cpp tacopie mnl tins pcap ssl crypto uuid
   )
 
 add_executable(liagentd ${PROJECT_SOURCE_DIR}/main.cpp)

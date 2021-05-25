@@ -11,32 +11,14 @@
  * limitations under the License.
  */
 
-#include "InterfaceMonitor.h"
-
 #include <stdio.h>
-#include <stdlib.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <iostream>
-
-#include <libmnl/libmnl.h>
-#include <linux/netfilter/nfnetlink.h>
-#include <linux/netfilter/nfnetlink_conntrack.h>
-
-#include <linux/if_packet.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <net/if.h>
-#include <netinet/ether.h>
-#include <linux/ip.h>
-#include <memory>
 #include <pcap.h>
 
+#include "InterfaceMonitor.h"
 #include "magma_logging.h"
 
 namespace magma {
+namespace lte {
 
 InterfaceMonitor::InterfaceMonitor(
     const std::string& iface_name, std::unique_ptr<PDUGenerator> pkt_gen)
@@ -44,7 +26,7 @@ InterfaceMonitor::InterfaceMonitor(
 
 static void packet_handler(
     u_char* user, const struct pcap_pkthdr* phdr, const u_char* pdata) {
-  reinterpret_cast<PDUGenerator*>(user)->send_packet(phdr, pdata);
+  reinterpret_cast<PDUGenerator*>(user)->process_packet(phdr, pdata);
 }
 
 int InterfaceMonitor::init_iface_pcap_monitor() {
@@ -64,7 +46,6 @@ int InterfaceMonitor::init_iface_pcap_monitor() {
 
   ret = pcap_loop(
       pcap, -1, packet_handler, reinterpret_cast<u_char*>(pkt_gen_.get()));
-
   if (ret == -1) {
     MLOG(MERROR) << "Could not capture packets";
     if (pcap != nullptr) {
@@ -76,4 +57,5 @@ int InterfaceMonitor::init_iface_pcap_monitor() {
   return 0;
 }
 
+}  // namespace lte
 }  // namespace magma
