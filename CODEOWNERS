@@ -41,8 +41,6 @@ lte/gateway/Vagrantfile @magma/approvers-ci
 orc8r/cloud/go/obsidian/swagger/v1/swagger.yml @magma/repo-magma-maintain
 orc8r/cloud/go/obsidian/swagger/v1/client/ @magma/repo-magma-maintain
 orc8r/cloud/go/obsidian/swagger/v1/models/ @magma/repo-magma-maintain
-**/go.mod @magma/repo-magma-maintain
-**/go.sum @magma/repo-magma-maintain
 
 # XWF Magma integrations
 xwf/ @magma/approvers-xwf
@@ -54,3 +52,7 @@ docs/ @magma/approvers-docs
 docs/readmes/proposals @electronjoe
 
 CODEOWNERS @amarpad @electronjoe
+
+# Paths excluded from code ownership
+**/go.mod @ghost
+**/go.sum @ghost
