@@ -15,6 +15,7 @@ package state
 
 import (
 	"context"
+	"regexp"
 
 	"magma/orc8r/cloud/go/serde"
 	state_types "magma/orc8r/cloud/go/services/state/types"
@@ -24,6 +25,14 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
+)
+
+const (
+	IMSIExpectedMatchCount = 2
+)
+
+var (
+	IMSIKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+).*$`)
 )
 
 // GetStateClient returns a client to the state service.
@@ -103,7 +112,27 @@ func SearchStates(networkID string, typeFilter []string, keyFilter []string, key
 	if err != nil {
 		return nil, err
 	}
-	return state_types.MakeStatesByID(res.States, serdes)
+
+	states, err := state_types.MakeStatesByID(res.States, serdes)
+	if err != nil {
+		return nil, err
+	}
+
+	// check if all state IDs have the exact IMSI prefix (if keyPrefix was specified)
+	if !funk.IsEmpty(keyPrefix) {
+		for stateID, _ := range states {
+			matches := IMSIKeyRe.FindStringSubmatch(stateID.DeviceID)
+			if len(matches) != IMSIExpectedMatchCount {
+				glog.Errorf("state device ID %s did not match IMSI-prefixed regex", stateID.DeviceID)
+				continue
+			}
+			if matches[1] != *keyPrefix {
+				delete(states, stateID)
+			}
+		}
+	}
+
+	return states, nil
 }
 
 // DeleteStates deletes states specified by the networkID and a list of
