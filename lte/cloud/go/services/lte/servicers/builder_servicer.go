@@ -107,7 +107,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
 	heConfig := getHEConfig(cellularGwConfig.HeConfig)
-	liAgent, liUes := getNProbeConfig(network.ID)
+	npTasks, liUes := getNetworkProbeConfig(network.ID)
 
 	mmePoolRecord, mmeGroupID, err := getMMEPoolConfigs(network.ID, cellularGwConfig.Pooling, cellGW, graph)
 	if err != nil {
@@ -194,8 +194,11 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 				TerminateOnExhaust: false,
 			},
 		},
-		"dnsd":      getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
-		"li-agentd": liAgent,
+		"dnsd": getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
+		"liagentd": &lte_mconfig.LIAgentD{
+			LogLevel:    protos.LogLevel_INFO,
+			NprobeTasks: npTasks,
+		},
 	}
 
 	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
@@ -569,11 +572,9 @@ func getRestrictedImeis(imeis []*lte_models.Imei) []*lte_mconfig.MME_ImeiConfig 
 	return ret
 }
 
-func getNProbeConfig(networkID string) (*lte_mconfig.LIAgentD, *lte_mconfig.PipelineD_LiUes) {
+func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mconfig.PipelineD_LiUes) {
 	liUes := &lte_mconfig.PipelineD_LiUes{}
-	liAgent := &lte_mconfig.LIAgentD{
-		LogLevel: protos.LogLevel_INFO,
-	}
+	npTasks := []*lte_mconfig.NProbeTask{}
 	ents, _, err := configurator.LoadAllEntitiesOfType(
 		networkID,
 		lte.NetworkProbeTaskEntityType,
@@ -581,11 +582,14 @@ func getNProbeConfig(networkID string) (*lte_mconfig.LIAgentD, *lte_mconfig.Pipe
 		serdes.Entity,
 	)
 	if err != nil {
-		return liAgent, liUes
+		glog.Errorf("Failed to load nprobe task entities %v", err)
+		return npTasks, liUes
 	}
 
 	for _, ent := range ents {
 		task := (&nprobe_models.NetworkProbeTask{}).FromBackendModels(ent)
+		npTasks = append(npTasks, nprobe_models.ToMConfigNProbeTask(task))
+
 		switch task.TaskDetails.TargetType {
 		case nprobe_models.NetworkProbeTaskDetailsTargetTypeImsi:
 			liUes.Imsis = append(liUes.Imsis, task.TaskDetails.TargetID)
@@ -594,15 +598,6 @@ func getNProbeConfig(networkID string) (*lte_mconfig.LIAgentD, *lte_mconfig.Pipe
 		case nprobe_models.NetworkProbeTaskDetailsTargetTypeMsisdn:
 			liUes.Msisdns = append(liUes.Msisdns, task.TaskDetails.TargetID)
 		}
-
-		liAgent.NprobeTasks = append(liAgent.NprobeTasks,
-			&lte_mconfig.NProbeTask{
-				TaskId:        string(task.TaskID),
-				TargetId:      task.TaskDetails.TargetID,
-				TargetType:    task.TaskDetails.TargetType,
-				DeliveryType:  task.TaskDetails.DeliveryType,
-				CorrelationId: task.TaskDetails.CorrelationID,
-			})
 	}
-	return liAgent, liUes
+	return npTasks, liUes
 }

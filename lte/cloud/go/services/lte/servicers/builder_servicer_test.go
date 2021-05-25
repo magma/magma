@@ -162,7 +162,7 @@ func TestBuilder_Build(t *testing.T) {
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
 		},
-		"li-agentd": &lte_mconfig.LIAgentD{
+		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
@@ -368,7 +368,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
 		},
-		"li-agentd": &lte_mconfig.LIAgentD{
+		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
@@ -645,7 +645,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
 		},
-		"li-agentd": &lte_mconfig.LIAgentD{
+		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
@@ -792,7 +792,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
 		},
-		"li-agentd": &lte_mconfig.LIAgentD{
+		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
@@ -934,7 +934,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
 		},
-		"li-agentd": &lte_mconfig.LIAgentD{
+		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
@@ -1061,7 +1061,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
 		},
-		"li-agentd": &lte_mconfig.LIAgentD{
+		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
@@ -1189,7 +1189,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			LogLevel:          protos.LogLevel_INFO,
 			DhcpServerEnabled: true,
 		},
-		"li-agentd": &lte_mconfig.LIAgentD{
+		"liagentd": &lte_mconfig.LIAgentD{
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
@@ -1227,6 +1227,7 @@ func build_impl(networkProto *storage_configurator.Network, graph *configurator.
 	builder := mconfig.NewRemoteBuilder(lte_service.ServiceName)
 	res, err := builder.Build(networkProto, graphProto, gatewayID)
 	if err != nil {
+		print("YSFFFF")
 		return nil, err
 	}
 
