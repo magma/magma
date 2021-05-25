@@ -3,7 +3,7 @@ name: "Push Helm Charts to Artifactory"
 
 on:  # yamllint disable-line rule:truthy
   push:
-    branches: [master, v1.*]
+    branches: [master, v1.*]  # Running on v1.* to tag official release with branch name
 jobs:
   build_publish_helm_charts:
     env:

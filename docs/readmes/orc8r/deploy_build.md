@@ -99,7 +99,6 @@ Next we'll run the package script. This script will package and publish the
 necessary helm charts to the artifactory. The script expects a deployment
 type to be provided, which will determine which orc8r modules are deployed.
 
-
 ### Option 2: Publish to a private Github repo
 
 We'll build the Orchestrator Helm charts, as well as publish them to a
@@ -123,7 +122,6 @@ type to be provided, which will determine which orc8r modules are deployed.
 
 ### Run the package script
 
-
 The valid deployment type options are
 
 - `fwa`
@@ -141,5 +139,5 @@ Uploaded orc8r charts successfully.
 ```
 You can add `-v` option to overwrite the versions of the chart.
 ```bash
-$ ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa  -v 1.5
+${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa  -v 1.5
 ```
