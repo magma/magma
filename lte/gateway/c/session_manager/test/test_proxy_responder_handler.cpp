@@ -164,16 +164,17 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   auto uc      = get_default_update_criteria();
   auto session = get_session(rule_store);
   RuleLifetime lifetime;
-  session->activate_static_rule(rule_id_1, lifetime, uc);
+  session->activate_static_rule(rule_id_1, lifetime, nullptr);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_1), true);
 
   auto monitor_update = get_monitoring_update();
-  session->receive_monitor(monitor_update, uc);
+  session->receive_monitor(monitor_update, &uc);
 
   // Add some used credit
-  session->add_to_monitor(monitoring_key, uint64_t(111), uint64_t(333), uc);
+  session->add_to_monitor(
+      monitoring_key, uint64_t(111), uint64_t(333), nullptr);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_TX), 111);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
@@ -235,7 +236,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   auto uc      = get_default_update_criteria();
   auto session = get_session(rule_store);
   RuleLifetime lifetime;
-  session->activate_static_rule(rule_id_1, lifetime, uc);
+  session->activate_static_rule(rule_id_1, lifetime, &uc);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_1), true);
