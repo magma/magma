@@ -149,13 +149,13 @@ message MmeUeContext {
 
 // mme_app_desc_t
 message MmeNasState {
+  reserved 7;
   MmeUeContext mme_ue_contexts = 1; // mme_ue_context_t
   uint32 nb_enb_connected = 2;
   uint32 nb_ue_attached = 3;
   uint32 nb_ue_connected = 4;
   uint32 nb_default_eps_bearers = 5;
   uint32 nb_s1u_bearers = 6;
-  uint64 statistic_timer_id = 7;
   uint32 nb_ue_managed = 8;
   uint32 nb_ue_idle = 9;
   uint32 nb_bearers_managed = 10;
