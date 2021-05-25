@@ -22,7 +22,7 @@ set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "${SCRIPT_DIR}"/../lib/util.sh
 
-GIT_VERSION=1.15.0
+GIT_VERSION=1.38.0
 ITERATION=3
 VERSION="${GIT_VERSION}"-"${ITERATION}"
 PKGNAME=grpc-dev
@@ -65,6 +65,9 @@ git submodule update --init
 sed -i 's/.usr.local$/\/tmp\/build-grpc-dev\/install\/usr\/local/' Makefile
 
 # build and install grpc
+mkdir -p cmake/build
+cd cmake/build
+cmake ../..
 make -j$(nproc)
 make install
 
