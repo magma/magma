@@ -197,6 +197,13 @@ typedef enum {
   NAM_MAX,
 } network_access_mode_t;
 
+typedef struct supported_features_s {
+#define FEATURE_LIST_ID_2_EXTERNAL_IDENTIFIER
+  bool external_identifier : 1;
+#define FEATURE_LIST_ID_2_NR_AS_SECONDARY_RAT (1U)
+  bool nr_as_secondary_rat : 1;
+} supported_features_t;
+
 typedef uint64_t bitrate_t;
 
 typedef char* APN_t;
@@ -228,7 +235,13 @@ typedef union {
   uint8_t imeisv[IMEISV_DIGITS_MAX];
 } me_identity_t;
 
+typedef enum {
+  BPS  = 0,
+  KBPS = 1,
+} apn_ambr_bitrate_unit_t;
+
 typedef struct {
+  apn_ambr_bitrate_unit_t br_unit;
   bitrate_t br_ul;
   bitrate_t br_dl;
 } ambr_t;

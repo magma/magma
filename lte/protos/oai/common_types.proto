@@ -39,6 +39,14 @@ message EpsSubscribedQosProfile {
 message Ambr {
   uint64 br_ul = 1;
   uint64 br_dl = 2;
+
+  enum BitrateUnitsAMBR {
+        BPS = 0;
+        KBPS = 1;
+        }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 3;
+
 }
 
 // apn_configuration_t

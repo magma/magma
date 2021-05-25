@@ -67,9 +67,6 @@ int decode_attach_request(
 
   else
     decoded += decoded_result;
-  OAILOG_DEBUG(
-      LOG_NAS_EMM, "    EN_DC value in Attach request %d \n",
-      attach_request->uenetworkcapability.dcnr);
 
   if ((decoded_result = decode_esm_message_container(
            &attach_request->esmmessagecontainer, 0, buffer + decoded,
@@ -379,10 +376,7 @@ int encode_attach_request(
            len - encoded)) < 0)  // Return in case of error
     return encode_result;
   else
-    OAILOG_DEBUG(
-        LOG_NAS_EMM, "    EN_DC value in encoded Attach request %d \n",
-        attach_request->uenetworkcapability.dcnr);
-  encoded += encode_result;
+    encoded += encode_result;
 
   if ((encode_result = encode_esm_message_container(
            attach_request->esmmessagecontainer, 0, buffer + encoded,

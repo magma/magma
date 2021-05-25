@@ -48,6 +48,7 @@
 #include "emm_fsm.h"
 #include "emm_regDef.h"
 #include "mme_app_state.h"
+#include "mme_app_ue_context.h"
 #include "nas_procedures.h"
 #include "s6a_messages_types.h"
 #include "nas/securityDef.h"
@@ -101,7 +102,8 @@ static int authentication_reject(
 static void nas_itti_auth_info_req(
     const mme_ue_s1ap_id_t ue_idP, const imsi_t* const imsiP,
     const bool is_initial_reqP, plmn_t* const visited_plmnP,
-    const uint8_t num_vectorsP, const_bstring const auts_pP);
+    const uint8_t num_vectorsP, const_bstring const auts_pP,
+    const uint8_t dcnr);
 
 static void s6a_auth_info_rsp_timer_expiry_handler(
     void* args, imsi64_t* imsi64);
@@ -367,7 +369,7 @@ static int start_authentication_information_procedure(
 
   nas_itti_auth_info_req(
       ue_id, &emm_context->_imsi, is_initial_req, &visited_plmn,
-      MAX_EPS_AUTH_VECTORS, auts);
+      MAX_EPS_AUTH_VECTORS, auts, emm_context->_ue_network_capability.dcnr);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
@@ -1438,7 +1440,7 @@ static int authentication_abort(
  ** Inputs: ue_idP: UE context Identifier                                  **
  **      imsiP: IMSI of UE                                                 **
  **      is_initial_reqP: Flag to indicate, whether Auth Req is sent       **
- **                      for first time or initited as part of             **
+ **                      for first time or initiated as part of            **
  **                      re-synchronisation                                **
  **      visited_plmnP : Visited PLMN                                      **
  **      num_vectorsP : Number of Auth vectors in case of                  **
@@ -1451,7 +1453,8 @@ static int authentication_abort(
 static void nas_itti_auth_info_req(
     const mme_ue_s1ap_id_t ue_id, const imsi_t* const imsiP,
     const bool is_initial_reqP, plmn_t* const visited_plmnP,
-    const uint8_t num_vectorsP, const_bstring const auts_pP) {
+    const uint8_t num_vectorsP, const_bstring const auts_pP,
+    const uint8_t dcnr) {
   OAILOG_FUNC_IN(LOG_NAS);
   MessageDef* message_p              = NULL;
   s6a_auth_info_req_t* auth_info_req = NULL;
@@ -1485,6 +1488,19 @@ static void nas_itti_auth_info_req(
   }
   auth_info_req->visited_plmn  = *visited_plmnP;
   auth_info_req->nb_of_vectors = num_vectorsP;
+
+  /*
+   * Check if we have UE 5G-NR
+   * connection supported in Attach request message.
+   * This is done by checking either en_dc flag in ms network capability or
+   * by checking  dcnr flag in ue network capability.
+   */
+
+  if (dcnr) {
+    auth_info_req->supportedfeatures.nr_as_secondary_rat = 1;
+  } else {
+    auth_info_req->supportedfeatures.nr_as_secondary_rat = 0;
+  }
 
   if (is_initial_reqP) {
     auth_info_req->re_synchronization = 0;

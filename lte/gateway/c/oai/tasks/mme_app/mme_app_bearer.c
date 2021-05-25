@@ -455,6 +455,8 @@ void mme_app_handle_conn_est_cnf(
   //#pragma message  "Check ue_context_p ambr"
   establishment_cnf_p->ue_ambr.br_ul = ue_context_p->subscribed_ue_ambr.br_ul;
   establishment_cnf_p->ue_ambr.br_dl = ue_context_p->subscribed_ue_ambr.br_dl;
+  establishment_cnf_p->ue_ambr.br_unit =
+      ue_context_p->subscribed_ue_ambr.br_unit;
   establishment_cnf_p->ue_security_capabilities_encryption_algorithms =
       ((uint16_t) emm_context._ue_network_capability.eea & ~(1 << 7)) << 1;
 
