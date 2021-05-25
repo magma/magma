@@ -42,15 +42,10 @@ require (
 	github.com/thoas/go-funk v0.7.0
 	github.com/wmnsk/go-gtp v0.7.24
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
-	golang.org/x/mod v0.4.2 // indirect
-	golang.org/x/net v0.0.0-20210501142056-aec3718b3fa0
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/sys v0.0.0-20210426080607-c94f62235c83 // indirect
-	golang.org/x/term v0.0.0-20210422114643-f5beecf764ed // indirect
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
-	gotest.tools/gotestsum v1.6.4 // indirect
 	layeh.com/radius v0.0.0-20200615152116-663b41c3bf86
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
