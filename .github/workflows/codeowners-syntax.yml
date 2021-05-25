@@ -1,0 +1,22 @@
+---
+name: "Codeowners Validator"
+
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:
+      - CODEOWNERS
+jobs:
+  sanity:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository, which is validated in the next step
+      - uses: actions/checkout@v2
+      - name: GitHub CODEOWNERS Validator
+        uses: mszostok/codeowners-validator@v0.6.0
+        with:
+          checks: "syntax,files,duppatterns"
+          # TODO: enable owner check
