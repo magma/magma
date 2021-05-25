@@ -103,7 +103,7 @@ int main(int argc, char* argv[]) {
   // Initialize Sentry error collection (Currently only supported on
   // Ubuntu 20.04)
   // We have to initialize here for now since itti_init asserts on there being
-  // only 1 thread
+  // only 1 thread blabla
   initialize_sentry();
 
   CHECK_INIT_RETURN(timer_init());
