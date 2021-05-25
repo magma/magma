@@ -126,8 +126,7 @@ if __name__ == '__main__':
 
         orcl_chart_version = orcl_chart_versions.get(k)
         if orcl_chart_version and orcl_chart_version != v:
-            print(
-                f'Actual chart version for {k} = {v}, orcl variables chart version is {orcl_charts_in_sync}')
+            print(f'Actual chart version for {k} = {v}, orcl variables chart version is {orcl_chart_version}')
             orcl_charts_in_sync = False
 
     assert tf_charts_in_sync and orcl_charts_in_sync
