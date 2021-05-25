@@ -95,6 +95,11 @@ health:
     labels: {}
     annotations: {}
 
+base_acct:
+  service:
+    labels: {}
+    annotations: {}
+
 # Feg relay aliased services
 csfb:
   service:
