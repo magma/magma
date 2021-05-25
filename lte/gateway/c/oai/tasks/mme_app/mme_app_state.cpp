@@ -87,4 +87,3 @@ void delete_mme_ue_state(imsi64_t imsi64) {
 void put_mme_ueip_imsi_map() {
   MmeNasStateManager::getInstance().write_mme_ueip_imsi_map_to_db();
 }
-

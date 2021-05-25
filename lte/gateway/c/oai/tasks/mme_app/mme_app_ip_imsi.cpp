@@ -28,11 +28,13 @@ void mme_app_log_ipv4_imsi_map() {
     OAILOG_ERROR(LOG_MME_APP, "ueip_imsi_map is NULL \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  for (auto itr = ueip_imsi_map->begin(); itr != ueip_imsi_map->end(); ++itr) {
-    for (auto it_vec = itr->second.begin(); it_vec != itr->second.end();
+  for (auto itr_map = ueip_imsi_map->begin(); itr_map != ueip_imsi_map->end();
+       ++itr_map) {
+    for (auto it_vec = itr_map->second.begin(); it_vec != itr_map->second.end();
          ++it_vec) {
       OAILOG_TRACE(
-          LOG_MME_APP, "ue_ip: %s \t imsi:%lu \n", itr->first.c_str(), *it_vec);
+          LOG_MME_APP, "ue_ip: %s \t imsi:%lu \n", itr_map->first.c_str(),
+          *it_vec);
     }
     OAILOG_TRACE(LOG_MME_APP, "\n");
   }
@@ -49,14 +51,16 @@ int mme_app_insert_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   UeIpImsiMap* ueip_imsi_map =
       magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
   if (!ueip_imsi_map) {
-    OAILOG_ERROR(LOG_MME_APP, "ueip_imsi_map is NULL \n");
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, imsi64,
+        "ueip_imsi_map is NULL while inserting ue_ip:%x \n", ipv4_addr);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
-  auto itr = ueip_imsi_map->find(ipv4);
-  if (itr == ueip_imsi_map->end()) {
-    vector<uint64_t> vec = {imsi64};
+  auto itr_map = ueip_imsi_map->find(ipv4);
+  if (itr_map == ueip_imsi_map->end()) {
+    vector<uint64_t> vec   = {imsi64};
     (*ueip_imsi_map)[ipv4] = vec;
     OAILOG_DEBUG_UE(LOG_MME_APP, imsi64, "Inserting ue_ip:%x \n", ipv4_addr);
   } else {
@@ -78,21 +82,24 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
       magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
   int num_imsis = 0;
   if (!ueip_imsi_map) {
-    OAILOG_ERROR(LOG_MME_APP, "ueip_imsi_map is NULL \n");
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "ueip_imsi_map is NULL while getting imsi list for ue_ip :%x \n",
+        ipv4_addr);
     OAILOG_FUNC_RETURN(LOG_MME_APP, num_imsis);
   }
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
-  auto itr = ueip_imsi_map->find(ipv4);
-  if (itr == ueip_imsi_map->end()) {
+  auto itr_map = ueip_imsi_map->find(ipv4);
+  if (itr_map == ueip_imsi_map->end()) {
     OAILOG_ERROR(LOG_MME_APP, " No imsi found for ip:%x \n", ipv4_addr);
   } else {
     uint8_t idx = 0;
-    num_imsis   = itr->second.size();
+    num_imsis   = itr_map->second.size();
     *imsi_list  = (imsi64_t*) calloc(num_imsis, sizeof(imsi64_t));
 
-    for (auto vect_itr = itr->second.begin(); vect_itr != itr->second.end();
-         vect_itr++) {
+    for (auto vect_itr = itr_map->second.begin();
+         vect_itr != itr_map->second.end(); vect_itr++) {
       *imsi_list[idx++] = *vect_itr;
       OAILOG_DEBUG_UE(
           LOG_MME_APP, *vect_itr, " Found imsi for ip:%x \n", ipv4_addr);
@@ -106,32 +113,34 @@ void mme_app_remove_ue_ipv4_addr(uint32_t ipv4_addr, imsi64_t imsi64) {
   UeIpImsiMap* ueip_imsi_map =
       magma::lte::MmeNasStateManager::getInstance().get_mme_ueip_imsi_map();
   if (!ueip_imsi_map) {
-    OAILOG_ERROR(LOG_MME_APP, "ueip_imsi_map is NULL \n");
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "ueip_imsi_map is NULL while removing ue_ip:%x from map \n", ipv4_addr);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   char ipv4[INET_ADDRSTRLEN] = {0};
   inet_ntop(AF_INET, (void*) &ipv4_addr, ipv4, INET_ADDRSTRLEN);
-  auto itr = ueip_imsi_map->find(ipv4);
-  if (itr == ueip_imsi_map->end()) {
+  auto itr_map = ueip_imsi_map->find(ipv4);
+  if (itr_map == ueip_imsi_map->end()) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, imsi64, "No imsi found for ip:%x \n", ipv4_addr);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   } else {
-    auto vec_it = itr->second.begin();
-    for (; vec_it != itr->second.end(); ++vec_it) {
+    auto vec_it = itr_map->second.begin();
+    for (; vec_it != itr_map->second.end(); ++vec_it) {
       if (*vec_it == imsi64) {
         OAILOG_DEBUG_UE(
             LOG_MME_APP, imsi64, "Deleted ue ipv4:%x from ipv4_imsi map \n",
             ipv4_addr);
-        itr->second.erase(vec_it);
+        itr_map->second.erase(vec_it);
         vec_it--;
-        if (itr->second.empty()) {
+        if (itr_map->second.empty()) {
           ueip_imsi_map->erase(ipv4);
         }
         break;
       }
     }
-    if (vec_it == itr->second.end()) {
+    if (vec_it == itr_map->second.end()) {
       OAILOG_ERROR(
           LOG_MME_APP,
           "Failed to remove an entry for ue_ip:%x from ipv4_imsi map \n",

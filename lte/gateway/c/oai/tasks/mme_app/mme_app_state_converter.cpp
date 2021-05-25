@@ -837,7 +837,7 @@ void MmeNasStateConverter::mme_app_ueip_imsi_map_to_proto(
 void MmeNasStateConverter::mme_app_proto_to_ueip_imsi_map(
     const oai::MmeUeIpImsiMap& ueip_proto, UeIpImsiMap* ueip_imsi_map) {
   std::vector<uint64_t> vec = {};
-  auto proto_map = ueip_proto.mme_ueip_imsi_map();
+  auto proto_map            = ueip_proto.mme_ueip_imsi_map();
   for (auto const& itr : proto_map) {
     oai::imsi_list imsi_list_proto = itr.second;
     for (auto idx = 0; idx < imsi_list_proto.imsi_size(); idx++) {

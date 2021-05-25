@@ -35,8 +35,8 @@ constexpr char TUN_UE_ID_TABLE_NAME[]  = "mme_app_tun11_ue_context_htbl";
 constexpr char GUTI_UE_ID_TABLE_NAME[] = "mme_app_tun11_ue_context_htbl";
 constexpr char ENB_UE_ID_MME_UE_ID_TABLE_NAME[] =
     "mme_app_enb_ue_s1ap_id_ue_context_htbl";
-constexpr char MME_TASK_NAME[]           = "MME";
-constexpr char MME_UEIP_IMSI_MAP_NAME[]  = "mme_ueip_imsi_map";
+constexpr char MME_TASK_NAME[]          = "MME";
+constexpr char MME_UEIP_IMSI_MAP_NAME[] = "mme_ueip_imsi_map";
 }  // namespace
 
 namespace magma {
