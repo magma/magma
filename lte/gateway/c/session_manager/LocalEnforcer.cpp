@@ -1187,69 +1187,84 @@ void LocalEnforcer::add_rules_for_unsuspended_credit(
       session->get_config(), rules_to_add, RulesToProcess{}, false);
 }
 
+bool LocalEnforcer::handle_credit_update_failure(
+    const CreditUpdateResponse& credit_update_resp,
+    UpdateChargingCreditActions* actions) const {
+  const std::string& imsi       = credit_update_resp.sid();
+  const std::string& session_id = credit_update_resp.session_id();
+  const uint32_t& ckey          = credit_update_resp.charging_key();
+  const uint32_t& result_code   = credit_update_resp.result_code();
+
+  if (credit_update_resp.success()) {
+    return true;
+  }
+  // handle permanent failure -> terminate
+  if (DiameterCodeHandler::is_permanent_failure(result_code)) {
+    MLOG(MERROR) << session_id << " Received permanent failure result code "
+                 << result_code << " during update" << session_id;
+    actions->sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
+    return false;
+  } else if (DiameterCodeHandler::is_transient_failure(result_code)) {
+    // handle transient failure -> suspend
+    MLOG(MERROR) << session_id << " Received transient failure result code "
+                 << result_code << " during update" << session_id;
+    actions->suspended_credits.insert(
+        ImsiSessionIDAndCreditkey{imsi, session_id, ckey});
+  } else {
+    // TODO( ): deal with other error codes
+    MLOG(MERROR) << "Received Unimplemented result code " << result_code
+                 << " for " << session_id << " during update. Not action taken";
+  }
+  return true;
+}
+
 void LocalEnforcer::update_charging_credits(
     SessionMap& session_map, const UpdateSessionResponse& response,
     UpdateChargingCreditActions& actions, SessionUpdate& session_update) {
   for (const auto& credit_update_resp : response.responses()) {
     const std::string& imsi       = credit_update_resp.sid();
     const std::string& session_id = credit_update_resp.session_id();
-    const auto ckey               = credit_update_resp.charging_key();
+    const uint32_t& charging_key  = credit_update_resp.charging_key();
     SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
       MLOG(MERROR) << "Could not find session " << session_id
-                   << " during charging update for RG " << ckey;
+                   << " during charging update for RG " << charging_key;
       continue;
     }
-    auto& session    = **session_it;
-    auto& uc         = session_update[imsi][session_id];
-    auto result_code = credit_update_resp.result_code();
+    auto& session = **session_it;
+    auto& uc      = session_update[imsi][session_id];
 
-    // handle permanent failure -> terminate
-    if (!credit_update_resp.success() &&
-        DiameterCodeHandler::is_permanent_failure(result_code)) {
-      MLOG(MERROR) << session_id << " Received permanent failure result code "
-                   << result_code << " during update" << session_id;
-      actions.sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
+    // handle credit level result code / success field
+    // this function will return true if the credit should further be processed
+    if (!handle_credit_update_failure(credit_update_resp, &actions)) {
       continue;
     }
 
     const auto& credit_key(credit_update_resp);
     // We need to retrieve restrict_rules and is_final_action_state
     // prior to receiving charging credit as they will be updated.
-    optional<FinalActionInfo> final_action_info =
+    optional<FinalActionInfo> prev_final_action =
         session->get_final_action_if_final_unit_state(credit_key);
     bool valid_credit =
         session->receive_charging_credit(credit_update_resp, uc);
     session->set_tgpp_context(credit_update_resp.tgpp_ctx(), uc);
 
+    bool should_activate = session->is_credit_ready_to_be_activated(credit_key);
+    if (!should_activate) {
+      continue;
+    }
+    // This credit is now out of quota and need to be acted on
     // handle suspended credits -> unsuspend
     if (valid_credit && session->is_credit_suspended(credit_key)) {
       actions.unsuspended_credits.insert(
-          ImsiSessionIDAndCreditkey{imsi, session_id, ckey});
+          ImsiSessionIDAndCreditkey{imsi, session_id, charging_key});
     }
 
-    // handle other failures
-    if (!credit_update_resp.success()) {
-      // handle transient failure -> suspend
-      if (DiameterCodeHandler::is_transient_failure(
-              credit_update_resp.result_code())) {
-        MLOG(MERROR) << session_id << " Received transient failure result code "
-                     << result_code << " during update" << session_id;
-        actions.suspended_credits.insert(
-            ImsiSessionIDAndCreditkey{imsi, session_id, ckey});
-      } else {
-        // TODO: deal with other error codes
-        MLOG(MERROR) << "Received Unimplemented result code " << result_code
-                     << " for " << session_id
-                     << " during update. Not action taken";
-      }
-    }
-
-    // TODO: move it to actions vector
-    if (final_action_info) {
+    // TODO( ): move it to actions vector
+    if (prev_final_action) {
       RulesToProcess gy_rules =
-          session->remove_all_final_action_rules(*final_action_info, uc);
+          session->remove_all_final_action_rules(*prev_final_action, uc);
       if (!gy_rules.empty()) {
         auto config = session->get_config().common_context;
         // We need to cancel final unit action flows installed in pipelined here

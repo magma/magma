@@ -201,6 +201,7 @@ class Classifier(MagmaController):
         self._install_internal_pkt_fwd_flow()
         self._install_internal_conntrack_flow()
 
+
     def _delete_all_flows(self):
         flows.delete_all_flows_from_table(self._datapath, self.tbl_num)
 
@@ -633,6 +634,110 @@ class Classifier(MagmaController):
                                        ue_ip_addr, ip_flow_dl)
 
         return True
+
+    def add_s8_tunnel_flows(self, precedence: int, i_teid: int,
+                            o_teid: int, ue_ip_adr: IPAddress,
+                            enodeb_ip_addr: str, sid: int = None,
+                            pgw_ip_addr: str = None,
+                            pgw_gtp_port: int = 0,
+                            ng_flag: bool = True,
+                            unused_ue_ipv6_address: IPAddress = None,
+                            unused_vlan: int = 0,
+                            ip_flow_dl: IPFlowDL = None) -> bool:
+
+        priority = Utils.get_of_priority(precedence)
+        # Add flow for gtp port
+        if enodeb_ip_addr:
+            gtp_portno = self._add_gtp_port(enodeb_ip_addr)
+        else:
+            gtp_portno = self.config.gtp_port
+
+        self._install_uplink_s8_tunnel_flows(priority, i_teid, o_teid,
+                                             pgw_ip_addr, gtp_portno, sid, pgw_gtp_port)
+
+        if ip_flow_dl and ip_flow_dl.set_params:
+            self._add_tunnel_ip_flow_dl(i_teid, ip_flow_dl, gtp_portno, o_teid,
+                                        enodeb_ip_addr, sid)
+        else:
+            gtp_port = pgw_gtp_port
+            if pgw_gtp_port == 0:
+                gtp_port = self.config.gtp_port
+
+            if o_teid and enodeb_ip_addr:
+                # Add  Downlink Tunnel flow for LOCAL port
+                self._install_downlink_tunnel_flows(priority, i_teid, o_teid,
+                                                    gtp_port, ue_ip_adr,
+                                                    enodeb_ip_addr, gtp_portno,
+                                                    sid, ng_flag)
+
+                # Add  Downlink Tunnel flow for mtr port
+                self._install_downlink_tunnel_flows(priority, i_teid, o_teid,
+                                                    self.config.mtr_port,
+                                                    ue_ip_adr, enodeb_ip_addr,
+                                                    gtp_portno, sid, ng_flag)
+
+        # Add ARP flow for MTR port
+        if ue_ip_adr.version == IPAddress.IPV4:
+            # Add ARP flow for mtr port
+            self._install_downlink_arp_flows(priority, self.config.mtr_port,
+                                             ue_ip_adr, sid)
+        return True
+
+    def _install_uplink_s8_tunnel_flows(self, priority: int, i_teid: int,
+                                        o_teid: int, pgw_ip_addr: str,
+                                        gtp_portno: int, sid: int,
+                                        pgw_gtp_port: int):
+
+        parser = self._datapath.ofproto_parser
+        match = MagmaMatch(tunnel_id=i_teid, in_port=gtp_portno)
+        gtp_port = pgw_gtp_port
+        if pgw_gtp_port == 0:
+            gtp_port = self.config.gtp_port
+
+        actions = [parser.OFPActionSetField(tunnel_id=o_teid),
+                   parser.OFPActionSetField(tun_ipv4_dst=pgw_ip_addr),
+                   parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=gtp_port),
+                   parser.OFPActionSetField(eth_dst="ff:ff:ff:ff:ff:ff")]
+
+        if sid:
+            actions.append(parser.OFPActionSetField(metadata=sid))
+
+        flows.add_resubmit_next_service_flow(self._datapath, self.tbl_num, match,
+                                             actions=actions, priority=priority,
+                                             reset_default_register=False,
+                                             resubmit_table=self.next_table)
+
+    def delete_s8_tunnel_flows(self, i_teid: int, ue_ip_adr: IPAddress,
+                               enodeb_ip_addr: str = None, pgw_gtp_port: int = 0,
+                               ip_flow_dl: IPFlowDL = None) -> bool:
+
+        # Delete flow for gtp port
+        if enodeb_ip_addr:
+            gtp_portno = self._add_gtp_port(enodeb_ip_addr)
+        else:
+            gtp_portno = self.config.gtp_port
+
+        if i_teid:
+            self._delete_uplink_tunnel_flows(i_teid, gtp_portno)
+
+        if ip_flow_dl and ip_flow_dl.set_params:
+            self._delete_tunnel_ip_flow_dl(ip_flow_dl)
+        else:
+            gtp_port = pgw_gtp_port
+            if pgw_gtp_port == 0:
+                gtp_port = self.config.gtp_port
+            # Delete flow for LOCAL port
+            self._delete_downlink_tunnel_flows(ue_ip_adr, gtp_port)
+
+            # Delete flow for mtr port
+            self._delete_downlink_tunnel_flows(ue_ip_adr, self.config.mtr_port)
+
+        if ue_ip_adr.version == IPAddress.IPV4:
+            # Delete ARP flow for mtr port
+            self._delete_downlink_arp_flows(ue_ip_adr, self.config.mtr_port)
+
+        return True
+
 
     def _upf_add_tunnel(self, ue_session_entry):
         self.logger.info(

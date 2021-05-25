@@ -576,7 +576,6 @@ jobs:
       - build/determinator:
           <<: *all_gateways_build_verify
       - docker/install-dc
-      - run: sudo apt-get update
       - python/set_version
       - run:
           command: |
@@ -586,6 +585,25 @@ jobs:
       - run: git add .
       - run: git status
       - run: git diff-index --quiet HEAD
+      - magma_slack_notify
+
+  # Fail if terraform variables, helm charts and orcl is out of sync
+  deploy-sync-checkin:
+    machine:
+      image: ubuntu-1604:201903-01
+      # docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
+      - docker/install-dc
+      - python/set_version
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
+            ./run_deployer.bash -deploy-dir /tmp/deploy_dir -build -test check_all
       - magma_slack_notify
 
   orc8r-build:
@@ -1359,11 +1377,13 @@ workflows:
   cloud:
     jobs:
       - insync-checkin
+      - deploy-sync-checkin
       - cloud_lint
       - cloud-test
       - orc8r-build:
           requires:
             - insync-checkin
+            - deploy-sync-checkin
             - cloud_lint
             - cloud-test
 
