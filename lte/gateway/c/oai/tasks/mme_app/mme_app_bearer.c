@@ -576,7 +576,7 @@ imsi64_t mme_app_handle_initial_ue_message(
   enb_s1ap_id_key_t enb_s1ap_id_key    = INVALID_ENB_UE_S1AP_ID_KEY;
   imsi64_t imsi64                      = INVALID_IMSI64;
 
-  OAILOG_INFO(LOG_MME_APP, "Received MME_APP_INITIAL_UE_MESSAGE from S1AP");
+  OAILOG_INFO(LOG_MME_APP, "Received MME_APP_INITIAL_UE_MESSAGE from S1AP\n");
 
   if (initial_pP->mme_ue_s1ap_id != INVALID_MME_UE_S1AP_ID) {
     OAILOG_ERROR(
@@ -585,7 +585,6 @@ imsi64_t mme_app_handle_initial_ue_message(
         initial_pP->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
   }
-
   // Check if there is any existing UE context using S-TMSI/GUTI
   if (initial_pP->is_s_tmsi_valid) {
     OAILOG_DEBUG(

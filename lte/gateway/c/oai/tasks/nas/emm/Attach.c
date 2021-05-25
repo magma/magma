@@ -1197,7 +1197,7 @@ static int emm_attach_success_identification_cb(emm_context_t* emm_context) {
   if (!emm_context) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
-        "emm_context is NULL in ATTACH - Identification procedure success!\n");
+        "emm_context is NULL in ATTACH - Identification success procedure!\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
   OAILOG_INFO_UE(
@@ -1220,6 +1220,13 @@ static int emm_attach_success_identification_cb(emm_context_t* emm_context) {
 static int emm_attach_failure_identification_cb(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
+
+  if (!emm_context) {
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "emm_context is NULL in ATTACH - Identification failure procedure!\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
 
   OAILOG_ERROR_UE(
       LOG_NAS_EMM, emm_context->_imsi64,
@@ -1252,7 +1259,7 @@ static int emm_attach_success_authentication_cb(emm_context_t* emm_context) {
   if (!emm_context) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
-        "emm_context is NULL in ATTACH - Authentication procedure success!\n");
+        "emm_context is NULL in ATTACH - Authentication success procedure!\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -1273,6 +1280,14 @@ static int emm_attach_success_authentication_cb(emm_context_t* emm_context) {
 static int emm_attach_failure_authentication_cb(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
+
+  if (!emm_context) {
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "emm_context is NULL in ATTACH - Authentication failure procedure!\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
   OAILOG_ERROR_UE(
       LOG_NAS_EMM, emm_context->_imsi64,
       "ATTACH - Authentication procedure failed!\n");
@@ -1348,7 +1363,7 @@ static int emm_attach_success_security_cb(emm_context_t* emm_context) {
   if (!emm_context) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
-        "emm_context is NULL in ATTACH - Security procedure success!\n");
+        "emm_context is NULL in ATTACH - Security success procedure!\n");
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
