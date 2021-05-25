@@ -15,6 +15,7 @@
  *      contact@openairinterface.org
  */
 
+#include <vector>
 extern "C" {
 #include "bytes_to_ie.h"
 #include "dynamic_memory_check.h"

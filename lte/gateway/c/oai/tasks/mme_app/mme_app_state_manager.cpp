@@ -15,6 +15,7 @@
  *      contact@openairinterface.org
  */
 
+#include <string>
 extern "C" {
 #include "assertions.h"
 #include "dynamic_memory_check.h"

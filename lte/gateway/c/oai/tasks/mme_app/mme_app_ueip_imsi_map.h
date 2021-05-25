@@ -16,5 +16,7 @@ limitations under the License.
 #include <bits/stdc++.h>
 #include <unordered_map>
 #include <iostream>
+#include <string>
+#include <vector>
 
 typedef std::unordered_map<std::string, std::vector<uint64_t>> UeIpImsiMap;
