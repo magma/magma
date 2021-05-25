@@ -120,7 +120,7 @@ func SearchStates(networkID string, typeFilter []string, keyFilter []string, key
 
 	// check if all state IDs have the exact IMSI prefix (if keyPrefix was specified)
 	if !funk.IsEmpty(keyPrefix) {
-		for stateID, _ := range states {
+		for stateID := range states {
 			matches := IMSIKeyRe.FindStringSubmatch(stateID.DeviceID)
 			if len(matches) != IMSIExpectedMatchCount {
 				glog.Errorf("state device ID %s did not match IMSI-prefixed regex", stateID.DeviceID)

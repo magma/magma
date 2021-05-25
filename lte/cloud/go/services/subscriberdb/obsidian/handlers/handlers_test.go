@@ -1169,7 +1169,7 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 		ParamValues:    []string{"n1", "IMSI123"},
 		ExpectedStatus: 200,
 		ExpectedResult: &subscriberModels.Subscriber{
-			ID: "IMSI123",
+			ID:   "IMSI123",
 			Name: "Jane Doe",
 			Lte: &subscriberModels.LteSubscription{
 				AuthAlgo:   "MILENAGE",
@@ -1197,7 +1197,7 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 				},
 			},
 			State: &subscriberModels.SubscriberState{
-				Mme:  mmeState,
+				Mme: mmeState,
 			},
 		},
 	}
