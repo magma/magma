@@ -50,7 +50,6 @@ require (
 	github.com/vishvananda/netlink v1.1.0
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b
 	golang.org/x/net v0.0.0-20210501142056-aec3718b3fa0
-	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.33.2
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/cloud/go/protos v0.0.0
