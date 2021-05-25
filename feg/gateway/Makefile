@@ -98,7 +98,9 @@ docker_healthcheck: docker_start
 TOOL_DEPS:= \
 	github.com/ory/go-acc \
 	github.com/wadey/gocovmerge \
-	gotest.tools/gotestsum
+	gotest.tools/gotestsum \
+	github.com/golang/protobuf/protoc-gen-go \
+	github.com/vektra/mockery/v2
 
 tools:: $(TOOL_DEPS)
 $(TOOL_DEPS): %:

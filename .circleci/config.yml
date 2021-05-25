@@ -696,6 +696,34 @@ jobs:
           flags: feg-lint
       - magma_slack_notify
 
+  feg-insync:
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      GO111MODULE: 'on'
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *federated_build_verify
+      - install-go
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run: ./circleci/golang_before_install.sh
+      - run-with-retry:
+         command: go mod download
+         workdir: ${MAGMA_ROOT}/cwf/gateway
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/feg/gateway
+            make -C ${MAGMA_ROOT}/feg/gateway tools
+            make -C ${MAGMA_ROOT}/feg/gateway gen
+      - run: sudo chown -R circleci $MAGMA_ROOT/*
+      - run: git add .
+      - run: git status
+      - run: git diff-index --quiet HEAD
+      - magma_slack_notify
+
   feg-precommit:
     machine:
       image: ubuntu-1604:201903-01
@@ -1446,6 +1474,7 @@ workflows:
     jobs:
       - feg-lint
       - feg-precommit
+      - feg-insync
       - feg-build:
           requires:
             - feg-precommit

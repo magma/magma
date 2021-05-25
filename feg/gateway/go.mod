@@ -40,6 +40,7 @@ require (
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/thoas/go-funk v0.7.0
+	github.com/vektra/mockery/v2 v2.7.5 // indirect
 	github.com/wmnsk/go-gtp v0.7.24
 	golang.org/x/crypto v0.0.0-20210421170649-83a5a9bb288b // indirect
 	golang.org/x/mod v0.4.2 // indirect
