@@ -170,12 +170,21 @@ TEST_F(ChargingGrantTest, test_should_deactivate_service) {
   grant.service_state                  = SERVICE_ENABLED;
   EXPECT_TRUE(grant.should_deactivate_service());
 
-  // If service state is not ENABLED we should not deactivate service
+  // If service state is not ENABLED we should not deactivate service for FUA
+  // redirect / restrict
+  SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
+  grant.is_final_grant                                  = true;
+  grant.final_action_info.final_action = ChargingCredit_FinalAction_REDIRECT;
+  grant.service_state                  = SERVICE_DISABLED;
+  EXPECT_FALSE(grant.should_deactivate_service());
+
+  // If service state is not ENABLED we should deactivate service for FUA
+  // terminate
   SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
   grant.is_final_grant                                  = true;
   grant.final_action_info.final_action = ChargingCredit_FinalAction_TERMINATE;
   grant.service_state                  = SERVICE_DISABLED;
-  EXPECT_FALSE(grant.should_deactivate_service());
+  EXPECT_TRUE(grant.should_deactivate_service());
 }
 
 TEST_F(ChargingGrantTest, test_get_action) {
