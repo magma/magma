@@ -176,6 +176,7 @@ class IPFIXController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
+        parser = self._datapath.ofproto_parser
         match = MagmaMatch()
         flows.add_resubmit_next_service_flow(
             datapath, self.tbl_num, match, [],
