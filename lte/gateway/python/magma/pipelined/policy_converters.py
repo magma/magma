@@ -244,6 +244,11 @@ def convert_ipv4_str_to_ip_proto(ipv4_str):
                      address=ipv4_str.encode('utf-8'))
 
 
+def convert_ipv6_str_to_ip_proto(ipv6_str):
+    return IPAddress(version=IPAddress.IPV6,
+                     address=ipv6_str.encode('utf-8'))
+
+
 def convert_ipv6_bytes_to_ip_proto(ipv6_bytes):
     return IPAddress(version=IPAddress.IPV6,
                      address=ipv6_bytes)

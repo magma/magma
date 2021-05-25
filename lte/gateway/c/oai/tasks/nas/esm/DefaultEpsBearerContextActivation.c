@@ -360,7 +360,9 @@ int esm_proc_default_eps_bearer_context_reject(
     /* Set ue_rej_act_def_ber_req flag in order to delete the PDN session
      * after receiving delete session rsp from spgw
      */
-    ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = true;
+    if (ue_context_p->pdn_contexts[pid]) {
+      ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = true;
+    }
 #endif
   }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -497,7 +499,13 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
        * If PDN connectivity is received along with attach req send
        * activate default eps bearer req message in ICS req
        */
-      if (((emm_context_t*) esm_ebr_timer_data->ctx)->esm_ctx.is_standalone) {
+      ue_mm_context_t* ue_context_p = PARENT_STRUCT(
+          ((emm_context_t*) esm_ebr_timer_data->ctx), struct ue_mm_context_s,
+          emm_context);
+      bearer_context_t* bc =
+          mme_app_get_bearer_context(ue_context_p, esm_ebr_timer_data->ebi);
+      if (((emm_context_t*) esm_ebr_timer_data->ctx)->esm_ctx.is_standalone &&
+          (!(bc->enb_fteid_s1u.teid))) {
         default_eps_bearer_activate_in_bearer_setup_req(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       } else {
@@ -567,7 +575,6 @@ static int default_eps_bearer_activate(
   emm_sap.u.emm_esm.ue_id = ue_id;
   emm_sap.u.emm_esm.ctx   = emm_context;
   emm_esm->msg            = *msg;
-  msg                     = NULL;
   rc                      = emm_sap_send(&emm_sap);
 
   if (rc != RETURNerror) {
@@ -584,14 +591,13 @@ static int default_eps_bearer_activate(
           ue_id);
     }
   }
-  *msg = NULL;
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _default_eps_bearer_activate_in_bearer_setup_req()           **
+ ** Name:    default_eps_bearer_activate_in_bearer_setup_req()           **
  **                                                                        **
  ** Description: Sends ACTIVATE DEFAULT EPS BEREAR CONTEXT REQUEST message **
  ** in ERAB_REQ message and starts timer T3485                             **

@@ -567,6 +567,15 @@ static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
   pdn_cid_t pdn_cid =
       ue_mm_context->bearer_contexts[def_bearer_index]->pdn_cx_id;
 
+  if (ue_mm_context->pdn_contexts[pdn_cid] == NULL) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+        "pdn_contexts is NULL for "
+        "MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "ebi-%u\n",
+        ue_mm_context->mme_ue_s1ap_id, msg_pP->ebi);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+  }
+
   // Return default EPS bearer context request message
   rc = esm_send_activate_default_eps_bearer_context_request(
       msg_pP->pti, msg_pP->ebi,

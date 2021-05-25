@@ -19,6 +19,7 @@ magma_services:
   - control_proxy
   - redis
   - session_proxy
+  - s8_proxy
   - s6a_proxy
   - csfb
   - feg_hello

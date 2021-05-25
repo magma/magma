@@ -9642,7 +9642,6 @@ definitions:
     - description
     - magmad
     - tier
-    - federation
     type: object
   mutable_lte_gateway:
     description: LTE gateway object with read-only fields omitted

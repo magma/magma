@@ -338,5 +338,44 @@ class ClassifierTest(unittest.TestCase):
         with snapshot_verifier:
             pass
 
+
+    def test_attach_s8_tunnel_flows(self):
+
+        # Need to delete all default flows in table 0 before
+        # install the specific flows test case.
+        self.test_detach_default_tunnel_flows()
+
+        ip_no = hex(socket.htonl(int(ipaddress.ip_address(self.EnodeB_IP))))
+        buf = "g_{}".format(ip_no[2:])
+
+        BridgeTools.create_veth_pair(buf, buf + "ns")
+        BridgeTools.add_ovs_port(self.BRIDGE, buf, "40")
+
+        ue_ip_addr = "192.168.128.15"
+        ip_flow_dl = IPFlowDL(set_params=0)
+        self.classifier_controller.add_s8_tunnel_flows(65525, 10, 5000,
+                                                       IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                       self.EnodeB_IP, 5678, "192.168.60.112", 3000, True,
+                                                       ip_flow_dl=ip_flow_dl)
+
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+        with snapshot_verifier:
+            pass
+
+
+    def test_detach_s8_tunnel_flows(self):
+
+        ue_ip_addr = "192.168.128.15"
+        ip_flow_dl = IPFlowDL(set_params=0)
+        self.classifier_controller.delete_s8_tunnel_flows(10, IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+                                                          self.EnodeB_IP, 3000, ip_flow_dl=ip_flow_dl)
+
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+        with snapshot_verifier:
+            pass
+
+
 if __name__ == "__main__":
     unittest.main()
