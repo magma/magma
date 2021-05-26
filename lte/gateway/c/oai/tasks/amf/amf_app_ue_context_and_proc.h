@@ -810,4 +810,11 @@ int pdu_state_handle_message(
     itti_n11_create_pdu_session_response_t*, uint32_t);
 nas_amf_ident_proc_t* get_5g_nas_common_procedure_identification(
     const amf_context_t* ctxt);
+void amf_delete_registration_proc(amf_context_t* amf_txt);
+void amf_delete_registration_ies(amf_registration_request_ies_t** ies);
+void amf_delete_child_procedures(
+    amf_context_t* amf_txt, struct nas5g_base_proc_t* const parent_proc);
+void amf_delete_common_procedure(
+    amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
+void delete_wrapper(void** ptr);
 }  // namespace magma5g

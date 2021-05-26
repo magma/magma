@@ -47,7 +47,7 @@ int amf_sap_send(amf_sap_t* msg) {
      * will handle for state update
      */
     msg->u.amf_reg.primitive = primitive;
-    rc                       = amf_reg_send(&msg->u.amf_reg);
+    rc                       = amf_reg_send(msg);
   } else if (
       (primitive > (amf_primitive_t) AMFAS_PRIMITIVE_MIN) &&
       (primitive < (amf_primitive_t) AMFAS_PRIMITIVE_MAX)) {

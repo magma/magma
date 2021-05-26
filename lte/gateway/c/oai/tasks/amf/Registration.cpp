@@ -115,7 +115,8 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
         "amf_procedures\n");
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
-  amf_context->amf_procedures->amf_specific_proc = new nas_amf_specific_proc_t;
+  amf_context->amf_procedures->amf_specific_proc =
+      new nas_amf_specific_proc_t();
 
   memset(
       amf_context->amf_procedures->amf_specific_proc, 0,
@@ -906,11 +907,205 @@ int amf_proc_amf_information(ue_m5gmm_context_s* ue_amf_ctx) {
  **      Others:    None                                              **
  **                                                                   **
  ***********************************************************************/
-int amf_reg_send(amf_reg_t* const msg) {
+int amf_reg_send(amf_sap_t* const msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int rc = RETURNok;
   // TODO in future it will be implemented based on request of
   // PDU session establishment with inital registration
-  int rc = RETURNok;
+  amf_primitive_t primitive          = msg->primitive;
+  amf_reg_t* evt                     = &msg->u.amf_reg;
+  amf_context_t* amf_ctx             = msg->u.amf_reg.ctx;
+  ue_m5gmm_context_s* ue_amf_context = NULL;
+
+  ue_amf_context = amf_ue_context_exists_amf_ue_ngap_id(evt->ue_id);
+
+  if (!ue_amf_context) {
+    OAILOG_ERROR(
+        LOG_NAS_AMF, "Ue context not found for the ue id %u\n", evt->ue_id);
+    rc = RETURNerror;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
+
+  if (evt && amf_ctx) {
+    switch (primitive) {
+      case AMFREG_REGISTRATION_CNF: {
+        OAILOG_DEBUG(LOG_NAS_AMF, "AMFREG_REGISTRATION_CNF");
+        if (evt->free_proc) {
+          amf_delete_registration_proc(amf_ctx);
+        }
+
+        /* Update the state */
+        // ue_amf_context->mm_state = REGISTERED_CONNECTED;
+      } break;
+      default: {}
+    }
+  }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
+
+/***********************************************************************
+ ** Name:    amf_delete_registration_proc()                       **
+ **                                                                   **
+ ** Description: deletes the nas registration specific procedure      **
+ **                                                                   **
+ ** Inputs:  amf_ctx:       The Amf context to process                **
+ **      Others:    None                                              **
+ **                                                                   **
+ ** Outputs:     None                                                 **
+ **      Return:    void                                              **
+ **      Others:    None                                              **
+ **                                                                   **
+ ***********************************************************************/
+void amf_delete_registration_proc(amf_context_t* amf_ctx) {
+  nas_amf_registration_proc_t* proc =
+      get_nas_specific_procedure_registration(amf_ctx);
+
+  if (proc) {
+    if (proc->ies) {
+      amf_delete_registration_ies(&proc->ies);
+    }
+  }
+
+  amf_delete_child_procedures(amf_ctx, (nas5g_base_proc_t*) proc);
+}  // namespace magma5g
+
+/***********************************************************************
+ ** Name:    amf_delete_registration_ies()                            **
+ **                                                                   **
+ ** Description: deletes the nas registration specific ies            **
+ **                                                                   **
+ ** Inputs:  ies:   The registration to delete                        **
+ **      Others:    None                                              **
+ **                                                                   **
+ ** Outputs:     None                                                 **
+ **      Return:    void                                              **
+ **      Others:    None                                              **
+ **                                                                   **
+ ***********************************************************************/
+void amf_delete_registration_ies(amf_registration_request_ies_t** ies) {
+  if ((*ies)->imsi) {
+    delete_wrapper((void**) &(*ies)->imsi);
+  }
+
+  if ((*ies)->guti) {
+    delete_wrapper((void**) &(*ies)->guti);
+  }
+
+  if ((*ies)->imei) {
+    delete_wrapper((void**) &(*ies)->imei);
+  }
+
+  if ((*ies)->drx_parameter) {
+    delete_wrapper((void**) &(*ies)->drx_parameter);
+  }
+
+  if ((*ies)->last_visited_registered_tai) {
+    delete_wrapper((void**) &(*ies)->last_visited_registered_tai);
+  }
+}
+
+/***********************************************************************
+ ** Name:    amf_delete_child_procedures()                            **
+ **                                                                   **
+ ** Description: deletes the nas registration specific child          **
+ **              child procedures                                     **
+ **                                                                   **
+ ** Inputs:  amf_ctx:   The amf context                               **
+ **          parent_proc: nas 5g base proc                            **
+ **                                                                   **
+ **                                                                   **
+ ** Outputs:     None                                                 **
+ **      Return:    void                                              **
+ **      Others:    None                                              **
+ **                                                                   **
+ ***********************************************************************/
+void amf_delete_child_procedures(
+    amf_context_t* amf_ctx, struct nas5g_base_proc_t* const parent_proc) {
+  if (amf_ctx && amf_ctx->amf_procedures) {
+    nas_amf_common_procedure_t* p1 =
+        LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
+    nas_amf_common_procedure_t* p2 = NULL;
+    while (p1) {
+      p2 = LIST_NEXT(p1, entries);
+      if (((nas5g_base_proc_t*) p1->proc)->parent == parent_proc) {
+        amf_delete_common_procedure(amf_ctx, &p1->proc);
+      }
+      p1 = p2;
+    }
+  }
+}
+
+/***********************************************************************
+ ** Name:    amf_delete_common_procedure()                            **
+ **                                                                   **
+ ** Description: deletes the nas registration specific common         **
+ **              procedures                                           **
+ **                                                                   **
+ ** Inputs:  amf_ctx:   The amf context                               **
+ **          proc: nas amf common proc                                **
+ **                                                                   **
+ **                                                                   **
+ ** Outputs:     None                                                 **
+ **      Return:    void                                              **
+ **      Others:    None                                              **
+ **                                                                   **
+ ***********************************************************************/
+void amf_delete_common_procedure(
+    amf_context_t* amf_ctx, nas_amf_common_proc_t** proc) {
+  if (*proc) {
+    /* delete proc content */
+    switch ((*proc)->type) {
+      case AMF_COMM_PROC_AUTH: {
+      } break;
+      case AMF_COMM_PROC_SMC: {
+      } break;
+      case AMF_COMM_PROC_IDENT: {
+      } break;
+      default: {}
+    }
+
+    // remove proc from list
+    if (amf_ctx->amf_procedures) {
+      nas_amf_common_procedure_t* p1 =
+          LIST_FIRST(&amf_ctx->amf_procedures->amf_common_procs);
+      nas_amf_common_procedure_t* p2 = NULL;
+      while (p1) {
+        p2 = LIST_NEXT(p1, entries);
+        if (p1->proc == (nas_amf_common_proc_t*) (*proc)) {
+          LIST_REMOVE(p1, entries);
+          delete_wrapper((void**) &p1->proc);
+          delete_wrapper((void**) &p1);
+          return;
+        }
+        p1 = p2;
+      }
+    }
+  }
+
+  // if not found in list, free it anyway
+  if (*proc) {
+    delete_wrapper((void**) proc);
+  }
+}
+
+/***********************************************************************
+ ** Name:    delete_wrapper()                                         **
+ **                                                                   **
+ ** Description: deletes the memory                                   **
+ **                                                                   **
+ ** Inputs: ptr:   pointer to be freed                                **
+ **                                                                   **
+ **                                                                   **
+ ** Outputs:     None                                                 **
+ **      Return:    void                                              **
+ **      Others:    None                                              **
+ **                                                                   **
+ ***********************************************************************/
+void delete_wrapper(void** ptr) {
+  if (ptr) {
+    delete (*ptr);
+    *ptr = NULL;
+  }
+}
+
 }  // namespace magma5g

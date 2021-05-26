@@ -331,7 +331,7 @@ int amf_proc_security_mode_control(
   int amf_eea = 0;
   int amf_eia = 0;  // Integrity Algorithm 2
   amf_plmn_t plmn;
-  uint8_t snni[32]  = {0};
+  uint8_t snni[40]  = {0};
   uint8_t kausf[32] = {0};
   uint8_t kseaf[32] = {0};
   uint8_t ck_ik[32] = {0};
@@ -405,16 +405,16 @@ int amf_proc_security_mode_control(
       snni[3]  = 0x6D;  // m
       snni[4]  = 0x6E;  // n
       snni[5]  = 0x63;  // c
-      snni[6]  = 0x30 | plmn.mnc_digit1;
-      snni[7]  = 0x30 | plmn.mnc_digit2;
-      snni[8]  = 0x30 | plmn.mnc_digit3;
+      snni[6]  = 0x30 + plmn.mnc_digit1;
+      snni[7]  = 0x30 + plmn.mnc_digit2;
+      snni[8]  = 0x30 + plmn.mnc_digit3;
       snni[9]  = 0x2E;  //.
       snni[10] = 0x6D;  // m
       snni[11] = 0x63;  // c
       snni[12] = 0x63;  // c
-      snni[13] = 0x30 | plmn.mcc_digit1;
-      snni[14] = 0x30 | plmn.mcc_digit2;
-      snni[15] = 0x30 | plmn.mcc_digit3;
+      snni[13] = 0x30 + plmn.mcc_digit1;
+      snni[14] = 0x30 + plmn.mcc_digit2;
+      snni[15] = 0x30 + plmn.mcc_digit3;
       snni[16] = 0x2E;  //.
       snni[17] = 0x33;  // 3
       snni[18] = 0x67;  // g
@@ -431,6 +431,18 @@ int amf_proc_security_mode_control(
       snni[29] = 0x6F;  // o
       snni[30] = 0x72;  // r
       snni[31] = 0x67;  // g
+
+      // int r = sprintf(
+      //   snni, "5G:mnc%01d%01d%01d.mcc%01d%01d%01d.3gppnetwork.org",
+      //  (char*) plmn.mnc_digit1, (char*) plmn.mnc_digit2,
+      // (char*) plmn.mnc_digit3, (char*) plmn.mcc_digit1,
+      //  (char*) plmn.mcc_digit2, (char*) plmn.mcc_digit3);
+      //  if (r != 32) {
+      //    OAILOG_ERROR(LOG_NAS_AMF, "failed to construct SNN!\n");
+      //  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+      // } else {
+      OAILOG_ERROR(LOG_NAS_AMF, " SNN %s\n", snni);
+      // }
 
       memcpy(
           ak_sqn,
