@@ -62,6 +62,8 @@ belonging to other operators (roaming subscribers)</p>
 other operators to have direct connectivity to their HSS through <code>S6a</code>
 (diameter) and PGW through <code>S8</code> (gtp) interfaces. VPN is suggested to reach
 those roaming services but is out of scope of Magma.</p>
+<p>At the bottom of this document you have
+<a href="#configuration-example">configuration example</a></p>
 <h2><a class="anchor" aria-hidden="true" id="architecture"></a><a href="#architecture" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Architecture</h2>
 <p>Currently, we support two Architectures:</p>
 <ul>
@@ -78,7 +80,7 @@ reach to the user plane at the remote PGW.</p>
 subscribers may also work but are not tested yet.</p>
 <p>Configurations with SubscriberDB, local HSS and remote HSS all at the same
 time is not supported yet.</p>
-<h2><a class="anchor" aria-hidden="true" id="pre-requisites"></a><a href="#pre-requisites" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Pre Requisites</h2>
+<h2><a class="anchor" aria-hidden="true" id="prerequisites"></a><a href="#prerequisites" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Prerequisites</h2>
 <p>Before starting to configure roaming setups, first you need to bring up a
 setup to handle your own/local subscribers.</p>
 <p>Even one of the architectures mentions <code>Non-Federated</code>, Inbound Roaming
@@ -96,14 +98,14 @@ you need:</p>
 <p>At the end of this you will have:</p>
 <ul>
 <li>A Federated LTE Network with an LTE Gateway (AGW)</li>
-<li>A Federation Network with a Federation Gateway (FEG)</li>
+<li>A Federation Network with a Federation Gateway (FeG)</li>
 </ul>
 <p>We will refer to them as <code>local</code> Networks and Gateways to differentiate them
 from the <code>roaming</code>Networks and Gateways we will create in the next step.</p>
 <p><em>Note that in case of <strong>Non-Federated + roaming</strong> you can skip the creation
 of the Federated Gateway, but you still need the Federated Gateway Network that will serve your
 Federated LTE Network.</em></p>
-<h2><a class="anchor" aria-hidden="true" id="inbound-roaming-configuration"></a><a href="#inbound-roaming-configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Inbound Roaming Configuration</h2>
+<h2><a class="anchor" aria-hidden="true" id="inbound-roaming-configuration"></a><a href="#inbound-roaming-configuration" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Inbound Roaming configuration</h2>
 <p>The following instructions use Orc8r Swagger API to configure Inbound Roaming.
 You can do the same using Swagger API or NMS JSON editor.</p>
 <p>In these instructions we will mainly use GET and PUT methods to read and write
@@ -115,19 +117,21 @@ modify parameters.</p>
 <li>Create roaming Federated Networks and Gateways.</li>
 <li>Configure local Access Gateway Network routing based on PLMN.</li>
 <li>Configure local Federation Network routing based on PLMN.</li>
+<li>Configure roaming Federation Network served networks</li>
+<li>Configure FeG Gateways</li>
 <li>Check connectivity</li>
 </ul>
 <h3><a class="anchor" aria-hidden="true" id="1-create-roaming-federated-networks-and-federated-gateways"></a><a href="#1-create-roaming-federated-networks-and-federated-gateways" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>1. Create Roaming Federated Networks and Federated Gateways</h3>
-<p>Inbound Roaming needs as many FEG Networks as roaming agreements. Don't
-forget to create a Federated Gateway per FEG Network.</p>
-<p>Roaming FEG Networks do not need to serve any Federated LTE Network (only the
-FEG Network created on Pre Requisites needs to serve a Federated LTE Network)</p>
+<p>Inbound Roaming needs as many FeG Networks as roaming agreements. Don't
+forget to create a Federated Gateway per FeG Network.</p>
+<p>Roaming FeG Networks do not need to serve any Federated LTE Network (only the
+FeG Network created on Pre Requisites needs to serve a Federated LTE Network)</p>
 <p>Those roaming Federated Gateways will need <code>S6a</code> and <code>S8</code> interfaces
 configured (make sure you have the other operators HSS and PGW
 parameters). To configure those interfaces go to <strong>Swagger API</strong>:</p>
 <ul>
 <li>Go to<code>Federation Gateways</code> GET method <code>Get a specific federation gateway</code> and search the configuration for one of those roaming
-FEG Networks.</li>
+FeG Networks.</li>
 <li>Copy/paste the response into the PUT method <code>Update an entire federation gateway record</code></li>
 <li>Edit the <code>6a</code> and <code>S8</code> fields (check the example from the GET method to
 see any missing parameter)</li>
@@ -146,13 +150,13 @@ Gateway Network we created in Pre Requisites. On <strong>Swagger API</strong>:</
 <li>Go to <code>Federated LTE Networks</code> and search using GET method <code>Describe a federated LTE network</code> your local (non roaming) Federated LTE Network</li>
 <li>Copy/paste the response into PUT method <code>Update an entire Federated LTE network</code></li>
 <li>Find a key <code>federation</code>. If you completed Pre Requisites properly, you
-should have there <code>feg_network_id</code> pointing to your FEG Network Modify/add</li>
+should have there <code>feg_network_id</code> pointing to your FeG Network Modify/add</li>
 <li>Add the routing dictionary following the example, adding an entry per each
 PLMN</li>
 </ul>
 <pre><code class="hljs css language-text">  "federation": {
     "federated_modes_mapping": {
-      "enabled": false,
+      "enabled": true,
       "mapping": [
         {
           "apn": "",
@@ -172,24 +176,31 @@ PLMN</li>
   },
 </code></pre>
 <ul>
-<li>Field <code>mode</code> will indicate the flow the subscriber will take. Use
+<li><p>Field <code>mode</code> will indicate the flow the subscriber will take. Use
 <code>local_subscriber</code> for PLMN served by your own SubscriberDB/HSS. Use
 <code>s8_subscriber</code> to use roam HSS and roam PGW. Leave <code>apn</code> and <code>imsi_range</code>
-blank since it is not supported yet.</li>
+blank since it is not supported yet.</p></li>
+<li><p>Note <code>hss_relay_enabled</code> must be enabled. The decision to send it to HSS or
+not will be taken by <code>federated_modes_mapping</code>. If you disable, s8_subscribers
+will not be sent to the FeG to get the HSS</p></li>
+<li><p>Flag <code>gx_gy_relay_enabled</code> can be enabled or disabled depending if your
+network works with local policy db or with OCS and PCRF (gx/gy). If your
+local subscribers authenticate with HSS but use GX/GY, then you will have to
+leave it as <code>True</code>.</p></li>
 </ul>
 <h3><a class="anchor" aria-hidden="true" id="3-configure-local-federation-network-routing"></a><a href="#3-configure-local-federation-network-routing" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>3. Configure Local Federation Network routing</h3>
 <p>When a request gets to the Orc8r, this will have to be routed to the proper
-FEG Network which serves that PLMN.</p>
-<p>To enable that routing you will have to configure it in your local FEG Network
+FeG Network which serves that PLMN.</p>
+<p>To enable that routing you will have to configure it in your local FeG Network
 we created in Pre Requisites. On <strong>Swagger API</strong>:</p>
 <ul>
-<li>Go to <code>Federation Networks</code> and search using GET method <code>Describe a federation network</code> your local (non roaming) FEG Network</li>
+<li>Go to <code>Federation Networks</code> and search using GET method <code>Describe a federation network</code> your local (non roaming) FeG Network</li>
 <li>Copy/paste the response into PUT method <code>Update an entire federation network</code></li>
 <li>Modify/add the <code>nh_routes</code> (see the example on Swagger API if it is
 missing from your configuration). On the map match the PLMN, and the name
-of the roam FEG Network.</li>
+of the roam FeG Network.</li>
 </ul>
-<pre><code class="hljs">  <span class="hljs-string">"nh_routes"</span>: {
+<pre><code class="hljs">    <span class="hljs-string">"nh_routes"</span>: {
       <span class="hljs-string">"00102"</span>: <span class="hljs-string">"inbound_feg"</span>,
       <span class="hljs-string">"9999"</span>: <span class="hljs-string">"feg_roaming_network_1"</span>
     },
@@ -198,7 +209,22 @@ of the roam FEG Network.</li>
 <li>Hit Execute (check no errors are show on the Swagger Responses)</li>
 <li>Run the GET method again to see the changes.</li>
 </ul>
-<h3><a class="anchor" aria-hidden="true" id="4-check-connectivity"></a><a href="#4-check-connectivity" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>4. Check Connectivity</h3>
+<h3><a class="anchor" aria-hidden="true" id="4-configure-roaming-federation-network-served-networks"></a><a href="#4-configure-roaming-federation-network-served-networks" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>4. Configure Roaming Federation Network served networks</h3>
+<p>Roaming Federation Networks will need a last configuration in order to match
+them with their serving Local Federation Network. To do that, add to the
+Roaming Federation Networks configuration the following key</p>
+<pre><code class="hljs">    <span class="hljs-string">"served_nh_ids"</span>: [
+      <span class="hljs-string">"example_feg_network"</span>
+    ],
+</code></pre>
+<p>That means that the Inbound FeG Network will be served by the local network
+(in this case called <code>example_feg_network</code>)</p>
+<h3><a class="anchor" aria-hidden="true" id="5-configure-feg-gateways"></a><a href="#5-configure-feg-gateways" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>5. Configure FeG Gateways</h3>
+<p>If you have a Federated deployment remember to configure <code>s6a</code>, <code>gx</code>, <code>gy</code> on
+the gateway.</p>
+<p>Do the same for FeG gateway serving roaming subscribers, but just configure
+<code>s6a</code> and <code>s8</code>.</p>
+<h3><a class="anchor" aria-hidden="true" id="6-check-connectivity"></a><a href="#6-check-connectivity" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>6. Check connectivity</h3>
 <ul>
 <li>From Access Gateway make sure your Access Gateway is able to reach PGW-U
 IP.</li>
@@ -216,9 +242,9 @@ Federated Gateway can reach PGW using this command</li>
     # where 123456789012345 is a valid imsi (<span class="hljs-keyword">if</span> you use a <span class="hljs-keyword">not</span> valid imsi
     you can still check the connectivity, but you will <span class="hljs-builtin-name">get</span> a GTP <span class="hljs-builtin-name">error</span> back
     <span class="hljs-keyword">from</span> PGW
-    # <span class="hljs-builtin-name">Add</span> -use_builtincli flag <span class="hljs-keyword">if</span> you don<span class="hljs-string">'t have a FEG setup properly yet
+    # <span class="hljs-builtin-name">Add</span> -use_builtincli flag <span class="hljs-keyword">if</span> you don<span class="hljs-string">'t have a FeG setup properly yet
 </span></code></pre>
-<h2><a class="anchor" aria-hidden="true" id="test-and-troubleshooting"></a><a href="#test-and-troubleshooting" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Test and Troubleshooting</h2>
+<h2><a class="anchor" aria-hidden="true" id="test-and-troubleshooting"></a><a href="#test-and-troubleshooting" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Test and troubleshooting</h2>
 <p>It is recommendable that before running the tests, enable some extra
 logging capabilities in both Access Gateway, and Federated Gateway to
 trace the call.</p>
@@ -246,7 +272,50 @@ trace the call.</p>
 <code>sudo docker-compose up -d</code></li>
 <li>Display the logs using for example<code>sudo docker-compose logs -f s8_proxy</code></li>
 </ul>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/howtos/header_enrichment"><span class="arrow-prev">← </span><span>Previous</span></a><a class="docs-next button" href="/magma/docs/howtos/thanos"><span>Thanos</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#architecture">Architecture</a></li><li><a href="#pre-requisites">Pre Requisites</a></li><li><a href="#inbound-roaming-configuration">Inbound Roaming Configuration</a><ul class="toc-headings"><li><a href="#1-create-roaming-federated-networks-and-federated-gateways">1. Create Roaming Federated Networks and Federated Gateways</a></li><li><a href="#2-configure-local-access-gateway-network-routing">2. Configure Local Access Gateway Network routing.</a></li><li><a href="#3-configure-local-federation-network-routing">3. Configure Local Federation Network routing</a></li><li><a href="#4-check-connectivity">4. Check Connectivity</a></li></ul></li><li><a href="#test-and-troubleshooting">Test and Troubleshooting</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+<h3><a class="anchor" aria-hidden="true" id="test-with-s6a_cli-and-s8_cli"></a><a href="#test-with-s6a_cli-and-s8_cli" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Test with s6a_cli and s8_cli</h3>
+<p>FeG has a couple of clients to run an HSS Authentication Request (s6a) and
+Create Session Request (s8) without the need of having a UE. You can run them
+either on FeG or AGW.</p>
+<ul>
+<li>Run From FeG</li>
+</ul>
+<pre><code class="hljs"><span class="hljs-comment"># Use FeG s6a_proxy</span>
+<span class="hljs-string">sudo</span> <span class="hljs-string">docker-compose</span> <span class="hljs-string">exec</span> <span class="hljs-string">s8_proxy</span> <span class="hljs-string">/var/opt/magma/bin/s6a_cli</span> <span class="hljs-string">air</span> <span class="hljs-string">-remote_s6a</span> <span class="hljs-number">001002000000810</span>
+<span class="hljs-comment"># Use s6a_porxy that runs on the cli</span>
+<span class="hljs-string">sudo</span> <span class="hljs-string">docker-compose</span> <span class="hljs-string">exec</span> <span class="hljs-string">s8_proxy</span> <span class="hljs-string">/var/opt/magma/bin/s6a_cli</span> <span class="hljs-string">air</span> <span class="hljs-string">-use_builtincli</span> <span class="hljs-literal">false</span>  <span class="hljs-string">-remote_s6a</span> <span class="hljs-number">001002000000810</span>
+
+<span class="hljs-comment"># use FeG s8_proxy</span>
+<span class="hljs-string">sudo</span> <span class="hljs-string">docker-compose</span> <span class="hljs-string">exec</span> <span class="hljs-string">s8_proxy</span> <span class="hljs-string">/var/opt/magma/bin/s8_cli</span> <span class="hljs-string">cs</span> <span class="hljs-string">-server</span> <span class="hljs-number">192.168</span><span class="hljs-number">.32</span><span class="hljs-number">.118</span><span class="hljs-string">:2123</span> <span class="hljs-string">-delete</span> <span class="hljs-number">3</span>
+<span class="hljs-comment"># use s8_porxy that runs on the cli</span>
+<span class="hljs-string">sudo</span> <span class="hljs-string">docker-compose</span> <span class="hljs-string">exec</span> <span class="hljs-string">s8_proxy</span> <span class="hljs-string">/var/opt/magma/bin/s8_cli</span> <span class="hljs-string">cs</span> <span class="hljs-string">-server</span> <span class="hljs-number">192.168</span><span class="hljs-number">.32</span><span class="hljs-number">.118</span><span class="hljs-string">:2123</span> <span class="hljs-string">-use_builtincli</span> <span class="hljs-literal">false</span> <span class="hljs-string">-delete</span> <span class="hljs-number">3</span>
+</code></pre>
+<ul>
+<li>Run from AGW</li>
+</ul>
+<pre><code class="hljs"># Extract the <span class="hljs-keyword">binaries </span>from docker container from FeG, <span class="hljs-keyword">and </span><span class="hljs-keyword">move </span>them to AGW
+<span class="hljs-symbol">sudo</span> docker <span class="hljs-meta">cp</span> s6a_proxy:/var/<span class="hljs-meta">opt</span>/magma/<span class="hljs-keyword">bin/s6a_cli </span>.
+<span class="hljs-symbol">sudo</span> docker <span class="hljs-meta">cp</span> s8_proxy:/var/<span class="hljs-meta">opt</span>/magma/<span class="hljs-keyword">bin/s8_cli </span>.
+</code></pre>
+<pre><code class="hljs"># Execute <span class="hljs-keyword">from</span> AGW
+./s6a_cli air -remote_s6a <span class="hljs-number">001002000000810</span>
+./s8_cli cs -server <span class="hljs-number">192.168</span><span class="hljs-number">.32</span><span class="hljs-number">.118</span>:<span class="hljs-number">2123</span> -delete <span class="hljs-number">3</span> -apn inet -remote_s8 <span class="hljs-number">001002000000810</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="configuration-example"></a><a href="#configuration-example" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Configuration example</h2>
+<p>Attached you can find the configuration that handle local subscribers with
+both subscriber db and HSS and roaming subscribers:</p>
+<ul>
+<li>PLMN 88888: uses subscriber DB to authenticate and Gx/Gy for accounting.
+That is why we have <code>gx_gy_relay_enabled</code> as True. Those subscribers are
+never sent to the FeG.</li>
+<li>PLMN 00102: MME sends those subscribers to be authenticated through the FeG.
+When the request reaches Orc8r (in Feg Relay service) and using <code>nh_routes</code>
+configured on the local FeG network, those subscribers are forwarded to
+<code>inbound_feg</code> network</li>
+<li>Rest of PLMN: MME forwards any other PLMN to be authenticated through the
+FeG. In the orc8r they are forwarded to the local FeG network <code>terravm_feg_network</code></li>
+</ul>
+<p><a href="/magma/docs/assets/feg/inbound_roaming_sample.zip">[inbound_roaming_sample.zip]</a></p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/howtos/header_enrichment"><span class="arrow-prev">← </span><span>Previous</span></a><a class="docs-next button" href="/magma/docs/howtos/thanos"><span>Thanos</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#architecture">Architecture</a></li><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#inbound-roaming-configuration">Inbound Roaming configuration</a><ul class="toc-headings"><li><a href="#1-create-roaming-federated-networks-and-federated-gateways">1. Create Roaming Federated Networks and Federated Gateways</a></li><li><a href="#2-configure-local-access-gateway-network-routing">2. Configure Local Access Gateway Network routing.</a></li><li><a href="#3-configure-local-federation-network-routing">3. Configure Local Federation Network routing</a></li><li><a href="#4-configure-roaming-federation-network-served-networks">4. Configure Roaming Federation Network served networks</a></li><li><a href="#5-configure-feg-gateways">5. Configure FeG Gateways</a></li><li><a href="#6-check-connectivity">6. Check connectivity</a></li></ul></li><li><a href="#test-and-troubleshooting">Test and troubleshooting</a><ul class="toc-headings"><li><a href="#test-with-s6a_cli-and-s8_cli">Test with s6a_cli and s8_cli</a></li></ul></li><li><a href="#configuration-example">Configuration example</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
