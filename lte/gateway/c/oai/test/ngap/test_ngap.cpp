@@ -152,10 +152,6 @@ TEST(test_ngap_pkt_tests, test_ngap_pdusession_resource_setup_stream) {
   EXPECT_TRUE(decode_ops == 0);
   bdestroy(stream);
 
-  FILE* fp = fopen("/home/vagrant/DUMPS-3", "w");
-  xer_fprint(fp, &asn_DEF_Ngap_NGAP_PDU, (void*) &decode_pdu);
-  fclose(fp);
-
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decode_pdu);
 }
 

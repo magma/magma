@@ -13,23 +13,27 @@ limitations under the License.
 import unittest
 import warnings
 from concurrent.futures import Future
-from unittest.mock import MagicMock
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.inout import INGRESS
-from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.tests.app.flow_query import \
-    RyuDirectFlowQuery as FlowQuery
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
-from magma.pipelined.tests.app.start_pipelined import (PipelinedController,
-                                                       TestSetup)
-from magma.pipelined.tests.pipelined_test_util import (FlowTest, FlowVerifier,
-                                                       SnapshotVerifier,
-                                                       create_service_manager,
-                                                       start_ryu_app_thread,
-                                                       stop_ryu_app_thread,
-                                                       wait_after_send)
+from magma.pipelined.tests.app.start_pipelined import (
+    TestSetup,
+    PipelinedController,
+)
+from magma.pipelined.openflow.magma_match import MagmaMatch
+from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
+    as FlowQuery
+from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.pipelined_test_util import (
+    start_ryu_app_thread,
+    stop_ryu_app_thread,
+    create_service_manager,
+    wait_after_send,
+    FlowVerifier,
+    FlowTest,
+    SnapshotVerifier,
+)
 from ryu.lib import hub
 from scapy.contrib.gtp import GTP_U_Header
 from scapy.all import *
@@ -91,14 +95,13 @@ class GTPTrafficTest(unittest.TestCase):
                 'ovs_internal_conntrack_fwd_tbl_number': 202,
                 'clean_restart': True,
                 'ovs_multi_tunnel': False,
-                'paging_timeout': 30,
-                'classifier_controller_id': 5,
             },
-            mconfig=PipelineD(),
+            mconfig=PipelineD(
+                ue_ip_block="192.168.128.0/24",
+            ),
             loop=None,
             service_manager=cls.service_manager,
             integ_test=False,
-            rpc_stubs={'sessiond_setinterface': MagicMock()}
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
@@ -128,7 +131,7 @@ class GTPTrafficTest(unittest.TestCase):
         ue_ip_addr = "192.168.128.30"
         self.classifier_controller.add_tunnel_flows(65525, 1, 1000,
                                                     IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
-                                                    self.EnodeB_IP, seid1, True)
+                                                    self.EnodeB_IP, seid1)
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)
         eth = Ether(dst=self.MAC_1, src=self.MAC_2)

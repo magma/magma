@@ -22,15 +22,21 @@ package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
 message RuleRecord {
-  string sid = 1; // Session ID - specified as IMSI
+  // IMSI. This value along with teid uniquely identifies a session.
+  string sid = 1;
   string rule_id = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
+  // Used for HE
   string ue_ipv4 = 5;
+  // Used for HE
   string ue_ipv6 = 6;
   uint64 dropped_tx = 7;
   uint64 dropped_rx = 8;
+  // Rule version with which the flow was installed with
   uint64 rule_version = 9;
+  // Uplink TEID
+  uint32 teid = 10;
 }
 
 message RuleRecordTable {
@@ -1018,17 +1024,22 @@ message UPFSessionConfigState {
      repeated UPFSessionState upf_session_state = 1;
 }
 
-
 message UPFPagingInfo {
-  uint32 local_f_teid = 1;
-  string ue_ip_addr = 2;
+  string subscriber_id = 1;
+  uint32 local_f_teid = 2;
+   string ue_ip_addr = 3;
+}
+// Set Interface from Pipelined
+service SetInterfaceForUserPlane {
+    rpc SetUPFNodeState(UPFNodeState) returns (SmContextVoid) {}
+    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (SmContextVoid) {}
+    rpc SendPagingRequest(UPFPagingInfo) returns (SmContextVoid) {}
 }
 
-//Set Interface from Pipelined
-service SetInterfaceForUserPlane {
-    rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
-    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
-    rpc SendPagingReuest(UPFPagingInfo) returns (magma.orc8r.Void) {}
+//SET API for 3 procedures request from AMF to SMF
+service AmfPduSessionSmContext {
+  rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
+  rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid) {}    //AMF to SMF
 }
 
 // RPC service and method
