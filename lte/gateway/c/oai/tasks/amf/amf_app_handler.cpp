@@ -449,7 +449,7 @@ imsi64_t amf_app_handle_initial_ue_message(
  **                                                                        **
  ***************************************************************************/
 int amf_app_handle_uplink_nas_message(
-    amf_app_desc_t* amf_app_desc_p, bstring msg) {
+    amf_app_desc_t* amf_app_desc_p, bstring msg, amf_ue_ngap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   OAILOG_DEBUG(LOG_AMF_APP, " Received NAS UPLINK DATA from NGAP\n");
@@ -459,9 +459,8 @@ int amf_app_handle_uplink_nas_message(
      * Notify the AMF procedure call manager that data transfer
      * indication has been received from the Access-Stratum sublayer
      */
-    amf_sap.primitive = AMFAS_ESTABLISH_REQ;
-    // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
-    amf_sap.u.amf_as.u.establish.ue_id   = 1;
+    amf_sap.primitive                    = AMFAS_ESTABLISH_REQ;
+    amf_sap.u.amf_as.u.establish.ue_id   = ue_id;
     amf_sap.u.amf_as.u.establish.nas_msg = msg;
     msg                                  = NULL;
     rc                                   = amf_sap_send(&amf_sap);

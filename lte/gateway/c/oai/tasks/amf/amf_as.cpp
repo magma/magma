@@ -122,9 +122,8 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
     OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
   }
 
-  ue_m5gmm_context->mm_state = DEREGISTERED;
-  amf_context_t* amf_ctx     = NULL;
-  amf_ctx                    = &ue_m5gmm_context->amf_context;
+  amf_context_t* amf_ctx = NULL;
+  amf_ctx                = &ue_m5gmm_context->amf_context;
 
   if (amf_ctx) {
     if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
@@ -144,6 +143,9 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
   decoder_rc = nas5g_message_decode(
       msg->nas_msg->data, &nas_msg, blength(msg->nas_msg), amf_security_context,
       &decode_status);
+
+  ue_m5gmm_context->mm_state = DEREGISTERED;
+
   bdestroy_wrapper(&msg->nas_msg);
 
   // conditional IE error
@@ -506,11 +508,37 @@ static int amf_dl_nas_transport_msg(
  **                                                                        **
  ***************************************************************************/
 static int amf_de_reg_acceptmsg(
-    const amf_as_data_t* msg, DeRegistrationAcceptUEInitMsg* amf_msg) {
+    const amf_as_data_t* msg, m5g_dl_info_transfer_req_t* as_msg,
+    amf_nas_message_t* nas_msg, DeRegistrationAcceptUEInitMsg* amf_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int size = DEREGISTRATION_ACCEPT_UEINIT_MINIMUM_LENGTH;
+  int size = AMF_HEADER_LENGTH;
+  ue_m5gmm_context_s* ue_context;
+  uint8_t seq_no = 0;
+
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(as_msg->ue_id);
+
+  if (ue_context) {
+    seq_no = ue_context->amf_context._security.dl_count.seq_num;
+  }
+
+  nas_msg->security_protected.plain.amf.header.extended_protocol_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  nas_msg->security_protected.plain.amf.header.message_type =
+      DE_REG_ACCEPT_UE_ORIGIN;
+  nas_msg->header.security_header_type =
+      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
+  nas_msg->header.extended_protocol_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  nas_msg->header.sequence_number = seq_no;
+
   // Mandatory - Message type
-  amf_msg->message_type.msg_type = DE_REG_ACCEPT_UE_ORIGIN;
+  amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  amf_msg->spare_half_octet.spare  = 0x00;
+  amf_msg->sec_header_type.sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  amf_msg->message_type.msg_type   = DE_REG_ACCEPT_UE_ORIGIN;
+
+  size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
 
@@ -565,7 +593,8 @@ uint16_t amf_as_data_req(
             amf_dl_nas_transport_msg(msg, &amf_msg->msg.downlinknas5gtransport);
         break;
       case AMF_AS_NAS_DATA_DEREGISTRATION_ACCEPT: {
-        size = amf_de_reg_acceptmsg(msg, &amf_msg->msg.deregistrationacceptmsg);
+        size = amf_de_reg_acceptmsg(
+            msg, as_msg, &nas_msg, &amf_msg->msg.deregistrationacceptmsg);
       } break;
       default:
         // Send other NAS messages as already encoded SMF messages

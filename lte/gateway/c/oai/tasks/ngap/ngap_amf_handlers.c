@@ -1010,7 +1010,6 @@ int ngap_amf_handle_ue_context_release_request(
       NGAP_UE_CONTEXT_RELEASE_REQ(message_p).gnb_ue_ngap_id =
           ue_ref_p->gnb_ue_ngap_id;
       NGAP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = ng_release_cause;
-      NGAP_UE_CONTEXT_RELEASE_REQ(message_p).cause    = ie->value.choice.Cause;
 
       message_p->ittiMsgHeader.imsi = imsi64;
       rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);

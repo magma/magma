@@ -215,17 +215,13 @@ int amf_smf_send(
   }
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-  OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx");
   if (ue_context) {
     IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
     if (msg->payload_container.smf_msg.header.message_type ==
         PDU_SESSION_ESTABLISHMENT_REQUEST) {
-      OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx ");
       smf_ctx = amf_insert_smf_context(
           ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
-      OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx");
     } else {
-      OAILOG_INFO(LOG_AMF_APP, "insert smf_ctx ");
       smf_ctx = amf_smf_context_exists_pdu_session_id(
           ue_context, msg->payload_container.smf_msg.header.pdu_session_id);
     }

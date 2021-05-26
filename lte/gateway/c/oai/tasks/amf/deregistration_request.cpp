@@ -33,6 +33,7 @@ extern "C" {
 #include "amf_as.h"
 #include "amf_sap.h"
 #include "amf_app_state_manager.h"
+#include "conversions.h"
 
 namespace magma5g {
 amf_as_data_t amf_data_de_reg_sec;
@@ -168,6 +169,8 @@ int amf_proc_deregistration_request(
     rc = amf_sap_send(&amf_sap);
     /* Handle releasing all context related resources
      */
+
+    ue_context->ue_context_rel_cause.ngapCause_u.nas = ngap_CauseNas_deregister;
     rc = ue_state_handle_message_dereg(
         ue_context->mm_state, STATE_EVENT_DEREGISTER, SESSION_NULL, ue_context,
         ue_id);
@@ -201,10 +204,42 @@ int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id) {
   // UE context release notification to NGAP
   amf_app_ue_context_release(ue_context, ue_context->ue_context_rel_cause);
 
+  // Clean up all the sessions.
+  amf_smf_context_cleanup_pdu_session(ue_context);
+
   // Remove stored UE context from AMF core.
   amf_remove_ue_context(&amf_app_desc_p->amf_ue_contexts, ue_context);
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+/***************************************************************************
+**                                                                        **
+** Name:   amf_smf_context_cleanup_pdu_session()                          **
+**                                                                        **
+** Description: Function to remove UE Context                             **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
+  std::vector<smf_context_t>::iterator i;
+
+  amf_smf_release_t smf_message;
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+
+  memset(&smf_message, 0, sizeof(amf_smf_release_t));
+
+  for (i = ue_context->amf_context.smf_ctxt_vector.begin();
+       i != ue_context->amf_context.smf_ctxt_vector.end(); i++) {
+    IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+
+    smf_message.pdu_session_id =
+        i->smf_proc_data.pdu_session_identity.pdu_session_id;
+
+    smf_message.pti = i->smf_proc_data.pti.pti;
+
+    release_session_gprc_req(&smf_message, imsi);
+  }
 }
 
 /***************************************************************************

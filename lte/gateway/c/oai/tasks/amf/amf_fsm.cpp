@@ -119,6 +119,10 @@ void create_state_matrix() {
       DEREGISTERED_INITIATED, STATE_EVENT_DEREGISTER, SESSION_NULL,
       DEREGISTERED, SESSION_NULL, "Deregister_Completed");
 
+  Update_ue_state_matrix(
+      DEREGISTERED, STATE_EVENT_DEREGISTER, SESSION_NULL, DEREGISTERED,
+      SESSION_NULL, "Deregister_Completed");
+
   /* PDU session State Transitions*/
   Update_ue_state_matrix(
       REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_REQUEST,
@@ -129,6 +133,10 @@ void create_state_matrix() {
   Update_ue_state_matrix(
       REGISTERED_CONNECTED, STATE_PDU_SESSION_RELEASE_COMPLETE, CREATE,
       REGISTERED_CONNECTED, RELEASED, "PDU_Release");
+
+  Update_ue_state_matrix(
+      DEREGISTERED, STATE_PDU_SESSION_RELEASE_COMPLETE, SESSION_NULL,
+      DEREGISTERED, SESSION_NULL, "PDU_Release");
 }
 
 /*

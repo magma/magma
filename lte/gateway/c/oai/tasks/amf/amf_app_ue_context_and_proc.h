@@ -761,6 +761,7 @@ int amf_proc_deregistration_request(
 int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id);
 void amf_remove_ue_context(
     amf_ue_context_t* amf_ue_context_p, ue_m5gmm_context_s* ue_context_p);
+void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
 
 // PDU session related communication to gNB
 int pdu_session_resource_setup_request(

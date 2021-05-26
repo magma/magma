@@ -193,6 +193,7 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   req_common->mutable_sid()->set_type(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
   req_common->set_sm_session_state(magma::lte::SMSessionFSMState::RELEASED_4);
+  req_common->set_sm_session_version(1);  // uint32
   auto* req_rat_specific =
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);

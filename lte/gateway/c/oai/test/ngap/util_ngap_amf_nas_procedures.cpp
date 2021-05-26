@@ -537,3 +537,118 @@ bool generator_itti_ngap_pdusession_resource_setup_req(bstring& stream) {
 
   return (true);
 }
+
+bool generator_ngap_pdusession_resource_rel_cmd_stream(bstring& stream) {
+  uint8_t* buffer_p = NULL;
+  uint32_t length   = 0;
+  Ngap_NGAP_PDU_t pdu;
+  Ngap_PDUSessionResourceReleaseCommand_t* out   = NULL;
+  Ngap_PDUSessionResourceReleaseCommandIEs_t* ie = NULL;
+  int hexbuf[] = {0x7e, 0x03, 0x00, 0x00, 0x00, 0x00, 0x03, 0x7e, 0x00, 0x68,
+                  0x01, 0x00, 0x05, 0x2e, 0x01, 0x01, 0xd3, 0x24, 0x12, 0x01};
+
+  memset(&pdu, 0, sizeof(pdu));
+  pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
+  pdu.choice.initiatingMessage.procedureCode =
+      Ngap_ProcedureCode_id_PDUSessionResourceRelease;
+  pdu.choice.initiatingMessage.criticality = Ngap_Criticality_ignore;
+  pdu.choice.initiatingMessage.value.present =
+      Ngap_InitiatingMessage__value_PR_PDUSessionResourceReleaseCommand;
+  out = &pdu.choice.initiatingMessage.value.choice
+             .PDUSessionResourceReleaseCommand;
+
+  /* mandatory */
+  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*) calloc(
+      1, sizeof(Ngap_PDUSessionResourceReleaseCommandIEs_t));
+  ie->id          = Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID;
+  ie->criticality = Ngap_Criticality_reject;
+  ie->value.present =
+      Ngap_PDUSessionResourceReleaseCommandIEs__value_PR_AMF_UE_NGAP_ID;
+  ie->value.choice.AMF_UE_NGAP_ID = 1;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* mandatory */
+  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*) calloc(
+      1, sizeof(Ngap_PDUSessionResourceReleaseCommandIEs_t));
+  ie->id          = Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID;
+  ie->criticality = Ngap_Criticality_reject;
+  ie->value.present =
+      Ngap_PDUSessionResourceReleaseCommandIEs__value_PR_RAN_UE_NGAP_ID;
+  ie->value.choice.RAN_UE_NGAP_ID = 1;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  /* optional NAS pdu */
+  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*) calloc(
+      1, sizeof(Ngap_PDUSessionResourceReleaseCommandIEs_t));
+  ie->id          = Ngap_ProtocolIE_ID_id_NAS_PDU;
+  ie->criticality = Ngap_Criticality_reject;
+  ie->value.present =
+      Ngap_PDUSessionResourceReleaseCommandIEs__value_PR_NAS_PDU;
+
+  ie->value.choice.NAS_PDU.size = 20;
+  ie->value.choice.NAS_PDU.buf =
+      (uint8_t*) calloc(1, ie->value.choice.NAS_PDU.size * sizeof(uint8_t));
+  memset(
+      ie->value.choice.NAS_PDU.buf, 0,
+      sizeof(ie->value.choice.NAS_PDU.size * sizeof(uint8_t)));
+
+  for (uint32_t i = 0; i < ie->value.choice.NAS_PDU.size; i++) {
+    ie->value.choice.NAS_PDU.buf[i] = hexbuf[i];
+  }
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  ie = (Ngap_PDUSessionResourceReleaseCommandIEs_t*) calloc(
+      1, sizeof(Ngap_PDUSessionResourceReleaseCommandIEs_t));
+  ie->id          = Ngap_ProtocolIE_ID_id_PDUSessionResourceToReleaseListRelCmd;
+  ie->criticality = Ngap_Criticality_reject;
+  ie->value.present =
+      Ngap_PDUSessionResourceReleaseCommandIEs__value_PR_PDUSessionResourceToReleaseListRelCmd;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+
+  Ngap_PDUSessionResourceToReleaseItemRelCmd_t* RelItem =
+      (Ngap_PDUSessionResourceToReleaseItemRelCmd_t*) calloc(
+          1, sizeof(Ngap_PDUSessionResourceToReleaseItemRelCmd_t));
+  RelItem->pDUSessionID = 1;
+
+  Ngap_PDUSessionResourceReleaseCommandTransfer_t*
+      PDUSessionResourceReleaseCommandTransferIEs =
+          (Ngap_PDUSessionResourceReleaseCommandTransfer_t*) calloc(
+              1, sizeof(Ngap_PDUSessionResourceReleaseCommandTransfer_t));
+
+  PDUSessionResourceReleaseCommandTransferIEs->cause.present =
+      Ngap_Cause_PR_nas;
+
+  PDUSessionResourceReleaseCommandTransferIEs->cause.choice.nas =
+      Ngap_CauseNas_normal_release;
+
+  uint8_t* buffer = NULL;
+
+  ssize_t encoded_size = aper_encode_to_new_buffer(
+      &asn_DEF_Ngap_PDUSessionResourceReleaseCommandTransfer, NULL,
+      PDUSessionResourceReleaseCommandTransferIEs, (void**) &buffer);
+
+  RelItem->pDUSessionResourceReleaseCommandTransfer.size = encoded_size;
+  RelItem->pDUSessionResourceReleaseCommandTransfer.buf  = (uint8_t*) calloc(
+      1,
+      RelItem->pDUSessionResourceReleaseCommandTransfer.size * sizeof(uint8_t));
+  memcpy(
+      (void*) RelItem->pDUSessionResourceReleaseCommandTransfer.buf,
+      (void*) buffer, encoded_size);
+
+  ASN_SEQUENCE_ADD(
+      &ie->value.choice.PDUSessionResourceToReleaseListRelCmd.list, RelItem);
+  free(buffer);
+
+  if (ngap_amf_encode_pdu(&pdu, &buffer_p, &length) < 0) {
+    return (false);
+  }
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(
+      asn_DEF_Ngap_PDUSessionResourceReleaseCommandTransfer,
+      PDUSessionResourceReleaseCommandTransferIEs);
+  free(PDUSessionResourceReleaseCommandTransferIEs);
+  stream = blk2bstr(buffer_p, length);
+  free(buffer_p);
+
+  return (true);
+}

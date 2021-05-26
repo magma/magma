@@ -148,6 +148,7 @@ int AmfMsg::AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len) {
     return (RETURNerror);
   }
   MLOG(MDEBUG) << "msg type = 0x" << hex << int(msg->header.message_type);
+
   switch ((unsigned char) msg->header.message_type) {
     case REG_REQUEST:
       decode_result = msg->msg.reg_request.DecodeRegistrationRequestMsg(
