@@ -47,14 +47,12 @@ void SpgwStateConverter::state_to_proto(
 
   gtpv1u_data_to_proto(&spgw_state->gtpv1u_data, proto->mutable_gtpv1u_data());
 
-  proto->set_last_tunnel_id(spgw_state->tunnel_id);
   proto->set_gtpv1u_teid(spgw_state->gtpv1u_teid);
 }
 
 void SpgwStateConverter::proto_to_state(
     const SpgwState& proto, spgw_state_t* spgw_state) {
   proto_to_gtpv1u_data(proto.gtpv1u_data(), &spgw_state->gtpv1u_data);
-  spgw_state->tunnel_id   = proto.last_tunnel_id();
   spgw_state->gtpv1u_teid = proto.gtpv1u_teid();
 }
 

@@ -1117,7 +1117,7 @@ static teid_t sgw_s8_generate_new_cp_teid(void) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   sgw_eps_bearer_context_information_t* sgw_context_p = NULL;
   teid_t teid                                         = INVALID_TEID;
-  // note srand with seed is init at main
+  // note srand with seed is initialized at main
   do {
     teid          = (teid_t) rand();
     sgw_context_p = sgw_get_sgw_eps_bearer_context(teid);
