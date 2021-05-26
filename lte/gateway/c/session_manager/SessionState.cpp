@@ -41,6 +41,9 @@ const char* LABEL_DIRECTION         = "direction";
 const char* DIRECTION_UP            = "up";
 const char* DIRECTION_DOWN          = "down";
 const char* LABEL_SESSION_ID        = "session_id";
+// TODO(@themarwhal): SessionD should own the naming of the drop all rule so
+// that we never regress here
+const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
 }  // namespace
 
 using magma::service303::increment_counter;
@@ -477,42 +480,50 @@ optional<RuleStats> SessionState::get_rule_delta(
     const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
     uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
     SessionStateUpdateCriteria* session_uc) {
-  auto it = policy_version_and_stats_.find(rule_id);
-  if (it == policy_version_and_stats_.end()) {
-    MLOG(MERROR) << "Reported rule (" << rule_id << ") not found, ignoring";
+  // TODO(@koolzz): Handle drop all stats properly GH7143
+  if (policy_version_and_stats_.find(rule_id) ==
+      policy_version_and_stats_.end()) {
+    if (rule_id.compare(DROP_ALL_RULE)) {
+      // Only log if it's not the drop all rule
+      MLOG(MERROR) << "Reported rule (" << rule_id << ") not found in "
+                   << session_id_ << ", ignoring";
+    }
     return {};
   }
 
-  RuleStats ret = RuleStats();
+  RuleStats ret         = RuleStats();
+  StatsPerPolicy& stats = policy_version_and_stats_[rule_id];
   // Only accept rule reports for current_version or last_reported_version
   // ignore other reports as they shoudn't be sent
-  auto last_reported_version = it->second.last_reported_version;
-  if (rule_version > it->second.current_version) {
-    MLOG(MERROR) << "Reported version higher than tracked one("
-                 << it->second.current_version << ") for "
-                 << "Rule_id: " << rule_id << " version: " << rule_version;
+  auto last_reported_version = stats.last_reported_version;
+  if (rule_version > stats.current_version) {
+    MLOG(MWARNING) << "Reported version higher than tracked one("
+                   << stats.current_version << ") for " << session_id_
+                   << ", rule_id: " << rule_id << ", version: " << rule_version;
     return ret;
   }
 
   if (rule_version < last_reported_version) {
-    MLOG(MERROR) << "Reported rule version too old, current one("
-                 << it->second.current_version << ") for "
-                 << "Rule_id: " << rule_id << " version: " << rule_version;
+    MLOG(MWARNING) << "Reported rule version too old, current one("
+                   << stats.current_version << ") for " << session_id_
+                   << ", rule_id: " << rule_id << ", version: " << rule_version;
     return ret;
   }
 
-  auto last_tracked =
-      policy_version_and_stats_[rule_id].stats_map.find(last_reported_version);
-
-  RuleStats prev_usage = last_tracked->second;
-
+  RuleStats prev_usage = stats.stats_map[last_reported_version];
   if (rule_version == last_reported_version) {
     if (prev_usage.tx != 0 && prev_usage.tx > used_tx) {
-      MLOG(MERROR) << "Reported stat used_tx less than the current tracked one";
+      MLOG(MWARNING)
+          << "Reported stat used_tx is less than the current tracked one for "
+          << session_id_ << ", rule_id: " << rule_id
+          << ", version: " << rule_version;
       return ret;
     }
     if (prev_usage.rx != 0 && prev_usage.rx > used_rx) {
-      MLOG(MERROR) << "Reported stat used_rx less than the current tracked one";
+      MLOG(MWARNING)
+          << "Reported stat used_rx is less than the current tracked one for "
+          << session_id_ << ", rule_id: " << rule_id
+          << ", version: " << rule_version;
       return ret;
     }
 
