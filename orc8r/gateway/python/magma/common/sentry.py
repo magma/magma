@@ -11,11 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import logging
 import os
 
 import sentry_sdk
 import snowflake
 from magma.configuration.service_configs import get_service_config_value
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 CONTROL_PROXY = 'control_proxy'
 SENTRY_URL = 'sentry_url_python'
@@ -40,8 +42,17 @@ def sentry_init(service_name: str):
         SENTRY_SAMPLE_RATE,
         default=1.0,
     )
+
+    sentry_logging = LoggingIntegration(
+        # don't send any other logs as breadcrumbs
+        level=None,
+        # Send errors as events
+        event_level=logging.ERROR,
+    )
+
     sentry_sdk.init(
         dsn=sentry_url,
+        integrations=[sentry_logging],
         release=os.getenv(COMMIT_HASH),
         traces_sample_rate=sentry_sample_rate,
     )
