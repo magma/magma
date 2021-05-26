@@ -107,6 +107,19 @@ docker-compose build magmalte
 COMPOSE_PROJECT_NAME=magmalte <span class="hljs-variable">${PUBLISH}</span> -r <span class="hljs-variable">${REGISTRY}</span> -i magmalte -v <span class="hljs-variable">${MAGMA_TAG}</span>
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="build-and-publish-helm-charts"></a><a href="#build-and-publish-helm-charts" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Build and publish Helm charts</h2>
+<p>NOTE: only choose one of the below options and then run the script</p>
+<h3><a class="anchor" aria-hidden="true" id="option-1-publish-to-artifactory"></a><a href="#option-1-publish-to-artifactory" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Option 1: Publish to artifactory</h3>
+<p>We'll build the Orchestrator Helm charts, as well as publish them to an artifactory.</p>
+<p>Define some necessary variables</p>
+<pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> HELM_CHART_ARTIFACTORY_URL=ARTIFACTORY_URL
+<span class="hljs-built_in">export</span> HELM_CHART_MUSEUM_REPO=REPO_NAME
+<span class="hljs-built_in">export</span> HELM_CHART_MUSEUM_USERNAME=ARTIFACTORY_USERNAME
+<span class="hljs-built_in">export</span> HELM_CHART_MUSEUM_TOKEN=ARTIFACTORY_ACCESS_TOKEN
+</code></pre>
+<p>Next we'll run the package script. This script will package and publish the
+necessary helm charts to the artifactory. The script expects a deployment
+type to be provided, which will determine which orc8r modules are deployed.</p>
+<h3><a class="anchor" aria-hidden="true" id="option-2-publish-to-a-private-github-repo"></a><a href="#option-2-publish-to-a-private-github-repo" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Option 2: Publish to a private Github repo</h3>
 <p>We'll build the Orchestrator Helm charts, as well as publish them to a
 <a href="https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7">GitHub repo acting as a Helm chart repo</a>.</p>
 <p>To start, create a private GitHub repo to use as your Helm chart repo. We'll
@@ -118,22 +131,26 @@ refer to this as <code>GITHUB_REPO</code>.</p>
 <span class="hljs-built_in">export</span> GITHUB_ACCESS_TOKEN=GITHUB_ACCESS_TOKEN
 </code></pre>
 <p>Next we'll run the package script. This script will package and publish the
-necessary helm charts to the <code>GITHUB_REPO</code>. The script expects a deployment
-type to be provided, which will determine which orc8r modules are deployed.
-The valid deployment type options are</p>
+necessary Helm charts to the <code>GITHUB_REPO</code>. The script expects a deployment
+type to be provided, which will determine which orc8r modules are deployed.</p>
+<h3><a class="anchor" aria-hidden="true" id="run-the-package-script"></a><a href="#run-the-package-script" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Run the package script</h3>
+<p>The valid deployment type options are</p>
 <ul>
 <li><code>fwa</code></li>
 <li><code>federated_fwa</code></li>
 <li><code>all</code></li>
 </ul>
 <p>Run the package script</p>
-<pre><code class="hljs css language-bash">$ <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/tools/helm/package.sh -d fwa  <span class="hljs-comment"># or chosen deployment type</span>
+<pre><code class="hljs css language-bash">$ <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/tools/helm/package.sh -d fwa <span class="hljs-comment"># or chosen deployment type</span>
 
 ...
 
 Uploaded orc8r charts successfully.
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/orc8r/deploy_intro"><span class="arrow-prev">← </span><span>Introduction</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/deploy_install"><span>Install Orchestrator</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#build-and-publish-container-images">Build and publish container images</a></li><li><a href="#build-and-publish-helm-charts">Build and publish Helm charts</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+<p>You can add <code>-v</code> option to overwrite the versions of the chart.</p>
+<pre><code class="hljs css language-bash"><span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/tools/helm/package.sh -d fwa  -v 1.5
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/orc8r/deploy_intro"><span class="arrow-prev">← </span><span>Introduction</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/deploy_install"><span>Install Orchestrator</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#build-and-publish-container-images">Build and publish container images</a></li><li><a href="#build-and-publish-helm-charts">Build and publish Helm charts</a><ul class="toc-headings"><li><a href="#option-1-publish-to-artifactory">Option 1: Publish to artifactory</a></li><li><a href="#option-2-publish-to-a-private-github-repo">Option 2: Publish to a private Github repo</a></li><li><a href="#run-the-package-script">Run the package script</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
