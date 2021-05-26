@@ -75,7 +75,7 @@ def _run_add_trailing_comma(path: str):
 
 def _run_flake8(paths: List[str]):
     for path in paths:
-        _run_docker_cmd(['flake8', path])
+        _run_docker_cmd(['flake8', '--exit-zero', path])
 
 
 def _run_docker_cmd(commands: List[str]):
