@@ -428,11 +428,6 @@ static int _pdusession_resource_setup_stream(
       return (RETURNerror);
     }
 
-    FILE* fp = fopen("/home/vagrant/DUMPS-2", "w");
-    xer_fprint(
-        fp, &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
-        (void*) pduSessionResourceSetupRequestTransferIEs);
-    fclose(fp);
     asn_fprint(
         stderr, &asn_DEF_Ngap_PDUSessionResourceSetupRequestTransfer,
         pduSessionResourceSetupRequestTransferIEs);
