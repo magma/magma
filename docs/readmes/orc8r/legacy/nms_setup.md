@@ -19,11 +19,8 @@ In the `magmalte` directory, start docker containers and create a test user:
 ```bash
 HOST [magma]$ cd nms/fbcnms-projects/magmalte
 HOST [magma/nms/fbcnms-projects/magmalte]$ docker-compose up -d
-HOST [magma/nms/fbcnms-projects/magmalte]$ ./scripts/dev_setup.sh
 ```
-You may get an error if you run `dev_setup.sh` immediately after `docker-compose up -d`. To resolve this, wait a bit before running the script to let migrations run.
-
-Once you have started the docker containers and created a test user using the `dev_setup.sh` script, go to https://localhost and login with test credentials `admin@magma.test` and `password1234`.
+Once you have started the docker containers, go to https://localhost and login with test credentials `admin@magma.test` and `password1234`.
 
 Note: if you want to name a user other than `admin@magma.test`, you can run `setAdminPassword`, like so:
 ```bash

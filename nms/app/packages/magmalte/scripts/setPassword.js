@@ -30,6 +30,13 @@ type UserObject = {
   role: number,
 };
 
+const DEFAULT_USER: UserObject = {
+  organization: 'master',
+  email: 'admin@magma.test',
+  password: 'password1234',
+  role: AccessRoles.SUPERUSER,
+};
+
 async function updateUser(user: User, userObject: UserObject) {
   const {password, role} = userObject;
   const salt = await bcrypt.genSalt(SALT_GEN_ROUNDS);
@@ -96,7 +103,22 @@ async function createOrFetchOrganization(
   return org;
 }
 
+export async function createDefaultUserIfNoneExist(userObject: ?UserObject) {
+  const userCount = await User.count();
+  if (userCount > 0) {
+    return;
+  }
+  if (userObject != null) {
+    await createUser(userObject);
+    return;
+  }
+  await createUser(DEFAULT_USER);
+}
+
 function main() {
+  if (require.main !== module) {
+    return;
+  }
   const args = process.argv.slice(2);
   if (args.length !== 3) {
     console.log('Usage: setPassword.js <organization> <email> <password>');

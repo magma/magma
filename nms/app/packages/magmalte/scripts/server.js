@@ -23,6 +23,7 @@ if (!process.env.NODE_ENV) {
 
 import app from '../server/app';
 import logging from '@fbcnms/logging';
+import {createDefaultUserIfNoneExist} from './setPassword';
 import {runMigrations} from './runMigrations';
 
 const logger = logging.getLogger(module);
@@ -30,6 +31,7 @@ const port = parseInt(process.env.PORT || 80);
 
 (async function main() {
   await runMigrations();
+  await createDefaultUserIfNoneExist();
   app.listen(port, '', err => {
     if (err) {
       logger.error(err.toString());
