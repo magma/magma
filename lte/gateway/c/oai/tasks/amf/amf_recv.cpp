@@ -117,7 +117,8 @@ int amf_handle_registration_request(
     rc = amf_proc_registration_reject(ue_id, amf_cause);
     OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   }
-  amf_registration_request_ies_t* params = new (amf_registration_request_ies_t);
+  amf_registration_request_ies_t* params =
+      new (amf_registration_request_ies_t)();
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   /*
    * Message processing
@@ -245,6 +246,13 @@ int amf_handle_registration_request(
           }
         }
       }
+    } else if (
+        msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
+        M5GSMobileIdentityMsg_GUTI) {
+      OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST Id is GUTI\n");
+      params->guti                        = new (guti_m5_t)();
+      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
+      ;
     }
   }  // end of AMF_REGISTRATION_TYPE_INITIAL
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");

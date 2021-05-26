@@ -265,13 +265,13 @@ nas5g_amf_auth_proc_t* nas5g_new_authentication_procedure(
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
-  nas5g_amf_auth_proc_t* auth_proc = new (nas5g_amf_auth_proc_t);
+  nas5g_amf_auth_proc_t* auth_proc = new (nas5g_amf_auth_proc_t)();
   auth_proc->amf_com_proc.amf_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   auth_proc->amf_com_proc.amf_proc.base_proc.type = NAS_PROC_TYPE_AMF;
   auth_proc->amf_com_proc.amf_proc.type           = NAS_AMF_PROC_TYPE_COMMON;
   auth_proc->amf_com_proc.type                    = AMF_COMM_PROC_AUTH;
-  nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t;
+  nas_amf_common_procedure_t* wrapper = new nas_amf_common_procedure_t();
   if (wrapper) {
     wrapper->proc = &auth_proc->amf_com_proc;
     LIST_INSERT_HEAD(

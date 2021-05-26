@@ -146,6 +146,6 @@ int amf_sap_send(amf_sap_t* msg);
 
 // Functions to handle all UL message final actions*/
 int amf_cn_send(const amf_cn_t* msg);
-int amf_reg_send(amf_reg_t* const msg);
+int amf_reg_send(amf_sap_t* const msg);
 
 }  // namespace  magma5g

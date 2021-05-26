@@ -805,7 +805,7 @@ void ngap_handle_conn_est_cnf(
 
     /****/
     Ngap_NAS_PDU_t* nas_pdu = &ie->value.choice.NAS_PDU;
-    nas_pdu->size           = blength(conn_est_cnf_pP->nas_pdu) - 3;
+    nas_pdu->size           = blength(conn_est_cnf_pP->nas_pdu);
     nas_pdu->buf            = malloc(blength(conn_est_cnf_pP->nas_pdu));
     memcpy(nas_pdu->buf, conn_est_cnf_pP->nas_pdu->data, nas_pdu->size);
   }
