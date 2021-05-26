@@ -80,6 +80,27 @@ COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_T
 
 ## Build and publish Helm charts
 
+NOTE: only choose one of the below options and then run the script
+
+### Option 1: Publish to artifactory
+
+We'll build the Orchestrator Helm charts, as well as publish them to an artifactory.
+
+Define some necessary variables
+
+```bash
+export HELM_CHART_ARTIFACTORY_URL=ARTIFACTORY_URL
+export HELM_CHART_MUSEUM_REPO=REPO_NAME
+export HELM_CHART_MUSEUM_USERNAME=ARTIFACTORY_USERNAME
+export HELM_CHART_MUSEUM_TOKEN=ARTIFACTORY_ACCESS_TOKEN
+```
+
+Next we'll run the package script. This script will package and publish the
+necessary helm charts to the artifactory. The script expects a deployment
+type to be provided, which will determine which orc8r modules are deployed.
+
+### Option 2: Publish to a private Github repo
+
 We'll build the Orchestrator Helm charts, as well as publish them to a
 [GitHub repo acting as a Helm chart repo](https://blog.softwaremill.com/hosting-helm-private-repository-from-github-ff3fa940d0b7).
 
@@ -96,8 +117,11 @@ export GITHUB_ACCESS_TOKEN=GITHUB_ACCESS_TOKEN
 ```
 
 Next we'll run the package script. This script will package and publish the
-necessary helm charts to the `GITHUB_REPO`. The script expects a deployment
+necessary Helm charts to the `GITHUB_REPO`. The script expects a deployment
 type to be provided, which will determine which orc8r modules are deployed.
+
+### Run the package script
+
 The valid deployment type options are
 
 - `fwa`
@@ -107,9 +131,13 @@ The valid deployment type options are
 Run the package script
 
 ```bash
-$ ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa  # or chosen deployment type
+$ ${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa # or chosen deployment type
 
 ...
 
 Uploaded orc8r charts successfully.
+```
+You can add `-v` option to overwrite the versions of the chart.
+```bash
+${MAGMA_ROOT}/orc8r/tools/helm/package.sh -d fwa  -v 1.5
 ```
