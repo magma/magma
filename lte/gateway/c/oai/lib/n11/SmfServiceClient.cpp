@@ -12,7 +12,7 @@
  */
 
 #include "SmfServiceClient.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include <google/protobuf/util/time_util.h>
 
 using grpc::Status;
