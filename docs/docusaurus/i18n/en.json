@@ -211,6 +211,9 @@
       "lte/upgrade_1_5": {
         "title": "Upgrade to v1.5"
       },
+      "nms/admin": {
+        "title": "Admin"
+      },
       "nms/alerts": {
         "title": "Alerts"
       },
@@ -234,6 +237,9 @@
       },
       "nms/equipment": {
         "title": "Equipment"
+      },
+      "nms/federation": {
+        "title": "Federation"
       },
       "nms/legacy/grafana": {
         "title": "Custom Grafana Dashboards"
