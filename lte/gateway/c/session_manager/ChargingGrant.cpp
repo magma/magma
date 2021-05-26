@@ -389,7 +389,7 @@ static RedirectInformation_AddressType address_type_converter(
     case RedirectServer_RedirectAddressType_SIP_URI:
       return RedirectInformation_AddressType_SIP_URI;
     default:
-      MLOG(MERROR) << "Unknown redirect address type!";
+      MLOG(MWARNING) << "Unknown redirect address type!";
       return RedirectInformation_AddressType_IPv4;
   }
 }

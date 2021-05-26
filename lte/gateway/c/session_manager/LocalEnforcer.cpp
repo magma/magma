@@ -217,9 +217,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
     }
   }
   bool success = session_store_.update_sessions(session_update);
-  if (success) {
-    MLOG(MDEBUG) << "Successfully synced sessions after restart";
-  } else {
+  if (!success) {
     MLOG(MERROR) << "Failed to sync sessions after restart";
   }
 }
@@ -1826,8 +1824,8 @@ void LocalEnforcer::update_ipfix_flow(
   std::string apn_mac_addr;
   std::string apn_name;
   if (!parse_apn(config.common_context.apn(), apn_mac_addr, apn_name)) {
-    MLOG(MWARNING) << "Failed mac/name parsiong for apn "
-                   << config.common_context.apn();
+    MLOG(MDEBUG) << "Failed mac/name parsiong for apn "
+                 << config.common_context.apn();
     apn_mac_addr = "";
     apn_name     = config.common_context.apn();
   }
