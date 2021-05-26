@@ -18,8 +18,8 @@
 #include <memory>
 #include <thread>
 
-#include "MagmaService.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/MagmaService.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
 #include "SessionManagerServer.h"
 

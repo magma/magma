@@ -21,11 +21,11 @@
 #include <ostream>    // for operator<<, basic_...
 #include <utility>    // for move
 
-#include "lte/protos/policydb.pb.h"           // for RepeatedField, Rep...
-#include "lte/protos/spgw_service.grpc.pb.h"  // for SpgwService::Stub
-#include "lte/protos/spgw_service.pb.h"       // for DeleteBearerRequest
-#include "magma_logging.h"                    // for MLOG, MERROR, MINFO
-#include "ServiceRegistrySingleton.h"         // for ServiceRegistrySin...
+#include "lte/protos/policydb.pb.h"             // for RepeatedField, Rep...
+#include "lte/protos/spgw_service.grpc.pb.h"    // for SpgwService::Stub
+#include "lte/protos/spgw_service.pb.h"         // for DeleteBearerRequest
+#include "magma_logging.h"                      // for MLOG, MERROR, MINFO
+#include "includes/ServiceRegistrySingleton.h"  // for ServiceRegistrySin...
 #include "SpgwServiceClient.h"
 
 namespace grpc {
