@@ -48,6 +48,9 @@ lte/gateway/python/integ_tests @magma/approvers-agw-integtests
 xwf/ @magma/approvers-xwf
 feg/radius @magma/approvers-xwf @magma/approvers-cwf
 
+# approvers-showtech
+show-tech/ @magma/approvers-showtech
+
 docs/ @magma/approvers-docs
 docs/readmes/proposals @electronjoe
 
