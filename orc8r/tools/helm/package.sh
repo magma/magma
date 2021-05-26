@@ -55,7 +55,7 @@ do
 key="$1"
 case $key in
     -v|--version)
-    VERSION="$2"
+    VERSION="--version $2"
     shift  # pass argument or value
     ;;
     -d|--deployment-type)
