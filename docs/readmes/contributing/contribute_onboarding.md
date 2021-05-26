@@ -97,7 +97,7 @@ Install Magma locally and get everything running.
 **Howto**
 
 1. Follow the [prerequisites guide](https://magma.github.io/magma/docs/next/basics/prerequisites) and install all development tools, up to but not including the "Build/Deploy Tooling" section
-2. (Optional) If you opt to use IntelliJ IDEA as your local IDE, follow the instructions in the "Set up IntelliJ" section below before you proceed
+2. (Optional) If you opt to use IntelliJ IDEA as your local IDE, follow the instructions in the [Set up IntelliJ](#set-up-intellij) section below before you proceed
 3. Run all Orc8r tests
     1. Via Docker build script: `cd ${MAGMA_ROOT}/orc8r/cloud/docker && ./build.py -t ; noti`
     2. [Via IntelliJ](https://magma.github.io/magma/docs/orc8r/dev_testing#testing-tips)
@@ -125,9 +125,9 @@ After completing the above steps, restart your IDE and ensure the environment is
 1. Open "Project" on the left toolbar, and display "Project Files". All the files in the root `magma` directory should be displayed *without* a yellow background. This indicates IntelliJ recognizes the files as part of the module.
 2. At the top-right corner of your IDE, you should see a drop-down menu showing a list of run configurations for the Magma test suites, with a green triangular button that allows you to run the selected test. Alternatively, when you open your run configurations (`Run > Edit Configurations`), you should see something like the below
 
-   ![intellij_initial_run_configs](assets/intellij_initial_run_configs.png).
+![intellij_initial_run_configs](assets/intellij_initial_run_configs.png)
 
-You can now run all (Orchestrator) test suites in one click.
+You can now run all (Orchestrator) tests in one click.
 
 NOTE: a minority of tests require a running Postgres instance, and will otherwise fail with connection errors. You can use `orc8r/cloud/docker/run.py` to spin up the required test DB.
 
