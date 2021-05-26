@@ -23,16 +23,16 @@ add_library(SERVICE_REGISTRY
     )
 
 target_link_libraries(SERVICE_REGISTRY CONFIG
-   grpc++ dl yaml-cpp
-  )
+    grpc++ dl yaml-cpp
+    )
 
 # copy headers to build directory so they can be shared with OAI,
 # session_manager, etc.
 add_custom_command(TARGET SERVICE_REGISTRY POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy
-                   ${PROJECT_SOURCE_DIR}/service_registry/*.h
-                   $<TARGET_FILE_DIR:SERVICE_REGISTRY>)
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${PROJECT_SOURCE_DIR}/service_registry/*.h
+    $<TARGET_FILE_DIR:SERVICE_REGISTRY>)
 
 target_include_directories(SERVICE_REGISTRY PUBLIC
-                   $<TARGET_FILE_DIR:SERVICE_REGISTRY>
-)
+    $<TARGET_FILE_DIR:SERVICE_REGISTRY>
+    )

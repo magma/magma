@@ -23,13 +23,14 @@ list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 set(ASYNC_ORC8R_CPP_PROTOS common redis eventd)
-set(ASYNC_LTE_CPP_PROTOS session_manager abort_session policydb subscriberdb mobilityd pipelined)
+set(ASYNC_LTE_CPP_PROTOS session_manager abort_session policydb subscriberdb
+    mobilityd pipelined)
 set(ASYNC_LTE_GRPC_PROTOS session_manager abort_session mobilityd pipelined)
 set(ASYNC_ORC8R_GRPC_PROTOS eventd)
 
 generate_all_protos("${ASYNC_LTE_CPP_PROTOS}" "${ASYNC_ORC8R_CPP_PROTOS}"
-  "${ASYNC_LTE_GRPC_PROTOS}"
-  "${ASYNC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
+    "${ASYNC_LTE_GRPC_PROTOS}"
+    "${ASYNC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
 
 message("Async Proto_srcs are ${PROTO_SRCS}")
 
@@ -37,15 +38,15 @@ add_library(ASYNC_GRPC
     GRPCReceiver.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
-)
+    )
 
 # copy headers to build directory so they can be shared with OAI,
 # session_manager, etc.
 add_custom_command(TARGET ASYNC_GRPC POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy
-                   ${PROJECT_SOURCE_DIR}/async_grpc/*.h
-                   $<TARGET_FILE_DIR:ASYNC_GRPC>)
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${PROJECT_SOURCE_DIR}/async_grpc/*.h
+    $<TARGET_FILE_DIR:ASYNC_GRPC>)
 
 target_include_directories(ASYNC_GRPC PUBLIC
-                   $<TARGET_FILE_DIR:ASYNC_GRPC>
-)
+    $<TARGET_FILE_DIR:ASYNC_GRPC>
+    )

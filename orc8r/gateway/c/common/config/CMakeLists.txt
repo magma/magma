@@ -31,9 +31,9 @@ target_link_libraries(CONFIG glog)
 # copy headers to build directory so they can be shared with OAI,
 # session_manager, etc.
 add_custom_command(TARGET CONFIG POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy
-                   ${PROJECT_SOURCE_DIR}/config/*.h $<TARGET_FILE_DIR:CONFIG>)
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${PROJECT_SOURCE_DIR}/config/*.h $<TARGET_FILE_DIR:CONFIG>)
 
 target_include_directories(CONFIG PUBLIC
-                  $<TARGET_FILE_DIR:CONFIG>
-)
+    $<TARGET_FILE_DIR:CONFIG>
+    )
