@@ -32,10 +32,6 @@ import (
 // SubscribersProvider provides the implementation for subscriber streaming.
 type SubscribersProvider struct{}
 
-func (p *SubscribersProvider) GetStreamName() string {
-	return lte.SubscriberStreamName
-}
-
 func (p *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	magmadGateway, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{LoadAssocsFromThis: true}, serdes.Entity)
 	if err != nil {
