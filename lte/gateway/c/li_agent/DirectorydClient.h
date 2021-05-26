@@ -20,7 +20,7 @@
 #include <orc8r/protos/directoryd.pb.h>
 #include <orc8r/protos/directoryd.grpc.pb.h>
 
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 
 namespace magma {
 using namespace orc8r;
