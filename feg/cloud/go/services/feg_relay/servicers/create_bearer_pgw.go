@@ -26,10 +26,10 @@ import (
 
 const GTPCauseNotAvailable = 73 // gtp CauseNoResourcesAvailable
 
-// CreateBearerPGW relays the CreateBearerRequest from S8_proxy to a corresponding
+// CreateBearer relays the CreateBearerRequest from S8_proxy to a corresponding
 // dispatcher service instance, who will in turn relay the request to the
 // corresponding AGW gateway
-func (srv *FegToGwRelayServer) CreateBearerPGW(
+func (srv *FegToGwRelayServer) CreateBearer(
 	ctx context.Context,
 	req *fegprotos.CreateBearerRequestPgw,
 ) (*fegprotos.CreateBearerResponsePgw, error) {
