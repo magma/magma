@@ -36,6 +36,8 @@ message IndexRequest {
   repeated magma.orc8r.State states = 1;
   // network_id of the states
   string network_id = 2;
+  // DEPRECATED: reporter_hwid is the hwid of the gateway that reported the states
+  string reporter_hwid = 3 [deprecated=true];
 }
 
 message IndexResponse {
