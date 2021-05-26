@@ -396,6 +396,7 @@ int s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
         LOG_S6A, "%s visited_plmn: %02X%02X%02X\n", __FUNCTION__,
         value.os.data[0], value.os.data[1], value.os.data[2]);
   }
+
   /*
    * Adding the requested E-UTRAN authentication info AVP
    */

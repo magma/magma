@@ -49,6 +49,8 @@ struct ChargingGrant {
   // indicates the rules have been removed from pipelined
   bool suspended;
 
+  const uint32_t REDIRECT_FLOW_PRIORITY = 2000;
+
   // Default states
   ChargingGrant()
       : credit(),
@@ -134,6 +136,8 @@ struct ChargingGrant {
 
   // Log information about the grant received
   void log_received_grant(const CreditUpdateResponse& update);
+
+  PolicyRule make_redirect_rule();
 };
 
 }  // namespace magma

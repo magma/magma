@@ -137,11 +137,11 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
    *
    */
   auto update_criteria = get_default_update_criteria();
-  session_state.set_local_teid(l_teid, update_criteria);
-  session_state.set_fsm_state(CREATED, update_criteria);
+  session_state.set_local_teid(l_teid, &update_criteria);
+  session_state.set_fsm_state(CREATED, &update_criteria);
   MLOG(MINFO) << " Teid " << session_state.get_local_teid();
   uint32_t cur_version = session_state.get_current_version();
-  session_state.set_current_version(++cur_version, update_criteria);
+  session_state.set_current_version(++cur_version, &update_criteria);
 
   /* Update the m5gsm_cause and prepare for respone along with actual cause*/
   prepare_response_to_access(
@@ -198,9 +198,9 @@ void SessionStateEnforcer::m5g_start_session_termination(
   /* update respective session's state and return from here before timeout
    * to update session store with state and version
    */
-  session->set_fsm_state(RELEASE, session_uc);
+  session->set_fsm_state(RELEASE, &session_uc);
   uint32_t cur_version = session->get_current_version();
-  session->set_current_version(++cur_version, session_uc);
+  session->set_current_version(++cur_version, &session_uc);
   MLOG(MINFO) << "During release state of session changed to "
               << session_fsm_state_to_str(session->get_state());
   handle_state_update_to_amf(
@@ -281,7 +281,7 @@ void SessionStateEnforcer::m5g_complete_termination(
   }
   auto& session    = **session_it;
   auto& session_uc = session_update[imsi][session_id];
-  if (!session->can_complete_termination(session_uc)) {
+  if (!session->can_complete_termination(&session_uc)) {
     return;  // error is logged in SessionState's complete_termination
   }
   // Now remove all rules
@@ -355,9 +355,9 @@ void SessionStateEnforcer::m5g_update_session_state_to_amf(
       session_update[imsi][session->get_session_id()];
   switch (session->get_state()) {
     case CREATED:
-      session->set_fsm_state(ACTIVE, session_uc);
+      session->set_fsm_state(ACTIVE, &session_uc);
       cur_version = session->get_current_version();
-      session->set_current_version(++cur_version, session_uc);
+      session->set_current_version(++cur_version, &session_uc);
       amf_update_pending = true;
       break;
     case RELEASE:

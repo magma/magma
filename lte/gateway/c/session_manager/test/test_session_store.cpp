@@ -303,7 +303,7 @@ TEST_F(SessionStoreTest, test_read_and_write) {
 
   auto uc = get_default_update_criteria();
   RuleLifetime lifetime;
-  session->activate_static_rule(rule_id_3, lifetime, uc);
+  session->activate_static_rule(rule_id_3, lifetime, nullptr);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_3), true);
@@ -312,10 +312,10 @@ TEST_F(SessionStoreTest, test_read_and_write) {
       response1.DebugString());
 
   auto monitor_update = get_monitoring_update();
-  session->receive_monitor(monitor_update, uc);
+  session->receive_monitor(monitor_update, &uc);
 
   // Add some used credit
-  session->add_to_monitor(monitoring_key, uint64_t(111), uint64_t(333), uc);
+  session->add_to_monitor(monitoring_key, uint64_t(111), uint64_t(333), &uc);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_TX), 111);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
@@ -377,7 +377,8 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   // Check for installation of new monitoring credit
   session_map[IMSI1].front()->set_monitor(
       monitoring_key2,
-      Monitor(update_criteria.monitor_credit_to_install[monitoring_key2]), uc);
+      Monitor(update_criteria.monitor_credit_to_install[monitoring_key2]),
+      nullptr);
   EXPECT_EQ(
       session_map[IMSI1].front()->get_monitor(monitoring_key2, USED_TX), 100);
   EXPECT_EQ(

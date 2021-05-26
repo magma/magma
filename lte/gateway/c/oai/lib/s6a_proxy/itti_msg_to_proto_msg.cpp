@@ -46,13 +46,20 @@ convert_itti_s6a_authentication_info_req_to_proto_msg(
    * Add the number of requested vectors
    */
   ret.set_num_requested_eutran_vectors(msg->nb_of_vectors);
-
   /*
    * We want to use the vectors immediately in HSS so we have to add
    * * * * the Immediate-Response-Preferred AVP.
    * * * * Value of this AVP is not significant.
    */
   ret.set_immediate_response_preferred(0);
+
+  /*
+   * Adding NR as secodnary RAT feature
+   */
+
+  if (msg->supportedfeatures.nr_as_secondary_rat) {
+    ret.mutable_feature_list_id_2()->set_nr_as_secondary_rat(1);
+  }
 
   /*
    * Re-synchronization information containing the AUTS computed at USIM
@@ -90,6 +97,19 @@ UpdateLocationRequest convert_itti_s6a_update_location_request_to_proto_msg(
     ret.set_skip_subscriber_data(SKIP_SUBSCRIBER_DATA);
   }
 
+  /*
+   * Set the dual_registeration_5g_indicator flag
+   */
+  if (msg->dual_regis_5g_ind) {
+    ret.set_dual_registration_5g_indicator(DUAL_REGIS_5G_IND);
+  }
+
+  /*
+   * Set the nr as secondary rat feature
+   */
+  if (msg->supportedfeatures.nr_as_secondary_rat) {
+    ret.mutable_feature_list_id_2()->set_nr_as_secondary_rat(1);
+  }
   /*
    * Set the initial_attach
    */

@@ -99,11 +99,11 @@ void SessionCredit::add_used_credit(
   if (used_tx > 0 || used_rx > 0) {
     buckets_[USED_TX] += used_tx;
     buckets_[USED_RX] += used_rx;
-    if (credit_uc != nullptr) {
+    if (credit_uc) {
       credit_uc->bucket_deltas[USED_TX] += used_tx;
       credit_uc->bucket_deltas[USED_RX] += used_rx;
-      update_usage_timestamps(credit_uc);
     }
+    update_usage_timestamps(credit_uc);
   }
 
   log_quota_and_usage();
@@ -117,7 +117,7 @@ void SessionCredit::update_usage_timestamps(
   }
   time_of_last_usage_ = now;
 
-  if (credit_uc != nullptr) {
+  if (credit_uc) {
     credit_uc->time_of_first_usage = time_of_first_usage_;
     credit_uc->time_of_last_usage  = time_of_last_usage_;
   }
@@ -128,7 +128,7 @@ void SessionCredit::reset_reporting_credit(
   buckets_[REPORTING_RX] = 0;
   buckets_[REPORTING_TX] = 0;
   reporting_             = false;
-  if (credit_uc != NULL) {
+  if (credit_uc) {
     credit_uc->reporting = false;
   }
 }
@@ -140,7 +140,7 @@ void SessionCredit::mark_failure(
                     "'REPORTING' values";
     buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
     buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
-    if (credit_uc != NULL) {
+    if (credit_uc) {
       credit_uc->bucket_deltas[REPORTED_RX] += buckets_[REPORTING_RX];
       credit_uc->bucket_deltas[REPORTED_TX] += buckets_[REPORTING_TX];
     }
@@ -203,7 +203,7 @@ void SessionCredit::receive_credit(
   buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
   buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
 
-  if (credit_uc != NULL) {
+  if (credit_uc) {
     credit_uc->received_granted_units = gsu;
     credit_uc->grant_tracking_type    = grant_tracking_type_;
 
@@ -224,7 +224,7 @@ void SessionCredit::receive_credit(
 }
 
 uint64_t SessionCredit::calculate_delta_allowed_floor(
-    CreditUnit cu, Bucket allowed, Bucket floor, uint64_t volume_used) {
+    CreditUnit cu, Bucket allowed, Bucket floor, uint64_t volume_used) const {
   if (cu.is_valid() && cu.volume() != 0) {
     // only advance floor if there is new grant
     if (buckets_[allowed] < buckets_[floor]) {
@@ -251,7 +251,7 @@ uint64_t SessionCredit::calculate_delta_allowed_floor(
 }
 
 uint64_t SessionCredit::calculate_delta_allowed(
-    uint64_t gsu_volume, Bucket allowed, uint64_t volume_used) {
+    uint64_t gsu_volume, Bucket allowed, uint64_t volume_used) const {
   if (volume_used > buckets_[allowed]) {
     // if we overused and received a grant that means that credit was already
     // counted.
@@ -325,7 +325,7 @@ Usage SessionCredit::get_all_unreported_usage_for_reporting(
   buckets_[REPORTING_TX] += usage.bytes_tx;
   buckets_[REPORTING_RX] += usage.bytes_rx;
   reporting_ = true;
-  if (credit_uc != nullptr) {
+  if (credit_uc) {
     credit_uc->reporting = true;
   }
   log_usage_report(usage);
@@ -353,7 +353,7 @@ Usage SessionCredit::get_usage_for_reporting(
   buckets_[REPORTING_TX] += usage.bytes_tx;
   buckets_[REPORTING_RX] += usage.bytes_rx;
   reporting_ = true;
-  if (credit_uc != nullptr) {
+  if (credit_uc) {
     credit_uc->reporting = true;
   }
 
@@ -468,7 +468,7 @@ uint64_t SessionCredit::get_credit(Bucket bucket) const {
 void SessionCredit::set_report_last_credit(
     bool report_last_credit, SessionCreditUpdateCriteria* credit_uc) {
   report_last_credit_ = report_last_credit;
-  if (credit_uc != nullptr) {
+  if (credit_uc) {
     credit_uc->report_last_credit = report_last_credit;
   }
 }
@@ -500,7 +500,7 @@ void SessionCredit::apply_update_criteria(
 
 // Determine the grant's tracking type by looking at which values are valid.
 GrantTrackingType SessionCredit::determine_grant_tracking_type(
-    const GrantedUnits& grant) {
+    const GrantedUnits& grant) const {
   bool total_valid = grant.total().is_valid() && grant.total().volume() != 0;
   bool tx_valid    = grant.tx().is_valid() && grant.tx().volume() != 0;
   bool rx_valid    = grant.rx().is_valid() && grant.rx().volume() != 0;

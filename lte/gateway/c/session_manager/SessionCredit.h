@@ -194,7 +194,8 @@ class SessionCredit {
 
   void log_usage_report(Usage) const;
 
-  GrantTrackingType determine_grant_tracking_type(const GrantedUnits& grant);
+  GrantTrackingType determine_grant_tracking_type(
+      const GrantedUnits& grant) const;
 
   uint64_t calculate_requested_unit(
       CreditUnit cu, Bucket allowed, Bucket allowed_floor, uint64_t used) const;
@@ -204,10 +205,10 @@ class SessionCredit {
       const uint64_t grantedUnits) const;
 
   uint64_t calculate_delta_allowed_floor(
-      CreditUnit cu, Bucket allowed, Bucket floor, uint64_t volume_used);
+      CreditUnit cu, Bucket allowed, Bucket floor, uint64_t volume_used) const;
 
   uint64_t calculate_delta_allowed(
-      uint64_t gsu_volume, Bucket allowed, uint64_t volume_used);
+      uint64_t gsu_volume, Bucket allowed, uint64_t volume_used) const;
 
   void update_usage_timestamps(SessionCreditUpdateCriteria* credit_uc);
 };
