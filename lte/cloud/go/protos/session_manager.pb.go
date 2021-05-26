@@ -1142,7 +1142,7 @@ type RuleRecord struct {
 	RuleVersion uint64 `protobuf:"varint,9,opt,name=rule_version,json=ruleVersion,proto3" json:"rule_version,omitempty"`
 	// Uplink TEID
 	Teid uint32 `protobuf:"varint,10,opt,name=teid,proto3" json:"teid,omitempty"`
-	//final record set to false by default
+	//final record variable set to false
 	FinalRecord          bool     `protobuf:"varint,11,opt,name=final_record,json=finalRecord,proto3" json:"final_record,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
