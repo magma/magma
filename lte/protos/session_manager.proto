@@ -37,6 +37,8 @@ message RuleRecord {
   uint64 rule_version = 9;
   // Uplink TEID
   uint32 teid = 10;
+  //final record set to false by default
+  bool final_record = 11;
 }
 
 message RuleRecordTable {
