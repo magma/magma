@@ -543,8 +543,8 @@ class EnforcementStatsTest(unittest.TestCase):
             self.enforcement_controller.deactivate_rules(
                 imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.rule.id])
 
-        wait_for_enforcement_stats(self.enforcement_stats_controller,
-                                   [enf_stat_name])
+            wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                       [enf_stat_name])
         stats = get_enforcement_stats(
             self.enforcement_stats_controller._report_usage.call_args_list)
 
@@ -644,8 +644,8 @@ class EnforcementStatsTest(unittest.TestCase):
                 [policy])
             pkt_sender.send(packet)
 
-        wait_for_enforcement_stats(self.enforcement_stats_controller,
-                                   [enf_stat_name])
+            wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                       [enf_stat_name])
         stats = get_enforcement_stats(
             self.enforcement_stats_controller._report_usage.call_args_list)
 
