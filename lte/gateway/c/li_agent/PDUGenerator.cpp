@@ -20,7 +20,6 @@
 
 #include "PDUGenerator.h"
 #include "MConfigLoader.h"
-#include "MobilityClient.h"
 #include "Utilities.h"
 
 namespace magma {
@@ -62,32 +61,37 @@ FlowInformation extract_flow_information(const u_char* packet) {
   return ret;
 }
 
-static bool get_subscriber_id_from_ip(const char* ip_addr, std::string* subid) {
-  struct in_addr addr;
-  if (inet_aton(ip_addr, &addr) > 0) {
-    std::string subid_str;
-    int status = lte::MobilityClient::getInstance().GetSubscriberIDFromIP(
-        addr, &subid_str);
-    if (!subid_str.empty()) {
-      if (subid_str.find("IMSI") == std::string::npos) {
-        subid_str = "IMSI" + subid_str;
-      }
-      *subid = strdup(subid_str.c_str());
-      return true;
-    }
-  }
-  return false;
-}
-
 PDUGenerator::PDUGenerator(
     const std::string& pkt_dst_mac, const std::string& pkt_src_mac,
     int sync_interval, int inactivity_time,
-    std::unique_ptr<ProxyConnector> proxy_connector)
+    std::unique_ptr<ProxyConnector> proxy_connector,
+    std::unique_ptr<MobilitydClient> mobilityd_client)
     : pkt_dst_mac_(pkt_dst_mac),
       pkt_src_mac_(pkt_src_mac),
       sync_interval_(sync_interval),
       inactivity_time_(inactivity_time),
-      proxy_connector_(std::move(proxy_connector)) {}
+      proxy_connector_(std::move(proxy_connector)),
+      mobilityd_client_(std::move(mobilityd_client)) {}
+
+bool PDUGenerator::get_subscriber_id_from_ip(
+    const char* ip_addr, std::string* subid) {
+  struct in_addr addr;
+  if (inet_aton(ip_addr, &addr) < 0) {
+    return false;
+  }
+
+  std::string subid_str;
+  int status = mobilityd_client_->GetSubscriberIDFromIP(addr, &subid_str);
+  if (subid_str.empty()) {
+    return false;
+  }
+
+  if (subid_str.find("IMSI") == std::string::npos) {
+    subid_str = "IMSI" + subid_str;
+  }
+  *subid = strdup(subid_str.c_str());
+  return true;
+}
 
 bool PDUGenerator::is_still_valid_state(std::string idx) {
   auto& state  = intercept_state_map_[idx];

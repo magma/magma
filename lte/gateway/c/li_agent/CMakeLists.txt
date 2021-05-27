@@ -95,8 +95,8 @@ link_directories(
 add_library(LI_AGENT
     Utilities.h
     Utilities.cpp
-    MobilityClient.cpp
-    MobilityClient.h
+    MobilitydClient.cpp
+    MobilitydClient.h
     PDUGenerator.cpp
     PDUGenerator.h
     InterfaceMonitor.cpp

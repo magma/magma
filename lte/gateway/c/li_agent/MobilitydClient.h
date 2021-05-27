@@ -32,9 +32,9 @@ namespace lte {
 /*
  * gRPC client for MobilityService
  */
-class MobilityClient : public GRPCReceiver {
+class MobilitydClient : public GRPCReceiver {
  public:
-  virtual ~MobilityClient() = default;
+  virtual ~MobilitydClient() = default;
   /*
    * Get the subscriber id given its allocated IPv4 address. If the address
    * isn't associated with a subscriber, then it returns an error
@@ -47,13 +47,13 @@ class MobilityClient : public GRPCReceiver {
   int GetSubscriberIDFromIP(const struct in_addr& addr, std::string* imsi);
 
  public:
-  static MobilityClient& getInstance();
+  MobilitydClient();
+  static MobilitydClient& getInstance();
 
-  MobilityClient(MobilityClient const&) = delete;
-  void operator=(MobilityClient const&) = delete;
+  MobilitydClient(MobilitydClient const&) = delete;
+  void operator=(MobilitydClient const&) = delete;
 
  private:
-  MobilityClient();
   static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
   std::unique_ptr<MobilityService::Stub> stub_{};
 };

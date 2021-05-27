@@ -22,25 +22,30 @@
 
 #include <gtest/gtest.h>
 
+using testing::DoAll;
 using ::testing::Test;
+using ::testing::Return;
+using ::testing::SetArgReferee;
 
 namespace magma {
+namespace lte {
 
 class PDUGeneratorTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
-    auto proxy_connector_p   = std::make_unique<MockProxyConnector>();
-    proxy_connector          = proxy_connector_p.get();
-    auto directoryd_client_p = std::make_unique<MockDirectorydClient>();
-    directoryd_client        = directoryd_client_p.get();
+    auto proxy_connector_p = std::make_unique<MockProxyConnector>();
+    proxy_connector        = proxy_connector_p.get();
+
+    auto mobilityd_client_p = std::make_unique<MockMobilitydClient>();
+    mobilityd_client        = mobilityd_client_p.get();
 
     pkt_generator = std::make_unique<PDUGenerator>(
-        std::move(proxy_connector_p), std::move(directoryd_client_p),
-        PKT_DST_MAC, PKT_SRC_MAC);
+        PKT_DST_MAC, PKT_SRC_MAC, 2, 4, std::move(proxy_connector_p),
+        std::move(mobilityd_client_p));
   }
 
   MockProxyConnector* proxy_connector;
-  MockDirectorydClient* directoryd_client;
+  MockMobilitydClient* mobilityd_client;
   std::unique_ptr<PDUGenerator> pkt_generator;
 };
 
@@ -53,16 +58,25 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
       malloc(sizeof(struct ether_header) + sizeof(struct ip)));
   struct ether_header* ethernetHeader = (struct ether_header*) pdata;
   ethernetHeader->ether_type          = htons(ETHERTYPE_IP);
-  struct ip* ipHeader     = (struct ip*) (pdata + sizeof(struct ether_header));
-  ipHeader->ip_src.s_addr = 123;
-  ipHeader->ip_dst.s_addr = 1222787743;
-  pkt_generator->send_packet(phdr, pdata);
 
-  // TODO(koolzz): For some reason these are not properly caught, fix...
-  //  EXPECT_CALL(
-  //      *directoryd_client, get_directoryd_xid_field(testing::_, testing::_));
-  //  EXPECT_CALL(
-  //      *directoryd_client, get_directoryd_xid_field(testing::_, testing::_));
+  struct ip* ipHeader     = (struct ip*) (pdata + sizeof(struct ether_header));
+  ipHeader->ip_src.s_addr = 3232235522;
+  ipHeader->ip_dst.s_addr = 3232235521;
+
+  EXPECT_CALL(
+    *mobilityd_client, GetSubscriberIDFromIP(_, _))
+	.Times(1)
+        .WillOnce(testing::DoAll(testing::SetArgPointee<1>("imsi1234"), testing::Return(0)));
+	
+  EXPECT_CALL(
+    *proxy_connector, send_data(testing::_, testing::_))
+	.Times(1)
+	.WillOnce(testing::Return(1));
+
+  pkt_generator->process_packet(phdr, pdata);
+
+  free(pdata);
+  free(phdr);
 }
 
 int main(int argc, char** argv) {
@@ -70,4 +84,5 @@ int main(int argc, char** argv) {
   return RUN_ALL_TESTS();
 }
 
+}  // namespace lte
 }  // namespace magma

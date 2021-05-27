@@ -92,9 +92,10 @@ int main(void) {
     return -1;
   }
 
-  auto pkt_generator = std::make_unique<magma::lte::PDUGenerator>(
+  auto mobilityd_client = std::make_unique<magma::lte::MobilitydClient>();
+  auto pkt_generator    = std::make_unique<magma::lte::PDUGenerator>(
       pkt_dst_mac, pkt_src_mac, sync_interval, inactivity_time,
-      std::move(proxy_connector));
+      std::move(proxy_connector), std::move(mobilityd_client));
 
   auto interface_watcher = std::make_unique<magma::lte::InterfaceMonitor>(
       interface_name, std::move(pkt_generator));

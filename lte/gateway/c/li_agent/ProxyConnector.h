@@ -23,6 +23,7 @@ class ProxyConnector {
   virtual int send_data(void* data, uint32_t size) = 0;
   virtual int setup_proxy_socket()                 = 0;
   virtual void cleanup()                           = 0;
+  virtual ~ProxyConnector()                        = default;
 };
 
 class ProxyConnectorImpl : public ProxyConnector {

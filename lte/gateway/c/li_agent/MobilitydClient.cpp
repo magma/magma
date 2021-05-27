@@ -14,7 +14,7 @@
 #include <netinet/in.h>
 #include <thread>
 
-#include "MobilityClient.h"
+#include "MobilitydClient.h"
 #include "ServiceRegistrySingleton.h"
 
 #include "lte/protos/mobilityd.grpc.pb.h"
@@ -28,7 +28,7 @@ using magma::orc8r::Void;
 namespace magma {
 namespace lte {
 
-int MobilityClient::GetSubscriberIDFromIP(
+int MobilitydClient::GetSubscriberIDFromIP(
     const struct in_addr& addr, std::string* imsi) {
   IPAddress ip_addr = IPAddress();
   ip_addr.set_version(IPAddress::IPV4);
@@ -47,7 +47,7 @@ int MobilityClient::GetSubscriberIDFromIP(
   return 0;
 }
 
-MobilityClient::MobilityClient() {
+MobilitydClient::MobilitydClient() {
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
       "mobilityd", ServiceRegistrySingleton::LOCAL);
   stub_ = MobilityService::NewStub(channel);
@@ -55,8 +55,8 @@ MobilityClient::MobilityClient() {
   resp_loop_thread.detach();
 }
 
-MobilityClient& MobilityClient::getInstance() {
-  static MobilityClient instance;
+MobilitydClient& MobilitydClient::getInstance() {
+  static MobilitydClient instance;
   return instance;
 }
 

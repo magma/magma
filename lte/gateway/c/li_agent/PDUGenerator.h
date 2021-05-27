@@ -19,6 +19,7 @@
 
 #include "magma_logging.h"
 #include "ProxyConnector.h"
+#include "MobilitydClient.h"
 
 namespace magma {
 namespace lte {
@@ -70,7 +71,8 @@ class PDUGenerator {
   PDUGenerator(
       const std::string& pkt_dst_mac, const std::string& pkt_src_mac,
       int sync_interval, int inactivity_time,
-      std::unique_ptr<ProxyConnector> proxy_connector);
+      std::unique_ptr<ProxyConnector> proxy_connector,
+      std::unique_ptr<MobilitydClient> mobilityd_client);
 
   /**
    * process_packet retrieves the state of the current interception for
@@ -100,6 +102,7 @@ class PDUGenerator {
   Tins::NetworkInterface iface_;
   InterceptStateMap intercept_state_map_;
   std::unique_ptr<ProxyConnector> proxy_connector_;
+  std::unique_ptr<MobilitydClient> mobilityd_client_;
 
   /**
    * generate_record builds an x3 record from the current packet as specified
@@ -134,6 +137,15 @@ class PDUGenerator {
    */
   bool process_new_task(
       const FlowInformation flow, std::string* idx, InterceptState* state);
+
+  /**
+   * get_subscriber_id_from_ip retrieves a subscriber id from the ip address
+   * from mobilityd service
+   * @param ip_addr - ip address
+   * @param subid - subscriber id
+   * @return true if subscriber is found, false otherwise
+   */
+  bool get_subscriber_id_from_ip(const char* ip_addr, std::string* subid);
 
   /**
    * get_intercept_state_id retrieves a state for the current flow from

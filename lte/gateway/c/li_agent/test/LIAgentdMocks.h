@@ -12,13 +12,12 @@
  */
 #pragma once
 
+#include <string>
 #include <gmock/gmock.h>
 #include <grpc++/grpc++.h>
 #include <gtest/gtest.h>
 
-#include <folly/io/async/EventBase.h>
-
-#include "DirectorydClient.h"
+#include "MobilitydClient.h"
 #include "ProxyConnector.h"
 
 using grpc::Status;
@@ -26,9 +25,11 @@ using ::testing::_;
 using ::testing::Return;
 
 namespace magma {
+namespace lte {
 
 class MockProxyConnector : public ProxyConnector {
  public:
+  // MockProxyConnector() {}
   ~MockProxyConnector() {}
 
   MOCK_METHOD2(send_data, int(void* data, uint32_t size));
@@ -36,15 +37,13 @@ class MockProxyConnector : public ProxyConnector {
   MOCK_METHOD0(cleanup, void());
 };
 
-class MockDirectorydClient : public DirectorydClient {
+class MockMobilitydClient : public MobilitydClient {
  public:
-  ~MockDirectorydClient() {}
+  ~MockMobilitydClient() {}
 
   MOCK_METHOD2(
-      get_directoryd_xid_field,
-      void(
-          const std::string& ip,
-          std::function<void(Status status, DirectoryField)> callback));
+      GetSubscriberIDFromIP, int(const struct in_addr& addr, std::string* imsi));
 };
 
+}  // namespace lte
 }  // namespace magma
