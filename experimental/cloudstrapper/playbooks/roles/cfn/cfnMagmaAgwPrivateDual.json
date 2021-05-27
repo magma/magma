@@ -3,18 +3,18 @@
     "Parameters": {
       "paramImageBase": {
         "Type": "AWS::EC2::Image::Id",
-	"Description": "Base Image Id",
-	"Default": "ami-09ab3e9698e4f3789"
+	"Description": "In-region AGW AMI",
+	"Default": "ami-09265db477af05f54"
       },
       "paramSubnetSgi": {
         "Type": "String",
 	"Description": "SGi Subnet",
-	"Default": "subnet-04dd659b390074dc2"
+	"Default": "subnet-079b5920b590f32da"
       },
       "paramSubnetEnodeb": {
         "Type": "String",
 	"Description": "S1 Subnet",
-	"Default": "subnet-0c35690ddbe863271"
+	"Default": "subnet-0766eb7621fe38a2d"
       },
       "paramAzHome": {
         "Type": "AWS::EC2::AvailabilityZone::Name",
@@ -24,17 +24,17 @@
       "paramSecGroup": {
         "Type": "String",
 	"Description": "Security Group Name",
-	"Default":"sg-09036f2407ddfdaf3"
+	"Default":"sg-0b7fbe50f1c8a15d4"
       },
       "paramAgwInstanceType": {
         "Type": "String",
 	"Description": "Instance Type",
-	"Default": "t2.medium"
+	"Default": "t2.small"
       },
       "paramSshKey": {
         "Type": "AWS::EC2::KeyPair::KeyName",
 	"Description": "Keypair",
-	"Default": "keyMagmaHostAlpha"
+	"Default": "keyMagmaHostCharlie"
       },
       "paramAgwTagUuid": {
         "Type": "String",
