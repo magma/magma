@@ -1045,6 +1045,9 @@ func TestGetSubscriber(t *testing.T) {
 }
 
 func TestGetSubscriberByExactIMSI(t *testing.T) {
+	// regression test to ensure we are loading states with the exact same IMSI
+	// key as the subscriber
+
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
@@ -1052,93 +1055,52 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 	assert.NoError(t, err)
 
 	e := echo.New()
-	testURLRoot := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
+	getSubscriberURL := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
+	createSubscribersURL := "/magma/v1/lte/:network_id/subscribers_v2"
 	handlers := handlers.GetHandlers()
-	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
+	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, getSubscriberURL, obsidian.GET).HandlerFunc
+	createSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, createSubscribersURL, obsidian.POST).HandlerFunc
 
-	// preseed 2 apns
-	apn1, apn2 := "foo", "bar"
+	// Pre: create two APNs
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: lte.APNEntityType, Key: apn1},
-			{Type: lte.APNEntityType, Key: apn2},
+			{Type: lte.APNEntityType, Key: "apn0"},
+			{Type: lte.APNEntityType, Key: "apn1"},
 		},
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
-	// No sub profile configured, we should return "default"
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI123",
-				Name: "Jane Doe",
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo: "MILENAGE",
-						AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-						State:    "ACTIVE",
-					},
-					StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
-				},
-				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
-			},
-			{
-				Type: lte.SubscriberEntityType, Key: "IMSI12345",
-				Name: "John Doe",
-				Config: &subscriberModels.SubscriberConfig{
-					Lte: &subscriberModels.LteSubscription{
-						AuthAlgo:   "MILENAGE",
-						AuthKey:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						AuthOpc:    []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-						State:      "ACTIVE",
-						SubProfile: "foo",
-					},
-					StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
-				},
-				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
-			},
-		},
-		serdes.Entity,
-	)
-	assert.NoError(t, err)
+	// Create two subscribers, one a prefix of the other
+	sub1 := newMutableSubscriber("IMSI1234567890")
+	sub2 := newMutableSubscriber("IMSI123456789000")
+	sub2.Name = "John Doe"
+	payload := subscriberModels.MutableSubscribers{sub1, sub2}
 
 	tc := tests.Test{
-		Method:         "GET",
-		URL:            testURLRoot,
-		Handler:        getSubscriber,
-		ParamNames:     []string{"network_id", "subscriber_id"},
-		ParamValues:    []string{"n1", "IMSI123"},
-		ExpectedStatus: 200,
-		ExpectedResult: &subscriberModels.Subscriber{
-			ID:   "IMSI123",
-			Name: "Jane Doe",
-			Lte: &subscriberModels.LteSubscription{
-				AuthAlgo:   "MILENAGE",
-				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:      "ACTIVE",
-				SubProfile: "default",
-			},
-			Config: &subscriberModels.SubscriberConfig{
-				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: "default",
-				},
-				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
-			},
-			ActiveApns: subscriberModels.ApnList{apn2, apn1},
-		},
+		Method:         "POST",
+		URL:            createSubscribersURL,
+		Payload:        tests.JSONMarshaler(payload),
+		Handler:        createSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Now create some AGW-reported state for 123 and 12345
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            getSubscriberURL,
+		Handler:        getSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 200,
+		ExpectedResult: sub1.ToSubscriber(),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Now create some AGW-reported state for the subscribers
 	// First we need to register a gateway which can report state
 	_, err = configurator.CreateEntity(
 		"n1",
@@ -1152,54 +1114,35 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 
 	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI123", icmpStatus, serdes.State)
-	mmeState := state.ArbitraryJSON{"mme": "foo"}
-	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI123", &mmeState, serdes.State)
-	spgwState := state.ArbitraryJSON{"spgw": "foo"}
-	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI12345", &spgwState, serdes.State)
-	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
-	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI12345", &s1apState, serdes.State)
+	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus, serdes.State)
 
-	// should only report states for IMSI123, not IMSI12345
+	// sub1 and sub2 differ in their mme states
+	mmeState1 := state.ArbitraryJSON{"mme": "foo"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState1, serdes.State)
+	mmeState2 := state.ArbitraryJSON{"mme": "foo"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI123456789000", &mmeState2, serdes.State)
+
+	sub1_with_state := sub1.ToSubscriber()
+	sub1_with_state.Monitoring = &subscriberModels.SubscriberStatus{
+		Icmp: &subscriberModels.IcmpStatus{
+			// LastReportedTime is calculated in milliseconds
+			LastReportedTime: frozenClock * 1000,
+			LatencyMs:        f32Ptr(12.34),
+		},
+	}
+	sub1_with_state.State = &subscriberModels.SubscriberState{
+		Mme: mmeState1,
+	}
+
+	// should only report states for IMSI1234567890, not IMSI123456789000
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            testURLRoot,
+		URL:            getSubscriberURL,
 		Handler:        getSubscriber,
 		ParamNames:     []string{"network_id", "subscriber_id"},
-		ParamValues:    []string{"n1", "IMSI123"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
 		ExpectedStatus: 200,
-		ExpectedResult: &subscriberModels.Subscriber{
-			ID:   "IMSI123",
-			Name: "Jane Doe",
-			Lte: &subscriberModels.LteSubscription{
-				AuthAlgo:   "MILENAGE",
-				AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-				State:      "ACTIVE",
-				SubProfile: "default",
-			},
-			Config: &subscriberModels.SubscriberConfig{
-				Lte: &subscriberModels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: "default",
-				},
-				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
-			},
-			ActiveApns: subscriberModels.ApnList{apn2, apn1},
-			Monitoring: &subscriberModels.SubscriberStatus{
-				Icmp: &subscriberModels.IcmpStatus{
-					// LastReportedTime is calculated in milliseconds
-					LastReportedTime: frozenClock * 1000,
-					LatencyMs:        f32Ptr(12.34),
-				},
-			},
-			State: &subscriberModels.SubscriberState{
-				Mme: mmeState,
-			},
-		},
+		ExpectedResult: sub1_with_state,
 	}
 	tests.RunUnitTest(t, e, tc)
 }
