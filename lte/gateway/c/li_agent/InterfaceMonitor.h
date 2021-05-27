@@ -12,6 +12,10 @@
  */
 #pragma once
 
+#include <string>
+#include <memory>
+#include <pcap.h>
+
 #include "PDUGenerator.h"
 
 namespace magma {
@@ -31,9 +35,11 @@ class InterfaceMonitor {
    * provided in service configuration.
    * @return return positif integer if interface monitoring starts successfuly.
    */
-  int init_iface_pcap_monitor();
+  int init_interface_monitor();
+  int start_capture();
 
  private:
+  pcap_t* pcap_;
   std::string iface_name_;
   std::unique_ptr<PDUGenerator> pkt_gen_;
 };

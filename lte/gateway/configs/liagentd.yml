@@ -11,7 +11,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-log_level: DEBUG
+log_level: INFO
 
 # Enable liagentd
 enable: false
@@ -29,6 +29,6 @@ cert_file: /var/opt/magma/certs/nprobe.pem
 key_file: /var/opt/magma/certs/nprobe.key
 
 # Interval between mconfig updates fetching
-sync_interval: 300
+sync_interval: 360
 # Inactivity time after which a state is delete for a probe
 inactivity_time: 86400

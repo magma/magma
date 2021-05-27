@@ -118,6 +118,7 @@ int ProxyConnectorImpl::send_data(void* data, uint32_t size) {
 }
 
 void ProxyConnectorImpl::cleanup() {
+  MLOG(MERROR) << "Calling cleanup";
   SSL_free(ssl_);
   close(proxy_);
   SSL_CTX_free(ctx_);

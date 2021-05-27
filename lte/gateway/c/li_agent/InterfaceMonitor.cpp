@@ -12,7 +12,6 @@
  */
 
 #include <stdio.h>
-#include <pcap.h>
 
 #include "InterfaceMonitor.h"
 #include "magma_logging.h"
@@ -22,38 +21,52 @@ namespace lte {
 
 InterfaceMonitor::InterfaceMonitor(
     const std::string& iface_name, std::unique_ptr<PDUGenerator> pkt_gen)
-    : iface_name_(iface_name), pkt_gen_(std::move(pkt_gen)) {}
+    : pcap_(nullptr), iface_name_(iface_name), pkt_gen_(std::move(pkt_gen)) {}
 
 static void packet_handler(
     u_char* user, const struct pcap_pkthdr* phdr, const u_char* pdata) {
   reinterpret_cast<PDUGenerator*>(user)->process_packet(phdr, pdata);
 }
 
-int InterfaceMonitor::init_iface_pcap_monitor() {
+int InterfaceMonitor::init_interface_monitor() {
   char errbuf[PCAP_ERRBUF_SIZE];
-  pcap_t* pcap;
   int ret;
 
-  pcap = pcap_open_live(
+  pcap_ = pcap_open_live(
       iface_name_.c_str(), MAX_PKT_SIZE, PROMISCUOUS_MODE,
       PKT_BUF_READ_TIMEOUT_MS, errbuf);
-  if (pcap == nullptr) {
+  if (pcap_ == nullptr) {
     MLOG(MFATAL) << "Could not capture packets on " << iface_name_
                  << ", exiting";
     return -1;
   }
-  MLOG(MINFO) << "Successfully started live pcap sniffing";
 
-  ret = pcap_loop(
-      pcap, -1, packet_handler, reinterpret_cast<u_char*>(pkt_gen_.get()));
+  ret = pcap_setnonblock(pcap_, 1, errbuf);
   if (ret == -1) {
-    MLOG(MERROR) << "Could not capture packets";
-    if (pcap != nullptr) {
-      pcap_close(pcap);
-    }
+    MLOG(MFATAL) << "Could not set non-blocking mode " << ret << ", exiting";
     return -1;
   }
+  MLOG(MINFO) << "Successfully started live pcap sniffing";
+  return 0;
+}
 
+int InterfaceMonitor::start_capture() {
+  int ret;
+  while (true) {
+    ret = pcap_dispatch(
+        pcap_, -1, packet_handler, reinterpret_cast<u_char*>(pkt_gen_.get()));
+    if (ret == -1) {
+      MLOG(MERROR) << "Could not capture packets";
+      if (pcap_ != nullptr) {
+        pcap_close(pcap_);
+        pcap_ = nullptr;
+      }
+      return -1;
+    } else if (ret == 0) {
+      pkt_gen_->cleanup_inactive_tasks();
+      usleep(100);
+    }
+  }
   return 0;
 }
 

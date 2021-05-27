@@ -195,7 +195,6 @@
 
 - name: Install LI Agent dependencies
   retries: 5
-  when: preburn
   apt:
     state: present
     update_cache: yes

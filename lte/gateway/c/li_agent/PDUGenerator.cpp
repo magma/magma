@@ -89,6 +89,20 @@ PDUGenerator::PDUGenerator(
       inactivity_time_(inactivity_time),
       proxy_connector_(std::move(proxy_connector)) {}
 
+bool PDUGenerator::is_still_valid_state(std::string idx) {
+  auto& state  = intercept_state_map_[idx];
+  auto mconfig = magma::lte::load_mconfig();
+  for (const auto& task : mconfig.nprobe_tasks()) {
+    if (state.task_id == task.task_id()) {
+      MLOG(MDEBUG) << "Found task - " << state.task_id;
+      state.correlation_id = task.correlation_id();
+      state.domain_id      = task.domain_id();
+      return true;
+    }
+  }
+  return false;
+}
+
 std::string PDUGenerator::get_intercept_state_idx(const FlowInformation& flow) {
   std::string idx;
   if (intercept_state_map_.find(flow.src_ip) != intercept_state_map_.end()) {
@@ -98,10 +112,16 @@ std::string PDUGenerator::get_intercept_state_idx(const FlowInformation& flow) {
     idx = flow.dst_ip;
   }
 
-  if (idx.empty()) {
-    return create_new_intercept_state(flow);
+  if (!idx.empty()) {
+    auto now = get_time_in_sec_since_epoch();
+    if (now - intercept_state_map_[idx].last_exported < sync_interval_)
+      if (is_still_valid_state(idx)) {
+        return idx;
+      }
+    MLOG(MDEBUG) << "Delete task " << idx;
+    intercept_state_map_.erase(idx);
   }
-  return idx;
+  return create_new_intercept_state(flow);
 }
 
 std::string PDUGenerator::create_new_intercept_state(
@@ -117,22 +137,16 @@ std::string PDUGenerator::create_new_intercept_state(
     return idx;
   }
 
-  auto found   = false;
   auto mconfig = magma::lte::load_mconfig();
   for (const auto& it : mconfig.nprobe_tasks()) {
     if (it.target_id() == subid) {
-      found = true;
-
+      MLOG(MDEBUG) << "Create new task " << it.task_id();
       InterceptState state;
-      state.target_id      = subid;
-      state.task_id        = it.task_id();
-      state.domain_id      = it.domain_id();
-      state.correlation_id = it.correlation_id();
-      // insert state
+      state.target_id           = subid;
+      state.task_id             = it.task_id();
+      state.domain_id           = it.domain_id();
+      state.correlation_id      = it.correlation_id();
       intercept_state_map_[idx] = state;
-
-      // intercept_state_map_.insert(
-      //    std::make_pair<std::string, InterceptState>(idx.c_str(), state));
       break;
     }
   }
@@ -142,7 +156,7 @@ std::string PDUGenerator::create_new_intercept_state(
 void* PDUGenerator::generate_record(
     const struct pcap_pkthdr* phdr, const u_char* pdata, std::string idx,
     uint16_t direction, uint32_t* record_len) {
-  auto state       = intercept_state_map_[idx];
+  auto& state      = intercept_state_map_[idx];
   uint32_t hdr_len = sizeof(X3Header);
   uint32_t pld_len =
       phdr->len -
@@ -160,9 +174,6 @@ void* PDUGenerator::generate_record(
   pdu->correlation_id    = htobe64(state.correlation_id);
   pdu->payload_direction = htons(direction);
 
-  MLOG(MDEBUG) << "CorrelationID - " << state.correlation_id << " -  "
-               << state.target_id;
-
   uuid_parse(state.task_id.c_str(), pdu->xid);
   SET_INT64_TLV(&pdu->attrs.timestamp, TIMESTAMP_ATTRID, phdr->ts.tv_sec);
   SET_INT64_TLV(
@@ -170,13 +181,14 @@ void* PDUGenerator::generate_record(
       state.sequence_number);
 
   memcpy(data + hdr_len, pdata + ETHERNET_HDR_LEN, pld_len);
+
+  state.last_exported = phdr->ts.tv_sec;
+  state.sequence_number++;
   return (void*) data;
 }
 
 bool PDUGenerator::process_packet(
     const struct pcap_pkthdr* phdr, const u_char* pdata) {
-  refresh_intercept_state_map();
-
   FlowInformation flow = extract_flow_information(pdata);
   if (!flow.successful) {
     MLOG(MERROR)
@@ -194,10 +206,10 @@ bool PDUGenerator::process_packet(
   void* record = generate_record(phdr, pdata, idx, direction, &record_len);
   auto ret     = export_record(record, record_len, MAX_EXPORT_RETRIES);
 
-  MLOG(MDEBUG) << "Generated packet length with length - " << record_len;
+  MLOG(MDEBUG) << "Generated packet "
+               << intercept_state_map_[idx].sequence_number
+               << " length with length " << record_len;
 
-  intercept_state_map_[idx].sequence_number++;
-  intercept_state_map_[idx].last_exported = phdr->ts.tv_sec;
   free(record);
   return ret;
 }
@@ -217,35 +229,19 @@ bool PDUGenerator::export_record(void* record, uint32_t size, int retries) {
   return true;
 }
 
-void PDUGenerator::refresh_intercept_state_map() {
-  if (time_difference_from_now(prev_sync_time_) <= inactivity_time_) {
+void PDUGenerator::cleanup_inactive_tasks() {
+  if (time_difference_from_now(prev_sync_time_) < sync_interval_) {
     return;
   }
 
-  std::vector<std::string> del_keys;
-  prev_sync_time_ = get_time_in_sec_since_epoch();
-  auto mconfig    = magma::lte::load_mconfig();
-
-  for (auto& it : intercept_state_map_) {
-    auto found = false;
-    if (time_difference_from_now(it.second.last_exported) < sync_interval_) {
-      for (const auto& task : mconfig.nprobe_tasks()) {
-        if (it.second.task_id == task.task_id()) {
-          it.second.correlation_id = task.correlation_id();
-          it.second.domain_id      = task.domain_id();
-          found                    = true;
-          break;
-        }
-      }
+  auto it = intercept_state_map_.begin();
+  while (it != intercept_state_map_.end()) {
+    if (time_difference_from_now(it->second.last_exported) > inactivity_time_) {
+      MLOG(MDEBUG) << "Delete task " << it->second.task_id;
+      it = intercept_state_map_.erase(it);
+    } else {
+      it++;
     }
-    if (!found) {
-      del_keys.push_back(it.first);
-    }
-  }
-
-  for (auto& key : del_keys) {
-    MLOG(MDEBUG) << "delete state " << intercept_state_map_[key].task_id;
-    intercept_state_map_.erase(key);
   }
   return;
 }

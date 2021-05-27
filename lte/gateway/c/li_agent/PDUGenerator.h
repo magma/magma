@@ -83,6 +83,13 @@ class PDUGenerator {
    */
   bool process_packet(const struct pcap_pkthdr* phdr, const u_char* pdata);
 
+  /**
+   * cleanup_inactive_tasks loops over all tasks and delete all inactive states
+   * with no exported records for inactivity_time seconds.
+   * @return void
+   */
+  void cleanup_inactive_tasks();
+
  private:
   std::string iface_name_;
   std::string pkt_dst_mac_;
@@ -129,19 +136,29 @@ class PDUGenerator {
       const FlowInformation flow, std::string* idx, InterceptState* state);
 
   /**
-   * set_conditional_attr sets the tlv conditional attributes as defined in ETSI
-   * 103 221-2.
-   * @param tlv - destination tlv
-   * @param type - type of attribute is defined by spec
-   * @param value - attribute value
-   * @return voidl
+   * get_intercept_state_id retrieves a state for the current flow from
+   * the corresponding mconfig nprobe task. If no state is found, It will
+   * create new one.
+   * @param flow - describes the ip sources and destination address
+   * @return index of state in the map
    */
-  void set_conditional_attr(TLV* tlv, uint16_t type, uint64_t value);
-
-  void refresh_intercept_state_map();
-
   std::string get_intercept_state_idx(const FlowInformation& flow);
+
+  /**
+   * create_new_intercept_state creates a new state for the current flow from
+   * the corresponding mconfig nprobe task
+   * @param flow - describes the ip sources and destination address
+   * @return index of the newly created state
+   */
   std::string create_new_intercept_state(const FlowInformation& flow);
+
+  /**
+   * is_still_valid_state validates that the current state belongs to non
+   * deleted task.
+   * @param idx - index of the current state
+   * @return true if state if valid, false otherwise
+   */
+  bool is_still_valid_state(std::string idx);
 };
 
 }  // namespace lte
