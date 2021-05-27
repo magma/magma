@@ -52,7 +52,7 @@ services:
     port: 9107
     proxy_type: "clientcert"
 
-  basic_acct:
+  base_acct:
     host: "localhost"
     port: 9119
     proxy_type: "clientcert"
