@@ -18,7 +18,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(MAGMA_LOGGING REQUIRED)
 
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}common/includes)
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
 
 #compile the relevant protos
 include("${PROJECT_SOURCE_DIR}/../CMakeProtoMacros.txt")

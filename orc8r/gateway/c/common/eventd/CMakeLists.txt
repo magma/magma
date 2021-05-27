@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}common/includes)
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")

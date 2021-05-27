@@ -16,7 +16,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}common/includes)
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
 
 add_library(SERVICE_REGISTRY
     ServiceRegistrySingleton.cpp

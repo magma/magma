@@ -17,7 +17,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 include("${PROJECT_SOURCE_DIR}/../CMakeProtoMacros.txt")
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}common/includes)
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
 find_package(MAGMA_LOGGING REQUIRED)
 
 list(APPEND PROTO_SRCS "")

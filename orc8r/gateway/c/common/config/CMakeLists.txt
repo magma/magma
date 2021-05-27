@@ -17,7 +17,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(MAGMA_LOGGING REQUIRED)
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}common/includes)
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
 
 add_library(MAGMA_CONFIG
     MConfigLoader.cpp

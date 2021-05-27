@@ -31,7 +31,7 @@ set(SERVICE303_PROTOS common metricsd service303)
 generate_cpp_protos("${SERVICE303_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
     ${ORC8R_PROTO_DIR} ${CPP_OUT_DIR})
 
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}common/includes)
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
 set(SERVICE303_GRPC_PROTOS service303)
 generate_grpc_protos("${SERVICE303_GRPC_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${CPP_OUT_DIR})

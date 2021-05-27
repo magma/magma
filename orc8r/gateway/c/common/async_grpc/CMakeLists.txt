@@ -30,7 +30,7 @@ set(ASYNC_LTE_CPP_PROTOS session_manager abort_session policydb subscriberdb
     mobilityd pipelined)
 set(ASYNC_LTE_GRPC_PROTOS session_manager abort_session mobilityd pipelined)
 set(ASYNC_ORC8R_GRPC_PROTOS eventd)
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}common/includes)
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
 
 generate_all_protos("${ASYNC_LTE_CPP_PROTOS}" "${ASYNC_ORC8R_CPP_PROTOS}"
     "${ASYNC_LTE_GRPC_PROTOS}"
