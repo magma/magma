@@ -9,9 +9,9 @@
   # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   # See the License for the specific language governing permissions and
   # limitations under the License.
-  */}}
-  {{- include "orc8rlib.deployment" (list . "base_acct.deployment") -}}
-  {{- define "base_acct.deployment" -}}
+*/}}
+{{- include "orc8rlib.deployment" (list . "base_acct.deployment") -}}
+{{- define "base_acct.deployment" -}}
 metadata:
   name: orc8r-base-acct
   labels:
@@ -26,17 +26,7 @@ spec:
         app.kubernetes.io/component: base-acct
     spec:
       containers:
-<<<<<<< HEAD
-      -
-{{ include "orc8rlib.container" (list . "base_acct.container")}}
-{{- end -}}
-{{- define "base_acct.container" -}}
-=======
-        -
-  {{ include "orc8rlib.container" (list . "base_acct.container")}}
-  {{- end -}}
-  {{- define "base_acct.container" -}}
->>>>>>> fe640ffe9 ([feg][helm] Add base_acct.deployment.yaml (#7173))
+
 name: base-acct
 command: ["/usr/bin/envdir"]
 args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/base_acct", "-logtostderr=true", "-v=0"]
@@ -53,8 +43,4 @@ readinessProbe:
     port: 9119
   initialDelaySeconds: 5
   periodSeconds: 10
-<<<<<<< HEAD
 {{- end -}}
-=======
-  {{- end -}}
->>>>>>> fe640ffe9 ([feg][helm] Add base_acct.deployment.yaml (#7173))
