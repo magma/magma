@@ -28,7 +28,6 @@
 #include "3gpp_36.401.h"
 #include "EmmCause.h"
 #include "emm_asDef.h"
-#include "mme_app_state.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/

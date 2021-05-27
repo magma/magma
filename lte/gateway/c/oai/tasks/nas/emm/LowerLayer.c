@@ -33,7 +33,6 @@
 #include "emm_asDef.h"
 #include "emm_regDef.h"
 #include "esm_sapDef.h"
-#include "mme_app_state.h"
 #include "nas_procedures.h"
 #include "nas/securityDef.h"
 

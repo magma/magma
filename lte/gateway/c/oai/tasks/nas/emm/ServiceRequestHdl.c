@@ -38,10 +38,8 @@
 #include "ExtendedServiceRequest.h"
 #include "ServiceType.h"
 #include "emm_asDef.h"
-#include "emm_cnDef.h"
 #include "esm_data.h"
 #include "mme_api.h"
-#include "mme_app_state.h"
 #include "nas_message.h"
 #include "mme_app_defs.h"
 
