@@ -34,6 +34,7 @@
 namespace magma {
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE   = false;
 bool LocalEnforcer::CLEANUP_DANGLING_FLOWS = true;
+bool LocalEnforcer::SEND_IPFIX             = true;
 
 using google::protobuf::RepeatedPtrField;
 
@@ -1824,6 +1825,10 @@ void LocalEnforcer::create_bearer(
 void LocalEnforcer::update_ipfix_flow(
     const std::string& imsi, const SessionConfig& config,
     const uint64_t pdp_start_time) {
+  if (!LocalEnforcer::SEND_IPFIX) {
+    return;
+  }
+
   MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
   SubscriberID sid;
   sid.set_id(imsi);

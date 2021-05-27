@@ -119,19 +119,38 @@ void set_consts(const YAML::Node& config) {
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
       config["terminate_service_when_quota_exhausted"].as<bool>();
 
-  if (config["send_access_timezone"].IsDefined()) {
-    magma::LocalEnforcer::SEND_ACCESS_TIMEZONE =
-        config["send_access_timezone"].as<bool>();
-  }
   if (config["default_requested_units"].IsDefined()) {
     magma::SessionCredit::DEFAULT_REQUESTED_UNITS =
         config["default_requested_units"].as<uint64_t>();
+  }
+
+  if (config["send_access_timezone"].IsDefined()) {
+    magma::LocalEnforcer::SEND_ACCESS_TIMEZONE =
+        config["send_access_timezone"].as<bool>();
   }
   // default value for this config is true
   if (config["cleanup_all_dangling_flows"].IsDefined()) {
     magma::LocalEnforcer::CLEANUP_DANGLING_FLOWS =
         config["cleanup_all_dangling_flows"].as<bool>();
   }
+  if (config["enable_ipfix"].IsDefined()) {
+    magma::LocalEnforcer::SEND_IPFIX = config["enable_ipfix"].as<bool>();
+  }
+
+  // log all configs on startup
+  MLOG(MINFO) << "==== Constants/Configs loaded from sessiond.yml ====";
+  MLOG(MINFO) << "USAGE_REPORTING_THRESHOLD: "
+              << magma::SessionCredit::USAGE_REPORTING_THRESHOLD;
+  MLOG(MINFO) << "TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED: "
+              << magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
+  MLOG(MINFO) << "DEFAULT_REQUESTED_UNITS: "
+              << magma::SessionCredit::DEFAULT_REQUESTED_UNITS;
+  MLOG(MINFO) << "SEND_ACCESS_TIMEZONE: "
+              << magma::LocalEnforcer::SEND_ACCESS_TIMEZONE;
+  MLOG(MINFO) << "CLEANUP_DANGLING_FLOWS: "
+              << magma::LocalEnforcer::CLEANUP_DANGLING_FLOWS;
+  MLOG(MINFO) << "SEND_IPFIX: " << magma::LocalEnforcer::SEND_IPFIX;
+  MLOG(MINFO) << "==== Constants/Configs loaded from sessiond.yml ====";
 }
 
 magma::SessionStore* create_session_store(
@@ -315,9 +334,9 @@ int main(int argc, char* argv[]) {
   magma::SessionProxyResponderAsyncService proxy_service(
       server.GetNewCompletionQueue(), proxy_handler);
   server.AddServiceToServer(&local_service);
-  MLOG(MINFO) << "Add localservice";
+  MLOG(MINFO) << "Added LocalSessionManagerAsyncService to service's server";
   server.AddServiceToServer(&proxy_service);
-  MLOG(MINFO) << "Add proxyservice";
+  MLOG(MINFO) << "Added SessionProxyResponderAsyncService to service's server";
 
   // Register state polling callback
   server.SetOperationalStatesCallback([evb, session_store]() {
@@ -342,14 +361,14 @@ int main(int argc, char* argv[]) {
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(
             conv_session_enforcer, *session_store);
-    MLOG(MINFO) << "session enforcer";
+    MLOG(MINFO) << "Initialized SetMessageManagerHandler";
     // 5G specific services to handle set messages from AMF and mme
     conv_set_message_service = new magma::AmfPduSessionSmContextAsyncService(
         server.GetNewCompletionQueue(), std::move(conv_set_message_handler));
-    MLOG(MINFO) << "Amfpdusessionsmcontext set message started";
     // 5G related services
-    MLOG(MINFO) << "converged  GRPC Added";
     server.AddServiceToServer(conv_set_message_service);
+    MLOG(MINFO)
+        << "Added SessionProxyResponderAsyncService to service's server";
 
     // 5G related SessionStateEnforcer main thread start to handled session
     // state
