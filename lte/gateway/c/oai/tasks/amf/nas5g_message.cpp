@@ -244,7 +244,7 @@ int nas5g_message_encode(
           "offset %d = %d - %lu, hdr encode = %d, length = %lu bytes = %d\n",
           offset, size, sizeof(uint8_t), size, length, bytes);
       uint32_t mac = _nas5g_message_get_mac(
-          buffer + offset, bytes + size - (offset + 3),
+          buffer + offset, bytes + size - offset,
           amf_security_context->direction_encode, amf_security_context);
       /*
        * Set the message authentication code of the NAS message

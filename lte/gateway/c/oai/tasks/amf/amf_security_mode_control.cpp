@@ -30,6 +30,7 @@ extern "C" {
 #include "amf_config.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_identity.h"
+#include "conversions.h"
 
 #define IMSI64_TO_IMSI15(iMsI64_t, imsi15)                                     \
   {                                                                            \
@@ -399,38 +400,17 @@ int amf_proc_security_mode_control(
        * SN value 5G:mnc095.mcc208.3gppnetwork.org
        * mcc and mnc retrive saved _imsi from amf_context
        */
-      snni[0]  = 0x35;  // 5
-      snni[1]  = 0x47;  // G
-      snni[2]  = 0x3A;  //:
-      snni[3]  = 0x6D;  // m
-      snni[4]  = 0x6E;  // n
-      snni[5]  = 0x63;  // c
-      snni[6]  = 0x30 + plmn.mnc_digit1;
-      snni[7]  = 0x30 + plmn.mnc_digit2;
-      snni[8]  = 0x30 + plmn.mnc_digit3;
-      snni[9]  = 0x2E;  //.
-      snni[10] = 0x6D;  // m
-      snni[11] = 0x63;  // c
-      snni[12] = 0x63;  // c
-      snni[13] = 0x30 + plmn.mcc_digit1;
-      snni[14] = 0x30 + plmn.mcc_digit2;
-      snni[15] = 0x30 + plmn.mcc_digit3;
-      snni[16] = 0x2E;  //.
-      snni[17] = 0x33;  // 3
-      snni[18] = 0x67;  // g
-      snni[19] = 0x70;  // p
-      snni[20] = 0x70;  // p
-      snni[21] = 0x6E;  // n
-      snni[22] = 0x65;  // e
-      snni[23] = 0x74;  // t
-      snni[24] = 0x77;  // w
-      snni[25] = 0x6F;  // o
-      snni[26] = 0x72;  // r
-      snni[27] = 0x6B;  // k
-      snni[28] = 0x2E;  //.
-      snni[29] = 0x6F;  // o
-      snni[30] = 0x72;  // r
-      snni[31] = 0x67;  // g
+      uint32_t mcc              = 0;
+      uint32_t mnc              = 0;
+      uint32_t mnc_digit_length = 0;
+
+      PLMN_T_TO_MCC_MNC(plmn, mcc, mnc, mnc_digit_length);
+      uint32_t snni_buf_len =
+          sprintf((char*) snni, "5G:mnc%03d.mcc%03d.3gppnetwork.org", mnc, mcc);
+      if (snni_buf_len != 32) {
+        OAILOG_ERROR(LOG_NAS_AMF, "Failed to create SNNI String\n");
+        OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+      }
 
       memcpy(
           ak_sqn,
