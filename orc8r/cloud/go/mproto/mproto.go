@@ -11,19 +11,36 @@
  * limitations under the License.
  */
 
-package mprotos
+package mproto
 
 import (
+	"magma/orc8r/cloud/go/mproto/protos"
+
 	"github.com/golang/protobuf/proto"
 )
 
-// encodePbDeterministic encodes protobuf while enforcing deterministic serialization.
+// EncodeProtosDeterministic encodes a slice of protobuf messages while enforcing
+// deterministic serialization utilizing encodeProtoDeterministic
+func EncodeProtosDeterministic(protoSlice map[string]proto.Message) ([]byte, error){
+	protoBytes := map[string][]byte{}
+	for id, proto := range protoSlice {
+		bytes, err := encodeProtoDeterministic(proto)
+		if err != nil {
+			return nil, err
+		}
+		protoBytes[id] = bytes
+	}
+
+	return encodeProtoDeterministic(&protos.ProtoSlice{ProtoBytes: protoBytes})
+}
+
+// encodeProtoDeterministic encodes protobuf while enforcing deterministic serialization.
 // NOTE: deterministic != canonical, so do not expect this encoding to be
 // equal across languages or even versions of golang/protobuf/proto.
 // For further reading, see below.
 // 	- https://developers.google.com/protocol-buffers/docs/encoding#implications
 //	- https://gist.github.com/kchristidis/39c8b310fd9da43d515c4394c3cd9510
-func encodePbDeterministic(pb proto.Message) ([]byte, error) {
+func encodeProtoDeterministic(pb proto.Message) ([]byte, error) {
 	buf := &proto.Buffer{}
 	buf.SetDeterministic(true)
 
