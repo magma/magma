@@ -14,6 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "lte/protos/apn.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/subscriberdb.proto";
 import "google/protobuf/timestamp.proto";
