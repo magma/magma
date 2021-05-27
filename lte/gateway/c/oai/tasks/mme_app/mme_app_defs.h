@@ -284,11 +284,9 @@ void mme_app_handle_nw_init_bearer_deactv_req(
         nw_init_bearer_deactv_req_p);
 
 void mme_app_handle_handover_required(
-    mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_handover_required_t* const handover_required_p);
 
 void mme_app_handle_handover_request_ack(
-    mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_handover_request_ack_t* const handover_request_ack_p);
 
 void mme_app_handle_handover_notify(
