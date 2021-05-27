@@ -13,16 +13,61 @@ cmake_minimum_required(VERSION 3.7.2)
 
 PROJECT(MagmaCommon)
 
-include(CMakeProtoMacros.txt)
+include(ExternalProject)
+set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+set(CMAKE_VERBOSE_MAKEFILE ON)
 
-ADD_SUBDIRECTORY(service303)
-ADD_SUBDIRECTORY(service_registry)
-ADD_SUBDIRECTORY(async_grpc)
-ADD_SUBDIRECTORY(config)
-ADD_SUBDIRECTORY(datastore)
-ADD_SUBDIRECTORY(policydb)
-ADD_SUBDIRECTORY(logging)
-ADD_SUBDIRECTORY(eventd)
+ExternalProject_Add(MagmaLogging
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/logging
+        BINARY_DIR ${CMAKE_BINARY_DIR}/logging
+        INSTALL_COMMAND "")
+
+ExternalProject_Add(AsyncGrpc
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/async_grpc
+        BINARY_DIR ${CMAKE_BINARY_DIR}/async_grpc
+        INSTALL_COMMAND ""
+        DEPENDS MagmaLogging)
+
+ExternalProject_Add(MagmaConfig
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/config
+        BINARY_DIR ${CMAKE_BINARY_DIR}/config
+        INSTALL_COMMAND ""
+        DEPENDS MagmaLogging)
+
+ExternalProject_Add(ServiceRegistry
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/service_registry
+        BINARY_DIR ${CMAKE_BINARY_DIR}/service_registry
+        INSTALL_COMMAND ""
+        DEPENDS MagmaConfig)
+
+ExternalProject_Add(Service303
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/service303
+        BINARY_DIR ${CMAKE_BINARY_DIR}/service303
+        INSTALL_COMMAND ""
+        DEPENDS ServiceRegistry
+        DEPENDS MagmaConfig
+        DEPENDS MagmaLogging)
+
+ExternalProject_Add(Datastore
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/datastore
+        BINARY_DIR ${CMAKE_BINARY_DIR}/datastore
+        INSTALL_COMMAND ""
+        DEPENDS MagmaLogging)
+
+ExternalProject_Add(PolicyDb
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/policydb
+        BINARY_DIR ${CMAKE_BINARY_DIR}/policydb
+        INSTALL_COMMAND ""
+        DEPENDS Datastore
+        DEPENDS MagmaLogging)
+
+ExternalProject_Add(Eventd
+        SOURCE_DIR ${CMAKE_SOURCE_DIR}/eventd
+        BINARY_DIR ${CMAKE_BINARY_DIR}/eventd
+        INSTALL_COMMAND ""
+        DEPENDS AsyncGrpc
+        DEPENDS ServiceRegistry)
 
 if (BUILD_TESTS)
   ENABLE_TESTING()

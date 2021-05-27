@@ -24,7 +24,7 @@
 #include <string>
 
 #include "orc8r/protos/directoryd.grpc.pb.h"
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include "orc8r/protos/directoryd.pb.h"
 
 namespace grpc {

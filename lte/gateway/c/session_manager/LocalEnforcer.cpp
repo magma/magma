@@ -28,7 +28,7 @@
 #include "EnumToString.h"
 #include "LocalEnforcer.h"
 #include "magma_logging.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "Utilities.h"
 
 namespace magma {

@@ -17,15 +17,17 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("/usr/src/googletest/googlemock/include/")
-include_directories("${PROJECT_SOURCE_DIR}/../common/config")
-include_directories("${PROJECT_SOURCE_DIR}/../common/service303")
-include_directories("${PROJECT_SOURCE_DIR}/../common/protobuf")
 link_directories("/usr/src/googletest/googlemock/lib/")
 
+find_package(SERVICE_REGISTRY REQUIRED)
+find_package(SERVICE303_LIB REQUIRED)
+find_package(MAGMA_CONFIG REQUIRED)
+find_package(MAGMA_LOGGING REQUIRED)
 foreach (common_test yaml_utils magma_service service_registry service303 metrics)
   add_executable(${common_test}_test test_${common_test}.cpp)
   target_link_libraries(${common_test}_test
-      CONFIG
+      MAGMA_CONFIG
+      SERVICE_REGISTRY
       gmock_main gtest gtest_main gmock
       yaml-cpp pthread rt
       ${GCOV_LIB}

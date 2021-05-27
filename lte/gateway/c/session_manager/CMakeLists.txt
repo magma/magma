@@ -63,6 +63,11 @@ include_directories(${MAGMA_LIB_DIR}/datastore)
 include_directories(${MAGMA_LIB_DIR}/policydb)
 include_directories(${MAGMA_LIB_DIR}/eventd)
 
+# TODO: Temp workaround until packages are imported by these cmakefile
+# Will be removed in subsequent patch
+set(MAGMA_COMMON_INCL_DIR $ENV{C_BUILD}/common)
+include_directories(${MAGMA_COMMON_INCL_DIR})
+
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 # compile the needed macros
@@ -193,7 +198,7 @@ set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_
 endif()
 
 target_link_libraries(SESSION_MANAGER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG POLICYDB EVENTD
   DATASTORE
   glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie

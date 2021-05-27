@@ -21,7 +21,7 @@
 
 #include "CSFBClient.h"
 #include "itti_msg_to_proto_msg.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "feg/protos/csfb.pb.h"
 #include "orc8r/protos/common.pb.h"
 

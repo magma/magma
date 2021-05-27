@@ -12,7 +12,7 @@
  */
 #include <gtest/gtest.h>
 
-#include "MagmaService.h"
+#include "includes/MagmaService.h"
 
 using ::testing::Test;
 
