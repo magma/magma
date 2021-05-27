@@ -37,7 +37,7 @@ message RuleRecord {
   uint64 rule_version = 9;
   // Uplink TEID
   uint32 teid = 10;
-  //Set final_record to false by default
+  //Indicates that the report is final and the flow will be deleted
   bool final_record = 11;
 }
 
