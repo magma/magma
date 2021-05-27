@@ -18,7 +18,7 @@ import click
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from prettytable import PrettyTable
-
+from subprocess import check_call
 
 def get_input(text, default_val):
     if default_val:
