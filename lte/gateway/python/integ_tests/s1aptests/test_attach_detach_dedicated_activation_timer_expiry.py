@@ -82,23 +82,13 @@ class TestAttachDetachDedicatedActTmrExp(unittest.TestCase):
             )
 
             # Do not send ACT_DED_BER_ACC
-            # TODO:Receive retransmissions once support is added
-            # at s1ap tester
             response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
-            )
-            act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t,
-            )
-
-            print(
-                "********************** Received UE_ACT_DED_BER_REQ with ebi ",
-                act_ded_ber_ctxt_req.bearerId,
-            )
-
-            print("Waiting for timer to expire.Sleeping for 45 seconds")
-            time.sleep(45)
+            while response.msg_type == s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ:
+                print(
+                    'Received retransmitted UE_ACT_DED_BER_REQ from ',
+                    'Ignoring...',
+                )
+                response = self._s1ap_wrapper.s1_util.get_response()
 
             # Verify that the flow rule is created only for default bearer
             dl_flow_rules = {

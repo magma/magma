@@ -225,22 +225,6 @@ bool PolicyRuleBiMap::get_rule_definitions_for_charging_key(
   return success;
 }
 
-bool PolicyRuleBiMap::get_rule_ids_for_monitoring_key(
-    const std::string& monitoring_key, std::vector<std::string>& rules_out) {
-  std::lock_guard<std::mutex> lock(map_mutex_);
-  bool success =
-      rules_by_monitoring_key_.get_rule_ids_for_key(monitoring_key, rules_out);
-  return success;
-}
-
-bool PolicyRuleBiMap::get_rule_definitions_for_monitoring_key(
-    const std::string& monitoring_key, std::vector<PolicyRule>& rules_out) {
-  std::lock_guard<std::mutex> lock(map_mutex_);
-  bool success = rules_by_monitoring_key_.get_rule_definitions_for_key(
-      monitoring_key, rules_out);
-  return success;
-}
-
 uint32_t PolicyRuleBiMap::monitored_rules_count() {
   std::lock_guard<std::mutex> lock(map_mutex_);
   return rules_by_monitoring_key_.policy_count();

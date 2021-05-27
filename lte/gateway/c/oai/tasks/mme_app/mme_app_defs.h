@@ -167,8 +167,9 @@ int mme_app_handle_ue_context_modification_timer_expiry(
 void mme_app_handle_enb_reset_req(
     const itti_s1ap_enb_initiated_reset_req_t* const enb_reset_req);
 
-int mme_app_handle_initial_paging_request(
-    mme_app_desc_t* mme_app_desc_p, const char* imsi);
+imsi64_t mme_app_handle_initial_paging_request(
+    mme_app_desc_t* mme_app_desc_p,
+    const itti_s11_paging_request_t const* paging_req);
 
 int mme_app_handle_paging_timer_expiry(zloop_t* loop, int timer_id, void* args);
 int mme_app_handle_ulr_timer_expiry(zloop_t* loop, int timer_id, void* args);
@@ -283,11 +284,9 @@ void mme_app_handle_nw_init_bearer_deactv_req(
         nw_init_bearer_deactv_req_p);
 
 void mme_app_handle_handover_required(
-    mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_handover_required_t* const handover_required_p);
 
 void mme_app_handle_handover_request_ack(
-    mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_handover_request_ack_t* const handover_request_ack_p);
 
 void mme_app_handle_handover_notify(

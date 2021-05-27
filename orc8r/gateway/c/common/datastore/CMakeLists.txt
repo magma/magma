@@ -26,8 +26,8 @@ set(ASYNC_LTE_GRPC_PROTOS session_manager)
 set(ASYNC_ORC8R_GRPC_PROTOS "")
 
 generate_all_protos("${ASYNC_LTE_CPP_PROTOS}" "${ASYNC_ORC8R_CPP_PROTOS}"
-        "${ASYNC_LTE_GRPC_PROTOS}"
-        "${ASYNC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
+    "${ASYNC_LTE_GRPC_PROTOS}"
+    "${ASYNC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
 
 message("Async Proto_srcs are ${PROTO_SRCS}")
 
@@ -41,16 +41,16 @@ add_library(DATASTORE
     )
 
 target_link_libraries(DATASTORE
-   tacopie cpp_redis pthread
-   )
+    tacopie cpp_redis pthread
+    )
 
 # copy headers to build directory so they can be shared with OAI,
 # session_manager, etc.
 add_custom_command(TARGET DATASTORE POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy
-                   ${PROJECT_SOURCE_DIR}/datastore/*.h*
-                   $<TARGET_FILE_DIR:DATASTORE>)
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${PROJECT_SOURCE_DIR}/datastore/*.h*
+    $<TARGET_FILE_DIR:DATASTORE>)
 
 target_include_directories(DATASTORE PUBLIC
-                  $<TARGET_FILE_DIR:DATASTORE>
-)
+    $<TARGET_FILE_DIR:DATASTORE>
+    )

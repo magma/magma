@@ -17,6 +17,7 @@
 
 #include "mme_app_state.h"
 #include "mme_app_state_manager.h"
+#include "mme_app_ip_imsi.h"
 
 using magma::lte::MmeNasStateManager;
 
@@ -26,6 +27,7 @@ using magma::lte::MmeNasStateManager;
  * This is only done by the mme_app task.
  */
 int mme_nas_state_init(const mme_config_t* mme_config_p) {
+  initialize_ipv4_map();
   return MmeNasStateManager::getInstance().initialize_state(mme_config_p);
 }
 
@@ -62,10 +64,10 @@ hash_table_ts_t* get_mme_ue_state() {
 void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64) {
   if (MmeNasStateManager::getInstance().is_persist_state_enabled()) {
     if (imsi64 != INVALID_IMSI64) {
-      ue_mm_context_t* ue_context = NULL;
+      ue_mm_context_t* ue_context = nullptr;
       ue_context =
           mme_ue_context_exists_imsi(&mme_app_desc_p->mme_ue_contexts, imsi64);
-      if (ue_context) {
+      if (ue_context && ue_context->mm_state == UE_REGISTERED) {
         auto imsi_str = MmeNasStateManager::getInstance().get_imsi_str(imsi64);
         MmeNasStateManager::getInstance().write_ue_state_to_db(
             ue_context, imsi_str);

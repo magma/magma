@@ -543,7 +543,9 @@ proc_tid_t pdn_connectivity_delete(
     OAILOG_WARNING(
         LOG_NAS_ESM, "ESM-PROC  - PDN connection %d released\n", pdn_cid);
   }
-
+  if (ue_mm_context->nb_active_pdn_contexts > 0) {
+    ue_mm_context->nb_active_pdn_contexts -= 1;
+  }
   // Return the procedure transaction identity
   return (pti);
 }

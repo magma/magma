@@ -7,6 +7,8 @@
      - CODE_DIR: Directory hosting Magma and Cloudstrapper code that was cloned for this purpose, typically in the ~/code/magma/experimental/cloudstrapper folder
      - VARS_DIR: Directory where all variables reside, typically in the CODE_DIR/playbooks/roles/vars folder
      - WORK_DIR: Directory created by user as part Cloudstrapper deployment with the value taken from dirLocalInventory used as source. This is the directory where all working copies reside, typically in the ~/magma-experimental folder
+     - All variables except the S3 bucket are to be named in camel case.
+     - S3 bucket names can have only lower case letters and be globally unique
 
    - Identify two security keys in the Build/Gateway regions to be used for the following
      - Bootkey: Used only by Cloudstrapper instance
@@ -154,7 +156,7 @@
 
 ## 4. Control Plane/Cloud Services
 
-  The control- roles deploy and configure orc8r in a target region. The control playbook can be deployed from within the Cloudstrapper.
+  The control role deploys and configures orc8r in a target region. The control playbook can be deployed from within the Cloudstrapper.
 
   - Create control plane elements: Provision, Configure and Init
     Observe the variables set in cluster.yaml
@@ -219,6 +221,7 @@
 
     agw-provision: provisions a site with VPC, subnets, gateway, routing tables and one AGW Command:
     ```
+
     ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>"[ --tags createNet,createBridge, createGw ]
     ```
     - A site needs to be added only once. After a site is up, multiple gatways can be individually provisioned by skipping the createNet tag as laid out below
@@ -231,14 +234,14 @@
 
     agw-configure: configures the AGW to include controller information Command:
     ```
-    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<SiteId><GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu
+    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu
     ```
 
     Example:
     ```
-    ansible-playbook agw-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "agw=tag_Name_MenloParkAgwA" "dirLocalInventory=~/magma-experimental/files" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+    ansible-playbook agw-configure.yaml -i ~/magma-experimental/files/common_instance_aws_ec2.yaml -e "agw=tag_Name_AgwA" "dirLocalInventory=~/magma-experimental/files" -e "ansible_python_interpreter=/usr/bin/python3" [ -e "dirSecretsLocal=<Directory with rootCA.pem>" ] -u ubuntu
     ```
-    Proceed to add gateway to Orchestrator using NMS.
+    Proceed to add gateway to Orchestrator using NMS. If you are using Cloudstrapper just to deploy AGWs, ensure rootCA.pem is available from dirSecretsLocal.
 
   - Result: AWS components created, AGW provisioned, configured and connected to Orchestrator
 
@@ -252,12 +255,14 @@
       - buildGwTagName: Tag to be used for the AGW Devops instance, used to filter instance for configuration
 
     - defaults.yaml:
+
       - keyHost: Name of *.pem file available from <dirInenvtory>, such as ~/magma-experimental/. AWS will use this - value as the key associated with all AGW instances
 
   - Run the following commands
 
     - agw-provision: provisions a site with VPC, subnets, gateway, routing tables and one AGW Command:
     ```
+
     ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=<buildGwTagName>" -e "dirLocalInventory=<WORK_DIR>" -e "agwDevops=1" --tags infra,inventory
     ```
 

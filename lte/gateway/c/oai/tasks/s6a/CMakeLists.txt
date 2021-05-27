@@ -1,7 +1,6 @@
 set(S1AP_C_DIR ${PROJECT_BINARY_DIR}/s1ap/r15)
 include_directories(${S1AP_C_DIR})
 
-
 set (S6A_SRC
     s6a_auth_info.c
     s6a_error.c
@@ -22,7 +21,7 @@ if (S6A_OVER_GRPC)
   set (S6A_SRC ${S6A_SRC} s6a_grpc_iface.cpp)
   add_library(TASK_S6A ${S6A_SRC})
   target_link_libraries(TASK_S6A
-    COMMON
+  COMMON
     LIB_BSTR LIB_HASHTABLE LIB_S6A_PROXY
   )
 else (S6A_OVER_GRPC)  # Use freeDiameter
@@ -31,7 +30,7 @@ else (S6A_OVER_GRPC)  # Use freeDiameter
       s6a_fd_iface.cpp)
   add_library(TASK_S6A ${S6A_SRC})
   target_link_libraries(TASK_S6A
-    COMMON
+  COMMON
     LIB_BSTR LIB_HASHTABLE LIB_S6A_PROXY gnutls fdproto fdcore
   )
 endif (S6A_OVER_GRPC)

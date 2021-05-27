@@ -6873,6 +6873,10 @@ definitions:
         example: true
         type: boolean
         x-nullable: false
+      acct_reporting_enabled:
+        default: false
+        type: boolean
+        x-nullable: false
       create_session_on_auth:
         default: true
         example: true
@@ -7320,7 +7324,7 @@ definitions:
         default: 1
         example: 1
         format: uint32
-        maximum: 255
+        maximum: 65535
         minimum: 0
         type: integer
         x-nullable: false
@@ -9638,7 +9642,6 @@ definitions:
     - description
     - magmad
     - tier
-    - federation
     type: object
   mutable_lte_gateway:
     description: LTE gateway object with read-only fields omitted

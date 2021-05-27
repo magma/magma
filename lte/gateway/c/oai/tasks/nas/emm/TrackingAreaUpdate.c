@@ -45,7 +45,6 @@
 #include "TrackingAreaIdentityList.h"
 #include "common_ies.h"
 #include "emm_asDef.h"
-#include "emm_regDef.h"
 #include "esm_data.h"
 #include "mme_api.h"
 #include "mme_app_state.h"
