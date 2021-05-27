@@ -16,7 +16,7 @@ limitations under the License.
 #include <utility>
 
 #include "S8Client.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "feg/protos/s8_proxy.pb.h"
 #include "orc8r/protos/common.pb.h"
 

@@ -27,7 +27,7 @@ extern "C" {
 }
 #endif
 
-#include "ServiceConfigLoader.h"
+#include "includes/ServiceConfigLoader.h"
 #include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 
 using google::protobuf::Message;

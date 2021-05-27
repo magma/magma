@@ -21,7 +21,7 @@
 
 #include "SMSOrc8rClient.h"
 #include "itti_msg_to_proto_msg.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "lte/protos/sms_orc8r.pb.h"
 #include "orc8r/protos/common.pb.h"
 

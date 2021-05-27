@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "MetricsSingleton.h"
+#include "includes/MetricsSingleton.h"
 #include <vector>               // for vector
 #include "counter.h"            // for Counter
 #include "counter_builder.h"    // for BuildCounter, CounterBuilder

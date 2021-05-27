@@ -19,8 +19,8 @@
 #include <stdarg.h>
 
 #include "service303.h"
-#include "MagmaService.h"
-#include "MetricsSingleton.h"
+#include "includes/MagmaService.h"
+#include "includes/MetricsSingleton.h"
 #include "bstrlib.h"
 #include "orc8r/protos/service303.pb.h"
 

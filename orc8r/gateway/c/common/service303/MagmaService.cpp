@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "MagmaService.h"
+#include "includes/MagmaService.h"
 #include <google/protobuf/map.h>                   // for Map
 #include <grpcpp/impl/codegen/completion_queue.h>  // for ServerCompletionQueue
 #include <grpcpp/security/server_credentials.h>    // for InsecureServerCred...
@@ -26,10 +26,10 @@
 #include <unordered_map>                           // for operator==
 #include <utility>                                 // for move
 #include <vector>                                  // for vector
-#include "MetricsRegistry.h"                       // for Registry
-#include "MetricsSingleton.h"                      // for MetricsSingleton
+#include "includes/MetricsRegistry.h"              // for Registry
+#include "includes/MetricsSingleton.h"             // for MetricsSingleton
 #include "ProcFileUtils.h"                         // for ProcFileUtils::mem...
-#include "ServiceRegistrySingleton.h"              // for ServiceRegistrySin...
+#include "includes/ServiceRegistrySingleton.h"     // for ServiceRegistrySin...
 #include "magma_logging_init.h"                    // for set_verbosity
 #include "orc8r/protos/metrics.pb.h"               // for MetricFamily
 #include "orc8r/protos/metricsd.pb.h"              // for MetricsContainer

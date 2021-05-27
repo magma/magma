@@ -24,7 +24,7 @@
 #include <memory>
 
 #include "feg/protos/s6a_proxy.grpc.pb.h"
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include "s6a_messages_types.h"
 
 extern "C" {
