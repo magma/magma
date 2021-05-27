@@ -78,6 +78,8 @@ bool s1ap_dump_ue_hash_cb(
 bool hss_associated = false;
 static int indent   = 0;
 task_zmq_ctx_t s1ap_task_zmq_ctx;
+long s1ap_last_msg_latency = 0;
+long s1ap_min_msg_latency  = LONG_MAX;
 
 //------------------------------------------------------------------------------
 static int s1ap_send_init_sctp(void) {
@@ -111,6 +113,16 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   bool is_task_state_same = false;
   bool is_ue_state_same   = false;
+  bool is_congested       = false;
+
+  s1ap_last_msg_latency = ITTI_MSG_LATENCY(received_message_p);  // microseconds
+  s1ap_min_msg_latency =
+      1000;  // 1 msec
+             // MIN(s1ap_min_msg_latency, s1ap_last_msg_latency);
+  if (s1ap_last_msg_latency > LOWER_RELATIVE_TH * s1ap_min_msg_latency) {
+    // is_congested = true;
+  }
+  OAILOG_INFO(LOG_S1AP, "S1AP ZMQ latency: %ld.", s1ap_last_msg_latency);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case ACTIVATE_MESSAGE: {
@@ -337,12 +349,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  if (!is_task_state_same) {
-    put_s1ap_state();
-  }
-  if (!is_ue_state_same) {
-    put_s1ap_imsi_map();
-    put_s1ap_ue_state(imsi64);
+  if (!is_congested) {
+    if (!is_task_state_same) {
+      put_s1ap_state();
+    }
+    if (!is_ue_state_same) {
+      put_s1ap_imsi_map();
+      put_s1ap_ue_state(imsi64);
+    }
   }
   itti_free_msg_content(received_message_p);
   free(received_message_p);

@@ -54,6 +54,8 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
+extern long mme_app_min_msg_latency;
+extern long mme_app_last_msg_latency;
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -189,12 +191,28 @@ int emm_recv_attach_request(
     /*
      * Requirement MME24.301R10_5.5.1.2.7_b Protocol error
      */
-    OAILOG_ERROR(
+    OAILOG_WARNING(
         LOG_NAS_EMM,
         "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "
         "(%d)\n",
         ue_id, *emm_cause);
     rc         = emm_proc_attach_reject(ue_id, *emm_cause);
+    *emm_cause = EMM_CAUSE_SUCCESS;
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
+  /*
+   * Handle MME congestion
+   */
+  // Currently a simple logic, when a more complex logic added
+  // refactor this part via helper functions is_mme_congested.
+  if (mme_app_last_msg_latency > UPPER_RELATIVE_TH * mme_app_min_msg_latency) {
+    OAILOG_WARNING(
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "
+        "(EMM_CAUSE_CONGESTION) min. latency: %ld, last packet latency: %ld\n",
+        ue_id, mme_app_min_msg_latency, mme_app_last_msg_latency);
+    rc         = emm_proc_attach_reject(ue_id, EMM_CAUSE_CONGESTION);
     *emm_cause = EMM_CAUSE_SUCCESS;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }

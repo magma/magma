@@ -59,6 +59,8 @@
   itti_get_task_name(ITTI_MSG_DESTINATION_ID(mSGpTR))
 #define ITTI_MSG_LATENCY(mSGpTR)                                               \
   itti_get_message_latency((mSGpTR)->ittiMsgHeader.timestamp)
+#define ITTI_MSG_LASTHOP_LATENCY(mSGpTR)                                       \
+  ((mSGpTR)->ittiMsgHeader.last_hop_latency)
 
 /* Make the message number platform specific */
 typedef unsigned long message_number_t;

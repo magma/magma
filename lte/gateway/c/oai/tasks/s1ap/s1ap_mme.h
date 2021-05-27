@@ -32,6 +32,9 @@
 #include "s1ap_state.h"
 #include "s1ap_types.h"
 
+#define UPPER_RELATIVE_TH 1000000  // times the minimum ZMQ Latency observed
+#define LOWER_RELATIVE_TH 50       // times the minimum ZMQ latency observed
+
 extern bool hss_associated;
 
 /** \brief S1AP layer top init

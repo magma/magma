@@ -42,6 +42,13 @@
 #define IPV6_ADDRESS_SIZE 16
 #define IPV4_ADDRESS_SIZE 4
 
+#define MME_APP_ZMQ_LATENCY_AUTH_TH 200000   // microseconds
+#define MME_APP_ZMQ_LATENCY_IDENT_TH 400000  // microseconds
+#define MME_APP_ZMQ_LATENCY_SMC_TH 1000000   // microseconds
+
+#define UPPER_RELATIVE_TH 200  // times the minimum ZMQ Latency observed
+#define LOWER_RELATIVE_TH 50   // times the minimum ZMQ latency observed
+
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 
 int mme_app_handle_s1ap_ue_capabilities_ind(

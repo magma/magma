@@ -59,6 +59,9 @@ static void mme_app_exit(void);
 bool mme_hss_associated = false;
 bool mme_sctp_bounded   = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
+long mme_app_last_msg_latency;
+long pre_mme_task_msg_latency;
+long mme_app_min_msg_latency = LONG_MAX;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
@@ -66,6 +69,18 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
 
   bool is_task_state_same = false;
+  bool is_congested       = false;
+
+  mme_app_last_msg_latency =
+      ITTI_MSG_LATENCY(received_message_p);  // microseconds
+  pre_mme_task_msg_latency = ITTI_MSG_LASTHOP_LATENCY(received_message_p);
+  mme_app_min_msg_latency =
+      MIN(mme_app_min_msg_latency, mme_app_last_msg_latency);
+  if (mme_app_last_msg_latency > LOWER_RELATIVE_TH * mme_app_min_msg_latency) {
+    // is_congested = true;
+  }
+  OAILOG_INFO(
+      LOG_MME_APP, "MME APP ZMQ latency: %ld.", mme_app_last_msg_latency);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case MESSAGE_TEST: {
@@ -486,12 +501,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  put_mme_ue_state(mme_app_desc_p, imsi64);
+  if (!is_congested) {
+    put_mme_ue_state(mme_app_desc_p, imsi64);
 
-  if (!is_task_state_same) {
-    put_mme_nas_state();
+    if (!is_task_state_same) {
+      put_mme_nas_state();
+    }
   }
-
   itti_free_msg_content(received_message_p);
   free(received_message_p);
   return 0;
