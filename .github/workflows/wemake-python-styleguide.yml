@@ -1,4 +1,5 @@
-name: Python linting by Reviewdog
+---
+name: reviewdog
 on: [pull_request]
 jobs:
   wemake-python-styleguide:
