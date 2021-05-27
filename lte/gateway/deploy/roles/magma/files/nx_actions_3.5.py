@@ -2149,10 +2149,10 @@ def generate(ofp_name, ofpp_name):
                                                collector_set_id=1,
                                                obs_domain_id=2,
                                                obs_point_id=3,
-                                               apn_mac_addr=0a:00:27:00:00:05,
-                                               msisdn=magmaIsTheBest,
-                                               apn_name=big_tower123,
-                                               pdp_start_epoch=100,
+                                               apn_mac_addr=[10,0,2,0,0,5],
+                                               msisdn=b'magmaIsTheBest',
+                                               apn_name=b'big_tower123',
+                                               pdp_start_epoch=b'90\x00\x00\x00\x00\x00\x00',
                                                sampling_port=8080)]
         """
         _subtype = nicira_ext.NXAST_SAMPLE2
@@ -2179,10 +2179,10 @@ def generate(ofp_name, ofpp_name):
             self.obs_point_id = obs_point_id
             self.sampling_port = sampling_port
 
-            self.msisdn = msisdn.encode('ascii')
+            self.msisdn = msisdn
             self.apn_mac_addr = apn_mac_addr
-            self.apn_name = apn_name.encode('ascii')
-            self.pdp_start_epoch = pdp_start_epoch.to_bytes(8, byteorder='little')
+            self.apn_name = apn_name
+            self.pdp_start_epoch = pdp_start_epoch
 
 
         @classmethod
@@ -2193,11 +2193,17 @@ def generate(ofp_name, ofpp_name):
              obs_point_id,
              sampling_port,
              msisdn,
-             apn_mac_addr,
+             apn_mac_addr_0,
+             apn_mac_addr_1,
+             apn_mac_addr_2,
+             apn_mac_addr_3,
+             apn_mac_addr_4,
+             apn_mac_addr_5,
              apn_name,
              pdp_start_epoch) = struct.unpack_from(
                 cls._fmt_str, buf, 0)
 
+            apn_mac_addr = [apn_mac_addr_0, apn_mac_addr_1, apn_mac_addr_2, apn_mac_addr_3, apn_mac_addr_4, apn_mac_addr_5]
             return cls(probability,
                        msisdn,
                        apn_mac_addr,
