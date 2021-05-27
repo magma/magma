@@ -15,7 +15,6 @@ package state
 
 import (
 	"context"
-	"regexp"
 
 	"magma/orc8r/cloud/go/serde"
 	state_types "magma/orc8r/cloud/go/services/state/types"
@@ -25,14 +24,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/thoas/go-funk"
-)
-
-const (
-	IMSIExpectedMatchCount = 2
-)
-
-var (
-	IMSIKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+).*$`)
 )
 
 // GetStateClient returns a client to the state service.

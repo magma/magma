@@ -94,7 +94,7 @@ func GetHandlers() []obsidian.Handler {
 
 const (
 	mobilitydStateExpectedMatchCount = 2
-	imsiExpectedMatchCount = 2
+	imsiExpectedMatchCount           = 2
 )
 
 var (
@@ -103,7 +103,7 @@ var (
 	mobilitydStateKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\..+$`)
 
 	// imsiKeyRe captures the IMSI portion of any IMSI-prefixed ID strings
-	imsiKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\.?.*$`)
+	imsiKeyRe                    = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\.?.*$`)
 	apnPolicyProfileLoadCriteria = configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true}
 )
 
@@ -867,6 +867,11 @@ func deleteSubscriber(networkID, key string) error {
 }
 
 func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_types.StatesByID, error) {
+	imsiMap := make(map[string]int)
+	for i, v := range imsis {
+		imsiMap[v] = i
+	}
+
 	imsiKeyStates, err := state.SearchStates(networkID, subscriberStateTypesKeyedByIMSI, imsis, nil, serdes.State)
 	if err != nil {
 		return nil, err
@@ -876,7 +881,6 @@ func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_t
 		return nil, err
 	}
 	states := mergeStates(imsiKeyStates, imsiCompositeKeyStates)
-
 	// Each entry in this map contains all the states that the SID cares about.
 	// The DeviceID fields of the state IDs in the nested maps do not have to
 	// match the SID, as in the case of mobilityd state for example.
@@ -887,6 +891,9 @@ func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_t
 			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
 			if len(matches) != mobilitydStateExpectedMatchCount {
 				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
+				continue
+			}
+			if _, exists := imsiMap[matches[1]]; !exists && len(imsiMap) != 0 {
 				continue
 			}
 			sidKey = matches[1]
