@@ -19,6 +19,8 @@ import (
 	"regexp"
 	"strconv"
 
+	"magma/orc8r/cloud/go/serde"
+
 	"github.com/hashicorp/go-multierror"
 	"github.com/thoas/go-funk"
 
@@ -92,6 +94,7 @@ func GetHandlers() []obsidian.Handler {
 
 const (
 	mobilitydStateExpectedMatchCount = 2
+	imsiExpectedMatchCount = 2
 )
 
 var (
@@ -99,6 +102,8 @@ var (
 	// Mobilityd states are keyed as <IMSI>.<APN>.
 	mobilitydStateKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\..+$`)
 
+	// imsiKeyRe captures the IMSI portion of any IMSI-prefixed ID strings
+	imsiKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\.?.*$`)
 	apnPolicyProfileLoadCriteria = configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true}
 )
 
@@ -405,7 +410,7 @@ func getSubscriberStateHandler(c echo.Context) error {
 		return nerr
 	}
 
-	states, err := state.SearchStates(networkID, allSubscriberStateTypes, nil, &subscriberID, serdes.State)
+	states, err := getStateExactIMSIPrefix(networkID, allSubscriberStateTypes, nil, &subscriberID, serdes.State)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -538,6 +543,28 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 	}
 }
 
+func getStateExactIMSIPrefix(networkID string, typeFilter []string, keyFilter []string, keyPrefix *string, serdes serde.Registry) (state_types.StatesByID, error) {
+	// post-filter functionality to only return states with the exact IMSI prefix as specified
+	states, err := state.SearchStates(networkID, typeFilter, keyFilter, keyPrefix, serdes)
+	if err != nil {
+		return nil, err
+	}
+
+	if !funk.IsEmpty(keyPrefix) {
+		for stateID := range states {
+			matches := imsiKeyRe.FindStringSubmatch(stateID.DeviceID)
+			if len(matches) != imsiExpectedMatchCount {
+				glog.Errorf("state device ID %s did not match IMSI-prefixed regex", stateID.DeviceID)
+				continue
+			}
+			if matches[1] != *keyPrefix {
+				delete(states, stateID)
+			}
+		}
+	}
+	return states, nil
+}
+
 func getNetworkAndSubIDs(c echo.Context) (string, string, *echo.HTTPError) {
 	vals, err := obsidian.GetParamValues(c, "network_id", "subscriber_id")
 	if err != nil {
@@ -620,7 +647,7 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 		return nil, err
 	}
 
-	states, err := state.SearchStates(networkID, allSubscriberStateTypes, nil, &key, serdes.State)
+	states, err := getStateExactIMSIPrefix(networkID, allSubscriberStateTypes, nil, &key, serdes.State)
 	if err != nil {
 		return nil, err
 	}

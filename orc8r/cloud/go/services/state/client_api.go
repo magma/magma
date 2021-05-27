@@ -113,26 +113,7 @@ func SearchStates(networkID string, typeFilter []string, keyFilter []string, key
 		return nil, err
 	}
 
-	states, err := state_types.MakeStatesByID(res.States, serdes)
-	if err != nil {
-		return nil, err
-	}
-
-	// check if all state IDs have the exact IMSI prefix (if keyPrefix was specified)
-	if !funk.IsEmpty(keyPrefix) {
-		for stateID := range states {
-			matches := IMSIKeyRe.FindStringSubmatch(stateID.DeviceID)
-			if len(matches) != IMSIExpectedMatchCount {
-				glog.Errorf("state device ID %s did not match IMSI-prefixed regex", stateID.DeviceID)
-				continue
-			}
-			if matches[1] != *keyPrefix {
-				delete(states, stateID)
-			}
-		}
-	}
-
-	return states, nil
+	return state_types.MakeStatesByID(res.States, serdes)
 }
 
 // DeleteStates deletes states specified by the networkID and a list of
