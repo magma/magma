@@ -19,7 +19,9 @@ set -e -o pipefail
 FWA="fwa"
 FFWA="federated_fwa"
 ALL="all"
-ORC8R_VERSION="1.4"
+ORC8R_VERSION="1.5"
+
+NOW=`date '+%F_%H:%M:%S'`;
 
 # package chart, update index.yaml and push it to artifactory
 update_and_send_to_artifactory () {
@@ -107,6 +109,7 @@ if [[ -z $HELM_CHART_ARTIFACTORY_URL ]]; then
 
   # Set up repo for charts
   mkdir -p ~/magma-charts && cd ~/magma-charts
+  echo "Setting up git repo in $PWD"
   git init
 
   # Begin packaging necessary Helm charts
@@ -154,7 +157,7 @@ if [[ -z $HELM_CHART_ARTIFACTORY_URL ]]; then
   fi
 
   # Push charts
-  git add . && git commit -m "orc8r charts commit for version $ORC8R_VERSION"
+  git add . && git commit -m "orc8r charts commit for version $ORC8R_VERSION at $NOW"
   git config remote.origin.url >&- || git remote add origin "$GITHUB_REPO_URL"
   git push -u origin master
 
