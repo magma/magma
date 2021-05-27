@@ -28,10 +28,10 @@ class SPGWStateConverterTest : public ::testing::Test {
 
 TEST_F(SPGWStateConverterTest, TestSPGWStateConversion) {
   std::vector<spgw_state_t> original_states{
-      make_spgw_state(teid_t(0), 4, 8, 12),
-      make_spgw_state(teid_t(100), 500, 900, 1300),
-      make_spgw_state(teid_t(2000), 6000, 1000, 1400),
-      make_spgw_state(teid_t(9), 0, 0, 32),
+      make_spgw_state(4, 8, 12),
+      make_spgw_state(500, 900, 1300),
+      make_spgw_state(6000, 1000, 1400),
+      make_spgw_state(0, 0, 32),
   };
 
   for (spgw_state_t& initial_state : original_states) {
@@ -41,7 +41,6 @@ TEST_F(SPGWStateConverterTest, TestSPGWStateConversion) {
     SpgwStateConverter::state_to_proto(&initial_state, &proto_state);
     SpgwStateConverter::proto_to_state(proto_state, &final_state);
 
-    EXPECT_EQ(initial_state.tunnel_id, final_state.tunnel_id);
     EXPECT_EQ(initial_state.gtpv1u_teid, final_state.gtpv1u_teid);
 
     gtpv1u_data_t initial_gtp_data = initial_state.gtpv1u_data;

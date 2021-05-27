@@ -21,10 +21,8 @@ gtpv1u_data_t make_gtpv1u_data(int fd0, int fd1u) {
   return data;
 }
 
-spgw_state_t make_spgw_state(
-    teid_t tunnel_id, uint32_t gtpv1u_teid, int fd0, int fd1u) {
+spgw_state_t make_spgw_state(uint32_t gtpv1u_teid, int fd0, int fd1u) {
   spgw_state_t result;
-  result.tunnel_id   = tunnel_id;
   result.gtpv1u_teid = gtpv1u_teid;
   result.gtpv1u_data = make_gtpv1u_data(fd0, fd1u);
   return result;
