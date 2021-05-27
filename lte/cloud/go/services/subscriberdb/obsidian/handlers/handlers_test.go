@@ -1045,7 +1045,7 @@ func TestGetSubscriber(t *testing.T) {
 }
 
 func TestGetSubscriberByExactIMSI(t *testing.T) {
-	// regression test to ensure we are loading states with the exact same IMSI
+	// Regression test to ensure we are loading states with the exact same IMSI
 	// key as the subscriber
 
 	configuratorTestInit.StartTestService(t)
@@ -1116,7 +1116,7 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus, serdes.State)
 
-	// sub1 and sub2 differ in their mme states
+	// Sub1 and sub2 differ in their mme states
 	mmeState1 := state.ArbitraryJSON{"mme": "foo"}
 	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState1, serdes.State)
 	mmeState2 := state.ArbitraryJSON{"mme": "foo"}
@@ -1125,7 +1125,6 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 	sub1_with_state := sub1.ToSubscriber()
 	sub1_with_state.Monitoring = &subscriberModels.SubscriberStatus{
 		Icmp: &subscriberModels.IcmpStatus{
-			// LastReportedTime is calculated in milliseconds
 			LastReportedTime: frozenClock * 1000,
 			LatencyMs:        f32Ptr(12.34),
 		},
@@ -1134,7 +1133,7 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 		Mme: mmeState1,
 	}
 
-	// should only report states for IMSI1234567890, not IMSI123456789000
+	// Should only report states for IMSI1234567890, not IMSI123456789000
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            getSubscriberURL,

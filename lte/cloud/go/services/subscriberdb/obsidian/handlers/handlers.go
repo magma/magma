@@ -94,7 +94,6 @@ func GetHandlers() []obsidian.Handler {
 
 const (
 	mobilitydStateExpectedMatchCount = 2
-	imsiExpectedMatchCount           = 2
 )
 
 var (
@@ -102,8 +101,6 @@ var (
 	// Mobilityd states are keyed as <IMSI>.<APN>.
 	mobilitydStateKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\..+$`)
 
-	// imsiKeyRe captures the IMSI portion of any IMSI-prefixed ID strings
-	imsiKeyRe                    = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\.?.*$`)
 	apnPolicyProfileLoadCriteria = configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true}
 )
 
@@ -410,7 +407,7 @@ func getSubscriberStateHandler(c echo.Context) error {
 		return nerr
 	}
 
-	states, err := getStateExactIMSIPrefix(networkID, allSubscriberStateTypes, nil, &subscriberID, serdes.State)
+	states, err := getStatesForIMSIs(networkID, allSubscriberStateTypes, &subscriberID, serdes.State)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -543,25 +540,30 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 	}
 }
 
-func getStateExactIMSIPrefix(networkID string, typeFilter []string, keyFilter []string, keyPrefix *string, serdes serde.Registry) (state_types.StatesByID, error) {
-	// post-filter functionality to only return states with the exact IMSI prefix as specified
-	states, err := state.SearchStates(networkID, typeFilter, keyFilter, keyPrefix, serdes)
+func getStatesForIMSIs(networkID string, typeFilter []string, keyPrefix *string, serdes serde.Registry) (state_types.StatesByID, error) {
+	// Post-filter functionality to only return states with the exact IMSI
+	// prefix as specified
+	states, err := state.SearchStates(networkID, typeFilter, nil, keyPrefix, serdes)
 	if err != nil {
 		return nil, err
 	}
 
-	if !funk.IsEmpty(keyPrefix) {
-		for stateID := range states {
-			matches := imsiKeyRe.FindStringSubmatch(stateID.DeviceID)
-			if len(matches) != imsiExpectedMatchCount {
-				glog.Errorf("state device ID %s did not match IMSI-prefixed regex", stateID.DeviceID)
+	for stateID := range states {
+		imsi := stateID.DeviceID
+		if stateID.Type == lte.MobilitydStateType {
+			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
+			if len(matches) != mobilitydStateExpectedMatchCount {
+				glog.Infof("state device ID '%s' did not match IMSI-prefixed regex", stateID.DeviceID)
 				continue
 			}
-			if matches[1] != *keyPrefix {
-				delete(states, stateID)
-			}
+			imsi = matches[1]
+		}
+
+		if imsi != *keyPrefix {
+			delete(states, stateID)
 		}
 	}
+
 	return states, nil
 }
 
@@ -647,7 +649,7 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 		return nil, err
 	}
 
-	states, err := getStateExactIMSIPrefix(networkID, allSubscriberStateTypes, nil, &key, serdes.State)
+	states, err := getStatesForIMSIs(networkID, allSubscriberStateTypes, &key, serdes.State)
 	if err != nil {
 		return nil, err
 	}
@@ -866,10 +868,13 @@ func deleteSubscriber(networkID, key string) error {
 	return nil
 }
 
+// loadAllStatesForIMSIs loads all states whose IMSI prefix is contained in the
+// IMSI array passed in as argument. If the imsis argument is nil, the function
+// loads all states given the networkID, regardless of their IMSIs.
 func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_types.StatesByID, error) {
-	imsiMap := make(map[string]int)
-	for i, v := range imsis {
-		imsiMap[v] = i
+	validIMSIs := map[string]struct{}{}
+	for _, v := range imsis {
+		validIMSIs[v] = struct{}{}
 	}
 
 	imsiKeyStates, err := state.SearchStates(networkID, subscriberStateTypesKeyedByIMSI, imsis, nil, serdes.State)
@@ -893,7 +898,7 @@ func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_t
 				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
 				continue
 			}
-			if _, exists := imsiMap[matches[1]]; !exists && len(imsiMap) != 0 {
+			if !shouldLoadState(validIMSIs, matches[1]) {
 				continue
 			}
 			sidKey = matches[1]
@@ -906,6 +911,14 @@ func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_t
 	}
 
 	return statesBySid, nil
+}
+
+func shouldLoadState(validIMSIs map[string]struct{}, imsi string) bool {
+	if len(validIMSIs) == 0 {
+		return true
+	}
+	_, valid := validIMSIs[imsi]
+	return valid
 }
 
 func makeSubscriberState(subscriberID string, states state_types.StatesByID) *subscribermodels.SubscriberState {
