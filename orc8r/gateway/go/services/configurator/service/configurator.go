@@ -16,6 +16,8 @@ package service
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"encoding/json"
 	"io"
 	"sync"
@@ -27,6 +29,7 @@ import (
 
 	"magma/gateway/config"
 	"magma/gateway/streamer"
+	"magma/orc8r/cloud/go/mprotos"
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/protos/mconfig"
@@ -175,6 +178,19 @@ func (c *Configurator) GetExtraArgs() *any.Any {
 		glog.Errorf("error marshaling latest mconfig digest: %v", err)
 	}
 	return nil
+}
+
+// GetMconfigDigest generates a representative hash of the configs (sans metadata).
+func (cfg *protos.GatewayConfigs) GetMconfigDigest() (string, error) {
+	configsWithoutMetadata := &protos.GatewayConfigs{ConfigsByKey: cfg.GetConfigsByKey()}
+	serializedConfig, err := mprotos.encodePbDeterministic(configsWithoutMetadata)
+	if err != nil {
+		return "", err
+	}
+
+	sum := md5.Sum(serializedConfig)
+	digest := hex.EncodeToString(sum[:])
+	return digest, nil
 }
 
 type rawMconfigMsg struct {
