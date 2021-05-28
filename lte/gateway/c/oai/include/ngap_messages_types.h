@@ -211,7 +211,6 @@ typedef struct itti_ngap_ue_context_release_req_s {
   ue_context_pduSession_t pduSession;
   uint32_t gnb_id;
   enum Ngcause relCause;
-  Ngap_Cause_t cause;
 } itti_ngap_ue_context_release_req_t;
 
 typedef struct itti_ngap_dl_nas_data_req_s {

@@ -26,11 +26,9 @@ int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(
     uint32_t len) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << "   DecodeSecurityHeaderTypeMsg : ";
   sec_header_type->sec_hdr = *(buffer) &0xf;
   decoded++;
-  MLOG(MDEBUG) << " Security header type = " << dec
-               << int(sec_header_type->sec_hdr);
+
   return (decoded);
 };
 

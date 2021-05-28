@@ -18,7 +18,7 @@ using namespace std;
 namespace magma5g {
 class PayloadContainerMsg {
  public:
-#define PAYLOAD_CONTAINER_CONTENTS_MAX_LEN 65534
+#define PAYLOAD_CONTAINER_CONTENTS_MAX_LEN 8192
   uint8_t iei;
   uint32_t len;
   uint8_t contents[PAYLOAD_CONTAINER_CONTENTS_MAX_LEN];

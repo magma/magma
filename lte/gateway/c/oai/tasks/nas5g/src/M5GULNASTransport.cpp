@@ -36,6 +36,7 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
     return decoded_result;
   else
     decoded += decoded_result;
+
   if ((decoded_result =
            ul_nas_transport->spare_half_octet.DecodeSpareHalfOctetMsg(
                &ul_nas_transport->spare_half_octet, 0, buffer + decoded,
@@ -43,6 +44,7 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
     return decoded_result;
   else
     decoded += decoded_result;
+
   if ((decoded_result =
            ul_nas_transport->sec_header_type.DecodeSecurityHeaderTypeMsg(
                &ul_nas_transport->sec_header_type, 0, buffer + decoded,
@@ -50,12 +52,14 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
     return decoded_result;
   else
     decoded += decoded_result;
+
   if ((decoded_result = ul_nas_transport->message_type.DecodeMessageTypeMsg(
            &ul_nas_transport->message_type, 0, buffer + decoded,
            len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
+
   if ((decoded_result = ul_nas_transport->payload_container_type
                             .DecodePayloadContainerTypeMsg(
                                 &ul_nas_transport->payload_container_type, 0,
@@ -63,6 +67,7 @@ int ULNASTransportMsg::DecodeULNASTransportMsg(
     return decoded_result;
   else
     decoded += decoded_result;
+
   if ((decoded_result =
            ul_nas_transport->payload_container.DecodePayloadContainerMsg(
                &ul_nas_transport->payload_container, 0, buffer + decoded,

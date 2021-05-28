@@ -20,8 +20,8 @@ namespace magma5g {
 NewQOSRulePktFilter::NewQOSRulePktFilter(){};
 NewQOSRulePktFilter::~NewQOSRulePktFilter(){};
 QOSRule::QOSRule(){};
-QOSRulesMsg::QOSRulesMsg(){};
 QOSRule::~QOSRule(){};
+QOSRulesMsg::QOSRulesMsg(){};
 QOSRulesMsg::~QOSRulesMsg(){};
 
 // Decode QOSRules IE
@@ -87,7 +87,6 @@ int QOSRulesMsg::EncodeQOSRulesMsg(
           buffer + encoded,
           qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len);
       encoded = encoded + qos_rules->qos_rule[i].new_qos_rule_pkt_filter[j].len;
-      encoded++;
     }
 
     *(buffer + encoded) = qos_rules->qos_rule[i].qos_rule_precedence;

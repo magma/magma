@@ -50,7 +50,6 @@
 #include "timer_messages_types.h"
 #include "ngap_amf.h"
 
-amf_config_t amf_config;
 task_zmq_ctx_t ngap_task_zmq_ctx;
 
 static int ngap_send_init_sctp(void) {
@@ -93,7 +92,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        */
 
       // Invoke NGAP message decoder
-
       Ngap_NGAP_PDU_t pdu = {0};
 
       if (ngap_amf_decode_pdu(
@@ -123,6 +121,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case NGAP_NAS_DL_DATA_REQ: {  // packets from NAS
+
       /*
        * New message received from NAS task.
        * * * * This corresponds to a NGAP downlink nas transport message.
@@ -205,6 +204,14 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
 //------------------------------------------------------------------------------
 int ngap_amf_init(const amf_config_t* amf_config_p) {
   OAILOG_DEBUG(LOG_NGAP, "Initializing NGAP interface\n");
+  amf_config_t* config = amf_config_p;
+
+  if (ngap_state_init(
+          amf_config_p->max_ues, amf_config_p->max_gnbs,
+          amf_config_p->use_stateless) < 0) {
+    OAILOG_ERROR(LOG_NGAP, "Error while initing NGAP state\n");
+    return RETURNerror;
+  }
 
   if (itti_create_task(TASK_NGAP, &ngap_amf_thread, NULL) == RETURNerror) {
     OAILOG_ERROR(LOG_NGAP, "Error while creating NGAP task\n");

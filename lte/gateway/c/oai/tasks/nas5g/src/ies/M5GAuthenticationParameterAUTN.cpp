@@ -49,9 +49,9 @@ int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
 
   lenPtr = (uint8_t*) (buffer + encoded);
   encoded++;
-  std::copy(autn->AUTN.begin(), autn->AUTN.end(), buffer + encoded);
-  BUFFER_PRINT_LOG(buffer + encoded, autn->AUTN.length());
-  encoded = encoded + autn->AUTN.length();
+  memcpy(buffer + encoded, autn->AUTN, AUTN_MAX_LEN);
+  BUFFER_PRINT_LOG(buffer + encoded, AUTN_MAX_LEN);
+  encoded = encoded + AUTN_MAX_LEN;
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 
   return (encoded);

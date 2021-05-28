@@ -26,8 +26,6 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
     uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << "DecoseNASKeySetIdentifierMsg : ";
-
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
@@ -40,9 +38,7 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
   nas_key_set_identifier->nas_key_set_identifier =
       (*(buffer + decoded) >> 4) & 0x7;
   decoded++;
-  MLOG(MDEBUG) << "   tsc = " << dec << int(nas_key_set_identifier->tsc);
-  MLOG(MDEBUG) << "   NASkeysetidentifier = " << dec
-               << int(nas_key_set_identifier->nas_key_set_identifier);
+
   return decoded;
 };
 

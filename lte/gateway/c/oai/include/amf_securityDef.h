@@ -44,8 +44,10 @@ namespace magma5g {
 #define AUTH_RES_SIZE 16      /* Authentication response:      128 bits */
 #define AUTH_SNID_SIZE 3      /* Serving network's identity:   24 bits  */
 #define AUTH_KASME_SIZE 32    /* KASME security key:        256 bits    */
+#define AUTH_KAMF_SIZE 32     /* KAMF secuirity key:        256 bits    */
 #define AUTH_KNAS_INT_SIZE 16 /* NAS integrity key     */
 #define AUTH_KNAS_ENC_SIZE 16 /* NAS cyphering key     */
+#define AUTH_KAMF_SIZE 32     /* KAMF secuirity key:        256 bits    */
 #define AUTH_KGNB_SIZE AUTH_KASME_SIZE     /* gNodeB security key   */
 #define AUTH_NEXT_HOP_SIZE AUTH_KASME_SIZE /* Next Hop security parameter*/
 
@@ -84,6 +86,8 @@ class m5g_auth_vector_t {
 #define AUTH_XRES_SIZE AUTH_RES_SIZE
   uint8_t xres_size;
   uint8_t xres[AUTH_XRES_SIZE];
+  uint8_t ck[AUTH_CK_SIZE];
+  uint8_t ik[AUTH_IK_SIZE];
 };
 
 /****************************************************************************/

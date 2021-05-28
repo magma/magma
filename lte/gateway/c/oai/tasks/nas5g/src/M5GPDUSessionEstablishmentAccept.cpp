@@ -107,13 +107,6 @@ int PDUSessionEstablishmentAcceptMsg::EncodePDUSessionEstablishmentAcceptMsg(
   } else {
     encoded += encoded_result;
   }
-  if ((encoded_result = pdu_session_estab_accept->dnn.EncodeDNNMsg(
-           &pdu_session_estab_accept->dnn, DNN, buffer + encoded,
-           len - encoded)) < 0) {
-    return encoded_result;
-  } else {
-    encoded += encoded_result;
-  }
   return encoded;
 }
 }  // namespace magma5g

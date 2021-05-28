@@ -28,6 +28,8 @@
 #include "M5GDeRegistrationAcceptUEInit.h"
 #include "M5GULNASTransport.h"
 #include "M5GDLNASTransport.h"
+#include "M5GServiceRequest.h"
+#include "M5GServiceAccept.h"
 
 using namespace std;
 namespace magma5g {
@@ -36,6 +38,8 @@ struct AmfMsgHeader_s {
   uint8_t extended_protocol_discriminator;
   uint8_t sec_header_type;
   uint8_t message_type;
+  uint32_t message_authentication_code;
+  uint8_t sequence_number;
 };
 
 union MMsg_u {
@@ -43,6 +47,8 @@ union MMsg_u {
   RegistrationAcceptMsg reg_accept;
   RegistrationCompleteMsg reg_complete;
   RegistrationRejectMsg reg_reject;
+  ServiceRequestMsg svc_req;
+  ServiceAcceptMsg svc_acpt;
   IdentityRequestMsg identity_request;
   IdentityResponseMsg identity_response;
   AuthenticationRequestMsg auth_request;

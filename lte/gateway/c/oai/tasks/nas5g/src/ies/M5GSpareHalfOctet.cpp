@@ -26,9 +26,7 @@ int SpareHalfOctetMsg::DecodeSpareHalfOctetMsg(
     uint32_t len) {
   int decoded = 0;
 
-  MLOG(MDEBUG) << "   DecodeSpareHalfOctetMsg : ";
   spare_half_octet->spare = (*buffer & 0xf0) >> 4;
-  MLOG(MDEBUG) << "Spare = 0x" << hex << int(spare_half_octet->spare);
   return (decoded);
 };
 

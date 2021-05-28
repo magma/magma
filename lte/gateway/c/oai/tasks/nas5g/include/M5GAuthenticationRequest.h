@@ -35,8 +35,8 @@ class AuthenticationRequestMsg {
   MessageTypeMsg message_type;
   NASKeySetIdentifierMsg nas_key_set_identifier;
   ABBAMsg abba;
-  AuthenticationParameterRANDMsg auth_rand;
   AuthenticationParameterAUTNMsg auth_autn;
+  AuthenticationParameterRANDMsg auth_rand;
   EAPMessageMsg eap;
 
   AuthenticationRequestMsg();
