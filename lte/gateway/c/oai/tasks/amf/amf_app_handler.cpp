@@ -413,6 +413,12 @@ imsi64_t amf_app_handle_initial_ue_message(
     ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
     ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
 
+    // UEContextRequest
+    ue_context_p->ue_context_request = initial_pP->ue_context_request;
+    OAILOG_DEBUG(
+        LOG_AMF_APP, "ue_context_requext received: %d\n ",
+        ue_context_p->ue_context_request);
+
     notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
     s_tmsi_m5_t s_tmsi = {0};
     if (initial_pP->is_s_tmsi_valid) {

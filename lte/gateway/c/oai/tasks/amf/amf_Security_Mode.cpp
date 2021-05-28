@@ -68,16 +68,14 @@ int amf_handle_security_complete_response(
      * TODO:Stop timer T3560 This to be taken care in upcoming PR
      */
 
-    OAILOG_ERROR(
-        LOG_AMF_APP, "Timer: Calling SMC MODE stop timer with id = %d\n",
-        smc_proc->T3560.id);
     stop_timer(&amf_app_task_zmq_ctx, smc_proc->T3560.id);
-    OAILOG_ERROR(LOG_AMF_APP, "Timer: After stopping SMC MODE timer \n");
+    OAILOG_DEBUG(LOG_AMF_APP, "Timer: After stopping SMC MODE timer \n");
     smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
-    ue_mm_context->ue_context_request_present = true;
+    OAILOG_DEBUG(
+          LOG_AMF_APP, "ue_context_request : %d", ue_mm_context->ue_context_request);
     if (amf_ctx && IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
-      if (ue_mm_context->ue_context_request_present == false) {
+      if (M5G_UEContextRequest_requested != ue_mm_context->ue_context_request) {
         /*
          * Notify AMF that the authentication procedure successfully completed
          */

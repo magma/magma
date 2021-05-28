@@ -79,8 +79,8 @@ void ngap_amf_itti_ngap_initial_ue_message(
     const guamfi_t const* opt_guamfi,
     const void const* opt_cell_access_mode,          /* unused*/
     const void const* opt_cell_gw_transport_address, /* unused*/
-    const void const* opt_relay_node_indicator       /* unused*/
-);
+    const void const* opt_relay_node_indicator,      /* unused*/
+    const long ue_ctx_req);
 
 void ngap_amf_itti_nas_non_delivery_ind(
     const amf_ue_ngap_id_t ue_id, uint8_t* const nas_msg,

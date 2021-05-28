@@ -237,6 +237,10 @@ typedef struct itti_ngap_paging_request_s {
 
 } itti_ngap_paging_request_t;
 
+typedef enum m5g_uecontextrequest {  // ue context requested supported enum
+  M5G_UEContextRequest_requested = 1,
+} m5g_uecontextrequest_t;
+
 typedef struct itti_ngap_initial_ue_message_s {
   sctp_assoc_id_t sctp_assoc_id;  // key stored in AMF_APP for AMF_APP forward
                                   // NAS response to NGAP
@@ -249,7 +253,8 @@ typedef struct itti_ngap_initial_ue_message_s {
   ecgi_t ecgi; /* Indicating the cell from which the UE has sent the NAS
                   message. */
   m5g_rrc_establishment_cause_t
-      m5g_rrc_establishment_cause; /* Establishment cause */
+      m5g_rrc_establishment_cause;           /* Establishment cause */
+  m5g_uecontextrequest_t ue_context_request; /* UeContextRequest */
   bool is_s_tmsi_valid;
   bool is_csg_id_valid;
   bool is_guamfi_valid;
