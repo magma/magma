@@ -17,10 +17,10 @@
 #include <memory>
 
 #include "UpfMsgManageHandler.h"
-#include "MagmaService.h"
+#include "includes/MagmaService.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "SessiondMocks.h"
@@ -35,16 +35,6 @@
 using ::testing::Test;
 
 namespace magma {
-
-class MockSetInterfaceForUserPlane final
-    : public SetInterfaceForUserPlane::Service {
- public:
-  MockSetInterfaceForUserPlane() : SetInterfaceForUserPlane::Service() {}
-  MOCK_METHOD3(
-      SetUPFNodeState, Status(
-                           grpc::ServerContext*, const UPFNodeState*,
-                           std::function<void(Status, SmContextVoid)>));
-};
 
 class SetUPFNodeState : public ::testing::Test {
  public:
