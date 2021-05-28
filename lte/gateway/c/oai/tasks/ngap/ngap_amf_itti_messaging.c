@@ -96,8 +96,8 @@ void ngap_amf_itti_ngap_initial_ue_message(
     const guamfi_t const* opt_guamfi,
     const void const* opt_cell_access_mode,           // unused
     const void const* opt_cell_gw_transport_address,  // unused
-    const void const* opt_relay_node_indicator)       // unused
-{
+    const void const* opt_relay_node_indicator,       // unused
+    const long ue_ctx_req) {
   MessageDef* message_p = NULL;
 
   OAILOG_FUNC_IN(LOG_NGAP);
@@ -124,6 +124,9 @@ void ngap_amf_itti_ngap_initial_ue_message(
   NGAP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
   NGAP_INITIAL_UE_MESSAGE(message_p).m5g_rrc_establishment_cause =
       rrc_cause + 1;
+
+  OAILOG_INFO(LOG_NGAP, "ue context request recvd at ngap : %d", ue_ctx_req);
+  NGAP_INITIAL_UE_MESSAGE(message_p).ue_context_request = ue_ctx_req;
 
   if (opt_s_tmsi) {
     NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid = true;

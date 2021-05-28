@@ -357,7 +357,7 @@ typedef struct ue_m5gmm_context_s {
   amf_app_timer_t m5_ulr_response_timer;
 
   // UEContextRequest in  INITIAL UE MESSAGE
-  bool ue_context_request_present;
+  m5g_uecontextrequest_t ue_context_request;
 } ue_m5gmm_context_t;
 
 /* Operation on UE context structure
