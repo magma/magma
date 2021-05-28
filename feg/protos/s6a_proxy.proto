@@ -200,13 +200,14 @@ message UpdateLocationAnswer {
 
         string charging_characteristics = 6;
 
-        // For details about values see 29.212
-        message QoSProfile {
+    // For details about values see 29.212
+    message QoSProfile {
             int32 class_id = 1;
             uint32 priority_level = 2;
             bool preemption_capability = 3;
             bool preemption_vulnerability = 4;
         }
+
     }
 
     message AggregatedMaximumBitrate {

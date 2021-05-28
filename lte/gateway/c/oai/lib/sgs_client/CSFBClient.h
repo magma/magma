@@ -24,7 +24,7 @@
 #include <functional>
 #include <memory>
 
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include "feg/protos/csfb.grpc.pb.h"
 #include "sgs_messages_types.h"
 

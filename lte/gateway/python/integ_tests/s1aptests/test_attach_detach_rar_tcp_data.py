@@ -186,6 +186,8 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
                 req.ue_id, act_ded_ber_ctxt_req.bearerId
             )
+            print("Sleeping again for flow to be installed")
+            time.sleep(2)
 
             # Check if UL and DL OVS flows are created
             # UPLINK
@@ -289,13 +291,9 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
                 req.ue_id, detach_type[i], wait_for_s1[i]
             )
 
-            print("Checking that uplink/downlink flows were deleted")
-            flows = get_flows(
-                datapath, {"table_id": self.SPGW_TABLE, "priority": 0}
-            )
-            self.assertEqual(
-                len(flows), 2, "There should only be 2 default table 0 flows"
-            )
+        # Verify that all UL/DL flows are deleted
+        self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
+
 
 
 if __name__ == "__main__":

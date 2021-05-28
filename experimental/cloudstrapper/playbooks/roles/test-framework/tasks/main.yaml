@@ -1,0 +1,7 @@
+---
+- include: provision-test-instances.yaml
+  tags: clusterStart
+- include: configure-test-instances.yaml
+  tags: clusterConfigure
+- include: cleanup-test-instances.yaml
+  tags: clusterCleanup

@@ -11,18 +11,18 @@
  * limitations under the License.
  */
 
-#include <memory>
-
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
+#include "Consts.h"
+#include "magma_logging.h"
 #include "MemoryStoreClient.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "SessionID.h"
 #include "SessionState.h"
-#include "magma_logging.h"
-#include "Consts.h"
 
 using ::testing::Test;
 
@@ -97,7 +97,7 @@ TEST_F(StoreClientTest, test_read_and_write) {
   EXPECT_EQ(session2->get_session_id(), sid2);
 
   RuleLifetime lifetime{};
-  session->activate_static_rule("rule1", lifetime, uc);
+  session->activate_static_rule("rule1", lifetime, &uc);
   EXPECT_EQ(session->is_static_rule_installed("rule1"), true);
 
   EXPECT_EQ(session_map.size(), 2);

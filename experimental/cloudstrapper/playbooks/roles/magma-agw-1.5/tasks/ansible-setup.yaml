@@ -1,0 +1,6 @@
+---
+- name: install packages
+  apt:
+    name: "{{ pkgGateway }}"
+    state: present
+    update_cache: yes

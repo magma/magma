@@ -11,26 +11,26 @@
  * limitations under the License.
  */
 
-#include <iostream>
-#include <string.h>
-#include <chrono>
-#include <thread>
-#include <future>
-
+#include <gmock/gmock.h>
 #include <grpc++/grpc++.h>
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
+#include <string.h>
+
+#include <chrono>
+#include <future>
+#include <iostream>
+#include <thread>
 
 #include "Consts.h"
-#include "SessionReporter.h"
-#include "MagmaService.h"
+#include "LocalEnforcer.h"
+#include "includes/MagmaService.h"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
-#include "ServiceRegistrySingleton.h"
-#include "SessionManagerServer.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
+#include "SessionManagerServer.h"
+#include "SessionReporter.h"
 #include "SessionStore.h"
-#include "LocalEnforcer.h"
 
 #define SESSION_TERMINATION_TIMEOUT_MS 100
 #define DEFAULT_PIPELINED_EPOCH 1
@@ -208,9 +208,7 @@ class SessiondTest : public ::testing::Test {
 
   void insert_static_rule(uint32_t charging_key, const std::string& rule_id) {
     auto mkey = "";
-    PolicyRule rule;
-    create_policy_rule(rule_id, mkey, charging_key, &rule);
-    rule_store->insert_rule(rule);
+    rule_store->insert_rule(create_policy_rule(rule_id, mkey, charging_key));
   }
 
   // Timeout to not block test
@@ -577,8 +575,8 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   }
 
   RuleRecordTable table2;
-  create_rule_record(IMSI1, "rule1", 512, 0, table2.mutable_records()->Add());
-  create_rule_record(IMSI1, "rule2", 0, 512, table2.mutable_records()->Add());
+  create_rule_record(IMSI1, "rule1", 512, 512, table2.mutable_records()->Add());
+  create_rule_record(IMSI1, "rule2", 512, 512, table2.mutable_records()->Add());
   send_update_pipelined_table(stub, table2);
 
   set_timeout(5000, end_promise);

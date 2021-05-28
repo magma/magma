@@ -384,7 +384,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.3
+    Default: 0.2.4
   helm_deployment_name:
     Description: Name for the Helm release.
     Type: string

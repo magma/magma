@@ -14,7 +14,7 @@ options:
 --deploy-dir  deployment dir containing configs and secrets (mandatory)
 --root-dir    magma root directory
 --build       build the deployer container
---test        'all' or any specific test function[run_unit_tests,check_helmcharts_insync, check_tfvars_insync ]
+--test        'check_all' or any specific test function[run_unit_tests,check_helmcharts_insync, check_tfvars_insync ]
 example: ./run_deployer.bash --deploy-dir ~/orc8r_15_deployment"
 }
 

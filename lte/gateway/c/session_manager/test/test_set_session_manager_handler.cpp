@@ -11,27 +11,27 @@
  * limitations under the License.
  */
 
-#include <memory>
-
 #include <folly/io/async/EventBaseManager.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
 /* session_manager.grpc.pb.h and SessionStateEnforcer.h
  * included in "SetMessageManagerHandler.h"
  */
-#include "SetMessageManagerHandler.h"
-#include "MagmaService.h"
+#include "AmfServiceClient.h"
+#include "magma_logging.h"
+#include "includes/MagmaService.h"
+#include "PipelinedClient.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "SessiondMocks.h"
 #include "SessionState.h"
 #include "SessionStore.h"
-#include "SessiondMocks.h"
+#include "SetMessageManagerHandler.h"
 #include "StoredState.h"
-#include "magma_logging.h"
-#include "PipelinedClient.h"
-#include "AmfServiceClient.h"
 
 using ::testing::Test;
 

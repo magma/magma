@@ -12,6 +12,8 @@ schemes:
 - https
 - http
 tags:
+- description: Access point name
+  name: APNs
 - description: Configuring alerting rules on time-series data
   name: Alerts
 - description: Endpoints related to call tracing
@@ -3826,6 +3828,23 @@ paths:
       summary: List subscribers in the network with pagination support
       tags:
       - Subscribers
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - description: Subscribers to add
+        in: body
+        name: subscribers
+        required: true
+        schema:
+          $ref: '#/definitions/mutable_subscribers'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Add new subscribers to the network
+      tags:
+      - Subscribers
   /networks:
     get:
       responses:
@@ -6854,6 +6873,10 @@ definitions:
         example: true
         type: boolean
         x-nullable: false
+      acct_reporting_enabled:
+        default: false
+        type: boolean
+        x-nullable: false
       create_session_on_auth:
         default: true
         example: true
@@ -7301,7 +7324,7 @@ definitions:
         default: 1
         example: 1
         format: uint32
-        maximum: 255
+        maximum: 65535
         minimum: 0
         type: integer
         x-nullable: false
@@ -9619,7 +9642,6 @@ definitions:
     - description
     - magmad
     - tier
-    - federation
     type: object
   mutable_lte_gateway:
     description: LTE gateway object with read-only fields omitted
@@ -9707,6 +9729,11 @@ definitions:
     - id
     - lte
     type: object
+  mutable_subscribers:
+    description: List of mutable subscribers
+    items:
+      $ref: '#/definitions/mutable_subscriber'
+    type: array
   mutable_wifi_gateway:
     description: Wifi gateway object with read-only fields omitted
     properties:

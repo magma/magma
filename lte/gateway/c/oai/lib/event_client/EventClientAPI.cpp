@@ -22,7 +22,7 @@
 #include <grpcpp/support/status.h>
 #include <orc8r/protos/common.pb.h>
 
-#include "EventdClient.h"
+#include "includes/EventdClient.h"
 
 using grpc::Status;
 using grpc::StatusCode::DEADLINE_EXCEEDED;

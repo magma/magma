@@ -25,8 +25,10 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	fegpb "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/aaa"
+	"magma/feg/gateway/services/aaa/base_acct"
 	"magma/feg/gateway/services/aaa/events"
 	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/pipelined"
@@ -89,6 +91,7 @@ func (srv *accountingService) Start(ctx context.Context, aaaCtx *protos.Context)
 
 // InterimUpdate implements Radius Acct-Status-Type: Interim-Update endpoint
 func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.UpdateRequest) (*protos.AcctResp, error) {
+	var err error
 	if ur == nil {
 		return &protos.AcctResp{}, Errorf(codes.InvalidArgument, "Nil Update Request")
 	}
@@ -100,16 +103,33 @@ func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.Update
 	}
 	srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
 
-	imsi := metrics.DecorateIMSI(s.GetCtx().GetImsi())
+	imsi := s.GetCtx().GetImsi()
 	msisdn := s.GetCtx().GetMsisdn()
-	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), imsi, msisdn).Add(float64(ur.GetOctetsIn()))
-	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), imsi, msisdn).Add(float64(ur.GetOctetsOut()))
+	apn := s.GetCtx().GetApn()
+	octetsIn := ur.GetOctetsIn()
+	octetsOut := ur.GetOctetsOut()
+	metrics.OctetsIn.WithLabelValues(apn, imsi, msisdn).Add(float64(octetsIn))
+	metrics.OctetsOut.WithLabelValues(apn, imsi, msisdn).Add(float64(octetsOut))
 
-	return &protos.AcctResp{}, nil
+	if srv.config.GetAcctReportingEnabled() {
+		_, err = base_acct.Update(&fegpb.AcctUpdateReq{
+			Session:     baseAcctSessionFromCtx(s.GetCtx()),
+			OctetsIn:    uint64(octetsIn),
+			OctetsOut:   uint64(octetsOut),
+			SessionTime: uint32(uint64(time.Now().UnixNano()/NanoInMilli) - s.GetCtx().GetCreatedTimeMs()),
+		})
+	}
+	return &protos.AcctResp{}, err
 }
 
 // Stop implements Radius Acct-Status-Type: Stop endpoint
 func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (*protos.AcctResp, error) {
+	var (
+		acctSession     *fegpb.AcctSession
+		createdTimeMs   uint64
+		baseAcctEnabled = srv.config.GetAcctReportingEnabled()
+	)
+
 	if req == nil {
 		return &protos.AcctResp{}, status.Errorf(codes.InvalidArgument, "Nil Stop Request")
 	}
@@ -125,6 +145,9 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	sessionImsi := s.GetCtx().GetImsi()
 	apn := s.GetCtx().GetApn()
 	msisdn := s.GetCtx().GetMsisdn()
+	if baseAcctEnabled {
+		acctSession = baseAcctSessionFromCtx(s.GetCtx())
+	}
 	s.Unlock()
 
 	imsi := metrics.DecorateIMSI(sessionImsi)
@@ -151,6 +174,15 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 		events.LogSessionTerminationFailedEvent(req.GetCtx(), events.AccountingStop, err.Error())
 	} else if srv.config.GetEventLoggingEnabled() {
 		events.LogSessionTerminationSucceededEvent(req.GetCtx(), events.AccountingStop)
+	}
+
+	if baseAcctEnabled {
+		_, err = base_acct.Stop(&fegpb.AcctUpdateReq{
+			Session:     acctSession,
+			OctetsIn:    uint64(req.GetOctetsIn()),
+			OctetsOut:   uint64(req.GetOctetsOut()),
+			SessionTime: uint32(uint64(time.Now().UnixNano()/NanoInMilli) - createdTimeMs),
+		})
 	}
 	return &protos.AcctResp{}, err
 }
@@ -280,6 +312,29 @@ func (srv *accountingService) AddSessions(ctx context.Context, sessions *protos.
 		return &protos.AcctResp{}, fmt.Errorf("Unable to add the session for the following IMSIs: %v", failed)
 	}
 	return &protos.AcctResp{}, nil
+}
+
+// baseAccountingStart reports to base accounting service a new augmented network session
+func (srv *accountingService) baseAccountingStart(aaaCtx *protos.Context) (*fegpb.AcctSessionResp, error) {
+	if srv == nil || srv.config == nil || (!srv.config.GetAcctReportingEnabled()) {
+		return &fegpb.AcctSessionResp{}, nil
+	}
+	if aaaCtx == nil {
+		return nil, Errorf(codes.Internal, "baseAccountingStart: nil aaa CTX")
+	}
+	resp, err := base_acct.Start(baseAcctSessionFromCtx(aaaCtx))
+	if err != nil {
+		err = Errorf(codes.Unavailable, "Base Accounting Start failure: %v", err)
+	}
+	return resp, err
+}
+
+func baseAcctSessionFromCtx(aaaCtx *protos.Context) *fegpb.AcctSession {
+	return &fegpb.AcctSession{
+		User:       &fegpb.AcctSession_IMSI{IMSI: aaaCtx.GetImsi()},
+		SessionId:  aaaCtx.GetSessionId(),
+		ServingApn: aaaCtx.GetApn(),
+	}
 }
 
 // installMacFlow installs a new mac flow if it is a brand new session or

@@ -20,9 +20,9 @@
 #include <utility>
 
 #include "lte/protos/mconfig/mconfigs.pb.h"
-#include "MConfigLoader.h"
+#include "includes/MConfigLoader.h"
 #include "S6aClient.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "itti_msg_to_proto_msg.h"
 #include "feg/protos/s6a_proxy.pb.h"
 #include "mme_config.h"

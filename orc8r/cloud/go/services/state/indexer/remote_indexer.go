@@ -86,11 +86,6 @@ func (r *remoteIndexer) Index(networkID string, states state_types.SerializedSta
 	if len(states) == 0 {
 		return nil, nil
 	}
-	var reporterHWID string
-	for _, st := range states {
-		reporterHWID = st.ReporterID
-		break
-	}
 
 	c, err := r.getIndexerClient()
 	if err != nil {
@@ -102,9 +97,8 @@ func (r *remoteIndexer) Index(networkID string, states state_types.SerializedSta
 		return nil, err
 	}
 	res, err := c.Index(context.Background(), &state_protos.IndexRequest{
-		States:       pStates,
-		NetworkId:    networkID,
-		ReporterHwid: reporterHWID,
+		States:    pStates,
+		NetworkId: networkID,
 	})
 	if err != nil {
 		return nil, err

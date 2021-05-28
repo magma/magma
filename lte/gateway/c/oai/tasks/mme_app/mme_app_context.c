@@ -251,7 +251,8 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   ue_context_p->hss_initiated_detach  = false;
   for (int i = 0; i < MAX_APN_PER_UE; i++) {
     if (ue_context_p->pdn_contexts[i]) {
-      mme_app_free_pdn_context(&ue_context_p->pdn_contexts[i]);
+      mme_app_free_pdn_context(
+          &ue_context_p->pdn_contexts[i], ue_context_p->emm_context._imsi64);
     }
   }
 
@@ -1260,6 +1261,12 @@ void mme_app_dump_pdn_context(
     bformata(
         bstr_dump, "%*s     - P-GW-APN-AMBR (bits/s) UL : %010" PRIu64 "\n",
         indent_spaces, " ", pdn_context->p_gw_apn_ambr.br_ul);
+
+    bformata(
+        bstr_dump, "%*s     - P-GW-APN-AMBR (bits/s) UL : %010" PRIu64 "\n",
+        indent_spaces, " ", pdn_context->p_gw_apn_ambr.br_ul,
+        (pdn_context->p_gw_apn_ambr.br_unit) ? "KBPS" : "BPS");
+
     bformata(
         bstr_dump, "%*s     - Default EBI ..............: %u\n", indent_spaces,
         " ", pdn_context->default_ebi);

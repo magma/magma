@@ -13,6 +13,9 @@
 # Setting up env variable, user and project path
 set -x
 
+addr1="$1"
+gw_addr="$2"
+
 MAGMA_USER="magma"
 AGW_INSTALL_CONFIG_LINK="/etc/systemd/system/multi-user.target.wants/agw_installation.service"
 AGW_INSTALL_CONFIG="/lib/systemd/system/agw_installation.service"
@@ -72,12 +75,40 @@ if [[ $1 != "$CLOUD_INSTALL" ]] && ( [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $I
   service systemd-resolved restart
 
   # interface config
-  apt install -y ifupdown net-tools
+  apt install -y ifupdown net-tools ipcalc
   mkdir -p "$INTERFACE_DIR"
   echo "source-directory $INTERFACE_DIR" > /etc/network/interfaces
 
-  echo "auto eth0
-  iface eth0 inet dhcp" > "$INTERFACE_DIR"/eth0
+  if [ -z "$addr1" ] || [ -z "$gw_addr" ]
+  then
+    # DHCP allocated interface IP
+    echo "auto eth0
+    iface eth0 inet dhcp" > "$INTERFACE_DIR"/eth0
+  else
+    # Statically allocated interface IP
+    if ipcalc -c "$addr1" | grep INVALID
+    then
+      echo "Interface ip is not valid IP"
+      exit 1
+    fi
+
+    if ipcalc -c "$gw_addr" | grep INVALID
+    then
+      echo "Upstream Router ip is not valid IP"
+      exit 1
+    fi
+
+    addr=$(   ipcalc -n "$addr1"  | grep Address | awk '{print $2}')
+    netmask=$(ipcalc -n "$addr1"  | grep Netmask | awk '{print $2}')
+    gw_addr=$(ipcalc -n "$gw_addr"| grep Address | awk '{print $2}')
+
+    echo "auto eth0
+  iface eth0 inet static
+  address $addr
+  netmask $netmask
+  gateway $gw_addr" > "$INTERFACE_DIR"/eth0
+  fi
+
   # configuring eth1
   echo "auto eth1
   iface eth1 inet static
@@ -156,7 +187,7 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   alias python=python3
   pip3 install ansible
 
-  git clone --depth=1 "${GIT_URL}" /home/$MAGMA_USER/magma
+  git clone "${GIT_URL}" /home/$MAGMA_USER/magma
   cd /home/$MAGMA_USER/magma || exit
   git checkout "$MAGMA_VERSION"
 

@@ -12,28 +12,30 @@
  */
 #pragma once
 
-#include <memory>
 #include <experimental/optional>
-
-#include <lte/protos/session_manager.grpc.pb.h>
 #include <folly/io/async/EventBaseManager.h>
+#include <lte/protos/session_manager.grpc.pb.h>
 
-#include "SessionState.h"
+#include <memory>
+#include <set>
+#include <string>
+#include <unordered_map>
+
 #include "MemoryStoreClient.h"
 #include "MeteringReporter.h"
-#include "StoredState.h"
 #include "RedisStoreClient.h"
 #include "RuleStore.h"
+#include "SessionState.h"
+#include "StoredState.h"
 
 namespace magma {
 namespace lte {
 using std::experimental::optional;
 
 // Value int represents the request numbers needed for requests to PCRF
-typedef std::set<std::string> SessionRead;
-typedef std::unordered_map<
-    std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>
-    SessionUpdate;
+using SessionRead   = std::set<std::string>;
+using SessionUpdate = std::unordered_map<
+    std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>;
 
 enum SessionSearchCriteriaType {
   IMSI_AND_APN             = 0,

@@ -17,11 +17,10 @@ package diameter
 import (
 	"flag"
 	"fmt"
-	"log"
 	"net"
-	"os"
-	"strconv"
 	"strings"
+
+	"magma/feg/gateway/utils"
 )
 
 const (
@@ -137,48 +136,14 @@ func (srcCfg *DiameterClientConfig) FillInDefaults() *DiameterClientConfig {
 	return &cfg
 }
 
-// getUint64FlagValue looks up the flag and either returns its uint64 value
-// or an error.
-func getUint64FlagValue(flagName string) (uint64, error) {
-	f := flag.Lookup(flagName)
-	if f == nil {
-		return 0, fmt.Errorf("Flag not found: %s", flagName)
-	}
-	if f.Value == nil {
-		return 0, fmt.Errorf("Flag value is nil: %s", flagName)
-	}
-	getter, ok := f.Value.(flag.Getter)
-	if !ok {
-		return 0, fmt.Errorf("Flag value has no Getter: %s", flagName)
-	}
-	value, ok := getter.Get().(uint64)
-	if !ok {
-		return 0, fmt.Errorf("Flag value is not of type uint64: %s", flagName)
-	}
-	return value, nil
-}
-
 // GetValueUint64 returns value of the flagValue if it exists, or defaultValue if not
 func GetValueUint64(flagName string, defaultValue uint64) uint64 {
-	if len(flagName) > 0 {
-		value, err := getUint64FlagValue(flagName)
-		if err != nil {
-			return value
-		}
-
-	}
-	log.Printf("Using default value: %v for flag: %s", defaultValue, flagName)
-	return defaultValue
+	return utils.GetValueUint64(flagName, defaultValue)
 }
 
 // GetValue returns value of the flagValue if it exists, or defaultValue if not
 func GetValue(flagName, defaultValue string) string {
-	flagValue := getFlagValue(flagName)
-	if len(flagValue) != 0 {
-		return flagValue
-	}
-	log.Printf("Using default value: %s for flag: %s", defaultValue, flagName)
-	return defaultValue
+	return utils.GetValue(flagName, defaultValue)
 }
 
 // GetValueOrEnv returns value of the flagValue if it exists, then the environment
@@ -189,19 +154,7 @@ func GetValueOrEnv(flagName, envVariable, defaultValue string, idx ...int) strin
 	if len(idx) > 0 && idx[0] > 0 {
 		return defaultValue
 	}
-	flagValue := getFlagValue(flagName)
-	if len(flagValue) != 0 {
-		return flagValue
-	}
-	if len(envVariable) > 0 {
-		envValue := os.Getenv(envVariable)
-		if len(envValue) > 0 {
-			log.Printf("Using Environment Parameter: %s => %s (default: '%s')", envVariable, envValue, defaultValue)
-			return envValue
-		}
-	}
-	log.Printf("Using default value: %s for flag: %s", defaultValue, flagName)
-	return defaultValue
+	return utils.GetValueOrEnv(flagName, envVariable, defaultValue)
 }
 
 // GetBoolValueOrEnv returns value of the flagValue if it exists, then the environment
@@ -212,32 +165,5 @@ func GetBoolValueOrEnv(flagName string, envVariable string, defaultValue bool, i
 	if len(idx) > 0 && idx[0] > 0 {
 		return defaultValue
 	}
-	flagValue := getFlagValue(flagName)
-	flagValueBool, err := strconv.ParseBool(flagValue)
-	if len(flagValue) != 0 && err == nil {
-		return flagValueBool
-	}
-	if len(envVariable) > 0 {
-		envValue := os.Getenv(envVariable)
-		envValueBool, err := strconv.ParseBool(envValue)
-		if len(envValue) > 0 && err == nil {
-			log.Printf("Using Environment Parameter: %s => %t (default: '%t')", envVariable, envValueBool, defaultValue)
-			return envValueBool
-		}
-	}
-	log.Printf("Using default value: %t for flag: %s", defaultValue, flagName)
-	return defaultValue
-}
-
-// getFlagValue returns the value of the flagValue if it exists, or an empty string if not
-func getFlagValue(flagName string) string {
-	if len(flagName) > 0 {
-		f := flag.Lookup(flagName)
-		if f != nil && len(f.Value.String()) != 0 {
-			res := f.Value.String()
-			log.Printf("Using runtime flag: %s => %s", flagName, res)
-			return res
-		}
-	}
-	return ""
+	return utils.GetBoolValueOrEnv(flagName, envVariable, defaultValue)
 }

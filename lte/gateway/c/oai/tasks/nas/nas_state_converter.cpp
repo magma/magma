@@ -211,12 +211,15 @@ void NasStateConverter::ambr_to_proto(
     const ambr_t& state_ambr, oai::Ambr* ambr_proto) {
   ambr_proto->set_br_ul(state_ambr.br_ul);
   ambr_proto->set_br_dl(state_ambr.br_dl);
+  ambr_proto->set_br_unit(
+      static_cast<magma::lte::oai::Ambr::BitrateUnitsAMBR>(state_ambr.br_unit));
 }
 
 void NasStateConverter::proto_to_ambr(
     const oai::Ambr& ambr_proto, ambr_t* state_ambr) {
-  state_ambr->br_ul = ambr_proto.br_ul();
-  state_ambr->br_dl = ambr_proto.br_dl();
+  state_ambr->br_ul   = ambr_proto.br_ul();
+  state_ambr->br_dl   = ambr_proto.br_dl();
+  state_ambr->br_unit = (apn_ambr_bitrate_unit_t) ambr_proto.br_unit();
 }
 
 void NasStateConverter::bearer_qos_to_proto(
@@ -402,6 +405,9 @@ void NasStateConverter::esm_context_to_proto(
     oai::EsmContext* esm_context_proto) {
   esm_context_proto->set_n_active_ebrs(state_esm_context->n_active_ebrs);
   esm_context_proto->set_is_emergency(state_esm_context->is_emergency);
+  esm_context_proto->set_is_standalone(state_esm_context->is_standalone);
+  esm_context_proto->set_is_pdn_disconnect(
+      state_esm_context->is_pdn_disconnect);
   if (state_esm_context->esm_proc_data) {
     esm_proc_data_to_proto(
         state_esm_context->esm_proc_data,
@@ -413,8 +419,10 @@ void NasStateConverter::proto_to_esm_context(
     const oai::EsmContext& esm_context_proto,
     esm_context_t* state_esm_context) {
   OAILOG_DEBUG(LOG_NAS_ESM, "Reading esm context from proto");
-  state_esm_context->n_active_ebrs = esm_context_proto.n_active_ebrs();
-  state_esm_context->is_emergency  = esm_context_proto.is_emergency();
+  state_esm_context->n_active_ebrs     = esm_context_proto.n_active_ebrs();
+  state_esm_context->is_emergency      = esm_context_proto.is_emergency();
+  state_esm_context->is_pdn_disconnect = esm_context_proto.is_pdn_disconnect();
+  state_esm_context->is_standalone     = esm_context_proto.is_standalone();
   if (esm_context_proto.has_esm_proc_data()) {
     state_esm_context->esm_proc_data =
         (esm_proc_data_t*) calloc(1, sizeof(*state_esm_context->esm_proc_data));

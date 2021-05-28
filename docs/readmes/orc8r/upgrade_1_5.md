@@ -60,7 +60,7 @@ the left hand side of the screen. Note the `Kubernetes version` for the
 
 #### 1. NMS DB Data Migration
 
-This process prepares your cluster for Orc8r-NMS DB Unification.
+This process prepares your cluster for Orc8r-NMS DB unification. (In release 1.5 and going forward, the default DB type is Postgres for both NMS and Orc8r.)
 
 *Paste in shell prompt:*
 
@@ -183,4 +183,4 @@ In order to start receiving these alarms, it is necessary to click on the
 “Sync Pre-Defined alerts” in the NMS window for _*every*_ network defined in
 the Orc8r. For more details on this process, see the [NMS alerts guide](../nms/alerts#predefined-alerts)
 Syncing the alerts once on the NMS does not replicate the behavior to other
-networks managed by the same NMS. 
+networks managed by the same NMS.

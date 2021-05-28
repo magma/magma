@@ -12,17 +12,20 @@
  */
 #pragma once
 
-#include <mutex>
-#include <unordered_map>
-
-#include <lte/protos/policydb.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/pipelined.pb.h>
+#include <lte/protos/policydb.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
 
-#include "GRPCReceiver.h"
-#include "Types.h"
+#include <memory>
+#include <mutex>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "includes/GRPCReceiver.h"
 #include "SessionState.h"
+#include "Types.h"
 
 #define M5G_MIN_TEID (UINT32_MAX / 2)
 
@@ -216,7 +219,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
  public:
   AsyncPipelinedClient();
 
-  AsyncPipelinedClient(std::shared_ptr<grpc::Channel> pipelined_channel);
+  explicit AsyncPipelinedClient(
+      std::shared_ptr<grpc::Channel> pipelined_channel);
 
   void setup_cwf(
       const std::vector<SessionState::SessionInfo>& infos,

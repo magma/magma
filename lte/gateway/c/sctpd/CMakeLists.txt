@@ -27,7 +27,12 @@ generate_grpc_protos("${SCTPD_GRPC_PROTOS}" "${PROTO_SRCS}"
 
 # find needed libraries
 set(MAGMA_LIB_DIR $ENV{MAGMA_ROOT}/orc8r/gateway/c/common)
-add_subdirectory(${MAGMA_LIB_DIR}/logging /tmp)
+
+# TODO: Temp workaround until packages are imported by these cmakefile
+# Will be removed in subsequent patch
+set(MAGMA_COMMON_INCL_DIR $ENV{C_BUILD}/common)
+include_directories(${MAGMA_COMMON_INCL_DIR})
+include_directories(${MAGMA_LIB_DIR}/logging)
 
 add_library(SCTPD_LIB
   sctp_assoc.cpp
@@ -44,7 +49,7 @@ add_library(SCTPD_LIB
 target_compile_definitions(SCTPD_LIB PUBLIC LOG_WITH_GLOG)
 
 target_link_libraries(SCTPD_LIB
-  sctp pthread grpc++ grpc protobuf glog LOGGING
+  sctp pthread grpc++ grpc protobuf glog
 )
 
 target_include_directories(SCTPD_LIB PUBLIC

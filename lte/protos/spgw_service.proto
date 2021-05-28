@@ -23,6 +23,7 @@ option go_package = "magma/lte/cloud/go/protos";
 message CreateBearerRequest {
     SubscriberID sid = 1;
     string ip_addr = 2;
+    // default bearer ID
     uint32 link_bearer_id = 3;
     repeated PolicyRule policy_rules = 4;
 }
@@ -32,7 +33,9 @@ message CreateBearerResult {}
 message DeleteBearerRequest {
     SubscriberID sid = 1;
     string ip_addr = 2;
+    // default bearer ID
     uint32 link_bearer_id = 3;
+    // dedicated bearer IDs
     repeated uint32 eps_bearer_ids = 4;
 }
 

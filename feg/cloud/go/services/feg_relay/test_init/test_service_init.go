@@ -14,6 +14,7 @@ limitations under the License.
 package test_init
 
 import (
+	"context"
 	"testing"
 
 	"magma/feg/cloud/go/feg"
@@ -21,8 +22,6 @@ import (
 	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/cloud/go/services/feg_relay/servicers"
 	"magma/orc8r/cloud/go/test_utils"
-
-	"golang.org/x/net/context"
 )
 
 // A little Go "polymorphism" magic for testing

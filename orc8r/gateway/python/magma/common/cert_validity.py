@@ -85,7 +85,8 @@ def cert_is_invalid(host, port, certfile, keyfile, loop):
     ssl_coro = create_ssl_connection(host, port, certfile, keyfile, loop)
 
     coros = tcp_coro, ssl_coro
-    res = yield from asyncio.gather(*coros, loop=loop, return_exceptions=True)
+    asyncio.set_event_loop(loop)
+    res = yield from asyncio.gather(*coros, return_exceptions=True)
     tcp_res, ssl_res = res
 
     if isinstance(tcp_res, Exception):

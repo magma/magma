@@ -11,26 +11,26 @@
  * limitations under the License.
  */
 
-#include <memory>
-
 #include <folly/io/async/EventBaseManager.h>
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
 #include "Consts.h"
 #include "LocalEnforcer.h"
-#include "MagmaService.h"
+#include "magma_logging.h"
+#include "includes/MagmaService.h"
 #include "Matchers.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "SessiondMocks.h"
 #include "SessionID.h"
 #include "SessionProxyResponderHandler.h"
 #include "SessionState.h"
 #include "SessionStore.h"
-#include "SessiondMocks.h"
 #include "StoredState.h"
-#include "magma_logging.h"
 
 using ::testing::Test;
 
@@ -136,9 +136,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   }
 
   void insert_static_rule(const std::string& rule_id) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, "", 0, &rule);
-    rule_store->insert_rule(rule);
+    rule_store->insert_rule(create_policy_rule(rule_id, "", 0));
   }
 
  protected:
@@ -166,16 +164,17 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   auto uc      = get_default_update_criteria();
   auto session = get_session(rule_store);
   RuleLifetime lifetime;
-  session->activate_static_rule(rule_id_1, lifetime, uc);
+  session->activate_static_rule(rule_id_1, lifetime, nullptr);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_1), true);
 
   auto monitor_update = get_monitoring_update();
-  session->receive_monitor(monitor_update, uc);
+  session->receive_monitor(monitor_update, &uc);
 
   // Add some used credit
-  session->add_to_monitor(monitoring_key, uint64_t(111), uint64_t(333), uc);
+  session->add_to_monitor(
+      monitoring_key, uint64_t(111), uint64_t(333), nullptr);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_TX), 111);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
@@ -237,7 +236,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   auto uc      = get_default_update_criteria();
   auto session = get_session(rule_store);
   RuleLifetime lifetime;
-  session->activate_static_rule(rule_id_1, lifetime, uc);
+  session->activate_static_rule(rule_id_1, lifetime, &uc);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
   EXPECT_EQ(session->is_static_rule_installed(rule_id_1), true);

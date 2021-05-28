@@ -12,16 +12,18 @@
  */
 #pragma once
 
-#include <functional>
 #include <experimental/optional>
-
-#include <folly/Format.h>
 #include <folly/dynamic.h>
+#include <folly/Format.h>
 #include <folly/json.h>
-
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-#include <lte/protos/session_manager.grpc.pb.h>
+
+#include <functional>
+#include <set>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "CreditKey.h"
 #include "Types.h"
@@ -83,7 +85,6 @@ struct StoredSessionState {
   std::set<std::string> scheduled_static_rules;
   std::vector<PolicyRule> scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
-  PolicyStatsMap policy_stats;
   uint32_t request_number;
   EventTriggerStatus pending_event_triggers;
   google::protobuf::Timestamp revalidation_time;
@@ -116,9 +117,6 @@ struct SessionCreditUpdateCriteria {
   uint64_t time_of_last_usage;
 
   bool suspended;
-
-  // Map to maintain per-policy versions. Contains all values, not delta.
-  optional<PolicyStatsMap> policy_version_and_stats;
 };
 
 struct SessionStateUpdateCriteria {

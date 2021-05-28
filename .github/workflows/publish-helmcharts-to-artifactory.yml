@@ -1,0 +1,40 @@
+---
+name: "Push Helm Charts to Artifactory"
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches: [master, v1.*]  # Running on v1.* to tag official release with branch name
+jobs:
+  build_publish_helm_charts:
+    env:
+      HELM_CHART_ARTIFACTORY_URL: "https://artifactory.magmacore.org:443/artifactory/"
+      HELM_CHART_MUSEUM_REPO: helm-test
+      HELM_CHART_MUSEUM_USERNAME: "${{ secrets.HELM_CHART_MUSEUM_USERNAME }}"
+      HELM_CHART_MUSEUM_TOKEN: "${{ secrets.HELM_CHART_MUSEUM_TOKEN }}"
+      MAGMA_ROOT: "${{ github.workspace }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      # Version is github job run number when running on master
+      # Or is branch name when on release branch
+      - name: Set Helm chart version
+        run: |
+          if [ "${GITHUB_REF##*/}" = "master" ] ;then
+            echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          else
+            echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
+          fi
+      - name: Launch build and publish script
+        run: |
+          orc8r/tools/helm/package.sh --deployment-type all --version $VERSION
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action Push helm charts to artifactory failed"
+          SLACK_USERNAME: "Helm charts push to Artifactory "
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"

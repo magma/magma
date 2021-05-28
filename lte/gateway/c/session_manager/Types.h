@@ -12,18 +12,17 @@
  */
 #pragma once
 
-#include <functional>
-#include <vector>
-#include <unordered_map>
 #include <experimental/optional>
-
-#include <folly/Format.h>
 #include <folly/dynamic.h>
+#include <folly/Format.h>
 #include <folly/json.h>
-
 #include <lte/protos/pipelined.grpc.pb.h>
 #include <lte/protos/session_manager.grpc.pb.h>
-#include <lte/protos/session_manager.grpc.pb.h>
+
+#include <functional>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "CreditKey.h"
 
@@ -36,10 +35,11 @@ struct SessionConfig {
   CommonSessionContext common_context;
   RatSpecificContext rat_specific_context;
 
-  SessionConfig(){};
-  SessionConfig(const LocalCreateSessionRequest& request);
+  SessionConfig() {}
+  explicit SessionConfig(const LocalCreateSessionRequest& request);
   bool operator==(const SessionConfig& config) const;
   std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
+  std::string get_imsi() const { return common_context.sid().id(); }
 };
 
 // Session Credit
@@ -56,6 +56,18 @@ enum EventTriggerState {
 };
 typedef std::unordered_map<magma::lte::EventTrigger, EventTriggerState>
     EventTriggerStatus;
+
+struct Usage {
+  uint64_t bytes_tx;
+  uint64_t bytes_rx;
+};
+
+struct TotalCreditUsage {
+  uint64_t monitoring_tx;
+  uint64_t monitoring_rx;
+  uint64_t charging_tx;
+  uint64_t charging_rx;
+};
 
 /**
  * A bucket is a counter used for tracking credit volume across sessiond.
@@ -142,11 +154,11 @@ enum SessionFsmState {
 struct RuleLifetime {
   std::time_t activation_time;    // Unix timestamp
   std::time_t deactivation_time;  // Unix timestamp
-  RuleLifetime() : activation_time(0), deactivation_time(0){};
+  RuleLifetime() : activation_time(0), deactivation_time(0) {}
   RuleLifetime(const time_t activation, const time_t deactivation)
-      : activation_time(activation), deactivation_time(deactivation){};
-  RuleLifetime(const StaticRuleInstall& rule_install);
-  RuleLifetime(const DynamicRuleInstall& rule_install);
+      : activation_time(activation), deactivation_time(deactivation) {}
+  explicit RuleLifetime(const StaticRuleInstall& rule_install);
+  explicit RuleLifetime(const DynamicRuleInstall& rule_install);
   bool is_within_lifetime(std::time_t time);
   bool exceeded_lifetime(std::time_t time);
   bool before_lifetime(std::time_t time);
@@ -202,6 +214,16 @@ struct RuleToProcess {
   Teids teids;
 };
 
+struct RuleStats {
+  uint64_t tx;
+  uint64_t rx;
+  uint64_t dropped_tx;
+  uint64_t dropped_rx;
+  RuleStats() : tx(0), rx(0), dropped_tx(0), dropped_rx(0) {}
+  RuleStats(uint64_t tx, uint64_t rx, uint64_t dropped_tx, uint64_t dropped_rx)
+      : tx(tx), rx(rx), dropped_tx(dropped_tx), dropped_rx(dropped_rx) {}
+};
+
 typedef std::vector<RuleToProcess> RulesToProcess;
 
 enum PolicyAction {
@@ -231,6 +253,14 @@ struct StatsPerPolicy {
   uint32_t current_version;
   // The last reported version from PipelineD
   uint32_t last_reported_version;
+
+  std::unordered_map<int, RuleStats> stats_map;
+  StatsPerPolicy() {
+    current_version       = 0;
+    last_reported_version = 0;
+    RuleStats s           = {0, 0, 0, 0};
+    stats_map             = {{0, s}};
+  }
 };
 typedef std::unordered_map<std::string, StatsPerPolicy> PolicyStatsMap;
 

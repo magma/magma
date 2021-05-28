@@ -50,10 +50,19 @@ installation process to get an IP using DHCP.
 
 *Run AGW installation*
 
+To install on server with DHCP configured SGi interface.
 ```bash
 su
 wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install_ubuntu.sh
 bash agw_install_ubuntu.sh
+```
+
+To Install on server with statically allocated SGi interface. Fow example:
+SGi has 1.1.1.1/24 IP and upstream router IP is 1.1.1.200
+```bash
+su
+wget https://raw.githubusercontent.com/magma/magma/master/lte/gateway/deploy/agw_install_ubuntu.sh
+bash agw_install_ubuntu.sh 1.1.1.1/24 1.1.1.200
 ```
 
 The script will run a pre-check script that will prompt you what will change

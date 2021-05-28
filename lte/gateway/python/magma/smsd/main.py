@@ -24,7 +24,7 @@ def main():
     service = MagmaService('smsd', None)
 
     # Optionally pipe errors to Sentry
-    sentry_init()
+    sentry_init(service_name=service.name)
 
     directoryd_chan = ServiceRegistry.get_rpc_channel(
         'directoryd',

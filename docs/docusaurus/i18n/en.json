@@ -211,6 +211,9 @@
       "lte/upgrade_1_5": {
         "title": "Upgrade to v1.5"
       },
+      "nms/admin": {
+        "title": "Admin"
+      },
       "nms/alerts": {
         "title": "Alerts"
       },
@@ -234,6 +237,9 @@
       },
       "nms/equipment": {
         "title": "Equipment"
+      },
+      "nms/federation": {
+        "title": "Federation"
       },
       "nms/legacy/grafana": {
         "title": "Custom Grafana Dashboards"
@@ -282,6 +288,9 @@
       },
       "orc8r/deploy_orcl": {
         "title": "Experimental Orc8r Deployer"
+      },
+      "orc8r/dev_aws_stack": {
+        "title": "AWS Stack"
       },
       "orc8r/dev_dependencies": {
         "title": "Module Dependencies"
@@ -414,6 +423,12 @@
       },
       "proposals/proposal_template": {
         "title": "Title of Design Doc"
+      },
+      "resources/ref_pcap": {
+        "title": "PCAP Collection"
+      },
+      "resources/ref_useful_links": {
+        "title": "Useful Links"
       },
       "version-1.0.0/basics/version-1.0.0-introduction": {
         "title": "Introduction"

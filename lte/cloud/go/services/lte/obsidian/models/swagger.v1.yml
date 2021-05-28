@@ -77,6 +77,8 @@ info:
 basePath: /magma/v1
 
 tags:
+  - name: APNs
+    description: Access point name
   - name: EnodeBs
     description: eNodeB devices attached to the network
   - name: LTE Networks
@@ -2500,7 +2502,7 @@ definitions:
         type: integer
         format: uint32
         minimum: 0
-        maximum: 255
+        maximum: 65535
         example: 1
         default: 1
 

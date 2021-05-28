@@ -11,25 +11,26 @@
  * limitations under the License.
  */
 
+#include <lte/protos/mconfig/mconfigs.pb.h>
+
 #include <cstdlib>
 #include <iostream>
 
-#include <lte/protos/mconfig/mconfigs.pb.h>
-
-#include "SessionManagerServer.h"
+#include "GrpcMagmaUtils.h"
 #include "LocalEnforcer.h"
-#include "SessionReporter.h"
-#include "MagmaService.h"
+#include "magma_logging_init.h"
+#include "includes/MagmaService.h"
+#include "includes/MConfigLoader.h"
+#include "OperationalStatesHandler.h"
+#include "includes/PolicyLoader.h"
 #include "RedisStoreClient.h"
 #include "RestartHandler.h"
-#include "ServiceRegistrySingleton.h"
-#include "PolicyLoader.h"
-#include "MConfigLoader.h"
-#include "magma_logging_init.h"
-#include "OperationalStatesHandler.h"
+#include "SentryWrappers.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessionCredit.h"
+#include "SessionManagerServer.h"
+#include "SessionReporter.h"
 #include "SessionStore.h"
-#include "GrpcMagmaUtils.h"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -42,53 +43,6 @@
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
-#endif
-
-// TODO remove this flag once we are on Ubuntu 20.04 by default in 1.6
-#if SENTRY_ENABLED
-#include "sentry.h"
-
-#define COMMIT_HASH_ENV "COMMIT_HASH"
-#define CONTROL_PROXY_SERVICE_NAME "control_proxy"
-#define SENTRY_NATIVE_URL "sentry_url_native"
-using std::experimental::optional;
-// TODO pull sentry related logic into a common library so it can be shared with
-// MME
-optional<std::string> get_sentry_url(YAML::Node control_proxy_config) {
-  std::string sentry_url;
-  if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
-    const std::string sentry_dns =
-        control_proxy_config[SENTRY_NATIVE_URL].as<std::string>();
-    if (sentry_dns.size()) {
-      return sentry_dns;
-    }
-  }
-  return {};
-}
-
-void initialize_sentry() {
-  auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
-      CONTROL_PROXY_SERVICE_NAME);
-  auto op_sentry_url = get_sentry_url(control_proxy_config);
-  if (op_sentry_url) {
-    MLOG(MINFO) << "Starting SessionD with Sentry!";
-    sentry_options_t* options = sentry_options_new();
-    sentry_options_set_dsn(options, op_sentry_url->c_str());
-    if (const char* commit_hash_p = std::getenv(COMMIT_HASH_ENV)) {
-      sentry_options_set_release(options, commit_hash_p);
-    }
-
-    sentry_init(options);
-    sentry_set_tag("service_name", "SessionD");
-
-    sentry_capture_event(sentry_value_new_message_event(
-        SENTRY_LEVEL_INFO, "", "Starting SessionD with Sentry!"));
-  }
-}
-
-void shutdown_sentry() {
-  sentry_shutdown();
-}
 #endif
 
 static magma::mconfig::SessionD get_default_mconfig() {
@@ -165,23 +119,38 @@ void set_consts(const YAML::Node& config) {
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
       config["terminate_service_when_quota_exhausted"].as<bool>();
 
-  if (config["bearer_creation_delay_on_session_init"].IsDefined()) {
-    magma::LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT =
-        config["bearer_creation_delay_on_session_init"].as<uint32_t>();
-  }
-  if (config["send_access_timezone"].IsDefined()) {
-    magma::LocalEnforcer::SEND_ACCESS_TIMEZONE =
-        config["send_access_timezone"].as<bool>();
-  }
   if (config["default_requested_units"].IsDefined()) {
     magma::SessionCredit::DEFAULT_REQUESTED_UNITS =
         config["default_requested_units"].as<uint64_t>();
+  }
+
+  if (config["send_access_timezone"].IsDefined()) {
+    magma::LocalEnforcer::SEND_ACCESS_TIMEZONE =
+        config["send_access_timezone"].as<bool>();
   }
   // default value for this config is true
   if (config["cleanup_all_dangling_flows"].IsDefined()) {
     magma::LocalEnforcer::CLEANUP_DANGLING_FLOWS =
         config["cleanup_all_dangling_flows"].as<bool>();
   }
+  if (config["enable_ipfix"].IsDefined()) {
+    magma::LocalEnforcer::SEND_IPFIX = config["enable_ipfix"].as<bool>();
+  }
+
+  // log all configs on startup
+  MLOG(MINFO) << "==== Constants/Configs loaded from sessiond.yml ====";
+  MLOG(MINFO) << "USAGE_REPORTING_THRESHOLD: "
+              << magma::SessionCredit::USAGE_REPORTING_THRESHOLD;
+  MLOG(MINFO) << "TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED: "
+              << magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
+  MLOG(MINFO) << "DEFAULT_REQUESTED_UNITS: "
+              << magma::SessionCredit::DEFAULT_REQUESTED_UNITS;
+  MLOG(MINFO) << "SEND_ACCESS_TIMEZONE: "
+              << magma::LocalEnforcer::SEND_ACCESS_TIMEZONE;
+  MLOG(MINFO) << "CLEANUP_DANGLING_FLOWS: "
+              << magma::LocalEnforcer::CLEANUP_DANGLING_FLOWS;
+  MLOG(MINFO) << "SEND_IPFIX: " << magma::LocalEnforcer::SEND_IPFIX;
+  MLOG(MINFO) << "==== Constants/Configs loaded from sessiond.yml ====";
 }
 
 magma::SessionStore* create_session_store(
@@ -232,9 +201,7 @@ int main(int argc, char* argv[]) {
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
 
-#ifdef SENTRY_ENABLED
   initialize_sentry();
-#endif
 
   bool converged_access = false;
   // Check converged SessionD is enabled or not
@@ -367,15 +334,16 @@ int main(int argc, char* argv[]) {
   magma::SessionProxyResponderAsyncService proxy_service(
       server.GetNewCompletionQueue(), proxy_handler);
   server.AddServiceToServer(&local_service);
-  MLOG(MINFO) << "Add localservice";
+  MLOG(MINFO) << "Added LocalSessionManagerAsyncService to service's server";
   server.AddServiceToServer(&proxy_service);
-  MLOG(MINFO) << "Add proxyservice";
+  MLOG(MINFO) << "Added SessionProxyResponderAsyncService to service's server";
 
   // Register state polling callback
   server.SetOperationalStatesCallback([evb, session_store]() {
     std::promise<magma::OpState> result;
     std::future<magma::OpState> future = result.get_future();
     evb->runInEventBaseThread([session_store, &result, &future]() {
+      set_sentry_transaction("GetOperationalStates");
       result.set_value(magma::get_operational_states(session_store));
     });
     return future.get();
@@ -393,14 +361,14 @@ int main(int argc, char* argv[]) {
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(
             conv_session_enforcer, *session_store);
-    MLOG(MINFO) << "session enforcer";
+    MLOG(MINFO) << "Initialized SetMessageManagerHandler";
     // 5G specific services to handle set messages from AMF and mme
     conv_set_message_service = new magma::AmfPduSessionSmContextAsyncService(
         server.GetNewCompletionQueue(), std::move(conv_set_message_handler));
-    MLOG(MINFO) << "Amfpdusessionsmcontext set message started";
     // 5G related services
-    MLOG(MINFO) << "converged  GRPC Added";
     server.AddServiceToServer(conv_set_message_service);
+    MLOG(MINFO)
+        << "Added SessionProxyResponderAsyncService to service's server";
 
     // 5G related SessionStateEnforcer main thread start to handled session
     // state
@@ -481,8 +449,6 @@ int main(int argc, char* argv[]) {
   }
   delete session_store;
 
-#ifdef SENTRY_ENABLED
   shutdown_sentry();
-#endif
   return 0;
 }

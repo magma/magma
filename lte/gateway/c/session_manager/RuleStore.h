@@ -12,14 +12,18 @@
  */
 #pragma once
 
-#include <mutex>
-#include <unordered_map>
-
-#include <lte/protos/policydb.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/policydb.pb.h>
 
-#include "GRPCReceiver.h"
+#include <functional>
+#include <memory>
+#include <mutex>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
 #include "CreditKey.h"
+#include "includes/GRPCReceiver.h"
 
 using grpc::Status;
 
@@ -33,7 +37,7 @@ template<
     typename equal = std::equal_to<KeyType>>
 class PoliciesByKeyMap {
  public:
-  PoliciesByKeyMap(){};
+  PoliciesByKeyMap() {}
   PoliciesByKeyMap(hash hasher, equal eq) : rules_by_key_(4, hasher, eq) {}
 
   void insert(const KeyType& key, std::shared_ptr<PolicyRule> rule_p);
@@ -100,17 +104,11 @@ class PolicyRuleBiMap {
   virtual bool get_rule_ids_for_charging_key(
       const CreditKey& charging_key, std::vector<std::string>& rules_out);
 
-  virtual bool get_rule_ids_for_monitoring_key(
-      const std::string& monitoring_key, std::vector<std::string>& rules_out);
-
   /**
    * Get all the rules for a given key. Rule ids are copied into rules_out
    */
   virtual bool get_rule_definitions_for_charging_key(
       const CreditKey& charging_key, std::vector<PolicyRule>& rules_out);
-
-  virtual bool get_rule_definitions_for_monitoring_key(
-      const std::string& monitoring_key, std::vector<PolicyRule>& rules_out);
 
   /**
    * Get the number of rules tracked by a monitoring key
@@ -148,7 +146,7 @@ class ConvergedRuleStore : public PolicyRuleBiMap {
  public:
   uint32_t pdr_rule_count(void) { return rules_by_pdr_key_.size(); }
   uint32_t far_rule_count(void) { return rules_by_far_key_.size(); }
-  ConvergedRuleStore(){};
+  ConvergedRuleStore() {}
   void insert_rule(uint32_t rule_id, const SetGroupPDR& rule);
   void insert_rule(uint32_t rule_id, const SetGroupFAR& rule);
   bool remove_rule(uint32_t rule_id, SetGroupPDR* rule);

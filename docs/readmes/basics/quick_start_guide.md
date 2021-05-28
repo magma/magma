@@ -73,6 +73,10 @@ MAGMA-VM [/home/vagrant]$ cd magma/lte/gateway
 MAGMA-VM [/home/vagrant/magma/lte/gateway]$ make run
 ```
 
+**Note**: If you encounter unexpected errors during this process, try running
+`vagrant provision magma` in the host environment for more debugging
+information.
+
 This will take a while (we have a lot of CXX files to build). With 2 extensive
 build jobs running, now is a good time to grab a coffee or lunch. The first
 build ever from source will take a while, but afterwards, a persistent ccache
@@ -197,7 +201,8 @@ NMS can take upto 60 seconds to finish starting up.
 
 You will probably want to enable this organization (magma-test) to access all networks,
 so go to [master.localhost](https://master.localhost) and login with the same credentials.
-Once there, you can click on the organization and then select "Enable all networks".
+Once there, you can click on the "Organizations" tab on the left sidebar, choose
+`magma-test`, and then check "Enable all networks" in the subsequent pop-up window.
 
 **Note**: If you want to test the access gateway VM with a physical eNB and UE,
 refer to

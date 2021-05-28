@@ -1,0 +1,100 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+      "paramImageBase": {
+        "Type": "AWS::EC2::Image::Id",
+	"Description": "In-region AGW AMI",
+	"Default": "ami-09265db477af05f54"
+      },
+      "paramSubnetSgi": {
+        "Type": "String",
+	"Description": "SGi Subnet",
+	"Default": "subnet-079b5920b590f32da"
+      },
+      "paramSubnetEnodeb": {
+        "Type": "String",
+	"Description": "S1 Subnet",
+	"Default": "subnet-0766eb7621fe38a2d"
+      },
+      "paramAzHome": {
+        "Type": "AWS::EC2::AvailabilityZone::Name",
+	"Description": "Base Availability Zone",
+	"Default": "ap-northeast-1a"
+      },
+      "paramSecGroup": {
+        "Type": "String",
+	"Description": "Security Group Name",
+	"Default":"sg-0b7fbe50f1c8a15d4"
+      },
+      "paramAgwInstanceType": {
+        "Type": "String",
+	"Description": "Instance Type",
+	"Default": "t2.small"
+      },
+      "paramSshKey": {
+        "Type": "AWS::EC2::KeyPair::KeyName",
+	"Description": "Keypair",
+	"Default": "keyMagmaHostCharlie"
+      },
+      "paramAgwTagUuid": {
+        "Type": "String",
+	"Description": "Uuid",
+	"Default":"02042004"
+    },
+      "paramAgwTagSite": {
+        "Type": "String",
+	"Description": "Tag Site",
+	"Default":"MenloPark"
+    },
+      "paramAgwTagName": {
+        "Type": "String",
+	"Description": "Tag Name",
+	"Default":"ec2DualNicAgw"
+      }
+    },
+    "Resources": {
+      "NicSgi": {
+        "Type" : "AWS::EC2::NetworkInterface",
+        "Properties": {
+            "Description": "SGi interface",
+            "GroupSet": [ { "Ref": "paramSecGroup" } ],
+            "SourceDestCheck" : "true",
+            "SubnetId":{ "Ref": "paramSubnetSgi" }
+        }
+      },
+      "NicS1": {
+        "Type" : "AWS::EC2::NetworkInterface",
+        "Properties": {
+            "Description": "S1 interface",
+            "GroupSet": [ { "Ref": "paramSecGroup" } ],
+            "SourceDestCheck" : "true",
+            "SubnetId":{ "Ref": "paramSubnetEnodeb" }
+        }
+      },
+      "Gateway": {
+          "Type": "AWS::EC2::Instance",
+          "Properties": {
+              "ImageId": { "Ref": "paramImageBase" },
+              "InstanceType": { "Ref": "paramAgwInstanceType" },
+              "KeyName": { "Ref": "paramSshKey" },
+              "AvailabilityZone":{ "Ref": "paramAzHome" },
+              "NetworkInterfaces": [
+                {
+                  "NetworkInterfaceId": {"Ref": "NicSgi"},
+                  "DeviceIndex": "0"
+                },
+                {
+                  "NetworkInterfaceId": {"Ref": "NicS1"},
+                  "DeviceIndex": "1"
+                }
+              ],
+          "Tags": [
+			      { "Key": "Name", "Value": { "Ref": "paramAgwTagName"} },
+			      { "Key": "Site", "Value": { "Ref": "paramAgwTagSite"} },
+            { "Key": "Uuid", "Value": { "Ref": "paramAgwTagUuid"} },
+            { "Key": "Purpose","Value":"EC2 instance of AGW" }
+			    ]
+        }
+      }
+    }
+}
