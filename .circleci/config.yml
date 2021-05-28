@@ -1457,7 +1457,7 @@ jobs:
       - run:
           name: Generate AGW AMI
           command: |
-            ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags createNet,createGw
+            ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge
             echo "Waiting one minute for the instance to boot up."
             sleep 60
             ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
@@ -1465,7 +1465,7 @@ jobs:
       - run:
           name: Clean AWS resources
           command: |
-            ansible-playbook $WORK_DIR/cleanup.yaml -e "dirLocalInventory=$VARS_DIR" --tags agw,subnet,secgroup,vpc,keys --skip-tags orc8r  -e "{"deleteStacks": [stackDevOpspublishAmisToMarketplaceAgw, publish-amis-to-marketplace-stack-devopscloustrapper, publish-amis-to-marketplace-stack]}"
+            ansible-playbook $WORK_DIR/cleanup.yaml -e "dirLocalInventory=$VARS_DIR" --tags agw,subnet,secgroup,vpc,keys --skip-tags orc8r  -e "{"deleteStacks": [stackDevOpspublishAmisToMarketplaceAgw, publish-amis-to-marketplace-stack-devopscloustrapper, publish-amis-to-marketplace-stack, stackDevOpsNetwork]}"
       - notify-magma:
           artifact_name: AGW AWS AMI
           version_path: $VERSION
