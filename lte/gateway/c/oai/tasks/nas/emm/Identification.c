@@ -238,7 +238,7 @@ int emm_proc_identification_complete(
             LOG_NAS_EMM, emm_ctx->_imsi64,
             "Discarding identification complete as cumulative ZMQ latency "
             "( %ld + %ld ) for ueid " MME_UE_S1AP_ID_FMT
-            "is higher than the threshold.",
+            " is higher than the threshold.",
             mme_app_last_msg_latency, pre_mme_task_msg_latency, ue_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
       }
