@@ -808,7 +808,18 @@ export function RanEdit(props: Props) {
       setError(e.response?.data?.message ?? e.message);
     }
   };
-
+  const isEnodebUnregistered = (enb: enodeb, currentGateway: lte_gateway) => {
+    const gatewaysList = Object.keys(ctx.state);
+    for (const gatewayId of gatewaysList) {
+      if (
+        ctx.state[gatewayId].connected_enodeb_serials?.includes(enb.serial) &&
+        ctx.state[gatewayId].id != currentGateway.id
+      ) {
+        return false;
+      }
+    }
+    return true;
+  };
   return (
     <>
       <DialogContent data-testid="ranEdit">
@@ -855,15 +866,28 @@ export function RanEdit(props: Props) {
                 />
               }>
               {enbsCtx?.state &&
-                Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
-                  <MenuItem key={enbSerial} value={enbSerial}>
-                    <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
-                    <ListItemText
-                      primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
-                      secondary={enbSerial}
-                    />
-                  </MenuItem>
-                ))}
+                Object.keys(enbsCtx.state.enbInfo).map(enbSerial => {
+                  if (
+                    isEnodebUnregistered(
+                      enbsCtx.state.enbInfo[enbSerial].enb,
+                      props.gateway,
+                    )
+                  ) {
+                    return (
+                      <MenuItem key={enbSerial} value={enbSerial}>
+                        <Checkbox
+                          checked={connectedEnodebs.includes(enbSerial)}
+                        />
+                        <ListItemText
+                          primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
+                          secondary={enbSerial}
+                        />
+                      </MenuItem>
+                    );
+                  } else {
+                    return null;
+                  }
+                })}
             </Select>
           </AltFormField>
           <AltFormField label={'Transmit Enabled'}>
