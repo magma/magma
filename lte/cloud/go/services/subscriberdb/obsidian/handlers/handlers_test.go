@@ -32,6 +32,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	testUtilConfigurator "magma/orc8r/cloud/go/services/configurator/test_utils"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -1102,34 +1103,18 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 
 	// Now create some AGW-reported state for the subscribers
 	// First we need to register a gateway which can report state
-	_, err = configurator.CreateEntity(
-		"n1",
-		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
-		serdes.Entity,
-	)
-	assert.NoError(t, err)
-	frozenClock := int64(1000000)
-	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
-	defer clock.UnfreezeClock(t)
-
-	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
+	testUtilConfigurator.RegisterGateway(t, "n1", "g1", &models.GatewayDevice{HardwareID: "hw1"})
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus, serdes.State)
 
 	// Sub1 and sub2 differ in their mme states
 	mmeState1 := state.ArbitraryJSON{"mme": "foo"}
 	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState1, serdes.State)
-	mmeState2 := state.ArbitraryJSON{"mme": "foo"}
+	mmeState2 := state.ArbitraryJSON{"mme": "fee"}
 	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI123456789000", &mmeState2, serdes.State)
 
-	sub1_with_state := sub1.ToSubscriber()
-	sub1_with_state.Monitoring = &subscriberModels.SubscriberStatus{
-		Icmp: &subscriberModels.IcmpStatus{
-			LastReportedTime: frozenClock * 1000,
-			LatencyMs:        f32Ptr(12.34),
-		},
-	}
-	sub1_with_state.State = &subscriberModels.SubscriberState{
+	sub1ExpectedResult := sub1.ToSubscriber()
+	sub1ExpectedResult.Monitoring = &subscriberModels.SubscriberStatus{}
+	sub1ExpectedResult.State = &subscriberModels.SubscriberState{
 		Mme: mmeState1,
 	}
 
@@ -1141,7 +1126,7 @@ func TestGetSubscriberByExactIMSI(t *testing.T) {
 		ParamNames:     []string{"network_id", "subscriber_id"},
 		ParamValues:    []string{"n1", "IMSI1234567890"},
 		ExpectedStatus: 200,
-		ExpectedResult: sub1_with_state,
+		ExpectedResult: sub1ExpectedResult,
 	}
 	tests.RunUnitTest(t, e, tc)
 }

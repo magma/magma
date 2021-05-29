@@ -407,7 +407,7 @@ func getSubscriberStateHandler(c echo.Context) error {
 		return nerr
 	}
 
-	states, err := getStatesForIMSIs(networkID, allSubscriberStateTypes, &subscriberID, serdes.State)
+	states, err := getStatesForIMSIs(networkID, allSubscriberStateTypes, subscriberID, serdes.State)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -540,10 +540,10 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 	}
 }
 
-func getStatesForIMSIs(networkID string, typeFilter []string, keyPrefix *string, serdes serde.Registry) (state_types.StatesByID, error) {
+func getStatesForIMSIs(networkID string, typeFilter []string, keyPrefix string, serdes serde.Registry) (state_types.StatesByID, error) {
 	// Post-filter functionality to only return states with the exact IMSI
 	// prefix as specified
-	states, err := state.SearchStates(networkID, typeFilter, nil, keyPrefix, serdes)
+	states, err := state.SearchStates(networkID, typeFilter, nil, &keyPrefix, serdes)
 	if err != nil {
 		return nil, err
 	}
@@ -553,13 +553,13 @@ func getStatesForIMSIs(networkID string, typeFilter []string, keyPrefix *string,
 		if stateID.Type == lte.MobilitydStateType {
 			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
 			if len(matches) != mobilitydStateExpectedMatchCount {
-				glog.Infof("state device ID '%s' did not match IMSI-prefixed regex", stateID.DeviceID)
+				glog.Infof("state device ID '%s' with type '%s' did not match IMSI-prefixed regex", stateID.DeviceID, stateID.Type)
 				continue
 			}
 			imsi = matches[1]
 		}
 
-		if imsi != *keyPrefix {
+		if imsi != keyPrefix {
 			delete(states, stateID)
 		}
 	}
@@ -649,7 +649,7 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 		return nil, err
 	}
 
-	states, err := getStatesForIMSIs(networkID, allSubscriberStateTypes, &key, serdes.State)
+	states, err := getStatesForIMSIs(networkID, allSubscriberStateTypes, key, serdes.State)
 	if err != nil {
 		return nil, err
 	}
@@ -869,12 +869,21 @@ func deleteSubscriber(networkID, key string) error {
 }
 
 // loadAllStatesForIMSIs loads all states whose IMSI prefix is contained in the
-// IMSI array passed in as argument. If the imsis argument is nil, the function
-// loads all states given the networkID, regardless of their IMSIs.
+// IMSI array passed in as argument. If passed IMSIs is nil,
+// loads states for all IMSIs in the network.
 func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_types.StatesByID, error) {
-	validIMSIs := map[string]struct{}{}
+	requestedIMSIs := map[string]struct{}{}
 	for _, v := range imsis {
-		validIMSIs[v] = struct{}{}
+		requestedIMSIs[v] = struct{}{}
+	}
+
+	shouldLoadState := func(validIMSIs map[string]struct{}, imsi string) bool {
+		if len(validIMSIs) == 0 {
+			// load all states regardless of their IMSIs if requested IMSIs is nil,
+			return true
+		}
+		_, valid := validIMSIs[imsi]
+		return valid
 	}
 
 	imsiKeyStates, err := state.SearchStates(networkID, subscriberStateTypesKeyedByIMSI, imsis, nil, serdes.State)
@@ -898,7 +907,7 @@ func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_t
 				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
 				continue
 			}
-			if !shouldLoadState(validIMSIs, matches[1]) {
+			if !shouldLoadState(requestedIMSIs, matches[1]) {
 				continue
 			}
 			sidKey = matches[1]
@@ -911,14 +920,6 @@ func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_t
 	}
 
 	return statesBySid, nil
-}
-
-func shouldLoadState(validIMSIs map[string]struct{}, imsi string) bool {
-	if len(validIMSIs) == 0 {
-		return true
-	}
-	_, valid := validIMSIs[imsi]
-	return valid
 }
 
 func makeSubscriberState(subscriberID string, states state_types.StatesByID) *subscribermodels.SubscriberState {
