@@ -567,6 +567,96 @@ int amf_proc_authentication_complete(
 
 /****************************************************************************
  **                                                                        **
+ ** Name:    amf_proc_authentication_failure()                             **
+ **                                                                        **
+ ** Description: Performs the authentication failure procedure executed    **
+ **      by the network.                                                   **
+ **                                                                        **
+ **              3GPP TS 24.501, section 5.4.1.3.7                         **
+ **      Upon receiving the AUTHENTICATION FAILURE message, the            **
+ **      MME shall stop timer T3560 and check the correctness of           **
+ **      the RES parameter.                                                **
+ **                                                                        **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      emm_cause: Authentication failure AMF cause code                  **
+ **      res:       Authentication response parameter. or auts             **
+ **                 in case of sync failure                                **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ** Outputs:     None                                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    amf_data, T3560                                        **
+ **                                                                        **
+ ***************************************************************************/
+int amf_proc_authentication_failure(
+    amf_ue_ngap_id_t ue_id, AuthenticationFailureMsg* msg, int amf_cause) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+
+  OAILOG_DEBUG(
+      LOG_NAS_AMF,
+      "Authentication  procedures failed for "
+      "(ue_id=" AMF_UE_NGAP_ID_FMT ")\n",
+      ue_id);
+
+  int rc                            = RETURNerror;
+  ue_m5gmm_context_s* ue_mm_context = NULL;
+  amf_context_t* amf_ctx            = NULL;
+
+  ue_mm_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  if (!ue_mm_context) {
+    OAILOG_WARNING(
+        LOG_NAS_AMF,
+        "AMF-PROC - Failed to authenticate the UE due to NULL"
+        "ue_mm_context\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
+
+  amf_ctx = &ue_mm_context->amf_context;
+  nas5g_amf_auth_proc_t* auth_proc =
+      get_nas5g_common_procedure_authentication(amf_ctx);
+
+  /*	Stop Timer T3560 */
+#if 0
+	OAILOG_INFO(
+		LOG_NAS_EMM,
+		"Timer:  Stopping Authentication Timer T3560 with id = %d\n",
+		auth_proc->T3560.id);
+	stop_timer(&amf_app_task_zmq_ctx, auth_proc->T3560.id);
+	auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
+	OAILOG_INFO(LOG_NAS_EMM, "Timer: After Stopping T3560 Timer\n");
+#endif
+
+  if (!auth_proc) {
+    OAILOG_WARNING(LOG_NAS_AMF, "authentication procedure not present\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
+
+  OAILOG_DEBUG(
+      LOG_NAS_AMF, "Authentication of the UE is Failed with Error : %d",
+      msg->m5gmm_cause.m5gmm_cause);
+  m5gmm_cause cause = (m5gmm_cause) msg->m5gmm_cause.m5gmm_cause;
+
+  switch (cause) {
+    case m5gmm_cause::NGKSI_ALREADY_IN_USE: {
+      // select a new ngKSI and send the same EAP-request message to the UE
+      amf_ctx->_security.eksi =
+          (amf_ctx->_security.eksi + 1) % (EKSI_MAX_VALUE + 1);
+      OAILOG_INFO(
+          LOG_NGAP, "new amf_ctx->_security.eksi   = %d\n",
+          amf_ctx->_security.eksi);
+      amf_send_authentication_request(amf_ctx, auth_proc);
+      break;
+    }
+    default: {
+      OAILOG_INFO(LOG_NAS_AMF, "Unsupported 5gmm cause\n");
+      break;
+    }
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+/****************************************************************************
+ **                                                                        **
  ** Name:    amf_send_authentication_request()                             **
  **                                                                        **
  ** Description: Sends AUTHENTICATION REQUEST message and start timer T3560**

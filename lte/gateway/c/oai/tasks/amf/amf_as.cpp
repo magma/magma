@@ -185,6 +185,11 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
           msg->ue_id, &amf_msg->msg.authenticationresponsemsg, *amf_cause,
           decode_status);
       break;
+    case AUTH_FAILURE:
+      rc = amf_handle_authentication_failure(
+          msg->ue_id, &amf_msg->msg.authenticationfailuremsg, *amf_cause,
+          decode_status);
+      break;
     case SEC_MODE_COMPLETE:
       rc = amf_handle_security_complete_response(msg->ue_id, decode_status);
       break;
@@ -1054,9 +1059,9 @@ static int amf_as_security_req(
           std::cout << "filled AUTN" << nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.AUTN;
 #endif
 
-          OAILOG_INFO(
-              LOG_AMF_APP, "eksi:%x", ue_context->amf_context._security.eksi);
-          ue_context->amf_context._security.eksi = 0;
+          if (ue_context->amf_context._security.eksi >= KSI_NO_KEY_AVAILABLE) {
+            ue_context->amf_context._security.eksi = 0;
+          }
           OAILOG_INFO(
               LOG_AMF_APP, "eksi:%x", ue_context->amf_context._security.eksi);
           memcpy(
@@ -1131,7 +1136,7 @@ static int amf_as_security_req(
         nas_msg.plain.amf.msg.authenticationrequestmsg.nas_key_set_identifier
             .tsc = 0;
         nas_msg.plain.amf.msg.authenticationrequestmsg.nas_key_set_identifier
-            .nas_key_set_identifier = 0x0;
+            .nas_key_set_identifier = ue_context->amf_context._security.eksi;
         uint8_t abba_buff[]         = {0x00, 0x00};
         memcpy(
             &(nas_msg.plain.amf.msg.authenticationrequestmsg.abba.contents),
@@ -1187,7 +1192,8 @@ static int amf_as_security_req(
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
             .nas_key_set_identifier.tsc = 0;
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
-            .nas_key_set_identifier.nas_key_set_identifier = 0x0;
+            .nas_key_set_identifier.nas_key_set_identifier =
+            ue_context->amf_context._security.eksi;
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
             .spare_half_octet.spare = 0;
         nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
