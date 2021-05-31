@@ -16,7 +16,7 @@
 #include <stdint.h>                       // for uint32_t
 #include <functional>                     // for function
 #include <memory>                         // for unique_ptr
-#include "GRPCReceiver.h"                 // for GRPCReceiver
+#include "includes/GRPCReceiver.h"        // for GRPCReceiver
 namespace grpc {
 class Status;
 }

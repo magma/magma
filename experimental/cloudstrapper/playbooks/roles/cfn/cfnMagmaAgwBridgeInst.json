@@ -3,33 +3,33 @@
     "Parameters": {
       "paramImageBase": {
         "Type": "AWS::EC2::Image::Id",
-	"Description": "Base Image Id",
-	"Default": "ami-0a91cd140a1fc148a"
+	"Description": "In-region Cloudstrapper AMI",
+	"Default": "ami-03865ac2b925f8056"
       },
-      "paramSubnetSgi": {
+      "paramSubnetBridge": {
         "Type": "String",
-	"Description": "SGi Subnet",
-	"Default": "subnet-0203ca4c94d36bbf1"
+	"Description": "Bridge Subnet",
+	"Default": "subnet-034e3964878b0a572"
       },
       "paramAzHome": {
         "Type": "AWS::EC2::AvailabilityZone::Name",
 	"Description": "Base Availability Zone",
-	"Default": "us-east-2c"
+	"Default": "ap-northeast-1a"
       },
       "paramSecGroup": {
         "Type": "String",
 	"Description": "Security Group Name",
-	"Default":"sg-070fa87221a1bc6fb"
+	"Default":"sg-0b7fbe50f1c8a15d4"
       },
       "paramSshKey": {
         "Type": "AWS::EC2::KeyPair::KeyName",
 	"Description": "Keypair",
-	"Default": "keyMagmaAnsibleProto"
+	"Default": "keyMagmaHostCharlie"
       },
       "paramAgwTagName": {
         "Type": "String",
 	"Description": "Tag Name",
-	"Default":"MenloPark AGW 1"
+	"Default":"Bridge Instance"
       }
     },
     "Resources": {
@@ -42,17 +42,17 @@
 		"AvailabilityZone":{ "Ref": "paramAzHome" },
 		"NetworkInterfaces": [
 		  {
-                    "AssociatePublicIpAddress" : "true",  
+        "AssociatePublicIpAddress" : "true",
 		    "DeleteOnTermination": "true",
 		    "Description": "SGi interface",
 		    "DeviceIndex": "0",
 		    "GroupSet": [ { "Ref": "paramSecGroup" } ],
-		    "SubnetId":{ "Ref": "paramSubnetSgi" }
+		    "SubnetId":{ "Ref": "paramSubnetBridge" }
 		   }
-                ],	
-		"Tags": [ 
+                ],
+		"Tags": [
 			{ "Key": "Name", "Value": { "Ref": "paramAgwTagName"} },
-			{ "Key": "Purpose","Value":"EC2 instance of AGW" }
+			{ "Key": "Purpose","Value":"Bridge Instance Connecting AGWs" }
 			]
             }
         }

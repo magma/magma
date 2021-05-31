@@ -1,7 +1,7 @@
 ---
 - hosts: localhost
   roles:
-    - { role: agw-infra, tags: inventory }
+    - { role: agw-infra, tags: infra }
     - { role: aws-inventory, tags: inventory }
   vars_files:
     - roles/vars/defaults.yaml

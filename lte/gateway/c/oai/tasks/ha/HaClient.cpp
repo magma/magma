@@ -16,7 +16,7 @@ limitations under the License.
 #include <utility>
 
 #include "HaClient.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "lte/protos/ha_orc8r.pb.h"
 
 namespace magma {

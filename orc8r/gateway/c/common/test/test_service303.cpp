@@ -22,11 +22,11 @@
 #include <prometheus/metrics.pb.h>
 #include "orc8r/protos/metricsd.pb.h"
 
-#include "MetricsRegistry.h"
-#include "MetricsSingleton.h"
-#include "MetricsHelpers.h"
-#include "MagmaService.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/MetricsRegistry.h"
+#include "includes/MetricsSingleton.h"
+#include "includes/MetricsHelpers.h"
+#include "includes/MagmaService.h"
+#include "includes/ServiceRegistrySingleton.h"
 
 using grpc::Channel;
 using grpc::ChannelCredentials;

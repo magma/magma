@@ -24,7 +24,7 @@
 #include <functional>
 #include <memory>
 
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include "lte/protos/sms_orc8r.grpc.pb.h"
 #include "sgs_messages_types.h"
 
