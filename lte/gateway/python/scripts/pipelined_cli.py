@@ -287,8 +287,8 @@ def stress_test_grpc(client, args):
         duration = (datetime.now() - timestamp).total_seconds()
         print("Finished {0} detaches in {1} seconds".format(len(ue_dict),
                                                             duration))
-        print("Actual detach rate = {0} UEs per sec",
-              round(len(ue_dict)/duration))
+        print("Actual detach rate = {0} UEs per sec".format(
+              round(len(ue_dict)/duration)))
 
 def create_ng_services_parser(apps):
     """
