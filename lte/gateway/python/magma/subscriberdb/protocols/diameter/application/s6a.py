@@ -47,25 +47,32 @@ class S6AApplication(abc.Application):
     # the S6a application should advertise
     CAPABILITIES_EXCHANGE_AVPS = [
         avp.AVP('Supported-Vendor-Id', avp.VendorId.TGPP),
-        avp.AVP('Vendor-Specific-Application-Id', [
-            avp.AVP('Auth-Application-Id', APP_ID),
-            avp.AVP('Vendor-Id', avp.VendorId.TGPP)
-        ])]
+        avp.AVP(
+            'Vendor-Specific-Application-Id', [
+                avp.AVP('Auth-Application-Id', APP_ID),
+                avp.AVP('Vendor-Id', avp.VendorId.TGPP),
+            ],
+        ),
+    ]
     # Required fields for requests of each command type
     REQUIRED_FIELDS = {
         S6AApplicationCommands.AUTHENTICATION_INFORMATION:
-            ['Session-Id',
-             'Auth-Session-State',
-             'User-Name',
-             'Visited-PLMN-Id',
-             'Requested-EUTRAN-Authentication-Info'],
+            [
+                'Session-Id',
+                'Auth-Session-State',
+                'User-Name',
+                'Visited-PLMN-Id',
+                'Requested-EUTRAN-Authentication-Info',
+            ],
         S6AApplicationCommands.UPDATE_LOCATION:
-            ['Session-Id',
-             'Auth-Session-State',
-             'User-Name',
-             'Visited-PLMN-Id',
-             'RAT-Type',
-             'ULR-Flags']
+            [
+                'Session-Id',
+                'Auth-Session-State',
+                'User-Name',
+                'Visited-PLMN-Id',
+                'RAT-Type',
+                'ULR-Flags',
+            ],
     }
 
     def __init__(self, lte_processor, realm, host, host_ip, loop=None):
@@ -96,7 +103,7 @@ class S6AApplication(abc.Application):
             return
 
         if msg.header.command_code == \
-            S6AApplicationCommands.AUTHENTICATION_INFORMATION:
+                S6AApplicationCommands.AUTHENTICATION_INFORMATION:
             self._send_auth(state_id, msg)
         elif msg.header.command_code == S6AApplicationCommands.UPDATE_LOCATION:
             self._send_location_request(state_id, msg)
@@ -117,10 +124,14 @@ class S6AApplication(abc.Application):
         # Validate we have all required fields
         required_fields = self.REQUIRED_FIELDS[msg.header.command_code]
         if not msg.has_fields(required_fields):
-            logging.error("Missing AVP for s6a command %d",
-                          msg.header.command_code)
-            resp = self._gen_response(state_id, msg,
-                                      avp.ResultCode.DIAMETER_MISSING_AVP)
+            logging.error(
+                "Missing AVP for s6a command %d",
+                msg.header.command_code,
+            )
+            resp = self._gen_response(
+                state_id, msg,
+                avp.ResultCode.DIAMETER_MISSING_AVP,
+            )
             self.writer.send_msg(resp)
             return False
         return True
@@ -180,9 +191,11 @@ class S6AApplication(abc.Application):
             imsi = msg.find_avp(*avp.resolve('User-Name')).value
             plmn = msg.find_avp(*avp.resolve('Visited-PLMN-Id')).value
             request_eutran_info = msg.find_avp(
-                *avp.resolve('Requested-EUTRAN-Authentication-Info'))
+                *avp.resolve('Requested-EUTRAN-Authentication-Info'),
+            )
             re_sync_info = request_eutran_info.find_avp(
-                *avp.resolve('Re-Synchronization-Info'))
+                *avp.resolve('Re-Synchronization-Info'),
+            )
 
             if re_sync_info:
                 # According to 29.272 7.3.15 this should be concatenation of
@@ -194,29 +207,41 @@ class S6AApplication(abc.Application):
             rand, xres, autn, kasme = \
                 self.lte_processor.generate_lte_auth_vector(imsi, plmn)
 
-            auth_info = avp.AVP('Authentication-Info', [
-                avp.AVP('E-UTRAN-Vector', [
+            auth_info = avp.AVP(
+                'Authentication-Info', [
+                avp.AVP(
+                    'E-UTRAN-Vector', [
                     avp.AVP('RAND', rand),
                     avp.AVP('XRES', xres),
                     avp.AVP('AUTN', autn),
-                    avp.AVP('KASME', kasme)])])
+                    avp.AVP('KASME', kasme),
+                    ],
+                ),
+                ],
+            )
 
             S6A_AUTH_SUCCESS_TOTAL.inc()
-            resp = self._gen_response(state_id, msg,
-                                      avp.ResultCode.DIAMETER_SUCCESS,
-                                      [auth_info])
+            resp = self._gen_response(
+                state_id, msg,
+                avp.ResultCode.DIAMETER_SUCCESS,
+                [auth_info],
+            )
             logging.info("Auth success: %s", imsi)
         except CryptoError as e:
             S6A_AUTH_FAILURE_TOTAL.labels(
-                code=avp.ResultCode.DIAMETER_AUTHENTICATION_REJECTED).inc()
+                code=avp.ResultCode.DIAMETER_AUTHENTICATION_REJECTED,
+            ).inc()
             resp = self._gen_response(
-                state_id, msg, avp.ResultCode.DIAMETER_AUTHENTICATION_REJECTED)
+                state_id, msg, avp.ResultCode.DIAMETER_AUTHENTICATION_REJECTED,
+            )
             logging.error("Auth error for %s: %s", imsi, e)
         except SubscriberNotFoundError as e:
             S6A_AUTH_FAILURE_TOTAL.labels(
-                code=avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN).inc()
+                code=avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN,
+            ).inc()
             resp = self._gen_response(
-                state_id, msg, avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN)
+                state_id, msg, avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN,
+            )
             logging.warning("Subscriber not found: %s", e)
 
         self.writer.send_msg(resp)
@@ -243,47 +268,68 @@ class S6AApplication(abc.Application):
             profile = self.lte_processor.get_sub_profile(imsi)
         except SubscriberNotFoundError as e:
             resp = self._gen_response(
-                state_id, msg, avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN)
+                state_id, msg, avp.ResultCode.DIAMETER_ERROR_USER_UNKNOWN,
+            )
             logging.warning('Subscriber not found for ULR: %s', e)
             return
 
         # Stubbed out Subscription Data from OAI
-        subscription_data = avp.AVP('Subscription-Data', [
-            avp.AVP('MSISDN', b'333608050011'),
-            avp.AVP('Access-Restriction-Data', 47),
-            avp.AVP('Subscriber-Status', 0),
-            avp.AVP('Network-Access-Mode', 2),
-            avp.AVP('AMBR', [
-                avp.AVP('Max-Requested-Bandwidth-UL', profile.max_ul_bit_rate),
-                avp.AVP('Max-Requested-Bandwidth-DL', profile.max_dl_bit_rate),
-            ]),
-            avp.AVP('APN-Configuration-Profile', [
-                avp.AVP('Context-Identifier', 0),
-                avp.AVP('All-APN-Configurations-Included-Indicator', 0),
-                avp.AVP('APN-Configuration', [
-                    avp.AVP('Context-Identifier', 0),
-                    avp.AVP('PDN-Type', 0),
-                    avp.AVP('Service-Selection', 'oai.ipv4'),
-                    avp.AVP('EPS-Subscribed-QoS-Profile', [
-                        avp.AVP('QoS-Class-Identifier', 9),
-                        avp.AVP('Allocation-Retention-Priority', [
-                            avp.AVP('Priority-Level', 15),
-                            avp.AVP('Pre-emption-Capability', 1),
-                            avp.AVP('Pre-emption-Vulnerability', 0),
-                        ]),
-                    ]),
-                    avp.AVP('AMBR', [
-                        avp.AVP('Max-Requested-Bandwidth-UL',
-                                profile.max_ul_bit_rate),
-                        avp.AVP('Max-Requested-Bandwidth-DL',
-                                profile.max_dl_bit_rate),
-                    ]),
-                ])
-            ]),
-        ])
+        subscription_data = avp.AVP(
+            'Subscription-Data', [
+                avp.AVP('MSISDN', b'333608050011'),
+                avp.AVP('Access-Restriction-Data', 47),
+                avp.AVP('Subscriber-Status', 0),
+                avp.AVP('Network-Access-Mode', 2),
+                avp.AVP(
+                    'AMBR', [
+                        avp.AVP('Max-Requested-Bandwidth-UL', profile.max_ul_bit_rate),
+                        avp.AVP('Max-Requested-Bandwidth-DL', profile.max_dl_bit_rate),
+                    ],
+                ),
+                avp.AVP(
+                    'APN-Configuration-Profile', [
+                        avp.AVP('Context-Identifier', 0),
+                        avp.AVP('All-APN-Configurations-Included-Indicator', 0),
+                        avp.AVP(
+                            'APN-Configuration', [
+                                avp.AVP('Context-Identifier', 0),
+                                avp.AVP('PDN-Type', 0),
+                                avp.AVP('Service-Selection', 'oai.ipv4'),
+                                avp.AVP(
+                                    'EPS-Subscribed-QoS-Profile', [
+                                        avp.AVP('QoS-Class-Identifier', 9),
+                                        avp.AVP(
+                                            'Allocation-Retention-Priority', [
+                                                avp.AVP('Priority-Level', 15),
+                                                avp.AVP('Pre-emption-Capability', 1),
+                                                avp.AVP('Pre-emption-Vulnerability', 0),
+                                            ],
+                                        ),
+                                    ],
+                                ),
+                                avp.AVP(
+                                    'AMBR', [
+                                        avp.AVP(
+                                            'Max-Requested-Bandwidth-UL',
+                                            profile.max_ul_bit_rate,
+                                        ),
+                                        avp.AVP(
+                                            'Max-Requested-Bandwidth-DL',
+                                            profile.max_dl_bit_rate,
+                                        ),
+                                    ],
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+            ],
+        )
 
         S6A_LUR_TOTAL.inc()
-        resp = self._gen_response(state_id, msg,
-                                  avp.ResultCode.DIAMETER_SUCCESS,
-                                  [ula_flags, subscription_data])
+        resp = self._gen_response(
+            state_id, msg,
+            avp.ResultCode.DIAMETER_SUCCESS,
+            [ula_flags, subscription_data],
+        )
         self.writer.send_msg(resp)
