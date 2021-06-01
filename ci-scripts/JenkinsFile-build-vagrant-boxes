@@ -1,4 +1,3 @@
-#!/usr/local/bin/groovy
 /*
 * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
 * contributor license agreements.  See the NOTICE file distributed with
@@ -21,6 +20,7 @@
 def GIT_URL = "github.com/magma/magma"
 def GIT_COMMIT
 def BASE_BOXES = ["magma-dev", "magma-test", "magma-trfserver"]
+def PROVIDERS = ["libvirt", "virtualbox"]
 def PACKER_VER = "1.6.5"
 def PACKER_CACHE = "/var/jenkins/packer_cache"
 
@@ -59,6 +59,19 @@ pipeline {
     stage ("Setup") {
       steps {
         script {
+            try {
+              sh('sudo virsh list --all --name')
+              sh('sudo virsh list --all --name | grep _magma | xargs --no-run-if-empty -n1 sudo virsh destroy || true')
+              sh('sudo virsh list --all --name | grep _magma | xargs --no-run-if-empty -n1 sudo virsh undefine || true')
+              sh('sudo virsh list --all --name | grep _cwag | xargs --no-run-if-empty -n1 sudo virsh destroy || true')
+              sh('sudo virsh list --all --name | grep _cwag | xargs --no-run-if-empty -n1 sudo virsh undefine || true')
+              sh('cd lte/gateway && vagrant destroy --force magma')
+            }
+            catch (Exception e) {
+                echo "Fine. Let it go..."
+            }
+
+
           sh("which unzip || sudo apt-get install -y unzip")
           sh("which jq || sudo apt-get install -y jq")
 
@@ -101,11 +114,12 @@ pipeline {
                 println "Building box ${base_box}-${provider}"
                 dir ('orc8r/tools/packer') {
                   sh "mkdir -p ../packer-${base_box}-${provider}"
-                  sh "cp -R *.json *.seed http scripts ../packer-${base_box}-${provider}"
+                  sh "cp -R *.json *.seed *.sh http scripts ../packer-${base_box}-${provider}"
                 }
                 dir ("orc8r/tools/packer-${base_box}-${provider}") {
                   sh "PACKER_LOG=1 ~/bin/packer build $PACKER_OPTS ${base_box}-${provider}.json"
-                  sh "./vagrant-box-upload.sh builds/${base_box}-${provider}.box"
+                  box_filename = "builds/${base_box}-${provider}.box".replace('-', '_')
+                  sh "./vagrant-box-upload.sh $box_filename"
                 }
               }
             }
@@ -113,7 +127,8 @@ pipeline {
         }
       }
     }
-    stage ("Build Vagrant boxes - virtualbox") {
+    //virtualbox VMs cannot be built in parallel due to builder limitations
+    stage ("Build and upload magma-dev-virtualbox") {
       environment {
         // Use dummy secret for build
         ATLAS_TOKEN = "123"
@@ -122,28 +137,93 @@ pipeline {
         provider = "virtualbox"
         PACKER_CACHE_DIR = "${PACKER_CACHE}"
       }
-      matrix {
-        axes {
-          axis {
-            name 'base_box'
-            values "magma-dev", "magma-test", "magma-trfserver"
+      steps {
+        script {
+          base_box = "magma-dev"
+          println "Building box ${base_box}-${provider}"
+          dir ('orc8r/tools/packer') {
+            sh "mkdir -p ../packer-${base_box}-${provider}"
+            sh "cp -R *.json *.seed *.sh http scripts ../packer-${base_box}-${provider}"
+          }
+          dir ("orc8r/tools/packer-${base_box}-${provider}") {
+            sh "PACKER_LOG=1 ~/bin/packer build $PACKER_OPTS ${base_box}-${provider}.json"
+            box_filename = "builds/${base_box}-${provider}.box".replace('-', '_')
+            sh "./vagrant-box-upload.sh $box_filename"
           }
         }
-        stages {
-          stage ("Build and upload box") {
-            steps {
-              script {
-                println "Building box ${base_box}-${provider}"
-                dir ('orc8r/tools/packer') {
-                  sh "mkdir -p ../packer-${base_box}-${provider}"
-                  sh "cp -R *.json *.seed http scripts ../packer-${base_box}-${provider}"
-                }
-                dir ("orc8r/tools/packer-${base_box}-${provider}") {
-                  sh "PACKER_LOG=1 ~/bin/packer build $PACKER_OPTS ${base_box}-${provider}.json"
-                  sh "./vagrant-box-upload.sh builds/${base_box}-${provider}.box"
-                }
-              }
-            }
+      }
+    }
+    stage ("Build and upload magma-focal") {
+      environment {
+        // Use dummy secret for build
+        ATLAS_TOKEN = "123"
+        PACKER_OPTS="-except=vagrant-cloud"
+        VAGRANT_CLOUD_TOKEN = credentials('magma_vagrant_token')
+        provider = "virtualbox"
+        PACKER_CACHE_DIR = "${PACKER_CACHE}"
+      }
+      steps {
+        script {
+          base_box = "magma-focal"
+          println "Building box ${base_box}-${provider}"
+          dir ('orc8r/tools/packer') {
+            sh "mkdir -p ../packer-${base_box}-${provider}"
+            sh "cp -R *.json *.seed *.sh http scripts ../packer-${base_box}-${provider}"
+          }
+          dir ("orc8r/tools/packer-${base_box}-${provider}") {
+            sh "PACKER_LOG=1 ~/bin/packer build $PACKER_OPTS ${base_box}-${provider}.json"
+            box_filename = "builds/${base_box}-${provider}.box".replace('-', '_')
+            sh "./vagrant-box-upload.sh $box_filename"
+          }
+        }
+      }
+    }
+    stage ("Build and upload magma-test-virtualbox") {
+      environment {
+        // Use dummy secret for build
+        ATLAS_TOKEN = "123"
+        PACKER_OPTS="-except=vagrant-cloud"
+        VAGRANT_CLOUD_TOKEN = credentials('magma_vagrant_token')
+        provider = "virtualbox"
+        PACKER_CACHE_DIR = "${PACKER_CACHE}"
+      }
+      steps {
+        script {
+          base_box = "magma-test"
+          println "Building box ${base_box}-${provider}"
+          dir ('orc8r/tools/packer') {
+            sh "mkdir -p ../packer-${base_box}-${provider}"
+            sh "cp -R *.json *.seed *.sh http scripts ../packer-${base_box}-${provider}"
+          }
+          dir ("orc8r/tools/packer-${base_box}-${provider}") {
+            sh "PACKER_LOG=1 ~/bin/packer build $PACKER_OPTS ${base_box}-${provider}.json"
+            box_filename="builds/${base_box}-${provider}.box".replace('-', '_')
+            sh "./vagrant-box-upload.sh $box_filename"
+          }
+        }
+      }
+    }
+    stage ("Build and upload magma-trfserver-virtualbox") {
+      environment {
+        // Use dummy secret for build
+        ATLAS_TOKEN = "123"
+        PACKER_OPTS="-except=vagrant-cloud"
+        VAGRANT_CLOUD_TOKEN = credentials('magma_vagrant_token')
+        provider = "virtualbox"
+        PACKER_CACHE_DIR = "${PACKER_CACHE}"
+      }
+      steps {
+        script {
+          base_box = "magma-trfserver"
+          println "Building box ${base_box}-${provider}"
+          dir ('orc8r/tools/packer') {
+            sh "mkdir -p ../packer-${base_box}-${provider}"
+            sh "cp -R *.json *.seed *.sh http scripts ../packer-${base_box}-${provider}"
+          }
+          dir ("orc8r/tools/packer-${base_box}-${provider}") {
+            sh "PACKER_LOG=1 ~/bin/packer build $PACKER_OPTS ${base_box}-${provider}.json"
+            box_filename="builds/${base_box}-${provider}.box".replace('-', '_')
+            sh "./vagrant-box-upload.sh $box_filename"
           }
         }
       }
