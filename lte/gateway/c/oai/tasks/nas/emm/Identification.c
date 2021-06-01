@@ -48,6 +48,8 @@
 /****************************************************************************/
 extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
+extern mme_congestion_params_t mme_congestion_params;
+
 extern int check_plmn_restriction(imsi_t imsi);
 extern int validate_imei(imeisv_t* imeisv);
 /****************************************************************************/

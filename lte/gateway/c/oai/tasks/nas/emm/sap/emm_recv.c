@@ -54,8 +54,9 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
-extern long mme_app_min_msg_latency;
 extern long mme_app_last_msg_latency;
+extern long pre_mme_task_msg_latency;
+extern mme_congestion_params_t mme_congestion_params;
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -206,12 +207,14 @@ int emm_recv_attach_request(
    */
   // Currently a simple logic, when a more complex logic added
   // refactor this part via helper functions is_mme_congested.
-  if (mme_app_last_msg_latency > UPPER_RELATIVE_TH * mme_app_min_msg_latency) {
+  if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+      MME_APP_ZMQ_LATENCY_CONGEST_TH) {
     OAILOG_WARNING(
         LOG_NAS_EMM,
         "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "
-        "(EMM_CAUSE_CONGESTION) min. latency: %ld, last packet latency: %ld\n",
-        ue_id, mme_app_min_msg_latency, mme_app_last_msg_latency);
+        "(EMM_CAUSE_CONGESTION) last packet latency: %ld prev hop latency: "
+        "%ld\n",
+        ue_id, mme_app_last_msg_latency, pre_mme_task_msg_latency);
     rc         = emm_proc_attach_reject(ue_id, EMM_CAUSE_CONGESTION);
     *emm_cause = EMM_CAUSE_SUCCESS;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

@@ -32,10 +32,8 @@
 #include "s1ap_state.h"
 #include "s1ap_types.h"
 
-#define UPPER_RELATIVE_TH 1000000  // times the minimum ZMQ Latency observed
-#define LOWER_RELATIVE_TH 50       // times the minimum ZMQ latency observed
 #define S1AP_ZMQ_LATENCY_TH                                                    \
-  2000000  // absolute threshold to be used for initial UE messages
+  s1ap_zmq_th  // absolute threshold to be used for initial UE messages
 
 extern bool hss_associated;
 

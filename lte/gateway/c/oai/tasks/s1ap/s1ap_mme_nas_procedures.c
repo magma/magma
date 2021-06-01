@@ -78,7 +78,7 @@
 #include "s1ap_common.h"
 
 extern long s1ap_last_msg_latency;
-extern long s1ap_min_msg_latency;
+extern long s1ap_zmq_th;
 
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_ue_message(
@@ -108,10 +108,9 @@ int s1ap_mme_handle_initial_ue_message(
     OAILOG_WARNING(
         LOG_S1AP,
         "Discarding S1AP INITIAL_UE_MESSAGE for "
-        "ENB_UE_S1AP_ID: " ENB_UE_S1AP_ID_FMT
-        " ZMQ latency: %ld; min. latency: %ld",
+        "ENB_UE_S1AP_ID: " ENB_UE_S1AP_ID_FMT " ZMQ latency: %ld",
         (enb_ue_s1ap_id_t) ie->value.choice.ENB_UE_S1AP_ID,
-        s1ap_last_msg_latency, s1ap_min_msg_latency);
+        s1ap_last_msg_latency);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
@@ -352,16 +351,6 @@ int s1ap_mme_handle_uplink_nas_transport(
       s1ap_mme_remove_stale_ue_context(enb_ue_s1ap_id, enb_ref->enb_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
-  }
-
-  if (s1ap_last_msg_latency > UPPER_RELATIVE_TH * s1ap_min_msg_latency) {
-    OAILOG_WARNING(
-        LOG_S1AP,
-        "Discarding S1AP UPLINK_NAS_TRANSPORT for this "
-        "mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT
-        " ZMQ latency: %ld; min. latency: %ld",
-        mme_ue_s1ap_id, s1ap_last_msg_latency, s1ap_min_msg_latency);
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
   if (S1AP_UE_CONNECTED != ue_ref->s1_ue_state) {

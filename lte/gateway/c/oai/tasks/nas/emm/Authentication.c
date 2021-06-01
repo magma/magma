@@ -61,6 +61,7 @@
 /****************************************************************************/
 extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
+extern mme_congestion_params_t mme_congestion_params;
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
