@@ -97,7 +97,7 @@ class SessionState {
 
     typedef struct tNodeId {
       upfNodeType node_id_type;
-      char node_id[40];
+      std::string node_id;
     } NodeId;
 
     typedef struct Fseid {
