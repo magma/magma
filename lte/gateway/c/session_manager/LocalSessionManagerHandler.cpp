@@ -160,7 +160,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
   // read/modify pipelined_state_
   enforcer_->get_event_base().runInEventBaseThread([=] {
     if (status.ok() && resp.result() == resp.SUCCESS) {
-      MLOG(MDEBUG) << "Successfully setup PipelineD with epoch: " << epoch;
+      MLOG(MINFO) << "Successfully setup PipelineD with epoch: " << epoch;
       pipelined_state_ = PipelineDState::READY;
       return;
     }
