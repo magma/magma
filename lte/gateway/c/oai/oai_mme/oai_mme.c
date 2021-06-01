@@ -81,6 +81,7 @@ static void main_exit(void) {
 }
 
 int main(int argc, char* argv[]) {
+  srand(time(NULL));
   char* pid_file_name;
 
   CHECK_INIT_RETURN(OAILOG_INIT(
