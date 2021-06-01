@@ -23,7 +23,7 @@ from magma.pipelined.app.policy_mixin import (DROP_FLOW_STATS, IGNORE_STATS,
                                               PROCESS_STATS, PolicyMixin)
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.imsi import decode_imsi, encode_imsi
-from magma.pipelined.openflow import flows, messages
+from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import (MagmaDPDisconnectedError,
                                                  MagmaOFError)
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -322,19 +322,15 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                                   now.strftime("%H:%M:%S"))
                 self._poll_stats(datapath)
 
-    def _poll_stats(self, datapath):
+    def _poll_stats(self, datapath, cookie: int = 0, cookie_mask: int = 0):
         """
         Send a FlowStatsRequest message to the datapath
+        Raises:
+        MagmaOFError: if we can't poll datapath stats
         """
-        ofproto, parser = datapath.ofproto, datapath.ofproto_parser
-        req = parser.OFPFlowStatsRequest(
-            datapath,
-            table_id=self.tbl_num,
-            out_group=ofproto.OFPG_ANY,
-            out_port=ofproto.OFPP_ANY,
-        )
         try:
-            messages.send_msg(datapath, req)
+            flows.send_stats_request(datapath, self.tbl_num,
+                                     cookie, cookie_mask)
         except MagmaOFError as e:
             self.logger.warning("Couldn't poll datapath stats: %s", e)
 
