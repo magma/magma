@@ -209,7 +209,8 @@ bootstrapper:
 
 certifier:
   service:
-    labels: {}
+    labels:
+      orc8r.io/analytics_collector: "true"
     annotations: {}
 
 configurator:

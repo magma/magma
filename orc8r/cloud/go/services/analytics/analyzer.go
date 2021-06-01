@@ -77,7 +77,7 @@ func (a *PrometheusAnalyzer) Schedule() error {
 
 // Analyze methods runs through collectors and exports their metrics
 func (a *PrometheusAnalyzer) Analyze() {
-	glog.Info("Running  Analyze")
+	glog.V(2).Info("Running Analyze")
 	collectorClients, err := getRemoteCollectors()
 	if err != nil {
 		glog.Infof("err %v failed to get remote collectors", err)
