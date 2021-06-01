@@ -680,12 +680,12 @@ class EnforcementStatsTest(unittest.TestCase):
         #                 num_pkts_tx_match * len(packet))
         self.assertEqual(len(stats), 2)
 
-    """
-    Add a subscriber policy, verify flows are properly installed
-    Assert:
-    Query with RULE_NUM 1 returns proper values
-    """
     def test_cookie_poll(self):
+        """
+        Add a subscriber policy, verify flows are properly installed
+        Assert:
+        Query with RULE_NUM 1 returns proper values
+        """
         original = self.enforcement_stats_controller._poll_stats
         self.enforcement_stats_controller._poll_stats = MagicMock()
         self.enforcement_stats_controller.init_finished = False
