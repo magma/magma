@@ -20,8 +20,10 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
+// --------------------------------------------------------------------------
+// A set of protobuf messages, all individually encoded & paired with unique identifiers
+// --------------------------------------------------------------------------
 type ProtoSlice struct {
-	// A set of protobuf messages, all individually encoded & paired with unique identifiers
 	ProtoBytes           map[string][]byte `protobuf:"bytes,1,rep,name=ProtoBytes,proto3" json:"ProtoBytes,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`
@@ -60,6 +62,9 @@ func (m *ProtoSlice) GetProtoBytes() map[string][]byte {
 	return nil
 }
 
+// --------------------------------------------------------------------------
+// Protobuf message with basic field types for testing deterministic encoding
+// --------------------------------------------------------------------------
 type TestData struct {
 	Key                  string   `protobuf:"bytes,1,opt,name=Key,proto3" json:"Key,omitempty"`
 	Value                int32    `protobuf:"varint,2,opt,name=Value,proto3" json:"Value,omitempty"`
@@ -107,6 +112,9 @@ func (m *TestData) GetValue() int32 {
 	return 0
 }
 
+// --------------------------------------------------------------------------
+// Protobuf message with compound field types for testing deterministic encoding
+// --------------------------------------------------------------------------
 type TestDataCollection struct {
 	ID                   string               `protobuf:"bytes,1,opt,name=ID,proto3" json:"ID,omitempty"`
 	SingleData           *TestData            `protobuf:"bytes,2,opt,name=SingleData,proto3" json:"SingleData,omitempty"`

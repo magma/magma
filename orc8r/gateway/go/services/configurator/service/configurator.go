@@ -24,12 +24,12 @@ import (
 	"time"
 
 	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 
 	"magma/gateway/config"
 	"magma/gateway/streamer"
-	"magma/orc8r/cloud/go/mproto"
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/protos/mconfig"
@@ -149,7 +149,7 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 	if len(digest) > 0 {
 		c.latestConfigDigest = &protos.GatewayConfigsDigest{Md5HexDigest: digest}
 	} else {
-		if digest, err = cfg.GetMconfigDigest(); err == nil {
+		if digest, err = GetMconfigDigest(cfg); err == nil {
 			c.latestConfigDigest = &protos.GatewayConfigsDigest{Md5HexDigest: digest}
 		} else {
 			glog.Errorf("error encoding mconfig digest: %v", err)
@@ -181,9 +181,9 @@ func (c *Configurator) GetExtraArgs() *any.Any {
 }
 
 // GetMconfigDigest generates a representative hash of the configs (sans metadata).
-func (cfg *protos.GatewayConfigs) GetMconfigDigest() (string, error) {
+func GetMconfigDigest(cfg *protos.GatewayConfigs) (string, error) {
 	configsWithoutMetadata := &protos.GatewayConfigs{ConfigsByKey: cfg.GetConfigsByKey()}
-	serializedConfig, err := mproto.EncodeProtoDeterministic(configsWithoutMetadata)
+	serializedConfig, err := encodePbDeterministic(configsWithoutMetadata)
 	if err != nil {
 		return "", err
 	}
@@ -195,4 +195,12 @@ func (cfg *protos.GatewayConfigs) GetMconfigDigest() (string, error) {
 
 type rawMconfigMsg struct {
 	ConfigsByKey map[string]json.RawMessage
+}
+
+func encodePbDeterministic(pb proto.Message) ([]byte, error) {
+	buf := &proto.Buffer{}
+	buf.SetDeterministic(true)
+
+	err := buf.Marshal(pb)
+	return buf.Bytes(), err
 }
