@@ -17,8 +17,6 @@
 
 using grpc::Status;
 
-namespace {
-
 void SetAmfSessionContextRpcCallback(
     grpc::Status status, magma::lte::SmContextVoid response) {
   if (!status.ok()) {
@@ -27,8 +25,6 @@ void SetAmfSessionContextRpcCallback(
               << std::endl;
   }
 }
-
-}  // namespace
 
 using namespace magma::lte;
 namespace magma5g {
@@ -48,6 +44,12 @@ bool AsyncSmfServiceClient::set_smf_session(
   return true;
 }
 
+bool AsyncSmfServiceClient::set_smf_notification(
+    const SetSmNotificationContext& notify) {
+  set_smf_notification_rpc(notify, SetAmfSessionContextRpcCallback);
+  return true;
+}
+
 void AsyncSmfServiceClient::set_smf_session_rpc(
     const SetSMSessionContext& request,
     std::function<void(Status, SmContextVoid)> callback) {
@@ -55,6 +57,15 @@ void AsyncSmfServiceClient::set_smf_session_rpc(
       std::move(callback), RESPONSE_TIMEOUT);
   local_resp->set_response_reader(std::move(stub_->AsyncSetAmfSessionContext(
       local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncSmfServiceClient::set_smf_notification_rpc(
+    const SetSmNotificationContext& notify,
+    std::function<void(Status, SmContextVoid)> callback) {
+  auto local_resp = new magma::AsyncLocalResponse<SmContextVoid>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  local_resp->set_response_reader(std::move(stub_->AsyncSetSmfNotification(
+      local_resp->get_context(), notify, &queue_)));
 }
 
 }  // namespace magma5g
