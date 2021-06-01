@@ -17,6 +17,7 @@
 #include <iostream>
 
 #include "GrpcMagmaUtils.h"
+#include "UpfMsgManageHandler.h"
 #include "LocalEnforcer.h"
 #include "magma_logging_init.h"
 #include "includes/MagmaService.h"
@@ -204,9 +205,9 @@ int main(int argc, char* argv[]) {
   initialize_sentry();
 
   bool converged_access = false;
-  // Check converged SessionD is enabled or not
-  if (config["converged_access"].IsDefined() &&
-      config["converged_access"].as<bool>()) {
+  // Check converged sessiond is enabled or not
+  if ((config["converged_access"].IsDefined()) &&
+      (config["converged_access"].as<bool>())) {
     converged_access = true;
   }
   MLOG(MINFO) << "Starting Session Manager";
@@ -350,6 +351,8 @@ int main(int argc, char* argv[]) {
   });
 
   magma::AmfPduSessionSmContextAsyncService* conv_set_message_service = nullptr;
+  magma::SetInterfaceForUserPlaneAsyncService* conv_upf_message_service =
+      nullptr;
   if (converged_access) {
     // Initialize the main thread of session management by folly event to handle
     // logical component of 5G of SessionD
@@ -370,6 +373,16 @@ int main(int argc, char* argv[]) {
     MLOG(MINFO)
         << "Added SessionProxyResponderAsyncService to service's server";
 
+    // 5G related upf  async service framework creation
+    auto conv_upf_message_handler =
+        std::make_unique<magma::UpfMsgManageHandler>(
+            conv_session_enforcer, *session_store);
+    // 5G  upf converged service to handler set message from UPF
+    conv_upf_message_service = new magma::SetInterfaceForUserPlaneAsyncService(
+        server.GetNewCompletionQueue(), std::move(conv_upf_message_handler));
+    MLOG(MINFO) << "SetInterfaceForUserPlaneAsyncService ";
+    server.AddServiceToServer(conv_upf_message_service);
+    MLOG(MINFO) << "Add converged UPF message service";
     // 5G related SessionStateEnforcer main thread start to handled session
     // state
     conv_session_enforcer->attachEventBase(evb);
@@ -393,6 +406,14 @@ int main(int argc, char* argv[]) {
       conv_set_message_service
           ->wait_for_requests();         // block here instead of on server
       conv_set_message_service->stop();  // stop queue after server shutsdown
+    }
+  });
+  std::thread conv_upf_message_thread([&]() {
+    if (converged_access) {
+      MLOG(MINFO) << "Started upf message thread";
+      conv_upf_message_service
+          ->wait_for_requests();         // block here instead of on server
+      conv_upf_message_service->stop();  // stop queue after server shutsdown
     }
   });
   // session_enforcer->sync_sessions_on_restart(time(NULL));//not part of drop-1
@@ -444,8 +465,10 @@ int main(int argc, char* argv[]) {
   access_response_handling_thread.join();
   if (converged_access) {
     // 5G related thread join
-    free(conv_set_message_service);
     access_common_message_thread.join();
+    conv_upf_message_thread.join();
+    free(conv_set_message_service);
+    free(conv_upf_message_service);
   }
   delete session_store;
 
