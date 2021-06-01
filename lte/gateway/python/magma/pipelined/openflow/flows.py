@@ -16,6 +16,7 @@ from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import REG_ZERO_VAL, SCRATCH_REGS
 from ryu.ofproto.nicira_ext import ofs_nbits
+from magma.pipelined.openflow.exceptions import MagmaOFError
 
 logger = logging.getLogger(__name__)
 
@@ -600,3 +601,20 @@ def _check_resubmit_action(actions, parser):
         raise Exception(
             'Actions list should not contain NXActionResubmitTable',
         )
+
+def send_stats_request(datapath, tbl_num, cookie, cookie_mask):
+    #move logic of _poll_stats
+    #construct stat request using provided parameters, with additional cookie and cookie mask fields
+    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
+    req = parser.OFPFlowStatsRequest(
+        datapath,
+        table_id=tbl_num,
+        out_group=ofproto.OFPG_ANY,
+        out_port=ofproto.OFPP_ANY,
+        cookie = cookie,
+        cookie_mask = cookie_mask,
+    )
+    try:
+        messages.send_msg(datapath, req)
+    except MagmaOFError as e:
+        logger.warning("Couldn't poll datapath stats: %s", e)

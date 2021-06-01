@@ -322,21 +322,12 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                                   now.strftime("%H:%M:%S"))
                 self._poll_stats(datapath)
 
-    def _poll_stats(self, datapath):
+    def _poll_stats(self, datapath, cookie = 0, cookie_mask = 0):
         """
         Send a FlowStatsRequest message to the datapath
         """
-        ofproto, parser = datapath.ofproto, datapath.ofproto_parser
-        req = parser.OFPFlowStatsRequest(
-            datapath,
-            table_id=self.tbl_num,
-            out_group=ofproto.OFPG_ANY,
-            out_port=ofproto.OFPP_ANY,
-        )
-        try:
-            messages.send_msg(datapath, req)
-        except MagmaOFError as e:
-            self.logger.warning("Couldn't poll datapath stats: %s", e)
+        #call send stats request helper in flows.py
+        flows.send_stats_request(datapath, self.tbl_num, cookie, cookie_mask)
 
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
     def _flow_stats_reply_handler(self, ev):
