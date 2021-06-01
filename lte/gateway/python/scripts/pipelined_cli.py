@@ -55,6 +55,7 @@ from scripts.helpers.ng_set_session_msg import CreateSessionUtil
 from scripts.helpers.pg_set_session_msg import CreateMMESessionUtils
 from orc8r.protos.common_pb2 import Void
 
+LOG_INCREMENT = 25
 UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
                                'rule_id'])
 
@@ -212,6 +213,7 @@ def stress_test_grpc(client, args):
         print("Starting attaches")
 
         timestamp = datetime.now()
+        completed_reqs = 0
         for ue in ue_dict:
             grpc_start_timestamp = datetime.now()
             request = ActivateFlowsRequest(
@@ -244,6 +246,9 @@ def stress_test_grpc(client, args):
             call_duration = (grpc_end_timestamp - grpc_start_timestamp).total_seconds()
             if call_duration < delta_time:
                 time.sleep(delta_time - call_duration)
+            if completed_reqs % LOG_INCREMENT == 0:
+                print("Finished {0}".format(completed_reqs))
+            completed_reqs += 1
 
         duration = (datetime.now() - timestamp).total_seconds()
         print("Finished {0} attaches in {1} seconds".format(len(ue_dict),
@@ -254,6 +259,7 @@ def stress_test_grpc(client, args):
 
         print("Starting detaches")
         timestamp = datetime.now()
+        completed_reqs = 0
         for ue in ue_dict:
             grpc_start_timestamp = datetime.now()
             request = DeactivateFlowsRequest(
@@ -274,6 +280,9 @@ def stress_test_grpc(client, args):
             call_duration = (grpc_end_timestamp - grpc_start_timestamp).total_seconds()
             if call_duration < delta_time:
                 time.sleep(delta_time - call_duration)
+            if completed_reqs % LOG_INCREMENT == 0:
+                print("Finished {0}".format(completed_reqs))
+            completed_reqs += 1
 
         duration = (datetime.now() - timestamp).total_seconds()
         print("Finished {0} detaches in {1} seconds".format(len(ue_dict),
