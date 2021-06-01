@@ -21,7 +21,10 @@ import (
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/services/analytics"
+	analytics_protos "magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/certifier"
+	analytics_service "magma/orc8r/cloud/go/services/certifier/analytics"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/certifier/servicers"
 	"magma/orc8r/cloud/go/services/certifier/storage"
@@ -29,6 +32,7 @@ import (
 	storage2 "magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -82,6 +86,19 @@ func main() {
 	} else {
 		caMap[protos.CertType_VPN] = &servicers.CAInfo{Cert: vpnCert, PrivKey: vpnPrivKey}
 	}
+
+	var serviceConfig certifier.Config
+	_, _, err = config.GetStructuredServiceConfig(orc8r.ModuleName, certifier.ServiceName, &serviceConfig)
+	if err != nil {
+		glog.Fatalf("err %v failed parsing the config file: skipping CollectorServicer creation ", err)
+	}
+	collectorServicer := analytics.NewCollectorServicer(
+		&serviceConfig.Analytics,
+		analytics.GetPrometheusClient(),
+		analytics_service.GetAnalyticsCalculations(&serviceConfig),
+		nil,
+	)
+	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
 
 	// Register servicer
 	servicer, err := servicers.NewCertifierServer(store, caMap)
