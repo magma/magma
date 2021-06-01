@@ -29,7 +29,7 @@ import (
 
 	"magma/gateway/config"
 	"magma/gateway/streamer"
-	"magma/orc8r/cloud/go/mprotos"
+	"magma/orc8r/cloud/go/mproto"
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/protos/mconfig"
@@ -183,7 +183,7 @@ func (c *Configurator) GetExtraArgs() *any.Any {
 // GetMconfigDigest generates a representative hash of the configs (sans metadata).
 func (cfg *protos.GatewayConfigs) GetMconfigDigest() (string, error) {
 	configsWithoutMetadata := &protos.GatewayConfigs{ConfigsByKey: cfg.GetConfigsByKey()}
-	serializedConfig, err := mprotos.encodePbDeterministic(configsWithoutMetadata)
+	serializedConfig, err := mproto.EncodeProtoDeterministic(configsWithoutMetadata)
 	if err != nil {
 		return "", err
 	}

@@ -11,5 +11,5 @@
  limitations under the License.
 */
 
-//go:generate bash -c "protoc -I /usr/include -I $MAGMA_ROOT --go_out=plugins=grpc:$MAGMA_ROOT/.. $MAGMA_ROOT/orc8r/cloud/go/mproto/protos/*.proto"
+//go:generate bash -c "protoc -I . -I /usr/include -I $MAGMA_ROOT/orc8r/protos/prometheus -I $MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
 package protos

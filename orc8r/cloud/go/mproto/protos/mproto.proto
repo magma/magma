@@ -12,9 +12,34 @@ limitations under the License.
 */
 
 syntax = "proto3";
-package magma.orc8r.mproto;
-option go_package = "magma/orc8r/cloud/go/mproto/protos";
 
+package magma.orc8r.mproto;
+option go_package = "protos";
+
+// --------------------------------------------------------------------------
+// A set of protobuf messages, all individually encoded & paired with unique identifiers
+// --------------------------------------------------------------------------
 message ProtoSlice {
   map<string, bytes> ProtoBytes = 1;
+}
+
+// --------------------------------------------------------------------------
+// Protobuf message with basic field types for testing deterministic encoding
+// --------------------------------------------------------------------------
+message TestData {
+  string Key = 1;
+  int32 Value = 2;
+}
+
+// --------------------------------------------------------------------------
+// Protobuf message with compound field types for testing deterministic encoding
+// --------------------------------------------------------------------------
+message TestDataCollection {
+  string ID = 1;
+
+  TestData SingleData = 2;
+
+  map<string, TestData> DataMap = 3;
+
+  repeated TestData DataSlice = 4;
 }
