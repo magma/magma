@@ -1143,10 +1143,14 @@ type RuleRecord struct {
 	// Uplink TEID
 	Teid uint32 `protobuf:"varint,10,opt,name=teid,proto3" json:"teid,omitempty"`
 <<<<<<< HEAD
+<<<<<<< HEAD
 	//Indicates that the report is final and the flow will be deleted
 =======
 	//Set final_record to false by default
 >>>>>>> 92eb43bd9 (Add final report indicator to RuleRecord report)
+=======
+	//Indicates that the report is final and the flow will be deleted
+>>>>>>> f1c310395 (Updated documentation to better reflect significance of final_record)
 	FinalRecord          bool     `protobuf:"varint,11,opt,name=final_record,json=finalRecord,proto3" json:"final_record,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
