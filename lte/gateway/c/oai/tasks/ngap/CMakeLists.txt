@@ -1,6 +1,5 @@
 add_list1_option(NGAP_VERSION R16 "NGAP Asn.1 grammar version" R16)
 add_definitions(-DASN1_MINIMUM_VERSION=923)
-set(CMAKE_BUILD_TYPE Debug)
 set(ASN1RELDIR r16)
 set(NGAP_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 set(asn1_generated_dir ${CMAKE_CURRENT_BINARY_DIR})
