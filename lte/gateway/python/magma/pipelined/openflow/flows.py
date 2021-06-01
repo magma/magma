@@ -602,9 +602,16 @@ def _check_resubmit_action(actions, parser):
             'Actions list should not contain NXActionResubmitTable',
         )
 
-def send_stats_request(datapath, tbl_num, cookie, cookie_mask):
-    #move logic of _poll_stats
-    #construct stat request using provided parameters, with additional cookie and cookie mask fields
+def send_stats_request(datapath, tbl_num, cookie=0, cookie_mask=0, retries=3):
+    '''
+    Send a stats request msg 
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to query from
+        table (int): Table number to query for
+        cookie (hex): cookie value for the request
+        cookie_mask(hex): cookie mask for the request
+    '''
     ofproto, parser = datapath.ofproto, datapath.ofproto_parser
     req = parser.OFPFlowStatsRequest(
         datapath,
@@ -614,7 +621,5 @@ def send_stats_request(datapath, tbl_num, cookie, cookie_mask):
         cookie = cookie,
         cookie_mask = cookie_mask,
     )
-    try:
-        messages.send_msg(datapath, req)
-    except MagmaOFError as e:
-        logger.warning("Couldn't poll datapath stats: %s", e)
+    logger.debug('flowmod: %s (table %d)', req, tbl_num)
+    messages.send_msg(datapath, req, retries)

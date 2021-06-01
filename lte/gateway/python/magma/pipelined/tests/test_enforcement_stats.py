@@ -55,7 +55,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     wait_after_send,
     wait_for_enforcement_stats,
 )
-from magma.pipelined.openflow import flows, messages
+from magma.pipelined.openflow import flows
 from scapy.all import IP
 
 
