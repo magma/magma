@@ -322,7 +322,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                                   now.strftime("%H:%M:%S"))
                 self._poll_stats(datapath)
 
-    def _poll_stats(self, datapath, cookie = 0, cookie_mask = 0):
+    def _poll_stats(self, datapath, cookie: int=0, cookie_mask: int=0):
         """
         Send a FlowStatsRequest message to the datapath
         Raises:

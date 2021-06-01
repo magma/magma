@@ -680,8 +680,11 @@ class EnforcementStatsTest(unittest.TestCase):
         #                 num_pkts_tx_match * len(packet))
         self.assertEqual(len(stats), 2)
 
- 
-    #additional test for stats enforcement
+    """
+    Add a subscriber policy, verify flows are properly installed
+    Assert:
+    Query with RULE_NUM 1 returns proper values
+    """
     def test_cookie_poll(self):
         original = self.enforcement_stats_controller._poll_stats
         self.enforcement_stats_controller._poll_stats = MagicMock()
@@ -709,10 +712,6 @@ class EnforcementStatsTest(unittest.TestCase):
             self._main_tbl_num, self.enforcement_stats_controller
         ).add_policy(policy)
 
-        # =========================== Verification ===========================  
-
-        # Verifies that 1 flow is installed in enforcement and 2 flows are
-        # installed in enforcement stats, one for uplink and one for downlink.xw
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
 

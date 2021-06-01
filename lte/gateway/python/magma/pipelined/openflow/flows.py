@@ -16,7 +16,6 @@ from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import REG_ZERO_VAL, SCRATCH_REGS
 from ryu.ofproto.nicira_ext import ofs_nbits
-from magma.pipelined.openflow.exceptions import MagmaOFError
 
 logger = logging.getLogger(__name__)
 
@@ -602,7 +601,7 @@ def _check_resubmit_action(actions, parser):
             'Actions list should not contain NXActionResubmitTable',
         )
 
-def send_stats_request(datapath, tbl_num, cookie=0, cookie_mask=0, retries=3):
+def send_stats_request(datapath, tbl_num, cookie: int=0, cookie_mask: int=0, retries: int=3):
     '''
     Send a stats request msg 
     Args:
