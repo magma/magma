@@ -511,6 +511,44 @@ int amf_handle_authentication_response(
 
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_handle_authentication_failure()                           **
+ **                                                                        **
+ ** Description: Processes Authentication failure  message                 **
+ **                                                                        **
+ ** Inputs:  ue_id:      UE lower layer identifier                         **
+ **      msg:       The received AMF message                               **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ** Outputs:     amf_cause: AMF cause code                                 **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
+int amf_handle_authentication_failure(
+    amf_ue_ngap_id_t ue_id, AuthenticationFailureMsg* msg, int amf_cause,
+    amf_nas_message_decode_status_t status) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int rc = RETURNok;
+  OAILOG_DEBUG(LOG_NAS_AMF, "Received AUTHENTICATION_FAILURE message\n");
+
+  /*
+   * Handle message checking error
+   */
+  if (amf_cause != AMF_CAUSE_SUCCESS) {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  /*
+   * Execute the authentication failure procedure
+   */
+  rc = amf_proc_authentication_failure(ue_id, msg, AMF_CAUSE_SUCCESS);
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
 /****************************************************************************
  **                                                                        **
  ** Name:    lookup_ue_ctxt_by_imsi()                                      **

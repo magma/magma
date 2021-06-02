@@ -34,6 +34,9 @@ int amf_handle_identity_response(
 int amf_handle_authentication_response(
     amf_ue_ngap_id_t ue_id, AuthenticationResponseMsg* msg, int amf_cause,
     amf_nas_message_decode_status_t status);
+int amf_handle_authentication_failure(
+    amf_ue_ngap_id_t ue_id, AuthenticationFailureMsg* msg, int amf_cause,
+    amf_nas_message_decode_status_t status);
 int amf_handle_security_complete_response(
     amf_ue_ngap_id_t ue_id, amf_nas_message_decode_status_t decode_status);
 int amf_handle_registration_complete_response(

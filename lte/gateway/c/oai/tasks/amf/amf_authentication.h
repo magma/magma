@@ -56,6 +56,8 @@ int amf_proc_authentication(
 int amf_proc_authentication_complete(
     amf_ue_ngap_id_t ue_id, AuthenticationResponseMsg* msg, int amf_cause,
     const unsigned char* res);
+int amf_proc_authentication_failure(
+    amf_ue_ngap_id_t ue_id, AuthenticationFailureMsg* msg, int amf_cause);
 int amf_registration_security(amf_context_t* amf_context);
 int amf_send_authentication_request(
     amf_context_t* amf_context, nas5g_amf_auth_proc_t* auth_proc);
