@@ -75,6 +75,8 @@ services:
     host: "localhost"
     port: 9086
     proxy_type: "internal"
+    labels:
+      orc8r.io/analytics_collector: "true"
 
   bootstrapper:
     host: "localhost"

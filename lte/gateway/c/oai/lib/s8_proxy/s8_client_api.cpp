@@ -346,17 +346,6 @@ static void convert_bearer_context_to_proto(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-static void get_msisdn_from_csr_req(
-    const itti_s11_create_session_request_t* msg, char* msisdn) {
-  OAILOG_FUNC_IN(LOG_SGW_S8);
-  uint8_t idx = 0;
-  for (; ((idx < msg->msisdn.length) && (idx < MSISDN_LENGTH)); idx++) {
-    msisdn[idx] = convert_digit_to_char(msg->msisdn.digit[idx]);
-  }
-  msisdn[idx] = '\0';
-  OAILOG_FUNC_OUT(LOG_SGW_S8);
-}
-
 static void convert_imeisv_to_string(char* imeisv) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   uint8_t idx = 0;
@@ -393,9 +382,9 @@ static void fill_s8_create_session_req(
   OAILOG_FUNC_IN(LOG_SGW_S8);
   csr->Clear();
   char msisdn[MSISDN_LENGTH + 1];
-  get_msisdn_from_csr_req(msg, msisdn);
+  int msisdn_len = get_msisdn_from_session_req(msg, msisdn);
   csr->set_imsi((char*) msg->imsi.digit, msg->imsi.length);
-  csr->set_msisdn((char*) msisdn, msg->msisdn.length);
+  csr->set_msisdn((char*) msisdn, msisdn_len);
   char imeisv[IMEISV_DIGITS_MAX + 1];
   get_imeisv_from_session_req(msg, imeisv);
   convert_imeisv_to_string(imeisv);

@@ -148,10 +148,7 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 					res.ErrorCode = protos.ErrorCode(ula.ExperimentalResult.ExperimentalResultCode)
 					res.Msisdn = ula.SubscriptionData.MSISDN.Serialize()
 					res.DefaultContextId = ula.SubscriptionData.APNConfigurationProfile.ContextIdentifier
-					res.TotalAmbr = &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
-						MaxBandwidthUl: ula.SubscriptionData.AMBR.MaxRequestedBandwidthUL,
-						MaxBandwidthDl: ula.SubscriptionData.AMBR.MaxRequestedBandwidthDL,
-					}
+					res.TotalAmbr = ula.SubscriptionData.AMBR.getProtoAmbr()
 					res.DefaultChargingCharacteristics = ula.SubscriptionData.TgppChargingCharacteristics
 					res.AllApnsIncluded =
 						ula.SubscriptionData.APNConfigurationProfile.AllAPNConfigurationsIncludedIndicator == 0
@@ -174,10 +171,7 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 									PreemptionCapability:    apnCfg.EPSSubscribedQoSProfile.AllocationRetentionPriority.PreemptionCapability == 0,
 									PreemptionVulnerability: apnCfg.EPSSubscribedQoSProfile.AllocationRetentionPriority.PreemptionVulnerability == 0,
 								},
-								Ambr: &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
-									MaxBandwidthUl: apnCfg.AMBR.MaxRequestedBandwidthUL,
-									MaxBandwidthDl: apnCfg.AMBR.MaxRequestedBandwidthDL,
-								},
+								Ambr:                    apnCfg.AMBR.getProtoAmbr(),
 								ChargingCharacteristics: apnCfg.TgppChargingCharacteristics,
 							})
 					}
@@ -212,4 +206,19 @@ func getFeatureListID2(supportedFeatures []SupportedFeatures) *protos.FeatureLis
 		}
 	}
 	return protoFeatureList
+}
+
+func (ambr *AMBR) getProtoAmbr() *protos.UpdateLocationAnswer_AggregatedMaximumBitrate {
+	if ambr.ExtendMaxRequestedBwDL != 0 && ambr.ExtendMaxRequestedBwUL != 0 {
+		return &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
+			MaxBandwidthUl: ambr.ExtendMaxRequestedBwUL,
+			MaxBandwidthDl: ambr.ExtendMaxRequestedBwDL,
+			Unit:           protos.UpdateLocationAnswer_AggregatedMaximumBitrate_KBPS,
+		}
+	}
+	return &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
+		MaxBandwidthUl: ambr.MaxRequestedBandwidthUL,
+		MaxBandwidthDl: ambr.MaxRequestedBandwidthDL,
+		Unit:           protos.UpdateLocationAnswer_AggregatedMaximumBitrate_BPS,
+	}
 }
