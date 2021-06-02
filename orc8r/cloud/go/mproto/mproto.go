@@ -24,23 +24,23 @@ import (
 func EncodeProtosDeterministic(protoSlice map[string]proto.Message) ([]byte, error) {
 	protoBytes := map[string][]byte{}
 	for id, proto := range protoSlice {
-		bytes, err := encodeProtoDeterministic(proto)
+		bytes, err := EncodeProtoDeterministic(proto)
 		if err != nil {
 			return nil, err
 		}
 		protoBytes[id] = bytes
 	}
 
-	return encodeProtoDeterministic(&protos.ProtoSlice{ProtoBytes: protoBytes})
+	return EncodeProtoDeterministic(&protos.ProtoSlice{ProtoBytes: protoBytes})
 }
 
-// encodeProtoDeterministic encodes protobuf while enforcing deterministic serialization.
+// EncodeProtoDeterministic encodes protobuf while enforcing deterministic serialization.
 // NOTE: deterministic != canonical, so do not expect this encoding to be
 // equal across languages or even versions of golang/protobuf/proto.
 // For further reading, see below.
 // 	- https://developers.google.com/protocol-buffers/docs/encoding#implications
 //	- https://gist.github.com/kchristidis/39c8b310fd9da43d515c4394c3cd9510
-func encodeProtoDeterministic(pb proto.Message) ([]byte, error) {
+func EncodeProtoDeterministic(pb proto.Message) ([]byte, error) {
 	buf := &proto.Buffer{}
 	buf.SetDeterministic(true)
 

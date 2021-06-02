@@ -16,15 +16,12 @@ package service
 
 import (
 	"bytes"
-	"crypto/md5"
-	"encoding/hex"
 	"encoding/json"
 	"io"
 	"sync"
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/proto"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 
@@ -149,7 +146,8 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 	if len(digest) > 0 {
 		c.latestConfigDigest = &protos.GatewayConfigsDigest{Md5HexDigest: digest}
 	} else {
-		if digest, err = GetMconfigDigest(cfg); err == nil {
+		// TODO(hcgatewood): GetMconfigDigest isn't supposed to be used in the gateway, move this fn to cloud
+		if digest, err = cfg.GetMconfigDigest(); err == nil {
 			c.latestConfigDigest = &protos.GatewayConfigsDigest{Md5HexDigest: digest}
 		} else {
 			glog.Errorf("error encoding mconfig digest: %v", err)
@@ -180,27 +178,6 @@ func (c *Configurator) GetExtraArgs() *any.Any {
 	return nil
 }
 
-// GetMconfigDigest generates a representative hash of the configs (sans metadata).
-func GetMconfigDigest(cfg *protos.GatewayConfigs) (string, error) {
-	configsWithoutMetadata := &protos.GatewayConfigs{ConfigsByKey: cfg.GetConfigsByKey()}
-	serializedConfig, err := encodePbDeterministic(configsWithoutMetadata)
-	if err != nil {
-		return "", err
-	}
-
-	sum := md5.Sum(serializedConfig)
-	digest := hex.EncodeToString(sum[:])
-	return digest, nil
-}
-
 type rawMconfigMsg struct {
 	ConfigsByKey map[string]json.RawMessage
-}
-
-func encodePbDeterministic(pb proto.Message) ([]byte, error) {
-	buf := &proto.Buffer{}
-	buf.SetDeterministic(true)
-
-	err := buf.Marshal(pb)
-	return buf.Bytes(), err
 }
