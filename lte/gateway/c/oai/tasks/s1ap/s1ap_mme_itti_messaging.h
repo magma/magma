@@ -42,6 +42,7 @@
 #include "s1ap_state.h"
 
 extern task_zmq_ctx_t s1ap_task_zmq_ctx;
+extern long s1ap_last_msg_latency;
 
 int s1ap_mme_itti_send_sctp_request(
     STOLEN_REF bstring* payload, const uint32_t sctp_assoc_id_t,

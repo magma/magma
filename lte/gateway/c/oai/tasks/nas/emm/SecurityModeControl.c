@@ -79,6 +79,9 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
+extern long mme_app_last_msg_latency;
+extern long pre_mme_task_msg_latency;
+extern mme_congestion_params_t mme_congestion_params;
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -476,6 +479,32 @@ int emm_proc_security_mode_complete(
   nas_emm_smc_proc_t* smc_proc = get_nas_common_procedure_smc(emm_ctx);
 
   if (smc_proc) {
+    /* Process SMC complete msg only if T3460 timer is running.
+     * If it is not running it means that response was already received for
+     * an earlier attempt.
+     */
+    if (smc_proc->T3460.id == NAS_TIMER_INACTIVE_ID) {
+      OAILOG_WARNING_UE(
+          LOG_NAS_EMM, emm_ctx->_imsi64,
+          "Discarding SMC complete as T3460 timer is not active for "
+          "ueid " MME_UE_S1AP_ID_FMT "\n",
+          ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    }
+
+    /* If spent too much in ZMQ, then discard the packet.
+     * MME is congested and this would create some relief in processing.
+     */
+    if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+        MME_APP_ZMQ_LATENCY_SMC_TH) {
+      OAILOG_WARNING_UE(
+          LOG_NAS_EMM, emm_ctx->_imsi64,
+          "Discarding SMC complete as cumulative ZMQ latency ( %ld + %ld ) for "
+          "ueid " MME_UE_S1AP_ID_FMT " is higher than the threshold.",
+          mme_app_last_msg_latency, pre_mme_task_msg_latency, ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    }
+
     /*
      * Stop timer T3460
      */

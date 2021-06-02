@@ -46,6 +46,9 @@
 #include "emm_asDef.h"
 #include "emm_cnDef.h"
 #include "emm_fsm.h"
+#include "emm_regDef.h"
+#include "mme_app_defs.h"
+#include "mme_app_state.h"
 #include "nas_procedures.h"
 #include "s6a_messages_types.h"
 #include "nas/securityDef.h"
@@ -56,6 +59,9 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
+extern long mme_app_last_msg_latency;
+extern long pre_mme_task_msg_latency;
+extern mme_congestion_params_t mme_congestion_params;
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -886,6 +892,33 @@ int emm_proc_authentication_complete(
       get_nas_common_procedure_authentication(emm_ctx);
 
   if (auth_proc) {
+    /* Process authentication complete msg only if T3460 timer is running.
+     * If it is not running it means that response was already received for
+     * an earlier attempt.
+     */
+    if (auth_proc->T3460.id == NAS_TIMER_INACTIVE_ID) {
+      OAILOG_WARNING_UE(
+          LOG_NAS_EMM, emm_ctx->_imsi64,
+          "Discarding authentication complete as T3460 timer is not active "
+          "for ueid " MME_UE_S1AP_ID_FMT "\n",
+          ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    }
+
+    /* If spent too much in ZMQ, then discard the packet.
+     * MME is congested and this would create some relief in processing.
+     */
+    if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+        MME_APP_ZMQ_LATENCY_AUTH_TH) {
+      OAILOG_WARNING_UE(
+          LOG_NAS_EMM, emm_ctx->_imsi64,
+          "Discarding authentication complete as cumulative ZMQ latency "
+          "( %ld + %ld ) for ueid " MME_UE_S1AP_ID_FMT
+          " is higher than the threshold.",
+          mme_app_last_msg_latency, pre_mme_task_msg_latency, ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+    }
+
     // Stop timer T3460
     REQUIREMENT_3GPP_24_301(R10_5_4_2_4__1);
     void* callback_arg = NULL;

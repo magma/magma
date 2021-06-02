@@ -39,12 +39,17 @@
 #include "emm_fsm.h"
 #include "emm_regDef.h"
 #include "emm_cause.h"
+#include "mme_app_defs.h"
 #include "mme_app_state.h"
 #include "nas_procedures.h"
 
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
+extern long mme_app_last_msg_latency;
+extern long pre_mme_task_msg_latency;
+extern mme_congestion_params_t mme_congestion_params;
+
 extern int check_plmn_restriction(imsi_t imsi);
 extern int validate_imei(imeisv_t* imeisv);
 /****************************************************************************/
@@ -213,6 +218,33 @@ int emm_proc_identification_complete(
         get_nas_common_procedure_identification(emm_ctx);
 
     if (ident_proc) {
+      /* Process identification complete msg only if T3470 timer is running.
+       * If it is not running it means that response was already received for
+       * an earlier attempt.
+       */
+      if (ident_proc->T3470.id == NAS_TIMER_INACTIVE_ID) {
+        OAILOG_WARNING_UE(
+            LOG_NAS_EMM, emm_ctx->_imsi64,
+            "Discarding identification complete as T3470 timer is not active "
+            "for ueid " MME_UE_S1AP_ID_FMT "\n",
+            ue_id);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+      }
+
+      /* If spent too much in ZMQ, then discard the packet.
+       * MME is congested and this would create some relief in processing.
+       */
+      if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+          MME_APP_ZMQ_LATENCY_IDENT_TH) {
+        OAILOG_WARNING_UE(
+            LOG_NAS_EMM, emm_ctx->_imsi64,
+            "Discarding identification complete as cumulative ZMQ latency "
+            "( %ld + %ld ) for ueid " MME_UE_S1AP_ID_FMT
+            " is higher than the threshold.",
+            mme_app_last_msg_latency, pre_mme_task_msg_latency, ue_id);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+      }
+
       REQUIREMENT_3GPP_24_301(R10_5_4_4_4);
       /*
        * Stop timer T3470
