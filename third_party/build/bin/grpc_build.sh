@@ -71,9 +71,7 @@ cmake ../..
 make -j$(nproc)
 make install
 
-# HACK see https://github.com/grpc/grpc/issues/11868
-# package still links to libgrpc++.so.1 even though libgrpc++.so.6 is needed
-ln -sf ${WORK_DIR}/install/usr/local/lib/libgrpc++.so."${GIT_VERSION}" ${WORK_DIR}/install/usr/local/lib/libgrpc++.so.1
+mkdir /tmp/build-grpc-dev/install
 
 # packaging
 PKGFILE="$(pkgfilename)"

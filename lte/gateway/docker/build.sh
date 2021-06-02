@@ -1,28 +1,36 @@
+#!/usr/bin/env bash
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 set -x
 # build container
 
 docker build . -f services/build/Dockerfile
+# echo ${DOCKER_PASSWORD} > /tmp/passfile
+
+build (){
+  docker build . -f services/$1/Dockerfile -t $1
+  #cp built-python > mobilityd
+  #../../../orc8r/tools/docker/publish.sh -r ${DOCKER_REGISTRY} -i $1 -u ${DOCKER_USERNAME} -p /tmp/passfile
+}
 
 
-# # mobilityd
-# docker build . -f services/mobilityd/Dockerfile -t mobilityd
-# # enodedb
-# docker build . -f services/enodedb/Dockerfile -t enodedb
-# # health
-# docker build . -f services/health/Dockerfile -t health
-# # monitord
-# docker build . -f services/monitord/Dockerfile -t monitord
-# # pipelined
-# docker build . -f services/pipelined/Dockerfile -t pipelined
-# # pkt_tester
-# docker build . -f services/pkt_tester/Dockerfile -t pkt_tester
-# # policydb
-# docker build . -f services/policydb/Dockerfile -t policydb
-# # redirectd
-# docker build . -f services/redirectd/Dockerfile -t redirectd
-# # smsd
-# docker build . -f services/smsd/Dockerfile -t smsd
-# # subscriberd
-# docker build . -f services/subscriberd/Dockerfile -t subscriberd
-# # tests
-# docker build . -f services/tests/Dockerfile -t tests
+build mobilityd
+# build enodedb
+# build health
+# build monitord
+# build pipelined
+# build pkt_tester
+# build policydb
+# build redirectd
+# build smsd
+# build subscriberd
+# build tests
