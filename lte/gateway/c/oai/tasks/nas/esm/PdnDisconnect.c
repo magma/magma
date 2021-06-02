@@ -114,7 +114,10 @@ int esm_proc_pdn_disconnect_request(
 
     if (pid >= MAX_APN_PER_UE) {
       OAILOG_ERROR(
-          LOG_NAS_ESM, "ESM-PROC  - No PDN connection found (pti=%d)\n", pti);
+          LOG_NAS_ESM,
+          "ESM-PROC  - No PDN connection found (pti=%d) for ue "
+          "id " MME_UE_S1AP_ID_FMT "\n",
+          pti, ue_id);
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
     }
