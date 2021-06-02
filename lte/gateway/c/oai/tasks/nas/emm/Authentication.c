@@ -183,14 +183,15 @@ int emm_proc_authentication_ksi(
           auth_proc->is_cause_is_attach = true;
           OAILOG_DEBUG(
               LOG_NAS_EMM,
-              "Auth proc cause is EMM_SPEC_PROC_TYPE_ATTACH (%d) for ue_id "
-              "(%u)\n",
+              "Auth proc cause is EMM_SPEC_PROC_TYPE_ATTACH (%d) for "
+              "ue_id " MME_UE_S1AP_ID_FMT "\n",
               emm_specific_proc->type, ue_id);
         } else if (EMM_SPEC_PROC_TYPE_TAU == emm_specific_proc->type) {
           auth_proc->is_cause_is_attach = false;
           OAILOG_DEBUG(
               LOG_NAS_EMM,
-              "Auth proc cause is EMM_SPEC_PROC_TYPE_TAU (%d) for ue_id (%u)\n",
+              "Auth proc cause is EMM_SPEC_PROC_TYPE_TAU (%d) for "
+              "ue_id " MME_UE_S1AP_ID_FMT "\n",
               emm_specific_proc->type, ue_id);
         }
       }
@@ -513,14 +514,18 @@ static int auth_info_proc_success_cb(struct emm_context_s* emm_ctx) {
           OAILOG_WARNING(
               LOG_NAS_EMM,
               "EMM-PROC  - "
-              "Failed to initiate authentication procedure\n");
+              "Failed to initiate authentication procedure for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              ue_id);
           auth_proc->emm_cause = EMM_CAUSE_ILLEGAL_UE;
         }
       } else {
         OAILOG_WARNING(
             LOG_NAS_EMM,
             "EMM-PROC  - "
-            "Failed to initiate authentication procedure\n");
+            "Failed to initiate authentication procedure" MME_UE_S1AP_ID_FMT
+            "\n",
+            ue_id);
         auth_proc->emm_cause = EMM_CAUSE_ILLEGAL_UE;
         rc                   = RETURNerror;
       }
@@ -866,10 +871,6 @@ int emm_proc_authentication_complete(
   int rc = RETURNerror;
   int idx;
   bool is_val_fail = false;
-  OAILOG_INFO(
-      LOG_NAS_EMM,
-      "EMM-PROC  - Authentication complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
-      ue_id);
 
   // Get the UE context
   ue_mm_context_t* ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
@@ -879,12 +880,13 @@ int emm_proc_authentication_complete(
     OAILOG_WARNING(
         LOG_NAS_EMM,
         "EMM-PROC  - Failed to authenticate the UE due to NULL "
-        "ue_mm_context\n");
+        "ue_mm_context " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
+  OAILOG_INFO_UE(
+      LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
       "EMM-PROC  - Authentication complete (ue_id=" MME_UE_S1AP_ID_FMT ")\n",
       ue_id);
   emm_ctx = &ue_mm_context->emm_context;
@@ -998,7 +1000,9 @@ int emm_proc_authentication_complete(
         auth_proc->emm_com_proc.emm_proc.previous_emm_fsm_state;
     rc = emm_sap_send(&emm_sap);
   } else {
-    OAILOG_ERROR(LOG_NAS_EMM, "Auth proc is null");
+    OAILOG_ERROR(
+        LOG_NAS_EMM, "Auth proc is null for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -1081,11 +1085,11 @@ static void authentication_t3460_handler(void* args, imsi64_t* imsi64) {
     // TODO the network shall abort any ongoing EMM specific procedure.
 
     auth_proc->retransmission_count += 1;
-    OAILOG_WARNING(
-        LOG_NAS_EMM,
+    OAILOG_WARNING_UE(
+        LOG_NAS_EMM, *imsi64,
         "EMM-PROC  - T3460 timer expired, retransmission "
-        "counter = %d\n",
-        auth_proc->retransmission_count);
+        "counter = %d for ue id " MME_UE_S1AP_ID_FMT "\n",
+        auth_proc->retransmission_count, auth_proc->ue_id);
 
     ue_id = auth_proc->ue_id;
 
@@ -1400,8 +1404,10 @@ static int authentication_non_delivered_ho(
      */
     if (auth_proc->T3460.id != NAS_TIMER_INACTIVE_ID) {
       OAILOG_INFO(
-          LOG_NAS_EMM, "EMM-PROC  - Stop timer T3460 (%ld)\n",
-          auth_proc->T3460.id);
+          LOG_NAS_EMM,
+          "EMM-PROC  - Stop timer T3460 (%ld) for (ue_id=" MME_UE_S1AP_ID_FMT
+          ")\n",
+          auth_proc->T3460.id, ue_mm_context->mme_ue_s1ap_id);
       nas_stop_T3460(ue_mm_context->mme_ue_s1ap_id, &auth_proc->T3460, NULL);
     }
     /*
@@ -1492,7 +1498,7 @@ static void nas_itti_auth_info_req(
   OAILOG_INFO(
       LOG_NAS_EMM,
       "Sending Authentication Information Request message to S6A"
-      " for ue_id =" MME_UE_S1AP_ID_FMT "\n",
+      " for ue_id = " MME_UE_S1AP_ID_FMT "\n",
       ue_id);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S6A_AUTH_INFO_REQ);
@@ -1513,7 +1519,8 @@ static void nas_itti_auth_info_req(
 
   if (!(auth_info_req->imsi_length > 5) && (auth_info_req->imsi_length < 16)) {
     OAILOG_WARNING(
-        LOG_NAS_EMM, "Bad IMSI length %d", auth_info_req->imsi_length);
+        LOG_NAS_EMM, "Bad IMSI length %d for ue id " MME_UE_S1AP_ID_FMT "\n",
+        auth_info_req->imsi_length, ue_id);
     OAILOG_FUNC_OUT(LOG_NAS);
   }
   auth_info_req->visited_plmn  = *visited_plmnP;
@@ -1537,7 +1544,11 @@ static void nas_itti_auth_info_req(
     memset(auth_info_req->resync_param, 0, sizeof auth_info_req->resync_param);
   } else {
     if (!auts_pP) {
-      OAILOG_WARNING(LOG_NAS_EMM, "Auts Null during resynchronization \n");
+      OAILOG_WARNING(
+          LOG_NAS_EMM,
+          "Auts Null during resynchronization for ue id " MME_UE_S1AP_ID_FMT
+          "\n",
+          ue_id);
       OAILOG_FUNC_OUT(LOG_NAS);
     }
     auth_info_req->re_synchronization = 1;
@@ -1579,15 +1590,15 @@ static void s6a_auth_info_rsp_timer_expiry_handler(
 
     auth_info_proc->timer_s6a.id = NAS_TIMER_INACTIVE_ID;
     if (auth_info_proc->resync) {
-      OAILOG_ERROR(
-          LOG_NAS_EMM,
+      OAILOG_ERROR_UE(
+          LOG_NAS_EMM, *imsi64,
           "EMM-PROC  - Timer timer_s6_auth_info_rsp expired. Resync auth "
           "procedure was in progress. Aborting attach procedure. UE "
           "id " MME_UE_S1AP_ID_FMT "\n",
           auth_info_proc->ue_id);
     } else {
-      OAILOG_ERROR(
-          LOG_NAS_EMM,
+      OAILOG_ERROR_UE(
+          LOG_NAS_EMM, *imsi64,
           "EMM-PROC  - Timer timer_s6_auth_info_rsp expired. Initial auth "
           "procedure was in progress. Aborting attach procedure. UE "
           "id " MME_UE_S1AP_ID_FMT "\n",

@@ -239,7 +239,10 @@ int emm_proc_security_mode_control(
 
       if (rc == RETURNerror) {
         OAILOG_WARNING(
-            LOG_NAS_EMM, "EMM-PROC  - Failed to select security algorithms\n");
+            LOG_NAS_EMM,
+            "EMM-PROC  - Failed to select security "
+            "algorithms " MME_UE_S1AP_ID_FMT "\n",
+            ue_id);
         OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
       }
 
@@ -263,7 +266,11 @@ int emm_proc_security_mode_control(
       emm_ctx_set_attribute_present(emm_ctx, EMM_CTXT_MEMBER_SECURITY);
     }
   } else {
-    OAILOG_ERROR(LOG_NAS_EMM, "EMM-PROC  - No EPS security context exists\n");
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "EMM-PROC  - No EPS security context exists for ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -582,7 +589,8 @@ int emm_proc_security_mode_complete(
         LOG_NAS_EMM,
         "EMM-PROC  - No EPS security context exists. Ignoring the Security "
         "Mode "
-        "Complete message\n");
+        "Complete message for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
     rc = RETURNerror;
   }
 
@@ -739,8 +747,8 @@ static void security_t3460_handler(void* args, imsi64_t* imsi64) {
      * Increment the retransmission counter
      */
     smc_proc->retransmission_count += 1;
-    OAILOG_WARNING(
-        LOG_NAS_EMM,
+    OAILOG_WARNING_UE(
+        LOG_NAS_EMM, *imsi64,
         "EMM-PROC  - T3460 timer expired, retransmission "
         "counter = %d\n",
         smc_proc->retransmission_count);
@@ -831,7 +839,8 @@ static int security_request(nas_emm_smc_proc_t* const smc_proc) {
       emm_ctx = &ue_mm_context->emm_context;
     } else {
       OAILOG_ERROR(
-          LOG_NAS_EMM, "UE MM Context NULL! for ue_id = (%u)\n",
+          LOG_NAS_EMM,
+          "UE MM Context NULL! for ue_id = " MME_UE_S1AP_ID_FMT "\n",
           smc_proc->ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
     }
@@ -957,8 +966,10 @@ static int security_abort(
      */
     if (smc_proc->T3460.id != NAS_TIMER_INACTIVE_ID) {
       OAILOG_INFO(
-          LOG_NAS_EMM, "EMM-PROC  - Stop timer T3460 (%ld)\n",
-          smc_proc->T3460.id);
+          LOG_NAS_EMM,
+          "EMM-PROC  - Stop timer T3460 (%ld) for ue id " MME_UE_S1AP_ID_FMT
+          "\n",
+          smc_proc->T3460.id, ue_id);
       nas_stop_T3460(ue_id, &smc_proc->T3460, NULL);
     }
     /*

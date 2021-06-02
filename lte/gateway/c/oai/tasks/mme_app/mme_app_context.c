@@ -1736,7 +1736,7 @@ void mme_app_handle_enb_reset_req(
   MessageDef* msg;
   itti_s1ap_enb_initiated_reset_ack_t* reset_ack;
 
-  OAILOG_DEBUG(
+  OAILOG_INFO(
       LOG_MME_APP,
       " eNB Reset request received. eNB id = %d, reset_type  %d \n ",
       enb_reset_req->enb_id, enb_reset_req->s1ap_reset_type);
@@ -1766,7 +1766,7 @@ void mme_app_handle_enb_reset_req(
 
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, msg);
 
-  OAILOG_DEBUG(
+  OAILOG_INFO(
       LOG_MME_APP, " Reset Ack sent to S1AP. eNB id = %d, reset_type  %d \n ",
       enb_reset_req->enb_id, enb_reset_req->s1ap_reset_type);
 

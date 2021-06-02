@@ -768,9 +768,9 @@ int sgw_handle_sgi_endpoint_deleted(
       char* ip_str = inet_ntoa(ue_ipv4);
       rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4);
       if (rv < 0) {
-        OAILOG_ERROR(
-            LOG_SPGW_APP, "ERROR in deleting paging rule for IP Addr: %s\n",
-            ip_str);
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, imsi64,
+            "ERROR in deleting paging rule for IP Addr: %s\n", ip_str);
       } else {
         OAILOG_DEBUG(LOG_SPGW_APP, "Stopped paging for IP Addr: %s\n", ip_str);
       }
@@ -889,8 +889,9 @@ int send_mbr_failure(
       itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
 
   if (!message_p) {
-    OAILOG_ERROR(
-        module, "S11_MODIFY_BEARER_RESPONSE memory allocation failed\n");
+    OAILOG_ERROR_UE(
+        module, imsi64,
+        "S11_MODIFY_BEARER_RESPONSE memory allocation failed\n");
     OAILOG_FUNC_RETURN(module, RETURNerror);
   }
 
@@ -1026,8 +1027,8 @@ int sgw_handle_modify_bearer_request(
   } else {  // bearer_ctxt_info_p not found
     rv = send_mbr_failure(LOG_SPGW_APP, modify_bearer_pP, imsi64);
     if (rv != RETURNok) {
-      OAILOG_ERROR(
-          LOG_SPGW_APP,
+      OAILOG_ERROR_UE(
+          LOG_SPGW_APP, imsi64,
           "Error in sending modify bearer response to MME App for the failed "
           "bearers, teid" TEID_FMT "\n",
           modify_bearer_pP->teid);
@@ -2291,8 +2292,9 @@ void sgw_process_release_access_bearer_request(
       // Convert to string for logging
       char* ip_str = inet_ntoa(eps_bearer_ctxt->paa.ipv4_address);
       if (rv < 0) {
-        OAILOG_ERROR(
-            module, "ERROR in setting paging rule for IP Addr: %s\n", ip_str);
+        OAILOG_ERROR_UE(
+            module, imsi64, "ERROR in setting paging rule for IP Addr: %s\n",
+            ip_str);
       } else {
         OAILOG_DEBUG(module, "Set the paging rule for IP Addr: %s\n", ip_str);
       }

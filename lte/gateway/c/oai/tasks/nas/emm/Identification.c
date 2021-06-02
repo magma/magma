@@ -124,8 +124,9 @@ int emm_proc_identification(
 
     OAILOG_INFO(
         LOG_NAS_EMM,
-        "EMM-PROC  - Initiate identification type = %s (%d), ctx = %p\n",
-        emm_identity_type_str[type], type, emm_context);
+        "EMM-PROC  - Initiate identification type = %s (%d), ctx = %p for ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        emm_identity_type_str[type], type, emm_context, ue_id);
 
     nas_emm_ident_proc_t* ident_proc =
         nas_new_identification_procedure(emm_context);
@@ -253,10 +254,11 @@ int emm_proc_identification_complete(
       nas_stop_T3470(ue_id, &ident_proc->T3470, timer_callback_args);
 
       if (imsi) {
-        int emm_cause = check_plmn_restriction(*imsi);
+        imsi64_t imsi64 = imsi_to_imsi64(imsi);
+        int emm_cause   = check_plmn_restriction(*imsi);
         if (emm_cause != EMM_CAUSE_SUCCESS) {
-          OAILOG_ERROR(
-              LOG_NAS_EMM,
+          OAILOG_ERROR_UE(
+              LOG_NAS_EMM, imsi64,
               "EMMAS-SAP - Sending Attach Reject for ue_id =" MME_UE_S1AP_ID_FMT
               ", emm_cause (%d)\n",
               ue_id, emm_cause);
@@ -267,7 +269,6 @@ int emm_proc_identification_complete(
         /*
          * Update the IMSI
          */
-        imsi64_t imsi64 = imsi_to_imsi64(imsi);
         emm_ctx_set_valid_imsi(emm_ctx, imsi, imsi64);
         emm_context_upsert_imsi(&_emm_data, emm_ctx);
       } else if (imei) {
@@ -520,8 +521,10 @@ static int identification_non_delivered_ho(
        */
       if (ident_proc->T3470.id != NAS_TIMER_INACTIVE_ID) {
         OAILOG_INFO(
-            LOG_NAS_EMM, "EMM-PROC  - Stop timer T3460 (%ld)\n",
-            ident_proc->T3470.id);
+            LOG_NAS_EMM,
+            "EMM-PROC  - Stop timer T3460 (%ld) for ue id " MME_UE_S1AP_ID_FMT
+            "\n",
+            ident_proc->T3470.id, ident_proc->ue_id);
         nas_stop_T3470(ident_proc->ue_id, &ident_proc->T3470, NULL);
       }
       /*

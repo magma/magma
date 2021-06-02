@@ -163,8 +163,9 @@ esm_cause_t esm_recv_pdn_connectivity_request(
      */
     OAILOG_ERROR(
         LOG_NAS_ESM,
-        "ESM-SAP   - Invalid PTI value (pti=%d) for (ue_id = %u) \n", pti,
-        ue_id);
+        "ESM-SAP   - Invalid PTI value (pti=%d) for (ue_id "
+        "= " MME_UE_S1AP_ID_FMT ") \n",
+        pti, ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_PTI_VALUE);
   }
   /*
@@ -177,7 +178,8 @@ esm_cause_t esm_recv_pdn_connectivity_request(
      */
     OAILOG_ERROR(
         LOG_NAS_ESM,
-        "ESM-SAP   - Invalid EPS bearer identity (ebi=%d) for (ue_id = %u)\n",
+        "ESM-SAP   - Invalid EPS bearer identity (ebi=%d) for (ue_id "
+        "= " MME_UE_S1AP_ID_FMT ")\n",
         ebi, ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
@@ -218,7 +220,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     OAILOG_ERROR(
         LOG_NAS_ESM,
         "ESM-SAP   - Invalid PDN request type (INITIAL/HANDOVER/EMERGENCY) for "
-        "(ue_id = %u)\n",
+        "(ue_id = " MME_UE_S1AP_ID_FMT ")\n",
         ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_MANDATORY_INFO);
   }
@@ -240,7 +242,9 @@ esm_cause_t esm_recv_pdn_connectivity_request(
      * Unkown PDN type
      */
     OAILOG_ERROR(
-        LOG_NAS_ESM, "ESM-SAP   - Invalid PDN type for (ue_id = %u)\n", ue_id);
+        LOG_NAS_ESM,
+        "ESM-SAP   - Invalid PDN type for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_UNKNOWN_PDN_TYPE);
   }
 
@@ -253,8 +257,10 @@ esm_cause_t esm_recv_pdn_connectivity_request(
       esm_data->apn = mme_app_process_apn_correction(
           &(emm_context->_imsi), msg->accesspointname);
       OAILOG_INFO(
-          LOG_NAS_ESM, "ESM-SAP   - APN CORRECTION (apn = %s)\n",
-          (const char*) bdata(esm_data->apn));
+          LOG_NAS_ESM,
+          "ESM-SAP   - APN CORRECTION (apn = %s) for ue id " MME_UE_S1AP_ID_FMT
+          "\n",
+          (const char*) bdata(esm_data->apn), ue_id);
     } else {
       esm_data->apn = msg->accesspointname;
     }
@@ -373,7 +379,9 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     // Send PDN Connectivity req
     OAILOG_INFO(
         LOG_NAS_ESM,
-        "ESM-PROC - Sending pdn_connectivity_req to MME APP for ue %d", ue_id);
+        "ESM-PROC - Sending pdn_connectivity_req to MME APP for "
+        "ue " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
 
     emm_context->esm_ctx.is_standalone = true;
 
@@ -479,8 +487,10 @@ esm_cause_t esm_recv_pdn_disconnect_request(
               ->pdn_cx_id;
     if (pid >= MAX_APN_PER_UE) {
       OAILOG_ERROR(
-          LOG_NAS_ESM, "ESM-PROC  - No PDN connection found (lbi=%u)\n",
-          msg->linkedepsbeareridentity);
+          LOG_NAS_ESM,
+          "ESM-PROC  - No PDN connection found (lbi=%u) for ue "
+          "id " MME_UE_S1AP_ID_FMT "\n",
+          msg->linkedepsbeareridentity, ue_mm_context_p->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
     }
 
@@ -499,16 +509,17 @@ esm_cause_t esm_recv_pdn_disconnect_request(
       OAILOG_ERROR(
           LOG_NAS_ESM,
           "ESM-PROC  - Cannot perform PDN disconnect for dedicated bearer "
-          "(lbi=%u)\n",
-          msg->linkedepsbeareridentity);
+          "(lbi=%u) " MME_UE_S1AP_ID_FMT "\n",
+          msg->linkedepsbeareridentity, ue_mm_context_p->mme_ue_s1ap_id);
 
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
     }
   } else {
     OAILOG_ERROR(
         LOG_NAS_ESM,
-        "ESM-PROC  - No bearer context found, invalid bearer id (lbi=%u)\n",
-        msg->linkedepsbeareridentity);
+        "ESM-PROC  - No bearer context found, invalid bearer id (lbi=%u) for "
+        "ue id " MME_UE_S1AP_ID_FMT "\n",
+        msg->linkedepsbeareridentity, ue_mm_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
@@ -539,7 +550,7 @@ esm_cause_t esm_recv_information_response(
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Received ESM Information response message "
-      "(ue_id=%d, pti=%d, ebi=%d)\n",
+      "(ue_id=" MME_UE_S1AP_ID_FMT ", pti=%d, ebi=%d)\n",
       ue_id, pti, ebi);
 
   /*
@@ -572,8 +583,10 @@ esm_cause_t esm_recv_information_response(
     apn = mme_app_process_apn_correction(
         &(emm_context->_imsi), msg->accesspointname);
     OAILOG_INFO(
-        LOG_NAS_ESM, "ESM-SAP   - APN CORRECTION (apn = %s)\n",
-        (const char*) bdata(apn));
+        LOG_NAS_ESM,
+        "ESM-SAP   - APN CORRECTION (apn = %s) for ue id " MME_UE_S1AP_ID_FMT
+        "\n",
+        (const char*) bdata(apn), ue_id);
   }
 
   /*
@@ -642,9 +655,9 @@ static void erab_setup_rsp_tmr_exp_handler(void* args, imsi64_t* imsi64) {
     if (!bearer_ctx) {
       OAILOG_ERROR(
           LOG_NAS_ESM,
-          "Bearer context is NULL for (ebi=%u)"
+          "Bearer context is NULL for (ebi=%u) for ue id" MME_UE_S1AP_ID_FMT
           "\n",
-          esm_ebr_timer_data->ebi);
+          esm_ebr_timer_data->ebi, esm_ebr_timer_data->ue_id);
       OAILOG_FUNC_OUT(LOG_NAS_ESM);
     }
     if (!bearer_ctx->enb_fteid_s1u.teid) {
@@ -683,9 +696,9 @@ static void erab_setup_rsp_tmr_exp_handler(void* args, imsi64_t* imsi64) {
       if (rc != RETURNok) {
         OAILOG_ERROR(
             LOG_NAS_ESM,
-            "ESM-SAP - Sending Modify bearer req failed for (ebi=%u)"
-            "\n",
-            esm_ebr_timer_data->ebi);
+            "ESM-SAP - Sending Modify bearer req failed for "
+            "(ebi=%u)" MME_UE_S1AP_ID_FMT "\n",
+            esm_ebr_timer_data->ebi, esm_ebr_timer_data->ue_id);
       }
       if (bearer_ctx->esm_ebr_context.timer.id != NAS_TIMER_INACTIVE_ID) {
         bearer_ctx->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
@@ -729,7 +742,7 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Received Activate Default EPS Bearer Context "
-      "Accept message (ue_id=%d, pti=%d, ebi=%d)\n",
+      "Accept message (ue_id=" MME_UE_S1AP_ID_FMT ", pti=%d, ebi=%d)\n",
       ue_id, pti, ebi);
 
   /*
@@ -782,9 +795,9 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
     if (!bearer_ctx) {
       OAILOG_ERROR(
           LOG_NAS_ESM,
-          "Bearer context is NULL for (ebi=%u)"
+          "Bearer context is NULL for (ebi=%u) for ue id " MME_UE_S1AP_ID_FMT
           "\n",
-          ebi);
+          ebi, ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
     }
     /* Send MBR only after receiving ERAB_SETUP_RSP.
@@ -795,9 +808,9 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
       if (rc != RETURNok) {
         OAILOG_ERROR(
             LOG_NAS_ESM,
-            "ESM-SAP - Sending Modify bearer req failed for (ebi=%u)"
-            "\n",
-            ebi);
+            "ESM-SAP - Sending Modify bearer req failed for "
+            "(ebi=%u)" MME_UE_S1AP_ID_FMT "\n",
+            ebi, ue_id);
         OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
       }
       OAILOG_DEBUG(
@@ -860,7 +873,7 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_reject(
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Received Activate Default EPS Bearer Context "
-      "Reject message (ue_id=%d, pti=%d, ebi=%d)\n",
+      "Reject message (ue_id=" MME_UE_S1AP_ID_FMT ", pti=%d, ebi=%d)\n",
       ue_id, pti, ebi);
 
   /*
@@ -1013,7 +1026,7 @@ esm_cause_t esm_recv_activate_dedicated_eps_bearer_context_reject(
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Received Activate Dedicated EPS Bearer "
-      "Context Reject message (ue_id=%d, pti=%d, ebi=%d)\n",
+      "Context Reject message (ue_id=" MME_UE_S1AP_ID_FMT ", pti=%d, ebi=%d)\n",
       ue_id, pti, ebi);
 
   /*
@@ -1089,7 +1102,7 @@ esm_cause_t esm_recv_deactivate_eps_bearer_context_accept(
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Received Deactivate EPS Bearer Context "
-      "Accept message (ue_id=%d, pti=%d, ebi=%d)\n",
+      "Accept message (ue_id=" MME_UE_S1AP_ID_FMT ", pti=%d, ebi=%d)\n",
       ue_id, pti, ebi);
 
   /*

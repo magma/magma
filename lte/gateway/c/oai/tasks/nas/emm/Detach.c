@@ -109,8 +109,8 @@ void detach_t3422_handler(void* args, imsi64_t* imsi64) {
   OAILOG_WARNING(
       LOG_NAS_EMM,
       "EMM-PROC: T3422 timer expired,retransmission "
-      "counter = %d\n",
-      data->retransmission_count);
+      "counter = %d for ue id " MME_UE_S1AP_ID_FMT "\n",
+      data->retransmission_count, ue_id);
 
   if (data->retransmission_count < DETACH_REQ_COUNTER_MAX) {
     // Resend detach request message to the UE
@@ -234,8 +234,10 @@ int emm_proc_detach(mme_ue_s1ap_id_t ue_id, emm_proc_detach_type_t type) {
   int rc = RETURNerror;
 
   OAILOG_INFO(
-      LOG_NAS_EMM, "EMM-PROC  - Initiate detach type = %s (%d)",
-      emm_detach_type_str[type], type);
+      LOG_NAS_EMM,
+      "EMM-PROC  - Initiate detach type = %s (%d) for ue id " MME_UE_S1AP_ID_FMT
+      "\n",
+      emm_detach_type_str[type], type, ue_id);
   /*
    * TODO
    */
@@ -560,7 +562,8 @@ int emm_proc_nw_initiated_detach_request(
           OAILOG_ERROR(
               LOG_NAS_EMM,
               "Failed to allocate memory for 3422 timer argument. Didn't start "
-              "the 3422 timer \n");
+              "the 3422 timer for ue id " MME_UE_S1AP_ID_FMT "\n",
+              ue_id);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
         }
         data->ue_id                = ue_id;
