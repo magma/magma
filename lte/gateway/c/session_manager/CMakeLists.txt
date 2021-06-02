@@ -169,6 +169,8 @@ add_library(SESSION_MANAGER
     GrpcMagmaUtils.h
     SetMessageManagerHandler.h
     SetMessageManagerHandler.cpp
+    UpfMsgManageHandler.h
+    UpfMsgManageHandler.cpp
     SessionStateEnforcer.h
     SessionStateEnforcer.cpp
     AmfServiceClient.h
