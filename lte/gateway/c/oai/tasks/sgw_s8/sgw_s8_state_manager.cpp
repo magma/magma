@@ -82,8 +82,6 @@ void SgwStateManager::create_state() {
     return;
   }
 
-  state_cache_p->tunnel_id = 0;
-
   state_cache_p->s1u_teid   = INITIAL_SGW_S8_S1U_TEID;
   state_cache_p->s5s8u_teid = 0;
   bdestroy_wrapper(&b);

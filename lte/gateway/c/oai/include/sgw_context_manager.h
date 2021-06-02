@@ -41,7 +41,6 @@ void sgw_display_s11_bearer_context_information(
     sgw_eps_bearer_context_information_t* sgw_context_information);
 void pgw_lite_cm_free_apn(pgw_apn_t** apnP);
 
-void sgw_get_new_S11_tunnel_id(teid_t* tunnel_id);
 mme_sgw_tunnel_t* sgw_cm_create_s11_tunnel(
     teid_t remote_teid, teid_t local_teid);
 s_plus_p_gw_eps_bearer_context_information_t*
