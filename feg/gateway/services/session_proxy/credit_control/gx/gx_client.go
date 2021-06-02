@@ -14,6 +14,7 @@ limitations under the License.
 package gx
 
 import (
+	"math"
 	"math/rand"
 	"net"
 	"os"
@@ -33,6 +34,14 @@ import (
 
 const (
 	defaultFramedIpv4Addr = "10.10.10.10"
+)
+
+// Flag definitions
+type FlagBit int
+
+const (
+	EmptyFlagBit FlagBit = 0
+	FlagBit7     FlagBit = 1 << 7
 )
 
 // PolicyClient is an interface to define something that sends requests over Gx.
@@ -291,6 +300,7 @@ func (gxClient *GxClient) createCreditControlMessage(
 
 // init message
 func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlRequest) {
+	// Feature-List-ID 1
 	m.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
@@ -299,6 +309,18 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 			diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(3)),
 		},
 	})
+
+	addFeatureListId2IfNeeded(m, request)
+
+	m.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+		AVP: []*diam.AVP{
+			diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
+			diam.NewAVP(avp.FeatureListID, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(2)),
+			// Set Bit 0 and Bit 1
+			diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(3)),
+		},
+	})
+
 	// NETWORK_REQUEST_NOT_SUPPORTED(0)
 	m.NewAVP(avp.NetworkRequestSupport, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0))
 	// DISABLE_OFFLINE(0)
@@ -341,12 +363,7 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 		})
 	}
 	if request.Qos != nil {
-		m.NewAVP(avp.QoSInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
-			AVP: []*diam.AVP{
-				diam.NewAVP(avp.APNAggregateMaxBitrateDL, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(request.Qos.ApnAggMaxBitRateDL)),
-				diam.NewAVP(avp.APNAggregateMaxBitrateUL, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(request.Qos.ApnAggMaxBitRateUL)),
-			},
-		})
+		m.NewAVP(avp.QoSInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{AVP: getQoSInformation(request.Qos)})
 
 		var arpAVP *diam.AVP
 		if gxClient.pcrf91Compliant {
@@ -378,6 +395,37 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 	if request.AccessTimezone != nil {
 		timezone := GetTimezoneByte(request.AccessTimezone)
 		m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString([]byte{timezone, 0}))
+	}
+}
+
+func addFeatureListId2IfNeeded(m *diam.Message, request *CreditControlRequest) {
+	if request.Qos != nil && request.Qos.ApnExtendedAggMaxBitRateUL != 0 &&
+		request.Qos.ApnExtendedAggMaxBitRateDL != 0 {
+
+		m.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+			AVP: []*diam.AVP{
+				diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
+				diam.NewAVP(avp.FeatureListID, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(2)),
+				// Set Bit 7 Extended-BW-NR -> 3GPP 29.212 4.5.30
+				diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(FlagBit7)),
+			},
+		})
+	}
+}
+
+// 3GPP 29.212 4.5.30
+func getQoSInformation(qos *QosRequestInfo) []*diam.AVP {
+	if qos.ApnExtendedAggMaxBitRateDL != 0 || qos.ApnExtendedAggMaxBitRateUL != 0 {
+		return []*diam.AVP{
+			diam.NewAVP(avp.APNAggregateMaxBitrateDL, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(math.MaxUint32)),
+			diam.NewAVP(avp.APNAggregateMaxBitrateUL, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(math.MaxUint32)),
+			diam.NewAVP(avp.ExtendedAPNAMBRDL, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(qos.ApnExtendedAggMaxBitRateDL)),
+			diam.NewAVP(avp.ExtendedAPNAMBRUL, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(qos.ApnExtendedAggMaxBitRateUL)),
+		}
+	}
+	return []*diam.AVP{
+		diam.NewAVP(avp.APNAggregateMaxBitrateDL, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(qos.ApnAggMaxBitRateDL)),
+		diam.NewAVP(avp.APNAggregateMaxBitrateUL, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(qos.ApnAggMaxBitRateUL)),
 	}
 }
 
