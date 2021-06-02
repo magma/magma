@@ -50,9 +50,9 @@ type PartyInformation struct {
 }
 
 type PartyIdentity struct {
-	IMEI   []byte `asn1:"optional,tag:1"`
-	IMSI   []byte `asn1:"optional,tag:3"`
-	MSISDN []byte `asn1:"optional,tag:6"`
+	IMEI   []byte `asn1:"optional,omitempty,tag:1"`
+	IMSI   []byte `asn1:"optional,omitempty,tag:3"`
+	MSISDN []byte `asn1:"optional,omitempty,tag:6"`
 }
 
 type NetworkIdentifier struct {

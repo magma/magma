@@ -16,7 +16,10 @@ package encoding
 import (
 	"encoding/asn1"
 	"encoding/binary"
+	"encoding/hex"
 	"net"
+	"strconv"
+	"strings"
 	"time"
 
 	"magma/lte/cloud/go/services/nprobe"
@@ -35,8 +38,98 @@ func convertUint32ToBytes(v uint32) []byte {
 	return o
 }
 
-// encodeGeneralizedTime parses timestamp and marshals it to
-// a byte sequence
+// encodeAPN encodes APN to a byte sequence as specified in TS 33.108
+func encodeAPN(apn string) []byte {
+	encodedAPN := []byte{}
+	if alen := len(apn); alen > 0 {
+		encodedAPN = append(encodedAPN, byte(alen))
+		encodedAPN = append(encodedAPN, []byte(apn)...)
+	}
+	return encodedAPN
+}
+
+// encodeUserLocation encodes user location to a byte sequence as specified in TS 33.108
+func encodeUserLocation(s string) []byte {
+	userLocation := strings.Join(strings.Fields(s), "")
+	if len(userLocation) == 0 {
+		return []byte{}
+	}
+
+	encodeUL, err := hex.DecodeString(userLocation)
+	if err != nil {
+		return []byte{}
+	}
+	return encodeUL
+}
+
+// encodeIMSI encodes IMSI to a byte sequence as specified in TS 33.108
+func encodeIMSI(s string) []byte {
+	encodedIMSI := []byte{}
+	imsi := strings.TrimPrefix(s, "IMSI")
+	if len(imsi) < 6 || len(imsi) > 16 {
+		return encodedIMSI
+	}
+
+	for idx := 0; idx+1 < len(imsi); idx += 2 {
+		firstDigit, err := strconv.Atoi(string(imsi[idx]))
+		if err != nil {
+			return []byte{}
+		}
+		secondDigit, err := strconv.Atoi(string(imsi[idx+1]))
+		if err != nil {
+			return []byte{}
+		}
+		encodedIMSI = append(encodedIMSI, byte((secondDigit<<4)+firstDigit))
+	}
+	if len(imsi)%2 == 1 {
+		digit, err := strconv.Atoi(imsi[len(imsi)-1:])
+		if err != nil {
+			return []byte{}
+		}
+		encodedIMSI = append(encodedIMSI, byte(0xF0+digit))
+	}
+	return encodedIMSI
+}
+
+// encodeIMEI encodes IMEI to a byte sequence as specified in TS 33.108
+func encodeIMEI(imei []rune) []byte {
+	iLen := len(imei)
+	if iLen != 15 && iLen != 16 {
+		return []byte{}
+	}
+
+	// encode snr and tac
+	encodedIMEI := make([]byte, 8)
+	for idx := 0; idx+1 < len(imei)-2; idx += 2 {
+		firstDigit := int(imei[idx])
+		secondDigit := int(imei[idx+1])
+		i := 3 - idx/2
+		if idx >= 8 {
+			i = 7 - idx/2 + 3
+		}
+		encodedIMEI[i] = byte((firstDigit << 4) + secondDigit)
+	}
+
+	// encode spare
+	lastDigit := int(imei[iLen-1])
+	if iLen%2 == 1 {
+		encodedIMEI[7] = byte(0xF0 + lastDigit)
+	} else {
+		encodedIMEI[7] = byte((int(imei[iLen-2]) << 4) + lastDigit)
+	}
+	return encodedIMEI
+}
+
+// encodeUnixTime encodes unix time to a byte sequence
+func encodeUnixTime(timestamp time.Time) []byte {
+	unix := convertUint32ToBytes(uint32(timestamp.Unix()))
+	return append(
+		unix,
+		convertUint32ToBytes(uint32(timestamp.Nanosecond()))...,
+	)
+}
+
+// encodeGeneralizedTime encodes timestamp to a byte sequence as specified in TS 33.108
 func encodeGeneralizedTime(timestamp time.Time) []byte {
 	formatStr := "20060102150405.000"
 	return []byte(timestamp.Format(formatStr))
@@ -130,9 +223,9 @@ func makePdnAddressAllocation(event *models.Event) []byte {
 // makeEPSLocation returns an EPSLocation object as definied in the asn1 schema
 func makeEPSLocation(event *models.Event) EPSLocation {
 	eventData := event.Value.(map[string]interface{})
-	if userLocation, ok := eventData["user_location"]; ok {
+	if v, ok := eventData["user_location"]; ok {
 		return EPSLocation{
-			UserLocationInfo: []byte(userLocation.(string)),
+			UserLocationInfo: encodeUserLocation(v.(string)),
 		}
 	}
 	return EPSLocation{}
@@ -140,21 +233,22 @@ func makeEPSLocation(event *models.Event) EPSLocation {
 
 // makePartyInformation returns a PartyInformation slice as defined in the asn1 schema
 func makePartyInformation(event *models.Event) []PartyInformation {
-	var infoIdentity PartyIdentity
+	partyID := PartyIdentity{}
 	eventData := event.Value.(map[string]interface{})
-	if imsi, ok := eventData["imsi"]; ok {
-		infoIdentity.IMSI = []byte(imsi.(string))
+	if v, ok := eventData["imsi"]; ok {
+		partyID.IMSI = encodeIMSI(v.(string))
 	}
-	if imei, ok := eventData["imei"]; ok {
-		infoIdentity.IMEI = []byte(imei.(string))
+	if v, ok := eventData["imei"]; ok {
+		partyID.IMEI = encodeIMEI([]rune(v.(string)))
 	}
-	if msisdn, ok := eventData["msisdn"]; ok {
-		infoIdentity.MSISDN = []byte(msisdn.(string))
+	if v, ok := eventData["msisdn"]; ok {
+		msisdn := v.(string)
+		partyID.MSISDN = []byte(msisdn)
 	}
 	return []PartyInformation{
 		{
 			PartyQualified: PartyQualifierTarget,
-			PartyIdentity:  infoIdentity,
+			PartyIdentity:  partyID,
 		},
 	}
 }

@@ -69,8 +69,6 @@ func GetServiceConfig() Config {
 		}
 		if overrideConfig.DeliveryServer != "" {
 			serviceConfig.DeliveryServer = overrideConfig.DeliveryServer
-		}
-		if !overrideConfig.SkipVerifyServer {
 			serviceConfig.SkipVerifyServer = overrideConfig.SkipVerifyServer
 		}
 	}

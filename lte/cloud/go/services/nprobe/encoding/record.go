@@ -74,14 +74,14 @@ func (r *EpsIRIRecord) Decode(b []byte) error {
 // ETSI TS 103 221-2
 func makeConditionalAttributes(
 	streamName, targetID string,
-	timestamp uint64,
+	timestamp time.Time,
 	seqNbr uint32,
 ) ([]Attribute, uint32) {
 	attrs := []Attribute{}
 	attrs = append(attrs, NewAttribute(AttributeNetworkFn, []byte(streamName)))
 	attrs = append(attrs, NewAttribute(AttributeTargetID, []byte(targetID)))
 	attrs = append(attrs, NewAttribute(AttributeSeqNumber, convertUint32ToBytes(seqNbr)))
-	attrs = append(attrs, NewAttribute(AttributeTimestamp, convertUint64ToBytes(timestamp)))
+	attrs = append(attrs, NewAttribute(AttributeTimestamp, encodeUnixTime(timestamp)))
 
 	attrs_len := uint32(0)
 	for _, attr := range attrs {
@@ -102,6 +102,7 @@ func makeEpsIRIContent(
 	// build iri content
 	return EpsIRIContent{
 		Hi2epsDomainID:        GetOID(),
+		LawInterceptID:        []byte{0x0}, // not used but required by ASN1 schema
 		TimeStamp:             makeTimestamp(timestamp),
 		Initiator:             InitiatorNotAvailable,
 		PartyInformation:      makePartyInformation(event),
@@ -125,7 +126,7 @@ func MakeRecord(
 		return []byte{}, fmt.Errorf("Unsupported event type %s\n", event.EventType)
 	}
 
-	ptime, err := time.Parse(time.RFC3339Nano, event.Timestamp)
+	timestamp, err := time.Parse(time.RFC3339Nano, event.Timestamp)
 	if err != nil {
 		return []byte{}, err
 	}
@@ -133,7 +134,7 @@ func MakeRecord(
 	attrs, attrs_len := makeConditionalAttributes(
 		event.StreamName,
 		task.TaskDetails.TargetID,
-		uint64(ptime.UnixNano()),
+		timestamp,
 		sequenceNbr,
 	)
 
@@ -145,7 +146,7 @@ func MakeRecord(
 	correlationID := task.TaskDetails.CorrelationID
 	record := EpsIRIRecord{
 		Header:  NewEpsIRIHeader(uuid, correlationID, attrs, attrs_len),
-		Payload: makeEpsIRIContent(event, eventID, correlationID, operatorID, ptime),
+		Payload: makeEpsIRIContent(event, eventID, correlationID, operatorID, timestamp),
 	}
 	return record.Encode()
 }
