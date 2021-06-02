@@ -19,28 +19,36 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-// EncodeProtosDeterministic deterministically encodes a slice of protobuf messages,
-// indexed by a unique identifier string, utilizing encodeProtoDeterministic
-func EncodeProtosDeterministic(protoSlice map[string]proto.Message) ([]byte, error) {
-	protoBytes := map[string][]byte{}
+// MarshalManyDeterministic deterministically encodes a slice of protobuf messages,
+// indexed by a unique identifier string, utilizing MarshalDeterministic
+//
+// The function individually serializes each proto in order to standardize the data
+// into a uniform format to fit into a generic map<string, bytes> field (ProtoBytes).
+//
+// An alternative is using protobuf library's any.Any type, which requires individual
+// serialization as well, plus providing a uniquely identifying URL for each message,
+// making it unnecessarily complicated in comparison, if we only want a deterministic
+// encoding of the input.
+func MarshalManyDeterministic(protoSlice map[string]proto.Message) ([]byte, error) {
+	protoBytesByID := map[string][]byte{}
 	for id, proto := range protoSlice {
-		bytes, err := EncodeProtoDeterministic(proto)
+		bytes, err := MarshalDeterministic(proto)
 		if err != nil {
 			return nil, err
 		}
-		protoBytes[id] = bytes
+		protoBytesByID[id] = bytes
 	}
 
-	return EncodeProtoDeterministic(&protos.ProtoSlice{ProtoBytes: protoBytes})
+	return MarshalDeterministic(&protos.ProtoSlice{ProtoBytes: protoBytesByID})
 }
 
-// EncodeProtoDeterministic encodes protobuf while enforcing deterministic serialization.
+// MarshalDeterministic encodes protobuf while enforcing deterministic serialization.
 // NOTE: deterministic != canonical, so do not expect this encoding to be
 // equal across languages or even versions of golang/protobuf/proto.
 // For further reading, see below.
 // 	- https://developers.google.com/protocol-buffers/docs/encoding#implications
 //	- https://gist.github.com/kchristidis/39c8b310fd9da43d515c4394c3cd9510
-func EncodeProtoDeterministic(pb proto.Message) ([]byte, error) {
+func MarshalDeterministic(pb proto.Message) ([]byte, error) {
 	buf := &proto.Buffer{}
 	buf.SetDeterministic(true)
 
