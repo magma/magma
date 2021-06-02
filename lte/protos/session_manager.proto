@@ -1014,7 +1014,9 @@ service SetInterfaceForUserPlane {
 
 //SET API for 3 procedures request from AMF to SMF
 service AmfPduSessionSmContext {
+  // PDU session related configuration from amf to smf
   rpc SetAmfSessionContext(SetSMSessionContext) returns (SmContextVoid) {}
+  // PDU session related notification from amf to smf
   rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid);    //AMF to SMF
 }
 

@@ -7294,7 +7294,9 @@ var _SetInterfaceForUserPlane_serviceDesc = grpc.ServiceDesc{
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type AmfPduSessionSmContextClient interface {
+	// PDU session related configuration from amf to smf
 	SetAmfSessionContext(ctx context.Context, in *SetSMSessionContext, opts ...grpc.CallOption) (*SmContextVoid, error)
+	// PDU session related notification from amf to smf
 	SetSmfNotification(ctx context.Context, in *SetSmNotificationContext, opts ...grpc.CallOption) (*SmContextVoid, error)
 }
 
@@ -7326,7 +7328,9 @@ func (c *amfPduSessionSmContextClient) SetSmfNotification(ctx context.Context, i
 
 // AmfPduSessionSmContextServer is the server API for AmfPduSessionSmContext service.
 type AmfPduSessionSmContextServer interface {
+	// PDU session related configuration from amf to smf
 	SetAmfSessionContext(context.Context, *SetSMSessionContext) (*SmContextVoid, error)
+	// PDU session related notification from amf to smf
 	SetSmfNotification(context.Context, *SetSmNotificationContext) (*SmContextVoid, error)
 }
 
