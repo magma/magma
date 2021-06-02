@@ -600,3 +600,27 @@ def _check_resubmit_action(actions, parser):
         raise Exception(
             'Actions list should not contain NXActionResubmitTable',
         )
+
+
+def send_stats_request(datapath, tbl_num, cookie: hex = 0, 
+                       cookie_mask: hex = 0, retries: int=3):
+    """
+    Send a stats request msg 
+    Args:
+        datapath (ryu.controller.controller.Datapath):
+            Datapath to query from
+        table (int): Table number to query for
+        cookie (hex): cookie value for the request
+        cookie_mask(hex): cookie mask for the request
+    """
+    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
+    req = parser.OFPFlowStatsRequest(
+        datapath,
+        table_id=tbl_num,
+        out_group=ofproto.OFPG_ANY,
+        out_port=ofproto.OFPP_ANY,
+        cookie = cookie,
+        cookie_mask = cookie_mask,
+    )
+    logger.debug('flowmod: %s (table %d)', req, tbl_num)
+    messages.send_msg(datapath, req, retries)
