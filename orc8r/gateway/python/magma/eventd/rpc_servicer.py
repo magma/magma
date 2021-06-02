@@ -56,7 +56,8 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
             logging.error("KeyError for log: %s. Error: %s", request, e)
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
             context.set_details(
-                'Event validation failed, Details: {}'.format(e))
+                'Event validation failed, Details: {}'.format(e),
+            )
             return
 
         value = {
@@ -67,19 +68,25 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
             'retry_on_failure': self._needs_retries(request.event_type),
         }
         try:
-            with closing(socket.create_connection(
-                    ('localhost', self._fluent_bit_port),
-                    timeout=self._tcp_timeout)) as sock:
+            with closing(
+                socket.create_connection(
+                ('localhost', self._fluent_bit_port),
+                timeout=self._tcp_timeout,
+                ),
+            ) as sock:
                 logging.debug('Sending log to FluentBit')
                 sock.sendall(json.dumps(value).encode('utf-8'))
         except socket.error as e:
             logging.error('Connection to FluentBit failed: %s', e)
-            logging.info('FluentBit (td-agent-bit) may not be enabled '
-                         'or configured correctly')
+            logging.info(
+                'FluentBit (td-agent-bit) may not be enabled '
+                'or configured correctly',
+            )
             context.set_code(grpc.StatusCode.UNAVAILABLE)
             context.set_details(
                 'Could not connect to FluentBit locally, Details: {}'
-                .format(e))
+                .format(e),
+            )
             return
 
         logging.debug("Successfully logged event: %s", request)

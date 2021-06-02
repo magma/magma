@@ -28,7 +28,7 @@ def log_event(event: Event) -> None:
     """
     try:
         chan = ServiceRegistry.get_rpc_channel(
-            EVENTD_SERVICE_NAME, ServiceRegistry.LOCAL
+            EVENTD_SERVICE_NAME, ServiceRegistry.LOCAL,
         )
     except ValueError:
         logging.error("Cant get RPC channel to %s", EVENTD_SERVICE_NAME)
@@ -39,8 +39,10 @@ def log_event(event: Event) -> None:
         client.LogEvent(event, DEFAULT_GRPC_TIMEOUT)
     except grpc.RpcError as err:
         if err.code() == grpc.StatusCode.UNAVAILABLE:
-            logging.debug("LogEvent will not occur unless eventd configuration "
-                          "is set up.")
+            logging.debug(
+                "LogEvent will not occur unless eventd configuration "
+                "is set up.",
+            )
         else:
             logging.error(
                 "LogEvent error for event: %s, [%s] %s",

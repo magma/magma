@@ -48,7 +48,8 @@ def check_stateless_agw():
 
     logging.debug(
         "Check returning %s", magmad_pb2.CheckStatelessResponse.AGWMode.Name(
-            res)
+            res,
+        ),
     )
     return res
 

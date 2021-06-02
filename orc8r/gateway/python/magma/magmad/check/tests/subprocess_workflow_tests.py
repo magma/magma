@@ -27,10 +27,12 @@ class SubprocessWorkflowTests(unittest.TestCase):
         self.mock_parser_callback.return_value = 42
 
         self.process_communicate_mock = mock.Mock(
-            wraps=self._mock_process_communicate)
+            wraps=self._mock_process_communicate,
+        )
         self.process_mock = mock.Mock()
         self.process_mock.configure_mock(
-            communicate=self.process_communicate_mock)
+            communicate=self.process_communicate_mock,
+        )
 
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
@@ -73,7 +75,7 @@ class SubprocessWorkflowTests(unittest.TestCase):
                 ['param2', 'a', 'b'],
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE,
-            )
+            ),
         ])
         self.mock_parser_callback.assert_has_calls([
             mock.call('stdout', 'stderr', 'param1'),
@@ -83,7 +85,7 @@ class SubprocessWorkflowTests(unittest.TestCase):
     def test_async_subprocess_exec(self):
         with mock.patch.object(
                 asyncio, 'create_subprocess_exec',
-                mock.Mock(wraps=self._mock_async_subprocess)
+                mock.Mock(wraps=self._mock_async_subprocess),
         ) as m:
             loop = asyncio.get_event_loop()
             actual = loop.run_until_complete(
@@ -91,7 +93,7 @@ class SubprocessWorkflowTests(unittest.TestCase):
                     self.mock_params,
                     self._mock_arg_factory,
                     self.mock_parser_callback,
-                )
+                ),
             )
 
             self.assertEqual([42, 42], list(actual))
@@ -107,7 +109,7 @@ class SubprocessWorkflowTests(unittest.TestCase):
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     loop=loop,
-                )
+                ),
             ])
             self.mock_parser_callback.assert_has_calls([
                 mock.call('stdout', 'stderr', 'param1'),
@@ -120,8 +122,10 @@ class SubprocessWorkflowTests(unittest.TestCase):
         def mock_subprocess_raises(*args, **kwargs):
             raise ValueError('oops')
 
-        with mock.patch.object(asyncio, 'create_subprocess_exec',
-                               mock.Mock(wraps=mock_subprocess_raises)):
+        with mock.patch.object(
+            asyncio, 'create_subprocess_exec',
+            mock.Mock(wraps=mock_subprocess_raises),
+        ):
             loop = asyncio.get_event_loop()
             with self.assertRaises(ValueError) as e:
                 loop.run_until_complete(
@@ -129,7 +133,7 @@ class SubprocessWorkflowTests(unittest.TestCase):
                         self.mock_params,
                         self._mock_arg_factory,
                         self.mock_parser_callback,
-                    )
+                    ),
                 )
             self.assertEqual('oops', e.exception.args[0])
 
@@ -143,7 +147,7 @@ class SubprocessWorkflowTests(unittest.TestCase):
         with mock.patch.object(
                 asyncio,
                 'create_subprocess_exec',
-                mock.Mock(wraps=self._mock_async_subprocess)
+                mock.Mock(wraps=self._mock_async_subprocess),
         ) as m:
             loop = asyncio.get_event_loop()
             with self.assertRaises(ValueError) as e:
@@ -152,7 +156,7 @@ class SubprocessWorkflowTests(unittest.TestCase):
                         self.mock_params,
                         self._mock_arg_factory,
                         self.mock_parser_callback,
-                    )
+                    ),
                 )
             self.assertEqual('oops', e.exception.args[0])
             m.assert_has_calls([
@@ -167,13 +171,13 @@ class SubprocessWorkflowTests(unittest.TestCase):
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
                     loop=loop,
-                )
+                ),
             ])
 
     def test_async_subprocess_empty_params(self):
         with mock.patch.object(
                 asyncio, 'create_subprocess_exec',
-                mock.Mock(wraps=self._mock_async_subprocess)
+                mock.Mock(wraps=self._mock_async_subprocess),
         ) as m:
             loop = asyncio.get_event_loop()
             actual = loop.run_until_complete(
@@ -181,7 +185,7 @@ class SubprocessWorkflowTests(unittest.TestCase):
                     [],
                     self._mock_arg_factory,
                     self.mock_parser_callback,
-                )
+                ),
             )
 
             self.assertEqual([], list(actual))
