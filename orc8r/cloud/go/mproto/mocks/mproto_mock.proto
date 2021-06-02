@@ -13,10 +13,22 @@ limitations under the License.
 
 syntax = "proto3";
 
-package magma.orc8r.mproto;
+package magma.orc8r.mproto_mock;
 option go_package = "protos";
 
-// ProtoSlice is a set of protobuf messages, all individually encoded & paired with unique identifiers
-message ProtoSlice {
-  map<string, bytes> proto_bytes = 1;
+// TestDataBasic is a protobuf message with basic field types for testing deterministic encoding
+message TestDataBasic {
+  string key = 1;
+  int32 value = 2;
+}
+
+// TestDataCompound is a protobuf message with compound field types for testing deterministic encoding
+message TestDataCompound {
+  string id = 1;
+
+  TestDataBasic single_data = 2;
+
+  map<string, TestDataBasic> data_map = 3;
+
+  repeated TestDataBasic data_slice = 4;
 }
