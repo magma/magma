@@ -32,7 +32,7 @@ class OnReadyMixinTests(unittest.TestCase):
         cache_size = 3
         self.loop = asyncio.new_event_loop()
         self._tmpfile = tempfile.TemporaryDirectory()
-        sqlite = SqliteStore(self._tmpfile.name +'/', loop=self.loop)
+        sqlite = SqliteStore(self._tmpfile.name + '/', loop=self.loop)
         self._store = CachedStore(sqlite, cache_size, self.loop)
 
     def tearDown(self):
@@ -48,7 +48,9 @@ class OnReadyMixinTests(unittest.TestCase):
         Test if subscriber addition triggers ready
         """
         self.assertEqual(self._store._on_ready.event.is_set(), False)
-        self.assertEqual(self._store._persistent_store._on_ready.event.is_set(), False)
+        self.assertEqual(
+            self._store._persistent_store._on_ready.event.is_set(), False,
+        )
         self._add_subscriber('IMSI11111')
 
         async def defer():
@@ -56,15 +58,18 @@ class OnReadyMixinTests(unittest.TestCase):
         self.loop.run_until_complete(defer())
 
         self.assertEqual(self._store._on_ready.event.is_set(), True)
-        self.assertEqual(self._store._persistent_store._on_ready.event.is_set(), True)
-
+        self.assertEqual(
+            self._store._persistent_store._on_ready.event.is_set(), True,
+        )
 
     def test_resync(self):
         """
         Test if resync triggers ready
         """
         self.assertEqual(self._store._on_ready.event.is_set(), False)
-        self.assertEqual(self._store._persistent_store._on_ready.event.is_set(), False)
+        self.assertEqual(
+            self._store._persistent_store._on_ready.event.is_set(), False,
+        )
         self._store.resync([])
 
         async def defer():
@@ -72,4 +77,6 @@ class OnReadyMixinTests(unittest.TestCase):
         self.loop.run_until_complete(defer())
 
         self.assertEqual(self._store._on_ready.event.is_set(), True)
-        self.assertEqual(self._store._persistent_store._on_ready.event.is_set(), True)
+        self.assertEqual(
+            self._store._persistent_store._on_ready.event.is_set(), True,
+        )

@@ -27,12 +27,13 @@ class MockSessionProxyResponderStub:
     This Mock SessionProxyResponderStub will always respond with a success to
     a received RAR
     """
+
     def __init__(self):
         pass
 
     def PolicyReAuth(self, _: PolicyReAuthRequest) -> PolicyReAuthAnswer:
         return PolicyReAuthAnswer(
-            result=ReAuthResult.Value('UPDATE_INITIATED')
+            result=ReAuthResult.Value('UPDATE_INITIATED'),
         )
 
 
@@ -57,10 +58,14 @@ class RuleMappingsStreamerCallbackTest(unittest.TestCase):
         handler.handle_policy_re_auth(rar)
         s1_policies = install_dict['s1'].installed_policies
         expected = 2
-        self.assertEqual(len(s1_policies), expected,
-                         'There should be 2 installed policies for s1')
-        self.assertTrue('p1' in s1_policies,
-                        'Policy p1 should be marked installed for p1')
+        self.assertEqual(
+            len(s1_policies), expected,
+            'There should be 2 installed policies for s1',
+        )
+        self.assertTrue(
+            'p1' in s1_policies,
+            'Policy p1 should be marked installed for p1',
+        )
 
         rar = PolicyReAuthRequest(
             imsi='s1',
@@ -69,7 +74,11 @@ class RuleMappingsStreamerCallbackTest(unittest.TestCase):
         handler.handle_policy_re_auth(rar)
         s1_policies = install_dict['s1'].installed_policies
         expected = 3
-        self.assertEqual(len(s1_policies), expected,
-                         'There should be 3 installed policies for s1')
-        self.assertTrue('p3' in s1_policies,
-                        'Policy p1 should be marked installed for p1')
+        self.assertEqual(
+            len(s1_policies), expected,
+            'There should be 3 installed policies for s1',
+        )
+        self.assertTrue(
+            'p3' in s1_policies,
+            'Policy p1 should be marked installed for p1',
+        )

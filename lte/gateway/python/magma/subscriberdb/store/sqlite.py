@@ -32,24 +32,32 @@ class SqliteStore(BaseStore):
     """
 
     def __init__(self, db_location, loop=None, sid_digits=2):
-        self._sid_digits = sid_digits # last digits to be included from subscriber id
+        self._sid_digits = sid_digits  # last digits to be included from subscriber id
         self._n_shards = 10**sid_digits
-        self._db_locations = self._create_db_locations(db_location, self._n_shards)
+        self._db_locations = self._create_db_locations(
+            db_location, self._n_shards,
+        )
         self._create_store()
         self._on_ready = OnDataReady(loop=loop)
-
 
     def _create_db_locations(self, db_location, n_shards):
         # in memory if db_location is not specified
         if not db_location:
             db_location = "/var/opt/magma/"
 
-        # construct db_location items as: file:<path>subscriber<shard>.db?cache=shared
+        # construct db_location items as:
+        # file:<path>subscriber<shard>.db?cache=shared
         db_location_list = []
 
         # file name is passed, use it as a base
         for shard in range(n_shards):
-            db_location_list.append('file:' + db_location + 'subscriber' + str(shard) + ".db?cache=shared")
+            db_location_list.append(
+                'file:'
+                + db_location
+                + 'subscriber'
+                + str(shard)
+                + ".db?cache=shared",
+            )
             logging.info("db location: %s", db_location_list[shard])
         return db_location_list
 
@@ -61,8 +69,10 @@ class SqliteStore(BaseStore):
             conn = sqlite3.connect(db_location, uri=True)
             try:
                 with conn:
-                    conn.execute("CREATE TABLE IF NOT EXISTS subscriberdb"
-                                      "(subscriber_id text PRIMARY KEY, data text)")
+                    conn.execute(
+                        "CREATE TABLE IF NOT EXISTS subscriberdb"
+                        "(subscriber_id text PRIMARY KEY, data text)",
+                    )
             finally:
                 conn.close()
 
@@ -76,13 +86,17 @@ class SqliteStore(BaseStore):
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
-                res = conn.execute("SELECT data FROM subscriberdb WHERE "
-                                        "subscriber_id = ?", (sid, ))
+                res = conn.execute(
+                    "SELECT data FROM subscriberdb WHERE "
+                    "subscriber_id = ?", (sid,),
+                )
                 if res.fetchone():
                     raise DuplicateSubscriberError(sid)
 
-                conn.execute("INSERT INTO subscriberdb(subscriber_id, data) "
-                                "VALUES (?, ?)", (sid, data_str))
+                conn.execute(
+                    "INSERT INTO subscriberdb(subscriber_id, data) "
+                    "VALUES (?, ?)", (sid, data_str),
+                )
         finally:
             conn.close()
         self._on_ready.add_subscriber(subscriber_data)
@@ -149,8 +163,10 @@ class SqliteStore(BaseStore):
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
-                res = conn.execute("SELECT data FROM subscriberdb WHERE "
-                                        "subscriber_id = ?", (subscriber_id, ))
+                res = conn.execute(
+                    "SELECT data FROM subscriberdb WHERE "
+                    "subscriber_id = ?", (subscriber_id,),
+                )
                 row = res.fetchone()
                 if not row:
                     raise SubscriberNotFoundError(subscriber_id)
@@ -169,7 +185,9 @@ class SqliteStore(BaseStore):
             conn = sqlite3.connect(db_location, uri=True)
             try:
                 with conn:
-                    res = conn.execute("SELECT subscriber_id FROM subscriberdb")
+                    res = conn.execute(
+                        "SELECT subscriber_id FROM subscriberdb",
+                    )
                     sub_list.extend([row[0] for row in res])
             finally:
                 conn.close()
@@ -194,8 +212,10 @@ class SqliteStore(BaseStore):
         conn = sqlite3.connect(db_location, uri=True)
         try:
             with conn:
-                res = conn.execute("UPDATE subscriberdb SET data = ? "
-                                        "WHERE subscriber_id = ?", (data_str, sid))
+                res = conn.execute(
+                    "UPDATE subscriberdb SET data = ? "
+                    "WHERE subscriber_id = ?", (data_str, sid),
+                )
                 if not res.rowcount:
                     raise SubscriberNotFoundError(sid)
         finally:
@@ -220,7 +240,9 @@ class SqliteStore(BaseStore):
             try:
                 with conn:
                     # Capture the current state of the subscribers
-                    res = conn.execute("SELECT subscriber_id, data FROM subscriberdb")
+                    res = conn.execute(
+                        "SELECT subscriber_id, data FROM subscriberdb",
+                    )
                     current_state = {}
                     for row in res:
                         sub = SubscriberData()
@@ -236,8 +258,10 @@ class SqliteStore(BaseStore):
                         if sid in current_state:
                             sub.state.CopyFrom(current_state[sid])
                         data_str = sub.SerializeToString()
-                        conn.execute("INSERT INTO subscriberdb(subscriber_id, data) "
-                                     "VALUES (?, ?)", (sid, data_str))
+                        conn.execute(
+                            "INSERT INTO subscriberdb(subscriber_id, data) "
+                            "VALUES (?, ?)", (sid, data_str),
+                        )
             finally:
                 conn.close()
         self._on_ready.resync(subscribers)
@@ -263,7 +287,6 @@ class SqliteStore(BaseStore):
         apn_config.ambr.max_bandwidth_ul = apn_data.ambr.max_bandwidth_ul
         apn_config.ambr.max_bandwidth_dl = apn_data.ambr.max_bandwidth_dl
 
-
     def _sid2bucket(self, subscriber_id):
         """
         Maps Subscriber ID to bucket
@@ -271,7 +294,9 @@ class SqliteStore(BaseStore):
         try:
             bucket = int(subscriber_id[-self._sid_digits:])
         except (TypeError, ValueError):
-            logging.info("Last %d digits of subscriber id %s cannot mapped to a bucket:"
-                         " default to bucket 0", self._sid_digits, subscriber_id)
+            logging.info(
+                "Last %d digits of subscriber id %s cannot mapped to a bucket:"
+                " default to bucket 0", self._sid_digits, subscriber_id,
+            )
             bucket = 0
         return bucket
