@@ -29,10 +29,10 @@
 #include <unordered_map>              // for _Node_iterator, unordered_map
 #include <utility>                    // for move, pair
 #include <vector>                     // for vector
-#include "ServiceConfigLoader.h"      // for ServiceConfigLoader
-#include "SessionState.h"             // for SessionState
-#include "StoredState.h"              // for deserialize_stored_session, ser...
-#include "magma_logging.h"            // for MERROR, MLOG
+#include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
+#include "SessionState.h"                  // for SessionState
+#include "StoredState.h"    // for deserialize_stored_session, ser...
+#include "magma_logging.h"  // for MERROR, MLOG
 namespace magma {
 class StaticRuleStore;
 }

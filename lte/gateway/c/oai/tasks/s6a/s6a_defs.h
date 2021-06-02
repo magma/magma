@@ -116,6 +116,7 @@ typedef struct {
   struct dict_object* dataobj_s6a_ue_srvcc_cap;
   struct dict_object* dataobj_s6a_cancellation_type;
   struct dict_object* dataobj_s6a_pua_flags;
+  struct dict_object* dataobj_s6a_supported_features;
 
   /* Handlers */
   struct disp_hdl* aia_hdl; /* Authentication Information Answer Handle */
@@ -160,6 +161,7 @@ extern s6a_fd_cnf_t s6a_fd_cnf;
 #define AVP_CODE_SERVICE_SELECTION (493)
 #define AVP_CODE_BANDWIDTH_UL (516)
 #define AVP_CODE_BANDWIDTH_DL (515)
+#define AVP_CODE_SUPPORTED_FEATURES (628)
 #define AVP_CODE_MSISDN (701)
 #define AVP_CODE_SERVED_PARTY_IP_ADDRESS (848)
 #define AVP_CODE_QCI (1028)

@@ -45,7 +45,6 @@ TEST_F(SessionStateTest, test_insert_monitor) {
 // Insert a monitor, then remove. Assert that the update criteria reflects the
 // deletion
 TEST_F(SessionStateTest, test_remove_monitor) {
-  update_criteria = get_default_update_criteria();
   EXPECT_EQ(update_criteria.static_rules_to_install.size(), 0);
   insert_rule(0, "m1", "rule1", STATIC, 0, 0);
 
@@ -56,7 +55,7 @@ TEST_F(SessionStateTest, test_remove_monitor) {
           .credit.buckets[ALLOWED_TOTAL],
       1000);
 
-  session_state->add_rule_usage("rule1", 1, 1000, 0, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 1000, 0, 0, 0, nullptr);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 1000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 0);
 
@@ -66,7 +65,7 @@ TEST_F(SessionStateTest, test_remove_monitor) {
   update_criteria = get_default_update_criteria();
 
   // add usage to trigger the quota exhaustion
-  session_state->add_rule_usage("rule1", 1, 1001, 0, 0, 0, update_criteria);
+  session_state->add_rule_usage("rule1", 1, 1001, 0, 0, 0, &update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 1001);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 0);
   EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].report_last_credit);
@@ -74,7 +73,7 @@ TEST_F(SessionStateTest, test_remove_monitor) {
   // check last update will be sent
   UpdateSessionRequest update;
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  session_state->get_updates(update, &actions, update_criteria);
+  session_state->get_updates(&update, &actions, &update_criteria);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.usage_monitors_size(), 1);
   auto& single_update = update.usage_monitors(0).update();

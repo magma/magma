@@ -137,11 +137,11 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
    *
    */
   auto update_criteria = get_default_update_criteria();
-  session_state.set_local_teid(l_teid, update_criteria);
-  session_state.set_fsm_state(CREATED, update_criteria);
+  session_state.set_local_teid(l_teid, &update_criteria);
+  session_state.set_fsm_state(CREATED, &update_criteria);
   MLOG(MINFO) << " Teid " << session_state.get_local_teid();
   uint32_t cur_version = session_state.get_current_version();
-  session_state.set_current_version(++cur_version, update_criteria);
+  session_state.set_current_version(++cur_version, &update_criteria);
 
   /* Update the m5gsm_cause and prepare for respone along with actual cause*/
   prepare_response_to_access(
@@ -198,9 +198,9 @@ void SessionStateEnforcer::m5g_start_session_termination(
   /* update respective session's state and return from here before timeout
    * to update session store with state and version
    */
-  session->set_fsm_state(RELEASE, session_uc);
+  session->set_fsm_state(RELEASE, &session_uc);
   uint32_t cur_version = session->get_current_version();
-  session->set_current_version(++cur_version, session_uc);
+  session->set_current_version(++cur_version, &session_uc);
   MLOG(MINFO) << "During release state of session changed to "
               << session_fsm_state_to_str(session->get_state());
   handle_state_update_to_amf(
@@ -281,7 +281,7 @@ void SessionStateEnforcer::m5g_complete_termination(
   }
   auto& session    = **session_it;
   auto& session_uc = session_update[imsi][session_id];
-  if (!session->can_complete_termination(session_uc)) {
+  if (!session->can_complete_termination(&session_uc)) {
     return;  // error is logged in SessionState's complete_termination
   }
   // Now remove all rules
@@ -322,6 +322,8 @@ void SessionStateEnforcer::m5g_remove_rules_and_update_upf(
   // Set PDR state as  REMOVE for all PDRs
   session->set_remove_all_pdrs();
   sess_info.Pdr_rules_ = session->get_all_pdr_rules();
+  // Set the node Id
+  sess_info.nodeId.node_id = get_upf_node_id();
   pipelined_client_->set_upf_session(sess_info, call_back_upf);
   return;
 }
@@ -355,9 +357,9 @@ void SessionStateEnforcer::m5g_update_session_state_to_amf(
       session_update[imsi][session->get_session_id()];
   switch (session->get_state()) {
     case CREATED:
-      session->set_fsm_state(ACTIVE, session_uc);
+      session->set_fsm_state(ACTIVE, &session_uc);
       cur_version = session->get_current_version();
-      session->set_current_version(++cur_version, session_uc);
+      session->set_current_version(++cur_version, &session_uc);
       amf_update_pending = true;
       break;
     case RELEASE:
@@ -592,4 +594,22 @@ bool SessionStateEnforcer::static_rule_init() {
   GlobalRuleList.insert_rule(8, reqpdr2);
   return true;
 }
+
+bool SessionStateEnforcer::set_upf_node(
+    const std::string& node_id, const std::string& addr) {
+  upf_node_id_      = node_id;
+  upf_node_ip_addr_ = addr;
+  MLOG(MDEBUG) << "Set_upf_node_id: " << upf_node_id_;
+  MLOG(MDEBUG) << "Set_upf_n3_addr: " << upf_node_ip_addr_;
+  return true;
+}
+
+std::string SessionStateEnforcer::get_upf_n3_addr() const {
+  return upf_node_ip_addr_;
+}
+
+std::string SessionStateEnforcer ::get_upf_node_id() const {
+  return upf_node_id_;
+}
+
 }  // end namespace magma

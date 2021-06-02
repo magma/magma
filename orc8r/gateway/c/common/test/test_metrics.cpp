@@ -12,7 +12,7 @@
  */
 
 #include <gtest/gtest.h>
-#include "MetricsRegistry.h"
+#include "includes/MetricsRegistry.h"
 #include <prometheus/registry.h>
 
 using io::prometheus::client::MetricFamily;

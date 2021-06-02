@@ -90,7 +90,7 @@ int mme_app_send_s6a_update_location_req(
       s6a_ulr_p->rat_type, ue_context_p->mme_ue_s1ap_id);
   /*
    * Check if we already have UE data
-   * set the skip subscriber data flas as true in case we are sending ULR
+   * set the skip subscriber data flag as true in case we are sending ULR
    * against recieved HSS Reset
    */
   if (ue_context_p->location_info_confirmed_in_hss == true) {
@@ -115,7 +115,8 @@ int mme_app_send_s6a_update_location_req(
    * This is done by checking either en_dc flag in ms network capability or
    * by checking  dcnr flag in ue network capability.
    */
-  if (ue_context_p->emm_context._ms_network_capability.en_dc) {
+
+  if (ue_context_p->emm_context._ue_network_capability.dcnr) {
     s6a_ulr_p->dual_regis_5g_ind = 1;
   } else {
     s6a_ulr_p->dual_regis_5g_ind = 0;
@@ -303,6 +304,7 @@ int mme_app_handle_s6a_update_location_ans(
         LOG_MME_APP, "No MSISDN received for %s " IMSI_64_FMT "\n",
         __FUNCTION__, imsi64);
   }
+
   ue_mm_context->rau_tau_timer       = ula_pP->subscription_data.rau_tau_timer;
   ue_mm_context->network_access_mode = ula_pP->subscription_data.access_mode;
   memcpy(

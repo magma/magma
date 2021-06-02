@@ -22,11 +22,11 @@
  */
 #include "AmfServiceClient.h"
 #include "magma_logging.h"
-#include "MagmaService.h"
+#include "includes/MagmaService.h"
 #include "PipelinedClient.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
 #include "SessionState.h"
 #include "SessionStore.h"

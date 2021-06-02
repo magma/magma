@@ -109,16 +109,19 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   state                          = get_s1ap_state(false);
   AssertFatal(state != NULL, "failed to retrieve s1ap state (was null)");
 
-  bool is_state_same = false;
+  bool is_task_state_same = false;
+  bool is_ue_state_same   = false;
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case ACTIVATE_MESSAGE: {
-      is_state_same  = true;  // does not modify state
-      hss_associated = true;
+      is_task_state_same = true;  // does not modify state
+      is_ue_state_same   = true;
+      hss_associated     = true;
     } break;
 
     case MESSAGE_TEST:
-      is_state_same = true;  // does not modify state
+      is_task_state_same = true;  // does not modify state
+      is_ue_state_same   = true;
       OAILOG_DEBUG(LOG_S1AP, "Received MESSAGE_TEST\n");
       break;
 
@@ -146,19 +149,22 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case SCTP_DATA_CNF:
-      is_state_same = true;  // the following handler does not modify state
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same   = true;
       s1ap_mme_itti_nas_downlink_cnf(
           SCTP_DATA_CNF(received_message_p).agw_ue_xap_id,
           SCTP_DATA_CNF(received_message_p).is_success);
       break;
     // SCTP layer notifies S1AP of disconnection of a peer.
     case SCTP_CLOSE_ASSOCIATION: {
+      is_ue_state_same = true;
       s1ap_handle_sctp_disconnection(
           state, SCTP_CLOSE_ASSOCIATION(received_message_p).assoc_id,
           SCTP_CLOSE_ASSOCIATION(received_message_p).reset);
     } break;
 
     case SCTP_NEW_ASSOCIATION: {
+      is_ue_state_same = true;
       increment_counter("mme_new_association", 1, NO_LABELS);
       if (s1ap_handle_new_association(
               state, &received_message_p->ittiMsg.sctp_new_peer)) {
@@ -177,30 +183,33 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           state, S1AP_NAS_DL_DATA_REQ(received_message_p).enb_ue_s1ap_id,
           S1AP_NAS_DL_DATA_REQ(received_message_p).mme_ue_s1ap_id,
           &S1AP_NAS_DL_DATA_REQ(received_message_p).nas_msg, imsi64,
-          &is_state_same);
+          &is_task_state_same);
     } break;
 
     case S1AP_E_RAB_SETUP_REQ: {
-      is_state_same = true;  // the following handler does not modify state
+      is_task_state_same = true;  // the following handler does not modify state
       s1ap_generate_s1ap_e_rab_setup_req(
           state, &S1AP_E_RAB_SETUP_REQ(received_message_p));
     } break;
 
     case S1AP_E_RAB_MODIFICATION_CNF: {
-      is_state_same = true;  // the following handler does not modify state
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same   = true;
       s1ap_mme_generate_erab_modification_confirm(
           state, &received_message_p->ittiMsg.s1ap_e_rab_modification_cnf);
     } break;
 
     // From MME_APP task
     case S1AP_UE_CONTEXT_RELEASE_COMMAND: {
+      is_ue_state_same = true;
       s1ap_handle_ue_context_release_command(
           state, &received_message_p->ittiMsg.s1ap_ue_context_release_command,
           imsi64);
     } break;
 
     case MME_APP_CONNECTION_ESTABLISHMENT_CNF: {
-      is_state_same = true;  // the following handler does not modify state
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same   = true;
       s1ap_handle_conn_est_cnf(
           state, &MME_APP_CONNECTION_ESTABLISHMENT_CNF(received_message_p));
     } break;
@@ -211,13 +220,15 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_ENB_INITIATED_RESET_ACK: {
-      is_state_same = true;  // the following handler does not modify state
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same   = true;
       s1ap_handle_enb_initiated_reset_ack(
           &S1AP_ENB_INITIATED_RESET_ACK(received_message_p), imsi64);
     } break;
 
     case S1AP_PAGING_REQUEST: {
-      is_state_same = true;  // the following handler does not modify state
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same   = true;
       if (s1ap_handle_paging_request(
               state, &S1AP_PAGING_REQUEST(received_message_p), imsi64) !=
           RETURNok) {
@@ -226,27 +237,31 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case S1AP_UE_CONTEXT_MODIFICATION_REQUEST: {
-      is_state_same = true;  // the following handler does not modify state
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same   = true;
       s1ap_handle_ue_context_mod_req(
           state, &received_message_p->ittiMsg.s1ap_ue_context_mod_request,
           imsi64);
     } break;
 
     case S1AP_E_RAB_REL_CMD: {
-      is_state_same = true;  // the following handler does not modify state
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same   = true;
       s1ap_generate_s1ap_e_rab_rel_cmd(
           state, &S1AP_E_RAB_REL_CMD(received_message_p));
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST_ACK: {
-      is_state_same = true;  // the following handler does not modify state
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same   = true;
       s1ap_handle_path_switch_req_ack(
           state, &received_message_p->ittiMsg.s1ap_path_switch_request_ack,
           imsi64);
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST_FAILURE: {
-      is_state_same = true;  // the following handler does not modify state
+      is_task_state_same = true;  // the following handler does not modify state
+      is_ue_state_same   = true;
       s1ap_handle_path_switch_req_failure(
           state, &received_message_p->ittiMsg.s1ap_path_switch_request_failure,
           imsi64);
@@ -282,6 +297,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
                 mme_ue_s1ap_id);
             timer_handle_expired(
                 received_message_p->ittiMsg.timer_has_expired.timer_id);
+            is_ue_state_same = true;
             break;
           }
           if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
@@ -296,6 +312,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             s1ap_mme_handle_ue_context_rel_comp_timer_expiry(state, ue_ref_p);
           }
         } else {
+          is_ue_state_same = true;
           OAILOG_WARNING_UE(
               LOG_S1AP, imsi64,
               "S1AP Timer expired with invalid timer class %u \n",
@@ -320,8 +337,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  if (!is_state_same) {
+  if (!is_task_state_same) {
     put_s1ap_state();
+  }
+  if (!is_ue_state_same) {
     put_s1ap_imsi_map();
     put_s1ap_ue_state(imsi64);
   }

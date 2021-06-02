@@ -31,7 +31,7 @@
 #include "lte/protos/mobilityd.pb.h"
 #include "orc8r/protos/common.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "common_defs.h"
 #include "proto_converters.h"
 

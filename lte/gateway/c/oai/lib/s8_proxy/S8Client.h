@@ -20,7 +20,7 @@ limitations under the License.
 #include <functional>
 #include <memory>
 
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include "feg/protos/s8_proxy.grpc.pb.h"
 
 extern "C" {

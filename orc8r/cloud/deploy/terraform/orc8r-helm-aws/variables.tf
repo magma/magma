@@ -185,7 +185,7 @@ variable "fbinternal_orc8r_chart_version" {
 variable "feg_orc8r_chart_version" {
   description = "Version of the orchestrator feg module Helm chart to install."
   type        = string
-  default     = "0.2.3"
+  default     = "0.2.4"
 }
 
 variable "lte_orc8r_chart_version" {

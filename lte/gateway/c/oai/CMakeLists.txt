@@ -113,7 +113,8 @@ find_package(Threads REQUIRED)
 set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
 find_library(ASYNC_GRPC ASYNC_GRPC ${MAGMA_LIB_DIR}/async_grpc)
 find_library(SERVICE303_LIB SERVICE303_LIB ${MAGMA_LIB_DIR}/service303)
-find_library(CONFIG CONFIG ${MAGMA_LIB_DIR}/config)
+# TODO: amarpad: Update CONFIG->MAGMA_CONFIG in OAI build
+find_library(CONFIG MAGMA_CONFIG ${MAGMA_LIB_DIR}/config)
 find_library(SERVICE_REGISTRY SERVICE_REGISTRY ${MAGMA_LIB_DIR}/service_registry)
 find_library(EVENTD EVENTD ${MAGMA_LIB_DIR}/eventd)
 
@@ -127,10 +128,16 @@ include_directories(${PROJECT_SOURCE_DIR}/include)
 # Add magma libraries
 #############################################################
 
+# TODO: Temp workaround until packages are imported by these cmakefile
+# Will be removed in subsequent patch
+set(MAGMA_COMMON_INCL_DIR $ENV{C_BUILD}/common)
+include_directories(${MAGMA_COMMON_INCL_DIR})
+
 add_subdirectory(common)
 add_subdirectory(lib)
 add_subdirectory(oai_mme)
 add_subdirectory(tasks)
+
 
 if (BUILD_TESTS)
   enable_testing()

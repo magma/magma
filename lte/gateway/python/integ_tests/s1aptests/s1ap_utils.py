@@ -1091,7 +1091,7 @@ class MagmadUtil(object):
         s1ap_imsi_map_cmd = "state_cli.py parse s1ap_imsi_map"
         s1ap_imsi_map_state = self.exec_command_output(magtivate_cmd + " && " + s1ap_imsi_map_cmd)
         # Remove state version output to get only hashmap entries
-        s1ap_imsi_map_entries = len(s1ap_imsi_map_state.split("\n")[0])
+        s1ap_imsi_map_entries = len(s1ap_imsi_map_state.split("\n")[:-4]) // 4
         print(
             "Keys left in Redis (list should be empty)[\n",
             "\n".join(keys_to_be_cleaned),

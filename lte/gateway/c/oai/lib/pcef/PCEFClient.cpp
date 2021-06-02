@@ -24,8 +24,8 @@
 
 #include "orc8r/protos/mconfig/mconfigs.pb.h"
 #include "PCEFClient.h"
-#include "ServiceRegistrySingleton.h"
-#include "MConfigLoader.h"
+#include "includes/ServiceRegistrySingleton.h"
+#include "includes/MConfigLoader.h"
 #include "lte/protos/session_manager.pb.h"
 
 namespace grpc {

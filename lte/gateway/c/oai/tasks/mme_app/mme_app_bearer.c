@@ -461,6 +461,8 @@ void mme_app_handle_conn_est_cnf(
   //#pragma message  "Check ue_context_p ambr"
   establishment_cnf_p->ue_ambr.br_ul = ue_context_p->subscribed_ue_ambr.br_ul;
   establishment_cnf_p->ue_ambr.br_dl = ue_context_p->subscribed_ue_ambr.br_dl;
+  establishment_cnf_p->ue_ambr.br_unit =
+      ue_context_p->subscribed_ue_ambr.br_unit;
   establishment_cnf_p->ue_security_capabilities_encryption_algorithms =
       ((uint16_t) emm_context._ue_network_capability.eea & ~(1 << 7)) << 1;
 
@@ -3259,7 +3261,6 @@ void mme_app_handle_nw_init_bearer_deactv_req(
 }
 
 void mme_app_handle_handover_required(
-    mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_handover_required_t* const handover_required_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -3373,7 +3374,6 @@ void mme_app_handle_handover_required(
 }
 
 void mme_app_handle_handover_request_ack(
-    mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_handover_request_ack_t* const handover_request_ack_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 

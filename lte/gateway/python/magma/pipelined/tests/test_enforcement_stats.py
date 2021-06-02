@@ -55,6 +55,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     wait_after_send,
     wait_for_enforcement_stats,
 )
+from magma.pipelined.openflow import flows
 from scapy.all import IP
 
 
@@ -679,6 +680,55 @@ class EnforcementStatsTest(unittest.TestCase):
         #                 num_pkts_tx_match * len(packet))
         self.assertEqual(len(stats), 2)
 
+    def test_cookie_poll(self):
+        """
+        Add a subscriber policy, verify flows are properly installed
+        Assert:
+        Query with RULE_NUM 1 returns proper values
+        """
+        original = self.enforcement_stats_controller._poll_stats
+        self.enforcement_stats_controller._poll_stats = MagicMock()
+        self.enforcement_stats_controller.init_finished = False
+        self.enforcement_controller.init_finished = True
 
+        imsi = 'IMSI001010000000013'
+        sub_ip = '192.168.128.74'
+
+        flow_list = [FlowDescription(
+            match=FlowMatch(
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+                direction=FlowMatch.UPLINK),
+            action=FlowDescription.PERMIT)
+        ]
+
+        policy = VersionedPolicy(
+            rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
+            version=1,
+        )
+        enf_stat_name = imsi + '|' + 'rule1' + '|' + sub_ip + '|' + "1"
+        """ Setup subscriber, setup table_isolation to fwd pkts """
+        sub_context = RyuDirectSubscriberContext(
+            imsi, sub_ip, self.enforcement_controller, 
+            self._main_tbl_num, self.enforcement_stats_controller
+        ).add_policy(policy)
+
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+
+        self.enforcement_stats_controller._report_usage.reset_mock()
+        with sub_context, snapshot_verifier:
+            self.enforcement_stats_controller.init_finished = True  
+            flows.send_stats_request(self.enforcement_stats_controller._datapath,
+                self.enforcement_stats_controller.tbl_num,
+                1,
+                flows.OVS_COOKIE_MATCH_ALL)
+            wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                       [enf_stat_name])
+        stats = get_enforcement_stats(
+            self.enforcement_stats_controller._report_usage.call_args_list)
+        self.assertEqual(stats[enf_stat_name].rule_id,'rule1')
+        self.enforcement_stats_controller._poll_stats = original
+        self.assertEqual(len(stats), 1)
+    
 if __name__ == "__main__":
     unittest.main()

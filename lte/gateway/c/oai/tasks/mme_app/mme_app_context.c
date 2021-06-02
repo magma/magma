@@ -1261,6 +1261,12 @@ void mme_app_dump_pdn_context(
     bformata(
         bstr_dump, "%*s     - P-GW-APN-AMBR (bits/s) UL : %010" PRIu64 "\n",
         indent_spaces, " ", pdn_context->p_gw_apn_ambr.br_ul);
+
+    bformata(
+        bstr_dump, "%*s     - P-GW-APN-AMBR (bits/s) UL : %010" PRIu64 "\n",
+        indent_spaces, " ", pdn_context->p_gw_apn_ambr.br_ul,
+        (pdn_context->p_gw_apn_ambr.br_unit) ? "KBPS" : "BPS");
+
     bformata(
         bstr_dump, "%*s     - Default EBI ..............: %u\n", indent_spaces,
         " ", pdn_context->default_ebi);

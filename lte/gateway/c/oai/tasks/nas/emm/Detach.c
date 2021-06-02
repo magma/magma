@@ -37,7 +37,6 @@
 #include "common_defs.h"
 #include "emm_asDef.h"
 #include "emm_fsm.h"
-#include "emm_regDef.h"
 #include "esm_data.h"
 #include "esm_sapDef.h"
 #include "mme_api.h"

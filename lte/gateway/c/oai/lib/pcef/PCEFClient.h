@@ -23,7 +23,7 @@
 #include <memory>
 
 #include "lte/protos/session_manager.grpc.pb.h"
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 
 namespace grpc {
 class Status;

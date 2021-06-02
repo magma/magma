@@ -23,7 +23,7 @@
 #include <string>
 
 #include "sentry.h"
-#include "ServiceConfigLoader.h"
+#include "includes/ServiceConfigLoader.h"
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"
