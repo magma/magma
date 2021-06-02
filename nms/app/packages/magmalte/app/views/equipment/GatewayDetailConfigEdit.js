@@ -16,6 +16,7 @@
 import type {
   apn_resources,
   challenge_key,
+  enodeb,
   enodeb_serials,
   gateway_device,
   gateway_dns_configs,
@@ -780,7 +781,6 @@ export function RanEdit(props: Props) {
   const handleDnsChange = (key: string, val) => {
     setDnsConfig({...dnsConfig, [key]: val});
   };
-
   const onSave = async () => {
     try {
       const gateway = {
@@ -808,18 +808,21 @@ export function RanEdit(props: Props) {
       setError(e.response?.data?.message ?? e.message);
     }
   };
-  const isEnodebUnregistered = (enb: enodeb, currentGateway: lte_gateway) => {
-    const gatewaysList = Object.keys(ctx.state);
-    for (const gatewayId of gatewaysList) {
-      if (
-        ctx.state[gatewayId].connected_enodeb_serials?.includes(enb.serial) &&
-        ctx.state[gatewayId].id != currentGateway.id
-      ) {
-        return false;
+  const isEnodebUnregistered = React.useCallback(
+    (enb: enodeb, currentGateway: lte_gateway) => {
+      const gatewaysList = Object.keys(ctx.state);
+      for (const gatewayId of gatewaysList) {
+        if (
+          ctx.state[gatewayId].connected_enodeb_serials?.includes(enb.serial) &&
+          ctx.state[gatewayId].id != currentGateway.id
+        ) {
+          return false;
+        }
       }
-    }
-    return true;
-  };
+      return true;
+    },
+    [ctx.state],
+  );
   return (
     <>
       <DialogContent data-testid="ranEdit">
