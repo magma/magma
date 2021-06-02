@@ -541,13 +541,11 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 }
 
 func getStatesForIMSIs(networkID string, typeFilter []string, keyPrefix string, serdes serde.Registry) (state_types.StatesByID, error) {
-	// Post-filter functionality to only return states with the exact IMSI
-	// prefix as specified
 	states, err := state.SearchStates(networkID, typeFilter, nil, &keyPrefix, serdes)
 	if err != nil {
 		return nil, err
 	}
-
+	// Returned states contain matches by prefix, so filter out non-exact matches
 	for stateID := range states {
 		imsi := stateID.DeviceID
 		if stateID.Type == lte.MobilitydStateType {
@@ -877,13 +875,13 @@ func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_t
 		requestedIMSIs[v] = struct{}{}
 	}
 
-	shouldLoadState := func(validIMSIs map[string]struct{}, imsi string) bool {
-		if len(validIMSIs) == 0 {
+	shouldLoadState := func(imsi string) bool {
+		if len(requestedIMSIs) == 0 {
 			// load all states regardless of their IMSIs if requested IMSIs is nil,
 			return true
 		}
-		_, valid := validIMSIs[imsi]
-		return valid
+		_, ok := requestedIMSIs[imsi]
+		return ok
 	}
 
 	imsiKeyStates, err := state.SearchStates(networkID, subscriberStateTypesKeyedByIMSI, imsis, nil, serdes.State)
@@ -907,7 +905,7 @@ func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_t
 				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
 				continue
 			}
-			if !shouldLoadState(requestedIMSIs, matches[1]) {
+			if !shouldLoadState(matches[1]) {
 				continue
 			}
 			sidKey = matches[1]

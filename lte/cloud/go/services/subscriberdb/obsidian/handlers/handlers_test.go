@@ -1045,10 +1045,9 @@ func TestGetSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
+// TestGetSubscriberByExactIMSI is a regression test to ensure we are loading
+// states with the exact same IMSI key as the subscriber
 func TestGetSubscriberByExactIMSI(t *testing.T) {
-	// Regression test to ensure we are loading states with the exact same IMSI
-	// key as the subscriber
-
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
