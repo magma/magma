@@ -83,6 +83,8 @@ static void add_tunnel_helper(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p, imsi64_t imsi64);
 
+static teid_t sgw_generate_new_s11_cp_teid(void);
+
 #if EMBEDDED_SGW
 #define TASK_MME TASK_MME_APP
 #else
@@ -142,9 +144,8 @@ int sgw_handle_s11_create_session_request(
         "sender_fteid_incorrect_parameters");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-  sgw_get_new_S11_tunnel_id(&state->tunnel_id);
   new_endpoint_p = sgw_cm_create_s11_tunnel(
-      session_req_pP->sender_fteid_for_cp.teid, state->tunnel_id);
+      session_req_pP->sender_fteid_for_cp.teid, sgw_generate_new_s11_cp_teid());
 
   if (new_endpoint_p == NULL) {
     OAILOG_ERROR_UE(
@@ -2302,4 +2303,19 @@ void sgw_process_release_access_bearer_request(
     }
   }
   OAILOG_FUNC_OUT(module);
+}
+
+// Generates random s11 control plane teid
+static teid_t sgw_generate_new_s11_cp_teid(void) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  s_plus_p_gw_eps_bearer_context_information_t*
+      s_plus_p_gw_eps_bearer_ctxt_info_p = NULL;
+  teid_t teid                            = INVALID_TEID;
+  // note srand with seed is initialized at main
+  do {
+    teid                               = (teid_t) rand();
+    s_plus_p_gw_eps_bearer_ctxt_info_p = sgw_cm_get_spgw_context(teid);
+  } while (s_plus_p_gw_eps_bearer_ctxt_info_p);
+
+  OAILOG_FUNC_RETURN(LOG_SGW_S8, teid);
 }
