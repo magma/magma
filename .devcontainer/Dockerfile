@@ -127,7 +127,7 @@ RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
     make install && \
     ldconfig -v && \
     cd / && \
-    wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     mkdir build && cd build && \
