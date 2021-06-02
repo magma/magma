@@ -116,7 +116,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   s1ap_last_msg_latency = ITTI_MSG_LATENCY(received_message_p);  // microseconds
 
-  OAILOG_INFO(LOG_S1AP, "S1AP ZMQ latency: %ld.", s1ap_last_msg_latency);
+  OAILOG_DEBUG(LOG_S1AP, "S1AP ZMQ latency: %ld.", s1ap_last_msg_latency);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case ACTIVATE_MESSAGE: {

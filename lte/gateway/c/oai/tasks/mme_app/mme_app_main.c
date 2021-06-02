@@ -75,7 +75,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       ITTI_MSG_LATENCY(received_message_p);  // microseconds
   pre_mme_task_msg_latency = ITTI_MSG_LASTHOP_LATENCY(received_message_p);
 
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_MME_APP, "MME APP ZMQ latency: %ld.", mme_app_last_msg_latency);
 
   switch (ITTI_MSG_ID(received_message_p)) {
