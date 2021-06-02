@@ -35,7 +35,7 @@ class BaseLTEAuthAlgo(metaclass=abc.ABCMeta):
         Generate the E-EUTRAN key vector.
         Args:
             key (bytes): 128 bit subscriber key
-            opc (bytes): 128 bit operator variant algorithm configuration field            
+            opc (bytes): 128 bit operator variant algorithm configuration field
             sqn (int): 48 bit sequence number
             rand (bytes): 128 bit random challenge
             plmn (bytes): 24 bit network identifer

@@ -20,6 +20,7 @@ class MilenageRandomTests(unittest.TestCase):
     """
     Test class RAND method
     """
+
     def test_rand(self):
         """Tests the random generator"""
         rand = Milenage.generate_rand()
@@ -58,8 +59,10 @@ class MilenageTests(unittest.TestCase):
         mac_s = b'\x01\xcf\xaf\x9e\xc4\xe8\x71\xe9'
 
         self.assertEqual(Milenage.generate_opc(k, op), opc)
-        self.assertEqual(Milenage.f1(k, sqn, self.rand, opc, amf),
-                         (mac_a, mac_s))
+        self.assertEqual(
+            Milenage.f1(k, sqn, self.rand, opc, amf),
+            (mac_a, mac_s),
+        )
 
     def test_f2_f3_f5(self):
         """ Tests that the f2 and f5 functions work as expected.
@@ -141,13 +144,17 @@ class MilenageTests(unittest.TestCase):
         crypto = Milenage(amf)
         self.assertEqual(crypto.generate_opc(k, op), op_c)
         auts = crypto.generate_auts(k, op_c, rand, sqn)
-        self.assertEqual(crypto.generate_resync(auts, k, op_c, rand),
-                          (sqn, mac_s))
+        self.assertEqual(
+            crypto.generate_resync(auts, k, op_c, rand),
+            (sqn, mac_s),
+        )
 
     def test_eutran_vector(self):
         """Can we compute the vector that OAI generates?"""
-        self.rand = (b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b'
-                     b'\x0c\r\x0e\x0f')
+        self.rand = (
+            b'\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b'
+            b'\x0c\r\x0e\x0f'
+        )
 
         # Inputs extracted from OAI logs
         key = b'\x8b\xafG?/\x8f\xd0\x94\x87\xcc\xcb\xd7\t|hb'
@@ -160,8 +167,10 @@ class MilenageTests(unittest.TestCase):
         op_c = b"\x8e'\xb6\xaf\x0ei.u\x0f2fz;\x14`]"
         xres = b'\x2d\xaf\x87\x3d\x73\xf3\x10\xc6'
         autn = b'o\xbf\xa3\x80\x1fW\x80\x00{\xdeY\x88n\x96\xe4\xfe'
-        kasme = (b'\x87H\xc1\xc0\xa2\x82o\xa4\x05\xb1\xe2~\xa1\x04CJ\xe5V\xc7e'
-                 b'\xe8\xf0a\xeb\xdb\x8a\xe2\x86\xc4F\x16\xc2')
+        kasme = (
+            b'\x87H\xc1\xc0\xa2\x82o\xa4\x05\xb1\xe2~\xa1\x04CJ\xe5V\xc7e'
+            b'\xe8\xf0a\xeb\xdb\x8a\xe2\x86\xc4F\x16\xc2'
+        )
 
         crypto = Milenage(amf)
         self.assertEqual(crypto.generate_opc(key, op), op_c)

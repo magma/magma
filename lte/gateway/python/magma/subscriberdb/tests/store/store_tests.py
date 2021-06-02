@@ -31,7 +31,7 @@ class StoreTests(unittest.TestCase):
     def setUp(self):
         # Create sqlite3 database for testing
         self._tmpfile = tempfile.TemporaryDirectory()
-        self._store = SqliteStore(self._tmpfile.name +'/')
+        self._store = SqliteStore(self._tmpfile.name + '/')
 
     def tearDown(self):
         self._tmpfile.cleanup()
@@ -100,13 +100,17 @@ class StoreTests(unittest.TestCase):
 
         sub1.lte.auth_key = b'1234'
         self._store.update_subscriber(sub1)
-        self.assertEqual(self._store.get_subscriber_data(sid1).lte.auth_key,
-                         b'1234')
+        self.assertEqual(
+            self._store.get_subscriber_data(sid1).lte.auth_key,
+            b'1234',
+        )
 
         with self._store.edit_subscriber(sid1) as subs:
             subs.lte.auth_key = b'5678'
-        self.assertEqual(self._store.get_subscriber_data(sid1).lte.auth_key,
-                         b'5678')
+        self.assertEqual(
+            self._store.get_subscriber_data(sid1).lte.auth_key,
+            b'5678',
+        )
 
         with self.assertRaises(SubscriberNotFoundError):
             sub1.sid.id = '30000'
