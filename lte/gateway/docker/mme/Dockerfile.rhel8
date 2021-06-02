@@ -144,7 +144,7 @@ RUN  git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
      git clone https://github.com/jupp0r/prometheus-cpp.git && \
      git clone https://github.com/cpp-redis/cpp_redis.git && \
      wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
-     wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+     wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
      wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
      git clone https://git.osmocom.org/libgtpnl && \
      git clone https://github.com/OPENAIRINTERFACE/asn1c.git && \
@@ -240,7 +240,7 @@ RUN tar -xf nettle-2.5.tar.gz && \
     make install && \
     ldconfig -v && \
     cd / && \
-    # Moved wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    # Moved wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     ./configure --with-libnettle-prefix=/usr/local && \
