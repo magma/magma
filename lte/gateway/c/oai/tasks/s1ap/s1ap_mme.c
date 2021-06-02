@@ -114,6 +114,10 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   bool is_task_state_same = false;
   bool is_ue_state_same   = false;
 
+  s1ap_last_msg_latency = ITTI_MSG_LATENCY(received_message_p);  // microseconds
+
+  OAILOG_INFO(LOG_S1AP, "S1AP ZMQ latency: %ld.", s1ap_last_msg_latency);
+
   switch (ITTI_MSG_ID(received_message_p)) {
     case ACTIVATE_MESSAGE: {
       is_task_state_same = true;  // does not modify state

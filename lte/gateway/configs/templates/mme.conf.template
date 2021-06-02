@@ -37,6 +37,11 @@ MME :
     USE_HA = "{{ use_ha }}";
     ENABLE_GTPU_PRIVATE_IP_CORRECTION = "{{ enable_gtpu_private_ip_correction }}";
     ENABLE_CONVERGED_CORE = "{{ enable_converged_core }}";
+    S1AP_ZMQ_TH = {{ s1ap_zmq_th }};
+    MME_APP_ZMQ_CONGEST_TH = {{ mme_app_zmq_congest_th }};
+    MME_APP_ZMQ_AUTH_TH = {{ mme_app_zmq_auth_th }};
+    MME_APP_ZMQ_IDENT_TH = {{ mme_app_zmq_ident_th }};
+    MME_APP_ZMQ_SMC_TH = {{ mme_app_zmq_smc_th }};
 
     # Congestion control thresholds (expressed in microseconds)
     S1AP_ZMQ_TH = {{ s1ap_zmq_th_us }};
