@@ -82,7 +82,8 @@ class ConfigManager(object):
 
     def set(self, component: str, key: str, value: str):
         click.echo(
-            f"Setting key {key} value {value} for component {component}")
+            f"Setting key {key} value {value} for component {component}",
+        )
         cfgs = get_json(self._get_config_fn(component))
         config_vars = self.config_vars[component]
 
@@ -99,14 +100,17 @@ class ConfigManager(object):
         click.echo(
             click.style(
                 f"\nConfiguring {component} deployment variables ",
-                underline=True))
+                underline=True,
+            ),
+        )
         cfgs = self.configs[component]
         # TODO: use a different yaml loader to ensure we load inorder
         # sort the variables to group the inputs together
         config_vars = self.config_vars[component].items()
         for config_key, config_info in sorted(config_vars, key=lambda s: s[0]):
             config_description = config_info.get(
-                'Description', config_key).strip('.')
+                'Description', config_key,
+            ).strip('.')
             defaultValue = config_info.get('Default')
             # add defaults to the json configs to ensure we can run prechecks
             if defaultValue:
@@ -127,8 +131,10 @@ class ConfigManager(object):
                 cfgs[config_key] = inp
             else:
                 if v is None:
-                    if click.confirm("press 'y' to set empty string and "
-                                     "'n' to skip", prompt_suffix=': '):
+                    if click.confirm(
+                        "press 'y' to set empty string and "
+                        "'n' to skip", prompt_suffix=': ',
+                    ):
                         cfgs[config_key] = ""
 
         self.configs[component] = cfgs
@@ -162,11 +168,13 @@ class ConfigManager(object):
         render_j2_template(
             self.constants['tf_dir'],
             self.constants['main_tf'],
-            tf_cfgs)
+            tf_cfgs,
+        )
         render_j2_template(
             self.constants['tf_dir'],
             self.constants['vars_tf'],
-            self.tf_vars)
+            self.tf_vars,
+        )
 
     def check(self, component: str) -> bool:
         ''' check if all mandatory options of a specific component is set '''
@@ -179,10 +187,12 @@ class ConfigManager(object):
                 valid = False
         if missing_cfgs:
             click.echo(
-                f"Missing {missing_cfgs!r} configs for {component} component")
+                f"Missing {missing_cfgs!r} configs for {component} component",
+            )
         else:
             click.echo(
-                f"All mandatory configs for {component} has been configured")
+                f"All mandatory configs for {component} has been configured",
+            )
         return valid
 
     def info(self, component: str):
@@ -196,7 +206,7 @@ class ConfigManager(object):
                 v["Description"],
                 v["Type"],
                 v["Required"],
-                v["ConfigApps"]
+                v["ConfigApps"],
             ])
         click.echo(add_pretty_table(fields, items))
 

@@ -60,20 +60,28 @@ def cleanup(ctx):
         click.echo(f"Running {cmd}")
         rc = run_command(tf_destroy)
         if rc != 0:
-            print_error_msg("Destroy Failed!!! Attempt cleaning up individual"
-                            "resources using 'orcl cleanup raw' subcommand")
+            print_error_msg(
+                "Destroy Failed!!! Attempt cleaning up individual"
+                "resources using 'orcl cleanup raw' subcommand",
+            )
             return
 
 
 @cleanup.command()
 @click.pass_context
-@click.option('--dryrun', default=False, is_flag=True, help='Show resources '
-              'to be cleaned up during raw cleanup')
-@click.option('--state', help='Provide state file containing resource '
-              'information e.g. terraform.tfstate or '
-              'terraform.tfstate.backup')
-@click.option('--override', default=False, is_flag=True, help='Provide values'
-              'to cleanup the orc8r deployment')
+@click.option(
+    '--dryrun', default=False, is_flag=True, help='Show resources '
+    'to be cleaned up during raw cleanup',
+)
+@click.option(
+    '--state', help='Provide state file containing resource '
+    'information e.g. terraform.tfstate or '
+    'terraform.tfstate.backup',
+)
+@click.option(
+    '--override', default=False, is_flag=True, help='Provide values'
+    'to cleanup the orc8r deployment',
+)
 def raw(ctx, dryrun, state, override):
     """
     Individually cleans up resources deployed for orc8r
@@ -84,8 +92,12 @@ def raw(ctx, dryrun, state, override):
     override: override any state information with custom values
     """
     if not dryrun:
-        click.confirm(click.style('This is irreversable!! Do you want to '
-                      'continue with cleanup?', fg='red'), abort=True)
+        click.confirm(
+            click.style(
+                'This is irreversable!! Do you want to '
+                'continue with cleanup?', fg='red',
+            ), abort=True,
+        )
     if state:
         ctx.obj['cleanup_state'] = state
 

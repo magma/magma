@@ -17,21 +17,29 @@ from fabric.api import cd, hide, local, run, settings
 from fabric.operations import get
 
 # Local changes are only allowed in files specified in the EXCLUDE_FILE_LIST
-EXCLUDE_FILE_LIST = [os.path.realpath(x) for x in [
-    'release/build-magma.sh',
-]]
+EXCLUDE_FILE_LIST = [
+    os.path.realpath(x) for x in [
+        'release/build-magma.sh',
+    ]
+]
 
 
 def check_commit_changes():
     """ Compare agaist remote/master, ensure there is no local modifications or
     commits """
     with hide('running', 'warnings', 'output'), settings(warn_only=True):
-        uncommitted_change = local('hg summary | grep -q "commit: (clean)";'
-                                   'echo $?', capture=True) == "1"
-        local_commit_hash = local('hg identify -i',
-                                  capture=True).replace('+', '').split()[0]
-        remote_commit_hash = local('hg identify -r remote/master',
-                                   capture=True).split()[0]
+        uncommitted_change = local(
+            'hg summary | grep -q "commit: (clean)";'
+            'echo $?', capture=True,
+        ) == "1"
+        local_commit_hash = local(
+            'hg identify -i',
+            capture=True,
+        ).replace('+', '').split()[0]
+        remote_commit_hash = local(
+            'hg identify -r remote/master',
+            capture=True,
+        ).split()[0]
         if uncommitted_change:
             changes = [
                 os.path.realpath(x.split()[1])
@@ -40,7 +48,7 @@ def check_commit_changes():
             if set(changes) <= set(EXCLUDE_FILE_LIST):
                 print(
                     "Local changes detected in the following files from the "
-                    "EXCLUDE_FILE_LIST are ignored:\n%s" % '\n'.join(changes)
+                    "EXCLUDE_FILE_LIST are ignored:\n%s" % '\n'.join(changes),
                 )
                 return False
             else:
@@ -57,8 +65,10 @@ def check_commit_changes():
 def get_commit_hash(vcs='hg'):
     with hide('running', 'warnings', 'output'), settings(warn_only=True):
         if vcs == 'hg':
-            local_commit_hash = local('hg identify -i',
-                                      capture=True).replace('+', '').split()[0]
+            local_commit_hash = local(
+                'hg identify -i',
+                capture=True,
+            ).replace('+', '').split()[0]
         elif vcs == 'git':
             local_commit_hash = local('git rev-parse HEAD', capture=True)
         else:
@@ -73,20 +83,26 @@ def download_all_pkgs():
     packages locally into the apt cache
     '''
     # Get a list of all the installed packages
-    packages = run('dpkg-query -l'
-                   ' | tail -n +6'
-                   ' | awk \'{print $2}\''
-                   ' | sed "s/:.*$//"')
+    packages = run(
+        'dpkg-query -l'
+        ' | tail -n +6'
+        ' | awk \'{print $2}\''
+        ' | sed "s/:.*$//"',
+    )
     # Get the list of the packages we have local .debs for
-    have_pkgs = run('ls /var/cache/apt/archives/*.deb'
-                    ' | xargs -I "%" dpkg -I "%"'
-                    ' | grep " Package: "'
-                    ' | awk \'{print $2}\'')
+    have_pkgs = run(
+        'ls /var/cache/apt/archives/*.deb'
+        ' | xargs -I "%" dpkg -I "%"'
+        ' | grep " Package: "'
+        ' | awk \'{print $2}\'',
+    )
     # Figure out the set difference of the two
-    have_not_pkgs = run('echo \'' + packages + "\n" + have_pkgs + '\''
-                        ' | sort'
-                        ' | uniq -u'
-                        ' | tr "\\n\\r" " "')
+    have_not_pkgs = run(
+        'echo \'' + packages + "\n" + have_pkgs + '\''
+        ' | sort'
+        ' | uniq -u'
+        ' | tr "\\n\\r" " "',
+    )
     # Download all the packages we don't have
     with cd('/var/cache/apt/archives'):
         for p in have_not_pkgs.split():
@@ -131,11 +147,13 @@ def upload_pkgs_to_aws():
 
 
 def get_magma_version():
-    return run('ls ~/magma-packages'
-               ' | grep "^magma_[0-9].*"'
-               ' | xargs -I "%" dpkg -I ~/magma-packages/%'
-               ' | grep "Version"'
-               ' | awk \'{print $2}\'')
+    return run(
+        'ls ~/magma-packages'
+        ' | grep "^magma_[0-9].*"'
+        ' | xargs -I "%" dpkg -I ~/magma-packages/%'
+        ' | grep "Version"'
+        ' | awk \'{print $2}\'',
+    )
 
 
 def copy_packages():
@@ -153,14 +171,20 @@ def copy_packages():
 
     with cd('/tmp/packages'):
         for f in packages.split():
-            pkg_name = run('dpkg -I %s'
-                           ' | grep " Package:"'
-                           ' | awk \'{print $2}\'' % f).strip()
-            version = run('dpkg -I %s'
-                          ' | grep " Version:"'
-                          ' | awk \'{print $2}\'' % f).strip()
-            run('echo "%s %s %s" >> /tmp/packages.txt'
-                % (pkg_name, version, f))
+            pkg_name = run(
+                'dpkg -I %s'
+                ' | grep " Package:"'
+                ' | awk \'{print $2}\'' % f,
+            ).strip()
+            version = run(
+                'dpkg -I %s'
+                ' | grep " Version:"'
+                ' | awk \'{print $2}\'' % f,
+            ).strip()
+            run(
+                'echo "%s %s %s" >> /tmp/packages.txt'
+                % (pkg_name, version, f),
+            )
 
     # Tar up the packages
     with cd('/tmp/packages'):

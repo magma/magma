@@ -63,10 +63,10 @@ def create_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--url", dest="url", action="store", help="Orchestrator URL Address"
+        "--url", dest="url", action="store", help="Orchestrator URL Address",
     )
     parser.add_argument(
-        "--partner", dest="partner", action="store", help="Partner Short Name"
+        "--partner", dest="partner", action="store", help="Partner Short Name",
     )
     return parser
 

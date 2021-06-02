@@ -48,7 +48,8 @@ def verify_sanity(ctx, namespace):
             else:
                 print_error_msg(
                     "multiple kubeconfigs found %s!!!" %
-                    repr(kubeconfigs))
+                    repr(kubeconfigs),
+                )
             return
         kubeconfig = kubeconfigs[0]
 
@@ -76,7 +77,8 @@ def verify_sanity(ctx, namespace):
         json.dumps(constants),
         "-t",
         "verify_sanity",
-        "%s/main.yml" % constants["playbooks"]])
+        "%s/main.yml" % constants["playbooks"],
+    ])
     if rc != 0:
         print_error_msg("Post deployment verification checks failed!!!")
         sys.exit(1)

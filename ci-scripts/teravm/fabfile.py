@@ -58,7 +58,8 @@ def upgrade_to_latest_and_run_3gpp_tests(
 
     upgrade_and_run_3gpp_tests(
         setup, latest_hash, key_filename,
-        custom_test_file, upgrade_agw, upgrade_feg)
+        custom_test_file, upgrade_agw, upgrade_feg,
+    )
 
 
 def upgrade_and_run_3gpp_tests(
@@ -81,8 +82,10 @@ def upgrade_and_run_3gpp_tests(
 
     custom_test_file: a 3gpp test file to run. The default uses s6a and gxgy
     """
-    err = upgrade_teravm(setup, hash, key_filename,
-                         upgrade_agw, upgrade_feg)
+    err = upgrade_teravm(
+        setup, hash, key_filename,
+        upgrade_agw, upgrade_feg,
+    )
     if err:
         sys.exit(1)
 
@@ -171,8 +174,8 @@ def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
                     "version=$("
                     "apt-cache madison magma | grep {hash} | awk 'NR==1{{print $3}}');"
                     "apt install -f -y --allow-downgrades -o Dpkg::Options::=\"--force-confnew\" magma=$version".format(
-                        hash=hash
-                    )
+                        hash=hash,
+                    ),
                 )
             # restart sctpd to force clean start
             sudo("service sctpd restart")
@@ -212,13 +215,13 @@ def upgrade_teravm_agw_AWS(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
         # install didn't leave missing libraries.
         sudo(
             "apt --fix-broken -y install -o "
-            'Dpkg::Options::="--force-confnew" --assume-yes --force-yes'
+            'Dpkg::Options::="--force-confnew" --assume-yes --force-yes',
         )
         sudo("apt-get update -y")
         sudo("apt-get autoremove -y")
         sudo(
             "apt --fix-broken -y install -o "
-            'Dpkg::Options::="--force-confnew" --assume-yes --force-yes'
+            'Dpkg::Options::="--force-confnew" --assume-yes --force-yes',
         )
         sudo("dpkg --force-confnew -i magma*.deb")
         sudo("apt-get install -f -y")
@@ -268,7 +271,7 @@ def upgrade_teravm_feg(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
 
 
 def run_3gpp_tests(
-        setup, key_filename=DEFAULT_KEY_FILENAME, test_files=NG40_TEST_FILES
+        setup, key_filename=DEFAULT_KEY_FILENAME, test_files=NG40_TEST_FILES,
 ):
     """
     Run teravm s6a and gxgy test cases. Usage: 'fab run_3gpp_tests:' for
@@ -320,7 +323,7 @@ def _set_magma_apt_repo():
                     source=AGW_APT_SOURCE,
                     repo=repo_apt_string,
                     sFile=AGW_ATP_FILE,
-                )
+                ),
             )
         except Exception:
             err = "Error changing ATP repo\n"
@@ -387,7 +390,8 @@ def _get_latest_agw_tag(setup, key_filename):
         sys.exit(1)
     sudo("apt update")
     tag = sudo(
-            "apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'")
+            "apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'",
+    )
     fastprint("Latest tag of AGW is %s \n" % tag)
 
     return tag

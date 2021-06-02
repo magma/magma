@@ -76,7 +76,8 @@ def check_pre_requisite():
     #Setting logging basic configurations like severity level=DEBUG, timestamp, function name, line numner
     logging.basicConfig(
             format='[%(asctime)s %(levelname)s %(name)s:%(funcName)s:%(lineno)d] %(message)s',
-            level = logging.DEBUG)
+            level = logging.DEBUG,
+    )
     uname = platform.uname()
     logging.debug('Operating System : %s' % uname[0])
     logging.debug('Host name : %s' % uname[1])

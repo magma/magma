@@ -35,7 +35,7 @@ class ComponentCores(object):
         self.all_cores = glob.glob(self.component_data["path"])
         self.cores = self.filter_files_by_ctime()
         self.app_binary = self.component_data["binary"]
-        self.core_dirs = { os.path.dirname(x) for x in self.cores }
+        self.core_dirs = { os.path.dirname(x) for x in self.cores}
 
     def filter_files_by_ctime(self):
         cores = []
@@ -102,7 +102,7 @@ class CoreFile(object):
                 check=True,
                 stdout=fout,
                 stderr=fout,
-                timeout=60
+                timeout=60,
             )
 
 
@@ -110,7 +110,7 @@ class CoreFile(object):
 @click.option(
     "--cores-map",
     help="Map of core files to collect and process with binary",
-    default="{}"
+    default="{}",
 )
 @click.option(
     "--component",

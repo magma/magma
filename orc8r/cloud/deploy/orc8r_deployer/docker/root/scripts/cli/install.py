@@ -40,7 +40,8 @@ def install(ctx):
         "terraform",
         "apply",
         "-target=module.orc8r-app.null_resource.orc8r_seed_secrets",
-        "-auto-approve"]
+        "-auto-approve",
+    ]
     tf_orc8r_app = ["terraform", "apply", "-auto-approve"]
 
     if ctx.invoked_subcommand is None:
@@ -60,17 +61,20 @@ def install(ctx):
                 # set the kubectl after bringing up the infra
                 if tf_cmd in (tf_orc8r, tf_orc8r_app):
                     kubeconfigs = glob.glob(
-                        constants['project_dir'] + "/kubeconfig_*")
+                        constants['project_dir'] + "/kubeconfig_*",
+                    )
                     if len(kubeconfigs) != 1:
                         print_error_msg(
                             "zero or multiple kubeconfigs found %s!!!" %
-                            repr(kubeconfigs))
+                            repr(kubeconfigs),
+                        )
                         return
                     kubeconfig = kubeconfigs[0]
                     os.environ['KUBECONFIG'] = kubeconfig
                     print_info_msg(
                         f'For accessing kubernetes cluster, set'
-                        ' `export KUBECONFIG={kubeconfig}`')
+                        ' `export KUBECONFIG={kubeconfig}`',
+                    )
 
                 print_success_msg(f"Command {cmd} ran successfully")
             else:
@@ -90,7 +94,8 @@ def precheck(ctx):
         "@/root/config.yml",
         "-t",
         "install_precheck",
-        "%s/main.yml" % ctx.obj["playbooks"]])
+        "%s/main.yml" % ctx.obj["playbooks"],
+    ])
     if rc != 0:
         print_error_msg("Install prechecks failed!!!")
         sys.exit(1)

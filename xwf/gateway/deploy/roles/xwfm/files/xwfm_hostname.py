@@ -58,16 +58,16 @@ def create_parser():
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
-        "--partner", dest="partner", action="store", help="Partner Short Name"
+        "--partner", dest="partner", action="store", help="Partner Short Name",
     )
     parser.add_argument(
-        "--hwid", dest="hwid", action="store", help="Gateway Hardware ID"
+        "--hwid", dest="hwid", action="store", help="Gateway Hardware ID",
     )
     parser.add_argument(
-        "--url", dest="url", action="store", help="Orchestrator URL Address"
+        "--url", dest="url", action="store", help="Orchestrator URL Address",
     )
     parser.add_argument(
-        "--env", dest="env", action="store", help="Environment type: QA/Prod"
+        "--env", dest="env", action="store", help="Environment type: QA/Prod",
     )
     return parser
 

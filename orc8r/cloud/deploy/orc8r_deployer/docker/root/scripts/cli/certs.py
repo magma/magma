@@ -44,7 +44,8 @@ def add(ctx, self_signed):
             "@/root/config.yml",
             "-t",
             "addcerts",
-            "%s/certs.yml" % ctx.obj["playbooks"]])
+            "%s/certs.yml" % ctx.obj["playbooks"],
+        ])
     else:
         run_playbook([
             "ansible-playbook",
@@ -55,4 +56,5 @@ def add(ctx, self_signed):
             "addcerts",
             "--skip-tags",
             "self_signed",
-            "%s/certs.yml" % ctx.obj["playbooks"]])
+            "%s/certs.yml" % ctx.obj["playbooks"],
+        ])
