@@ -42,7 +42,8 @@ class SDWatchdog(object):
             self,
             tasks: Optional[List[SDWatchdogTask]],
             update_status: bool = False,  # update systemd status field
-            period: float = 30) -> None:
+            period: float = 30,
+    ) -> None:
         """
         coroutine that will check each task's time_last_completed_loop to
         ensure that it was updated every in the last timeout_s seconds.
@@ -58,7 +59,8 @@ class SDWatchdog(object):
             for t in tasks:
                 if not issubclass(type(t), SDWatchdogTask):
                     logging.warning(
-                        "'%s' is not a 'SDWatchdogTask', skipping", repr(t))
+                        "'%s' is not a 'SDWatchdogTask', skipping", repr(t),
+                    )
                 else:
                     self.tasks.add(t)
 
@@ -81,7 +83,8 @@ class SDWatchdog(object):
             for task in self.tasks:
                 if task.not_completed(current_time):
                     errmsg = "SDWatchdog service '%s' has not completed %s" % (
-                        repr(task), time.asctime(time.gmtime(current_time)))
+                        repr(task), time.asctime(time.gmtime(current_time)),
+                    )
                     if self.update_status:
                         systemd.daemon.notify("STATUS=%s\n" % errmsg)
                     logging.info(errmsg)
@@ -90,7 +93,8 @@ class SDWatchdog(object):
             if not anyStuck:
                 systemd.daemon.notify(
                     'STATUS=SDWatchdog success %s\n' %
-                    time.asctime(time.gmtime(current_time)))
+                    time.asctime(time.gmtime(current_time)),
+                )
                 systemd.daemon.notify("WATCHDOG=1")
                 systemd.daemon.notify("READY=1")  # only active if Type=notify
 
