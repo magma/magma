@@ -36,7 +36,7 @@ void sgw_s8_handle_delete_session_response(
 
 void sgw_s8_handle_release_access_bearers_request(
     const itti_s11_release_access_bearers_request_t* const
-    release_access_bearers_req_pP,
+        release_access_bearers_req_pP,
     imsi64_t imsi64);
 
 void sgw_s8_handle_s11_delete_session_request(
