@@ -17,6 +17,9 @@ import (
 	"context"
 	"sort"
 
+	"magma/orc8r/cloud/go/mproto"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -81,6 +84,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	}
 
 	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
+	subProtosIndexed := map[string]proto.Message{}
 	for _, sub := range subEnts {
 		subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
 		if err != nil {
@@ -88,10 +92,21 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		}
 		subProto.NetworkId = &protos.NetworkID{Id: networkID}
 		subProtos = append(subProtos, subProto)
+
+		index := subProto.Sid.Id
+		subProtosIndexed[index] = subProto
 	}
+
+	digest, err := mproto.EncodeProtosDeterministic(subProtosIndexed)
+	if err != nil {
+		return nil, err
+	}
+
 	listRes := &lte_protos.ListSubscribersResponse{
 		Subscribers:   subProtos,
 		NextPageToken: nextToken,
+		Digest: string(digest),
+		NoUpdates: req.PreviousDigest == string(digest),
 	}
 	return listRes, nil
 }

@@ -171,7 +171,7 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 	}
 	expectedToken := serializeToken(t, token)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtos, res.Subscribers)
+	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
 	assert.Equal(t, expectedToken, res.NextPageToken)
 
 	expectedProtos2 := []*lte_protos.SubscriberData{
@@ -191,7 +191,7 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 	}
 	res, err = servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtos2, res.Subscribers)
+	assertEqualSubscriberData(t, expectedProtos2, res.Subscribers)
 	assert.Equal(t, "", res.NextPageToken)
 
 	// Create policies and base name associated to sub
@@ -224,7 +224,7 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 	}
 	res, err = servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtos, res.Subscribers)
+	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
 	assert.Equal(t, expectedToken, res.NextPageToken)
 
 	// Create gateway-specific APN configuration
@@ -259,7 +259,7 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 
 	res, err = servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtos, res.Subscribers)
+	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
 	assert.Equal(t, expectedToken, res.NextPageToken)
 
 	// Create 8 more subscribers to test max page size
@@ -299,4 +299,11 @@ func serializeToken(t *testing.T, token *configurator_storage.EntityPageToken) s
 	marshalledToken, err := proto.Marshal(token)
 	assert.NoError(t, err)
 	return base64.StdEncoding.EncodeToString(marshalledToken)
+}
+
+func assertEqualSubscriberData(t *testing.T, expectedProtos []*lte_protos.SubscriberData, actualProtos []*lte_protos.SubscriberData) {
+	assert.True(t, len(expectedProtos) == len(actualProtos))
+	for i := 0; i < len(expectedProtos); i ++ {
+		assert.True(t, proto.Equal(expectedProtos[i], actualProtos[i]))
+	}
 }

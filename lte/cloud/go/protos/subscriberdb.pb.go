@@ -1087,7 +1087,10 @@ type ListSubscribersRequest struct {
 	// page_size is the maximum number of entities returned per request.
 	PageSize uint32 `protobuf:"varint,1,opt,name=page_size,json=pageSize,proto3" json:"page_size,omitempty"`
 	// page_token is a serialized entity page token for paginated loads.
-	PageToken            string   `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	PageToken string `protobuf:"bytes,2,opt,name=page_token,json=pageToken,proto3" json:"page_token,omitempty"`
+	// previous_digest is the digest received from the most-recent request to
+	// ListSubscribers.
+	PreviousDigest       string   `protobuf:"bytes,3,opt,name=previous_digest,json=previousDigest,proto3" json:"previous_digest,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1132,11 +1135,24 @@ func (m *ListSubscribersRequest) GetPageToken() string {
 	return ""
 }
 
+func (m *ListSubscribersRequest) GetPreviousDigest() string {
+	if m != nil {
+		return m.PreviousDigest
+	}
+	return ""
+}
+
 type ListSubscribersResponse struct {
 	Subscribers []*SubscriberData `protobuf:"bytes,1,rep,name=subscribers,proto3" json:"subscribers,omitempty"`
 	// next_page_token is a serialized entity page token for subsequent paginated
 	// loads.
-	NextPageToken        string   `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	NextPageToken string `protobuf:"bytes,2,opt,name=next_page_token,json=nextPageToken,proto3" json:"next_page_token,omitempty"`
+	// digest is the server-defined, deterministic digest of the full set of
+	// returned subscriber objects.
+	Digest string `protobuf:"bytes,3,opt,name=digest,proto3" json:"digest,omitempty"`
+	// no_updates is true if client's existing subscribers match those on the
+	// server.
+	NoUpdates            bool     `protobuf:"varint,4,opt,name=no_updates,json=noUpdates,proto3" json:"no_updates,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -1179,6 +1195,20 @@ func (m *ListSubscribersResponse) GetNextPageToken() string {
 		return m.NextPageToken
 	}
 	return ""
+}
+
+func (m *ListSubscribersResponse) GetDigest() string {
+	if m != nil {
+		return m.Digest
+	}
+	return ""
+}
+
+func (m *ListSubscribersResponse) GetNoUpdates() bool {
+	if m != nil {
+		return m.NoUpdates
+	}
+	return false
 }
 
 func init() {
