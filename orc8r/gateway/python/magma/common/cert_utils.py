@@ -37,7 +37,8 @@ def load_key(key_file):
     with open(key_file, 'rb') as f:
         key_bytes = f.read()
     return serialization.load_pem_private_key(
-        key_bytes, None, default_backend())
+        key_bytes, None, default_backend(),
+    )
 
 
 def write_key(key, key_file):
@@ -50,7 +51,8 @@ def write_key(key, key_file):
     key_pem = key.private_bytes(
         serialization.Encoding.PEM,
         serialization.PrivateFormat.TraditionalOpenSSL,
-        serialization.NoEncryption())
+        serialization.NoEncryption(),
+    )
     write_to_file_atomically(key_file, key_pem.decode("utf-8"))
 
 
@@ -74,14 +76,17 @@ def load_public_key_to_base64der(key_file):
     pub_key = key.public_key()
     pub_bytes = pub_key.public_bytes(
         encoding=serialization.Encoding.DER,
-        format=serialization.PublicFormat.SubjectPublicKeyInfo)
+        format=serialization.PublicFormat.SubjectPublicKeyInfo,
+    )
     encoded = base64.b64encode(pub_bytes)
     return encoded
 
 
-def create_csr(key, common_name,
-               country=None, state=None, city=None, org=None,
-               org_unit=None, email_address=None):
+def create_csr(
+    key, common_name,
+    country=None, state=None, city=None, org=None,
+    org_unit=None, email_address=None,
+):
     """Create csr and sign it with key.
 
     Args:
@@ -102,20 +107,23 @@ def create_csr(key, common_name,
         name_attrs.append(x509.NameAttribute(NameOID.COUNTRY_NAME, country))
     if state:
         name_attrs.append(
-            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state))
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state),
+        )
     if city:
         name_attrs.append(x509.NameAttribute(NameOID.LOCALITY_NAME, city))
     if org:
         name_attrs.append(x509.NameAttribute(NameOID.ORGANIZATION_NAME, org))
     if org_unit:
         name_attrs.append(
-            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, org_unit))
+            x509.NameAttribute(NameOID.ORGANIZATIONAL_UNIT_NAME, org_unit),
+        )
     if email_address:
         name_attrs.append(
-            x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address))
+            x509.NameAttribute(NameOID.EMAIL_ADDRESS, email_address),
+        )
 
     csr = x509.CertificateSigningRequestBuilder().subject_name(
-        x509.Name(name_attrs)
+        x509.Name(name_attrs),
     ).sign(key, hashes.SHA256(), default_backend())
 
     return csr

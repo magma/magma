@@ -96,7 +96,7 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
                     DirectoryRecord(
                         location_history=[hwid],
                         identifiers={},
-                )
+                    )
 
                 if record.location_history[0] != hwid:
                     record.location_history = [hwid] + record.location_history

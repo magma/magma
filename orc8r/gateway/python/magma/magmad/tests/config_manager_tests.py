@@ -101,8 +101,10 @@ class ConfigManagerTest(TestCase):
             update_str = MessageToJson(updated_mconfig)
             updates = [
                 DataUpdate(value=''.encode('utf-8'), key='some key'),
-                DataUpdate(value=update_str.encode('utf-8'),
-                           key='last key'),
+                DataUpdate(
+                    value=update_str.encode('utf-8'),
+                    key='last key',
+                ),
             ]
             config_manager.process_update(CONFIG_STREAM_NAME, updates, False)
 
