@@ -1063,14 +1063,10 @@ int mme_app_handle_create_sess_resp(
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
       "Received S11_CREATE_SESSION_RESPONSE from S+P-GW for ue "
-      "id " MME_UE_S1AP_ID_FMT "\n",
-      ue_context_p->mme_ue_s1ap_id);
-
-  OAILOG_DEBUG_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "MME S11 teid = %u, cause = %d, ue_id = " MME_UE_S1AP_ID_FMT "\n",
-      create_sess_resp_pP->teid, create_sess_resp_pP->cause.cause_value,
-      ue_context_p->mme_ue_s1ap_id);
+      "id " MME_UE_S1AP_ID_FMT " with MME S11 teid = " TEID_FMT
+      ", cause = %d\n",
+      ue_context_p->mme_ue_s1ap_id, create_sess_resp_pP->teid,
+      create_sess_resp_pP->cause.cause_value);
 
   proc_tid_t transaction_identifier = 0;
   pdn_cid_t pdn_cx_id               = 0;
