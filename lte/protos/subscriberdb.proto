@@ -146,6 +146,13 @@ message AggregatedMaximumBitrate {
   uint32 max_bandwidth_ul = 1;
   // Maximum downlink bitrate
   uint32 max_bandwidth_dl = 2;
+
+  enum BitrateUnitsAMBR {
+        BPS = 0;
+        KBPS = 1;
+        }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 3;
 }
 
 message Non3GPPUserProfile {
