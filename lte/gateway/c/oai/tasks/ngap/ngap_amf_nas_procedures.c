@@ -207,6 +207,17 @@ int ngap_amf_handle_initial_ue_message(
     NGAP_FIND_PROTOCOLIE_BY_ID(
         Ngap_InitialUEMessage_IEs_t, ie_cause, container,
         Ngap_ProtocolIE_ID_id_RRCEstablishmentCause, true);
+    // optional UeContextRequest
+    Ngap_InitialUEMessage_IEs_t* ie_uecontextrequest = NULL;
+    NGAP_FIND_PROTOCOLIE_BY_ID(
+        Ngap_InitialUEMessage_IEs_t, ie_uecontextrequest, container,
+        Ngap_ProtocolIE_ID_id_UEContextRequest, false);
+    long ue_context_request = 0;
+    if (ie_uecontextrequest) {
+      ue_context_request =
+          ie_uecontextrequest->value.choice.UEContextRequest + 1;
+    }
+
     ngap_amf_itti_ngap_initial_ue_message(
         assoc_id, gNB_ref->gnb_id, ue_ref->gnb_ue_ngap_id,
         ie->value.choice.NAS_PDU.buf, ie->value.choice.NAS_PDU.size, &tai,
@@ -215,8 +226,8 @@ int ngap_amf_handle_initial_ue_message(
         ie_guamfi ? &guamfi : NULL,
         NULL,  // CELL ACCESS MODE
         NULL,  // GW Transport Layer Address
-        NULL   // Relay Node Indicator
-    );
+        NULL,  // Relay Node Indicator
+        ue_context_request);
 
   } else {
     OAILOG_ERROR(
