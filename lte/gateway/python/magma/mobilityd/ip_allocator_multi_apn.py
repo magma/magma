@@ -22,12 +22,11 @@ from __future__ import (
     unicode_literals,
 )
 
-import logging
 from ipaddress import ip_address, ip_network
 from typing import List
 
 from magma.mobilityd.ip_allocator_base import IPAllocator
-from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
+from magma.mobilityd.ip_descriptor import IPDesc
 from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.subscriberdb_client import SubscriberDbClient
 

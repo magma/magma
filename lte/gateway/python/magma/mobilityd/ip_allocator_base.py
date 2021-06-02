@@ -22,7 +22,7 @@ from abc import ABC, abstractmethod
 from ipaddress import ip_address, ip_network
 from typing import List
 
-from magma.mobilityd.ip_descriptor import IPDesc, IPType
+from magma.mobilityd.ip_descriptor import IPDesc
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 

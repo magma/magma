@@ -33,7 +33,7 @@ from magma.mobilityd.ip_allocator_base import (
 )
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.mobility_store import MobilityStore
-from magma.mobilityd.subscriberdb_client import StaticIPInfo, SubscriberDbClient
+from magma.mobilityd.subscriberdb_client import SubscriberDbClient
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
