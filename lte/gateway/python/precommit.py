@@ -58,7 +58,8 @@ def _build_docker_image():
 
 def _format_diff(paths: List[str]):
     for path in paths:
-        _run_docker_cmd(['autopep8', '-r', '-a', '--in-place', path])
+        autopep8_checks = 'E1,E2,E3,W'
+        _run_docker_cmd(['autopep8', '--select', autopep8_checks, '-r', '--in-place', path])
         _run_docker_cmd(['isort', path])
         _run_add_trailing_comma(path)
 
