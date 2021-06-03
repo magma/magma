@@ -16,7 +16,7 @@ import os
 import subprocess  # noqa: S404 ignore security warning about subprocess
 from typing import List
 
-from git import Repo  # GitPython
+#from git import Repo  # GitPython
 
 HOST_MAGMA_ROOT = '../../../'
 LINT_DOCKER_PATH = os.path.join(

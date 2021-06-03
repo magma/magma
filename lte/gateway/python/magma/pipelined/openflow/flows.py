@@ -603,15 +603,17 @@ def _check_resubmit_action(actions, parser):
 
 
 def send_stats_request(datapath, tbl_num, cookie: hex = 0, 
-                       cookie_mask: hex = 0, retries: int=3):
+                       cookie_mask: hex = 0, retries: int = 3):
     """
     Send a stats request msg 
+    
     Args:
         datapath (ryu.controller.controller.Datapath):
             Datapath to query from
         table (int): Table number to query for
         cookie (hex): cookie value for the request
-        cookie_mask(hex): cookie mask for the request
+        cookie_mask (hex): cookie mask for the request
+        retries (int): retry attempts on failure
     """
     ofproto, parser = datapath.ofproto, datapath.ofproto_parser
     req = parser.OFPFlowStatsRequest(
