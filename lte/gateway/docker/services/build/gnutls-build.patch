@@ -1,0 +1,19 @@
+diff --git a/third_party/build/bin/gnutls_build.sh b/third_party/build/bin/gnutls_build.sh
+index 22f9a2593..4598f081e 100755
+--- a/third_party/build/bin/gnutls_build.sh
++++ b/third_party/build/bin/gnutls_build.sh
+@@ -58,9 +58,12 @@ fi
+ mkdir -p ${WORK_DIR}/install
+ cd ${WORK_DIR}
+
+-wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-$PKGVERSION.tar.xz
++wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-$PKGVERSION.tar.xz
+ tar xf gnutls-$PKGVERSION.tar.xz
+-cd gnutls-$PKGVERSION/
++cd gnutls-$PKGVERSION/gl
++patch -p2 < /tmp/gnutls-glibc.patch
++cd ../
++
+ ./configure --prefix=/usr
+ make -j`nproc`
+ make install DESTDIR=${WORK_DIR}/install/
