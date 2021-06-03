@@ -473,24 +473,24 @@ TEST_F(LocalEnforcerTest, test_old_version_reporting) {
   auto record_list = table.mutable_records();
   // create three rule records version 1, version 2, version 3
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1, 15, 30, 0, 0,
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1, 15, 30, 10, 15,
       record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1, 20, 45, 0, 0,
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1, 20, 45, 13, 20,
       record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 2, 10, 80, 0, 0,
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 2, 10, 80, 12, 20,
       record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 3, 40, 100, 0, 0,
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 3, 40, 100, 6, 19,
       record_list->Add());
   // creating extra rules for old versions should be disregarded in stats
   // reporting
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1, 31, 51, 0, 0,
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1, 31, 51, 14, 3,
       record_list->Add());
   create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 2, 15, 95, 0, 0,
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 2, 15, 95, 10, 1,
       record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   auto uc     = get_default_update_criteria();
@@ -504,14 +504,26 @@ TEST_F(LocalEnforcerTest, test_old_version_reporting) {
       session_map[IMSI1][0]->get_policy_stats("rule1").stats_map;
   EXPECT_EQ(
       session_map[IMSI1][0]->get_policy_stats("rule1").current_version, 3);
-  // No calculations used here, stats map stores rx and tx for each version
-  // The older version rule records that are created are disregarded
+  // No calculations used here, stats map stores rx, tx, dropped_rx, and
+  // dropped_tx for each version. The older version rule records that are
+  // created are disregarded
   EXPECT_EQ(the_stats.at(1).rx, 20);
   EXPECT_EQ(the_stats.at(1).tx, 45);
+  EXPECT_EQ(the_stats.at(1).dropped_rx, 13);
+  EXPECT_EQ(the_stats.at(1).dropped_tx, 20);
   EXPECT_EQ(the_stats.at(2).rx, 10);
   EXPECT_EQ(the_stats.at(2).tx, 80);
+  EXPECT_EQ(the_stats.at(2).dropped_rx, 12);
+  EXPECT_EQ(the_stats.at(2).dropped_tx, 20);
   EXPECT_EQ(the_stats.at(3).rx, 40);
   EXPECT_EQ(the_stats.at(3).tx, 100);
+  EXPECT_EQ(the_stats.at(3).dropped_rx, 6);
+  EXPECT_EQ(the_stats.at(3).dropped_tx, 19);
+  EXPECT_EQ(
+      session_map[IMSI1][0]->get_policy_stats("rule1").current_version, 3);
+  EXPECT_EQ(
+      session_map[IMSI1][0]->get_policy_stats("rule1").last_reported_version,
+      3);
 }
 
 TEST_F(LocalEnforcerTest, test_update_version_reporting) {
@@ -575,10 +587,10 @@ TEST_F(LocalEnforcerTest, test_update_version_reporting) {
 
 TEST_F(LocalEnforcerTest, test_erroneous_data) {
   /*
-  Tests whether updated rule records for a version
-  have decreased values of rx and tx. In that case
-  records should be disregarded.
-  */
+   * Tests whether updated rule records for a version
+   * have decreased values of rx and tx. In that case
+   * records should be disregarded.
+   */
   CreateSessionResponse response;
   create_credit_update_response(
       IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
