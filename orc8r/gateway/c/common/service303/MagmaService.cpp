@@ -117,7 +117,7 @@ void MagmaService::ClearOperationalStatesCallback() {
 
 Status MagmaService::GetServiceInfo(
     __attribute__((unused)) ServerContext* context,
-    __attribute__((unused)) const Void* request, ServiceInfo* response)  {
+    __attribute__((unused)) const Void* request, ServiceInfo* response) {
   auto start_time_secs =
       time_point_cast<seconds>(wall_start_time_).time_since_epoch().count();
 
