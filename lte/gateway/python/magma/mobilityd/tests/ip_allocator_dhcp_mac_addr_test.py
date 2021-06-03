@@ -13,7 +13,7 @@ limitations under the License.
 
 import unittest
 
-from magma.mobilityd.mac import MacAddress, create_mac_from_sid
+from magma.mobilityd.mac import create_mac_from_sid
 
 
 class MacAddressGenTests(unittest.TestCase):

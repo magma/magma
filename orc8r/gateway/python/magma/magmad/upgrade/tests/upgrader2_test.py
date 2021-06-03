@@ -38,7 +38,7 @@ class FakeUpgrader(upgrader2.Upgrader2):
 
     async def get_upgrade_intent(self) -> upgrader2.UpgradeIntent:
         return upgrader2.UpgradeIntent(
-            stable=self.stable_version, canary=self.canary_version
+            stable=self.stable_version, canary=self.canary_version,
         )
 
     async def get_versions(self) -> upgrader2.VersionInfo:
@@ -48,12 +48,12 @@ class FakeUpgrader(upgrader2.Upgrader2):
         )
 
     async def prepare_upgrade(
-        self, version: upgrader2.VersionT, path_to_image: pathlib.Path
+        self, version: upgrader2.VersionT, path_to_image: pathlib.Path,
     ) -> None:
         self.installed_versions.add(version)
 
     async def upgrade(
-        self, version: upgrader2.VersionT, path_to_image: pathlib.Path
+        self, version: upgrader2.VersionT, path_to_image: pathlib.Path,
     ) -> None:
         self.installed_versions.remove(version)
         self.current_version = version
@@ -94,35 +94,41 @@ class Upgrader2Test(unittest.TestCase):
 
     def run_upgrade_loop(self):
         asyncio.get_event_loop().run_until_complete(
-            upgrader2.do_upgrade2(self.wrapped_upgrader)
+            upgrader2.do_upgrade2(self.wrapped_upgrader),
         )
 
     def test_version_info(self):
         self.assertEqual(
-            set(), upgrader2.VersionInfo(self.version_none, {}).all_versions
+            set(), upgrader2.VersionInfo(self.version_none, {}).all_versions,
         )
         self.assertEqual(
             {self.version_a}, upgrader2.VersionInfo(
-                self.version_a, {}).all_versions
+                self.version_a, {},
+            ).all_versions,
         )
         self.assertEqual(
             {self.version_a},
-            upgrader2.VersionInfo(self.version_none, {
-                                  self.version_a}).all_versions,
+            upgrader2.VersionInfo(
+                self.version_none, {
+                self.version_a,
+                },
+            ).all_versions,
         )
         self.assertEqual(
             {self.version_a}, upgrader2.VersionInfo(
-                self.version_a, {}).all_versions
+                self.version_a, {},
+            ).all_versions,
         )
         self.assertEqual(
             {self.version_a, self.version_b},
             upgrader2.VersionInfo(
-                self.version_a, {self.version_b}).all_versions,
+                self.version_a, {self.version_b},
+            ).all_versions,
         )
         self.assertEqual(
             {self.version_a, self.version_b},
             upgrader2.VersionInfo(
-                self.version_a, {self.version_a, self.version_b}
+                self.version_a, {self.version_a, self.version_b},
             ).all_versions,
         )
 
@@ -132,45 +138,54 @@ class Upgrader2Test(unittest.TestCase):
             available_versions={self.version_b, self.version_c},
         )
         intent = upgrader2.UpgradeIntent(
-            stable=self.version_none, canary=self.version_none
+            stable=self.version_none, canary=self.version_none,
         )
-        self.assertEqual(self.version_none,
-                         intent.version_to_prepare(version_info))
         self.assertEqual(
-            self.version_none, intent.version_to_force_upgrade(version_info)
+            self.version_none,
+            intent.version_to_prepare(version_info),
+        )
+        self.assertEqual(
+            self.version_none, intent.version_to_force_upgrade(version_info),
         )
 
         # If version is already the one intended, no actions should be taken
         intent = upgrader2.UpgradeIntent(
-            stable=version_info.current_version, canary=version_info.current_version
+            stable=version_info.current_version, canary=version_info.current_version,
         )
 
-        self.assertEqual(self.version_none,
-                         intent.version_to_prepare(version_info))
         self.assertEqual(
-            self.version_none, intent.version_to_force_upgrade(version_info)
+            self.version_none,
+            intent.version_to_prepare(version_info),
+        )
+        self.assertEqual(
+            self.version_none, intent.version_to_force_upgrade(version_info),
         )
 
         # If upgrade is already prepared, then no reason to prepare again
         intent = upgrader2.UpgradeIntent(
-            stable=self.version_none, canary=self.version_b
+            stable=self.version_none, canary=self.version_b,
         )
 
-        self.assertEqual(self.version_none,
-                         intent.version_to_prepare(version_info))
+        self.assertEqual(
+            self.version_none,
+            intent.version_to_prepare(version_info),
+        )
 
         # Unprepared version
         intent = upgrader2.UpgradeIntent(
-            stable=self.version_none, canary=self.version_d
+            stable=self.version_none, canary=self.version_d,
         )
         self.assertEqual(
-            self.version_d, intent.version_to_prepare(version_info))
+            self.version_d, intent.version_to_prepare(version_info),
+        )
 
         # Force upgrade needed
         intent = upgrader2.UpgradeIntent(
-            stable=self.version_b, canary=self.version_b)
+            stable=self.version_b, canary=self.version_b,
+        )
         self.assertEqual(
-            self.version_b, intent.version_to_force_upgrade(version_info))
+            self.version_b, intent.version_to_force_upgrade(version_info),
+        )
 
     def test_do_nothing_upgrade(self):
         self.upgrader.stable_version = ""
@@ -182,7 +197,8 @@ class Upgrader2Test(unittest.TestCase):
 
         # Old-style upgrade method not called
         self.assertIs(
-            0, self.wrapped_upgrader.perform_upgrade_if_necessary.call_count)
+            0, self.wrapped_upgrader.perform_upgrade_if_necessary.call_count,
+        )
         # New style methods called
         self.assertIs(1, self.wrapped_upgrader.get_upgrade_intent.call_count)
         self.assertIs(1, self.wrapped_upgrader.get_versions.call_count)
@@ -202,7 +218,8 @@ class Upgrader2Test(unittest.TestCase):
 
         # Old-style upgrade method not called
         self.assertIs(
-            0, self.wrapped_upgrader.perform_upgrade_if_necessary.call_count)
+            0, self.wrapped_upgrader.perform_upgrade_if_necessary.call_count,
+        )
         self.assertIs(1, self.ensure_downloaded.call_count)
         self.assertEqual(
             [mock.call("canary_version", canary_path)],
@@ -222,7 +239,8 @@ class Upgrader2Test(unittest.TestCase):
 
         # Old-style upgrade method not called
         self.assertIs(
-            0, self.wrapped_upgrader.perform_upgrade_if_necessary.call_count)
+            0, self.wrapped_upgrader.perform_upgrade_if_necessary.call_count,
+        )
         # New style methods called
         self.assertIs(2, self.ensure_downloaded.call_count)
         self.assertIs(1, self.wrapped_upgrader.get_upgrade_intent.call_count)

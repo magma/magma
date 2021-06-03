@@ -131,6 +131,7 @@ typedef struct MessageHeader_s {
       struct timespec timestamp;   /** Time msg got created */
       instance_t instance;         /**< Task instance for virtualization */
       imsi64_t imsi;               /** IMSI associated to sender task */
+      long last_hop_latency;       /** Last hop zmq latency */
 
       MessageHeaderSize
           ittiMsgSize; /**< Message size (not including header size) */

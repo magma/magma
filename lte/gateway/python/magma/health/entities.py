@@ -74,9 +74,11 @@ class CoreDumps:
 
 
 class AGWHealthSummary:
-    def __init__(self, hss_relay_enabled, nb_enbs_connected,
-                 allocated_ips, subscriber_table, core_dumps,
-                 registration_success_rate):
+    def __init__(
+        self, hss_relay_enabled, nb_enbs_connected,
+        allocated_ips, subscriber_table, core_dumps,
+        registration_success_rate,
+    ):
         self.hss_relay_enabled = hss_relay_enabled
         self.nb_enbs_connected = nb_enbs_connected
         self.allocated_ips = allocated_ips

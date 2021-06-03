@@ -77,6 +77,9 @@
 #include "S1ap_ProtocolIE-Field.h"
 #include "s1ap_common.h"
 
+extern long s1ap_last_msg_latency;
+extern long s1ap_zmq_th;
+
 //------------------------------------------------------------------------------
 int s1ap_mme_handle_initial_ue_message(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
@@ -100,6 +103,16 @@ int s1ap_mme_handle_initial_ue_message(
       "Received S1AP INITIAL_UE_MESSAGE ENB_UE_S1AP_ID " ENB_UE_S1AP_ID_FMT
       " assoc-id:%d \n",
       (enb_ue_s1ap_id_t) ie->value.choice.ENB_UE_S1AP_ID, assoc_id);
+
+  if (s1ap_last_msg_latency > S1AP_ZMQ_LATENCY_TH) {
+    OAILOG_WARNING(
+        LOG_S1AP,
+        "Discarding S1AP INITIAL_UE_MESSAGE for "
+        "ENB_UE_S1AP_ID: " ENB_UE_S1AP_ID_FMT " ZMQ latency: %ld",
+        (enb_ue_s1ap_id_t) ie->value.choice.ENB_UE_S1AP_ID,
+        s1ap_last_msg_latency);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
 
   if ((eNB_ref = s1ap_state_get_enb(state, assoc_id)) == NULL) {
     OAILOG_ERROR(LOG_S1AP, "Unknown eNB on assoc_id %d\n", assoc_id);

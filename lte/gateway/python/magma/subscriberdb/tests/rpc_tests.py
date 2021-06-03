@@ -32,11 +32,11 @@ class RpcTests(unittest.TestCase):
     def setUp(self):
         # Create an in-memory store
         self._tmpfile = tempfile.TemporaryDirectory()
-        store = SqliteStore(self._tmpfile.name +'/')
+        store = SqliteStore(self._tmpfile.name + '/')
 
         # Bind the rpc server to a free port
         self._rpc_server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=10)
+            futures.ThreadPoolExecutor(max_workers=10),
         )
         port = self._rpc_server.add_insecure_port('0.0.0.0:0')
 

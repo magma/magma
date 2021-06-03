@@ -282,8 +282,11 @@ int esm_sap_send(esm_sap_t* msg) {
 
   if (rc != RETURNok) {
     OAILOG_ERROR(
-        LOG_NAS_ESM, "ESM-SAP   - Failed to process primitive %s (%d)\n",
-        esm_sap_primitive_str[primitive - ESM_START - 1], primitive);
+        LOG_NAS_ESM,
+        "ESM-SAP   - Failed to process primitive %s (%d) for ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        esm_sap_primitive_str[primitive - ESM_START - 1], primitive,
+        msg->ue_id);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -630,7 +633,8 @@ static int esm_sap_recv(
            */
           OAILOG_ERROR(
               LOG_NAS_ESM,
-              "ESM-SAP   - Sending PDN connectivity reject for ue_id = (%u)\n",
+              "ESM-SAP   - Sending PDN connectivity reject for ue_id = "
+              "(" MME_UE_S1AP_ID_FMT ")\n",
               ue_id);
           rc = esm_send_pdn_connectivity_reject(
               pti, &esm_msg.pdn_connectivity_reject, esm_cause);
@@ -694,6 +698,8 @@ static int esm_sap_recv(
       case ESM_INFORMATION_RESPONSE:
         esm_cause = esm_recv_information_response(
             emm_context, pti, ebi, &esm_msg.esm_information_response);
+        clear_protocol_configuration_options(
+            &esm_msg.esm_information_response.protocolconfigurationoptions);
         OAILOG_DEBUG(
             LOG_NAS_ESM,
             "ESM-SAP   - ESM Message type = ESM_INFORMATION_RESPONSE(0x%x)"
@@ -717,7 +723,7 @@ static int esm_sap_recv(
         OAILOG_WARNING(
             LOG_NAS_ESM,
             "ESM-SAP   - Received unexpected ESM message "
-            "0x%x for (ue_id = %u)\n",
+            "0x%x for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
             esm_msg.header.message_type, ue_id);
         esm_cause = ESM_CAUSE_MESSAGE_TYPE_NOT_IMPLEMENTED;
         break;
@@ -735,7 +741,7 @@ static int esm_sap_recv(
       OAILOG_WARNING(
           LOG_NAS_ESM,
           "ESM-SAP   - Received ESM message is not valid "
-          "(cause=%d) for (ue_id = %u)\n",
+          "(cause=%d) for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
           esm_cause, ue_id);
       /*
        * Return an ESM status message

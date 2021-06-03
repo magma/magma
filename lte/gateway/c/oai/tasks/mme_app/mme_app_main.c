@@ -59,6 +59,10 @@ static void mme_app_exit(void);
 bool mme_hss_associated = false;
 bool mme_sctp_bounded   = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
+long mme_app_last_msg_latency;
+long pre_mme_task_msg_latency;
+
+mme_congestion_params_t mme_congestion_params;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
@@ -66,6 +70,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
 
   bool is_task_state_same = false;
+
+  mme_app_last_msg_latency =
+      ITTI_MSG_LATENCY(received_message_p);  // microseconds
+  pre_mme_task_msg_latency = ITTI_MSG_LASTHOP_LATENCY(received_message_p);
+
+  OAILOG_DEBUG(
+      LOG_MME_APP, "MME APP ZMQ latency: %ld.", mme_app_last_msg_latency);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case MESSAGE_TEST: {
@@ -514,6 +525,17 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   return NULL;
 }
 
+static void mme_app_init_congestion_params(const mme_config_t* mme_config_p) {
+  mme_congestion_params.mme_app_zmq_congest_th =
+      (long) mme_config_p->mme_app_zmq_congest_th;
+  mme_congestion_params.mme_app_zmq_auth_th =
+      (long) mme_config_p->mme_app_zmq_auth_th;
+  mme_congestion_params.mme_app_zmq_ident_th =
+      (long) mme_config_p->mme_app_zmq_ident_th;
+  mme_congestion_params.mme_app_zmq_smc_th =
+      (long) mme_config_p->mme_app_zmq_smc_th;
+}
+
 //------------------------------------------------------------------------------
 int mme_app_init(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -526,6 +548,10 @@ int mme_app_init(const mme_config_t* mme_config_p) {
 
   // Initialise NAS module
   nas_network_initialize(mme_config_p);
+
+  // Initialize task global congestion parameters
+  mme_app_init_congestion_params(mme_config_p);
+
   /*
    * Create the thread associated with MME applicative layer
    */
