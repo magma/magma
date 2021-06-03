@@ -145,9 +145,13 @@ class EnodebConfiguration():
 
     def get_debug_info(self) -> str:
         debug_info = 'Param values: {}, \n Object values: {}'
-        return debug_info.format(json.dumps(self._param_to_value, indent=2),
-                                 json.dumps(self._numbered_objects,
-                                            indent=2))
+        return debug_info.format(
+            json.dumps(self._param_to_value, indent=2),
+            json.dumps(
+                self._numbered_objects,
+                indent=2,
+            ),
+        )
 
     def _assert_param_in_model(self, param_name: ParameterName) -> None:
         trparam_model = self.data_model
