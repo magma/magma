@@ -234,7 +234,7 @@
 
     agw-configure: configures the AGW to include controller information Command:
     ```
-    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu
+    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu [ -e KMSKeyID=<KEY_ID_TO_ADD_TO_SSH_AUTHORIZED> ]
     ```
 
     Example:
