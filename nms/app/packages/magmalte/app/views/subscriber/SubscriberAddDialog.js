@@ -520,7 +520,13 @@ function AddSubscriberDetails(props: DialogProps) {
   );
   const saveSubscribers = async () => {
     successCountRef.current = 0;
-    for (const subscriber of subscribers) {
+    const addedSubscribers = [];
+    for (
+      let subscriberIdx = 0;
+      subscriberIdx < subscribers.length;
+      ++subscriberIdx
+    ) {
+      const subscriber = subscribers[subscriberIdx];
       try {
         const err = validateSubscriberInfo(subscriber, ctx.state);
         if (err.length > 0) {
@@ -535,7 +541,7 @@ function AddSubscriberDetails(props: DialogProps) {
           subscriber.authOpc !== undefined && isValidHex(subscriber.authOpc)
             ? hexToBase64(subscriber.authOpc)
             : '';
-        await ctx.setState?.(subscriber.imsi, {
+        const newSubscriber = {
           active_apns: subscriber.apns,
           active_policies: subscriber.policies,
           id: subscriber.imsi,
@@ -547,8 +553,13 @@ function AddSubscriberDetails(props: DialogProps) {
             state: subscriber.state,
             sub_profile: subscriber.dataPlan,
           },
-        });
+        };
         successCountRef.current = successCountRef.current + 1;
+        addedSubscribers.push(newSubscriber);
+        //bulk add subscribers at the end
+        if (subscriberIdx == subscribers.length - 1) {
+          await ctx.setState?.('', addedSubscribers);
+        }
       } catch (e) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
         setError('error saving ' + subscriber.imsi + ' : ' + errMsg);
