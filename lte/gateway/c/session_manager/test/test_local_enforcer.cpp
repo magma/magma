@@ -30,7 +30,6 @@
 #include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
 #include "SessionStore.h"
-#include <stdio.h>
 
 #define SECONDS_A_DAY 86400
 
@@ -446,7 +445,7 @@ TEST_F(LocalEnforcerTest, test_multi_version_reporting) {
   session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
   
   session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
-  // update to version2
+  // update to version3
   session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
   local_enforcer->aggregate_records(session_map, table, update);
   assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 30}});
