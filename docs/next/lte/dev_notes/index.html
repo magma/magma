@@ -130,6 +130,57 @@ will use in the EPC.</p></li>
 <li><p><code>subscriber_cli.py add --lte-auth-key &lt;base64 LTE auth key&gt; IMSI&lt;15 digit IMSI&gt;</code></p></li>
 <li><p>On the UE, turn airplane mode on, then off, to trigger a fresh attach</p></li>
 </ol>
+<h3><a class="anchor" aria-hidden="true" id="connecting-a-physical-agw-to-s1ap-test-vm"></a><a href="#connecting-a-physical-agw-to-s1ap-test-vm" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Connecting a physical AGW to S1AP test VM</h3>
+<p>Another useful combination is to run the <a href="/magma/docs/next/lte/s1ap_tests">S1ap integration tests</a>
+on a physical AGW directly connected to the host machine running the
+<em>magma_test</em> VM.</p>
+<p><strong>On the magma_test host machine</strong></p>
+<ul>
+<li>Connect <code>eth1</code> of the physical AGW to a port on the host machine, say it is
+interface <code>en9</code>.</li>
+<li>From the VirtualBox GUI, switch the Adapter 1 (for <code>eth1</code> interface) from
+<code>Host-only</code> to <code>Bridged</code> mode and bridge it to interface <code>en9</code> from above.</li>
+</ul>
+<p><strong>On the physical AGW</strong></p>
+<ul>
+<li>Change the static IP address of <code>eth1</code> to match the one expected by the test
+VM
+<ul>
+<li><code>sudo sed -i 's/address 10.0.2.1/address 192.168.60.142/g'</code>
+<code>/etc/network/interfaces.d/eth1</code></li>
+<li><code>sudo ifdown eth1</code></li>
+<li><code>sudo ifup eth1</code></li>
+<li><code>sudo ip addr del 10.0.2.1/24 dev eth1</code></li>
+</ul></li>
+<li>Enable DEV_MODE
+<ul>
+<li><code>sudo bash -c 'echo &quot;MAGMA_DEV_MODE=1&quot; &gt;&gt; /etc/environment'</code></li>
+</ul></li>
+<li>Enable Pipelined <code>ryu_rest_service</code>
+<ul>
+<li><code>grep -qF 'ryu_rest_service' /etc/magma/pipelined.yml || sudo sed -i</code>
+<code>&quot;s/static_services: \[/static_services: \[ \'ryu_rest_service\',/g&quot;</code>
+<code>/etc/magma/pipelined.yml</code></li>
+</ul></li>
+<li>Restart all services
+<ul>
+<li><code>sudo service sctpd restart</code></li>
+</ul></li>
+</ul>
+<p><strong>On the test VM</strong></p>
+<ul>
+<li>Change credentials
+<ul>
+<li><code>sudo sed -i 's/&quot;vagrant&quot;/&quot;magma&quot;/g'</code>
+<code>/home/vagrant/magma/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py</code></li>
+</ul></li>
+<li>Disable use of <code>magtivate</code>
+<ul>
+<li><code>sudo sed -i 's/magtivate_cmd + &quot; &amp;&amp; &quot; + //g'</code>
+<code>/home/vagrant/magma/lte/gateway/python/integ_tests/s1aptests/s1ap_utils.py</code></li>
+</ul></li>
+</ul>
+<p>Now, you can run the <a href="/magma/docs/next/lte/s1ap_tests">S1ap integration tests</a> as usual.</p>
 <h2><a class="anchor" aria-hidden="true" id="debugging"></a><a href="#debugging" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Debugging</h2>
 <h3><a class="anchor" aria-hidden="true" id="logs"></a><a href="#logs" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Logs</h3>
 <p>To change the logging level for a particular service, please modify the
@@ -255,7 +306,7 @@ enbs {
 }
 num_enbs: 1
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/resources/ref_useful_links"><span class="arrow-prev">← </span><span>Useful Links</span></a><a class="docs-next button" href="/magma/docs/next/lte/dev_unit_testing"><span>Unit Testing</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#configurationsystem-settings">Configuration/system settings</a><ul class="toc-headings"><li><a href="#configuration-filesdirectories">Configuration files/directories</a></li><li><a href="#systemd-unit-configuration-files">Systemd unit configuration files</a></li><li><a href="#python-scripts-to-generate-configs">Python scripts to generate configs</a></li></ul></li><li><a href="#testing">Testing</a><ul class="toc-headings"><li><a href="#connecting-a-physical-enodeb-and-ue-to-gateway-vm">Connecting a physical eNodeB and UE to Gateway VM</a></li></ul></li><li><a href="#debugging">Debugging</a><ul class="toc-headings"><li><a href="#logs">Logs</a></li><li><a href="#enabling-grpc-printing-on-log">Enabling GRPC printing on log</a></li><li><a href="#clis">CLIs</a></li><li><a href="#analyzing-raw-network-packets">Analyzing raw network packets</a></li><li><a href="#analyzing-coredumps">Analyzing coredumps</a></li><li><a href="#running-mme-with-gdb">Running MME with gdb</a></li><li><a href="#checking-redis-entries-for-stateless-services">Checking Redis entries for stateless services</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/resources/ref_useful_links"><span class="arrow-prev">← </span><span>Useful Links</span></a><a class="docs-next button" href="/magma/docs/next/lte/dev_unit_testing"><span>Unit Testing</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#configurationsystem-settings">Configuration/system settings</a><ul class="toc-headings"><li><a href="#configuration-filesdirectories">Configuration files/directories</a></li><li><a href="#systemd-unit-configuration-files">Systemd unit configuration files</a></li><li><a href="#python-scripts-to-generate-configs">Python scripts to generate configs</a></li></ul></li><li><a href="#testing">Testing</a><ul class="toc-headings"><li><a href="#connecting-a-physical-enodeb-and-ue-to-gateway-vm">Connecting a physical eNodeB and UE to Gateway VM</a></li><li><a href="#connecting-a-physical-agw-to-s1ap-test-vm">Connecting a physical AGW to S1AP test VM</a></li></ul></li><li><a href="#debugging">Debugging</a><ul class="toc-headings"><li><a href="#logs">Logs</a></li><li><a href="#enabling-grpc-printing-on-log">Enabling GRPC printing on log</a></li><li><a href="#clis">CLIs</a></li><li><a href="#analyzing-raw-network-packets">Analyzing raw network packets</a></li><li><a href="#analyzing-coredumps">Analyzing coredumps</a></li><li><a href="#running-mme-with-gdb">Running MME with gdb</a></li><li><a href="#checking-redis-entries-for-stateless-services">Checking Redis entries for stateless services</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
