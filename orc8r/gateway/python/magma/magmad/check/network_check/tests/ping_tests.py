@@ -22,23 +22,29 @@ from magma.magmad.check.network_check import ping
 
 class PingArgFactoryTests(unittest.TestCase):
     def test_function(self):
-        actual = ping._get_ping_command_args_list(ping.PingCommandParams(
-            host_or_ip='google.com',
-            num_packets=4,
-            timeout_secs=5,
-        ))
+        actual = ping._get_ping_command_args_list(
+            ping.PingCommandParams(
+                host_or_ip='google.com',
+                num_packets=4,
+                timeout_secs=5,
+            ),
+        )
         self.assertEqual(
             ['ping', 'google.com', '-c', '4', '-w', '5'],
-            actual)
+            actual,
+        )
 
-        actual = ping._get_ping_command_args_list(ping.PingCommandParams(
-            host_or_ip='google.com',
-            num_packets=None,
-            timeout_secs=None,
-        ))
+        actual = ping._get_ping_command_args_list(
+            ping.PingCommandParams(
+                host_or_ip='google.com',
+                num_packets=None,
+                timeout_secs=None,
+            ),
+        )
         self.assertEqual(
             ['ping', 'google.com', '-c', '4', '-w', '20'],
-            actual)
+            actual,
+        )
 
 
 class PingParseTests(unittest.TestCase):
@@ -54,12 +60,15 @@ class PingParseTests(unittest.TestCase):
         param = ping.PingCommandParams(
             host_or_ip='localhost',
             num_packets=None,
-            timeout_secs=None)
+            timeout_secs=None,
+        )
         actual = ping.parse_ping_output('test', 'test', param)
-        expected = ping.PingCommandResult(error='test',
-                                          host_or_ip='localhost',
-                                          num_packets=ping.DEFAULT_NUM_PACKETS,
-                                          stats=None)
+        expected = ping.PingCommandResult(
+            error='test',
+            host_or_ip='localhost',
+            num_packets=ping.DEFAULT_NUM_PACKETS,
+            stats=None,
+        )
         self.assertEqual(expected, actual)
 
     def test_parse_good_output(self):

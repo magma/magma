@@ -32,6 +32,9 @@
 #include "s1ap_state.h"
 #include "s1ap_types.h"
 
+#define S1AP_ZMQ_LATENCY_TH                                                    \
+  s1ap_zmq_th  // absolute threshold to be used for initial UE messages
+
 extern bool hss_associated;
 
 /** \brief S1AP layer top init

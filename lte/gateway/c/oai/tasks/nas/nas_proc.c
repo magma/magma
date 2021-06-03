@@ -305,7 +305,9 @@ int nas_proc_ul_transfer_ind(
   int rc = RETURNerror;
 
   OAILOG_INFO(
-      LOG_NAS, "Received NAS UPLINK DATA IND from S1AP for ue_id = (%u)\n",
+      LOG_NAS,
+      "Received NAS UPLINK DATA IND from S1AP for ue_id = " MME_UE_S1AP_ID_FMT
+      "\n",
       ue_id);
   if (msg) {
     emm_sap_t emm_sap = {0};
@@ -363,7 +365,7 @@ int nas_proc_authentication_info_answer(
   OAILOG_INFO(
       LOG_NAS_EMM,
       "Received Authentication Information Answer from S6A for"
-      " ue_id =" MME_UE_S1AP_ID_FMT "\n",
+      " ue_id = " MME_UE_S1AP_ID_FMT "\n",
       mme_ue_s1ap_id);
   if ((aia->result.present == S6A_RESULT_BASE) &&
       (aia->result.choice.base == DIAMETER_SUCCESS)) {

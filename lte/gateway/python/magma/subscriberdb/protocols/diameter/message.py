@@ -26,6 +26,7 @@ FLAG_RETRANSMITTED = 0x10
 
 def flag_getter(mask):
     """Convenience method for reading command flags"""
+
     def func(self):
         return self.command_flags & mask != 0
     return func
@@ -33,6 +34,7 @@ def flag_getter(mask):
 
 def flag_setter(mask):
     """Convenience method for setting command flags"""
+
     def func(self, value):
         self.command_flags &= ~mask
         if value:
@@ -131,12 +133,14 @@ class MessageHeader(object):
             the number of bytes written to the buffer
         """
         self.validate(length)
-        struct.pack_into('!IIIII', buf, offset,
-                         self.version << 24 | length,
-                         self.command_flags << 24 | self.command_code,
-                         self.application_id,
-                         self.hop_by_hop_id,
-                         self.end_to_end_id)
+        struct.pack_into(
+            '!IIIII', buf, offset,
+            self.version << 24 | length,
+            self.command_flags << 24 | self.command_code,
+            self.application_id,
+            self.hop_by_hop_id,
+            self.end_to_end_id,
+        )
         return HEADER_LEN
 
     @classmethod
@@ -171,15 +175,19 @@ class MessageHeader(object):
         flags_str += 'P' if self.proxiable else ''
         flags_str += 'E' if self.error else ''
         flags_str += 'T' if self.retransmitted else ''
-        return ("Header version=%d, application=%d, command=%d, "
-                "hbh=0x%x, ete=0x%x, flags=%s(0x%x)" %
-                (self.version,
-                 self.application_id,
-                 self.command_code,
-                 self.hop_by_hop_id,
-                 self.end_to_end_id,
-                 flags_str,
-                 self.command_flags))
+        return (
+            "Header version=%d, application=%d, command=%d, "
+            "hbh=0x%x, ete=0x%x, flags=%s(0x%x)" %
+            (
+                self.version,
+                self.application_id,
+                self.command_code,
+                self.hop_by_hop_id,
+                self.end_to_end_id,
+                flags_str,
+                self.command_flags,
+            )
+        )
 
     def __eq__(self, other):
         """Two message headers are equal if they represent the same payload"""
@@ -190,14 +198,22 @@ class MessageHeader(object):
         """Message header encode length"""
         return HEADER_LEN
 
-    request = property(flag_getter(FLAG_REQUEST),
-                       flag_setter(FLAG_REQUEST))
-    proxiable = property(flag_getter(FLAG_PROXIABLE),
-                         flag_setter(FLAG_PROXIABLE))
-    error = property(flag_getter(FLAG_ERROR),
-                     flag_setter(FLAG_ERROR))
-    retransmitted = property(flag_getter(FLAG_RETRANSMITTED),
-                             flag_setter(FLAG_RETRANSMITTED))
+    request = property(
+        flag_getter(FLAG_REQUEST),
+        flag_setter(FLAG_REQUEST),
+    )
+    proxiable = property(
+        flag_getter(FLAG_PROXIABLE),
+        flag_setter(FLAG_PROXIABLE),
+    )
+    error = property(
+        flag_getter(FLAG_ERROR),
+        flag_setter(FLAG_ERROR),
+    )
+    retransmitted = property(
+        flag_getter(FLAG_RETRANSMITTED),
+        flag_setter(FLAG_RETRANSMITTED),
+    )
 
 
 class Message(object):
@@ -224,9 +240,13 @@ class Message(object):
         return resp
 
     def __repr__(self):
-        return ("DiameterMessage length=%d:\n\t%s\nAVPs:\n\t%s" %
-                (self.length, self.header,
-                 "\n\t".join([str(x) for x in self._avps])))
+        return (
+            "DiameterMessage length=%d:\n\t%s\nAVPs:\n\t%s" %
+            (
+                self.length, self.header,
+                "\n\t".join([str(x) for x in self._avps]),
+            )
+        )
 
     @property
     def length(self):
@@ -275,8 +295,10 @@ class Message(object):
         Return:
             an iterator on all AVPs that match
         """
-        return filter(lambda element: element.vendor == vendor and
-                                      element.code == code, self._avps)
+        return filter(
+            lambda element: element.vendor == vendor
+            and element.code == code, self._avps,
+        )
 
     def find_avp(self, vendor, code):
         """

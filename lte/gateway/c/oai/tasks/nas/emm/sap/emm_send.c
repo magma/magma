@@ -219,7 +219,9 @@ int emm_send_attach_accept(
   DevAssert(msg->ue_id == ue_id);
 
   OAILOG_INFO(
-      LOG_NAS_EMM, "EMMAS-SAP - Send Attach Accept message, ue_id = (%u)\n",
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Send Attach Accept message, ue_id = " MME_UE_S1AP_ID_FMT
+      "\n",
       msg->ue_id);
   OAILOG_DEBUG(
       LOG_NAS_EMM, "EMMAS-SAP - size = EMM_HEADER_MAXIMUM_LENGTH(%d)\n", size);
@@ -291,7 +293,7 @@ int emm_send_attach_accept(
       OAILOG_ERROR(
           LOG_NAS_EMM,
           "EMMAS-SAP - EPS emergency attach, currently unsupported for (ue_id "
-          "= %u)\n",
+          "= " MME_UE_S1AP_ID_FMT ")\n",
           ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, 0);  // TODO: fix once supported
       break;
@@ -1343,7 +1345,8 @@ int emm_send_authentication_request(
 
   OAILOG_INFO(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Send Authentication Request message for ue_id = (%u)\n",
+      "EMMAS-SAP - Send Authentication Request message for ue_id "
+      "= " MME_UE_S1AP_ID_FMT "\n",
       msg->ue_id);
   /*
    * Mandatory - Message type
@@ -1457,7 +1460,8 @@ int emm_send_security_mode_command(
 
   OAILOG_INFO(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Send Security Mode Command message for ue_id = (%u)\n",
+      "EMMAS-SAP - Send Security Mode Command message for ue_id "
+      "= " MME_UE_S1AP_ID_FMT "\n",
       msg->ue_id);
   /*
    * Mandatory - Message type

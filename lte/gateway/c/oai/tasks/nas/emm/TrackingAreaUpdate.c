@@ -226,9 +226,10 @@ int emm_proc_tracking_area_update_request(
 
   OAILOG_INFO(
       LOG_NAS_EMM,
-      "EMM-PROC-  Tracking Area Update request. TAU_Type=%d, active_flag=%d)\n",
+      "EMM-PROC-  Tracking Area Update request. TAU_Type=%d, active_flag=%d, "
+      "ue id " MME_UE_S1AP_ID_FMT "\n",
       ies->eps_update_type.eps_update_type_value,
-      ies->eps_update_type.active_flag);
+      ies->eps_update_type.active_flag, ue_id);
 
   if (IS_EMM_CTXT_PRESENT_SECURITY(emm_context)) {
     emm_context->_security.kenb_ul_count = emm_context->_security.ul_count;
@@ -444,10 +445,11 @@ static void emm_tracking_area_update_t3450_handler(
      * Increment the retransmission counter
      */
     tau_proc->retransmission_count += 1;
-    OAILOG_WARNING(
-        LOG_NAS_EMM,
-        "EMM-PROC  - T3450 timer expired, retransmission counter = %d",
-        tau_proc->retransmission_count);
+    OAILOG_WARNING_UE(
+        LOG_NAS_EMM, *imsi64,
+        "EMM-PROC  - T3450 timer expired, retransmission counter = %d for ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        tau_proc->retransmission_count, tau_proc->ue_id);
     /*
      * Get the UE's EMM context
      */
@@ -812,8 +814,8 @@ static int emm_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
         OAILOG_INFO(
             LOG_NAS_EMM,
             "EMM-PROC  - Timer T3450 %ld expires in %u"
-            " seconds (TAU)",
-            tau_proc->T3450.id, tau_proc->T3450.sec);
+            " seconds (TAU) for ue id " MME_UE_S1AP_ID_FMT "\n",
+            tau_proc->T3450.id, tau_proc->T3450.sec, tau_proc->ue_id);
       } else {
         nas_delete_tau_procedure(emm_context);
       }
@@ -953,8 +955,10 @@ int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id) {
     nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_ctx);
     if (tau_proc) {
       OAILOG_INFO(
-          LOG_NAS_EMM, "EMM-PROC  - Stop timer T3450 (%ld)\n",
-          tau_proc->T3450.id);
+          LOG_NAS_EMM,
+          "EMM-PROC  - Stop timer T3450 (%ld) for ue id " MME_UE_S1AP_ID_FMT
+          "\n",
+          ue_id);
       if (emm_ctx->csfbparams.newTmsiAllocated) {
         nas_delete_tau_procedure(emm_ctx);
       }

@@ -168,7 +168,9 @@ int esm_proc_pdn_connectivity_request(
   if (rc < 0) {
     OAILOG_WARNING(
         LOG_NAS_ESM,
-        "ESM-PROC  - Failed to create PDN connection for ue_id (%u)\n", ue_id);
+        "ESM-PROC  - Failed to create PDN connection for "
+        "ue_id " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
     *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
   }
 
@@ -372,7 +374,8 @@ static int pdn_connectivity_create(
         copy_protocol_configuration_options(pdn_context->pco, pco);
       } else {
         OAILOG_WARNING(
-            LOG_NAS_ESM, "ESM-PROC  - PCO is NULL for ue_id (%u)\n",
+            LOG_NAS_ESM,
+            "ESM-PROC  - PCO is NULL for ue_id " MME_UE_S1AP_ID_FMT "\n",
             ue_mm_context->mme_ue_s1ap_id);
       }
 
@@ -414,13 +417,13 @@ static int pdn_connectivity_create(
     OAILOG_ERROR(
         LOG_NAS_ESM,
         "ESM-PROC  - Failed to create new PDN connection (pdn_cid=%d) for "
-        "(ue_id = %u)\n",
+        "(ue_id = " MME_UE_S1AP_ID_FMT ")\n",
         pdn_cid, ue_mm_context->mme_ue_s1ap_id);
   } else {
     OAILOG_WARNING(
         LOG_NAS_ESM,
-        "ESM-PROC  - PDN connection already exist (pdn_cid=%d) for (ue_id = "
-        "%u)\n",
+        "ESM-PROC  - PDN connection already exist (pdn_cid=%d) for (ue_id "
+        "= " MME_UE_S1AP_ID_FMT ")\n",
         pdn_cid, ue_mm_context->mme_ue_s1ap_id);
     // already created
     pdn_context_t* pdn_context = ue_mm_context->pdn_contexts[pdn_cid];
@@ -443,7 +446,8 @@ static int pdn_connectivity_create(
         copy_protocol_configuration_options(pdn_context->pco, pco);
       } else {
         OAILOG_WARNING(
-            LOG_NAS_ESM, "ESM-PROC  - PCO is NULL for ue_id (%u)\n",
+            LOG_NAS_ESM,
+            "ESM-PROC  - PCO is NULL for ue_id " MME_UE_S1AP_ID_FMT "\n",
             ue_mm_context->mme_ue_s1ap_id);
       }
       pdn_context->pdn_type = pdn_type;
@@ -522,7 +526,7 @@ proc_tid_t pdn_connectivity_delete(
       pti = ue_mm_context->pdn_contexts[pdn_cid]->esm_data.pti;
     }
   } else {
-    OAILOG_ERROR(
+    OAILOG_WARNING(
         LOG_NAS_ESM, "ESM-PROC  - PDN connection identifier is not valid\n");
   }
   if (pti != ESM_PT_UNASSIGNED) {
@@ -541,7 +545,10 @@ proc_tid_t pdn_connectivity_delete(
     }
     // TODO Think about free ue_mm_context->pdn_contexts[pdn_cid]
     OAILOG_WARNING(
-        LOG_NAS_ESM, "ESM-PROC  - PDN connection %d released\n", pdn_cid);
+        LOG_NAS_ESM,
+        "ESM-PROC  - PDN connection %d released for ue id " MME_UE_S1AP_ID_FMT
+        "\n",
+        pdn_cid, ue_mm_context->mme_ue_s1ap_id);
   }
   if (ue_mm_context->nb_active_pdn_contexts > 0) {
     ue_mm_context->nb_active_pdn_contexts -= 1;

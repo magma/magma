@@ -46,23 +46,28 @@ class DockerHealthChecker(GenericHealthChecker):
 
         for container in client.containers.list():
             service_start_time = dateutil.parser.parse(
-                container.attrs['State']['StartedAt']
+                container.attrs['State']['StartedAt'],
             )
             current_time = datetime.now(service_start_time.tzinfo)
             time_running = current_time - service_start_time
-            services_health_summary.append(ServiceHealth(
-                service_name=container.name,
-                active_state=container.status,
-                sub_state=container.status,
-                time_running=str(time_running).split('.', 1)[0],
-                errors=self.get_error_summary([container.name])[
-                    container.name],
-            ))
+            services_health_summary.append(
+                ServiceHealth(
+                    service_name=container.name,
+                    active_state=container.status,
+                    sub_state=container.status,
+                    time_running=str(time_running).split('.', 1)[0],
+                    errors=self.get_error_summary([container.name])[
+                        container.name
+                    ],
+                ),
+            )
         return services_health_summary
 
     def get_magma_version(self):
         client = docker.from_env()
         container = client.containers.get('magmad')
 
-        return Version(version_code=container.attrs['Config']['Image'],
-                       last_update_time='-')
+        return Version(
+            version_code=container.attrs['Config']['Image'],
+            last_update_time='-',
+        )

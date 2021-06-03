@@ -85,7 +85,6 @@ typedef struct mme_sgw_tunnel_s {
 
 // AGW-wide state for SGW task
 typedef struct sgw_state_s {
-  teid_t tunnel_id;
   teid_t s1u_teid;
   teid_t s5s8u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
@@ -99,7 +98,6 @@ typedef struct spgw_state_s {
   hash_table_ts_t* deactivated_predefined_pcc_rules;
   hash_table_ts_t* predefined_pcc_rules;
   gtpv1u_data_t gtpv1u_data;
-  teid_t tunnel_id;
   uint32_t gtpv1u_teid;
   struct in_addr sgw_ip_address_S1u_S12_S4_up;
 } spgw_state_t;

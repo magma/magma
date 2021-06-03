@@ -37,17 +37,19 @@ class MockSessionProxyResponderStub:
     This Mock SessionProxyResponderStub will always respond with a success to
     a received RAR
     """
+
     def __init__(self):
         pass
 
     def PolicyReAuth(self, _: PolicyReAuthRequest) -> PolicyReAuthAnswer:
         return PolicyReAuthAnswer(
-            result=ReAuthResult.Value('UPDATE_INITIATED')
+            result=ReAuthResult.Value('UPDATE_INITIATED'),
         )
 
 
 class MockPolicyAssignmentControllerStub:
     """ Always succeeds by not raising an error """
+
     def __init__(self):
         pass
 
@@ -60,6 +62,7 @@ class MockPolicyAssignmentControllerStub:
 
 class MockPolicyAssignmentControllerStub2:
     """ Always fails """
+
     def __init__(self):
         pass
 
@@ -81,12 +84,16 @@ class PolicyRpcServicerTest(unittest.TestCase):
                 RuleNames=["p4", "p5"],
             ),
         }
-        reauth_handler = ReAuthHandler(rules_by_sid,
-                                       MockSessionProxyResponderStub())
+        reauth_handler = ReAuthHandler(
+            rules_by_sid,
+            MockSessionProxyResponderStub(),
+        )
 
-        servicer = PolicyRpcServicer(reauth_handler,
-                                           rules_by_basename,
-                                           MockPolicyAssignmentControllerStub())
+        servicer = PolicyRpcServicer(
+            reauth_handler,
+            rules_by_basename,
+            MockPolicyAssignmentControllerStub(),
+        )
 
         # Bind the rpc server to a free port
         thread_pool = futures.ThreadPoolExecutor(max_workers=10)
@@ -113,9 +120,11 @@ class PolicyRpcServicerTest(unittest.TestCase):
             base_names=["bn1"],
         )
         stub.EnableStaticRules(req)
-        self.assertEqual(len(rules_by_sid["s1"].installed_policies), 5,
-                         'After a successful update, Redis should be tracking '
-                         '5 active rules.')
+        self.assertEqual(
+            len(rules_by_sid["s1"].installed_policies), 5,
+            'After a successful update, Redis should be tracking '
+            '5 active rules.',
+        )
 
     def test_FailOrc8r(self):
         """ Check that nothing is updated if orc8r is unreachable """
@@ -125,8 +134,10 @@ class PolicyRpcServicerTest(unittest.TestCase):
                 RuleNames=["p4", "p5"],
             ),
         }
-        reauth_handler = ReAuthHandler(rules_by_sid,
-                                       MockSessionProxyResponderStub())
+        reauth_handler = ReAuthHandler(
+            rules_by_sid,
+            MockSessionProxyResponderStub(),
+        )
 
         servicer = PolicyRpcServicer(
             reauth_handler,
@@ -158,5 +169,7 @@ class PolicyRpcServicerTest(unittest.TestCase):
         with self.assertRaises(grpc.RpcError):
             stub.EnableStaticRules(req)
 
-        self.assertFalse("s1" in rules_by_sid,
-                         "There should be no installed policies for s1")
+        self.assertFalse(
+            "s1" in rules_by_sid,
+            "There should be no installed policies for s1",
+        )

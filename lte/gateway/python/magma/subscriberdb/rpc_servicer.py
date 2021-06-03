@@ -77,7 +77,7 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         try:
             with self._store.edit_subscriber(sid) as subs:
                 request.mask.MergeMessage(
-                    request.data, subs, replace_message_field=True
+                    request.data, subs, replace_message_field=True,
                 )
         except SubscriberNotFoundError:
             context.set_details("Subscriber not found: %s" % sid)
@@ -108,12 +108,16 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
     def _print_grpc(self, message):
         if self._print_grpc_payload:
             try:
-                log_msg = "{} {}".format(message.DESCRIPTOR.full_name,
-                                     MessageToJson(message))
+                log_msg = "{} {}".format(
+                    message.DESCRIPTOR.full_name,
+                    MessageToJson(message),
+                )
                 # add indentation
                 padding = 2 * ' '
-                log_msg =''.join( "{}{}".format(padding, line)
-                              for line in log_msg.splitlines(True))
+                log_msg = ''.join(
+                    "{}{}".format(padding, line)
+                    for line in log_msg.splitlines(True)
+                )
 
                 log_msg = "GRPC message:\n{}".format(log_msg)
                 logging.info(log_msg)

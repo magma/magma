@@ -613,7 +613,7 @@ int mme_api_unsubscribe(bstring apn) {
 }
 
 static tmsi_t generate_random_TMSI() {
-  // note srand with seed is init at main
+  // note srand with seed is initialized at main
   return (tmsi_t) rand();
 }
 
