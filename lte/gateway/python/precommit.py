@@ -18,9 +18,9 @@ from typing import List
 
 from git import Repo  # GitPython
 
-HOST_MAGMA_ROOT = '../../../'
+MAGMA_ROOT = os.getenv('MAGMA_ROOT')
 LINT_DOCKER_PATH = os.path.join(
-    HOST_MAGMA_ROOT,
+    MAGMA_ROOT,
     'lte/gateway/docker/python-precommit/',
 )
 IMAGE_NAME = 'magma/py-lint'
@@ -30,9 +30,14 @@ LTE_PYTHON_PATH = 'lte/gateway/python/magma'
 
 def main() -> None:
     """Provide command-line options to format/lint Magma's Python codebase"""
+    if MAGMA_ROOT is None:
+        print("Please set the 'MAGMA_ROOT' environment variable to point to the root directory")
+        return
+    print("Magma root is " + MAGMA_ROOT)
     args = _parse_args()
     if args.build_image:
         _build_docker_image()
+
         return
     # If no paths are specified, default to magma services
     if args.diff:
@@ -51,21 +56,23 @@ def _build_docker_image():
     cmd = [
         'docker', 'build', '-t', IMAGE_NAME,
         '-f', os.path.join(LINT_DOCKER_PATH, 'Dockerfile'),
-        LINT_DOCKER_PATH,
+        MAGMA_ROOT,
     ]
     _run(cmd)
 
 
 def _format_diff(paths: List[str]):
     for path in paths:
-        autopep8_checks = 'E1,E2,E3,W'
-        _run_docker_cmd(['autopep8', '--select', autopep8_checks, '-r', '--in-place', path])
+        # when changing any of these commands,
+        # make sure to change the corresponding github action
         _run_docker_cmd(['isort', path])
         _run_add_trailing_comma(path)
+        autopep8_checks = 'W291,W293,E2,E3'
+        _run_docker_cmd(['autopep8', '--select', autopep8_checks, '-r', '--in-place', path])
 
 
 def _run_add_trailing_comma(path: str):
-    abs_path = os.path.join(HOST_MAGMA_ROOT, path)
+    abs_path = os.path.join(os.path.abspath(MAGMA_ROOT), path)
     if os.path.isfile(abs_path):
         # TODO upgrade to --py36-plus eventually
         _run_docker_cmd([
@@ -80,7 +87,7 @@ def _run_flake8(paths: List[str]):
 
 
 def _run_docker_cmd(commands: List[str]):
-    volume_cmd = ['-v', os.path.abspath(HOST_MAGMA_ROOT) + ':/code']
+    volume_cmd = ['-v', os.path.abspath(MAGMA_ROOT) + ':/code']
     docker_image = IMAGE_NAME + ':latest'
     cmd_prefix = 'docker run -it -u 0'.split(' ')
     cmd = cmd_prefix + volume_cmd + [docker_image] + commands
@@ -97,7 +104,7 @@ def _run(cmd: List[str]) -> None:
 
 
 def _get_diff_against_master() -> List[str]:
-    repo = Repo(HOST_MAGMA_ROOT)
+    repo = Repo(MAGMA_ROOT)
     changed_files_in_commit = repo.index.diff('master')
     changed_py_files = []
     for item in changed_files_in_commit:
