@@ -1,5 +1,7 @@
 ---
 
 - include: kms-key.yaml
-  tags: add-ssh-key
   when: KMSKeyID is defined
+
+- include: ssh-key.yaml
+  when: sshKey is defined
