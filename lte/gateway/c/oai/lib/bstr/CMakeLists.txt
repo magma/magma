@@ -3,5 +3,5 @@ add_library(LIB_BSTR
     bstrlib.c
     buniutil.c
     utf8util.c
-)
+    )
 target_include_directories(LIB_BSTR PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})

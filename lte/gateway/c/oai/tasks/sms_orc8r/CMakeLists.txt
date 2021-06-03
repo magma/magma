@@ -9,7 +9,7 @@ target_link_libraries(TASK_SMS_ORC8R
     COMMON
     LIB_BSTR LIB_HASHTABLE LIB_SMS_ORC8R_CLIENT
     ${PROTOBUF_LIBRARIES}
-)
+    )
 target_include_directories(TASK_SMS_ORC8R PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-)
+    )

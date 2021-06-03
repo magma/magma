@@ -12,12 +12,12 @@ add_library(LIB_SECU
     nas_stream_eia2.c
     rijndael.c
     snow3g.c
-)
+    )
 target_link_libraries(LIB_SECU
     ${NETTLE_LIBRARIES}
     COMMON
     LIB_BSTR
-)
+    )
 target_include_directories(LIB_SECU PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     )

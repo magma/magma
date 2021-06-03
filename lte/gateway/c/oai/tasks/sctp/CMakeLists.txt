@@ -9,8 +9,8 @@ set(SCTPD_LTE_CPP_PROTOS sctpd)
 set(SCTPD_GRPC_PROTOS sctpd)
 
 generate_all_protos(
-  "${SCTPD_LTE_CPP_PROTOS}" "" "${SCTPD_GRPC_PROTOS}" ""
-  "${PROTO_SRCS}" "${PROTO_HDRS}"
+    "${SCTPD_LTE_CPP_PROTOS}" "" "${SCTPD_GRPC_PROTOS}" ""
+    "${PROTO_SRCS}" "${PROTO_HDRS}"
 )
 
 add_library(TASK_SCTP_SERVER
@@ -20,14 +20,14 @@ add_library(TASK_SCTP_SERVER
     sctp_primitives_server.c
     ${PROTO_SRCS}
     ${PROTO_HDRS}
-)
+    )
 target_link_libraries(TASK_SCTP_SERVER
     COMMON
     LIB_BSTR LIB_HASHTABLE
     grpc++ grpc protobuf
-)
+    )
 target_include_directories(TASK_SCTP_SERVER PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_BINARY_DIR}
     ${PROJECT_BINARY_DIR}
-)
+    )

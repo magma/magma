@@ -19,11 +19,11 @@ list(APPEND PROTO_HDRS "")
 # compile the needed protos
 set(RPC_LTE_CPP_PROTOS pipelined mobilityd subscriberdb)
 generate_cpp_protos("${RPC_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
-        "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
+    "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
 set(RPC_ORC8R_CPP_PROTOS common)
 generate_cpp_protos("${RPC_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
-        "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
+    "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
 set(RPC_LTE_GRPC_PROTOS pipelined mobilityd subscriberdb)
 generate_grpc_protos("${RPC_LTE_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
@@ -34,7 +34,7 @@ generate_grpc_protos("${RPC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}" 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 link_directories(
-        ${MAGMA_LIB_DIR}/async_grpc
+    ${MAGMA_LIB_DIR}/async_grpc
 )
 
 add_library(LIB_PIPELINED_CLIENT
@@ -43,17 +43,17 @@ add_library(LIB_PIPELINED_CLIENT
     proto_converters.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
-)
+    )
 
 target_link_libraries(LIB_PIPELINED_CLIENT
-	COMMON
-	TASK_GTPV1U
-	grpc grpc++
-	${ASYNC_GRPC} ${SERVICE_REGISTRY}
-	${CONFIG}
-)
+    COMMON
+    TASK_GTPV1U
+    grpc grpc++
+    ${ASYNC_GRPC} ${SERVICE_REGISTRY}
+    ${CONFIG}
+    )
 
 target_include_directories(LIB_PIPELINED_CLIENT PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ASYNC_GRPC COMMON SERVICE_REGISTRY
-)
+    )

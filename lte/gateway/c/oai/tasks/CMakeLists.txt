@@ -12,10 +12,10 @@ add_subdirectory(grpc_service) # TASK_GRPC_SERVICE
 add_subdirectory(ha) # TASK_HA
 
 if (EMBEDDED_SGW)
-add_subdirectory(gtpv1-u) # TASK_GTPV1U
-add_subdirectory(sgw) # TASK_SGW
-add_subdirectory(sgw_s8) # TASK_SGW_S8
+  add_subdirectory(gtpv1-u) # TASK_GTPV1U
+  add_subdirectory(sgw) # TASK_SGW
+  add_subdirectory(sgw_s8) # TASK_SGW_S8
 else (EMBEDDED_SGW)
-add_subdirectory(s11) # TASK_S11
-add_subdirectory(udp) #TASK_UDP
+  add_subdirectory(s11) # TASK_S11
+  add_subdirectory(udp) #TASK_UDP
 endif (EMBEDDED_SGW)

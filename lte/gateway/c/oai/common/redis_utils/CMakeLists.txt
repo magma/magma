@@ -11,4 +11,4 @@ target_link_libraries(redis_utils ${CONFIG} COMMON cpp_redis tacopie protobuf)
 target_include_directories(redis_utils PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
     ${MAGMA_LIB_DIR}/config
-)
+    )

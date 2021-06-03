@@ -17,11 +17,11 @@ add_subdirectory(event_client) # LIB_EVENT_CLIENT
 add_subdirectory(n11) #LIB_N11
 
 if (EMBEDDED_SGW)
-if (ENABLE_OPENFLOW)
-add_subdirectory(openflow) # LIB_OPENFLOW
-add_subdirectory(openflow/controller) # LIB_OPENFLOW_CONTROLLER
-add_subdirectory(pipelined_client) # LIB_PIPELINED_CLIENT
-endif (ENABLE_OPENFLOW)
+  if (ENABLE_OPENFLOW)
+    add_subdirectory(openflow) # LIB_OPENFLOW
+    add_subdirectory(openflow/controller) # LIB_OPENFLOW_CONTROLLER
+    add_subdirectory(pipelined_client) # LIB_PIPELINED_CLIENT
+  endif (ENABLE_OPENFLOW)
 else (EMBEDDED_SGW)
   add_subdirectory(gtpv2-c) # LIB_GTPV2C
 endif (EMBEDDED_SGW)

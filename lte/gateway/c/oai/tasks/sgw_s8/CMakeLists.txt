@@ -5,14 +5,14 @@ list(APPEND PROTO_HDRS "")
 
 set(STATE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
 generate_cpp_protos("${SGW_LTE_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}"
-        "${STATE_PROTO_DIR}" "${STATE_OUT_DIR}")
+    "${STATE_PROTO_DIR}" "${STATE_OUT_DIR}")
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${STATE_OUT_DIR})
 
 message("s8 Proto_srcs are ${PROTO_SRCS}")
 message("s8 Proto_includes are ${PROTO_HDRS}")
-set (SGW_S8_SRC
+set(SGW_S8_SRC
     sgw_s8_task.c
     sgw_s8_handlers.c
     sgw_s8_state.cpp
@@ -28,8 +28,8 @@ target_link_libraries(TASK_SGW_S8
     LIB_BSTR LIB_HASHTABLE LIB_S8_PROXY
     LIB_OPENFLOW_CONTROLLER TASK_SERVICE303
     cpp_redis tacopie protobuf
-)
+    )
 
 target_include_directories(TASK_SGW_S8 PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-)
+    )

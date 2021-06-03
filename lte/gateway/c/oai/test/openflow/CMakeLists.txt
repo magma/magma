@@ -22,7 +22,7 @@ add_library(OPENFLOW_TEST openflow_mocks.h)
 target_link_libraries(OPENFLOW_TEST
     COMMON
     lfds710
-    LIB_OPENFLOW_CONTROLLER  LIB_BSTR LIB_HASHTABLE LIB_ITTI LIB_S1AP TASK_S1AP
+    LIB_OPENFLOW_CONTROLLER LIB_BSTR LIB_HASHTABLE LIB_ITTI LIB_S1AP TASK_S1AP
     gmock_main gtest gtest_main gmock pthread rt)
 
 set_target_properties(OPENFLOW_TEST PROPERTIES LINKER_LANGUAGE CXX)

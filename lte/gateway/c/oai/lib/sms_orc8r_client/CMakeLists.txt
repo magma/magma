@@ -10,13 +10,13 @@ list(APPEND PROTO_HDRS "")
 
 create_proto_dir("lte" LTE_OUT_DIR)
 generate_cpp_protos("${SMOC_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
- "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+    "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 generate_grpc_protos("${SMOC_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
-  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+    "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 generate_cpp_protos("${SMOC_MCONFIG_CPP_PROTOS}" "${PROTO_SRCS}"
-  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+    "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 message("Proto_srcs are ${PROTO_SRCS}")
 
@@ -34,7 +34,7 @@ target_link_libraries(LIB_SMS_ORC8R_CLIENT
     COMMON
     ${ASYNC_GRPC} ${SERVICE_REGISTRY}
     LIB_BSTR LIB_HASHTABLE ${CONFIG}
-)
+    )
 target_include_directories(LIB_SMS_ORC8R_CLIENT PUBLIC
     ${MAGMA_LIB_DIR}/async_grpc
     ${MAGMA_LIB_DIR}/config

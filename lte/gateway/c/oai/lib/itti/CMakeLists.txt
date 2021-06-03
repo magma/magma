@@ -9,13 +9,13 @@ set(ITTI_FILES
     intertask_interface.c
     signals.c
     timer.c
-)
+    )
 add_library(LIB_ITTI ${ITTI_FILES})
 target_link_libraries(LIB_ITTI
     rt pthread czmq
     COMMON
     LIB_BSTR LIB_HASHTABLE LIB_MESSAGE_UTILS
-)
+    )
 target_include_directories(LIB_ITTI PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
-)
+    )

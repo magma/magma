@@ -11,21 +11,21 @@ include_directories(${MAGMA_LIB_DIR}/async_grpc)
 include_directories(${MAGMA_LIB_DIR}/eventd)
 
 link_directories(
-        ${MAGMA_LIB_DIR}/async_grpc
-        ${MAGMA_LIB_DIR}/eventd
+    ${MAGMA_LIB_DIR}/async_grpc
+    ${MAGMA_LIB_DIR}/eventd
 )
 
 add_library(LIB_EVENT_CLIENT
-        EventClientAPI.cpp
-        )
+    EventClientAPI.cpp
+    )
 
 target_link_libraries(LIB_EVENT_CLIENT
-        COMMON
-        LIB_BSTR ${EVENTD}
-        ${ASYNC_GRPC}
-        )
+    COMMON
+    LIB_BSTR ${EVENTD}
+    ${ASYNC_GRPC}
+    )
 
 target_include_directories(LIB_EVENT_CLIENT PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-        ASYNC_GRPC COMMON SERVICE_REGISTRY EVENTD
-        )
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ASYNC_GRPC COMMON SERVICE_REGISTRY EVENTD
+    )

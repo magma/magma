@@ -7,7 +7,7 @@ list(APPEND PROTO_HDRS "")
 
 set(LTE_OUT_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
 generate_cpp_protos("${NAS_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
-  "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
+    "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
 
 message("Proto_srcs are ${PROTO_SRCS}")
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
@@ -138,7 +138,7 @@ set(libnas_ies_OBJS
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/util)
-set (libnas_utils_OBJS
+set(libnas_utils_OBJS
     ${CMAKE_CURRENT_SOURCE_DIR}/util/nas_timer.c
     )
 
@@ -182,7 +182,7 @@ set(libnas_mme_emm_sap_OBJS
     )
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/esm)
-set (libnas_mme_esm_OBJS
+set(libnas_mme_esm_OBJS
     ${CMAKE_CURRENT_SOURCE_DIR}/esm/DedicatedEpsBearerContextActivation.c
     ${CMAKE_CURRENT_SOURCE_DIR}/esm/DefaultEpsBearerContextActivation.c
     ${CMAKE_CURRENT_SOURCE_DIR}/esm/EpsBearerContextDeactivation.c
@@ -229,11 +229,11 @@ add_library(TASK_NAS
 target_link_libraries(TASK_NAS
     COMMON
     LIB_BSTR LIB_HASHTABLE LIB_SECU LIB_3GPP
-    TASK_S1AP TASK_MME_APP TASK_SERVICE303  TASK_S6A
-)
+    TASK_S1AP TASK_MME_APP TASK_SERVICE303 TASK_S6A
+    )
 if (EMBEDDED_SGW)
   target_link_libraries(TASK_NAS TASK_SGW)
-endif(EMBEDDED_SGW)
+endif (EMBEDDED_SGW)
 
 # TODO leak baby leak
 target_include_directories(TASK_NAS PUBLIC
@@ -249,4 +249,4 @@ target_include_directories(TASK_NAS PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/api
     ${CMAKE_CURRENT_SOURCE_DIR}/api/mme
     ${CMAKE_CURRENT_SOURCE_DIR}/api/network
-)
+    )
