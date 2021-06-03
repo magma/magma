@@ -15,8 +15,12 @@ package servicers
 
 import (
 	"context"
+	b64 "encoding/base64"
 	"sort"
 
+	"magma/orc8r/cloud/go/mproto"
+
+	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -81,6 +85,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	}
 
 	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
+	subProtosIndexed := map[string]proto.Message{}
 	for _, sub := range subEnts {
 		subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
 		if err != nil {
@@ -88,10 +93,29 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		}
 		subProto.NetworkId = &protos.NetworkID{Id: networkID}
 		subProtos = append(subProtos, subProto)
+
+		index := subProto.Sid.Id
+		subProtosIndexed[index] = subProto
 	}
+
+	// The noUpdates short-circuit only applies to a request for the first page for now
+	// More to be implemented with gateway subscriber cache
+	digest, err := mproto.MarshalManyDeterministic(subProtosIndexed)
+	if err != nil {
+		return nil, err
+	}
+	digestB64 := b64.StdEncoding.EncodeToString(digest)
+
+	noUpdates := (req.PageToken == "") && (req.PreviousDigest == digestB64)
+	if noUpdates {
+		subProtos = []*lte_protos.SubscriberData{}
+	}
+
 	listRes := &lte_protos.ListSubscribersResponse{
 		Subscribers:   subProtos,
 		NextPageToken: nextToken,
+		Digest:        digestB64,
+		NoUpdates:     noUpdates,
 	}
 	return listRes, nil
 }
