@@ -16,7 +16,7 @@ syntax = "proto3";
 package magma.orc8r.mproto;
 option go_package = "protos";
 
-// ProtoSlice is a set of protobuf messages, all individually encoded & paired with unique identifiers
-message ProtoSlice {
+// ProtosByID is a set of protobuf messages, all individually encoded & paired with unique identifiers.
+message ProtosByID {
   map<string, bytes> proto_bytes = 1;
 }

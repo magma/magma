@@ -13,22 +13,19 @@ limitations under the License.
 
 syntax = "proto3";
 
-package magma.orc8r.mproto_mock;
-option go_package = "protos";
+package magma.orc8r.mproto_test;
+option go_package = "test";
 
-// TestDataBasic is a protobuf message with basic field types for testing deterministic encoding
+// TestDataBasic contains basic field types for testing deterministic encoding.
 message TestDataBasic {
   string key = 1;
   int32 value = 2;
 }
 
-// TestDataCompound is a protobuf message with compound field types for testing deterministic encoding
+// TestDataCompound contains compound field types for testing deterministic encoding.
 message TestDataCompound {
   string id = 1;
-
   TestDataBasic single_data = 2;
-
   map<string, TestDataBasic> data_map = 3;
-
   repeated TestDataBasic data_slice = 4;
 }

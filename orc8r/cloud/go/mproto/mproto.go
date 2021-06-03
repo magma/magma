@@ -20,18 +20,17 @@ import (
 )
 
 // MarshalManyDeterministic deterministically encodes a slice of protobuf messages,
-// indexed by a unique identifier string, utilizing MarshalDeterministic
-//
-// The function individually serializes each proto in order to standardize the data
-// into a uniform format to fit into a generic map<string, bytes> field (ProtoBytes).
-//
-// An alternative is using protobuf library's any.Any type, which requires individual
-// serialization as well, plus providing a uniquely identifying URL for each message,
-// making it unnecessarily complicated in comparison, if we only want a deterministic
-// encoding of the input.
-func MarshalManyDeterministic(protoSlice map[string]proto.Message) ([]byte, error) {
+// indexed by a unique identifier string, utilizing MarshalDeterministic.
+func MarshalManyDeterministic(protosByID map[string]proto.Message) ([]byte, error) {
+	// The function individually serializes each proto in order to standardize the data
+	// into a uniform format to fit into a generic map<string, bytes> field (ProtoBytes).
+	//
+	// An alternative is using protobuf library's any.Any type, which requires individual
+	// serialization as well, plus providing a uniquely identifying URL for each message,
+	// making it unnecessarily complicated in comparison, if we only want a deterministic
+	// encoding of the input.
 	protoBytesByID := map[string][]byte{}
-	for id, proto := range protoSlice {
+	for id, proto := range protosByID {
 		bytes, err := MarshalDeterministic(proto)
 		if err != nil {
 			return nil, err
@@ -39,7 +38,7 @@ func MarshalManyDeterministic(protoSlice map[string]proto.Message) ([]byte, erro
 		protoBytesByID[id] = bytes
 	}
 
-	return MarshalDeterministic(&protos.ProtoSlice{ProtoBytes: protoBytesByID})
+	return MarshalDeterministic(&protos.ProtosByID{ProtoBytes: protoBytesByID})
 }
 
 // MarshalDeterministic encodes protobuf while enforcing deterministic serialization.

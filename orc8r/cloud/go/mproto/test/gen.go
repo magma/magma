@@ -12,4 +12,4 @@
 */
 
 //go:generate bash -c "protoc -I . -I /usr/include -I $MAGMA_ROOT/orc8r/protos/prometheus -I $MAGMA_ROOT --go_out=plugins=grpc:. *.proto"
-package protos
+package test
