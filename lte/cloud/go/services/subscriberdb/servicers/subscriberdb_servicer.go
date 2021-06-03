@@ -15,6 +15,7 @@ package servicers
 
 import (
 	"context"
+	b64 "encoding/base64"
 	"sort"
 
 	"magma/orc8r/cloud/go/mproto"
@@ -97,16 +98,24 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		subProtosIndexed[index] = subProto
 	}
 
-	digest, err := mproto.EncodeProtosDeterministic(subProtosIndexed)
+	// The noUpdates short-circuit only applies to a request for the first page for now
+	// More to be implemented with gateway subscriber cache
+	digest, err := mproto.MarshalManyDeterministic(subProtosIndexed)
 	if err != nil {
 		return nil, err
+	}
+	digestB64 := b64.StdEncoding.EncodeToString(digest)
+
+	noUpdates := (req.PageToken == "") && (req.PreviousDigest == digestB64)
+	if noUpdates {
+		subProtos = []*lte_protos.SubscriberData{}
 	}
 
 	listRes := &lte_protos.ListSubscribersResponse{
 		Subscribers:   subProtos,
 		NextPageToken: nextToken,
-		Digest: string(digest),
-		NoUpdates: req.PreviousDigest == string(digest),
+		Digest:        digestB64,
+		NoUpdates:     noUpdates,
 	}
 	return listRes, nil
 }
