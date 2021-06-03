@@ -74,6 +74,42 @@ infra:
     Required: false
     ConfigApps:
       - tf
+  enable_aws_db_notifications:
+    Description: Flag to indicate if AWS DB notifications are enabled
+    Type: bool
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_backup_retention:
+    Description: DB Retention policy in days
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_backup_window:
+    Description: DB backwindow in HHMM-HHMM format
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_sns_name:
+    Description: Name for orc8r orc8r_sns_name
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_db_event_subscription:
+    Description: Name for orc8r db event subscriber
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  orc8r_sns_email:
+    Description: Email for notifications
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
   vpc_cidr:
     Description: CIDR block for the VPC.
     Type: string
