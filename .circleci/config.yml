@@ -1552,6 +1552,9 @@ workflows:
           <<: *only_release
           requires:
             - release-hold
+  quentintest:
+    jobs:
+      - publish-amis-to-marketplace
   feg:
     jobs:
       - feg-lint
