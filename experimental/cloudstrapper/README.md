@@ -177,7 +177,7 @@
       - awsOrc8rRegion: Region where Orc8r would run
   - Orchestrator : Deploy orchestrator
   ```
-    ansible-playbook orc8r.yaml [ --skip-tags deploy-orc8r ] -e 'dirLocalInventory=<Dir>
+    ansible-playbook orc8r.yaml [ --skip-tags deploy-orc8r ] -e 'dirLocalInventory=<Dir> -e 'varBuildType=community/custom' -e 'varFirstInstall=true/false'
   ```
 
   Note: When using a stable build or a standard environment or a repeat install, the 'deploy-orc8r' tag does not have to be skipped. However, for first time installs skipping helps in identifying unknown issues to make sure the new build works as expected. Additionally, if there are any custom configuration requirements (such as modifying instance sizes or running multiple clusters within the same account requiring deploy_elasticsearch_service_linked_role to be set to False by default, skipping the deployment and making changes to main.tf is recommended.
