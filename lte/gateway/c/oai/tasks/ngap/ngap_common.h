@@ -727,7 +727,7 @@ typedef int (*ngap_message_handler_t)(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu);
 
-/** \brief Encode a successful outcome message
+/** \brief Encode a successfull outcome message
  \param buffer pointer to buffer in which data will be encoded
  \param length pointer to the length of buffer
  \param procedureCode Procedure code for the message
@@ -737,7 +737,7 @@ typedef int (*ngap_message_handler_t)(
  @returns size in bytes encded on success or 0 on failure
  **/
 
-ssize_t ngap_generate_successful_outcome(
+ssize_t ngap_generate_successfull_outcome(
     uint8_t** buffer, uint32_t* length, Ngap_ProcedureCode_t procedureCode,
     Ngap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr);
 
@@ -755,7 +755,7 @@ ssize_t ngap_generate_initiating_message(
     uint8_t** buffer, uint32_t* length, Ngap_ProcedureCode_t procedureCode,
     Ngap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr);
 
-/** \brief Encode an unsuccessful outcome message
+/** \brief Encode an unsuccessfull outcome message
  \param buffer pointer to buffer in which data will be encoded
  \param length pointer to the length of buffer
  \param procedureCode Procedure code for the message
@@ -764,7 +764,7 @@ ssize_t ngap_generate_initiating_message(
  \param sptr Dereferenced pointer to the structure to encode
  @returns size in bytes encded on success or 0 on failure
  **/
-ssize_t ngap_generate_unsuccessful_outcome(
+ssize_t ngap_generate_unsuccessfull_outcome(
     uint8_t** buffer, uint32_t* length, Ngap_ProcedureCode_t procedureCode,
     Ngap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr);
 

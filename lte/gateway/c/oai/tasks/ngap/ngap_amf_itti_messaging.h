@@ -52,7 +52,7 @@ int ngap_amf_itti_send_sctp_request(
  **/
 int ngap_amf_itti_nas_uplink_ind(
     const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload,
-    const tai_t* const tai, const ecgi_t* const cgi);
+    const tai_t const* tai, const ecgi_t const* cgi);
 
 /** \brief Handle initial_ue_message
  * \param assoc_id SCTP association ID
@@ -73,13 +73,13 @@ int ngap_amf_itti_nas_uplink_ind(
 void ngap_amf_itti_ngap_initial_ue_message(
     const sctp_assoc_id_t assoc_id, const uint32_t gnb_id,
     const gnb_ue_ngap_id_t gnb_ue_ngap_id, const uint8_t* const nas_msg,
-    const size_t nas_msg_length, const tai_t* const tai,
-    const ecgi_t* const ecgi, const long rrc_cause,
-    const s_tmsi_m5_t* const opt_s_tmsi, const csg_id_t* const opt_csg_id,
-    const guamfi_t* const opt_guamfi,
-    const void* opt_cell_access_mode,          /* unused*/
-    const void* opt_cell_gw_transport_address, /* unused*/
-    const void* opt_relay_node_indicator       /* unused*/
+    const size_t nas_msg_length, const tai_t const* tai,
+    const ecgi_t const* ecgi, const long rrc_cause,
+    const s_tmsi_m5_t const* opt_s_tmsi, const csg_id_t const* opt_csg_id,
+    const guamfi_t const* opt_guamfi,
+    const void const* opt_cell_access_mode,          /* unused*/
+    const void const* opt_cell_gw_transport_address, /* unused*/
+    const void const* opt_relay_node_indicator       /* unused*/
 );
 
 void ngap_amf_itti_nas_non_delivery_ind(

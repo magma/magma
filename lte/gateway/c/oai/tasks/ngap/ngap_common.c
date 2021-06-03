@@ -70,7 +70,7 @@ ssize_t ngap_generate_initiating_message(
   return encoded;
 }
 
-ssize_t ngap_generate_successful_outcome(
+ssize_t ngap_generate_successfull_outcome(
     uint8_t** buffer, uint32_t* length, Ngap_ProcedureCode_t procedureCode,
     Ngap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr) {
   Ngap_NGAP_PDU_t pdu;
@@ -104,7 +104,7 @@ ssize_t ngap_generate_successful_outcome(
   return encoded;
 }
 
-ssize_t ngap_generate_unsuccessful_outcome(
+ssize_t ngap_generate_unsuccessfull_outcome(
     uint8_t** buffer, uint32_t* length, Ngap_ProcedureCode_t procedureCode,
     Ngap_Criticality_t criticality, asn_TYPE_descriptor_t* td, void* sptr) {
   Ngap_NGAP_PDU_t pdu;

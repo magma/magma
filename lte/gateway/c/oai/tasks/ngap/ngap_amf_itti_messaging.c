@@ -54,7 +54,7 @@ int ngap_amf_itti_send_sctp_request(
 
 int ngap_amf_itti_nas_uplink_ind(
     const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload,
-    const tai_t* const tai, const ecgi_t* const cgi) {
+    const tai_t const* tai, const ecgi_t const* cgi) {
   MessageDef* message_p = NULL;
   imsi64_t imsi64       = INVALID_IMSI64;
 #if 0
@@ -90,13 +90,13 @@ TODO: laterthis maps to state
 void ngap_amf_itti_ngap_initial_ue_message(
     const sctp_assoc_id_t assoc_id, const uint32_t gnb_id,
     const gnb_ue_ngap_id_t gnb_ue_ngap_id, const uint8_t* const nas_msg,
-    const size_t nas_msg_length, const tai_t* const tai,
-    const ecgi_t* const ecgi, const long rrc_cause,
-    const s_tmsi_m5_t* const opt_s_tmsi, const csg_id_t* const opt_csg_id,
-    const guamfi_t* const opt_guamfi,
-    const void* opt_cell_access_mode,           // unused
-    const void* opt_cell_gw_transport_address,  // unused
-    const void* opt_relay_node_indicator)       // unused
+    const size_t nas_msg_length, const tai_t const* tai,
+    const ecgi_t const* ecgi, const long rrc_cause,
+    const s_tmsi_m5_t const* opt_s_tmsi, const csg_id_t const* opt_csg_id,
+    const guamfi_t const* opt_guamfi,
+    const void const* opt_cell_access_mode,           // unused
+    const void const* opt_cell_gw_transport_address,  // unused
+    const void const* opt_relay_node_indicator)       // unused
 {
   MessageDef* message_p = NULL;
 
@@ -131,7 +131,7 @@ void ngap_amf_itti_ngap_initial_ue_message(
   } else {
     NGAP_INITIAL_UE_MESSAGE(message_p).is_s_tmsi_valid = false;
   }
-#if 0
+#if 0  
   if (opt_guamfi) {
     NGAP_INITIAL_UE_MESSAGE(message_p).is_guamfi_valid = true;
     NGAP_INITIAL_UE_MESSAGE(message_p).opt_guamfi = *opt_guamfi;

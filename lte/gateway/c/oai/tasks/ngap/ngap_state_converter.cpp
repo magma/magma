@@ -51,7 +51,7 @@ void NgapStateConverter::state_to_proto(ngap_state_t* state, NgapState* proto) {
   if (!keys) {
     OAILOG_DEBUG(LOG_NGAP, "No keys in amfid2associd hashtable");
   } else {
-    for (int i = 0; i < keys->num_keys; i++) {
+    for (uint32_t i = 0; i < keys->num_keys; i++) {
       amfid = (amf_ue_ngap_id_t) keys->keys[i];
       ht_rc = hashtable_ts_get(
           &state->amfid2associd, (hash_key_t) amfid, (void**) &sctp_id_ptr);
