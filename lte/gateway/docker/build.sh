@@ -13,7 +13,6 @@
 set -x
 # build container
 
-docker build . -f services/build/Dockerfile
 # echo ${DOCKER_PASSWORD} > /tmp/passfile
 
 build (){
@@ -22,8 +21,8 @@ build (){
   #../../../orc8r/tools/docker/publish.sh -r ${DOCKER_REGISTRY} -i $1 -u ${DOCKER_USERNAME} -p /tmp/passfile
 }
 
-
-build mobilityd
+build build
+# build mobilityd
 # build enodedb
 # build health
 # build monitord
