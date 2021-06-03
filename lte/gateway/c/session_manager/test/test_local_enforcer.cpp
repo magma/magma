@@ -30,7 +30,6 @@
 #include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
 #include "SessionStore.h"
-#include <stdio.h>
 
 #define SECONDS_A_DAY 86400
 
