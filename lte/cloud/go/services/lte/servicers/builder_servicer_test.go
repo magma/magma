@@ -1227,7 +1227,6 @@ func build_impl(networkProto *storage_configurator.Network, graph *configurator.
 	builder := mconfig.NewRemoteBuilder(lte_service.ServiceName)
 	res, err := builder.Build(networkProto, graphProto, gatewayID)
 	if err != nil {
-		print("YSFFFF")
 		return nil, err
 	}
 
