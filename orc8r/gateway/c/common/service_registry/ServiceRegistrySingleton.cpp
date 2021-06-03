@@ -10,7 +10,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "ServiceRegistrySingleton.h"
+
+#include "includes/ServiceRegistrySingleton.h"
 #include <assert.h>                            // for assert
 #include <grpcpp/create_channel.h>             // for CreateCustomChannel
 #include <grpcpp/impl/codegen/config.h>        // for string

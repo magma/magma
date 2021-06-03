@@ -64,6 +64,8 @@ static void sgw_s8_populate_mbr_bearer_contexts_modified(
     sgw_eps_bearer_context_information_t* sgw_context_p,
     itti_s11_modify_bearer_response_t* modify_response_p);
 
+static teid_t sgw_s8_generate_new_cp_teid(void);
+
 void sgw_remove_sgw_bearer_context_information(
     sgw_state_t* sgw_state, teid_t teid, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
@@ -236,13 +238,12 @@ void sgw_s8_handle_s11_create_session_request(
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
 
-  sgw_get_new_S11_tunnel_id(&sgw_state->tunnel_id);
-  sgw_s11_tunnel.local_teid  = sgw_state->tunnel_id;
+  sgw_s11_tunnel.local_teid  = sgw_s8_generate_new_cp_teid();
   sgw_s11_tunnel.remote_teid = session_req_pP->sender_fteid_for_cp.teid;
   OAILOG_DEBUG_UE(
       LOG_SGW_S8, imsi64,
       "Rx CREATE-SESSION-REQUEST MME S11 teid " TEID_FMT
-      "SGW S11 teid " TEID_FMT " APN %s EPS bearer Id %u\n",
+      " SGW S11 teid " TEID_FMT " APN %s EPS bearer Id %u\n",
       sgw_s11_tunnel.remote_teid, sgw_s11_tunnel.local_teid,
       session_req_pP->apn,
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
@@ -1107,4 +1108,20 @@ void sgw_s8_handle_release_access_bearers_request(
         0);
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+/* Generates random control plane teid and is used for both s11 and
+ * s8 interface to uniquely identify sgw_s8_context for pdn session
+ */
+static teid_t sgw_s8_generate_new_cp_teid(void) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  sgw_eps_bearer_context_information_t* sgw_context_p = NULL;
+  teid_t teid                                         = INVALID_TEID;
+  // note srand with seed is initialized at main
+  do {
+    teid          = (teid_t) rand();
+    sgw_context_p = sgw_get_sgw_eps_bearer_context(teid);
+  } while (sgw_context_p);
+
+  OAILOG_FUNC_RETURN(LOG_SGW_S8, teid);
 }

@@ -135,7 +135,7 @@ void ChargingGrant::receive_charging_grant(
   log_received_grant(update);
 
   // Update the UpdateCriteria if not nullptr
-  if (credit_uc != nullptr) {
+  if (credit_uc) {
     credit_uc->is_final          = is_final_grant;
     credit_uc->final_action_info = final_action_info;
     credit_uc->expiry_time       = expiry_time;
@@ -305,7 +305,7 @@ void ChargingGrant::set_reauth_state(
                  << reauth_state_to_str(new_state);
   }
   reauth_state = new_state;
-  if (credit_uc != nullptr) {
+  if (credit_uc) {
     credit_uc->reauth_state = new_state;
   }
 }
@@ -319,7 +319,7 @@ void ChargingGrant::set_service_state(
                  << service_state_to_str(new_service_state);
   }
   service_state = new_service_state;
-  if (credit_uc != nullptr) {
+  if (credit_uc) {
     credit_uc->service_state = new_service_state;
   }
 }
@@ -329,8 +329,10 @@ void ChargingGrant::set_suspended(
   if (suspended != new_suspended) {
     MLOG(MDEBUG) << "Credit suspension set to: " << new_suspended;
   }
-  suspended            = new_suspended;
-  credit_uc->suspended = new_suspended;
+  suspended = new_suspended;
+  if (credit_uc) {
+    credit_uc->suspended = new_suspended;
+  }
 }
 
 void ChargingGrant::reset_reporting_grant(
@@ -372,5 +374,37 @@ void ChargingGrant::log_received_grant(const CreditUpdateResponse& update) {
 
 void ChargingGrant::set_reporting(bool reporting) {
   credit.set_reporting(reporting);
+}
+
+// TODO: make session_manager.proto and policydb.proto to use common field
+static RedirectInformation_AddressType address_type_converter(
+    RedirectServer_RedirectAddressType address_type) {
+  switch (address_type) {
+    case RedirectServer_RedirectAddressType_IPV4:
+      return RedirectInformation_AddressType_IPv4;
+    case RedirectServer_RedirectAddressType_IPV6:
+      return RedirectInformation_AddressType_IPv6;
+    case RedirectServer_RedirectAddressType_URL:
+      return RedirectInformation_AddressType_URL;
+    case RedirectServer_RedirectAddressType_SIP_URI:
+      return RedirectInformation_AddressType_SIP_URI;
+    default:
+      MLOG(MWARNING) << "Unknown redirect address type!";
+      return RedirectInformation_AddressType_IPv4;
+  }
+}
+
+PolicyRule ChargingGrant::make_redirect_rule() {
+  PolicyRule redirect_rule;
+  redirect_rule.set_id("redirect");
+  redirect_rule.set_priority(ChargingGrant::REDIRECT_FLOW_PRIORITY);
+  RedirectInformation* redirect_info = redirect_rule.mutable_redirect();
+  redirect_info->set_support(RedirectInformation_Support_ENABLED);
+
+  auto redirect_server = final_action_info.redirect_server;
+  redirect_info->set_address_type(
+      address_type_converter(redirect_server.redirect_address_type()));
+  redirect_info->set_server_address(redirect_server.redirect_server_address());
+  return redirect_rule;
 }
 }  // namespace magma

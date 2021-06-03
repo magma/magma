@@ -9,9 +9,9 @@
    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
    See the License for the specific language governing permissions and
    limitations under the License.
-  */}}
-  {{- include "orc8rlib.pdb" (list . "base_acct.pdb") -}}
-  {{- define "base_acct.pdb" -}}
+*/}}
+{{- include "orc8rlib.pdb" (list . "base_acct.pdb") -}}
+{{- define "base_acct.pdb" -}}
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
@@ -22,4 +22,4 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: base-acct
-  {{- end }}
+{{- end }}

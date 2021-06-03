@@ -12,6 +12,7 @@ limitations under the License.
 """
 import os
 from collections import defaultdict
+from datetime import datetime, timedelta
 
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
@@ -22,7 +23,7 @@ from magma.pipelined.app.policy_mixin import (DROP_FLOW_STATS, IGNORE_STATS,
                                               PROCESS_STATS, PolicyMixin)
 from magma.pipelined.app.restart_mixin import DefaultMsgsMap, RestartMixin
 from magma.pipelined.imsi import decode_imsi, encode_imsi
-from magma.pipelined.openflow import flows, messages
+from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.exceptions import (MagmaDPDisconnectedError,
                                                  MagmaOFError)
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -59,6 +60,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     SESSIOND_RPC_TIMEOUT = 10
     # 0xffffffffffffffff is reserved in openflow
     DEFAULT_FLOW_COOKIE = 0xfffffffffffffffe
+    INIT_SLEEP_TIME = 3
+    MAX_DELAY_INTERVALS = 20
 
     _CONTEXTS = {
         'dpset': dpset.DPSet,
@@ -85,6 +88,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             kwargs['config']['enforcement']['default_drop_flow_name']
         self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
         self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
+        self._last_poll_time = datetime.now()
+        self._last_report_timestamp = datetime.now()
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
                 kwargs['config'].get('magma_print_grpc_payload', False)
@@ -289,28 +294,43 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         Main thread that sends a stats request at the configured interval in
         seconds.
         """
+        while not self.init_finished:
+            # Still send an empty report -> for pipelined setup
+            self._report_usage({})
+            hub.sleep(self.INIT_SLEEP_TIME)
         while True:
-            for _, datapath in self.dpset.get_all():
-                if self.init_finished:
-                    self._poll_stats(datapath)
-                else:
-                    # Still send an empty report -> needed for pipelined setup
-                    self._report_usage({})
             hub.sleep(poll_interval)
+            for _, datapath in self.dpset.get_all():
+                now = datetime.now()
 
-    def _poll_stats(self, datapath):
+                delta = get_adjusted_delta(self._last_report_timestamp, now)
+                if delta > poll_interval * self.MAX_DELAY_INTERVALS:
+                    self.logger.info(
+                        'Previous update missing, current time %s, last '
+                        'report timestamp %s, last poll timestamp %s',
+                        now.strftime("%H:%M:%S"),
+                        self._last_report_timestamp.strftime("%H:%M:%S"),
+                        self._last_poll_time.strftime("%H:%M:%S")
+                    )
+                    self._last_report_timestamp = now
+                    hub.sleep(poll_interval/2)
+                    continue
+                if delta < poll_interval:
+                    continue
+                self._last_poll_time = now
+                self.logger.debug('Started polling: %s',
+                                  now.strftime("%H:%M:%S"))
+                self._poll_stats(datapath)
+
+    def _poll_stats(self, datapath, cookie: int = 0, cookie_mask: int = 0):
         """
         Send a FlowStatsRequest message to the datapath
+        Raises:
+        MagmaOFError: if we can't poll datapath stats
         """
-        ofproto, parser = datapath.ofproto, datapath.ofproto_parser
-        req = parser.OFPFlowStatsRequest(
-            datapath,
-            table_id=self.tbl_num,
-            out_group=ofproto.OFPG_ANY,
-            out_port=ofproto.OFPP_ANY,
-        )
         try:
-            messages.send_msg(datapath, req)
+            flows.send_stats_request(datapath, self.tbl_num,
+                                     cookie, cookie_mask)
         except MagmaOFError as e:
             self.logger.warning("Couldn't poll datapath stats: %s", e)
 
@@ -347,20 +367,17 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
         self.logger.debug("Processing %s stats responses", len(stats_msgs))
         # Aggregate flows into rule records
-        current_usage = defaultdict(RuleRecord)
+        aggregated_msgs = []
         for flow_stats in stats_msgs:
-            self.logger.debug("Processing stats of %d flows", len(flow_stats))
-            for stat in flow_stats:
-                if stat.table_id != self.tbl_num:
-                    # this update is not intended for policy
-                    return
-                try:
-                    current_usage = self._update_usage_from_flow_stat(
-                        current_usage, stat)
-                except ConnectionError:
-                    self.logger.error('Failed processing stats, redis unavailable')
-                    self.unhandled_stats_msgs.append(stats_msgs)
-                    return
+            aggregated_msgs += flow_stats
+
+        self.logger.debug("Processing stats of %d flows", len(aggregated_msgs))
+        try:
+            current_usage = self._get_usage_from_flow_stat(aggregated_msgs)
+        except ConnectionError:
+            self.logger.error('Failed processing stats, redis unavailable')
+            self.unhandled_stats_msgs.append(stats_msgs)
+            return
         # Send report even if usage is empty. Sessiond uses empty reports to
         # recognize when flows have ended
         self._report_usage(current_usage)
@@ -399,6 +416,9 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         """
         Callback after sessiond RPC completion
         """
+        self._last_report_timestamp = datetime.now()
+        self.logger.debug('Finished reporting: %s',
+                          self._last_report_timestamp.strftime("%H:%M:%S"))
         err = future.exception()
         if err:
             self.logger.error('Couldnt send flow records to sessiond: %s', err)
@@ -409,78 +429,81 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error('Failed remove old flows, redis unavailable')
             return
 
-    def _update_usage_from_flow_stat(self, current_usage, flow_stat):
+    def _get_usage_from_flow_stat(self, flow_stats):
         """
         Update the rule record map with the flow stat and return the
         updated map.
         """
-        rule_id = self._get_rule_id(flow_stat)
-        # Rule not found, must be default flow
-        if rule_id == "":
-            default_flow_matched = \
-                flow_stat.cookie == self.DEFAULT_FLOW_COOKIE
-            if default_flow_matched:
-                if flow_stat.byte_count != 0 and \
-                   self._unmatched_bytes != flow_stat.byte_count:
-                    self.logger.debug('%s bytes total not reported.',
-                                      flow_stat.byte_count)
-                    self._unmatched_bytes = flow_stat.byte_count
-                return current_usage
+        current_usage = defaultdict(RuleRecord)
+        for flow_stat in flow_stats:
+            if flow_stat.table_id != self.tbl_num:
+                # this update is not intended for policy
+                continue
+            rule_id = self._get_rule_id(flow_stat)
+            # Rule not found, must be default flow
+            if rule_id == "":
+                default_flow_matched = \
+                    flow_stat.cookie == self.DEFAULT_FLOW_COOKIE
+                if default_flow_matched:
+                    if flow_stat.byte_count != 0 and \
+                       self._unmatched_bytes != flow_stat.byte_count:
+                        self.logger.debug('%s bytes total not reported.',
+                                          flow_stat.byte_count)
+                        self._unmatched_bytes = flow_stat.byte_count
+                    continue
+                else:
+                    # This must be the default drop flow
+                    rule_id = self._default_drop_flow_name
+            # If this is a pass through app name flow ignore stats
+            if _get_policy_type(flow_stat.match) == IGNORE_STATS:
+                continue
+            sid = _get_sid(flow_stat)
+            if not sid:
+                continue
+            ipv4_addr = _get_ipv4(flow_stat)
+            ipv6_addr = _get_ipv6(flow_stat)
+
+            # use a compound key to separate flows for the same rule but for
+            # different subscribers
+            key = sid + "|" + rule_id
+
+            if ipv4_addr:
+                key += "|" + ipv4_addr
+            elif ipv6_addr:
+                key += "|" + ipv6_addr
+
+            rule_version = _get_version(flow_stat)
+            if not rule_version:
+                rule_version = 0
+
+            key += "|" + str(rule_version)
+
+            current_usage[key].rule_id = rule_id
+            current_usage[key].sid = sid
+
+            current_usage[key].rule_version = rule_version
+
+            if ipv4_addr:
+                current_usage[key].ue_ipv4 = ipv4_addr
+            elif ipv6_addr:
+                current_usage[key].ue_ipv6 = ipv6_addr
+            bytes_rx = 0
+            bytes_tx = 0
+            if flow_stat.match[DIRECTION_REG] == Direction.IN:
+                # HACK decrement byte count for downlink packets by the length
+                # of an ethernet frame. Only IP and below should be counted towards
+                # a user's data. Uplink does this already because the GTP port is
+                # an L3 port.
+                bytes_rx = _get_downlink_byte_count(flow_stat)
             else:
-                # This must be the default drop flow
-                rule_id = self._default_drop_flow_name
-        # If this is a pass through app name flow ignore stats
-        if _get_policy_type(flow_stat.match) == IGNORE_STATS:
-            return current_usage
-        sid = _get_sid(flow_stat)
-        if not sid:
-            return current_usage
-        ipv4_addr = _get_ipv4(flow_stat)
-        ipv6_addr = _get_ipv6(flow_stat)
+                bytes_tx = flow_stat.byte_count
 
-        # use a compound key to separate flows for the same rule but for
-        # different subscribers
-        key = sid + "|" + rule_id
-
-        if ipv4_addr:
-            key += "|" + ipv4_addr
-        elif ipv6_addr:
-            key += "|" + ipv6_addr
-
-        rule_version = _get_version(flow_stat)
-        if not rule_version:
-            rule_version = 0
-
-        key += "|" + str(rule_version)
-
-        record = current_usage[key]
-        record.rule_id = rule_id
-        record.sid = sid
-
-        record.rule_version = rule_version
-
-        if ipv4_addr:
-            record.ue_ipv4 = ipv4_addr
-        elif ipv6_addr:
-            record.ue_ipv6 = ipv6_addr
-        bytes_rx = 0
-        bytes_tx = 0
-        if flow_stat.match[DIRECTION_REG] == Direction.IN:
-            # HACK decrement byte count for downlink packets by the length
-            # of an ethernet frame. Only IP and below should be counted towards
-            # a user's data. Uplink does this already because the GTP port is
-            # an L3 port.
-            bytes_rx = _get_downlink_byte_count(flow_stat)
-        else:
-            bytes_tx = flow_stat.byte_count
-
-        if _get_policy_type(flow_stat.match) == PROCESS_STATS:
-            record.bytes_rx += bytes_rx
-            record.bytes_tx += bytes_tx
-        else:
-            record.dropped_rx += bytes_rx
-            record.dropped_tx += bytes_tx
-        current_usage[key] = record
+            if _get_policy_type(flow_stat.match) == PROCESS_STATS:
+                current_usage[key].bytes_rx += bytes_rx
+                current_usage[key].bytes_tx += bytes_tx
+            else:
+                current_usage[key].dropped_rx += bytes_rx
+                current_usage[key].dropped_tx += bytes_tx
         return current_usage
 
     def _delete_old_flows(self, records):
@@ -598,3 +621,8 @@ def _get_policy_type(match):
     if SCRATCH_REGS[1] not in match:
         return None
     return match[SCRATCH_REGS[1]]
+
+
+def get_adjusted_delta(begin, end):
+    # Add on a bit of time to compensate for grpc
+    return (end - begin + timedelta(milliseconds=150)).total_seconds()

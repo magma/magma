@@ -57,8 +57,10 @@ class IpDescriptorMap:
         """
         self.ip_states = ip_states
 
-    def add_ip_to_state(self, ip: ip_address, ip_desc: IPDesc,
-                        state: IPState):
+    def add_ip_to_state(
+        self, ip: ip_address, ip_desc: IPDesc,
+        state: IPState,
+    ):
         """ Add ip=>ip_desc pairs to a internal dict """
         assert ip_desc.state == state, \
             "ip_desc.state %s does not match with state %s" \

@@ -130,10 +130,11 @@ int esm_proc_eps_bearer_context_deactivate(
               bidx);
 
           if (rc != RETURNok) {
-            break;
+            OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
           }
         }
       }
+      rc = RETURNok;
     }
 
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -150,8 +151,8 @@ int esm_proc_eps_bearer_context_deactivate(
       OAILOG_ERROR(
           LOG_NAS_ESM,
           "ESM-PROC  - PDN connection %d has not been "
-          "allocated\n",
-          *pid);
+          "allocated for ue id " MME_UE_S1AP_ID_FMT "\n",
+          *pid, ue_mm_context->mme_ue_s1ap_id);
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
     } else {
       int i;
@@ -240,8 +241,10 @@ int esm_proc_eps_bearer_context_deactivate_request(
        * The EPS bearer context was already in ACTIVE state
        */
       OAILOG_WARNING(
-          LOG_NAS_ESM, "ESM-PROC  - EBI %d was already INACTIVE PENDING\n",
-          ebi);
+          LOG_NAS_ESM,
+          "ESM-PROC  - EBI %d was already INACTIVE PENDING for ue "
+          "id " MME_UE_S1AP_ID_FMT "\n",
+          ebi, ue_id);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -463,9 +466,11 @@ void eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
       if (!ue_mm_context->pdn_contexts[pdn_id]) {
         OAILOG_ERROR(
             LOG_NAS_ESM,
-            "eps_bearer_deactivate_t3495_handler pid context NULL returning "
-            "%d\n",
-            pdn_id);
+            "eps_bearer_deactivate_t3495_handler pid context NULL for ue "
+            "id " MME_UE_S1AP_ID_FMT
+            "\n"
+            "pdn_id=%d\n",
+            ue_id, pdn_id);
         OAILOG_FUNC_OUT(LOG_NAS_ESM);
       }
       // Send bearer_deactivation_reject to MME
@@ -599,8 +604,9 @@ int eps_bearer_release(
   ebi = esm_ebr_context_release(emm_context_p, ebi, pid, bidx);
 
   if (ebi == ESM_EBI_UNASSIGNED) {
-    OAILOG_WARNING(
-        LOG_NAS_ESM, "ESM-PROC  - Failed to release EPS bearer context\n");
+    OAILOG_WARNING_UE(
+        LOG_NAS_ESM, emm_context_p->_imsi64,
+        "ESM-PROC  - Failed to release EPS bearer context\n");
   } else {
     /*
      * Set the EPS bearer context state to INACTIVE
@@ -611,8 +617,9 @@ int eps_bearer_release(
       /*
        * The EPS bearer context was already in INACTIVE state
        */
-      OAILOG_WARNING(
-          LOG_NAS_ESM, "ESM-PROC  - EBI %d was already INACTIVE\n", ebi);
+      OAILOG_WARNING_UE(
+          LOG_NAS_ESM, emm_context_p->_imsi64,
+          "ESM-PROC  - EBI %d was already INACTIVE\n", ebi);
     }
     /*
      * Release EPS bearer data
@@ -620,8 +627,9 @@ int eps_bearer_release(
     rc = esm_ebr_release(emm_context_p, ebi);
 
     if (rc != RETURNok) {
-      OAILOG_WARNING(
-          LOG_NAS_ESM, "ESM-PROC  - Failed to release EPS bearer data\n");
+      OAILOG_WARNING_UE(
+          LOG_NAS_ESM, emm_context_p->_imsi64,
+          "ESM-PROC  - Failed to release EPS bearer data\n");
     }
   }
 

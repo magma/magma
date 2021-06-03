@@ -106,12 +106,15 @@ void StateConverter::ambr_to_proto(
     const ambr_t& state_ambr, oai::Ambr* ambr_proto) {
   ambr_proto->set_br_ul(state_ambr.br_ul);
   ambr_proto->set_br_dl(state_ambr.br_dl);
+  ambr_proto->set_br_unit(
+      static_cast<magma::lte::oai::Ambr::BitrateUnitsAMBR>(state_ambr.br_unit));
 }
 
 void StateConverter::proto_to_ambr(
     const oai::Ambr& ambr_proto, ambr_t* state_ambr) {
-  state_ambr->br_ul = ambr_proto.br_ul();
-  state_ambr->br_dl = ambr_proto.br_dl();
+  state_ambr->br_ul   = ambr_proto.br_ul();
+  state_ambr->br_dl   = ambr_proto.br_dl();
+  state_ambr->br_unit = (apn_ambr_bitrate_unit_t) ambr_proto.br_unit();
 }
 
 void StateConverter::apn_configuration_to_proto(

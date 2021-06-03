@@ -84,6 +84,17 @@ void AmfPduSessionSmContextAsyncService::init_call_data() {
   MLOG(MINFO) << "Initializing new call data for SetAmfSessionContext";
 }
 
+/*Landing object invocation object call for 5G*/
+SetInterfaceForUserPlaneAsyncService::SetInterfaceForUserPlaneAsyncService(
+    std::unique_ptr<ServerCompletionQueue> cq,
+    std::unique_ptr<UpfMsgManageHandler> handler)
+    : AsyncService(std::move(cq)), handler_(std::move(handler)) {}
+
+void SetInterfaceForUserPlaneAsyncService::init_call_data() {
+  MLOG(MINFO) << "Initializing new call data for SetUpfNodeStateCallData";
+  new SetUPFNodeStateCallData(cq_.get(), *this, *handler_);
+}
+
 SessionProxyResponderAsyncService::SessionProxyResponderAsyncService(
     std::unique_ptr<ServerCompletionQueue> cq,
     std::shared_ptr<SessionProxyResponderHandler> handler)

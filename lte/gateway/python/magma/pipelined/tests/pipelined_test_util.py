@@ -17,6 +17,7 @@ import re
 import subprocess
 from collections import namedtuple
 from concurrent.futures import Future
+from datetime import datetime
 from difflib import unified_diff
 from typing import Dict, List, Optional
 from unittest import TestCase, mock
@@ -328,8 +329,15 @@ def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
     """
     sleep_time = 0
     stats_reported = {rule: False for rule in rule_list}
+    times_called = len(controller._report_usage.call_args_list)
+    controller._last_report_timestamp = datetime.now()
     while not all(stats_reported[rule] for rule in rule_list):
         hub.sleep(wait_time)
+
+        #There is no sessiond report callback in testing so manually reset var
+        if times_called != len(controller._report_usage.call_args_list):
+            times_called = len(controller._report_usage.call_args_list)
+            controller._last_report_timestamp = datetime.now()
         for reported_stats in controller._report_usage.call_args_list:
             stats = reported_stats[0][0]
             for rule in rule_list:

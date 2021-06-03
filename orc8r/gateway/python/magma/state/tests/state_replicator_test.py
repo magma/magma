@@ -72,9 +72,11 @@ class DummyStateServer(state_pb2_grpc.StateServiceServicer):
         for state in request.states:
             # Always 'fail' to report LOG_TYPE states
             if state.type == LOG_TYPE:
-                id_and_error = IDAndError(type=state.type,
-                                          deviceID=state.deviceID,
-                                          error="mocked_error")
+                id_and_error = IDAndError(
+                    type=state.type,
+                    deviceID=state.deviceID,
+                    error="mocked_error",
+                )
                 unreported_states.append(id_and_error)
         return ReportStatesResponse(
             unreportedStates=unreported_states,
@@ -86,8 +88,10 @@ class DummyStateServer(state_pb2_grpc.StateServiceServicer):
             if state.id.type == LOG_TYPE:
                 raise grpc.RpcError("Test Exception")
             elif state.id.type == NID_TYPE:
-                id_and_version = IDAndVersion(id=state.id,
-                                              version=state.version)
+                id_and_version = IDAndVersion(
+                    id=state.id,
+                    version=state.version,
+                )
                 unsynced_states.append(id_and_version)
         return SyncStatesResponse(
             unsyncedStates=unsynced_states,
@@ -110,25 +114,33 @@ class StateReplicatorTests(TestCase):
         service = MagicMock()
         service.config = {
             # Replicate arbitrary orc8r protos
-            'state_protos': [{'proto_file': 'orc8r.protos.common_pb2',
-                              'proto_msg': 'NetworkID',
-                              'redis_key': NID_TYPE,
-                              'state_scope': 'network'},
-                             {'proto_file': 'orc8r.protos.common_pb2',
-                              'proto_msg': 'IDList',
-                              'redis_key': IDList_TYPE,
-                              'state_scope': 'gateway'},
-                             {'proto_file': 'orc8r.protos.service303_pb2',
-                              'proto_msg': 'LogVerbosity',
-                              'redis_key': LOG_TYPE,
-                              'state_scope': 'gateway'}],
-            'json_state': [{'redis_key': FOO_TYPE, 'state_scope': 'network'}]
+            'state_protos': [
+                {
+                    'proto_file': 'orc8r.protos.common_pb2',
+                    'proto_msg': 'NetworkID',
+                    'redis_key': NID_TYPE,
+                    'state_scope': 'network',
+                },
+                {
+                    'proto_file': 'orc8r.protos.common_pb2',
+                    'proto_msg': 'IDList',
+                    'redis_key': IDList_TYPE,
+                    'state_scope': 'gateway',
+                },
+                {
+                    'proto_file': 'orc8r.protos.service303_pb2',
+                    'proto_msg': 'LogVerbosity',
+                    'redis_key': LOG_TYPE,
+                    'state_scope': 'gateway',
+                },
+            ],
+            'json_state': [{'redis_key': FOO_TYPE, 'state_scope': 'network'}],
         }
         service.loop = self.loop
 
         # Bind the rpc server to a free port
         self._rpc_server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=10)
+            futures.ThreadPoolExecutor(max_workers=10),
         )
         port = self._rpc_server.add_insecure_port('0.0.0.0:0')
         # Add the servicer
@@ -138,18 +150,26 @@ class StateReplicatorTests(TestCase):
         # Create a rpc stub
         self.channel = grpc.insecure_channel('0.0.0.0:{}'.format(port))
 
-        serde1 = RedisSerde(NID_TYPE,
-                            get_proto_serializer(),
-                            get_proto_deserializer(NetworkID))
-        serde2 = RedisSerde(IDList_TYPE,
-                            get_proto_serializer(),
-                            get_proto_deserializer(IDList))
-        serde3 = RedisSerde(LOG_TYPE,
-                            get_proto_serializer(),
-                            get_proto_deserializer(LogVerbosity))
-        serde4 = RedisSerde(FOO_TYPE,
-                            get_json_serializer(),
-                            get_json_deserializer())
+        serde1 = RedisSerde(
+            NID_TYPE,
+            get_proto_serializer(),
+            get_proto_deserializer(NetworkID),
+        )
+        serde2 = RedisSerde(
+            IDList_TYPE,
+            get_proto_serializer(),
+            get_proto_deserializer(IDList),
+        )
+        serde3 = RedisSerde(
+            LOG_TYPE,
+            get_proto_serializer(),
+            get_proto_deserializer(LogVerbosity),
+        )
+        serde4 = RedisSerde(
+            FOO_TYPE,
+            get_json_serializer(),
+            get_json_deserializer(),
+        )
 
         self.nid_client = RedisFlatDict(self.mock_redis, serde1)
         self.idlist_client = RedisFlatDict(self.mock_redis, serde2)
@@ -168,7 +188,8 @@ class StateReplicatorTests(TestCase):
         func_mock = mock.MagicMock(return_value=self.mock_redis)
         with mock.patch(
                 'magma.state.redis_dicts.get_default_client',
-                func_mock):
+                func_mock,
+        ):
             garbage_collector = GarbageCollector(service, grpc_client_manager)
 
             self.state_replicator = StateReplicator(
@@ -259,15 +280,23 @@ class StateReplicatorTests(TestCase):
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(3, len(self.state_replicator._state_versions))
             mem_key1 = make_mem_key('id1', NID_TYPE)
-            mem_key2 = make_mem_key('aaa-bbb:id1',
-                                    IDList_TYPE)
+            mem_key2 = make_mem_key(
+                'aaa-bbb:id1',
+                IDList_TYPE,
+            )
             mem_key3 = make_mem_key('id1', FOO_TYPE)
-            self.assertEqual(1,
-                             self.state_replicator._state_versions[mem_key1])
-            self.assertEqual(2,
-                             self.state_replicator._state_versions[mem_key2])
-            self.assertEqual(1,
-                             self.state_replicator._state_versions[mem_key3])
+            self.assertEqual(
+                1,
+                self.state_replicator._state_versions[mem_key1],
+            )
+            self.assertEqual(
+                2,
+                self.state_replicator._state_versions[mem_key2],
+            )
+            self.assertEqual(
+                1,
+                self.state_replicator._state_versions[mem_key3],
+            )
 
             # Now add new state and update some existing state
             key2 = 'id2'
@@ -280,14 +309,22 @@ class StateReplicatorTests(TestCase):
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(4, len(self.state_replicator._state_versions))
             mem_key4 = make_mem_key('id2', NID_TYPE)
-            self.assertEqual(1,
-                             self.state_replicator._state_versions[mem_key1])
-            self.assertEqual(3,
-                             self.state_replicator._state_versions[mem_key2])
-            self.assertEqual(1,
-                             self.state_replicator._state_versions[mem_key3])
-            self.assertEqual(1,
-                             self.state_replicator._state_versions[mem_key4])
+            self.assertEqual(
+                1,
+                self.state_replicator._state_versions[mem_key1],
+            )
+            self.assertEqual(
+                3,
+                self.state_replicator._state_versions[mem_key2],
+            )
+            self.assertEqual(
+                1,
+                self.state_replicator._state_versions[mem_key3],
+            )
+            self.assertEqual(
+                1,
+                self.state_replicator._state_versions[mem_key4],
+            )
 
         # Cancel the replicator's loop so there are no other activities
         self.state_replicator._periodic_task.cancel()
@@ -321,12 +358,18 @@ class StateReplicatorTests(TestCase):
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(2, len(self.state_replicator._state_versions))
             mem_key1 = make_mem_key('id1', NID_TYPE)
-            mem_key2 = make_mem_key('aaa-bbb:id1',
-                                    IDList_TYPE)
-            self.assertEqual(1,
-                             self.state_replicator._state_versions[mem_key1])
-            self.assertEqual(2,
-                             self.state_replicator._state_versions[mem_key2])
+            mem_key2 = make_mem_key(
+                'aaa-bbb:id1',
+                IDList_TYPE,
+            )
+            self.assertEqual(
+                1,
+                self.state_replicator._state_versions[mem_key1],
+            )
+            self.assertEqual(
+                2,
+                self.state_replicator._state_versions[mem_key2],
+            )
 
             # Now run again, ensuring only the state the wasn't replicated
             # will be sent again
@@ -359,8 +402,10 @@ class StateReplicatorTests(TestCase):
             await self.state_replicator._resync()
             self.assertEqual(True, self.state_replicator._has_resync_completed)
             self.assertEqual(1, len(self.state_replicator._state_versions))
-            mem_key = make_mem_key('aaa-bbb:id1',
-                                   IDList_TYPE)
+            mem_key = make_mem_key(
+                'aaa-bbb:id1',
+                IDList_TYPE,
+            )
             self.assertEqual(2, self.state_replicator._state_versions[mem_key])
 
         # Cancel the replicator's loop so there are no other activities
@@ -386,8 +431,10 @@ class StateReplicatorTests(TestCase):
             except grpc.RpcError:
                 pass
 
-            self.assertEqual(False,
-                             self.state_replicator._has_resync_completed)
+            self.assertEqual(
+                False,
+                self.state_replicator._has_resync_completed,
+            )
             self.assertEqual(0, len(self.state_replicator._state_versions))
 
         # Cancel the replicator's loop so there are no other activities
@@ -413,8 +460,10 @@ class StateReplicatorTests(TestCase):
             await self.state_replicator._send_to_state_service(req)
             self.assertEqual(1, len(self.state_replicator._state_versions))
             mem_key1 = make_mem_key('id1', NID_TYPE)
-            self.assertEqual(1,
-                             self.state_replicator._state_versions[mem_key1])
+            self.assertEqual(
+                1,
+                self.state_replicator._state_versions[mem_key1],
+            )
 
             # Now delete state and ensure in-memory map gets updated properly
             del self.nid_client[key]

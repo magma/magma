@@ -97,6 +97,7 @@ if release_info.get('VERSION_CODENAME', '') == 'focal':
             'scripts/spgw_service_cli.py',
             'scripts/cpe_monitoring_cli.py',
             'scripts/state_cli.py',
+            'scripts/dp_probe_cli.py',
         ],
         package_data={'magma.redirectd.templates': ['*.html']},
         install_requires=[

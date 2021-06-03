@@ -1,6 +1,4 @@
 ---
-- include: provision-gateway-instance.yaml
-  tags: clusterGateway
 - include: provision-test-instances.yaml
   tags: clusterStart
 - include: configure-test-instances.yaml

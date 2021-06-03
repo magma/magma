@@ -1,30 +1,42 @@
+# approvers-ci
 .circleci/ @magma/approvers-ci
 circleci/ @magma/approvers-ci
-
 ci-scripts/ @magma/approvers-ci
-
-*/cloud/ @magma/approvers-orc8r
-.golangci.yml @magma/approvers-orc8r
-
-orc8r/ @magma/approvers-orc8r
+.github/workflows/ @magma/approvers-ci
+third_party/build/ @magma/approvers-ci
 orc8r/tools/packer/ @magma/approvers-ci
 orc8r/cloud/deploy/bare-metal/ @magma/approvers-ci
 orc8r/cloud/deploy/bare-metal-ansible/ @magma/approvers-ci
-
-orc8r/gateway/c/ @magma/approvers-agw-c
-
-feg/ @magma/approvers-feg
-
-cwf/ @magma/approvers-cwf
+lte/gateway/docker @magma/approvers-ci
+lte/gateway/release @magma/approvers-ci
+lte/gateway/Vagrantfile @magma/approvers-ci
 cwf/gateway/Vagrantfile @magma/approvers-ci
 
+# approvers-orc8r
+*/cloud/ @magma/approvers-orc8r
+.golangci.yml @magma/approvers-orc8r
+orc8r/ @magma/approvers-orc8r
+
+# approvers-nms
+nms/ @magma/approvers-nms
+
+# approvers-feg
+feg/ @magma/approvers-feg
+
+# approvers-cwf
+cwf/ @magma/approvers-cwf
+
+# approvers-openwrt
 openwrt/ @magma/approvers-openwrt
 
-# More specific mappings for lte/gateway will override this top-level one
+# approvers-agw / approvers-agw-python / approvers-agw-c
 lte/gateway @magma/approvers-agw
+lte/protos @magma/approvers-agw
 lte/gateway/python @magma/approvers-agw-python
 lte/gateway/c @magma/approvers-agw-c
+orc8r/gateway/c/ @magma/approvers-agw-c
 
+# approvers-agw-<subsection>
 lte/gateway/c/session_manager @magma/approvers-agw-sessiond
 lte/gateway/c/oai @magma/approvers-agw-mme
 lte/gateway/c/sctpd @magma/approvers-agw-mme
@@ -32,25 +44,23 @@ lte/gateway/c/connection_tracker @koolzz
 lte/gateway/python/magma/pipelined @magma/approvers-agw-pipelined
 lte/gateway/python/integ_tests @magma/approvers-agw-integtests
 
-lte/gateway/docker @magma/approvers-ci
-lte/gateway/release @magma/approvers-ci
-lte/gateway/Vagrantfile @magma/approvers-ci
-
-**/*.pb.go @magma/repo-magma-maintain
-**/*_swaggergen.go @magma/repo-magma-maintain
-orc8r/cloud/go/obsidian/swagger/v1/swagger.yml @magma/repo-magma-maintain
-orc8r/cloud/go/obsidian/swagger/v1/client/ @magma/repo-magma-maintain
-orc8r/cloud/go/obsidian/swagger/v1/models/ @magma/repo-magma-maintain
-**/go.mod @magma/repo-magma-maintain
-**/go.sum @magma/repo-magma-maintain
-
 # XWF Magma integrations
 xwf/ @magma/approvers-xwf
 feg/radius @magma/approvers-xwf @magma/approvers-cwf
 
-nms/ @magma/approvers-nms
+# approvers-showtech
+show-tech/ @magma/approvers-showtech
 
 docs/ @magma/approvers-docs
 docs/readmes/proposals @electronjoe
 
 CODEOWNERS @amarpad @electronjoe
+
+# Paths excluded from code ownership
+**/go.mod @ghost
+**/go.sum @ghost
+**/*.pb.go @ghost
+**/*_swaggergen.go @ghost
+orc8r/cloud/go/obsidian/swagger/v1/swagger.yml @ghost
+orc8r/cloud/go/obsidian/swagger/v1/client/ @ghost
+orc8r/cloud/go/obsidian/swagger/v1/models/ @ghost

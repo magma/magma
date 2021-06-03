@@ -42,3 +42,7 @@ sessions_table: sessiond:sessions
 # Sets the amount of octets that will be requested on the CCR-I for credit if
 # credit is given. If unset, defaults to 200000
 default_requested_units: 200000
+
+# set to true if subscriber information export over IPFIX needs to be enabled
+# in order to enable ipfix, make sure to add ipfix as a static service in pipelined.yml
+enable_ipfix: true

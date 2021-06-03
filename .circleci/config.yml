@@ -603,7 +603,7 @@ jobs:
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
-            ./run_deployer.bash -deploy-dir /tmp/deploy_dir -build -test check_all
+            ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
       - magma_slack_notify
 
   orc8r-build:
@@ -958,13 +958,21 @@ jobs:
           command: |
             docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
       - run:
-          name: Run sctpd tests
+          name: Run sctpd tests with Debug build type
           command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd;"
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=Debug;"
       - run:
-          name: Run mme tests
+          name: Run sctpd tests with RelWithDebInfo build type
           command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai;"
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=RelWithDebInfo;"
+      - run:
+          name: Run mme tests with Debug build type
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=Debug;"
+      - run:
+          name: Run mme tests with RelWithDebInfo build type
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=RelWithDebInfo;"
       - magma_slack_notify
 
   mme-clang-warnings:

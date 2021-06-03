@@ -46,46 +46,64 @@ class AVPHeaderTests(unittest.TestCase):
         """
         Tests we can encode and decode AVPs with different flags
         """
-        self._compare_avp(avp.UnknownAVP(0, b''),
-            memoryview(b'\x00\x00\x00\x00\x00\x00\x00\x08'))
+        self._compare_avp(
+            avp.UnknownAVP(0, b''),
+            memoryview(b'\x00\x00\x00\x00\x00\x00\x00\x08'),
+        )
 
         avp_val = avp.UnknownAVP(0, b'', flags=avp.FLAG_MANDATORY)
-        self._compare_avp(avp_val,
-            b'\x00\x00\x00\x00@\x00\x00\x08')
+        self._compare_avp(
+            avp_val,
+            b'\x00\x00\x00\x00@\x00\x00\x08',
+        )
         self.assertFalse(avp_val.vendor_specific)
         self.assertTrue(avp_val.mandatory)
         self.assertFalse(avp_val.protected)
 
         avp_val = avp.UnknownAVP(0, b'', flags=avp.FLAG_PROTECTED)
-        self._compare_avp(avp_val,
-            b'\x00\x00\x00\x00 \x00\x00\x08')
+        self._compare_avp(
+            avp_val,
+            b'\x00\x00\x00\x00 \x00\x00\x08',
+        )
         self.assertFalse(avp_val.vendor_specific)
         self.assertFalse(avp_val.mandatory)
         self.assertTrue(avp_val.protected)
 
-        avp_val = avp.UnknownAVP(0, b'', flags=avp.FLAG_VENDOR,
-                                 vendor=avp.VendorId.TGPP)
-        self._compare_avp(avp_val,
-            b'\x00\x00\x00\x00\x80\x00\x00\x0c\x00\x00(\xaf')
+        avp_val = avp.UnknownAVP(
+            0, b'', flags=avp.FLAG_VENDOR,
+            vendor=avp.VendorId.TGPP,
+        )
+        self._compare_avp(
+            avp_val,
+            b'\x00\x00\x00\x00\x80\x00\x00\x0c\x00\x00(\xaf',
+        )
         self.assertTrue(avp_val.vendor_specific)
         self.assertFalse(avp_val.mandatory)
         self.assertFalse(avp_val.protected)
 
-        avp_val = avp.UnknownAVP(0, b'', flags=avp.FLAG_VENDOR |
-                                 avp.FLAG_MANDATORY,
-                                 vendor=avp.VendorId.TGPP)
-        self._compare_avp(avp_val,
-            b'\x00\x00\x00\x00\xc0\x00\x00\x0c\x00\x00(\xaf')
+        avp_val = avp.UnknownAVP(
+            0, b'', flags=avp.FLAG_VENDOR
+            | avp.FLAG_MANDATORY,
+            vendor=avp.VendorId.TGPP,
+        )
+        self._compare_avp(
+            avp_val,
+            b'\x00\x00\x00\x00\xc0\x00\x00\x0c\x00\x00(\xaf',
+        )
         self.assertTrue(avp_val.vendor_specific)
         self.assertTrue(avp_val.mandatory)
         self.assertFalse(avp_val.protected)
 
-        avp_val = avp.UnknownAVP(0, b'', flags=avp.FLAG_VENDOR |
-                                 avp.FLAG_MANDATORY |
-                                 avp.FLAG_PROTECTED,
-                                 vendor=avp.VendorId.TGPP)
-        self._compare_avp(avp_val,
-            b'\x00\x00\x00\x00\xe0\x00\x00\x0c\x00\x00(\xaf')
+        avp_val = avp.UnknownAVP(
+            0, b'', flags=avp.FLAG_VENDOR
+            | avp.FLAG_MANDATORY
+            | avp.FLAG_PROTECTED,
+            vendor=avp.VendorId.TGPP,
+        )
+        self._compare_avp(
+            avp_val,
+            b'\x00\x00\x00\x00\xe0\x00\x00\x0c\x00\x00(\xaf',
+        )
         self.assertTrue(avp_val.vendor_specific)
         self.assertTrue(avp_val.mandatory)
         self.assertTrue(avp_val.protected)
@@ -97,21 +115,21 @@ class AVPHeaderTests(unittest.TestCase):
 
         avp_val = avp.UnknownAVP(0, b'')
         out_buf = bytearray(avp_val.length)
-        avp_val.encode(out_buf,0)
+        avp_val.encode(out_buf, 0)
 
         avp_val = avp.UnknownAVP(0xFFFFFFFF, b'')
         out_buf = bytearray(avp_val.length)
-        avp_val.encode(out_buf,0)
+        avp_val.encode(out_buf, 0)
 
         with self.assertRaises(CodecException):
             avp_val = avp.UnknownAVP(-1, b'')
             out_buf = bytearray(avp_val.length)
-            avp_val.encode(out_buf,0)
+            avp_val.encode(out_buf, 0)
 
         with self.assertRaises(CodecException):
             avp_val = avp.UnknownAVP(0xFFFFFFFF + 1, b'')
             out_buf = bytearray(avp_val.length)
-            avp_val.encode(out_buf,0)
+            avp_val.encode(out_buf, 0)
 
     def test_avp_vendor(self):
         """
@@ -119,41 +137,51 @@ class AVPHeaderTests(unittest.TestCase):
         """
         # Vendor specific flags means you need a non default vendor ID
         with self.assertRaises(CodecException):
-            avp_val = avp.UnknownAVP(0, b'',
+            avp_val = avp.UnknownAVP(
+                0, b'',
                 flags=avp.FLAG_VENDOR,
-                vendor=avp.VendorId.DEFAULT)
+                vendor=avp.VendorId.DEFAULT,
+            )
             out_buf = bytearray(avp_val.length)
-            avp_val.encode(out_buf,0)
+            avp_val.encode(out_buf, 0)
 
-        avp_val = avp.UnknownAVP(0, b'',
+        avp_val = avp.UnknownAVP(
+            0, b'',
             flags=avp.FLAG_VENDOR,
-            vendor=1)
+            vendor=1,
+        )
         out_buf = bytearray(avp_val.length)
-        avp_val.encode(out_buf,0)
+        avp_val.encode(out_buf, 0)
         self._compare_avp(avp_val, out_buf)
 
-        avp_val = avp.UnknownAVP(0, b'',
+        avp_val = avp.UnknownAVP(
+            0, b'',
             flags=avp.FLAG_VENDOR,
-            vendor=0x00FFFFFF)
+            vendor=0x00FFFFFF,
+        )
         out_buf = bytearray(avp_val.length)
-        avp_val.encode(out_buf,0)
+        avp_val.encode(out_buf, 0)
         self._compare_avp(avp_val, out_buf)
 
         # Avp vendor in range
         with self.assertRaises(CodecException):
-            avp_val = avp.UnknownAVP(0, b'',
+            avp_val = avp.UnknownAVP(
+                0, b'',
                 flags=avp.FLAG_VENDOR,
-                vendor=-1)
+                vendor=-1,
+            )
             out_buf = bytearray(avp_val.length)
-            avp_val.encode(out_buf,0)
+            avp_val.encode(out_buf, 0)
 
         # Avp vendor in range
         with self.assertRaises(CodecException):
-            avp_val = avp.UnknownAVP(0, b'',
+            avp_val = avp.UnknownAVP(
+                0, b'',
                 flags=avp.FLAG_VENDOR,
-                vendor=0xFFFFFFFF + 1)
+                vendor=0xFFFFFFFF + 1,
+            )
             out_buf = bytearray(avp_val.length)
-            avp_val.encode(out_buf,0)
+            avp_val.encode(out_buf, 0)
 
     def test_avp_length(self):
         """
@@ -175,18 +203,22 @@ class AVPHeaderTests(unittest.TestCase):
             avp.decode(b'\x00\x00\x00\x00\x80\x00\x00\x00')
 
         # Max allowable length of payload
-        avp_val = avp.UTF8StringAVP(1,
-            'a'*(0x00FFFFFF - avp.HEADER_LEN))
+        avp_val = avp.UTF8StringAVP(
+            1,
+            'a' * (0x00FFFFFF - avp.HEADER_LEN),
+        )
         out_buf = bytearray(avp_val.length)
-        avp_val.encode(out_buf,0)
+        avp_val.encode(out_buf, 0)
         self._compare_avp(avp_val, out_buf)
 
         # Avp length out of range
         with self.assertRaises(CodecException):
-            avp_val = avp.UTF8StringAVP(1,
-                'a'*(0x00FFFFFF - avp.HEADER_LEN + 1))
+            avp_val = avp.UTF8StringAVP(
+                1,
+                'a' * (0x00FFFFFF - avp.HEADER_LEN + 1),
+            )
             out_buf = bytearray(avp_val.length)
-            avp_val.encode(out_buf,0)
+            avp_val.encode(out_buf, 0)
 
 
 class AVPValueTests(unittest.TestCase):
@@ -202,7 +234,7 @@ class AVPValueTests(unittest.TestCase):
     def _encode_check(self, avp_val, msg_bytes):
         out_buf = bytearray(avp_val.length)
         out_len = avp_val.encode(out_buf, 0)
-        self.assertEqual(out_len % 4, 0) # encoded AVP is end aligned
+        self.assertEqual(out_len % 4, 0)  # encoded AVP is end aligned
         self.assertEqual(out_buf, bytes(msg_bytes))
 
     def _compare_avp(self, avp_val, msg_bytes):
@@ -216,8 +248,10 @@ class AVPValueTests(unittest.TestCase):
         """
         Tests we can encode and decode octet strings
         """
-        self._compare_avp(avp.UnknownAVP(0, b'hello\x23'),
-            memoryview(b'\x00\x00\x00\x00\x00\x00\x00\x0ehello#\x00\x00'))
+        self._compare_avp(
+            avp.UnknownAVP(0, b'hello\x23'),
+            memoryview(b'\x00\x00\x00\x00\x00\x00\x00\x0ehello#\x00\x00'),
+        )
 
         # Unicode strings won't load
         with self.assertRaises(CodecException):
@@ -227,8 +261,10 @@ class AVPValueTests(unittest.TestCase):
         """
         Tests we can encode and decode unicode strings
         """
-        self._compare_avp(avp.UTF8StringAVP(1, u'\u0123\u0490'),
-            memoryview(b'\x00\x00\x00\x01\x00\x00\x00\x0c\xc4\xa3\xd2\x90'))
+        self._compare_avp(
+            avp.UTF8StringAVP(1, u'\u0123\u0490'),
+            memoryview(b'\x00\x00\x00\x01\x00\x00\x00\x0c\xc4\xa3\xd2\x90'),
+        )
 
         # Octet strings won't load
         with self.assertRaises(CodecException):
@@ -239,8 +275,10 @@ class AVPValueTests(unittest.TestCase):
         Tests we can encode and decode unsigned integers
         """
 
-        self._compare_avp(avp.Unsigned32AVP(299, 1234),
-            memoryview(b'\x00\x00\x01+\x00\x00\x00\x0c\x00\x00\x04\xd2'))
+        self._compare_avp(
+            avp.Unsigned32AVP(299, 1234),
+            memoryview(b'\x00\x00\x01+\x00\x00\x00\x0c\x00\x00\x04\xd2'),
+        )
 
         with self.assertRaises(CodecException):
             avp.Unsigned32AVP(299, -1234)
@@ -251,29 +289,43 @@ class AVPValueTests(unittest.TestCase):
         """
         # pylint:disable=expression-not-assigned
 
-        self._compare_avp(avp.AddressAVP(257, '127.0.0.1'),
-            memoryview(b'\x00\x00\x01\x01\x00\x00\x00\x0e'
-                       b'\x00\x01\x7f\x00\x00\x01\x00\x00'))
+        self._compare_avp(
+            avp.AddressAVP(257, '127.0.0.1'),
+            memoryview(
+                b'\x00\x00\x01\x01\x00\x00\x00\x0e'
+                b'\x00\x01\x7f\x00\x00\x01\x00\x00',
+            ),
+        )
 
-        self._compare_avp(avp.AddressAVP(257, '2001:db8::1'),
-            memoryview(b'\x00\x00\x01\x01\x00\x00\x00\x1a\x00\x02 \x01\r'
-                       b'\xb8\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-                       b'\x01\x00\x00'))
+        self._compare_avp(
+            avp.AddressAVP(257, '2001:db8::1'),
+            memoryview(
+                b'\x00\x00\x01\x01\x00\x00\x00\x1a\x00\x02 \x01\r'
+                b'\xb8\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
+                b'\x01\x00\x00',
+            ),
+        )
 
         # Can't read invalid address type \x03
         with self.assertRaises(CodecException):
-            avp.decode(b'\x00\x00\x01\x01\x00\x00\x00\x0e'
-                       b'\x00\x03\x7f\x00\x00\x01\x00\x00').value
+            avp.decode(
+                b'\x00\x00\x01\x01\x00\x00\x00\x0e'
+                b'\x00\x03\x7f\x00\x00\x01\x00\x00',
+            ).value
 
         # Can't read too short IPV4
         with self.assertRaises(CodecException):
-            avp.decode(b'\x00\x00\x01\x01\x00\x00\x00\x0e'
-                       b'\x00\x01\x7f').value
+            avp.decode(
+                b'\x00\x00\x01\x01\x00\x00\x00\x0e'
+                b'\x00\x01\x7f',
+            ).value
 
         # Can't read too short IPV6
         with self.assertRaises(CodecException):
-            avp.decode(b'\x00\x00\x01\x01\x00\x00\x00\x0e'
-                       b'\x00\x02\x7f\x00\x00\x01\x00\x00').value
+            avp.decode(
+                b'\x00\x00\x01\x01\x00\x00\x00\x0e'
+                b'\x00\x02\x7f\x00\x00\x01\x00\x00',
+            ).value
 
         # Cant encode non-ips
         with self.assertRaises(CodecException):
@@ -285,41 +337,56 @@ class AVPValueTests(unittest.TestCase):
         """
         self._compare_avp(
             avp.ResultCodeAVP(268, avp.ResultCode.DIAMETER_SUCCESS),
-            memoryview(b'\x00\x00\x01\x0c\x00\x00\x00\x0c\x00\x00\x07\xd1'))
+            memoryview(b'\x00\x00\x01\x0c\x00\x00\x00\x0c\x00\x00\x07\xd1'),
+        )
 
         # Test a value we haven't defined
         self._compare_avp(
             avp.ResultCodeAVP(268, 1337),
-            memoryview(b'\x00\x00\x01\x0c\x00\x00\x00\x0c\x00\x00\x059'))
+            memoryview(b'\x00\x00\x01\x0c\x00\x00\x00\x0c\x00\x00\x059'),
+        )
 
     def test_grouped(self):
         """
         Tests we can encode and decode grouped AVPs
         """
 
-        grouped_avp = avp.GroupedAVP(260,[avp.UTF8StringAVP(1, 'Hello'),
-                                          avp.UTF8StringAVP(1, 'World')])
-        self._compare_avp(grouped_avp,
-                          (b'\x00\x00\x01\x04\x00\x00\x00(\x00\x00'
-                           b'\x00\x01\x00\x00\x00\rHello\x00\x00\x00'
-                           b'\x00\x00\x00\x01\x00\x00\x00\rWorld\x00'
-                           b'\x00\x00'))
+        grouped_avp = avp.GroupedAVP(
+            260, [
+                avp.UTF8StringAVP(1, 'Hello'),
+                avp.UTF8StringAVP(1, 'World'),
+            ],
+        )
+        self._compare_avp(
+            grouped_avp,
+            (
+                b'\x00\x00\x01\x04\x00\x00\x00(\x00\x00'
+                b'\x00\x01\x00\x00\x00\rHello\x00\x00\x00'
+                b'\x00\x00\x00\x01\x00\x00\x00\rWorld\x00'
+                b'\x00\x00'
+            ),
+        )
 
-        self._compare_avp(avp.GroupedAVP(260, [grouped_avp, grouped_avp]),
-                          (b'\x00\x00\x01\x04\x00\x00\x00X\x00\x00\x01\x04'
-                           b'\x00\x00\x00(\x00\x00\x00\x01\x00\x00\x00\rHello'
-                           b'\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\rWorld'
-                           b'\x00\x00\x00\x00\x00\x01\x04\x00\x00\x00(\x00\x00'
-                           b'\x00\x01\x00\x00\x00\rHello\x00\x00\x00\x00\x00'
-                           b'\x00\x01\x00\x00\x00\rWorld\x00\x00\x00'))
+        self._compare_avp(
+            avp.GroupedAVP(260, [grouped_avp, grouped_avp]),
+            (
+                b'\x00\x00\x01\x04\x00\x00\x00X\x00\x00\x01\x04'
+                b'\x00\x00\x00(\x00\x00\x00\x01\x00\x00\x00\rHello'
+                b'\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\rWorld'
+                b'\x00\x00\x00\x00\x00\x01\x04\x00\x00\x00(\x00\x00'
+                b'\x00\x01\x00\x00\x00\rHello\x00\x00\x00\x00\x00'
+                b'\x00\x01\x00\x00\x00\rWorld\x00\x00\x00'
+            ),
+        )
 
         # Test filtering
-        self.assertEqual(len(list(grouped_avp.filter_avps(0,1))), 2)
-        self.assertEqual(len(list(grouped_avp.filter_avps(0,2))), 0)
+        self.assertEqual(len(list(grouped_avp.filter_avps(0, 1))), 2)
+        self.assertEqual(len(list(grouped_avp.filter_avps(0, 2))), 0)
 
         # Test find returns first
-        self.assertEqual(grouped_avp.find_avp(0,1).value, 'Hello')
-        self.assertEqual(grouped_avp.find_avp(0,2), None)
+        self.assertEqual(grouped_avp.find_avp(0, 1).value, 'Hello')
+        self.assertEqual(grouped_avp.find_avp(0, 2), None)
+
 
 class AVPConstructorTests(unittest.TestCase):
     """
@@ -334,7 +401,7 @@ class AVPConstructorTests(unittest.TestCase):
     def _encode_check(self, avp_val, msg_bytes):
         out_buf = bytearray(avp_val.length)
         out_len = avp_val.encode(out_buf, 0)
-        self.assertEqual(out_len % 4, 0) # encoded AVP is end aligned
+        self.assertEqual(out_len % 4, 0)  # encoded AVP is end aligned
         self.assertEqual(out_buf, bytes(msg_bytes))
 
     def _compare_avp(self, avp1, avp2):
@@ -343,7 +410,6 @@ class AVPConstructorTests(unittest.TestCase):
         self.assertEqual(avp1.flags, avp2.flags)
         self.assertEqual(avp1.payload, avp2.payload)
         self.assertEqual(avp1.name, avp2.name)
-
 
     def test_empty_value(self):
         """
@@ -369,46 +435,70 @@ class AVPConstructorTests(unittest.TestCase):
         """
 
         # This will resolve to the Username AVP
-        self._compare_avp(avp.AVP((avp.VendorId.DEFAULT,1), 'a username'),
-            avp.UTF8StringAVP(1, value='a username', vendor=avp.VendorId.DEFAULT,
-                              flags=avp.FLAG_MANDATORY,
-                              name='User-Name'))
+        self._compare_avp(
+            avp.AVP((avp.VendorId.DEFAULT, 1), 'a username'),
+            avp.UTF8StringAVP(
+                1, value='a username', vendor=avp.VendorId.DEFAULT,
+                flags=avp.FLAG_MANDATORY,
+                name='User-Name',
+            ),
+        )
 
-        self._compare_avp(avp.AVP((avp.VendorId.TGPP,701), b'msisdn'),
-            avp.OctetStringAVP(701, value=b'msisdn', vendor=avp.VendorId.TGPP,
-                              flags=avp.FLAG_MANDATORY|avp.FLAG_VENDOR,
-                              name='MSISDN'))
+        self._compare_avp(
+            avp.AVP((avp.VendorId.TGPP, 701), b'msisdn'),
+            avp.OctetStringAVP(
+                701, value=b'msisdn', vendor=avp.VendorId.TGPP,
+                flags=avp.FLAG_MANDATORY | avp.FLAG_VENDOR,
+                name='MSISDN',
+            ),
+        )
 
         # Unknown AVPs default to unknown AVP
-        self._compare_avp(avp.AVP((0xfac3b00c,1), b'wut'),
-            avp.UnknownAVP(1, value=b'wut', vendor=0xfac3b00c,
-                              flags=0, name='Unknown-AVP'))
+        self._compare_avp(
+            avp.AVP((0xfac3b00c, 1), b'wut'),
+            avp.UnknownAVP(
+                1, value=b'wut', vendor=0xfac3b00c,
+                flags=0, name='Unknown-AVP',
+            ),
+        )
 
     def test_integer_identifier(self):
         """
         Tests we can create an AVP with a code and it defaults to the defaults
         vendor.
         """
-        self._compare_avp(avp.AVP(1, 'Hello'),
-            avp.UTF8StringAVP(1, value='Hello', vendor=avp.VendorId.DEFAULT,
-                              flags=avp.FLAG_MANDATORY,
-                              name='User-Name'))
+        self._compare_avp(
+            avp.AVP(1, 'Hello'),
+            avp.UTF8StringAVP(
+                1, value='Hello', vendor=avp.VendorId.DEFAULT,
+                flags=avp.FLAG_MANDATORY,
+                name='User-Name',
+            ),
+        )
 
         # Unknown AVPs default to unknown AVP
-        self._compare_avp(avp.AVP(0xdeadb33f, b'wut'),
-            avp.UnknownAVP(0xdeadb33f, value=b'wut',
-                              vendor=avp.VendorId.DEFAULT,
-                              flags=0, name='Unknown-AVP'))
+        self._compare_avp(
+            avp.AVP(0xdeadb33f, b'wut'),
+            avp.UnknownAVP(
+                0xdeadb33f, value=b'wut',
+                vendor=avp.VendorId.DEFAULT,
+                flags=0, name='Unknown-AVP',
+            ),
+        )
 
     def test_string_identifier(self):
         """
         Tests we can create an AVP with a code and it defaults to the defaults
         vendor.
         """
-        self._compare_avp(avp.AVP('User-Name', 'Hello'),
-            avp.UTF8StringAVP(1, value='Hello', vendor=avp.VendorId.DEFAULT,
-                              flags=avp.FLAG_MANDATORY,
-                              name='User-Name'))
+        self._compare_avp(
+            avp.AVP('User-Name', 'Hello'),
+            avp.UTF8StringAVP(
+                1, value='Hello', vendor=avp.VendorId.DEFAULT,
+                flags=avp.FLAG_MANDATORY,
+                name='User-Name',
+            ),
+        )
 
         # Unknown names will cause an error
         with self.assertRaises(ValueError):
@@ -422,12 +512,14 @@ class AVPConstructorTests(unittest.TestCase):
         result_avp = avp.AVP('Result-Code', avp.ResultCode.DIAMETER_SUCCESS)
         self.assertEqual(result_avp.value, avp.ResultCode.DIAMETER_SUCCESS)
 
-
         self._compare_avp(
             avp.AVP('Result-Code', avp.ResultCode.DIAMETER_SUCCESS),
-            avp.ResultCodeAVP(268, 2001, vendor=avp.VendorId.DEFAULT,
-                              flags=avp.FLAG_MANDATORY,
-                              name='Result-Code'))
+            avp.ResultCodeAVP(
+                268, 2001, vendor=avp.VendorId.DEFAULT,
+                flags=avp.FLAG_MANDATORY,
+                name='Result-Code',
+            ),
+        )
 
     def test_unknown_identifier(self):
         """

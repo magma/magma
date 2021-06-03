@@ -33,7 +33,7 @@ class StoreTests(unittest.TestCase):
     def setUp(self):
         cache_size = 3
         self._tmpfile = tempfile.TemporaryDirectory()
-        sqlite = SqliteStore(self._tmpfile.name +'/')
+        sqlite = SqliteStore(self._tmpfile.name + '/')
         self._store = CachedStore(sqlite, cache_size)
 
     def tearDown(self):
@@ -115,8 +115,10 @@ class StoreTests(unittest.TestCase):
         # Update from cache
         with self._store.edit_subscriber(sid1) as subs:
             subs.lte.auth_key = b'5678'
-        self.assertEqual(self._store.get_subscriber_data(sid1).lte.auth_key,
-                         b'5678')
+        self.assertEqual(
+            self._store.get_subscriber_data(sid1).lte.auth_key,
+            b'5678',
+        )
         self.assertEqual(self._store._cache_list(), [sid1])
 
         # Update from persistent store after eviction
@@ -126,8 +128,10 @@ class StoreTests(unittest.TestCase):
         self.assertEqual(self._store._cache_list(), [sid2, sid3, sid4])
         with self._store.edit_subscriber(sid1) as subs:
             subs.lte.auth_key = b'2468'
-        self.assertEqual(self._store.get_subscriber_data(sid1).lte.auth_key,
-                         b'2468')
+        self.assertEqual(
+            self._store.get_subscriber_data(sid1).lte.auth_key,
+            b'2468',
+        )
         self.assertEqual(self._store._cache_list(), [sid3, sid4, sid1])
 
         with self.assertRaises(SubscriberNotFoundError):
@@ -150,10 +154,14 @@ class StoreTests(unittest.TestCase):
 
         subs = self._store.get_subscriber_data(sid1)
         self.assertEqual(subs.lte.auth_key, b'5678')  # config updated
-        self.assertEqual(subs.state.lte_auth_next_seq, 1000)  # state left intact
+        self.assertEqual(
+            subs.state.lte_auth_next_seq,
+            1000,
+        )  # state left intact
 
         with self.assertRaises(SubscriberNotFoundError):
-            self._store.get_subscriber_data(sid2)  # sub2 was removed during resync
+            # sub2 was removed during resync
+            self._store.get_subscriber_data(sid2)
 
     def test_lru_cache_invl(self):
         """

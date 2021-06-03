@@ -22,6 +22,9 @@ import (
 )
 
 const (
+	// CertExpiryMetric
+	CertExpiresInHoursMetric = "cert_expires_in_hours"
+
 	// NetworkTypeMetric racks different network types in a deployment.
 	NetworkTypeMetric = "network_type"
 
@@ -58,6 +61,7 @@ const (
 	GatewayMagmaVersionLabel = "version"
 	QuantileLabel            = "quantile"
 	ImsiLabelName            = "IMSI"
+	CertNameLabel            = "certName"
 )
 
 // GetMetrics gathers metrics from Prometheus' default registry,

@@ -116,7 +116,7 @@ int EmmDeregistered(emm_reg_t* const evt) {
       break;
 
     case _EMMREG_COMMON_PROC_ABORT:
-      OAILOG_ERROR(
+      OAILOG_WARNING(
           LOG_NAS_EMM,
           "EMM-FSM state EMM_DEREGISTERED - Primitive "
           "_EMMREG_COMMON_PROC_ABORT "

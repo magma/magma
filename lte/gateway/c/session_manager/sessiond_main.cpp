@@ -17,16 +17,17 @@
 #include <iostream>
 
 #include "GrpcMagmaUtils.h"
+#include "UpfMsgManageHandler.h"
 #include "LocalEnforcer.h"
 #include "magma_logging_init.h"
-#include "MagmaService.h"
-#include "MConfigLoader.h"
+#include "includes/MagmaService.h"
+#include "includes/MConfigLoader.h"
 #include "OperationalStatesHandler.h"
-#include "PolicyLoader.h"
+#include "includes/PolicyLoader.h"
 #include "RedisStoreClient.h"
 #include "RestartHandler.h"
 #include "SentryWrappers.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessionCredit.h"
 #include "SessionManagerServer.h"
 #include "SessionReporter.h"
@@ -119,19 +120,38 @@ void set_consts(const YAML::Node& config) {
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
       config["terminate_service_when_quota_exhausted"].as<bool>();
 
-  if (config["send_access_timezone"].IsDefined()) {
-    magma::LocalEnforcer::SEND_ACCESS_TIMEZONE =
-        config["send_access_timezone"].as<bool>();
-  }
   if (config["default_requested_units"].IsDefined()) {
     magma::SessionCredit::DEFAULT_REQUESTED_UNITS =
         config["default_requested_units"].as<uint64_t>();
+  }
+
+  if (config["send_access_timezone"].IsDefined()) {
+    magma::LocalEnforcer::SEND_ACCESS_TIMEZONE =
+        config["send_access_timezone"].as<bool>();
   }
   // default value for this config is true
   if (config["cleanup_all_dangling_flows"].IsDefined()) {
     magma::LocalEnforcer::CLEANUP_DANGLING_FLOWS =
         config["cleanup_all_dangling_flows"].as<bool>();
   }
+  if (config["enable_ipfix"].IsDefined()) {
+    magma::LocalEnforcer::SEND_IPFIX = config["enable_ipfix"].as<bool>();
+  }
+
+  // log all configs on startup
+  MLOG(MINFO) << "==== Constants/Configs loaded from sessiond.yml ====";
+  MLOG(MINFO) << "USAGE_REPORTING_THRESHOLD: "
+              << magma::SessionCredit::USAGE_REPORTING_THRESHOLD;
+  MLOG(MINFO) << "TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED: "
+              << magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
+  MLOG(MINFO) << "DEFAULT_REQUESTED_UNITS: "
+              << magma::SessionCredit::DEFAULT_REQUESTED_UNITS;
+  MLOG(MINFO) << "SEND_ACCESS_TIMEZONE: "
+              << magma::LocalEnforcer::SEND_ACCESS_TIMEZONE;
+  MLOG(MINFO) << "CLEANUP_DANGLING_FLOWS: "
+              << magma::LocalEnforcer::CLEANUP_DANGLING_FLOWS;
+  MLOG(MINFO) << "SEND_IPFIX: " << magma::LocalEnforcer::SEND_IPFIX;
+  MLOG(MINFO) << "==== Constants/Configs loaded from sessiond.yml ====";
 }
 
 magma::SessionStore* create_session_store(
@@ -185,9 +205,9 @@ int main(int argc, char* argv[]) {
   initialize_sentry();
 
   bool converged_access = false;
-  // Check converged SessionD is enabled or not
-  if (config["converged_access"].IsDefined() &&
-      config["converged_access"].as<bool>()) {
+  // Check converged sessiond is enabled or not
+  if ((config["converged_access"].IsDefined()) &&
+      (config["converged_access"].as<bool>())) {
     converged_access = true;
   }
   MLOG(MINFO) << "Starting Session Manager";
@@ -315,9 +335,9 @@ int main(int argc, char* argv[]) {
   magma::SessionProxyResponderAsyncService proxy_service(
       server.GetNewCompletionQueue(), proxy_handler);
   server.AddServiceToServer(&local_service);
-  MLOG(MINFO) << "Add localservice";
+  MLOG(MINFO) << "Added LocalSessionManagerAsyncService to service's server";
   server.AddServiceToServer(&proxy_service);
-  MLOG(MINFO) << "Add proxyservice";
+  MLOG(MINFO) << "Added SessionProxyResponderAsyncService to service's server";
 
   // Register state polling callback
   server.SetOperationalStatesCallback([evb, session_store]() {
@@ -331,6 +351,8 @@ int main(int argc, char* argv[]) {
   });
 
   magma::AmfPduSessionSmContextAsyncService* conv_set_message_service = nullptr;
+  magma::SetInterfaceForUserPlaneAsyncService* conv_upf_message_service =
+      nullptr;
   if (converged_access) {
     // Initialize the main thread of session management by folly event to handle
     // logical component of 5G of SessionD
@@ -342,15 +364,25 @@ int main(int argc, char* argv[]) {
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(
             conv_session_enforcer, *session_store);
-    MLOG(MINFO) << "session enforcer";
+    MLOG(MINFO) << "Initialized SetMessageManagerHandler";
     // 5G specific services to handle set messages from AMF and mme
     conv_set_message_service = new magma::AmfPduSessionSmContextAsyncService(
         server.GetNewCompletionQueue(), std::move(conv_set_message_handler));
-    MLOG(MINFO) << "Amfpdusessionsmcontext set message started";
     // 5G related services
-    MLOG(MINFO) << "converged  GRPC Added";
     server.AddServiceToServer(conv_set_message_service);
+    MLOG(MINFO)
+        << "Added SessionProxyResponderAsyncService to service's server";
 
+    // 5G related upf  async service framework creation
+    auto conv_upf_message_handler =
+        std::make_unique<magma::UpfMsgManageHandler>(
+            conv_session_enforcer, *session_store);
+    // 5G  upf converged service to handler set message from UPF
+    conv_upf_message_service = new magma::SetInterfaceForUserPlaneAsyncService(
+        server.GetNewCompletionQueue(), std::move(conv_upf_message_handler));
+    MLOG(MINFO) << "SetInterfaceForUserPlaneAsyncService ";
+    server.AddServiceToServer(conv_upf_message_service);
+    MLOG(MINFO) << "Add converged UPF message service";
     // 5G related SessionStateEnforcer main thread start to handled session
     // state
     conv_session_enforcer->attachEventBase(evb);
@@ -374,6 +406,14 @@ int main(int argc, char* argv[]) {
       conv_set_message_service
           ->wait_for_requests();         // block here instead of on server
       conv_set_message_service->stop();  // stop queue after server shutsdown
+    }
+  });
+  std::thread conv_upf_message_thread([&]() {
+    if (converged_access) {
+      MLOG(MINFO) << "Started upf message thread";
+      conv_upf_message_service
+          ->wait_for_requests();         // block here instead of on server
+      conv_upf_message_service->stop();  // stop queue after server shutsdown
     }
   });
   // session_enforcer->sync_sessions_on_restart(time(NULL));//not part of drop-1
@@ -425,8 +465,10 @@ int main(int argc, char* argv[]) {
   access_response_handling_thread.join();
   if (converged_access) {
     // 5G related thread join
-    free(conv_set_message_service);
     access_common_message_thread.join();
+    conv_upf_message_thread.join();
+    free(conv_set_message_service);
+    free(conv_upf_message_service);
   }
   delete session_store;
 

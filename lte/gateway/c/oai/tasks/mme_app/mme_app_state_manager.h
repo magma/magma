@@ -23,7 +23,7 @@ extern "C" {
 
 #include <state_manager.h>
 #include "mme_app_state_converter.h"
-#include "ServiceConfigLoader.h"
+#include "includes/ServiceConfigLoader.h"
 
 namespace magma {
 namespace lte {

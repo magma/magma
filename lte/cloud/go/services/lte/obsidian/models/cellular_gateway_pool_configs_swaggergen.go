@@ -19,7 +19,7 @@ type CellularGatewayPoolConfigs struct {
 
 	// mme group id
 	// Required: true
-	// Maximum: 255
+	// Maximum: 65535
 	// Minimum: 0
 	MmeGroupID uint32 `json:"mme_group_id"`
 }
@@ -48,7 +48,7 @@ func (m *CellularGatewayPoolConfigs) validateMmeGroupID(formats strfmt.Registry)
 		return err
 	}
 
-	if err := validate.MaximumInt("mme_group_id", "body", int64(m.MmeGroupID), 255, false); err != nil {
+	if err := validate.MaximumInt("mme_group_id", "body", int64(m.MmeGroupID), 65535, false); err != nil {
 		return err
 	}
 

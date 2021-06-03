@@ -16,7 +16,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/session_manager.pb.h>
 #include <lte/protos/subscriberdb.pb.h>
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include <stdint.h>
 #include <functional>
 #include <memory>

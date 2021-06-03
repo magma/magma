@@ -46,6 +46,15 @@ else
 	$(foreach test,$(EXTENDED_TESTS) $(PRECOMMIT_TESTS),$(call execute_test,$(test));)
 endif
 
+.PHONY: nonsanity
+nonsanity: $(PYTHON_BUILD)/setupinteg_env $(BIN)/nosetests
+	. $(PYTHON_BUILD)/bin/activate
+ifdef TESTS
+	$(call execute_test,$(TESTS))
+else
+	$(foreach test,$(NON_SANITY_TESTS),$(call execute_test,$(test));)
+endif
+
 local_integ_test:
 	# check if magma services are running
 	systemctl is-active --quiet magma@magmad || (echo "Local integ tests should be run on access gw with magma services running"; exit 1)

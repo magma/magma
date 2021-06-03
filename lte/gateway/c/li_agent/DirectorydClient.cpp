@@ -13,7 +13,7 @@
 
 #include "DirectorydClient.h"
 
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "magma_logging.h"
 
 using grpc::Status;

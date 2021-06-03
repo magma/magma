@@ -35,7 +35,8 @@ class CryptoTests(unittest.TestCase):
         input_k = rand + sres + cipher_key
         self.assertEqual(
             crypto.generate_auth_tuple(input_k),
-            (rand, sres, cipher_key))
+            (rand, sres, cipher_key),
+        )
 
         # If the length is not 28 bytes, CryptoError will be thrown
         input_k = rand + sres

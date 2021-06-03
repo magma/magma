@@ -43,6 +43,10 @@ include_directories(${MAGMA_LIB_DIR}/async_grpc)
 include_directories(${MAGMA_LIB_DIR}/config)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
+# TODO: Temp workaround until packages are imported by these cmakefile
+# Will be removed in subsequent patch
+set(MAGMA_COMMON_INCL_DIR $ENV{C_BUILD}/common)
+include_directories(${MAGMA_COMMON_INCL_DIR})
 
 # compile the needed macros
 create_proto_dir("lte" LTE_CPP_OUT_DIR)
@@ -101,7 +105,7 @@ add_library(LI_AGENT
     ${PROTO_HDRS})
 
 target_link_libraries(LI_AGENT
-  SERVICE303_LIB SERVICE_REGISTRY CONFIG ASYNC_GRPC
+  SERVICE303_LIB SERVICE_REGISTRY MAGMA_CONFIG ASYNC_GRPC
   glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie mnl tins pcap ssl crypto
   )

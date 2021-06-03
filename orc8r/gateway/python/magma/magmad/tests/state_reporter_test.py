@@ -80,7 +80,7 @@ class StateReporterTests(TestCase):
 
         # Bind the rpc server to a free port
         self._rpc_server = grpc.server(
-            futures.ThreadPoolExecutor(max_workers=10)
+            futures.ThreadPoolExecutor(max_workers=10),
         )
         port = self._rpc_server.add_insecure_port('0.0.0.0:0')
         # Add the servicer
@@ -145,14 +145,16 @@ class StateReporterTests(TestCase):
             -> unittest.mock.Mock:
         mock = unittest.mock.Mock()
         future = asyncio.Future()
-        future.set_result(GetOperationalStatesResponse(
-            states=[
-                State(
-                    type="test",
-                    deviceID=device_id,
-                    value="hello!".encode('utf-8'),
-                )
-            ])
+        future.set_result(
+            GetOperationalStatesResponse(
+                states=[
+                    State(
+                        type="test",
+                        deviceID=device_id,
+                        value="hello!".encode('utf-8'),
+                    ),
+                ],
+            ),
         )
         mock.GetOperationalStates.future.side_effect = [future]
         return mock
@@ -211,8 +213,10 @@ class StateReporterTests(TestCase):
     @unittest.mock.patch('%s.ServiceRegistry.get_proxy_config' % SReg)
     @unittest.mock.patch('%s.cert_is_invalid' % SR)
     @unittest.mock.patch('%s.ServiceRegistry.get_rpc_channel' % SReg)
-    def test__report_states_failure(self, get_rpc_mock, cert_is_invalid_mock,
-                                    get_proxy_config_mock):
+    def test__report_states_failure(
+        self, get_rpc_mock, cert_is_invalid_mock,
+        get_proxy_config_mock,
+    ):
         bootstrap_manager = \
             self.state_reporter._error_handler._bootstrap_manager
         bootstrap_manager.schedule_bootstrap_now = unittest.mock.Mock()
@@ -247,7 +251,7 @@ class StateReporterTests(TestCase):
         # the failure threshold is 0 so assert _schedule_bootstrap_now is
         # called
         bootstrap_manager.schedule_bootstrap_now.assert_has_calls(
-            [unittest.mock.call()]
+            [unittest.mock.call()],
         )
 
     @staticmethod

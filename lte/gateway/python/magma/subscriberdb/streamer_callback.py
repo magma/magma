@@ -42,8 +42,10 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
         TODO we can optimize a bit on the MME side to not detach already
         detached subscribers.
         """
-        logging.info("Processing %d subscriber updates (resync=%s)",
-                     len(updates), resync)
+        logging.info(
+            "Processing %d subscriber updates (resync=%s)",
+            len(updates), resync,
+        )
 
         if resync:
             # TODO:
@@ -92,13 +94,17 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
                 new_sub_ids,
             ),
         )
-        deleted_sub_ids = [sub_id for sub_id in old_sub_ids
-                           if sub_id not in set(new_sub_ids)]
+        deleted_sub_ids = [
+            sub_id for sub_id in old_sub_ids
+            if sub_id not in set(new_sub_ids)
+        ]
         if len(deleted_sub_ids) == 0:
             return
         # send detach request to mme for all deleted subscribers.
-        chan = ServiceRegistry.get_rpc_channel('s6a_service',
-                                               ServiceRegistry.LOCAL)
+        chan = ServiceRegistry.get_rpc_channel(
+            's6a_service',
+            ServiceRegistry.LOCAL,
+        )
         client = S6aServiceStub(chan)
         req = DeleteSubscriberRequest()
 
@@ -107,11 +113,13 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
 
         req.imsi_list.extend(imsis_to_delete_without_prefix)
         future = client.DeleteSubscriber.future(req)
-        future.add_done_callback(lambda future:
-                                 self._loop.call_soon_threadsafe(
-                                     self.detach_deleted_subscribers_done,
-                                     future)
-                                 )
+        future.add_done_callback(
+            lambda future:
+            self._loop.call_soon_threadsafe(
+                self.detach_deleted_subscribers_done,
+                future,
+            ),
+        )
 
     @staticmethod
     def detach_deleted_subscribers_done(delete_future):
@@ -120,5 +128,7 @@ class SubscriberDBStreamerCallback(StreamerClient.Callback):
         """
         err = delete_future.exception()
         if err:
-            logging.error("Detach Deleted Subscribers Error! [%s] %s",
-                          err.code(), err.details())
+            logging.error(
+                "Detach Deleted Subscribers Error! [%s] %s",
+                err.code(), err.details(),
+            )

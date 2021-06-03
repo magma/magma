@@ -30,13 +30,17 @@ class ServiceStateWrapper:
     REDIS_VALUE_TYPE = "systemd_status"
 
     def __init__(self):
-        serde = RedisSerde(self.REDIS_VALUE_TYPE,
-                           get_proto_serializer(),
-                           get_proto_deserializer(ServiceExitStatus))
+        serde = RedisSerde(
+            self.REDIS_VALUE_TYPE,
+            get_proto_serializer(),
+            get_proto_deserializer(ServiceExitStatus),
+        )
         self._flat_dict = RedisFlatDict(get_default_client(), serde)
 
-    def update_service_status(self, service_name: str,
-                              service_status: ServiceExitStatus) -> None:
+    def update_service_status(
+        self, service_name: str,
+        service_status: ServiceExitStatus,
+    ) -> None:
         """
         Update the service exit status for a given service
         """
