@@ -155,6 +155,10 @@ s1aptests/test_3485_timer_for_default_bearer_with_mme_restart.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
 NON_SANITY_TESTS = s1aptests/test_modify_config_for_non_sanity.py \
+s1aptests/test_attach_detach_with_pco_ipcp.py \
+s1aptests/test_attach_complete_after_ics_timer_expiry.py \
+s1aptests/test_send_error_ind_for_dl_nas_with_auth_req.py \
+s1aptests/test_send_error_ind_for_erab_setup_req.py \
 s1aptests/test_attach_detach_with_ipv6_pcscf_and_dns_addr.py \
 s1aptests/test_ipv4v6_secondary_pdn_rs_retransmit.py \
 s1aptests/test_ipv4v6_secondary_pdn_spgw_initiated_ded_bearer.py \
@@ -179,6 +183,9 @@ s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \
 s1aptests/test_activate_deactivate_multiple_dedicated.py \
 s1aptests/test_sctp_shutdown_while_mme_is_stopped.py \
 s1aptests/test_attach_detach_rar_activation_reject.py \
+s1aptests/test_3495_timer_for_default_bearer_with_mme_restart.py \
+s1aptests/test_3495_timer_for_dedicated_bearer_with_mme_restart.py \
+s1aptests/test_attach_detach_with_corrupt_stateless_mme.py \
 s1aptests/test_enb_partial_reset_multi_ue_with_mme_restart.py \
 s1aptests/test_attach_ics_drop_with_mme_restart.py \
 s1aptests/test_attach_mme_restart_detach_multi_ue.py \
@@ -193,8 +200,6 @@ s1aptests/test_restore_config_after_non_sanity.py
 #---------------
 # Non-Sanity: MME crash generating test case
 # s1aptests/test_outoforder_erab_setup_rsp_default_bearer.py \ GitHubIssue 5992
-# s1aptests/test_3495_timer_for_default_bearer_with_mme_restart.py \
-# s1aptests/test_3495_timer_for_dedicated_bearer_with_mme_restart.py \
 
 # Non-Sanity: Individually passing tests, failing in set
 # s1aptests/test_paging_with_mme_restart.py \
@@ -214,15 +219,8 @@ s1aptests/test_restore_config_after_non_sanity.py
 # s1aptests/test_agw_offload_mixed_idle_active_multiue.py \ GitHubIssue 6063
 
 # Non-Sanity: Failing Test Cases
-# s1aptests/test_attach_detach_with_corrupt_stateless_mme.py \ GitHubIssue 5991
 # s1aptests/test_stateless_multi_ue_mixedstate_mme_restart.py \ GitHubIssue 5997
 # s1aptests/test_attach_with_multiple_mme_restarts.py \ GitHubIssue 5997
-
-# Non-Sanity: Not tested test cases
-# s1aptests/test_attach_detach_with_pco_ipcp.py \
-# s1aptests/test_attach_complete_after_ics_timer_expiry.py \
-# s1aptests/test_send_error_ind_for_dl_nas_with_auth_req.py \
-# s1aptests/test_send_error_ind_for_erab_setup_req.py \
 #---------------
 
 # Enable these tests once the CI job time-out has increased
