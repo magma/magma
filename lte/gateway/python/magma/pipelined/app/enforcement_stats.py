@@ -333,6 +333,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                                      cookie, cookie_mask)
         except MagmaOFError as e:
             self.logger.warning("Couldn't poll datapath stats: %s", e)
+        except Exception as e:
+            self.logger.warning("Couldn't poll datapath stats: %s", e)
 
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
     def _flow_stats_reply_handler(self, ev):
