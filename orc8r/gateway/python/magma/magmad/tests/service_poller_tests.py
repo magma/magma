@@ -35,7 +35,7 @@ class ServicePollerTests(unittest.TestCase):
         ServiceRegistry.add_service('test2', '0.0.0.0', 0)
         config = {
             'magma_services': ['test1', 'test2'],
-            'non_service303_services': ['test2']
+            'non_service303_services': ['test2'],
         }
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
@@ -57,7 +57,8 @@ class ServicePollerTests(unittest.TestCase):
             await self._service_poller._get_service_info()
 
             mock.GetServiceInfo.future.assert_called_once_with(
-                Void(), self._service_poller.GET_STATUS_TIMEOUT)
+                Void(), self._service_poller.GET_STATUS_TIMEOUT,
+            )
         self._loop.run_until_complete(test())
 
     @unittest.mock.patch('%s.Service303Stub' % SP)
@@ -83,7 +84,8 @@ class ServicePollerTests(unittest.TestCase):
             await self._service_poller._get_service_info()
 
             mock.GetServiceInfo.future.assert_called_once_with(
-                Void(), self._service_poller.GET_STATUS_TIMEOUT)
+                Void(), self._service_poller.GET_STATUS_TIMEOUT,
+            )
         self._loop.run_until_complete(test())
 
 

@@ -121,6 +121,14 @@ func TestS6aProxyService(t *testing.T) {
 		assert.NotEmpty(t, ulResp.FeatureListId_2)
 		assert.True(t, ulResp.FeatureListId_2.NrAsSecondaryRat)
 
+		assert.NotNil(t, ulResp.TotalAmbr)
+		assert.Equal(t, uint32(500), ulResp.TotalAmbr.MaxBandwidthDl)
+		assert.Equal(t, uint32(600), ulResp.TotalAmbr.MaxBandwidthUl)
+		assert.Equal(t, protos.UpdateLocationAnswer_AggregatedMaximumBitrate_KBPS, ulResp.TotalAmbr.Unit)
+		assert.NotEmpty(t, ulResp.Apn)
+		assert.Equal(t, uint32(50), ulResp.Apn[0].Ambr.MaxBandwidthDl)
+		assert.Equal(t, uint32(60), ulResp.Apn[0].Ambr.MaxBandwidthUl)
+		assert.Equal(t, protos.UpdateLocationAnswer_AggregatedMaximumBitrate_BPS, ulResp.Apn[0].Ambr.Unit)
 		puReq := &protos.PurgeUERequest{
 			UserName: test.TEST_IMSI,
 		}

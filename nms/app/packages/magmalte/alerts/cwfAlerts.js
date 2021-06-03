@@ -20,6 +20,14 @@ export default function getCwfAlerts(
   networkID: string,
 ): {[string]: prom_alert_config} {
   return {
+    'Certificate Expiring Soon': {
+      alert: 'Certificate Expiring Soon',
+      expr: `cert_expires_in_hours > 720`,
+      labels: {severity: 'major'},
+      annotations: {
+        description: `Alerts when certificate necessary for Orc8r function is expiring soon`,
+      },
+    },
     'Container Restarts': {
       alert: 'Container Restarts',
       expr: `time() - container_start_time_seconds{name=~".+",name!="cadvisor", networkID=~"${networkID}"} < 300`,

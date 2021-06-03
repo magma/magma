@@ -199,6 +199,13 @@
 #define MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION                    \
   "ENABLE_GTPU_PRIVATE_IP_CORRECTION"
 
+// Congestion Control
+#define MME_CONFIG_STRING_S1AP_ZMQ_TH "S1AP_ZMQ_TH"
+#define MME_CONFIG_STRING_MME_APP_ZMQ_CONGEST_TH "MME_APP_ZMQ_CONGEST_TH"
+#define MME_CONFIG_STRING_MME_APP_ZMQ_AUTH_TH "MME_APP_ZMQ_AUTH_TH"
+#define MME_CONFIG_STRING_MME_APP_ZMQ_IDENT_TH "MME_APP_ZMQ_IDENT_TH"
+#define MME_CONFIG_STRING_MME_APP_ZMQ_SMC_TH "MME_APP_ZMQ_SMC_TH"
+
 // INBOUND ROAMING
 #define MME_CONFIG_STRING_FED_MODE_MAP "FEDERATED_MODE_MAP"
 #define MME_CONFIG_STRING_MODE "MODE"
@@ -391,6 +398,12 @@ typedef struct mme_config_s {
   bool use_ha;
   bool enable_gtpu_private_ip_correction;
   bool enable_converged_core;
+
+  long s1ap_zmq_th;
+  long mme_app_zmq_congest_th;
+  long mme_app_zmq_auth_th;
+  long mme_app_zmq_ident_th;
+  long mme_app_zmq_smc_th;
 } mme_config_t;
 
 extern mme_config_t mme_config;

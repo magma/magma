@@ -394,7 +394,9 @@ int emm_proc_attach_request(
         if (imsi_ue_mm_ctx->emm_context.is_attached) {
           OAILOG_INFO(
               LOG_NAS_EMM,
-              "EMM-PROC  - the new ATTACH REQUEST is progressed\n");
+              "EMM-PROC  - the new ATTACH REQUEST is progressed for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              ue_mm_context->mme_ue_s1ap_id);
           // process the new request as fresh attach request
           create_new_attach_info(
               &imsi_ue_mm_ctx->emm_context, ue_mm_context->mme_ue_s1ap_id, ies,
@@ -417,7 +419,10 @@ int emm_proc_attach_request(
         if (emm_attach_ies_have_changed(
                 imsi_ue_mm_ctx->mme_ue_s1ap_id, attach_proc->ies, ies)) {
           OAILOG_WARNING(
-              LOG_NAS_EMM, "EMM-PROC  - Attach parameters have changed\n");
+              LOG_NAS_EMM,
+              "EMM-PROC  - Attach parameters have changed for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              imsi_ue_mm_ctx->mme_ue_s1ap_id);
           REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_d__1);
           /*
            * If one or more of the information elements in the ATTACH REQUEST
@@ -472,7 +477,10 @@ int emm_proc_attach_request(
         if (emm_attach_ies_have_changed(
                 imsi_ue_mm_ctx->mme_ue_s1ap_id, attach_proc->ies, ies)) {
           OAILOG_WARNING(
-              LOG_NAS_EMM, "EMM-PROC  - Attach parameters have changed\n");
+              LOG_NAS_EMM,
+              "EMM-PROC  - Attach parameters have changed for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              imsi_ue_mm_ctx->mme_ue_s1ap_id);
           REQUIREMENT_3GPP_24_301(R10_5_5_1_2_7_e__1);
           /*
            * If one or more of the information elements in the ATTACH REQUEST
@@ -518,7 +526,10 @@ int emm_proc_attach_request(
           }
 
           OAILOG_WARNING(
-              LOG_NAS_EMM, "EMM-PROC  - Received duplicated Attach Request\n");
+              LOG_NAS_EMM,
+              "EMM-PROC  - Received duplicated Attach Request for ue "
+              "id " MME_UE_S1AP_ID_FMT "\n",
+              ue_id);
           increment_counter(
               "duplicate_attach_request", 1, 1, "action", "ignored");
           if (ies) {
@@ -799,8 +810,7 @@ int emm_proc_attach_complete(
     }
   } else {
     NOT_REQUIREMENT_3GPP_24_301(R10_5_5_1_2_4__20);
-    OAILOG_WARNING(LOG_NAS_EMM, "UE Context not found..\n");
-    OAILOG_INFO(
+    OAILOG_WARNING(
         LOG_NAS_EMM,
         "UE " MME_UE_S1AP_ID_FMT
         " ATTACH COMPLETE discarded (context not found)\n",
@@ -827,7 +837,9 @@ int emm_proc_attach_complete(
        * Send EMM Information after handling Attach Complete message
        * */
       OAILOG_INFO(
-          LOG_NAS_EMM, " Sending EMM INFORMATION for ue_id = (%u)\n", ue_id);
+          LOG_NAS_EMM,
+          " Sending EMM INFORMATION for ue_id = " MME_UE_S1AP_ID_FMT "\n",
+          ue_id);
       emm_proc_emm_informtion(ue_mm_context);
       increment_counter("ue_attach", 1, 1, "result", "attach_proc_successful");
       attach_success_event(ue_mm_context->emm_context._imsi64);
@@ -851,7 +863,7 @@ int emm_proc_attach_complete(
     OAILOG_WARNING(
         LOG_NAS_EMM,
         "Ignore ESM procedure failure/received message has been discarded for "
-        "ue_id = (%u)\n",
+        "ue_id = " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
     rc = RETURNok;
   }
@@ -1153,8 +1165,8 @@ static int emm_attach_run_procedure(emm_context_t* emm_context) {
         emm_context_upsert_imsi(&_emm_data, emm_context);
         rc = emm_start_attach_proc_authentication(emm_context, attach_proc);
         if (rc != RETURNok) {
-          OAILOG_ERROR(
-              LOG_NAS_EMM,
+          OAILOG_ERROR_UE(
+              LOG_NAS_EMM, imsi64,
               "Failed to start attach authentication procedure!\n");
         }
       } else {
@@ -1182,7 +1194,15 @@ static int emm_attach_success_identification_cb(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
-  OAILOG_INFO(LOG_NAS_EMM, "ATTACH - Identification procedure success!\n");
+  if (!emm_context) {
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "emm_context is NULL in ATTACH - Identification success procedure!\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+  OAILOG_INFO_UE(
+      LOG_NAS_EMM, emm_context->_imsi64,
+      "ATTACH - Identification procedure success!\n");
   nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_context);
 
@@ -1201,7 +1221,16 @@ static int emm_attach_failure_identification_cb(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
-  OAILOG_ERROR(LOG_NAS_EMM, "ATTACH - Identification procedure failed!\n");
+  if (!emm_context) {
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "emm_context is NULL in ATTACH - Identification failure procedure!\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
+  OAILOG_ERROR_UE(
+      LOG_NAS_EMM, emm_context->_imsi64,
+      "ATTACH - Identification procedure failed!\n");
 
   AssertFatal(0, "Cannot happen...\n");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -1227,7 +1256,16 @@ static int emm_attach_success_authentication_cb(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
-  OAILOG_INFO(LOG_NAS_EMM, "ATTACH - Authentication procedure success!\n");
+  if (!emm_context) {
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "emm_context is NULL in ATTACH - Authentication success procedure!\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
+  OAILOG_INFO_UE(
+      LOG_NAS_EMM, emm_context->_imsi64,
+      "ATTACH - Authentication procedure success!\n");
   nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_context);
 
@@ -1242,7 +1280,17 @@ static int emm_attach_success_authentication_cb(emm_context_t* emm_context) {
 static int emm_attach_failure_authentication_cb(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
-  OAILOG_ERROR(LOG_NAS_EMM, "ATTACH - Authentication procedure failed!\n");
+
+  if (!emm_context) {
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "emm_context is NULL in ATTACH - Authentication failure procedure!\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
+  OAILOG_ERROR_UE(
+      LOG_NAS_EMM, emm_context->_imsi64,
+      "ATTACH - Authentication procedure failed!\n");
   nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_context);
 
@@ -1312,7 +1360,16 @@ static int emm_attach_success_security_cb(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
-  OAILOG_INFO(LOG_NAS_EMM, "ATTACH - Security procedure success!\n");
+  if (!emm_context) {
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "emm_context is NULL in ATTACH - Security success procedure!\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
+  OAILOG_INFO_UE(
+      LOG_NAS_EMM, emm_context->_imsi64,
+      "ATTACH - Security procedure success!\n");
   nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_context);
   if (!attach_proc) {
@@ -1344,8 +1401,16 @@ static int emm_attach_identification_after_smc_success_cb(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
-  OAILOG_INFO(
-      LOG_NAS_EMM,
+  if (!emm_context) {
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "emm_context is NULL in ATTACH - Identity procedure after smc "
+        "procedure success!\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
+  OAILOG_INFO_UE(
+      LOG_NAS_EMM, emm_context->_imsi64,
       "ATTACH - Identity procedure after smc procedure success!\n");
   nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_context);
@@ -1360,7 +1425,9 @@ static int emm_attach_identification_after_smc_success_cb(
 static int emm_attach_failure_security_cb(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
-  OAILOG_ERROR(LOG_NAS_EMM, "ATTACH - Security procedure failed!\n");
+  OAILOG_ERROR_UE(
+      LOG_NAS_EMM, emm_context->_imsi64,
+      "ATTACH - Security procedure failed!\n");
   nas_emm_attach_proc_t* attach_proc =
       get_nas_specific_procedure_attach(emm_context);
 
@@ -1560,7 +1627,8 @@ static int emm_attach(emm_context_t* emm_context) {
         attach_proc->esm_msg_out = esm_sap.send;
         OAILOG_ERROR(
             LOG_NAS_EMM,
-            "Sending Attach Reject to UE ue_id = (%u), emm_cause = (%d)\n",
+            "Sending Attach Reject to UE for ue_id = " MME_UE_S1AP_ID_FMT
+            ", emm_cause = (%d)\n",
             ue_id, attach_proc->emm_cause);
         rc = _emm_attach_reject(
             emm_context, &attach_proc->emm_spec_proc.emm_proc.base_proc);
@@ -1572,7 +1640,8 @@ static int emm_attach(emm_context_t* emm_context) {
         OAILOG_WARNING(
             LOG_NAS_EMM,
             "Ignore ESM procedure failure &"
-            "received message has been discarded for ue_id = (%u)\n",
+            "received message has been discarded for ue_id "
+            "= " MME_UE_S1AP_ID_FMT "\n",
             ue_id);
         rc = RETURNok;
       }
@@ -1596,8 +1665,9 @@ static int emm_attach(emm_context_t* emm_context) {
      */
     OAILOG_ERROR(
         LOG_NAS_EMM,
-        "Sending Attach Reject to UE ue_id = (%u), emm_cause = (%d)\n", ue_id,
-        attach_proc->emm_cause);
+        "Sending Attach Reject to UE ue_id = " MME_UE_S1AP_ID_FMT
+        ", emm_cause = (%d)\n",
+        ue_id, attach_proc->emm_cause);
     rc = _emm_attach_reject(
         emm_context, &attach_proc->emm_spec_proc.emm_proc.base_proc);
     increment_counter(
@@ -1762,7 +1832,9 @@ static int emm_send_attach_accept(emm_context_t* emm_context) {
               sizeof(tai_list_t));
         } else {
           OAILOG_ERROR(
-              LOG_NAS_EMM, "Failed to assign mme api new guti for ue_id = %u\n",
+              LOG_NAS_EMM,
+              "Failed to assign mme api new guti for ue_id "
+              "= " MME_UE_S1AP_ID_FMT "\n",
               ue_id);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
         }
@@ -1958,7 +2030,8 @@ static int emm_attach_accept_retx(emm_context_t* emm_context) {
       OAILOG_WARNING(
           LOG_NAS_EMM,
           " No GUTI present in emm_ctx. Abormal case. Skipping Retx of Attach "
-          "Accept NULL\n");
+          "Accept NULL for " MME_UE_S1AP_ID_FMT "\n",
+          ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
     }
     /*

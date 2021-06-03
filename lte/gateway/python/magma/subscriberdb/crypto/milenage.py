@@ -345,5 +345,10 @@ def rotate(input_s, bytes_):
     Returns:
         (bytes) s1 rotated by n bytes
     """
-    return bytes(input_s[(i + bytes_) % len(input_s)] for i in range(len(
-        input_s)))
+    return bytes(
+        input_s[(i + bytes_) % len(input_s)] for i in range(
+            len(
+            input_s,
+            ),
+        )
+    )

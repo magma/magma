@@ -88,6 +88,7 @@ class LocalEnforcerTest : public ::testing::Test {
     QosInformationRequest qos_info;
     qos_info.set_apn_ambr_dl(32);
     qos_info.set_apn_ambr_dl(64);
+    qos_info.set_br_unit(QosInformationRequest_BitrateUnitsAMBR_KBPS);
     const auto& lte_context =
         build_lte_context(IP2, "", "", "", "", BEARER_ID_1, &qos_info);
     cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);

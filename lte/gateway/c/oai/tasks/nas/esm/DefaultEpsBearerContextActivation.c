@@ -129,7 +129,7 @@ int esm_proc_default_eps_bearer_context(
       OAILOG_ERROR(
           LOG_NAS_ESM,
           "ESM-PROC  - Failed to create new default EPS "
-          "bearer context (ebi=%d) for ue_id (%u)\n",
+          "bearer context (ebi=%d) for ue_id " MME_UE_S1AP_ID_FMT "\n",
           *ebi, ue_id);
       *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
@@ -140,7 +140,8 @@ int esm_proc_default_eps_bearer_context(
 
   OAILOG_ERROR(
       LOG_NAS_ESM,
-      "ESM-PROC  - Failed to assign new EPS bearer context for ue_id (%u)\n",
+      "ESM-PROC  - Failed to assign new EPS bearer context for "
+      "ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_id);
   *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
@@ -221,7 +222,10 @@ int esm_proc_default_eps_bearer_context_request(
        * The EPS bearer context was already in ACTIVE PENDING state
        */
       OAILOG_WARNING(
-          LOG_NAS_ESM, "ESM-PROC  - EBI %d was already ACTIVE PENDING\n", ebi);
+          LOG_NAS_ESM,
+          "ESM-PROC  - EBI %d was already ACTIVE PENDING for ue "
+          "id " MME_UE_S1AP_ID_FMT "\n",
+          ebi, ue_id);
     }
   }
 
@@ -279,7 +283,10 @@ int esm_proc_default_eps_bearer_context_accept(
        * The EPS bearer context was already in ACTIVE state
        */
       OAILOG_WARNING(
-          LOG_NAS_ESM, "ESM-PROC  - EBI %d was already ACTIVE\n", ebi);
+          LOG_NAS_ESM,
+          "ESM-PROC  - EBI %d was already ACTIVE for ue id " MME_UE_S1AP_ID_FMT
+          "\n",
+          ebi, ue_id);
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
     }
   }
@@ -412,7 +419,8 @@ int esm_proc_default_eps_bearer_context_failure(
     OAILOG_WARNING(
         LOG_NAS_ESM,
         "ESM-PROC  - Default EPS bearer context activation "
-        "failure (context is NULL)\n");
+        "failure (context is NULL) for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
   /*

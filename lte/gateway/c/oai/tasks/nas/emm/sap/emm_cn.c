@@ -251,7 +251,8 @@ static int emm_cn_ula_success(emm_cn_ula_success_t* msg_pP) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {
     OAILOG_WARNING(
-        LOG_NAS_EMM, "EMMCN-SAP  - ue_mm_context Null for ue_id (%u)\n",
+        LOG_NAS_EMM,
+        "EMMCN-SAP  - ue_mm_context Null for ue_id (" MME_UE_S1AP_ID_FMT ")\n",
         msg_pP->ue_id);
   }
 
@@ -503,7 +504,10 @@ static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
   if (ue_mm_context) {
     emm_ctx = &ue_mm_context->emm_context;
   } else {
-    OAILOG_WARNING(LOG_NAS_EMM, "EMMCN-SAP  - ue mm context null ..\n");
+    OAILOG_WARNING(
+        LOG_NAS_EMM,
+        "EMMCN-SAP  - ue mm context null  for ue id " MME_UE_S1AP_ID_FMT "..\n",
+        msg_pP->ue_id);
   }
 
   if (emm_ctx == NULL) {
@@ -614,7 +618,9 @@ static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
   } else {
     OAILOG_ERROR(
         LOG_NAS_EMM,
-        "ESM send activate_default_eps_bearer_context_request failed\n");
+        "ESM send activate_default_eps_bearer_context_request "
+        "failed " MME_UE_S1AP_ID_FMT "\n",
+        ue_mm_context->mme_ue_s1ap_id);
   }
 
   /* Notify SGS Location update request to MME App
@@ -1073,8 +1079,8 @@ static int emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
         "Building of deactivate_eps_bearer_context_request failed for bearer"
-        "%u\n",
-        msg->lbi);
+        "%u for ue id " MME_UE_S1AP_ID_FMT "\n",
+        msg->lbi, ue_mm_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   /*
@@ -1087,7 +1093,10 @@ static int emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
     rsp = blk2bstr(esm_sap_buffer, size);
   } else {
     OAILOG_ERROR(
-        LOG_NAS_EMM, "Message encoding failed for bearer %u\n", msg->lbi);
+        LOG_NAS_EMM,
+        "Message encoding failed for bearer %u for ue id " MME_UE_S1AP_ID_FMT
+        "\n",
+        msg->lbi, ue_mm_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
@@ -1103,8 +1112,8 @@ static int emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
     OAILOG_ERROR(
         LOG_NAS_EMM,
         "Processing eps_bearer_context_deactivate_request failed for bearer"
-        "%u\n",
-        msg->lbi);
+        "%u for ue id " MME_UE_S1AP_ID_FMT "\n",
+        msg->lbi, ue_mm_context_p->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
 
@@ -1124,13 +1133,17 @@ static int emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
         &pid, &bid, &esm_cause);
     if (rc != RETURNok) {
       OAILOG_ERROR(
-          LOG_NAS_EMM, "Processing bearer deactivation failed for ebi %u\n",
-          msg->lbi);
+          LOG_NAS_EMM,
+          "Processing bearer deactivation failed for ebi %u for ue "
+          "id " MME_UE_S1AP_ID_FMT "\n",
+          msg->lbi, ue_mm_context_p->mme_ue_s1ap_id);
     }
   } else {
     OAILOG_ERROR(
-        LOG_NAS_EMM, "ESM-PROC  - No PDN connection found (lbi=%u)\n",
-        msg->lbi);
+        LOG_NAS_EMM,
+        "ESM-PROC  - No PDN connection found (lbi=%u) for ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        msg->lbi, ue_mm_context_p->mme_ue_s1ap_id);
     rc = RETURNerror;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

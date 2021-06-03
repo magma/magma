@@ -12,9 +12,13 @@ limitations under the License.
 """
 from prometheus_client import Counter
 
-STREAMER_RESPONSES = Counter('streamer_responses',
-                             'The number of responses by label',
-                             ['result'])
+STREAMER_RESPONSES = Counter(
+    'streamer_responses',
+    'The number of responses by label',
+    ['result'],
+)
 
-SERVICE_ERRORS = Counter('service_errors',
-                         'The number of errors logged')
+SERVICE_ERRORS = Counter(
+    'service_errors',
+    'The number of errors logged',
+)

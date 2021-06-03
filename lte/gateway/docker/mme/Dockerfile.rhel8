@@ -30,6 +30,7 @@ RUN rm /etc/rhsm-host && \
     libselinux-python3 \
     vim \
     gcc \
+    cmake3 \
     automake \
     autoconf \
     tmux \
@@ -44,7 +45,8 @@ RUN rm /etc/rhsm-host && \
     protobuf-compiler \
     ruby \
     ruby-devel \
-  && ln -s /usr/bin/python3 /usr/bin/python
+  && ln -s /usr/bin/python3 /usr/bin/python \
+  && ln -s /usr/bin/cmake3 /usr/bin/cmake
 
 RUN yum install -y \
     gnupg \
@@ -74,7 +76,6 @@ RUN yum install -y \
     elfutils-libelf-devel-static \
     libdwarf-devel \
     # Install Folly requirements
-    cmake \
     boost \
     boost-devel \
     libevent-devel \
@@ -144,7 +145,7 @@ RUN  git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
      git clone https://github.com/jupp0r/prometheus-cpp.git && \
      git clone https://github.com/cpp-redis/cpp_redis.git && \
      wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
-     wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+     wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
      wget https://liblfds.org/downloads/liblfds%20release%207.1.0%20source.tar.bz2  && \
      git clone https://git.osmocom.org/libgtpnl && \
      git clone https://github.com/OPENAIRINTERFACE/asn1c.git && \
@@ -240,7 +241,7 @@ RUN tar -xf nettle-2.5.tar.gz && \
     make install && \
     ldconfig -v && \
     cd / && \
-    # Moved wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    # Moved wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     ./configure --with-libnettle-prefix=/usr/local && \
@@ -311,8 +312,8 @@ RUN echo "Install fmtlib required by Folly" && \
     patch -p1 < /patches/folly-gflagslib-fix.patch && \
     mkdir _build && \
     cd _build && \
-    # cmake "-DFPHSA_NAME_MISMATCHED=true" .. && \
-    cmake \
+    # cmake3 "-DFPHSA_NAME_MISMATCHED=true" .. && \
+    cmake3 \
    "-DCMAKE_INCLUDE_PATH=/usr/local/include/double-conversion" \
    "-DCMAKE_LIBRARY_PATH=/usr/local/lib:/usr/local/lib64" \
     .. && \
@@ -341,7 +342,7 @@ RUN cd json && \
     git log -n1 && \
     mkdir _build && \
     cd _build && \
-    cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .. && \
+    cmake3 -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release .. && \
     make -j`nproc` && \
     make install && \
     cp /usr/local/include/nlohmann/json.hpp /usr/local/include/
@@ -352,7 +353,7 @@ RUN cd yaml-cpp && \
     git checkout -f yaml-cpp-0.6.3 && \
     mkdir _build && \
     cd _build && \
-    cmake -DYAML_BUILD_SHARED_LIBS=ON .. && \
+    cmake3 -DYAML_BUILD_SHARED_LIBS=ON .. && \
     make -j`nproc` && \
     make install
 

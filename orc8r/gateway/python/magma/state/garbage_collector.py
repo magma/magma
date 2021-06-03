@@ -31,9 +31,11 @@ class GarbageCollector:
     RPC call succeeds, it then deletes the state from Redis
     """
 
-    def __init__(self,
-                 service: MagmaService,
-                 grpc_client_manager: GRPCClientManager):
+    def __init__(
+        self,
+        service: MagmaService,
+        grpc_client_manager: GRPCClientManager,
+    ):
         self._service = service
         # Redis dicts for each type of state to replicate
         self._redis_dicts = []
@@ -69,7 +71,8 @@ class GarbageCollector:
                 state_client.DeleteStates.future(
                     request,
                     DEFAULT_GRPC_TIMEOUT,
-                ))
+                ),
+            )
 
         except grpc.RpcError as err:
             logging.error("GRPC call failed for state deletion: %s", err)
@@ -78,17 +81,23 @@ class GarbageCollector:
                 for key in redis_dict.garbage_keys():
                     await self._delete_state_from_redis(redis_dict, key)
 
-    async def _delete_state_from_redis(self,
-                                       redis_dict: RedisFlatDict,
-                                       key: str) -> None:
+    async def _delete_state_from_redis(
+        self,
+        redis_dict: RedisFlatDict,
+        key: str,
+    ) -> None:
         # Ensure that the object isn't updated before deletion
         with redis_dict.lock(key):
             deleted = redis_dict.delete_garbage(key)
             if deleted:
-                logging.debug("Successfully garbage collected "
-                              "state for key: %s", key)
+                logging.debug(
+                    "Successfully garbage collected "
+                    "state for key: %s", key,
+                )
             else:
-                logging.debug("Successfully garbage collected "
-                              "state in cloud for key %s. "
-                              "Didn't delete locally as the "
-                              "object is no longer garbage", key)
+                logging.debug(
+                    "Successfully garbage collected "
+                    "state in cloud for key %s. "
+                    "Didn't delete locally as the "
+                    "object is no longer garbage", key,
+                )

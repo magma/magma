@@ -606,7 +606,6 @@ def send_stats_request(datapath, tbl_num, cookie: hex = 0,
                        cookie_mask: hex = 0, retries: int = 3):
     """
     Send a stats request msg 
-    
     Args:
         datapath (ryu.controller.controller.Datapath):
             Datapath to query from

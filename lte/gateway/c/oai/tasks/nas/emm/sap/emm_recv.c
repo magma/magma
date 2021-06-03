@@ -54,6 +54,9 @@
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
+extern long mme_app_last_msg_latency;
+extern long pre_mme_task_msg_latency;
+extern mme_congestion_params_t mme_congestion_params;
 
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
@@ -94,8 +97,10 @@ int emm_recv_status(
   int rc = RETURNok;
 
   OAILOG_INFO(
-      LOG_NAS_EMM, "EMMAS-SAP - Received EMM Status message (cause=%d)\n",
-      msg->emmcause);
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Received EMM Status message (cause=%d) for ue "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      msg->emmcause, ue_id);
   /*
    * Message checking
    */
@@ -179,7 +184,11 @@ int emm_recv_attach_request(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Attach Request message\n");
+  OAILOG_INFO(
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Received Attach Request message for ue "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
   increment_counter("ue_attach", 1, NO_LABELS);
 
   /*
@@ -189,12 +198,31 @@ int emm_recv_attach_request(
     /*
      * Requirement MME24.301R10_5.5.1.2.7_b Protocol error
      */
-    OAILOG_ERROR(
+    OAILOG_WARNING(
         LOG_NAS_EMM,
-        "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "
+        "EMMAS-SAP - Sending Attach Reject for ue_id = " MME_UE_S1AP_ID_FMT
+        ", emm_cause = "
         "(%d)\n",
         ue_id, *emm_cause);
     rc         = emm_proc_attach_reject(ue_id, *emm_cause);
+    *emm_cause = EMM_CAUSE_SUCCESS;
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  }
+
+  /*
+   * Handle MME congestion
+   */
+  // Currently a simple logic, when a more complex logic added
+  // refactor this part via helper functions is_mme_congested.
+  if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+      MME_APP_ZMQ_LATENCY_CONGEST_TH) {
+    OAILOG_WARNING(
+        LOG_NAS_EMM,
+        "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "
+        "(EMM_CAUSE_CONGESTION) last packet latency: %ld prev hop latency: "
+        "%ld\n",
+        ue_id, mme_app_last_msg_latency, pre_mme_task_msg_latency);
+    rc         = emm_proc_attach_reject(ue_id, EMM_CAUSE_CONGESTION);
     *emm_cause = EMM_CAUSE_SUCCESS;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
   }
@@ -446,7 +474,9 @@ int emm_recv_attach_complete(
 
   OAILOG_INFO(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Received Attach Complete message for ue_id = (%u)\n", ue_id);
+      "EMMAS-SAP - Received Attach Complete message for ue_id "
+      "= " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
   /*
    * Execute the attach procedure completion
    */
@@ -477,7 +507,11 @@ int emm_recv_detach_request(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Detach Request message\n");
+  OAILOG_INFO(
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Received Detach Request message for ue "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
   /*
    * Message processing
    */
@@ -545,9 +579,11 @@ int emm_recv_tracking_area_update_request(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_INFO(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Received Tracking Area Update Request message, Security "
+      "EMMAS-SAP - Received Tracking Area Update Request message for ue "
+      "id " MME_UE_S1AP_ID_FMT
+      ", Security "
       "context %s Integrity protected %s MAC matched %s Ciphered %s\n",
-      (decode_status->security_context_available) ? "yes" : "no",
+      ue_id, (decode_status->security_context_available) ? "yes" : "no",
       (decode_status->integrity_protected_message) ? "yes" : "no",
       (decode_status->mac_matched) ? "yes" : "no",
       (decode_status->ciphered_message) ? "yes" : "no");
@@ -697,7 +733,9 @@ int emm_recv_service_request(
 
   OAILOG_INFO(
       LOG_NAS_EMM,
-      "EMMAS-SAP - Received Service Request message for (ue_id = %u)\n", ue_id);
+      "EMMAS-SAP - Received Service Request message for (ue_id "
+      "= " MME_UE_S1AP_ID_FMT ")\n",
+      ue_id);
   OAILOG_DEBUG(
       LOG_NAS_EMM,
       "Service Request message for (ue_id = %u)\n"
@@ -833,7 +871,11 @@ int emm_recv_identity_response(
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
-  OAILOG_INFO(LOG_NAS_EMM, "EMMAS-SAP - Received Identity Response message\n");
+  OAILOG_INFO(
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Received Identity Response message for ue "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
   /*
    * Message processing
    */
@@ -953,7 +995,10 @@ int emm_recv_authentication_response(
   int rc = RETURNok;
 
   OAILOG_INFO(
-      LOG_NAS_EMM, "EMMAS-SAP - Received Authentication Response message\n");
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Received Authentication Response message for ue "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
 
   /*
    * Message checking
@@ -1007,7 +1052,10 @@ int emm_recv_authentication_failure(
   int rc = RETURNok;
 
   OAILOG_INFO(
-      LOG_NAS_EMM, "EMMAS-SAP - Received Authentication Failure message\n");
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Received Authentication Failure message for ue "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
 
   /*
    * Message checking
@@ -1066,7 +1114,10 @@ int emm_recv_security_mode_complete(
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   OAILOG_INFO(
-      LOG_NAS_EMM, "EMMAS-SAP - Received Security Mode Complete message\n");
+      LOG_NAS_EMM,
+      "EMMAS-SAP - Received Security Mode Complete message for ue "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
   int rc = RETURNok;
   // imeisv_t                                imeisv = {0};
 
@@ -1129,8 +1180,8 @@ int emm_recv_security_mode_reject(
   OAILOG_WARNING(
       LOG_NAS_EMM,
       "EMMAS-SAP - Received Security Mode Reject message "
-      "(cause=%d)\n",
-      msg->emmcause);
+      "(cause=%d) for ue id " MME_UE_S1AP_ID_FMT "\n",
+      msg->emmcause, ue_id);
 
   /*
    * Message checking
