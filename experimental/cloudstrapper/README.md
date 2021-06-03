@@ -267,8 +267,11 @@
     ```
 
     - ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and building OVS.
+        - Add ```--skip-tag clearSSHKeys``` if you want to keep ssh keys on the instance
     ```
-    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+
+    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu --skip-tags clearSSHKeys
+
     ```
     - ami-init: Snapshot the AMI instance
     ```
@@ -316,9 +319,9 @@
       - awsOrc8rRegion : Determines which Region hosts the Orc8r instance to be deleted
       - orc8rClusterName : Local folder with terraform state [ex: ~/magma-experimental/<Name of Cluster>]
 
-  - ansible-playbook -e "dirLocalInventory=<Local Dir>" cleanup.yaml  [ --tags *various* ]
+  - ansible-playbook -e "dirLocalInventory=<Local Dir>" -e "{"deleteStacks": [stackName1, stackName2]}" cleanup.yaml  [ --tags *various* ]
 
-  Available tags include: agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc
+  Available tags include: agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc,orc8r,keys
 
 ## Known Issues, Best Practices & Expected Behavior
 
