@@ -20,6 +20,7 @@ import (
 
 	"magma/orc8r/cloud/go/mproto"
 
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
@@ -56,8 +57,8 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	if !gateway.Registered() {
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
-	networkID := gateway.NetworkId
-	gatewayID := gateway.LogicalId
+	networkID := gateway.GetNetworkId()
+	gatewayID := gateway.GetLogicalId()
 	lc := configurator.EntityLoadCriteria{
 		PageSize:           req.PageSize,
 		PageToken:          req.PageToken,
@@ -85,7 +86,6 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	}
 
 	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
-	subProtosIndexed := map[string]proto.Message{}
 	for _, sub := range subEnts {
 		subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
 		if err != nil {
@@ -93,31 +93,76 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		}
 		subProto.NetworkId = &protos.NetworkID{Id: networkID}
 		subProtos = append(subProtos, subProto)
-
-		index := subProto.Sid.Id
-		subProtosIndexed[index] = subProto
 	}
 
-	// The noUpdates short-circuit only applies to a request for the first page for now
-	// More to be implemented with gateway subscriber cache
-	digest, err := mproto.MarshalManyDeterministic(subProtosIndexed)
-	if err != nil {
-		return nil, err
-	}
-	digestB64 := b64.StdEncoding.EncodeToString(digest)
-
-	noUpdates := (req.PageToken == "") && (req.PreviousDigest == digestB64)
-	if noUpdates {
-		subProtos = []*lte_protos.SubscriberData{}
+	// Short-circuit subscriber data transmission by comparing cloud & gateway digests.
+	// If digest generation fails, the error is swallowed to not affect the main functionality.
+	//
+	// Note: currently the logic only applies to a request for the first page to avoid concurrency issues;
+	// more to be implemented with gateway subscriber cache that will canonize cloud digests.
+	noUpdates, digest := false, req.PreviousDigest
+	if req.PageToken == "" {
+		digest, err = getDigest(gateway, apnsByName, apnResourcesByAPN)
+		if err != nil {
+			glog.Errorf("Generating digest for subscribers in network of gateway %s failed", gatewayID)
+		} else {
+			noUpdates = req.PreviousDigest == digest
+			if noUpdates {
+				subProtos = []*lte_protos.SubscriberData{}
+			}
+		}
 	}
 
 	listRes := &lte_protos.ListSubscribersResponse{
 		Subscribers:   subProtos,
 		NextPageToken: nextToken,
-		Digest:        digestB64,
+		Digest:        digest,
 		NoUpdates:     noUpdates,
 	}
 	return listRes, nil
+}
+
+// getDigest loads all subscribers registered on the current network, and returns
+// a deterministic subscriber flat digest.
+func getDigest(
+	gateway *protos.Identity_Gateway,
+	apnsByName map[string]*lte_models.ApnConfiguration,
+	apnResourcesByAPN lte_models.ApnResources,
+) (string, error) {
+	networkID := gateway.GetNetworkId()
+	lc := configurator.EntityLoadCriteria{
+		PageSize:           0,
+		PageToken:          "",
+		LoadConfig:         true,
+		LoadAssocsToThis:   true,
+		LoadAssocsFromThis: true,
+	}
+	subEnts, _, err := configurator.LoadAllEntitiesOfType(
+		networkID, lte.SubscriberEntityType, lc, serdes.Entity,
+	)
+	if err != nil {
+		return "", errors.Wrapf(err, "load all subscribers in network of gateway %s", networkID)
+	}
+
+	subProtosById := map[string]proto.Message{}
+	for _, sub := range subEnts {
+		subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
+		if err != nil {
+			return "", err
+		}
+		subProto.NetworkId = &protos.NetworkID{Id: networkID}
+
+		index := subProto.Sid.Id
+		subProtosById[index] = subProto
+	}
+
+	digest, err := mproto.MarshalManyDeterministic(subProtosById)
+	if err != nil {
+		return "", err
+	}
+	digestB64 := b64.StdEncoding.EncodeToString(digest)
+
+	return digestB64, nil
 }
 
 func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {

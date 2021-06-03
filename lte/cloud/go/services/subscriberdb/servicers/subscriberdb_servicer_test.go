@@ -310,29 +310,18 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())
 
-	// Create 1 APN and 1 subscriber
+	// Create 1 APN and 1 subscriber.
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
 			{
-				Type: lte.APNEntityType, Key: "apn2",
-				Config: &lte_models.ApnConfiguration{
-					Ambr: &lte_models.AggregatedMaximumBitrate{
-						MaxBandwidthDl: swag.Uint32(42),
-						MaxBandwidthUl: swag.Uint32(100),
-					},
-					QosProfile: &lte_models.QosProfile{
-						ClassID:                 swag.Int32(2),
-						PreemptionCapability:    swag.Bool(false),
-						PreemptionVulnerability: swag.Bool(false),
-						PriorityLevel:           swag.Uint32(2),
-					},
-				},
+				Type: lte.APNEntityType, Key: "apn",
+				Config: &lte_models.ApnConfiguration{},
 			},
 			{
 				Type: lte.SubscriberEntityType, Key: "IMSI99999",
 				Config: &models.SubscriberConfig{
-					Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"},
+					Lte: &models.LteSubscription{State: "ACTIVE"},
 				},
 			},
 		},
@@ -340,19 +329,19 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	// Fetching subscribers w/o previous digest string should return full list
+	// Fetching subscribers w/o previous digest string should return full list.
 	expectedProtos := []*lte_protos.SubscriberData{
 		{
 			Sid:        &lte_protos.SubscriberID{Id: "99999", Type: lte_protos.SubscriberID_IMSI},
-			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
+			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_ACTIVE, AuthKey: []byte{}},
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
-			SubProfile: "foo",
+			SubProfile: "default",
 		},
 	}
 
 	req := &lte_protos.ListSubscribersRequest{
-		PageSize:  1,
+		PageSize:  2,
 		PageToken: "",
 	}
 	res, err := servicer.ListSubscribers(ctx, req)
@@ -360,9 +349,9 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 	assert.Equal(t, res.NoUpdates, false)
 	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
 
-	// Fetching subscribers with updated previous digest string should return empty list
+	// Fetching subscribers with updated previous digest string should return empty list.
 	req = &lte_protos.ListSubscribersRequest{
-		PageSize:       1,
+		PageSize:       2,
 		PageToken:      "",
 		PreviousDigest: res.Digest,
 	}
@@ -371,13 +360,13 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 	assert.Equal(t, res.NoUpdates, true)
 	assertEqualSubscriberData(t, []*lte_protos.SubscriberData{}, res.Subscribers)
 
-	// Fetching subscribers with outdated previous digest string should return full list
+	// Fetching subscribers with outdated previous digest string should return full list.
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI11111",
 			Config: &models.SubscriberConfig{
-				Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"},
+				Lte: &models.LteSubscription{State: "ACTIVE"},
 			},
 		},
 		serdes.Entity,
@@ -387,10 +376,10 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 	expectedProtos = append([]*lte_protos.SubscriberData{
 		{
 			Sid:        &lte_protos.SubscriberID{Id: "11111", Type: lte_protos.SubscriberID_IMSI},
-			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
+			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_ACTIVE, AuthKey: []byte{}},
 			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
-			SubProfile: "foo",
+			SubProfile: "default",
 		},
 	}, expectedProtos...)
 
