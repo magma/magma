@@ -422,6 +422,10 @@ def load_test(gateway_host=None, destroy_vm=True):
         env.hosts = [gateway_host]
 
 
+def _copy_out_c_execs():
+    pass
+
+
 def _dist_upgrade():
     """ Upgrades OS packages on dev box """
     run('sudo apt-get update')
