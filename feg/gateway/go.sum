@@ -738,6 +738,8 @@ github.com/wadey/gocovmerge v0.0.0-20160331181800-b5bfa59ec0ad/go.mod h1:Hy8o65+
 github.com/warthog618/sms v0.3.0/go.mod h1:+bYZGeBxu003sxD5xhzsrIPBAjPBzTABsRTwSpd7ld4=
 github.com/wmnsk/go-gtp v0.7.24 h1:/Pvb+PTw/Cbf7Vd+OO9YBdzxJPB2ATEU4C54aqomHC0=
 github.com/wmnsk/go-gtp v0.7.24/go.mod h1:3AdHDn+XZguzCMKjGAPuXfEciBD1W96qQ6f9udN73iM=
+github.com/wmnsk/go-gtp v0.7.25 h1:FZn2wgdEZy7nP15hRmsewA76xYFclNIUHTnMTsobptE=
+github.com/wmnsk/go-gtp v0.7.25/go.mod h1:3AdHDn+XZguzCMKjGAPuXfEciBD1W96qQ6f9udN73iM=
 github.com/xiang90/probing v0.0.0-20190116061207-43a291ad63a2/go.mod h1:UETIi67q53MR2AWcXfiuqkDkRtnGDLqkBTpCHuJHxtU=
 github.com/xlab/treeprint v0.0.0-20180616005107-d6fb6747feb6/go.mod h1:ce1O1j6UtZfjr22oyGxGLbauSBp2YVXpARAosm7dHBg=
 github.com/xordataexchange/crypt v0.0.3-0.20170626215501-b2862e3d0a77/go.mod h1:aYKd//L2LvnjZzWKhF00oedf4jCCReLcmhLdhm1A27Q=

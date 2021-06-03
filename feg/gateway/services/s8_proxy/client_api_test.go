@@ -33,13 +33,59 @@ func TestS8ProxyClient(t *testing.T) {
 
 	//------------------------
 	//---- Create Session ----
-	_, offset := time.Now().Zone()
-	csReq := &protos.CreateSessionRequestPgw{
+	csReq := getCreateSessionRequest(actualPgwAddress, AGWTeidC)
+
+	csRes, err := s8_proxy.CreateSession(csReq)
+	if err != nil {
+		t.Fatalf("S8_proxy client Create Session Error: %v", err)
+		return
+	}
+
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+
+	// check fteid was received properly
+	assert.Equal(t, mockPgw.LastTEIDu, csRes.BearerContext.UserPlaneFteid.Teid)
+	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
+	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
+
+	t.Logf("Create Session: %#+v", *csRes)
+
+	//------------------------
+	//---- Delete session ----
+	dsReq := &protos.DeleteSessionRequestPgw{
 		PgwAddrs: actualPgwAddress,
+		Imsi:     IMSI1,
+		BearerId: BEARER,
+		CAgwTeid: AGWTeidC,
+		CPgwTeid: csRes.CPgwFteid.Teid,
+		ServingNetwork: &protos.ServingNetwork{
+			Mcc: "222",
+			Mnc: "333",
+		},
+		Uli: &protos.UserLocationInformation{
+			Tac: 5,
+			Eci: 6,
+		},
+	}
+	_, err = s8_proxy.DeleteSession(dsReq)
+	assert.NoError(t, err)
+
+	//------------------------
+	//---- Echo Request ----
+	eReq := &protos.EchoRequest{PgwAddrs: actualPgwAddress}
+	_, err = s8_proxy.SendEcho(eReq)
+	assert.NoError(t, err)
+}
+
+func getCreateSessionRequest(pgwAddrs string, cPgwTeid uint32) *protos.CreateSessionRequestPgw {
+	_, offset := time.Now().Zone()
+	return &protos.CreateSessionRequestPgw{
+		PgwAddrs: pgwAddrs,
 		Imsi:     IMSI1,
 		Msisdn:   "00111",
 		Mei:      "111",
-		CAgwTeid: AGWTeidC,
+		CAgwTeid: cPgwTeid,
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "222",
 			Mnc: "333",
@@ -92,45 +138,4 @@ func TestS8ProxyClient(t *testing.T) {
 		},
 	}
 
-	csRes, err := s8_proxy.CreateSession(csReq)
-	if err != nil {
-		t.Fatalf("S8_proxy client Create Session Error: %v", err)
-		return
-	}
-
-	assert.NoError(t, err)
-	assert.NotEmpty(t, csRes)
-
-	// check fteid was received properly
-	assert.Equal(t, mockPgw.LastTEIDu, csRes.BearerContext.UserPlaneFteid.Teid)
-	assert.NotEmpty(t, csRes.BearerContext.UserPlaneFteid.Ipv4Address)
-	assert.Empty(t, csRes.BearerContext.UserPlaneFteid.Ipv6Address)
-
-	t.Logf("Create Session: %#+v", *csRes)
-
-	//------------------------
-	//---- Delete session ----
-	dsReq := &protos.DeleteSessionRequestPgw{
-		PgwAddrs: actualPgwAddress,
-		Imsi:     IMSI1,
-		BearerId: BEARER,
-		CAgwTeid: AGWTeidC,
-		CPgwTeid: csRes.CPgwFteid.Teid,
-		ServingNetwork: &protos.ServingNetwork{
-			Mcc: "222",
-			Mnc: "333",
-		},
-		Uli: &protos.UserLocationInformation{
-			Tac: 5,
-			Eci: 6,
-		},
-	}
-	_, err = s8_proxy.DeleteSession(dsReq)
-	assert.NoError(t, err)
-
-	//------------------------
-	//---- Echo Request ----
-	eReq := &protos.EchoRequest{PgwAddrs: actualPgwAddress}
-	_, err = s8_proxy.SendEcho(eReq)
-	assert.NoError(t, err)
 }
