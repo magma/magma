@@ -91,5 +91,7 @@ class TestIPV6Allocator(unittest.TestCase):
         self._allocator.release_ip(ip_desc1)
         self._allocator.release_ip(ip_desc2)
 
-        self.assertEqual({},
-                         self._allocator._store.sid_session_prefix_allocated)
+        self.assertEqual(
+            {},
+            self._allocator._store.sid_session_prefix_allocated,
+        )

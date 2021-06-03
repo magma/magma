@@ -152,8 +152,8 @@ int mme_app_send_s6a_update_location_req(
         -1) {
       OAILOG_ERROR(
           LOG_MME_APP,
-          "Failed to start Update location update response timer for UE id  %d "
-          "\n",
+          "Failed to start Update location update response timer for UE id "
+          " " MME_UE_S1AP_ID_FMT "\n",
           ue_context_p->mme_ue_s1ap_id);
       ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
     } else {
@@ -212,7 +212,9 @@ int mme_app_handle_s6a_update_location_ans(
   if ((ue_mm_context = mme_ue_context_exists_imsi(
            &mme_app_desc_p->mme_ue_contexts, imsi64)) == NULL) {
     OAILOG_ERROR(
-        LOG_MME_APP, "That's embarrassing as we don't know this IMSI\n");
+        LOG_MME_APP,
+        "That's embarrassing as we don't know this IMSI " IMSI_64_FMT "\n",
+        imsi64);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   if (ula_pP->result.present == S6A_RESULT_BASE) {
@@ -229,7 +231,8 @@ int mme_app_handle_s6a_update_location_ans(
       if (handle_ula_failure(ue_mm_context) != RETURNok) {
         OAILOG_ERROR(
             LOG_MME_APP,
-            "Failed to handle Un-successful ULA message for ue_id (%u)\n",
+            "Failed to handle Un-successful ULA message for "
+            "ue_id " MME_UE_S1AP_ID_FMT "\n",
             ue_mm_context->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       } else {
@@ -253,7 +256,8 @@ int mme_app_handle_s6a_update_location_ans(
     } else {
       OAILOG_ERROR(
           LOG_MME_APP,
-          "Failed to send PDN Connectivity failure to NAS for ue_id (%u)\n",
+          "Failed to send PDN Connectivity failure to NAS for "
+          "ue_id " MME_UE_S1AP_ID_FMT "\n",
           ue_mm_context->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
@@ -268,7 +272,8 @@ int mme_app_handle_s6a_update_location_ans(
   } else {
     OAILOG_ERROR(
         LOG_MME_APP,
-        "ULR Response Timer has invalid id for ue_id (%u). This implies that "
+        "ULR Response Timer has invalid id for ue_id " MME_UE_S1AP_ID_FMT
+        ". This implies that "
         "the timer has expired and ULR has been handled as failure. \n ",
         ue_mm_context->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -295,7 +300,7 @@ int mme_app_handle_s6a_update_location_ans(
         ula_pP->subscription_data.msisdn,
         ula_pP->subscription_data.msisdn_length);
   } else {
-    OAILOG_ERROR(
+    OAILOG_WARNING(
         LOG_MME_APP, "No MSISDN received for %s " IMSI_64_FMT "\n",
         __FUNCTION__, imsi64);
   }

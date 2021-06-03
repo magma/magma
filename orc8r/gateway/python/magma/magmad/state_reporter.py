@@ -43,11 +43,13 @@ class StateReporterErrorHandler:
     permission issues.
     """
 
-    def __init__(self,
-                 loop: asyncio.AbstractEventLoop,
-                 config: Any,
-                 grpc_client_manager: GRPCClientManager,
-                 bootstrap_manager: BootstrapManager):
+    def __init__(
+        self,
+        loop: asyncio.AbstractEventLoop,
+        config: Any,
+        grpc_client_manager: GRPCClientManager,
+        bootstrap_manager: BootstrapManager,
+    ):
         self._loop = loop
         # Number of consecutive failed state reporting before we check for an
         # outdated cert
@@ -73,15 +75,19 @@ class StateReporterErrorHandler:
         the threshold specified in the config. If it does, it will trigger a
         bootstrap if the certificate is invalid.
         """
-        logging.error("Checkin Error! Failed to report states. [%s] %s",
-                      err.code(), err.details())
+        logging.error(
+            "Checkin Error! Failed to report states. [%s] %s",
+            err.code(), err.details(),
+        )
         CHECKIN_STATUS.set(0)
         self.num_failed_state_reporting += 1
         if self.num_failed_state_reporting >= self.fail_threshold:
-            logging.info('StateReporting (Checkin) failure threshold met, '
-                         'remediating...')
+            logging.info(
+                'StateReporting (Checkin) failure threshold met, '
+                'remediating...',
+            )
             asyncio.ensure_future(
-                self._schedule_bootstrap_if_cert_is_invalid(err.code())
+                self._schedule_bootstrap_if_cert_is_invalid(err.code()),
             )
         self._grpc_client_manager.on_grpc_fail(err.code())
 
@@ -104,8 +110,10 @@ class StateReporterErrorHandler:
             await self._bootstrap_manager.schedule_bootstrap_now()
             return
         else:
-            logging.error('StateReporting failure likely '
-                          'not due to invalid cert')
+            logging.error(
+                'StateReporting failure likely '
+                'not due to invalid cert',
+            )
 
 
 class StateReporter(SDWatchdogTask):
@@ -118,14 +126,16 @@ class StateReporter(SDWatchdogTask):
     states to the cloud.
     """
 
-    def __init__(self, config: Any, mconfig: Any,
-                 loop: asyncio.AbstractEventLoop,
-                 bootstrap_manager: BootstrapManager,
-                 gw_status_factory: GatewayStatusFactory,
-                 grpc_client_manager: GRPCClientManager):
+    def __init__(
+        self, config: Any, mconfig: Any,
+        loop: asyncio.AbstractEventLoop,
+        bootstrap_manager: BootstrapManager,
+        gw_status_factory: GatewayStatusFactory,
+        grpc_client_manager: GRPCClientManager,
+    ):
         super().__init__(
             interval=max(mconfig.checkin_interval, 5),
-            loop=loop
+            loop=loop,
         )
         self._loop = loop
         # keep a pointer to mconfig since config stored can change over time
@@ -150,7 +160,7 @@ class StateReporter(SDWatchdogTask):
         # A dictionary of all services registered with a service303 interface.
         # Holds service name to service info gathered from the config
         self._service_info_by_name = self._construct_service_info_by_name(
-            config=config
+            config=config,
         )
 
         # Initially set status to 1, otherwise on the first round we report a
@@ -186,7 +196,8 @@ class StateReporter(SDWatchdogTask):
 
     async def _send_to_state_service(
             self,
-            request: ReportStatesRequest) -> None:
+            request: ReportStatesRequest,
+    ) -> None:
         state_client = self._grpc_client_manager.get_client()
         try:
             response = await grpc_async_wrapper(
@@ -194,16 +205,20 @@ class StateReporter(SDWatchdogTask):
                     request,
                     self._mconfig.checkin_timeout,
                 ),
-                self._loop)
+                self._loop,
+            )
             for idAndError in response.unreportedStates:
                 logging.error(
                     "Failed to report state for (%s,%s): %s",
-                    idAndError.type, idAndError.deviceID, idAndError.error)
+                    idAndError.type, idAndError.deviceID, idAndError.error,
+                )
             # Report that the gateway successfully connected to the cloud
             CHECKIN_STATUS.set(1)
             self._error_handler.num_failed_state_reporting = 0
-            logging.info("Checkin Successful! "
-                         "Successfully sent states to the cloud!")
+            logging.info(
+                "Checkin Successful! "
+                "Successfully sent states to the cloud!",
+            )
         except grpc.RpcError as err:
             self._error_handler.report_to_cloud_error(err)
         finally:
@@ -225,8 +240,10 @@ class StateReporter(SDWatchdogTask):
                 states.append(result.states[i])
             return states
         except Exception as err:
-            logging.error("GetOperationalStates Error for %s! [%s] %s",
-                          service, err.code(), err.details())
+            logging.error(
+                "GetOperationalStates Error for %s! [%s] %s",
+                service, err.code(), err.details(),
+            )
             return []
 
     def _get_gw_state(self) -> Optional[State]:
@@ -243,7 +260,8 @@ class StateReporter(SDWatchdogTask):
             logging.warning(
                 "Number of skipped checkins exceeds %d "
                 "(cfg: max_skipped_checkins). Checking in anyway.",
-                self._error_handler.max_skipped_gw_states)
+                self._error_handler.max_skipped_gw_states,
+            )
             # intentionally don't reset num_skipped_gateway_states here
             return self._make_state(gw_type, snowflake.snowflake(), gw_state)
 

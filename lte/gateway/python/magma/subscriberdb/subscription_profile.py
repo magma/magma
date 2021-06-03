@@ -25,5 +25,5 @@ def get_default_sub_profile(service):
     # in the code.
     return SubscriberDB.SubscriptionProfile(
         max_ul_bit_rate=service.config['default_max_ul_bit_rate'],
-        max_dl_bit_rate=service.config['default_max_dl_bit_rate']
+        max_dl_bit_rate=service.config['default_max_dl_bit_rate'],
     )
