@@ -92,7 +92,8 @@ class Fault(Tr069ComplexModel):
     _type_info["FaultCode"] = UnsignedInteger
     _type_info["FaultString"] = String
     _type_info["SetParameterValuesFault"] = SetParameterValuesFault.customize(
-        max_occurs='unbounded')
+        max_occurs='unbounded',
+    )
 
 
 # Type definitions used in messages
@@ -139,7 +140,8 @@ class ParameterValueStruct(Tr069ComplexModel):
 class ParameterValueList(Tr069ComplexModel):
     _type_info = odict()
     _type_info["ParameterValueStruct"] = ParameterValueStruct.customize(
-        max_occurs='unbounded')
+        max_occurs='unbounded',
+    )
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
@@ -151,13 +153,17 @@ class ParameterInfoStruct(Tr069ComplexModel):
 
 class ParameterInfoList(Tr069ComplexModel):
     _type_info = odict()
-    _type_info["ParameterInfoStruct"] = ParameterInfoStruct.customize(max_occurs='unbounded')
+    _type_info["ParameterInfoStruct"] = ParameterInfoStruct.customize(
+        max_occurs='unbounded',
+    )
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
 class ParameterNames(Tr069ComplexModel):
     _type_info = odict()
-    _type_info["string"] = String.customize(max_occurs='unbounded', max_length=256)
+    _type_info["string"] = String.customize(
+        max_occurs='unbounded', max_length=256,
+    )
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
@@ -167,7 +173,9 @@ class ParameterKeyType(String.customize(max_length=32)):
 
 class AccessList(Tr069ComplexModel):
     _type_info = odict()
-    _type_info["string"] = String.customize(max_occurs='unbounded', max_length=64)
+    _type_info["string"] = String.customize(
+        max_occurs='unbounded', max_length=64,
+    )
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
@@ -183,7 +191,8 @@ class SetParameterAttributesStruct(Tr069ComplexModel):
 class SetParameterAttributesList(Tr069ComplexModel):
     _type_info = odict()
     _type_info["SetParameterAttributesStruct"] = SetParameterAttributesStruct.customize(
-        max_occurs='unbounded')
+        max_occurs='unbounded',
+    )
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
@@ -197,7 +206,8 @@ class ParameterAttributeStruct(Tr069ComplexModel):
 class ParameterAttributeList(Tr069ComplexModel):
     _type_info = odict()
     _type_info["ParameterValueStruct"] = ParameterAttributeStruct.customize(
-        max_occurs='unbounded')
+        max_occurs='unbounded',
+    )
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
@@ -377,7 +387,8 @@ class ParameterListUnion(Tr069ComplexModel):
 
     # Fields from ParameterValueList
     _type_info["ParameterValueStruct"] = ParameterValueStruct.customize(
-        max_occurs='unbounded')
+        max_occurs='unbounded',
+    )
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
     # Fields from SetParameterAttributesList
@@ -392,7 +403,8 @@ class AcsToCpeRequests(Tr069ComplexModel):
     _type_info = odict()
 
     # Fields for SetParameterValues
-    _type_info["ParameterList"] = ParameterListUnion  # See ParameterListUnion for explanation
+    # See ParameterListUnion for explanation
+    _type_info["ParameterList"] = ParameterListUnion
     _type_info["ParameterKey"] = ParameterKeyType
 
     # Fields for GetParameterValues
@@ -403,7 +415,8 @@ class AcsToCpeRequests(Tr069ComplexModel):
     _type_info["NextLevel"] = Boolean
 
     # Fields for SetParameterAttributes
-    # _type_info["ParameterList"] = SetParameterAttributesList - Already covered above
+    # _type_info["ParameterList"] = SetParameterAttributesList - Already
+    # covered above
 
     # Fields for GetParameterAttributes
     _type_info["ParameterNames"] = ParameterNames

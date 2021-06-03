@@ -60,11 +60,18 @@ def _get_prerouting_rules(output: str) -> List[str]:
     return prerouting_rules
 
 
-async def check_and_apply_iptables_rules(port: str,
-                                         enodebd_public_ip: str,
-                                         enodebd_ip: str) -> None:
+async def check_and_apply_iptables_rules(
+    port: str,
+    enodebd_public_ip: str,
+    enodebd_ip: str,
+) -> None:
     command = 'sudo iptables -t nat -L'
-    output = subprocess.run(command, shell=True, stdout=subprocess.PIPE, check=True)
+    output = subprocess.run(
+        command,
+        shell=True,
+        stdout=subprocess.PIPE,
+        check=True,
+    )
     command_output = output.stdout.decode('utf-8').strip()
     prerouting_rules = _get_prerouting_rules(command_output)
     if not prerouting_rules:
@@ -75,22 +82,24 @@ async def check_and_apply_iptables_rules(port: str,
                 enodebd_public_ip,
                 enodebd_ip,
                 add=True,
-            )
+            ),
         )
     else:
         # Checks each rule in PREROUTING Chain
         check_rules(prerouting_rules, port, enodebd_public_ip, enodebd_ip)
 
 
-def check_rules(prerouting_rules: List[str],
-                port: str,
-                enodebd_public_ip: str,
-                private_ip: str) -> None:
+def check_rules(
+    prerouting_rules: List[str],
+    port: str,
+    enodebd_public_ip: str,
+    private_ip: str,
+) -> None:
     unexpected_rules = []
     pattern = r'DNAT\s+tcp\s+--\s+anywhere\s+{pub_ip}\s+tcp\s+dpt:{dport} to:{ip}'.format(
-                pub_ip=enodebd_public_ip,
-                dport=port,
-                ip=private_ip,
+        pub_ip=enodebd_public_ip,
+        dport=port,
+        ip=private_ip,
     )
     for rule in prerouting_rules:
         match = re.search(pattern, rule)
@@ -109,8 +118,10 @@ async def run(cmd):
     await proc.communicate()
     if proc.returncode != 0:
         # This can happen because the NAT prerouting rule didn't exist
-        logger.error('Possible error running async subprocess: %s exited with '
-                     'return code [%d].', cmd, proc.returncode)
+        logger.error(
+            'Possible error running async subprocess: %s exited with '
+            'return code [%d].', cmd, proc.returncode,
+        )
     return proc.returncode
 
 
@@ -139,7 +150,7 @@ async def set_enodebd_iptables_rule():
         logger.warning(
             'The IP address of the %s interface is %s. The '
             'expected IP addresses are %s',
-            interface, enodebd_ip, str(EXPECTED_IP4)
+            interface, enodebd_ip, str(EXPECTED_IP4),
         )
     await check_and_apply_iptables_rules(
         port,
