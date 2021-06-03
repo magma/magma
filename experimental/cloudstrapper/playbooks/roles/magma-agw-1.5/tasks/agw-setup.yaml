@@ -2,3 +2,8 @@
 
 - name: run magma deploy
   command: "ansible-playbook -e '@{{ usrHome }}/ansible-env.yaml' -i {{ usrHome }}/inventory {{ deployPath }}/magma_deploy.yml"
+  when: ci is not defined
+
+- name: run magma deploy with ci repo
+  command: "ansible-playbook -e '@{{ usrHome }}/ansible-env.yaml' -e magma_pkgrepo_host=artifactory.magmacore.org/artifactory/debian-test -e magma_pkgrepo_dist=focal-ci -i {{ usrHome }}/inventory {{ deployPath }}/magma_deploy.yml"
+  when: ci is defined

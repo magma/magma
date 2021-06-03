@@ -1468,7 +1468,11 @@ jobs:
             ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge
             echo "Waiting one minute for the instance to boot up."
             sleep 60
-            ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+            if [ "<<parameters.aws_account>>" = "LF" ]; then
+              ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+            elif  [ "<<parameters.aws_account>>" = "FB" ]; then
+              ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e ci=1 -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+            fi
             ansible-playbook $WORK_DIR/ami-init.yaml -e "dirLocalInventory=$VARS_DIR"
       - run:
           name: Clean AWS resources
