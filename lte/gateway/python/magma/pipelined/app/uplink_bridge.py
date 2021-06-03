@@ -393,10 +393,6 @@ class UplinkBridgeController(MagmaController):
             self.logger.info("could not flush ip addr: %s, %s", if_name, ex)
 
         self.logger.info("SGi DHCP: port [%s] ip removed", if_name)
-        while True:
-            # keep updating flow to handle IP address change.
-            self._set_sgi_interface_ingress_flows()
-            hub.sleep(self.SGI_INGRESS_FLOW_UPDATE_FREQ)
 
 
     def _restart_dhclient_if(self, if_name):
@@ -410,6 +406,10 @@ class UplinkBridgeController(MagmaController):
                              setup_dhclient, ex)
 
         self.logger.info("SGi DHCP: restart for %s done", if_name)
+        while True:
+            # keep updating flow to handle IP address change.
+            self._set_sgi_interface_ingress_flows()
+            hub.sleep(self.SGI_INGRESS_FLOW_UPDATE_FREQ)
 
     def _set_arp_ignore(self, if_name: str, val: str):
         sysctl_setting = 'net.ipv4.conf.' + if_name + '.arp_ignore=' + val
