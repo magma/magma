@@ -17,6 +17,7 @@ import sys
 from time import sleep
 
 from fabric.api import cd, env, execute, local, run, settings
+from fabric.contrib.files import exists
 from fabric.operations import get
 
 sys.path.append('../../orc8r')
@@ -130,6 +131,9 @@ def package(vcs='git', all_deps="False",
         if all_deps:
             pkg.download_all_pkgs()
             run('cp /var/cache/apt/archives/*.deb ~/magma-packages')
+
+        # Copy out C executables into magma-packages as well
+        _copy_out_c_execs_in_magma_vm()
 
 
 def openvswitch(destroy_vm='False', destdir='~/magma-packages/'):
@@ -295,10 +299,10 @@ def get_test_summaries(
         test_host=None,
         dst_path="/tmp"):
     local('mkdir -p ' + dst_path)
-    _switch_to_vm(gateway_host, "magma", "magma_dev.yml", False)
+    _switch_to_vm_no_provision(gateway_host, "magma", "magma_dev.yml")
     with settings(warn_only=True):
         get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
-    _switch_to_vm(test_host, "magma_test", "magma_test.yml", False)
+    _switch_to_vm_no_provision(test_host, "magma_test", "magma_test.yml")
     with settings(warn_only=True):
         get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
 
@@ -422,8 +426,16 @@ def load_test(gateway_host=None, destroy_vm=True):
         env.hosts = [gateway_host]
 
 
-def _copy_out_c_execs():
-    pass
+def _copy_out_c_execs_in_magma_vm():
+    with settings(warn_only=True):
+        exec_paths = ['/usr/local/bin/sessiond', '/usr/local/bin/mme',
+                      '/usr/local/sbin/sctpd', '/usr/local/bin/connectiond']
+        for exec_path in exec_paths:
+            if not exists(exec_path):
+                print(exec_path + " does not exist")
+                continue
+            run('cp ' + exec_path + ' ~/magma-packages')
+
 
 
 def _dist_upgrade():
@@ -566,8 +578,8 @@ def _run_load_tests(gateway_ip='192.168.60.142'):
           % (key, host, port, gateway_ip))
 
 
-def _switch_to_vm(addr, host_name, ansible_file, destroy_vm):
+def _switch_to_vm_no_provision(addr, host_name, ansible_file):
     if not addr:
-        vagrant_setup(host_name, destroy_vm)
+        vagrant_setup(host_name, destroy_vm=False, force_provision=False)
     else:
-        ansible_setup(addr, host_name, ansible_file)
+        ansible_setup(addr, host_name, ansible_file, full_provision='false')
