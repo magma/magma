@@ -78,15 +78,15 @@ type EPSLocation struct {
 }
 
 type EPSSpecificParameters struct {
-	PDNAddressAllocation   []byte          `asn1:"optional,tag:1"`
-	APN                    []byte          `asn1:"optional,tag:2"`
-	EPSBearerIdentity      []byte          `asn1:"optional,tag:5"`
-	DetachType             []byte          `asn1:"optional,tag:6"`
-	RATType                []byte          `asn1:"optional,tag:7"`
-	FailedBearerActReason  []byte          `asn1:"optional,tag:8"`
-	EPSBearerQoS           []byte          `asn1:"optional,tag:9"`
+	PDNAddressAllocation   []byte          `asn1:"optional,omitempty,tag:1"`
+	APN                    []byte          `asn1:"optional,omitempty,tag:2"`
+	EPSBearerIdentity      []byte          `asn1:"optional,omitempty,tag:5"`
+	DetachType             []byte          `asn1:"optional,omitempty,tag:6"`
+	RATType                []byte          `asn1:"optional,omitempty,tag:7"`
+	FailedBearerActReason  []byte          `asn1:"optional,omitempty,tag:8"`
+	EPSBearerQoS           []byte          `asn1:"optional,omitempty,tag:9"`
 	BearerActivationType   asn1.Enumerated `asn1:"optional,tag:10"`
-	ApnAmbr                []byte          `asn1:"optional,tag:11"`
+	ApnAmbr                []byte          `asn1:"optional,omitempty,tag:11"`
 	BearerDeactivationType asn1.Enumerated `asn1:"optional,tag:21"`
 	EPSLocationOfTheTarget EPSLocation     `asn1:"optional,tag:23"`
 }

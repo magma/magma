@@ -38,7 +38,7 @@ func convertUint32ToBytes(v uint32) []byte {
 	return o
 }
 
-// encodeAPN encodes APN to a byte sequence as specified in TS 33.108
+// encodeAPN encodes APN to a byte sequence as specified in TS TS 29.274
 func encodeAPN(apn string) []byte {
 	encodedAPN := []byte{}
 	if alen := len(apn); alen > 0 {
@@ -48,28 +48,29 @@ func encodeAPN(apn string) []byte {
 	return encodedAPN
 }
 
-// encodeUserLocation encodes user location to a byte sequence as specified in TS 33.108
+// encodeUserLocation converts user location encodingfrom TS 29.061 to TS 29.274
 func encodeUserLocation(s string) []byte {
-	userLocation := strings.Join(strings.Fields(s), "")
-	if len(userLocation) == 0 {
+	ulStr := strings.Join(strings.Fields(s), "")
+	userLocation, err := hex.DecodeString(ulStr)
+	if err != nil || len(userLocation) == 0 {
 		return []byte{}
 	}
 
-	encodeUL, err := hex.DecodeString(userLocation)
-	if err != nil {
-		return []byte{}
+	encodedUL := []byte{}
+	if userLocation[0] == 0x82 {
+		encodedUL = append(encodedUL, byte(0x18)) // TAI(8)+ECGI(16)
+		encodedUL = append(encodedUL, userLocation[1:]...)
 	}
-	return encodeUL
+	return encodedUL
 }
 
-// encodeIMSI encodes IMSI to a byte sequence as specified in TS 33.108
+// encodeIMSI encodes IMSI to a byte sequence as specified in TS 29.274
 func encodeIMSI(s string) []byte {
 	encodedIMSI := []byte{}
 	imsi := strings.TrimPrefix(s, "IMSI")
 	if len(imsi) < 6 || len(imsi) > 16 {
 		return encodedIMSI
 	}
-
 	for idx := 0; idx+1 < len(imsi); idx += 2 {
 		firstDigit, err := strconv.Atoi(string(imsi[idx]))
 		if err != nil {
@@ -91,7 +92,7 @@ func encodeIMSI(s string) []byte {
 	return encodedIMSI
 }
 
-// encodeIMEI encodes IMEI to a byte sequence as specified in TS 33.108
+// encodeIMEI encodes IMEI to a byte sequence as specified in TS 29.274
 func encodeIMEI(imei []rune) []byte {
 	iLen := len(imei)
 	if iLen != 15 && iLen != 16 {
@@ -276,15 +277,10 @@ func makeNetworkIdentifier(event *models.Event, operatorID uint32) NetworkIdenti
 func makeBearerActivationParams(event *models.Event) EPSSpecificParameters {
 	eventData := event.Value.(map[string]interface{})
 	if sessionID, ok := eventData["session_id"]; ok {
-		apn := []byte{}
-		if v, ok := eventData["apn"]; ok {
-			apn = append(apn, []byte(v.(string))...)
-
-		}
 		return EPSSpecificParameters{
 			EPSBearerIdentity:      []byte(sessionID.(string)),
 			PDNAddressAllocation:   makePdnAddressAllocation(event),
-			APN:                    apn,
+			APN:                    encodeAPN(eventData["apn"].(string)),
 			RATType:                []byte{RatTypeEutran},
 			BearerActivationType:   DefaultBearer,
 			EPSLocationOfTheTarget: makeEPSLocation(event),
