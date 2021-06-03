@@ -72,8 +72,8 @@ class MmeNasStateManager
 
   // Serializes ueip_imsi_map to proto and saves it into data store
   void write_mme_ueip_imsi_map_to_db();
-  // Returns a pointer to UeIpImsiMap
-  UeIpImsiMap* get_mme_ueip_imsi_map(void);
+  // Returns a reference to UeIpImsiMap
+  UeIpImsiMap& get_mme_ueip_imsi_map(void);
 
  private:
   // Constructor for MME NAS state manager
@@ -114,7 +114,6 @@ class MmeNasStateManager
    * having same ue_ip
    */
   UeIpImsiMap* ueip_imsi_map;  // ueip => list of imsi64
-  std::size_t ueip_imsi_map_hash;
 };
 }  // namespace lte
 }  // namespace magma

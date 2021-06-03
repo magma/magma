@@ -905,10 +905,20 @@ void mme_app_handle_delete_session_rsp(
     ue_context_p->nb_active_pdn_contexts -= 1;
   }
 
+  pdn_cid_t pid =
+      ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]
+          ->pdn_cx_id;
+  pdn_context_t* pdn_context = ue_context_p->pdn_contexts[pid];
+  if ((pdn_context) && (pdn_context->paa.ipv4_address.s_addr)) {
+    OAILOG_DEBUG(
+        LOG_MME_APP, "Removing  ue_ip:%x from ipv4_imsi map \n",
+        (pdn_context)->paa.ipv4_address.s_addr);
+
+    mme_app_remove_ue_ipv4_addr(
+        (pdn_context)->paa.ipv4_address.s_addr,
+        ue_context_p->emm_context._imsi64);
+  }
   if (ue_context_p->emm_context.new_attach_info) {
-    pdn_cid_t pid =
-        ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]
-            ->pdn_cx_id;
     int bearer_idx = EBI_TO_INDEX(delete_sess_resp_pP->lbi);
     eps_bearer_release(
         &ue_context_p->emm_context, delete_sess_resp_pP->lbi, &pid,

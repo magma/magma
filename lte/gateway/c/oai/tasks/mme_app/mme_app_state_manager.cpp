@@ -56,8 +56,7 @@ MmeNasStateManager& MmeNasStateManager::getInstance() {
 MmeNasStateManager::MmeNasStateManager()
     : max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS),
       mme_statistic_timer_(10),
-      ueip_imsi_map(nullptr),
-      ueip_imsi_map_hash(0) {}
+      ueip_imsi_map(nullptr) {}
 
 // Destructor for MME NAS state object
 MmeNasStateManager::~MmeNasStateManager() {
@@ -295,18 +294,16 @@ void MmeNasStateManager::write_mme_ueip_imsi_map_to_db() {
       ueip_imsi_map, &ueip_proto);
   std::string proto_msg;
   redis_client->serialize(ueip_proto, proto_msg);
-  std::size_t new_hash = std::hash<std::string>{}(proto_msg);
 
   // s1ap_imsi_map is not state service synced, so version will not be updated
-  if (new_hash != this->ueip_imsi_map_hash) {
-    redis_client->write_proto_str(MME_UEIP_IMSI_MAP_NAME, proto_msg, 0);
-    this->ueip_imsi_map_hash = new_hash;
-  }
+  redis_client->write_proto_str(MME_UEIP_IMSI_MAP_NAME, proto_msg, 0);
   return;
 }
 
-UeIpImsiMap* MmeNasStateManager::get_mme_ueip_imsi_map(void) {
-  return ueip_imsi_map;
+UeIpImsiMap& MmeNasStateManager::get_mme_ueip_imsi_map(void) {
+  if (ueip_imsi_map) {
+    return *ueip_imsi_map;
+  }
 }
 
 void MmeNasStateManager::clear_mme_ueip_imsi_map() {

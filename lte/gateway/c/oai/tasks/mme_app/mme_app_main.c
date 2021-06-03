@@ -498,7 +498,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   }
 
   put_mme_ue_state(mme_app_desc_p, imsi64);
-  put_mme_ueip_imsi_map();
 
   if (!is_task_state_same) {
     put_mme_nas_state();

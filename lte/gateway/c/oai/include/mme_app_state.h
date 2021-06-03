@@ -57,11 +57,6 @@ hash_table_ts_t* get_mme_ue_state(void);
 void put_mme_ue_state(mme_app_desc_t* mme_app_desc_p, imsi64_t imsi64);
 // Deletes entry for UE MME state on db
 void delete_mme_ue_state(imsi64_t imsi64);
-/**
- * Write the ueip_imsi_map to data store after processing any message, if
- * content of map is changed
- * */
-void put_mme_ueip_imsi_map(void);
 
 #ifdef __cplusplus
 }

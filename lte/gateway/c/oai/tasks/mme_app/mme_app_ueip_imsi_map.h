@@ -19,4 +19,10 @@ limitations under the License.
 #include <string>
 #include <vector>
 
+/* Description: ue_ip address is allocated by either roaming PGWs or mobilityd
+ * So there is possibility to allocate same ue ip address for different UEs.
+ * So defining ue_ip_imsi map with key as ue_ip and value as list of imsis
+ * having same ue_ip
+ */
+
 typedef std::unordered_map<std::string, std::vector<uint64_t>> UeIpImsiMap;
