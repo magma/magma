@@ -30,6 +30,7 @@
 #include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
 #include "SessionStore.h"
+#include <stdio.h>
 
 #define SECONDS_A_DAY 86400
 
@@ -443,13 +444,180 @@ TEST_F(LocalEnforcerTest, test_multi_version_reporting) {
   auto update = SessionStore::get_default_session_update(session_map);
   auto uc     = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
-
+  
   session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
   // update to version2
   session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
   local_enforcer->aggregate_records(session_map, table, update);
   assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 30}});
   assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 140}});
+  EXPECT_EQ(session_map[IMSI1][0]->get_policy_stats("rule1").current_version, 3);
+}
+
+TEST_F(LocalEnforcerTest, test_old_version_reporting) {
+   CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 2, 1024, response.mutable_credits()->Add());
+  local_enforcer->init_session(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+  local_enforcer->update_tunnel_ids(
+      session_map,
+      create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
+
+  insert_static_rule(1, "", "rule1");
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  // ipv4 usage
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1, 15, 30, 0, 0,
+      record_list->Add());
+  // ipv6 usage for the same charging key and subscriber
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 1, 20, 45, 0, 0,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 2, 10, 80, 0, 0,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 3, 40, 100, 0, 0,
+      record_list->Add());
+  //creating extra rules for old versions should not be taken into account
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 1, 31, 51, 0, 0,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule2", 1, 15, 95, 0, 0,
+      record_list->Add());
+
+  auto update = SessionStore::get_default_session_update(session_map);
+  auto uc     = get_default_update_criteria();
+  //update to version 3 and check rx and tx values for older versions
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  local_enforcer->aggregate_records(session_map, table, update);
+  std::unordered_map<int, RuleStats> theStats = session_map[IMSI1][0]->get_policy_stats("rule1").stats_map;
+  EXPECT_EQ(session_map[IMSI1][0]->get_policy_stats("rule1").current_version, 3);
+  EXPECT_EQ(theStats.at(1).rx, 20);
+  EXPECT_EQ(theStats.at(1).tx, 45);
+  EXPECT_EQ(theStats.at(2).rx, 10);
+  EXPECT_EQ(theStats.at(2).tx, 80);
+  EXPECT_EQ(theStats.at(3).rx, 40);
+  EXPECT_EQ(theStats.at(3).tx, 100);
+}
+
+TEST_F(LocalEnforcerTest, test_update_version_reporting) {
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 2, 1024, response.mutable_credits()->Add());
+  local_enforcer->init_session(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+  local_enforcer->update_tunnel_ids(
+      session_map,
+      create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
+
+  insert_static_rule(1, "", "rule1");
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  // ipv4 usage
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1, 15, 30, 0, 0,
+      record_list->Add());
+  // ipv6 usage for the same charging key and subscriber
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 1, 20, 45, 0, 0,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 2, 10, 80, 0, 0,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 3, 40, 100, 0, 0,
+      record_list->Add());
+
+  auto update = SessionStore::get_default_session_update(session_map);
+  auto uc     = get_default_update_criteria();
+  //check each version stats
+  //version 1
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  local_enforcer->aggregate_records(session_map, table, update);
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 20}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 45}});
+  EXPECT_EQ(session_map[IMSI1][0]->get_policy_stats("rule1").current_version, 1);
+  //version2
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  local_enforcer->aggregate_records(session_map, table, update);
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 30}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 125}});
+  EXPECT_EQ(session_map[IMSI1][0]->get_policy_stats("rule1").current_version, 2);
+  //version3
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  local_enforcer->aggregate_records(session_map, table, update);
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 70}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 225}});
+  EXPECT_EQ(session_map[IMSI1][0]->get_policy_stats("rule1").current_version, 3);
+}
+
+//TODO: modify test_erroneous data
+TEST_F(LocalEnforcerTest, test_erroneous_data) {
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 2, 1024, response.mutable_credits()->Add());
+  local_enforcer->init_session(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+  local_enforcer->update_tunnel_ids(
+      session_map,
+      create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
+
+  insert_static_rule(1, "", "rule1");
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  // ipv4 usage
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1, 15, 30, 0, 0,
+      record_list->Add());
+  // ipv6 usage for the same charging key and subscriber
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 1, 10, 20, 0, 0,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 2, 40, 90, 0, 0,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 2, 16, 24, 0, 0,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 3, 50, 100, 0, 0,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv6(), "rule1", 3, 25, 60, 0, 0,
+      record_list->Add());
+ 
+  auto update = SessionStore::get_default_session_update(session_map);
+  auto uc     = get_default_update_criteria();
+  //version1
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  local_enforcer->aggregate_records(session_map, table, update);
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 15}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 30}});
+  EXPECT_EQ(session_map[IMSI1][0]->get_policy_stats("rule1").current_version, 1);
+  //version2
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  local_enforcer->aggregate_records(session_map, table, update);
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 55}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 120}});
+  EXPECT_EQ(session_map[IMSI1][0]->get_policy_stats("rule1").current_version, 2);
+  //version3
+  session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
+  local_enforcer->aggregate_records(session_map, table, update);
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 105}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 220}});
+  EXPECT_EQ(session_map[IMSI1][0]->get_policy_stats("rule1").current_version, 3);
 }
 
 TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
