@@ -3603,9 +3603,12 @@ void mme_app_handle_path_switch_request(
   ue_context_p->sctp_assoc_id_key = path_switch_req_p->sctp_assoc_id;
   ue_context_p->e_utran_cgi       = path_switch_req_p->ecgi;
   ue_network_capability.eea =
-      path_switch_req_p->encryption_algorithm_capabilities;
+      ((path_switch_req_p->encryption_algorithm_capabilities >> 9) |
+       ((0x80 & ue_context_p->emm_context._ue_network_capability.eea)));
   ue_network_capability.eia =
-      path_switch_req_p->integrity_algorithm_capabilities;
+      ((path_switch_req_p->integrity_algorithm_capabilities >> 9) |
+       ((0x80 & ue_context_p->emm_context._ue_network_capability.eia)));
+
   if ((ue_network_capability.eea !=
        ue_context_p->emm_context._ue_network_capability.eea) ||
       (ue_network_capability.eia !=
