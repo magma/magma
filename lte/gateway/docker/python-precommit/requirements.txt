@@ -71,6 +71,11 @@ gitdb==4.0.2
     # via gitpython
 gitpython==3.1.0
     # via bandit
+importlib-metadata==4.5.0
+    # via
+    #   flake8
+    #   flake8-comprehensions
+    #   wemake-python-styleguide
 isort==5.8.0
     # via
     #   -r requirements.in
@@ -115,6 +120,10 @@ tokenize-rt==4.1.0
 toml==0.10.2
     # via autopep8
 typing-extensions==3.7.4.1
-    # via wemake-python-styleguide
+    # via
+    #   importlib-metadata
+    #   wemake-python-styleguide
 wemake-python-styleguide==0.15.2
     # via -r requirements.in
+zipp==3.4.1
+    # via importlib-metadata
