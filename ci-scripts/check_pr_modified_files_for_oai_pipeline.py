@@ -39,6 +39,12 @@ for line in listModifiedFiles.split('\n'):
     res = re.search('ci-scripts/docker/Dockerfile.mme.ci.ubuntu18', line)
     if res is not None:
         mmeIsImpacted = True
+    res = re.search('feg/cloud/go/protos/s6a_proxy.pb.go', line)
+    if res is not None:
+        mmeIsImpacted = True
+    res = re.search('feg/protos/s6a_proxy.proto', line)
+    if res is not None:
+        mmeIsImpacted = True
 
 if mmeIsImpacted:
     sys.exit(-1)
