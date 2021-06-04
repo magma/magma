@@ -31,6 +31,5 @@ int send_app_health_to_service303(
   } else {
     message_p = itti_alloc_new_message(origin_id, APPLICATION_UNHEALTHY_MSG);
   }
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
