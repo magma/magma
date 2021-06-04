@@ -193,9 +193,9 @@ class HtmlReport():
         self.file.write('       <th>Image Kind</th>\n')
         cwd = os.getcwd()
         if os.path.isfile(cwd + '/archives/' + U18_BUILD_LOG_FILE):
-            self.file.write('       <th>MAGMA - OAI MME cNF (Ubuntu-18)</th>\n')
+            self.file.write('       <th>MAGMA - OAI MME cNF (<font color="DarkRed">Ubuntu-18</font>)</th>\n')
         if os.path.isfile(cwd + '/archives/' + RHEL8_BUILD_LOG_FILE):
-            self.file.write('       <th>MAGMA - OAI MME cNF (RHEL-8)</th>\n')
+            self.file.write('       <th>MAGMA - OAI MME cNF (<font color="DarkRed">RHEL-8</font>)</th>\n')
         self.file.write('     </tr>\n')
 
     def add_build_summary_footer(self):
@@ -241,15 +241,23 @@ class HtmlReport():
         for log_file_name in log_file_names:
             if os.path.isfile(cwd + '/archives/' + log_file_name):
                 status = False
+                common1 = False
+                common2 = False
+                common3 = False
+                common4 = False
+                common5 = False
+                common6 = False
+                common7 = False
+                common8 = False
                 if nf_type == COMMON_TYPE:
                     section_start_pattern = 'ninja -C  /build/c/magma_common'
-                    section_end_pattern = 'cmake  /magma/lte/gateway/c/oai -DCMAKE_BUILD_TYPE=Debug  -DS6A_OVER_GRPC=False -GNinja'
+                    section_end_pattern = 'cd  /build/c/oai &&  cmake  /magma/lte/gateway/c/oai'
                 if nf_type == MME_TYPE:
                     section_start_pattern = 'ninja -C  /build/c/oai'
-                    section_end_pattern = 'cmake  /magma/orc8r/gateway/c/common -DCMAKE_BUILD_TYPE=Debug   -GNinja'
+                    section_end_pattern = 'cd  /build/c/sctpd &&  cmake  /magma/lte/gateway/c/sctpd'
                 if nf_type == SCTPD_TYPE:
                     section_start_pattern = 'ninja -C  /build/c/sctpd'
-                    section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
+                    section_end_pattern = '[aA][sS] magma-mme$'
                 section_status = False
                 with open(cwd + '/archives/' + log_file_name, 'r') as logfile:
                     for line in logfile:
@@ -261,13 +269,39 @@ class HtmlReport():
                             section_status = False
                         if section_status:
                             if nf_type == COMMON_TYPE:
-                                my_res = re.search('Linking CXX static library eventd/libEVENTD.a', line)
-                            if nf_type == MME_TYPE:
-                                my_res = re.search('Linking CXX executable oai_mme/mme', line)
-                            if nf_type == SCTPD_TYPE:
-                                my_res = re.search('Linking CXX executable sctpd', line)
-                            if my_res is not None:
-                                status = True
+                                my_res = re.search('Completed \'MagmaLogging\'', line)
+                                if my_res is not None:
+                                    common1 = True
+                                my_res = re.search('Completed \'MagmaConfig\'', line)
+                                if my_res is not None:
+                                    common2 = True
+                                my_res = re.search('Completed \'ServiceRegistry\'', line)
+                                if my_res is not None:
+                                    common3 = True
+                                my_res = re.search('Completed \'Service303\'', line)
+                                if my_res is not None:
+                                    common4 = True
+                                my_res = re.search('Completed \'AsyncGrpc\'', line)
+                                if my_res is not None:
+                                    common5 = True
+                                my_res = re.search('Completed \'Datastore\'', line)
+                                if my_res is not None:
+                                    common6 = True
+                                my_res = re.search('Completed \'Eventd\'', line)
+                                if my_res is not None:
+                                    common7 = True
+                                my_res = re.search('Completed \'PolicyDb\'', line)
+                                if my_res is not None:
+                                    common8 = True
+                                if common1 and common2 and common3 and common4 and common5 and common6 and common7 and common8:
+                                   status = True
+                            else:
+                                if nf_type == MME_TYPE:
+                                    my_res = re.search('Linking CXX executable oai_mme/mme', line)
+                                if nf_type == SCTPD_TYPE:
+                                    my_res = re.search('Linking CXX executable sctpd', line)
+                                if my_res is not None:
+                                    status = True
                     logfile.close()
                 if status:
                     cell_msg = '      <td bgcolor="LimeGreen"><pre style="border:none; background-color:LimeGreen"><b>'
@@ -276,7 +310,40 @@ class HtmlReport():
                     cell_msg = '      <td bgcolor="Tomato"><pre style="border:none; background-color:Tomato"><b>'
                     cell_msg += 'KO:\n'
                 if nf_type == COMMON_TYPE:
-                    cell_msg += ' -- ninja -C  /build/c/magma_common</b></pre></td>\n'
+                    cell_msg += ' -- ninja -C  /build/c/magma_common\n'
+                    if common1:
+                        cell_msg += '     ** MagmaLogging :  OK\n'
+                    else:
+                        cell_msg += '     ** MagmaLogging :  KO\n'
+                    if common2:
+                        cell_msg += '     ** MagmaConfig :  OK\n'
+                    else:
+                        cell_msg += '     ** MagmaConfig :  KO\n'
+                    if common3:
+                        cell_msg += '     ** ServiceRegistry :  OK\n'
+                    else:
+                        cell_msg += '     ** ServiceRegistry :  KO\n'
+                    if common4:
+                        cell_msg += '     ** Service303 :  OK\n'
+                    else:
+                        cell_msg += '     ** Service303 :  KO\n'
+                    if common5:
+                        cell_msg += '     ** AsyncGrpc :  OK\n'
+                    else:
+                        cell_msg += '     ** AsyncGrpc :  KO\n'
+                    if common6:
+                        cell_msg += '     ** Datastore :  OK\n'
+                    else:
+                        cell_msg += '     ** Datastore :  KO\n'
+                    if common7:
+                        cell_msg += '     ** Eventd :  OK\n'
+                    else:
+                        cell_msg += '     ** Eventd :  KO\n'
+                    if common8:
+                        cell_msg += '     ** PolicyDb :  OK\n'
+                    else:
+                        cell_msg += '     ** PolicyDb :  KO\n'
+                    cell_msg += '</b></pre></td>\n'
                 if nf_type == MME_TYPE:
                     cell_msg += ' -- ninja -C  /build/c/oai</b></pre></td>\n'
                 if nf_type == SCTPD_TYPE:
