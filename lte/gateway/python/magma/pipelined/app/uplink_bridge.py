@@ -193,7 +193,7 @@ class UplinkBridgeController(MagmaController):
     def _set_sgi_interface_ingress_flows(self):
         if_addrs = netifaces.ifaddresses(self.config.uplink_bridge).get(netifaces.AF_INET, [])
         for addr in if_addrs:
-            addr = "/".join((addr['addr'], addr['netmask']))
+            addr = addr['addr']
 
             match = "in_port=%s,ip,ip_dst=%s" % (self.config.uplink_eth_port_name,
                                                  addr)
