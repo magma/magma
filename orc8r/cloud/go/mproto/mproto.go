@@ -29,16 +29,16 @@ func MarshalManyDeterministic(protosByID map[string]proto.Message) ([]byte, erro
 	// serialization as well, plus providing a uniquely identifying URL for each message,
 	// making it unnecessarily complicated in comparison, if we only want a deterministic
 	// encoding of the input.
-	protoBytesByID := map[string][]byte{}
+	bytesByID := map[string][]byte{}
 	for id, proto := range protosByID {
 		bytes, err := MarshalDeterministic(proto)
 		if err != nil {
 			return nil, err
 		}
-		protoBytesByID[id] = bytes
+		bytesByID[id] = bytes
 	}
 
-	return MarshalDeterministic(&protos.ProtosByID{ProtoBytes: protoBytesByID})
+	return MarshalDeterministic(&protos.ProtosByID{BytesById: bytesByID})
 }
 
 // MarshalDeterministic encodes protobuf while enforcing deterministic serialization.

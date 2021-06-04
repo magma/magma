@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package test
+package mproto_test
 
 import (
 	"encoding/base64"
@@ -20,6 +20,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/mproto"
+	"magma/orc8r/cloud/go/mproto/test"
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -30,7 +31,7 @@ const (
 )
 
 var (
-	goldenFilepath = "../testdata/determinisic-digest.b64.golden"
+	goldenFilepath = "testdata/determinisic-digest.b64.golden"
 )
 
 // TestMarshalManyDeterministic checks if MarshalManyDeterministic truly enforces
@@ -40,9 +41,9 @@ var (
 func TestMarshalManyDeterministic(t *testing.T) {
 	// Encode basic proto messages (no compound fields).
 	protos1 := map[string]proto.Message{
-		"12345": &TestDataBasic{Key: "12345", Value: 10},
-		"23456": &TestDataBasic{Key: "23456", Value: 15},
-		"34567": &TestDataBasic{Key: "34567", Value: 20},
+		"12345": &test.TestDataBasic{Key: "12345", Value: 10},
+		"23456": &test.TestDataBasic{Key: "23456", Value: 15},
+		"34567": &test.TestDataBasic{Key: "34567", Value: 20},
 	}
 	encodedCanon1, err1 := mproto.MarshalManyDeterministic(protos1)
 	assert.NoError(t, err1)
@@ -50,7 +51,7 @@ func TestMarshalManyDeterministic(t *testing.T) {
 	for i := 0; i < iterationCount; i++ {
 		encoded, err := mproto.MarshalManyDeterministic(protos1)
 		assert.NoError(t, err)
-		assert.Equal(t, encoded, encodedCanon1)
+		assert.Equal(t, encodedCanon1, encoded)
 	}
 
 	// Encode compound proto messages (with repeated & map fields).
@@ -66,7 +67,7 @@ func TestMarshalManyDeterministic(t *testing.T) {
 	for i := 0; i < iterationCount; i++ {
 		encoded, err := mproto.MarshalManyDeterministic(protos2)
 		assert.NoError(t, err)
-		assert.Equal(t, encoded, encodedCanon2)
+		assert.Equal(t, encodedCanon2, encoded)
 	}
 }
 
@@ -94,18 +95,18 @@ func TestMarshalManyDeterministicGoldenFile(t *testing.T) {
 
 // getTestDataCompound generates proto messages with compound data fields
 // (repeated fields and maps) to cover cases of protobuf nondeterminism.
-func getTestDataCompound() []*TestDataCompound {
-	return []*TestDataCompound{
+func getTestDataCompound() []*test.TestDataCompound {
+	return []*test.TestDataCompound{
 		{
 			Id:         "c1",
-			SingleData: &TestDataBasic{Key: "12345", Value: 10},
-			DataMap: map[string]*TestDataBasic{
+			SingleData: &test.TestDataBasic{Key: "12345", Value: 10},
+			DataMap: map[string]*test.TestDataBasic{
 				"12345": {Key: "12345", Value: 10},
 				"23456": {Key: "23456", Value: 15},
 				"34567": {Key: "34567", Value: 20},
 				"45678": {Key: "45678", Value: 25},
 			},
-			DataSlice: []*TestDataBasic{
+			DataSlice: []*test.TestDataBasic{
 				{Key: "67890", Value: 35},
 				{Key: "56789", Value: 30},
 				{Key: "45678", Value: 25},
@@ -114,13 +115,13 @@ func getTestDataCompound() []*TestDataCompound {
 		},
 		{
 			Id:         "c2",
-			SingleData: &TestDataBasic{Key: "23456", Value: 15},
-			DataMap: map[string]*TestDataBasic{
+			SingleData: &test.TestDataBasic{Key: "23456", Value: 15},
+			DataMap: map[string]*test.TestDataBasic{
 				"34567": {Key: "34567", Value: 20},
 				"45678": {Key: "45678", Value: 25},
 				"56789": {Key: "56789", Value: 30},
 			},
-			DataSlice: []*TestDataBasic{
+			DataSlice: []*test.TestDataBasic{
 				{Key: "45678", Value: 25},
 				{Key: "34567", Value: 20},
 				{Key: "23456", Value: 15},
@@ -128,12 +129,12 @@ func getTestDataCompound() []*TestDataCompound {
 		},
 		{
 			Id:         "c3",
-			SingleData: &TestDataBasic{Key: "34567", Value: 20},
-			DataMap: map[string]*TestDataBasic{
+			SingleData: &test.TestDataBasic{Key: "34567", Value: 20},
+			DataMap: map[string]*test.TestDataBasic{
 				"56789": {Key: "56789", Value: 30},
 				"67890": {Key: "67890", Value: 35},
 			},
-			DataSlice: []*TestDataBasic{
+			DataSlice: []*test.TestDataBasic{
 				{Key: "23456", Value: 15},
 				{Key: "12345", Value: 10},
 			},

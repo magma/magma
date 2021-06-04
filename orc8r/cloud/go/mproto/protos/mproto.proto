@@ -18,5 +18,5 @@ option go_package = "protos";
 
 // ProtosByID is a set of protobuf messages, all individually encoded & paired with unique identifiers.
 message ProtosByID {
-  map<string, bytes> proto_bytes = 1;
+  map<string, bytes> bytes_by_id = 1;
 }
