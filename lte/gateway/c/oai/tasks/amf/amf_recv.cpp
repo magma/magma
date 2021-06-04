@@ -455,6 +455,12 @@ int amf_handle_identity_response(
         found_imsi->second = guti_and_amf_id;
       }
     }
+
+    ue_m5gmm_context_s* ue_context =
+        amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+    if (ue_context) {
+      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
+    }
   }
   /*
    * Execute the identification completion procedure

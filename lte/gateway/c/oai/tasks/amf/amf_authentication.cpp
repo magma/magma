@@ -412,8 +412,13 @@ int amf_proc_authentication_ksi(
     failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
-  nas5g_amf_auth_proc_t* auth_proc;
   amf_ue_ngap_id_t ue_id;
+  nas5g_amf_auth_proc_t* auth_proc;
+  auth_proc = get_nas5g_common_procedure_authentication(amf_context);
+  if (!auth_proc) {
+    auth_proc = nas5g_new_authentication_procedure(amf_context);
+  }
+
   if ((amf_context) && ((AMF_DEREGISTERED == amf_context->amf_fsm_state) ||
                         (AMF_REGISTERED == amf_context->amf_fsm_state))) {
     ue_id = PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)
@@ -423,10 +428,6 @@ int amf_proc_authentication_ksi(
         "ue_id= " AMF_UE_NGAP_ID_FMT
         " AMF-PROC  - Initiate Authentication KSI = %d\n",
         ue_id, ksi);
-    auth_proc = get_nas5g_common_procedure_authentication(amf_context);
-    if (!auth_proc) {
-      auth_proc = nas5g_new_authentication_procedure(amf_context);
-    }
     if (auth_proc) {
       if (AMF_SPEC_PROC_TYPE_REGISTRATION == amf_specific_proc->type)
         auth_proc->is_cause_is_registered = true;
@@ -522,17 +523,16 @@ int amf_proc_authentication_complete(
   nas5g_amf_auth_proc_t* auth_proc =
       get_nas5g_common_procedure_authentication(amf_ctx);
 
-/*  Stop Timer T3560 */
-#if 0
-    OAILOG_ERROR(
+  if (auth_proc) {
+    /*    Stop Timer T3560 */
+    OAILOG_INFO(
         LOG_NAS_EMM,
         "Timer:  Stopping Authentication Timer T3560 with id = %d\n",
         auth_proc->T3560.id);
     stop_timer(&amf_app_task_zmq_ctx, auth_proc->T3560.id);
     auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
-    OAILOG_ERROR(LOG_NAS_EMM, "Timer: After Stopping T3560 Timer\n");
-#endif
-  if (auth_proc) {
+    OAILOG_INFO(LOG_NAS_EMM, "Timer: After Stopping T3560 Timer\n");
+
     nas_amf_smc_proc_autn.amf_ctx_set_security_eksi(amf_ctx, auth_proc->ksi);
 
     for (idx = 0; idx < amf_ctx->_vector[auth_proc->ksi].xres_size; idx++) {
@@ -614,17 +614,6 @@ int amf_proc_authentication_failure(
   amf_ctx = &ue_mm_context->amf_context;
   nas5g_amf_auth_proc_t* auth_proc =
       get_nas5g_common_procedure_authentication(amf_ctx);
-
-  /*	Stop Timer T3560 */
-#if 0
-	OAILOG_INFO(
-		LOG_NAS_EMM,
-		"Timer:  Stopping Authentication Timer T3560 with id = %d\n",
-		auth_proc->T3560.id);
-	stop_timer(&amf_app_task_zmq_ctx, auth_proc->T3560.id);
-	auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
-	OAILOG_INFO(LOG_NAS_EMM, "Timer: After Stopping T3560 Timer\n");
-#endif
 
   if (!auth_proc) {
     OAILOG_WARNING(LOG_NAS_AMF, "authentication procedure not present\n");

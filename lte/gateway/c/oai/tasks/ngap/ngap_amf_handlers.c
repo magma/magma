@@ -196,7 +196,7 @@ int ngap_amf_set_cause(
 
   switch (cause_type) {
     case Ngap_Cause_PR_radioNetwork:
-      cause_p->choice.misc = cause_value;
+      cause_p->choice.radioNetwork = cause_value;
       break;
 
     case Ngap_Cause_PR_transport:
@@ -216,6 +216,7 @@ int ngap_amf_set_cause(
       break;
 
     default:
+      OAILOG_DEBUG(LOG_NGAP, "Unknown cause for context release");
       return -1;
   }
 
@@ -1081,6 +1082,10 @@ int ngap_amf_generate_ue_context_release_command(
     case NGAP_NAS_NORMAL_RELEASE:
       cause_type  = Ngap_Cause_PR_nas;
       cause_value = Ngap_CauseNas_unspecified;
+      break;
+    case NGAP_NAS_AUTHENTICATION_FAILURE:
+      cause_type  = Ngap_Cause_PR_nas;
+      cause_value = Ngap_CauseNas_authentication_failure;
       break;
     case NGAP_RADIO_NR_GENERATED_REASON:
       cause_type  = Ngap_Cause_PR_radioNetwork;
