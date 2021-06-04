@@ -477,7 +477,7 @@ inline void emm_ctx_set_valid_ue_nw_cap(
 /* Clear MS network capability IE   */
 inline void emm_ctx_clear_ms_nw_cap(emm_context_t* const ctxt) {
   memset(
-      &ctxt->_ms_network_capability, 0, sizeof(ctxt->_ue_network_capability));
+      &ctxt->_ms_network_capability, 0, sizeof(ctxt->_ms_network_capability));
   emm_ctx_clear_attribute_present(
       ctxt, EMM_CTXT_MEMBER_MS_NETWORK_CAPABILITY_IE);
   OAILOG_DEBUG(
