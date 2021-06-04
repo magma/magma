@@ -21,6 +21,10 @@ module "orc8r" {
   {% for k in cfg['platform'] %}
   {{k}}=var.{{k}}
   {% endfor %}
+
+  global_tags = {
+      magma-uuid = var.magma_uuid
+  }
 }
 
 module "orc8r-app" {
@@ -31,6 +35,7 @@ module "orc8r-app" {
   {% endfor %}
 
   region = var.region
+  magma_uuid = var.magma_uuid
   orc8r_domain_name = module.orc8r.orc8r_domain_name
   orc8r_route53_zone_id = module.orc8r.route53_zone_id
   external_dns_role_arn = module.orc8r.external_dns_role_arn

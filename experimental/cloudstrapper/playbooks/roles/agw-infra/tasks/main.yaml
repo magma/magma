@@ -5,3 +5,7 @@
   tags: createBridge
 - include: provision-instances.yaml
   tags: createGw
+- include: cleanup-bridge.yaml
+  tags: cleanupBridge
+- include: cleanup-networks.yaml
+  tags: cleanupNet

@@ -16,9 +16,12 @@ import os
 
 import click
 import yaml
+from cli.style import print_error_msg, print_success_msg, print_title
 from jinja2 import Environment, FileSystemLoader
 from prettytable import PrettyTable
-from subprocess import check_call
+from utils.awslib import set_aws_configs
+from utils.common import get_json, put_json
+
 
 def get_input(text, default_val):
     if default_val:
@@ -31,18 +34,12 @@ def get_input(text, default_val):
     return resp
 
 
-def get_json(fn: str) -> dict:
-    try:
-        with open(fn) as f:
-            return json.load(f)
-    except OSError:
-        pass
-    return {}
+def input_to_type(input_str: str, input_type: str):
+    ''' convert input string to its appropriate type '''
+    if input_type == 'map':
+        return json.loads(input_str)
 
-
-def put_json(fn: str, cfgs: dict):
-    with open(fn, 'w') as outfile:
-        json.dump(cfgs, outfile)
+    return input_str
 
 
 def add_pretty_table(fields, items):
@@ -81,66 +78,43 @@ class ConfigManager(object):
         return f"{config_dir}/{component}.tfvars.json"
 
     def set(self, component: str, key: str, value: str):
-        click.echo(
-            f"Setting key {key} value {value} for component {component}")
-        cfgs = get_json(self._get_config_fn(component))
+        click.echo(f"Setting key {key} value {value} "
+                   f"for component {component}")
         config_vars = self.config_vars[component]
-
         if not config_vars.get(key):
-            click.echo("not a valid key")
+            print_error_msg(f"{key} not a valid attribute in {component}")
             return
-        cfgs[key] = value
+        self.configs[component][key] = value
 
-        self._configure_aws(component, cfgs)
-        self._configure_tf(component, cfgs)
-        put_json(self._get_config_fn(component), cfgs)
+    def commit(self, component):
+        set_aws_configs(self.aws_vars, self.configs[component])
+        self._configure_tf(component, self.configs[component])
+        put_json(self._get_config_fn(component), self.configs[component])
 
     def configure(self, component: str):
-        click.echo(
-            click.style(
-                f"\nConfiguring {component} deployment variables ",
-                underline=True))
+        print_title(f"\nConfiguring {component} deployment variables")
         cfgs = self.configs[component]
         # TODO: use a different yaml loader to ensure we load inorder
         # sort the variables to group the inputs together
         config_vars = self.config_vars[component].items()
         for config_key, config_info in sorted(config_vars, key=lambda s: s[0]):
-            config_description = config_info.get(
-                'Description', config_key).strip('.')
-            defaultValue = config_info.get('Default')
-            # add defaults to the json configs to ensure we can run prechecks
-            if defaultValue:
-                cfgs[config_key] = defaultValue
-                continue
-
             if not config_info['Required']:
                 continue
 
+            config_desc = config_info.get('Description', config_key).strip('.')
             v = cfgs.get(config_key)
             if v:
-                inp = get_input(f"{config_key}({config_description})", v)
+                inp = get_input(f"{config_key}({config_desc})", v)
             else:
-                inp = get_input(f"{config_key}({config_description})", v)
+                inp = get_input(f"{config_key}({config_desc})", v)
 
-            # strip quotes from input
-            if inp:
-                cfgs[config_key] = inp
-            else:
-                if v is None:
-                    if click.confirm("press 'y' to set empty string and "
+            if not inp and v is None:
+                if not click.confirm("press 'y' to set empty string and "
                                      "'n' to skip", prompt_suffix=': '):
-                        cfgs[config_key] = ""
+                    continue
+                inp = ""
 
-        self.configs[component] = cfgs
-        self._configure_aws(component, cfgs)
-        self._configure_tf(component, cfgs)
-        put_json(self._get_config_fn(component), cfgs)
-
-    def _configure_aws(self, component: str, cfgs: dict):
-        ''' configures aws cli with configuration '''
-        for k, v in cfgs.items():
-            if k in self.aws_vars:
-                check_call(["aws", "configure", "set", k, v])
+            cfgs[config_key] = input_to_type(inp, config_info.get('Type'))
 
     def _configure_tf(self, component: str, cfgs: dict):
         ''' updates the terraform auto configuration and main.tf '''
@@ -177,17 +151,18 @@ class ConfigManager(object):
             if v['Required'] and cfgs.get(k) is None:
                 missing_cfgs.append(k)
                 valid = False
+
         if missing_cfgs:
-            click.echo(
+            print_error_msg(
                 f"Missing {missing_cfgs!r} configs for {component} component")
         else:
-            click.echo(
+            print_success_msg(
                 f"All mandatory configs for {component} has been configured")
         return valid
 
     def info(self, component: str):
         ''' pretty click.echo vars yml '''
-        click.echo(f"{component} Configuration Options")
+        print_title(f"{component} Configuration Options")
         fields = ["Name", "Description", "Type", "Required", "Used By"]
         items = []
         for k, v in self.config_vars[component].items():
@@ -202,7 +177,7 @@ class ConfigManager(object):
 
     def show(self, component: str):
         ''' pretty click.echo existing configuration '''
-        click.echo(f"{component} Configuration")
+        print_title(f"{component} Configuration")
         items = [[k, v] for k, v in self.configs[component].items()]
         fields = ["Name", "Configuration"]
 
@@ -221,15 +196,26 @@ class ConfigManager(object):
         except OSError:
             click.echo(f"Failed opening vars file {vars_fn}")
 
-        # read all configs
+        # read all configs to initialize defaults and to identify
+        # app specific configs(terraform, awscli etc)
         for component in constants['components']:
+            self.configs[component] = {}
             try:
                 fn = self._get_config_fn(component)
                 self.configs[component] = get_json(fn)
-                for k, v in self.config_vars[component].items():
-                    if 'tf' in v["ConfigApps"]:
-                        self.tf_vars.add(k)
-                    if 'awscli' in v["ConfigApps"]:
-                        self.aws_vars.add(k)
             except OSError:
                 pass
+
+            cfgs = self.configs[component]
+            for config_key, config_info in self.config_vars[component].items():
+                if 'tf' in config_info["ConfigApps"]:
+                    self.tf_vars.add(config_key)
+
+                if 'awscli' in config_info["ConfigApps"]:
+                    self.aws_vars.add(config_key)
+
+                # add defaults to configs inorder to run prechecks
+                default = config_info.get('Default')
+                typ = config_info.get('Type')
+                if default is not None:
+                    cfgs[config_key] = input_to_type(default, typ)
