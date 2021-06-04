@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
@@ -22,7 +22,7 @@ from s1ap_utils import MagmadUtil
 class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
@@ -47,11 +47,11 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
 
         print("************* Send Attach Req for ue", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         print("************* Received Auth Req for ue", req.ue_id)
         auth_res = s1ap_types.ueAuthResp_t()
@@ -62,12 +62,12 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
 
         print("************* Send Auth Rsp for ue", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         print("************* Received SMC for ue", req.ue_id)
@@ -86,7 +86,7 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
             response = self._s1ap_wrapper.s1_util.get_response()
 
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         print("****** Triggering end-end attach after mme restart *********")

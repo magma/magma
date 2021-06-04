@@ -12,11 +12,11 @@ limitations under the License.
 """
 
 
+import ctypes
 import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import ctypes
 
 
 class TestImeiRestrictionWildcardSnr(unittest.TestCase):
@@ -61,7 +61,7 @@ class TestImeiRestrictionWildcardSnr(unittest.TestCase):
         attach_req.pdnType_pr = pdn_type
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         print(
             "********************** Sent attach req for UE id ", req.ue_id,
@@ -69,7 +69,7 @@ class TestImeiRestrictionWildcardSnr(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         auth_req = response.cast(s1ap_types.ueAuthReqInd_t)
         print(
@@ -84,13 +84,13 @@ class TestImeiRestrictionWildcardSnr(unittest.TestCase):
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         print("********************** Sent auth rsp for UE id", req.ue_id)
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
         sec_mod_cmd = response.cast(s1ap_types.ueSecModeCmdInd_t)
         print(
@@ -108,7 +108,7 @@ class TestImeiRestrictionWildcardSnr(unittest.TestCase):
         for i in range(0, len(imeisv)):
             sec_mode_complete.imeisv[i] = ctypes.c_ubyte(int(imeisv[i]))
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
         )
         print(
             "********************** Sent security mode complete for UE id",
@@ -118,23 +118,23 @@ class TestImeiRestrictionWildcardSnr(unittest.TestCase):
         # Receive Attach Reject
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
         )
         attach_rej = response.cast(s1ap_types.ueAttachRejInd_t)
         print(
             "********************** Received attach reject for UE id %d"
-            " with emm cause %d" % (attach_rej.ue_Id, attach_rej.cause)
+            " with emm cause %d" % (attach_rej.ue_Id, attach_rej.cause),
         )
 
         # Verify cause
         self.assertEqual(
-            attach_rej.cause, s1ap_types.TFW_EMM_CAUSE_IMEI_NOT_ACCEPTED
+            attach_rej.cause, s1ap_types.TFW_EMM_CAUSE_IMEI_NOT_ACCEPTED,
         )
 
         # UE Context release
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         ue_context_rel = response.cast(s1ap_types.ueCntxtRelReq_t)

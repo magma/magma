@@ -30,23 +30,29 @@ class TestAttachCombinedEpsImsi(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
-        print("************************* Running End to End attach for UE id ",
-              ue_id)
+        print(
+            "************************* Running End to End attach for UE id ",
+            ue_id,
+        )
         # Now actually complete the attach
         self._s1ap_wrapper._s1_util.attach(
             ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
-            eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_COMB_EPS_IMSI_ATTACH)
+            eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_COMB_EPS_IMSI_ATTACH,
+        )
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
-        print("************************* Running UE detach for UE id ",
-              ue_id)
+        print(
+            "************************* Running UE detach for UE id ",
+            ue_id,
+        )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False)
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
+        )
 
 
 if __name__ == "__main__":

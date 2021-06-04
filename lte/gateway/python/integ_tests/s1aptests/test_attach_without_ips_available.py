@@ -36,12 +36,15 @@ class TestAttachWithoutIpsAvailable(unittest.TestCase):
         self._s1ap_wrapper.mobility_util.cleanup()
 
         req = self._s1ap_wrapper.ue_req
-        print("************************* Running End to End attach for ",
-              "UE id ", req.ue_id)
+        print(
+            "************************* Running End to End attach for ",
+            "UE id ", req.ue_id,
+        )
         # Now actually attempt the attach
         self._s1ap_wrapper._s1_util.attach(
             req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-            s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND, s1ap_types.ueAttachFail_t)
+            s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND, s1ap_types.ueAttachFail_t,
+        )
 
 
 if __name__ == "__main__":

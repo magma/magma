@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import time
+import unittest
 
 import gpp_types
 import s1ap_types
@@ -75,11 +75,11 @@ class TestAttachImplicitDetachTimerExpiry(unittest.TestCase):
         req.ue_Id = ue_id
         req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         # For implicit detach timer to expire, first ensure that
@@ -88,7 +88,7 @@ class TestAttachImplicitDetachTimerExpiry(unittest.TestCase):
         # DETACH TIMER VALUE = mobile reachability timer value + delta value
         print(
             "************************* Waiting for Implicit Detach Timer"
-            " to expire. Sleeping for 740 seconds.."
+            " to expire. Sleeping for 740 seconds..",
         )
         timeSlept = 0
         while timeSlept < 740:
@@ -107,15 +107,15 @@ class TestAttachImplicitDetachTimerExpiry(unittest.TestCase):
         req.ueMtmsi.pres = False
         req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req
+            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         time.sleep(0.5)

@@ -11,9 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import time
 import ctypes
+import time
+import unittest
 from builtins import range
 
 import s1ap_types
@@ -57,11 +57,11 @@ class TestEnbPartialReset(unittest.TestCase):
             print("********Triggering Attach Request with PND Type IPv4 test")
 
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+                s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
             )
 
             # Trigger Authentication Response
@@ -71,30 +71,30 @@ class TestEnbPartialReset(unittest.TestCase):
             sqnRecvd.pres = 0
             auth_res.sqnRcvd = sqnRecvd
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+                s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
             )
 
             # Trigger Security Mode Complete
             sec_mode_complete = s1ap_types.ueSecModeComplete_t()
             sec_mode_complete.ue_Id = req.ue_id
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()
             print("response message type for ATTTACH ACC", response.msg_type)
             print("acc", s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value)
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
             )
             ue_ids.append(req.ue_id)
 
@@ -114,7 +114,7 @@ class TestEnbPartialReset(unittest.TestCase):
         reset_req.r = s1ap_types.R()
         reset_req.r.partialRst = s1ap_types.PartialReset()
         reset_req.r.partialRst.numOfConn = num_ues
-        reset_req.r.partialRst.ueS1apIdPairList  = (
+        reset_req.r.partialRst.ueS1apIdPairList = (
             (s1ap_types.UeS1apIdPair) * reset_req.r.partialRst.numOfConn
         )()
         for indx in range(reset_req.r.partialRst.numOfConn):
@@ -126,7 +126,7 @@ class TestEnbPartialReset(unittest.TestCase):
             )
         print("ue_ids", ue_ids)
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.RESET_REQ, reset_req
+            s1ap_types.tfwCmd.RESET_REQ, reset_req,
         )
         response1 = self._s1ap_wrapper.s1_util.get_response()
         print("response1 message type", response1.msg_type)

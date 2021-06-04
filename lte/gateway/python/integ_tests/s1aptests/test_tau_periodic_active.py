@@ -12,8 +12,8 @@ limitations under the License.
 """
 
 import threading
-import unittest
 import time
+import unittest
 
 import gpp_types
 import s1ap_types
@@ -36,14 +36,17 @@ class TestTauPeriodicActive(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
-        print("************************* Running End to End attach for UE id ",
-              ue_id)
+        print(
+            "************************* Running End to End attach for UE id ",
+            ue_id,
+        )
         # Now actually complete the attach
         self._s1ap_wrapper.s1_util.attach(
             ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
-            id_type=s1ap_types.TFW_MID_TYPE_GUTI)
+            id_type=s1ap_types.TFW_MID_TYPE_GUTI,
+        )
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -52,25 +55,31 @@ class TestTauPeriodicActive(unittest.TestCase):
         # UE context release request message.
         time.sleep(0.5)
 
-        print("************************* Sending UE context release request ",
-              "for UE id ", ue_id)
+        print(
+            "************************* Sending UE context release request ",
+            "for UE id ", ue_id,
+        )
         # Send UE context release request to move UE to idle mode
         req = s1ap_types.ueCntxtRelReq_t()
         req.ue_Id = ue_id
         req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req)
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+        )
 
         for _ in range(num_taus):
             timer = threading.Timer(tau_period, lambda: None)
             timer.start()
             timer.join()
 
-            print("************************* Sending Tracking Area Update ",
-                  "request for UE id ", ue_id)
+            print(
+                "************************* Sending Tracking Area Update ",
+                "request for UE id ", ue_id,
+            )
             # Send UE context release request to move UE to idle mode
             req = s1ap_types.ueTauReq_t()
             req.ue_Id = ue_id
@@ -78,35 +87,47 @@ class TestTauPeriodicActive(unittest.TestCase):
             req.Actv_flag = True
             req.ueMtmsi.pres = False
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_TAU_REQ, req)
+                s1ap_types.tfwCmd.UE_TAU_REQ, req,
+            )
 
             response = self._s1ap_wrapper.s1_util.get_response()
             if s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value == response.msg_type:
                 response = self._s1ap_wrapper.s1_util.get_response()
-                self.assertEquals(response.msg_type,
-                                  s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value)
+                self.assertEquals(
+                    response.msg_type,
+                    s1ap_types.tfwCmd.UE_TAU_ACCEPT_IND.value,
+                )
 
-                print("************************* Sending UE context release ",
-                      "request for UE id ", ue_id)
+                print(
+                    "************************* Sending UE context release ",
+                    "request for UE id ", ue_id,
+                )
                 # Send UE context release request to move UE to idle mode
                 req = s1ap_types.ueCntxtRelReq_t()
                 req.ue_Id = ue_id
                 req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
                 self._s1ap_wrapper.s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req)
+                    s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
+                )
                 response = self._s1ap_wrapper.s1_util.get_response()
                 self.assertEqual(
-                    response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
+                    response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+                )
 
             else:
-                self.assertEquals(response.msg_type,
-                                  s1ap_types.tfwCmd.UE_TAU_REJECT_IND.value)
+                self.assertEquals(
+                    response.msg_type,
+                    s1ap_types.tfwCmd.UE_TAU_REJECT_IND.value,
+                )
 
-        print("************************* Running UE detach (switch-off) for ",
-              "UE id ", ue_id)
+        print(
+            "************************* Running UE detach (switch-off) for ",
+            "UE id ", ue_id,
+        )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False)
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
+        )
 
 
 if __name__ == "__main__":

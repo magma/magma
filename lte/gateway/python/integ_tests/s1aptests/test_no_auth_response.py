@@ -76,7 +76,7 @@ class TestNoAuthResponse(unittest.TestCase):
         req = self._s1ap_wrapper.ue_req
         print(
             "************************* Running attach no auth response \
-            timer expiry test"
+            timer expiry test",
         )
 
         attach_req = s1ap_types.ueAttachRequest_t()
@@ -89,13 +89,13 @@ class TestNoAuthResponse(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         # Wait for timer expiry 5 times, until context is released
         for i in range(5):
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
             )
             print("************************* Timeout", i + 1)
 
@@ -103,13 +103,13 @@ class TestNoAuthResponse(unittest.TestCase):
         # Attach Reject
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
         )
 
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("************************* Context released")
 

@@ -14,15 +14,24 @@ import itertools
 import unittest
 from unittest.mock import Mock
 
-from integ_tests.gxgy_tests.policies import create_uplink_rule, \
-    get_packets_for_flows
+from integ_tests.gxgy_tests.policies import (
+    create_uplink_rule,
+    get_packets_for_flows,
+)
 from integ_tests.gxgy_tests.session_manager import create_update_response
 from lte.protos import session_manager_pb2
 from lte.protos.policydb_pb2 import PolicyRule
-from lte.protos.session_manager_pb2 import CreateSessionResponse, \
-    LocalCreateSessionRequest, PolicyReAuthRequest, SessionTerminateResponse
+from lte.protos.session_manager_pb2 import (
+    CreateSessionResponse,
+    LocalCreateSessionRequest,
+    PolicyReAuthRequest,
+    SessionTerminateResponse,
+)
 from lte.protos.subscriberdb_pb2 import SubscriberID
-from magma.pipelined.tests.app.subscriber import SubContextConfig, default_ambr_config
+from magma.pipelined.tests.app.subscriber import (
+    SubContextConfig,
+    default_ambr_config,
+)
 from ryu.lib import hub
 
 from .utils import GxGyTestUtil as TestUtil
@@ -36,11 +45,15 @@ class GxReauthTest(unittest.TestCase):
 
         # Static policies
         cls.test_util = TestUtil()
-        policy1 = create_uplink_rule('policy1', 1, '45.10.0.1',
-                                     tracking=PolicyRule.NO_TRACKING)
+        policy1 = create_uplink_rule(
+            'policy1', 1, '45.10.0.1',
+            tracking=PolicyRule.NO_TRACKING,
+        )
         cls.test_util.static_rules[policy1.id] = policy1
-        policy2 = create_uplink_rule('policy2', 1, '45.10.10.2',
-                                     tracking=PolicyRule.NO_TRACKING)
+        policy2 = create_uplink_rule(
+            'policy2', 1, '45.10.10.2',
+            tracking=PolicyRule.NO_TRACKING,
+        )
         cls.test_util.static_rules[policy2.id] = policy2
         hub.sleep(2)  # wait for static rule to sync
 
@@ -53,22 +66,30 @@ class GxReauthTest(unittest.TestCase):
         Send a Gx reauth request which installs one new static rule, one new
         dynamic rule, and removes one static and one dynamic rule.
         """
-        dynamic_rule1 = create_uplink_rule('dynamic1', 1, '46.10.10.1',
-                                           tracking=PolicyRule.NO_TRACKING)
-        dynamic_rule2 = create_uplink_rule('dynamic2', 1, '46.10.10.2',
-                                           tracking=PolicyRule.NO_TRACKING)
+        dynamic_rule1 = create_uplink_rule(
+            'dynamic1', 1, '46.10.10.1',
+            tracking=PolicyRule.NO_TRACKING,
+        )
+        dynamic_rule2 = create_uplink_rule(
+            'dynamic2', 1, '46.10.10.2',
+            tracking=PolicyRule.NO_TRACKING,
+        )
 
         # Initialize sub with 1 static and 1 dynamic rule
         sub = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
         self.test_util.controller.mock_create_session = Mock(
             return_value=CreateSessionResponse(
                 credits=[create_update_response(sub.imsi, 1, 1024)],
-                static_rules=[session_manager_pb2.StaticRuleInstall(
-                    rule_id='policy1'
-                )],
-                dynamic_rules=[session_manager_pb2.DynamicRuleInstall(
-                    policy_rule=dynamic_rule1
-                )],
+                static_rules=[
+                    session_manager_pb2.StaticRuleInstall(
+                        rule_id='policy1',
+                    ),
+                ],
+                dynamic_rules=[
+                    session_manager_pb2.DynamicRuleInstall(
+                        policy_rule=dynamic_rule1,
+                    ),
+                ],
                 usage_monitors=[],
             ),
         )
@@ -79,7 +100,7 @@ class GxReauthTest(unittest.TestCase):
             LocalCreateSessionRequest(
                 sid=SubscriberID(id=sub.imsi),
                 ue_ipv4=sub.ip,
-            )
+            ),
         )
         self.assertEqual(
             self.test_util.controller.mock_create_session.call_count,
@@ -92,11 +113,11 @@ class GxReauthTest(unittest.TestCase):
             sub,
             [
                 session_manager_pb2.DynamicRuleInstall(
-                    policy_rule=self.test_util.static_rules['policy1']
+                    policy_rule=self.test_util.static_rules['policy1'],
                 ),
                 session_manager_pb2.DynamicRuleInstall(
-                    policy_rule=dynamic_rule1
-                )
+                    policy_rule=dynamic_rule1,
+                ),
             ],
         )
 
@@ -108,15 +129,15 @@ class GxReauthTest(unittest.TestCase):
                 rules_to_remove=['dynamic1', 'policy1'],
                 rules_to_install=[
                     session_manager_pb2.StaticRuleInstall(
-                        rule_id='policy2'
-                    )
+                        rule_id='policy2',
+                    ),
                 ],
                 dynamic_rules_to_install=[
                     session_manager_pb2.DynamicRuleInstall(
-                        policy_rule=dynamic_rule2
-                    )
+                        policy_rule=dynamic_rule2,
+                    ),
                 ],
-            )
+            ),
         )
         self.assertEqual(
             reauth_result.result,
@@ -127,10 +148,11 @@ class GxReauthTest(unittest.TestCase):
             sub,
             [
                 session_manager_pb2.DynamicRuleInstall(
-                    policy_rule=self.test_util.static_rules['policy2']),
+                    policy_rule=self.test_util.static_rules['policy2'],
+                ),
                 session_manager_pb2.DynamicRuleInstall(
-                    policy_rule=dynamic_rule2
-                )
+                    policy_rule=dynamic_rule2,
+                ),
             ],
         )
 
@@ -139,18 +161,18 @@ class GxReauthTest(unittest.TestCase):
             sub,
             [
                 session_manager_pb2.DynamicRuleInstall(
-                    policy_rule=self.test_util.static_rules['policy1']
+                    policy_rule=self.test_util.static_rules['policy1'],
                 ),
                 session_manager_pb2.DynamicRuleInstall(
-                    policy_rule=dynamic_rule1
-                )
+                    policy_rule=dynamic_rule1,
+                ),
             ],
             expected=0,
         )
 
     def _assert_rules(self, sub, rules, expected=-1):
         flows = list(
-            itertools.chain(*[rule.policy_rule.flow_list for rule in rules])
+            itertools.chain(*[rule.policy_rule.flow_list for rule in rules]),
         )
         packets = get_packets_for_flows(sub, flows)
         packet_sender = self.test_util.get_packet_sender([sub], packets, 1)

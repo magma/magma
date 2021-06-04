@@ -11,9 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from lte.protos import session_manager_pb2, session_manager_pb2_grpc
-from lte.protos.session_manager_pb2 import ChargingCredit, CreditUnit, \
-    CreditUpdateResponse, GrantedUnits, UsageMonitoringCredit, \
-    UsageMonitoringUpdateResponse
+from lte.protos.session_manager_pb2 import (
+    ChargingCredit,
+    CreditUnit,
+    CreditUpdateResponse,
+    GrantedUnits,
+    UsageMonitoringCredit,
+    UsageMonitoringUpdateResponse,
+)
 from ryu.lib import hub
 
 
@@ -53,10 +58,12 @@ def get_from_queue(q, retries=10, sleep_time=0.5):
     return None
 
 
-def get_standard_update_response(update_complete, monitor_complete, quota,
-                                 is_final=False,
-                                 success=True,
-                                 monitor_action=UsageMonitoringCredit.CONTINUE):
+def get_standard_update_response(
+    update_complete, monitor_complete, quota,
+    is_final=False,
+    success=True,
+    monitor_action=UsageMonitoringCredit.CONTINUE,
+):
     """
     Create a CreditUpdateResponse with some useful defaults
     Args:
@@ -72,15 +79,21 @@ def get_standard_update_response(update_complete, monitor_complete, quota,
         charging_responses = []
         monitor_responses = []
         for update in args[0].updates:
-            charging_responses.append(create_update_response(
+            charging_responses.append(
+                create_update_response(
                 update.sid, update.usage.charging_key, quota,
-                is_final=is_final, success=success))
+                is_final=is_final, success=success,
+                ),
+            )
             update_complete.put(update)
         for monitor in args[0].usage_monitors:
-            monitor_responses.append(create_monitor_response(
+            monitor_responses.append(
+                create_monitor_response(
                 monitor.sid, monitor.update.monitoring_key, quota,
                 monitor.update.level, action=monitor_action,
-                success=success))
+                success=success,
+                ),
+            )
             monitor_complete.put(monitor)
         return session_manager_pb2.UpdateSessionResponse(
             responses=charging_responses,
@@ -89,9 +102,11 @@ def get_standard_update_response(update_complete, monitor_complete, quota,
     return update_response
 
 
-def create_update_response(imsi, charging_key, total_quota,
-                           is_final=False,
-                           success=True):
+def create_update_response(
+    imsi, charging_key, total_quota,
+    is_final=False,
+    success=True,
+):
     """
     Create a CreditUpdateResponse with some useful defaults
     Args:
@@ -114,9 +129,11 @@ def create_update_response(imsi, charging_key, total_quota,
     )
 
 
-def create_monitor_response(imsi, m_key, total_quota, level,
-                            action=UsageMonitoringCredit.CONTINUE,
-                            success=True):
+def create_monitor_response(
+    imsi, m_key, total_quota, level,
+    action=UsageMonitoringCredit.CONTINUE,
+    success=True,
+):
     """
     Create a UsageMonitoringUpdateResponse with some useful defaults
     Args:
@@ -137,6 +154,6 @@ def create_monitor_response(imsi, m_key, total_quota, level,
                 total=CreditUnit(is_valid=True, volume=total_quota),
             ),
             level=level,
-            action=action
+            action=action,
         ),
     )
