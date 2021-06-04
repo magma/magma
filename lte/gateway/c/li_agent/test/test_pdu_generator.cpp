@@ -22,10 +22,12 @@
 
 #include <gtest/gtest.h>
 
+using grpc::Status;
+
 using testing::DoAll;
-using ::testing::Test;
+using ::testing::InvokeArgument;
 using ::testing::Return;
-using ::testing::SetArgReferee;
+using ::testing::Test;
 
 namespace magma {
 namespace lte {
@@ -63,15 +65,15 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
   ipHeader->ip_src.s_addr = 3232235522;
   ipHeader->ip_dst.s_addr = 3232235521;
 
+  EXPECT_CALL(*proxy_connector, send_data(testing::_, testing::_))
+      .Times(0)
+      .WillOnce(testing::Return(1));
+
+  SubscriberID response;
+  response.set_id("imsi123");
   EXPECT_CALL(
-    *mobilityd_client, GetSubscriberIDFromIP(_, _))
-	.Times(1)
-        .WillOnce(testing::DoAll(testing::SetArgPointee<1>("imsi1234"), testing::Return(0)));
-	
-  EXPECT_CALL(
-    *proxy_connector, send_data(testing::_, testing::_))
-	.Times(1)
-	.WillOnce(testing::Return(1));
+      *mobilityd_client, get_subscriber_id_from_ip(testing::_, testing::_))
+      .WillRepeatedly(testing::InvokeArgument<1>(Status::OK, response));
 
   pkt_generator->process_packet(phdr, pdata);
 

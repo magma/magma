@@ -82,6 +82,12 @@ int main(void) {
   int sync_interval          = config["sync_interval"].as<int>();
   int inactivity_time        = config["inactivity_time"].as<int>();
 
+  auto mobilityd_client = std::make_unique<magma::lte::AsyncMobilitydClient>();
+  std::thread mobilitydd_response_handling_thread([&]() {
+    MLOG(MINFO) << "Started MobilityD response thread";
+    mobilityd_client->rpc_response_loop();
+  });
+
   magma::service303::MagmaService server(LIAGENTD, LIAGENTD_VERSION);
   server.Start();
 
@@ -92,8 +98,7 @@ int main(void) {
     return -1;
   }
 
-  auto mobilityd_client = std::make_unique<magma::lte::MobilitydClient>();
-  auto pkt_generator    = std::make_unique<magma::lte::PDUGenerator>(
+  auto pkt_generator = std::make_unique<magma::lte::PDUGenerator>(
       pkt_dst_mac, pkt_src_mac, sync_interval, inactivity_time,
       std::move(proxy_connector), std::move(mobilityd_client));
 

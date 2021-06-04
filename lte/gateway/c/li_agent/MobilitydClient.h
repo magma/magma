@@ -17,45 +17,54 @@
 #include <memory>
 #include <string>
 
+#include "lte/protos/mobilityd.pb.h"
 #include "lte/protos/mobilityd.grpc.pb.h"
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 
-namespace grpc {
-class Channel;
-class ClientContext;
-class Status;
-}  // namespace grpc
+using grpc::Status;
 
 namespace magma {
 namespace lte {
 
-/*
- * gRPC client for MobilityService
- */
-class MobilitydClient : public GRPCReceiver {
+class MobilitydClient {
  public:
   virtual ~MobilitydClient() = default;
+
   /*
    * Get the subscriber id given its allocated IPv4 address. If the address
    * isn't associated with a subscriber, then it returns an error
    * @param addr: ipv4 address of subscriber
    * @param imsi (out): contains the imsi of the associated subscriber if it
    *                    exists
-   * @return 0 on success
-   * @return -RPC_STATUS_NOT_FOUND if IPv4 address is not found
+   * @return void
    */
-  int GetSubscriberIDFromIP(const struct in_addr& addr, std::string* imsi);
+  virtual void get_subscriber_id_from_ip(
+      const struct in_addr& ip,
+      std::function<void(Status status, SubscriberID)> callback) = 0;
+};
 
+/**
+ * AsyncMobilitydClient sends asynchronous calls to mobilityd to retrieve
+ * UE information.
+ */
+class AsyncMobilitydClient : public GRPCReceiver, public MobilitydClient {
  public:
-  MobilitydClient();
-  static MobilitydClient& getInstance();
+  AsyncMobilitydClient();
+  explicit AsyncMobilitydClient(
+      std::shared_ptr<grpc::Channel> mobilityd_channel);
 
-  MobilitydClient(MobilitydClient const&) = delete;
-  void operator=(MobilitydClient const&) = delete;
+  void get_subscriber_id_from_ip(
+      const struct in_addr& ip,
+      std::function<void(Status status, SubscriberID)> callback);
 
  private:
-  static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
-  std::unique_ptr<MobilityService::Stub> stub_{};
+  static const uint32_t RESPONSE_TIMEOUT_SECONDS = 6;
+  std::unique_ptr<MobilityService::Stub> stub_;
+
+ private:
+  void get_subscriber_id_from_ip_rpc(
+      const IPAddress& request,
+      std::function<void(Status, SubscriberID)> callback);
 };
 
 }  // namespace lte

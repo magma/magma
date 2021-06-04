@@ -86,11 +86,11 @@ class PDUGenerator {
   bool process_packet(const struct pcap_pkthdr* phdr, const u_char* pdata);
 
   /**
-   * cleanup_inactive_tasks loops over all tasks and delete all inactive states
+   * delete_inactive_tasks loops over all tasks and deletes all inactive states
    * with no exported records for inactivity_time seconds.
    * @return void
    */
-  void cleanup_inactive_tasks();
+  void delete_inactive_tasks();
 
  private:
   std::string iface_name_;
@@ -100,7 +100,7 @@ class PDUGenerator {
   int inactivity_time_;
   uint64_t prev_sync_time_;
   Tins::NetworkInterface iface_;
-  InterceptStateMap intercept_state_map_;
+  InterceptStateMap state_map_;
   std::unique_ptr<ProxyConnector> proxy_connector_;
   std::unique_ptr<MobilitydClient> mobilityd_client_;
 
@@ -128,17 +128,6 @@ class PDUGenerator {
   bool export_record(void* record, uint32_t size, int retries);
 
   /**
-   * process_new_task processes a new task when no existing state matches the
-   * current packet.
-   * @param ipList - source and destination ip address
-   * @param idx - ip address of the intercept target
-   * @param state - intercept state
-   * @return voidl
-   */
-  bool process_new_task(
-      const FlowInformation flow, std::string* idx, InterceptState* state);
-
-  /**
    * get_subscriber_id_from_ip retrieves a subscriber id from the ip address
    * from mobilityd service
    * @param ip_addr - ip address
@@ -148,21 +137,24 @@ class PDUGenerator {
   bool get_subscriber_id_from_ip(const char* ip_addr, std::string* subid);
 
   /**
-   * get_intercept_state_id retrieves a state for the current flow from
+   * get_intercept_state_idx retrieves a state for the current flow from
    * the corresponding mconfig nprobe task. If no state is found, It will
    * create new one.
    * @param flow - describes the ip sources and destination address
-   * @return index of state in the map
+   * @param idx - the intercept state index
+   * @return true if a new state is found, false otherwise
    */
-  std::string get_intercept_state_idx(const FlowInformation& flow);
+  bool get_intercept_state_idx(const FlowInformation& flow, std::string* idx);
 
   /**
    * create_new_intercept_state creates a new state for the current flow from
    * the corresponding mconfig nprobe task
    * @param flow - describes the ip sources and destination address
-   * @return index of the newly created state
+   * @param idx - the newly created state index
+   * @return true if a new state is created, false otherwise
    */
-  std::string create_new_intercept_state(const FlowInformation& flow);
+  bool create_new_intercept_state(
+      const FlowInformation& flow, std::string* idx);
 
   /**
    * is_still_valid_state validates that the current state belongs to non
@@ -170,7 +162,7 @@ class PDUGenerator {
    * @param idx - index of the current state
    * @return true if state if valid, false otherwise
    */
-  bool is_still_valid_state(std::string idx);
+  bool is_still_valid_state(const std::string& idx);
 };
 
 }  // namespace lte

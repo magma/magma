@@ -13,9 +13,14 @@
 #pragma once
 
 #include <string>
+#include <memory>
 #include <gmock/gmock.h>
 #include <grpc++/grpc++.h>
 #include <gtest/gtest.h>
+
+#include "lte/protos/mobilityd.pb.h"
+#include "lte/protos/mobilityd.grpc.pb.h"
+#include "includes/GRPCReceiver.h"
 
 #include "MobilitydClient.h"
 #include "ProxyConnector.h"
@@ -29,7 +34,6 @@ namespace lte {
 
 class MockProxyConnector : public ProxyConnector {
  public:
-  // MockProxyConnector() {}
   ~MockProxyConnector() {}
 
   MOCK_METHOD2(send_data, int(void* data, uint32_t size));
@@ -39,10 +43,13 @@ class MockProxyConnector : public ProxyConnector {
 
 class MockMobilitydClient : public MobilitydClient {
  public:
-  ~MockMobilitydClient() {}
+  ~MockMobilitydClient(){};
 
   MOCK_METHOD2(
-      GetSubscriberIDFromIP, int(const struct in_addr& addr, std::string* imsi));
+      get_subscriber_id_from_ip,
+      void(
+          const struct in_addr& addr,
+          std::function<void(Status, magma::lte::SubscriberID)> callback));
 };
 
 }  // namespace lte

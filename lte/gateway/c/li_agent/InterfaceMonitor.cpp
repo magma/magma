@@ -63,7 +63,7 @@ int InterfaceMonitor::start_capture() {
       }
       return -1;
     } else if (ret == 0) {
-      pkt_gen_->cleanup_inactive_tasks();
+      pkt_gen_->delete_inactive_tasks();
       usleep(100);
     }
   }
