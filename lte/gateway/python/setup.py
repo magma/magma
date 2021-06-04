@@ -136,7 +136,7 @@ if release_info.get('VERSION_CODENAME', '') == 'focal':
             'json-pointer>=0.1.2',
             'ovs>=2.13',
             'prometheus-client>=0.3.1',
-            'aioeventlet==0.5.1'   # aioeventlet-build.sh
+            'aioeventlet==0.5.1',   # aioeventlet-build.sh
         ],
         extras_require={
             'dev': [
@@ -146,7 +146,7 @@ if release_info.get('VERSION_CODENAME', '') == 'focal':
                 'grpcio-tools>=1.16.1',
                 'nose==1.3.7',
                 'iperf3',
-            ]
+            ],
         },
     )
     sys.exit(0)
@@ -247,7 +247,7 @@ setup(
         'hpack>=3.0',
         'freezegun>=0.3.15',
         'pycryptodome>=3.9.9',
-        'pyroute2==0.5.14'
+        'pyroute2==0.5.14',
     ],
     extras_require={
         'dev': [
@@ -257,6 +257,6 @@ setup(
             'grpcio-tools>=1.16.1',
             'nose==1.3.7',
             'iperf3',
-        ]
+        ],
     },
 )
