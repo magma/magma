@@ -15,7 +15,6 @@ import time
 import unittest
 
 import s1ap_types
-
 from integ_tests.s1aptests import s1ap_wrapper
 
 
@@ -57,12 +56,12 @@ class TestSctpShutdowniWhileStatelessMmeIsStopped(unittest.TestCase):
 
         print("Stopping MME service")
         self._s1ap_wrapper.magmad_util.exec_command(
-            "sudo service magma@mme stop"
+            "sudo service magma@mme stop",
         )
 
         print("send SCTP SHUTDOWN")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None
+            s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None,
         )
 
         print("Redis state after SCTP shutdown")
@@ -70,16 +69,16 @@ class TestSctpShutdowniWhileStatelessMmeIsStopped(unittest.TestCase):
 
         print("Starting MME service and waiting for 20 seconds")
         self._s1ap_wrapper.magmad_util.exec_command(
-            "sudo service magma@mobilityd start"
+            "sudo service magma@mobilityd start",
         )
         self._s1ap_wrapper.magmad_util.exec_command(
-            "sudo service magma@pipelined start"
+            "sudo service magma@pipelined start",
         )
         self._s1ap_wrapper.magmad_util.exec_command(
-            "sudo service magma@sessiond start"
+            "sudo service magma@sessiond start",
         )
         self._s1ap_wrapper.magmad_util.exec_command(
-            "sudo service magma@mme start"
+            "sudo service magma@mme start",
         )
         time.sleep(30)
 
@@ -93,7 +92,7 @@ class TestSctpShutdowniWhileStatelessMmeIsStopped(unittest.TestCase):
         )
 
         self._s1ap_wrapper.s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
         )
 
 

@@ -11,14 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
-import ipaddress
 from lte.protos.policydb_pb2 import FlowMatch
 
 
@@ -55,7 +55,7 @@ class TestAttachServiceWithMultiPdnsAndBearersLooped(unittest.TestCase):
         apn_list = [ims]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
         print(
             "************************* Running End to End attach for UE id ",
@@ -189,7 +189,7 @@ class TestAttachServiceWithMultiPdnsAndBearersLooped(unittest.TestCase):
         # Add dedicated bearer for default bearer 5
         print(
             "********************** Adding dedicated bearer to magma.ipv4"
-            " PDN"
+            " PDN",
         )
         print(
             "********************** Sending RAR for IMSI",
@@ -204,13 +204,13 @@ class TestAttachServiceWithMultiPdnsAndBearersLooped(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_req_oai_apn = response.cast(
-            s1ap_types.UeActDedBearCtxtReq_t
+            s1ap_types.UeActDedBearCtxtReq_t,
         )
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            req.ue_id, act_ded_ber_req_oai_apn.bearerId
+            req.ue_id, act_ded_ber_req_oai_apn.bearerId,
         )
 
         print("Sleeping for 5 seconds")
@@ -221,7 +221,7 @@ class TestAttachServiceWithMultiPdnsAndBearersLooped(unittest.TestCase):
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
         )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
         addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
@@ -250,13 +250,13 @@ class TestAttachServiceWithMultiPdnsAndBearersLooped(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_req_ims_apn = response.cast(
-            s1ap_types.UeActDedBearCtxtReq_t
+            s1ap_types.UeActDedBearCtxtReq_t,
         )
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            req.ue_id, act_ded_ber_req_ims_apn.bearerId
+            req.ue_id, act_ded_ber_req_ims_apn.bearerId,
         )
         print(
             "************* Added dedicated bearer",
@@ -274,7 +274,7 @@ class TestAttachServiceWithMultiPdnsAndBearersLooped(unittest.TestCase):
         num_ul_flows = 4
         # Verify if flow rules are created
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         print("*********** Moving UE to idle mode")
@@ -292,11 +292,11 @@ class TestAttachServiceWithMultiPdnsAndBearersLooped(unittest.TestCase):
                 gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
             )
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, rel_req
+                s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, rel_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
             )
 
             # Verify if paging flow rules are created
@@ -314,11 +314,11 @@ class TestAttachServiceWithMultiPdnsAndBearersLooped(unittest.TestCase):
             ser_req.ueMtmsi.pres = False
             ser_req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_SIGNALLING.value
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req
+                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
             )
 
             print("Sleeping for 5 seconds")
@@ -326,7 +326,7 @@ class TestAttachServiceWithMultiPdnsAndBearersLooped(unittest.TestCase):
 
             # Verify if flow rules are created
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
         print("Sleeping for 5 seconds")
@@ -334,7 +334,7 @@ class TestAttachServiceWithMultiPdnsAndBearersLooped(unittest.TestCase):
         print("************************* Running UE detach for UE id ", ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True,
         )
 
 

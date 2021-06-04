@@ -32,11 +32,12 @@ class TestRestoreMMEConfigAfterSanity(unittest.TestCase):
         # test script s1aptests/test_modify_mme_config_for_sanity.py
         print(
             "Restoring MME configuration to default values using backup "
-            "configuration file"
+            "configuration file",
         )
         self._magmad_util.update_mme_config_for_sanity(
-            MagmadUtil.config_update_cmds.RESTORE
+            MagmadUtil.config_update_cmds.RESTORE,
         )
+
 
 if __name__ == "__main__":
     unittest.main()

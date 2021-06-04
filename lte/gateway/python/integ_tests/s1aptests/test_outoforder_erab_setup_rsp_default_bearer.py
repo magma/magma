@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import ipaddress
 
 
 class TestOutOfOrderErabSetupRspDefaultBearer(unittest.TestCase):
@@ -50,7 +50,7 @@ class TestOutOfOrderErabSetupRspDefaultBearer(unittest.TestCase):
         apn_list = [ims]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
         print(
             "************************* Running End to End attach for UE id ",
@@ -82,7 +82,7 @@ class TestOutOfOrderErabSetupRspDefaultBearer(unittest.TestCase):
         )
         print(
             "Sent UE_SET_DELAY_ERAB_SETUP_RSP with delay value of %d secs"
-            % (delay_erab_setup_resp.tmrVal)
+            % (delay_erab_setup_resp.tmrVal),
         )
 
         # Send PDN Connectivity Request
@@ -91,7 +91,7 @@ class TestOutOfOrderErabSetupRspDefaultBearer(unittest.TestCase):
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
         )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
         addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
@@ -115,7 +115,7 @@ class TestOutOfOrderErabSetupRspDefaultBearer(unittest.TestCase):
         num_ul_flows = 2
         # Verify if flow rules are created
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         # Send PDN Disconnect
@@ -125,23 +125,23 @@ class TestOutOfOrderErabSetupRspDefaultBearer(unittest.TestCase):
             act_def_bearer_req.m.pdnInfo.epsBearerId
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req
+            s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req,
         )
 
         # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
         )
 
         print(
             "******************* Received deactivate eps bearer context"
-            " request"
+            " request",
         )
         # Send DeactDedicatedBearerAccept
         deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
         self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-            ue_id, deactv_bearer_req.bearerId
+            ue_id, deactv_bearer_req.bearerId,
         )
 
         print(
@@ -151,7 +151,7 @@ class TestOutOfOrderErabSetupRspDefaultBearer(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
 

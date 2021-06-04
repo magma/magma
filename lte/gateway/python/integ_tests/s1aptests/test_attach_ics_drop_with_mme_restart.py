@@ -23,7 +23,7 @@ from s1ap_utils import MagmadUtil
 class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
@@ -59,11 +59,11 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
 
         print("******************** Sending Attach Request")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         print("******************** Received Authentiction Request Indication")
 
@@ -75,17 +75,17 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         auth_res.sqnRcvd = sqnRecvd
         print("******************** Sending Authentiction Response")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
         print("******************** Received Security Mode Command Indication")
 
         print(
             "******************** Setting flag to drop Initial Context Setup "
-            "Request"
+            "Request",
         )
         drop_init_ctxt_setup_req = s1ap_types.UeDropInitCtxtSetup()
         drop_init_ctxt_setup_req.ue_Id = req.ue_id
@@ -93,7 +93,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         # Timer to release UE context at s1ap tester
         drop_init_ctxt_setup_req.tmrVal = 2000
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req
+            s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req,
         )
 
         print("******************** Sending Security Mode Complete")
@@ -101,18 +101,18 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
         )
 
         # enbApp sends UE_ICS_DROPD_IND message to tfwApp after dropping
         # ICS request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value,
         )
         print(
             "******************** Received Initial Context Setup Dropped "
-            "Indication"
+            "Indication",
         )
 
         print("******************** Restarting MME service on gateway")
@@ -120,13 +120,13 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
 
         print(
             "******************** Resetting flag to not drop next Initial "
-            "Context Setup Request messages"
+            "Context Setup Request messages",
         )
         drop_init_ctxt_setup_req = s1ap_types.UeDropInitCtxtSetup()
         drop_init_ctxt_setup_req.ue_Id = req.ue_id
         drop_init_ctxt_setup_req.flag = 0
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req
+            s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req,
         )
 
         for j in range(30):
@@ -141,7 +141,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
         # command to release the S1AP context
         print(
             "******************** Waiting for NW initiated Detach Request or "
-            "UE Context Release Indication"
+            "UE Context Release Indication",
         )
         resp_count = 0
         while True:
@@ -153,7 +153,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
                 == s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value
             ):
                 nw_init_detach_req = response.cast(
-                    s1ap_types.ueNwInitdetachReq_t
+                    s1ap_types.ueNwInitdetachReq_t,
                 )
                 print(
                     "******************** Received NW initiated Detach Request"
@@ -171,7 +171,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
                     detach_accept.ue_Id = req.ue_id
                     print(
                         "******************** Sending UE triggered Detach "
-                        "Accept message"
+                        "Accept message",
                     )
                     self._s1ap_wrapper._s1_util.issue_cmd(
                         s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT,
@@ -187,7 +187,7 @@ class TestAttachIcsDropWithMmeRestart(unittest.TestCase):
                 break
 
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("******************** Received UE Context Release indication")
 

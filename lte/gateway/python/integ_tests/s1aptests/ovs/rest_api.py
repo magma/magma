@@ -16,8 +16,7 @@ import logging
 import time
 
 import requests
-
-from integ_tests.s1aptests.ovs import DEV_VM_URL, OF_REST_PORT, MAX_RETRIES
+from integ_tests.s1aptests.ovs import DEV_VM_URL, MAX_RETRIES, OF_REST_PORT
 
 
 def get_flows(datapath, fields, ip=DEV_VM_URL):
@@ -60,8 +59,10 @@ def get_datapath(ip=DEV_VM_URL):
     return str(_ovs_api_request('GET', url)[0])
 
 
-def _ovs_api_request(method, url, data=None, max_retries=MAX_RETRIES,
-                     return_json=True):
+def _ovs_api_request(
+    method, url, data=None, max_retries=MAX_RETRIES,
+    return_json=True,
+):
     """
     Send generic OVS REST API request and retry if request fails. Returns json
     decoded message
@@ -76,5 +77,6 @@ def _ovs_api_request(method, url, data=None, max_retries=MAX_RETRIES,
         time.sleep(1)
     logging.error(
         "Could not send %s request to OVS REST API at %s with data %s",
-        method, url, data)
+        method, url, data,
+    )
     return {}

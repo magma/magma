@@ -54,7 +54,7 @@ class TestAttachUlUdpDataMultiUe(unittest.TestCase):
             [req.ue_id for req in reqs],
         )
         with self._s1ap_wrapper.configUplinkTest(
-            *reqs, duration=1, is_udp=True
+            *reqs, duration=1, is_udp=True,
         ) as test:
             test.verify()
 

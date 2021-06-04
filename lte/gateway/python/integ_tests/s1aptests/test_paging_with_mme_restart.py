@@ -11,20 +11,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import time
 import unittest
-
 
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-import time
 from s1ap_utils import MagmadUtil
 
 
 class TestPagingWithMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE)
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
+        )
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
@@ -79,11 +79,11 @@ class TestPagingWithMmeRestart(unittest.TestCase):
             gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         )
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_cntxt_rel_req
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_cntxt_rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         time.sleep(0.3)
@@ -92,14 +92,16 @@ class TestPagingWithMmeRestart(unittest.TestCase):
             ue_id,
         )
         with self._s1ap_wrapper.configDownlinkTest(
-            req, duration=1, is_udp=True
+            req, duration=1, is_udp=True,
         ) as test:
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
             print("************************ Received Paging Indication")
 
-            print("************************* Restarting MME service on",
-                  "gateway")
+            print(
+                "************************* Restarting MME service on",
+                "gateway",
+            )
             self._s1ap_wrapper.magmad_util.restart_services(["mme"])
 
             for j in range(30):
@@ -128,18 +130,18 @@ class TestPagingWithMmeRestart(unittest.TestCase):
             ser_req.ueMtmsi.pres = False
             ser_req.rrcCause = s1ap_types.Rrc_Cause.TFW_MT_ACCESS.value
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req
+                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
             )
             test.verify()
 
         time.sleep(0.5)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+            ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
         )
         time.sleep(0.5)
 
