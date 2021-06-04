@@ -444,6 +444,16 @@ int emm_recv_attach_request(
         sizeof(voice_domain_preference_and_ue_usage_setting_t));
   }
 
+  if (msg->presencemask &
+      ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT) {
+    params->ueadditionalsecuritycapability =
+        calloc(1, sizeof(ue_additional_security_capability_t));
+    memcpy(
+        params->ueadditionalsecuritycapability,
+        &msg->ueadditionalsecuritycapability,
+        sizeof(ue_additional_security_capability_t));
+  }
+
   /*
    * Execute the requested UE attach procedure
    */

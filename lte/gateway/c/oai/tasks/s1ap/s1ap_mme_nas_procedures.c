@@ -1043,48 +1043,6 @@ void s1ap_handle_conn_est_cnf(
         conn_est_cnf_pP->ue_security_capabilities_integrity_algorithms);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
   }
-  if (uenetworkcapability.dcnr == 1) {
-    OAILOG_DEBUG(
-        LOG_S1AP, " EN_DC dual connectivity indicator = %d \n",
-        uenetworkcapability.dcnr);
-    {
-      ie = (S1ap_InitialContextSetupRequestIEs_t*) calloc(
-          1, sizeof(S1ap_InitialContextSetupRequestIEs_t));
-      ie->id          = S1ap_ProtocolIE_ID_id_NRUESecurityCapabilities;
-      ie->criticality = S1ap_Criticality_reject;
-      ie->value.present =
-          S1ap_InitialContextSetupRequestIEs__value_PR_NRUESecurityCapabilities;
-
-      S1ap_NRUESecurityCapabilities_t* const nr_ue_security_capabilities =
-          &ie->value.choice.NRUESecurityCapabilities;
-
-      nr_ue_security_capabilities->nRencryptionAlgorithms.buf =
-          calloc(1, sizeof(uint16_t));
-      memcpy(
-          nr_ue_security_capabilities->nRencryptionAlgorithms.buf,
-          &conn_est_cnf_pP->nr_ue_security_capabilities_encryption_algorithms,
-          sizeof(uint16_t));
-      nr_ue_security_capabilities->nRencryptionAlgorithms.size        = 2;
-      nr_ue_security_capabilities->nRencryptionAlgorithms.bits_unused = 0;
-      OAILOG_DEBUG(
-          LOG_S1AP, "security_capabilities_encryption_algorithms 0x%04X\n",
-          conn_est_cnf_pP->nr_ue_security_capabilities_encryption_algorithms);
-
-      nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.buf =
-          calloc(1, sizeof(uint16_t));
-      memcpy(
-          nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.buf,
-          &conn_est_cnf_pP->nr_ue_security_capabilities_integrity_algorithms,
-          sizeof(uint16_t));
-      nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.size = 2;
-      nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.bits_unused =
-          0;
-      OAILOG_DEBUG(
-          LOG_S1AP, "security_capabilities_integrity_algorithms 0x%04X\n",
-          conn_est_cnf_pP->nr_ue_security_capabilities_integrity_algorithms);
-      ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-    }
-  }
   /* mandatory */
   ie = (S1ap_InitialContextSetupRequestIEs_t*) calloc(
       1, sizeof(S1ap_InitialContextSetupRequestIEs_t));
@@ -1123,6 +1081,50 @@ void s1ap_handle_conn_est_cnf(
         (const char*) conn_est_cnf_pP->ue_radio_capability->data,
         conn_est_cnf_pP->ue_radio_capability->slen);
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+  }
+
+  /* optional */
+  if (conn_est_cnf_pP->nr_ue_security_capabilities_present) {
+    {
+      ie = (S1ap_InitialContextSetupRequestIEs_t*) calloc(
+          1, sizeof(S1ap_InitialContextSetupRequestIEs_t));
+      ie->id          = S1ap_ProtocolIE_ID_id_NRUESecurityCapabilities;
+      ie->criticality = S1ap_Criticality_ignore;
+      ie->value.present =
+          S1ap_InitialContextSetupRequestIEs__value_PR_NRUESecurityCapabilities;
+
+      S1ap_NRUESecurityCapabilities_t* const nr_ue_security_capabilities =
+          &ie->value.choice.NRUESecurityCapabilities;
+
+      nr_ue_security_capabilities->nRencryptionAlgorithms.buf =
+          calloc(1, sizeof(uint16_t));
+      uint16_t ahtobe16 = htobe16(
+          conn_est_cnf_pP->nr_ue_security_capabilities_encryption_algorithms);
+      memcpy(
+          nr_ue_security_capabilities->nRencryptionAlgorithms.buf, &ahtobe16,
+          sizeof(uint16_t));
+      nr_ue_security_capabilities->nRencryptionAlgorithms.size        = 2;
+      nr_ue_security_capabilities->nRencryptionAlgorithms.bits_unused = 0;
+      OAILOG_DEBUG(
+          LOG_S1AP,
+          "NR ue security_capabilities_encryption_algorithms 0x%04X\n",
+          conn_est_cnf_pP->nr_ue_security_capabilities_encryption_algorithms);
+
+      nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.buf =
+          calloc(1, sizeof(uint16_t));
+      ahtobe16 = htobe16(
+          conn_est_cnf_pP->nr_ue_security_capabilities_integrity_algorithms);
+      memcpy(
+          nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.buf,
+          &ahtobe16, sizeof(uint16_t));
+      nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.size = 2;
+      nr_ue_security_capabilities->nRintegrityProtectionAlgorithms.bits_unused =
+          0;
+      OAILOG_DEBUG(
+          LOG_S1AP, "NR ue security_capabilities_integrity_algorithms 0x%04X\n",
+          conn_est_cnf_pP->nr_ue_security_capabilities_integrity_algorithms);
+      ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    }
   }
 
   if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
