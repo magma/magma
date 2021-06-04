@@ -164,6 +164,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			RestrictedImeis:          getRestrictedImeis(nwEpc.RestrictedImeis),
 			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
+			CongestionControlEnabled: gwEpc.CongestionControlEnabled,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,

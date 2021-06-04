@@ -177,9 +177,9 @@ def _get_apn_correction_map_list(service_mconfig):
 
 def _get_federated_mode_map(service_mconfig):
     if (
-        service_mconfig.federated_mode_map
-        and service_mconfig.federated_mode_map.enabled
-        and len(service_mconfig.federated_mode_map.mapping) != 0
+            service_mconfig.federated_mode_map
+            and service_mconfig.federated_mode_map.enabled
+            and len(service_mconfig.federated_mode_map.mapping) != 0
     ):
         return service_mconfig.federated_mode_map.mapping
     return {}
@@ -195,6 +195,18 @@ def _get_restricted_imeis(service_mconfig):
     if service_mconfig.restricted_imeis:
         return service_mconfig.restricted_imeis
     return {}
+
+
+def _get_congestion_control_config(service_mconfig):
+    """
+    Return congestion control enabled from mconfig or default to True
+    Args:
+        service_mconfig:
+
+    Returns: congestion control flag
+
+    """
+    return service_mconfig.congestion_control_enabled or True
 
 
 def _get_context():
@@ -226,7 +238,8 @@ def _get_context():
         "ipv6_p_cscf_address": _get_ipv6_pcscf_ip(mme_service_config),
         "identity": _get_identity(),
         "relay_enabled": _get_relay_enabled(mme_service_config),
-        "non_eps_service_control": _get_non_eps_service_control(mme_service_config),
+        "non_eps_service_control": _get_non_eps_service_control(
+            mme_service_config),
         "csfb_mcc": _get_csfb_mcc(mme_service_config),
         "csfb_mnc": _get_csfb_mnc(mme_service_config),
         "lac": _get_lac(mme_service_config),
@@ -236,6 +249,8 @@ def _get_context():
         "federated_mode_map": _get_federated_mode_map(mme_service_config),
         "restricted_plmns": _get_restricted_plmns(mme_service_config),
         "restricted_imeis": _get_restricted_imeis(mme_service_config),
+        "congestion_control_enabled": _get_congestion_control_config(
+            mme_service_config),
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(
@@ -244,14 +259,14 @@ def _get_context():
 
     # set ovs params
     for key in (
-        "ovs_bridge_name",
-        "ovs_gtp_port_number",
-        "ovs_mtr_port_number",
-        "ovs_internal_sampling_port_number",
-        "ovs_internal_sampling_fwd_tbl",
-        "ovs_uplink_port_number",
-        "ovs_uplink_mac",
-        "pipelined_managed_tbl0",
+            "ovs_bridge_name",
+            "ovs_gtp_port_number",
+            "ovs_mtr_port_number",
+            "ovs_internal_sampling_port_number",
+            "ovs_internal_sampling_fwd_tbl",
+            "ovs_uplink_port_number",
+            "ovs_uplink_mac",
+            "pipelined_managed_tbl0",
     ):
         context[key] = get_service_config_value("spgw", key, "")
     context["enable_apn_correction"] = get_service_config_value(
@@ -266,12 +281,15 @@ def _get_context():
 
 def main():
     logging.basicConfig(
-        level=logging.INFO, format="[%(asctime)s %(levelname)s %(name)s] %(message)s"
+        level=logging.INFO,
+        format="[%(asctime)s %(levelname)s %(name)s] %(message)s"
     )
     context = _get_context()
-    generate_template_config("spgw", "spgw", CONFIG_OVERRIDE_DIR, context.copy())
+    generate_template_config("spgw", "spgw", CONFIG_OVERRIDE_DIR,
+                             context.copy())
     generate_template_config("mme", "mme", CONFIG_OVERRIDE_DIR, context.copy())
-    generate_template_config("mme", "mme_fd", CONFIG_OVERRIDE_DIR, context.copy())
+    generate_template_config("mme", "mme_fd", CONFIG_OVERRIDE_DIR,
+                             context.copy())
     cert_dir = get_service_config_value("mme", "cert_dir", "")
     generate_mme_certs(os.path.join(cert_dir, "freeDiameter"))
 

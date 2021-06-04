@@ -2013,6 +2013,10 @@ definitions:
         description: IP address of gateway for management interface on the AGW
         minLength: 5
         maxLength: 49
+      congestion_control_enabled:
+        description: Flag to enable or disable congestion control on MME
+        example: true
+        type: boolean
 
 
   gateway_non_eps_configs:

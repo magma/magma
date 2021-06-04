@@ -1399,14 +1399,16 @@ type MME struct {
 	// IPv6 DNS server
 	Ipv6DnsAddress string `protobuf:"bytes,30,opt,name=ipv6_dns_address,json=ipv6DnsAddress,proto3" json:"ipv6_dns_address,omitempty"`
 	// SGW S1U endpoint on AGW
-	Ipv4SgwS1UAddr       string                  `protobuf:"bytes,31,opt,name=ipv4_sgw_s1u_addr,json=ipv4SgwS1uAddr,proto3" json:"ipv4_sgw_s1u_addr,omitempty"`
-	RestrictedPlmns      []*MME_PlmnConfig       `protobuf:"bytes,32,rep,name=restricted_plmns,json=restrictedPlmns,proto3" json:"restricted_plmns,omitempty"`
-	ServiceAreaMaps      map[string]*MME_TacList `protobuf:"bytes,33,rep,name=service_area_maps,json=serviceAreaMaps,proto3" json:"service_area_maps,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	FederatedModeMap     *FederatedModeMap       `protobuf:"bytes,34,opt,name=federated_mode_map,json=federatedModeMap,proto3" json:"federated_mode_map,omitempty"`
-	RestrictedImeis      []*MME_ImeiConfig       `protobuf:"bytes,35,rep,name=restricted_imeis,json=restrictedImeis,proto3" json:"restricted_imeis,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}                `json:"-"`
-	XXX_unrecognized     []byte                  `json:"-"`
-	XXX_sizecache        int32                   `json:"-"`
+	Ipv4SgwS1UAddr   string                  `protobuf:"bytes,31,opt,name=ipv4_sgw_s1u_addr,json=ipv4SgwS1uAddr,proto3" json:"ipv4_sgw_s1u_addr,omitempty"`
+	RestrictedPlmns  []*MME_PlmnConfig       `protobuf:"bytes,32,rep,name=restricted_plmns,json=restrictedPlmns,proto3" json:"restricted_plmns,omitempty"`
+	ServiceAreaMaps  map[string]*MME_TacList `protobuf:"bytes,33,rep,name=service_area_maps,json=serviceAreaMaps,proto3" json:"service_area_maps,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
+	FederatedModeMap *FederatedModeMap       `protobuf:"bytes,34,opt,name=federated_mode_map,json=federatedModeMap,proto3" json:"federated_mode_map,omitempty"`
+	RestrictedImeis  []*MME_ImeiConfig       `protobuf:"bytes,35,rep,name=restricted_imeis,json=restrictedImeis,proto3" json:"restricted_imeis,omitempty"`
+	// MME congestion control configs
+	CongestionControlEnabled bool     `protobuf:"varint,40,opt,name=congestion_control_enabled,json=congestionControlEnabled,proto3" json:"congestion_control_enabled,omitempty"`
+	XXX_NoUnkeyedLiteral     struct{} `json:"-"`
+	XXX_unrecognized         []byte   `json:"-"`
+	XXX_sizecache            int32    `json:"-"`
 }
 
 func (m *MME) Reset()         { *m = MME{} }
@@ -1637,6 +1639,13 @@ func (m *MME) GetRestrictedImeis() []*MME_ImeiConfig {
 	return nil
 }
 
+func (m *MME) GetCongestionControlEnabled() bool {
+	if m != nil {
+		return m.CongestionControlEnabled
+	}
+	return false
+}
+
 type MME_ApnCorrectionMap struct {
 	ImsiPrefix           string   `protobuf:"bytes,1,opt,name=imsi_prefix,json=imsiPrefix,proto3" json:"imsi_prefix,omitempty"`
 	ApnOverride          string   `protobuf:"bytes,2,opt,name=apn_override,json=apnOverride,proto3" json:"apn_override,omitempty"`
@@ -1684,6 +1693,7 @@ func (m *MME_ApnCorrectionMap) GetApnOverride() string {
 	return ""
 }
 
+// PLMN restriction configs
 type MME_PlmnConfig struct {
 	Mcc                  string   `protobuf:"bytes,1,opt,name=mcc,proto3" json:"mcc,omitempty"`
 	Mnc                  string   `protobuf:"bytes,2,opt,name=mnc,proto3" json:"mnc,omitempty"`
@@ -1770,6 +1780,7 @@ func (m *MME_TacList) GetTac() []uint32 {
 	return nil
 }
 
+// IMEI restriction configs
 type MME_ImeiConfig struct {
 	Tac                  string   `protobuf:"bytes,1,opt,name=tac,proto3" json:"tac,omitempty"`
 	Snr                  string   `protobuf:"bytes,2,opt,name=snr,proto3" json:"snr,omitempty"`

@@ -19,6 +19,9 @@ import (
 // swagger:model gateway_epc_configs
 type GatewayEpcConfigs struct {
 
+	// Flag to enable or disable congestion control on MME
+	CongestionControlEnabled bool `json:"congestion_control_enabled,omitempty"`
+
 	// dns primary
 	// Max Length: 45
 	// Min Length: 5
