@@ -12,6 +12,7 @@ limitations under the License.
 """
 import time
 import unittest
+
 import s1ap_types
 import s1ap_wrapper
 
@@ -85,7 +86,7 @@ class TestMultiEnbWithDifferentTac(unittest.TestCase):
         for ue in ue_ids:
             print("************************* Calling detach for UE id ", ue)
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value
+                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
             )
 
 

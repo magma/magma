@@ -11,13 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import threading
-import random
 import ipaddress
+import random
+import threading
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
+
 
 class TestContinuousRandomAttach(unittest.TestCase):
 
@@ -38,7 +39,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
                 sqn_recvd.pres = 0
                 auth_res.sqnRcvd = sqn_recvd
                 self._s1ap_wrapper._s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+                    s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
                 )
             elif msg.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value:
                 self.sec_mod_cmd_ind_count += 1
@@ -47,7 +48,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
                 sec_mode_complete = s1ap_types.ueSecModeComplete_t()
                 sec_mode_complete.ue_Id = m.ue_Id
                 self._s1ap_wrapper._s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+                    s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
                 )
             elif msg.msg_type == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value:
                 self.attach_accept_ind_count += 1
@@ -63,7 +64,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
                 attach_complete = s1ap_types.ueAttachComplete_t()
                 attach_complete.ue_Id = m.ue_Id
                 self._s1ap_wrapper._s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete
+                    s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
                 )
             elif msg.msg_type == s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value:
                 self.identity_req_ind_count += 1
@@ -73,7 +74,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
                 us_identity_resp.ue_Id = m.ue_Id
                 us_identity_resp.idType = m.idType
                 self._s1ap_wrapper._s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_IDENTITY_RESP, us_identity_resp
+                    s1ap_types.tfwCmd.UE_IDENTITY_RESP, us_identity_resp,
                 )
             elif msg.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value:
                 self.int_ctx_setup_ind_count += 1
@@ -95,7 +96,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         self.attach_req_sent_count += 1
 
@@ -106,7 +107,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
             s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
         )
         self.detach_req_sent_count += 1
 
@@ -115,17 +116,17 @@ class TestContinuousRandomAttach(unittest.TestCase):
         self.send_ue_detach(ue_state.ue_id)
         attachTime = random.uniform(self.attach_delay_t0, self.attach_delay_t1)
         ue_state.attachTimer = threading.Timer(
-            attachTime, self.handle_attach_timer, args=(ue_state,)
+            attachTime, self.handle_attach_timer, args=(ue_state,),
         )
         ue_state.attachTimer.start()
 
     def handle_attach_timer(self, ue_state):
         print("Attaching ue_id", ue_state.ue_id)
         attachDuration = random.uniform(
-            self.attach_duration_t0, self.attach_duration_t1
+            self.attach_duration_t0, self.attach_duration_t1,
         )
         ue_state.detachTimer = threading.Timer(
-            attachDuration, self.handle_detach_timer, args=(ue_state,)
+            attachDuration, self.handle_detach_timer, args=(ue_state,),
         )
         ue_state.detachTimer.start()
         self.send_attach_req(ue_state.ue_id)
@@ -133,7 +134,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
     def start_ue(self, ue_state):
         attachTime = random.uniform(self.attach_delay_t0, self.attach_delay_t1)
         ue_state.attachTimer = threading.Timer(
-            attachTime, self.handle_attach_timer, args=(ue_state,)
+            attachTime, self.handle_attach_timer, args=(ue_state,),
         )
         ue_state.attachTimer.start()
 
@@ -204,6 +205,7 @@ class TestContinuousRandomAttach(unittest.TestCase):
         print("ue_emm_information_count: ", self.ue_emm_information_count)
         print("detach_req_sent_count: ", self.detach_req_sent_count)
         print("ue_ctx_rel_ind_count: ", self.ue_ctx_rel_ind_count)
+
 
 if __name__ == "__main__":
     unittest.main()

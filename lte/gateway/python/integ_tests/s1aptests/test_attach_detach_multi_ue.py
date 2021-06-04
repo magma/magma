@@ -13,7 +13,6 @@ limitations under the License.
 
 import unittest
 
-
 import s1ap_types
 import s1ap_wrapper
 
@@ -33,13 +32,16 @@ class TestAttachDetachMultiUe(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
-            print("************************* Calling attach for UE id ",
-                  req.ue_id)
+            print(
+                "************************* Calling attach for UE id ",
+                req.ue_id,
+            )
             self._s1ap_wrapper.s1_util.attach(
                 req.ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t)
+                s1ap_types.ueAttachAccept_t,
+            )
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
             ue_ids.append(req.ue_id)
@@ -48,7 +50,8 @@ class TestAttachDetachMultiUe(unittest.TestCase):
             print("************************* Calling detach for UE id ", ue)
             self._s1ap_wrapper.s1_util.detach(
                 ue,
-                s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value)
+                s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+            )
 
 
 if __name__ == "__main__":

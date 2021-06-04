@@ -23,7 +23,7 @@ from s1ap_utils import MagmadUtil
 class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
@@ -59,11 +59,11 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
 
         print("******************** Sending Attach Request")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         print("******************** Received Authentiction Request Indication")
 
@@ -76,24 +76,24 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
 
         print("******************** Sending Authentiction Response")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
         print("******************** Received Security Mode Command Indication")
 
         print(
             "******************** Setting flag to send Initial Context Setup "
-            "Failure"
+            "Failure",
         )
         init_ctxt_setup_fail = s1ap_types.ueInitCtxtSetupFail()
         init_ctxt_setup_fail.ue_Id = req.ue_id
         init_ctxt_setup_fail.flag = 1
         init_ctxt_setup_fail.causeType = 0
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail
+            s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail,
         )
 
         print("******************** Sending Security Mode Complete")
@@ -101,12 +101,12 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
         print("******************** Received Initial Context Setup Indication")
 
@@ -119,10 +119,10 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         init_ctxt_setup_fail.causeType = 0
         print(
             "******************** Resetting flag to not send Initial Context "
-            "Setup Failure"
+            "Setup Failure",
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail
+            s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail,
         )
 
         for j in range(30):
@@ -132,7 +132,7 @@ class TestAttachIcsFailureWithMmeRestart(unittest.TestCase):
         # Waiting for UE Context Release indication
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("******************** Received UE Context Release indication")
 
