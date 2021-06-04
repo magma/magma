@@ -65,9 +65,11 @@ class TestTopologyBuilder(unittest.TestCase):
             ip_address = self.TEST_IP_PREFIX + str(i + 2)
             iface_name = self.TEST_INT_PREFIX + str(i)
             self._topology_builder.bind(iface_name, bridge)
-            self._topology_builder.create_interface(iface_name,
-                                                    ip_address,
-                                                    self.TEST_NETMASK)
+            self._topology_builder.create_interface(
+                iface_name,
+                ip_address,
+                self.TEST_NETMASK,
+            )
 
         self.assertFalse(self._topology_builder.invalid_devices())
 
@@ -86,8 +88,10 @@ class TestTopologyBuilder(unittest.TestCase):
         iface_name = self.TEST_INT_PREFIX + "0"
 
         port = self._topology_builder.bind(iface_name, bridge)
-        self._topology_builder.create_interface(iface_name, ip_address,
-                                                self.TEST_NETMASK)
+        self._topology_builder.create_interface(
+            iface_name, ip_address,
+            self.TEST_NETMASK,
+        )
 
         self.assertEqual(port.bridge_name, self.TEST_BRIDGE_NAME)
         self.assertEqual(port.iface_name, iface_name)
@@ -114,9 +118,11 @@ class TestTopologyBuilder(unittest.TestCase):
         iface_name = self.TEST_INT_PREFIX + "0"
         bridge = self._topology_builder.create_bridge(self.TEST_BRIDGE_NAME)
         self._topology_builder.bind(iface_name, bridge)
-        iface = self._topology_builder.create_interface(iface_name,
-                                                        ip_address,
-                                                        self.TEST_NETMASK)
+        iface = self._topology_builder.create_interface(
+            iface_name,
+            ip_address,
+            self.TEST_NETMASK,
+        )
         self.assertEqual(iface.name, iface_name)
         self.assertEqual(iface.ip_address, ip_address)
         self.assertEqual(iface.netmask, self.TEST_NETMASK)
@@ -140,8 +146,12 @@ class TestTopologyBuilder(unittest.TestCase):
         self.assertEqual(bridge.name, self.TEST_BRIDGE_NAME)
         bridge.destroy()
         iface_name = self.TEST_INT_PREFIX + "0"
-        self.assertRaises(UseAfterFreeException, bridge.add_virtual_port,
-                          iface_name, "internal")
-        self.assertRaises(UseAfterFreeException, bridge.add_physical_port,
-                          "eth0")
+        self.assertRaises(
+            UseAfterFreeException, bridge.add_virtual_port,
+            iface_name, "internal",
+        )
+        self.assertRaises(
+            UseAfterFreeException, bridge.add_physical_port,
+            "eth0",
+        )
         self.assertRaises(UseAfterFreeException, bridge.sanity_check)

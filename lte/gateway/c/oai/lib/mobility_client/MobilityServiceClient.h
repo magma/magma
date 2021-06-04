@@ -24,7 +24,7 @@
 #include <memory>
 #include <string>
 
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include "lte/protos/mobilityd.grpc.pb.h"
 
 namespace grpc {

@@ -32,15 +32,18 @@ from scapy.sendrecv import sendp
 LOG = logging.getLogger('mobilityd.dhcp.sniff')
 DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
 
+
 class DHCPClient:
     THREAD_YIELD_TIME = .1
 
-    def __init__(self,
-                 dhcp_store: MutableMapping[str, DHCPDescriptor],
-                 gw_info: UplinkGatewayInfo,
-                 dhcp_wait: Condition,
-                 iface: str = "dhcp0",
-                 lease_renew_wait_min: int = 200):
+    def __init__(
+        self,
+        dhcp_store: MutableMapping[str, DHCPDescriptor],
+        gw_info: UplinkGatewayInfo,
+        dhcp_wait: Condition,
+        iface: str = "dhcp0",
+        lease_renew_wait_min: int = 200,
+    ):
         """
         Implement DHCP client to allocate IP for given Mac address.
         DHCP client state is maintained in user provided hash table.
@@ -50,10 +53,12 @@ class DHCPClient:
             dhcp_wait: notify users on new DHCP packet
             iface: DHCP egress and ingress interface.
         """
-        self._sniffer = AsyncSniffer(iface=iface,
-                                     filter="udp and (port 67 or 68)",
-                                     store=False,
-                                     prn=self._rx_dhcp_pkt)
+        self._sniffer = AsyncSniffer(
+            iface=iface,
+            filter="udp and (port 67 or 68)",
+            store=False,
+            prn=self._rx_dhcp_pkt,
+        )
 
         self.dhcp_client_state = dhcp_store  # mac => DHCP_State
         self.dhcp_gw_info = gw_info
@@ -61,7 +66,9 @@ class DHCPClient:
         self._dhcp_interface = iface
         self._msg_xid = 0
         self._lease_renew_wait_min = lease_renew_wait_min
-        self._monitor_thread = threading.Thread(target=self._monitor_dhcp_state)
+        self._monitor_thread = threading.Thread(
+            target=self._monitor_dhcp_state,
+        )
         self._monitor_thread.daemon = True
         self._monitor_thread_event = threading.Event()
 
@@ -81,9 +88,11 @@ class DHCPClient:
         self._sniffer.stop()
         self._monitor_thread_event.set()
 
-    def send_dhcp_packet(self, mac: MacAddress, vlan: str,
-                         state: DHCPState,
-                         dhcp_desc: DHCPDescriptor = None):
+    def send_dhcp_packet(
+        self, mac: MacAddress, vlan: str,
+        state: DHCPState,
+        dhcp_desc: DHCPDescriptor = None,
+    ):
         """
         Send DHCP packet and record state in dhcp_client_state.
 
@@ -98,26 +107,36 @@ class DHCPClient:
         # generate DHCP request packet
         if state == DHCPState.DISCOVER:
             dhcp_opts = [("message-type", "discover")]
-            dhcp_desc = DHCPDescriptor(mac=mac, ip="", vlan=vlan,
-                                       state_requested=DHCPState.DISCOVER)
+            dhcp_desc = DHCPDescriptor(
+                mac=mac, ip="", vlan=vlan,
+                state_requested=DHCPState.DISCOVER,
+            )
             self._msg_xid = self._msg_xid + 1
             pkt_xid = self._msg_xid
         elif state == DHCPState.REQUEST:
-            dhcp_opts = [("message-type", "request"),
-                         ("requested_addr", dhcp_desc.ip),
-                         ("server_id", dhcp_desc.server_ip)]
+            dhcp_opts = [
+                ("message-type", "request"),
+                ("requested_addr", dhcp_desc.ip),
+                ("server_id", dhcp_desc.server_ip),
+            ]
             dhcp_desc.state_requested = DHCPState.REQUEST
             pkt_xid = dhcp_desc.xid
             ciaddr = dhcp_desc.ip
         elif state == DHCPState.RELEASE:
-            dhcp_opts = [("message-type", "release"),
-                         ("server_id", dhcp_desc.server_ip)]
+            dhcp_opts = [
+                ("message-type", "release"),
+                ("server_id", dhcp_desc.server_ip),
+            ]
             dhcp_desc.state_requested = DHCPState.RELEASE
             self._msg_xid = self._msg_xid + 1
             pkt_xid = self._msg_xid
             ciaddr = dhcp_desc.ip
         else:
-            LOG.warning("Unknown egress request mac %s state %s", str(mac), state)
+            LOG.warning(
+                "Unknown egress request mac %s state %s",
+                str(mac),
+                state,
+            )
             return
 
         dhcp_opts.append("end")
@@ -136,7 +155,10 @@ class DHCPClient:
 
         sendp(pkt, iface=self._dhcp_interface, verbose=0)
 
-    def get_dhcp_desc(self, mac: MacAddress, vlan: str) -> Optional[DHCPDescriptor]:
+    def get_dhcp_desc(
+        self, mac: MacAddress,
+        vlan: str,
+    ) -> Optional[DHCPDescriptor]:
         """
                 Get DHCP description for given MAC.
         Args:
@@ -168,7 +190,12 @@ class DHCPClient:
             return
 
         dhcp_desc = self.dhcp_client_state[key]
-        self.send_dhcp_packet(mac, dhcp_desc.vlan, DHCPState.RELEASE, dhcp_desc)
+        self.send_dhcp_packet(
+            mac,
+            dhcp_desc.vlan,
+            DHCPState.RELEASE,
+            dhcp_desc,
+        )
         del self.dhcp_client_state[key]
 
     def _monitor_dhcp_state(self):
@@ -193,12 +220,16 @@ class DHCPClient:
 
                     if now >= dhcp_record.lease_renew_deadline:
                         logging.debug("sending lease renewal")
-                        self.send_dhcp_packet(dhcp_record.mac, dhcp_record.vlan,
-                                              request_state, dhcp_record)
+                        self.send_dhcp_packet(
+                            dhcp_record.mac, dhcp_record.vlan,
+                            request_state, dhcp_record,
+                        )
                     else:
                         # Find next renewal wait time.
                         time_to_renew = dhcp_record.lease_renew_deadline - now
-                        wait_time = min(wait_time, time_to_renew.total_seconds())
+                        wait_time = min(
+                            wait_time, time_to_renew.total_seconds(),
+                        )
 
             # default in wait is 30 sec
             wait_time = max(wait_time, self._lease_renew_wait_min)
@@ -233,9 +264,13 @@ class DHCPClient:
                 ip_offered = packet[BOOTP].yiaddr
                 subnet_mask = self._get_option(packet, "subnet_mask")
                 if subnet_mask is not None:
-                    ip_subnet = IPv4Network(ip_offered + "/" + subnet_mask, strict=False)
+                    ip_subnet = IPv4Network(
+                        ip_offered + "/" + subnet_mask, strict=False,
+                    )
                 else:
-                    ip_subnet = IPv4Network(ip_offered + "/" + "32", strict=False)
+                    ip_subnet = IPv4Network(
+                        ip_offered + "/" + "32", strict=False,
+                    )
 
                 dhcp_server_ip = None
                 if IP in packet:
@@ -250,25 +285,34 @@ class DHCPClient:
                 self.dhcp_gw_info.update_ip(router_ip_addr, vlan)
 
                 lease_expiration_time = self._get_option(packet, "lease_time")
-                dhcp_state = DHCPDescriptor(mac=mac_addr,
-                                             ip=ip_offered,
-                                             state=state,
-                                             vlan=vlan,
-                                             state_requested=state_requested,
-                                             subnet=str(ip_subnet),
-                                             server_ip=dhcp_server_ip,
-                                             router_ip=router_ip_addr,
-                                             lease_expiration_time=lease_expiration_time,
-                                             xid=packet[BOOTP].xid)
-                LOG.info("Record DHCP for: %s state: %s", mac_addr_key, dhcp_state)
+                dhcp_state = DHCPDescriptor(
+                    mac=mac_addr,
+                    ip=ip_offered,
+                    state=state,
+                    vlan=vlan,
+                    state_requested=state_requested,
+                    subnet=str(ip_subnet),
+                    server_ip=dhcp_server_ip,
+                    router_ip=router_ip_addr,
+                    lease_expiration_time=lease_expiration_time,
+                    xid=packet[BOOTP].xid,
+                )
+                LOG.info(
+                    "Record DHCP for: %s state: %s",
+                    mac_addr_key,
+                    dhcp_state,
+                )
 
                 self.dhcp_client_state[mac_addr_key] = dhcp_state
                 self._dhcp_notify.notifyAll()
 
                 if state == DHCPState.OFFER:
-                    #  let other thread work on fulfilling IP allocation request.
+                    # let other thread work on fulfilling IP allocation
+                    # request.
                     threading.Event().wait(self.THREAD_YIELD_TIME)
-                    self.send_dhcp_packet(mac_addr, vlan, DHCPState.REQUEST, dhcp_state)
+                    self.send_dhcp_packet(
+                        mac_addr, vlan, DHCPState.REQUEST, dhcp_state,
+                    )
             else:
                 LOG.debug("Unknown MAC: %s " % packet.summary())
                 return

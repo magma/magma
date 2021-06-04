@@ -14,16 +14,10 @@
 package swagger
 
 import (
-	"io/ioutil"
-
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
-)
-
-var (
-	commonSpecPath = "/etc/magma/swagger/specs/common/swagger-common.yml"
 )
 
 // GetCombinedSpec polls every servicer registered with
@@ -67,14 +61,4 @@ func GetServiceSpec(service string) (string, error) {
 	}
 
 	return yamlSpec, nil
-}
-
-// GetCommonSpec returns the Swagger common spec as a YAML string.
-func GetCommonSpec() (string, error) {
-	data, err := ioutil.ReadFile(commonSpecPath)
-	if err != nil {
-		err = errors.Wrapf(err, "get common Swagger spec")
-		return "", err
-	}
-	return string(data), nil
 }

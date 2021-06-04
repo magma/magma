@@ -75,9 +75,6 @@ void SpgwStateManager::create_state() {
   state_cache_p->predefined_pcc_rules = hashtable_ts_create(
       MAX_PREDEFINED_PCC_RULES_HT_SIZE, nullptr, pgw_free_pcc_rule, nullptr);
 
-  // TO DO: RANDOM
-  state_cache_p->tunnel_id = 0;
-
   state_cache_p->gtpv1u_teid = 0;
 
   bdestroy_wrapper(&b);

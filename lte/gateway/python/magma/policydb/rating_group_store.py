@@ -35,7 +35,8 @@ class RatingGroupsDict(RedisHashDict):
             client,
             self._DICT_HASH,
             get_proto_serializer(),
-            get_proto_deserializer(RatingGroup))
+            get_proto_deserializer(RatingGroup),
+        )
 
     def send_update_notification(self):
         """

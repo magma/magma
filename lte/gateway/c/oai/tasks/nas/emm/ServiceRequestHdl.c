@@ -38,10 +38,8 @@
 #include "ExtendedServiceRequest.h"
 #include "ServiceType.h"
 #include "emm_asDef.h"
-#include "emm_cnDef.h"
 #include "esm_data.h"
 #include "mme_api.h"
-#include "mme_app_state.h"
 #include "nas_message.h"
 #include "mme_app_defs.h"
 
@@ -335,7 +333,9 @@ int emm_send_service_reject_in_dl_nas(
 
   if (!emm_ctx) {
     OAILOG_ERROR(
-        LOG_NAS_EMM, "Failed to find emm context for ue_id :%u\n", ue_id);
+        LOG_NAS_EMM,
+        "Failed to find emm context for ue_id :" MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
   emm_ctx->emm_cause                = emm_cause;

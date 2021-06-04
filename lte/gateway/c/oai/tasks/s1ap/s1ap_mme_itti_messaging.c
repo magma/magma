@@ -86,6 +86,7 @@ int s1ap_mme_itti_nas_uplink_ind(
         " MME_APP_UPLINK_DATA_IND \n");
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+  ITTI_MSG_LASTHOP_LATENCY(message_p)    = s1ap_last_msg_latency;
   MME_APP_UL_DATA_IND(message_p).ue_id   = ue_id;
   MME_APP_UL_DATA_IND(message_p).nas_msg = *payload;
   *payload                               = NULL;
@@ -174,6 +175,7 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
       ": " ENB_UE_S1AP_ID_FMT "\n",
       enb_ue_s1ap_id);
 
+  ITTI_MSG_LASTHOP_LATENCY(message_p)               = s1ap_last_msg_latency;
   S1AP_INITIAL_UE_MESSAGE(message_p).sctp_assoc_id  = assoc_id;
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
   S1AP_INITIAL_UE_MESSAGE(message_p).enb_id         = enb_id;

@@ -92,7 +92,7 @@ ebi_t esm_ebr_context_create(
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-PROC  - Create new %s EPS bearer context (ebi=%d) "
-      "for PDN connection (pid=%d) for ue_id (%u)\n",
+      "for PDN connection (pid=%d) for ue_id " MME_UE_S1AP_ID_FMT "\n",
       (is_default) ? "default" : "dedicated", ebi, pid,
       ue_mm_context->mme_ue_s1ap_id);
 
@@ -101,7 +101,7 @@ ebi_t esm_ebr_context_create(
       OAILOG_ERROR(
           LOG_NAS_ESM,
           "ESM-PROC  - PDN connection %d has not been "
-          "allocated for (ue_id = %u)\n",
+          "allocated for (ue_id = " MME_UE_S1AP_ID_FMT ")\n",
           pid, ue_mm_context->mme_ue_s1ap_id);
     }
     /*
@@ -111,7 +111,8 @@ ebi_t esm_ebr_context_create(
       OAILOG_WARNING(
           LOG_NAS_ESM,
           "ESM-PROC  - The total number of active EPS"
-          "bearers is exceeded\n");
+          "bearers is exceeded for ue id " MME_UE_S1AP_ID_FMT "\n",
+          ue_mm_context->mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
     } else {
       bidx = EBI_TO_INDEX(ebi);
@@ -204,8 +205,8 @@ ebi_t esm_ebr_context_create(
     OAILOG_WARNING(
         LOG_NAS_ESM,
         "ESM-PROC  - Failed to create new EPS bearer "
-        "context (ebi=%d)\n",
-        ebi);
+        "context (ebi=%d) for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ebi, ue_mm_context->mme_ue_s1ap_id);
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
@@ -297,8 +298,8 @@ ebi_t esm_ebr_context_release(
         OAILOG_ERROR(
             LOG_NAS_ESM,
             "ESM-PROC  - PDN connection identifier %d "
-            "is not valid\n",
-            *pid);
+            "is not valid for ue id " MME_UE_S1AP_ID_FMT "\n",
+            *pid, ue_mm_context->mme_ue_s1ap_id);
       } else {
         if (ue_mm_context->pdn_contexts[*pid]->bearer_contexts[*bid]) {
           pdn   = &ue_mm_context->pdn_contexts[*pid]->esm_data;
@@ -336,8 +337,8 @@ ebi_t esm_ebr_context_release(
     OAILOG_INFO(
         LOG_NAS_ESM,
         "ESM-PROC  - Release EPS bearer context "
-        "(ebi=%d)\n",
-        ebi);
+        "(ebi=%d) for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ebi, ue_mm_context->mme_ue_s1ap_id);
 
     /*
      * Delete the TFT
@@ -376,8 +377,8 @@ ebi_t esm_ebr_context_release(
       OAILOG_INFO(
           LOG_NAS_ESM,
           "ESM-PROC  - Release default EPS bearer context "
-          "(ebi=%d)\n",
-          ebi);
+          "(ebi=%d) for ue id " MME_UE_S1AP_ID_FMT "\n",
+          ebi, ue_mm_context->mme_ue_s1ap_id);
 
       for (i = 1; pdn->n_bearers > 0; i++) {
         int idx = ue_mm_context->pdn_contexts[*pid]->bearer_contexts[i];
@@ -399,8 +400,9 @@ ebi_t esm_ebr_context_release(
           OAILOG_WARNING(
               LOG_NAS_ESM,
               "ESM-PROC  - Release EPS bearer context "
-              "(ebi=%d)\n",
-              ue_mm_context->bearer_contexts[idx]->ebi);
+              "(ebi=%d) " MME_UE_S1AP_ID_FMT "\n",
+              ue_mm_context->bearer_contexts[idx]->ebi,
+              ue_mm_context->mme_ue_s1ap_id);
 
           /*
            * Delete the TFT
@@ -459,8 +461,8 @@ ebi_t esm_ebr_context_release(
       OAILOG_INFO(
           LOG_NAS_ESM,
           "ESM-PROC  - Release dedicated EPS bearer context "
-          "(ebi=%d)\n",
-          ebi);
+          "(ebi=%d) for ue id " MME_UE_S1AP_ID_FMT "\n",
+          ebi, ue_mm_context->mme_ue_s1ap_id);
     }
 
     // if (pdn->n_bearers == 0) {

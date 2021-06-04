@@ -7324,7 +7324,7 @@ definitions:
         default: 1
         example: 1
         format: uint32
-        maximum: 255
+        maximum: 65535
         minimum: 0
         type: integer
         x-nullable: false
@@ -10195,6 +10195,8 @@ definitions:
         example: events_only
         type: string
         x-nullable: false
+      domain_id:
+        type: string
       duration:
         default: 0
         description: the duration in seconds after which the task will expire.

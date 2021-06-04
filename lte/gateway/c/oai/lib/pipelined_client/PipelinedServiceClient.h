@@ -21,7 +21,7 @@
 #include <string>
 
 #include "PipelinedClientAPI.h"
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include "lte/protos/pipelined.grpc.pb.h"
 
 namespace grpc {

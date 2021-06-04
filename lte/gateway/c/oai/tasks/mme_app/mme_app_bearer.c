@@ -102,7 +102,9 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
-        "ue_context_p is NULL, did not send S11_MODIFY_BEARER_REQUEST\n");
+        "ue_context_p is NULL, did not send S11_MODIFY_BEARER_REQUEST for ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -129,8 +131,11 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
   if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Cannot allocate memory to S11_MODIFY_BEARER_REQUEST\n");
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Cannot allocate memory to S11_MODIFY_BEARER_REQUEST for ue "
+        "id " MME_UE_S1AP_ID_FMT "\n",
+        ue_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
@@ -268,8 +273,9 @@ int send_pcrf_bearer_actv_rsp(
 
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending create_dedicated_bearer_rsp to SGW with EBI %u s1u teid %u\n",
-      ebi, bc->s_gw_fteid_s1u.teid);
+      "Sending create_dedicated_bearer_rsp to SGW with EBI %u s1u teid %u for "
+      "ue id " MME_UE_S1AP_ID_FMT "\n",
+      ebi, bc->s_gw_fteid_s1u.teid, ue_context_p->mme_ue_s1ap_id);
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
@@ -543,7 +549,8 @@ void mme_app_handle_conn_est_cnf(
            ue_context_p->mme_ue_s1ap_id)) == -1) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, emm_context._imsi64,
-        "Failed to start initial context setup response timer for UE id  %d \n",
+        "Failed to start initial context setup response timer for UE "
+        "id " MME_UE_S1AP_ID_FMT " \n",
         ue_context_p->mme_ue_s1ap_id);
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
@@ -552,7 +559,7 @@ void mme_app_handle_conn_est_cnf(
     OAILOG_INFO_UE(
         LOG_MME_APP, emm_context._imsi64,
         "MME APP : Sent Initial context Setup Request and Started guard timer "
-        "for UE id  %d timer_id :%lx \n",
+        "for UE id " MME_UE_S1AP_ID_FMT " timer_id :%lx \n",
         ue_context_p->mme_ue_s1ap_id,
         (long) ue_context_p->initial_context_setup_rsp_timer.id);
   }
@@ -618,7 +625,8 @@ imsi64_t mme_app_handle_initial_ue_message(
           ue_context_p->ue_context_rel_cause = S1AP_INVALID_ENB_ID;
           OAILOG_ERROR(
               LOG_MME_APP,
-              " Sending UE Context Release to S1AP for ue_id =(%u)\n",
+              " Sending UE Context Release to S1AP for ue_id "
+              "= " MME_UE_S1AP_ID_FMT "\n",
               ue_context_p->mme_ue_s1ap_id);
           mme_app_itti_ue_context_release(
               ue_context_p, ue_context_p->ue_context_rel_cause);
@@ -727,7 +735,8 @@ imsi64_t mme_app_handle_initial_ue_message(
 
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending NAS Establishment Indication to NAS for ue_id = (%d)\n",
+      "Sending NAS Establishment Indication to NAS for ue_id "
+      "= " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
 
   mme_ue_s1ap_id_t ue_id = ue_context_p->mme_ue_s1ap_id;
@@ -858,11 +867,6 @@ void mme_app_handle_delete_session_rsp(
         " from SGW is NULL \n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  OAILOG_INFO(
-      LOG_MME_APP,
-      "Received S11_DELETE_SESSION_RESPONSE from S+P-GW with teid " TEID_FMT
-      "\n ",
-      delete_sess_resp_pP->teid);
   ue_context_p = mme_ue_context_exists_s11_teid(
       &mme_app_desc_p->mme_ue_contexts, delete_sess_resp_pP->teid);
 
@@ -872,6 +876,12 @@ void mme_app_handle_delete_session_rsp(
         delete_sess_resp_pP->teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  OAILOG_INFO_UE(
+      LOG_MME_APP, ue_context_p->emm_context._imsi64,
+      "Received S11_DELETE_SESSION_RESPONSE from S+P-GW with teid " TEID_FMT
+      ", for ue id " MME_UE_S1AP_ID_FMT "\n ",
+      delete_sess_resp_pP->teid, ue_context_p->mme_ue_s1ap_id);
+
   if (delete_sess_resp_pP->cause.cause_value != REQUEST_ACCEPTED) {
     OAILOG_WARNING_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
@@ -1034,9 +1044,6 @@ int mme_app_handle_create_sess_resp(
   ebi_t bearer_id                      = 0;
   int rc                               = RETURNok;
 
-  OAILOG_INFO(
-      LOG_MME_APP, "Received S11_CREATE_SESSION_RESPONSE from S+P-GW\n");
-
   if (create_sess_resp_pP == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP, "Invalid Create Session Response object received\n");
@@ -1053,10 +1060,13 @@ int mme_app_handle_create_sess_resp(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  OAILOG_DEBUG_UE(
+  OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "MME S11 teid = %u, cause = %d, ue_id = %u\n", create_sess_resp_pP->teid,
-      create_sess_resp_pP->cause.cause_value, ue_context_p->mme_ue_s1ap_id);
+      "Received S11_CREATE_SESSION_RESPONSE from S+P-GW for ue "
+      "id " MME_UE_S1AP_ID_FMT " with MME S11 teid = " TEID_FMT
+      ", cause = %d\n",
+      ue_context_p->mme_ue_s1ap_id, create_sess_resp_pP->teid,
+      create_sess_resp_pP->cause.cause_value);
 
   proc_tid_t transaction_identifier = 0;
   pdn_cid_t pdn_cx_id               = 0;
@@ -1355,9 +1365,12 @@ static void mme_app_populate_bearer_contexts_to_be_removed(
                          .e_rab_id)]
                  ->pdn_cx_id;
       OAILOG_INFO(
-          LOG_NAS_ESM, "Releasing dedicated EPS bearer context for ebi %u\n",
+          LOG_NAS_ESM,
+          "Releasing dedicated EPS bearer context for ebi %u for ue "
+          "id " MME_UE_S1AP_ID_FMT "\n",
           initial_ctxt_setup_rsp_p->e_rab_failed_to_setup_list.item[item]
-              .e_rab_id);
+              .e_rab_id,
+          ue_context_p->mme_ue_s1ap_id);
 
       int rc = esm_proc_eps_bearer_context_deactivate(
           &ue_context_p->emm_context, true,
@@ -1368,9 +1381,10 @@ static void mme_app_populate_bearer_contexts_to_be_removed(
         OAILOG_ERROR(
             LOG_NAS_ESM,
             "Failed to release the dedicated EPS bearer context for "
-            "ebi:%u\n",
+            "ebi:%u for ue id " MME_UE_S1AP_ID_FMT "\n",
             initial_ctxt_setup_rsp_p->e_rab_failed_to_setup_list.item[item]
-                .e_rab_id);
+                .e_rab_id,
+            ue_context_p->mme_ue_s1ap_id);
       }
       break;
     }  // end of ebi comparison
@@ -1511,7 +1525,8 @@ static void mme_app_build_modify_bearer_request_message(
 
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = (%d), teid = (%u)\n",
+      "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = " MME_UE_S1AP_ID_FMT
+      ", teid = (%u)\n",
       initial_ctxt_setup_rsp_p->ue_id, s11_modify_bearer_request->teid);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -1583,7 +1598,8 @@ void mme_app_handle_initial_context_setup_rsp(
 
   OAILOG_INFO(
       LOG_MME_APP,
-      "Received MME_APP_INITIAL_CONTEXT_SETUP_RSP from S1AP for ue_id = (%u)\n",
+      "Received MME_APP_INITIAL_CONTEXT_SETUP_RSP from S1AP for ue_id "
+      "= " MME_UE_S1AP_ID_FMT "\n",
       initial_ctxt_setup_rsp_p->ue_id);
   ue_context_p =
       mme_ue_context_exists_mme_ue_s1ap_id(initial_ctxt_setup_rsp_p->ue_id);
@@ -1951,18 +1967,24 @@ void mme_app_handle_initial_context_setup_failure(
   struct ue_mm_context_s* ue_context_p = NULL;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
-  OAILOG_INFO(
-      LOG_MME_APP,
-      "Received MME_APP_INITIAL_CONTEXT_SETUP_FAILURE from S1AP\n");
   ue_context_p = mme_ue_context_exists_mme_ue_s1ap_id(
       initial_ctxt_setup_failure_pP->mme_ue_s1ap_id);
 
   if (ue_context_p == NULL) {
-    OAILOG_DEBUG(
-        LOG_MME_APP, "We didn't find this mme_ue_s1ap_id in list of UE: %d \n",
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "We didn't find this mme_ue_s1ap_id in list of UE: " MME_UE_S1AP_ID_FMT
+        " \n",
         initial_ctxt_setup_failure_pP->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+
+  OAILOG_INFO(
+      LOG_MME_APP,
+      "Received MME_APP_INITIAL_CONTEXT_SETUP_FAILURE from S1AP for ue "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      ue_context_p->mme_ue_s1ap_id);
+
   increment_counter("initial_context_setup_failure_received", 1, NO_LABELS);
   // Stop Initial context setup process guard timer,if running
   if (ue_context_p->initial_context_setup_rsp_timer.id !=
@@ -2266,8 +2288,10 @@ void mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
 
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending create_dedicated_bearer_rej to SGW with EBI %u s1u teid %u\n",
-      pending_ded_ber_req->linked_ebi, pending_ded_ber_req->sgw_fteid.teid);
+      "Sending create_dedicated_bearer_rej to SGW with EBI %u s1u teid %u for "
+      "ue id " MME_UE_S1AP_ID_FMT "\n",
+      pending_ded_ber_req->linked_ebi, pending_ded_ber_req->sgw_fteid.teid,
+      ue_context_p->mme_ue_s1ap_id);
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -3113,8 +3137,9 @@ void send_delete_dedicated_bearer_rsp(
 
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      " Sending nw_initiated_deactv_bearer_rsp to SGW with %d bearers\n",
-      num_bearer_context);
+      " Sending nw_initiated_deactv_bearer_rsp to SGW with %d bearers for ue "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      num_bearer_context, ue_context_p->mme_ue_s1ap_id);
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
 
   OAILOG_FUNC_OUT(LOG_MME_APP);
@@ -3135,12 +3160,6 @@ void mme_app_handle_nw_init_bearer_deactv_req(
   uint32_t num_bearers_deleted                                       = 0;
   emm_cn_deactivate_dedicated_bearer_req_t deactivate_ded_bearer_req = {0};
 
-  OAILOG_INFO(
-      LOG_MME_APP,
-      "Received nw_initiated_deactv_bearer_req from SGW for S11 teid" TEID_FMT
-      "\n",
-      nw_init_bearer_deactv_req_p->s11_mme_teid);
-
   /*Print bearer ids received in the message*/
   print_bearer_ids_helper(
       nw_init_bearer_deactv_req_p->ebi,
@@ -3155,6 +3174,12 @@ void mme_app_handle_nw_init_bearer_deactv_req(
         nw_init_bearer_deactv_req_p->s11_mme_teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+
+  OAILOG_INFO(
+      LOG_MME_APP,
+      "Received nw_initiated_deactv_bearer_req from SGW for S11 teid" TEID_FMT
+      "," MME_UE_S1AP_ID_FMT "\n",
+      nw_init_bearer_deactv_req_p->s11_mme_teid, ue_context_p->mme_ue_s1ap_id);
 
   // Fetch PDN context
   pdn_cid_t cid =
@@ -3171,8 +3196,8 @@ void mme_app_handle_nw_init_bearer_deactv_req(
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Send MME initiated Detach Req to NAS module for EBI %u"
-        " as delete_default_bearer is true\n",
-        nw_init_bearer_deactv_req_p->ebi[0]);
+        " as delete_default_bearer is true for ue id " MME_UE_S1AP_ID_FMT "\n",
+        nw_init_bearer_deactv_req_p->ebi[0], ue_context_p->mme_ue_s1ap_id);
     // Inform MME initiated Deatch Request to NAS module
     if (ue_context_p->ecm_state == ECM_CONNECTED) {
       mme_app_handle_nw_initiated_detach_request(
@@ -3232,7 +3257,6 @@ void mme_app_handle_nw_init_bearer_deactv_req(
 }
 
 void mme_app_handle_handover_required(
-    mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_handover_required_t* const handover_required_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -3335,7 +3359,8 @@ void mme_app_handle_handover_required(
   // send msg to s1ap task to build s1ap message
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "MME_APP send HANDOVER_REQUEST to S1AP for ue_id %d \n",
+      "MME_APP send HANDOVER_REQUEST to S1AP for ue_id " MME_UE_S1AP_ID_FMT
+      " \n",
       ue_context_p->mme_ue_s1ap_id);
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
@@ -3345,7 +3370,6 @@ void mme_app_handle_handover_required(
 }
 
 void mme_app_handle_handover_request_ack(
-    mme_app_desc_t* mme_app_desc_p,
     itti_s1ap_handover_request_ack_t* const handover_request_ack_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
@@ -3393,7 +3417,8 @@ void mme_app_handle_handover_request_ack(
 
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "MME_APP send HANDOVER_COMMAND to S1AP for ue_id %d \n",
+      "MME_APP send HANDOVER_COMMAND to S1AP for ue_id " MME_UE_S1AP_ID_FMT
+      " \n",
       ho_command_p->mme_ue_s1ap_id);
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;

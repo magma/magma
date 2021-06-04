@@ -29,7 +29,6 @@
 #include <pthread.h>
 
 #include "bstrlib.h"
-#include "dynamic_memory_check.h"
 #include "log.h"
 #include "intertask_interface.h"
 #include "itti_free_defined_msg.h"
@@ -42,21 +41,15 @@
 #include "mme_app_ha.h"
 #include "mme_app_statistics.h"
 #include "service303_message_utils.h"
-#include "service303.h"
 #include "common_defs.h"
 #include "mme_app_edns_emulation.h"
 #include "nas_proc.h"
-#include "3gpp_36.401.h"
 #include "common_types.h"
-#include "hashtable.h"
 #include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "mme_app_messages_types.h"
 #include "mme_app_state.h"
-#include "obj_hashtable.h"
 #include "s11_messages_types.h"
 #include "s1ap_messages_types.h"
-#include "sctp_messages_types.h"
 #include "timer_messages_types.h"
 
 static void check_mme_healthy_and_notify_service(void);
@@ -66,11 +59,24 @@ static void mme_app_exit(void);
 bool mme_hss_associated = false;
 bool mme_sctp_bounded   = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
+long mme_app_last_msg_latency;
+long pre_mme_task_msg_latency;
+
+mme_congestion_params_t mme_congestion_params;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
   imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+
+  bool is_task_state_same = false;
+
+  mme_app_last_msg_latency =
+      ITTI_MSG_LATENCY(received_message_p);  // microseconds
+  pre_mme_task_msg_latency = ITTI_MSG_LASTHOP_LATENCY(received_message_p);
+
+  OAILOG_DEBUG(
+      LOG_MME_APP, "MME APP ZMQ latency: %ld.", mme_app_last_msg_latency);
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case MESSAGE_TEST: {
@@ -80,6 +86,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case MME_APP_INITIAL_CONTEXT_SETUP_RSP: {
       mme_app_handle_initial_context_setup_rsp(
           &MME_APP_INITIAL_CONTEXT_SETUP_RSP(received_message_p));
+      is_task_state_same = true;
     } break;
 
     case S6A_CANCEL_LOCATION_REQ: {
@@ -89,6 +96,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        */
       mme_app_handle_s6a_cancel_location_req(
           mme_app_desc_p, &received_message_p->ittiMsg.s6a_cancel_location_req);
+      is_task_state_same = true;
     } break;
 
     case MME_APP_UPLINK_DATA_IND: {
@@ -97,16 +105,19 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           MME_APP_UL_DATA_IND(received_message_p).tai,
           MME_APP_UL_DATA_IND(received_message_p).cgi,
           &MME_APP_UL_DATA_IND(received_message_p).nas_msg);
+      is_task_state_same = true;
     } break;
 
     case S11_CREATE_BEARER_REQUEST: {
       mme_app_handle_s11_create_bearer_req(
           mme_app_desc_p,
           &received_message_p->ittiMsg.s11_create_bearer_request);
+      is_task_state_same = true;
     } break;
 
     case S6A_RESET_REQ: {
       mme_app_handle_s6a_reset_req(&received_message_p->ittiMsg.s6a_reset_req);
+      is_task_state_same = true;
     } break;
 
     case S11_CREATE_SESSION_RESPONSE: {
@@ -187,15 +198,18 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S1AP_E_RAB_SETUP_RSP: {
       mme_app_handle_e_rab_setup_rsp(&S1AP_E_RAB_SETUP_RSP(received_message_p));
+      is_task_state_same = true;
     } break;
 
     case S1AP_E_RAB_REL_RSP: {
       mme_app_handle_e_rab_rel_rsp(&S1AP_E_RAB_REL_RSP(received_message_p));
+      is_task_state_same = true;
     } break;
 
     case S1AP_E_RAB_MODIFICATION_IND: {
       mme_app_handle_e_rab_modification_ind(
           &S1AP_E_RAB_MODIFICATION_IND(received_message_p));
+      is_task_state_same = true;
     } break;
 
     case S1AP_INITIAL_UE_MESSAGE: {
@@ -211,11 +225,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           LOG_MME_APP, "Received S6A Update Location Answer from S6A\n");
       mme_app_handle_s6a_update_location_ans(
           mme_app_desc_p, &received_message_p->ittiMsg.s6a_update_location_ans);
+      is_task_state_same = true;
     } break;
 
     case S1AP_ENB_INITIATED_RESET_REQ: {
       mme_app_handle_enb_reset_req(
           &S1AP_ENB_INITIATED_RESET_REQ(received_message_p));
+      is_task_state_same = true;
     } break;
 
     case S11_PAGING_REQUEST: {
@@ -227,6 +243,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case MME_APP_INITIAL_CONTEXT_SETUP_FAILURE: {
       mme_app_handle_initial_context_setup_failure(
           &MME_APP_INITIAL_CONTEXT_SETUP_FAILURE(received_message_p));
+      is_task_state_same = true;
     } break;
 
     case TIMER_HAS_EXPIRED: {
@@ -240,6 +257,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             "Timer expiry signal received for timer \
           %lu, but it has already been deleted\n",
             received_message_p->ittiMsg.timer_has_expired.timer_id);
+        is_task_state_same = true;
         break;
       }
       if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
@@ -252,11 +270,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       }
       timer_handle_expired(
           received_message_p->ittiMsg.timer_has_expired.timer_id);
+      is_task_state_same = true;
     } break;
 
     case S1AP_UE_CAPABILITIES_IND: {
       mme_app_handle_s1ap_ue_capabilities_ind(
           &received_message_p->ittiMsg.s1ap_ue_cap_ind);
+      is_task_state_same = true;
     } break;
 
     case S1AP_UE_CONTEXT_RELEASE_REQ: {
@@ -267,11 +287,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case S1AP_UE_CONTEXT_MODIFICATION_RESPONSE: {
       mme_app_handle_s1ap_ue_context_modification_resp(
           &received_message_p->ittiMsg.s1ap_ue_context_mod_response);
+      is_task_state_same = true;
     } break;
 
     case S1AP_UE_CONTEXT_MODIFICATION_FAILURE: {
       mme_app_handle_s1ap_ue_context_modification_fail(
           &received_message_p->ittiMsg.s1ap_ue_context_mod_failure);
+      is_task_state_same = true;
     } break;
     case S1AP_UE_CONTEXT_RELEASE_COMPLETE: {
       mme_app_handle_s1ap_ue_context_release_complete(
@@ -286,6 +308,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case ACTIVATE_MESSAGE: {
       mme_hss_associated = true;
+      is_task_state_same = true;
       check_mme_healthy_and_notify_service();
     } break;
 
@@ -293,11 +316,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       mme_sctp_bounded =
           &received_message_p->ittiMsg.sctp_mme_server_initialized.successful;
       check_mme_healthy_and_notify_service();
+      is_task_state_same = true;
     } break;
 
     case S6A_PURGE_UE_ANS: {
       mme_app_handle_s6a_purge_ue_ans(
           &received_message_p->ittiMsg.s6a_purge_ue_ans);
+      is_task_state_same = true;
     } break;
 
     case SGSAP_LOCATION_UPDATE_ACC: {
@@ -307,6 +332,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       mme_app_handle_sgsap_location_update_acc(
           mme_app_desc_p,
           &received_message_p->ittiMsg.sgsap_location_update_acc);
+      is_task_state_same = true;
     } break;
 
     case SGSAP_LOCATION_UPDATE_REJ: {
@@ -320,37 +346,44 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       /*Received SGSAP Alert Request message from SGS task*/
       mme_app_handle_sgsap_alert_request(
           mme_app_desc_p, &received_message_p->ittiMsg.sgsap_alert_request);
+      is_task_state_same = true;
     } break;
 
     case SGSAP_VLR_RESET_INDICATION: {
       /*Received SGSAP Reset Indication from SGS task*/
       mme_app_handle_sgsap_reset_indication(
           &received_message_p->ittiMsg.sgsap_vlr_reset_indication);
+      is_task_state_same = true;
     } break;
 
     case SGSAP_PAGING_REQUEST: {
       mme_app_handle_sgsap_paging_request(
           mme_app_desc_p, &received_message_p->ittiMsg.sgsap_paging_request);
+      is_task_state_same = true;
     } break;
 
     case SGSAP_SERVICE_ABORT_REQ: {
       mme_app_handle_sgsap_service_abort_request(
           mme_app_desc_p, &received_message_p->ittiMsg.sgsap_service_abort_req);
+      is_task_state_same = true;
     } break;
 
     case SGSAP_EPS_DETACH_ACK: {
       mme_app_handle_sgs_eps_detach_ack(
           mme_app_desc_p, &received_message_p->ittiMsg.sgsap_eps_detach_ack);
+      is_task_state_same = true;
     } break;
 
     case SGSAP_IMSI_DETACH_ACK: {
       mme_app_handle_sgs_imsi_detach_ack(
           mme_app_desc_p, &received_message_p->ittiMsg.sgsap_imsi_detach_ack);
+      is_task_state_same = true;
     } break;
 
     case S11_MODIFY_UE_AMBR_REQUEST: {
       mme_app_handle_modify_ue_ambr_request(
           mme_app_desc_p, &S11_MODIFY_UE_AMBR_REQUEST(received_message_p));
+      is_task_state_same = true;
     } break;
 
     case S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST: {
@@ -362,12 +395,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case SGSAP_STATUS: {
       mme_app_handle_sgs_status_message(
           mme_app_desc_p, &received_message_p->ittiMsg.sgsap_status);
+      is_task_state_same = true;
     } break;
 
     case S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST: {
       mme_app_handle_nw_init_bearer_deactv_req(
           mme_app_desc_p,
           &received_message_p->ittiMsg.s11_nw_init_deactv_bearer_request);
+      is_task_state_same = true;
     } break;
 
     case S1AP_PATH_SWITCH_REQUEST: {
@@ -377,12 +412,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case S1AP_HANDOVER_REQUIRED: {
       mme_app_handle_handover_required(
-          mme_app_desc_p, &S1AP_HANDOVER_REQUIRED(received_message_p));
+          &S1AP_HANDOVER_REQUIRED(received_message_p));
+      is_task_state_same = true;
     } break;
 
     case S1AP_HANDOVER_REQUEST_ACK: {
       mme_app_handle_handover_request_ack(
-          mme_app_desc_p, &S1AP_HANDOVER_REQUEST_ACK(received_message_p));
+          &S1AP_HANDOVER_REQUEST_ACK(received_message_p));
+      is_task_state_same = true;
     } break;
 
     case S1AP_HANDOVER_NOTIFY: {
@@ -404,6 +441,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       nas_proc_dl_transfer_cnf(
           MME_APP_DL_DATA_CNF(received_message_p).ue_id,
           MME_APP_DL_DATA_CNF(received_message_p).err_code, &nas_msg);
+      is_task_state_same = true;
     } break;
 
     case MME_APP_DOWNLINK_DATA_REJ: {
@@ -411,6 +449,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           MME_APP_DL_DATA_REJ(received_message_p).ue_id,
           MME_APP_DL_DATA_REJ(received_message_p).err_code,
           &MME_APP_DL_DATA_REJ(received_message_p).nas_msg);
+      is_task_state_same = true;
     } break;
 
     case SGSAP_DOWNLINK_UNITDATA: {
@@ -458,8 +497,11 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
   }
 
-  put_mme_nas_state();
   put_mme_ue_state(mme_app_desc_p, imsi64);
+
+  if (!is_task_state_same) {
+    put_mme_nas_state();
+  }
 
   itti_free_msg_content(received_message_p);
   free(received_message_p);
@@ -483,6 +525,17 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   return NULL;
 }
 
+static void mme_app_init_congestion_params(const mme_config_t* mme_config_p) {
+  mme_congestion_params.mme_app_zmq_congest_th =
+      (long) mme_config_p->mme_app_zmq_congest_th;
+  mme_congestion_params.mme_app_zmq_auth_th =
+      (long) mme_config_p->mme_app_zmq_auth_th;
+  mme_congestion_params.mme_app_zmq_ident_th =
+      (long) mme_config_p->mme_app_zmq_ident_th;
+  mme_congestion_params.mme_app_zmq_smc_th =
+      (long) mme_config_p->mme_app_zmq_smc_th;
+}
+
 //------------------------------------------------------------------------------
 int mme_app_init(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -495,6 +548,10 @@ int mme_app_init(const mme_config_t* mme_config_p) {
 
   // Initialise NAS module
   nas_network_initialize(mme_config_p);
+
+  // Initialize task global congestion parameters
+  mme_app_init_congestion_params(mme_config_p);
+
   /*
    * Create the thread associated with MME applicative layer
    */

@@ -246,6 +246,11 @@ void mme_config_init(mme_config_t* config) {
   config->unauthenticated_imsi_supported = 0;
   config->relative_capacity              = RELATIVE_CAPACITY;
   config->mme_statistic_timer            = MME_STATISTIC_TIMER_S;
+  config->s1ap_zmq_th                    = LONG_MAX;
+  config->mme_app_zmq_congest_th         = LONG_MAX;
+  config->mme_app_zmq_auth_th            = LONG_MAX;
+  config->mme_app_zmq_ident_th           = LONG_MAX;
+  config->mme_app_zmq_smc_th             = LONG_MAX;
 
   log_config_init(&config->log_config);
   eps_network_feature_config_init(&config->eps_network_feature_support);
@@ -532,6 +537,31 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             setting_mme, MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION,
             (const char**) &astring))) {
       config_pP->enable_gtpu_private_ip_correction = parse_bool(astring);
+    }
+
+    if ((config_setting_lookup_int(
+            setting_mme, MME_CONFIG_STRING_S1AP_ZMQ_TH, &aint))) {
+      config_pP->s1ap_zmq_th = (long) aint;
+    }
+
+    if ((config_setting_lookup_int(
+            setting_mme, MME_CONFIG_STRING_MME_APP_ZMQ_CONGEST_TH, &aint))) {
+      config_pP->mme_app_zmq_congest_th = (long) aint;
+    }
+
+    if ((config_setting_lookup_int(
+            setting_mme, MME_CONFIG_STRING_MME_APP_ZMQ_AUTH_TH, &aint))) {
+      config_pP->mme_app_zmq_auth_th = (long) aint;
+    }
+
+    if ((config_setting_lookup_int(
+            setting_mme, MME_CONFIG_STRING_MME_APP_ZMQ_IDENT_TH, &aint))) {
+      config_pP->mme_app_zmq_ident_th = (long) aint;
+    }
+
+    if ((config_setting_lookup_int(
+            setting_mme, MME_CONFIG_STRING_MME_APP_ZMQ_SMC_TH, &aint))) {
+      config_pP->mme_app_zmq_smc_th = (long) aint;
     }
 
     if ((config_setting_lookup_string(
@@ -1565,6 +1595,31 @@ void mme_config_display(mme_config_t* config_pP) {
       LOG_CONFIG, "- Statistics timer .....................: %u (seconds)\n\n",
       config_pP->mme_statistic_timer);
   OAILOG_INFO(
+      LOG_CONFIG,
+      "- S1AP ZMQ Threshold ...........................: %10ld "
+      "(microseconds)\n",
+      config_pP->s1ap_zmq_th);
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "- MME APP ZMQ Congestion Threshold .............: %10ld "
+      "(microseconds)\n",
+      config_pP->mme_app_zmq_congest_th);
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "- MME APP ZMQ Auth Complete Threshold...........: %10ld "
+      "(microseconds)\n",
+      config_pP->mme_app_zmq_auth_th);
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "- MME APP ZMQ Identity Complete Threshold.......: %10ld "
+      "(microseconds)\n",
+      config_pP->mme_app_zmq_ident_th);
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "- MME APP ZMQ SMC Complete Threshold ...........: %10ld "
+      "(microseconds)\n\n",
+      config_pP->mme_app_zmq_smc_th);
+  OAILOG_INFO(
       LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
       config_pP->use_stateless ? "true" : "false");
   OAILOG_INFO(
@@ -1747,7 +1802,8 @@ void mme_config_display(mme_config_t* config_pP) {
 
   OAILOG_INFO(
       LOG_CONFIG,
-      "      APN CORRECTION MAP LIST (IMSI_PREFIX | APN_OVERRIDE):\n");
+      "      APN CORRECTION MAP LIST (IMSI_PREFIX | "
+      "APN_OVERRIDE):\n");
   for (j = 0; j < config_pP->nas_config.apn_map_config.nb; j++) {
     OAILOG_INFO(
         LOG_CONFIG, "                                %s | %s \n",

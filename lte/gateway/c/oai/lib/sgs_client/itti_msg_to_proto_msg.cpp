@@ -20,7 +20,7 @@
 #include <string>
 
 #include "lte/protos/mconfig/mconfigs.pb.h"
-#include "MConfigLoader.h"
+#include "includes/MConfigLoader.h"
 #include "itti_msg_to_proto_msg.h"
 #include "bstrlib.h"
 

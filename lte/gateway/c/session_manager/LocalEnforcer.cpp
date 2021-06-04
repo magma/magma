@@ -28,12 +28,13 @@
 #include "EnumToString.h"
 #include "LocalEnforcer.h"
 #include "magma_logging.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "Utilities.h"
 
 namespace magma {
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE   = false;
 bool LocalEnforcer::CLEANUP_DANGLING_FLOWS = true;
+bool LocalEnforcer::SEND_IPFIX             = true;
 
 using google::protobuf::RepeatedPtrField;
 
@@ -115,7 +116,8 @@ void LocalEnforcer::setup(
       std::string apn_name;
       auto apn = config.common_context.apn();
       if (!parse_apn(apn, apn_mac_addr, apn_name)) {
-        MLOG(MWARNING) << "Failed mac/name parsing for apn " << apn;
+        MLOG(MWARNING) << "Failed to parse out apn mac address from " << apn
+                       << " for " << session->get_session_id();
         apn_mac_addr = "";
         apn_name     = apn;
       }
@@ -238,24 +240,30 @@ void LocalEnforcer::aggregate_records(
     SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4_OR_IPV6, ip);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
-      MLOG(MERROR) << "Could not find session for " << imsi << " and " << ip
-                   << " during record aggregation";
+      MLOG(MERROR) << "Could not find an active session for " << imsi << " and "
+                   << ip << " during record aggregation";
       dead_sessions_to_cleanup.insert(record);
       continue;
     }
-    auto& session          = **session_it;
-    const auto& session_id = session->get_session_id();
+
+    auto& session                 = **session_it;
+    const std::string& session_id = session->get_session_id();
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
       sessions_with_reporting_flows.insert(ImsiAndSessionID(imsi, session_id));
-      MLOG(MINFO) << session_id << " used " << record.bytes_tx()
-                  << " tx bytes and " << record.bytes_rx()
-                  << " rx bytes for rule " << record.rule_id();
+      MLOG(MDEBUG) << session_id << " used " << record.bytes_tx()
+                   << " tx bytes and " << record.bytes_rx()
+                   << " rx bytes for rule " << record.rule_id();
     }
-    SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
 
     session->add_rule_usage(
         record.rule_id(), record.rule_version(), record.bytes_tx(),
-        record.bytes_rx(), record.dropped_tx(), record.dropped_rx(), &uc);
+        record.bytes_rx(), record.dropped_tx(), record.dropped_rx(),
+        &session_update[imsi][session_id]);
+  }
+  if (records.records().size() > 0) {
+    MLOG(MINFO) << "Received stats for " << sessions_with_reporting_flows.size()
+                << " active sessions and " << dead_sessions_to_cleanup.size()
+                << " stale sessions";
   }
   complete_termination_for_released_sessions(
       session_map, sessions_with_reporting_flows, session_update);
@@ -274,7 +282,7 @@ void LocalEnforcer::cleanup_dead_sessions(
     return;
   }
 
-  MLOG(MINFO) << "Deactivating " << dead_sessions_to_cleanup.size()
+  MLOG(MINFO) << "Deactivating flows for " << dead_sessions_to_cleanup.size()
               << " dangling sessions in PipelineD";
   for (const RuleRecord& record : dead_sessions_to_cleanup) {
     Teids teids;
@@ -1818,6 +1826,10 @@ void LocalEnforcer::create_bearer(
 void LocalEnforcer::update_ipfix_flow(
     const std::string& imsi, const SessionConfig& config,
     const uint64_t pdp_start_time) {
+  if (!LocalEnforcer::SEND_IPFIX) {
+    return;
+  }
+
   MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
   SubscriberID sid;
   sid.set_id(imsi);

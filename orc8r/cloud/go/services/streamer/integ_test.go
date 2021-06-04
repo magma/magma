@@ -38,14 +38,9 @@ const (
 
 // Mock Cloud Streamer
 type mockStreamProvider struct {
-	name   string
 	retVal []*protos.DataUpdate
 	extra  *any.Any
 	retErr error
-}
-
-func (m *mockStreamProvider) GetStreamName() string {
-	return m.name
 }
 
 func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
@@ -116,8 +111,8 @@ func TestStreamerClient(t *testing.T) {
 	streamer_test_init.StartTestService(t)
 
 	streamerClient := streamer_client.NewStreamerClient(mockedCloudRegistry{})
-	mockProvider := &mockStreamProvider{name: testStreamName, retVal: expected}
-	streamer_test_init.StartNewTestProvider(t, mockProvider)
+	mockProvider := &mockStreamProvider{retVal: expected}
+	streamer_test_init.StartNewTestProvider(t, mockProvider, testStreamName)
 
 	l := testListener{}
 	l.err = make(chan error)

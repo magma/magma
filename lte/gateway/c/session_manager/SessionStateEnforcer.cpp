@@ -322,6 +322,8 @@ void SessionStateEnforcer::m5g_remove_rules_and_update_upf(
   // Set PDR state as  REMOVE for all PDRs
   session->set_remove_all_pdrs();
   sess_info.Pdr_rules_ = session->get_all_pdr_rules();
+  // Set the node Id
+  sess_info.nodeId.node_id = get_upf_node_id();
   pipelined_client_->set_upf_session(sess_info, call_back_upf);
   return;
 }
@@ -592,4 +594,22 @@ bool SessionStateEnforcer::static_rule_init() {
   GlobalRuleList.insert_rule(8, reqpdr2);
   return true;
 }
+
+bool SessionStateEnforcer::set_upf_node(
+    const std::string& node_id, const std::string& addr) {
+  upf_node_id_      = node_id;
+  upf_node_ip_addr_ = addr;
+  MLOG(MDEBUG) << "Set_upf_node_id: " << upf_node_id_;
+  MLOG(MDEBUG) << "Set_upf_n3_addr: " << upf_node_ip_addr_;
+  return true;
+}
+
+std::string SessionStateEnforcer::get_upf_n3_addr() const {
+  return upf_node_ip_addr_;
+}
+
+std::string SessionStateEnforcer ::get_upf_node_id() const {
+  return upf_node_id_;
+}
+
 }  // end namespace magma

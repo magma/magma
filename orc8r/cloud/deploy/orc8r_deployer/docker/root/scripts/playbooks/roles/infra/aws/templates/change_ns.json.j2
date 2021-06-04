@@ -1,0 +1,14 @@
+{
+  "Comment": "Add NS record to parent domain",
+  "Changes": [
+      {%- for record in (record_info.stdout|from_json).ResourceRecordSets %}
+      {%-     if record.Type in ['NS'] %}
+      {
+          "Action": "UPSERT",
+          "ResourceRecordSet":
+          {{ record | to_json}}
+      }
+      {%      endif %}
+      {% endfor %}
+  ]
+}

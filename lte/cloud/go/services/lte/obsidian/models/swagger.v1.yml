@@ -2502,7 +2502,7 @@ definitions:
         type: integer
         format: uint32
         minimum: 0
-        maximum: 255
+        maximum: 65535
         example: 1
         default: 1
 

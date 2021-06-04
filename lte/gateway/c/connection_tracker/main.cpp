@@ -15,9 +15,9 @@
 #include <stdlib.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 
-#include "MagmaService.h"
-#include "MConfigLoader.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/MagmaService.h"
+#include "includes/MConfigLoader.h"
+#include "includes/ServiceRegistrySingleton.h"
 
 #include "EventTracker.h"
 #include "PacketGenerator.h"

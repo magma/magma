@@ -20,7 +20,7 @@
 #include <string>      // for string
 #include <vector>      // for vector
 
-#include "GRPCReceiver.h"                // for GRPCReceiver
+#include "includes/GRPCReceiver.h"       // for GRPCReceiver
 #include "lte/protos/subscriberdb.pb.h"  // for lte
 
 namespace grpc {
