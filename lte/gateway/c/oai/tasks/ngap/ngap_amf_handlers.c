@@ -750,7 +750,6 @@ int ngap_amf_handle_initial_context_setup_response(
   ue_ref_p->ng_ue_state = NGAP_UE_CONNECTED;
   message_p =
       itti_alloc_new_message(TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_RSP);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id = ue_ref_p->amf_ue_ngap_id;
 
   if (ie) {
@@ -997,7 +996,6 @@ int ngap_amf_handle_ue_context_release_request(
 
       message_p =
           itti_alloc_new_message(TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_REQ);
-      AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
 
       NGAP_UE_CONTEXT_RELEASE_REQ(message_p).amf_ue_ngap_id =
           ue_ref_p->amf_ue_ngap_id;
@@ -1335,7 +1333,6 @@ int ngap_amf_handle_initial_context_setup_failure(
   }
   message_p =
       itti_alloc_new_message(TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_FAILURE);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
       (void*) &message_p->ittiMsg.amf_app_initial_context_setup_failure, 0,
       sizeof(itti_amf_app_initial_context_setup_failure_t));
@@ -1540,7 +1537,6 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
    */
   message_p =
       itti_alloc_new_message(TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_COMPLETE);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
       (void*) &message_p->ittiMsg.ngap_ue_context_release_complete, 0,
       sizeof(itti_ngap_ue_context_release_complete_t));
@@ -1577,7 +1573,6 @@ void ngap_amf_release_ue_context(
    */
   message_p =
       itti_alloc_new_message(TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_COMPLETE);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
       (void*) &message_p->ittiMsg.ngap_ue_context_release_complete, 0,
       sizeof(itti_ngap_ue_context_release_complete_t));
@@ -1772,7 +1767,6 @@ int ngap_amf_handle_pduSession_setup_response(
 
   message_p =
       itti_alloc_new_message(TASK_NGAP, NGAP_PDUSESSIONRESOURCE_SETUP_RSP);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).amf_ue_ngap_id =
       ue_ref_p->amf_ue_ngap_id;
   NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).gnb_ue_ngap_id =
