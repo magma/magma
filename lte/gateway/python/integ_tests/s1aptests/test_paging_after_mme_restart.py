@@ -74,7 +74,7 @@ class TestPagingAfterMmeRestart(unittest.TestCase):
         ue_cntxt_rel_req = s1ap_types.ueCntxtRelReq_t()
         ue_cntxt_rel_req.ue_Id = ue_id
         ue_cntxt_rel_req.cause.causeVal = (
-            gpp_types.CauseRadioNetwork.USER_INACTIVITY.value,
+            gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         )
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_cntxt_rel_req,
@@ -113,7 +113,14 @@ class TestPagingAfterMmeRestart(unittest.TestCase):
             self._s1ap_wrapper.s1_util.issue_cmd(
                 s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req,
             )
+            # Ignore PAGING_IND and wait for INT_CTX_SETUP_IND
             response = self._s1ap_wrapper.s1_util.get_response()
+            while response.msg_type == s1ap_types.tfwCmd.UE_PAGING_IND.value:
+                print(
+                    "Received Paging Indication for ue-id", ue_id,
+                )
+                response = self._s1ap_wrapper.s1_util.get_response()
+
             self.assertEqual(
                 response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
             )

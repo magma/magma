@@ -65,10 +65,10 @@ class MmeNasStateConverter : public StateConverter {
   static char* mme_app_convert_guti_to_string(guti_t* guti_p);
 
   static void mme_app_ueip_imsi_map_to_proto(
-      const UeIpImsiMap* ueip_map, oai::MmeUeIpImsiMap* ueip_proto);
+      const UeIpImsiMap& ueip_map, oai::MmeUeIpImsiMap* ueip_proto);
 
   static void mme_app_proto_to_ueip_imsi_map(
-      const oai::MmeUeIpImsiMap& ueip_proto, UeIpImsiMap* ueip_imsi_map);
+      const oai::MmeUeIpImsiMap& ueip_proto, UeIpImsiMap& ueip_imsi_map);
 
  private:
   /***********************************************************

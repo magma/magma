@@ -910,8 +910,9 @@ void mme_app_handle_delete_session_rsp(
           ->pdn_cx_id;
   pdn_context_t* pdn_context = ue_context_p->pdn_contexts[pid];
   if ((pdn_context) && (pdn_context->paa.ipv4_address.s_addr)) {
-    OAILOG_DEBUG(
-        LOG_MME_APP, "Removing  ue_ip:%x from ipv4_imsi map \n",
+    OAILOG_DEBUG_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Removing  ue_ip:%x from ipv4_imsi map \n",
         (pdn_context)->paa.ipv4_address.s_addr);
 
     mme_app_remove_ue_ipv4_addr(

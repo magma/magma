@@ -106,14 +106,12 @@ class MmeNasStateManager
 
   // creates map of ue_ip addresses
   void create_mme_ueip_imsi_map();
-  // frees the ueip_imsi_map
-  void clear_mme_ueip_imsi_map();
   /* ue_ip address is allocated by either roaming PGWs or mobilityd
    * So there is possibility of allocating same ue ip address for different UEs.
    * So defining ue_ip_imsi map with key as ue_ip and value as list of imsis
    * having same ue_ip
    */
-  UeIpImsiMap* ueip_imsi_map;  // ueip => list of imsi64
+  UeIpImsiMap ueip_imsi_map;  // ueip => list of imsi64
 };
 }  // namespace lte
 }  // namespace magma

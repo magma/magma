@@ -56,7 +56,7 @@ MmeNasStateManager& MmeNasStateManager::getInstance() {
 MmeNasStateManager::MmeNasStateManager()
     : max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS),
       mme_statistic_timer_(10),
-      ueip_imsi_map(nullptr) {}
+      ueip_imsi_map{0} {}
 
 // Destructor for MME NAS state object
 MmeNasStateManager::~MmeNasStateManager() {
@@ -227,7 +227,6 @@ void MmeNasStateManager::free_state() {
     return;
   }
   clear_mme_nas_hashtables();
-  clear_mme_ueip_imsi_map();
   timer_remove(state_cache_p->statistic_timer_id, nullptr);
   free(state_cache_p);
   state_cache_p = nullptr;
@@ -270,11 +269,6 @@ void MmeNasStateManager::create_mme_ueip_imsi_map() {
     OAILOG_ERROR(log_task, "persist_state_enabled is not enabled \n");
     return;
   }
-  ueip_imsi_map = new UeIpImsiMap;
-  if (!ueip_imsi_map) {
-    OAILOG_CRITICAL(log_task, "Failed to allocate memory for ueip_imsi_map \n");
-    return;
-  }
   oai::MmeUeIpImsiMap ueip_proto = oai::MmeUeIpImsiMap();
   redis_client->read_proto(MME_UEIP_IMSI_MAP_NAME, ueip_proto);
 
@@ -295,21 +289,13 @@ void MmeNasStateManager::write_mme_ueip_imsi_map_to_db() {
   std::string proto_msg;
   redis_client->serialize(ueip_proto, proto_msg);
 
-  // s1ap_imsi_map is not state service synced, so version will not be updated
+  // ueip_imsi_map is not state service synced, so version will not be updated
   redis_client->write_proto_str(MME_UEIP_IMSI_MAP_NAME, proto_msg, 0);
   return;
 }
 
 UeIpImsiMap& MmeNasStateManager::get_mme_ueip_imsi_map(void) {
-  if (ueip_imsi_map) {
-    return *ueip_imsi_map;
-  }
-}
-
-void MmeNasStateManager::clear_mme_ueip_imsi_map() {
-  if (ueip_imsi_map) {
-    delete ueip_imsi_map;
-  }
+  return ueip_imsi_map;
 }
 
 }  // namespace lte
