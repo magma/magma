@@ -81,6 +81,7 @@
 /****************************************************************************/
 extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
+extern bool mme_congestion_control_enabled;
 extern mme_congestion_params_t mme_congestion_params;
 
 /****************************************************************************/
@@ -502,8 +503,9 @@ int emm_proc_security_mode_complete(
     /* If spent too much in ZMQ, then discard the packet.
      * MME is congested and this would create some relief in processing.
      */
-    if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
-        MME_APP_ZMQ_LATENCY_SMC_TH) {
+    if (mme_congestion_control_enabled &&
+        (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+         MME_APP_ZMQ_LATENCY_SMC_TH)) {
       OAILOG_WARNING_UE(
           LOG_NAS_EMM, emm_ctx->_imsi64,
           "Discarding SMC complete as cumulative ZMQ latency ( %ld + %ld ) for "
