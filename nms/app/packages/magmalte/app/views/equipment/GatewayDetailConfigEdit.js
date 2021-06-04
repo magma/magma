@@ -775,13 +775,40 @@ export function RanEdit(props: Props) {
   const [connectedEnodebs, setConnectedEnodebs] = useState<enodeb_serials>(
     props.gateway.connected_enodeb_serials,
   );
+  const [unregisteredEnodebs, setUnregisteredEnodebs] = useState({});
   const handleRanChange = (key: string, val) => {
     setRanConfig({...ranConfig, [key]: val});
   };
   const handleDnsChange = (key: string, val) => {
     setDnsConfig({...dnsConfig, [key]: val});
   };
-
+  const isEnodebUnregistered = React.useCallback(
+    (enb: enodeb, currentGateway: lte_gateway) => {
+      const gatewaysList = Object.keys(ctx.state);
+      for (const gatewayId of gatewaysList) {
+        if (
+          ctx.state[gatewayId].connected_enodeb_serials?.includes(enb.serial) &&
+          ctx.state[gatewayId].id != currentGateway.id
+        ) {
+          return false;
+        }
+      }
+      return true;
+    },
+    [ctx?.state],
+  );
+  useEffect(() => {
+    const newUnregisteredEnodebs = {};
+    if (enbsCtx?.state?.enbInfo) {
+      Object.keys(enbsCtx.state.enbInfo).map(enbSerial => {
+        newUnregisteredEnodebs[enbSerial] = isEnodebUnregistered(
+          enbsCtx.state.enbInfo[enbSerial].enb,
+          props.gateway,
+        );
+      });
+    }
+    setUnregisteredEnodebs(newUnregisteredEnodebs);
+  }, [enbsCtx?.state?.enbInfo, isEnodebUnregistered, props?.gateway]);
   const onSave = async () => {
     try {
       const gateway = {
@@ -809,21 +836,6 @@ export function RanEdit(props: Props) {
       setError(e.response?.data?.message ?? e.message);
     }
   };
-  const isEnodebUnregistered = React.useCallback(
-    (enb: enodeb, currentGateway: lte_gateway) => {
-      const gatewaysList = Object.keys(ctx.state);
-      for (const gatewayId of gatewaysList) {
-        if (
-          ctx.state[gatewayId].connected_enodeb_serials?.includes(enb.serial) &&
-          ctx.state[gatewayId].id != currentGateway.id
-        ) {
-          return false;
-        }
-      }
-      return true;
-    },
-    [ctx.state],
-  );
   return (
     <>
       <DialogContent data-testid="ranEdit">
@@ -871,12 +883,7 @@ export function RanEdit(props: Props) {
               }>
               {enbsCtx?.state &&
                 Object.keys(enbsCtx.state.enbInfo).map(enbSerial => {
-                  if (
-                    isEnodebUnregistered(
-                      enbsCtx.state.enbInfo[enbSerial].enb,
-                      props.gateway,
-                    )
-                  ) {
+                  if (unregisteredEnodebs[enbSerial]) {
                     return (
                       <MenuItem key={enbSerial} value={enbSerial}>
                         <Checkbox
