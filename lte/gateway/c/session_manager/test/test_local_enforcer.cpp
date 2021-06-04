@@ -453,11 +453,9 @@ TEST_F(LocalEnforcerTest, test_multi_version_reporting) {
 }
 
 TEST_F(LocalEnforcerTest, test_old_version_reporting) {
-  /*
-  Tests reporting of tx and rx values of old versions, after
-  updating to a new version, as well as whether rule records of old
-  versions are disregarded appropriately
-  */
+  // Tests reporting of tx and rx values of old versions, after
+  // updating to a new version, as well as whether rule records of old
+  // versions are disregarded appropriately
   CreateSessionResponse response;
   create_credit_update_response(
       IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
@@ -586,11 +584,9 @@ TEST_F(LocalEnforcerTest, test_update_version_reporting) {
 }
 
 TEST_F(LocalEnforcerTest, test_erroneous_data) {
-  /*
-   * Tests whether updated rule records for a version
-   * have decreased values of rx and tx. In that case
-   * records should be disregarded.
-   */
+  // Tests whether updated rule records for a version
+  // have decreased values of rx and tx. In that case
+  // records should be disregarded.
   CreateSessionResponse response;
   create_credit_update_response(
       IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
