@@ -252,7 +252,6 @@ int amf_handle_registration_request(
       OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST Id is GUTI\n");
       params->guti                        = new (guti_m5_t)();
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
-      ;
     }
   }  // end of AMF_REGISTRATION_TYPE_INITIAL
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");

@@ -92,6 +92,7 @@ Deregistration accept (UE terminated) */
 #define AMF_CAUSE_MAC_FAILURE 20
 #define AMF_CAUSE_SYNCH_FAILURE 21
 #define AMF_CAUSE_CONGESTION 22
+#define AMF_CAUSE_NGKSI_ALREADY_INUSE 71
 #define AMF_UE_SECURITY_CAPABILITIES_MISMATCH                                  \
   23  // UE security capabilities mismatch
 #define AMF_SECURITY_MODE_REJECT 24

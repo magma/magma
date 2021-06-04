@@ -49,6 +49,8 @@ extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause);
 static int amf_as_security_req(
     const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg);
+static int amf_as_security_rej(
+    const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg);
 // Setup the security header of the given NAS message
 static AMFMsg* amf_as_set_header(
     amf_nas_message_t* msg, const amf_as_security_data_t* security);
@@ -246,6 +248,10 @@ int amf_as_send_ng(const amf_as_t* msg) {
       break;
     case _AMFAS_SECURITY_REQ:
       as_msg.msg_id = amf_as_security_req(
+          &msg->u.security, &as_msg.msg.dl_info_transfer_req);
+      break;
+    case _AMFAS_SECURITY_REJ:
+      as_msg.msg_id = amf_as_security_rej(
           &msg->u.security, &as_msg.msg.dl_info_transfer_req);
       break;
     default:
@@ -885,6 +891,27 @@ static int amf_auth_request(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
 
+/***************************************************************************
+ **                                                                       **
+ ** Name:        amf_auth_reject()                                        **
+ **                                                                       **
+ ** Description: Send authentication Reject to UE                         **
+ **                                                                       **
+ ** Inputs:      msg: Security msg                                        **
+ **              amf_msg :   amf msg                                      **
+ **                                                                       **
+ ** Return:   size                                                        **
+ **                                                                       **
+ **************************************************************************/
+static int amf_auth_reject(
+    const amf_as_security_t* msg, AuthenticationRejectMsg* amf_msg) {
+  OAILOG_INFO(LOG_AMF_APP, "Sending AUTHENTICATION_REJECT_ to UE\n");
+  int size = AUTHENTICATION_REJECT_MINIMUM_LENGTH;
+  amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  amf_msg->message_type.msg_type = AUTH_REJECT;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
+}
 /****************************************************************************
  **                                                                        **
  ** Name:        amf_security_mode_command()                          **
@@ -1238,6 +1265,106 @@ static int amf_as_security_req(
     if (bytes > 0) {
       OAILOG_DEBUG(LOG_AMF_APP, "NAS Encoding Success");
       as_msg->err_code = M5G_AS_SUCCESS;
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_DL_INFO_TRANSFER_REQ_);
+    } else {
+      OAILOG_INFO(LOG_AMF_APP, "NAS Encoding Failed");
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+    }
+  }
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:              amf_as_security_rej()                               **
+ **                                                                        **
+ ** Description:       Processes the AMFAS-SAP security request primitive  **
+ **                                                                        **
+ ** AMFAS-SAP-AMF->AS: SECURITY_REJ - Security mode control procedure      **
+ **                                                                        **
+ ** Inputs:  msg:      The AMFAS-SAP primitive to process                  **
+ **          Others:   None                                                **
+ **                                                                        **
+ ** Outputs: as_msg:   The message to send to the AS                       **
+ **          Return:   The identifier of the AS message                    **
+ **          Others:   None                                                **
+ **                                                                        **
+ ***************************************************************************/
+static int amf_as_security_rej(
+    const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int size = 0;
+  amf_nas_message_t nas_msg;
+
+  memset(&nas_msg, 0, sizeof(amf_nas_message_t));
+
+  /*
+   * Setup the AS message
+   */
+  if (msg) {
+    as_msg->s_tmsi.amf_set_id = msg->guti.guamfi.amf_set_id;
+    as_msg->s_tmsi.m_tmsi     = msg->guti.m_tmsi;
+    as_msg->ue_id             = msg->ue_id;
+  } else {
+    as_msg->ue_id = msg->ue_id;
+  }
+  /*
+   * Setup the NAS security header
+   */
+  AMFMsg* amf_msg = amf_as_set_header(&nas_msg, &msg->sctx);
+  /*
+   * Setup the NAS security message
+   */
+  if (amf_msg) switch (msg->msg_type) {
+      case AMF_AS_MSG_TYPE_AUTH: {
+        size = amf_auth_reject(msg, &amf_msg->msg.authenticationrejectmsg);
+        nas_msg.header.security_header_type =
+            SECURITY_HEADER_TYPE_NOT_PROTECTED;
+        nas_msg.header.extended_protocol_discriminator           = 0x7E;
+        nas_msg.plain.amf.header.message_type                    = AUTH_REJECT;
+        nas_msg.plain.amf.header.extended_protocol_discriminator = 0x7E;
+        nas_msg.plain.amf.msg.authenticationrejectmsg
+            .extended_protocol_discriminator.extended_proto_discriminator =
+            0x7e;
+        nas_msg.plain.amf.msg.authenticationrejectmsg.message_type.msg_type =
+            AUTH_REJECT;
+        break;
+      }
+      default: { OAILOG_INFO(LOG_AMF_APP, " Invalid AS MSG Type \n"); }
+    }
+
+  if (size > 0) {
+    amf_context_t* amf_ctx                       = NULL;
+    amf_security_context_t* amf_security_context = NULL;
+    ue_m5gmm_context_s* ue_mm_context =
+        amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
+
+    if (ue_mm_context) {
+      amf_ctx = &ue_mm_context->amf_context;
+
+      if (amf_ctx) {
+        if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
+          amf_security_context           = &amf_ctx->_security;
+          nas_msg.header.sequence_number = amf_ctx->_security.dl_count.seq_num;
+        }
+      }
+    } else {
+      OAILOG_ERROR(
+          LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
+      OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
+    }
+
+    /*
+     * Encode the NAS security message
+     */
+    OAILOG_DEBUG(LOG_AMF_APP, "Start NAS encoding");
+    int bytes =
+        amf_as_encode(&as_msg->nas_msg, &nas_msg, size, amf_security_context);
+
+    if (bytes > 0) {
+      OAILOG_DEBUG(LOG_AMF_APP, "NAS Encoding Success");
+      as_msg->err_code = M5G_AS_TERMINATED_NAS;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_DL_INFO_TRANSFER_REQ_);
     } else {
       OAILOG_INFO(LOG_AMF_APP, "NAS Encoding Failed");

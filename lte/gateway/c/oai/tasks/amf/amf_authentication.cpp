@@ -631,13 +631,20 @@ int amf_proc_authentication_failure(
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
   }
 
+  /*	Stop Timer T3560 */
+  OAILOG_INFO(
+      LOG_NAS_EMM, "Timer:  Stopping Authentication Timer T3560 with id = %d\n",
+      auth_proc->T3560.id);
+  stop_timer(&amf_app_task_zmq_ctx, auth_proc->T3560.id);
+  auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
+  OAILOG_INFO(LOG_NAS_EMM, "Timer: After Stopping T3560 Timer\n");
+
   OAILOG_DEBUG(
       LOG_NAS_AMF, "Authentication of the UE is Failed with Error : %d",
       msg->m5gmm_cause.m5gmm_cause);
-  m5gmm_cause cause = (m5gmm_cause) msg->m5gmm_cause.m5gmm_cause;
 
-  switch (cause) {
-    case m5gmm_cause::NGKSI_ALREADY_IN_USE: {
+  switch (msg->m5gmm_cause.m5gmm_cause) {
+    case AMF_CAUSE_NGKSI_ALREADY_INUSE: {
       // select a new ngKSI and send the same EAP-request message to the UE
       amf_ctx->_security.eksi =
           (amf_ctx->_security.eksi + 1) % (EKSI_MAX_VALUE + 1);
@@ -647,6 +654,39 @@ int amf_proc_authentication_failure(
       amf_send_authentication_request(amf_ctx, auth_proc);
       break;
     }
+    case AMF_CAUSE_MAC_FAILURE: {
+      auth_proc->retransmission_count++;
+      nas_amf_registration_proc_t* registration_proc =
+          get_nas_specific_procedure_registration(amf_ctx);
+      OAILOG_INFO(
+          LOG_NAS_AMF,
+          "Authentication failure received with failure response\n");
+      if (registration_proc &&
+          (amf_ctx->reg_id_type == M5GSMobileIdentityMsg_GUTI)) {
+        rc = amf_proc_identification(
+            amf_ctx, (nas_amf_proc_t*) registration_proc, IDENTITY_TYPE_2_IMSI,
+            amf_registration_success_identification_cb,
+            amf_registration_failure_identification_cb);
+      } else {
+        /*
+         * in case of SUCI BASED REGISTRATION Send AUTH_REJECT */
+        rc = RETURNerror;
+      }
+
+      if (RETURNok != rc) {
+        /*
+         * Notify AMF that the authentication procedure successfully completed
+         */
+        amf_sap_t amf_sap;
+        amf_sap.primitive                    = AMFAS_SECURITY_REJ;
+        amf_sap.u.amf_as.u.security.ue_id    = ue_id;
+        amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
+        rc                                   = amf_sap_send(&amf_sap);
+      }
+    } break;
+    case AMF_CAUSE_SYNCH_FAILURE: {
+      // hanlde SYNCH Failure scenario
+    } break;
     default: {
       OAILOG_INFO(LOG_NAS_AMF, "Unsupported 5gmm cause\n");
       break;
@@ -702,7 +742,6 @@ int amf_send_authentication_request(
 
     if (rc != RETURNerror) {
       OAILOG_ERROR(LOG_NAS_EMM, "Timer:Start Authenthication Timer T3560\n");
-#if 0
       auth_proc->T3560.id = start_timer(
           &amf_app_task_zmq_ctx, AUTHENTICATION_TIMER_EXPIRY_MSECS,
           TIMER_REPEAT_ONCE, authenthication_t3560_handler,
@@ -711,7 +750,6 @@ int amf_send_authentication_request(
       OAILOG_INFO(
           LOG_AMF_APP, "Timer: Authenthication timer T3560 id is %d\n",
           auth_proc->T3560.id);
-#endif
       OAILOG_INFO(LOG_AMF_APP, "Timer: Authenthication timer T3560 skipped \n");
     }
     if (rc != RETURNerror) {

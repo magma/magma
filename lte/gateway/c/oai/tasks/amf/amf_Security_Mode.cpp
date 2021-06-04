@@ -73,7 +73,8 @@ int amf_handle_security_complete_response(
     smc_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
 
     OAILOG_DEBUG(
-          LOG_AMF_APP, "ue_context_request : %d", ue_mm_context->ue_context_request);
+        LOG_AMF_APP, "ue_context_request : %d",
+        ue_mm_context->ue_context_request);
     if (amf_ctx && IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
       if (M5G_UEContextRequest_requested != ue_mm_context->ue_context_request) {
         /*
