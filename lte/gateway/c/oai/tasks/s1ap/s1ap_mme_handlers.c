@@ -986,7 +986,6 @@ int s1ap_mme_handle_initial_context_setup_response(
   ue_ref_p->s1_ue_state = S1AP_UE_CONNECTED;
   message_p =
       itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_RSP);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id = ue_ref_p->mme_ue_s1ap_id;
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list.no_of_items =
       ie->value.choice.E_RABSetupListCtxtSURes.list.count;
@@ -1694,7 +1693,6 @@ int s1ap_mme_handle_initial_context_setup_failure(
   }
   message_p =
       itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_FAILURE);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
       (void*) &message_p->ittiMsg.mme_app_initial_context_setup_failure, 0,
       sizeof(itti_mme_app_initial_context_setup_failure_t));
@@ -1767,7 +1765,6 @@ int s1ap_mme_handle_ue_context_modification_response(
 
       message_p = itti_alloc_new_message(
           TASK_S1AP, S1AP_UE_CONTEXT_MODIFICATION_RESPONSE);
-      AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
       memset(
           (void*) &message_p->ittiMsg.s1ap_ue_context_mod_response, 0,
           sizeof(itti_s1ap_ue_context_mod_resp_t));
@@ -1917,7 +1914,6 @@ int s1ap_mme_handle_ue_context_modification_failure(
       }
       message_p = itti_alloc_new_message(
           TASK_S1AP, S1AP_UE_CONTEXT_MODIFICATION_FAILURE);
-      AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
       memset(
           (void*) &message_p->ittiMsg.s1ap_ue_context_mod_response, 0,
           sizeof(itti_s1ap_ue_context_mod_resp_fail_t));
@@ -3777,7 +3773,6 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
    */
   message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
       (void*) &message_p->ittiMsg.s1ap_ue_context_release_complete, 0,
       sizeof(itti_s1ap_ue_context_release_complete_t));
@@ -3817,7 +3812,6 @@ void s1ap_mme_release_ue_context(
    */
   message_p =
       itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   memset(
       (void*) &message_p->ittiMsg.s1ap_ue_context_release_complete, 0,
       sizeof(itti_s1ap_ue_context_release_complete_t));
@@ -4019,7 +4013,6 @@ int s1ap_mme_handle_erab_setup_response(
       (const hash_key_t) ue_ref_p->mme_ue_s1ap_id, &imsi64);
 
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_SETUP_RSP);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   S1AP_E_RAB_SETUP_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_SETUP_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
   S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.no_of_items           = 0;
@@ -4640,7 +4633,6 @@ int s1ap_mme_handle_erab_modification_indication(
   }
 
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_MODIFICATION_IND);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   S1AP_E_RAB_MODIFICATION_IND(message_p).mme_ue_s1ap_id =
       ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_MODIFICATION_IND(message_p).enb_ue_s1ap_id =

@@ -175,10 +175,8 @@ int s6a_fd_new_peer(void) {
 void send_activate_messages(void) {
   MessageDef* message_p;
   message_p = itti_alloc_new_message(TASK_S6A, ACTIVATE_MESSAGE);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
 
   message_p = itti_alloc_new_message(TASK_S6A, ACTIVATE_MESSAGE);
-  AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   send_msg_to_task(&s6a_task_zmq_ctx, TASK_S1AP, message_p);
 }
