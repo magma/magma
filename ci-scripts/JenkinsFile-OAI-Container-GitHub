@@ -456,6 +456,19 @@ pipeline {
             }
           }
           post {
+            unsuccessful {
+              script {
+                // In case of failure during RHEL8 Sanity Check pipeline
+                // Retrieve the logs so developer does not need to look for them
+                copyArtifacts(projectName: rhel8SanityCheckPipelineName,
+                              filter: 'fed_podman_logs.zip',
+                              elector: lastCompleted())
+                if (fileExists('fed_podman_logs.zip')) {
+                  sh "mv fed_podman_logs.zip rhel8_sanity_fed_podman_logs.zip"
+                  archiveArtifacts artifacts: 'rhel8_sanity_fed_podman_logs.zip'
+                }
+              }
+            }
             always {
               script {
                 copyArtifacts(projectName: rhel8SanityCheckPipelineName,
