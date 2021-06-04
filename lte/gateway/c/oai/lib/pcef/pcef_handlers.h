@@ -45,6 +45,7 @@ struct pcef_create_session_data {
   uint32_t imsi_mcc_mnc_len;
   uint32_t ambr_dl;
   uint32_t ambr_ul;
+  apn_ambr_bitrate_unit_t br_unit;
   uint32_t pl;
   uint32_t pci;
   uint32_t pvi;

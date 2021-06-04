@@ -108,6 +108,7 @@ set(libnas_ies_OBJS
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/EsmCause.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/EsmInformationTransferFlag.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/EsmMessageContainer.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ies/ExtendedApnAggregateMaximumBitRate.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/GutiType.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/KsiAndSequenceNumber.c
     ${CMAKE_CURRENT_SOURCE_DIR}/ies/LcsClientIdentity.c

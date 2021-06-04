@@ -25,6 +25,7 @@
 #include "PdnAddress.h"
 #include "RadioPriority.h"
 #include "ApnAggregateMaximumBitRate.h"
+#include "ExtendedApnAggregateMaximumBitRate.h"
 #include "EsmCause.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.007.h"
@@ -62,6 +63,8 @@
 #define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_ESM_CAUSE_PRESENT (1 << 6)
 #define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT \
   (1 << 7)
+#define ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_PRESENT   \
+  (1 << 8)
 
 typedef enum activate_default_eps_bearer_context_request_iei_tag {
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_TRANSACTION_IDENTIFIER_IEI =
@@ -80,6 +83,7 @@ typedef enum activate_default_eps_bearer_context_request_iei_tag {
       0x58, /* 0x58 = 88 */
   ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_IEI =
       SM_PROTOCOL_CONFIGURATION_OPTIONS_IEI,
+  ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_IEI = 0x5F,
 } activate_default_eps_bearer_context_request_iei;
 
 /*
@@ -108,6 +112,7 @@ typedef struct activate_default_eps_bearer_context_request_msg_tag {
   ApnAggregateMaximumBitRate apnambr;
   esm_cause_t esmcause;
   protocol_configuration_options_t protocolconfigurationoptions;
+  ExtendedApnAggregateMaximumBitRate extendedapnambr;
 } activate_default_eps_bearer_context_request_msg;
 
 int decode_activate_default_eps_bearer_context_request(

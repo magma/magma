@@ -191,6 +191,20 @@ int decode_activate_default_eps_bearer_context_request(
             ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_PROTOCOL_CONFIGURATION_OPTIONS_PRESENT;
         break;
 
+      case ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_IEI:
+        if ((decoded_result = decode_extended_apn_aggregate_maximum_bit_rate(
+                 &activate_default_eps_bearer_context_request->extendedapnambr,
+                 true, buffer + decoded, len - decoded)) <= 0)
+          return decoded_result;
+
+        decoded += decoded_result;
+        /*
+         * Set corresponding mask to 1 in presencemask
+         */
+        activate_default_eps_bearer_context_request->presencemask |=
+            ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_PRESENT;
+        break;
+
       default:
         errorCodeDecoder = TLV_UNEXPECTED_IEI;
         return TLV_UNEXPECTED_IEI;
@@ -343,6 +357,19 @@ int encode_activate_default_eps_bearer_context_request(
                   ->protocolconfigurationoptions,
              true, buffer + encoded, len - encoded)) < 0) {
       OAILOG_ERROR(LOG_NAS_ESM, "ESM  ENCODE protocolconfigurationoptions\n");
+      // Return in case of error
+      return encode_result;
+    } else
+      encoded += encode_result;
+  }
+
+  if ((activate_default_eps_bearer_context_request->presencemask &
+       ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_PRESENT) ==
+      ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_PRESENT) {
+    if ((encode_result = encode_extended_apn_aggregate_maximum_bit_rate(
+             &activate_default_eps_bearer_context_request->extendedapnambr,
+             true, buffer + encoded, len - encoded)) < 0) {
+      OAILOG_ERROR(LOG_NAS_ESM, "ESM  ENCODE extendedapnambr\n");
       // Return in case of error
       return encode_result;
     } else

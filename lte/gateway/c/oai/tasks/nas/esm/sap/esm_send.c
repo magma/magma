@@ -324,6 +324,21 @@ int esm_send_activate_default_eps_bearer_context_request(
       &msg->apnambr, pdn_context_p->subscribed_apn_ambr.br_dl,
       pdn_context_p->subscribed_apn_ambr.br_ul);
 
+  /*
+   * Optional - Extended APN-AMBR
+   */
+  ue_network_capability_t uenetworkcapability;
+  if (uenetworkcapability.dcnr) {
+    OAILOG_DEBUG(
+        LOG_NAS_ESM, "ESM-SAP   - EXTENDED APN-AMBR DL %lu UL %lu\n",
+        pdn_context_p->subscribed_apn_ambr.br_dl,
+        pdn_context_p->subscribed_apn_ambr.br_ul);
+    msg->presencemask |=
+        ACTIVATE_DEFAULT_EPS_BEARER_CONTEXT_REQUEST_EXTENDED_APNAMBR_PRESENT;
+    extended_bit_rate_value(
+        &msg->extendedapnambr, pdn_context_p->subscribed_apn_ambr.br_dl,
+        pdn_context_p->subscribed_apn_ambr.br_ul);
+  }
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-SAP   - Send Activate Default EPS Bearer Context "
