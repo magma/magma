@@ -30,8 +30,8 @@ class ShellCommandExecutorTest(unittest.TestCase):
                 'shell_commands': [
                     {'name': 'test_1', 'command': '/bin/true'},
                     {'name': 'test_2', 'command': '/bin/false'},
-                ]
-            }
+                ],
+            },
         }
         table = get_shell_commands_from_config(self.service.config)
         self.assertIn('test_1', table)
@@ -44,7 +44,7 @@ class ShellCommandExecutorTest(unittest.TestCase):
 
     def test_get_shell_cmds_missing_shell_commands_list(self):
         self.service.config = {
-            'generic_command_config': {}
+            'generic_command_config': {},
         }
         table = get_shell_commands_from_config(self.service.config)
         self.assertEqual(table, {})
@@ -55,8 +55,8 @@ class ShellCommandExecutorTest(unittest.TestCase):
                 'shell_commands': [
                     {'name': 'test_1'},
                     {'command': '/bin/false'},
-                ]
-            }
+                ],
+            },
         }
         table = get_shell_commands_from_config(self.service.config)
         self.assertEqual(table, {})
@@ -66,18 +66,20 @@ class ShellCommandExecutorTest(unittest.TestCase):
             'generic_command_config': {
                 'shell_commands': [
                     {'name': 'test_1', 'command': 'echo'},
-                ]
-            }
+                ],
+            },
         }
 
         table = get_shell_commands_from_config(self.service.config)
         func_1 = table['test_1']
         result_1 = asyncio.get_event_loop().run_until_complete(
-            func_1(mock.Mock())
+            func_1(mock.Mock()),
         )
 
-        self.assertEqual(result_1,
-                         {'stdout': '\n', 'stderr': '', 'returncode': 0})
+        self.assertEqual(
+            result_1,
+            {'stdout': '\n', 'stderr': '', 'returncode': 0},
+        )
 
     def test_get_shell_cmds_funcs_with_params(self):
         self.service.config = {
@@ -86,24 +88,24 @@ class ShellCommandExecutorTest(unittest.TestCase):
                     {
                         'name': 'test_1',
                         'command': 'echo {} {}',
-                        'allow_params': True
+                        'allow_params': True,
                     },
-                ]
-            }
+                ],
+            },
         }
         params = {
-            "shell_params": ["Hello", "world!"]
+            "shell_params": ["Hello", "world!"],
         }
 
         table = get_shell_commands_from_config(self.service.config)
         func_1 = table['test_1']
         result_1 = asyncio.get_event_loop().run_until_complete(
-            func_1(params)
+            func_1(params),
         )
 
         self.assertEqual(
             result_1,
-            {'stdout': 'Hello world!\n', 'stderr': '', 'returncode': 0}
+            {'stdout': 'Hello world!\n', 'stderr': '', 'returncode': 0},
         )
         pass
 
@@ -112,15 +114,15 @@ class ShellCommandExecutorTest(unittest.TestCase):
             'generic_command_config': {
                 'shell_commands': [
                     {'name': 'test_1', 'command': 'nonexistent/command foo'},
-                ]
-            }
+                ],
+            },
         }
 
         table = get_shell_commands_from_config(self.service.config)
         func_1 = table['test_1']
         try:
             asyncio.get_event_loop().run_until_complete(
-                func_1(mock.Mock())
+                func_1(mock.Mock()),
             )
             self.fail('An exception should have been raised')
         except FileNotFoundError:

@@ -83,6 +83,8 @@ static void add_tunnel_helper(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p, imsi64_t imsi64);
 
+static teid_t sgw_generate_new_s11_cp_teid(void);
+
 #if EMBEDDED_SGW
 #define TASK_MME TASK_MME_APP
 #else
@@ -142,9 +144,8 @@ int sgw_handle_s11_create_session_request(
         "sender_fteid_incorrect_parameters");
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
-  sgw_get_new_S11_tunnel_id(&state->tunnel_id);
   new_endpoint_p = sgw_cm_create_s11_tunnel(
-      session_req_pP->sender_fteid_for_cp.teid, state->tunnel_id);
+      session_req_pP->sender_fteid_for_cp.teid, sgw_generate_new_s11_cp_teid());
 
   if (new_endpoint_p == NULL) {
     OAILOG_ERROR_UE(
@@ -768,9 +769,9 @@ int sgw_handle_sgi_endpoint_deleted(
       char* ip_str = inet_ntoa(ue_ipv4);
       rv           = gtp_tunnel_ops->delete_paging_rule(ue_ipv4);
       if (rv < 0) {
-        OAILOG_ERROR(
-            LOG_SPGW_APP, "ERROR in deleting paging rule for IP Addr: %s\n",
-            ip_str);
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, imsi64,
+            "ERROR in deleting paging rule for IP Addr: %s\n", ip_str);
       } else {
         OAILOG_DEBUG(LOG_SPGW_APP, "Stopped paging for IP Addr: %s\n", ip_str);
       }
@@ -889,8 +890,9 @@ int send_mbr_failure(
       itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
 
   if (!message_p) {
-    OAILOG_ERROR(
-        module, "S11_MODIFY_BEARER_RESPONSE memory allocation failed\n");
+    OAILOG_ERROR_UE(
+        module, imsi64,
+        "S11_MODIFY_BEARER_RESPONSE memory allocation failed\n");
     OAILOG_FUNC_RETURN(module, RETURNerror);
   }
 
@@ -1026,8 +1028,8 @@ int sgw_handle_modify_bearer_request(
   } else {  // bearer_ctxt_info_p not found
     rv = send_mbr_failure(LOG_SPGW_APP, modify_bearer_pP, imsi64);
     if (rv != RETURNok) {
-      OAILOG_ERROR(
-          LOG_SPGW_APP,
+      OAILOG_ERROR_UE(
+          LOG_SPGW_APP, imsi64,
           "Error in sending modify bearer response to MME App for the failed "
           "bearers, teid" TEID_FMT "\n",
           modify_bearer_pP->teid);
@@ -2291,8 +2293,9 @@ void sgw_process_release_access_bearer_request(
       // Convert to string for logging
       char* ip_str = inet_ntoa(eps_bearer_ctxt->paa.ipv4_address);
       if (rv < 0) {
-        OAILOG_ERROR(
-            module, "ERROR in setting paging rule for IP Addr: %s\n", ip_str);
+        OAILOG_ERROR_UE(
+            module, imsi64, "ERROR in setting paging rule for IP Addr: %s\n",
+            ip_str);
       } else {
         OAILOG_DEBUG(module, "Set the paging rule for IP Addr: %s\n", ip_str);
       }
@@ -2300,4 +2303,19 @@ void sgw_process_release_access_bearer_request(
     }
   }
   OAILOG_FUNC_OUT(module);
+}
+
+// Generates random s11 control plane teid
+static teid_t sgw_generate_new_s11_cp_teid(void) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  s_plus_p_gw_eps_bearer_context_information_t*
+      s_plus_p_gw_eps_bearer_ctxt_info_p = NULL;
+  teid_t teid                            = INVALID_TEID;
+  // note srand with seed is initialized at main
+  do {
+    teid                               = (teid_t) rand();
+    s_plus_p_gw_eps_bearer_ctxt_info_p = sgw_cm_get_spgw_context(teid);
+  } while (s_plus_p_gw_eps_bearer_ctxt_info_p);
+
+  OAILOG_FUNC_RETURN(LOG_SGW_S8, teid);
 }

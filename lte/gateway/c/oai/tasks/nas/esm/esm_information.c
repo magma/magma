@@ -133,7 +133,6 @@ int esm_proc_esm_information_response(
     }
     copy_protocol_configuration_options(
         &emm_context_p->esm_ctx.esm_proc_data->pco, pco);
-    clear_protocol_configuration_options(pco);
   }
 
   *esm_cause = ESM_CAUSE_SUCCESS;

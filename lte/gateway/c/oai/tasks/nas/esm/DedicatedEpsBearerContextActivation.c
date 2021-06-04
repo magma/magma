@@ -135,8 +135,8 @@ int esm_proc_dedicated_eps_bearer_context(
       OAILOG_WARNING(
           LOG_NAS_ESM,
           "ESM-PROC  - Failed to create dedicated EPS "
-          "bearer context (ebi=%d)\n",
-          *ebi);
+          "bearer context (ebi=%d), ue id " MME_UE_S1AP_ID_FMT "\n",
+          *ebi, ue_id);
       *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
     }
@@ -145,7 +145,10 @@ int esm_proc_dedicated_eps_bearer_context(
   }
 
   OAILOG_WARNING(
-      LOG_NAS_ESM, "ESM-PROC  - Failed to assign new EPS bearer context\n");
+      LOG_NAS_ESM,
+      "ESM-PROC  - Failed to assign new EPS bearer context for ue "
+      "id " MME_UE_S1AP_ID_FMT "\n",
+      ue_id);
   *esm_cause = ESM_CAUSE_INSUFFICIENT_RESOURCES;
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
 }
@@ -208,7 +211,10 @@ int esm_proc_dedicated_eps_bearer_context_request(
        * The EPS bearer context was already in ACTIVE PENDING state
        */
       OAILOG_WARNING(
-          LOG_NAS_ESM, "ESM-PROC  - EBI %d was already ACTIVE PENDING\n", ebi);
+          LOG_NAS_ESM,
+          "ESM-PROC  - EBI %d was already ACTIVE PENDING for ue "
+          "id " MME_UE_S1AP_ID_FMT "\n",
+          ebi, ue_id);
     }
   }
 
@@ -270,7 +276,10 @@ int esm_proc_dedicated_eps_bearer_context_accept(
        * The EPS bearer context was already in ACTIVE state
        */
       OAILOG_WARNING(
-          LOG_NAS_ESM, "ESM-PROC  - EBI %u was already ACTIVE\n", ebi);
+          LOG_NAS_ESM,
+          "ESM-PROC  - EBI %u was already ACTIVE for ue id " MME_UE_S1AP_ID_FMT
+          "\n",
+          ebi, ue_context_p->mme_ue_s1ap_id);
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
     }
     bearer_context_t* bearer_ctx =
@@ -359,8 +368,9 @@ int esm_proc_dedicated_eps_bearer_context_reject(
     if (rc != RETURNok) {
       OAILOG_INFO(
           LOG_NAS_ESM,
-          "Failed to release the dedicated EPS bearer context for ebi:%u\n",
-          ebi);
+          "Failed to release the dedicated EPS bearer context for ebi:%u for "
+          "ue id " MME_UE_S1AP_ID_FMT "\n",
+          ebi, ue_context_p->mme_ue_s1ap_id);
     }
     mme_app_handle_create_dedicated_bearer_rej(ue_context_p, ebi);
   }
@@ -587,9 +597,8 @@ static void erab_setup_rsp_tmr_exp_ded_bearer_handler(
     if (!bearer_ctx) {
       OAILOG_ERROR(
           LOG_NAS_ESM,
-          "Bearer context is NULL for (ebi=%u)"
-          "\n",
-          esm_ebr_timer_data->ebi);
+          "Bearer context is NULL for (ebi=%u), ue id " MME_UE_S1AP_ID_FMT "\n",
+          esm_ebr_timer_data->ebi, esm_ebr_timer_data->ue_id);
       OAILOG_FUNC_OUT(LOG_NAS_ESM);
     }
     if (!bearer_ctx->enb_fteid_s1u.teid) {

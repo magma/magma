@@ -25,8 +25,10 @@ except (NotADirectoryError, ImportError, ModuleNotFoundError) as e:
 
 class PyLintWrapper():
 
-    def __init__(self, ignored_modules=None, ignored_classes=None,
-                 show_categories=None, disable_ids=None):
+    def __init__(
+        self, ignored_modules=None, ignored_classes=None,
+        show_categories=None, disable_ids=None,
+    ):
         def default(x, y):
             return x if x is not None else y
 
@@ -47,12 +49,18 @@ class PyLintWrapper():
     def run_pylint(self, path):
         with warnings.catch_warnings():
             # suppress this warnings from output
-            warnings.filterwarnings("ignore",
-                                    category=PendingDeprecationWarning)
-            warnings.filterwarnings("ignore",
-                                    category=DeprecationWarning)
-            warnings.filterwarnings("ignore",
-                                    category=ImportWarning)
+            warnings.filterwarnings(
+                "ignore",
+                category=PendingDeprecationWarning,
+            )
+            warnings.filterwarnings(
+                "ignore",
+                category=DeprecationWarning,
+            )
+            warnings.filterwarnings(
+                "ignore",
+                category=ImportWarning,
+            )
 
             linter = lint.PyLinter()
             # Register standard checkers.
@@ -80,7 +88,8 @@ class PyLintWrapper():
             msgs_for_module = [
                 "{}: {}, {}: {} ({})".format(
                     message.msg_id, message.line, message.column,
-                    message.msg, message.symbol) for message in errors
+                    message.msg, message.symbol,
+                ) for message in errors
             ]
             msg += "************* Module {}\n".format(module)
             msg += "\n".join(msgs_for_module) + "\n"

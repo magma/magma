@@ -13,9 +13,11 @@
 - name: set autoscaling group fact
   set_fact:
     factAsgCluster: "{{ valAsgCluster.results[0].auto_scaling_group_name }}"
+  when: valAsgCluster.results is defined and valAsgCluster.results[0].auto_scaling_group_name is defined
 
 - name: delete autoscaling group
   command: aws autoscaling delete-auto-scaling-group --auto-scaling-group-name "{{ factAsgCluster }}" --force-delete
+  when: factAsgCluster is defined
   #  ec2_asg:
   #  name: "{{ factAsgCluster }}"
   #  state: absent

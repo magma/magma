@@ -20,6 +20,14 @@ export default function getFegAlerts(
   networkID: string,
 ): {[string]: prom_alert_config} {
   return {
+    'Certificate Expiring Soon': {
+      alert: 'Certificate Expiring Soon',
+      expr: `cert_expires_in_hours > 720`,
+      labels: {severity: 'major'},
+      annotations: {
+        description: `Alerts when certificate necessary for Orc8r function is expiring soon`,
+      },
+    },
     'Service Restart Alert': {
       alert: 'Service Restart Alert',
       expr: `avg_over_time(service_restart_status{networkID=~"${networkID}"}[5m]) > 0`,

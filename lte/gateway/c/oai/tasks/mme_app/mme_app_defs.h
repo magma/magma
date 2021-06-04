@@ -42,7 +42,23 @@
 #define IPV6_ADDRESS_SIZE 16
 #define IPV4_ADDRESS_SIZE 4
 
+#define MME_APP_ZMQ_LATENCY_CONGEST_TH                                         \
+  (mme_congestion_params.mme_app_zmq_congest_th)  // microseconds
+#define MME_APP_ZMQ_LATENCY_AUTH_TH                                            \
+  (mme_congestion_params.mme_app_zmq_auth_th)  // microseconds
+#define MME_APP_ZMQ_LATENCY_IDENT_TH                                           \
+  (mme_congestion_params.mme_app_zmq_ident_th)  // microseconds
+#define MME_APP_ZMQ_LATENCY_SMC_TH                                             \
+  (mme_congestion_params.mme_app_zmq_smc_th)  // microseconds
+
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
+
+typedef struct mme_congestion_params_s {
+  long mme_app_zmq_congest_th;
+  long mme_app_zmq_auth_th;
+  long mme_app_zmq_ident_th;
+  long mme_app_zmq_smc_th;
+} mme_congestion_params_t;
 
 int mme_app_handle_s1ap_ue_capabilities_ind(
     const itti_s1ap_ue_cap_ind_t* const s1ap_ue_cap_ind_pP);

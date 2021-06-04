@@ -36,32 +36,41 @@ class SyncRPCClientTests(TestCase):
         self._loop = loop
         self._sync_rpc_client = SyncRPCClient(loop=loop, response_timeout=3)
         self._sync_rpc_client._conn_closed_table = {
-            12345: False
+            12345: False,
         }
         ServiceRegistry.add_service('test', '0.0.0.0', 0)
-        ServiceRegistry._PROXY_CONFIG = {'local_port': 2345,
-                                         'cloud_address': 'test',
-                                         'proxy_cloud_connections': True}
-        self._req_body = GatewayRequest(gwId="test id", authority='mobility',
-                                        path='/magma.MobilityService'
-                                             '/ListAddedIPv4Blocks',
-                                        headers={'te': 'trailers',
-                                                 'content-type':
-                                                     'application/grpc',
-                                                 'user-agent':
-                                                     'grpc-python/1.4.0',
-                                                 'grpc-accept-encoding':
-                                                     'identity'},
-                                        payload=bytes.fromhex('0000000000'))
-        self._expected_resp = GatewayResponse(status="400",
-                                              headers={"test_key": "test_val"},
-                                              payload=b'\x00'
-                                                      b'\x00\x00\x00\n\n\x08')
+        ServiceRegistry._PROXY_CONFIG = {
+            'local_port': 2345,
+            'cloud_address': 'test',
+            'proxy_cloud_connections': True,
+        }
+        self._req_body = GatewayRequest(
+            gwId="test id", authority='mobility',
+            path='/magma.MobilityService'
+                 '/ListAddedIPv4Blocks',
+            headers={
+                'te': 'trailers',
+                'content-type':
+                    'application/grpc',
+                'user-agent':
+                    'grpc-python/1.4.0',
+                'grpc-accept-encoding':
+                    'identity',
+            },
+            payload=bytes.fromhex('0000000000'),
+        )
+        self._expected_resp = GatewayResponse(
+            status="400",
+            headers={"test_key": "test_val"},
+            payload=b'\x00'
+                    b'\x00\x00\x00\n\n\x08',
+        )
         self._expected_err_msg = "test error"
 
     def test_forward_request_conn_closed(self):
         self._sync_rpc_client.forward_request(
-            SyncRPCRequest(reqId=12345, connClosed=True))
+            SyncRPCRequest(reqId=12345, connClosed=True),
+        )
         self.assertEqual(self._sync_rpc_client._conn_closed_table[12345], True)
 
     def test_send_sync_rpc_response(self):
@@ -79,14 +88,17 @@ class SyncRPCClientTests(TestCase):
         for i in range(5):
             self._sync_rpc_client._retry_connect_sleep()
             if i == 4:
-                self.assertEqual(self._sync_rpc_client.RETRY_MAX_DELAY_SECS,
-                                 self._sync_rpc_client._current_delay)
+                self.assertEqual(
+                    self._sync_rpc_client.RETRY_MAX_DELAY_SECS,
+                    self._sync_rpc_client._current_delay,
+                )
             else:
                 self.assertEqual(2 ** i, self._sync_rpc_client._current_delay)
 
     def test_disconnect_sync_rpc_event(self):
         disconnect_sync_rpc_event_mock = mock.patch(
-            'magma.magmad.events.disconnected_sync_rpc_stream')
+            'magma.magmad.events.disconnected_sync_rpc_stream',
+        )
         with disconnect_sync_rpc_event_mock as disconnect_sync_rpc_streams:
             self._sync_rpc_client._cleanup_and_reconnect()
             disconnect_sync_rpc_streams.assert_called_once_with()

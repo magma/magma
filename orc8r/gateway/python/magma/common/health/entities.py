@@ -82,8 +82,10 @@ class Version:
 
 
 class ServiceHealth:
-    def __init__(self, service_name, active_state, sub_state,
-                 time_running, errors):
+    def __init__(
+        self, service_name, active_state, sub_state,
+        time_running, errors,
+    ):
         self.service_name = service_name
         self.active_state = active_state
         self.sub_state = sub_state
@@ -103,10 +105,12 @@ class ServiceHealth:
 
 
 class HealthSummary:
-    def __init__(self, version, platform,
-                 services_health,
-                 internet_health, dns_health,
-                 unexpected_restarts):
+    def __init__(
+        self, version, platform,
+        services_health,
+        internet_health, dns_health,
+        unexpected_restarts,
+    ):
         self.version = version
         self.platform = platform
         self.services_health = services_health
@@ -115,8 +119,10 @@ class HealthSummary:
         self.unexpected_restarts = unexpected_restarts
 
     def __str__(self):
-        any_restarts = any([restarts.count
-                            for restarts in self.unexpected_restarts.values()])
+        any_restarts = any([
+            restarts.count
+            for restarts in self.unexpected_restarts.values()
+        ])
         return textwrap.dedent("""
             Running on {}
             Version: {}:
@@ -128,13 +134,17 @@ class HealthSummary:
 
             Restart summary:
             {}
-        """).format(self.version, self.platform,
-                    'Service', 'Status', 'SubState', 'Running for', 'Log level',
-                    'Errors since last restart',
-                    '\n'.join([str(h) for h in self.services_health]),
-                    self.internet_health, self.dns_health,
-                    '\n'.join(['{:20} {}'.format(name, restarts)
-                              for name, restarts
-                              in self.unexpected_restarts.items()])
-                    if any_restarts
-                    else "No restarts since the gateway started")
+        """).format(
+            self.version, self.platform,
+            'Service', 'Status', 'SubState', 'Running for', 'Log level',
+            'Errors since last restart',
+            '\n'.join([str(h) for h in self.services_health]),
+            self.internet_health, self.dns_health,
+            '\n'.join([
+                '{:20} {}'.format(name, restarts)
+                for name, restarts
+                in self.unexpected_restarts.items()
+            ])
+            if any_restarts
+            else "No restarts since the gateway started",
+        )

@@ -34,7 +34,8 @@ class RedirectDict(RedisHashDict):
             client,
             self._DICT_HASH,
             get_proto_serializer(),
-            get_proto_deserializer(RedirectInformation))
+            get_proto_deserializer(RedirectInformation),
+        )
 
     def __missing__(self, key):
         """Instead of throwing a key error, return None when key not found"""

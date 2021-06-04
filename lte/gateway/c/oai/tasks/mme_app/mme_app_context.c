@@ -102,11 +102,6 @@ static bool mme_app_recover_timers_for_ue(
     const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
     void** unused_result_pP);
 
-static void mme_app_resume_timers(
-    struct ue_mm_context_s* const ue_mm_context_pP, time_t start_time,
-    struct mme_app_timer_t* timer,
-    mme_app_timer_callback_t timer_expiry_handler, char* timer_name);
-
 static void directoryd_report_location_a(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
@@ -1741,7 +1736,7 @@ void mme_app_handle_enb_reset_req(
   MessageDef* msg;
   itti_s1ap_enb_initiated_reset_ack_t* reset_ack;
 
-  OAILOG_DEBUG(
+  OAILOG_INFO(
       LOG_MME_APP,
       " eNB Reset request received. eNB id = %d, reset_type  %d \n ",
       enb_reset_req->enb_id, enb_reset_req->s1ap_reset_type);
@@ -1771,7 +1766,7 @@ void mme_app_handle_enb_reset_req(
 
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, msg);
 
-  OAILOG_DEBUG(
+  OAILOG_INFO(
       LOG_MME_APP, " Reset Ack sent to S1AP. eNB id = %d, reset_type  %d \n ",
       enb_reset_req->enb_id, enb_reset_req->s1ap_reset_type);
 
@@ -2229,55 +2224,6 @@ static bool mme_app_recover_timers_for_ue(
   OAILOG_FUNC_RETURN(LOG_MME_APP, false);
 }
 
-static void mme_app_resume_timers(
-    struct ue_mm_context_s* const ue_mm_context_pP, time_t start_time,
-    struct mme_app_timer_t* timer,
-    mme_app_timer_callback_t timer_expiry_handler, char* timer_name) {
-  OAILOG_FUNC_IN(LOG_MME_APP);
-  time_t current_time = time(NULL);
-  time_t lapsed_time  = current_time - start_time;
-  OAILOG_DEBUG(LOG_MME_APP, "Handling :%s timer \n", timer_name);
-
-  /* Below condition validates whether timer has expired before MME recovers
-   * from restart, so MME shall handle as timer expiry
-   */
-  if (timer->sec <= lapsed_time) {
-    timer_expiry_handler(
-        (void*) &(ue_mm_context_pP->mme_ue_s1ap_id),
-        &(ue_mm_context_pP->emm_context._imsi64));
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
-  uint32_t remaining_time_in_seconds = timer->sec - lapsed_time;
-  OAILOG_DEBUG(
-      LOG_MME_APP,
-      "Current_time :%ld %s timer start time :%ld "
-      "lapsed time:%ld remaining time:%d \n",
-      current_time, timer_name, start_time, lapsed_time,
-      remaining_time_in_seconds);
-
-  // Start timer only for remaining duration
-  nas_itti_timer_arg_t timer_callback_arg = {0};
-  timer_callback_arg.nas_timer_callback   = timer_expiry_handler;
-  timer_callback_arg.nas_timer_callback_arg =
-      (void*) &(ue_mm_context_pP->mme_ue_s1ap_id);
-  if (timer_setup(
-          remaining_time_in_seconds, 0, TASK_MME_APP, INSTANCE_DEFAULT,
-          TIMER_ONE_SHOT, &timer_callback_arg, sizeof(timer_callback_arg),
-          &(timer->id)) < 0) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
-        "Failed to start %s timer for UE id "
-        "" MME_UE_S1AP_ID_FMT "\n",
-        timer_name, ue_mm_context_pP->mme_ue_s1ap_id);
-    timer->id = MME_APP_TIMER_INACTIVE_ID;
-  } else {
-    OAILOG_DEBUG_UE(
-        LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
-        "Started %s timer for UE id " MME_UE_S1AP_ID_FMT "\n", timer_name,
-        ue_mm_context_pP->mme_ue_s1ap_id);
-  }
-  OAILOG_FUNC_OUT(LOG_MME_APP);
-}
 
 static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);

@@ -40,11 +40,15 @@ def is_valid(func):
         Wrapper decorator calls wrapped func with passed in args and kwargs
         """
         if not self.valid:
-            raise UseAfterFreeException("Underlying system resource has "
-                                        "been freed invalid access to "
-                                        "function %s on class %s" %
-                                        (func.__name__,
-                                         self.__class__.__name__))
+            raise UseAfterFreeException(
+                "Underlying system resource has "
+                "been freed invalid access to "
+                "function %s on class %s" %
+                (
+                    func.__name__,
+                    self.__class__.__name__,
+                ),
+            )
 
         return func(self, *args, **kwargs)
 
@@ -94,18 +98,26 @@ class Port(object):
         self._of_port_no = self.UNINITIALIZED_PORT_NO  # Lazy initialization.
 
         # Create the interface
-        ret_val, out, err = util.start_process(["ovs-vsctl", "add-port",
-                                                bridge_name, iface_name])
+        ret_val, out, err = util.start_process([
+            "ovs-vsctl", "add-port",
+            bridge_name, iface_name,
+        ])
 
         if ret_val:
-            raise OvsException("Error creating port on bridge %s output %s, "
-                               "error %s" % (bridge_name, out, err))
+            raise OvsException(
+                "Error creating port on bridge %s output %s, "
+                "error %s" % (bridge_name, out, err),
+            )
 
-        ret_val = vswitch.ovs_vsctl_set(self.INT_TABLE, iface_name,
-                                        self.INT_TYPE, None, port_type)
+        ret_val = vswitch.ovs_vsctl_set(
+            self.INT_TABLE, iface_name,
+            self.INT_TYPE, None, port_type,
+        )
         if ret_val:
-            raise OvsException("Error setting interface type for interface "
-                               "%s" % iface_name)
+            raise OvsException(
+                "Error setting interface type for interface "
+                "%s" % iface_name,
+            )
         self._valid = True
 
     @staticmethod
@@ -118,13 +130,19 @@ class Port(object):
         """
 
         # Query the db for the ofport number.
-        ret, out, err = util.start_process(["ovs-vsctl", "get",
-                                            Port.INT_TABLE, iface_name,
-                                            Port.INT_OFPORT])
+        ret, out, err = util.start_process([
+            "ovs-vsctl", "get",
+            Port.INT_TABLE, iface_name,
+            Port.INT_OFPORT,
+        ])
         if ret:
-            raise OvsException("Failed to read port number for interface %s, "
-                               "message %s, error no %s" % (iface_name,
-                                                            out, err))
+            raise OvsException(
+                "Failed to read port number for interface %s, "
+                "message %s, error no %s" % (
+                    iface_name,
+                    out, err,
+                ),
+            )
 
         return int(out)
 
@@ -173,8 +191,11 @@ class Port(object):
         if free_resource:
             ret_val = vswitch.ovs_vsctl_del_port_from_bridge(self._iface_name)
             if ret_val:
-                raise OvsException("Error deleting port %s on bridge %s" % (
-                    self._iface_name, self._bridge_name))
+                raise OvsException(
+                    "Error deleting port %s on bridge %s" % (
+                    self._iface_name, self._bridge_name,
+                    ),
+                )
 
         self._valid = False
 
@@ -188,13 +209,19 @@ class Port(object):
             OvsException if port cannot be accessed.
         """
         up_str = b'up\n'
-        ret, out, err = util.start_process(["ovs-vsctl", "get", Port.INT_TABLE,
-                                            self._iface_name,
-                                            Port.INT_LINK_STATE])
+        ret, out, err = util.start_process([
+            "ovs-vsctl", "get", Port.INT_TABLE,
+            self._iface_name,
+            Port.INT_LINK_STATE,
+        ])
         if ret:
-            raise OvsException("Failed to determine interface link state %s, "
-                               "output %s, erro %s" % (self._iface_name, out,
-                                                       err))
+            raise OvsException(
+                "Failed to determine interface link state %s, "
+                "output %s, erro %s" % (
+                    self._iface_name, out,
+                    err,
+                ),
+            )
 
         return out == up_str
 
@@ -270,15 +297,19 @@ class Bridge(object):
         # No support for nic bonding yet, so bail early
         if self._phy_port:
             assert len(self._phy_port) == 1
-            raise ValueError("Bridge already has a pnic %s attached to it" %
-                             next(iter(self._phy_port)))
+            raise ValueError(
+                "Bridge already has a pnic %s attached to it" %
+                next(iter(self._phy_port)),
+            )
 
         # No ip migration support yet, so bail instead of blackholing box.
         (ip_addr, _) = Interface.interface_get_ip(p_nic)
         if ip_addr != "0.0.0.0":
-            raise ValueError("pnic %s has an ip address assigned to it "
-                             "use a migrate ip workflow to move ip address "
-                             "to a virtual interface" % p_nic)
+            raise ValueError(
+                "pnic %s has an ip address assigned to it "
+                "use a migrate ip workflow to move ip address "
+                "to a virtual interface" % p_nic,
+            )
 
         vswitch.ovs_vsctl_add_port_to_bridge(self._br_name, p_nic)
         self._phy_port.add(p_nic)
@@ -313,7 +344,8 @@ class Bridge(object):
         for port in self._virt_port.values():
             if not port.sanity_check():
                 logging.warning(
-                    "Sanity check for port %s failed", port.iface_name)
+                    "Sanity check for port %s failed", port.iface_name,
+                )
                 return False
         return True
 
@@ -336,8 +368,10 @@ class Interface(object):
         self._ip_address = ip_address
         self._netmask = netmask
 
-        ip_cidr = "%s/%s" % (self._ip_address,
-                             Interface.dotdec_to_cidr(self._netmask))
+        ip_cidr = "%s/%s" % (
+            self._ip_address,
+            Interface.dotdec_to_cidr(self._netmask),
+        )
         args = ["ip", "addr", "add", ip_cidr, "dev", self._iface]
         ret, _, _ = util.start_process(args)
         if ret:
@@ -352,8 +386,10 @@ class Interface(object):
         Raises:
             OvsException if the interface bring up failed.
         """
-        ret, _, _ = util.start_process(["ip", "link", "set",
-                                        self._iface, "up"])
+        ret, _, _ = util.start_process([
+            "ip", "link", "set",
+            self._iface, "up",
+        ])
 
         if ret:
             raise OvsException("Failed to bring up interface %s" % self._iface)
@@ -370,11 +406,15 @@ class Interface(object):
             self._valid = False
             return
 
-        ret, _out, _err = util.start_process(["ip", "link", "set",
-                                              self._iface, "down"])
+        ret, _out, _err = util.start_process([
+            "ip", "link", "set",
+            self._iface, "down",
+        ])
         if ret:
-            raise OvsException("Failed to bring down interface %s"
-                               % self._iface)
+            raise OvsException(
+                "Failed to bring down interface %s"
+                % self._iface,
+            )
         self._valid = False
 
     @property
@@ -412,10 +452,12 @@ class Interface(object):
         if ip_addr == self._ip_address and netmask == self._netmask:
             return True
 
-        logging.warning("Configured ipaddress/netmask %s/%s differs from "
-                        "system ipaddress/netmask %s/%s for interface %s",
-                        self._ip_address, self._netmask, ip_addr, netmask,
-                        self._iface)
+        logging.warning(
+            "Configured ipaddress/netmask %s/%s differs from "
+            "system ipaddress/netmask %s/%s for interface %s",
+            self._ip_address, self._netmask, ip_addr, netmask,
+            self._iface,
+        )
         return False
 
     @staticmethod
@@ -463,7 +505,7 @@ class Interface(object):
         mask_bits = mask_bits << (MAXLEN - cidr_netmask)
 
         # build return
-        octets = [((mask_bits & (0xff << (MAXLEN-8-i))) >> (MAXLEN-8-i))
+        octets = [((mask_bits & (0xff << (MAXLEN - 8 - i))) >> (MAXLEN - 8 - i))
                   for i in range(0, MAXLEN, 8)]
         return ".".join(["%d" % b for b in octets])
 

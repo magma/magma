@@ -23,36 +23,46 @@ DEFAULT_NUM_PACKETS = 4
 DEFAULT_TIMEOUT_SECS = 20
 
 
-PingCommandParams = namedtuple('PingCommandParams',
-                               ['host_or_ip', 'num_packets', 'timeout_secs'])
+PingCommandParams = namedtuple(
+    'PingCommandParams',
+    ['host_or_ip', 'num_packets', 'timeout_secs'],
+)
 
-PingInterfaceCommandParams = namedtuple('PingInterfaceCommandParams',
-                                        ['host_or_ip', 'num_packets', 'interface', 'timeout_secs'])
+PingInterfaceCommandParams = namedtuple(
+    'PingInterfaceCommandParams',
+    ['host_or_ip', 'num_packets', 'interface', 'timeout_secs'],
+)
 
-PingCommandResult = namedtuple('PingCommandResult',
-                               ['error', 'host_or_ip', 'num_packets', 'stats'])
+PingCommandResult = namedtuple(
+    'PingCommandResult',
+    ['error', 'host_or_ip', 'num_packets', 'stats'],
+)
 
-ParsedPingStats = namedtuple('ParsedPingStats', [
-    'packets_transmitted',
-    'packets_received',
-    'packet_loss_pct',
-    'rtt_min',
-    'rtt_avg',
-    'rtt_max',
-    'rtt_mdev',
-])
+ParsedPingStats = namedtuple(
+    'ParsedPingStats', [
+        'packets_transmitted',
+        'packets_received',
+        'packet_loss_pct',
+        'rtt_min',
+        'rtt_avg',
+        'rtt_max',
+        'rtt_mdev',
+    ],
+)
 
 # regexp's for parsing
 dec_re = r'\d+(\.\d+)?'
 packet_line_re = re.compile(
-    r'^(?P<packets_transmitted>\d+) packets transmitted, ' +
-    r'(?P<packets_received>\d+) received, ' +
-    r'(?P<packet_loss_pct>{d})% packet loss, '.format(d=dec_re) +
-    r'time .+$')
+    r'^(?P<packets_transmitted>\d+) packets transmitted, '
+    + r'(?P<packets_received>\d+) received, '
+    + r'(?P<packet_loss_pct>{d})% packet loss, '.format(d=dec_re)
+    + r'time .+$',
+)
 rtt_line_re = re.compile(
-    r'^rtt min/avg/max/mdev = ' +
-    r'(?P<rtt_min>{d})/(?P<rtt_avg>{d})/'.format(d=dec_re) +
-    r'(?P<rtt_max>{d})/(?P<rtt_mdev>{d}) ms$'.format(d=dec_re))
+    r'^rtt min/avg/max/mdev = '
+    + r'(?P<rtt_min>{d})/(?P<rtt_avg>{d})/'.format(d=dec_re)
+    + r'(?P<rtt_max>{d})/(?P<rtt_mdev>{d}) ms$'.format(d=dec_re),
+)
 
 
 def ping(ping_params):
@@ -156,7 +166,9 @@ def parse_ping_output(stdout, stderr, param):
             raise ValueError(
                 'Could not parse {name} line:\n{line}'.format(
                     name=line_name,
-                    line=line))
+                    line=line,
+                ),
+            )
         return line_match
 
     def str_to_num(s_in):
@@ -172,17 +184,21 @@ def parse_ping_output(stdout, stderr, param):
             stdout_lines = stdout.decode('ascii').strip().split('\n')
             stat_header_line_idx = find_statistic_line_idx(stdout_lines)
             if len(stdout_lines) <= stat_header_line_idx + 2:
-                raise ValueError('Not enough output lines in ping output. '
-                                 'The ping may have timed out.')
+                raise ValueError(
+                    'Not enough output lines in ping output. '
+                    'The ping may have timed out.',
+                )
 
             packet_match = match_ping_line(
                 stdout_lines[stat_header_line_idx + 1],
                 packet_line_re,
-                line_name='packet')
+                line_name='packet',
+            )
             rtt_match = match_ping_line(
                 stdout_lines[stat_header_line_idx + 2],
                 rtt_line_re,
-                line_name='rtt')
+                line_name='rtt',
+            )
 
             match_dict = {}
             match_dict.update(packet_match.groupdict())

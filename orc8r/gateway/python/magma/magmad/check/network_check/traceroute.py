@@ -22,18 +22,24 @@ DEFAULT_TTL = 30
 DEFAULT_BYTES_PER_PACKET = 60
 
 
-TracerouteParams = namedtuple('TracerouteParams',
-                              ['host_or_ip', 'max_hops', 'bytes_per_packet'])
+TracerouteParams = namedtuple(
+    'TracerouteParams',
+    ['host_or_ip', 'max_hops', 'bytes_per_packet'],
+)
 
-TracerouteResult = namedtuple('TracerouteResult',
-                              ['error', 'host_or_ip', 'stats'])
+TracerouteResult = namedtuple(
+    'TracerouteResult',
+    ['error', 'host_or_ip', 'stats'],
+)
 
 TracerouteStats = namedtuple('TracerouteStats', ['hops'])
 
 TracerouteHop = namedtuple('TracerouteHop', ['idx', 'probes'])
 
-TracerouteProbe = namedtuple('TracerouteProbe',
-                             ['hostname', 'ip_addr', 'rtt_ms'])
+TracerouteProbe = namedtuple(
+    'TracerouteProbe',
+    ['hostname', 'ip_addr', 'rtt_ms'],
+)
 
 
 def traceroute(params):
@@ -148,17 +154,23 @@ class TracerouteParser(object):
     def _parse_next_probe(self, tokens):
         head_token = tokens.pop(0)
         if head_token == '*':
-            return TracerouteProbe(hostname=self._probe_endpoint.hostname,
-                                   ip_addr=self._probe_endpoint.ip,
-                                   rtt_ms=0)
+            return TracerouteProbe(
+                hostname=self._probe_endpoint.hostname,
+                ip_addr=self._probe_endpoint.ip,
+                rtt_ms=0,
+            )
 
         lookahead_token = tokens.pop(0)
         if lookahead_token == 'ms':
-            return TracerouteProbe(hostname=self._probe_endpoint.hostname,
-                                   ip_addr=self._probe_endpoint.ip,
-                                   rtt_ms=float(head_token))
+            return TracerouteProbe(
+                hostname=self._probe_endpoint.hostname,
+                ip_addr=self._probe_endpoint.ip,
+                rtt_ms=float(head_token),
+            )
         else:
             ip_addr = lookahead_token[1:-1]
-            self._probe_endpoint = self.HostnameAndIP(hostname=head_token,
-                                                      ip=ip_addr)
+            self._probe_endpoint = self.HostnameAndIP(
+                hostname=head_token,
+                ip=ip_addr,
+            )
             return None

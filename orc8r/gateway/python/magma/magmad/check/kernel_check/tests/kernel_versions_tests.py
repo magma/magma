@@ -23,17 +23,20 @@ from magma.magmad.check.kernel_check import kernel_versions
 class DpkgArgFactoryTests(unittest.TestCase):
     def test_function(self):
         actual = kernel_versions._get_dpkg_command_args_list(
-            kernel_versions.DpkgCommandParams())
+            kernel_versions.DpkgCommandParams(),
+        )
         self.assertEqual(
             ['dpkg', '--list'],
-            actual)
+            actual,
+        )
 
 
 class DpkgParseTests(unittest.TestCase):
 
     def setUp(self):
         self.param = kernel_versions._get_dpkg_command_args_list(
-            kernel_versions.DpkgCommandParams())
+            kernel_versions.DpkgCommandParams(),
+        )
 
     def test_parse_with_errors(self):
         param = kernel_versions.DpkgCommandParams()
