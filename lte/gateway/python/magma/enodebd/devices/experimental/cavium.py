@@ -100,7 +100,7 @@ class CaviumHandler(BasicEnodebAcsStateMachine):
             'wait_post_reboot_inform': WaitInformMRebootState(self, when_done='wait_reboot_delay', when_timeout='wait_inform'),
             # The states below are entered when an unexpected message type is
             # received
-            'unexpected_fault': ErrorState(self, inform_transition_target='wait_inform')
+            'unexpected_fault': ErrorState(self, inform_transition_target='wait_inform'),
         }
 
     @property
@@ -134,6 +134,7 @@ class CaviumGetObjectParametersState(EnodebAcsState):
     object parameters. Instead, get the parent object PLMN_LIST
     which will include any children if they exist.
     """
+
     def __init__(self, acs: EnodebAcsStateMachine, when_done: str):
         super().__init__()
         self.acs = acs
@@ -166,11 +167,13 @@ class CaviumWaitGetObjectParametersState(WaitGetObjectParametersState):
         when_edit: str,
         when_skip: str,
     ):
-        super().__init__(acs=acs,
-                         when_add=when_edit,
-                         when_delete=when_edit,
-                         when_set=when_edit,
-                         when_skip=when_skip)
+        super().__init__(
+            acs=acs,
+            when_add=when_edit,
+            when_delete=when_edit,
+            when_set=when_edit,
+            when_skip=when_skip,
+        )
 
 
 class CaviumDisableAdminEnableState(EnodebAcsState):
@@ -178,6 +181,7 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
     Cavium requires that we disable 'Admin Enable' before configuring
     most parameters
     """
+
     def __init__(self, acs: EnodebAcsStateMachine, admin_value: bool, when_done: str):
         super().__init__()
         self.acs = acs
@@ -200,8 +204,10 @@ class CaviumDisableAdminEnableState(EnodebAcsState):
                 self.acs.desired_cfg.get_parameter(param_name) \
                 and self.admin_value
         admin_value = \
-                self.acs.data_model.transform_for_enb(param_name,
-                                                      desired_admin_value)
+                self.acs.data_model.transform_for_enb(
+                    param_name,
+                    desired_admin_value,
+                )
         admin_path = self.acs.data_model.get_parameter(param_name).path
         param_values = {admin_path: admin_value}
 
@@ -230,7 +236,7 @@ class CaviumWaitDisableAdminEnableState(EnodebAcsState):
             admin_value: bool,
             when_done: str,
             when_add: str,
-            when_delete: str
+            when_delete: str,
     ):
         super().__init__()
         self.acs = acs
@@ -246,29 +252,43 @@ class CaviumWaitDisableAdminEnableState(EnodebAcsState):
                 for fault in message.SetParameterValuesFault:
                     logger.error(
                         'SetParameterValuesFault Param: %s, Code: %s, String: %s',
-                        fault.ParameterName, fault.FaultCode, fault.FaultString)
+                        fault.ParameterName, fault.FaultCode, fault.FaultString,
+                    )
             raise Tr069Error(
                 'Received Fault in response to SetParameterValues '
-                '(faultstring = %s)' % message.FaultString)
+                '(faultstring = %s)' % message.FaultString,
+            )
         elif not isinstance(message, models.SetParameterValuesResponse):
             return AcsReadMsgResult(False, None)
         if message.Status != 0:
-            raise Tr069Error('Received SetParameterValuesResponse with '
-                             'Status=%d' % message.Status)
+            raise Tr069Error(
+                'Received SetParameterValuesResponse with '
+                'Status=%d' % message.Status,
+            )
         param_name = ParameterName.ADMIN_STATE
         desired_admin_value = \
                 self.acs.desired_cfg.get_parameter(param_name) \
                 and self.admin_value
         magma_value = \
-                self.acs.data_model.transform_for_magma(param_name,
-                                                        desired_admin_value)
+                self.acs.data_model.transform_for_magma(
+                    param_name,
+                    desired_admin_value,
+                )
         self.acs.device_cfg.set_parameter(param_name, magma_value)
 
-        if len(get_all_objects_to_delete(self.acs.desired_cfg,
-                                      self.acs.device_cfg)) > 0:
+        if len(
+            get_all_objects_to_delete(
+                self.acs.desired_cfg,
+                self.acs.device_cfg,
+            ),
+        ) > 0:
             return AcsReadMsgResult(True, self.del_obj_transition)
-        elif len(get_all_objects_to_add(self.acs.desired_cfg,
-                                      self.acs.device_cfg)) > 0:
+        elif len(
+            get_all_objects_to_add(
+                self.acs.desired_cfg,
+                self.acs.device_cfg,
+            ),
+        ) > 0:
             return AcsReadMsgResult(True, self.add_obj_transition)
         else:
             return AcsReadMsgResult(True, self.done_transition)
@@ -299,7 +319,8 @@ class CaviumTrDataModel(DataModel):
 
         # Capabilities
         ParameterName.DUPLEX_MODE_CAPABILITY: TrParam(
-            FAPSERVICE_PATH + 'Capabilities.LTE.DuplexMode', True, TrParameterType.STRING, False),
+            FAPSERVICE_PATH + 'Capabilities.LTE.DuplexMode', True, TrParameterType.STRING, False,
+        ),
         ParameterName.BAND_CAPABILITY: TrParam(FAPSERVICE_PATH + 'Capabilities.LTE.BandsSupported', True, TrParameterType.UNSIGNED_INT, False),
 
         # RF-related parameters
@@ -319,76 +340,94 @@ class CaviumTrDataModel(DataModel):
         # RAN parameters
         ParameterName.CELL_RESERVED: TrParam(
             FAPSERVICE_PATH
-            + 'CellConfig.LTE.RAN.CellRestriction.CellReservedForOperatorUse', True, TrParameterType.BOOLEAN, False),
+            + 'CellConfig.LTE.RAN.CellRestriction.CellReservedForOperatorUse', True, TrParameterType.BOOLEAN, False,
+        ),
         ParameterName.CELL_BARRED: TrParam(
             FAPSERVICE_PATH
-            + 'CellConfig.LTE.RAN.CellRestriction.CellBarred', True, TrParameterType.BOOLEAN, False),
+            + 'CellConfig.LTE.RAN.CellRestriction.CellBarred', True, TrParameterType.BOOLEAN, False,
+        ),
 
         # Core network parameters
         ParameterName.MME_IP: TrParam(
-            FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkServerList', True, TrParameterType.STRING, False),
+            FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkServerList', True, TrParameterType.STRING, False,
+        ),
         ParameterName.MME_PORT: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkPort', True, TrParameterType.UNSIGNED_INT, False),
         ParameterName.NUM_PLMNS: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNListNumberOfEntries', True, TrParameterType.UNSIGNED_INT, False),
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNListNumberOfEntries', True, TrParameterType.UNSIGNED_INT, False,
+        ),
         ParameterName.PLMN: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.', True, TrParameterType.OBJECT, False),
         # PLMN arrays are added below
         ParameterName.TAC: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.TAC', True, TrParameterType.UNSIGNED_INT, False),
         ParameterName.IP_SEC_ENABLE: TrParam(
-            DEVICE_PATH + 'IPsec.Enable', False, TrParameterType.BOOLEAN, False),
+            DEVICE_PATH + 'IPsec.Enable', False, TrParameterType.BOOLEAN, False,
+        ),
         ParameterName.PERIODIC_INFORM_INTERVAL:
             TrParam(DEVICE_PATH + 'ManagementServer.PeriodicInformInterval', False, TrParameterType.UNSIGNED_INT, False),
 
         # Management server parameters
         ParameterName.PERIODIC_INFORM_ENABLE: TrParam(
                 DEVICE_PATH + 'ManagementServer.PeriodicInformEnable',
-                False, TrParameterType.BOOLEAN, False),
+                False, TrParameterType.BOOLEAN, False,
+        ),
         ParameterName.PERIODIC_INFORM_INTERVAL: TrParam(
                 DEVICE_PATH + 'ManagementServer.PeriodicInformInterval',
-                False, TrParameterType.UNSIGNED_INT, False),
+                False, TrParameterType.UNSIGNED_INT, False,
+        ),
 
         # Performance management parameters
         ParameterName.PERF_MGMT_ENABLE: TrParam(
-            FAPSERVICE_PATH + 'PerfMgmt.Config.1.Enable', False, TrParameterType.BOOLEAN, False),
+            FAPSERVICE_PATH + 'PerfMgmt.Config.1.Enable', False, TrParameterType.BOOLEAN, False,
+        ),
         ParameterName.PERF_MGMT_UPLOAD_INTERVAL: TrParam(
-            FAPSERVICE_PATH + 'PerfMgmt.Config.1.PeriodicUploadInterval', False, TrParameterType.UNSIGNED_INT, False),
+            FAPSERVICE_PATH + 'PerfMgmt.Config.1.PeriodicUploadInterval', False, TrParameterType.UNSIGNED_INT, False,
+        ),
         ParameterName.PERF_MGMT_UPLOAD_URL: TrParam(
-            FAPSERVICE_PATH + 'PerfMgmt.Config.1.URL', False, TrParameterType.STRING, False),
+            FAPSERVICE_PATH + 'PerfMgmt.Config.1.URL', False, TrParameterType.STRING, False,
+        ),
         ParameterName.PERF_MGMT_USER: TrParam(
             FAPSERVICE_PATH + 'PerfMgmt.Config.1.Username',
-            False, TrParameterType.STRING, False),
+            False, TrParameterType.STRING, False,
+        ),
         ParameterName.PERF_MGMT_PASSWORD: TrParam(
             FAPSERVICE_PATH + 'PerfMgmt.Config.1.Password',
-            False, TrParameterType.STRING, False),
+            False, TrParameterType.STRING, False,
+        ),
 
-        #PLMN Info
+        # PLMN Info
         ParameterName.PLMN_LIST: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.', False, TrParameterType.OBJECT, False),
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.', False, TrParameterType.OBJECT, False,
+        ),
     }
 
     NUM_PLMNS_IN_CONFIG = 6
     for i in range(1, NUM_PLMNS_IN_CONFIG + 1):
         PARAMETERS[ParameterName.PLMN_N % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.' % i, True, TrParameterType.OBJECT, False)
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.' % i, True, TrParameterType.OBJECT, False,
+        )
         PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED % i] = TrParam(
             FAPSERVICE_PATH
-            + 'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True, TrParameterType.BOOLEAN, False)
+            + 'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True, TrParameterType.BOOLEAN, False,
+        )
         PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False)
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False,
+        )
         PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False)
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False,
+        )
         PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False)
+            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False,
+        )
 
     TRANSFORMS_FOR_ENB = {
         ParameterName.DL_BANDWIDTH: transform_for_enb.bandwidth,
-        ParameterName.UL_BANDWIDTH: transform_for_enb.bandwidth
+        ParameterName.UL_BANDWIDTH: transform_for_enb.bandwidth,
     }
     TRANSFORMS_FOR_MAGMA = {
         ParameterName.DL_BANDWIDTH: transform_for_magma.bandwidth,
         ParameterName.UL_BANDWIDTH: transform_for_magma.bandwidth,
         # We don't set GPS, so we don't need transform for enb
         ParameterName.GPS_LAT: transform_for_magma.gps_tr181,
-        ParameterName.GPS_LONG: transform_for_magma.gps_tr181
+        ParameterName.GPS_LONG: transform_for_magma.gps_tr181,
     }
 
     @classmethod
@@ -418,11 +457,17 @@ class CaviumTrDataModel(DataModel):
 
     @classmethod
     def get_parameter_names(cls) -> List[ParameterName]:
-        excluded_params = [str(ParameterName.DEVICE),
-                           str(ParameterName.FAP_SERVICE)]
-        names = list(filter(lambda x: (not str(x).startswith('PLMN'))
-                                      and (str(x) not in excluded_params),
-                            cls.PARAMETERS.keys()))
+        excluded_params = [
+            str(ParameterName.DEVICE),
+            str(ParameterName.FAP_SERVICE),
+        ]
+        names = list(
+            filter(
+                lambda x: (not str(x).startswith('PLMN'))
+                          and (str(x) not in excluded_params),
+                cls.PARAMETERS.keys(),
+            ),
+        )
         return names
 
     @classmethod
