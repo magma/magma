@@ -478,12 +478,11 @@ void mme_app_handle_conn_est_cnf(
   }
 
   if (emm_context._ue_network_capability.dcnr) {
+    establishment_cnf_p->nr_ue_security_capabilities_present = true;
     establishment_cnf_p->nr_ue_security_capabilities_encryption_algorithms =
-        ((uint16_t) emm_context._nr_ue_security_capability.nea & ~(1 << 7))
-        << 1;
+        emm_context.ue_additional_security_capability._5g_ea << 1;
     establishment_cnf_p->nr_ue_security_capabilities_integrity_algorithms =
-        ((uint16_t) emm_context._nr_ue_security_capability.nia & ~(1 << 7))
-        << 1;
+        emm_context.ue_additional_security_capability._5g_ia << 1;
   }
 
   derive_keNB(

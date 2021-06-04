@@ -115,6 +115,7 @@ typedef struct emm_attach_request_ies_s {
       mob_st_clsMark2; /* Mobile station classmark2 provided by the UE */
   voice_domain_preference_and_ue_usage_setting_t*
       voicedomainpreferenceandueusagesetting;
+  ue_additional_security_capability_t* ueadditionalsecuritycapability;
 } emm_attach_request_ies_t;
 
 typedef struct emm_detach_request_ies_s {

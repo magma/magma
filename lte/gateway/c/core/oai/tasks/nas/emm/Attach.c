@@ -1156,6 +1156,11 @@ static int emm_attach_run_procedure(emm_context_t* emm_context) {
     // temporary choice to clear security context if it exist
     emm_ctx_clear_security(emm_context);
 
+    if (attach_proc->ies->ueadditionalsecuritycapability) {
+      emm_ctx_set_ue_additional_security_capability(
+          emm_context, attach_proc->ies->ueadditionalsecuritycapability);
+    }
+
     if (attach_proc->ies->imsi) {
       if ((attach_proc->ies->decode_status.mac_matched) ||
           !(attach_proc->ies->decode_status.integrity_protected_message)) {
@@ -2420,6 +2425,43 @@ static bool emm_attach_ies_have_changed(
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
     }
   }
+  /*
+   * UE Additional Security Capability
+   */
+  if ((ies1->ueadditionalsecuritycapability) &&
+      (!ies2->ueadditionalsecuritycapability)) {
+    OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "UE " MME_UE_S1AP_ID_FMT
+        " Attach IEs changed: UE additional security capability\n",
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
+  }
+
+  if ((!ies1->ueadditionalsecuritycapability) &&
+      (ies2->ueadditionalsecuritycapability)) {
+    OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "UE " MME_UE_S1AP_ID_FMT
+        " Attach IEs changed: UE additional security capability\n",
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
+  }
+
+  if ((ies1->ueadditionalsecuritycapability) &&
+      (ies2->ueadditionalsecuritycapability)) {
+    if (memcmp(
+            ies1->ueadditionalsecuritycapability,
+            ies2->ueadditionalsecuritycapability,
+            sizeof(*ies2->ueadditionalsecuritycapability)) != 0) {
+      OAILOG_DEBUG(
+          LOG_NAS_EMM,
+          "UE " MME_UE_S1AP_ID_FMT
+          " Attach IEs changed: UE additional security capability\n",
+          ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
+    }
+  }
   // TODO ESM MSG ?
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, false);
@@ -2459,6 +2501,9 @@ void free_emm_attach_request_ies(emm_attach_request_ies_t** const ies) {
   }
   if ((*ies)->voicedomainpreferenceandueusagesetting) {
     free_wrapper((void**) &(*ies)->voicedomainpreferenceandueusagesetting);
+  }
+  if ((*ies)->ueadditionalsecuritycapability) {
+    free_wrapper((void**) &(*ies)->ueadditionalsecuritycapability);
   }
   free_wrapper((void**) ies);
 }
