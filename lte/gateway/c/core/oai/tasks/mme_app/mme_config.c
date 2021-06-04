@@ -342,13 +342,13 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           bdata(config_pP->config_file), config_error_line(&cfg),
           config_error_text(&cfg));
       config_destroy(&cfg);
-      AssertFatal(
-          1 == 0, "Failed to parse MME configuration file %s!\n",
+      Fatal(
+          "Failed to parse MME configuration file %s!\n",
           bdata(config_pP->config_file));
     }
   } else {
     config_destroy(&cfg);
-    AssertFatal(0, "No MME configuration file provided!\n");
+    Fatal("No MME configuration file provided!\n");
   }
 
   setting_mme = config_lookup(&cfg, MME_CONFIG_STRING_MME_CONFIG);
@@ -636,8 +636,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->s6a_config.hss_host_name = bfromcstr(astring);
           }
         } else
-          AssertFatal(
-              1 == 0, "You have to provide a valid HSS hostname %s=...\n",
+          Fatal(
+              "You have to provide a valid HSS hostname %s=...\n",
               MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
       }
       if ((config_setting_lookup_string(
@@ -650,8 +650,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->s6a_config.hss_realm = bfromcstr(astring);
           }
         } else
-          AssertFatal(
-              1 == 0, "You have to provide a valid HSS realm %s=...\n",
+          Fatal(
+              "You have to provide a valid HSS realm %s=...\n",
               MME_CONFIG_STRING_S6A_HSS_REALM);
       }
     }

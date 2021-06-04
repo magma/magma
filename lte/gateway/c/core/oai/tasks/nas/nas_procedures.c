@@ -315,7 +315,7 @@ static void nas_delete_child_procedures(
 //-----------------------------------------------------------------------------
 static void nas_delete_con_mngt_procedure(nas_emm_con_mngt_proc_t** proc) {
   if (*proc) {
-    AssertFatal(0, "TODO");
+    Fatal("TODO Implement nas_delete_con_mngt_procedure");
     free_wrapper((void**) proc);
   }
 }

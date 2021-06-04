@@ -584,7 +584,7 @@ int decode_emergency_number_list_ie(
        i < EMERGENCY_NUMBER_MAX_DIGITS; i++) {
     e->number_digit[i] = 0xFF;
   }
-  AssertFatal(0, "TODO emergency_number_list_t->next");
+  Fatal("TODO emergency_number_list_t->next");
 
   return decoded;
 }
@@ -597,7 +597,7 @@ int encode_emergency_number_list_ie(
   uint32_t encoded           = 0;
   emergency_number_list_t* e = emergencynumberlist;
 
-  AssertFatal(0, "TODO");
+  Fatal("TODO Implement encode_emergency_number_list_ie");
   if (iei_present) {
     CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
         buffer, EMERGENCY_NUMBER_LIST_IE_MIN_LENGTH, len);
