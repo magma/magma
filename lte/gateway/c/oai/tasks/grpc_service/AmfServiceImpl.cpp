@@ -41,6 +41,8 @@ using magma::lte::SmfPduSessionSmContext;
 
 namespace magma {
 using namespace lte;
+#define TEID_SIZE 4
+#define UPF_IPV4_ADDR_SIZE 4
 
 AmfServiceImpl::AmfServiceImpl() {}
 
@@ -50,6 +52,30 @@ Status AmfServiceImpl::SetAmfNotification(
   OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSmNotificationContext request\n");
   // ToDo processing ITTI,ZMQ
 
+  itti_n11_received_notification_t itti_msg;
+  auto& notify_common = notif->common_context();
+  auto& req_m5g       = notif->rat_specific_notification();
+
+  // CommonSessionContext
+  strcpy(itti_msg.imsi, notify_common.sid().id().c_str());
+  itti_msg.sm_session_fsm_state =
+      (SMSessionFSMState_response) notify_common.sm_session_state();
+  itti_msg.sm_session_version = notify_common.sm_session_version();
+
+  // RatSpecificContextAccess
+  itti_msg.pdu_session_id   = req_m5g.pdu_session_id();
+  itti_msg.request_type     = (RequestType_received) req_m5g.request_type();
+  itti_msg.pdu_session_type = (pdu_session_type_t) req_m5g.pdu_session_type();
+  itti_msg.m5g_sm_capability.reflective_qos =
+      req_m5g.m5g_sm_capability().reflective_qos();
+  itti_msg.m5g_sm_capability.multi_homed_ipv6_pdu_session =
+      req_m5g.m5g_sm_capability().multi_homed_ipv6_pdu_session();
+  itti_msg.m5gsm_cause = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
+
+  // pdu_change
+  itti_msg.notify_ue_evnt = (notify_ue_event) req_m5g.notify_ue_event();
+
+  send_n11_notification_received_itti(&itti_msg);
   return Status::OK;
 }
 // Set message from SessionD received
@@ -73,10 +99,45 @@ Status AmfServiceImpl::SetSmfSessionContext(
   itti_msg.sm_session_version = req_common.sm_session_version();
 
   // RatSpecificContextAccess
-  memcpy((&itti_msg.pdu_session_id), req_m5g.pdu_session_id().c_str(), 1);
+  itti_msg.pdu_session_id    = req_m5g.pdu_session_id();
   itti_msg.pdu_session_type  = (pdu_session_type_t) req_m5g.pdu_session_type();
   itti_msg.selected_ssc_mode = (ssc_mode_t) req_m5g.selected_ssc_mode();
   itti_msg.m5gsm_cause       = (m5g_sm_cause_t) req_m5g.m5gsm_cause();
+  itti_msg.session_ambr.uplink_unit_type =
+      (AmbrUnit_response) req_m5g.uplink_unit_type();
+  itti_msg.session_ambr.uplink_units = (uint32_t) req_m5g.uplink_units();
+  itti_msg.session_ambr.downlink_unit_type =
+      (AmbrUnit_response) req_m5g.downlink_unit_type();
+  itti_msg.session_ambr.downlink_units = (uint32_t) req_m5g.downlink_units();
+
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_identifier = 5;
+
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .qos_characteristic.non_dynamic_5QI_desc.fiveQI =
+      req_m5g.qos().qci();  // enum
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .alloc_reten_priority.priority_level =
+      req_m5g.qos().arp().priority_level();  // uint32
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .alloc_reten_priority.pre_emption_cap =
+      (pre_emption_capability) req_m5g.qos().arp().pre_capability();  // enum
+  itti_msg.qos_list.qos_flow_req_item.qos_flow_level_qos_param
+      .alloc_reten_priority.pre_emption_vul =
+      (pre_emption_vulnerability) req_m5g.qos()
+          .arp()
+          .pre_vulnerability();  // enum
+
+  // get the 4 byte UPF TEID and UPF IP message
+  memcpy(
+      itti_msg.upf_endpoint.teid, req_m5g.upf_endpoint().teid().c_str(),
+      TEID_SIZE);
+  memcpy(
+      itti_msg.upf_endpoint.end_ipv4_addr,
+      req_m5g.upf_endpoint().end_ipv4_addr().c_str(), UPF_IPV4_ADDR_SIZE);
+
+  strcpy(
+      (char*) itti_msg.procedure_trans_identity,
+      req_m5g.procedure_trans_identity().c_str());  // pdu_change
   itti_msg.always_on_pdu_session_indication =
       req_m5g.always_on_pdu_session_indication();
   itti_msg.allowed_ssc_mode = (ssc_mode_t) req_m5g.allowed_ssc_mode();

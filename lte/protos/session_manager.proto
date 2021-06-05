@@ -90,14 +90,32 @@ message RatSpecificContext {
   }
 }
 
+message TeidSet {
+  bytes teid = 1;  // Obsoelte to be cleared once AMF code clean up happens
+  bytes end_ipv4_addr = 2; // Obsoelte to be cleared once AMF code clean up happens
+      // Change the below values as 1 and 2 later
+  uint32 teid_value = 3;
+  string end_ipv4_addr_string = 4;
+}
+
+enum NotifyUeEvents {
+   PDU_SESSION_INACTIVE_NOTIFY = 0; // AMF <=> SMF
+   UE_IDLE_MODE_NOTIFY = 1;         // AMF  => SMF
+   UE_PAGING_NOTIFY = 2;            // SMF  => AMF
+   UE_PERIODIC_REG_ACTIVE_MODE_NOTIFY = 3; // AMF  => SMF
+   PDU_SESSION_STATE_NOTIFY = 4;  // SMF => AMF
+   UE_SERVICE_REQUEST_ON_PAGING = 5; // AMF -> SMF && SMF -> AMF response 
+}
+
 message RatSpecificNotification {
-  // One byte
-  bytes pdu_session_id = 1;
+  uint32 pdu_session_id = 1;
   RequestType request_type = 2;
   AccessType access_type = 3;
   PduSessionType pdu_session_type = 4;
   M5GSMCapability m5g_sm_capability = 5;
   M5GSMCause m5gsm_cause = 6;
+  //Idle/paging/periodic_reg events and UE state notification
+  NotifyUeEvents notify_ue_event = 7;
 }
 
 message SetSmNotificationContext {
@@ -792,29 +810,33 @@ enum SMSessionFSMState {
 //PDU session Establishment from AMF to SMF
 //SET MESSSAGE
 message M5GSMSessionContext {
-  bytes pdu_session_id = 1;   //One byte
-  RequestType rquest_type = 2;        //Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial requerst, existing pdusession etc...
-  RedirectServer pdu_address = 3; //IP address. Imported from session_manager.proto file
+  uint32 pdu_session_id = 1;
+  RequestType rquest_type = 2;        // Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial requerst, existing pdusession etc...
+  RedirectServer pdu_address = 3; // IP address. Imported from session_manager.proto file
   priorityaccess priority_access = 4;
   AccessType access_type = 5;     //Define enum TS-29.571 - section 5.4.3
-  string imei = 8; // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
-  string gpsi = 9; //Lenght is 10 bytes + 2 bytes country code generic public subscription id.
-  string user_location_info = 10; //up to 6 byte. TS-23.003 - 28.15.3
-  string pcf_id = 11; //length 16 bytes as UUID "Universally Unique IDentifier" TS-29.571 to ietf rfc 4122
-  //Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
-  repeated LadnServiceArea ladn_service_area = 12; //Length is 10 bytes, like PLMN
-  bool pdu_session_status_notification_sub = 13;   //Subscription For PDU Session Status Notification true or false
-  DnnSelectionMode dnn_selection_mode = 14;       // TS-29-502 - 6.1.6.3.10
-  string trace_requirment = 15;                   // TS-29.571 5.6.
-  bytes integrity_protection_max_data_rate = 16;  //Length is 3 bytes, TS-24.501 9.11.4.7
-  PduSessionType pdu_session_type = 17;
-  SscMode ssc_mode = 18;
-  M5GSMCapability m5g_sm_capability = 19;  // max size go up to 15 bytes. TLV and 9.11.4.1.
-  uint32 max_pkt_filter_supported = 20;    //Maximum no. of supported packet filters
-  bool pdu_session_req_always_on = 21;     //Always-on PDU session requested TS-24.501 9.11.4.4
-  string sm_pdu_dn_req = 22;               //SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
-  M5GSMCause m5gsm_cause = 23;
-  QosRules requested_qos_rules = 24; //TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
+  string imei = 6; // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
+  string gpsi = 7; // Lenght is 10 bytes + 2 bytes country code generic public subscription id.
+  string user_location_info = 8; // up to 6 byte. TS-23.003 - 28.15.3
+  string pcf_id = 9; // length 16 bytes as UUID "Universally Unique IDentifier" TS-29.571 to ietf rfc 4122
+  // Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
+  repeated LadnServiceArea ladn_service_area = 10; // Length is 10 bytes, like PLMN
+  bool pdu_session_status_notification_sub = 11;   // Subscription For PDU Session Status Notification true or false
+  DnnSelectionMode dnn_selection_mode = 12;       // TS-29-502 - 6.1.6.3.10
+  string trace_requirment = 13;                   // TS-29.571 5.6.
+  bytes integrity_protection_max_data_rate = 14;  // Length is 3 bytes, TS-24.501 9.11.4.7
+  PduSessionType pdu_session_type = 15;
+  SscMode ssc_mode = 16;
+  M5GSMCapability m5g_sm_capability = 17;  // max size go up to 15 bytes. TLV and 9.11.4.1.
+  uint32 max_pkt_filter_supported = 18;    // Maximum no. of supported packet filters
+  bool pdu_session_req_always_on = 19;     // Always-on PDU session requested TS-24.501 9.11.4.4
+  string sm_pdu_dn_req = 20;               // SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
+  M5GSMCause m5gsm_cause = 21;
+  QosRules requested_qos_rules = 22; // TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
+  TeidSet gnode_endpoint = 23;
+  TeidSet upf_endpoint = 24;
+  // Procedure transaction identity 
+  bytes procedure_trans_identity = 25;   // One byte TS-24501 9.6
 }
 
 message SetSMSessionContext {
@@ -838,18 +860,26 @@ message RatSpecificContextAccess {
   //}
 }
 
-//AuthorizedQosRules
-//The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE,
-//where each QoS rule is a set of parameters.
-//a) for classification and marking of uplink user traffic; and
-//b) for identification of a QoS flow which the network is to use for a particular downlink user traffic.
-//As the UE needs to be aware of a QoS flow which the network is to use for a particular downlink user traffic
-//e.g. to determine whether a resource is available for downlink media of a media stream of an SDP media
-//description provided by the UE in an IMS session.
+// AuthorizedQosRules
+// The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE,
+// where each QoS rule is a set of parameters.
+// a) for classification and marking of uplink user traffic; and
+// b) for identification of a QoS flow which the network is to use for a particular downlink user traffic.
+// As the UE needs to be aware of a QoS flow which the network is to use for a particular downlink user traffic
+// e.g. to determine whether a resource is available for downlink media of a media stream of an SDP media
+// description provided by the UE in an IMS session.
+
+ enum AmbrUnit {
+   Kbps_0 = 0;
+   Kbps_1 = 1;
+   Kbps_4 = 2;
+   Kbps_16 = 3;
+   Kbps_64 = 4;
+ }
 
 message M5GSMSessionContextAccess{
     //One byte, received from UE. For 5G pdu_session_id.
-    bytes pdu_session_id = 1;
+    uint32 pdu_session_id = 1;
     //selected PDU session TS-24501 - 9.11.4.11
     PduSessionType    pdu_session_type = 2;
     //selected session and service continuty mode TS-24501 - 9.11.4.16
@@ -858,13 +888,21 @@ message M5GSMSessionContextAccess{
     repeated QosRules authorized_qos_rules = 4;
     //TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
     AggregatedMaximumBitrate session_ambr = 5;
-    M5GSMCause M5gsm_cause = 6; //TS-24501 - 9.11.4.2
+    AmbrUnit downlink_unit_type = 6;
+    uint32   downlink_units = 7;   // Only to use lower 2 bytes (16 bit values)
+    AmbrUnit uplink_unit_type = 8;
+    uint32   uplink_units = 9;   // Only to use lower 2 bytes (16 bit values) 
+    M5GSMCause M5gsm_cause = 10; //TS-24501 - 9.11.4.2
     //PDU session is requested to be established as always-on PDU session.
-    bool always_on_pdu_session_indication = 7;
-    SscMode allowed_ssc_mode = 8; //Indicates SSC mode.
-    bool M5gsm_congetion_re_attempt_indicator = 9;
+    bool always_on_pdu_session_indication = 11;
+    SscMode allowed_ssc_mode = 12; //Indicates SSC mode.
+    bool M5gsm_congetion_re_attempt_indicator = 13;
     //IP address. Imported from session_manager.proto file.
-    RedirectServer pdu_address = 12;
+    RedirectServer pdu_address = 14;
+    TeidSet upf_endpoint = 15;
+    // Procedure transaction identity 
+    bytes procedure_trans_identity = 16;   // One byte TS-24501 9.6
+    FlowQos  qos =17;
 }
 
 message SetSMSessionContextAccess {
