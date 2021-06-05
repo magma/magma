@@ -40,10 +40,10 @@ static int data_cb(const struct nlmsghdr* nlh, void* data);
 namespace magma {
 namespace lte {
 
-EventTracker::EventTracker(std::shared_ptr<PacketGenerator> pkt_gen)
-    : pkt_gen_(pkt_gen) {}
+EventTracker::EventTracker(std::shared_ptr<PacketGenerator> pkt_gen, int zone)
+    : pkt_gen_(pkt_gen), zone_(zone) {}
 
-int EventTracker::init_conntrack_event_loop(void) {
+int EventTracker::init_conntrack_event_loop() {
   struct mnl_socket* nl;
   char buf[MNL_SOCKET_BUFFER_SIZE];
   int ret;
@@ -70,7 +70,7 @@ int EventTracker::init_conntrack_event_loop(void) {
       perror("mnl_socket_recvfrom");
       exit(EXIT_FAILURE);
     }
-    ret = mnl_cb_run(buf, ret, 0, 0, data_cb, (void*) pkt_gen_.get());
+    ret = mnl_cb_run(buf, ret, 0, 0, data_cb, (void*) this);
     if (ret == -1) {
       perror("mnl_cb_run");
       exit(EXIT_FAILURE);
@@ -81,7 +81,6 @@ int EventTracker::init_conntrack_event_loop(void) {
 
   return 0;
 }
-
 }  // namespace lte
 }  // namespace magma
 
@@ -239,6 +238,13 @@ static int data_cb(const struct nlmsghdr* nlh, void* data) {
   }
 
   mnl_attr_parse(nlh, sizeof(*nfg), data_attr_cb, tb);
+
+  // If zone isn't set the event isn't coming from the OVS commited flow
+  if (!tb[CTA_ZONE] || ((magma::lte::EventTracker*) data)->zone_ !=
+                           ntohs(mnl_attr_get_u16(tb[CTA_ZONE]))) {
+    return 0;
+  }
+
   if (tb[CTA_TUPLE_ORIG]) {
     print_tuple(tb[CTA_TUPLE_ORIG], &flow);
   }
@@ -266,7 +272,7 @@ static int data_cb(const struct nlmsghdr* nlh, void* data) {
     MLOG(MINFO) << "From zone " << mnl_attr_get_u16(tb[CTA_ZONE]);
   }
 
-  ((magma::lte::PacketGenerator*) data)->send_packet(&flow);
+  ((magma::lte::EventTracker*) data)->pkt_gen_->send_packet(&flow);
 
   return MNL_CB_OK;
 }
