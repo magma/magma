@@ -199,18 +199,20 @@ def _get_restricted_imeis(service_mconfig):
 
 def _get_congestion_control_config(service_mconfig):
     """
-    Return congestion control enabled from service config,
-    if its not found it will retrieve value from mconfig or default to True
+    Retrieves congestion_control_enabled config value,
+    prioritizes service config file, if not found, it uses
+    service mconfig value.
     Args:
         service_mconfig:
 
     Returns: congestion control flag
     """
-    congestion_control_enabled = get_service_config_value('mme', 'congestion_control_enabled', None)
-    if congestion_control_enabled:
-        return congestion_control_enabled
+    congestion_control_enabled = get_service_config_value('mme',
+                                           'congestion_control_enabled', None)
+    if congestion_control_enabled is None:
+        congestion_control_enabled = service_mconfig.congestion_control_enabled
 
-    return service_mconfig.congestion_control_enabled or True
+    return congestion_control_enabled
 
 
 def _get_context():
