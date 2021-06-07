@@ -105,7 +105,9 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
           <EventAlertChart startEnd={startEnd} />
         </Grid>
 
-
+        <Grid item xs={12}>
+          <DashboardAlertTable />
+        </Grid>
       </Grid>
     </div>
   );
