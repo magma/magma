@@ -36,7 +36,7 @@ Because the replacement libraries may have a big impact on the MME core code, th
 ### State Serialization
 The serialization performance of protobuf is insufficient, so a serialization library that allows better performance must be selected.
 
-The bad performances are on the global serialization process (translation, memory allocation, copy).
+The bad performance is due to the global serialization process (translation, memory allocation, copy).
 
 The replacement libraries considered are "cap'n proto" and "Flat buffers”, they support C/C++ standart API, binary output format and do not need memory copy (zero copy).
 
@@ -130,5 +130,4 @@ in various stages from development through production.]
 
 [A discussion of issues relating to this proposal for which the author does not
 know the solution. This section may be omitted if there are none.]
-
 
