@@ -295,3 +295,6 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     make install && \
     cd / && \
     rm -rf freediameter
+
+#### Link configuration files needed for session_manager
+RUN ln -s lte/gateway/configs/ /etc/magma
