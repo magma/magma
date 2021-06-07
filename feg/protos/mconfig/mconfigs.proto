@@ -240,4 +240,5 @@ message S8Config {
     orc8r.LogLevel log_level = 1;
     string local_address = 2;
     string pgw_address = 3;
+    string apn_operator_suffix = 4;
 }
