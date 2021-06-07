@@ -27,6 +27,8 @@ aliases:
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos feg/protos orc8r/protos"
   - &li_agent_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos orc8r/protos"
+  - &connection_tracker_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/connection_tracker lte/protos orc8r/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -1019,6 +1021,36 @@ jobs:
           no_output_timeout: 5m
       - magma_slack_notify
 
+  connection-tracker-test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *connection_tracker_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Build connection tracker with BUILD_TYPE=Debug
+          command: |
+            # TODO run unit tests once we write some tests
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=Debug;"
+          no_output_timeout: 5m
+      - run:
+          name: Build connection tracker with BUILD_TYPE=RelWithDebInfo
+          command: |
+            # TODO run unit tests once we write some tests
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=RelWithDebInfo;"
+          no_output_timeout: 5m
+      - magma_slack_notify
+
   lte-test:
     machine:
       image: ubuntu-1604:201903-01
@@ -1503,6 +1535,7 @@ workflows:
       - lte-test
       - session_manager_test
       - li_agent_test
+      - connection-tracker-test
       - mme_test
       - mme-clang-tidy:
           <<: *only_master
