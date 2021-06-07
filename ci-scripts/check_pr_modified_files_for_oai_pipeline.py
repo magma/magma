@@ -23,7 +23,7 @@ for line in list_files.split('\n'):
     res = re.search('lte/gateway/Makefile', line)
     if res is not None:
         mme_is_impacted = True
-    res = re.search('lte/gateway/c/oai', line)
+    res = re.search('lte/gateway/c/core/oai', line)
     if res is not None:
         mme_is_impacted = True
     res = re.search('lte/gateway/c/sctpd', line)
