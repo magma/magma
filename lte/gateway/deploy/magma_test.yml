@@ -14,6 +14,7 @@
     - role: apt_cache
       vars:
         distribution: "stretch"
+        oai_build: "{{ c_build }}/core/oai"
         repo: "dev"
     - role: pkgrepo
     - role: python_dev
