@@ -251,10 +251,10 @@ class HtmlReport():
                 common8 = False
                 if nf_type == COMMON_TYPE:
                     section_start_pattern = 'ninja -C  /build/c/magma_common'
-                    section_end_pattern = 'cd  /build/c/oai &&  cmake  /magma/lte/gateway/c/oai'
+                    section_end_pattern = 'cmake  /magma/lte/gateway/c/core/oai '
                 if nf_type == MME_TYPE:
-                    section_start_pattern = 'ninja -C  /build/c/oai'
-                    section_end_pattern = 'cd  /build/c/sctpd &&  cmake  /magma/lte/gateway/c/sctpd'
+                    section_start_pattern = 'ninja -C  /build/c/core/oai'
+                    section_end_pattern = 'cmake  /magma/orc8r/gateway/c/common '
                 if nf_type == SCTPD_TYPE:
                     section_start_pattern = 'ninja -C  /build/c/sctpd'
                     section_end_pattern = '[aA][sS] magma-mme$'
@@ -345,7 +345,7 @@ class HtmlReport():
                         cell_msg += '     ** PolicyDb :  KO\n'
                     cell_msg += '</b></pre></td>\n'
                 if nf_type == MME_TYPE:
-                    cell_msg += ' -- ninja -C  /build/c/oai</b></pre></td>\n'
+                    cell_msg += ' -- ninja -C  /build/c/core/oai</b></pre></td>\n'
                 if nf_type == SCTPD_TYPE:
                     cell_msg += ' -- ninja -C  /build/c/sctpd</b></pre></td>\n'
             else:
@@ -380,9 +380,9 @@ class HtmlReport():
             if os.path.isfile(cwd + '/archives/' + log_file_name):
                 if nf_type == COMMON_TYPE:
                     section_start_pattern = '/build/c/magma_common'
-                    section_end_pattern = 'mkdir -p  /build/c/oai'
+                    section_end_pattern = 'mkdir -p  /build/c/core/oai'
                 if nf_type == MME_TYPE:
-                    section_start_pattern = '/build/c/oai'
+                    section_start_pattern = '/build/c/core/oai'
                     section_end_pattern = 'mkdir -p  /build/c/magma_common'
                 if nf_type == SCTPD_TYPE:
                     section_start_pattern = '/build/c/sctpd'

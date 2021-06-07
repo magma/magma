@@ -11,9 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import time
 import ipaddress
+import time
+import unittest
+
 import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
@@ -22,11 +23,11 @@ from s1ap_utils import MagmadUtil
 
 
 class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
-    unittest.TestCase
+    unittest.TestCase,
 ):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
         self._sessionManager_util = SessionManagerUtil()
@@ -59,7 +60,7 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
         apn_list = [ims]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
         print(
             "************************* Running End to End attach for UE id ",
@@ -193,7 +194,7 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
         # Add dedicated bearer for default bearer 5
         print(
             "********************** Adding dedicated bearer to magma.ipv4"
-            " PDN"
+            " PDN",
         )
         print(
             "********************** Sending RAR for IMSI",
@@ -208,13 +209,13 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_req_oai_apn = response.cast(
-            s1ap_types.UeActDedBearCtxtReq_t
+            s1ap_types.UeActDedBearCtxtReq_t,
         )
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            req.ue_id, act_ded_ber_req_oai_apn.bearerId
+            req.ue_id, act_ded_ber_req_oai_apn.bearerId,
         )
 
         print("Sleeping for 5 seconds")
@@ -225,7 +226,7 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
         )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
         addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
@@ -254,13 +255,13 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_req_ims_apn = response.cast(
-            s1ap_types.UeActDedBearCtxtReq_t
+            s1ap_types.UeActDedBearCtxtReq_t,
         )
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            req.ue_id, act_ded_ber_req_ims_apn.bearerId
+            req.ue_id, act_ded_ber_req_ims_apn.bearerId,
         )
         print(
             "************* Added dedicated bearer",
@@ -278,7 +279,7 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
         num_ul_flows = 4
         # Verify if flow rules are created
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         print(
@@ -286,7 +287,7 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
             "Pipelined services on gateway",
         )
         self._s1ap_wrapper.magmad_util.restart_services(
-            ["sessiond", "mme", "pipelined"]
+            ["sessiond", "mme", "pipelined"],
         )
 
         for j in range(30):
@@ -298,7 +299,7 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
 
         # Verify flow rules
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         print("Sleeping for 5 seconds")
@@ -306,7 +307,7 @@ class TestSecondaryPdnWithDedicatedBearerMultipleServicesRestart(
         print("************************* Running UE detach for UE id ", ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True,
         )
 
 

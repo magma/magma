@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
 import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from lte.protos.policydb_pb2 import FlowMatch
@@ -96,21 +96,21 @@ class TestAttachDetachRarActivationReject(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_ctxt_req = response.cast(
-            s1ap_types.UeActDedBearCtxtReq_t
+            s1ap_types.UeActDedBearCtxtReq_t,
         )
         ded_bearer_rej = s1ap_types.UeActDedBearCtxtRej_t()
         ded_bearer_rej.ue_Id = req.ue_id
         ded_bearer_rej.bearerId = act_ded_ber_ctxt_req.bearerId
         time.sleep(15)
         print(
-            "********************** Sending activation Reject"
+            "********************** Sending activation Reject",
         )
         # Send Bearer Activation Reject
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ACT_DED_BER_REJ, ded_bearer_rej
+            s1ap_types.tfwCmd.UE_ACT_DED_BER_REJ, ded_bearer_rej,
         )
 
         time.sleep(15)
@@ -120,7 +120,7 @@ class TestAttachDetachRarActivationReject(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
         )
 
 
