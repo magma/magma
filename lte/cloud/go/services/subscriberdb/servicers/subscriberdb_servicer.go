@@ -150,30 +150,38 @@ func getDigest(
 	apnResourcesByAPN lte_models.ApnResources,
 ) (string, error) {
 	networkID := gateway.GetNetworkId()
-	lc := configurator.EntityLoadCriteria{
-		PageSize:           0,
-		PageToken:          "",
-		LoadConfig:         true,
-		LoadAssocsToThis:   true,
-		LoadAssocsFromThis: true,
-	}
-	subEnts, _, err := configurator.LoadAllEntitiesOfType(
-		networkID, lte.SubscriberEntityType, lc, serdes.Entity,
-	)
-	if err != nil {
-		return "", errors.Wrapf(err, "load all subscribers in network of gateway %s", networkID)
-	}
-
 	subProtosById := map[string]proto.Message{}
-	for _, sub := range subEnts {
-		subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
-		if err != nil {
-			return "", err
-		}
-		subProto.NetworkId = &protos.NetworkID{Id: networkID}
+	curPageToken := ""
 
-		index := subProto.Sid.Id
-		subProtosById[index] = subProto
+	for {
+		lc := configurator.EntityLoadCriteria{
+			PageSize:           0,
+			PageToken:          curPageToken,
+			LoadConfig:         true,
+			LoadAssocsToThis:   true,
+			LoadAssocsFromThis: true,
+		}
+		subEnts, nextPagetoken, err := configurator.LoadAllEntitiesOfType(
+			networkID, lte.SubscriberEntityType, lc, serdes.Entity,
+		)
+		if err != nil {
+			return "", errors.Wrapf(err, "load all subscribers in network of gateway %s", networkID)
+		}
+		for _, sub := range subEnts {
+			subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
+			if err != nil {
+				return "", err
+			}
+			subProto.NetworkId = &protos.NetworkID{Id: networkID}
+
+			index := subProto.Sid.Id
+			subProtosById[index] = subProto
+		}
+
+		if nextPagetoken == "" {
+			break
+		}
+		curPageToken = nextPagetoken
 	}
 
 	return mproto.HashManyDeterministic(subProtosById)
