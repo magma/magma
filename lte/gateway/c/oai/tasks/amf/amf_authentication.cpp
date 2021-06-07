@@ -674,7 +674,7 @@ int amf_proc_authentication_failure(
       }
     } break;
     case AMF_CAUSE_SYNCH_FAILURE: {
-      // hanlde SYNCH Failure scenario
+      // handle SYNCH Failure scenario
     } break;
     default: {
       OAILOG_INFO(LOG_NAS_AMF, "Unsupported 5gmm cause\n");

@@ -1294,10 +1294,8 @@ static int amf_as_security_req(
 static int amf_as_security_rej(
     const amf_as_security_t* msg, m5g_dl_info_transfer_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int size = 0;
-  amf_nas_message_t nas_msg;
-
-  memset(&nas_msg, 0, sizeof(amf_nas_message_t));
+  int size                  = 0;
+  amf_nas_message_t nas_msg = {0};
 
   /*
    * Setup the AS message
