@@ -208,14 +208,21 @@ service SubscriberDBCloud {
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
 }
 
+message SubscriberDigest {
+  // Hexadecimal MD5 hash of the UTF-8-encoded stringified full subscriber data
+  string md5_hex_digest = 1;
+}
+
 message ListSubscribersRequest {
   // page_size is the maximum number of entities returned per request.
   uint32 page_size = 1;
   // page_token is a serialized entity page token for paginated loads.
   string page_token = 2;
-  // previous_digest is the digest received from the most-recent request to
+  // digest is the digest received from the most-recent request to
   // ListSubscribers.
-  string previous_digest = 3;
+  SubscriberDigest digest = 3;
+  // feature flags
+  map<string, bool> feature_flags = 4;
 }
 
 message ListSubscribersResponse {
@@ -225,8 +232,8 @@ message ListSubscribersResponse {
   string next_page_token = 2;
   // digest is the server-defined, deterministic digest of the full set of
   // returned subscriber objects.
-  string digest = 3;
+  SubscriberDigest digest = 3;
   // no_updates is true if client's existing subscribers match those on the
-  // server.
+  // server. The subscribers array will be empty if no_updates = true.
   bool no_updates = 4;
 }

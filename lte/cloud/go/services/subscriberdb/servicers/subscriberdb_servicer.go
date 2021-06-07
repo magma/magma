@@ -15,7 +15,8 @@ package servicers
 
 import (
 	"context"
-	b64 "encoding/base64"
+	"crypto/md5"
+	"encoding/hex"
 	"sort"
 
 	"magma/orc8r/cloud/go/mproto"
@@ -95,31 +96,49 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		subProtos = append(subProtos, subProto)
 	}
 
-	// Short-circuit subscriber data transmission by comparing cloud & gateway digests.
-	// If digest generation fails, the error is swallowed to not affect the main functionality.
-	//
-	// Note: currently the logic only applies to a request for the first page to avoid concurrency issues;
-	// more to be implemented with gateway subscriber cache that will canonize cloud digests.
-	noUpdates, digest := false, req.PreviousDigest
-	if req.PageToken == "" {
-		digest, err = getDigest(gateway, apnsByName, apnResourcesByAPN)
-		if err != nil {
-			glog.Errorf("Generating digest for subscribers in network of gateway %s failed", gatewayID)
-		} else {
-			noUpdates = req.PreviousDigest == digest
-			if noUpdates {
-				subProtos = []*lte_protos.SubscriberData{}
+	listRes := &lte_protos.ListSubscribersResponse{
+		Subscribers:   subProtos,
+		NextPageToken: nextToken,
+	}
+
+	return listResWithDigest(listRes, req, gateway, apnsByName, apnResourcesByAPN), nil
+}
+
+// listResWithDigest returns a ListSubscribersResponse with the fields augmented
+// according to the flat digest logic.
+func listResWithDigest(
+	listRes *lte_protos.ListSubscribersResponse,
+	req *lte_protos.ListSubscribersRequest,
+	gateway *protos.Identity_Gateway,
+	apnsByName map[string]*lte_models.ApnConfiguration,
+	apnResourcesByAPN lte_models.ApnResources,
+) *lte_protos.ListSubscribersResponse {
+
+	listRes = &lte_protos.ListSubscribersResponse{
+		Subscribers:   listRes.Subscribers,
+		NextPageToken: listRes.NextPageToken,
+		Digest:        req.Digest,
+		NoUpdates:     false,
+	}
+
+	// This functionality is currently placed behind a feature flag.
+	if featureActivated, ok := req.FeatureFlags["flat_digest"]; ok && featureActivated {
+		if req.PageToken == "" {
+			digest, err := getDigest(gateway, apnsByName, apnResourcesByAPN)
+			// If digest generation fails, the error is swallowed to not affect the main functionality.
+			if err != nil {
+				glog.Errorf("Generating digest for subscribers in network of gateway %s failed", gateway.GetLogicalId())
+			} else {
+				listRes.Digest = &lte_protos.SubscriberDigest{Md5HexDigest: digest}
+				listRes.NoUpdates = req.Digest.Md5HexDigest == digest
+				if listRes.NoUpdates {
+					listRes.Subscribers = []*lte_protos.SubscriberData{}
+				}
 			}
 		}
 	}
 
-	listRes := &lte_protos.ListSubscribersResponse{
-		Subscribers:   subProtos,
-		NextPageToken: nextToken,
-		Digest:        digest,
-		NoUpdates:     noUpdates,
-	}
-	return listRes, nil
+	return listRes
 }
 
 // getDigest loads all subscribers registered on the current network, and returns
@@ -160,9 +179,12 @@ func getDigest(
 	if err != nil {
 		return "", err
 	}
-	digestB64 := b64.StdEncoding.EncodeToString(digest)
 
-	return digestB64, nil
+	// Convert to a constant-length hash of the encoded value.
+	sum := md5.Sum(digest)
+	digestHash := hex.EncodeToString(sum[:])
+
+	return digestHash, nil
 }
 
 func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
