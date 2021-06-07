@@ -36,11 +36,11 @@ func (srv *FegToGwRelayServer) CreateBearer(
 	if err := validateFegContext(ctx); err != nil {
 		return nil, err
 	}
-	if req == nil || req.BearerContext == nil || req.BearerContext.UserPlaneFteid == nil {
-		glog.Errorf("unable to send CreateBearerPGWUnverified, Teid not found  %v", req)
+	if req == nil {
+		glog.Error("unable to send CreateBearerPGW, request is nil")
 		return &fegprotos.CreateBearerResponsePgw{Cause: 73}, nil
 	}
-	teid := fmt.Sprint(req.BearerContext.UserPlaneFteid.Teid)
+	teid := fmt.Sprint(req.CAgwTeid)
 	hwId, err := getHwIDFromTeid(ctx, teid)
 	if err != nil {
 		glog.Errorf("unable to get HwID from TEID %s. err: %v", teid, err)
