@@ -17,6 +17,9 @@
 #include <tins/tins.h>
 #include <unordered_map>
 
+#include <lte/protos/mconfig/mconfigs.pb.h>
+
+#include "includes/MConfigLoader.h"
 #include "magma_logging.h"
 #include "ProxyConnector.h"
 #include "MobilitydClient.h"
@@ -72,7 +75,8 @@ class PDUGenerator {
       const std::string& pkt_dst_mac, const std::string& pkt_src_mac,
       int sync_interval, int inactivity_time,
       std::unique_ptr<ProxyConnector> proxy_connector,
-      std::unique_ptr<MobilitydClient> mobilityd_client);
+      std::unique_ptr<MobilitydClient> mobilityd_client,
+      magma::mconfig::LIAgentD mconfig);
 
   /**
    * process_packet retrieves the state of the current interception for
@@ -103,6 +107,7 @@ class PDUGenerator {
   InterceptStateMap state_map_;
   std::unique_ptr<ProxyConnector> proxy_connector_;
   std::unique_ptr<MobilitydClient> mobilityd_client_;
+  magma::mconfig::LIAgentD mconfig_;
 
   /**
    * generate_record builds an x3 record from the current packet as specified

@@ -19,7 +19,6 @@
 #include <netinet/ip.h>
 #include <net/ethernet.h>
 
-#include "includes/MConfigLoader.h"
 #include "PDUGenerator.h"
 #include "Utilities.h"
 
@@ -78,13 +77,16 @@ PDUGenerator::PDUGenerator(
     const std::string& pkt_dst_mac, const std::string& pkt_src_mac,
     int sync_interval, int inactivity_time,
     std::unique_ptr<ProxyConnector> proxy_connector,
-    std::unique_ptr<MobilitydClient> mobilityd_client)
+    std::unique_ptr<MobilitydClient> mobilityd_client,
+    magma::mconfig::LIAgentD mconfig)
     : pkt_dst_mac_(pkt_dst_mac),
       pkt_src_mac_(pkt_src_mac),
       sync_interval_(sync_interval),
       inactivity_time_(inactivity_time),
       proxy_connector_(std::move(proxy_connector)),
-      mobilityd_client_(std::move(mobilityd_client)) {}
+      mobilityd_client_(std::move(mobilityd_client)),
+      mconfig_(mconfig),
+      prev_sync_time_(0) {}
 
 bool PDUGenerator::process_packet(
     const struct pcap_pkthdr* phdr, const u_char* pdata) {
@@ -93,6 +95,12 @@ bool PDUGenerator::process_packet(
     MLOG(MERROR)
         << "Could not extract flow information from the packet, skipping";
     return false;
+  }
+
+  auto diff = time_difference_from_now(prev_sync_time_);
+  if (diff > sync_interval_) {
+    mconfig_        = magma::lte::load_mconfig();
+    prev_sync_time_ = get_time_in_sec_since_epoch();
   }
 
   std::string idx;
@@ -106,14 +114,14 @@ bool PDUGenerator::process_packet(
       (idx == flow.src_ip) ? DIRECTION_FROM_TARGET : DIRECTION_TO_TARGET;
 
   uint32_t rlen;
-  void* record = generate_record(phdr, pdata, idx, direction, &rlen);
-  auto ret     = export_record(record, rlen, MAX_EXPORT_RETRIES);
+  void* record   = generate_record(phdr, pdata, idx, direction, &rlen);
+  auto succeeded = export_record(record, rlen, MAX_EXPORT_RETRIES);
 
   MLOG(MDEBUG) << "Exported packet " << state_map_[idx].sequence_number
                << " with length " << rlen;
 
   free(record);
-  return ret;
+  return succeeded;
 }
 
 void PDUGenerator::delete_inactive_tasks() {
@@ -188,6 +196,7 @@ bool PDUGenerator::get_subscriber_id_from_ip(
   struct in_addr addr;
   if (inet_aton(ip_addr, &addr) <= 0) {
     MLOG(MERROR) << "Bad IPv4 address format " << ip_addr;
+    return false;
   }
 
   std::promise<std::string> lookup_res;
@@ -206,7 +215,7 @@ bool PDUGenerator::get_subscriber_id_from_ip(
 
   std::string subid_str = lookup_future.get();
   if (subid_str.empty()) {
-	return false;
+    return false;
   }
 
   if (subid_str.find("IMSI") == std::string::npos) {
@@ -245,8 +254,7 @@ bool PDUGenerator::create_new_intercept_state(
     return false;
   }
 
-  auto mconfig = magma::lte::load_mconfig();
-  for (const auto& it : mconfig.nprobe_tasks()) {
+  for (const auto& it : mconfig_.nprobe_tasks()) {
     if (it.target_id() == subid) {
       state_map_[*idx] = build_new_intercept_state(subid, it);
       return true;
@@ -261,9 +269,8 @@ bool PDUGenerator::is_still_valid_state(const std::string& idx) {
     return true;
   }
 
-  auto& state  = state_map_[idx];
-  auto mconfig = magma::lte::load_mconfig();
-  for (const auto& task : mconfig.nprobe_tasks()) {
+  auto& state = state_map_[idx];
+  for (const auto& task : mconfig_.nprobe_tasks()) {
     if (state.task_id == task.task_id()) {
       MLOG(MDEBUG) << "Found task - " << state.task_id;
       state.correlation_id = task.correlation_id();

@@ -15,7 +15,7 @@ PROJECT(LIAgent)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
-if (BUILD_TESTS)
+if (NOT BUILD_TESTS)
   # Add AddressSanitizer (asan) support for debug builds of LiAgentD
   set (CMAKE_CXX_FLAGS_DEBUG
       "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")

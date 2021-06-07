@@ -24,6 +24,7 @@
 
 #include "MobilitydClient.h"
 #include "ProxyConnector.h"
+#include "Utilities.h"
 
 using grpc::Status;
 using ::testing::_;
@@ -31,6 +32,18 @@ using ::testing::Return;
 
 namespace magma {
 namespace lte {
+
+magma::mconfig::LIAgentD create_liagentd_mconfig(
+    std::string& task_id, std::string& target_id) {
+  auto mconfig = get_default_mconfig();
+  magma::mconfig::NProbeTask np_task;
+  np_task.set_task_id(task_id);
+  np_task.set_target_id(target_id);
+
+  auto task = mconfig.add_nprobe_tasks();
+  task->CopyFrom(np_task);
+  return mconfig;
+}
 
 class MockProxyConnector : public ProxyConnector {
  public:

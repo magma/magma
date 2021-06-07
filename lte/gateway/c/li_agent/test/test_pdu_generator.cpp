@@ -11,6 +11,7 @@
  * limitations under the License.
  */
 #include <chrono>
+#include <limits>
 #include <thread>
 
 #include <netinet/ip.h>
@@ -35,6 +36,12 @@ namespace lte {
 class PDUGeneratorTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
+    std::string target_id = "IMSI12345";
+    std::string task_id   = "29f28e1c-f230-486a-a860-f5a784ab9177";
+    auto mconfig          = create_liagentd_mconfig(task_id, target_id);
+
+    int sync_time = std::numeric_limits<int>::max();  // Prevent sync
+
     auto proxy_connector_p = std::make_unique<MockProxyConnector>();
     proxy_connector        = proxy_connector_p.get();
 
@@ -42,8 +49,8 @@ class PDUGeneratorTest : public ::testing::Test {
     mobilityd_client        = mobilityd_client_p.get();
 
     pkt_generator = std::make_unique<PDUGenerator>(
-        PKT_DST_MAC, PKT_SRC_MAC, 2, 4, std::move(proxy_connector_p),
-        std::move(mobilityd_client_p));
+        PKT_DST_MAC, PKT_SRC_MAC, sync_time, sync_time,
+        std::move(proxy_connector_p), std::move(mobilityd_client_p), mconfig);
   }
 
   MockProxyConnector* proxy_connector;
@@ -55,7 +62,7 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
   struct pcap_pkthdr* phdr =
       (struct pcap_pkthdr*) malloc(sizeof(struct pcap_pkthdr));
   phdr->len       = sizeof(struct ether_header) + sizeof(struct ip);
-  phdr->ts.tv_sec = 92;
+  phdr->ts.tv_sec = 56;
   u_char* pdata   = reinterpret_cast<u_char*>(
       malloc(sizeof(struct ether_header) + sizeof(struct ip)));
   struct ether_header* ethernetHeader = (struct ether_header*) pdata;
@@ -66,17 +73,16 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
   ipHeader->ip_dst.s_addr = 3232235521;
 
   EXPECT_CALL(*proxy_connector, send_data(testing::_, testing::_))
-      .Times(0)
+      .Times(1)
       .WillOnce(testing::Return(1));
 
   SubscriberID response;
-  response.set_id("imsi123");
+  response.set_id("12345");
   EXPECT_CALL(
       *mobilityd_client, get_subscriber_id_from_ip(testing::_, testing::_))
       .WillRepeatedly(testing::InvokeArgument<1>(Status::OK, response));
 
   pkt_generator->process_packet(phdr, pdata);
-
   free(pdata);
   free(phdr);
 }
