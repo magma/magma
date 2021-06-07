@@ -85,6 +85,7 @@ dpi:
 
 conntrackd:
   enabled: false
+  zone: 897
 
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: gtp_br0

@@ -19,3 +19,6 @@ interface_name: ipfix0
 # Used for generated internal packets
 pkt_dst_mac: "33:aa:99:33:aa:00"
 pkt_src_mac: "55:11:44:ee:00:00"
+
+# IMPORTANT when modifying also modify the corresponding pipelined.yml entry
+zone: 897
