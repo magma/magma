@@ -20,7 +20,6 @@
     - role: dev_common
       vars:
         c_build: /home/{{ ansible_user }}/build/c
-        oai_build: "{{ c_build }}/oai"
         go_build: /home/{{ ansible_user }}/go/bin/
     - role: magma_test
       become: no
