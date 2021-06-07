@@ -14,10 +14,10 @@
 package subscriberdb
 
 import (
-"magma/orc8r/cloud/go/orc8r"
-"magma/orc8r/lib/go/service/config"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/lib/go/service/config"
 
-"github.com/golang/glog"
+	"github.com/golang/glog"
 )
 
 type Config struct {

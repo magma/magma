@@ -209,8 +209,8 @@ service SubscriberDBCloud {
 }
 
 message SubscriberDigest {
-  // Hexadecimal MD5 hash of the UTF-8-encoded stringified full subscriber data
-  string md5_hex_digest = 1;
+  // Base64 encoded MD5 hash of the full list of subscriber data
+  string md5_base64_digest = 1;
 }
 
 message ListSubscribersRequest {

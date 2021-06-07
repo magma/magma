@@ -34,7 +34,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-type subscriberdbServicer struct{
+type subscriberdbServicer struct {
 	flatDigestEnabled bool
 }
 
@@ -130,8 +130,8 @@ func listResWithDigest(
 			if err != nil {
 				glog.Errorf("Generating digest for subscribers in network of gateway %s failed", gateway.GetLogicalId())
 			} else {
-				listRes.Digest = &lte_protos.SubscriberDigest{Md5HexDigest: digest}
-				listRes.NoUpdates = req.Digest.Md5HexDigest == digest
+				listRes.Digest = &lte_protos.SubscriberDigest{Md5Base64Digest: digest}
+				listRes.NoUpdates = req.Digest.Md5Base64Digest == digest
 				if listRes.NoUpdates {
 					listRes.Subscribers = []*lte_protos.SubscriberData{}
 				}

@@ -14,14 +14,31 @@
 package mproto
 
 import (
+	"crypto/md5"
+	"encoding/base64"
+
 	"magma/orc8r/cloud/go/mproto/protos"
 
 	"github.com/golang/protobuf/proto"
 )
 
-// MarshalManyDeterministic deterministically encodes a slice of protobuf messages,
+// HashManyDeterministic takes a collection of proto messages and returns a deterministic
+// base64-encoded md5 hash of the messages.
+func HashManyDeterministic(protosByID map[string]proto.Message) (string, error) {
+	digest, err := marshalManyDeterministic(protosByID)
+	if err != nil {
+		return "", err
+	}
+	// Convert to a constant-length hash of the encoded value.
+	sum := md5.Sum(digest)
+	digestHash := base64.StdEncoding.EncodeToString(sum[:])
+
+	return digestHash, nil
+}
+
+// marshalManyDeterministic deterministically encodes a slice of protobuf messages,
 // indexed by a unique identifier string, utilizing MarshalDeterministic.
-func MarshalManyDeterministic(protosByID map[string]proto.Message) ([]byte, error) {
+func marshalManyDeterministic(protosByID map[string]proto.Message) ([]byte, error) {
 	// The function individually serializes each proto in order to standardize the data
 	// into a uniform format to fit into a generic map<string, bytes> field (ProtoBytes).
 	//

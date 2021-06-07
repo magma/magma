@@ -342,9 +342,9 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 	}
 
 	req := &lte_protos.ListSubscribersRequest{
-		PageSize:     2,
-		PageToken:    "",
-		Digest:       &lte_protos.SubscriberDigest{Md5HexDigest: ""},
+		PageSize:  2,
+		PageToken: "",
+		Digest:    &lte_protos.SubscriberDigest{Md5Base64Digest: ""},
 	}
 	res, err := servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
@@ -353,9 +353,9 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 
 	// Fetching subscribers with updated previous digest string should return empty list.
 	req = &lte_protos.ListSubscribersRequest{
-		PageSize:     2,
-		PageToken:    "",
-		Digest:       res.Digest,
+		PageSize:  2,
+		PageToken: "",
+		Digest:    res.Digest,
 	}
 	res, err = servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
@@ -386,9 +386,9 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 	}, expectedProtos...)
 
 	req = &lte_protos.ListSubscribersRequest{
-		PageSize:     2,
-		PageToken:    "",
-		Digest:       res.Digest,
+		PageSize:  2,
+		PageToken: "",
+		Digest:    res.Digest,
 	}
 	res, err = servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
