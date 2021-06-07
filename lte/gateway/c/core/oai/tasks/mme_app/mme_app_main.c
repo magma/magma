@@ -59,7 +59,7 @@ static void mme_app_exit(void);
 bool mme_hss_associated = false;
 bool mme_sctp_bounded   = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
-bool mme_congestion_control_enabled = false;
+bool mme_congestion_control_enabled = true;
 long mme_app_last_msg_latency;
 long pre_mme_task_msg_latency;
 

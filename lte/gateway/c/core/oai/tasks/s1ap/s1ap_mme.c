@@ -79,7 +79,7 @@ bool hss_associated = false;
 static int indent   = 0;
 task_zmq_ctx_t s1ap_task_zmq_ctx;
 
-bool s1ap_congestion_control_enabled = false;
+bool s1ap_congestion_control_enabled = true;
 long s1ap_last_msg_latency           = 0;
 long s1ap_zmq_th                     = LONG_MAX;
 

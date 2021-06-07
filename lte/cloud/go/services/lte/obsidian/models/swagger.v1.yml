@@ -2015,8 +2015,9 @@ definitions:
         maxLength: 49
       congestion_control_enabled:
         description: Flag to enable or disable congestion control on MME
-        example: true
         type: boolean
+        example: true
+        default: true
 
 
   gateway_non_eps_configs:

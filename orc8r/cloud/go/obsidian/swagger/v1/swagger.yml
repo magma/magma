@@ -8484,6 +8484,7 @@ definitions:
     description: EPC configuration for an LTE gateway
     properties:
       congestion_control_enabled:
+        default: true
         description: Flag to enable or disable congestion control on MME
         example: true
         type: boolean

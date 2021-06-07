@@ -246,6 +246,7 @@ void mme_config_init(mme_config_t* config) {
   config->unauthenticated_imsi_supported = 0;
   config->relative_capacity              = RELATIVE_CAPACITY;
   config->mme_statistic_timer            = MME_STATISTIC_TIMER_S;
+  config->enable_congestion_control = true;
   config->s1ap_zmq_th                    = LONG_MAX;
   config->mme_app_zmq_congest_th         = LONG_MAX;
   config->mme_app_zmq_auth_th            = LONG_MAX;
