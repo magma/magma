@@ -76,6 +76,7 @@ dpi:
 
 conntrackd:
   enabled: false
+  zone: 897
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
