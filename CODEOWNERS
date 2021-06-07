@@ -40,7 +40,7 @@ orc8r/gateway/c/ @magma/approvers-agw-c
 lte/gateway/c/session_manager @magma/approvers-agw-sessiond
 lte/gateway/c/oai @magma/approvers-agw-mme
 lte/gateway/c/sctpd @magma/approvers-agw-mme
-lte/gateway/c/connection_tracker @koolzz
+lte/gateway/c/connection_tracker @koolzz @magma/approvers-agw-c
 lte/gateway/python/magma/pipelined @magma/approvers-agw-pipelined
 lte/gateway/python/integ_tests @magma/approvers-agw-integtests
 
