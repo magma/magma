@@ -41,8 +41,6 @@ amf_as_data_t amf_data_sec;
 nas_amf_smc_proc_t smc_proc;
 static int amf_registration_failure_authentication_cb(
     amf_context_t* amf_context);
-static int amf_registration_failure_identification_cb(
-    amf_context_t* amf_context);
 static int amf_start_registration_proc_security(
     amf_context_t* amf_context, nas_amf_registration_proc_t* registration_proc);
 static int amf_registration(amf_context_t* amf_context);
@@ -402,8 +400,7 @@ int amf_registration_success_identification_cb(amf_context_t* amf_context) {
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-static int amf_registration_failure_identification_cb(
-    amf_context_t* amf_context) {
+int amf_registration_failure_identification_cb(amf_context_t* amf_context) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   // TODO nagetive scenario will be taken care in future.
   int rc = RETURNerror;
@@ -937,6 +934,8 @@ int amf_reg_send(amf_sap_t* const msg) {
         /* Update the state */
         // ue_amf_context->mm_state = REGISTERED_CONNECTED;
       } break;
+      case AMFREG_COMMON_PROC_REJ: {
+      }
       default: {}
     }
   }

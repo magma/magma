@@ -53,6 +53,7 @@ int amf_proc_registration_request(
     amf_ue_ngap_id_t ue_id, const bool is_mm_ctx_new,
     amf_registration_request_ies_t* ies);
 int amf_registration_success_identification_cb(amf_context_t* amf_context);
+int amf_registration_failure_identification_cb(amf_context_t* amf_context);
 int amf_registration_success_authentication_cb(amf_context_t* amf_context);
 int amf_registration_success_security_cb(amf_context_t* amf_context);
 int amf_proc_registration_reject(

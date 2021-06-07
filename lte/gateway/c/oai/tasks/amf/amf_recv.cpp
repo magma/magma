@@ -252,7 +252,6 @@ int amf_handle_registration_request(
       OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST Id is GUTI\n");
       params->guti                        = new (guti_m5_t)();
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
-      ;
     }
   }  // end of AMF_REGISTRATION_TYPE_INITIAL
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
@@ -455,6 +454,12 @@ int amf_handle_identity_response(
         // Overwrite the second element.
         found_imsi->second = guti_and_amf_id;
       }
+    }
+
+    ue_m5gmm_context_s* ue_context =
+        amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+    if (ue_context) {
+      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
     }
   }
   /*

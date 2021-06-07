@@ -65,7 +65,8 @@ int amf_app_handle_nas_dl_req(
   rc = send_msg_to_task(&amf_app_task_zmq_ctx, TASK_NGAP, message_p);
 
   if (transaction_status != M5G_AS_SUCCESS) {
-    // TODO And trigger the UE context release command TBD
+    ue_context_release_command(
+        ue_id, ue_context->gnb_ue_ngap_id, NGAP_NAS_AUTHENTICATION_FAILURE);
   }
   OAILOG_FUNC_RETURN(LOG_AMF_APP, rc);
 }
