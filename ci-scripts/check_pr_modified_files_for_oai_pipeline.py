@@ -11,42 +11,50 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import os
 import re
 import subprocess
 import sys
 
 cmd = 'git diff --name-only `git merge-base origin/master HEAD`'
-listModifiedFiles = subprocess.check_output(cmd, shell=True, universal_newlines=True)
-mmeIsImpacted = False
+list_files = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+mme_is_impacted = False
 
-for line in listModifiedFiles.split('\n'):
+for line in list_files.split('\n'):
     res = re.search('lte/gateway/Makefile', line)
     if res is not None:
-        mmeIsImpacted = True
+        mme_is_impacted = True
     res = re.search('lte/gateway/c/oai', line)
     if res is not None:
-        mmeIsImpacted = True
+        mme_is_impacted = True
     res = re.search('lte/gateway/c/sctpd', line)
     if res is not None:
-        mmeIsImpacted = True
+        mme_is_impacted = True
     res = re.search('lte/gateway/docker/mme', line)
     if res is not None:
-        mmeIsImpacted = True
-    res = re.search('ci-scripts/JenkinsFile-OAI-Container-GitHub|ci-scripts/generateHtmlReport-OAI-pipeline.py|ci-scripts/check_pr_modified_files_for_oai_pipeline.py', line)
+        mme_is_impacted = True
+    res = re.search('JenkinsFile-OAI-Container-GitHub', line)
     if res is not None:
-        mmeIsImpacted = True
+        mme_is_impacted = True
+    res = re.search('generateHtmlReport-OAI-pipeline.py', line)
+    if res is not None:
+        mme_is_impacted = True
+    res = re.search('check_pr_modified_files_for_oai_pipeline.py', line)
+    if res is not None:
+        mme_is_impacted = True
     res = re.search('ci-scripts/docker/Dockerfile.mme.ci.ubuntu18', line)
     if res is not None:
-        mmeIsImpacted = True
+        mme_is_impacted = True
+    res = re.search('ci-scripts/docker/Dockerfile.mme.ci.rhel8', line)
+    if res is not None:
+        mme_is_impacted = True
     res = re.search('feg/cloud/go/protos/s6a_proxy.pb.go', line)
     if res is not None:
-        mmeIsImpacted = True
+        mme_is_impacted = True
     res = re.search('feg/protos/s6a_proxy.proto', line)
     if res is not None:
-        mmeIsImpacted = True
+        mme_is_impacted = True
 
-if mmeIsImpacted:
+if mme_is_impacted:
     sys.exit(-1)
 else:
     sys.exit(0)
