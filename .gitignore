@@ -39,6 +39,7 @@ var/
 *.egg
 orc8r/gateway/python/build
 lte/gateway/python/build
+lte/gateway/c/core/oai/build/
 
 # Ignore test certs
 orc8r/cloud/test_certs/*.csr
