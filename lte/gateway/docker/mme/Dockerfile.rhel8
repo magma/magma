@@ -433,7 +433,7 @@ RUN cp $MAGMA_ROOT/lte/gateway/configs/redis.yml .
 RUN cp $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 
 WORKDIR /magma-mme/scripts
-RUN cp $MAGMA_ROOT/lte/gateway/c/oai/core/test/check_mme_s6a_certificate . && \
+RUN cp $MAGMA_ROOT/lte/gateway/c/core/oai/test/check_mme_s6a_certificate . && \
     sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
            -e "s@\$SUDO@@" \
            -e "s@echo_error@echo@" \
