@@ -14,8 +14,6 @@ import concurrent.futures
 import logging
 import os
 import queue
-import socket
-import ipaddress
 from collections import OrderedDict
 from concurrent.futures import Future
 from typing import List, Tuple
@@ -33,7 +31,7 @@ from lte.protos.pipelined_pb2 import (ActivateFlowsRequest,
                                       SetupQuotaRequest, SetupUEMacRequest,
                                       TableAssignment, UESessionSet,
                                       UESessionContextResponse, UPFSessionContextState,
-                                      VersionedPolicy, UESessionState)
+                                      VersionedPolicy)
 from lte.protos.session_manager_pb2 import RuleRecordTable
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
 from magma.pipelined.app.check_quota import CheckQuotaController
@@ -54,7 +52,6 @@ from magma.pipelined.metrics import (ENFORCEMENT_RULE_INSTALL_FAIL,
 from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.policy_converters import (convert_ipv4_str_to_ip_proto,
                                                convert_ipv6_bytes_to_ip_proto)
-from lte.protos.subscriberdb_pb2 import SubscriberID
 
 grpc_msg_queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 15

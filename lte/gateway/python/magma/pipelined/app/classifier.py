@@ -21,7 +21,8 @@ from lte.protos.pipelined_pb2 import (
     PdrState,
     UESessionState,
     UESessionSet,
-    UESessionContextResponse
+    UESessionContextResponse,
+    CauseIE
 )
 from lte.protos.session_manager_pb2 import UPFPagingInfo
 from magma.pipelined.app.base import ControllerType, MagmaController
@@ -40,6 +41,8 @@ from ryu.lib.packet import ether_types, ipv4, packet
 from ryu.ofproto import ofproto_v1_0_parser
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from ryu.ofproto.inet import IPPROTO_TCP, IPPROTO_UDP
+from magma.pipelined.imsi import encode_imsi
+from lte.protos.subscriberdb_pb2 import SubscriberID
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
@@ -450,6 +453,7 @@ class Classifier(MagmaController):
                                                  priority=Utils.RESUME_RULE_PRIORITY,
                                                  reset_default_register=False,
                                                  resubmit_table=self.next_table)
+            return True
 
     def _resume_tunnel_ip_flow_dl(self, ip_flow_dl: IPFlowDL):
 
@@ -490,6 +494,7 @@ class Classifier(MagmaController):
                                in_port=self.config.mtr_port, **ip_match_out)
             flows.delete_flow(self._datapath, self.tbl_num, match,
                               priority=Utils.DISCARD_RULE_PRIORITY)
+        return True
     
     def _discard_tunnel_ip_flow_dl(self, ip_flow_dl: IPFlowDL):
 
@@ -734,7 +739,7 @@ class Classifier(MagmaController):
 
         return True
 
-    def process_mme_tunnel_request(self, tunnel_msg: UESessionSet,
+    def process_mme_tunnel_request(self, request: UESessionSet,
                                   ) -> UESessionContextResponse:
 
         """Do process the mme tunnel message and send response
@@ -776,7 +781,7 @@ class Classifier(MagmaController):
             if result == False:
                 cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
             else:
-                res = self._classifier_app.add_tunnel_flows(request.precedence,
+                res = self.add_tunnel_flows(request.precedence,
                                                    request.in_teid,
                                                    request.out_teid,
                                                    ue_ipv4_address,
@@ -787,37 +792,37 @@ class Classifier(MagmaController):
 
         elif (request.ue_session_state.ue_config_state == \
                                       UESessionState.UNREGISTERED):
-            res = self._classifier_app.delete_tunnel_flows(request.in_teid,
+            res = self.delete_tunnel_flows(request.in_teid,
                                                            ue_ipv4_address,
                                                            ipaddress.ip_address(request.enb_ip_address.address),
                                                            request.ip_flow_dl)
 
         elif (request.ue_session_state.ue_config_state == \
                                       UESessionState.UNINSTALL_IDLE):
-            res = self._classifier_app.remove_paging_flow(ue_ipv4_address)
+            res = self.remove_paging_flow(ue_ipv4_address)
 
         elif (request.ue_session_state.ue_config_state == \
                                       UESessionState.INSTALL_IDLE):
-            res = self._classifier_app.install_paging_flow(ue_ipv4_address,
+            res = self.install_paging_flow(ue_ipv4_address,
                                                             request.in_teid,
                                                             False)
 
         elif (request.ue_session_state.ue_config_state == \
                                        UESessionState.RESUME_DATA):
-            res = self._classifier_app.resume_tunnel_flows(request.in_teid,
+            res = self.resume_tunnel_flows(request.in_teid,
                                                             ue_ipv4_address,
                                                             request.ip_flow_dl)
 
         elif (request.ue_session_state.ue_config_state == \
                                        UESessionState.SUSPENDED_DATA):
-            res = self._classifier_app.discard_tunnel_flows(request.in_teid,
+            res = self.discard_tunnel_flows(request.in_teid,
                                                              ue_ipv4_address,
                                                              request.ip_flow_dl)
 
         if res == False:
             cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
 
-        fut.set_result(UESessionContextResponse(ue_ipv4_address=request.ue_ipv4_address,
+        return(UESessionContextResponse(ue_ipv4_address=request.ue_ipv4_address,
                                          ue_ipv6_address=request.ue_ipv6_address,
                                          operation_type=request.ue_session_state.ue_config_state,
                                          cause_info=CauseIE(cause_ie=cause_ie)))
