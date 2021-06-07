@@ -64,8 +64,8 @@ list(APPEND PROTO_HDRS "")
 
 message("Proto_srcs are ${PROTO_SRCS}")
 
-set(SMGR_LTE_CPP_PROTOS mconfig/mconfigs)
-generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+set(LI_AGENT_LTE_CPP_PROTOS mconfig/mconfigs)
+generate_cpp_protos("${LI_AGENT_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
 link_directories(
