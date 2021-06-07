@@ -14,6 +14,7 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/x509"
 	"crypto/x509/pkix"
@@ -34,6 +35,7 @@ import (
 	"magma/orc8r/lib/go/security/key"
 
 	"github.com/golang/protobuf/ptypes"
+	context2 "golang.org/x/net/context"
 )
 
 // Common to several add... handlers definitions & functions
@@ -118,9 +120,9 @@ func addACL(oid string, acl []*accessprotos.AccessControl_Entity) int {
 			sn, cert.SerialToString(signedCert[0].SerialNumber))
 	}
 
-	err = accessd.SetOperator(operator, acl)
+	err = accessd.SetOperator(context.Background(), operator, acl)
 	if err != nil {
-		certifier.RevokeCertificateSN(sn)
+		certifier.RevokeCertificateSN(context2.Background(), sn)
 		cleanupCertFiles(keyFile, certFile, nil)
 		log.Fatalf("Set Operator %s ACL Error: %s", operator.HashString(), err)
 	}
@@ -157,7 +159,7 @@ func createAndSignCert(
 		ValidTime: ptypes.DurationProto(time.Hour * 24 * time.Duration(validFor)),
 		CsrDer:    csrDER,
 	}
-	certMsg, err := certifier.SignCSR(csr)
+	certMsg, err := certifier.SignCSR(context.Background(), csr)
 	if err != nil {
 		return der, sn, fmt.Errorf("Certifier Sign Error: %s", err)
 	}

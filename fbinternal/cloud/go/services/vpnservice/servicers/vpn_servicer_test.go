@@ -94,7 +94,7 @@ func TestRequestSign(t *testing.T) {
 func getVPNServicer(t *testing.T) (*servicers.VPNServicer, *x509.Certificate) {
 	certifier_test_init.StartTestService(t)
 
-	caMsg, err := certifier.GetCACert(&certprotos.GetCARequest{CertType: protos.CertType_VPN})
+	caMsg, err := certifier.GetCACert(context.Background(), &certprotos.GetCARequest{CertType: protos.CertType_VPN})
 	assert.NoError(t, err)
 
 	vpnCA, err := x509.ParseCertificate(caMsg.Cert)
@@ -123,7 +123,7 @@ func createCSRBytes(privKey interface{}) ([]byte, error) {
 // Perform various checks on certificate that we want signed with given CA
 func verifySignedCert(t *testing.T, ca *x509.Certificate, certMsg *fbprotos.VPNCertificate) {
 	// make sure we can get the identity
-	_, err := certifier.GetCertificateIdentity(certMsg.Serial)
+	_, err := certifier.GetCertificateIdentity(context.Background(), certMsg.Serial)
 	assert.NoError(t, err)
 
 	// deserialize the certificate

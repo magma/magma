@@ -175,7 +175,7 @@ func getGateway(c echo.Context) error {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
+	magmadModel, nerr := handlers.LoadMagmadGateway(c.Request().Context(), nid, gid)
 	if nerr != nil {
 		return nerr
 	}
@@ -241,6 +241,7 @@ func deleteGateway(c echo.Context) error {
 	var deletes storage.TKs
 	deletes = append(deletes, storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: gid})
 
+	reqCtx := c.Request().Context()
 	gw, err := configurator.LoadEntity(
 		nid, lte.CellularGatewayEntityType, gid,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
@@ -251,7 +252,7 @@ func deleteGateway(c echo.Context) error {
 	}
 	deletes = append(deletes, gw.Associations.Filter(lte.APNResourceEntityType)...)
 
-	err = handlers.DeleteMagmadGateway(nid, gid, deletes)
+	err = handlers.DeleteMagmadGateway(reqCtx, nid, gid, deletes)
 	if err != nil {
 		return makeErr(err)
 	}

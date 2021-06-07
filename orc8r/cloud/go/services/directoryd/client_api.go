@@ -48,13 +48,13 @@ func getDirectorydClient() (protos.DirectoryLookupClient, error) {
 
 // GetHostnameForHWID returns the hostname mapped to by hardware ID.
 // Derived state, stored in directoryd service.
-func GetHostnameForHWID(hwid string) (string, error) {
+func GetHostnameForHWID(ctx context.Context, hwid string) (string, error) {
 	client, err := getDirectorydClient()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get directoryd client")
 	}
 
-	res, err := client.GetHostnameForHWID(context.Background(), &protos.GetHostnameForHWIDRequest{Hwid: hwid})
+	res, err := client.GetHostnameForHWID(ctx, &protos.GetHostnameForHWIDRequest{Hwid: hwid})
 	if err != nil {
 		return "", fmt.Errorf("failed to get hostname for hwid %s: %s", hwid, err)
 	}
@@ -64,19 +64,19 @@ func GetHostnameForHWID(hwid string) (string, error) {
 
 // MapHWIDToHostname maps a single hwid to a hostname.
 // Derived state, stored in directoryd service.
-func MapHWIDToHostname(hwid, hostname string) error {
-	return MapHWIDsToHostnames(map[string]string{hwid: hostname})
+func MapHWIDToHostname(ctx context.Context, hwid, hostname string) error {
+	return MapHWIDsToHostnames(ctx, map[string]string{hwid: hostname})
 }
 
 // MapHWIDsToHostnames maps {hwid -> hostname}.
 // Derived state, stored in directoryd service.
-func MapHWIDsToHostnames(hwidToHostname map[string]string) error {
+func MapHWIDsToHostnames(ctx context.Context, hwidToHostname map[string]string) error {
 	client, err := getDirectorydClient()
 	if err != nil {
 		return errors.Wrap(err, "failed to get directoryd client")
 	}
 
-	_, err = client.MapHWIDsToHostnames(context.Background(), &protos.MapHWIDToHostnameRequest{HwidToHostname: hwidToHostname})
+	_, err = client.MapHWIDsToHostnames(ctx, &protos.MapHWIDToHostnameRequest{HwidToHostname: hwidToHostname})
 	if err != nil {
 		return fmt.Errorf("failed to map hwids to hostnames %v: %s", hwidToHostname, err)
 	}
@@ -89,13 +89,13 @@ func MapHWIDsToHostnames(hwidToHostname map[string]string) error {
 // NOTE: this mapping is provided on a best-effort basis, meaning
 //	- a {session ID -> IMSI} mapping may be missing even though the IMSI has a session ID record
 //	- a {session ID -> IMSI} mapping may be stale
-func GetIMSIForSessionID(networkID, sessionID string) (string, error) {
+func GetIMSIForSessionID(ctx context.Context, networkID, sessionID string) (string, error) {
 	client, err := getDirectorydClient()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get directoryd client")
 	}
 
-	res, err := client.GetIMSIForSessionID(context.Background(), &protos.GetIMSIForSessionIDRequest{
+	res, err := client.GetIMSIForSessionID(ctx, &protos.GetIMSIForSessionIDRequest{
 		NetworkID: networkID,
 		SessionID: sessionID,
 	})
@@ -108,13 +108,13 @@ func GetIMSIForSessionID(networkID, sessionID string) (string, error) {
 
 // MapSessionIDsToIMSIs maps {session ID -> IMSI}.
 // Derived state, stored in directoryd service.
-func MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) error {
+func MapSessionIDsToIMSIs(ctx context.Context, networkID string, sessionIDToIMSI map[string]string) error {
 	client, err := getDirectorydClient()
 	if err != nil {
 		return errors.Wrap(err, "failed to get directoryd client")
 	}
 
-	_, err = client.MapSessionIDsToIMSIs(context.Background(), &protos.MapSessionIDToIMSIRequest{
+	_, err = client.MapSessionIDsToIMSIs(ctx, &protos.MapSessionIDToIMSIRequest{
 		NetworkID:       networkID,
 		SessionIDToIMSI: sessionIDToIMSI,
 	})
@@ -130,13 +130,13 @@ func MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) e
 // NOTE: this mapping is provided on a best-effort basis, meaning
 //	- a {teid -> HwId} mapping may be missing even though the IMSI has a session ID record
 //	- a {teid -> HwId} mapping may be stale
-func GetHWIDForSgwCTeid(networkID, teid string) (string, error) {
+func GetHWIDForSgwCTeid(ctx context.Context, networkID, teid string) (string, error) {
 	client, err := getDirectorydClient()
 	if err != nil {
 		return "", errors.Wrap(err, "failed to get directoryd client")
 	}
 
-	res, err := client.GetHWIDForSgwCTeid(context.Background(), &protos.GetHWIDForSgwCTeidRequest{
+	res, err := client.GetHWIDForSgwCTeid(ctx, &protos.GetHWIDForSgwCTeidRequest{
 		NetworkID: networkID,
 		Teid:      teid,
 	})
@@ -148,13 +148,13 @@ func GetHWIDForSgwCTeid(networkID, teid string) (string, error) {
 }
 
 // MapSgwCTeidToHWID maps {Teid -> HwId}
-func MapSgwCTeidToHWID(networkID string, teidToHWID map[string]string) error {
+func MapSgwCTeidToHWID(ctx context.Context, networkID string, teidToHWID map[string]string) error {
 	client, err := getDirectorydClient()
 	if err != nil {
 		return errors.Wrap(err, "failed to get directoryd client")
 	}
 
-	_, err = client.MapSgwCTeidToHWID(context.Background(), &protos.MapSgwCTeidToHWIDRequest{
+	_, err = client.MapSgwCTeidToHWID(ctx, &protos.MapSgwCTeidToHWIDRequest{
 		NetworkID:  networkID,
 		TeidToHwid: teidToHWID,
 	})
@@ -171,7 +171,7 @@ func MapSgwCTeidToHWID(networkID string, teidToHWID map[string]string) error {
 
 // GetHWIDForIMSI returns the HWID mapped to by the IMSI.
 // Primary state, stored in state service.
-func GetHWIDForIMSI(networkID, imsi string) (string, error) {
+func GetHWIDForIMSI(ctx context.Context, networkID, imsi string) (string, error) {
 	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi, serdes.State)
 	if err != nil {
 		return "", err
@@ -185,7 +185,7 @@ func GetHWIDForIMSI(networkID, imsi string) (string, error) {
 
 // GetSessionIDForIMSI returns the session ID mapped to by the IMSI.
 // Primary state, stored in state service.
-func GetSessionIDForIMSI(networkID, imsi string) (string, error) {
+func GetSessionIDForIMSI(ctx context.Context, networkID, imsi string) (string, error) {
 	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi, serdes.State)
 	if err != nil {
 		return "", err

@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/golang/protobuf/ptypes"
+	context2 "golang.org/x/net/context"
 
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
@@ -40,14 +41,14 @@ func init() {
 }
 
 func listCerts(cmd *commands.Command, args []string) int {
-	certs, err := certifier.ListCertificates()
+	certs, err := certifier.ListCertificates(context2.Background())
 	if err != nil {
 		log.Fatalf("List Certificates Error: %s", err)
 	}
 	fmt.Println()
 	for _, csn := range certs {
 		fmt.Printf("Serial Number: %s", csn)
-		info, err := certifier.GetCertificateIdentity(csn)
+		info, err := certifier.GetCertificateIdentity(context2.Background(), csn)
 		if err != nil || info == nil {
 			log.Printf("\nError %s gettting certificate %s info\n", err, csn)
 			continue

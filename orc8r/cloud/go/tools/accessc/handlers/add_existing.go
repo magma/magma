@@ -16,6 +16,7 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -30,6 +31,8 @@ import (
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
 	"magma/orc8r/lib/go/security/cert"
+
+	context2 "golang.org/x/net/context"
 )
 
 // Add-existing command - Creates a new Operator and its ACL from specified
@@ -90,7 +93,7 @@ func addExisting(cmd *commands.Command, args []string) int {
 				log.Fatalf(
 					"Cannot parse certificate from '%s': %s\n", certFName, err)
 			}
-			err = certifier.AddCertificate(operator, certDERBlock.Bytes)
+			err = certifier.AddCertificate(context.Background(), operator, certDERBlock.Bytes)
 			if err != nil {
 				log.Fatalf(
 					"Error '%s' Adding Certificate From %s", err, certFName)
@@ -104,9 +107,9 @@ func addExisting(cmd *commands.Command, args []string) int {
 				acl = BuildACLForEntities(networks, operators, gateways)
 			}
 
-			err = accessd.SetOperator(operator, acl)
+			err = accessd.SetOperator(context.Background(), operator, acl)
 			if err != nil {
-				certifier.RevokeCertificateSN(cert.SerialToString(x509Cert.SerialNumber))
+				certifier.RevokeCertificateSN(context2.Background(), cert.SerialToString(x509Cert.SerialNumber))
 				log.Fatalf("Set Operator %s ACL Error: %s", operator.HashString(), err)
 			}
 			return 0

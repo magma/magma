@@ -22,6 +22,8 @@ import (
 
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
+
+	context2 "golang.org/x/net/context"
 )
 
 // List-certs command - prints out all registered certificates & associated with
@@ -37,7 +39,7 @@ func init() {
 }
 
 func collectGarbage(cmd *commands.Command, args []string) int {
-	err := certifier.CollectGarbage()
+	err := certifier.CollectGarbage(context2.Background())
 	if err != nil {
 		log.Fatalf("Garbage Collection Error: %s", err)
 	}

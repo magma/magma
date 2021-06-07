@@ -155,13 +155,14 @@ func GetReadGatewayDeviceHandler(path string, serdes serde.Registry) obsidian.Ha
 				return nerr
 			}
 
+			reqCtx := c.Request().Context()
 			physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
 			if err == merrors.ErrNotFound {
 				return obsidian.HttpError(err, http.StatusNotFound)
 			} else if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
-			device, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, physicalID, serdes)
+			device, err := device.GetDevice(reqCtx, networkID, orc8r.AccessGatewayRecordType, physicalID, serdes)
 			if err == merrors.ErrNotFound {
 				return obsidian.HttpError(err, http.StatusNotFound)
 			} else if err != nil {
@@ -195,7 +196,7 @@ func GetUpdateGatewayDeviceHandler(path string, serdes serde.Registry) obsidian.
 			} else if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
-			err = device.UpdateDevice(networkID, orc8r.AccessGatewayRecordType, physicalID, update, serdes)
+			err = device.UpdateDevice(c.Request().Context(), networkID, orc8r.AccessGatewayRecordType, physicalID, update, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}

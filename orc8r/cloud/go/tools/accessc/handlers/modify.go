@@ -16,6 +16,7 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -26,6 +27,8 @@ import (
 	"magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
+
+	context2 "golang.org/x/net/context"
 )
 
 // Add-existing command - Creates a new Operator and its ACL from specified
@@ -65,11 +68,11 @@ func modify(cmd *commands.Command, args []string) int {
 		log.Fatalf("Invalid common name for %s", oid)
 	}
 	opname := operator.HashString()
-	aclMap, err := accessd.GetOperatorACL(operator)
+	aclMap, err := accessd.GetOperatorACL(context.Background(), operator)
 	if err != nil {
 		log.Fatalf("Operator %s does not exist. Error: %v", opname, err)
 	}
-	certSNs, err := certifier.FindCertificates(operator)
+	certSNs, err := certifier.FindCertificates(context2.Background(), operator)
 	if err != nil {
 		log.Printf("Error %s getting certificates for %s\n", err, opname)
 		certSNs = []string{}
@@ -91,7 +94,7 @@ func modify(cmd *commands.Command, args []string) int {
 			ent.Permissions.ToString(),
 			ent.Permissions)
 	}
-	err = accessd.SetOperator(operator, acl)
+	err = accessd.SetOperator(context.Background(), operator, acl)
 	if err != nil {
 		log.Fatalf("Set Operator %s ACL Error: %s", operator.HashString(), err)
 	}

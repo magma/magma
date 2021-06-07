@@ -14,6 +14,7 @@ limitations under the License.
 package directoryd_test
 
 import (
+	"context"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -112,46 +113,46 @@ func TestDirectorydMethods(t *testing.T) {
 	directoryd_test_init.StartTestService(t)
 
 	// Empty initially
-	_, err := directoryd.GetSessionIDForIMSI(nid0, imsi0)
+	_, err := directoryd.GetSessionIDForIMSI(context.Background(), nid0, imsi0)
 	assert.Error(t, err)
-	_, err = directoryd.GetHostnameForHWID(hwid0)
+	_, err = directoryd.GetHostnameForHWID(context.Background(), hwid0)
 	assert.Error(t, err)
-	_, err = directoryd.GetHWIDForSgwCTeid(nid0, teid0)
+	_, err = directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0)
 	assert.Error(t, err)
 
 	// Put sid0->imsi0
-	err = directoryd.MapSessionIDsToIMSIs(nid0, map[string]string{sid0: imsi0})
+	err = directoryd.MapSessionIDsToIMSIs(context.Background(), nid0, map[string]string{sid0: imsi0})
 	assert.NoError(t, err)
 
 	// Put Many hwid0->hn0
-	err = directoryd.MapHWIDsToHostnames(map[string]string{hwid0: hn0})
+	err = directoryd.MapHWIDsToHostnames(context.Background(), map[string]string{hwid0: hn0})
 	assert.NoError(t, err)
 
 	// Put Single hwid1->hn1
-	err = directoryd.MapHWIDToHostname(hwid1, hn1)
+	err = directoryd.MapHWIDToHostname(context.Background(), hwid1, hn1)
 	assert.NoError(t, err)
 
 	// Get sid0->imsi0
-	imsi, err := directoryd.GetIMSIForSessionID(nid0, sid0)
+	imsi, err := directoryd.GetIMSIForSessionID(context.Background(), nid0, sid0)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi, imsi0)
 
 	// Get hwid0->hn0
-	hn, err := directoryd.GetHostnameForHWID(hwid0)
+	hn, err := directoryd.GetHostnameForHWID(context.Background(), hwid0)
 	assert.NoError(t, err)
 	assert.Equal(t, hn0, hn)
 
 	// Get hwid1->hn1
-	hn, err = directoryd.GetHostnameForHWID(hwid1)
+	hn, err = directoryd.GetHostnameForHWID(context.Background(), hwid1)
 	assert.NoError(t, err)
 	assert.Equal(t, hn1, hn)
 
 	// Put teid->hwid
-	err = directoryd.MapSgwCTeidToHWID(nid0, map[string]string{teid0: hwid0})
+	err = directoryd.MapSgwCTeidToHWID(context.Background(), nid0, map[string]string{teid0: hwid0})
 	assert.NoError(t, err)
 
 	// Get teid->hwid
-	hwid, err := directoryd.GetHWIDForSgwCTeid(nid0, teid0)
+	hwid, err := directoryd.GetHWIDForSgwCTeid(context.Background(), nid0, teid0)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid0, hwid)
 }
@@ -190,9 +191,9 @@ func TestDirectorydStateMethods(t *testing.T) {
 	}
 
 	// Empty initially
-	_, err = directoryd.GetHWIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetHWIDForIMSI(context.Background(), nid0, imsi0)
 	assert.Error(t, err)
-	_, err = directoryd.GetSessionIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetSessionIDForIMSI(context.Background(), nid0, imsi0)
 	assert.Error(t, err)
 
 	// Report state
@@ -202,12 +203,12 @@ func TestDirectorydStateMethods(t *testing.T) {
 	assert.Empty(t, res.UnreportedStates)
 
 	// Get imsi0->hwid0
-	hwid, err := directoryd.GetHWIDForIMSI(nid0, imsi0)
+	hwid, err := directoryd.GetHWIDForIMSI(context.Background(), nid0, imsi0)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid0, hwid)
 
 	// Get imsi0->sid0
-	sid, err := directoryd.GetSessionIDForIMSI(nid0, imsi0)
+	sid, err := directoryd.GetSessionIDForIMSI(context.Background(), nid0, imsi0)
 	assert.NoError(t, err)
 	assert.Equal(t, sid0, sid)
 
@@ -216,11 +217,11 @@ func TestDirectorydStateMethods(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Get imsi0->hwid0, should be gone
-	_, err = directoryd.GetHWIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetHWIDForIMSI(context.Background(), nid0, imsi0)
 	assert.Error(t, err)
 
 	// Get imsi0->sid0, should be gone
-	_, err = directoryd.GetSessionIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetSessionIDForIMSI(context.Background(), nid0, imsi0)
 	assert.Error(t, err)
 }
 
@@ -239,9 +240,9 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 	ctx := test_utils.GetContextWithCertificate(t, hwid0)
 
 	// Empty initially
-	_, err = directoryd.GetHWIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetHWIDForIMSI(context.Background(), nid0, imsi0)
 	assert.Error(t, err)
-	_, err = directoryd.GetSessionIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetSessionIDForIMSI(context.Background(), nid0, imsi0)
 	assert.Error(t, err)
 
 	// Update
@@ -253,12 +254,12 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Get imsi0->hwid0
-	hwid, err := directoryd.GetHWIDForIMSI(nid0, imsi0)
+	hwid, err := directoryd.GetHWIDForIMSI(context.Background(), nid0, imsi0)
 	assert.NoError(t, err)
 	assert.Equal(t, hwid0, hwid)
 
 	// Get imsi0->sid0
-	sid, err := directoryd.GetSessionIDForIMSI(nid0, imsi0)
+	sid, err := directoryd.GetSessionIDForIMSI(context.Background(), nid0, imsi0)
 	assert.NoError(t, err)
 	assert.Equal(t, sid0, sid)
 
@@ -278,11 +279,11 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Get imsi0->hwid0, should be gone
-	_, err = directoryd.GetHWIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetHWIDForIMSI(context.Background(), nid0, imsi0)
 	assert.Error(t, err)
 
 	// Get imsi0->sid0, should be gone
-	_, err = directoryd.GetSessionIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetSessionIDForIMSI(context.Background(), nid0, imsi0)
 	assert.Error(t, err)
 }
 
