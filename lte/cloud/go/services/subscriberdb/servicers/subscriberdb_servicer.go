@@ -15,8 +15,6 @@ package servicers
 
 import (
 	"context"
-	"crypto/md5"
-	"encoding/hex"
 	"sort"
 
 	"magma/orc8r/cloud/go/mproto"
@@ -36,12 +34,14 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-type subscriberdbServicer struct{}
+type subscriberdbServicer struct{
+	flatDigestEnabled bool
+}
 
 const defaultSubProfile = "default"
 
-func NewSubscriberdbServicer() lte_protos.SubscriberDBCloudServer {
-	return &subscriberdbServicer{}
+func NewSubscriberdbServicer(flatDigestEnabled bool) lte_protos.SubscriberDBCloudServer {
+	return &subscriberdbServicer{flatDigestEnabled: flatDigestEnabled}
 }
 
 // ListSubscribers returns a page of subscribers and a token to be used on
@@ -101,12 +101,13 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		NextPageToken: nextToken,
 	}
 
-	return listResWithDigest(listRes, req, gateway, apnsByName, apnResourcesByAPN), nil
+	return listResWithDigest(s.flatDigestEnabled, listRes, req, gateway, apnsByName, apnResourcesByAPN), nil
 }
 
 // listResWithDigest returns a ListSubscribersResponse with the fields augmented
 // according to the flat digest logic.
 func listResWithDigest(
+	flatDigestEnabled bool,
 	listRes *lte_protos.ListSubscribersResponse,
 	req *lte_protos.ListSubscribersRequest,
 	gateway *protos.Identity_Gateway,
@@ -122,7 +123,7 @@ func listResWithDigest(
 	}
 
 	// This functionality is currently placed behind a feature flag.
-	if featureActivated, ok := req.FeatureFlags["flat_digest"]; ok && featureActivated {
+	if flatDigestEnabled {
 		if req.PageToken == "" {
 			digest, err := getDigest(gateway, apnsByName, apnResourcesByAPN)
 			// If digest generation fails, the error is swallowed to not affect the main functionality.
@@ -175,16 +176,7 @@ func getDigest(
 		subProtosById[index] = subProto
 	}
 
-	digest, err := mproto.MarshalManyDeterministic(subProtosById)
-	if err != nil {
-		return "", err
-	}
-
-	// Convert to a constant-length hash of the encoded value.
-	sum := md5.Sum(digest)
-	digestHash := hex.EncodeToString(sum[:])
-
-	return digestHash, nil
+	return mproto.HashManyDeterministic(subProtosById)
 }
 
 func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {

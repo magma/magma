@@ -221,8 +221,6 @@ message ListSubscribersRequest {
   // digest is the digest received from the most-recent request to
   // ListSubscribers.
   SubscriberDigest digest = 3;
-  // feature flags
-  map<string, bool> feature_flags = 4;
 }
 
 message ListSubscribersResponse {

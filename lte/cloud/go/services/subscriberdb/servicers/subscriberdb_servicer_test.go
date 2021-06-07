@@ -41,7 +41,7 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
-	servicer := servicers.NewSubscriberdbServicer()
+	servicer := servicers.NewSubscriberdbServicer(false)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -299,7 +299,8 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
-	servicer := servicers.NewSubscriberdbServicer()
+	// Create servicer with flat digest feature flag turned on.
+	servicer := servicers.NewSubscriberdbServicer(true)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -344,7 +345,6 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 		PageSize:     2,
 		PageToken:    "",
 		Digest:       &lte_protos.SubscriberDigest{Md5HexDigest: ""},
-		FeatureFlags: map[string]bool{"flat_digest": true},
 	}
 	res, err := servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
@@ -356,7 +356,6 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 		PageSize:     2,
 		PageToken:    "",
 		Digest:       res.Digest,
-		FeatureFlags: map[string]bool{"flat_digest": true},
 	}
 	res, err = servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
@@ -390,7 +389,6 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 		PageSize:     2,
 		PageToken:    "",
 		Digest:       res.Digest,
-		FeatureFlags: map[string]bool{"flat_digest": true},
 	}
 	res, err = servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)

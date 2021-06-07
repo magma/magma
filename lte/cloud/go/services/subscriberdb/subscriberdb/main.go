@@ -54,11 +54,16 @@ func main() {
 		glog.Fatalf("Error initializing IP lookup storage: %v", err)
 	}
 
+	// Load service configs
+	serviceConfig := subscriberdb.GetServiceConfig()
+	glog.Infof("Subscriberdb service config %v", serviceConfig)
+	flatDigestEnabled := serviceConfig.FlatDigestEnabled
+
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer())
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(flatDigestEnabled))
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(subscriberdb.ServiceName))
 
