@@ -41,7 +41,7 @@ The bad performance is due to the global serialization process (translation, mem
 The replacement libraries considered are "cap'n proto" and "Flat buffers”, they support C/C++ standart API, binary output format and do not need memory copy (zero copy).
 
 
-The states that have to be serialized are (To be detailled):
+The states that have to be serialized are (To be detailed):
 - S1AP, S1AP_IMSI_MAP, S1AP_UE
 - MME_UE, MME_NAS
 - SGW, SGW_UE, SPGW, SPGW_UE
