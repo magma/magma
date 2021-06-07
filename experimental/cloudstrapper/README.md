@@ -222,12 +222,12 @@
     agw-provision: provisions a site with VPC, subnets, gateway, routing tables and one AGW Command:
     ```
 
-    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>"[ --tags createNet,createBridge, createGw ]
+    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>"[ --tags createNet,createBridge,createGw,cleanupBridge,cleanupNet ]
     ```
     - A site needs to be added only once. After a site is up, multiple gatways can be individually provisioned by skipping the createNet tag as laid out below
 
     ```
-    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>" --tags createGw
+    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>" --tags infra,createGw --skip-tags createNet,createBridge,cleanupBridge,cleanupNet
     ```
 
   - After the gateway has been provisioned, configure the gateway to attach it to an Orchestrator instance. The orchstrator information is picked up from 'cluster.yaml' file
@@ -263,7 +263,7 @@
     - agw-provision: provisions a site with VPC, subnets, gateway, routing tables and one AGW Command:
     ```
 
-    ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=<buildGwTagName>" -e "dirLocalInventory=<WORK_DIR>" -e "agwDevops=1" --tags infra,inventory
+    ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=<buildGwTagName>" -e "dirLocalInventory=<WORK_DIR>" -e "agwDevops=1" --tags infra,inventory --skip-tags createBridge,cleanupBridge,cleanupNet
     ```
 
     - ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and building OVS.
