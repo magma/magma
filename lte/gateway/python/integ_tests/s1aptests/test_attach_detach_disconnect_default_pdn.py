@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
@@ -54,18 +54,18 @@ class TestDisconnectDefaultPdn(unittest.TestCase):
         pdn_disconnect_req.ue_Id = ue_id
         pdn_disconnect_req.epsBearerId = 5
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req
+            s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REQ, pdn_disconnect_req,
         )
 
         # Receive PDN Disconnect Reject
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REJ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_DISCONNECT_REJ.value,
         )
 
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
 

@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import unittest
+
 import s1ap_types
 from integ_tests.s1aptests.s1ap_utils import S1ApUtil
 

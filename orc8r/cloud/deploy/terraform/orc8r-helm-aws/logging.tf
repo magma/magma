@@ -35,6 +35,7 @@ resource "helm_release" "fluentd" {
     create: false
   service:
     annotations:
+      service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "magma-uuid=${var.magma_uuid}"
       external-dns.alpha.kubernetes.io/hostname: ${local.fluentd_hostname}
     type: LoadBalancer
     ports:

@@ -27,15 +27,17 @@ from . import models
 RPC_METHODS = ['Inform', 'GetRPCMethods', 'TransferComplete']
 RPC_RESPONSES = [method + 'Response' for method in RPC_METHODS]
 # RPC methods supported by CPE
-CPE_RPC_METHODS = ['SetParameterValues',
-                   'GetParameterValues',
-                   'GetParameterNames',
-                   'SetParameterAttributes',
-                   'GetParameterAttributes',
-                   'AddObject',
-                   'DeleteObject',
-                   'Download',
-                   'Reboot']
+CPE_RPC_METHODS = [
+    'SetParameterValues',
+    'GetParameterValues',
+    'GetParameterNames',
+    'SetParameterAttributes',
+    'GetParameterAttributes',
+    'AddObject',
+    'DeleteObject',
+    'Download',
+    'Reboot',
+]
 CPE_RPC_RESPONSES = [method + 'Response' for method in CPE_RPC_METHODS]
 # ACS RPC methods that are not explicitly described by the spec (hence shouldn't
 # be advertised by GetRPCMethods). Note: No responses for these
@@ -78,7 +80,7 @@ class AutoConfigServer(ServiceBase):
     @classmethod
     def set_state_machine_manager(
         cls,
-        state_machine_manager: StateMachineManager
+        state_machine_manager: StateMachineManager,
     ) -> None:
         cls.state_machine_manager = state_machine_manager
 
@@ -150,11 +152,13 @@ class AutoConfigServer(ServiceBase):
 
     # CPE->ACS RPC calls
 
-    @rpc(models.GetRPCMethods,
-         _returns=models.GetRPCMethodsResponse,
-         _body_style="bare",
-         _operation_name="GetRPCMethods",
-         _out_message_name="GetRPCMethodsResponse")
+    @rpc(
+        models.GetRPCMethods,
+        _returns=models.GetRPCMethodsResponse,
+        _body_style="bare",
+        _operation_name="GetRPCMethods",
+        _out_message_name="GetRPCMethodsResponse",
+    )
     def get_rpc_methods(ctx, request):
         """ GetRPCMethods RPC call is terminated here. No need to pass to higher
             layer """
@@ -162,12 +166,13 @@ class AutoConfigServer(ServiceBase):
         resp = AutoConfigServer._handle_tr069_message(ctx, request)
         return resp
 
-
-    @rpc(models.Inform,
-         _returns=models.InformResponse,
-         _body_style="bare",
-         _operation_name="Inform",
-         _out_message_name="InformResponse")
+    @rpc(
+        models.Inform,
+        _returns=models.InformResponse,
+        _body_style="bare",
+        _operation_name="Inform",
+        _out_message_name="InformResponse",
+    )
     def inform(ctx, request):
         """ Inform response generated locally """
         fill_response_header(ctx)
@@ -175,11 +180,13 @@ class AutoConfigServer(ServiceBase):
         resp.MaxEnvelopes = AutoConfigServer._max_envelopes
         return resp
 
-    @rpc(models.TransferComplete,
-         _returns=models.TransferCompleteResponse,
-         _body_style="bare",
-         _operation_name="TransferComplete",
-         _out_message_name="TransferCompleteResponse")
+    @rpc(
+        models.TransferComplete,
+        _returns=models.TransferCompleteResponse,
+        _body_style="bare",
+        _operation_name="TransferComplete",
+        _out_message_name="TransferCompleteResponse",
+    )
     def transfer_complete(ctx, request):
         fill_response_header(ctx)
         resp = AutoConfigServer._handle_tr069_message(ctx, request)
@@ -189,94 +196,116 @@ class AutoConfigServer(ServiceBase):
     # Spyne does not handle no input or SimpleModel input for 'bare' function
     # DummyInput is unused
     # pylint: disable=unused-argument
-    @rpc(models.DummyInput,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="EmptyHttp",
-         _body_style='bare',
-         _operation_name="EmptyHttp")
+    @rpc(
+        models.DummyInput,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="EmptyHttp",
+        _body_style='bare',
+        _operation_name="EmptyHttp",
+    )
     def empty_http(ctx, dummy):
         # Function to handle empty HTTP request
         return AutoConfigServer._handle_tr069_message(ctx, dummy)
 
     # CPE->ACS responses to ACS->CPE RPC calls
 
-    @rpc(models.SetParameterValuesResponse,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="MessageNameToBeReplaced",
-         _body_style='bare',
-         _operation_name="SetParameterValuesResponse")
+    @rpc(
+        models.SetParameterValuesResponse,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="SetParameterValuesResponse",
+    )
     def set_parameter_values_response(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
-    @rpc(models.GetParameterValuesResponse,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="MessageNameToBeReplaced",
-         _body_style='bare',
-         _operation_name="GetParameterValuesResponse")
+    @rpc(
+        models.GetParameterValuesResponse,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="GetParameterValuesResponse",
+    )
     def get_parameter_values_response(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
-    @rpc(models.GetParameterNamesResponse,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="MessageNameToBeReplaced",
-         _body_style='bare',
-         _operation_name="GetParameterNamesResponse")
+    @rpc(
+        models.GetParameterNamesResponse,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="GetParameterNamesResponse",
+    )
     def get_parameter_names_response(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
-    @rpc(models.SetParameterAttributesResponse,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="MessageNameToBeReplaced",
-         _body_style='bare',
-         _operation_name="SetParameterAttributesResponse")
+    @rpc(
+        models.SetParameterAttributesResponse,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="SetParameterAttributesResponse",
+    )
     def set_parameter_attributes_response(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
-    @rpc(models.GetParameterAttributesResponse,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="MessageNameToBeReplaced",
-         _body_style='bare',
-         _operation_name="GetParameterAttributesResponse")
+    @rpc(
+        models.GetParameterAttributesResponse,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="GetParameterAttributesResponse",
+    )
     def get_parameter_attributes_response(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
-    @rpc(models.AddObjectResponse,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="MessageNameToBeReplaced",
-         _body_style='bare',
-         _operation_name="AddObjectResponse")
+    @rpc(
+        models.AddObjectResponse,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="AddObjectResponse",
+    )
     def add_object_response(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
-    @rpc(models.DeleteObjectResponse,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="MessageNameToBeReplaced",
-         _body_style='bare',
-         _operation_name="DeleteObjectResponse")
+    @rpc(
+        models.DeleteObjectResponse,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="DeleteObjectResponse",
+    )
     def delete_object_response(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
-    @rpc(models.DownloadResponse,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="MessageNameToBeReplaced",
-         _body_style='bare',
-         _operation_name="DownloadResponse")
+    @rpc(
+        models.DownloadResponse,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="DownloadResponse",
+    )
     def download_response(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
-    @rpc(models.RebootResponse,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="MessageNameToBeReplaced",
-         _body_style='bare',
-         _operation_name="RebootResponse")
+    @rpc(
+        models.RebootResponse,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="RebootResponse",
+    )
     def reboot_response(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
-    @rpc(models.Fault,
-         _returns=models.AcsToCpeRequests,
-         _out_message_name="MessageNameToBeReplaced",
-         _body_style='bare',
-         _operation_name="Fault")
+    @rpc(
+        models.Fault,
+        _returns=models.AcsToCpeRequests,
+        _out_message_name="MessageNameToBeReplaced",
+        _body_style='bare',
+        _operation_name="Fault",
+    )
     def fault(ctx, response):
         return AutoConfigServer._handle_tr069_message(ctx, response)
 
@@ -298,9 +327,11 @@ def on_method_return_string(ctx):
     # would pick up all tags that start with the tag of interest (e.g
     # cwmp:SetParameterAttributes would also match
     # cwmp:SetParameterAttributesStruct)
-    XML_FORMAT_STRS = [["cwmp:%s>", "!!!TEMP_MOD!!!:%s>"],
-                       ["cwmp:%s/>", "!!!TEMP_MOD!!!:%s/>"],
-                       ["cwmp:%s ", "!!!TEMP_MOD!!!:%s "]]
+    XML_FORMAT_STRS = [
+        ["cwmp:%s>", "!!!TEMP_MOD!!!:%s>"],
+        ["cwmp:%s/>", "!!!TEMP_MOD!!!:%s/>"],
+        ["cwmp:%s ", "!!!TEMP_MOD!!!:%s "],
+    ]
     fields_to_preserve_ns = list(RPC_METHODS) + list(RPC_RESPONSES) + \
         list(CPE_RPC_METHODS) + list(CPE_RPC_RESPONSES) + \
         list(PSEUDO_RPC_METHODS) + list(TOP_LEVEL_HEADER_ELEMENTS)
@@ -309,18 +340,20 @@ def on_method_return_string(ctx):
             orig_str = formats[0] % field
             temp_str = formats[1] % field
             ctx.out_string[0] = ctx.out_string[0].replace(
-                orig_str.encode('ascii'), temp_str.encode('ascii'))
+                orig_str.encode('ascii'), temp_str.encode('ascii'),
+            )
 
     # Also preserve namespace inside strings, e.g. for arrayType="cwmp:..."
     orig_str = "=\"cwmp:"
     temp_str = "=\"!!!TEMP_MOD!!!:"
     ctx.out_string[0] = ctx.out_string[0].replace(
-        orig_str.encode('ascii'), temp_str.encode('ascii'))
+        orig_str.encode('ascii'), temp_str.encode('ascii'),
+    )
     orig_str = "=\'cwmp:"
     temp_str = "=\'!!!TEMP_MOD!!!:"
     ctx.out_string[0] = ctx.out_string[0].replace(
-        orig_str.encode('ascii'), temp_str.encode('ascii'))
-
+        orig_str.encode('ascii'), temp_str.encode('ascii'),
+    )
 
     ctx.out_string[0] = ctx.out_string[0].replace(b'cwmp:', b'')
     ctx.out_string[0] = ctx.out_string[0].replace(b'!!!TEMP_MOD!!!:', b'cwmp:')
@@ -332,5 +365,7 @@ def on_method_return_string(ctx):
         ctx.out_string = [b'']
 
 
-AutoConfigServer.event_manager.add_listener('method_return_string',
-                                            on_method_return_string)
+AutoConfigServer.event_manager.add_listener(
+    'method_return_string',
+    on_method_return_string,
+)

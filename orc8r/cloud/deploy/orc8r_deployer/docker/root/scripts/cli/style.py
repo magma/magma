@@ -10,24 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import subprocess
-
 import click
-from ansible.cli.playbook import PlaybookCLI
 
 
-def run_playbook(args):
-    pb_cli = PlaybookCLI(args)
-    pb_cli.parse()
-    return pb_cli.run()
-
-
-def run_command(cmd):
-    with subprocess.Popen(cmd, stdout=subprocess.PIPE) as p:
-        for output in p.stdout:
-            click.echo(output, nl=False)
-        return p.wait()
-    return 1
+def print_title(msg):
+    click.echo(click.style(msg, underline=True))
 
 
 def print_error_msg(msg):

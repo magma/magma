@@ -11,11 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import time
 import unittest
 
 import s1ap_types
-import time
-
 from integ_tests.s1aptests import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
@@ -23,7 +22,7 @@ from s1ap_utils import MagmadUtil
 class TestNoIdentityRspWithMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
@@ -57,12 +56,12 @@ class TestNoIdentityRspWithMmeRestart(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         print("Sending Attach Request for ue_id", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value,
         )
         print(
             "Received Identity req ind ",
@@ -96,13 +95,13 @@ class TestNoIdentityRspWithMmeRestart(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         print("Sending Attach Request for ue_id", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("********** UE Context released **********")
 

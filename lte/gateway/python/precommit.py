@@ -67,7 +67,7 @@ def _format_diff(paths: List[str]):
         # make sure to change the corresponding github action
         _run_docker_cmd(['isort', path])
         _run_add_trailing_comma(path)
-        autopep8_checks = 'W291,W293,E2,E3'
+        autopep8_checks = 'W291,W293,W391,E2,E3'
         _run_docker_cmd(['autopep8', '--select', autopep8_checks, '-r', '--in-place', path])
 
 

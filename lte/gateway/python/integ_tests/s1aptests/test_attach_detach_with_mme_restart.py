@@ -23,7 +23,8 @@ class TestAttachDetachWithMmeRestart(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE)
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
+        )
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
@@ -34,26 +35,33 @@ class TestAttachDetachWithMmeRestart(unittest.TestCase):
         where MME restarts between each attach and detach
         """
         num_ues = 2
-        detach_type = [s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
-                       s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value]
+        detach_type = [
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+            s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
+        ]
         wait_for_s1 = [True, False]
         self._s1ap_wrapper.configUEDevice(num_ues)
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
-            print("************************* Running End to End attach for ",
-                  "UE id ", req.ue_id)
+            print(
+                "************************* Running End to End attach for ",
+                "UE id ", req.ue_id,
+            )
             # Now actually complete the attach
             self._s1ap_wrapper._s1_util.attach(
                 req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t)
+                s1ap_types.ueAttachAccept_t,
+            )
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
 
-            print("************************* Restarting MME service on",
-                  "gateway")
+            print(
+                "************************* Restarting MME service on",
+                "gateway",
+            )
             self._s1ap_wrapper.magmad_util.restart_services(["mme"])
 
             for j in range(30):
@@ -61,10 +69,13 @@ class TestAttachDetachWithMmeRestart(unittest.TestCase):
                 time.sleep(1)
 
             # Now detach the UE
-            print("************************* Running UE detach for UE id ",
-                  req.ue_id)
+            print(
+                "************************* Running UE detach for UE id ",
+                req.ue_id,
+            )
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type[i], wait_for_s1[i])
+                req.ue_id, detach_type[i], wait_for_s1[i],
+            )
 
             if i == 1:
                 break

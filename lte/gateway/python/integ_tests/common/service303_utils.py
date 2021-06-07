@@ -15,13 +15,12 @@ import logging
 import time
 
 import grpc
-import orc8r.protos.metricsd_pb2 as metricsd
 import metrics_pb2 as metrics_proto
+import orc8r.protos.metricsd_pb2 as metricsd
+from integ_tests.gateway.rpc import get_rpc_channel
 from orc8r.protos.common_pb2 import Void
 from orc8r.protos.service303_pb2 import ServiceInfo
 from orc8r.protos.service303_pb2_grpc import Service303Stub
-
-from integ_tests.gateway.rpc import get_rpc_channel
 
 
 class MetricNotFoundException(Exception):
@@ -55,8 +54,11 @@ class GatewayServicesUtil(object):
         """
         assert(self._mme_service.wait_for_healthy_service(after_start_time))
         # Mobilityd comes up after mme, so wait for this too
-        assert(self._mobilityd_service.wait_for_healthy_service(
-               after_start_time))
+        assert(
+            self._mobilityd_service.wait_for_healthy_service(
+            after_start_time,
+            )
+        )
 
     def get_service_by_name(self, service_name):
         if service_name == 'mme':
@@ -90,8 +92,10 @@ class Service303Util(object):
     def _does_metric_have_all_labels(metric, label_values):
         for label_name, label_value in label_values.items():
             if not any(
-                    [label_name == label.name and label_value == label.value
-                     for label in metric.label]
+                    [
+                        label_name == label.name and label_value == label.value
+                        for label in metric.label
+                    ],
             ):
                 return False
         return True
@@ -101,10 +105,12 @@ class Service303Util(object):
         return metric_type == metrics_proto.GAUGE \
                or metric_type == metrics_proto.COUNTER
 
-    def get_metric_value(self,
-                         metric_name,
-                         expected_labels=None,
-                         default=None):
+    def get_metric_value(
+        self,
+        metric_name,
+        expected_labels=None,
+        default=None,
+    ):
         """
         Get the value of a metric in the list of metrics by its name
         and its labels. Throws if metric name is not found, or if
@@ -134,12 +140,13 @@ class Service303Util(object):
             else:
                 raise MetricNotFoundException(
                     "No {metric_name} metric found."
-                    .format(metric_name=metric_name)
+                    .format(metric_name=metric_name),
                 )
         metric_type = metric.type
         if not self._is_metric_type_supported(metric_type):
             raise NotImplementedError(
-                "Metric value type not supported: " + metric.type)
+                "Metric value type not supported: " + metric.type,
+            )
         for m in metric.metric:
             if self._does_metric_have_all_labels(m, expected_labels):
                 if metric_type == metrics_proto.GAUGE:
@@ -152,13 +159,14 @@ class Service303Util(object):
             raise MetricNotFoundException(
                 "No metric under {metric_name} "
                 "has all  of the label_values specified"
-                .format(metric_name=metric_name)
+                .format(metric_name=metric_name),
             )
 
     def get_start_time(self):
         """ Get the start time of the running service """
         return self.get_metric_value(
-            str(metricsd.process_start_time_seconds))
+            str(metricsd.process_start_time_seconds),
+        )
 
     def get_uptime(self):
         """ Get the uptime (time since service start) of running service """
@@ -205,10 +213,14 @@ class Service303Util(object):
         except grpc.RpcError as error:
             err_code = error.exception().code()
             # Ignore errors caused if grpc isn't up or ready
-            if (err_code in (grpc.StatusCode.FAILED_PRECONDITION,
-                             grpc.StatusCode.UNAVAILABLE,
-                             grpc.StatusCode.UNKNOWN,
-                             grpc.StatusCode.CANCELLED)):
+            if (
+                err_code in (
+                    grpc.StatusCode.FAILED_PRECONDITION,
+                    grpc.StatusCode.UNAVAILABLE,
+                    grpc.StatusCode.UNKNOWN,
+                    grpc.StatusCode.CANCELLED,
+                )
+            ):
                 return None
             else:
                 raise
@@ -225,8 +237,10 @@ class Service303Util(object):
         for _ in range(self.MAX_HEALTHY_ITER):
             info = self._try_to_grpc(self.get_service_info)
 
-            if (info and info.health == ServiceInfo.APP_HEALTHY and
-                    info.state == ServiceInfo.ALIVE):
+            if (
+                info and info.health == ServiceInfo.APP_HEALTHY and
+                info.state == ServiceInfo.ALIVE
+            ):
                 if self._service_started_after(started_after_time):
                     return True
                 else:
@@ -252,6 +266,7 @@ def verify_gateway_metrics(test):
         TEST_METRICS: A list of MetricValue where the value is the expected
             increase in the gauge/counter
     """
+
     def wrapper(self):
         services = self.gateway_services
         initial = _get_metric_counts(services, self.TEST_METRICS)
@@ -278,20 +293,28 @@ def _get_metric_counts(gateway_services, metric_list):
     curr_values = []
     for metric in metric_list:
         service_util = gateway_services.get_service_by_name(metric.service)
-        value = service_util.get_metric_value(metric.name,
-                                              expected_labels=metric.labels,
-                                              default=0)
-        curr_values.append(MetricValue(service=metric.service,
-                                       name=metric.name,
-                                       labels=metric.labels,
-                                       value=value))
+        value = service_util.get_metric_value(
+            metric.name,
+            expected_labels=metric.labels,
+            default=0,
+        )
+        curr_values.append(
+            MetricValue(
+                service=metric.service,
+                name=metric.name,
+                labels=metric.labels,
+                value=value,
+            ),
+        )
     return curr_values
 
 
-def _verify_metric_differences(test_class,
-                               expected_vals,
-                               initial_vals,
-                               final_vals):
+def _verify_metric_differences(
+    test_class,
+    expected_vals,
+    initial_vals,
+    final_vals,
+):
     """
     Verifies the metrics changed by the expected amount. Asserts if not
     Args:
@@ -311,6 +334,7 @@ def _verify_metric_differences(test_class,
             expected_vals[i].name,
             str(expected_vals[i].labels),
             diff,
-            expected)
+            expected,
+        )
         test_class.assertEqual(diff, expected)
     return

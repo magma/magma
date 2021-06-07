@@ -157,6 +157,7 @@ data "template_file" "orc8r_values" {
     docker_registry   = var.docker_registry
     docker_tag        = local.orc8r_tag
 
+    magma_uuid = var.magma_uuid
     certs_secret   = kubernetes_secret.orc8r_certs.metadata.0.name
     configs_secret = kubernetes_secret.orc8r_configs.metadata.0.name
     envdir_secret  = kubernetes_secret.orc8r_envdir.metadata.0.name

@@ -11,19 +11,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import s1ap_types
 import time
+import unittest
 
+import s1ap_types
 from integ_tests.s1aptests import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SpgwUtil
-from integ_tests.s1aptests.s1ap_utils import MagmadUtil
+from integ_tests.s1aptests.s1ap_utils import MagmadUtil, SpgwUtil
 
 
 class TestAttachNwInitiatedDetachWithMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
         self._spgw_util = SpgwUtil()
 
@@ -104,7 +103,7 @@ class TestAttachNwInitiatedDetachWithMmeRestart(unittest.TestCase):
         detach_accept = s1ap_types.ueTrigDetachAcceptInd_t()
         detach_accept.ue_Id = req.ue_id
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept
+            s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept,
         )
 
 
