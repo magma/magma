@@ -30,6 +30,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma.vm.box_version = "1.1.20210601"
     magma.vbguest.auto_update = false
 
+
+
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
     magma.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
@@ -37,12 +39,17 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
 
     magma.vm.provider "virtualbox" do |vb|
+
       vb.name = "magma-dev"
       vb.linked_clone = true
       vb.customize ["modifyvm", :id, "--memory", "8192"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
+      vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
+      vb.customize ["modifyvm", :id, "--nestedpaging", "off"]
       vb.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000 ]
+      vb.customize ["modifyvm", :id, "--paravirtprovider", "hyperv"]
     end
     magma.vm.provision "ansible" do |ansible|
       ansible.host_key_checking = false
