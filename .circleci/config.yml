@@ -1465,7 +1465,7 @@ jobs:
       - run:
           name: Generate AGW AMI
           command: |
-            ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge
+            ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge,cleanupBridge,cleanupNet
             echo "Waiting one minute for the instance to boot up."
             sleep 60
             ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu

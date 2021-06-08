@@ -14,6 +14,8 @@ limitations under the License.
 package main
 
 import (
+	"flag"
+
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/feg"
@@ -24,13 +26,21 @@ import (
 )
 
 func main() {
+	flag.Parse()
+
 	// Create the service
 	srv, err := service.NewOrchestratorService(feg.ModuleName, basic_acct.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating Basic Accounting service: %s", err)
 	}
 
-	protos.RegisterAccountingServer(srv.GrpcServer, servicers.NewBaseAcctService())
+	bas := servicers.NewBaseAcctService()
+	cfg := bas.GetConfig()
+	if cfg == nil {
+		cfg = &servicers.Config{}
+	}
+	glog.Infof("Starting %s service with configs: %v", basic_acct.ServiceName, *cfg)
+	protos.RegisterAccountingServer(srv.GrpcServer, bas)
 
 	// Run the service
 	err = srv.Run()

@@ -19,12 +19,12 @@ namespace lte {
 
 class EventTracker {
  public:
-  EventTracker(std::shared_ptr<PacketGenerator> pkt_gen);
+  EventTracker(std::shared_ptr<PacketGenerator> pkt_gen, int zone);
 
-  int init_conntrack_event_loop(void);
+  int init_conntrack_event_loop();
 
- private:
   std::shared_ptr<PacketGenerator> pkt_gen_;
+  int zone_;
 };
 
 }  // namespace lte
