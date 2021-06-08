@@ -1,0 +1,361 @@
+---
+name: agw-workflow
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+    paths:
+      - 'orc8r/**'
+      - 'lte/**'
+  pull_request:
+    branches:
+      - master
+      - 'v1.*'
+    paths:
+      - 'orc8r/**'
+      - 'lte/**'
+jobs:
+  lte-test:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      CODEGEN_ROOT: "${{ github.workspace }}/.codegen"
+      PYTHON_BUILD: "${{ github.workspace }}/build"
+      PYTHONPATH: "${{ github.workspace }}"
+      PIP_CACHE_HOME: "${{ github.workspace }}/.pipcache"
+      SWAGGER_CODEGEN_JAR: "${{ github.workspace }}/.codegen/swagger-codegen-cli.jar"
+      MAGMA_DEV_MODE: 1
+      SKIP_SUDO_TESTS: 1
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.8.5'
+      - name: Install python3-aioeventlet from the magma apt repo
+        run: |
+            cd nms/app
+            # Install python3-aioeventlet from the magma apt repo
+            cat ${{ env.MAGMA_ROOT }}/orc8r/tools/ansible/roles/pkgrepo/files/jfrog.pub | sudo -E apt-key add -
+            echo "deb https://facebookconnectivity.jfrog.io/artifactory/list/dev-focal/ focal main" | sudo -E tee /etc/apt/sources.list.d/fbc.list
+            sudo apt-get update -y
+            sudo apt-get install -y python3-aioeventlet
+            sudo rm -rf /var/lib/apt/lists/*
+      - name: Install libraries and dependecies
+        run: |
+            mkdir -p /var/tmp/test_results
+            mkdir -p /var/tmp/codecovs
+            sudo -E apt-get update -y
+            sudo -E apt-get install -y libsystemd-dev pkg-config curl zip unzip
+            sudo -E apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-requests python3-pip python-protobuf python3-testresources
+      - name: Setup protoc3
+        run: |
+            pip3 install protobuf
+            pip3 install setuptools==49.6.0
+            curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+            unzip protoc3.zip -d protoc3
+            sudo -E mv protoc3/bin/protoc /bin/protoc
+            sudo -E chmod a+rx /bin/protoc
+            # Workaround: the include files need to be found
+            mv ./protoc3/include/google .
+            sudo -E rm -rf protoc3.zip protoc3
+      - name: Setup Swagger
+        run: |
+            mkdir ${{ env.CODEGEN_ROOT }}
+            wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O ${{ env.SWAGGER_CODEGEN_JAR }}
+      - name: Execute test_all
+        run: |
+            make -C ${{ env.MAGMA_ROOT }}/lte/gateway/python test_all
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v2
+        with:
+          name: Unit Test Results
+          path: /var/tmp/test_results
+      - uses: codecov/codecov-action@v1
+        with:
+          files: /var/tmp/codecovs/cover_lte.xml,/var/tmp/codecovs/cover_orc8r.xml
+          flags: lte-test
+      - name: Extract commit title
+        if: failure() && github.ref == 'refs/heads/master'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action lte-test update failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  session_manager_test:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+      - name: Build the base c/c++ container
+        run: |
+            docker build --tag magma/c_cpp_build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
+      - name: Run common tests
+        # yamllint disable rule:line-length
+        run: |
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+      - name: Run session_manager tests
+        timeout-minutes: 10
+        run: |
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_session_manager;"
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.ref == 'refs/heads/master'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action session_manager_test failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  li_agent_test:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+      - name: Build the base c/c++ container
+        run: |
+            docker build --tag magma/c_cpp_build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
+      - name: Run common tests
+        # yamllint disable rule:line-length
+        run: |
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+      - name: Run li agent tests
+        timeout-minutes: 5
+        run: |
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_li_agent;"
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.ref == 'refs/heads/master'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action li_agent_test failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  connection-tracker-test:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+      - name: Build the base c/c++ container
+        run: |
+            docker build --tag magma/c_cpp_build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
+      - name: Build connection tracker with BUILD_TYPE=Debug
+        timeout-minutes: 5
+        # yamllint disable rule:line-length
+        run: |
+            # TODO run unit tests once we write some tests
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=Debug;"
+      - name: Build connection tracker with BUILD_TYPE=RelWithDebInfo
+        timeout-minutes: 5
+        run: |
+            # TODO run unit tests once we write some tests
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=RelWithDebInfo;"
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.ref == 'refs/heads/master'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action connection-tracker-test failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  mme_test:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+      - name: Build the base c/c++ container
+        run: |
+            docker build --tag magma/c_cpp_build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
+      - name: Run common tests
+        # yamllint disable rule:line-length
+        run: |
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
+      - name: Run sctpd tests with Debug build type
+        run: |
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=Debug;"
+      - name: Run sctpd tests with RelWithDebInfo build type
+        run: |
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=RelWithDebInfo;"
+      - name: Run mme tests with Debug build type
+        run: |
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=Debug;"
+      - name: Run mme tests with RelWithDebInfo build type
+        run: |
+            docker run --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=RelWithDebInfo;"
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.ref == 'refs/heads/master'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action mme_test failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  mme-clang-tidy:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      BRANCH: "${{ github.base_ref }}"
+      REVISION: "${{ github.sha }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+      - name: Run mme-clang-tidy
+        timeout-minutes: 40
+        # yamllint disable rule:line-length
+        run: |
+            docker build --tag magma-mme-build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
+            docker run --env BRANCH=${{ env.BRANCH}} --env REVISION=${{ env.REVISION }} --volume ${{ env.MAGMA_ROOT }}:/magma --interactive magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.ref == 'refs/heads/master'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action mme-clang-tidy failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  mme-clang-warnings:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+      BRANCH: "${{ github.base_ref }}"
+      REVISION: "${{ github.sha }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+      - name: Run mme-clang-warnings
+        timeout-minutes: 40
+        # yamllint disable rule:line-length
+        run: |
+            docker build --tag magma-mme-build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
+            docker run --env BRANCH=${{ env.BRANCH }} --env REVISION=${{ env.REVISION }} --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.ref == 'refs/heads/master'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action mme-clang-warnings failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
+
+  c-cpp-codecov:
+    runs-on: ubuntu-latest
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    steps:
+      - uses: actions/checkout@v2
+      - uses: satackey/action-docker-layer-caching@v0.0.11
+        continue-on-error: true
+      - name: Run codecov
+        # yamllint disable rule:line-length
+        run: |
+            docker build --tag magma/c_cpp_build --file ${{ env.MAGMA_ROOT }}/lte/gateway/docker/mme/Dockerfile.ubuntu20.04 .
+            ci_env=$(bash <(curl -s https://codecov.io/env))
+            docker run $ci_env --env CI=true --volume ${{ env.MAGMA_ROOT }}:/magma --volume ${{ env.MAGMA_ROOT }}/lte/gateway/configs:/etc/magma --interactive magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
+      - name: Extract commit title
+        # yamllint enable
+        if: failure() && github.ref == 'refs/heads/master'
+        id: commit
+        run: |
+            str="$(jq '.head_commit.message' $GITHUB_EVENT_PATH)"    # get the head_commit message
+            echo ::set-output name=title::${str%%\\n*} | tr -d '"'
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.2.0
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action c-cpp-codecov failed"
+          SLACK_USERNAME: "AGW workflow"
+          SLACK_MESSAGE: "${{ steps.commit.outputs.title}}"
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"
+          SLACK_FOOTER: ' '
