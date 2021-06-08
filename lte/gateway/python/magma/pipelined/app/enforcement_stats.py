@@ -40,6 +40,7 @@ from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
+import ryu.app.ofctl.api as ofctl_api
 
 ETH_FRAME_SIZE_BYTES = 14
 
@@ -90,6 +91,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
         self._last_poll_time = datetime.now()
         self._last_report_timestamp = datetime.now()
+        self._bridge_name = kwargs['config']['bridge_name']
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
                 kwargs['config'].get('magma_print_grpc_payload', False)
@@ -300,27 +302,25 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             hub.sleep(self.INIT_SLEEP_TIME)
         while True:
             hub.sleep(poll_interval)
-            for _, datapath in self.dpset.get_all():
-                now = datetime.now()
-
-                delta = get_adjusted_delta(self._last_report_timestamp, now)
-                if delta > poll_interval * self.MAX_DELAY_INTERVALS:
-                    self.logger.info(
-                        'Previous update missing, current time %s, last '
-                        'report timestamp %s, last poll timestamp %s',
-                        now.strftime("%H:%M:%S"),
-                        self._last_report_timestamp.strftime("%H:%M:%S"),
-                        self._last_poll_time.strftime("%H:%M:%S")
-                    )
-                    self._last_report_timestamp = now
-                    hub.sleep(poll_interval/2)
-                    continue
-                if delta < poll_interval:
-                    continue
-                self._last_poll_time = now
-                self.logger.debug('Started polling: %s',
-                                  now.strftime("%H:%M:%S"))
-                self._poll_stats(datapath)
+            now = datetime.now()
+            delta = get_adjusted_delta(self._last_report_timestamp, now)
+            if delta > poll_interval * self.MAX_DELAY_INTERVALS:
+                self.logger.info(
+                    'Previous update missing, current time %s, last '
+                    'report timestamp %s, last poll timestamp %s',
+                    now.strftime("%H:%M:%S"),
+                    self._last_report_timestamp.strftime("%H:%M:%S"),
+                    self._last_poll_time.strftime("%H:%M:%S")
+                )
+                self._last_report_timestamp = now
+                hub.sleep(poll_interval/2)
+                continue
+            if delta < poll_interval:
+                continue
+            self._last_poll_time = now
+            self.logger.debug('Started polling: %s',
+                              now.strftime("%H:%M:%S"))
+            self._poll_stats(self._datapath)
 
     def _poll_stats(self, datapath, cookie: int = 0, cookie_mask: int = 0):
         """
@@ -332,6 +332,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             flows.send_stats_request(datapath, self.tbl_num,
                                      cookie, cookie_mask)
         except MagmaOFError as e:
+            self.logger.warning("Couldn't poll datapath stats: %s", e)
+        except Exception as e: # pylint: disable=broad-except
             self.logger.warning("Couldn't poll datapath stats: %s", e)
 
     @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
@@ -565,6 +567,12 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error('Could not find rule id for num %d: %s',
                               rule_num, e)
             return ""
+    def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
+        #invoke RYU API
+        parser.OFPFlowStatsRequest(datapath=datapath, cookie = cookie, cookie_mask = cookie_mask)
+        response = ofctl_api.send_msg(self, msg, reply_cls=parser.OFPPortFlowStatsREply,
+                reply_multi=True)
+        return response
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """

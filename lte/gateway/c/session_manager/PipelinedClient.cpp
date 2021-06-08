@@ -558,4 +558,14 @@ uint32_t AsyncPipelinedClient::get_current_teid() {
   return teid;
 }
 
+void AsyncPipelinedClient::get_stats_rpc_handler(
+    const GetStatsRequest& request,
+    std::function<void(Status, RuleRecordTable)> callback) {
+  auto local_resp = new AsyncLocalResponse<RuleRecordTable>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  local_resp->set_response_reader(std::move(
+      stub_->AsyncActivateFlows(local_resp->get_context(), request, &queue_)));
+}
+
 }  // namespace magma

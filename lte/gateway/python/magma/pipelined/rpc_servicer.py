@@ -455,7 +455,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def UpdateUEState(self, request, context):
         
         self._log_grpc_payload(request)
-
         if not self._service_manager.is_app_enabled(
               Classifier.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -816,6 +815,18 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                                 True)
 
         return ret
+    #grpc handler
+    def GetStats(self, request):
+        self._log_grpc_payload(request)
+        if not self._service_manager.is_app_enabled(
+                EnforcementController.APP_NAME):
+            return None
+        #call intermediate enforcement stats function defined in enforcement_stats.py
+        response = self.get_stats(request.cookie, request.cookie_mask)
+        #pass response through get usage from flow stat api to convert to rule record
+        RRTable = self._get_usage_from_flow_stat(response)
+        return RRTable        
+        
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],
