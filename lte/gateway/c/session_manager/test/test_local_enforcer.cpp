@@ -3453,6 +3453,69 @@ TEST_F(
   local_enforcer->execute_actions(session_map, actions, update);
 }
 
+// This test case tests the following case
+// 1. we install two static rules 1, 2 -> should have version 1
+// 2. receive stats for static rule 1 & 2 -> assert stats are still there
+// 3. receive stats for only static rule 2 -> assert stats are still there
+TEST_F(LocalEnforcerTest, test_receiving_stats_for_subset_of_rules) {
+  // insert key rule mapping
+  insert_static_rule(1, "", "rule1");
+  insert_static_rule(1, "", "rule2");
+
+  // install rule1 + rule2
+  CreateSessionResponse response;
+  response.mutable_static_rules()->Add()->set_rule_id("rule1");
+  response.mutable_static_rules()->Add()->set_rule_id("rule2");
+  create_credit_update_response_with_error(
+      IMSI1, SESSION_ID_1, 1, false, DIAMETER_CREDIT_LIMIT_REACHED,
+      ChargingCredit_FinalAction_REDIRECT, "12.7.7.4", "",
+      response.mutable_credits()->Add());
+  local_enforcer->init_session(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+  local_enforcer->update_tunnel_ids(
+      session_map,
+      create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
+  session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
+
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
+  auto update = SessionStore::get_default_session_update(session_map);
+
+  EXPECT_EQ(1, session_map[IMSI1][0]->get_current_rule_version("rule1"));
+  EXPECT_EQ(1, session_map[IMSI1][0]->get_current_rule_version("rule2"));
+
+  // First a normal stat report mode. stats for both rule1 and rule2 are
+  // reported
+  RuleRecordTable table1;
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 16, 32,
+      table1.mutable_records()->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 16, 32,
+      table1.mutable_records()->Add());
+  local_enforcer->aggregate_records(session_map, table1, update);
+  EXPECT_TRUE(session_store->update_sessions(update));
+
+  // assert the rule versions are still 1
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
+  update      = SessionStore::get_default_session_update(session_map);
+  EXPECT_EQ(1, session_map[IMSI1][0]->get_current_rule_version("rule1"));
+  EXPECT_EQ(1, session_map[IMSI1][0]->get_current_rule_version("rule2"));
+
+  // Special case where we only receive stats for rule1
+  RuleRecordTable table2;
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 32, 32,
+      table2.mutable_records()->Add());
+  local_enforcer->aggregate_records(session_map, table2, update);
+  EXPECT_TRUE(session_store->update_sessions(update));
+
+  // assert the rule versions are still 1
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
+  update      = SessionStore::get_default_session_update(session_map);
+  EXPECT_EQ(1, session_map[IMSI1][0]->get_current_rule_version("rule1"));
+  EXPECT_EQ(1, session_map[IMSI1][0]->get_current_rule_version("rule2"));
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;
