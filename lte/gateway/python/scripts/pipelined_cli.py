@@ -361,7 +361,7 @@ def create_enforcement_parser(apps):
     """
     app = apps.add_parser('enforcement')
     subparsers = app.add_subparsers(title='subcommands', dest='cmd')
-
+    
     # Add subcommands
     subcmd = subparsers.add_parser('activate_flows',
                                    help='Activate flows')

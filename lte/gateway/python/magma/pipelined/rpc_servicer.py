@@ -824,6 +824,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         #call intermediate enforcement stats function defined in enforcement_stats.py
         response = self.get_stats(request.cookie, request.cookie_mask)
         return response        
+
         
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult

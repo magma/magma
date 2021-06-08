@@ -761,10 +761,8 @@ class EnforcementStatsTest(unittest.TestCase):
             """"
             TODO: Call your new  enforcement_stats function from here and verify output 
             """
-            print("zxcavlaewbew")
             print(self.enforcement_stats_controller.get_stats())
-            print("labejelaels")
-        self.assertEqual(0, 1)
+        #TO-DO add some assert statements to check fields
 
 if __name__ == "__main__":
     unittest.main()
