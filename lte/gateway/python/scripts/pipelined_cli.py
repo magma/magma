@@ -33,6 +33,7 @@ from lte.protos.pipelined_pb2 import (
     UpdateSubscriberQuotaStateRequest,
     VersionedPolicy,
     VersionedPolicyID,
+    GetStatsRequest
 )
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import (
@@ -189,7 +190,6 @@ def display_enforcement_flows(client, _):
 def get_policy_usage(client, _):
     rule_table = client.GetPolicyUsage(Void())
     pprint(rule_table)
-
 
 @grpc_wrapper
 def stress_test_grpc(client, args):
@@ -423,6 +423,11 @@ def create_enforcement_parser(apps):
     subcmd.add_argument('--disable_qos', help='If we want to disable QOS',
                         action="store_true")
     subcmd.set_defaults(func=stress_test_grpc)
+    subcmd = subparsers.add_parser('pull_stats_grpc', help = 'Enables or disables pull model for stats collection')
+    subcmd.add_argument('--cookie', type=int, default=0)
+    subcmd.add_argument('--cookie mask', type=int, default=0)
+    subcmd.set_defaults(func=get_stats_rpc)
+
 
 # -------------
 # UE MAC APP
@@ -577,6 +582,12 @@ def display_flows(client, args):
         return
     _display_flows(client, args.apps.split(','))
 
+@grpc_wrapper
+def get_stats_rpc(client, args):
+    request = GetStatsRequest(cookie = args.cookie, cookie_mask = args.cookie_mask)
+    response = client.GetStats(request)
+    return response
+    
 
 def create_debug_parser(apps):
     """
@@ -628,7 +639,6 @@ def create_parser():
     create_check_flows_parser(apps)
     create_debug_parser(apps)
     return parser
-
 
 def main():
     parser = create_parser()

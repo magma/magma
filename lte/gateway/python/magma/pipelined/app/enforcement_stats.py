@@ -40,6 +40,7 @@ from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
+import ryu.app.ofctl.api as ofctl_api
 
 ETH_FRAME_SIZE_BYTES = 14
 
@@ -566,6 +567,12 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error('Could not find rule id for num %d: %s',
                               rule_num, e)
             return ""
+    def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
+        #invoke RYU API
+        parser.OFPFlowStatsRequest(datapath=datapath, cookie = cookie, cookie_mask = cookie_mask)
+        response = ofctl_api.send_msg(self, msg, reply_cls=parser.OFPPortFlowStatsREply,
+                reply_multi=True)
+        return response
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
