@@ -6,7 +6,7 @@
     - golang-host
     - build-platform
     - {role: key-manager, tags: keyManager, become: true}
-    - clean-authorized-keys
+    - clean-ami
   vars_files:
     - roles/vars/defaults.yaml
     - roles/vars/cluster.yaml

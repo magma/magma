@@ -1,0 +1,7 @@
+---
+
+- include: kms-key.yaml
+  when: KMSKeyID is defined
+
+- include: ssh-key.yaml
+  when: sshKey is defined
