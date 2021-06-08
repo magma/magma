@@ -106,7 +106,7 @@ const tmpGenDir = "tmpgen"
 // copies the files that the target file depends on into the current working
 // directory, shells out to `swagger generate models`, then cleans up the
 // dependency files.
-func GenerateModels(targetFilepath string, configFilepath string, rootDir string, specs map[string]MagmaSwaggerSpec) error {
+func GenerateModels(targetFilepath string, configFilepath string, specs map[string]MagmaSwaggerSpec) error {
 	absTargetFilepath, err := filepath.Abs(targetFilepath)
 	if err != nil {
 		return errors.Wrapf(err, "target filepath %s is invalid", targetFilepath)

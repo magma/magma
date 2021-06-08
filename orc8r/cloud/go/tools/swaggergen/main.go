@@ -100,7 +100,7 @@ func main() {
 		glog.Fatalf("Error parsing swagger spec dependency tree: %v\n", err)
 	}
 
-	err = generate.GenerateModels(*targetFilepath, *configFilepath, *rootDir, specs)
+	err = generate.GenerateModels(*targetFilepath, *configFilepath, specs)
 	if err != nil {
 		glog.Fatalf("Error generating default swagger models: %v\n", err)
 	}
