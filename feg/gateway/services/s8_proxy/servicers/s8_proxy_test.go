@@ -53,6 +53,9 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
 	defer mockPgw.Close()
 
+	// set apn suffix
+	s8p.config.ApnOperatorSuffix = ".operator.suffix.com"
+
 	// ------------------------
 	// ---- Create Session ----
 	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
@@ -107,6 +110,14 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	// check PCO
 	assert.NotEmpty(t, csRes.ProtocolConfigurationOptions)
 	assert.Equal(t, csReq.ProtocolConfigurationOptions, csRes.ProtocolConfigurationOptions)
+
+	// check operator suffix
+	pgwSession, err := mockPgw.GetSessionByIMSI(IMSI1)
+	require.NoError(t, err)
+	bearer := pgwSession.GetDefaultBearer()
+	require.NotNil(t, bearer)
+	expectedAPN := fmt.Sprintf("%s%s", "internet", s8p.config.ApnOperatorSuffix)
+	assert.Equal(t, expectedAPN, bearer.APN)
 
 	// ------------------------
 	// ---- Delete Session ----
@@ -171,6 +182,13 @@ func TestS8proxyRepeatedCreateSession(t *testing.T) {
 
 	// check Pgw Control Plane TEID
 	assert.Equal(t, PgwTEIDc, csRes.CPgwFteid.Teid)
+
+	// check operator suffix (no suffix)
+	pgwSession, err := mockPgw.GetSessionByIMSI(IMSI1)
+	require.NoError(t, err)
+	bearer := pgwSession.GetDefaultBearer()
+	require.NotNil(t, bearer)
+	assert.Equal(t, "internet", bearer.APN)
 }
 
 func TestS8proxyCreateWithMissingParam(t *testing.T) {
@@ -759,7 +777,7 @@ func getDefaultCreateSessionRequest(pgwAddrs string) *protos.CreateSessionReques
 			Ipv6Prefix:  0,
 		},
 
-		Apn:           "internet.com",
+		Apn:           "internet",
 		SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
 		Ambr: &protos.Ambr{
 			BrUl: 999,
@@ -845,7 +863,7 @@ func getMultipleCreateSessionRequest(nRequest int, pgwAddrs string) []*protos.Cr
 				Ipv6Prefix:  0,
 			},
 
-			Apn:           "internet.com",
+			Apn:           "internet",
 			SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
 			Ambr: &protos.Ambr{
 				BrUl: 999,

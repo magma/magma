@@ -20,6 +20,7 @@ import (
 	"strings"
 
 	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/utils"
 	"magma/gateway/mconfig"
 
 	"github.com/golang/glog"
@@ -28,8 +29,9 @@ import (
 const (
 	S8ProxyServiceName = "s8_proxy"
 
-	ClientAddrEnv = "CLIENT_ADDRESS"
-	ServerAddrEnv = "SERVER_ADDRESS"
+	ClientAddrEnv     = "S8_CLIENT_ADDRESS"
+	ServerAddrEnv     = "S8_SERVER_ADDRESS"
+	ApnOperatorSuffix = "S8_APN_OPERATOR_SUFFIX"
 )
 
 func GetS8ProxyConfig() *S8ProxyConfig {
@@ -40,9 +42,11 @@ func GetS8ProxyConfig() *S8ProxyConfig {
 		glog.V(2).Infof("%s Managed Configs Load Error: %v Using EnvVars", S8ProxyServiceName, err)
 		conf.ClientAddr = os.Getenv(ClientAddrEnv)
 		conf.ServerAddr = ParseAddress(os.Getenv(ServerAddrEnv))
+		conf.ApnOperatorSuffix = os.Getenv(ApnOperatorSuffix)
 	} else {
-		conf.ClientAddr = configPtr.LocalAddress
-		conf.ServerAddr = ParseAddress(configPtr.PgwAddress)
+		conf.ClientAddr = utils.GetValueOrEnv("", ClientAddrEnv, configPtr.LocalAddress)
+		conf.ServerAddr = ParseAddress(utils.GetValueOrEnv("", ServerAddrEnv, configPtr.PgwAddress))
+		conf.ApnOperatorSuffix = utils.GetValueOrEnv("", ApnOperatorSuffix, configPtr.ApnOperatorSuffix)
 	}
 	glog.V(2).Infof("Loaded configs: %+v", conf)
 	return conf
