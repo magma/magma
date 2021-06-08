@@ -134,8 +134,8 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
     itti_msg->subscription_data.access_mode = NAM_ONLY_PACKET;
   }
 
-  // itti_msg->supported_features.nr_as_secondary_rat =
-  // msg.feature_list_id_2().nr_as_secondary_rat();
+  itti_msg->supported_features.nr_as_secondary_rat =
+      msg.feature_list_id_2().nr_as_secondary_rat();
 
 #define SUBSCRIBER_PERIODIC_RAU_TAU_TIMER_VAL 10
   itti_msg->subscription_data.rau_tau_timer =
