@@ -41,6 +41,7 @@ const (
 	FlagBit1     FlagBit = 1 << 1
 	FlagBit5     FlagBit = 1 << 5
 	FlagBit8     FlagBit = 1 << 8
+	FlagBit9     FlagBit = 1 << 9
 	FlagBit27    FlagBit = 1 << 27
 )
 

@@ -240,12 +240,12 @@ precommit_oai: format_oai test_oai
 # TODO: CMake config issue - compile_commands.json is only generated if you first make_oai, then test_oai (or do either twice).
 #       Additionally compile_commands.json is **not capturing all build artifacts this way**
 clang_tidy_oai:
-	mkdir $(GATEWAY_C_DIR)/core/oai/build
-	cd $(GATEWAY_C_DIR)/core/oai/build;cmake ..
-	sed -i 's/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON/g' $(GATEWAY_C_DIR)/core/oai/build/CMakeCache.txt
-	cmake --build $(GATEWAY_C_DIR)/core/oai/build/
-	wget https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py
-	python run-clang-tidy.py -p $(GATEWAY_C_DIR)/core/oai/build/ -j 2 -checks='-*,clang-analyzer-security*,android-*,cert-*,clang-analyzer-*,concurrency,misc-*,-misc-unused-parameters,bugprone-*' 2>&1 | tee /tmp/clang-tidy-oai.findings
+	mkdir -p $(C_BUILD)/core/oai/build
+	cd $(C_BUILD)/core/oai/build;cmake $(GATEWAY_C_DIR)/core
+	sed -i 's/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON/g' $(C_BUILD)/core/oai/build/CMakeCache.txt
+	cmake --build $(C_BUILD)/core/oai/build/
+	cd $(C_BUILD)/core/oai/build;wget https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py;\
+	python run-clang-tidy.py -p $(C_BUILD)/core/oai/build/oai -j 2 -checks='-*,clang-analyzer-security*,android-*,cert-*,clang-analyzer-*,concurrency,misc-*,-misc-unused-parameters,bugprone-*' 2>&1 | tee /tmp/clang-tidy-oai.findings
 
 # Pushes per-finding counts to:
 #   https://docs.google.com/forms/d/1-45BZTHh4uBBOCqYM4LAD4zFT91B47sEEntHLkQuXWA/edit#responses
