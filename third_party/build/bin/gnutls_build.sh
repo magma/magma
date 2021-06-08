@@ -58,10 +58,44 @@ fi
 mkdir -p ${WORK_DIR}/install
 cd ${WORK_DIR}
 
-wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-$PKGVERSION.tar.xz
+# Note the CFLAGS define below due to glibc deprecation of critical flag,
+#  see https://github.com/rdslw/openwrt/blob/e5d47f32131849a69a9267de51a30d6be1f0d0ac/tools/bison/patches/110-glibc-change-work-around.patch
+cat >/tmp/gnutls-glibc.patch <<EOL
+--- a/lib/stdio-impl.h
++++ b/lib/stdio-impl.h
+@@ -18,6 +18,12 @@
+    the same implementation of stdio extension API, except that some fields
+    have different naming conventions, or their access requires some casts.  */
+
++/* Glibc 2.28 made _IO_IN_BACKUP private.  For now, work around this
++   problem by defining it ourselves.  FIXME: Do not rely on glibc
++   internals.  */
++#if !defined _IO_IN_BACKUP && defined _IO_EOF_SEEN
++# define _IO_IN_BACKUP 0x100
++#endif
+
+ /* BSD stdio derived implementations.  */
+
+--- a/lib/fseterr.c
++++ b/lib/fseterr.c
+@@ -29,7 +29,7 @@
+   /* Most systems provide FILE as a struct and the necessary bitmask in
+      <stdio.h>, because they need it for implementing getc() and putc() as
+      fast macros.  */
+-#if defined _IO_ftrylockfile || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
++#if defined _IO_EOF_SEEN || __GNU_LIBRARY__ == 1 /* GNU libc, BeOS, Haiku, Linux libc5 */
+   fp->_flags |= _IO_ERR_SEEN;
+ #elif defined __sferror || defined __DragonFly__ /* FreeBSD, NetBSD, OpenBSD, DragonFly, Mac OS X, Cygwin */
+   fp_->_flags |= __SERR;
+EOL
+
+wget https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-$PKGVERSION.tar.xz
 tar xf gnutls-$PKGVERSION.tar.xz
-cd gnutls-$PKGVERSION/
-./configure --prefix=/usr
+cd gnutls-$PKGVERSION/gl
+patch -p2 < /tmp/gnutls-glibc.patch
+cd ../
+
+CFLAGS=-D_IO_ftrylockfile ./configure --prefix=/usr
 make -j`nproc`
 make install DESTDIR=${WORK_DIR}/install/
 
