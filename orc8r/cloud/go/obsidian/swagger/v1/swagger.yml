@@ -11096,6 +11096,11 @@ definitions:
   s8:
     description: s8 configuration
     properties:
+      apn_operator_suffix:
+        example: .operator.com
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        type: string
+        x-nullable: false
       local_address:
         example: foo.bar.com:5555
         pattern: '[^\:]+(:[0-9]{1,5})?'
