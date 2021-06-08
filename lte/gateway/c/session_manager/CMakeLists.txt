@@ -45,7 +45,7 @@ set(CMAKE_LINKER_FLAGS_DEBUG
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
-add_definitions(-DLOG_WITH_GLOG)
+#add_definitions(-DLOG_WITH_GLOG)
 
 message("Build type is ${CMAKE_BUILD_TYPE}")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
