@@ -13,7 +13,8 @@ RUN apt-get update \
   libsctp-dev libboost-all-dev libevent-dev libdouble-conversion-dev \
   libgoogle-glog-dev libgflags-dev libiberty-dev liblz4-dev liblzma-dev \
   libsctp1 libgcrypt-dev bison libidn11-dev flex libtspi1 libtcmalloc-minimal4 \
-  libgoogle-perftools4 sudo libjemalloc2 libsnappy1v5
+  libgoogle-perftools4 sudo libjemalloc2 libsnappy1v5 nlohmann-json3-dev libconfig9 \
+  libconfig-dev libxml2-dev libczmq-dev
 
 RUN gem install fpm
 
@@ -77,4 +78,14 @@ RUN dpkg -i grpc-dev_1.38.0-3ubuntu20.04_amd64.deb libfolly-dev_2018.02.26.00-6u
 
 RUN dpkg --force overwrite -i magma-cpp-redis_4.3.1.1-2ubuntu20.04_amd64.deb
 
-RUN ./build-magma.sh
+WORKDIR /magma/lte/gateway/release/
+
+# See https://github.com/magma/magma/blob/master/lte/gateway/docker/mme/Dockerfile.ubuntu20.04#L91-L92
+RUN ln -s /usr/include/nlohmann/json.hpp /usr/include/json.hpp
+
+RUN git clone https://github.com/abseil/abseil-cpp.git && mkdir abseil-cpp/build && cd abseil-cpp/build && \
+    cmake -DABSL_USE_GOOGLETEST_HEAD=ON -DCMAKE_CXX_STANDARD=11 .. && \
+    make && make install
+
+
+RUN ./build-magma.sh --os ubuntu
