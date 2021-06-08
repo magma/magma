@@ -250,11 +250,11 @@ class HtmlReport():
                 common7 = False
                 common8 = False
                 if nf_type == COMMON_TYPE:
-                    section_start_pattern = 'ninja -C  /build/c/magma_common'
-                    section_end_pattern = 'cmake  /magma/lte/gateway/c/core/oai '
+                    section_start_pattern = 'Creating directories for \'MagmaCommon\''
+                    section_end_pattern = 'Completed \'MagmaCommon\''
                 if nf_type == MME_TYPE:
-                    section_start_pattern = 'ninja -C  /build/c/core/oai'
-                    section_end_pattern = 'cmake  /magma/orc8r/gateway/c/common '
+                    section_start_pattern = 'Creating directories for \'MagmaCore\''
+                    section_end_pattern = 'Completed \'MagmaCore\''
                 if nf_type == SCTPD_TYPE:
                     section_start_pattern = 'ninja -C  /build/c/sctpd'
                     section_end_pattern = '[aA][sS] magma-mme$'
@@ -345,7 +345,7 @@ class HtmlReport():
                         cell_msg += '     ** PolicyDb :  KO\n'
                     cell_msg += '</b></pre></td>\n'
                 if nf_type == MME_TYPE:
-                    cell_msg += ' -- ninja -C  /build/c/core/oai</b></pre></td>\n'
+                    cell_msg += ' -- ninja -C  /build/c/core</b></pre></td>\n'
                 if nf_type == SCTPD_TYPE:
                     cell_msg += ' -- ninja -C  /build/c/sctpd</b></pre></td>\n'
             else:
@@ -379,20 +379,20 @@ class HtmlReport():
 
             if os.path.isfile(cwd + '/archives/' + log_file_name):
                 if nf_type == COMMON_TYPE:
-                    section_start_pattern = '/build/c/magma_common'
-                    section_end_pattern = 'mkdir -p  /build/c/core/oai'
+                    section_start_pattern = 'Creating directories for \'MagmaCommon\''
+                    section_end_pattern = 'Completed \'MagmaCommon\''
                 if nf_type == MME_TYPE:
-                    section_start_pattern = '/build/c/core/oai'
-                    section_end_pattern = 'mkdir -p  /build/c/magma_common'
+                    section_start_pattern = 'Creating directories for \'MagmaCore\''
+                    section_end_pattern = 'Completed \'MagmaCore\''
                 if nf_type == SCTPD_TYPE:
-                    section_start_pattern = '/build/c/sctpd'
-                    section_end_pattern = 'FROM ubuntu:bionic as magma-mme'
+                    section_start_pattern = 'ninja -C  /build/c/sctpd'
+                    section_end_pattern = '[aA][sS] magma-mme$'
                 section_status = False
                 section_done = False
                 with open(cwd + '/archives/' + log_file_name, 'r') as logfile:
                     for line in logfile:
                         my_res = re.search(section_start_pattern, line)
-                        if (my_res is not None) and not section_done and (re.search('cmake', line) is not None):
+                        if (my_res is not None) and not section_done:
                             section_status = True
                         my_res = re.search(section_end_pattern, line)
                         if (my_res is not None) and not section_done and section_status:
