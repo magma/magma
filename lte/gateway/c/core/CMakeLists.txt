@@ -32,11 +32,13 @@ include(ExternalProject)
 
 ExternalProject_Add(MagmaCommon
     SOURCE_DIR "$ENV{MAGMA_ROOT}/orc8r/gateway/c/common"
+    BUILD_ALWAYS 1
     BINARY_DIR "${CMAKE_BINARY_DIR}/common"
     INSTALL_COMMAND "")
 
 ExternalProject_Add(MagmaCore
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/oai"
+    BUILD_ALWAYS 1
     BINARY_DIR "${CMAKE_BINARY_DIR}/oai"
     INSTALL_COMMAND ""
     DEPENDS MagmaCommon
