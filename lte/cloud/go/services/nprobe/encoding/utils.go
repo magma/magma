@@ -265,7 +265,7 @@ func makeNetworkIdentifier(event *models.Event, operatorID uint32) NetworkIdenti
 		}
 	}
 	return NetworkIdentifier{
-		OperatorIdentifier: convertUint32ToBytes(operatorID),
+		OperatorIdentifier: []byte(strconv.Itoa(int(operatorID))),
 		NetworkElementIdentifier: NetworkElementIdentifier{
 			IPAddress: ipAddr,
 		},
