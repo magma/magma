@@ -47,7 +47,7 @@ static int handle_service303_server_message(
       break;
     default: {
       OAILOG_DEBUG(
-          LOG_UTIL, "Unkwnon message ID %d: %s\n",
+          LOG_UTIL, "Unknown message ID %d: %s\n",
           ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
   }
@@ -93,7 +93,7 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
       break;
     default: {
       OAILOG_DEBUG(
-          LOG_UTIL, "Unkwnon message ID %d: %s\n",
+          LOG_UTIL, "Unknown message ID %d: %s\n",
           ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
   }
