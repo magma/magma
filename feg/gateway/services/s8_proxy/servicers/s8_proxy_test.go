@@ -15,6 +15,7 @@ import (
 	"context"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -22,9 +23,13 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/gtp"
+	"magma/feg/gateway/registry"
+	"magma/feg/gateway/services/s8_proxy/servicers/mock_feg_relay"
 	"magma/feg/gateway/services/s8_proxy/servicers/mock_pgw"
+	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/wmnsk/go-gtp/gtpv2"
 	"github.com/wmnsk/go-gtp/gtpv2/ie"
 )
@@ -32,14 +37,15 @@ import (
 const (
 	GtpTimeoutForTest = gtp.DefaultGtpTimeout // use the same the default value defined in s8_proxy
 	//port 0 means golang will choose the port. Selected port will be injected on getDefaultConfig
-	s8proxyAddrs = ":0" // equivalent to sgwAddrs
-	pgwAddrs     = "127.0.0.1:0"
-	IMSI1        = "123456789012345"
-	BEARER       = 5
-	AGWTeidU     = uint32(10)
-	AGWTeidC     = uint32(2)
-	PDNType      = protos.PDNType_IPV4
-	PAA          = "10.0.0.10"
+	s8proxyAddrs    = ":0" // equivalent to sgwAddrs
+	pgwAddrs        = "127.0.0.1:0"
+	IMSI1           = "123456789012345"
+	BEARER          = 5
+	DEDICATEDBEARER = 6
+	AGWTeidU        = uint32(10)
+	AGWTeidC        = uint32(2)
+	PDNType         = protos.PDNType_IPV4
+	PAA             = "10.0.0.10"
 )
 
 func TestS8proxyCreateAndDeleteSession(t *testing.T) {
@@ -591,6 +597,83 @@ func TestS8proxyCreateSessionNoProtocolConfigurationOptions(t *testing.T) {
 	// check PCO
 	assert.NoError(t, err)
 	assert.Nil(t, csRes.ProtocolConfigurationOptions)
+}
+
+func TestCreateBearerRequest(t *testing.T) {
+	// set up client ans server
+	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
+	defer mockPgw.Close()
+
+	test_utils.NewTestService(t, registry.ModuleName, registry.S8_PROXY)
+
+	fegRelayTestSrv, dir := mock_feg_relay.StartFegRelayTestService(t)
+	defer os.RemoveAll(dir)
+
+	// force PGW to return specific control plane PGW TEID
+	PgwTEIDc := uint32(111)
+	mockPgw.CreateSessionOptions.PgwTEIDc = PgwTEIDc
+
+	// ------------------------
+	// ---- Create Session ----
+	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
+
+	// Send and receive Create Session Request
+	csRes, err := s8p.CreateSession(context.Background(), csReq)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, csRes)
+	assert.Empty(t, csRes.GtpError)
+	_, err = mockPgw.GetSessionByIMSI(IMSI1)
+	assert.NoError(t, err)
+
+	// create the PGW Bearer Request
+	pgwCreateBearerRequest :=
+		mock_pgw.CreateBearerRequest{
+			Imsi:               IMSI1,
+			DedicatedBearereID: DEDICATEDBEARER,
+			QosQCI:             7,
+			ChargingID:         99,
+			BiFilterProtocolId: 4,
+			BiFilterPort:       8888,
+		}
+
+	// load the response on Feg Relay test service
+	fegRelayTestSrv.DefaultCreateBearerRes =
+		&protos.CreateBearerResponsePgw{
+			CPgwTeid:                     uint32(111),
+			ServingNetwork:               &protos.ServingNetwork{Mcc: "10", Mnc: "101"},
+			Cause:                        uint32(gtpv2.CauseRequestAccepted),
+			BearerContext:                csReq.BearerContext,
+			ProtocolConfigurationOptions: csReq.ProtocolConfigurationOptions,
+			TimeZone:                     &protos.TimeZone{DeltaSeconds: 1, DaylightSavingTime: 1},
+			Uli:                          &protos.UserLocationInformation{Rac: 1, Tac: 1},
+		}
+
+	// Send CreateBearerRequest from PGW to S8_proxy
+	cbRes, err := mockPgw.CreateBearerRequest(pgwCreateBearerRequest)
+	cbReqReceived := fegRelayTestSrv.ReceivedCreateBearerRequest
+	require.NoError(t, err)
+	require.NotEmpty(t, cbReqReceived)
+	require.NotEmpty(t, cbRes)
+
+	// check if all the exptected objects exist
+	require.NotEmpty(t, cbReqReceived.BearerContext)
+	require.NotEmpty(t, cbReqReceived.BearerContext.Qos)
+	require.NotEmpty(t, cbReqReceived.BearerContext.Tft)
+	require.NotNil(t, cbReqReceived.BearerContext.Tft.PacketFilterList)
+	require.NotEmpty(t, cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft)
+	require.NotEmpty(t, cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft[0].PacketFilterContents)
+
+	// check values
+	assert.Equal(t, csRes.BearerContext.Id, cbReqReceived.LinkedBearerId)
+	assert.Equal(t, csReq.CAgwTeid, cbReqReceived.CAgwTeid)
+	assert.Equal(t, uint32(DEDICATEDBEARER), cbReqReceived.BearerContext.Id)
+	assert.Equal(t, uint32(pgwCreateBearerRequest.QosQCI), cbReqReceived.BearerContext.Qos.Qci)
+	tft := cbReqReceived.BearerContext.Tft.PacketFilterList.CreateNewTft[0]
+	assert.Equal(t, uint32(ie.TFTPFBidirectional), tft.Direction)
+	tftContents := tft.PacketFilterContents
+	assert.Equal(t, uint32(pgwCreateBearerRequest.BiFilterPort), tftContents.SingleLocalPort)
+	assert.Equal(t, uint32(pgwCreateBearerRequest.BiFilterPort), tftContents.SingleLocalPort)
+	assert.Equal(t, uint32(pgwCreateBearerRequest.BiFilterProtocolId), tftContents.ProtocolIdentifierNextheader)
 }
 
 func TestS8proxyEcho(t *testing.T) {

@@ -146,6 +146,7 @@ func (c *Configurator) Update(ub *protos.DataUpdateBatch) bool {
 	if len(digest) > 0 {
 		c.latestConfigDigest = &protos.GatewayConfigsDigest{Md5HexDigest: digest}
 	} else {
+		// TODO(hcgatewood): GetMconfigDigest isn't supposed to be used in the gateway, move this fn to cloud
 		if digest, err = cfg.GetMconfigDigest(); err == nil {
 			c.latestConfigDigest = &protos.GatewayConfigsDigest{Md5HexDigest: digest}
 		} else {

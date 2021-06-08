@@ -13,6 +13,8 @@
 
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
+#include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/session_manager.grpc.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -49,9 +51,24 @@ optional<AggregatedMaximumBitrate> SessionConfig::get_apn_ambr() const {
     const auto& qos_info = rat_specific_context.lte_context().qos_info();
     max_bitrate.set_max_bandwidth_ul(qos_info.apn_ambr_ul());
     max_bitrate.set_max_bandwidth_dl(qos_info.apn_ambr_dl());
+    max_bitrate.set_br_unit(get_apn_ambr_units(qos_info.br_unit()));
     return max_bitrate;
   }
   return {};
+}
+
+AggregatedMaximumBitrate_BitrateUnitsAMBR SessionConfig::get_apn_ambr_units(
+    QosInformationRequest_BitrateUnitsAMBR units) const {
+  switch (units) {
+    case QosInformationRequest_BitrateUnitsAMBR_BPS:
+      return AggregatedMaximumBitrate_BitrateUnitsAMBR_BPS;
+    case QosInformationRequest_BitrateUnitsAMBR_KBPS:
+      return AggregatedMaximumBitrate_BitrateUnitsAMBR_KBPS;
+    default:
+      MLOG(MERROR) << "QOS bitrate unit not implemented (" << units
+                   << "). Setting BPS";
+      return AggregatedMaximumBitrate_BitrateUnitsAMBR_BPS;
+  }
 }
 
 SessionStateUpdateCriteria get_default_update_criteria() {

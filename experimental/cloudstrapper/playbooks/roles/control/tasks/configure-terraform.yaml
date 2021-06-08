@@ -8,14 +8,13 @@
 
 - name: apply j2 template for terraform file
   template:
-    src: "roles/control/templates/main.tf.j2.{{ orc8rVersion }}"
+    src: "roles/control/templates/main.tf.j2.{{ orc8rVersion }}.{{ varBuildType }}"
     dest: "{{ dirTerraform }}/main.tf"
     owner: "{{ userBootstrap }}"
     group: "{{ userBootstrap }}"
-    mode: '0644' 
+    mode: '0644'
 
 - name: inside terraform home run terraform init
   command: terraform init
   args:
     chdir: "{{ dirTerraform }}"
-

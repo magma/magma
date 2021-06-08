@@ -35,12 +35,16 @@ class EnodebConfigurationTest(TestCase):
     def test_get_has_set_parameter(self) -> None:
         param = ParameterName.ADMIN_STATE
         self.config.set_parameter(param, True)
-        self.assertTrue(self.config.has_parameter(param),
-                        'Expected to have parameter')
+        self.assertTrue(
+            self.config.has_parameter(param),
+            'Expected to have parameter',
+        )
         param_value = self.config.get_parameter(param)
         expected = True
-        self.assertEqual(param_value, expected,
-                         'Parameter value does not match what was set')
+        self.assertEqual(
+            param_value, expected,
+            'Parameter value does not match what was set',
+        )
 
     def test_add_has_delete_object(self) -> None:
         object_name = ParameterName.PLMN_N % 1
@@ -79,23 +83,30 @@ class EnodebConfigurationTest(TestCase):
         self.config.add_object(ParameterName.PLMN_N % 1)
         self.config.set_parameter_for_object(
             ParameterName.PLMN_N_CELL_RESERVED % 1, True,
-            ParameterName.PLMN_N % 1)
+            ParameterName.PLMN_N % 1,
+        )
         param_value = self.config.get_parameter_for_object(
-            ParameterName.PLMN_N_CELL_RESERVED % 1, ParameterName.PLMN_N % 1)
-        self.assertTrue(param_value,
-                        'Expected that the param for object was set correctly')
+            ParameterName.PLMN_N_CELL_RESERVED % 1, ParameterName.PLMN_N % 1,
+        )
+        self.assertTrue(
+            param_value,
+            'Expected that the param for object was set correctly',
+        )
 
     def test_get_parameter_names_for_object(self) -> None:
         # Should start off empty
         self.config.add_object(ParameterName.PLMN_N % 1)
         param_list = self.config.get_parameter_names_for_object(
-            ParameterName.PLMN_N % 1)
+            ParameterName.PLMN_N % 1,
+        )
         self.assertEqual(len(param_list), 0, 'Should be an empty param list')
 
         # Should increment as we set parameters
         self.config.set_parameter_for_object(
             ParameterName.PLMN_N_CELL_RESERVED % 1, True,
-            ParameterName.PLMN_N % 1)
+            ParameterName.PLMN_N % 1,
+        )
         param_list = self.config.get_parameter_names_for_object(
-            ParameterName.PLMN_N % 1)
+            ParameterName.PLMN_N % 1,
+        )
         self.assertEqual(len(param_list), 1, 'Should not be an empty list')

@@ -6,3 +6,8 @@
 - include: orc8r.yaml
   environment:
     AWS_DEFAULT_REGION: "{{ awsOrc8rRegion }}"
+  tags: orc8r
+- include: keys.yaml
+  environment:
+    AWS_DEFAULT_REGION: "{{ awsAgwRegion }}"
+  tags: [keys, never]

@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import unittest
+
 import s1ap_types
 import s1ap_wrapper
 
@@ -24,7 +25,7 @@ class TestSctpShutdownAfterMultiUeAttach(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
         print(
             "Restart sctpd service to clear Redis state as test case doesn't"
-            " intend to initiate detach procedure"
+            " intend to initiate detach procedure",
         )
         self._s1ap_wrapper.magmad_util.restart_sctpd()
         self._s1ap_wrapper.magmad_util.print_redis_state()

@@ -38,45 +38,58 @@ class CaviumHandlerTests(EnodebHandlerTestCase):
                 .build_acs_state_machine(EnodebDeviceName.CAVIUM)
 
         # Send an Inform message
-        inform_msg = Tr069MessageBuilder.get_inform('000FB7',
-                                                    'OC-LTE',
-                                                    '120200002618AGP0003',
-                                                    ['1 BOOT'])
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '000FB7',
+            'OC-LTE',
+            '120200002618AGP0003',
+            ['1 BOOT'],
+        )
         resp = acs_state_machine.handle_tr069_message(inform_msg)
 
-        self.assertTrue(isinstance(resp, models.InformResponse),
-                        'Should respond with an InformResponse')
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
 
         # Send an empty http request to kick off the rest of provisioning
         req = models.DummyInput()
         resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(isinstance(resp, models.GetParameterValues),
-                'State machine should be requesting param values: %s' % resp)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting param values: %s' % resp,
+        )
 
         # Transient config response and request for parameter values
         req = Tr069MessageBuilder.get_read_only_param_values_response()
         resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(isinstance(resp, models.GetParameterValues),
-                'State machine should be requesting param values: %s' % resp)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting param values: %s' % resp,
+        )
 
         # Send back typical values for the regular parameters
         req = Tr069MessageBuilder.get_cavium_param_values_response(num_plmns=0)
         resp = acs_state_machine.handle_tr069_message(req)
 
         # SM will be requesting object parameter values
-        self.assertTrue(isinstance(resp, models.GetParameterValues),
-                        'State machine should be requesting object param vals')
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting object param vals',
+        )
 
         # Send back some object parameters with TWO plmns
         req = Tr069MessageBuilder.get_cavium_object_param_values_response(
-                num_plmns=2)
+                num_plmns=2,
+        )
         resp = acs_state_machine.handle_tr069_message(req)
 
         # In this scenario, the ACS and thus state machine will not need
         # to delete or add objects to the eNB configuration.
         # SM should then just be attempting to set parameter values
-        self.assertTrue(isinstance(resp, models.SetParameterValues),
-                        'State machine should be setting param values')
+        self.assertTrue(
+            isinstance(resp, models.SetParameterValues),
+            'State machine should be setting param values',
+        )
 
         # Number of PLMNs should reflect object count
         num_plmns_cur = \
@@ -96,46 +109,60 @@ class CaviumHandlerTests(EnodebHandlerTestCase):
                 .build_acs_state_machine(EnodebDeviceName.CAVIUM)
 
         # Send an Inform message
-        inform_msg = Tr069MessageBuilder.get_inform('000FB7',
-                                                    'OC-LTE',
-                                                    '120200002618AGP0003',
-                                                    ['1 BOOT'])
+        inform_msg = Tr069MessageBuilder.get_inform(
+            '000FB7',
+            'OC-LTE',
+            '120200002618AGP0003',
+            ['1 BOOT'],
+        )
         resp = acs_state_machine.handle_tr069_message(inform_msg)
 
-        self.assertTrue(isinstance(resp, models.InformResponse),
-                        'Should respond with an InformResponse')
+        self.assertTrue(
+            isinstance(resp, models.InformResponse),
+            'Should respond with an InformResponse',
+        )
 
         # Send an empty http request to kick off the rest of provisioning
         req = models.DummyInput()
         resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(isinstance(resp, models.GetParameterValues),
-                'State machine should be requesting param values: %s' % resp)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting param values: %s' % resp,
+        )
 
         # Transient config response and request for parameter values
         req = Tr069MessageBuilder.get_read_only_param_values_response()
         resp = acs_state_machine.handle_tr069_message(req)
-        self.assertTrue(isinstance(resp, models.GetParameterValues),
-                'State machine should be requesting param values: %s' % resp)
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting param values: %s' % resp,
+        )
 
         # Send back regular parameters, and some absurd number of PLMNS
         req = Tr069MessageBuilder.get_cavium_param_values_response(
-                num_plmns=100)
+                num_plmns=100,
+        )
         resp = acs_state_machine.handle_tr069_message(req)
 
         # SM will be requesting object parameter values
-        self.assertTrue(isinstance(resp, models.GetParameterValues),
-                        'State machine should be requesting object param vals')
+        self.assertTrue(
+            isinstance(resp, models.GetParameterValues),
+            'State machine should be requesting object param vals',
+        )
 
         # Send back some object parameters with an absurd number of PLMNs
         req = Tr069MessageBuilder.get_cavium_object_param_values_response(
-                num_plmns=100)
+                num_plmns=100,
+        )
         resp = acs_state_machine.handle_tr069_message(req)
 
         # In this scenario, the ACS and thus state machine will not need
         # to delete or add objects to the eNB configuration.
         # SM should then just be attempting to set parameter values
-        self.assertTrue(isinstance(resp, models.SetParameterValues),
-                        'State machine should be setting param values')
+        self.assertTrue(
+            isinstance(resp, models.SetParameterValues),
+            'State machine should be setting param values',
+        )
 
         # Number of PLMNs should reflect data model
         num_plmns_cur = \

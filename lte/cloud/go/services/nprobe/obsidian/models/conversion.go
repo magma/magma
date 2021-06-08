@@ -15,6 +15,7 @@ package models
 
 import (
 	"magma/lte/cloud/go/lte"
+	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
 )
 
@@ -44,4 +45,15 @@ func (m *NetworkProbeDestination) FromBackendModels(ent configurator.NetworkEnti
 	m.DestinationID = NetworkProbeDestinationID(ent.Key)
 	m.DestinationDetails = ent.Config.(*NetworkProbeDestinationDetails)
 	return m
+}
+
+func ToMConfigNProbeTask(task *NetworkProbeTask) *lte_mconfig.NProbeTask {
+	return &lte_mconfig.NProbeTask{
+		TaskId:        string(task.TaskID),
+		DomainId:      task.TaskDetails.DomainID,
+		TargetId:      task.TaskDetails.TargetID,
+		TargetType:    task.TaskDetails.TargetType,
+		DeliveryType:  task.TaskDetails.DeliveryType,
+		CorrelationId: task.TaskDetails.CorrelationID,
+	}
 }

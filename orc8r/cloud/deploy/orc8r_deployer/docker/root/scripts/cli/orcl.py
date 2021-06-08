@@ -10,39 +10,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import argparse
-import pathlib
-import subprocess
-import sys
 from typing import List
 
 import click
-import yaml
-
-from .certs import certs
-from .cleanup import cleanup
-from .configure import configure
-from .install import install
-from .upgrade import upgrade
-from .verify import verify
-
-
-def init():
-    constants = None
-    try:
-        with open("/root/config.yml") as f:
-            constants = yaml.load(f, Loader=yaml.FullLoader)
-    except OSError:
-        click.echo("Failed opening config.yml file")
-
-    dirnames = (constants["config_dir"], constants["secret_dir"])
-    for dirname in dirnames:
-        try:
-            pathlib.Path(dirname).mkdir(parents=True, exist_ok=True)
-        except OSError as error:
-            click.echo(f"failed creating dir {dirname} error {error}")
-            sys.exit(1)
-    return constants
+from cli.certs import certs
+from cli.cleanup import cleanup
+from cli.configure import configure
+from cli.install import install
+from cli.style import print_error_msg
+from cli.upgrade import upgrade
+from cli.verify import verify
+from utils.common import init
 
 
 @click.group()

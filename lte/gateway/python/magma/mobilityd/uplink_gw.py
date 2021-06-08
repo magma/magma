@@ -85,8 +85,10 @@ class UplinkGatewayInfo:
             logging.debug("could not parse GW IP: %s", ip)
             return
 
-        gw_ip = IPAddress(version=IPAddress.IPV4,
-                          address=ip_addr.packed)
+        gw_ip = IPAddress(
+            version=IPAddress.IPV4,
+            address=ip_addr.packed,
+        )
         # keep mac address same if its same GW IP
         vlan_key = _get_vlan_key(vlan_id)
         if vlan_key in self._backing_map:
@@ -128,11 +130,15 @@ class UplinkGatewayInfo:
 
         # TODO: enhance check for MAC address sanity.
         if mac is None or ':' not in mac:
-            logging.error("Incorrect mac format: %s for IP %s (vlan_key %s)",
-                          mac, ip, vlan_id)
+            logging.error(
+                "Incorrect mac format: %s for IP %s (vlan_key %s)",
+                mac, ip, vlan_id,
+            )
             return
-        gw_ip = IPAddress(version=IPAddress.IPV4,
-                          address=ip_addr.packed)
+        gw_ip = IPAddress(
+            version=IPAddress.IPV4,
+            address=ip_addr.packed,
+        )
         updated_info = GWInfo(ip=gw_ip, mac=mac, vlan=vlan_key)
         self._backing_map[vlan_key] = updated_info
         logging.info("GW update: GW IP[%s]: %s : mac %s" % (vlan_key, ip, mac))

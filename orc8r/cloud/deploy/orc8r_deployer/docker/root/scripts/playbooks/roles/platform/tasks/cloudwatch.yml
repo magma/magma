@@ -22,7 +22,9 @@
 
 - name: Check if orc8r cloudwatch log group exists
   fail:
-    msg: "Cloudwatch Log group still exists"
+    msg:
+      - "Cloudwatch Log group still exists"
+      - "Remove log group 'aws logs delete-log-group --log-group-name {{ item.logGroupName | quote }}'"
   when: '"eks/{{infra_configs.cluster_name}}/cluster" in item.logGroupName'
   with_items: "{{ (result.stdout|from_json).logGroups }}"
   tags: install_precheck

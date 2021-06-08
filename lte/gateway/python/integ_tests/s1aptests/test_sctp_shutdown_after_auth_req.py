@@ -14,7 +14,6 @@ limitations under the License.
 import unittest
 
 import s1ap_types
-
 from integ_tests.s1aptests import s1ap_wrapper
 
 
@@ -46,18 +45,18 @@ class TestSctpShutdownAfterAuthReq(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         print("Sending Attach Request ue-id", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         print("Received auth req ind ue-id", req.ue_id)
 
         print("send SCTP SHUTDOWN")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None
+            s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None,
         )
 
 

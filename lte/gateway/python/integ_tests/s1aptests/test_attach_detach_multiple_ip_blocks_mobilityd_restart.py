@@ -18,10 +18,12 @@ import s1ap_types
 import s1ap_wrapper
 from s1ap_utils import MagmadUtil
 
+
 class TestAttachDetachMultipleIpBlocksMobilitydRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE)
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
+        )
         self._ip_block = '192.168.125.0/24'
 
     def tearDown(self):
@@ -35,7 +37,8 @@ class TestAttachDetachMultipleIpBlocksMobilitydRestart(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
 
         self._s1ap_wrapper.mobility_util.add_ip_block(
-            self._ip_block)
+            self._ip_block,
+        )
 
         old_blocks = self._s1ap_wrapper.mobility_util.list_ip_blocks()
         assert len(old_blocks) == 2, "2 IP blocks should be allocated on " \
@@ -53,15 +56,18 @@ class TestAttachDetachMultipleIpBlocksMobilitydRestart(unittest.TestCase):
         self.assertListEqual(old_blocks, curr_blocks)
 
         req = self._s1ap_wrapper.ue_req
-        print("************************* Running End to End attach for ",
-              "UE id ", req.ue_id)
+        print(
+            "************************* Running End to End attach for ",
+            "UE id ", req.ue_id,
+        )
 
         # Now actually attempt the attach
         self._s1ap_wrapper.s1_util.attach(
             req.ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-            s1ap_types.ueAttachAccept_t)
+            s1ap_types.ueAttachAccept_t,
+        )
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -69,7 +75,8 @@ class TestAttachDetachMultipleIpBlocksMobilitydRestart(unittest.TestCase):
         # Detach previously attached UE
         self._s1ap_wrapper.s1_util.detach(
             req.ue_id,
-            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value)
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+        )
 
 
 if __name__ == "__main__":

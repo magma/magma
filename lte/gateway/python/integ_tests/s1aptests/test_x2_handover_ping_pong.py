@@ -11,11 +11,11 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import time
 import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import time
 
 
 class TestX2HandOverPingPong(unittest.TestCase):
@@ -78,7 +78,7 @@ class TestX2HandOverPingPong(unittest.TestCase):
         time.sleep(3)
         print("****************** Sending ENB_CONFIGURATION_TRANSFER")
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.ENB_CONFIGURATION_TRANSFER, req
+            s1ap_types.tfwCmd.ENB_CONFIGURATION_TRANSFER, req,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -99,24 +99,24 @@ class TestX2HandOverPingPong(unittest.TestCase):
         print("****************** Sending X2_HO_TRIGGER_REQ")
 
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.X2_HO_TRIGGER_REQ, req
+            s1ap_types.tfwCmd.X2_HO_TRIGGER_REQ, req,
         )
         # Receive Path Switch Request Ack
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.PATH_SW_REQ_ACK.value
+            response.msg_type, s1ap_types.tfwCmd.PATH_SW_REQ_ACK.value,
         )
 
         print("****************** Received Path Switch Request Ack")
 
         print("****************** Second HO triggered")
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.X2_HO_TRIGGER_REQ, req
+            s1ap_types.tfwCmd.X2_HO_TRIGGER_REQ, req,
         )
         # Receive Path Switch Request Ack
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.PATH_SW_REQ_ACK.value
+            response.msg_type, s1ap_types.tfwCmd.PATH_SW_REQ_ACK.value,
         )
         print("****************** Received Path Switch Request Ack for 2nd HO")
         print("****************** Running UE detach for UE id ", req.ue_id)

@@ -3,7 +3,7 @@ FROM python:3.8-alpine as builder
 RUN addgroup -S linter && adduser -S -G linter linter
 RUN apk add --no-cache git gcc musl-dev # temp
 
-COPY requirements.txt /
+COPY lte/gateway/docker/python-precommit/requirements.txt /
 RUN pip wheel -r /requirements.txt --wheel-dir=/wheelhouse/
 
 
