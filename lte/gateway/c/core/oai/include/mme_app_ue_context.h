@@ -617,9 +617,7 @@ int mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_pP);
 void mme_app_recover_timers_for_all_ues(void);
 
-void proc_new_attach_req(
-    mme_ue_context_t* const mme_ue_context,
-    struct ue_mm_context_s* ue_context_p);
+void proc_new_attach_req(struct ue_mm_context_s* ue_context_p);
 
 int eps_bearer_release(
     emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid, int* bidx);
