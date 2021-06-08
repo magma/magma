@@ -90,6 +90,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
         self._last_poll_time = datetime.now()
         self._last_report_timestamp = datetime.now()
+        self._bridge_name = kwargs['config']['bridge_name']
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
                 kwargs['config'].get('magma_print_grpc_payload', False)
@@ -300,27 +301,25 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             hub.sleep(self.INIT_SLEEP_TIME)
         while True:
             hub.sleep(poll_interval)
-            for _, datapath in self.dpset.get_all():
-                now = datetime.now()
-
-                delta = get_adjusted_delta(self._last_report_timestamp, now)
-                if delta > poll_interval * self.MAX_DELAY_INTERVALS:
-                    self.logger.info(
-                        'Previous update missing, current time %s, last '
-                        'report timestamp %s, last poll timestamp %s',
-                        now.strftime("%H:%M:%S"),
-                        self._last_report_timestamp.strftime("%H:%M:%S"),
-                        self._last_poll_time.strftime("%H:%M:%S")
-                    )
-                    self._last_report_timestamp = now
-                    hub.sleep(poll_interval/2)
-                    continue
-                if delta < poll_interval:
-                    continue
-                self._last_poll_time = now
-                self.logger.debug('Started polling: %s',
-                                  now.strftime("%H:%M:%S"))
-                self._poll_stats(datapath)
+            now = datetime.now()
+            delta = get_adjusted_delta(self._last_report_timestamp, now)
+            if delta > poll_interval * self.MAX_DELAY_INTERVALS:
+                self.logger.info(
+                    'Previous update missing, current time %s, last '
+                    'report timestamp %s, last poll timestamp %s',
+                    now.strftime("%H:%M:%S"),
+                    self._last_report_timestamp.strftime("%H:%M:%S"),
+                    self._last_poll_time.strftime("%H:%M:%S")
+                )
+                self._last_report_timestamp = now
+                hub.sleep(poll_interval/2)
+                continue
+            if delta < poll_interval:
+                continue
+            self._last_poll_time = now
+            self.logger.debug('Started polling: %s',
+                              now.strftime("%H:%M:%S"))
+            self._poll_stats(self._datapath)
 
     def _poll_stats(self, datapath, cookie: int = 0, cookie_mask: int = 0):
         """
