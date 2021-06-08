@@ -36,9 +36,10 @@ type S8Proxy struct {
 }
 
 type S8ProxyConfig struct {
-	GtpTimeout time.Duration
-	ClientAddr string
-	ServerAddr *net.UDPAddr
+	GtpTimeout        time.Duration
+	ClientAddr        string
+	ServerAddr        *net.UDPAddr
+	ApnOperatorSuffix string
 }
 
 // NewS8Proxy creates an s8 proxy, but does not checks the PGW is alive
@@ -90,7 +91,7 @@ func (s *S8Proxy) CreateSession(ctx context.Context, req *protos.CreateSessionRe
 		return nil, err
 	}
 	// build csReq IE message
-	csReqMsg, err := buildCreateSessionRequestMsg(cPgwUDPAddr, req)
+	csReqMsg, err := buildCreateSessionRequestMsg(cPgwUDPAddr, s.config.ApnOperatorSuffix, req)
 	if err != nil {
 		err = fmt.Errorf("Create Session failed to build IEs for IMSI %s: %s", req.Imsi, err)
 		glog.Error(err)

@@ -43,11 +43,10 @@ require (
 	github.com/wmnsk/go-gtp v0.7.21
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
 	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
-	golang.org/x/sys v0.0.0-20201018230417-eeed37f84f13 // indirect
-	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
+	gotest.tools/gotestsum v1.6.4 // indirect
 	layeh.com/radius v0.0.0-20200615152116-663b41c3bf86
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
