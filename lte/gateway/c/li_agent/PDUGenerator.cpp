@@ -99,6 +99,7 @@ bool PDUGenerator::process_packet(
 
   auto diff = time_difference_from_now(prev_sync_time_);
   if (diff > sync_interval_) {
+    // load mconfig config to get updated nprobe tasks
     mconfig_        = magma::lte::load_mconfig();
     prev_sync_time_ = get_time_in_sec_since_epoch();
   }
@@ -110,18 +111,20 @@ bool PDUGenerator::process_packet(
     return false;
   }
 
+  uint32_t rlen;
   uint16_t direction =
       (idx == flow.src_ip) ? DIRECTION_FROM_TARGET : DIRECTION_TO_TARGET;
 
-  uint32_t rlen;
-  void* record   = generate_record(phdr, pdata, idx, direction, &rlen);
-  auto succeeded = export_record(record, rlen, MAX_EXPORT_RETRIES);
+  void* record = generate_record(phdr, pdata, idx, direction, &rlen);
+  if (record == nullptr) {
+    return false;
+  }
 
+  auto exported = export_record(record, rlen, MAX_EXPORT_RETRIES);
   MLOG(MDEBUG) << "Exported packet " << state_map_[idx].sequence_number
                << " with length " << rlen;
-
   free(record);
-  return succeeded;
+  return exported;
 }
 
 void PDUGenerator::delete_inactive_tasks() {
@@ -152,10 +155,15 @@ void* PDUGenerator::generate_record(
       phdr->len -
       ETHERNET_HDR_LEN;  // Skip eth layer as defined in ETSI 103 221-2.
 
-  *record_len   = hdr_len + pld_len;
-  uint8_t* data = static_cast<uint8_t*>(calloc(1, *record_len));
+  *record_len     = hdr_len + pld_len;
+  uint8_t* record = static_cast<uint8_t*>(calloc(1, *record_len));
+  if (record == nullptr) {
+    MLOG(MERROR) << "Failed to allocate memory " << *record_len;
+    *record_len = 0;
+    return nullptr;
+  }
 
-  X3Header* pdu          = reinterpret_cast<X3Header*>(data);
+  X3Header* pdu          = reinterpret_cast<X3Header*>(record);
   pdu->version           = htons(PDU_VERSION);
   pdu->pdu_type          = htons(PDU_TYPE);
   pdu->header_length     = htonl(hdr_len);
@@ -164,16 +172,23 @@ void* PDUGenerator::generate_record(
   pdu->correlation_id    = htobe64(state.correlation_id);
   pdu->payload_direction = htons(direction);
 
-  uuid_parse(state.task_id.c_str(), pdu->xid);
   SET_INT64_TLV(&pdu->attrs.timestamp, TIMESTAMP_ATTRID, phdr->ts.tv_sec);
   SET_INT64_TLV(
       &pdu->attrs.sequence_number, SEQNBR_ATTRID, state.sequence_number);
 
-  memcpy(data + hdr_len, pdata + ETHERNET_HDR_LEN, pld_len);
+  auto ret = uuid_parse(state.task_id.c_str(), pdu->xid);
+  if (ret != 0) {
+    MLOG(MERROR) << "Failed to parse task_id " << state.task_id.c_str();
+    free(record);
+    *record_len = 0;
+    return nullptr;
+  }
 
+  memcpy(record + hdr_len, pdata + ETHERNET_HDR_LEN, pld_len);
   state.last_exported = phdr->ts.tv_sec;
   state.sequence_number++;
-  return (void*) data;
+
+  return (void*) record;
 }
 
 bool PDUGenerator::export_record(void* record, uint32_t size, int retries) {
@@ -206,6 +221,7 @@ bool PDUGenerator::get_subscriber_id_from_ip(
       [this, &addr, &lookup_res, ip_addr](Status status, SubscriberID resp) {
         if (!status.ok()) {
           MLOG(MDEBUG) << "Could not find subscriber_id for ip " << ip_addr;
+          lookup_res.set_value("");
           return;
         }
         MLOG(MDEBUG) << "Found subscriber " << resp.id() << " for ip "

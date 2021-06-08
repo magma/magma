@@ -74,7 +74,7 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
 
   EXPECT_CALL(*proxy_connector, send_data(testing::_, testing::_))
       .Times(1)
-      .WillOnce(testing::Return(1));
+      .WillOnce(testing::Return(true));
 
   SubscriberID response;
   response.set_id("12345");
@@ -82,13 +82,57 @@ TEST_F(PDUGeneratorTest, test_pdu_generator) {
       *mobilityd_client, get_subscriber_id_from_ip(testing::_, testing::_))
       .WillRepeatedly(testing::InvokeArgument<1>(Status::OK, response));
 
-  pkt_generator->process_packet(phdr, pdata);
+  auto succeeded = pkt_generator->process_packet(phdr, pdata);
+  EXPECT_TRUE(succeeded);
+  free(pdata);
+  free(phdr);
+}
+
+TEST_F(PDUGeneratorTest, test_generator_unknown_subscriber) {
+  struct pcap_pkthdr* phdr =
+      (struct pcap_pkthdr*) malloc(sizeof(struct pcap_pkthdr));
+  phdr->len       = sizeof(struct ether_header) + sizeof(struct ip);
+  phdr->ts.tv_sec = 56;
+  u_char* pdata   = reinterpret_cast<u_char*>(
+      malloc(sizeof(struct ether_header) + sizeof(struct ip)));
+  struct ether_header* ethernetHeader = (struct ether_header*) pdata;
+  ethernetHeader->ether_type          = htons(ETHERTYPE_IP);
+
+  struct ip* ipHeader     = (struct ip*) (pdata + sizeof(struct ether_header));
+  ipHeader->ip_src.s_addr = 3232235522;
+
+  SubscriberID response;
+  EXPECT_CALL(
+      *mobilityd_client, get_subscriber_id_from_ip(testing::_, testing::_))
+      .WillRepeatedly(testing::InvokeArgument<1>(
+          Status(grpc::DEADLINE_EXCEEDED, "timeout"), response));
+
+  auto succeeded = pkt_generator->process_packet(phdr, pdata);
+  EXPECT_FALSE(succeeded);
+  free(pdata);
+  free(phdr);
+}
+
+TEST_F(PDUGeneratorTest, test_generator_non_ip_packet) {
+  struct pcap_pkthdr* phdr =
+      (struct pcap_pkthdr*) malloc(sizeof(struct pcap_pkthdr));
+  phdr->len = sizeof(struct ether_header);
+  u_char* pdata =
+      reinterpret_cast<u_char*>(malloc(sizeof(struct ether_header)));
+  struct ether_header* ethernetHeader = (struct ether_header*) pdata;
+  ethernetHeader->ether_type          = htons(ETHERTYPE_ARP);
+
+  auto succeeded = pkt_generator->process_packet(phdr, pdata);
+  EXPECT_FALSE(succeeded);
+
   free(pdata);
   free(phdr);
 }
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
+  FLAGS_logtostderr = 1;
+  FLAGS_v           = 10;
   return RUN_ALL_TESTS();
 }
 
