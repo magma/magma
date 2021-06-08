@@ -165,6 +165,11 @@ class SessionState {
 
   void remove_all_rules();
 
+  /**
+   * Increment retransmit counter and return the updated value
+   */
+  uint32_t get_incremented_rtx_counter();
+
   std::vector<SetGroupPDR>& get_all_pdr_rules();
 
   std::vector<SetGroupFAR>& get_all_far_rules();
@@ -719,6 +724,11 @@ class SessionState {
   uint64_t pdp_end_time_;
   /*5G related message to handle session state context */
   uint32_t current_version_;  // To compare with incoming session version
+  /**
+   *  Counter to keep track of number of retries in case of SMF-UPF version
+   *  mismatch
+   */
+  uint32_t rtx_counter_;
   // All 5G specific rules
   // use as shared_ptr to check
   std::vector<SetGroupPDR> PdrList_;
