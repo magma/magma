@@ -182,7 +182,8 @@ int csfb_handle_tracking_area_req(
 }
 
 int emm_proc_tracking_area_update_request(
-    const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause) {
+    const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
+    tac_t tac) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc                         = RETURNerror;
   ue_mm_context_t* ue_mm_context = NULL;
@@ -337,6 +338,30 @@ int emm_proc_tracking_area_update_request(
         "ue_id=" MME_UE_S1AP_ID_FMT ", active flag=%d)\n",
         ue_id, ies->eps_update_type.active_flag);
     // Handle periodic TAU
+    if (ue_mm_context->num_reg_sub > 0) {
+      if (
+          verify_service_area_restriction(
+              tac, ue_mm_context->reg_sub, ue_mm_context->num_reg_sub) != RETURNok) {
+        OAILOG_ERROR_UE(
+            LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+            "No suitable cells found for tac = %d, sending tau_reject "
+            "message "
+            "for ue_id " MME_UE_S1AP_ID_FMT " with emm cause = %d\n",
+            tac, ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS);
+        free_emm_tau_request_ies(&ies);
+        if (
+            emm_tracking_area_update_reject(
+                ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS) != RETURNok) {
+          OAILOG_ERROR_UE(
+              LOG_MME_APP, ue_mm_context->emm_context._imsi64,
+              "Sending of tau reject message failed for "
+              "ue_id " MME_UE_S1AP_ID_FMT "\n",
+              ue_mm_context->mme_ue_s1ap_id);
+          OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+        }
+        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+      }
+    }
     nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_context);
     if (!tau_proc) {
       tau_proc = emm_proc_create_procedure_tau(ue_mm_context, ies);

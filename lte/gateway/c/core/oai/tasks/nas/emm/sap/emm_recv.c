@@ -572,7 +572,7 @@ int emm_recv_detach_request(
  ***************************************************************************/
 int emm_recv_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, tracking_area_update_request_msg* const msg,
-    const bool is_initial, int* const emm_cause,
+    const bool is_initial, const tac_t const tac, int* const emm_cause,
     const nas_message_decode_status_t* const decode_status) {
   int rc = RETURNok;
 
@@ -701,7 +701,7 @@ int emm_recv_tracking_area_update_request(
   }
 
   ies->decode_status = *decode_status;
-  rc = emm_proc_tracking_area_update_request(ue_id, ies, emm_cause);
+  rc = emm_proc_tracking_area_update_request(ue_id, ies, emm_cause, tac);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

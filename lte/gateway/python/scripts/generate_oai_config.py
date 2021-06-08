@@ -196,6 +196,19 @@ def _get_restricted_imeis(service_mconfig):
         return service_mconfig.restricted_imeis
     return {}
 
+def _get_service_area_maps(service_mconfig):
+    if service_mconfig.service_area_maps:
+      service_area_map = [] 
+      for sac in service_mconfig.service_area_maps:
+        tac_list = []
+        service_area_maps_dict = {}
+        for idx in service_mconfig.service_area_maps[sac].tac :
+          tac_list.append(idx)  
+        service_area_maps_dict['sac'] = sac
+        service_area_maps_dict['tac'] = tac_list
+        service_area_map.append(service_area_maps_dict) 
+      return service_area_map
+    return {}
 
 def _get_context():
     """
@@ -236,6 +249,7 @@ def _get_context():
         "federated_mode_map": _get_federated_mode_map(mme_service_config),
         "restricted_plmns": _get_restricted_plmns(mme_service_config),
         "restricted_imeis": _get_restricted_imeis(mme_service_config),
+        "service_area_map": _get_service_area_maps(mme_service_config),
     }
 
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(

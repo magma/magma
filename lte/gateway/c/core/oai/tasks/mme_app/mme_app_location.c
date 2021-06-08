@@ -88,6 +88,9 @@ int mme_app_send_s6a_update_location_req(
   OAILOG_DEBUG(
       TASK_MME_APP, "S6A ULR: RAT TYPE = (%d) for (ue_id = %u)\n",
       s6a_ulr_p->rat_type, ue_context_p->mme_ue_s1ap_id);
+
+  // Set regional_subscription flag
+  s6a_ulr_p->supportedfeatures.regional_subscription = true;
   /*
    * Check if we already have UE data
    * set the skip subscriber data flag as true in case we are sending ULR
@@ -282,6 +285,39 @@ int mme_app_handle_s6a_update_location_ans(
   ue_mm_context->subscription_known = SUBSCRIPTION_KNOWN;
   ue_mm_context->subscriber_status =
       ula_pP->subscription_data.subscriber_status;
+
+  // Verify service area restriction
+  if (ula_pP->subscription_data.num_zcs > 0) {
+    if (verify_service_area_restriction(
+                        ue_mm_context->emm_context.originating_tai.tac,
+                        ula_pP->subscription_data.reg_sub,
+                        ula_pP->subscription_data.num_zcs) != RETURNok) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, imsi64,
+          "No suitable cells found for tac = %d, sending attach_reject "
+          "message "
+          "for ue_id " MME_UE_S1AP_ID_FMT " with emm cause = %d\n",
+          ue_mm_context->emm_context.originating_tai.tac,
+          ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS);
+      if (
+          emm_proc_attach_reject(
+              ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS) != RETURNok) {
+        OAILOG_ERROR_UE(
+            LOG_MME_APP, imsi64,
+            "Sending of attach reject message failed for "
+            "ue_id " MME_UE_S1AP_ID_FMT "\n",
+            ue_mm_context->mme_ue_s1ap_id);
+        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+      }
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    } else {
+      // Store the zone codes in ue_mm_context
+      ue_mm_context->num_reg_sub = ula_pP->subscription_data.num_zcs;
+      memcpy(
+          ue_mm_context->reg_sub, ula_pP->subscription_data.reg_sub,
+          sizeof(regional_subscription_t));
+    }
+  }
   ue_mm_context->access_restriction_data =
       ula_pP->subscription_data.access_restriction;
   /*

@@ -134,6 +134,22 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
     itti_msg->subscription_data.access_mode = NAM_ONLY_PACKET;
   }
 
+  // Regional subscription zone codes
+  //if (msg.feature_list_id_1.regional_subscription()) {
+  itti_msg->subscription_data.num_zcs =
+      msg.regional_subscription_zone_code_size();
+  uint8_t itr = 0;
+  while (itr < itti_msg->subscription_data.num_zcs) {
+    auto regional_subscription_zone_code =
+        msg.regional_subscription_zone_code(itr);
+    memcpy(
+        itti_msg->subscription_data.reg_sub[itr].zone_code,
+        regional_subscription_zone_code.c_str(),
+        regional_subscription_zone_code.length());
+    ++itr;
+  }
+  //}
+
 #define SUBSCRIBER_PERIODIC_RAU_TAU_TIMER_VAL 10
   itti_msg->subscription_data.rau_tau_timer =
       SUBSCRIBER_PERIODIC_RAU_TAU_TIMER_VAL;
