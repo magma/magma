@@ -58,5 +58,5 @@
       paramAzHome: "{{ awsAgwAz }}"
       paramSecGroup: "{{ factSecGroup }}"
       paramSshKey: "{{ awsHostKey }}"
-      paramAgwTagName: "{{ siteName }}Bridge "
+      paramAgwTagName: "{{ siteName }}Bridge"
       paramInstanceType: "t2.micro"

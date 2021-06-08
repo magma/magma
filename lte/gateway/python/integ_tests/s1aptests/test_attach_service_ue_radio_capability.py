@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import time
+import unittest
 
 import gpp_types
 import s1ap_types
@@ -34,13 +34,16 @@ class TestAttachServiceUeRadioCapability(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
-        print("************************* Running End to End attach for UE id ",
-              ue_id)
+        print(
+            "************************* Running End to End attach for UE id ",
+            ue_id,
+        )
         # Now actually complete the attach
         self._s1ap_wrapper._s1_util.attach(
             ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-            s1ap_types.ueAttachAccept_t)
+            s1ap_types.ueAttachAccept_t,
+        )
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -50,20 +53,26 @@ class TestAttachServiceUeRadioCapability(unittest.TestCase):
 
         time.sleep(0.5)
 
-        print("************************* Sending UE context release request ",
-              "for UE id ", ue_id)
+        print(
+            "************************* Sending UE context release request ",
+            "for UE id ", ue_id,
+        )
         # Send UE context release request to move UE to idle mode
         req = s1ap_types.ueCntxtRelReq_t()
         req.ue_Id = ue_id
         req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req)
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+        )
 
-        print("************************* Sending Service request for UE id ",
-              ue_id)
+        print(
+            "************************* Sending Service request for UE id ",
+            ue_id,
+        )
         # Send service request to reconnect UE
         req = s1ap_types.ueserviceReq_t()
         req.ue_Id = ue_id
@@ -71,16 +80,21 @@ class TestAttachServiceUeRadioCapability(unittest.TestCase):
         req.ueMtmsi.pres = False
         req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req)
+            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value)
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
+        )
 
-        print("************************* Running UE detach for UE id ",
-              ue_id)
+        print(
+            "************************* Running UE detach for UE id ",
+            ue_id,
+        )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True)
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True,
+        )
 
 
 if __name__ == "__main__":

@@ -44,7 +44,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
 
         print("*** Triggering Attach Request ***")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         # Waiting for Authentication Request
@@ -57,7 +57,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
             )
             print(
                 "*** Authentication Request Message Received (",
@@ -78,7 +78,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
                 ") ***",
             )
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+                s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
             )
 
         # Waiting for Security mode command
@@ -91,7 +91,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
             )
             print(
                 "*** Security Mode Command Message Received (",
@@ -109,7 +109,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
                 ") ***",
             )
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
             )
 
         # Waiting for Attach accept
@@ -129,7 +129,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
             )
             print(
                 "*** Attach Accept Message Received (", str(i + 1), ") ***",
@@ -143,7 +143,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
                 "*** Sending Attach Complete Message (", str(i + 1), ") ***",
             )
             self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete
+                s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
             )
 
         print("*** Running UE detach ***")
@@ -152,7 +152,7 @@ class TestAttachDetachDuplicateNASRespMessages(unittest.TestCase):
         detach_req.ue_Id = req.ue_id
         detach_req.ueDetType = s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
+            s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req,
         )
 
 

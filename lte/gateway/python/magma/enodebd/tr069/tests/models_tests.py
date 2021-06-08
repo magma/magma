@@ -21,16 +21,20 @@ class DeviceIdStructTests(unittest.TestCase):
         """
         Test to ensure as_dict() doesn't leak model instances
         """
-        thing = DeviceIdStruct(Manufacturer='abc',
-                               OUI='def',
-                               ProductClass='ghi',
-                               SerialNumber='jkl')
+        thing = DeviceIdStruct(
+            Manufacturer='abc',
+            OUI='def',
+            ProductClass='ghi',
+            SerialNumber='jkl',
+        )
         res = thing.as_dict()
         self.assertEqual(
-            {'Manufacturer': 'abc',
-             'OUI': 'def',
-             'ProductClass': 'ghi',
-             'SerialNumber': 'jkl'},
+            {
+                'Manufacturer': 'abc',
+                'OUI': 'def',
+                'ProductClass': 'ghi',
+                'SerialNumber': 'jkl',
+            },
             res,
         )
         # inspect the spyne.util.memoize object that wraps the staticmethod
@@ -40,25 +44,31 @@ class DeviceIdStructTests(unittest.TestCase):
         thing.OUI = 'aaaa'
         res = thing.as_dict()
         self.assertEqual(
-            {'Manufacturer': 'abc',
-             'OUI': 'aaaa',
-             'ProductClass': 'ghi',
-             'SerialNumber': 'jkl'},
+            {
+                'Manufacturer': 'abc',
+                'OUI': 'aaaa',
+                'ProductClass': 'ghi',
+                'SerialNumber': 'jkl',
+            },
             res,
         )
         self.assertEqual(1, len(ComplexModelBase.get_flat_type_info.memo))
 
         # use a different object this time. Again should not grow memo
-        thing = DeviceIdStruct(Manufacturer='abc',
-                               OUI='def',
-                               ProductClass='ghi',
-                               SerialNumber='jkl')
+        thing = DeviceIdStruct(
+            Manufacturer='abc',
+            OUI='def',
+            ProductClass='ghi',
+            SerialNumber='jkl',
+        )
         res = thing.as_dict()
         self.assertEqual(
-            {'Manufacturer': 'abc',
-             'OUI': 'def',
-             'ProductClass': 'ghi',
-             'SerialNumber': 'jkl'},
+            {
+                'Manufacturer': 'abc',
+                'OUI': 'def',
+                'ProductClass': 'ghi',
+                'SerialNumber': 'jkl',
+            },
             res,
         )
         self.assertEqual(1, len(ComplexModelBase.get_flat_type_info.memo))

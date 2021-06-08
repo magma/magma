@@ -76,7 +76,7 @@ class TestNoSecurityModeComplete(unittest.TestCase):
         req = self._s1ap_wrapper.ue_req
         print(
             "************************* Running attach no security mode \
-            complete timer expiry test"
+            complete timer expiry test",
         )
 
         attach_req = s1ap_types.ueAttachRequest_t()
@@ -89,11 +89,11 @@ class TestNoSecurityModeComplete(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
@@ -102,13 +102,13 @@ class TestNoSecurityModeComplete(unittest.TestCase):
         auth_res.sqnRcvd = sqnRecvd
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         # Wait for timer expiry 5 times, until context is released
         for i in range(5):
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
             )
             print("************************* Timeout", i + 1)
 
@@ -116,7 +116,7 @@ class TestNoSecurityModeComplete(unittest.TestCase):
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("************************* Context released")
 

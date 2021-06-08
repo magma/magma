@@ -262,7 +262,7 @@ fi
 
 # Build OAI and sessiond C/C++ services
 cd "${MAGMA_ROOT}/lte/gateway"
-OAI_BUILD="${C_BUILD}/oai"
+OAI_BUILD="${C_BUILD}/core/oai"
 SESSIOND_BUILD="${C_BUILD}/session_manager"
 CONNECTIOND_BUILD="${C_BUILD}/connection_tracker"
 SCTPD_BUILD="${C_BUILD}/sctpd"

@@ -13,8 +13,7 @@ limitations under the License.
 import sys
 
 import click
-
-from .configlib import ConfigManager
+from cli.configlib import ConfigManager
 
 
 def get_component_choices():
@@ -35,6 +34,7 @@ def configure(ctx, component):
         mgr = ConfigManager(ctx.obj)
         for c in component:
             mgr.configure(c)
+            mgr.commit(c)
 
 
 @configure.command()
@@ -96,4 +96,6 @@ def set(ctx, component, key, value):
     """
     Set a specific configuration attribute
     """
-    ConfigManager(ctx.obj).set(component, key, value)
+    mgr = ConfigManager(ctx.obj)
+    mgr.set(component, key, value)
+    mgr.commit(component)

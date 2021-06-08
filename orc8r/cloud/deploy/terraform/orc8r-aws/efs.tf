@@ -13,9 +13,12 @@
 
 # efs file system for eks persistent volumes
 resource "aws_efs_file_system" "eks_pv" {
-  tags = {
-    Name = "${var.efs_project_name}.k8s.pv.local"
-  }
+  tags = merge(
+    var.global_tags,
+    {
+      Name = "${var.efs_project_name}.k8s.pv.local"
+    },
+  )
 }
 
 # efs mount target for eks persistent volumes

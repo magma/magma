@@ -22,6 +22,7 @@ class StateMachinePointer:
     When the data model doesn't match, the state machine is replaced with one
     that matches the data model.
     """
+
     def __init__(self, acs_state_machine: EnodebAcsStateMachine):
         self._acs_state_machine = acs_state_machine
 

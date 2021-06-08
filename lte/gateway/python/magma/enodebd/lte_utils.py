@@ -26,8 +26,11 @@ class LTEBandInfo:
             - EARFCN spacing within a band is always 0.1MHz
             - 1:1 mapping between EARFCNDL and EARFCNUL (for FDD)
     """
-    def __init__(self, duplex_mode, earfcndl, start_freq_dl_mhz,
-                 start_earfcnul=None, start_freq_ul_mhz=None):
+
+    def __init__(
+        self, duplex_mode, earfcndl, start_freq_dl_mhz,
+        start_earfcnul=None, start_freq_ul_mhz=None,
+    ):
         """
         Inputs:
         - Duplex mode - type = DuplexMode
@@ -56,16 +59,24 @@ class LTEBandInfo:
         # Array of EARFCNDL values
         self.earfcndl = earfcndl
         # Array of DL frequencies in MHz, one per EARFCNDL
-        self.freq_mhz_dl = [start_freq_dl_mhz + 0.1 * (earfcn - earfcndl[0])
-                            for earfcn in earfcndl]
+        self.freq_mhz_dl = [
+            start_freq_dl_mhz + 0.1 * (earfcn - earfcndl[0])
+            for earfcn in earfcndl
+        ]
 
         if duplex_mode == DuplexMode.FDD:
             # Array of EARFCNUL values that map to EARFCNDL
-            self.earfcnul = range(start_earfcnul,
-                                  start_earfcnul + len(earfcndl))
+            self.earfcnul = range(
+                start_earfcnul,
+                start_earfcnul + len(earfcndl),
+            )
             # Array of UL frequencies in MHz, one per EARFCNUL
-            self.freq_mhz_ul = [start_freq_ul_mhz + 0.1 * (earfcn -
-                                self.earfcnul[0]) for earfcn in self.earfcnul]
+            self.freq_mhz_ul = [
+                start_freq_ul_mhz + 0.1 * (
+                    earfcn -
+                    self.earfcnul[0]
+                ) for earfcn in self.earfcnul
+            ]
         else:
             self.earfcnul = None
             self.freq_mhz_ul = None

@@ -34,7 +34,6 @@ func (mPgw *MockPgw) getHandleModifyBearerRequest() gtpv2.HandlerFunc {
 			if err := c.RespondTo(sgwAddr, msg, dsr); err != nil {
 				return err
 			}
-
 			return err
 		}
 		bearer := session.GetDefaultBearer()
@@ -46,7 +45,7 @@ func (mPgw *MockPgw) getHandleModifyBearerRequest() gtpv2.HandlerFunc {
 				case ie.Indication:
 					// TODO:
 					// do nothing in this example.
-					// S-GW should change its beahavior based on indication flags like;
+					// S-GW should change its behavior based on indication flags like;
 					//  - pass Modify Bearer Request to P-GW if handover is indicated.
 					//  - XXX...
 				case ie.FullyQualifiedTEID:
@@ -56,7 +55,6 @@ func (mPgw *MockPgw) getHandleModifyBearerRequest() gtpv2.HandlerFunc {
 				}
 			}
 		}
-
 		return nil
 	}
 }

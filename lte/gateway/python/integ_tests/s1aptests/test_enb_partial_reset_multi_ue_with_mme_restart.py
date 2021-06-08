@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import time
-from builtins import range
 import random
+import time
+import unittest
+from builtins import range
 
 import s1ap_types
 import s1ap_wrapper
@@ -24,7 +24,7 @@ from s1ap_utils import MagmadUtil
 class TestEnbPartialResetMultiUeWithMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
@@ -99,7 +99,7 @@ class TestEnbPartialResetMultiUeWithMmeRestart(unittest.TestCase):
 
         # Send eNB Partial Reset
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.RESET_REQ, reset_req
+            s1ap_types.tfwCmd.RESET_REQ, reset_req,
         )
 
         print("************************* Restarting MME service on gateway")
@@ -124,18 +124,18 @@ class TestEnbPartialResetMultiUeWithMmeRestart(unittest.TestCase):
             req.ueMtmsi.pres = False
             req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req
+                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
             )
 
         # Trigger detach request
         for ue in ue_ids:
             print("************************* Calling detach for UE id ", ue)
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
             )
 
 

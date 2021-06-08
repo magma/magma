@@ -14,8 +14,6 @@
 package swagger_test
 
 import (
-	"io/ioutil"
-	"os"
 	"testing"
 
 	"magma/orc8r/cloud/go/obsidian/swagger"
@@ -27,30 +25,6 @@ import (
 
 	"github.com/stretchr/testify/assert"
 )
-
-func Test_GetCommonSpec(t *testing.T) {
-	specPath := "/etc/magma/swagger/specs"
-	commonSpecDir := "/etc/magma/swagger/specs/common"
-	commonSpecFilePath := "/etc/magma/swagger/specs/common/swagger-common.yml"
-
-	os.RemoveAll(specPath)
-	defer os.RemoveAll(specPath)
-
-	err := os.MkdirAll(commonSpecDir, os.ModePerm)
-	assert.NoError(t, err)
-
-	commonSpec := spec.Spec{
-		Tags: []spec.TagDefinition{{Name: "Tag Common"}},
-	}
-	yamlCommon := marshalToYAML(t, commonSpec)
-
-	err = ioutil.WriteFile(commonSpecFilePath, []byte(yamlCommon), 0644)
-	assert.NoError(t, err)
-
-	actual, err := swagger.GetCommonSpec()
-	assert.NoError(t, err)
-	assert.Equal(t, yamlCommon, actual)
-}
 
 func Test_GetCombinedSwaggerSpecs(t *testing.T) {
 	commonTag := spec.TagDefinition{Name: "Tag Common"}
