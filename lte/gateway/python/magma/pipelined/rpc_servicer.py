@@ -455,7 +455,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def UpdateUEState(self, request, context):
         
         self._log_grpc_payload(request)
-
         if not self._service_manager.is_app_enabled(
               Classifier.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)

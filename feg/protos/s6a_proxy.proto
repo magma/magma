@@ -144,9 +144,9 @@ message UpdateLocationRequest {
     bool initial_attach = 4; // bit 5
     // Send Dual Registration 5G Indicator
     bool dual_registration_5g_indicator = 5; // bit 8
-    // Feature List ID as a part of Supported features AVP(Optional)
+    // Feature List ID 2 as a part of Supported features AVP(Optional)
     FeatureListId2 feature_list_id_2 = 6;
-    // Feature List ID1 as a part of Supported features AVP(Optional)
+    // Feature List ID 1 as a part of Supported features AVP(Optional)
     FeatureListId1 feature_list_id_1 = 7;
 }
 
@@ -178,8 +178,11 @@ message UpdateLocationAnswer {
 
     repeated bytes regional_subscription_zone_code = 9;
 
-    // Feature List ID as a part of Supported features AVP(Optional)
+    // Feature List ID 2 as a part of Supported features AVP(Optional)
     FeatureListId2 feature_list_id_2 = 10;
+
+    // Feature List ID 1 as a part of Supported features AVP(Optional)
+    FeatureListId1 feature_list_id_1 = 11;
 
     message APNConfiguration {
         // APN identifier

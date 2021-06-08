@@ -61,7 +61,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case ASYNC_SYSTEM_COMMAND: {
-      rc = 0;
       OAILOG_DEBUG(
           LOG_ASYNC_SYSTEM, "C system() call: %s\n",
           bdata(ASYNC_SYSTEM_COMMAND(received_message_p).system_command));
@@ -137,7 +136,7 @@ int async_system_command(
   rv = bvcformata(bstr, 1024, format, args);  // big number, see bvcformata
   va_end(args);
 
-  if (NULL == bstr) {
+  if (NULL == bstr || BSTR_OK != rv) {
     OAILOG_ERROR(LOG_ASYNC_SYSTEM, "Error while formatting system command");
     return RETURNerror;
   }

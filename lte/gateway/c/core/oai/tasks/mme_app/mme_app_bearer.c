@@ -931,7 +931,7 @@ void mme_app_handle_delete_session_rsp(
     if (ue_context_p->nb_active_pdn_contexts == 0) {
       nas_delete_all_emm_procedures(&ue_context_p->emm_context);
       free_esm_context_content(&ue_context_p->emm_context.esm_ctx);
-      proc_new_attach_req(ue_context_p);
+      proc_new_attach_req(&mme_app_desc_p->mme_ue_contexts, ue_context_p);
     }
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
