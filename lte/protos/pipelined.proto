@@ -545,5 +545,5 @@ service Pipelined {
 
   rpc UpdateUEState (UESessionSet) returns (UESessionContextResponse);
 
-  rpc GetStats(GetStatsRequest) returns (RuleRecordTable) {} 
+  rpc GetStats(GetStatsRequest) returns (RuleRecordTable); 
 }

@@ -761,7 +761,10 @@ class EnforcementStatsTest(unittest.TestCase):
             """"
             TODO: Call your new  enforcement_stats function from here and verify output 
             """
-            pass
-    
+            print("zxcavlaewbew")
+            print(self.enforcement_stats_controller.get_stats())
+            print("labejelaels")
+        self.assertEqual(0, 1)
+
 if __name__ == "__main__":
     unittest.main()

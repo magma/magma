@@ -425,7 +425,7 @@ def create_enforcement_parser(apps):
     subcmd.set_defaults(func=stress_test_grpc)
     subcmd = subparsers.add_parser('pull_stats_grpc', help = 'Enables or disables pull model for stats collection')
     subcmd.add_argument('--cookie', type=int, default=0)
-    subcmd.add_argument('--cookie mask', type=int, default=0)
+    subcmd.add_argument('--cookie_mask', type=int, default=0)
     subcmd.set_defaults(func=get_stats_rpc)
 
 

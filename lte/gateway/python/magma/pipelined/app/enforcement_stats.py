@@ -569,10 +569,24 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             return ""
     def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
         #invoke RYU API
-        parser.OFPFlowStatsRequest(datapath=datapath, cookie = cookie, cookie_mask = cookie_mask)
-        response = ofctl_api.send_msg(self, msg, reply_cls=parser.OFPPortFlowStatsREply,
+        _, parser = self._datapath.ofproto, self._datapath.ofproto_parser
+        print("created parser")
+        message = parser.OFPFlowStatsRequest(datapath=self._datapath, cookie = cookie, cookie_mask = cookie_mask)
+        print("created message")
+        response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
                 reply_multi=True)
-        return response
+        print("Obtained response")
+        #pass response through get usage from flow stat api to convert to rule record
+        if response == None:
+            print("response was none")
+        else:
+            print(response)
+        print("printing response:")
+        print(response[0].body)
+        RRTable = self._get_usage_from_flow_stat(response[0].body)
+        print("No meeting tuesdays")
+        print(response)
+        return RRTable
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
