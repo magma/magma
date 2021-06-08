@@ -80,6 +80,9 @@ const int itti_debug = ITTI_DEBUG_ISSUES | ITTI_DEBUG_MP_STATISTICS;
 #define MESSAGE_SIZE(mESSAGEiD)                                                \
   (sizeof(MessageHeader) + itti_desc.messages_info[mESSAGEiD].size)
 
+#define likely(x)      __builtin_expect(!!(x), 1)
+#define unlikely(x)    __builtin_expect(!!(x), 0)
+
 typedef volatile enum task_state_s {
   TASK_STATE_NOT_CONFIGURED,
   TASK_STATE_STARTING,
@@ -118,23 +121,29 @@ static itti_desc_t itti_desc;
 int send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message) {
-  AssertFatal(
-      task_zmq_ctx_p->push_socks[destination_task_id],
-      "Sending to task without push socket. id: %s to %s!\n",
-      itti_get_message_name(message->ittiMsgHeader.messageId),
-      itti_get_task_name(destination_task_id));
+  if (likely(task_zmq_ctx_p->ready)) {
+    AssertFatal(
+        task_zmq_ctx_p->push_socks[destination_task_id],
+        "Sending to task without push socket. id: %s to %s!\n",
+        itti_get_message_name(message->ittiMsgHeader.messageId),
+        itti_get_task_name(destination_task_id));
 
-  // TODO: can we use zframe_frommem to avoid memcopy
-  zframe_t* frame = zframe_new(
-      message, sizeof(MessageHeader) + message->ittiMsgHeader.ittiMsgSize);
-  assert(frame);
+    // TODO: can we use zframe_frommem to avoid memcopy
+    zframe_t* frame = zframe_new(
+        message, sizeof(MessageHeader) + message->ittiMsgHeader.ittiMsgSize);
+    assert(frame);
 
-  // Protect against multiple threads using this context
-  pthread_mutex_lock(&task_zmq_ctx_p->send_mutex);
-  int rc =
-      zframe_send(&frame, task_zmq_ctx_p->push_socks[destination_task_id], 0);
-  assert(rc == 0);
-  pthread_mutex_unlock(&task_zmq_ctx_p->send_mutex);
+    // Protect against multiple threads using this context
+    pthread_mutex_lock(&task_zmq_ctx_p->send_mutex);
+    int rc =
+        zframe_send(&frame, task_zmq_ctx_p->push_socks[destination_task_id], 0);
+    assert(rc == 0);
+    pthread_mutex_unlock(&task_zmq_ctx_p->send_mutex);
+  } else {
+    OAI_FPRINTF_ERR("Sending msg using uninitialized context. %s to %s!\n",
+        itti_get_message_name(message->ittiMsgHeader.messageId),
+        itti_get_task_name(destination_task_id));
+  }
 
   free(message);
   return 0;
@@ -221,9 +230,12 @@ void init_task_context(
         NULL);
     assert(rc == 0);
   }
+
+  task_zmq_ctx_p->ready = true;
 }
 
 void destroy_task_context(task_zmq_ctx_t* task_zmq_ctx_p) {
+  task_zmq_ctx_p->ready = false;
   zloop_destroy(&task_zmq_ctx_p->event_loop);
   zsock_destroy(&task_zmq_ctx_p->pull_sock);
   for (int i = 0; i < TASK_MAX; i++) {
