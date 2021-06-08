@@ -53,6 +53,7 @@
 	"mounts": [
 		"source=/var/run/docker.sock,target=/var/run/docker-host.sock,type=bind"
 	],
+	"postCreateCommand": "sudo ln -s /workspaces/magma/lte/gateway/configs /etc/magma",
 	"runArgs": [
 		"--init"
 	],
