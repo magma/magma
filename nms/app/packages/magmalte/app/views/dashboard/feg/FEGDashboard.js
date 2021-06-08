@@ -1,7 +1,20 @@
-// @flow
-/*[object Object]*/
+/*
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *
+ * @flow strict-local
+ * @format
+ */
 import DashboardAlertTable from '../../../components/DashboardAlertTable';
-import DashboardKPIs from '../../../components/DashboardKPIs';
+import FEGDashboardKPIs from '../../../components/FEGDashboardKPIs';
 import EventAlertChart from '../../../components/EventAlertChart';
 import EventsTable from '../../events/EventsTable';
 import Grid from '@material-ui/core/Grid';
@@ -87,7 +100,7 @@ function FEGDashboard() {
         <Route
           path={relativePath('/network')}
           render={props => (
-            <LteNetworkDashboard {...props} startEnd={[startDate, endDate]} />
+            <FEGNetworkDashboard {...props} startEnd={[startDate, endDate]} />
           )}
         />
         <Redirect to={relativeUrl('/network')} />
@@ -95,7 +108,7 @@ function FEGDashboard() {
     </>
   );
 }
-function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
+function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
   const classes = useStyles();
 
   return (
@@ -107,6 +120,9 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
 
         <Grid item xs={12}>
           <DashboardAlertTable />
+        </Grid>
+        <Grid item xs={12}>
+          <FEGDashboardKPIs />
         </Grid>
       </Grid>
     </div>
