@@ -16,6 +16,7 @@
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
+import {FEGContextProvider} from '../feg/FEGContext';
 import {LteContextProvider} from '../lte/LteContext';
 import {coalesceNetworkType} from '@fbcnms/types/network';
 import type {NetworkType} from '@fbcnms/types/network';
@@ -83,6 +84,7 @@ export default function Index() {
   return (
     <NetworkContext.Provider value={{networkId, networkType}}>
       <LteContextProvider networkId={networkId} networkType={networkType}>
+        <FEGContextProvider networkId={networkId} networkType={networkType}>
         <div className={classes.root}>
           <AppSideBar
             mainItems={[<SectionLinks key={1} />, <VersionTooltip key={2} />]}
@@ -98,6 +100,7 @@ export default function Index() {
             <SectionRoutes />
           </AppContent>
         </div>
+        </FEGContextProvider>
       </LteContextProvider>
     </NetworkContext.Provider>
   );
