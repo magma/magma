@@ -54,7 +54,7 @@ show-tech/ @magma/approvers-showtech
 docs/ @magma/approvers-docs
 docs/readmes/proposals @electronjoe
 
-CODEOWNERS @amarpad @electronjoe
+CODEOWNERS @amarpad @electronjoe @hcgatewood
 
 # Paths excluded from code ownership
 **/go.mod @ghost
