@@ -38,7 +38,7 @@ orc8r/gateway/c/ @magma/approvers-agw-c
 
 # approvers-agw-<subsection>
 lte/gateway/c/session_manager @magma/approvers-agw-sessiond
-lte/gateway/c/oai @magma/approvers-agw-mme
+lte/gateway/c/core/oai @magma/approvers-agw-mme
 lte/gateway/c/sctpd @magma/approvers-agw-mme
 lte/gateway/c/connection_tracker @koolzz @magma/approvers-agw-c
 lte/gateway/python/magma/pipelined @magma/approvers-agw-pipelined
