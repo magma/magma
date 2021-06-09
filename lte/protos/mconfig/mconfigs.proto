@@ -162,7 +162,7 @@ message SessionD {
     orc8r.LogLevel log_level = 1;
     // DEPRECATED
     // Enable forwarding S6a related requests to Federated GW
-    bool relay_enabled = 2;
+    bool relay_enabled = 2 [deprecated = true];
     WalletExhaustDetection wallet_exhaust_detection = 3;
     // Enable relaying Gx/Gy messages via FeG RPC
     bool gx_gy_relay_enabled = 4;
