@@ -521,12 +521,7 @@ function AddSubscriberDetails(props: DialogProps) {
   const saveSubscribers = async () => {
     successCountRef.current = 0;
     const addedSubscribers = [];
-    for (
-      let subscriberIdx = 0;
-      subscriberIdx < subscribers.length;
-      ++subscriberIdx
-    ) {
-      const subscriber = subscribers[subscriberIdx];
+    for (const subscriber of subscribers) {
       try {
         const err = validateSubscriberInfo(subscriber, ctx.state);
         if (err.length > 0) {
@@ -556,14 +551,19 @@ function AddSubscriberDetails(props: DialogProps) {
         };
         successCountRef.current = successCountRef.current + 1;
         addedSubscribers.push(newSubscriber);
-        //bulk add subscribers at the end
-        if (subscriberIdx == subscribers.length - 1) {
-          await ctx.setState?.('', addedSubscribers);
-        }
       } catch (e) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
         setError('error saving ' + subscriber.imsi + ' : ' + errMsg);
         return;
+      }
+    }
+    //bulk add subscribers at the end
+    if (addedSubscribers.length > 0) {
+      try {
+        await ctx.setState?.('', addedSubscribers);
+      } catch (e) {
+        const errMsg = e.response?.data?.message ?? e.message ?? e;
+        setError('error saving subscribers to the api : ' + errMsg);
       }
     }
     enqueueSnackbar(
