@@ -219,7 +219,10 @@ class MetricsCollector(object):
 
     def _chunk_samples(self, samples):
         # Add 1kiB fpr gRPC overhead
-        sample_size_bytes = sys.getsizeof(samples) + 1000
+        sample_size_bytes = 1000
+        for s in samples:
+            sample_size_bytes += s.ByteSize()
+
         buckets = math.ceil(
             sample_size_bytes / self.grpc_max_msg_size_bytes,
         )
@@ -256,11 +259,6 @@ class MetricsCollector(object):
         """
         Send parsed and protobuf-converted metrics to cloud.
         """
-        metrics_container = MetricsContainer(
-            gatewayId=snowflake.snowflake(),
-            family=metrics,
-        )
-
         chan = ServiceRegistry.get_rpc_channel(
             'metricsd',
             ServiceRegistry.CLOUD,
@@ -268,16 +266,24 @@ class MetricsCollector(object):
         )
 
         client = MetricsControllerStub(chan)
-        future = client.Collect.future(
-            metrics_container,
-            self.grpc_timeout,
-        )
-        future.add_done_callback(
-            lambda future:
-            self._loop.call_soon_threadsafe(
-                self.scrape_done, future, target,
-            ),
-        )
+        sample_chunks = self._chunk_samples(metrics)
+        for idx, chunk in enumerate(sample_chunks):
+            logging.info('Preparing chunk %d' % idx)
+            metrics_container = MetricsContainer(
+                gatewayId=snowflake.snowflake(),
+                family=chunk,
+            )
+            logging.info('Metric container size: %d', metrics_container.ByteSize())
+            future = client.Collect.future(
+                metrics_container,
+                self.grpc_timeout,
+            )
+            future.add_done_callback(
+                lambda future:
+                self._loop.call_soon_threadsafe(
+                    self.scrape_done, future, target,
+                ),
+            )
 
     def scrape_done(self, collect_future, target):
         """
