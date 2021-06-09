@@ -775,7 +775,7 @@ export function RanEdit(props: Props) {
   const [connectedEnodebs, setConnectedEnodebs] = useState<enodeb_serials>(
     props.gateway.connected_enodeb_serials,
   );
-  const [unregisteredEnodebs, setUnregisteredEnodebs] = useState({});
+  const [unregisteredEnbsInfo, setUnregisteredEnbsInfo] = useState([]);
   const handleRanChange = (key: string, val) => {
     setRanConfig({...ranConfig, [key]: val});
   };
@@ -795,16 +795,22 @@ export function RanEdit(props: Props) {
       }
       return true;
     };
-    const newUnregisteredEnodebs = {};
+    const newUnregisteredEnbsInfo = [];
     if (enbsCtx?.state?.enbInfo) {
       Object.keys(enbsCtx.state.enbInfo).map(enbSerial => {
-        newUnregisteredEnodebs[enbSerial] = isEnodebUnregistered(
-          enbsCtx.state.enbInfo[enbSerial].enb,
-          props.gateway,
-        );
+        if (
+          isEnodebUnregistered(
+            enbsCtx.state.enbInfo[enbSerial].enb,
+            props.gateway,
+          )
+        ) {
+          newUnregisteredEnbsInfo.push({
+            [enbSerial]: enbsCtx.state.enbInfo[enbSerial],
+          });
+        }
       });
     }
-    setUnregisteredEnodebs(newUnregisteredEnodebs);
+    setUnregisteredEnbsInfo(newUnregisteredEnbsInfo);
   }, [ctx?.state, enbsCtx?.state?.enbInfo, props?.gateway]);
   const onSave = async () => {
     try {
@@ -878,24 +884,18 @@ export function RanEdit(props: Props) {
                   className={connectedEnodebs.length ? '' : classes.placeholder}
                 />
               }>
-              {enbsCtx?.state &&
-                Object.keys(enbsCtx.state.enbInfo).map(enbSerial => {
-                  if (unregisteredEnodebs[enbSerial]) {
-                    return (
-                      <MenuItem key={enbSerial} value={enbSerial}>
-                        <Checkbox
-                          checked={connectedEnodebs.includes(enbSerial)}
-                        />
-                        <ListItemText
-                          primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
-                          secondary={enbSerial}
-                        />
-                      </MenuItem>
-                    );
-                  } else {
-                    return null;
-                  }
-                })}
+              {unregisteredEnbsInfo.map(unregisteredEnbInfo => {
+                const enbSerial = Object.keys(unregisteredEnbInfo)[0];
+                return (
+                  <MenuItem key={enbSerial} value={enbSerial}>
+                    <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
+                    <ListItemText
+                      primary={unregisteredEnbInfo[enbSerial].enb.name}
+                      secondary={enbSerial}
+                    />
+                  </MenuItem>
+                );
+              })}
             </Select>
           </AltFormField>
           <AltFormField label={'Transmit Enabled'}>
