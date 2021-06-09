@@ -72,7 +72,7 @@ import {
 } from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useContext, useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -782,8 +782,8 @@ export function RanEdit(props: Props) {
   const handleDnsChange = (key: string, val) => {
     setDnsConfig({...dnsConfig, [key]: val});
   };
-  const isEnodebUnregistered = useCallback(
-    (enb: enodeb, currentGateway: lte_gateway) => {
+  useEffect(() => {
+    const isEnodebUnregistered = (enb: enodeb, currentGateway: lte_gateway) => {
       const gatewaysList = Object.keys(ctx.state);
       for (const gatewayId of gatewaysList) {
         if (
@@ -794,10 +794,7 @@ export function RanEdit(props: Props) {
         }
       }
       return true;
-    },
-    [ctx?.state],
-  );
-  useEffect(() => {
+    };
     const newUnregisteredEnodebs = {};
     if (enbsCtx?.state?.enbInfo) {
       Object.keys(enbsCtx.state.enbInfo).map(enbSerial => {
@@ -808,7 +805,7 @@ export function RanEdit(props: Props) {
       });
     }
     setUnregisteredEnodebs(newUnregisteredEnodebs);
-  }, [enbsCtx?.state?.enbInfo, isEnodebUnregistered, props?.gateway]);
+  }, [ctx?.state, enbsCtx?.state?.enbInfo, props?.gateway]);
   const onSave = async () => {
     try {
       const gateway = {
