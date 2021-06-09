@@ -3800,15 +3800,9 @@ func (m *QosInformationRequest) GetQosClassId() uint32 {
 	return 0
 }
 
-<<<<<<< HEAD
-func (m *QosInformationRequest) GetUnit() QosInformationRequest_BitrateUnitsAMBR {
-	if m != nil {
-		return m.Unit
-=======
 func (m *QosInformationRequest) GetBrUnit() QosInformationRequest_BitrateUnitsAMBR {
 	if m != nil {
 		return m.BrUnit
->>>>>>> upstream/master
 	}
 	return QosInformationRequest_BPS
 }
