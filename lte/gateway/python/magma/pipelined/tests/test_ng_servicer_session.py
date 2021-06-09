@@ -30,7 +30,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
 )
-from scripts.helpers.ng_set_session_msg import CreateSessionUtil
+from magma.pipelined.ng_set_session_msg import CreateSessionUtil
 
 FAULTY_PDR_SESSION    = 1
 FAULTY_FAR_SESSION    = 2

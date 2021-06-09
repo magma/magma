@@ -52,8 +52,8 @@ from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.qos.common import QosManager
 from magma.pipelined.service_manager import Tables
 from magma.subscriberdb.sid import SIDUtils
-from scripts.helpers.ng_set_session_msg import CreateSessionUtil
-from scripts.helpers.pg_set_session_msg import CreateMMESessionUtils
+from magma.pipelined.ng_set_session_msg import CreateSessionUtil
+from magma.pipelined.pg_set_session_msg import CreateMMESessionUtils
 from orc8r.protos.common_pb2 import Void
 
 LOG_INCREMENT = 25

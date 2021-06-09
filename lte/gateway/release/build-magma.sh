@@ -135,6 +135,7 @@ MAGMA_DEPS=(
     "libtins-dev" # required for Connection tracker
     "libmnl-dev" # required for Connection tracker
     "getenvoy-envoy" # for envoy dep
+    "uuid-dev" # for liagentd
     )
 
 if grep -q stretch /etc/os-release; then
