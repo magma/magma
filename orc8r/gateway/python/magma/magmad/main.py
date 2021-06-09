@@ -287,8 +287,9 @@ def _get_upgrader_impl(service):
         factory_clsname,
     )
     factory_impl = FactoryClass()
-    assert isinstance(factory_impl, UpgraderFactory), \
-        'upgrader_factory must be a subclass of UpgraderFactory'
+    assert isinstance(factory_impl, UpgraderFactory), ('upgrader_factory '
+                                                       'must be a subclass '
+                                                       'of UpgraderFactory')
 
     return factory_impl.create_upgrader(service, service.loop)
 
