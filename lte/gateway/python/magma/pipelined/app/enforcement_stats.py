@@ -443,13 +443,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
         # This is done primarily for CWF integration tests, TODO rm
         self.total_usage = current_usage
-        try:
-            mark_flow_deleted = self._delete_old_flows(stats_msgs)
-        except ConnectionError:
-            self.logger.error('Failed remove old flows, redis unavailable')
-            return
         #Report only if their is no change in version
-        if self.ng_config.ng_service_enabled == True and mark_flow_deleted == False:
+        if self.ng_config.ng_service_enabled == True:
             self._prepare_session_config_report(stats_msgs)
 
 
@@ -604,7 +599,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     'version: %s): %s', record.rule_id,
                     record.sid, record.rule_version, e)
 
-    def _delete_flow(self, imsi, ip_addr, rule_id, rule_version, local_f_teid_ng):
+    def _delete_flow(self, imsi, ip_addr, rule_id, rule_version):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule_id)
         match_in = _generate_rule_match(imsi, ip_addr, rule_num, rule_version,
                                         Direction.IN, local_f_teid_ng)
