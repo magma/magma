@@ -35,11 +35,11 @@ func TestRewriteGeneratedRefs(t *testing.T) {
 func runRewriteTestCase(t *testing.T, ymlFile string, outputDir string) {
 	defer cleanupActualFiles(outputDir)
 
-	rootDir := os.Getenv("MAGMA_ROOT")
+	rootDir := "../../../../../../"
 	specs, err := generate.ParseSwaggerDependencyTree(ymlFile, rootDir)
 	assert.NoError(t, err)
 
-	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", specs)
+	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", rootDir, specs)
 	assert.NoError(t, err)
 
 	err = generate.RewriteGeneratedRefs(ymlFile, rootDir, specs)

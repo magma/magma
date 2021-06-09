@@ -27,11 +27,10 @@ import (
 // GenerateStandaloneSpecs generates standalone specs for all Swagger specs in
 // a directory
 func GenerateStandaloneSpecs(specDir string) error {
-	rootDir := os.Getenv("MAGMA_ROOT")
 	outDir := filepath.Join(filepath.Dir(specDir), "standalone")
 	specPaths := getFilepaths(specDir)
 	for _, path := range specPaths {
-		specs, err := generate.ParseSwaggerDependencyTree(path, rootDir)
+		specs, err := generate.ParseSwaggerDependencyTree(path, "../../")
 		if err != nil {
 			return err
 		}

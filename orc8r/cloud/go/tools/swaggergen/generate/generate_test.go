@@ -28,7 +28,7 @@ import (
 )
 
 func TestParseSwaggerDependencyTree(t *testing.T) {
-	actual, err := generate.ParseSwaggerDependencyTree("../testdata/importer2.yml", os.Getenv("MAGMA_ROOT"))
+	actual, err := generate.ParseSwaggerDependencyTree("../testdata/importer2.yml", "../../../../../../")
 	assert.NoError(t, err)
 
 	expectedFiles := []string{"../testdata/base.yml", "../testdata/importer.yml", "../testdata/importer2.yml"}
@@ -38,7 +38,7 @@ func TestParseSwaggerDependencyTree(t *testing.T) {
 }
 
 func TestParseSwaggerDependencyTree_Cycle(t *testing.T) {
-	actual, err := generate.ParseSwaggerDependencyTree("../testdata/cycle1.yml", os.Getenv("MAGMA_ROOT"))
+	actual, err := generate.ParseSwaggerDependencyTree("../testdata/cycle1.yml", "../../../../../../")
 	assert.NoError(t, err)
 
 	expectedFiles := []string{"../testdata/cycle1.yml", "../testdata/cycle2.yml"}
@@ -57,10 +57,10 @@ func TestGenerateModels(t *testing.T) {
 func runTestGenerateCase(t *testing.T, ymlFile string, outputDir string) {
 	defer cleanupActualFiles(outputDir)
 
-	rootDir := os.Getenv("MAGMA_ROOT")
+	rootDir := "../../../../../../"
 	specs, err := generate.ParseSwaggerDependencyTree(ymlFile, rootDir)
 	assert.NoError(t, err)
-	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", specs)
+	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", rootDir, specs)
 	assert.NoError(t, err)
 
 	// Verify that generated files are the same as the expected golden files

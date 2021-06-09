@@ -32,7 +32,7 @@ func Test_GenerateStandaloneSpec(t *testing.T) {
 	os.Remove(specTargetPath)
 	defer os.Remove(specTargetPath)
 
-	specs, err := swaggergen.ParseSwaggerDependencyTree(targetFilePath, os.Getenv("MAGMA_ROOT"))
+	specs, err := swaggergen.ParseSwaggerDependencyTree(targetFilePath, "../../../../../../")
 	assert.NoError(t, err)
 
 	err = generate.GenerateSpec(targetFilePath, specs, specTargetPath)

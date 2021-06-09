@@ -79,7 +79,7 @@ import (
 func main() {
 	targetFilepath := flag.String("target", "", "Target swagger spec to generate code from")
 	configFilepath := flag.String("config", "", "Config file for go-swagger command")
-	rootDir := flag.String("root", os.Getenv("MAGMA_ROOT"), "Root path to resolve dependency and output directories based on")
+	rootDir := flag.String("root", "../../", "Root path to resolve dependency and output directories based on")
 	flag.Parse()
 
 	if *targetFilepath == "" {
@@ -100,7 +100,7 @@ func main() {
 		glog.Fatalf("Error parsing swagger spec dependency tree: %v\n", err)
 	}
 
-	err = generate.GenerateModels(*targetFilepath, *configFilepath, specs)
+	err = generate.GenerateModels(*targetFilepath, *configFilepath, *rootDir, specs)
 	if err != nil {
 		glog.Fatalf("Error generating default swagger models: %v\n", err)
 	}
