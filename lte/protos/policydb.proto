@@ -89,6 +89,8 @@ message PolicyRule{
   }
   AppServiceType app_service_type = 14; // optional
   HeaderEnrichment he = 15;
+  bool online = 16;
+  bool offline = 17;
 }
 
 message ServiceIdentifier {
