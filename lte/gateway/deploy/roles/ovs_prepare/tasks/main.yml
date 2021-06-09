@@ -15,13 +15,9 @@
   when:
     - MAGMA_ROOT is not defined or OUTPUT_DIR is not defined
 
-- name: Get Kernel version
-  shell: uname -r
-  register: KVERS
-
-- fail: msg="Kernel Version {{ KVERS.stdout  }} not supported please use 4.9.0-9-amd64"
-  when:
-    - KVERS.stdout != '4.9.0-9-amd64'
+- fail:
+    msg: Kernel {{ ansible_kernel  }} not supported please use 4.9.0-9-amd64
+  when: ansible_kernel != '4.9.0-9-amd64'
 
 - name: Include vars of all.yaml
   include_vars:
@@ -37,11 +33,11 @@
   register: OUTPUT_DIR_ABSOLUTE
 
 - name: Removing "{{ WORK_DIR_ABSOLUTE.stdout }}".
-  become: yes
+  become: true
   file:
     path: "{{ WORK_DIR_ABSOLUTE.stdout }}"
     state: absent
-    force: yes
+    force: true
 
 - name: Creating "{{ all_vars.WORK_DIR }}"
   file:
@@ -51,13 +47,13 @@
   register: GIT_HOME
 
 - name: Update and upgrade apt packages
-  become: yes
+  become: true
   apt:
-    update_cache: yes
+    update_cache: true
     upgrade: "yes"
 
 - name: Install build dependencies.
-  become: yes
+  become: true
   apt:
     name: "{{ packages }}"
   vars:
@@ -78,22 +74,22 @@
 
 - name: Ensure correct kernel headers are installed.
   shell: "apt -y install linux-headers-$(uname -r)"
-  become: yes
+  become: true
 
 - name: Copy ssh keepAlive configs
   copy: src={{ item.src }} dest={{ item.dest }}
-  become: yes
+  become: true
   with_items:
     - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
 
 - name: Restart service ssh
-  become: yes
+  become: true
   service:
     name: ssh
     state: restarted
 
 - name: Install FPM
-  become: yes
+  become: true
   gem: name=fpm
        user_install=no
        state=present
@@ -111,6 +107,7 @@
 
 - name: Uploading gtp patches to remote.
   synchronize:
+    # yamllint disable-line rule:line-length
     src: "{{ MAGMA_ROOT }}/{{ all_vars.gtp_patch_path }}/{{ all_vars.ovs_version_short }}/"
     dest: "{{ GIT_HOME.path }}/ovs/"
   with_items:
@@ -121,7 +118,7 @@
   args:
     chdir: "{{ GIT_HOME.path }}/ovs"
   with_items:
-      - "{{ all_vars.patches }}"
+    - "{{ all_vars.patches }}"
 
 - name: Cherry pick vlan patch
   command: bash -c 'git show "{{ all_vars.vlan_fix_hash }}" | git apply -3 -'
