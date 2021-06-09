@@ -47,7 +47,9 @@
   become: true
   apt:
     update_cache: true
-    upgrade: "yes"
+    cache_valid_time: 3600
+  changed_when: false
+  when: ansible_os_family == 'Debian'
 
 - name: Install build dependencies.
   become: true
@@ -57,8 +59,11 @@
   with_items: "{{ packages }}"
 
 - name: Ensure correct kernel headers are installed.
-  shell: "apt -y install linux-headers-$(uname -r)"
   become: true
+  package:
+    name: "linux-headers-{{ ansible_kernel }}"
+    state: present
+  when: ansible_os_family == 'Debian'
 
 - name: Copy ssh keepAlive configs
   copy:
