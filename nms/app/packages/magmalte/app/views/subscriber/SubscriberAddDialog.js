@@ -564,6 +564,7 @@ function AddSubscriberDetails(props: DialogProps) {
       } catch (e) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
         setError('error saving subscribers to the api : ' + errMsg);
+        return;
       }
     }
     enqueueSnackbar(
