@@ -119,7 +119,13 @@
         chdir: "{{ GIT_HOME.path }}/ovs"
   when: not ovs_dest_stat.stat.exists
 
+- name: Check that ovs depcomp file exists
+  stat:
+    path: "{{ GIT_HOME.path }}/ovs/build-aux/depcomp"
+  register: ovs_depcomp
+
 - name: Execute the boot.sh script.
   command: sh boot.sh  # noqa 301
   args:
     chdir: "{{ GIT_HOME.path }}/ovs"
+  when: not ovs_depcomp.stat.exists
