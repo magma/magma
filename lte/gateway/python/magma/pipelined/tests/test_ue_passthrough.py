@@ -190,7 +190,7 @@ class UEMacAddressTest(unittest.TestCase):
                 FlowTest(FlowQuery(self._tbl_num,
                                    self.testing_controller), 4, 3),
                 FlowTest(FlowQuery(self._ingress_tbl_num,
-                                   self.testing_controller), 4, 3),
+                                   self.testing_controller), 4, 2),
                 FlowTest(FlowQuery(self._egress_tbl_num,
                                    self.testing_controller), 3, 2),
                 FlowTest(flow_queries[0], 4, 1),
