@@ -107,7 +107,7 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         ula.total_ambr.max_bandwidth_ul = profile.max_ul_bit_rate
         ula.total_ambr.max_bandwidth_dl = profile.max_dl_bit_rate
         ula.all_apns_included = 0
-        ula.feature_list_id_2.nr_as_secondary_rat = request.feature_list_id_2.nr_as_secondary_rat
+        #ula.feature_list_id_2.nr_as_secondary_rat = request.feature_list_id_2.nr_as_secondary_rat
         ula.msisdn = self.encode_msisdn(sub_data.non_3gpp.msisdn)
 
         context_id = 0
