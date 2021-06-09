@@ -562,8 +562,12 @@ function AddSubscriberDetails(props: DialogProps) {
       try {
         await ctx.setState?.('', addedSubscribers);
       } catch (e) {
-        const errMsg = e.response?.data?.message ?? e.message ?? e;
-        setError('error saving subscribers to the api : ' + errMsg);
+        enqueueSnackbar(
+          'Saving subscribers to the api failed',
+          {
+            variant: 'error',
+          },
+        );
         return;
       }
     }
