@@ -20,6 +20,8 @@ module "orc8r" {
   orc8r_db_password           = "mypassword" # must be at least 8 characters
   secretsmanager_orc8r_secret = "orc8r-secrets"
   orc8r_domain_name           = "orc8r.example.com"
+  orc8r_sns_email             = "admin@example.com"
+  enable_aws_db_notifications = true
 
   vpc_name        = "orc8r"
   cluster_name    = "orc8r"
