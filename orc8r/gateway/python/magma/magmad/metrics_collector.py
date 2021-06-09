@@ -14,7 +14,6 @@ import asyncio
 import calendar
 import logging
 import math
-import sys
 import time
 from typing import Callable, Dict, List, NamedTuple, Optional
 
@@ -219,18 +218,26 @@ class MetricsCollector(object):
 
     def _chunk_samples(self, samples):
         # Add 1kiB fpr gRPC overhead
-        sample_size_bytes = 1000
-        for s in samples:
-            sample_size_bytes += s.ByteSize()
+        sample_size_bytes = sum(s.ByteSize() for s in samples) + 1000
 
         buckets = math.ceil(
             sample_size_bytes / self.grpc_max_msg_size_bytes,
         )
-        sample_length = len(samples)
-        chunk_size = sample_length // buckets
+        chunk_size_bytes = sample_size_bytes // buckets
 
-        for i in range(0, sample_length, chunk_size):
-            yield samples[i:i + chunk_size]
+        chunked_samples = []
+        chunked_samples_size = 0
+        for s in samples:
+            if chunked_samples_size + s.ByteSize() <= chunk_size_bytes:
+                chunked_samples.append(s)
+                chunked_samples_size += s.ByteSize()
+            else:
+                yield chunked_samples
+                chunked_samples = [s]
+                chunked_samples_size = s.ByteSize()
+        # Send leftover samples
+        if chunked_samples_size > 0:
+            yield chunked_samples
 
     def scrape_prometheus_target(self, target: ScrapeTarget) -> None:
         """
@@ -266,14 +273,11 @@ class MetricsCollector(object):
         )
 
         client = MetricsControllerStub(chan)
-        sample_chunks = self._chunk_samples(metrics)
-        for idx, chunk in enumerate(sample_chunks):
-            logging.info('Preparing chunk %d' % idx)
+        for chunk in self._chunk_samples(metrics):
             metrics_container = MetricsContainer(
                 gatewayId=snowflake.snowflake(),
                 family=chunk,
             )
-            logging.info('Metric container size: %d', metrics_container.ByteSize())
             future = client.Collect.future(
                 metrics_container,
                 self.grpc_timeout,
