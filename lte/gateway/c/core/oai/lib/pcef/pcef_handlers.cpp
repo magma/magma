@@ -92,7 +92,7 @@ static void pcef_fill_create_session_req(
   qos_info.set_preemption_vulnerability(session_data->pvi);
   qos_info.set_qos_class_id(session_data->qci);
   qos_info.set_qos_class_id(session_data->qci);
-  qos_info.set_unit(
+  qos_info.set_br_unit(
       static_cast<magma::lte::QosInformationRequest::BitrateUnitsAMBR>(
           session_data->br_unit));
   lte_context->mutable_qos_info()->CopyFrom(qos_info);
