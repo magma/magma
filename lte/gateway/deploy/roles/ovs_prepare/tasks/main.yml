@@ -21,13 +21,8 @@
     msg: Kernel {{ ansible_kernel  }} not supported please use 4.9.0-9-amd64
   when: ansible_kernel != '4.9.0-9-amd64'
 
-- name: Include vars of all.yaml
-  include_vars:
-    file: all.yaml
-    name: all_vars
-
 - name: Converting WORK_DIR to absolute path
-  shell: realpath {{ all_vars.WORK_DIR }}
+  shell: realpath {{ WORK_DIR }}
   register: WORK_DIR_ABSOLUTE
 
 - name: Converting OUTPUT_DIR to absolute path
@@ -41,9 +36,9 @@
     state: absent
     force: true
 
-- name: Creating "{{ all_vars.WORK_DIR }}"
+- name: Creating "{{ WORK_DIR }}"
   file:
-    path: "{{ all_vars.WORK_DIR }}"
+    path: "{{ WORK_DIR }}"
     state: directory
     mode: 0755
   register: GIT_HOME
@@ -97,36 +92,36 @@
        user_install=no
        state=present
 
-- name: Cloning the ovs "{{ all_vars.ovs_version }}".
+- name: Cloning the ovs "{{ ovs_version }}".
   git:
     repo: https://github.com/openvswitch/ovs.git
     dest: "{{ GIT_HOME.path }}/ovs"
-    version: "{{ all_vars.ovs_version }}"
+    version: "{{ ovs_version }}"
 
 - name: Uploading gtp backport patch to remote.
   synchronize:
-    src: "{{ MAGMA_ROOT }}/{{ all_vars.gtp_patch_path }}/gtp-v4.9-backport/"
+    src: "{{ MAGMA_ROOT }}/{{ gtp_patch_path }}/gtp-v4.9-backport/"
     dest: "{{ GIT_HOME.path }}/ovs/flow-based-gtp-linux-v4.9"
 
 - name: Uploading gtp patches to remote.
   synchronize:
     # yamllint disable-line rule:line-length
-    src: "{{ MAGMA_ROOT }}/{{ all_vars.gtp_patch_path }}/{{ all_vars.ovs_version_short }}/"
+    src: "{{ MAGMA_ROOT }}/{{ gtp_patch_path }}/{{ ovs_version_short }}/"
     dest: "{{ GIT_HOME.path }}/ovs/"
   with_items:
-    - "{{ all_vars.patches }}"
+    - "{{ patches }}"
 
 - name: Patch ovs
   command: git apply "{{ item }}"
   args:
     chdir: "{{ GIT_HOME.path }}/ovs"
   with_items:
-    - "{{ all_vars.patches }}"
+    - "{{ patches }}"
 
 - name: Cherry pick vlan patch
   shell: |
     set -o pipefail
-    git show "{{ all_vars.vlan_fix_hash }}" | git apply -3 -
+    git show "{{ vlan_fix_hash }}" | git apply -3 -
   args:
     executable: /bin/bash
     chdir: "{{ GIT_HOME.path }}/ovs"
