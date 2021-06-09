@@ -11,19 +11,15 @@
 # limitations under the License.
 #
 
-- name: Validate MAGMA_ROOT env variable
-  fail: msg="MAGMA_ROOT and OUTPUT_DIR are required"
-  when:
-    - MAGMA_ROOT is not defined or OUTPUT_DIR is not defined
+- name: validate MAGMA_ROOT env variable.
+  fail:
+    msg: MAGMA_ROOT is required
+  when: MAGMA_ROOT is not defined
 
 - name: Validate kernel version supported
   fail:
     msg: Kernel {{ ansible_kernel  }} not supported please use 4.9.0-9-amd64
   when: ansible_kernel != '4.9.0-9-amd64'
-
-- name: Converting OUTPUT_DIR to absolute path
-  shell: realpath {{ OUTPUT_DIR }}
-  register: OUTPUT_DIR_ABSOLUTE
 
 - name: Creating "{{ build_folder }}"
   file:
