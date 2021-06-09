@@ -44,7 +44,7 @@ require (
 	github.com/onsi/ginkgo v1.14.0 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.10.0
-	github.com/shirou/gopsutil v2.20.3+incompatible
+	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
 	github.com/stretchr/testify v1.6.1
 	github.com/vishvananda/netlink v1.1.0

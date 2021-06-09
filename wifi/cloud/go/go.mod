@@ -16,7 +16,7 @@ require (
 	github.com/golang/protobuf v1.3.3
 	github.com/labstack/echo v3.3.10+incompatible
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.5.1
+	github.com/stretchr/testify v1.6.1
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0
 )
