@@ -147,6 +147,7 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	msisdn := s.GetCtx().GetMsisdn()
 	if baseAcctEnabled {
 		acctSession = baseAcctSessionFromCtx(s.GetCtx())
+		createdTimeMs = s.GetCtx().GetCreatedTimeMs()
 	}
 	s.Unlock()
 
