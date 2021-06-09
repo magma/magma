@@ -814,16 +814,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                                 encode_imsi(subscriber_id),
                                                 True)
 
-        return ret
-    #grpc handler
-    def GetStats(self, request):
-        self._log_grpc_payload(request)
-        if not self._service_manager.is_app_enabled(
-                EnforcementController.APP_NAME):
-            return None
-        #call intermediate enforcement stats function defined in enforcement_stats.py
-        response = self.get_stats(request.cookie, request.cookie_mask)
-        return response        
+        return ret     
 
         
 
@@ -862,3 +853,14 @@ def _report_enforcement_stats_failures(
             continue
         ENFORCEMENT_STATS_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
                                                    imsi=imsi).inc()
+
+  #grpc handler
+def GetStats(self, request):
+    print("Received request")
+    self._log_grpc_payload(request)
+    if not self._service_manager.is_app_enabled(
+            EnforcementController.APP_NAME):
+        return None
+    #call intermediate enforcement stats function defined in enforcement_stats.py
+    response = self.get_stats(request.cookie, request.cookie_mask)
+    return response                                                     

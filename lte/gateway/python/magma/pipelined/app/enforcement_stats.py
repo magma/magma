@@ -576,7 +576,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         #pass response through get usage from flow stat api to convert to rule record
         print(response[0].body)
         RRTable = self._get_usage_from_flow_stat(response[0].body)
-        print(response)
         return RRTable
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):

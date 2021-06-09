@@ -761,8 +761,12 @@ class EnforcementStatsTest(unittest.TestCase):
             """"
             TODO: Call your new  enforcement_stats function from here and verify output 
             """
-            print(self.enforcement_stats_controller.get_stats())
-        #TO-DO add some assert statements to check fields
+            theStats = self.enforcement_stats_controller.get_stats()
+            print("=======================")
+            print(theStats)
+            stat_name = imsi + '|rule1' + '|' + sub_ip + '|' + "1"
+            self.assertEqual(theStats[stat_name].sid, imsi)
+            self.assertEqual(theStats[stat_name].rule_id, "rule1")
 
 if __name__ == "__main__":
     unittest.main()
