@@ -21,24 +21,13 @@
     msg: Kernel {{ ansible_kernel  }} not supported please use 4.9.0-9-amd64
   when: ansible_kernel != '4.9.0-9-amd64'
 
-- name: Converting WORK_DIR to absolute path
-  shell: realpath {{ WORK_DIR }}
-  register: WORK_DIR_ABSOLUTE
-
 - name: Converting OUTPUT_DIR to absolute path
   shell: realpath {{ OUTPUT_DIR }}
   register: OUTPUT_DIR_ABSOLUTE
 
-- name: Removing "{{ WORK_DIR_ABSOLUTE.stdout }}".
-  become: true
+- name: Creating "{{ build_folder }}"
   file:
-    path: "{{ WORK_DIR_ABSOLUTE.stdout }}"
-    state: absent
-    force: true
-
-- name: Creating "{{ WORK_DIR }}"
-  file:
-    path: "{{ WORK_DIR }}"
+    path: "{{ build_folder | realpath }}"
     state: directory
     mode: 0755
   register: GIT_HOME
