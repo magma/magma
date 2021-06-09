@@ -51,23 +51,10 @@
 
 - name: Install build dependencies.
   become: true
-  apt:
-    name: "{{ packages }}"
-  vars:
-    packages:
-      - graphviz
-      - debhelper
-      - dh-autoreconf
-      - python-all
-      - python-twisted-conch
-      - module-assistant
-      - openssl
-      - pkg-config
-      - libssl-dev
-      - build-essential
-      - libcap-ng-dev
-      - git
-      - ruby-dev
+  package:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ packages }}"
 
 - name: Ensure correct kernel headers are installed.
   shell: "apt -y install linux-headers-$(uname -r)"
