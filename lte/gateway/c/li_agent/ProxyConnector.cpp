@@ -61,13 +61,11 @@ int ProxyConnectorImpl::setup_proxy_socket() {
 int ProxyConnectorImpl::load_certificates(SSL_CTX* ctx) {
   if (SSL_CTX_use_certificate_file(ctx, cert_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
-    MLOG(MERROR) << "Private key does not match the public certificate";
     ERR_print_errors_fp(stderr);
     return -1;
   }
   if (SSL_CTX_use_PrivateKey_file(ctx, key_file_.c_str(), SSL_FILETYPE_PEM) <=
       0) {
-    MLOG(MERROR) << "Private key does not match the public certificate";
     ERR_print_errors_fp(stderr);
     return -1;
   }
@@ -118,7 +116,6 @@ int ProxyConnectorImpl::send_data(void* data, uint32_t size) {
 }
 
 void ProxyConnectorImpl::cleanup() {
-  MLOG(MERROR) << "Calling cleanup";
   SSL_free(ssl_);
   close(proxy_);
   SSL_CTX_free(ctx_);

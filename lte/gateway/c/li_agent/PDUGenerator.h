@@ -12,14 +12,14 @@
  */
 #pragma once
 
-#include <string>
 #include <uuid/uuid.h>
 #include <tins/tins.h>
-#include <unordered_map>
 
-#include <lte/protos/mconfig/mconfigs.pb.h>
+#include <unordered_map>
+#include <string>
 
 #include "includes/MConfigLoader.h"
+#include <lte/protos/mconfig/mconfigs.pb.h>
 #include "magma_logging.h"
 #include "ProxyConnector.h"
 #include "MobilitydClient.h"

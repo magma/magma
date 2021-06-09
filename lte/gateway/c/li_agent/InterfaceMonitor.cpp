@@ -12,6 +12,7 @@
  */
 
 #include <stdio.h>
+#include <utility>
 
 #include "InterfaceMonitor.h"
 #include "magma_logging.h"

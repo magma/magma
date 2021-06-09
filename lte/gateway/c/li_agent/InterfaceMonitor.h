@@ -12,9 +12,10 @@
  */
 #pragma once
 
+#include <pcap.h>
+
 #include <string>
 #include <memory>
-#include <pcap.h>
 
 #include "PDUGenerator.h"
 
@@ -33,7 +34,7 @@ class InterfaceMonitor {
   /**
    * init_iface_pcap_monitor starts a live pcap sniffing for an interface
    * provided in service configuration.
-   * @return return positif integer if interface monitoring starts successfuly.
+   * @return return positif integer if interface monitoring starts successfully.
    */
   int init_interface_monitor();
   int start_capture();

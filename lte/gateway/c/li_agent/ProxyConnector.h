@@ -33,7 +33,7 @@ class ProxyConnectorImpl : public ProxyConnector {
       const std::string& cert_file, const std::string& key_file);
 
   /**
-   * setup_proxy_socket instanciate ssl library and opens a tls connection
+   * setup_proxy_socket instantiate ssl library and opens a tls connection
    * @return return positif integer if it successeds.
    */
   int setup_proxy_socket();

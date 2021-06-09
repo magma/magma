@@ -10,22 +10,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <chrono>
-#include <limits>
-#include <thread>
 
 #include <netinet/ip.h>
 #include <net/ethernet.h>
+#include <gtest/gtest.h>
+
+#include <limits>
+#include <utility>
 
 #include "Consts.h"
 #include "PDUGenerator.h"
 #include "LIAgentdMocks.h"
 
-#include <gtest/gtest.h>
-
 using grpc::Status;
 
-using testing::DoAll;
 using ::testing::InvokeArgument;
 using ::testing::Return;
 using ::testing::Test;

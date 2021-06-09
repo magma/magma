@@ -11,16 +11,17 @@
  * limitations under the License.
  */
 
-#include <future>
-#include <string>
-#include <memory>
-#include <vector>
+#include "PDUGenerator.h"
+#include "Utilities.h"
+
 #include <uuid/uuid.h>
 #include <netinet/ip.h>
 #include <net/ethernet.h>
 
-#include "PDUGenerator.h"
-#include "Utilities.h"
+#include <future>
+#include <string>
+#include <memory>
+#include <utility>
 
 namespace magma {
 namespace lte {
@@ -188,7 +189,7 @@ void* PDUGenerator::generate_record(
   state.last_exported = phdr->ts.tv_sec;
   state.sequence_number++;
 
-  return (void*) record;
+  return reinterpret_cast<void*>(record);
 }
 
 bool PDUGenerator::export_record(void* record, uint32_t size, int retries) {
