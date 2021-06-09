@@ -178,7 +178,7 @@ clang_warning_oai_upload: build_oai_clang ## Generate and then upload warning st
 		--data-urlencode "entry.599425517=$(shell grep '\[-Wtypedef-redefinition\]' /tmp/clang-build.oai.log | wc -l)" \
 		https://docs.google.com/forms/d/e/1FAIpQLScKB3nLPASxzr4AXW5_yeHCjkEURY0K9OAFPIyNFzkA5CY_kw/formResponse?usp=pp_url
 
-build_sctpd: format_sctpd build_common ## Build SCTPD
+build_sctpd: format_sctpd
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
 build_session_manager: format_session_manager build_common ## Build session manager

@@ -12,20 +12,38 @@
  */
 #pragma once
 
+#include <string>
+#include <memory>
 #include <gmock/gmock.h>
 #include <grpc++/grpc++.h>
 #include <gtest/gtest.h>
 
-#include <folly/io/async/EventBase.h>
+#include "lte/protos/mobilityd.pb.h"
+#include "lte/protos/mobilityd.grpc.pb.h"
+#include "includes/GRPCReceiver.h"
 
-#include "DirectorydClient.h"
+#include "MobilitydClient.h"
 #include "ProxyConnector.h"
+#include "Utilities.h"
 
 using grpc::Status;
 using ::testing::_;
 using ::testing::Return;
 
 namespace magma {
+namespace lte {
+
+magma::mconfig::LIAgentD create_liagentd_mconfig(
+    const std::string& task_id, const std::string& target_id) {
+  auto mconfig = get_default_mconfig();
+  magma::mconfig::NProbeTask np_task;
+  np_task.set_task_id(task_id);
+  np_task.set_target_id(target_id);
+
+  auto task = mconfig.add_nprobe_tasks();
+  task->CopyFrom(np_task);
+  return mconfig;
+}
 
 class MockProxyConnector : public ProxyConnector {
  public:
@@ -36,15 +54,16 @@ class MockProxyConnector : public ProxyConnector {
   MOCK_METHOD0(cleanup, void());
 };
 
-class MockDirectorydClient : public DirectorydClient {
+class MockMobilitydClient : public MobilitydClient {
  public:
-  ~MockDirectorydClient() {}
+  ~MockMobilitydClient() {}
 
   MOCK_METHOD2(
-      get_directoryd_xid_field,
+      get_subscriber_id_from_ip,
       void(
-          const std::string& ip,
-          std::function<void(Status status, DirectoryField)> callback));
+          const struct in_addr& addr,
+          std::function<void(Status, magma::lte::SubscriberID)> callback));
 };
 
+}  // namespace lte
 }  // namespace magma
