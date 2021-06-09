@@ -217,18 +217,13 @@ class MetricsCollector(object):
         )
 
     def _chunk_samples(self, samples):
-        # Add 1kiB fpr gRPC overhead
-        sample_size_bytes = sum(s.ByteSize() for s in samples) + 1000
-
-        buckets = math.ceil(
-            sample_size_bytes / self.grpc_max_msg_size_bytes,
-        )
-        chunk_size_bytes = sample_size_bytes // buckets
+        # Add 1kiB for gRPC overhead
+        max_msg_bytes = self.grpc_max_msg_size_bytes - 1000
 
         chunked_samples = []
         chunked_samples_size = 0
         for s in samples:
-            if chunked_samples_size + s.ByteSize() <= chunk_size_bytes:
+            if chunked_samples_size + s.ByteSize() <= max_msg_bytes:
                 chunked_samples.append(s)
                 chunked_samples_size += s.ByteSize()
             else:
