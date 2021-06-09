@@ -66,12 +66,8 @@
     src: sshd_config
     dest: /etc/ssh/sshd_config
   become: true
-
-- name: Restart service ssh
-  become: true
-  service:
-    name: ssh
-    state: restarted
+  notify:
+    - Restart service ssh
 
 - name: Install FPM
   become: true
