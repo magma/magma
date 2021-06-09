@@ -786,7 +786,6 @@ nas_auth_info_proc_t* nas_new_cn_auth_info_procedure(
   if (wrapper) {
     wrapper->proc = &auth_info_proc->cn_proc;
     LIST_INSERT_HEAD(&emm_context->emm_procedures->cn_procs, wrapper, entries);
-    OAILOG_TRACE(LOG_NAS_EMM, "New CN_PROC_AUTH_INFO\n");
     return auth_info_proc;
   } else {
     free_wrapper((void**) &auth_info_proc);

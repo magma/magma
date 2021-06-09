@@ -67,20 +67,22 @@ enum amf_primitive_t {
   AMFREG_COMMON_PROC_REJ,
   AMFREG_COMMON_PROC_ABORT,
   /* AMFAS-SAP */
-  AMFAS_SECURITY_REQ        = _AMFAS_SECURITY_REQ,
-  AMFAS_SECURITY_IND        = _AMFAS_SECURITY_IND,
-  AMFAS_SECURITY_RES        = _AMFAS_SECURITY_RES,
-  AMFAS_SECURITY_REJ        = _AMFAS_SECURITY_REJ,
-  AMFAS_ESTABLISH_REQ       = _AMFAS_ESTABLISH_REQ,
-  AMFAS_ESTABLISH_CNF       = _AMFAS_ESTABLISH_CNF,
-  AMFAS_ESTABLISH_REJ       = _AMFAS_ESTABLISH_REJ,
-  AMFAS_RELEASE_REQ         = _AMFAS_RELEASE_REQ,
-  AMFREG_REGISTRATION_REJ   = _AMFREG_REGISTRATION_REJ,
-  AMFAS_DATA_IND            = _AMFAS_DATA_IND,
-  AMFREG_REGISTRATION_CNF   = _AMFREG_REGISTRATION_CNF,
-  AMFREG_DEREGISTRATION_REQ = _AMFREG_DEREGISTRATION_REQ,
-  AMFAS_DATA_REQ            = _AMFAS_DATA_REQ,
-  AMFCN_CS_RESPONSE         = AMFCN_SMC_PARAM_RES,
+  AMFAS_SECURITY_REQ              = _AMFAS_SECURITY_REQ,
+  AMFAS_SECURITY_IND              = _AMFAS_SECURITY_IND,
+  AMFAS_SECURITY_RES              = _AMFAS_SECURITY_RES,
+  AMFAS_SECURITY_REJ              = _AMFAS_SECURITY_REJ,
+  AMFAS_ESTABLISH_REQ             = _AMFAS_ESTABLISH_REQ,
+  AMFAS_ESTABLISH_CNF             = _AMFAS_ESTABLISH_CNF,
+  AMFAS_ESTABLISH_REJ             = _AMFAS_ESTABLISH_REJ,
+  AMFAS_RELEASE_REQ               = _AMFAS_RELEASE_REQ,
+  AMFREG_REGISTRATION_REJ         = _AMFREG_REGISTRATION_REJ,
+  AMFAS_DATA_IND                  = _AMFAS_DATA_IND,
+  AMFREG_REGISTRATION_CNF         = _AMFREG_REGISTRATION_CNF,
+  AMFREG_DEREGISTRATION_REQ       = _AMFREG_DEREGISTRATION_REQ,
+  AMFAS_DATA_REQ                  = _AMFAS_DATA_REQ,
+  AMFCN_CS_RESPONSE               = _AMFCN_SMC_PARAM_RES,
+  AMFCN_AUTHENTICATION_PARAM_RES  = _AMFCN_AUTHENTICATION_PARAM_RES,
+  AMFCN_AUTHENTICATION_PARAM_FAIL = _AMFCN_AUTHENTICATION_PARAM_FAIL
 };
 
 /*
@@ -122,9 +124,23 @@ typedef struct amf_reg_s {
   sap_primitive_t u;
 } amf_reg_t;
 
+typedef struct amf_cn_auth_res_s {
+  /* UE identifier */
+  amf_ue_ngap_id_t ue_id;
+
+  /* For future use: nb of vectors provided */
+  uint8_t nb_vectors;
+
+  /* Consider only one E-UTRAN vector for the moment... */
+  eutran_vector_t* vector[MAX_EPS_AUTH_VECTORS];
+} amf_cn_auth_res_t;
+
 // typedef struct amf_ul_s {
 typedef struct amf_cn_s {
   amf_cn_primitive_t primitive;
+  union {
+    amf_cn_auth_res_t* auth_res;
+  } u;
 } amf_cn_t;
 
 typedef struct primitive_s {

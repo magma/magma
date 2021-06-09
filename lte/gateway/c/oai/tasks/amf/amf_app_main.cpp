@@ -27,10 +27,11 @@ extern "C" {
 #endif
 #include "amf_app_messages_types.h"
 #include "amf_config.h"
-#include "amf_data.h"
 #include "amf_fsm.h"
 #include "amf_app_ue_context_and_proc.h"
+#include "amf_data.h"
 #include "amf_app_defs.h"
+#include "amf_authentication.h"
 #include "ngap_messages_types.h"
 #include "amf_app_state_manager.h"
 #include "common_defs.h"
@@ -55,6 +56,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
   amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
   imsi64_t imsi64                = itti_get_associated_imsi(received_message_p);
+
   switch (ITTI_MSG_ID(received_message_p)) {
     /* Handle Initial UE message from NGAP */
     case NGAP_INITIAL_UE_MESSAGE:
@@ -80,6 +82,14 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       amf_app_handle_pdu_session_response(
           &N11_CREATE_PDU_SESSION_RESPONSE(received_message_p));
       break;
+    case AMF_APP_SUBS_AUTH_INFO_RESP:
+      // response_p =
+      // &(received_message_p->ittiMsg.amf_app_subs_auth_info_resp); auth_info =
+      // &(response_p->auth_info);
+      amf_nas_proc_authentication_info_answer(
+          &AMF_APP_AUTH_RESPONSE_DATA(received_message_p));
+      break;
+
     /* Handle PDU session resource setup response */
     case NGAP_PDUSESSIONRESOURCE_SETUP_RSP:
       /* This is non-nas message and can be handled directly to check if failure

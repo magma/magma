@@ -116,9 +116,6 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
   amf_context->amf_procedures->amf_specific_proc =
       new nas_amf_specific_proc_t();
 
-  memset(
-      amf_context->amf_procedures->amf_specific_proc, 0,
-      sizeof(nas_amf_specific_proc_t));
   amf_context->amf_procedures->amf_specific_proc->amf_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
   amf_context->amf_procedures->amf_specific_proc->amf_proc.base_proc.type =
@@ -127,10 +124,13 @@ nas_amf_registration_proc_t* nas_new_registration_procedure(
       NAS_AMF_PROC_TYPE_CONN_MNGT;
   amf_context->amf_procedures->amf_specific_proc->type =
       AMF_SPEC_PROC_TYPE_REGISTRATION;
+
   nas_amf_registration_proc_t* proc =
       (nas_amf_registration_proc_t*)
           amf_context->amf_procedures->amf_specific_proc;
   proc->registration_accept_sent = 0;
+
+  /* TIMERS_PLACE_HOLDER */
 
   OAILOG_TRACE(
       LOG_NAS_AMF, "New AMF_SPEC_PROC_TYPE_REGISTRATION initialized\n");
@@ -317,16 +317,27 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
   OAILOG_DEBUG(
       LOG_NAS_AMF, " decode_status.integrity_protected_message :%d",
       registration_proc->ies->decode_status.integrity_protected_message);
+
   if (registration_proc) {
     if (registration_proc->ies->imsi) {
-      if (  //(registration_proc->ies->decode_status.mac_matched) ||
-            //(registration_proc->ies->decode_status.integrity_protected_message))
-            //{
-          (registration_proc->ies->decode_status.integrity_protected_message)) {
-        // force authentication, even if not necessary
+      /* If registratin ie is IMSI and if mac matched or
+       * Intergrity type is not protected start authentication
+       * procedure.
+       */
+      if ((registration_proc->ies->decode_status.mac_matched) ||
+          !(registration_proc->ies->decode_status
+                .integrity_protected_message)) {
+        if (amf_context->reg_id_type != M5GSMobileIdentityMsg_SUCI_IMSI) {
+          OAILOG_ERROR(LOG_AMF_APP, "ies and type mismatch \n");
+          OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+        }
+
+        // Convert recevied imsi to uint64
         imsi64_t imsi64 = amf_imsi_to_imsi64(registration_proc->ies->imsi);
+
         amf_ctx_set_valid_imsi(
             amf_context, registration_proc->ies->imsi, imsi64);
+
         rc = amf_start_registration_proc_authentication(
             amf_context, registration_proc);
         if (rc != RETURNok) {
@@ -334,20 +345,7 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
               LOG_NAS_AMF,
               "Failed to start registration authentication procedure! \n");
         }
-      } else if (amf_context->reg_id_type == M5GSMobileIdentityMsg_SUCI_IMSI) {
-        OAILOG_INFO(
-            LOG_AMF_APP,
-            "In SUCI Initial request case Send Auth Req directly\n");
-        imsi64_t imsi64 = amf_imsi_to_imsi64(registration_proc->ies->imsi);
-        amf_ctx_set_valid_imsi(
-            amf_context, registration_proc->ies->imsi, imsi64);
-        rc = amf_start_registration_proc_authentication(
-            amf_context, registration_proc);
-        if (rc != RETURNok) {
-          OAILOG_ERROR(
-              LOG_NAS_AMF,
-              "Failed to start registration authentication procedure! \n");
-        }
+
       } else {
         // force identification, even if not necessary
         rc = amf_proc_identification(
@@ -365,6 +363,8 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
           amf_context, (nas_amf_proc_t*) registration_proc,
           IDENTITY_TYPE_2_IMSI, amf_registration_success_identification_cb,
           amf_registration_failure_identification_cb);
+    } else {
+      OAILOG_ERROR(LOG_NAS_AMF, "Unsupported IE type! \n");
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

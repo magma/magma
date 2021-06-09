@@ -56,6 +56,14 @@ int amf_sap_send(amf_sap_t* msg) {
      */
     msg->u.amf_as.primitive = (amf_as_primitive_t) primitive;
     rc                      = amf_as_send(&msg->u.amf_as);
+  } else if (
+      (primitive > (amf_primitive_t) AMFCN_PRIMITIVE_MIN) &&
+      (primitive < (amf_primitive_t) AMFCN_PRIMITIVE_MAX)) {
+    /*
+     * Forward to the AMFAS-SAP
+     */
+    msg->u.amf_cn.primitive = (amf_cn_primitive_t) primitive;
+    rc                      = amf_cn_send(&msg->u.amf_cn);
   } else {
     OAILOG_ERROR(LOG_NAS_AMF, "Wrong primitive type received\n");
   }

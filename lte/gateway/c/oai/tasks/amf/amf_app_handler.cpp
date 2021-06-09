@@ -521,7 +521,7 @@ void amf_app_handle_pdu_session_response(
       &(smf_ctx->pdu_resource_setup_req
             .pdu_session_resource_setup_request_transfer
             .qos_flow_setup_request_list),
-      &(pdu_session_resp->qos_list), sizeof(qos_flow_request_list));
+      &(pdu_session_resp->qos_list), sizeof(qos_flow_request_list_t));
   memcpy(
       smf_ctx->gtp_tunnel_id.upf_gtp_teid_ip_addr,
       pdu_session_resp->upf_endpoint.end_ipv4_addr,

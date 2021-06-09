@@ -25,6 +25,7 @@ extern "C" {
 #endif
 #include "common_defs.h"
 #include "amf_asDefs.h"
+#include "amf_data.h"
 #include "amf_fsm.h"
 #include "amf_sap.h"
 #include "amf_config.h"

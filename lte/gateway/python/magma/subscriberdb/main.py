@@ -24,6 +24,7 @@ from .rpc_servicer import SubscriberDBRpcServicer
 from .subscription_profile import get_default_sub_profile
 from .streamer_callback import SubscriberDBStreamerCallback
 from .store.sqlite import SqliteStore
+from .protocols.m5g_auth_servicer import M5GAuthRpcServicer
 from .protocols.s6a_proxy_servicer import S6aProxyRpcServicer
 from lte.protos.mconfig import mconfigs_pb2
 
@@ -67,6 +68,11 @@ def main():
         if not store.list_subscribers():
             # Waiting for subscribers to be added to store
             await store.on_ready()
+
+        if service.config['m5g_auth_proc']:
+            logging.info('Cater to 5G Authentication')
+            m5g_subs_auth_servicer = M5GAuthRpcServicer(processor)
+            m5g_subs_auth_servicer.add_to_server(service.rpc_server)
 
         if service.config['s6a_over_grpc']:
             logging.info('Running s6a over grpc')

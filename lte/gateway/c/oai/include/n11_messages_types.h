@@ -49,10 +49,10 @@ typedef struct non_dynamic_5QI_descriptor_s {
 
 typedef struct qos_characteristics_s {
   non_dynamic_5QI_descriptor non_dynamic_5QI_desc;
-} qos_characteristics;
+} qos_characteristics_t;
 
 typedef struct qos_flow_level_qos_parameters_s {
-  qos_characteristics qos_characteristic;
+  qos_characteristics_t qos_characteristic;
   m5g_allocation_and_retention_priority alloc_reten_priority;
 } qos_flow_level_qos_parameters;
 
@@ -64,7 +64,7 @@ typedef struct qos_flow_setup_request_item_s {
 
 typedef struct qos_flow_request_list_s {
   qos_flow_setup_request_item qos_flow_req_item;
-} qos_flow_request_list;
+} qos_flow_request_list_t;
 
 typedef struct amf_pdn_type_value_s {
   pdn_type_value_t pdn_type;
@@ -88,7 +88,7 @@ typedef struct pdu_session_resource_setup_request_transfer_s {
   amf_ue_aggregate_maximum_bit_rate_t pdu_aggregate_max_bit_rate;
   up_transport_layer_information_t up_transport_layer_info;
   amf_pdn_type_value_t pdu_ip_type;
-  qos_flow_request_list qos_flow_setup_request_list;
+  qos_flow_request_list_t qos_flow_setup_request_list;
 } pdu_session_resource_setup_request_transfer_t;
 
 /***********************pdu_res_set_change ends*************************/
@@ -217,7 +217,7 @@ typedef struct itti_n11_create_pdu_session_response_s {
   bool m5gsm_congetion_re_attempt_indicator;
   redirect_server_t pdu_address;
 
-  qos_flow_request_list qos_list;
+  qos_flow_request_list_t qos_list;
   TeidSet_response upf_endpoint;
   uint8_t procedure_trans_identity[2];
 } itti_n11_create_pdu_session_response_t;

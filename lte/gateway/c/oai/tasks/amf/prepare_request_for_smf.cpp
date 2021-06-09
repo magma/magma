@@ -155,7 +155,7 @@ int create_session_grpc_req(amf_smf_establish_t* message, char* imsi) {
   req_common->mutable_sid()->mutable_id()->assign(imsi);
   req_common->mutable_sid()->set_type(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
-  req_common->set_apn("blr");  // TODO upcoming PR this value as default
+  req_common->set_apn("internet");  // TODO upcoming PR this value as default
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
   req_common->set_sm_session_state(magma::lte::SMSessionFSMState::CREATING_0);
   req_common->set_sm_session_version(VERSION_0);
