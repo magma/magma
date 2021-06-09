@@ -80,3 +80,28 @@ func (d *directoryLookupServicer) MapSessionIDsToIMSIs(ctx context.Context, req 
 
 	return &protos.Void{}, err
 }
+
+func (d *directoryLookupServicer) MapSgwCTeidToHWID(ctx context.Context, req *protos.MapSgwCTeidToHWIDRequest) (*protos.Void, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate request")
+	}
+
+	err = d.store.MapSgwCTeidToHWID(req.NetworkID, req.TeidToHwid)
+
+	return &protos.Void{}, err
+}
+
+func (d *directoryLookupServicer) GetHWIDForSgwCTeid(
+	ctx context.Context, req *protos.GetHWIDForSgwCTeidRequest,
+) (*protos.GetHWIDForSgwCTeidResponse, error) {
+	err := req.Validate()
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to validate request")
+	}
+
+	hwid, err := d.store.GetHWIDForSgwCTeid(req.NetworkID, req.Teid)
+	res := &protos.GetHWIDForSgwCTeidResponse{Hwid: hwid}
+
+	return res, err
+}

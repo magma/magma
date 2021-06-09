@@ -103,6 +103,7 @@ func SearchStates(networkID string, typeFilter []string, keyFilter []string, key
 	if err != nil {
 		return nil, err
 	}
+
 	return state_types.MakeStatesByID(res.States, serdes)
 }
 

@@ -34,10 +34,17 @@ variable "deploy_elasticsearch_service_linked_role" {
   default     = true
 }
 
+
 variable "enable_aws_db_notifications" {
   description = "Flag to enable AWS RDS notifications"
   type        = bool
   default     = false
+}
+
+variable "magma_uuid" {
+  description = "UUID to identify Orc8r deployment"
+  type        = string
+  default     = "default"
 }
 
 variable "global_tags" {

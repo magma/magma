@@ -162,6 +162,8 @@ message AAAConfig {
     // enable event logging for aaa events
     bool EventLoggingEnabled = 5;
     RadiusConfig RadiusConfig = 6;
+    // Enable accounting reporting to the module's orc8r service
+    bool AcctReportingEnabled = 7;
 }
 
 message RadiusConfig {
@@ -240,4 +242,5 @@ message S8Config {
     orc8r.LogLevel log_level = 1;
     string local_address = 2;
     string pgw_address = 3;
+    string apn_operator_suffix = 4;
 }

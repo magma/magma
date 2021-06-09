@@ -14,6 +14,7 @@ limitations under the License.
 package storage
 
 import (
+	"fmt"
 	"sort"
 
 	"magma/orc8r/cloud/go/blobstore"
@@ -32,6 +33,9 @@ const (
 
 	// DirectorydTypeSessionIDToIMSI is the blobstore type field for the session ID to IMSI mapping.
 	DirectorydTypeSessionIDToIMSI = "sessionid_to_imsi"
+
+	// DirectorydTypeSessionIDToIMSI is the blobstore type field for the session ID to IMSI mapping.
+	DirectorydTypeSgwCteidToHwid = "sgwCteid_to_hwid"
 
 	// Blobstore needs a network ID, so for network-agnostic types we use a placeholder value.
 	placeholderNetworkID = "placeholder_network"
@@ -117,6 +121,43 @@ func (d *directorydBlobstore) MapSessionIDsToIMSIs(networkID string, sessionIDTo
 	err = store.CreateOrUpdate(networkID, blobs)
 	if err != nil {
 		return errors.Wrap(err, "failed to create or update session ID to IMSI mapping")
+	}
+	return store.Commit()
+}
+
+func (d *directorydBlobstore) GetHWIDForSgwCTeid(networkID, teid string) (string, error) {
+	store, err := d.factory.StartTransaction(&storage.TxOptions{ReadOnly: true})
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("failed to start transaction to get HwID from teid %s", teid))
+	}
+	defer store.Rollback()
+
+	blob, err := store.Get(
+		networkID,
+		storage.TypeAndKey{Type: DirectorydTypeSgwCteidToHwid, Key: teid},
+	)
+	if err == merrors.ErrNotFound {
+		return "", err
+	}
+	if err != nil {
+		return "", errors.Wrap(err, fmt.Sprintf("failed to get HwID from teid %s", teid))
+	}
+
+	hwid := string(blob.Value)
+	return hwid, store.Commit()
+}
+
+func (d *directorydBlobstore) MapSgwCTeidToHWID(networkID string, sgwCTeidToHwid map[string]string) error {
+	store, err := d.factory.StartTransaction(&storage.TxOptions{})
+	if err != nil {
+		return errors.Wrap(err, "failed to start transaction to Map sgwCTeidToHwid")
+	}
+	defer store.Rollback()
+
+	blobs := convertKVToBlobs(DirectorydTypeSgwCteidToHwid, sgwCTeidToHwid)
+	err = store.CreateOrUpdate(networkID, blobs)
+	if err != nil {
+		return errors.Wrap(err, "failed to create or update sgwCTeidToHwid map")
 	}
 	return store.Commit()
 }

@@ -47,13 +47,26 @@ func (s *s6aProxy) sendULR(sid string, req *protos.UpdateLocationRequest, retryC
 	m.NewAVP(avp.ULRFlags, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.Unsigned32(createULR_Flags(req)))
 	m.NewAVP(avp.VisitedPLMNID, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.OctetString(req.VisitedPlmn))
 
+	// Supported feature-List-id-1
+	if req.FeatureListId_2 != nil {
+		m.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+			AVP: []*diam.AVP{
+				diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
+				diam.NewAVP(avp.FeatureListID, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(1)),
+				diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP,
+					datatype.Unsigned32(createFeatureListID1(req.FeatureListId_1))),
+			},
+		})
+	}
+
 	// Supported feature-List-id-2
 	if req.FeatureListId_2 != nil {
 		m.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
 				diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
 				diam.NewAVP(avp.FeatureListID, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(2)),
-				diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(createFeatureListID2(req.FeatureListId_2))),
+				diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP,
+					datatype.Unsigned32(createFeatureListID2(req.FeatureListId_2))),
 			},
 		})
 	}
@@ -78,14 +91,28 @@ func createULR_Flags(req *protos.UpdateLocationRequest) int {
 	return int(ulrFlags)
 }
 
-// createFeatureListID2 creates the Feature-List-ID 2 based on TS 29.272
-func createFeatureListID2(id2 *protos.FeatureListId2) int {
-	if id2 == nil {
+// createFeatureListID1 creates the Feature-List-ID 1 based on TS 29.272
+func createFeatureListID1(featureList *protos.FeatureListId1) int {
+	if featureList == nil {
 		return 0
 	}
 	res := EmptyFlagBit
 	switch {
-	case id2.NrAsSecondaryRat:
+	case featureList.RegionalSubscription:
+		// set bit 9 (TS 29.272 Regional Subscription)
+		res = res | FlagBit9
+	}
+	return int(res)
+}
+
+// createFeatureListID2 creates the Feature-List-ID 2 based on TS 29.272
+func createFeatureListID2(featureList *protos.FeatureListId2) int {
+	if featureList == nil {
+		return 0
+	}
+	res := EmptyFlagBit
+	switch {
+	case featureList.NrAsSecondaryRat:
 		// set bit 27 (TS 29.272 Nr As Secondary Rat)
 		res = res | FlagBit27
 	}
@@ -148,15 +175,13 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 					res.ErrorCode = protos.ErrorCode(ula.ExperimentalResult.ExperimentalResultCode)
 					res.Msisdn = ula.SubscriptionData.MSISDN.Serialize()
 					res.DefaultContextId = ula.SubscriptionData.APNConfigurationProfile.ContextIdentifier
-					res.TotalAmbr = &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
-						MaxBandwidthUl: ula.SubscriptionData.AMBR.MaxRequestedBandwidthUL,
-						MaxBandwidthDl: ula.SubscriptionData.AMBR.MaxRequestedBandwidthDL,
-					}
+					res.TotalAmbr = ula.SubscriptionData.AMBR.getProtoAmbr()
 					res.DefaultChargingCharacteristics = ula.SubscriptionData.TgppChargingCharacteristics
 					res.AllApnsIncluded =
 						ula.SubscriptionData.APNConfigurationProfile.AllAPNConfigurationsIncludedIndicator == 0
 					res.NetworkAccessMode = protos.UpdateLocationAnswer_NetworkAccessMode(ula.SubscriptionData.NetworkAccessMode)
 					res.RegionalSubscriptionZoneCode = make([][]byte, len(ula.SubscriptionData.RegionalSubscriptionZoneCode))
+					res.FeatureListId_1 = getFeatureListID1(ula.SupportedFeatures)
 					res.FeatureListId_2 = getFeatureListID2(ula.SupportedFeatures)
 					for i, code := range ula.SubscriptionData.RegionalSubscriptionZoneCode {
 						res.RegionalSubscriptionZoneCode[i] = code.Serialize()
@@ -174,10 +199,7 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 									PreemptionCapability:    apnCfg.EPSSubscribedQoSProfile.AllocationRetentionPriority.PreemptionCapability == 0,
 									PreemptionVulnerability: apnCfg.EPSSubscribedQoSProfile.AllocationRetentionPriority.PreemptionVulnerability == 0,
 								},
-								Ambr: &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
-									MaxBandwidthUl: apnCfg.AMBR.MaxRequestedBandwidthUL,
-									MaxBandwidthDl: apnCfg.AMBR.MaxRequestedBandwidthDL,
-								},
+								Ambr:                    apnCfg.AMBR.getProtoAmbr(),
 								ChargingCharacteristics: apnCfg.TgppChargingCharacteristics,
 							})
 					}
@@ -197,6 +219,23 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 	return res, err
 }
 
+// getFeatureListID1 creates the Feature-List-ID 1 based on TS 29.272
+func getFeatureListID1(supportedFeatures []SupportedFeatures) *protos.FeatureListId1 {
+	if len(supportedFeatures) == 0 {
+		return nil
+	}
+	protoFeatureList := &protos.FeatureListId1{}
+	for _, features := range supportedFeatures {
+		if features.FeatureListID == 1 {
+			// get bit 27 (TS 29.272 Nr As Secondary Rat)
+			if features.FeatureList&(1<<9) != 0 {
+				protoFeatureList.RegionalSubscription = true
+			}
+		}
+	}
+	return protoFeatureList
+}
+
 // getFeatureListID2 creates the Feature-List-ID 2 based on TS 29.272
 func getFeatureListID2(supportedFeatures []SupportedFeatures) *protos.FeatureListId2 {
 	if len(supportedFeatures) == 0 {
@@ -212,4 +251,19 @@ func getFeatureListID2(supportedFeatures []SupportedFeatures) *protos.FeatureLis
 		}
 	}
 	return protoFeatureList
+}
+
+func (ambr *AMBR) getProtoAmbr() *protos.UpdateLocationAnswer_AggregatedMaximumBitrate {
+	if ambr.ExtendMaxRequestedBwDL != 0 && ambr.ExtendMaxRequestedBwUL != 0 {
+		return &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
+			MaxBandwidthUl: ambr.ExtendMaxRequestedBwUL,
+			MaxBandwidthDl: ambr.ExtendMaxRequestedBwDL,
+			Unit:           protos.UpdateLocationAnswer_AggregatedMaximumBitrate_KBPS,
+		}
+	}
+	return &protos.UpdateLocationAnswer_AggregatedMaximumBitrate{
+		MaxBandwidthUl: ambr.MaxRequestedBandwidthUL,
+		MaxBandwidthDl: ambr.MaxRequestedBandwidthDL,
+		Unit:           protos.UpdateLocationAnswer_AggregatedMaximumBitrate_BPS,
+	}
 }

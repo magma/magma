@@ -130,7 +130,7 @@ RUN wget --progress=dot:giga https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz &&
     make install && \
     ldconfig -v && \
     cd / && \
-    wget --progress=dot:giga http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    wget --progress=dot:giga https://www.gnupg.org/ftp/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
     tar xf gnutls-3.1.23.tar.xz && \
     cd gnutls-3.1.23 && \
     mkdir build && cd build && \
@@ -152,6 +152,16 @@ RUN git clone --recurse-submodules -b v1.35.0 https://github.com/grpc/grpc && \
     make install && \
     cd / && \
     rm -rf grpc
+
+##### libprotobuf-mutator is used for randomized proto unit tests / property tests
+RUN git clone -b v1.0 https://github.com/google/libprotobuf-mutator && \
+    mkdir -p libprotobuf-mutator/build && \
+    cd libprotobuf-mutator/build && \
+    cmake .. -GNinja -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ -DCMAKE_BUILD_TYPE=Debug && \
+    ninja && \
+    ninja install && \
+    cd / && \
+    rm -rf libprotobuf-mutator
 
 ##### Prometheus CPP
 RUN git clone https://github.com/jupp0r/prometheus-cpp.git && \

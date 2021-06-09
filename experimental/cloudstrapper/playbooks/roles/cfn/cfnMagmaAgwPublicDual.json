@@ -3,18 +3,18 @@
     "Parameters": {
       "paramImageBase": {
         "Type": "AWS::EC2::Image::Id",
-	"Description": "Base Image Id",
-	"Default": "ami-09ab3e9698e4f3789"
+	"Description": "Base Image Id of Ubuntu in Tokyo",
+	"Default": "ami-0df99b3a8349462c6"
       },
-      "paramSubnetSgi": {
+      "paramSubnetPublic": {
         "Type": "String",
-	"Description": "SGi Subnet",
-	"Default": "subnet-04dd659b390074dc2"
+	"Description": "Public Subnet",
+	"Default": "subnet-04862fbf7cbfaded3"
       },
-      "paramSubnetEnodeb": {
+      "paramSubnetPrivate": {
         "Type": "String",
-	"Description": "S1 Subnet",
-	"Default": "subnet-0c35690ddbe863271"
+	"Description": "Private Subnet",
+	"Default": "subnet-0f4bb260617e474a8"
       },
       "paramAzHome": {
         "Type": "AWS::EC2::AvailabilityZone::Name",
@@ -24,7 +24,7 @@
       "paramSecGroup": {
         "Type": "String",
 	"Description": "Security Group Name",
-	"Default":"sg-09036f2407ddfdaf3"
+	"Default":"sg-0dafb8281c22ed2a8"
       },
       "paramAgwInstanceType": {
         "Type": "String",
@@ -34,7 +34,7 @@
       "paramSshKey": {
         "Type": "AWS::EC2::KeyPair::KeyName",
 	"Description": "Keypair",
-	"Default": "keyMagmaHostAlpha"
+	"Default": "keyMagmaHostCharlie"
       },
       "paramAgwTagUuid": {
         "Type": "String",
@@ -59,7 +59,7 @@
             "Description": "SGi interface",
             "GroupSet": [ { "Ref": "paramSecGroup" } ],
             "SourceDestCheck" : "true",
-            "SubnetId":{ "Ref": "paramSubnetSgi" }
+            "SubnetId":{ "Ref": "paramSubnetPublic" }
         }
       },
       "NicS1": {
@@ -68,7 +68,7 @@
             "Description": "S1 interface",
             "GroupSet": [ { "Ref": "paramSecGroup" } ],
             "SourceDestCheck" : "true",
-            "SubnetId":{ "Ref": "paramSubnetEnodeb" }
+            "SubnetId":{ "Ref": "paramSubnetPrivate" }
         }
       },
       "Gateway": {

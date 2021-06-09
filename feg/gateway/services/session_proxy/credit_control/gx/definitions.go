@@ -70,12 +70,14 @@ type CreditControlRequest struct {
 }
 
 type QosRequestInfo struct {
-	ApnAggMaxBitRateUL uint32
-	ApnAggMaxBitRateDL uint32
-	QosClassIdentifier uint32
-	PriLevel           uint32
-	PreCapability      uint32
-	PreVulnerability   uint32
+	ApnAggMaxBitRateUL         uint32
+	ApnAggMaxBitRateDL         uint32
+	ApnExtendedAggMaxBitRateUL uint32
+	ApnExtendedAggMaxBitRateDL uint32
+	QosClassIdentifier         uint32
+	PriLevel                   uint32
+	PreCapability              uint32
+	PreVulnerability           uint32
 }
 
 // CreditControlAnswer represents the gx CCA message we're expecting
@@ -90,6 +92,7 @@ type CreditControlAnswer struct {
 	UsageMonitors          []*UsageMonitoringInfo
 	EventTriggers          []EventTrigger
 	RevalidationTime       *time.Time
+	Qos                    *QosInformation
 }
 
 type UsageReport struct {
@@ -134,12 +137,14 @@ type RuleDefinition struct {
 
 // QoS per service date flow message
 type QosInformation struct {
-	BearerIdentifier string  `avp:"Bearer-Identifier"`
-	MaxReqBwUL       *uint32 `avp:"Max-Requested-Bandwidth-UL"`
-	MaxReqBwDL       *uint32 `avp:"Max-Requested-Bandwidth-DL"`
-	GbrDL            *uint32 `avp:"Guaranteed-Bitrate-DL"`
-	GbrUL            *uint32 `avp:"Guaranteed-Bitrate-UL"`
-	Qci              *uint32 `avp:"QoS-Class-Identifier"`
+	BearerIdentifier   string  `avp:"Bearer-Identifier"`
+	MaxReqBwUL         *uint32 `avp:"Max-Requested-Bandwidth-UL"`
+	MaxReqBwDL         *uint32 `avp:"Max-Requested-Bandwidth-DL"`
+	ExtendedMaxReqBwUL *uint32 `avp:"Extended-Max-Requested-BW-UL"`
+	ExtendedMaxReqBwDL *uint32 `avp:"Extended-Max-Requested-BW-DL"`
+	GbrDL              *uint32 `avp:"Guaranteed-Bitrate-DL"`
+	GbrUL              *uint32 `avp:"Guaranteed-Bitrate-UL"`
+	Qci                *uint32 `avp:"QoS-Class-Identifier"`
 }
 
 // RuleInstallAVP represents a policy rule to install. It can hold one of
@@ -181,6 +186,7 @@ type CCADiameterMessage struct {
 	UsageMonitors    []*UsageMonitoringInfo `avp:"Usage-Monitoring-Information"`
 	EventTriggers    []EventTrigger         `avp:"Event-Trigger"`
 	RevalidationTime *time.Time             `avp:"Revalidation-Time"`
+	Qos              *QosInformation        `avp:"QoS-Information"`
 }
 
 //<RA-Request> ::= 	< Diameter Header: 258, REQ, PXY >

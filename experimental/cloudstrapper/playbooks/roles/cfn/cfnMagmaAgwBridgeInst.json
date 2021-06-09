@@ -1,0 +1,60 @@
+{
+    "AWSTemplateFormatVersion": "2010-09-09",
+    "Parameters": {
+      "paramImageBase": {
+        "Type": "AWS::EC2::Image::Id",
+	"Description": "In-region Cloudstrapper AMI",
+	"Default": "ami-03865ac2b925f8056"
+      },
+      "paramSubnetBridge": {
+        "Type": "String",
+	"Description": "Bridge Subnet",
+	"Default": "subnet-034e3964878b0a572"
+      },
+      "paramAzHome": {
+        "Type": "AWS::EC2::AvailabilityZone::Name",
+	"Description": "Base Availability Zone",
+	"Default": "ap-northeast-1a"
+      },
+      "paramSecGroup": {
+        "Type": "String",
+	"Description": "Security Group Name",
+	"Default":"sg-0b7fbe50f1c8a15d4"
+      },
+      "paramSshKey": {
+        "Type": "AWS::EC2::KeyPair::KeyName",
+	"Description": "Keypair",
+	"Default": "keyMagmaHostCharlie"
+      },
+      "paramAgwTagName": {
+        "Type": "String",
+	"Description": "Tag Name",
+	"Default":"Bridge Instance"
+      }
+    },
+    "Resources": {
+        "GatewayA": {
+            "Type": "AWS::EC2::Instance",
+            "Properties": {
+                "ImageId": { "Ref": "paramImageBase" },
+                "InstanceType": "t2.micro",
+                "KeyName": { "Ref": "paramSshKey" },
+		"AvailabilityZone":{ "Ref": "paramAzHome" },
+		"NetworkInterfaces": [
+		  {
+        "AssociatePublicIpAddress" : "true",
+		    "DeleteOnTermination": "true",
+		    "Description": "SGi interface",
+		    "DeviceIndex": "0",
+		    "GroupSet": [ { "Ref": "paramSecGroup" } ],
+		    "SubnetId":{ "Ref": "paramSubnetBridge" }
+		   }
+                ],
+		"Tags": [
+			{ "Key": "Name", "Value": { "Ref": "paramAgwTagName"} },
+			{ "Key": "Purpose","Value":"Bridge Instance Connecting AGWs" }
+			]
+            }
+        }
+    }
+}

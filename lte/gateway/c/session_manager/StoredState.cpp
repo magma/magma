@@ -13,6 +13,8 @@
 
 #include <google/protobuf/timestamp.pb.h>
 #include <google/protobuf/util/time_util.h>
+#include <lte/protos/pipelined.grpc.pb.h>
+#include <lte/protos/session_manager.grpc.pb.h>
 
 #include <string>
 #include <unordered_map>
@@ -49,9 +51,24 @@ optional<AggregatedMaximumBitrate> SessionConfig::get_apn_ambr() const {
     const auto& qos_info = rat_specific_context.lte_context().qos_info();
     max_bitrate.set_max_bandwidth_ul(qos_info.apn_ambr_ul());
     max_bitrate.set_max_bandwidth_dl(qos_info.apn_ambr_dl());
+    max_bitrate.set_br_unit(get_apn_ambr_units(qos_info.br_unit()));
     return max_bitrate;
   }
   return {};
+}
+
+AggregatedMaximumBitrate_BitrateUnitsAMBR SessionConfig::get_apn_ambr_units(
+    QosInformationRequest_BitrateUnitsAMBR units) const {
+  switch (units) {
+    case QosInformationRequest_BitrateUnitsAMBR_BPS:
+      return AggregatedMaximumBitrate_BitrateUnitsAMBR_BPS;
+    case QosInformationRequest_BitrateUnitsAMBR_KBPS:
+      return AggregatedMaximumBitrate_BitrateUnitsAMBR_KBPS;
+    default:
+      MLOG(MERROR) << "QOS bitrate unit not implemented (" << units
+                   << "). Setting BPS";
+      return AggregatedMaximumBitrate_BitrateUnitsAMBR_BPS;
+  }
 }
 
 SessionStateUpdateCriteria get_default_update_criteria() {
@@ -361,6 +378,21 @@ std::string serialize_pending_event_triggers(
   return serialized;
 }
 
+RuleStats deserialize_rule_stats(std::string& serialized) {
+  auto folly_serialized    = folly::StringPiece(serialized);
+  folly::dynamic marshaled = folly::parseJson(folly_serialized);
+  auto stored              = RuleStats{};
+
+  stored.tx = static_cast<uint64_t>(std::stoul(marshaled["tx"].getString()));
+  stored.rx = static_cast<uint64_t>(std::stoul(marshaled["rx"].getString()));
+  stored.dropped_rx =
+      static_cast<uint64_t>(std::stoul(marshaled["dropped_rx"].getString()));
+  stored.dropped_tx =
+      static_cast<uint64_t>(std::stoul(marshaled["dropped_tx"].getString()));
+
+  return stored;
+}
+
 PolicyStatsMap deserialize_policy_stats_map(std::string& serialized) {
   auto folly_serialized    = folly::StringPiece(serialized);
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
@@ -373,6 +405,11 @@ PolicyStatsMap deserialize_policy_stats_map(std::string& serialized) {
         static_cast<uint32_t>(map[key]["current_version"].getInt());
     stats.last_reported_version =
         static_cast<uint32_t>(map[key]["last_reported_version"].getInt());
+    for (auto& key2 : map[key]["stats_keys"]) {
+      int stat_key = static_cast<uint64_t>(std::stoul(key2.getString()));
+      stats.stats_map[stat_key] =
+          deserialize_rule_stats(map[key]["stats_map"][key2].getString());
+    }
     stored[key.getString()] = stats;
   }
   return stored;
@@ -383,16 +420,34 @@ std::string serialize_policy_stats_map(PolicyStatsMap stats_map) {
 
   folly::dynamic keys = folly::dynamic::array;
   folly::dynamic map  = folly::dynamic::object;
-  for (auto& stats_pair : stats_map) {
-    auto key = stats_pair.first;
+
+  for (auto& policy_pair : stats_map) {
+    auto key = policy_pair.first;
     keys.push_back(key);
-    folly::dynamic stats = folly::dynamic::object;
-    stats["current_version"] =
-        static_cast<int>(stats_pair.second.current_version);
-    stats["last_reported_version"] =
-        static_cast<int>(stats_pair.second.last_reported_version);
-    map[key] = stats;
+    folly::dynamic usage = folly::dynamic::object;
+    usage["current_version"] =
+        static_cast<int>(policy_pair.second.current_version);
+    usage["last_reported_version"] =
+        static_cast<int>(policy_pair.second.last_reported_version);
+
+    folly::dynamic stats_keys = folly::dynamic::array;
+    folly::dynamic stats_map  = folly::dynamic::object;
+    for (auto& stat : policy_pair.second.stats_map) {
+      std::string version_str = std::to_string(stat.first);
+      stats_keys.push_back(version_str);
+      folly::dynamic stats   = folly::dynamic::object;
+      stats["tx"]            = std::to_string(stat.second.tx);
+      stats["rx"]            = std::to_string(stat.second.rx);
+      stats["dropped_tx"]    = std::to_string(stat.second.dropped_tx);
+      stats["dropped_rx"]    = std::to_string(stat.second.dropped_rx);
+      stats_map[version_str] = folly::toJson(stats);
+    }
+    usage["stats_keys"] = stats_keys;
+    usage["stats_map"]  = stats_map;
+
+    map[key] = usage;
   }
+
   marshaled["policy_stats_keys"] = keys;
   marshaled["policy_stats_map"]  = map;
 

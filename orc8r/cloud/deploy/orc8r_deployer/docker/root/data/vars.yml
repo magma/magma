@@ -166,6 +166,19 @@ infra:
     Required: false
     ConfigApps:
       - tf
+  magma_uuid:
+    Default: "default"
+    Description: "UUID to identify Orc8r deployment"
+    Type: string
+    Required: false
+    ConfigApps:
+      - tf
+  global_tags:
+    Description: n/a
+    Type: map
+    Required: false
+    ConfigApps:
+      - tf
 platform:
   deploy_elasticsearch:
     Default: true
@@ -275,12 +288,6 @@ platform:
     Required: false
     ConfigApps:
       - tf
-  global_tags:
-    Description: n/a
-    Type: map
-    Required: false
-    ConfigApps:
-      - tf
   orc8r_db_engine_version:
     Default: 9.6.15
     Description: Postgres engine version for Orchestrator DB.
@@ -348,21 +355,24 @@ service:
     ConfigApps:
       - tf
   docker_pass:
+    Default: ""
     Description: Docker registry password.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   docker_registry:
+    Default: "docker.artifactory.magmacore.org"
     Description: Docker registry to pull Orchestrator containers from.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   docker_user:
+    Default: ""
     Description: Docker username to login to registry with.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   efs_file_system_id:
@@ -420,7 +430,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.3
+    Default: 0.2.4
   helm_deployment_name:
     Description: Name for the Helm release.
     Type: string
@@ -428,21 +438,24 @@ service:
     ConfigApps:
       - tf
   helm_pass:
+    Default: ""
     Description: Helm repository password.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   helm_repo:
+    Default: "https://artifactory.magmacore.org/artifactory/helm/"
     Description: Helm repository URL for Orchestrator charts.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   helm_user:
+    Default: ""
     Description: Helm username to login to repository with.
     Type: string
-    Required: true
+    Required: false
     ConfigApps:
       - tf
   install_tiller:
@@ -508,6 +521,7 @@ service:
     ConfigApps:
       - tf
   orc8r_tag:
+    Default: "1.5.0"
     Description: Image tag for Orchestrator components.
     Type: string
     Required: true
@@ -656,6 +670,13 @@ service:
     ConfigApps:
       - tf
   thanos_enabled:
+    Description: Deploy thanos components and object storage
+    Type: bool
+    Default: false
+    Required: false
+    ConfigApps:
+      - tf
+  cloudwatch_exporter_enabled:
     Description: Deploy thanos components and object storage
     Type: bool
     Default: false

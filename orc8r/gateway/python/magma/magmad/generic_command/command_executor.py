@@ -61,8 +61,10 @@ def get_command_executor_impl(service):
     impl_class = config.get('class', None)
     assert module is not None, 'generic command module not found'
     assert impl_class is not None, 'generic command class not found'
-    command_executor_class = getattr(importlib.import_module(module),
-                                     impl_class)
+    command_executor_class = getattr(
+        importlib.import_module(module),
+        impl_class,
+    )
     command_executor = command_executor_class(service.config, service.loop)
     assert isinstance(command_executor, CommandExecutor), \
         'command_executor is not an instance of CommandExecutor'

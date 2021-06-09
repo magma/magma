@@ -94,9 +94,11 @@ def cloud_grpc_wrapper(func):
     return wrapper
 
 
-def set_grpc_err(context: grpc.ServicerContext,
-                 code: grpc.StatusCode,
-                 details: str):
+def set_grpc_err(
+    context: grpc.ServicerContext,
+    code: grpc.StatusCode,
+    details: str,
+):
     """
     Sets status code and details for a gRPC context. Removes commas from
     the details message (see https://github.com/grpc/grpc-node/issues/769)
@@ -129,7 +131,7 @@ def grpc_async_wrapper(gf, loop=None):
     if loop is None:
         loop = asyncio.get_event_loop()
     gf.add_done_callback(
-        lambda _: loop.call_soon_threadsafe(_grpc_async_wrapper, f, gf)
+        lambda _: loop.call_soon_threadsafe(_grpc_async_wrapper, f, gf),
     )
     return f
 
@@ -138,8 +140,10 @@ def is_grpc_error_retryable(error: grpc.RpcError) -> bool:
     status_code = error.code()
     error_details = error.details()
     if status_code == grpc.StatusCode.UNAVAILABLE and \
-            any(err_msg.value in error_details for err_msg in
-                RetryableGrpcErrorDetails):
+            any(
+                err_msg.value in error_details for err_msg in
+                RetryableGrpcErrorDetails
+            ):
         # server end closed connection.
         return True
     return False

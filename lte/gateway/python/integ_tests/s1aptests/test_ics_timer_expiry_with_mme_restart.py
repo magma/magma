@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import time
+import unittest
 
 import gpp_types
 import s1ap_types
@@ -23,7 +23,7 @@ from s1ap_utils import MagmadUtil
 class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
@@ -71,11 +71,11 @@ class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
         req.ue_Id = ue_id
         req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         print("*** Sending indication to drop Initial Context Setup Req ***")
@@ -85,7 +85,7 @@ class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
         # Timer to release UE context at s1ap tester
         drop_init_ctxt_setup_req.tmrVal = 2000
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req
+            s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req,
         )
 
         print(
@@ -99,14 +99,14 @@ class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
         req.ueMtmsi.pres = False
         req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req
+            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
         )
 
         # enbApp sends UE_ICS_DROPD_IND message to tfwApp after dropping
         # ICS request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value,
         )
         print("************************* Restarting MME service on gateway")
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])
@@ -117,7 +117,7 @@ class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         print(
@@ -127,7 +127,7 @@ class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
         print("************************* Running UE detach for UE id ", ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
 

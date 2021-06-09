@@ -157,7 +157,8 @@ class RedisHashDict(redis_collections.DefaultDict):
         self._pickle_value = serialize
         self._unpickle = deserialize
         super().__init__(
-            default_factory, redis=client, key=key, writeback=writeback)
+            default_factory, redis=client, key=key, writeback=writeback,
+        )
 
     def __setitem__(self, key, value):
         """Set ``d[key]`` to *value*.
@@ -201,8 +202,10 @@ class RedisFlatDict(MutableMapping[str, T]):
     dict stores key directly (i.e. without a hashmap).
     """
 
-    def __init__(self, client: redis.Redis, serde: RedisSerde[T],
-                 writethrough: bool = False):
+    def __init__(
+        self, client: redis.Redis, serde: RedisSerde[T],
+        writethrough: bool = False,
+    ):
         """
         Args:
             client (redis.Redis): Redis client object

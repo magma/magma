@@ -27,6 +27,9 @@ type NetworkProbeTaskDetails struct {
 	// Enum: [all events_only]
 	DeliveryType string `json:"delivery_type"`
 
+	// domain id
+	DomainID string `json:"domain_id,omitempty"`
+
 	// the duration in seconds after which the task will expire.
 	// Minimum: 0
 	Duration *int64 `json:"duration,omitempty"`

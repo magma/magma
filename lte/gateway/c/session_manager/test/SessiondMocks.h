@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "LocalSessionManagerHandler.h"
+#include "UpfMsgManageHandler.h"
 #include "PipelinedClient.h"
 #include "RuleStore.h"
 #include "SessionReporter.h"
@@ -308,6 +309,16 @@ class MockEventsReporter : public EventsReporter {
   MOCK_METHOD2(
       session_terminated,
       void(const std::string&, const std::unique_ptr<SessionState>&));
+};
+
+class MockSetInterfaceForUserPlane final
+    : public SetInterfaceForUserPlane::Service {
+ public:
+  MockSetInterfaceForUserPlane() : SetInterfaceForUserPlane::Service() {}
+  MOCK_METHOD3(
+      SetUPFNodeState, Status(
+                           grpc::ServerContext*, const UPFNodeState*,
+                           std::function<void(Status, SmContextVoid)>));
 };
 
 }  // namespace magma

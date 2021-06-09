@@ -11,14 +11,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
-import ipaddress
 from lte.protos.policydb_pb2 import FlowMatch
 
 
@@ -178,11 +178,11 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
             gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         )
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, rel_req
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, rel_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         # Verify if paging flow rules are created
@@ -223,7 +223,7 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value,
         )
 
         print("*********** Received Paging for UE id ", ue_id)
@@ -235,20 +235,20 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         ser_req.ueMtmsi.pres = False
         ser_req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_SIGNALLING.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req
+            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
 
         print("*********** Received ICS Request for UE id ", ue_id)
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_req_oai_apn1 = response.cast(
-            s1ap_types.UeActDedBearCtxtReq_t
+            s1ap_types.UeActDedBearCtxtReq_t,
         )
         print(
             "*********** Received Activate dedicated EPS bearer"
@@ -256,14 +256,14 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
             act_ded_ber_req_oai_apn1.bearerId,
         )
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            ue_id, act_ded_ber_req_oai_apn1.bearerId
+            ue_id, act_ded_ber_req_oai_apn1.bearerId,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
         )
         act_ded_ber_req_oai_apn2 = response.cast(
-            s1ap_types.UeActDedBearCtxtReq_t
+            s1ap_types.UeActDedBearCtxtReq_t,
         )
         print(
             "*********** Received Activate dedicated EPS bearer"
@@ -272,7 +272,7 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         )
 
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            ue_id, act_ded_ber_req_oai_apn2.bearerId
+            ue_id, act_ded_ber_req_oai_apn2.bearerId,
         )
 
         # Verify if flow rules are created
@@ -280,7 +280,7 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         # 1 UL flow is created per bearer
         num_ul_flows = 3
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         print("*********** Sleeping for 5 seconds")
@@ -289,7 +289,7 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
 
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True,
         )
 
 

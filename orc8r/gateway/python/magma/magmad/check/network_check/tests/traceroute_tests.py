@@ -31,14 +31,18 @@ class TracerouteArgFactoryTests(unittest.TestCase):
         )
         self.assertEqual(
             ['traceroute', '-m', '10', 'google.com', '30'],
-            actual)
+            actual,
+        )
 
         actual = traceroute._get_traceroute_command_args_list(
             traceroute.TracerouteParams(
-                host_or_ip='google.com', max_hops=None, bytes_per_packet=None))
+                host_or_ip='google.com', max_hops=None, bytes_per_packet=None,
+            ),
+        )
         self.assertEqual(
             ['traceroute', '-m', '30', 'google.com', '60'],
-            actual)
+            actual,
+        )
 
 
 class TracerouteParsingTests(unittest.TestCase):
@@ -58,7 +62,8 @@ class TracerouteParsingTests(unittest.TestCase):
         expected = traceroute.TracerouteResult(
             error='test',
             host_or_ip='google.com',
-            stats=None)
+            stats=None,
+        )
         self.assertEqual(expected, actual)
 
     def test_parse_good_output(self):
@@ -74,51 +79,72 @@ class TracerouteParsingTests(unittest.TestCase):
         10  prn1-sidf-cenet-fw1-ae4.corp.tfbnw.net (172.24.4.23)  30.686 ms prn1-sidf-cenet-fw1-ae8.corp.tfbnw.net (172.24.4.25)  23.317 ms prn1-sidf-cenet-fw1-ae4.corp.tfbnw.net (172.24.4.23)  30.546 ms
         '''
         actual = traceroute.TracerouteParser().parse(
-            self._configure_output(output))
+            self._configure_output(output),
+        )
         expected = traceroute.TracerouteStats(
             [
-                traceroute.TracerouteHop(1, [
-                    traceroute.TracerouteProbe(
-                        '10.0.2.2', '10.0.2.2', 0.332),
-                    traceroute.TracerouteProbe(
-                        '10.0.2.2', '10.0.2.2', 0.262),
-                    traceroute.TracerouteProbe(
-                        '10.0.2.2', '10.0.2.2', 0.223),
-                ]),
-                traceroute.TracerouteHop(2, [
-                    traceroute.TracerouteProbe(
-                        'mpk14-21-off-dgw1-vl301.corp.tfbnw.net',
-                        '172.25.164.2', 0.926),
-                    traceroute.TracerouteProbe(
-                        'mpk14-21-off-dgw1-vl301.corp.tfbnw.net',
-                        '172.25.164.2', 0),
-                    traceroute.TracerouteProbe(
-                        'mpk14-21-off-dgw1-vl301.corp.tfbnw.net',
-                        '172.25.164.2', 0),
-                ]),
-                traceroute.TracerouteHop(7, [
-                    traceroute.TracerouteProbe(
-                        'prn1-sidf-cenet-cgw1-be6.corp.tfbnw.net',
-                        '172.24.4.7', 31.895),
-                    traceroute.TracerouteProbe(
-                        'prn1-sidf-cenet-cgw1-be6.corp.tfbnw.net',
-                        '172.24.4.7', 25.105),
-                    traceroute.TracerouteProbe(
-                        'prn1-sidf-cenet-cgw1-be6.corp.tfbnw.net',
-                        '172.24.4.7', 31.396),
-                ]),
-                traceroute.TracerouteHop(10, [
-                    traceroute.TracerouteProbe(
-                        'prn1-sidf-cenet-fw1-ae4.corp.tfbnw.net',
-                        '172.24.4.23', 30.686),
-                    traceroute.TracerouteProbe(
-                        'prn1-sidf-cenet-fw1-ae8.corp.tfbnw.net',
-                        '172.24.4.25', 23.317),
-                    traceroute.TracerouteProbe(
-                        'prn1-sidf-cenet-fw1-ae4.corp.tfbnw.net',
-                        '172.24.4.23', 30.546),
-                ]),
-            ]
+                traceroute.TracerouteHop(
+                    1, [
+                        traceroute.TracerouteProbe(
+                            '10.0.2.2', '10.0.2.2', 0.332,
+                        ),
+                        traceroute.TracerouteProbe(
+                            '10.0.2.2', '10.0.2.2', 0.262,
+                        ),
+                        traceroute.TracerouteProbe(
+                            '10.0.2.2', '10.0.2.2', 0.223,
+                        ),
+                    ],
+                ),
+                traceroute.TracerouteHop(
+                    2, [
+                        traceroute.TracerouteProbe(
+                            'mpk14-21-off-dgw1-vl301.corp.tfbnw.net',
+                            '172.25.164.2', 0.926,
+                        ),
+                        traceroute.TracerouteProbe(
+                            'mpk14-21-off-dgw1-vl301.corp.tfbnw.net',
+                            '172.25.164.2', 0,
+                        ),
+                        traceroute.TracerouteProbe(
+                            'mpk14-21-off-dgw1-vl301.corp.tfbnw.net',
+                            '172.25.164.2', 0,
+                        ),
+                    ],
+                ),
+                traceroute.TracerouteHop(
+                    7, [
+                        traceroute.TracerouteProbe(
+                            'prn1-sidf-cenet-cgw1-be6.corp.tfbnw.net',
+                            '172.24.4.7', 31.895,
+                        ),
+                        traceroute.TracerouteProbe(
+                            'prn1-sidf-cenet-cgw1-be6.corp.tfbnw.net',
+                            '172.24.4.7', 25.105,
+                        ),
+                        traceroute.TracerouteProbe(
+                            'prn1-sidf-cenet-cgw1-be6.corp.tfbnw.net',
+                            '172.24.4.7', 31.396,
+                        ),
+                    ],
+                ),
+                traceroute.TracerouteHop(
+                    10, [
+                        traceroute.TracerouteProbe(
+                            'prn1-sidf-cenet-fw1-ae4.corp.tfbnw.net',
+                            '172.24.4.23', 30.686,
+                        ),
+                        traceroute.TracerouteProbe(
+                            'prn1-sidf-cenet-fw1-ae8.corp.tfbnw.net',
+                            '172.24.4.25', 23.317,
+                        ),
+                        traceroute.TracerouteProbe(
+                            'prn1-sidf-cenet-fw1-ae4.corp.tfbnw.net',
+                            '172.24.4.23', 30.546,
+                        ),
+                    ],
+                ),
+            ],
         )
         self.assertEqual(expected, actual)
 
@@ -145,15 +171,16 @@ class TracerouteParsingTests(unittest.TestCase):
          5  * * *
         '''
         actual = traceroute.TracerouteParser().parse(
-            self._configure_output(output))
+            self._configure_output(output),
+        )
         expected = traceroute.TracerouteStats([
             traceroute.TracerouteHop(
                 4,
-                [traceroute.TracerouteProbe(None, None, 0)] * 3
+                [traceroute.TracerouteProbe(None, None, 0)] * 3,
             ),
             traceroute.TracerouteHop(
                 5,
-                [traceroute.TracerouteProbe(None, None, 0)] * 3
+                [traceroute.TracerouteProbe(None, None, 0)] * 3,
             ),
         ])
         self.assertEqual(expected, actual)

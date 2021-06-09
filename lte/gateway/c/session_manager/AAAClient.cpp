@@ -17,7 +17,7 @@
 
 #include "AAAClient.h"
 #include "magma_logging.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessionState.h"
 
 using grpc::Status;

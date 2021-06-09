@@ -246,6 +246,8 @@ definitions:
         type: integer
         format: uint64
         example: 605394647632969700
+      domain_id:
+        type: string
       duration:
         type: integer
         default: 0

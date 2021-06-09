@@ -25,8 +25,10 @@ LOG.isEnabledFor(logging.DEBUG)
 
 def _get_gw_info(ip, mac="", vlan=NO_VLAN):
     ip_addr = ipaddress.ip_address(ip)
-    gw_ip = IPAddress(version=IPAddress.IPV4,
-                      address=ip_addr.packed)
+    gw_ip = IPAddress(
+        version=IPAddress.IPV4,
+        address=ip_addr.packed,
+    )
     return GWInfo(ip=gw_ip, mac=mac, vlan=vlan)
 
 
@@ -57,9 +59,11 @@ class DefGwTest(unittest.TestCase):
         self.dhcp_gw_info.read_default_gw()
 
         def_gw_cmd = "ip route show |grep default| awk '{print $3}'"
-        p = subprocess.Popen([def_gw_cmd],
-                             stdout=subprocess.PIPE,
-                             shell=True)
+        p = subprocess.Popen(
+            [def_gw_cmd],
+            stdout=subprocess.PIPE,
+            shell=True,
+        )
         def_ip = p.stdout.read().decode("utf-8").strip()
 
         self.assertEqual(self.dhcp_gw_info.get_gw_ip(), str(def_ip))

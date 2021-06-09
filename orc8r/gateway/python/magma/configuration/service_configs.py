@@ -120,7 +120,7 @@ def get_service_config_value(service: str, param: str, default: Any) -> Any:
     else:
         logging.error(
             'Error retrieving config for %s, key not found: %s',
-            service, param
+            service, param,
         )
         return default
 

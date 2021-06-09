@@ -365,26 +365,39 @@ class InOutController(RestartMixin, MagmaController):
                                                      resubmit_table=next_table)
             )
 
-        # set a direction bit for outgoing (pn -> inet) traffic for remaining traffic
-        # Passthrough is zero for packets from eNodeB GTP tunnels
-        ps_match_out = MagmaMatch(passthrough=REG_ZERO_VAL)
-        actions = [load_direction(parser, Direction.OUT)]
-        msgs.append(
-            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_out,
-                                                 actions=actions,
-                                                 priority=flows.MINIMUM_PRIORITY,
-                                                 resubmit_table=next_table)
-        )
-        # Passthrough is one for packets from remote PGW GTP tunnels, set direction
-        # flag to IN for such packets.
-        ps_match_in = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
-        actions = [load_direction(parser, Direction.IN)]
-        msgs.append(
-            flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_in,
-                                                 actions=actions,
-                                                 priority=flows.MINIMUM_PRIORITY,
-                                                 resubmit_table=next_table)
-        )
+
+        if self.config.setup_type == 'CWF':
+            # set a direction bit for outgoing (pn -> inet) traffic for remaining traffic
+            ps_match_out = MagmaMatch()
+            actions = [load_direction(parser, Direction.OUT)]
+            msgs.append(
+                flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_out,
+                                                     actions=actions,
+                                                     priority=flows.MINIMUM_PRIORITY,
+                                                     resubmit_table=next_table)
+            )
+        else:
+            # set a direction bit for outgoing (pn -> inet) traffic for remaining traffic
+            # Passthrough is zero for packets from eNodeB GTP tunnels
+            ps_match_out = MagmaMatch(passthrough=REG_ZERO_VAL)
+            actions = [load_direction(parser, Direction.OUT)]
+            msgs.append(
+                flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_out,
+                                                     actions=actions,
+                                                     priority=flows.MINIMUM_PRIORITY,
+                                                     resubmit_table=next_table)
+            )
+
+            # Passthrough is one for packets from remote PGW GTP tunnels, set direction
+            # flag to IN for such packets.
+            ps_match_in = MagmaMatch(passthrough=PASSTHROUGH_REG_VAL)
+            actions = [load_direction(parser, Direction.IN)]
+            msgs.append(
+                flows.get_add_resubmit_next_service_flow_msg(dp, self._ingress_tbl_num, ps_match_in,
+                                                     actions=actions,
+                                                     priority=flows.MINIMUM_PRIORITY,
+                                                     resubmit_table=next_table)
+            )
 
         return msgs
 
@@ -527,9 +540,6 @@ class InOutController(RestartMixin, MagmaController):
 
     def _get_ue_specific_flow_msgs(self, _):
         return {}
-
-    def recover_state(self, _):
-        pass
 
     def finish_init(self, _):
         pass

@@ -37,6 +37,6 @@ class ApnRuleAssignmentsDict(RedisHashDict):
             client,
             self._DICT_HASH,
             get_proto_serializer(),
-            get_proto_deserializer(SubscriberPolicySet)
+            get_proto_deserializer(SubscriberPolicySet),
         )
         self._clear()

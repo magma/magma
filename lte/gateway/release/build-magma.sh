@@ -135,6 +135,7 @@ MAGMA_DEPS=(
     "libtins-dev" # required for Connection tracker
     "libmnl-dev" # required for Connection tracker
     "getenvoy-envoy" # for envoy dep
+    "uuid-dev" # for liagentd
     )
 
 if grep -q stretch /etc/os-release; then
@@ -262,10 +263,10 @@ fi
 
 # Build OAI and sessiond C/C++ services
 cd "${MAGMA_ROOT}/lte/gateway"
-OAI_BUILD="${C_BUILD}/oai"
+OAI_BUILD="${C_BUILD}/core/oai"
 SESSIOND_BUILD="${C_BUILD}/session_manager"
 CONNECTIOND_BUILD="${C_BUILD}/connection_tracker"
-SCTPD_BUILD="${C_BUILD}/sctpd"
+SCTPD_BUILD="${C_BUILD}/sctpd/src"
 
 make build_oai BUILD_TYPE="${BUILD_TYPE}"
 make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
@@ -414,6 +415,7 @@ ${ANSIBLE_FILES}/magma_ifaces_gtp=/etc/network/interfaces.d/gtp \
 ${ANSIBLE_FILES}/20auto-upgrades=/etc/apt/apt.conf.d/20auto-upgrades \
 ${ANSIBLE_FILES}/coredump=/usr/local/bin/ \
 ${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.5/dist-packages/ryu/ofproto/nx_actions.py \
+${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py \
 ${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
 ${PY_PROTOS}=${PY_DEST} \

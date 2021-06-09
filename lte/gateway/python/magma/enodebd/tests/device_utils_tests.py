@@ -67,17 +67,28 @@ class EnodebConfigUtilsTest(TestCase):
 
     def test_parse_version(self):
         """ Test that version string is parsed correctly """
-        self.assertEqual(_parse_sw_version('BaiStation_V100R001C00B110SPC003'),
-                         [100, 1, 0, 110, 3])
-        self.assertEqual(_parse_sw_version('BaiStation_V100R001C00B060SPC012'),
-                         [100, 1, 0, 60, 12])
+        self.assertEqual(
+            _parse_sw_version('BaiStation_V100R001C00B110SPC003'),
+            [100, 1, 0, 110, 3],
+        )
+        self.assertEqual(
+            _parse_sw_version('BaiStation_V100R001C00B060SPC012'),
+            [100, 1, 0, 60, 12],
+        )
         self.assertEqual(
             _parse_sw_version('BaiStation_V100R001C00B060SPC012_FB_3'),
-            [100, 1, 0, 60, 12])
+            [100, 1, 0, 60, 12],
+        )
         # Incorrect number of digits
-        self.assertEqual(_parse_sw_version('BaiStation_V10R001C00B060SPC012'),
-                         None)
-        self.assertEqual(_parse_sw_version('XYZ123'),
-                         None)
-        self.assertEqual(_parse_sw_version(''),
-                         None)
+        self.assertEqual(
+            _parse_sw_version('BaiStation_V10R001C00B060SPC012'),
+            None,
+        )
+        self.assertEqual(
+            _parse_sw_version('XYZ123'),
+            None,
+        )
+        self.assertEqual(
+            _parse_sw_version(''),
+            None,
+        )

@@ -18,13 +18,21 @@ from typing import Any, Dict, List, NamedTuple, Optional
 from magma.magmad.check import subprocess_workflow
 
 RouteCommandParams = NamedTuple('RouteCommandParams', [])
-Route = NamedTuple('Route',
-                   [('destination_ip', str), ('gateway_ip', str),
-                    ('genmask', str), ('network_interface_id', str)])
+Route = NamedTuple(
+    'Route',
+    [
+        ('destination_ip', str), ('gateway_ip', str),
+        ('genmask', str), ('network_interface_id', str),
+    ],
+)
 
-RouteCommandResult = NamedTuple('RouteCommandResult',
-                                [('error', Optional[str]),
-                                 ('routing_table', List[Dict[str, Any]])])
+RouteCommandResult = NamedTuple(
+    'RouteCommandResult',
+    [
+        ('error', Optional[str]),
+        ('routing_table', List[Dict[str, Any]]),
+    ],
+)
 
 # TODO: This relies on the SO language being English. Maybe there is a way to
 #  get the info another way.
@@ -35,11 +43,13 @@ def get_routing_table() -> RouteCommandResult:
     Execute route command via subprocess. Blocks while waiting for output.
     Returns the routing table in the form of a list of routes.
     """
-    return list(subprocess_workflow.exec_and_parse_subprocesses(
-        [RouteCommandParams()],
-        _get_route_command_args_list,
-        parse_route_output,
-    ))[0]
+    return list(
+        subprocess_workflow.exec_and_parse_subprocesses(
+            [RouteCommandParams()],
+            _get_route_command_args_list,
+            parse_route_output,
+        ),
+    )[0]
 
 
 def _get_route_command_args_list(_):
@@ -55,10 +65,14 @@ def parse_route_output(stdout, stderr, _):
 
     stdout_decoded = stdout.decode().strip()
     heading = stdout_decoded.split('\n')[1]
-    if heading.split() != ['Destination', 'Gateway', 'Genmask', 'Flags',
-                           'Metric', 'Ref', 'Use', 'Iface']:
-        return RouteCommandResult(error='Unexpected heading: %s' % heading,
-                                  routing_table=[])
+    if heading.split() != [
+        'Destination', 'Gateway', 'Genmask', 'Flags',
+        'Metric', 'Ref', 'Use', 'Iface',
+    ]:
+        return RouteCommandResult(
+            error='Unexpected heading: %s' % heading,
+            routing_table=[],
+        )
 
     # Ignore the title and heading
     lines = stdout_decoded.split('\n')[2:]
@@ -71,7 +85,7 @@ def parse_route_output(stdout, stderr, _):
                 gateway_ip=attrs[1],
                 genmask=attrs[2],
                 network_interface_id=attrs[7],
-            )._asdict()
+            )._asdict(),
         )
     return RouteCommandResult(
         error=None,

@@ -34,6 +34,9 @@ module "orc8r" {
   elasticsearch_ebs_enabled     = true
   elasticsearch_ebs_volume_size = 32
   elasticsearch_ebs_volume_type = "gp2"
+
+  deploy_elasticsearch_service_linked_role = "{{ varFirstInstall }}"
+
 }
 
 module "orc8r-app" {
@@ -58,12 +61,16 @@ module "orc8r-app" {
   # Note that this can be any container registry provider -- the example below
   # provides the URL format for Docker Hub, where the user and pass are your
   # Docker Hub username and access token, respectively
-  docker_registry = "https://artifactory.magmacore.org/artifactory/docker/"
+  docker_registry = "docker.artifactory.magmacore.org"
+  docker_user = ""
+  docker_pass = ""
 
   # Note that this can be any Helm chart repo provider -- the example below
   # provides the URL format for using a raw GitHub repo, where the user and
   # pass are your GitHub username and access token, respectively
-  helm_repo = "https://artifactory.magmacore.org/artifactory/helm-prod/"
+  helm_repo = "https://artifactory.magmacore.org/artifactory/helm/"
+  helm_user = ""
+  helm_pass = ""
 
   eks_cluster_id = module.orc8r.eks_cluster_id
 

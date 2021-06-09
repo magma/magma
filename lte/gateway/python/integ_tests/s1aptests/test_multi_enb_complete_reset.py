@@ -12,6 +12,7 @@ limitations under the License.
 """
 import time
 import unittest
+
 import s1ap_types
 import s1ap_wrapper
 
@@ -43,11 +44,13 @@ class TestMultipleEnbAttachDetachCompleteReset(unittest.TestCase):
 
         # column is an enb parameter, row is number of enbs
         """         Cell Id, Tac, EnbType, PLMN Id, PLMN length """
-        enb_list = [[1, 1, 1, "00101", 5],
-                    [2, 1, 1, "00101", 5],
-                    [3, 1, 1, "00101", 5],
-                    [4, 1, 1, "00101", 5],
-                    [5, 1, 1, "00101", 5]]
+        enb_list = [
+            [1, 1, 1, "00101", 5],
+            [2, 1, 1, "00101", 5],
+            [3, 1, 1, "00101", 5],
+            [4, 1, 1, "00101", 5],
+            [5, 1, 1, "00101", 5],
+        ]
 
         self._s1ap_wrapper.multiEnbConfig(len(enb_list), enb_list)
 
@@ -60,13 +63,16 @@ class TestMultipleEnbAttachDetachCompleteReset(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
-            print("******************** Calling attach for UE id ",
-                  req.ue_id)
+            print(
+                "******************** Calling attach for UE id ",
+                req.ue_id,
+            )
             self._s1ap_wrapper.s1_util.attach(
                 req.ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t)
+                s1ap_types.ueAttachAccept_t,
+            )
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
             ue_ids.append(req.ue_id)
@@ -88,17 +94,20 @@ class TestMultipleEnbAttachDetachCompleteReset(unittest.TestCase):
         reset_req.r.completeRst = s1ap_types.CompleteReset()
         reset_req.r.completeRst.enbId = 2
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.RESET_REQ, reset_req)
+            s1ap_types.tfwCmd.RESET_REQ, reset_req,
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
+            response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value,
+        )
 
         time.sleep(1)
         for ue in ue_ids:
             print("************************* Calling detach for UE id ", ue)
             self._s1ap_wrapper.s1_util.detach(
                 ue,
-                s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value)
+                s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+            )
 
 
 if __name__ == "__main__":

@@ -24,7 +24,7 @@ add_library(LIAGENTD_TEST_LIB
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)
-target_link_libraries(LIAGENTD_TEST_LIB LI_AGENT gmock_main gtest gtest_main gmock pthread rt)
+target_link_libraries(LIAGENTD_TEST_LIB LI_AGENT gmock_main gtest gtest_main gmock rt)
 
 foreach (li_agent_test pdu_generator)
   add_executable(${li_agent_test}_test test_${li_agent_test}.cpp)

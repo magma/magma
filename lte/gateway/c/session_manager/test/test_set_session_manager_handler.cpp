@@ -22,11 +22,11 @@
  */
 #include "AmfServiceClient.h"
 #include "magma_logging.h"
-#include "MagmaService.h"
+#include "includes/MagmaService.h"
 #include "PipelinedClient.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
 #include "SessionState.h"
 #include "SessionStore.h"
@@ -48,7 +48,6 @@ class SessionManagerHandlerTest : public ::testing::Test {
 
     magma::mconfig::SessionD mconfig;
     mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
-    mconfig.set_relay_enabled(false);
 
     auto session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
         rule_store, *session_store, pipelined_client, amf_srv_client, mconfig);

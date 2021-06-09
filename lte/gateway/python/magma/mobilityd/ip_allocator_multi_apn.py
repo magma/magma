@@ -22,12 +22,11 @@ from __future__ import (
     unicode_literals,
 )
 
-import logging
 from ipaddress import ip_address, ip_network
 from typing import List
 
 from magma.mobilityd.ip_allocator_base import IPAllocator
-from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
+from magma.mobilityd.ip_descriptor import IPDesc
 from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.subscriberdb_client import SubscriberDbClient
 
@@ -36,9 +35,11 @@ DEFAULT_IP_RECYCLE_INTERVAL = 15
 
 class IPAllocatorMultiAPNWrapper(IPAllocator):
 
-    def __init__(self, store: MobilityStore,
-                 subscriberdb_rpc_stub,
-                 ip_allocator: IPAllocator):
+    def __init__(
+        self, store: MobilityStore,
+        subscriberdb_rpc_stub,
+        ip_allocator: IPAllocator,
+    ):
         """ Initializes a Multi APN IP allocator
             This is wrapper around other configured Ip allocator. If subscriber
             has vlan configured in APN config, it would be used for allocating
@@ -55,8 +56,10 @@ class IPAllocatorMultiAPNWrapper(IPAllocator):
         """
         self._ip_allocator.add_ip_block(ipblock)
 
-    def remove_ip_blocks(self, ipblocks: List[ip_network],
-                         force: bool = False) -> List[ip_network]:
+    def remove_ip_blocks(
+        self, ipblocks: List[ip_network],
+        force: bool = False,
+    ) -> List[ip_network]:
         """ Remove allocated IP blocks.
         """
         return self._ip_allocator.remove_ip_blocks(ipblocks, force)
@@ -77,12 +80,16 @@ class IPAllocatorMultiAPNWrapper(IPAllocator):
         """ Check if subscriber has APN configuration and vlan.
         once we have APN specific info use IP allocator to assign an IP.
         """
-        network_info = self._subscriber_client.get_subscriber_apn_network_info(sid)
+        network_info = self._subscriber_client.get_subscriber_apn_network_info(
+            sid,
+        )
         # Update GW info from subscriber DB data.
         # This could be overwritten by DHCP response.
-        self._store.dhcp_gw_info.update_mac(network_info.gw_ip,
-                                            network_info.gw_mac,
-                                            network_info.vlan)
+        self._store.dhcp_gw_info.update_mac(
+            network_info.gw_ip,
+            network_info.gw_mac,
+            network_info.vlan,
+        )
         return self._ip_allocator.alloc_ip_address(sid, network_info.vlan)
 
     def release_ip(self, ip_desc: IPDesc):

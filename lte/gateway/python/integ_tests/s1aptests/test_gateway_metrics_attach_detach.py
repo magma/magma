@@ -27,7 +27,8 @@ class TestGatewayMetricsAttachDetach(unittest.TestCase):
         self._gateway_service = self._s1ap_wrapper.get_gateway_services_util()
         v_mme_new_association = self._getMetricValueGivenLabel(
             str(metricsd.mme_new_association),
-            label_values)
+            label_values,
+        )
         assert(v_mme_new_association > 0)
 
     def tearDown(self):
@@ -38,13 +39,16 @@ class TestGatewayMetricsAttachDetach(unittest.TestCase):
         return service.get_metric_value(
             metric_name,
             label_values,
-            default=0)
+            default=0,
+        )
 
     def test_gateway_metrics_attach_detach(self):
         """ Basic gateway metrics with attach/detach for a single UE """
         num_ues = 2
-        detach_type = [s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
-                       s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value]
+        detach_type = [
+            s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
+            s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
+        ]
         wait_for_s1 = [True, False]
         self._s1ap_wrapper.configUEDevice(num_ues)
 
@@ -56,25 +60,32 @@ class TestGatewayMetricsAttachDetach(unittest.TestCase):
         for i in range(num_ues):
             v_ue_attach = self._getMetricValueGivenLabel(
                 str(metricsd.ue_attach),
-                label_values_ue_attach_result)
+                label_values_ue_attach_result,
+            )
             v_ue_detach = self._getMetricValueGivenLabel(
                 str(metricsd.ue_detach),
-                label_values_ue_detach_result)
+                label_values_ue_detach_result,
+            )
             v_spgw_create_session = self._getMetricValueGivenLabel(
                 str(metricsd.spgw_create_session),
-                label_values_session_result)
+                label_values_session_result,
+            )
             v_spgw_delete_session = self._getMetricValueGivenLabel(
                 str(metricsd.spgw_delete_session),
-                label_values_session_result)
+                label_values_session_result,
+            )
 
             req = self._s1ap_wrapper.ue_req
-            print("************************* Running End to End attach for ",
-                  "UE id ", req.ue_id)
+            print(
+                "************************* Running End to End attach for ",
+                "UE id ", req.ue_id,
+            )
             # Now actually complete the attach
             self._s1ap_wrapper._s1_util.attach(
                 req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t)
+                s1ap_types.ueAttachAccept_t,
+            )
 
             # Wait on EMM Information from MME
             self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -83,40 +94,49 @@ class TestGatewayMetricsAttachDetach(unittest.TestCase):
             time.sleep(0.5)
             val = self._getMetricValueGivenLabel(
                 str(metricsd.ue_attach),
-                label_values_ue_attach_result)
+                label_values_ue_attach_result,
+            )
             assert(val == v_ue_attach + 1)
 
             val = self._getMetricValueGivenLabel(
                 str(metricsd.spgw_create_session),
-                label_values_session_result)
+                label_values_session_result,
+            )
             assert(val == v_spgw_create_session + 1)
 
             val = self._getMetricValueGivenLabel(
                 str(metricsd.ue_detach),
-                label_values_ue_detach_result)
+                label_values_ue_detach_result,
+            )
             assert (val == v_ue_detach)
 
             val = self._getMetricValueGivenLabel(
                 str(metricsd.spgw_delete_session),
-                label_values_session_result)
+                label_values_session_result,
+            )
             assert (val == v_spgw_delete_session)
 
-            print("************************* Running UE detach for UE id ",
-                  req.ue_id)
+            print(
+                "************************* Running UE detach for UE id ",
+                req.ue_id,
+            )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type[i], wait_for_s1[i])
+                req.ue_id, detach_type[i], wait_for_s1[i],
+            )
 
             # waits so that metrics have time to be updated
             time.sleep(0.5)
             val = self._getMetricValueGivenLabel(
                 str(metricsd.ue_detach),
-                label_values_ue_detach_result)
+                label_values_ue_detach_result,
+            )
             assert(val == v_ue_detach + 1)
 
             val = self._getMetricValueGivenLabel(
                 str(metricsd.spgw_delete_session),
-                label_values_session_result)
+                label_values_session_result,
+            )
             assert (val == v_spgw_delete_session + 1)
 
 

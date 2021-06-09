@@ -37,6 +37,7 @@ const (
 	GwS6aService          GwServiceType = "s6a_service"
 	GwSgsService          GwServiceType = "sgs_service"
 	GwSessiondService     GwServiceType = "sessiond"
+	GwS8Service           GwServiceType = "s8_service"
 	GwSpgwService         GwServiceType = "spgw_service"
 	GwAbortSessionService GwServiceType = "abort_session_service"
 	GwAAAService          GwServiceType = "aaa_server"
@@ -63,6 +64,7 @@ var services = []GwServiceType{
 	GwS6aService,
 	GwSgsService,
 	GwSessiondService,
+	GwS8Service,
 	GwSpgwService,
 	GwAbortSessionService,
 	GwAAAService,
@@ -122,7 +124,6 @@ func GetGatewayConnection(service GwServiceType, hwId string) (*grpc.ClientConn,
 	customHeader := metadata.New(map[string]string{GatewayIdHeaderKey: hwId})
 	ctxToRet := metadata.NewOutgoingContext(context.Background(), customHeader)
 	return conn, ctxToRet, nil
-
 }
 
 func ListAllGwServices() []GwServiceType {

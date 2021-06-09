@@ -24,7 +24,7 @@ class EventValidationTests(TestCase):
         # A test event registry that specifies the test events
         test_events_location = {
             'module': 'orc8r',
-            'filename': 'test_event_definitions.yml'
+            'filename': 'test_event_definitions.yml',
         }
         config = {
             'fluent_bit_port': '',
@@ -40,7 +40,7 @@ class EventValidationTests(TestCase):
     def test_event_registration(self):
         data = json.dumps({
             'foo': 'magma',  # required
-            'bar': 123
+            'bar': 123,
         })
         # Errors when event is not registered
         with self.assertRaises(Exception):
@@ -54,7 +54,7 @@ class EventValidationTests(TestCase):
         with self.assertRaises(ValidationError):
             # foo is missing
             data = json.dumps({
-                'bar': 123
+                'bar': 123,
             })
             self.validator.validate_event(data, 'simple_event')
 
@@ -63,7 +63,7 @@ class EventValidationTests(TestCase):
             data = json.dumps({
                 'extra_field': 12,
                 'foo': 'asdf',
-                'bar': 123
+                'bar': 123,
             })
             self.validator.validate_event(data, 'simple_event')
 
@@ -71,7 +71,7 @@ class EventValidationTests(TestCase):
         with self.assertRaises(ValidationError):
             data = json.dumps({
                 'extra_field': 12,
-                'bar': 123
+                'bar': 123,
             })
             # foo is missing
             self.validator.validate_event(data, 'simple_event')
@@ -79,7 +79,7 @@ class EventValidationTests(TestCase):
         # Does not error when the fields are equivalent
         data = json.dumps({
             'foo': 'magma',  # required
-            'bar': 123
+            'bar': 123,
         })
         self.validator.validate_event(data, 'simple_event')
 
@@ -91,8 +91,8 @@ class EventValidationTests(TestCase):
             'an_array': ["a", "b"],
             'an_object': {
                 "a_key": 1,
-                "b_key": 1
-            }
+                "b_key": 1,
+            },
         })
         # Does not error when the types match
         self.validator.validate_event(data, 'array_and_object_event')
@@ -101,7 +101,7 @@ class EventValidationTests(TestCase):
         with self.assertRaises(ValidationError):
             data = json.dumps({
                 'foo': 123,
-                'bar': 'asdf'
+                'bar': 'asdf',
             })
             self.validator.validate_event(data, 'simple_event')
 
@@ -109,7 +109,7 @@ class EventValidationTests(TestCase):
         with self.assertRaises(ValidationError):
             data = json.dumps({
                 'an_array': [1, 2, 3],
-                'an_object': {}
+                'an_object': {},
             })
             self.validator.validate_event(data, 'array_and_object_event')
 
@@ -118,7 +118,7 @@ class EventValidationTests(TestCase):
             data = json.dumps({
                 'an_array': ["a", "b"],
                 'an_object': {
-                    "a_key": "wrong_value"
-                }
+                    "a_key": "wrong_value",
+                },
             })
             self.validator.validate_event(data, 'array_and_object_event')

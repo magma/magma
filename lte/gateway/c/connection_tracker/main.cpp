@@ -15,9 +15,9 @@
 #include <stdlib.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 
-#include "MagmaService.h"
-#include "MConfigLoader.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/MagmaService.h"
+#include "includes/MConfigLoader.h"
+#include "includes/ServiceRegistrySingleton.h"
 
 #include "EventTracker.h"
 #include "PacketGenerator.h"
@@ -80,6 +80,7 @@ int main(void) {
   std::string interface_name = config["interface_name"].as<std::string>();
   std::string pkt_dst_mac    = config["pkt_dst_mac"].as<std::string>();
   std::string pkt_src_mac    = config["pkt_src_mac"].as<std::string>();
+  int zone                   = config["zone"].as<int>();
 
   magma::service303::MagmaService server(
       CONNECTION_SERVICE, CONNECTIOND_VERSION);
@@ -89,7 +90,7 @@ int main(void) {
       interface_name, pkt_dst_mac, pkt_src_mac);
 
   auto event_tracker =
-      std::make_shared<magma::lte::EventTracker>(pkt_generator);
+      std::make_shared<magma::lte::EventTracker>(pkt_generator, zone);
 
   event_tracker->init_conntrack_event_loop();
 

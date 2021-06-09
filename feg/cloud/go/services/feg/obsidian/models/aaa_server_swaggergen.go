@@ -19,6 +19,9 @@ type AaaServer struct {
 	// accounting enabled
 	AccountingEnabled bool `json:"accounting_enabled,omitempty"`
 
+	// acct reporting enabled
+	AcctReportingEnabled bool `json:"acct_reporting_enabled,omitempty"`
+
 	// create session on auth
 	CreateSessionOnAuth bool `json:"create_session_on_auth,omitempty"`
 
