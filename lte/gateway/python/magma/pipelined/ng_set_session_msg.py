@@ -23,7 +23,6 @@ from lte.protos.pipelined_pb2 import (
     OuterHeaderCreation,
     PdrState,
     RequestOriginType,
-    RuleModResult,
     SessionSet,
     SetGroupFAR,
     SetGroupPDR,
@@ -57,9 +56,9 @@ class CreateSessionUtil:
                           ue_ip_addr: str) -> ActivateFlowsRequest:
 
         if qos_enforce_rule.allow == 'YES':
-           allow = FlowDescription.PERMIT
+            allow = FlowDescription.PERMIT
         else:
-           allow = FlowDescription.DENY
+            allow = FlowDescription.DENY
 
         ip_dst=None
         ip_src=None
@@ -135,7 +134,7 @@ class CreateSessionUtil:
                            pdi=PDI(src_interface=1, ue_ip_adr=ue_ip_addr))
 
 
-    def CreateSessionMsg(self, imsi_val:str, pdr_entry: SetGroupPDR, far_entry: SetGroupFAR=None,
+    def CreateSessionMsg(self, unused_imsi_val:str, pdr_entry: SetGroupPDR, far_entry: SetGroupFAR=None,
                          del_qos_enforce_rule: DeactivateFlowsRequest = None,
                          add_qos_enforce_rule: ActivateFlowsRequest = None):
 
@@ -201,10 +200,10 @@ class CreateSessionUtil:
         self.CreateSessionMsg(imsi_val, downlink_pdr, downlink_far, del_qer_enforcer, downlink_qer_enforcer)
 
     def CreateSessionWithFaultyPDR(self):
-       uplink_far = CreateSessionUtil.CreateFARinPDR(0, '')
-       uplink_pdr = CreateSessionUtil.CreatePDR(0, 1, PdrState.Value('INSTALL'), 32, 100, "90.90.90.100")
-       self.CreateSessionMsg("IMSI001010000000001", uplink_pdr, uplink_far)
+        uplink_far = CreateSessionUtil.CreateFARinPDR(0, '')
+        uplink_pdr = CreateSessionUtil.CreatePDR(0, 1, PdrState.Value('INSTALL'), 32, 100, "90.90.90.100")
+        self.CreateSessionMsg("IMSI001010000000001", uplink_pdr, uplink_far)
 
     def CreateSessionWithFaultyFar(self):
-       downlink_pdr = CreateSessionUtil.CreatePDR(1234, 1, PdrState.Value('INSTALL'), 32, 0, "90.90.90.100")
-       self.CreateSessionMsg("IMSI001010000000001", downlink_pdr)
+        downlink_pdr = CreateSessionUtil.CreatePDR(1234, 1, PdrState.Value('INSTALL'), 32, 0, "90.90.90.100")
+        self.CreateSessionMsg("IMSI001010000000001", downlink_pdr)
