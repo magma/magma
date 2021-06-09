@@ -80,39 +80,44 @@
        user_install=no
        state=present
 
-- name: Cloning the ovs "{{ ovs_version }}".
-  git:
-    repo: https://github.com/openvswitch/ovs.git
-    dest: "{{ GIT_HOME.path }}/ovs"
-    version: "{{ ovs_version }}"
+- name: Check that ovs source code folder exists
+  stat:
+    path: "{{ GIT_HOME.path }}/ovs"
+  register: ovs_dest_stat
 
-- name: Uploading gtp backport patch to remote.
-  synchronize:
-    src: "{{ MAGMA_ROOT }}/{{ gtp_patch_path }}/gtp-v4.9-backport/"
-    dest: "{{ GIT_HOME.path }}/ovs/flow-based-gtp-linux-v4.9"
+- name: Prepare the ovs source code
+  block:
+    - name: Cloning the ovs "{{ ovs_version }}".
+      git:
+        repo: https://github.com/openvswitch/ovs.git
+        dest: "{{ GIT_HOME.path }}/ovs"
+        version: "{{ ovs_version }}"
 
-- name: Uploading gtp patches to remote.
-  synchronize:
-    # yamllint disable-line rule:line-length
-    src: "{{ MAGMA_ROOT }}/{{ gtp_patch_path }}/{{ ovs_version_short }}/"
-    dest: "{{ GIT_HOME.path }}/ovs/"
-  with_items:
-    - "{{ patches }}"
+    - name: Uploading gtp backport patch to remote.
+      synchronize:
+        src: "{{ MAGMA_ROOT }}/{{ gtp_patch_path }}/gtp-v4.9-backport/"
+        dest: "{{ GIT_HOME.path }}/ovs/flow-based-gtp-linux-v4.9"
 
-- name: Patch ovs
-  command: git apply "{{ item }}"
-  args:
-    chdir: "{{ GIT_HOME.path }}/ovs"
-  with_items:
-    - "{{ patches }}"
+    - name: Uploading gtp patches to remote.
+      synchronize:
+        src: "{{ MAGMA_ROOT }}/{{ gtp_patch_path }}/{{ ovs_version_short }}/"
+        dest: "{{ GIT_HOME.path }}/ovs/"
+      with_items: "{{ patches }}"
 
-- name: Cherry pick vlan patch
-  shell: |
-    set -o pipefail
-    git show "{{ vlan_fix_hash }}" | git apply -3 -
-  args:
-    executable: /bin/bash
-    chdir: "{{ GIT_HOME.path }}/ovs"
+    - name: Patch ovs
+      command: git apply "{{ item }}"  # noqa 303
+      args:
+        chdir: "{{ GIT_HOME.path }}/ovs"
+      with_items: "{{ patches }}"
+
+    - name: Cherry pick vlan patch
+      shell: |
+        set -o pipefail
+        git show "{{ vlan_fix_hash }}" | git apply -3 -
+      args:
+        executable: /bin/bash
+        chdir: "{{ GIT_HOME.path }}/ovs"
+  when: not ovs_dest_stat.stat.exists
 
 - name: Execute the boot.sh script.
   command: sh boot.sh  # noqa 301
