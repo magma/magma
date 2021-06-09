@@ -167,7 +167,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.21"
+  default     = "1.5.22"
 }
 
 variable "cwf_orc8r_chart_version" {
