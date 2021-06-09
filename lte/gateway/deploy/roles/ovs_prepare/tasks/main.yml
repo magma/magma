@@ -76,9 +76,10 @@
 
 - name: Install FPM
   become: true
-  gem: name=fpm
-       user_install=no
-       state=present
+  gem:
+    name: fpm
+    user_install: false
+    state: present
 
 - name: Check that ovs source code folder exists
   stat:
