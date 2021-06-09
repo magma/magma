@@ -142,7 +142,6 @@ int async_system_command(
   }
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(sender_itti_task, ASYNC_SYSTEM_COMMAND);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
   ASYNC_SYSTEM_COMMAND(message_p).system_command    = bstr;
   ASYNC_SYSTEM_COMMAND(message_p).is_abort_on_error = is_abort_on_error;
   rv                                                = send_msg_to_task(
