@@ -579,7 +579,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         print(response)
         return RRTable
 
-
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
     Return a MagmaMatch that matches on the rule num and the version.
