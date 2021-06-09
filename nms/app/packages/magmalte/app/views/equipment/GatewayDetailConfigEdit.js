@@ -72,7 +72,7 @@ import {
 } from '../../components/GatewayUtils';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useState} from 'react';
+import {useCallback, useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -782,7 +782,7 @@ export function RanEdit(props: Props) {
   const handleDnsChange = (key: string, val) => {
     setDnsConfig({...dnsConfig, [key]: val});
   };
-  const isEnodebUnregistered = React.useCallback(
+  const isEnodebUnregistered = useCallback(
     (enb: enodeb, currentGateway: lte_gateway) => {
       const gatewaysList = Object.keys(ctx.state);
       for (const gatewayId of gatewaysList) {
