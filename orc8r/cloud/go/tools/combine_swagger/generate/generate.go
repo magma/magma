@@ -28,6 +28,7 @@ import (
 // a directory
 func GenerateStandaloneSpecs(specDir string) error {
 	rootDir := os.Getenv("MAGMA_ROOT")
+	outDir := filepath.Join(filepath.Dir(specDir), "standalone")
 	specPaths := getFilepaths(specDir)
 	for _, path := range specPaths {
 		specs, err := generate.ParseSwaggerDependencyTree(path, rootDir)
@@ -35,8 +36,7 @@ func GenerateStandaloneSpecs(specDir string) error {
 			return err
 		}
 
-		specFile := filepath.Base(path)
-		outPath := filepath.Join(rootDir, "orc8r/cloud/swagger/specs/standalone", specFile)
+		outPath := filepath.Join(outDir, filepath.Base(path))
 		if err != nil {
 			return err
 		}
