@@ -11,11 +11,13 @@
 # limitations under the License.
 #
 
-- fail: msg="MAGMA_ROOT and OUTPUT_DIR are required"
+- name: Validate MAGMA_ROOT env variable
+  fail: msg="MAGMA_ROOT and OUTPUT_DIR are required"
   when:
     - MAGMA_ROOT is not defined or OUTPUT_DIR is not defined
 
-- fail:
+- name: Validate kernel version supported
+  fail:
     msg: Kernel {{ ansible_kernel  }} not supported please use 4.9.0-9-amd64
   when: ansible_kernel != '4.9.0-9-amd64'
 
@@ -77,10 +79,11 @@
   become: true
 
 - name: Copy ssh keepAlive configs
-  copy: src={{ item.src }} dest={{ item.dest }}
+  copy:
+    mode: preserve
+    src: sshd_config
+    dest: /etc/ssh/sshd_config
   become: true
-  with_items:
-    - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
 
 - name: Restart service ssh
   become: true
@@ -121,11 +124,14 @@
     - "{{ all_vars.patches }}"
 
 - name: Cherry pick vlan patch
-  command: bash -c 'git show "{{ all_vars.vlan_fix_hash }}" | git apply -3 -'
+  shell: |
+    set -o pipefail
+    git show "{{ all_vars.vlan_fix_hash }}" | git apply -3 -
   args:
+    executable: /bin/bash
     chdir: "{{ GIT_HOME.path }}/ovs"
 
 - name: Execute the boot.sh script.
-  command: sh boot.sh
+  command: sh boot.sh  # noqa 301
   args:
     chdir: "{{ GIT_HOME.path }}/ovs"
