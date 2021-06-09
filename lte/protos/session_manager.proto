@@ -37,6 +37,8 @@ message RuleRecord {
   uint64 rule_version = 9;
   // Uplink TEID
   uint32 teid = 10;
+  //Indicates that the report is final and the flow will be deleted
+  bool final_record = 11;
 }
 
 message RuleRecordTable {
@@ -553,11 +555,13 @@ message QosInformationRequest {
   uint32 preemption_capability = 4;
   uint32 preemption_vulnerability = 5;
   uint32 qos_class_id = 6;
+
   enum BitrateUnitsAMBR {
-    BPS = 0;
-    KBPS = 1;
-    }
-  BitrateUnitsAMBR unit = 7;
+        BPS = 0;
+        KBPS = 1;
+  }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 7;
 }
 
 // TgppContext is a session specific 3GPP context session proxy may meed session manager to persist
@@ -1007,7 +1011,7 @@ message UPFPagingInfo {
 
 //Set Interface from Pipelined
 service SetInterfaceForUserPlane {
-    rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
+    rpc SetUPFNodeState(UPFNodeState) returns (SmContextVoid) {}
     rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
     rpc SendPagingReuest(UPFPagingInfo) returns (magma.orc8r.Void) {}
 }

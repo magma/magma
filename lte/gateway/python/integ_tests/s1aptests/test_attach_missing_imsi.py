@@ -31,18 +31,22 @@ class TestAttachMissingImsi(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
-        print("************************* Running End to End attach for ",
-              "UE id ", ue_id)
+        print(
+            "************************* Running End to End attach for ",
+            "UE id ", ue_id,
+        )
         self._s1ap_wrapper._sub_util.cleanup()
         # Now actually attempt the attach
         self._s1ap_wrapper._s1_util.attach(
             ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND,
-            s1ap_types.ueAttachRejInd_t)
+            s1ap_types.ueAttachRejInd_t,
+        )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
+        )
 
         ue_id = 2
         print("************************* Adding IMSI entry for UE id ", ue_id)
@@ -51,13 +55,16 @@ class TestAttachMissingImsi(unittest.TestCase):
 
         time.sleep(5)
 
-        print("************************* Rerunning End to End attach for ",
-              "UE id ", ue_id)
+        print(
+            "************************* Rerunning End to End attach for ",
+            "UE id ", ue_id,
+        )
         # Now actually complete the attach
         self._s1ap_wrapper._s1_util.attach(
             ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-            s1ap_types.ueAttachAccept_t)
+            s1ap_types.ueAttachAccept_t,
+        )
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -65,7 +72,8 @@ class TestAttachMissingImsi(unittest.TestCase):
         print("************************* Running UE detach for UE id ", ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False)
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
+        )
 
 
 if __name__ == "__main__":

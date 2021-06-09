@@ -194,7 +194,7 @@ class IPFIXController(MagmaController):
             priority=flows.MINIMUM_PRIORITY, cookie=self.tbl_num,
             resubmit_table=self._ipfix_sample_tbl_num)
 
-        if self._dpi_enabled or self._conntrackd_enabled:
+        if self.ipfix_config.enabled and (self._dpi_enabled or self._conntrackd_enabled):
             pdp = 1
             actions = [parser.NXActionSample2(
                 probability=self.ipfix_config.probability,

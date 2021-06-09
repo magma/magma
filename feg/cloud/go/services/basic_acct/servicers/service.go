@@ -28,20 +28,29 @@ import (
 	"magma/orc8r/lib/go/service/config"
 )
 
+const (
+	remoteAddrFlagName = "remote_addr"
+	caCertFlagName     = "ca_crt"
+	clientCertFlagName = "client_crt"
+	clientKeyFlagName  = "client_key"
+	notlsFlagName      = "notls"
+	insecureFlagName   = "insecure"
+)
+
 var (
 	// Remote address
-	remoteAddrFlag = flag.String("remote_addr", "", "remote accounting service address")
+	remoteAddrFlag = flag.String(remoteAddrFlagName, "", "remote accounting service address")
 
 	// Certificate files.
-	caCertFlag     = flag.String("ca_crt", "", "CA certificate file. Used to verify server TLS certificate.")
-	clientCertFlag = flag.String("client_crt", "", "Client certificate file. Used for client certificate-based authentication.")
-	clientKeyFlag  = flag.String("client_key", "", "Client private key file. Used for client certificate-based authentication.")
+	caCertFlag     = flag.String(caCertFlagName, "", "CA certificate file. Used to verify server TLS certificate.")
+	clientCertFlag = flag.String(clientCertFlagName, "", "Client certificate file. Used for client certificate-based authentication.")
+	clientKeyFlag  = flag.String(clientKeyFlagName, "", "Client private key file. Used for client certificate-based authentication.")
 
 	// notls flag, use to disable TLS
-	notlsFlag = flag.Bool("notls", false, `Disable TLS when set`)
+	notlsFlag = flag.Bool(notlsFlagName, false, `Disable TLS when set`)
 
 	// insecure flag, use to disable server TLS cert verification
-	insecureFlag = flag.Bool("insecure", false, `Disable TLS server certificate verification`)
+	insecureFlag = flag.Bool(insecureFlagName, false, `Disable TLS server certificate verification`)
 )
 
 // BaseAccService Configuration
@@ -98,6 +107,8 @@ func NewBaseAcctService() *BaseAccService {
 		glog.Warningf("Failed reading '%s' service config: %v; Using the following defaults: %+v",
 			basic_acct.ServiceName, err, *cfg)
 	}
+	// Update configs from command flags, they should overwrite .yml based configs
+	cfg.updateFromFlags()
 	return &BaseAccService{cfg: cfg}
 }
 

@@ -14,7 +14,6 @@ from magma.pipelined.app.base import ControllerType, MagmaController
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from ryu.lib.packet import ether_types
-from ryu.ofproto.nicira_ext import ofs_nbits
 
 
 class ConntrackController(MagmaController):
@@ -58,6 +57,7 @@ class ConntrackController(MagmaController):
             self._service_manager.allocate_scratch_tables(self.APP_NAME, 1)[0]
         self.connection_event_table = \
             self._service_manager.INTERNAL_IPFIX_SAMPLE_TABLE_NUM
+        self.zone = kwargs['config']['conntrackd'].get('zone', 897)
         self._datapath = None
 
     def initialize_on_connect(self, datapath):
@@ -86,7 +86,7 @@ class ConntrackController(MagmaController):
         actions = [parser.NXActionCT(
             flags=0x0,
             zone_src=None,
-            zone_ofs_nbits=ofs_nbits(14, 15),
+            zone_ofs_nbits=self.zone,
             recirc_table=self.conntrack_scratch,
             alg=0,
             actions=[]
@@ -98,13 +98,13 @@ class ConntrackController(MagmaController):
 
         # Match all new connections on scratch table
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           ct_zone=ofs_nbits(14, 15),
+                           ct_zone=self.zone,
                            ct_state=(self.CT_NEW | self.CT_TRK,
                                      self.CT_NEW | self.CT_TRK))
         actions = [parser.NXActionCT(
             flags=0x1,
             zone_src=None,
-            zone_ofs_nbits=ofs_nbits(14, 15),
+            zone_ofs_nbits=self.zone,
             recirc_table=self.connection_event_table,
             alg=0,
             actions=[]

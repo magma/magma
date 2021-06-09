@@ -482,6 +482,8 @@ class RestartResilienceTest(unittest.TestCase):
             pkt_sender.send(packet1)
             pkt_sender.send(packet2)
 
+        wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                   enf_stat_name)
         stats = get_enforcement_stats(
             self.enforcement_stats_controller._report_usage.call_args_list)
 

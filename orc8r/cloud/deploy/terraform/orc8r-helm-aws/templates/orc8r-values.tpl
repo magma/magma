@@ -34,6 +34,8 @@ nginx:
   service:
     enabled: true
     legacyEnabled: true
+    annotations:
+      service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "magma-uuid=${magma_uuid}"
     extraAnnotations:
       proxy:
         external-dns.alpha.kubernetes.io/hostname: ${api_hostname}
@@ -198,6 +200,7 @@ nms:
       type: LoadBalancer
       annotations:
         external-dns.alpha.kubernetes.io/hostname: "${nms_hostname}"
+        service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "magma-uuid=${magma_uuid}"
 
     deployment:
       spec:

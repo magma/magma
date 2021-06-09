@@ -25,6 +25,7 @@ import (
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
@@ -106,6 +107,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
 	heConfig := getHEConfig(cellularGwConfig.HeConfig)
+	npTasks, liUes := getNetworkProbeConfig(network.ID)
 
 	mmePoolRecord, mmeGroupID, err := getMMEPoolConfigs(network.ID, cellularGwConfig.Pooling, cellGW, graph)
 	if err != nil {
@@ -173,6 +175,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
 			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
 			HeConfig:                 heConfig,
+			LiUes:                    liUes,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -192,6 +195,10 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			},
 		},
 		"dnsd": getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
+		"liagentd": &lte_mconfig.LIAgentD{
+			LogLevel:    protos.LogLevel_INFO,
+			NprobeTasks: npTasks,
+		},
 	}
 
 	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
@@ -563,4 +570,34 @@ func getRestrictedImeis(imeis []*lte_models.Imei) []*lte_mconfig.MME_ImeiConfig 
 		ret[idx] = &lte_mconfig.MME_ImeiConfig{Tac: imei.Tac, Snr: imei.Snr}
 	}
 	return ret
+}
+
+func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mconfig.PipelineD_LiUes) {
+	liUes := &lte_mconfig.PipelineD_LiUes{}
+	npTasks := []*lte_mconfig.NProbeTask{}
+	ents, _, err := configurator.LoadAllEntitiesOfType(
+		networkID,
+		lte.NetworkProbeTaskEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
+	if err != nil {
+		glog.Errorf("Failed to load nprobe task entities %v", err)
+		return npTasks, liUes
+	}
+
+	for _, ent := range ents {
+		task := (&nprobe_models.NetworkProbeTask{}).FromBackendModels(ent)
+		npTasks = append(npTasks, nprobe_models.ToMConfigNProbeTask(task))
+
+		switch task.TaskDetails.TargetType {
+		case nprobe_models.NetworkProbeTaskDetailsTargetTypeImsi:
+			liUes.Imsis = append(liUes.Imsis, task.TaskDetails.TargetID)
+		case nprobe_models.NetworkProbeTaskDetailsTargetTypeImei:
+			liUes.Imeis = append(liUes.Imeis, task.TaskDetails.TargetID)
+		case nprobe_models.NetworkProbeTaskDetailsTargetTypeMsisdn:
+			liUes.Msisdns = append(liUes.Msisdns, task.TaskDetails.TargetID)
+		}
+	}
+	return npTasks, liUes
 }

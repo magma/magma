@@ -148,11 +148,11 @@ build_python: stop ## Build Python environment
 build_common: format_common ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
-build_oai: format_oai build_common ## Build OAI
-	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS) $(COMMON_FLAGS))
+build_oai: format_oai ## Build OAI
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS))
 
-build_oai_clang: build_common ## Build OAI with Clang, store compiler outputs to log
-	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS) $(COMMON_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
+build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
+	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS), CC="clang" CXX="clang++") 2>&1 | tee /tmp/clang-build.oai.log
 
 # Upload Clang-Warning counts by type to Google Sheet via Google Survey
 #  Graph available at https://docs.google.com/spreadsheets/d/1ndiIKJNI2IJZBwavnu1x_KwwvlQppnoYEOtYdihqiIQ/edit#gid=734064581
@@ -199,13 +199,13 @@ build_%:
 	$(call run_cmake, $(C_BUILD)/$*, $(MAGMA_ROOT)/c/$*, $(COMMON_FLAGS))
 
 scan_oai: ## Scan OAI
-	$(call run_scanbuild, $(C_BUILD)/scan/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
+	$(call run_scanbuild, $(C_BUILD)/scan/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
 
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
-test_oai: build_common ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
+test_oai: ## Run all OAI-specific tests
+	$(call run_ctest, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
 
 test_common: build_common ## Run all tests in magma_common
 	$(call run_ctest, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
@@ -239,13 +239,13 @@ precommit_oai: format_oai test_oai
 # Run clang-tidy
 # TODO: CMake config issue - compile_commands.json is only generated if you first make_oai, then test_oai (or do either twice).
 #       Additionally compile_commands.json is **not capturing all build artifacts this way**
-clang_tidy_oai: build_common
-	mkdir $(GATEWAY_C_DIR)/oai/build
-	cd $(GATEWAY_C_DIR)/oai/build;cmake ..
-	sed -i 's/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON/g' $(GATEWAY_C_DIR)/oai/build/CMakeCache.txt
-	cmake --build $(GATEWAY_C_DIR)/oai/build/
-	wget https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py
-	python run-clang-tidy.py -p $(GATEWAY_C_DIR)/oai/build/ -j 2 -checks='-*,clang-analyzer-security*,android-*,cert-*,clang-analyzer-*,concurrency,misc-*,-misc-unused-parameters,bugprone-*' 2>&1 | tee /tmp/clang-tidy-oai.findings
+clang_tidy_oai:
+	mkdir -p $(C_BUILD)/core/oai/build
+	cd $(C_BUILD)/core/oai/build;cmake $(GATEWAY_C_DIR)/core
+	sed -i 's/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON/g' $(C_BUILD)/core/oai/build/CMakeCache.txt
+	cmake --build $(C_BUILD)/core/oai/build/
+	cd $(C_BUILD)/core/oai/build;wget https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py;\
+	python run-clang-tidy.py -p $(C_BUILD)/core/oai/build/oai -j 2 -checks='-*,clang-analyzer-security*,android-*,cert-*,clang-analyzer-*,concurrency,misc-*,-misc-unused-parameters,bugprone-*' 2>&1 | tee /tmp/clang-tidy-oai.findings
 
 # Pushes per-finding counts to:
 #   https://docs.google.com/forms/d/1-45BZTHh4uBBOCqYM4LAD4zFT91B47sEEntHLkQuXWA/edit#responses

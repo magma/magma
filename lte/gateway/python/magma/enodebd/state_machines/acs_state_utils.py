@@ -105,8 +105,10 @@ def _get_param_values_by_path(
     for param_value in inform.ParameterList.ParameterValueStruct:
         path = param_value.Name
         value = param_value.Value.Data
-        logger.debug('(Inform msg) Received parameter: %s = %s', path,
-                      value)
+        logger.debug(
+            '(Inform msg) Received parameter: %s = %s', path,
+            value,
+        )
         param_values_by_path[path] = value
     return param_values_by_path
 
@@ -129,6 +131,7 @@ def are_tr069_params_equal(param_a: Any, param_b: Any, type_: str) -> bool:
     if cmp_a.lower() in ['true', 'false']:
         cmp_a, cmp_b = map(lambda s: s.lower(), (cmp_a, cmp_b))
     return cmp_a == cmp_b
+
 
 def get_all_objects_to_add(
     desired_cfg: EnodebConfiguration,
@@ -274,10 +277,14 @@ def get_all_param_values_to_set(
     exclude_admin: bool = False,
 ) -> Dict[ParameterName, Any]:
     """ Returns a map of param names to values that we need to set """
-    param_values = get_param_values_to_set(desired_cfg, device_cfg,
-                                           data_model, exclude_admin)
-    obj_param_values = get_obj_param_values_to_set(desired_cfg, device_cfg,
-                                                   data_model)
+    param_values = get_param_values_to_set(
+        desired_cfg, device_cfg,
+        data_model, exclude_admin,
+    )
+    obj_param_values = get_obj_param_values_to_set(
+        desired_cfg, device_cfg,
+        data_model,
+    )
     for _obj_name, param_map in obj_param_values.items():
         for name, val in param_map.items():
             param_values[name] = val

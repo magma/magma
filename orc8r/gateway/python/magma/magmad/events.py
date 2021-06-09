@@ -30,7 +30,7 @@ def processed_updates(configs_by_service):
             event_type="processed_updates",
             tag=snowflake.snowflake(),
             value=json.dumps(configs),
-        )
+        ),
     )
 
 
@@ -43,7 +43,7 @@ def restarted_services(services):
             event_type="restarted_services",
             tag=snowflake.snowflake(),
             value=json.dumps(RestartedServices(services=services).to_dict()),
-        )
+        ),
     )
 
 
@@ -53,8 +53,8 @@ def established_sync_rpc_stream():
             stream_name="magmad",
             event_type="established_sync_rpc_stream",
             tag=snowflake.snowflake(),
-            value="{}"
-        )
+            value="{}",
+        ),
     )
 
 
@@ -64,6 +64,6 @@ def disconnected_sync_rpc_stream():
             stream_name="magmad",
             event_type="disconnected_sync_rpc_stream",
             tag=snowflake.snowflake(),
-            value="{}"
-        )
+            value="{}",
+        ),
     )

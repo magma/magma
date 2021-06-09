@@ -36,9 +36,12 @@ servicesMagma:
 servicesMagmaWildCard:
   - magma@*
 
-agwCertsPath: /var/opt/magma/tmp/certs/
+agwCertsPath: /var/opt/magma/tmp/certs
 agwConfigPath: /var/opt/magma/configs
+
 
 cloudController: "controller.{{ orc8rDomainName }}"
 bootstrapperController: "bootstrapper-controller.{{ orc8rDomainName }}"
 fluentdController: "fluentd.{{ orc8rDomainName }}"
+
+ansible_user: ubuntu

@@ -313,6 +313,8 @@ class LocalEnforcer {
   // remove it if the rule's IMSI+TEIDs pair do no exist as
   // a session
   static bool CLEANUP_DANGLING_FLOWS;
+  // If true, send ipfix related updates to PipelineD
+  static bool SEND_IPFIX;
 
  private:
   std::shared_ptr<SessionReporter> reporter_;

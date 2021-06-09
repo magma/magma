@@ -97,6 +97,9 @@ func TestS6aProxyService(t *testing.T) {
 			SkipSubscriberData:           false,
 			InitialAttach:                true,
 			DualRegistration_5GIndicator: true,
+			FeatureListId_1: &protos.FeatureListId1{
+				RegionalSubscription: true,
+			},
 			FeatureListId_2: &protos.FeatureListId2{
 				NrAsSecondaryRat: true,
 			},
@@ -118,9 +121,19 @@ func TestS6aProxyService(t *testing.T) {
 			!bytes.Equal(ulResp.RegionalSubscriptionZoneCode[1], []byte{1, 1, 0, 1}) {
 			t.Errorf("There should be 2 Regional Subscription Zone Codes : %+v", ulResp.RegionalSubscriptionZoneCode)
 		}
+		assert.NotEmpty(t, ulResp.FeatureListId_1)
+		assert.True(t, ulResp.FeatureListId_1.RegionalSubscription)
 		assert.NotEmpty(t, ulResp.FeatureListId_2)
 		assert.True(t, ulResp.FeatureListId_2.NrAsSecondaryRat)
 
+		assert.NotNil(t, ulResp.TotalAmbr)
+		assert.Equal(t, uint32(500), ulResp.TotalAmbr.MaxBandwidthDl)
+		assert.Equal(t, uint32(600), ulResp.TotalAmbr.MaxBandwidthUl)
+		assert.Equal(t, protos.UpdateLocationAnswer_AggregatedMaximumBitrate_KBPS, ulResp.TotalAmbr.Unit)
+		assert.NotEmpty(t, ulResp.Apn)
+		assert.Equal(t, uint32(50), ulResp.Apn[0].Ambr.MaxBandwidthDl)
+		assert.Equal(t, uint32(60), ulResp.Apn[0].Ambr.MaxBandwidthUl)
+		assert.Equal(t, protos.UpdateLocationAnswer_AggregatedMaximumBitrate_BPS, ulResp.Apn[0].Ambr.Unit)
 		puReq := &protos.PurgeUERequest{
 			UserName: test.TEST_IMSI,
 		}

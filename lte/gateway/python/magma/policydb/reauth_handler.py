@@ -47,15 +47,19 @@ class ReAuthHandler():
         success.
         """
         if not self._is_valid_rar(rar):
-            logging.error('Invalid RAR: Either installing already installed '
-                          'rules, or uninstalling rules that are not installed')
+            logging.error(
+                'Invalid RAR: Either installing already installed '
+                'rules, or uninstalling rules that are not installed',
+            )
             return False
         try:
             resp = self._sessiond_stub.PolicyReAuth(rar)
             return self._handle_rar_answer(rar, resp)
         except grpc.RpcError:
-            logging.error('Unable to apply policy updates for subscriber %s',
-                          rar.imsi)
+            logging.error(
+                'Unable to apply policy updates for subscriber %s',
+                rar.imsi,
+            )
             return False
 
     def _is_valid_rar(self, rar: PolicyReAuthRequest) -> bool:
@@ -78,8 +82,10 @@ class ReAuthHandler():
         answer: PolicyReAuthAnswer,
     ) -> bool:
         if answer.result == ReAuthResult.Value('OTHER_FAILURE'):
-            logging.error('Failed to apply policy updates for subscriber %s',
-                          rar.imsi)
+            logging.error(
+                'Failed to apply policy updates for subscriber %s',
+                rar.imsi,
+            )
             return False
         self._rules_by_sid[rar.imsi] = InstalledPolicies(
             installed_policies=list(self._get_updated_rules(rar, answer)),

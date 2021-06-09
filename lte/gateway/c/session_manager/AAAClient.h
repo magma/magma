@@ -17,7 +17,7 @@
 #include <memory>
 #include <string>
 
-#include "GRPCReceiver.h"
+#include "includes/GRPCReceiver.h"
 #include "SessionState.h"
 #include "SessionStore.h"
 

@@ -71,7 +71,8 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         except CryptoError as e:
             logging.error("Auth error for %s: %s", imsi, e)
             metrics.S6A_AUTH_FAILURE_TOTAL.labels(
-                code=metrics.DIAMETER_AUTHENTICATION_REJECTED).inc()
+                code=metrics.DIAMETER_AUTHENTICATION_REJECTED,
+            ).inc()
             aia.error_code = metrics.DIAMETER_AUTHENTICATION_REJECTED
             self._print_grpc(aia)
             return aia
@@ -79,7 +80,8 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         except SubscriberNotFoundError as e:
             logging.warning("Subscriber not found: %s", e)
             metrics.S6A_AUTH_FAILURE_TOTAL.labels(
-                code=metrics.DIAMETER_ERROR_USER_UNKNOWN).inc()
+                code=metrics.DIAMETER_ERROR_USER_UNKNOWN,
+            ).inc()
             aia.error_code = metrics.DIAMETER_ERROR_USER_UNKNOWN
             self._print_grpc(aia)
             return aia
@@ -138,8 +140,10 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         return ula
 
     def PurgeUE(self, request, context):
-        logging.warning("Purge request not implemented: %s %s",
-                        request.DESCRIPTOR.full_name, MessageToJson(request))
+        logging.warning(
+            "Purge request not implemented: %s %s",
+            request.DESCRIPTOR.full_name, MessageToJson(request),
+        )
         res = s6a_proxy_pb2.PurgeUEAnswer()
         self._print_grpc(res)
         return res
@@ -147,12 +151,16 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
     def _print_grpc(self, message):
         if self._print_grpc_payload:
             try:
-                log_msg = "{} {}".format(message.DESCRIPTOR.full_name,
-                                     MessageToJson(message))
+                log_msg = "{} {}".format(
+                    message.DESCRIPTOR.full_name,
+                    MessageToJson(message),
+                )
                 # add indentation
                 padding = 2 * ' '
-                log_msg =''.join( "{}{}".format(padding, line)
-                              for line in log_msg.splitlines(True))
+                log_msg = ''.join(
+                    "{}{}".format(padding, line)
+                    for line in log_msg.splitlines(True)
+                )
 
                 log_msg = "GRPC message:\n{}".format(log_msg)
                 logging.info(log_msg)

@@ -12,21 +12,22 @@ limitations under the License.
 """
 import time
 import unittest
-
 import warnings
-from swagger_client import rest
 
 from integ_tests.cloud.cloud_manager import CloudManager
 from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
 from integ_tests.gateway.rpc import get_gateway_hw_id
+from swagger_client import rest
 
 MAX_GATEWAY_CHECKS = 12
 GATEWAY_POLL_INTERVAL_SEC = 10
 
 
 class TestCheckin(unittest.TestCase):
-    STATUS_RESPONSE_ATTRIBUTES = ('checkin_time', 'hardware_id', 'version',
-                                  'system_status')
+    STATUS_RESPONSE_ATTRIBUTES = (
+        'checkin_time', 'hardware_id', 'version',
+        'system_status',
+    )
 
     def setUp(self):
         self._cloud_manager = CloudManager()

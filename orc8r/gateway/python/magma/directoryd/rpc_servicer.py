@@ -44,7 +44,9 @@ class DirectoryRecord:
     """
     __slots__ = ['location_history', 'identifiers']
 
-    def __init__(self, location_history: List[str], identifiers: Dict[str, str]):
+    def __init__(
+            self, location_history: List[str], identifiers: Dict[str, str],
+    ):
         self.location_history = location_history
         self.identifiers = identifiers
 
@@ -54,9 +56,11 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
 
     def __init__(self, print_grpc_payload: bool = False):
         """Initialize Directoryd grpc endpoints."""
-        serde = RedisSerde(DIRECTORYD_REDIS_TYPE,
-                           get_json_serializer(),
-                           get_json_deserializer())
+        serde = RedisSerde(
+            DIRECTORYD_REDIS_TYPE,
+            get_json_serializer(),
+            get_json_deserializer(),
+        )
         self._redis_dict = RedisFlatDict(get_default_client(), serde)
         self._print_grpc_payload = print_grpc_payload
 
@@ -78,8 +82,10 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
         self._print_grpc(request)
         if len(request.id) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            context.set_details("ID argument cannot be empty in "
-                                "UpdateRecordRequest")
+            context.set_details(
+                "ID argument cannot be empty in "
+                "UpdateRecordRequest",
+            )
             return
 
         try:
@@ -87,8 +93,10 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             with self._redis_dict.lock(request.id):
                 hwid = get_gateway_hwid()
                 record = self._redis_dict.get(request.id) or \
-                    DirectoryRecord(location_history=[hwid],
-                                    identifiers={})
+                    DirectoryRecord(
+                        location_history=[hwid],
+                        identifiers={},
+                    )
 
                 if record.location_history[0] != hwid:
                     record.location_history = [hwid] + record.location_history
@@ -116,8 +124,10 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
         self._print_grpc(request)
         if len(request.id) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            context.set_details("ID argument cannot be empty in "
-                                "DeleteRecordRequest")
+            context.set_details(
+                "ID argument cannot be empty in "
+                "DeleteRecordRequest",
+            )
             return
 
         # Lock Redis for requested key until delete is complete
@@ -125,8 +135,10 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             with self._redis_dict.lock(request.id):
                 if request.id not in self._redis_dict:
                     context.set_code(grpc.StatusCode.NOT_FOUND)
-                    context.set_details("Record for ID %s was not found." %
-                                        request.id)
+                    context.set_details(
+                        "Record for ID %s was not found." %
+                        request.id,
+                    )
                     return
                 self._redis_dict.mark_as_garbage(request.id)
         except (RedisError, LockError) as e:
@@ -144,13 +156,17 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
         self._print_grpc(request)
         if len(request.id) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            context.set_details("ID argument cannot be empty in "
-                                "GetDirectoryFieldRequest")
+            context.set_details(
+                "ID argument cannot be empty in "
+                "GetDirectoryFieldRequest",
+            )
             return
         if len(request.field_key) == 0:
             context.set_code(grpc.StatusCode.INVALID_ARGUMENT)
-            context.set_details("Field key argument cannot be empty in "
-                                "GetDirectoryFieldRequest")
+            context.set_details(
+                "Field key argument cannot be empty in "
+                "GetDirectoryFieldRequest",
+            )
             response = DirectoryField()
             self._print_grpc(response)
             return response
@@ -160,8 +176,10 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
             with self._redis_dict.lock(request.id):
                 if request.id not in self._redis_dict:
                     context.set_code(grpc.StatusCode.NOT_FOUND)
-                    context.set_details("Record for ID %s was not found." %
-                                        request.id)
+                    context.set_details(
+                        "Record for ID %s was not found." %
+                        request.id,
+                    )
                     return DirectoryField()
                 record = self._redis_dict[request.id]
         except (RedisError, LockError) as e:
@@ -174,12 +192,16 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
 
         if request.field_key not in record.identifiers:
             context.set_code(grpc.StatusCode.NOT_FOUND)
-            context.set_details("Field %s was not found in record for "
-                                "ID %s" % (request.field_key, request.id))
+            context.set_details(
+                "Field %s was not found in record for "
+                "ID %s" % (request.field_key, request.id),
+            )
             return DirectoryField()
 
-        response = DirectoryField(key=request.field_key,
-                                  value=record.identifiers[request.field_key])
+        response = DirectoryField(
+            key=request.field_key,
+            value=record.identifiers[request.field_key],
+        )
         self._print_grpc(response)
         return response
 
@@ -229,12 +251,16 @@ class GatewayDirectoryServiceRpcServicer(GatewayDirectoryServiceServicer):
 
     def _print_grpc(self, message):
         if self._print_grpc_payload:
-            log_msg = "{} {}".format(message.DESCRIPTOR.full_name,
-                                     MessageToJson(message))
+            log_msg = "{} {}".format(
+                message.DESCRIPTOR.full_name,
+                MessageToJson(message),
+            )
             # add indentation
             padding = 2 * ' '
-            log_msg = ''.join("{}{}".format(padding, line)
-                              for line in log_msg.splitlines(True))
+            log_msg = ''.join(
+                "{}{}".format(padding, line)
+                for line in log_msg.splitlines(True)
+            )
 
             log_msg = "GRPC message:\n{}".format(log_msg)
             logging.info(log_msg)

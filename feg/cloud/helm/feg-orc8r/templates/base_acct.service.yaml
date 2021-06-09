@@ -9,19 +9,19 @@
   # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   # See the License for the specific language governing permissions and
   # limitations under the License.
-  */}}
+*/}}
 
-  {{- include "orc8rlib.service" (list . "base_acct.service") -}}
-  {{- define "base_acct.service" -}}
+{{- include "orc8rlib.service" (list . "base_acct.service") -}}
+{{- define "base_acct.service" -}}
 metadata:
   name: orc8r-base-acct
   labels:
     {{- with .Values.base_acct.service.labels }}
-  {{ toYaml . | indent 4}}
-  {{- end}}
+{{ toYaml . | indent 4}}
+    {{- end}}
   {{- with .Values.base_acct.service.annotations }}
-annotations:
-  {{ toYaml . | indent 4}}
+  annotations:
+{{ toYaml . | indent 4}}
   {{- end }}
 spec:
   selector:
@@ -30,4 +30,4 @@ spec:
     - name: grpc
       port: 9180
       targetPort: 9119
-  {{- end -}}
+{{- end -}}

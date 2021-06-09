@@ -48,7 +48,7 @@ class ServiceManagerSystemdTest(TestCase):
         #  Ensure test process is stopped
         self.dummy_service = ServiceManager.ServiceControl(
             name='dummy_service',
-            init_system_spec=ServiceManager.SystemdInitSystem
+            init_system_spec=ServiceManager.SystemdInitSystem,
         )
         self._loop.run_until_complete(self.dummy_service.stop_process())
 
@@ -81,22 +81,32 @@ class ServiceManagerSystemdTest(TestCase):
         This test exercises the ServiceManager functions, but doesn't really
         verify functionality beyond the tests above
         """
-        mgr = ServiceManager(['dummy1', 'dummy2'], init_system='systemd',
-                             service_poller=MagicMock())
+        mgr = ServiceManager(
+            ['dummy1', 'dummy2'], init_system='systemd',
+            service_poller=MagicMock(),
+        )
 
         self._loop.run_until_complete(mgr.start_services())
         self.subprocess_mock.return_value = b'active\n'
-        self.assertEqual(mgr._service_control['dummy1'].status(),
-                         ServiceState.Active)
-        self.assertEqual(mgr._service_control['dummy2'].status(),
-                         ServiceState.Active)
+        self.assertEqual(
+            mgr._service_control['dummy1'].status(),
+            ServiceState.Active,
+        )
+        self.assertEqual(
+            mgr._service_control['dummy2'].status(),
+            ServiceState.Active,
+        )
 
         self._loop.run_until_complete(mgr.stop_services())
         self.subprocess_mock.return_value = b'inactive\n'
-        self.assertEqual(mgr._service_control['dummy1'].status(),
-                         ServiceState.Inactive)
-        self.assertEqual(mgr._service_control['dummy2'].status(),
-                         ServiceState.Inactive)
+        self.assertEqual(
+            mgr._service_control['dummy1'].status(),
+            ServiceState.Inactive,
+        )
+        self.assertEqual(
+            mgr._service_control['dummy2'].status(),
+            ServiceState.Inactive,
+        )
 
     def test_dynamic_service_manager_start_stop(self):
         """
@@ -104,23 +114,30 @@ class ServiceManagerSystemdTest(TestCase):
         verify functionality beyond the tests above
         """
         mgr = ServiceManager(
-            ['dummy1', 'dummy2'], 'systemd', MagicMock(), ['redirectd'], []
+            ['dummy1', 'dummy2'], 'systemd', MagicMock(), ['redirectd'], [],
         )
 
         self.subprocess_mock.return_value = b'inactive\n'
-        self.assertEqual(mgr._service_control['redirectd'].status(),
-                         ServiceState.Inactive)
+        self.assertEqual(
+            mgr._service_control['redirectd'].status(),
+            ServiceState.Inactive,
+        )
 
         self._loop.run_until_complete(
-            mgr.update_dynamic_services(['redirectd']))
+            mgr.update_dynamic_services(['redirectd']),
+        )
         self.subprocess_mock.return_value = b'active\n'
-        self.assertEqual(mgr._service_control['redirectd'].status(),
-                         ServiceState.Active)
+        self.assertEqual(
+            mgr._service_control['redirectd'].status(),
+            ServiceState.Active,
+        )
 
         self._loop.run_until_complete(mgr.update_dynamic_services([]))
         self.subprocess_mock.return_value = b'inactive\n'
-        self.assertEqual(mgr._service_control['redirectd'].status(),
-                         ServiceState.Inactive)
+        self.assertEqual(
+            mgr._service_control['redirectd'].status(),
+            ServiceState.Inactive,
+        )
 
 
 class ServiceManagerRunitTest(TestCase):
@@ -134,7 +151,7 @@ class ServiceManagerRunitTest(TestCase):
         Run before each test
         """
         self.is_integration_test = bool(
-            os.environ.get('MAGMA_INTEGRATION_TEST')
+            os.environ.get('MAGMA_INTEGRATION_TEST'),
         )
         #  Only patch if this is a unit test. Otherwise create dummy mock so
         #  code that affects the mock can run.
@@ -169,16 +186,20 @@ class ServiceManagerRunitTest(TestCase):
         self.subprocess_mock.return_value = (
             'down: e2e_controller: 268195s; run: log: (pid 2275) 268195s\n'
         )
-        self.assertEqual(self.dummy_service.status(),
-                         ServiceState.Inactive)
+        self.assertEqual(
+            self.dummy_service.status(),
+            ServiceState.Inactive,
+        )
 
         self.subprocess_mock.return_value = (
             'run: e2e_controller: 268195s; run: log: (pid 2275) 268195s\n'
         )
         self.dummy_service.start_process()
         time.sleep(1)  # Make sure that process doesnt immediately die
-        self.assertEqual(self.dummy_service.status(),
-                         ServiceState.Active)
+        self.assertEqual(
+            self.dummy_service.status(),
+            ServiceState.Active,
+        )
 
         self.subprocess_mock.return_value = (
             "fail: blabla: can't change to service directory: "
@@ -186,7 +207,7 @@ class ServiceManagerRunitTest(TestCase):
         )
         self.assertEqual(
             self.dummy_service.status(),
-            ServiceState.Failed
+            ServiceState.Failed,
         )
 
     def test_service_manager_start_stop(self):
@@ -199,26 +220,36 @@ class ServiceManagerRunitTest(TestCase):
         if self.is_integration_test:
             return
 
-        mgr = ServiceManager(['dummy1', 'dummy2'], init_system='runit',
-                             service_poller=MagicMock())
+        mgr = ServiceManager(
+            ['dummy1', 'dummy2'], init_system='runit',
+            service_poller=MagicMock(),
+        )
 
         mgr.start_services()
         self.subprocess_mock.return_value = (
             'run: e2e_controller: 268195s; run: log: (pid 2275) 268195s\n'
         )
-        self.assertEqual(mgr._service_control['dummy1'].status(),
-                         ServiceState.Active)
-        self.assertEqual(mgr._service_control['dummy2'].status(),
-                         ServiceState.Active)
+        self.assertEqual(
+            mgr._service_control['dummy1'].status(),
+            ServiceState.Active,
+        )
+        self.assertEqual(
+            mgr._service_control['dummy2'].status(),
+            ServiceState.Active,
+        )
 
         mgr.stop_services()
         self.subprocess_mock.return_value = (
             'down: e2e_controller: 268195s; run: log: (pid 2275) 268195s\n'
         )
-        self.assertEqual(mgr._service_control['dummy1'].status(),
-                         ServiceState.Inactive)
-        self.assertEqual(mgr._service_control['dummy2'].status(),
-                         ServiceState.Inactive)
+        self.assertEqual(
+            mgr._service_control['dummy1'].status(),
+            ServiceState.Inactive,
+        )
+        self.assertEqual(
+            mgr._service_control['dummy2'].status(),
+            ServiceState.Inactive,
+        )
 
     def test_dynamic_service_manager_start_stop(self):
         """
@@ -231,28 +262,34 @@ class ServiceManagerRunitTest(TestCase):
             return
 
         mgr = ServiceManager(
-            ['dummy1', 'dummy2'], 'runit', MagicMock(), ['redirectd'], []
+            ['dummy1', 'dummy2'], 'runit', MagicMock(), ['redirectd'], [],
         )
 
         self.subprocess_mock.return_value = (
             'down: e2e_controller: 268195s; run: log: (pid 2275) 268195s\n'
         )
-        self.assertEqual(mgr._service_control['redirectd'].status(),
-                         ServiceState.Inactive)
+        self.assertEqual(
+            mgr._service_control['redirectd'].status(),
+            ServiceState.Inactive,
+        )
 
         mgr.update_dynamic_services(['redirectd'])
         self.subprocess_mock.return_value = (
             'run: e2e_controller: 268195s; run: log: (pid 2275) 268195s\n'
         )
-        self.assertEqual(mgr._service_control['redirectd'].status(),
-                         ServiceState.Active)
+        self.assertEqual(
+            mgr._service_control['redirectd'].status(),
+            ServiceState.Active,
+        )
 
         mgr.update_dynamic_services([])
         self.subprocess_mock.return_value = (
             'down: e2e_controller: 268195s; run: log: (pid 2275) 268195s\n'
         )
-        self.assertEqual(mgr._service_control['redirectd'].status(),
-                         ServiceState.Inactive)
+        self.assertEqual(
+            mgr._service_control['redirectd'].status(),
+            ServiceState.Inactive,
+        )
 
 
 class ServiceManagerDockerTest(TestCase):
@@ -279,7 +316,7 @@ class ServiceManagerDockerTest(TestCase):
         #  Ensure test process is stopped
         self.dummy_service = ServiceManager.ServiceControl(
             name='dummy_service',
-            init_system_spec=ServiceManager.DockerInitSystem
+            init_system_spec=ServiceManager.DockerInitSystem,
         )
         try:
             self._loop.run_until_complete(self.dummy_service.stop_process())
@@ -324,25 +361,35 @@ class ServiceManagerDockerTest(TestCase):
         This test exercises the ServiceManager functions, but doesn't really
         verify functionality beyond the tests above
         """
-        mgr = ServiceManager(['dummy1', 'dummy2'], init_system='docker',
-                             service_poller=MagicMock())
+        mgr = ServiceManager(
+            ['dummy1', 'dummy2'], init_system='docker',
+            service_poller=MagicMock(),
+        )
 
         try:
             self._loop.run_until_complete(mgr.start_services())
         except FileNotFoundError:
             pass
         self.subprocess_mock.return_value = b'[{"State": {"Status": "running"}}]'
-        self.assertEqual(mgr._service_control['dummy1'].status(),
-                         ServiceState.Active)
-        self.assertEqual(mgr._service_control['dummy2'].status(),
-                         ServiceState.Active)
+        self.assertEqual(
+            mgr._service_control['dummy1'].status(),
+            ServiceState.Active,
+        )
+        self.assertEqual(
+            mgr._service_control['dummy2'].status(),
+            ServiceState.Active,
+        )
 
         try:
             self._loop.run_until_complete(mgr.stop_services())
         except FileNotFoundError:
             pass
         self.subprocess_mock.return_value = b'[{"State": {"Status": "exited"}}]'
-        self.assertEqual(mgr._service_control['dummy1'].status(),
-                         ServiceState.Inactive)
-        self.assertEqual(mgr._service_control['dummy2'].status(),
-                         ServiceState.Inactive)
+        self.assertEqual(
+            mgr._service_control['dummy1'].status(),
+            ServiceState.Inactive,
+        )
+        self.assertEqual(
+            mgr._service_control['dummy2'].status(),
+            ServiceState.Inactive,
+        )

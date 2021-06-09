@@ -14,13 +14,15 @@ gitHelmRepo: helm15
 #AWS variables
 awsBootKey: "{{ keyBoot }}"
 awsHostKey: "{{ keyHost }}"
-awsAgwRegion: ap-northeast-1
-awsOrc8rRegion: ap-southeast-2
-awsAgwAz: ap-northeast-1a
+awsAgwRegion: us-west-2
+awsOrc8rRegion: us-west-2
+awsAgwAz: us-west-2a
 awsAgwVersion: v1.5
 
-awsAgwAmi: ami-09265db477af05f54
-awsCloudstrapperAmi: ami-03865ac2b925f8056
+awsAgwAmi: ami-06447b6fef489a898
+#awsCloudstrapperAmi: ami-03865ac2b925f8056
+# awsAgwAmi: ami-00f8fdefbca05fe8e
+awsCloudstrapperAmi: ami-051d6db85d3a56804
 
 #------------------
 #Cluster-specific Presets
@@ -35,3 +37,5 @@ orc8rTfEs: orc8r-es
 #------------------
 #Cluster-specific Variables ends
 #------------------
+
+ansibleUser: ubuntu

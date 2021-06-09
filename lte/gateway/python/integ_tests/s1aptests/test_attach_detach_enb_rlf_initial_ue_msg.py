@@ -12,12 +12,12 @@ limitations under the License.
 """
 
 
+import time
 import unittest
 
+import gpp_types
 import s1ap_types
 import s1ap_wrapper
-import time
-import gpp_types
 
 
 class TestAttachEnbRlf(unittest.TestCase):
@@ -28,7 +28,7 @@ class TestAttachEnbRlf(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
         print(
             "Restart sctpd service to clear Redis state as test case doesn't"
-            " intend to initiate detach procedure"
+            " intend to initiate detach procedure",
         )
         self._s1ap_wrapper.magmad_util.restart_sctpd()
         self._s1ap_wrapper.magmad_util.print_redis_state()
@@ -56,11 +56,11 @@ class TestAttachEnbRlf(unittest.TestCase):
         print("***Triggering Attach Request ***")
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
 
         # Trigger Authentication Response
@@ -70,34 +70,34 @@ class TestAttachEnbRlf(unittest.TestCase):
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
 
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = 1
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
+            s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value,
         )
 
         # Trigger Attach Complete
         attach_complete = s1ap_types.ueAttachComplete_t()
         attach_complete.ue_Id = 1
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete
+            s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
         )
 
         print("***Triggering Re-Attach Request ***")
@@ -111,7 +111,7 @@ class TestAttachEnbRlf(unittest.TestCase):
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         # Send UE context release request with cause Radio Link Failure
@@ -121,7 +121,7 @@ class TestAttachEnbRlf(unittest.TestCase):
             gpp_types.CauseRadioNetwork.RADIO_CONNECTION_WITH_UE_LOST.value
         )
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_ctxt_rel_req
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, ue_ctxt_rel_req,
         )
         time.sleep(1)
 

@@ -15,7 +15,7 @@ from magma.enodebd.exceptions import ConfigurationError
 
 CELL_RESERVED_MAP = {
     True: 'reserved',
-    False: 'notReserved'
+    False: 'notReserved',
 }
 
 
@@ -71,6 +71,8 @@ def bandwidth(bandwidth_mhz):
     elif bandwidth_mhz == 20:
         bandwidth_rbs = 'n100'
     else:
-        raise ConfigurationError('Unknown bandwidth_mhz (%s)' %
-                                 str(bandwidth_mhz))
+        raise ConfigurationError(
+            'Unknown bandwidth_mhz (%s)' %
+            str(bandwidth_mhz),
+        )
     return bandwidth_rbs

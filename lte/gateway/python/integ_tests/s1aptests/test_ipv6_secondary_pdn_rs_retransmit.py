@@ -6,12 +6,12 @@ LICENSE file in the root directory of this source tree. An additional grant
 of patent rights can be found in the PATENTS file in the same directory.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import ipaddress
 
 
 class TestIPv6SecondaryPdnRSRetransmit(unittest.TestCase):
@@ -47,7 +47,7 @@ class TestIPv6SecondaryPdnRSRetransmit(unittest.TestCase):
         apn_list = [ims_apn]
 
         self._s1ap_wrapper.configAPN(
-            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list
+            "IMSI" + "".join([str(i) for i in req.imsi]), apn_list,
         )
         print(
             "*********************** Running End to End attach for UE id ",
@@ -82,19 +82,19 @@ class TestIPv6SecondaryPdnRSRetransmit(unittest.TestCase):
         drop_ra.ue_Id = req.ue_id
         drop_ra.flag = 1
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_DROP_ROUTER_ADV, drop_ra
+            s1ap_types.tfwCmd.UE_SET_DROP_ROUTER_ADV, drop_ra,
         )
 
         print("***** Sleeping for 5 seconds")
         time.sleep(5)
         # Send PDN Connectivity Request for ims apn
         self._s1ap_wrapper.sendPdnConnectivityReq(
-            ue_id, apn, pdn_type=pdn_type
+            ue_id, apn, pdn_type=pdn_type,
         )
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value,
         )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
@@ -105,22 +105,22 @@ class TestIPv6SecondaryPdnRSRetransmit(unittest.TestCase):
         print(
             "********************** Added default bearer for apn-%s,"
             " bearer id-%d, pdn type-%d"
-            % (apn, act_def_bearer_req.m.pdnInfo.epsBearerId, pdn_type,)
+            % (apn, act_def_bearer_req.m.pdnInfo.epsBearerId, pdn_type),
         )
         # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
         )
 
         print(
             "******************* Received deactivate eps bearer context"
-            " request"
+            " request",
         )
         # Send DeactDedicatedBearerAccept
         deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
         self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-            req.ue_id, deactv_bearer_req.bearerId
+            req.ue_id, deactv_bearer_req.bearerId,
         )
 
         print("***** Sleeping for 5 seconds")
@@ -133,7 +133,7 @@ class TestIPv6SecondaryPdnRSRetransmit(unittest.TestCase):
 
         # Verify if flow rules are created
         self._s1ap_wrapper.s1_util.verify_flow_rules(
-            num_ul_flows, dl_flow_rules
+            num_ul_flows, dl_flow_rules,
         )
 
         print("***** Sleeping for 5 seconds")
@@ -145,7 +145,7 @@ class TestIPv6SecondaryPdnRSRetransmit(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
         )
 
 

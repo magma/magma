@@ -35,7 +35,8 @@ class PolicyRuleDict(RedisHashDict):
             client,
             self._DICT_HASH,
             get_proto_serializer(),
-            get_proto_deserializer(PolicyRule))
+            get_proto_deserializer(PolicyRule),
+        )
 
     def send_update_notification(self):
         """

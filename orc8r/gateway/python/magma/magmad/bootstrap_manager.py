@@ -69,7 +69,7 @@ class BootstrapManager(SDWatchdogTask):
     def __init__(self, service, bootstrap_success_cb):
         super().__init__(
             self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds(),
-            service.loop
+            service.loop,
         )
 
         control_proxy_config = load_service_config('control_proxy')
@@ -120,10 +120,13 @@ class BootstrapManager(SDWatchdogTask):
     def _maybe_create_challenge_key(self):
         """Generate key the first time it runs if key does not exist"""
         if not os.path.exists(self._challenge_key_file):
-            logging.info('Generating challenge key and written into %s',
-                         self._challenge_key_file)
+            logging.info(
+                'Generating challenge key and written into %s',
+                self._challenge_key_file,
+            )
             challenge_key = ec.generate_private_key(
-                ec.SECP384R1(), default_backend())
+                ec.SECP384R1(), default_backend(),
+            )
             cert_utils.write_key(challenge_key, self._challenge_key_file)
 
     async def _bootstrap_check(self):
@@ -147,12 +150,14 @@ class BootstrapManager(SDWatchdogTask):
         if now + self.PREEXPIRY_BOOTSTRAP_INTERVAL > cert.not_valid_after:
             logging.info(
                 'Certificate is expiring soon at %s, start bootstrapping',
-                cert.not_valid_after)
+                cert.not_valid_after,
+            )
             await self._bootstrap_now()
             return
         if now < cert.not_valid_before:
             logging.error(
-                'Certificate is not valid until %s', cert.not_valid_before)
+                'Certificate is not valid until %s', cert.not_valid_before,
+            )
             await self._bootstrap_now()
             return
 
@@ -183,7 +188,7 @@ class BootstrapManager(SDWatchdogTask):
         try:
             result = await grpc_async_wrapper(
                 client.GetChallenge.future(AccessGatewayID(id=self._hw_id)),
-                self._loop
+                self._loop,
             )
             await self._get_challenge_done_success(result)
 
@@ -199,12 +204,15 @@ class BootstrapManager(SDWatchdogTask):
             # nghttpx handles the handshake, but if you have a P384 cert and
             # don't proxy your cloud connections, every authenticated Python
             # GRPC call will fail.
-            self._gateway_key = ec.generate_private_key(ec.SECP256R1(),
-                                                        default_backend())
+            self._gateway_key = ec.generate_private_key(
+                ec.SECP256R1(),
+                default_backend(),
+            )
         except InternalError as exp:
             logging.error('Fail to generate private key: %s', exp)
             BOOTSTRAP_EXCEPTION.labels(
-                cause='GetChallengeDonePrivateKey').inc()
+                cause='GetChallengeDonePrivateKey',
+            ).inc()
             self._schedule_next_bootstrap(hard_failure=True)
             return
         # create csr and send for signing
@@ -214,14 +222,17 @@ class BootstrapManager(SDWatchdogTask):
             logging.error('Fail to create csr: %s', exp)
             BOOTSTRAP_EXCEPTION.labels(
                 cause='GetChallengeDoneCreateCSR:%s' % type(
-                    exp).__name__).inc()
+                    exp,
+                ).__name__,
+            ).inc()
 
         try:
             response = self._construct_response(challenge, csr)
         except BootstrapError as exp:
             logging.error('Fail to create response: %s', exp)
             BOOTSTRAP_EXCEPTION.labels(
-                cause='GetChallengeDoneCreateResponse').inc()
+                cause='GetChallengeDoneCreateResponse',
+            ).inc()
             self._schedule_next_bootstrap(hard_failure=True)
             return
         await self._request_sign(response)
@@ -252,7 +263,7 @@ class BootstrapManager(SDWatchdogTask):
             client = BootstrapperStub(chan)
             result = await grpc_async_wrapper(
                 client.RequestSign.future(response),
-                self._loop
+                self._loop,
             )
             await self._request_sign_done_success(result)
 
@@ -262,7 +273,8 @@ class BootstrapManager(SDWatchdogTask):
     async def _request_sign_done_success(self, cert):
         if not self._is_valid_certificate(cert):
             BOOTSTRAP_EXCEPTION.labels(
-                cause='RequestSignDoneInvalidCert').inc()
+                cause='RequestSignDoneInvalidCert',
+            ).inc()
             self._schedule_next_bootstrap(hard_failure=True)
             return
         try:
@@ -270,7 +282,8 @@ class BootstrapManager(SDWatchdogTask):
             cert_utils.write_cert(cert.cert_der, self._gateway_cert_file)
         except Exception as exp:
             BOOTSTRAP_EXCEPTION.labels(
-                cause='RequestSignDoneWriteCert:%s' % type(exp).__name__).inc()
+                cause='RequestSignDoneWriteCert:%s' % type(exp).__name__,
+            ).inc()
             logging.error('Failed to write cert: %s', exp)
 
         # need to restart control_proxy
@@ -302,7 +315,7 @@ class BootstrapManager(SDWatchdogTask):
     def _schedule_next_bootstrap_check(self):
         """Schedule a bootstrap_check"""
         self.set_interval(
-            int(self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds())
+            int(self.PERIODIC_BOOTSTRAP_CHECK_INTERVAL.total_seconds()),
         )
         self._state = BootstrapState.SCHEDULED_CHECK
 
@@ -372,7 +385,8 @@ class BootstrapManager(SDWatchdogTask):
         not_before = cert.not_before.ToDatetime()
         if now < not_before:
             logging.error(
-                'Current system time indicates certificate received is not yet valid (notBefore: %s). Consider checking NTP.', not_before)
+                'Current system time indicates certificate received is not yet valid (notBefore: %s). Consider checking NTP.', not_before,
+            )
             return False
 
         not_after = cert.not_after.ToDatetime()
@@ -400,14 +414,17 @@ class BootstrapManager(SDWatchdogTask):
             challenge_key = cert_utils.load_key(self._challenge_key_file)
         except (IOError, ValueError, TypeError) as e:
             raise BootstrapError(
-                'Gateway does not have a proper challenge key: %s' % e)
+                'Gateway does not have a proper challenge key: %s' % e,
+            )
 
         try:
             signature = challenge_key.sign(
-                challenge, ec.ECDSA(hashes.SHA256()))
+                challenge, ec.ECDSA(hashes.SHA256()),
+            )
         except TypeError:
             raise BootstrapError(
-                'Challenge key cannot be used for ECDSA signature')
+                'Challenge key cannot be used for ECDSA signature',
+            )
 
         r_int, s_int = decode_dss_signature(signature)
         r_bytes = r_int.to_bytes((r_int.bit_length() + 7) // 8, 'big')

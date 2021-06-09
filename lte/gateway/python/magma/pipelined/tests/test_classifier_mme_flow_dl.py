@@ -106,11 +106,14 @@ class ClassifierMmeTest(unittest.TestCase):
         # install the specific flows test case.
         self.test_detach_default_tunnel_flows()
 
-        dst_ip = "192.168.128.12"
-        dest_ip=IPAddress(version=IPAddress.IPV4,address=dst_ip.encode('utf-8'))
-        sc_ip = "192.168.129.64"
-        src_ip=IPAddress(version=IPAddress.IPV4,address=sc_ip.encode('utf-8'))
-
+        dest_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.128.12"),
+        )
+        src_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.129.64"),
+        ) 
         ip_flow_dl = IPFlowDL(set_params=71, tcp_dst_port=0,
                               tcp_src_port=5002, udp_dst_port=0, udp_src_port=0, ip_proto=6,
                               dest_ip=dest_ip,src_ip=src_ip, precedence=65530)
@@ -121,11 +124,14 @@ class ClassifierMmeTest(unittest.TestCase):
                                                IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                self.EnodeB_IP, seid1, ip_flow_dl=ip_flow_dl)
 
-        
-        dst_ip = "192.168.128.111"
-        dest_ip=IPAddress(version=IPAddress.IPV4,address=dst_ip.encode('utf-8'))
-        sc_ip = "192.168.129.4"
-        src_ip=IPAddress(version=IPAddress.IPV4,address=sc_ip.encode('utf-8'))
+        dest_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.128.111"),
+        )
+        src_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.129.4"),
+        )
 
         ip_flow_dl = IPFlowDL(set_params=70, tcp_dst_port=0,
                               tcp_src_port=0, udp_dst_port=80, udp_src_port=5060, ip_proto=17,
@@ -144,10 +150,14 @@ class ClassifierMmeTest(unittest.TestCase):
 
     def test_delete_tunnel_ip_flow_dl(self):
 
-        dst_ip = "192.168.128.12"
-        dest_ip=IPAddress(version=IPAddress.IPV4,address=dst_ip.encode('utf-8'))
-        sc_ip = "192.168.129.64"
-        src_ip=IPAddress(version=IPAddress.IPV4,address=sc_ip.encode('utf-8'))
+        dest_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.128.12"),
+        )
+        src_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.129.64"),
+        )
 
         ip_flow_dl = IPFlowDL(set_params=71, tcp_dst_port=0,
                               tcp_src_port=5002, udp_dst_port=0, udp_src_port=0, ip_proto=6,
@@ -159,10 +169,14 @@ class ClassifierMmeTest(unittest.TestCase):
                                                IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')), 
                                                self.EnodeB_IP, seid1, ip_flow_dl=ip_flow_dl)
 
-        dst_ip = "192.168.128.111"
-        dest_ip=IPAddress(version=IPAddress.IPV4,address=dst_ip.encode('utf-8'))
-        sc_ip = "192.168.129.4"
-        src_ip=IPAddress(version=IPAddress.IPV4,address=sc_ip.encode('utf-8'))
+        dest_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.128.111"),
+        )
+        src_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.129.4"),
+        )
 
         ip_flow_dl = IPFlowDL(set_params=70, tcp_dst_port=0,
                               tcp_src_port=0, udp_dst_port=80, udp_src_port=5060, ip_proto=17,
@@ -183,10 +197,14 @@ class ClassifierMmeTest(unittest.TestCase):
     def test_discard_tunnel_ip_flow_dl(self):
 
 
-        dst_ip = "192.168.128.12"
-        dest_ip=IPAddress(version=IPAddress.IPV4,address=dst_ip.encode('utf-8'))
-        sc_ip = "192.168.129.64"
-        src_ip=IPAddress(version=IPAddress.IPV4,address=sc_ip.encode('utf-8'))
+        dest_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.128.12"),
+        )
+        src_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.129.64"),
+        )
 
         ip_flow_dl = IPFlowDL(set_params=71, tcp_dst_port=0,
                               tcp_src_port=5002, udp_dst_port=0, udp_src_port=0, ip_proto=6,
@@ -208,11 +226,14 @@ class ClassifierMmeTest(unittest.TestCase):
 
     def test_resume_tunnel_ip_flow_dl(self):
 
-        dst_ip = "192.168.128.12"
-        dest_ip=IPAddress(version=IPAddress.IPV4,address=dst_ip.encode('utf-8'))
-        sc_ip = "192.168.129.64"
-        src_ip=IPAddress(version=IPAddress.IPV4,address=sc_ip.encode('utf-8'))
-
+        dest_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.128.12"),
+        )
+        src_ip = IPAddress(
+                version=IPAddress.IPV4,
+                address=socket.inet_pton(socket.AF_INET, "192.168.129.64"),
+        )
         ip_flow_dl = IPFlowDL(set_params=71, tcp_dst_port=0,
                               tcp_src_port=5002, udp_dst_port=0, udp_src_port=0, ip_proto=6,
                               dest_ip=dest_ip,src_ip=src_ip, precedence=65530)

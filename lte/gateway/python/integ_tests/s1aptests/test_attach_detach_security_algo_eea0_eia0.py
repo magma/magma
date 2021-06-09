@@ -14,7 +14,6 @@ limitations under the License.
 import unittest
 
 import s1ap_types
-
 from integ_tests.s1aptests import s1ap_wrapper
 
 
@@ -78,7 +77,7 @@ class TestAttachDetachSecurityAlgoEea0Eia0(unittest.TestCase):
             )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, detach_type[i], wait_for_s1[i]
+                req.ue_id, detach_type[i], wait_for_s1[i],
             )
 
 

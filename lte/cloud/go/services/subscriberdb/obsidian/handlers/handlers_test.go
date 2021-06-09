@@ -32,6 +32,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
+	testUtilConfigurator "magma/orc8r/cloud/go/services/configurator/test_utils"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -1040,6 +1041,91 @@ func TestGetSubscriber(t *testing.T) {
 				},
 			},
 		},
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+// TestGetSubscriberByExactIMSI is a regression test to ensure we are loading
+// states with the exact same IMSI key as the subscriber
+func TestGetSubscriberByExactIMSI(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	getSubscriberURL := "/magma/v1/lte/:network_id/subscribers/:subscriber_id"
+	createSubscribersURL := "/magma/v1/lte/:network_id/subscribers_v2"
+	handlers := handlers.GetHandlers()
+	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers, getSubscriberURL, obsidian.GET).HandlerFunc
+	createSubscribers := tests.GetHandlerByPathAndMethod(t, handlers, createSubscribersURL, obsidian.POST).HandlerFunc
+
+	// Pre: create two APNs
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.APNEntityType, Key: "apn0"},
+			{Type: lte.APNEntityType, Key: "apn1"},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	// Create two subscribers, one a prefix of the other
+	sub1 := newMutableSubscriber("IMSI1234567890")
+	sub2 := newMutableSubscriber("IMSI123456789000")
+	sub2.Name = "John Doe"
+	payload := subscriberModels.MutableSubscribers{sub1, sub2}
+
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            createSubscribersURL,
+		Payload:        tests.JSONMarshaler(payload),
+		Handler:        createSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            getSubscriberURL,
+		Handler:        getSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 200,
+		ExpectedResult: sub1.ToSubscriber(),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Now create some AGW-reported state for the subscribers
+	// First we need to register a gateway which can report state
+	testUtilConfigurator.RegisterGateway(t, "n1", "g1", &models.GatewayDevice{HardwareID: "hw1"})
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+
+	// Sub1 and sub2 differ in their mme states
+	mmeState1 := state.ArbitraryJSON{"mme": "foo"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState1, serdes.State)
+	mmeState2 := state.ArbitraryJSON{"mme": "fee"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI123456789000", &mmeState2, serdes.State)
+
+	sub1ExpectedResult := sub1.ToSubscriber()
+	sub1ExpectedResult.Monitoring = &subscriberModels.SubscriberStatus{}
+	sub1ExpectedResult.State = &subscriberModels.SubscriberState{
+		Mme: mmeState1,
+	}
+
+	// Should only report states for IMSI1234567890, not IMSI123456789000
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            getSubscriberURL,
+		Handler:        getSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n1", "IMSI1234567890"},
+		ExpectedStatus: 200,
+		ExpectedResult: sub1ExpectedResult,
 	}
 	tests.RunUnitTest(t, e, tc)
 }

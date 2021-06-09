@@ -28,12 +28,13 @@
 #include "EnumToString.h"
 #include "LocalEnforcer.h"
 #include "magma_logging.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "Utilities.h"
 
 namespace magma {
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE   = false;
 bool LocalEnforcer::CLEANUP_DANGLING_FLOWS = true;
+bool LocalEnforcer::SEND_IPFIX             = true;
 
 using google::protobuf::RepeatedPtrField;
 
@@ -115,7 +116,8 @@ void LocalEnforcer::setup(
       std::string apn_name;
       auto apn = config.common_context.apn();
       if (!parse_apn(apn, apn_mac_addr, apn_name)) {
-        MLOG(MWARNING) << "Failed mac/name parsing for apn " << apn;
+        MLOG(MWARNING) << "Failed to parse out apn mac address from " << apn
+                       << " for " << session->get_session_id();
         apn_mac_addr = "";
         apn_name     = apn;
       }
@@ -1824,6 +1826,10 @@ void LocalEnforcer::create_bearer(
 void LocalEnforcer::update_ipfix_flow(
     const std::string& imsi, const SessionConfig& config,
     const uint64_t pdp_start_time) {
+  if (!LocalEnforcer::SEND_IPFIX) {
+    return;
+  }
+
   MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
   SubscriberID sid;
   sid.set_id(imsi);

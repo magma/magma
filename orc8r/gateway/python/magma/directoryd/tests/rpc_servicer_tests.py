@@ -46,7 +46,8 @@ class DirectorydRpcServiceTests(TestCase):
             mock.MagicMock(return_value=fakeredis.FakeStrictRedis())
         with mock.patch(
                 'magma.directoryd.rpc_servicer.get_default_client',
-                func_mock):
+                func_mock,
+        ):
             # Add the servicer
             self._servicer = GatewayDirectoryServiceRpcServicer(False)
             self._servicer.add_to_server(self._rpc_server)
@@ -76,10 +77,14 @@ class DirectorydRpcServiceTests(TestCase):
         self._stub.UpdateRecord(req)
         actual_record2 = self._servicer._redis_dict[req.id]
         self.assertEqual(actual_record2.location_history, ["aaa-bbb"])
-        self.assertEqual(actual_record2.identifiers['mac_addr'],
-                         "aa:aa:bb:bb:cc:cc")
-        self.assertEqual(actual_record2.identifiers['ipv4_addr'],
-                         "192.168.172.12")
+        self.assertEqual(
+            actual_record2.identifiers['mac_addr'],
+            "aa:aa:bb:bb:cc:cc",
+        )
+        self.assertEqual(
+            actual_record2.identifiers['ipv4_addr'],
+            "192.168.172.12",
+        )
 
     @mock.patch('snowflake.snowflake', get_mock_snowflake)
     def test_update_record_bad_location(self):
@@ -156,8 +161,10 @@ class DirectorydRpcServiceTests(TestCase):
             if record.id == "IMSI556":
                 self.assertEqual(record.fields["ipv4_addr"], "192.168.127.11")
             elif record.id == "IMSI557":
-                self.assertEqual(record.fields["mac_addr"],
-                                 "aa:bb:aa:bb:aa:bb")
+                self.assertEqual(
+                    record.fields["mac_addr"],
+                    "aa:bb:aa:bb:aa:bb",
+                )
             else:
                 raise AssertionError()
 

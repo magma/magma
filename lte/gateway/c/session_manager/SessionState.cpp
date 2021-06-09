@@ -24,7 +24,7 @@
 #include "DiameterCodes.h"
 #include "EnumToString.h"
 #include "magma_logging.h"
-#include "MetricsHelpers.h"
+#include "includes/MetricsHelpers.h"
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "StoredState.h"
@@ -185,9 +185,6 @@ SessionState::SessionState(
   for (auto& rule : marshaled.gy_dynamic_rules) {
     gy_dynamic_rules_.insert_rule(rule);
   }
-  for (auto& it : marshaled.policy_version_and_stats) {
-    policy_version_and_stats_[it.first] = it.second;
-  }
 }
 
 SessionState::SessionState(
@@ -296,10 +293,6 @@ void SessionState::sess_infocopy(struct SessionInfo* info) {
   info->subscriber_id.assign(get_imsi());
   info->ver_no              = get_current_version();
   info->nodeId.node_id_type = SessionInfo::IPv4;
-  strcpy(info->nodeId.node_id, "192.168.2.1");
-  /* TODO below to be changed after UPF node association message
-   * completes . Revisit
-   */
 }
 
 void SessionState::set_teids(uint32_t enb_teid, uint32_t agw_teid) {
@@ -538,22 +531,10 @@ optional<RuleStats> SessionState::get_rule_delta(
   policy_version_and_stats_[rule_id].stats_map[rule_version] =
       RuleStats(used_tx, used_rx, dropped_tx, dropped_rx);
 
+  // When policy_version_and_stats_ is updated, we update the whole map in UC
+  // for now
   if (session_uc) {
-    if (!session_uc->policy_version_and_stats) {
-      session_uc->policy_version_and_stats = PolicyStatsMap{};
-    }
-
-    if (session_uc->policy_version_and_stats.value().find(rule_id) ==
-        policy_version_and_stats_.end()) {
-      session_uc->policy_version_and_stats.value()[rule_id] = StatsPerPolicy();
-    }
-    auto& stats_uc = session_uc->policy_version_and_stats.value()[rule_id];
-    stats_uc.current_version =
-        policy_version_and_stats_[rule_id].current_version;
-    stats_uc.last_reported_version =
-        policy_version_and_stats_[rule_id].last_reported_version;
-    stats_uc.stats_map[rule_version] =
-        policy_version_and_stats_[rule_id].stats_map[rule_version];
+    session_uc->policy_version_and_stats = policy_version_and_stats_;
   }
   return ret;
 }
