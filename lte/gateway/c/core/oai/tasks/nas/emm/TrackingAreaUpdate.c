@@ -571,6 +571,13 @@ static int emm_tracking_area_update_reject(
   rc = emm_sap_send(&emm_sap);
   increment_counter("tracking_area_update", 1, 1, "action", "tau_reject_sent");
 
+  // Release EMM context
+  if (emm_context) {
+    if (emm_context->is_dynamic) {
+      _clear_emm_ctxt(emm_context);
+    }
+  }
+
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 

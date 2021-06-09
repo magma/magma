@@ -154,7 +154,8 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
       "Handle Detach Req at MME app for ue-id: " MME_UE_S1AP_ID_FMT
       " with mme_s11_teid " TEID_FMT "\n",
       ue_id, ue_context_p->mme_teid_s11);
-  if (!ue_context_p->nb_active_pdn_contexts) {
+  if ((!ue_context_p->mme_teid_s11) &&
+      (!ue_context_p->nb_active_pdn_contexts)) {
     /* No Session.
      * If UE is already in idle state, skip asking eNB to release UE context and
      * just clean up locally.
@@ -168,7 +169,7 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
     if (ue_context_p->emm_context.new_attach_info) {
       nas_delete_all_emm_procedures(&ue_context_p->emm_context);
       free_esm_context_content(&ue_context_p->emm_context.esm_ctx);
-      proc_new_attach_req(&mme_app_desc_p->mme_ue_contexts, ue_context_p);
+      proc_new_attach_req(ue_context_p);
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
     if (ECM_IDLE == ue_context_p->ecm_state) {

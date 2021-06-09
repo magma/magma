@@ -117,7 +117,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     default: {
       OAILOG_DEBUG(
-          LOG_SCTP, "Unkwnon message ID %d:%s\n",
+          LOG_SCTP, "Unknown message ID %d:%s\n",
           ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
   }
