@@ -114,7 +114,7 @@
   when: full_provision
 
 - name: Create symlink for sctpd binary
-  file: src='{{ c_build }}/sctpd/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
+  file: src='{{ c_build }}/sctpd/src/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for OAI mme binary

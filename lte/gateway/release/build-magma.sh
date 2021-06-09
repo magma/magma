@@ -266,7 +266,7 @@ cd "${MAGMA_ROOT}/lte/gateway"
 OAI_BUILD="${C_BUILD}/core/oai"
 SESSIOND_BUILD="${C_BUILD}/session_manager"
 CONNECTIOND_BUILD="${C_BUILD}/connection_tracker"
-SCTPD_BUILD="${C_BUILD}/sctpd"
+SCTPD_BUILD="${C_BUILD}/sctpd/src"
 
 make build_oai BUILD_TYPE="${BUILD_TYPE}"
 make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
