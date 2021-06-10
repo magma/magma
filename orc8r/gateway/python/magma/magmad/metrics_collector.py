@@ -13,9 +13,8 @@ limitations under the License.
 import asyncio
 import calendar
 import logging
-import math
 import time
-from typing import Callable, Dict, List, NamedTuple, Optional
+from typing import Callable, Dict, List, NamedTuple, Optional, Union
 
 import metrics_pb2
 import prometheus_client.core
@@ -50,7 +49,7 @@ class MetricsCollector(object):
         collect_interval: int,
         sync_interval: int,
         grpc_timeout: int,
-        grpc_max_msg_size_mb: int,
+        grpc_max_msg_size_mb: Union[int, float],
         loop: Optional[asyncio.AbstractEventLoop] = None,
         post_processing_fn: Optional[Callable] = None,
         scrape_targets: [ScrapeTarget] = None,
