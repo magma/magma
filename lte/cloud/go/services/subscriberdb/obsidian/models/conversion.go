@@ -58,7 +58,9 @@ func (m *MutableSubscriber) ToSubscriber() *Subscriber {
 	return sub
 }
 
-func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) {
+func (m *Subscriber) FillAugmentedFields(configs SubscriberImmutableConfig, states state_types.StatesByID) {
+	m.Msisdn = Msisdn(configs.Msisdn)
+
 	if !funk.IsEmpty(states) {
 		m.Monitoring = &SubscriberStatus{}
 		m.State = &SubscriberState{}

@@ -647,6 +647,8 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 		return nil, err
 	}
 
+	msisdn := subscriberdb.GetIMSIForMSISDN()
+
 	states, err := getStatesForIMSIs(networkID, allSubscriberStateTypes, key, serdes.State)
 	if err != nil {
 		return nil, err
