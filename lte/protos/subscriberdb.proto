@@ -208,8 +208,8 @@ service SubscriberDBCloud {
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
 }
 
-message SubscriberDigest {
-  // Base64 encoded MD5 hash of the full list of subscriber data
+message SubscribersDigest {
+  // Base64 encoded MD5 digest of the full list of subscriber data
   string md5_base64_digest = 1;
 }
 
@@ -220,7 +220,7 @@ message ListSubscribersRequest {
   string page_token = 2;
   // digest is the digest received from the most-recent request to
   // ListSubscribers.
-  SubscriberDigest digest = 3;
+  SubscribersDigest digest = 3;
 }
 
 message ListSubscribersResponse {
@@ -230,8 +230,8 @@ message ListSubscribersResponse {
   string next_page_token = 2;
   // digest is the server-defined, deterministic digest of the full set of
   // returned subscriber objects.
-  SubscriberDigest digest = 3;
+  SubscribersDigest digest = 3;
   // no_updates is true if client's existing subscribers match those on the
-  // server. The subscribers array will be empty if no_updates = true.
+  // server. If true, the subscribers array will be empty.
   bool no_updates = 4;
 }

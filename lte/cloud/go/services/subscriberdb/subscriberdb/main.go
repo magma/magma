@@ -55,15 +55,14 @@ func main() {
 	}
 
 	// Load service configs
-	serviceConfig := subscriberdb.GetServiceConfig()
+	serviceConfig := subscriberdb.MustGetServiceConfig()
 	glog.Infof("Subscriberdb service config %v", serviceConfig)
-	flatDigestEnabled := serviceConfig.FlatDigestEnabled
 
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(flatDigestEnabled))
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig))
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(subscriberdb.ServiceName))
 

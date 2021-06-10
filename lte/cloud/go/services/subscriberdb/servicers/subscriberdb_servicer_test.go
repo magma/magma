@@ -23,6 +23,7 @@ import (
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
+	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/servicers"
 	"magma/orc8r/cloud/go/orc8r"
@@ -37,11 +38,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSubscriberdbCloudServicer(t *testing.T) {
+func TestSubscriberdbServicer(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
-	servicer := servicers.NewSubscriberdbServicer(false)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: false})
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -295,12 +296,12 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 	assert.Equal(t, expectedToken, res.NextPageToken)
 }
 
-func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
+func TestSubscriberdbServicerWithDigest(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
 	// Create servicer with flat digest feature flag turned on.
-	servicer := servicers.NewSubscriberdbServicer(true)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true})
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -344,7 +345,7 @@ func TestSubscriberdbCloudServicerWithDigest(t *testing.T) {
 	req := &lte_protos.ListSubscribersRequest{
 		PageSize:  2,
 		PageToken: "",
-		Digest:    &lte_protos.SubscriberDigest{Md5Base64Digest: ""},
+		Digest:    &lte_protos.SubscribersDigest{Md5Base64Digest: ""},
 	}
 	res, err := servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)

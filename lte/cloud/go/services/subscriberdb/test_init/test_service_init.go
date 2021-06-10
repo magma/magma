@@ -52,14 +52,13 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, ipStore.Initialize())
 
 	// Load service configs
-	serviceConfig := subscriberdb.GetServiceConfig()
+	serviceConfig := subscriberdb.MustGetServiceConfig()
 	glog.Infof("Subscriberdb service config %v", serviceConfig)
-	flatDigestEnabled := serviceConfig.FlatDigestEnabled
 
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(flatDigestEnabled))
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig))
 
 	// Run service
 	go srv.RunTest(lis)

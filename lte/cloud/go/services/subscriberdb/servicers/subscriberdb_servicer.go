@@ -17,6 +17,7 @@ import (
 	"context"
 	"sort"
 
+	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/orc8r/cloud/go/mproto"
 
 	"github.com/golang/glog"
@@ -40,8 +41,8 @@ type subscriberdbServicer struct {
 
 const defaultSubProfile = "default"
 
-func NewSubscriberdbServicer(flatDigestEnabled bool) lte_protos.SubscriberDBCloudServer {
-	return &subscriberdbServicer{flatDigestEnabled: flatDigestEnabled}
+func NewSubscriberdbServicer(config subscriberdb.Config) lte_protos.SubscriberDBCloudServer {
+	return &subscriberdbServicer{flatDigestEnabled: config.FlatDigestEnabled}
 }
 
 // ListSubscribers returns a page of subscribers and a token to be used on
@@ -58,21 +59,9 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	if !gateway.Registered() {
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
-	networkID := gateway.GetNetworkId()
-	gatewayID := gateway.GetLogicalId()
-	lc := configurator.EntityLoadCriteria{
-		PageSize:           req.PageSize,
-		PageToken:          req.PageToken,
-		LoadConfig:         true,
-		LoadAssocsToThis:   true,
-		LoadAssocsFromThis: true,
-	}
-	subEnts, nextToken, err := configurator.LoadAllEntitiesOfType(
-		networkID, lte.SubscriberEntityType, lc, serdes.Entity,
-	)
-	if err != nil {
-		return nil, errors.Wrapf(err, "load subscribers in network of gateway %s", networkID)
-	}
+	networkID := gateway.NetworkId
+	gatewayID := gateway.LogicalId
+
 	lteGateway, err := configurator.LoadEntity(
 		networkID, lte.CellularGatewayEntityType, gatewayID,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
@@ -86,105 +75,107 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		return nil, err
 	}
 
-	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
-	for _, sub := range subEnts {
-		subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
-		if err != nil {
-			return nil, err
-		}
-		subProto.NetworkId = &protos.NetworkID{Id: networkID}
-		subProtos = append(subProtos, subProto)
+	subProtos, nextToken, err := loadSubProtosPage(req.PageSize, req.PageToken, networkID, apnsByName, apnResourcesByAPN)
+	if err != nil {
+		return nil, err
+	}
+
+	digest, noUpdates := s.getDigestAndNoUpdates(req, networkID, apnsByName, apnResourcesByAPN)
+	if noUpdates {
+		subProtos = []*lte_protos.SubscriberData{}
 	}
 
 	listRes := &lte_protos.ListSubscribersResponse{
 		Subscribers:   subProtos,
 		NextPageToken: nextToken,
+		Digest:        digest,
+		NoUpdates:     noUpdates,
 	}
 
-	return listResWithDigest(s.flatDigestEnabled, listRes, req, gateway, apnsByName, apnResourcesByAPN), nil
+	return listRes, nil
 }
 
-// listResWithDigest returns a ListSubscribersResponse with the fields augmented
-// according to the flat digest logic.
-func listResWithDigest(
-	flatDigestEnabled bool,
-	listRes *lte_protos.ListSubscribersResponse,
+func (s *subscriberdbServicer) getDigestAndNoUpdates(
 	req *lte_protos.ListSubscribersRequest,
-	gateway *protos.Identity_Gateway,
+	networkID string,
 	apnsByName map[string]*lte_models.ApnConfiguration,
 	apnResourcesByAPN lte_models.ApnResources,
-) *lte_protos.ListSubscribersResponse {
+) (*lte_protos.SubscribersDigest, bool) {
 
-	listRes = &lte_protos.ListSubscribersResponse{
-		Subscribers:   listRes.Subscribers,
-		NextPageToken: listRes.NextPageToken,
-		Digest:        req.Digest,
-		NoUpdates:     false,
-	}
-
+	digest, noUpdates := req.Digest, false
 	// This functionality is currently placed behind a feature flag.
-	if flatDigestEnabled {
-		if req.PageToken == "" {
-			digest, err := getDigest(gateway, apnsByName, apnResourcesByAPN)
-			// If digest generation fails, the error is swallowed to not affect the main functionality.
-			if err != nil {
-				glog.Errorf("Generating digest for subscribers in network of gateway %s failed", gateway.GetLogicalId())
-			} else {
-				listRes.Digest = &lte_protos.SubscriberDigest{Md5Base64Digest: digest}
-				listRes.NoUpdates = req.Digest.Md5Base64Digest == digest
-				if listRes.NoUpdates {
-					listRes.Subscribers = []*lte_protos.SubscriberData{}
-				}
-			}
+	if s.flatDigestEnabled && req.PageToken == "" {
+		digestString, err := getDigest(networkID, apnsByName, apnResourcesByAPN)
+		// If digest generation fails, the error is swallowed to not affect the main functionality.
+		if err != nil {
+			glog.Errorf("Generating digest for subscribers in network of gateway %s failed", networkID)
+		} else {
+			digest = &lte_protos.SubscribersDigest{Md5Base64Digest: digestString}
+			noUpdates = req.Digest.Md5Base64Digest == digestString
 		}
 	}
 
-	return listRes
+	return digest, noUpdates
 }
 
 // getDigest loads all subscribers registered on the current network, and returns
 // a deterministic subscriber flat digest.
 func getDigest(
-	gateway *protos.Identity_Gateway,
+	networkID string,
 	apnsByName map[string]*lte_models.ApnConfiguration,
 	apnResourcesByAPN lte_models.ApnResources,
 ) (string, error) {
-	networkID := gateway.GetNetworkId()
 	subProtosById := map[string]proto.Message{}
-	curPageToken := ""
-
+	curToken := ""
 	for {
-		lc := configurator.EntityLoadCriteria{
-			PageSize:           0,
-			PageToken:          curPageToken,
-			LoadConfig:         true,
-			LoadAssocsToThis:   true,
-			LoadAssocsFromThis: true,
-		}
-		subEnts, nextPagetoken, err := configurator.LoadAllEntitiesOfType(
-			networkID, lte.SubscriberEntityType, lc, serdes.Entity,
-		)
+		subProtos, nextToken, err := loadSubProtosPage(0, curToken, networkID, apnsByName, apnResourcesByAPN)
 		if err != nil {
-			return "", errors.Wrapf(err, "load all subscribers in network of gateway %s", networkID)
+			return "", err
 		}
-		for _, sub := range subEnts {
-			subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
-			if err != nil {
-				return "", err
-			}
-			subProto.NetworkId = &protos.NetworkID{Id: networkID}
-
+		for _, subProto := range subProtos {
 			index := subProto.Sid.Id
 			subProtosById[index] = subProto
 		}
-
-		if nextPagetoken == "" {
+		if nextToken == "" {
 			break
 		}
-		curPageToken = nextPagetoken
+		curToken = nextToken
+	}
+	return mproto.HashManyDeterministic(subProtosById)
+}
+
+func loadSubProtosPage(
+	pageSize uint32, pageToken string, networkID string,
+	apnsByName map[string]*lte_models.ApnConfiguration,
+	apnResourcesByAPN lte_models.ApnResources,
+) ([]*lte_protos.SubscriberData, string, error) {
+
+	lc := configurator.EntityLoadCriteria{
+		PageSize:           pageSize,
+		PageToken:          pageToken,
+		LoadConfig:         true,
+		LoadAssocsToThis:   true,
+		LoadAssocsFromThis: true,
 	}
 
-	return mproto.HashManyDeterministic(subProtosById)
+	subEnts, nextToken, err := configurator.LoadAllEntitiesOfType(
+		networkID, lte.SubscriberEntityType, lc, serdes.Entity,
+	)
+	if err != nil {
+		return nil, "", errors.Wrapf(err, "load subscribers in network of gateway %s", networkID)
+	}
+
+	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
+	for _, sub := range subEnts {
+		subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
+		if err != nil {
+			return nil, "", err
+		}
+		subProto.NetworkId = &protos.NetworkID{Id: networkID}
+		subProtos = append(subProtos, subProto)
+	}
+
+	return subProtos, nextToken, nil
 }
 
 func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {

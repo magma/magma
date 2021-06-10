@@ -25,7 +25,7 @@ type Config struct {
 	FlatDigestEnabled bool `yaml:"flatDigestEnabled"`
 }
 
-func GetServiceConfig() Config {
+func MustGetServiceConfig() Config {
 	var serviceConfig Config
 	_, _, err := config.GetStructuredServiceConfig(orc8r.ModuleName, ServiceName, &serviceConfig)
 	if err != nil {

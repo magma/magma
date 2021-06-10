@@ -25,15 +25,14 @@ import (
 // HashManyDeterministic takes a collection of proto messages and returns a deterministic
 // base64-encoded md5 hash of the messages.
 func HashManyDeterministic(protosByID map[string]proto.Message) (string, error) {
-	digest, err := marshalManyDeterministic(protosByID)
+	digestBytes, err := marshalManyDeterministic(protosByID)
 	if err != nil {
 		return "", err
 	}
 	// Convert to a constant-length hash of the encoded value.
-	sum := md5.Sum(digest)
-	digestHash := base64.StdEncoding.EncodeToString(sum[:])
-
-	return digestHash, nil
+	sum := md5.Sum(digestBytes)
+	digest := base64.StdEncoding.EncodeToString(sum[:])
+	return digest, nil
 }
 
 // marshalManyDeterministic deterministically encodes a slice of protobuf messages,
