@@ -136,7 +136,7 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
 
   // Regional subscription zone codes
   itti_msg->subscription_data.num_zcs =
-      msg.regional_subscription_zone_code_size();
+      ((msg.regional_subscription_zone_code_size() > MAX_REGIONAL_SUB) ? MAX_REGIONAL_SUB : (msg.regional_subscription_zone_code_size()));
   uint8_t itr = 0;
   while (itr < itti_msg->subscription_data.num_zcs) {
     auto regional_subscription_zone_code =
@@ -144,7 +144,7 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
     memcpy(
         itti_msg->subscription_data.reg_sub[itr].zone_code,
         regional_subscription_zone_code.c_str(),
-        regional_subscription_zone_code.length());
+        MIN(regional_subscription_zone_code.length(), MAX_ZONE_CODE_STR_LEN));
     ++itr;
   }
 

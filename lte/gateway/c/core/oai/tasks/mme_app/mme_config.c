@@ -1180,9 +1180,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         for (i = 0; i < num; i++) {
           sub2setting = config_setting_get_elem(setting, i);
           if (sub2setting != NULL) {
-            if ((config_setting_lookup_string(
+            if ((config_setting_lookup_int(
                     sub2setting, MME_CONFIG_STRING_SERVICE_AREA_CODE,
-                    &sac_str))) {
+                    &aint))) {
+              // store in network byte order as SAC will come from
+              // the network in ULA messsage.
+              uint16_t sac_int = htons((uint16_t) aint);
               // TAC LIST
               sub3setting = config_setting_get_member(
                   sub2setting, MME_CONFIG_STRING_TAC_LIST_PER_SAC);
@@ -1202,7 +1205,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                   }
                   h_rc = obj_hashtable_insert(
                       config_pP->sac_to_tacs_map.sac_to_tacs_map_htbl,
-                      (const void*) sac_str, (const int) strlen(sac_str),
+                      (const void*) &sac_int, sizeof(uint16_t),
                       (void*) config_pP->sac_to_tacs_map.tac_list);
                   AssertFatal(
                       h_rc == HASH_TABLE_OK,

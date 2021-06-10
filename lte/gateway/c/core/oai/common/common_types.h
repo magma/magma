@@ -283,8 +283,8 @@ typedef struct {
 struct fteid_s;
 
 typedef struct {
-#define MAX_ZONE_CODE_LEN 10
-  uint8_t zone_code[MAX_ZONE_CODE_LEN];
+#define MAX_ZONE_CODE_STR_LEN 10
+  uint8_t zone_code[MAX_ZONE_CODE_STR_LEN];
 } regional_subscription_t;
 
 bstring fteid_ip_address_to_bstring(const struct fteid_s* const fteid);
