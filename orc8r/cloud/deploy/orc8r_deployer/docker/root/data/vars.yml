@@ -483,7 +483,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 1.5.21
+    Default: 1.5.22
   orc8r_controller_replicas:
     Description: Replica count for Orchestrator controller pods.
     Type: number
