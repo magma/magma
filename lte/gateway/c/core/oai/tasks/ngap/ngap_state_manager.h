@@ -32,6 +32,7 @@ extern "C" {
 }
 #endif
 
+#include "common_defs.h"
 #include "state_manager.h"
 #include "ngap_state_converter.h"
 using namespace magma::lte;
@@ -79,7 +80,7 @@ class NgapStateManager
    * Reads NGAP context state for all UEs in db
    * @return operation response code
    */
-  int read_ue_state_from_db() override;
+  status_code_e read_ue_state_from_db() override;
 
   /**
    * Serializes ngap_imsi_map to proto and saves it into data store

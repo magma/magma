@@ -20,6 +20,7 @@
 #include "state_manager.h"
 #include "spgw_state.h"
 #include "spgw_state_converter.h"
+#include "common_defs.h"
 
 namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE    = 512;
@@ -68,7 +69,7 @@ class SpgwStateManager : public StateManager<
    */
   void free_state() override;
 
-  int read_ue_state_from_db() override;
+  status_code_e read_ue_state_from_db() override;
 
   hash_table_ts_t* get_state_teid_ht();
 
