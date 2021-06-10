@@ -1,0 +1,37 @@
+---
+# SPDX-license-identifier: Apache-2.0
+##############################################################################
+# Copyright (c) 2021
+# All rights reserved. This program and the accompanying materials
+# are made available under the terms of the Apache License, Version 2.0
+# which accompanies this distribution, and is available at
+# http://www.apache.org/licenses/LICENSE-2.0
+##############################################################################
+
+name: Check Molecule Tests
+# yamllint disable-line rule:truthy
+on: [push, pull_request]
+
+jobs:
+  check-molecule:
+    runs-on: macos-10.15
+    strategy:
+      fail-fast: false
+      matrix:
+        tox_env: [ovs_prepare]
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache Vagrant boxes
+        uses: actions/cache@v2
+        with:
+          path: ~/.vagrant.d/boxes
+          key: ${{ runner.os }}-vagrant-${{ hashFiles('Vagrantfile') }}
+          restore-keys: |
+            ${{ runner.os }}-vagrant-
+      - name: Install Tox tool
+        run: brew install tox
+      - name: Run molecule tests
+        env:
+          VAGRANT_DISABLE_VBOXSYMLINKCREATE: 1
+          TOXENV: ${{ matrix.tox_env }}
+        run: tox
