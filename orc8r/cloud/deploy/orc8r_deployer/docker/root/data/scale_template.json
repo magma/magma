@@ -26,7 +26,8 @@
        "service_config":{
          "node_exporter_listen_address": "0.0.0.0:8082",
          "avalanche_port": "9001",
-         "avalanche_metric_count": 500
+         "avalanche_metric_count": 500,
+         "subscriber_metrics_sim_port": "9002"
       }
     }
  }

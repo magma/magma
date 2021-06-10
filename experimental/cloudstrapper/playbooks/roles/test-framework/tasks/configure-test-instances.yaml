@@ -32,31 +32,15 @@
   command: cat /etc/magma/magmad.yml
   register: magmad_raw_config
 
-- name: Check if avalanche exists on gateway
-  stat:
-    path: /usr/bin/avalanche
-  register: avalanche_gw_binary
 
-# Install avalanche for metric scaling
-- name: Check if avalanche exists
-  when: not avalanche_gw_binary.stat.exists
-  delegate_to: localhost
-  stat:
-    path: /usr/local/bin/avalanche
-  register: avalanche_binary
 
-- name: Check if avalanche exists
-  when: not avalanche_gw_binary.stat.exists
-  delegate_to: localhost
-  assert:
-    that: avalanche_binary.stat.exists
 
-- name: Copy avalanche to gateways
+
+- name: Copy subscriber sim to the gateways
   become: true
-  when: not avalanche_gw_binary.stat.exists
   ansible.builtin.copy:
-    src: /usr/local/bin/avalanche
-    dest: /usr/bin/avalanche
+    src: /root/magma/lte/gateway/python/scripts/metrics_load_sim.py
+    dest: /usr/bin/metrics_load_sim
     owner: root
     group: root
     mode: 0744
@@ -64,43 +48,39 @@
 - name: create systemd service unit
   become: true
   template:
-    src: avalanche.j2
-    dest: /etc/systemd/system/avalanche.service
+    src: subscriber_metrics_sim.j2
+    dest: /etc/systemd/system/subscriber_metrics_sim.service
     owner: "root"
     group: "root"
     mode: 0644
 
-- name: reenable avalanche service
+- name: reenable subscriber simulator service
   become: true
-  command: systemctl reenable avalanche.service
+  command: systemctl reenable subscriber_metrics_sim.service
 
-- name: restart avalanche
+- name: restart subscriber simulator service
   become: true
   service:
-    name: avalanche
+    name: subscriber_metrics_sim
     state: restarted
 
-- name: ensure avalanche service is enabled and started
+- name: ensure subscriber simulator service is enabled and started
   service:
-    name: avalanche
+    name: subscriber_metrics_sim
     state: started
     enabled: yes
 
-- name: Add avalanche and node exporter as metric scrape targets
+- name: Add subscriber simulator as metric scrape targets
   set_fact:
       magmad_new_config: "{{ magmad_config | combine ({'metricsd': metrics_config})}}"
   vars:
     magmad_config: "{{ magmad_raw_config.stdout | from_yaml }}"
     metrics_config: "{{ magmad_config['metricsd'] | combine({'metric_scrape_targets': metric_scrape_targets})}}"
     metric_scrape_targets: [
+
       {
-        'url' : "http://{{ node_exporter_listen_address }}/metrics",
-        'name': 'node_exporter',
-        'interval': 60
-      },
-      {
-        'url' : "http://0.0.0.0:{{ avalanche_port }}/metrics",
-        'name': 'avalanche',
+        'url' : "http://0.0.0.0:{{ subscriber_metrics_sim_port }}/metrics",
+        'name': 'subscriber_simulator',
         'interval': 60
       }
     ]

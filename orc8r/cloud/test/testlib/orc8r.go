@@ -77,6 +77,7 @@ func GetDefaultLteGateway(gatewayID string, hardwareID string) *models.MutableLT
 			CheckinInterval:         15,
 			CheckinTimeout:          10,
 			AutoupgradePollInterval: 300,
+			DynamicServices:         []string{"eventd", "td-agent-bit"},
 			AutoupgradeEnabled:      swag.Bool(true),
 		},
 		ConnectedENODEBSerials: []string{},

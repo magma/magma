@@ -1,7 +1,7 @@
 ---
 - hosts: "{{ agws }}"
   roles:
-    - {role: exporter, tags: exporter, become: yes}
+    # - {role: exporter, tags: exporter, become: yes}
     - {role: test-framework}
   environment:
     ANSIBLE_HOST_KEY_CHECKING: false
