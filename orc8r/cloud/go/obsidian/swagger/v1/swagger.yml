@@ -8483,6 +8483,11 @@ definitions:
   gateway_epc_configs:
     description: EPC configuration for an LTE gateway
     properties:
+      congestion_control_enabled:
+        default: true
+        description: Flag to enable or disable congestion control on MME
+        example: true
+        type: boolean
       dns_primary:
         example: 8.8.8.8
         maxLength: 45
