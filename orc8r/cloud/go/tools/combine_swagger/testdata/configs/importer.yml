@@ -6,7 +6,7 @@ magma-gen-meta:
   dependencies:
     - 'configs/base.yml'
   temp-gen-filename: importer-swagger.yml
-  output-dir: orc8r/cloud/go/tools/swaggergen/testdata/importer
+  output-dir: importer
   types:
     - go-struct-name: ImportingDef
       filename: importing_def_swaggergen.actual

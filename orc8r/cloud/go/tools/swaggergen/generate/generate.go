@@ -110,7 +110,7 @@ func GenerateModels(targetFilepath string, configFilepath string, rootDir string
 		return errors.Wrapf(err, "target filepath %s is invalid", targetFilepath)
 	}
 
-	tmpGenDir, err := ioutil.TempDir("./", "tmpgen")
+	tmpGenDir, err := ioutil.TempDir(".", "tmpgen")
 	if err != nil {
 		return errors.Wrap(err, "could not create temporary gen directory")
 	}

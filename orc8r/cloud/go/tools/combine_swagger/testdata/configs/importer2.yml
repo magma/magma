@@ -7,7 +7,7 @@ magma-gen-meta:
     - 'configs/base.yml'
     - 'configs/importer.yml'
   temp-gen-filename: importer2-swagger.yml
-  output-dir: orc8r/cloud/go/tools/swaggergen/testdata/importer2
+  output-dir: importer2
   types:
     - go-struct-name: ImportingChainDef
       filename: importing_chain_def_swaggergen.actual
