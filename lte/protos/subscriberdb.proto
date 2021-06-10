@@ -14,6 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "lte/protos/apn.proto";
 import "google/protobuf/field_mask.proto";
 
 package magma.lte;
@@ -102,57 +103,9 @@ enum AccessNetworkIdentifier {
   ETHERNET = 3;
 }
 
-message APNConfiguration {
-  // APN identifier
-  uint32 context_id = 1;
-  // Contains either the APN Name or wildcard "*"
-  string service_selection = 2;
-  // APN QoS profile
-  QoSProfile qos_profile = 3;
-  // APN authorized bitrate
-  AggregatedMaximumBitrate ambr = 4;
-
-  enum PDNType {
-    IPV4 = 0;
-    IPV6 = 1;
-    IPV4V6 = 2;
-    IPV4_OR_IPV6 = 3;
-  }
-  PDNType pdn = 5;
-
-  // Optional static IP to allocate for this subscriber on this APN
-  string assigned_static_ip = 6;
-
-  // For details about values see 29.212
-  message QoSProfile {
-    int32 class_id = 1;
-    uint32 priority_level = 2;
-    bool preemption_capability = 3;
-    bool preemption_vulnerability = 4;
-  }
-
-  message APNResource {
-    string apn_name = 1;
-    string gateway_ip = 2;
-    string gateway_mac = 3;
-    uint32 vlan_id = 4;
-  }
-  // resource is gateway-specific guidance for serving the APN
-  APNResource resource = 7;
-}
-
-message AggregatedMaximumBitrate {
-  // Maximum uplink bitrate
-  uint32 max_bandwidth_ul = 1;
-  // Maximum downlink bitrate
-  uint32 max_bandwidth_dl = 2;
-
-  enum BitrateUnitsAMBR {
-        BPS = 0;
-        KBPS = 1;
-        }
-  // Unit (either bps or Kbps)
-  BitrateUnitsAMBR br_unit = 3;
+message SubscriberAPNConfig {
+  uint32 apn_id = 1;
+  string assigned_static_ip = 2;
 }
 
 message Non3GPPUserProfile {
@@ -181,6 +134,9 @@ message Non3GPPUserProfile {
   repeated APNConfiguration apn_config = 5;
 
   AccessNetworkIdentifier access_net_id = 6;
+
+  // subscriber specific APN config
+  repeated SubscriberAPNConfig subscriber_apn_config = 7;
 }
 
 // --------------------------------------------------------------------------

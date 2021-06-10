@@ -1,6 +1,6 @@
 add_compile_options(-std=c++14)
 
-set(N11_LTE_CPP_PROTOS subscriberdb session_manager)
+set(N11_LTE_CPP_PROTOS apn subscriberdb session_manager)
 set(N11_LTE_GRPC_PROTOS session_manager)
 set(N11_ORC8R_GRPC_PROTOS common)
 
