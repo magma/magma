@@ -26,8 +26,8 @@ import (
 )
 
 var (
-	SQLDriver      = definitions.GetEnvWithDefault("SQL_DRIVER", "sqlite3")
-	DatabaseSource = definitions.GetEnvWithDefault("DATABASE_SOURCE", ":memory:")
+	SQLDriver      = definitions.MustGetEnv("SQL_DRIVER")
+	DatabaseSource = definitions.MustGetEnv("DATABASE_SOURCE")
 )
 
 type IsolationLevel int
