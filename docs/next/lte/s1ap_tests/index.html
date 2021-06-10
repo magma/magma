@@ -90,7 +90,9 @@ either individual tests or the full suite of tests. A safe, non-flaky test to
 run is <code>s1aptests/test_attach_detach.py</code>.</p>
 <ul>
 <li>Individual test(s): <code>make integ_test TESTS=&lt;test(s)_to_run&gt;</code></li>
-<li>All tests: <code>make integ_test</code></li>
+<li>All Sanity tests: <code>make integ_test</code></li>
+<li>All Non-Sanity tests: <code>make nonsanity</code></li>
+<li>Minimal set of tests to be executed before committing changes to magma repository: <code>make precommit</code></li>
 </ul>
 <p><strong>Note</strong>: The traffic tests will fail as traffic server is not running in this
 setup. Look at the section below on running traffic tests.</p>
