@@ -27,6 +27,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
@@ -40,6 +41,7 @@ func main() {
 	commonFilepath := flag.String("common", "", "Common definitions filepath")
 	outFilepath := flag.String("out", "", "Output directory")
 	generateStandAloneSpec := flag.Bool("standalone", true, "Generate standalone specs")
+	rootDir := flag.String("root", os.Getenv("MAGMA_ROOT"), "Root path to resolve dependency and output directories based on")
 
 	flag.Parse()
 
@@ -67,7 +69,7 @@ func main() {
 	}
 
 	if *generateStandAloneSpec {
-		err := generate.GenerateStandaloneSpecs(*inDir)
+		err := generate.GenerateStandaloneSpecs(*inDir, *rootDir)
 		if err != nil {
 			glog.Fatalf("Error generating standalone Swagger specs %+v", err)
 		}

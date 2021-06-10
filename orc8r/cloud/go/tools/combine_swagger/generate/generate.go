@@ -26,11 +26,11 @@ import (
 
 // GenerateStandaloneSpecs generates standalone specs for all Swagger specs in
 // a directory
-func GenerateStandaloneSpecs(specDir string) error {
+func GenerateStandaloneSpecs(specDir string, rootDir string) error {
 	outDir := filepath.Join(filepath.Dir(specDir), "standalone")
 	specPaths := getFilepaths(specDir)
 	for _, path := range specPaths {
-		specs, err := generate.ParseSwaggerDependencyTree(path, "../../")
+		specs, err := generate.ParseSwaggerDependencyTree(path, rootDir)
 		if err != nil {
 			return err
 		}
