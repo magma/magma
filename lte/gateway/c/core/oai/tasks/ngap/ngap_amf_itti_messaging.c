@@ -36,13 +36,6 @@ int ngap_amf_itti_send_sctp_request(
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_NGAP, SCTP_DATA_REQ);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_NGAP,
-        "itti_alloc_new_message Failed for"
-        " SCTP_DATA_REQ \n");
-    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
-  }
   SCTP_DATA_REQ(message_p).payload       = *payload;
   *payload                               = NULL;
   SCTP_DATA_REQ(message_p).assoc_id      = assoc_id;
@@ -69,13 +62,6 @@ TODO: laterthis maps to state
       "Sending NAS Uplink indication to NAS_AMF_APP, amf_ue_ngap_id = (%u) \n",
       ue_id);
   message_p = itti_alloc_new_message(TASK_NGAP, AMF_APP_UPLINK_DATA_IND);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_NGAP, imsi64,
-        "itti_alloc_new_message Failed for"
-        " AMF_APP_UPLINK_DATA_IND \n");
-    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
-  }
   AMF_APP_UL_DATA_IND(message_p).ue_id   = ue_id;
   AMF_APP_UL_DATA_IND(message_p).nas_msg = *payload;
   *payload                               = NULL;
@@ -103,14 +89,6 @@ void ngap_amf_itti_ngap_initial_ue_message(
   OAILOG_FUNC_IN(LOG_NGAP);
 
   message_p = itti_alloc_new_message(TASK_NGAP, NGAP_INITIAL_UE_MESSAGE);
-
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_NGAP,
-        "itti_alloc_new_message Failed for"
-        " NGAP_INITIAL_UE_MESSAGE \n");
-    OAILOG_FUNC_OUT(LOG_NGAP);
-  }
 
   OAILOG_INFO(
       LOG_NGAP,
@@ -186,13 +164,6 @@ void ngap_amf_itti_nas_non_delivery_ind(
   // TODO translate, insert, cause in message
   OAILOG_FUNC_IN(LOG_NGAP);
   message_p = itti_alloc_new_message(TASK_NGAP, AMF_APP_DOWNLINK_DATA_REJ);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_NGAP, imsi64,
-        "itti_alloc_new_message Failed for"
-        " AMF_APP_DOWNLINK_DATA_REJ \n");
-    OAILOG_FUNC_OUT(LOG_NGAP);
-  }
 
   AMF_APP_DL_DATA_REJ(message_p).ue_id = ue_id;
   /* Mapping between asn1 definition and NAS definition */

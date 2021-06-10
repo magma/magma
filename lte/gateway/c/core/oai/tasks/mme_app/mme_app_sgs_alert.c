@@ -153,14 +153,6 @@ static int mme_app_send_sgsap_alert_reject(
   itti_sgsap_alert_reject_t* sgsap_alert_reject_pP = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_ALERT_REJECT);
-  if (!message_p) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate memory: SGSAP_ALERT_REJECT, IMSI: " IMSI_64_FMT
-        "\n",
-        imsi64);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-  }
   sgsap_alert_reject_pP = &message_p->ittiMsg.sgsap_alert_reject;
   memset((void*) sgsap_alert_reject_pP, 0, sizeof(itti_sgsap_alert_reject_t));
 
@@ -197,14 +189,6 @@ static int mme_app_send_sgsap_alert_ack(
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_ALERT_ACK);
-  if (!message_p) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate memory for SGSAP_ALERT_ACK, IMSI: " IMSI_64_FMT
-        "\n",
-        imsi64);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-  }
   sgsap_alert_ack_pP = &message_p->ittiMsg.sgsap_alert_ack;
   memset((void*) sgsap_alert_ack_pP, 0, sizeof(itti_sgsap_alert_ack_t));
 

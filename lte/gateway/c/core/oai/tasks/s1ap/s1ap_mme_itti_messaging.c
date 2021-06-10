@@ -47,13 +47,6 @@ int s1ap_mme_itti_send_sctp_request(
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_S1AP, SCTP_DATA_REQ);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_S1AP,
-        "itti_alloc_new_message Failed for"
-        " SCTP_DATA_REQ \n");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
   SCTP_DATA_REQ(message_p).payload       = *payload;
   *payload                               = NULL;
   SCTP_DATA_REQ(message_p).assoc_id      = assoc_id;
@@ -79,13 +72,6 @@ int s1ap_mme_itti_nas_uplink_ind(
       "Sending NAS Uplink indication to NAS_MME_APP, mme_ue_s1ap_id = (%u) \n",
       ue_id);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_UPLINK_DATA_IND);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_S1AP, imsi64,
-        "itti_alloc_new_message Failed for"
-        " MME_APP_UPLINK_DATA_IND \n");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
   ITTI_MSG_LASTHOP_LATENCY(message_p)    = s1ap_last_msg_latency;
   MME_APP_UL_DATA_IND(message_p).ue_id   = ue_id;
   MME_APP_UL_DATA_IND(message_p).nas_msg = *payload;
@@ -120,13 +106,6 @@ int s1ap_mme_itti_nas_downlink_cnf(
   hashtable_uint64_ts_get(
       imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, &imsi64);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_CNF);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_S1AP, imsi64,
-        "itti_alloc_new_message Failed for"
-        " MME_APP_DOWNLINK_DATA_CNF \n");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
   MME_APP_DL_DATA_CNF(message_p).ue_id = ue_id;
   if (is_success) {
     MME_APP_DL_DATA_CNF(message_p).err_code = AS_SUCCESS;
@@ -161,13 +140,6 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
       (nas_msg_length < 1000), "Bad length for NAS message %lu",
       nas_msg_length);
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_INITIAL_UE_MESSAGE);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_S1AP,
-        "itti_alloc_new_message Failed for"
-        " S1AP_INITIAL_UE_MESSAGE \n");
-    OAILOG_FUNC_OUT(LOG_S1AP);
-  }
 
   OAILOG_INFO(
       LOG_S1AP,
@@ -253,13 +225,6 @@ void s1ap_mme_itti_nas_non_delivery_ind(
   // TODO translate, insert, cause in message
   OAILOG_FUNC_IN(LOG_S1AP);
   message_p = itti_alloc_new_message(TASK_S1AP, MME_APP_DOWNLINK_DATA_REJ);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_S1AP, imsi64,
-        "itti_alloc_new_message Failed for"
-        " MME_APP_DOWNLINK_DATA_REJ \n");
-    OAILOG_FUNC_OUT(LOG_S1AP);
-  }
 
   MME_APP_DL_DATA_REJ(message_p).ue_id = ue_id;
   /* Mapping between asn1 definition and NAS definition */
@@ -286,10 +251,6 @@ int s1ap_mme_itti_s1ap_path_switch_request(
     uint16_t integrity_algorithm_capabilities, imsi64_t imsi64) {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_PATH_SWITCH_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
   S1AP_PATH_SWITCH_REQUEST(message_p).sctp_assoc_id  = assoc_id;
   S1AP_PATH_SWITCH_REQUEST(message_p).enb_id         = enb_id;
   S1AP_PATH_SWITCH_REQUEST(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
@@ -321,10 +282,6 @@ int s1ap_mme_itti_s1ap_handover_required(
     imsi64_t imsi64) {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUIRED);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
   S1AP_HANDOVER_REQUIRED(message_p).sctp_assoc_id     = assoc_id;
   S1AP_HANDOVER_REQUIRED(message_p).enb_id            = enb_id;
   S1AP_HANDOVER_REQUIRED(message_p).cause             = cause;
@@ -352,10 +309,6 @@ int s1ap_mme_itti_s1ap_handover_request_ack(
     imsi64_t imsi64) {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_REQUEST_ACK);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
   S1AP_HANDOVER_REQUEST_ACK(message_p).mme_ue_s1ap_id     = mme_ue_s1ap_id;
   S1AP_HANDOVER_REQUEST_ACK(message_p).src_enb_ue_s1ap_id = src_enb_ue_s1ap_id;
   S1AP_HANDOVER_REQUEST_ACK(message_p).tgt_enb_ue_s1ap_id = tgt_enb_ue_s1ap_id;
@@ -383,10 +336,6 @@ int s1ap_mme_itti_s1ap_handover_notify(
     imsi64_t imsi64) {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_HANDOVER_NOTIFY);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(LOG_S1AP, imsi64, "itti_alloc_new_message Failed");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
 
   S1AP_HANDOVER_NOTIFY(message_p).mme_ue_s1ap_id = mme_ue_s1ap_id;
   S1AP_HANDOVER_NOTIFY(message_p).target_enb_id  = handover_state.target_enb_id;

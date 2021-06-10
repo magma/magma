@@ -27,12 +27,6 @@ int send_n11_create_pdu_session_resp_itti(
       LOG_UTIL, "Sending itti_n11_create_pdu_session_response to AMF \n");
   MessageDef* message_p = itti_alloc_new_message(
       TASK_GRPC_SERVICE, N11_CREATE_PDU_SESSION_RESPONSE);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_UTIL,
-        "Failed to allocate memory for N11_CREATE_PDU_SESSION_RESPONSE\n");
-    return RETURNerror;
-  }
   message_p->ittiMsg.n11_create_pdu_session_response = *itti_msg;
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
 }

@@ -149,7 +149,6 @@ static nw_rc_t s11_mme_send_udp_msg(
   int ret = 0;
 
   message_p = itti_alloc_new_message(TASK_S11, UDP_DATA_REQ);
-  if (message_p == NULL) return (NW_FAILURE);
   udp_data_req_p                = &message_p->ittiMsg.udp_data_req;
   udp_data_req_p->local_port    = localPort;
   udp_data_req_p->peer_address  = peerIpAddr;
@@ -298,9 +297,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 static int s11_send_init_udp(
     struct in_addr* address, struct in6_addr* address6, uint16_t port_number) {
   MessageDef* message_p = itti_alloc_new_message(TASK_S11, UDP_INIT);
-  if (message_p == NULL) {
-    return RETURNerror;
-  }
   message_p->ittiMsg.udp_init.port = port_number;
   if (address && address->s_addr) {
     message_p->ittiMsg.udp_init.in_addr = address;

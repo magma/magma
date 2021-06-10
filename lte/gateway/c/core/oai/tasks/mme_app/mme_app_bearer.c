@@ -130,14 +130,6 @@ int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
 
   MessageDef* message_p =
       itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Cannot allocate memory to S11_MODIFY_BEARER_REQUEST for ue "
-        "id " MME_UE_S1AP_ID_FMT "\n",
-        ue_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
 
   itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
       &message_p->ittiMsg.s11_modify_bearer_request;
@@ -225,12 +217,6 @@ int send_pcrf_bearer_actv_rsp(
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = itti_alloc_new_message(
       TASK_MME_APP, S11_NW_INITIATED_ACTIVATE_BEARER_RESP);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Cannot allocte memory to S11_NW_INITIATED_BEARER_ACTV_RSP\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
   itti_s11_nw_init_actv_bearer_rsp_t* s11_nw_init_actv_bearer_rsp =
       &message_p->ittiMsg.s11_nw_init_actv_bearer_rsp;
 
@@ -788,13 +774,6 @@ void mme_app_handle_erab_setup_req(
   if (bearer_context) {
     MessageDef* message_p =
         itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_SETUP_REQ);
-    if (message_p == NULL) {
-      OAILOG_WARNING_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to allocate the memory for s1ap erab set request message\n");
-      bdestroy_wrapper(&nas_msg);
-      OAILOG_FUNC_OUT(LOG_MME_APP);
-    }
 
     itti_s1ap_e_rab_setup_req_t* s1ap_e_rab_setup_req =
         &message_p->ittiMsg.s1ap_e_rab_setup_req;
@@ -1545,17 +1524,6 @@ static int mme_app_send_modify_bearer_request_for_active_pdns(
     }
     MessageDef* message_p =
         itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
-    if (message_p == NULL) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to allocate new ITTI message for S11 Modify Bearer Request "
-          "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT
-          " LBI %u"
-          "\n",
-          ue_context_p->mme_ue_s1ap_id,
-          ue_context_p->pdn_contexts[pid]->default_ebi);
-      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-    }
     itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
         &message_p->ittiMsg.s11_modify_bearer_request;
     s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
@@ -2113,12 +2081,6 @@ int mme_app_paging_request_helper(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_PAGING_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate the memory for paging request message\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
   itti_s1ap_paging_request_t* paging_request =
       &message_p->ittiMsg.s1ap_paging_request;
   memset(paging_request, 0, sizeof(itti_s1ap_paging_request_t));
@@ -2250,12 +2212,6 @@ void mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = itti_alloc_new_message(
       TASK_MME_APP, S11_NW_INITIATED_ACTIVATE_BEARER_RESP);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Cannot allocate memory to S11_NW_INITIATED_BEARER_ACTV_RSP\n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   itti_s11_nw_init_actv_bearer_rsp_t* s11_nw_init_actv_bearer_rsp =
       &message_p->ittiMsg.s11_nw_init_actv_bearer_rsp;
   memset(
@@ -2429,12 +2385,6 @@ int mme_app_send_s11_suspend_notification(
       "Preparing to send Suspend Notification\n");
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_SUSPEND_NOTIFICATION);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_pP->emm_context._imsi64,
-        "Failed to allocate new ITTI message for S11 Suspend Notification\n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
 
   suspend_notification_p = &message_p->ittiMsg.s11_suspend_notification;
   memset(suspend_notification_p, 0, sizeof(itti_s11_suspend_notification_t));
@@ -2941,15 +2891,6 @@ void mme_app_handle_modify_ue_ambr_request(
   } else {
     message_p = itti_alloc_new_message(
         TASK_MME_APP, S1AP_UE_CONTEXT_MODIFICATION_REQUEST);
-    if (message_p == NULL) {
-      OAILOG_ERROR_UE(
-          LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "Failed to allocate new ITTI message for S1AP UE Context "
-          "Modification "
-          "Request for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-          ue_context_p->mme_ue_s1ap_id);
-      OAILOG_FUNC_OUT(LOG_MME_APP);
-    }
     memset(
         (void*) &message_p->ittiMsg.s1ap_ue_context_mod_request, 0,
         sizeof(itti_s1ap_ue_context_mod_req_t));
@@ -3100,13 +3041,6 @@ void send_delete_dedicated_bearer_rsp(
       TASK_MME_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_RESP);
   s11_deact_ded_bearer_rsp = &message_p->ittiMsg.s11_nw_init_deactv_bearer_rsp;
 
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "itti_alloc_new_message failed for"
-        "S11_NW_INITIATED_DEACTIVATE_BEARER_RESP\n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   memset(
       s11_deact_ded_bearer_rsp, 0,
       sizeof(itti_s11_nw_init_deactv_bearer_rsp_t));
@@ -3396,12 +3330,6 @@ void mme_app_handle_handover_request_ack(
 
   message_p = itti_alloc_new_message(TASK_MME_APP, MME_APP_HANDOVER_COMMAND);
 
-  if (!message_p) {
-    OAILOG_ERROR(LOG_MME_APP, "Unable to allocate new ITTI message, failing\n");
-
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
-
   ho_command_p = &message_p->ittiMsg.mme_app_handover_command;
 
   ho_command_p->source_assoc_id    = handover_request_ack_p->source_assoc_id;
@@ -3478,14 +3406,6 @@ void mme_app_handle_handover_notify(
 
   // generate the Modify Bearer Request
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Failed to allocate new ITTI message for S11 Modify Bearer Request "
-        "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-        handover_notify_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
       &message_p->ittiMsg.s11_modify_bearer_request;
   s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
@@ -3657,14 +3577,6 @@ void mme_app_handle_path_switch_request(
   }
   // Build and send Modify Bearer Request
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Failed to allocate new ITTI message for S11 Modify Bearer Request "
-        "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-        path_switch_req_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
       &message_p->ittiMsg.s11_modify_bearer_request;
   s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
@@ -3840,11 +3752,6 @@ void mme_app_handle_erab_rel_cmd(
   }
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_REL_CMD);
-  if (message_p == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "Cannot allocte memory to S1AP_E_RAB_REL_CMD \n");
-    bdestroy_wrapper(&nas_msg);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   itti_s1ap_e_rab_rel_cmd_t* s1ap_e_rab_rel_cmd =
       &message_p->ittiMsg.s1ap_e_rab_rel_cmd;
 
@@ -3957,14 +3864,6 @@ void mme_app_handle_path_switch_req_ack(
       ue_context_p->mme_ue_s1ap_id);
   message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_PATH_SWITCH_REQUEST_ACK);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Failed to allocate new ITTI message for S1AP Path Switch Request Ack "
-        "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-        ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   itti_s1ap_path_switch_request_ack_t* s1ap_path_switch_req_ack =
       &message_p->ittiMsg.s1ap_path_switch_request_ack;
 
@@ -4008,14 +3907,6 @@ void mme_app_handle_path_switch_req_failure(ue_mm_context_t* ue_context_p) {
       ue_context_p->mme_ue_s1ap_id);
   message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_PATH_SWITCH_REQUEST_FAILURE);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Failed to allocate new ITTI message for S1AP Path Switch Request "
-        "Failure for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-        ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   itti_s1ap_path_switch_request_failure_t* s1ap_path_switch_req_failure =
       &message_p->ittiMsg.s1ap_path_switch_request_failure;
 
@@ -4211,14 +4102,6 @@ void mme_app_handle_e_rab_modification_ind(
 
   // Build and send Modify Bearer Request
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Failed to allocate new ITTI message for S11 Modify Bearer Request "
-        "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-        e_rab_modification_ind->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
       &message_p->ittiMsg.s11_modify_bearer_request;
   s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
@@ -4333,14 +4216,6 @@ void mme_app_handle_modify_bearer_rsp_erab_mod_ind(
       ue_context_p->mme_ue_s1ap_id);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_MODIFICATION_CNF);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Failed to allocate new ITTI message for E-RAB Modification Confirm "
-        "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-        ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
 
   itti_s1ap_e_rab_modification_cnf_t* s1ap_e_rab_modification_cnf_p =
       &message_p->ittiMsg.s1ap_e_rab_modification_cnf;

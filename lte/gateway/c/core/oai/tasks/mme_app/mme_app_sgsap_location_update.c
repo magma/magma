@@ -143,14 +143,6 @@ void mme_app_send_itti_sgsap_ue_activity_ind(
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_ACTIVITY_IND);
-  if (!message_p) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate memory for SGSAP UE ACTIVITY IND for Imsi: "
-        "%s %d \n",
-        imsi, imsi_len);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   memset(
       &message_p->ittiMsg.sgsap_ue_activity_ind, 0,
       sizeof(itti_sgsap_ue_activity_ind_t));

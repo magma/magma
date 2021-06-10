@@ -184,7 +184,8 @@ const char* itti_get_task_name(task_id_t task_id);
 /** \brief Alloc and memset(0) a new itti message.
  * \param origin_task_id Task ID of the sending task
  * \param message_id Message ID
- * @returns NULL in case of failure or newly allocated mesage ref
+ * @returns newly allocated mesage ref
+ * @note Asserts that newly allocated message ref is non-NULL
  **/
 MessageDef* itti_alloc_new_message(
     task_id_t origin_task_id, MessagesIds message_id);

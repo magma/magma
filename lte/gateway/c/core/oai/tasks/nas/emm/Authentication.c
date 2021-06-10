@@ -1499,15 +1499,6 @@ static void nas_itti_auth_info_req(
       ue_id);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S6A_AUTH_INFO_REQ);
-  if (!message_p) {
-    OAILOG_CRITICAL(
-        LOG_NAS_EMM,
-        "itti_alloc_new_message failed for Authentication"
-        " Information Request message to S6A for"
-        " ue-id = " MME_UE_S1AP_ID_FMT "\n",
-        ue_id);
-    OAILOG_FUNC_OUT(LOG_NAS);
-  }
   auth_info_req = &message_p->ittiMsg.s6a_auth_info_req;
   memset(auth_info_req, 0, sizeof(s6a_auth_info_req_t));
 

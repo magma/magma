@@ -180,14 +180,6 @@ void mme_app_s11_procedure_create_bearer_send_response(
     mme_app_s11_proc_create_bearer_t* s11_proc_create) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_MME_APP, S11_CREATE_BEARER_RESPONSE);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate new ITTI message for S11 Create Bearer "
-        "Response for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
-        ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 

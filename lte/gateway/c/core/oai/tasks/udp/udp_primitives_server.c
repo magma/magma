@@ -147,7 +147,6 @@ static void udp_server_receive_and_process(
       AssertFatal(
           sizeof(udp_sock_pP->buffer) >= bytes_received, "UDP BUFFER OVERFLOW");
       message_p = itti_alloc_new_message(TASK_UDP, UDP_DATA_IND);
-      DevAssert(message_p != NULL);
       udp_data_ind_p = &message_p->ittiMsg.udp_data_ind;
       memcpy(udp_data_ind_p->msgBuf, udp_sock_pP->buffer, bytes_received);
 

@@ -76,12 +76,6 @@ void mme_app_itti_ue_context_release(
   OAILOG_FUNC_IN(LOG_MME_APP);
   message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_UE_CONTEXT_RELEASE_COMMAND);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Failed to allocate memory for S1AP_UE_CONTEXT_RELEASE_COMMAND \n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
 
   OAILOG_INFO_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
@@ -131,14 +125,6 @@ int mme_app_send_s11_release_access_bearers_req(
   }
   message_p =
       itti_alloc_new_message(TASK_MME_APP, S11_RELEASE_ACCESS_BEARERS_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_mm_context->emm_context._imsi64,
-        "Failed to allocate memory for S11_RELEASE_ACCESS_BEARERS_REQUEST  for "
-        "ue id " MME_UE_S1AP_ID_FMT "\n",
-        ue_mm_context->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
   release_access_bearers_request_p =
       &message_p->ittiMsg.s11_release_access_bearers_request;
   release_access_bearers_request_p->local_teid = ue_mm_context->mme_teid_s11;
@@ -422,9 +408,6 @@ void mme_app_send_s1ap_e_rab_modification_confirm(
   /** Send a S1AP E-RAB MODIFICATION CONFIRM TO THE ENB. */
   MessageDef* message_p =
       itti_alloc_new_message(TASK_MME_APP, S1AP_E_RAB_MODIFICATION_CNF);
-  if (message_p == NULL) {
-    OAILOG_ERROR(LOG_MME_APP, "itti_alloc_new_message Failed\n");
-  }
 
   itti_s1ap_e_rab_modification_cnf_t* s1ap_e_rab_modification_cnf_p =
       &message_p->ittiMsg.s1ap_e_rab_modification_cnf;
@@ -479,11 +462,6 @@ void nas_itti_sgsap_uplink_unitdata(
   int uetimezone        = 0;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UPLINK_UNITDATA);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Failed to allocate memory for SGSAP_UPLINK_UNITDATA \n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   memset(
       &message_p->ittiMsg.sgsap_uplink_unitdata, 0,
       sizeof(itti_sgsap_uplink_unitdata_t));
@@ -589,12 +567,6 @@ void mme_app_itti_sgsap_tmsi_reallocation_comp(
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_TMSI_REALLOC_COMP);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate memory for SGSAP_TMSI_REALLOC_COMP \n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   memset(
       &message_p->ittiMsg.sgsap_tmsi_realloc_comp, 0,
       sizeof(itti_sgsap_tmsi_reallocation_comp_t));
@@ -633,11 +605,6 @@ void mme_app_itti_sgsap_ue_activity_ind(
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_ACTIVITY_IND);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP, "Failed to allocate memory for SGSAP_UE_ACTIVITY_IND \n");
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   memset(
       &message_p->ittiMsg.sgsap_ue_activity_ind, 0,
       sizeof(itti_sgsap_ue_activity_ind_t));

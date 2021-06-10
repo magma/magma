@@ -439,12 +439,6 @@ static int32_t spgw_build_and_send_s11_deactivate_bearer_req(
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   MessageDef* message_p = itti_alloc_new_message(
       TASK_SPGW_APP, S11_NW_INITIATED_DEACTIVATE_BEARER_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
-        "itti_alloc_new_message failed for nw_initiated_deactv_bearer_req\n");
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
   itti_s11_nw_init_deactv_bearer_request_t* s11_bearer_deactv_request =
       &message_p->ittiMsg.s11_nw_init_deactv_bearer_request;
   memset(
@@ -535,13 +529,6 @@ static int spgw_build_and_send_s11_create_bearer_request(
 
   message_p = itti_alloc_new_message(
       TASK_SPGW_APP, S11_NW_INITIATED_ACTIVATE_BEARER_REQUEST);
-  if (!message_p) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, spgw_ctxt_p->sgw_eps_bearer_context_information.imsi64,
-        "Failed to allocate message_p for"
-        "S11_NW_INITIATED_BEARER_ACTV_REQUEST\n");
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
-  }
 
   itti_s11_nw_init_actv_bearer_request_t* s11_actv_bearer_request =
       &message_p->ittiMsg.s11_nw_init_actv_bearer_request;

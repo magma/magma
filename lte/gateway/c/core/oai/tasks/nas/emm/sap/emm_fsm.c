@@ -172,6 +172,20 @@ int emm_fsm_set_state(
 
 /****************************************************************************
  **                                                                        **
+ ** Name:    sgs_la_update_requested_handler() **
+ **                                                                        **
+ ** Description: Handles the behaviour of the UE in MME while the          **
+ **              SGS is in SGS-LA_UPDATE_REQUEST state.                    **
+ **                                                                        **
+ ** Inputs:  sgs_evt:   The received SGS event                             **
+ **                                                                        **
+ ** Outputs:                                                               **
+ **          Return:    RETURNok, RETURNerror                              **
+ **                                                                        **
+ ***************************************************************************/
+
+/****************************************************************************
+ **                                                                        **
  ** Name:    emm_fsm_get_state()                                      **
  **                                                                        **
  ** Description: Get the current value of the EPS Mobility Management      **

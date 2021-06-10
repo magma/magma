@@ -70,9 +70,6 @@ int mme_app_send_s6a_update_location_req(
       " \n",
       ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, S6A_UPDATE_LOCATION_REQ);
-  if (message_p == NULL) {
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
 
   s6a_ulr_p = &message_p->ittiMsg.s6a_update_location_req;
   memset((void*) s6a_ulr_p, 0, sizeof(s6a_update_location_req_t));
@@ -459,10 +456,6 @@ int mme_app_send_s6a_cancel_location_ans(
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   message_p = itti_alloc_new_message(TASK_MME_APP, S6A_CANCEL_LOCATION_ANS);
-
-  if (message_p == NULL) {
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-  }
 
   s6a_cla_p = &message_p->ittiMsg.s6a_cancel_location_ans;
   memset((void*) s6a_cla_p, 0, sizeof(s6a_cancel_location_ans_t));

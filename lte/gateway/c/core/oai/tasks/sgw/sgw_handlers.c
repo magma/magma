@@ -318,10 +318,6 @@ int sgw_handle_sgi_endpoint_created(
   message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_CREATE_SESSION_RESPONSE);
 
-  if (message_p == NULL) {
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
-
   create_session_response_p = &message_p->ittiMsg.s11_create_session_response;
   memset(
       create_session_response_p, 0, sizeof(itti_s11_create_session_response_t));
@@ -666,13 +662,6 @@ void sgw_handle_sgi_endpoint_updated(
       resp_pP->context_teid);
   message_p = itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
 
-  if (!message_p) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
-        "Failed to allocate memory for S11_MODIFY_BEARER_RESPONSE\n");
-    OAILOG_FUNC_OUT(LOG_SPGW_APP);
-  }
-
   modify_response_p = &message_p->ittiMsg.s11_modify_bearer_response;
 
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p =
@@ -889,13 +878,6 @@ int send_mbr_failure(
   MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
 
-  if (!message_p) {
-    OAILOG_ERROR_UE(
-        module, imsi64,
-        "S11_MODIFY_BEARER_RESPONSE memory allocation failed\n");
-    OAILOG_FUNC_RETURN(module, RETURNerror);
-  }
-
   itti_s11_modify_bearer_response_t* modify_response_p =
       &message_p->ittiMsg.s11_modify_bearer_response;
 
@@ -1052,9 +1034,6 @@ int sgw_handle_delete_session_request(
   message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_DELETE_SESSION_RESPONSE);
 
-  if (!message_p) {
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
   delete_session_resp_p = &message_p->ittiMsg.s11_delete_session_response;
   OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64,
@@ -1375,13 +1354,6 @@ void handle_s5_create_session_response(
   // Send Create Session Response with Nack
   message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_CREATE_SESSION_RESPONSE);
-  if (!message_p) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP,
-        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi64,
-        "Message Create Session Response allocation failed\n");
-    OAILOG_FUNC_OUT(LOG_SPGW_APP);
-  }
   create_session_response_p = &message_p->ittiMsg.s11_create_session_response;
   memset(
       create_session_response_p, 0, sizeof(itti_s11_create_session_response_t));
@@ -1449,12 +1421,6 @@ int sgw_handle_suspend_notification(
 
   message_p = itti_alloc_new_message(TASK_SPGW_APP, S11_SUSPEND_ACKNOWLEDGE);
 
-  if (!message_p) {
-    OAILOG_ERROR_UE(
-        LOG_SPGW_APP, imsi64,
-        "Unable to allocate itti message: S11_SUSPEND_ACKNOWLEDGE \n");
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
-  }
   suspend_acknowledge_p = &message_p->ittiMsg.s11_suspend_acknowledge;
   memset(
       (void*) suspend_acknowledge_p, 0, sizeof(itti_s11_suspend_acknowledge_t));
@@ -2194,12 +2160,6 @@ void sgw_send_release_access_bearer_response(
       NULL;
   MessageDef* message_p =
       itti_alloc_new_message(module, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
-  if (message_p == NULL) {
-    OAILOG_ERROR_UE(
-        module, imsi64,
-        "Failed to allocate memory for Release Access Bearer Response \n");
-    OAILOG_FUNC_OUT(module);
-  }
   message_p->ittiMsgHeader.imsi = imsi64;
   release_access_bearers_resp_p =
       &message_p->ittiMsg.s11_release_access_bearers_response;

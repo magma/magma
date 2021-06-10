@@ -576,14 +576,6 @@ int mme_app_send_sgsap_service_request(
   }
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_SERVICE_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate new ITTI message for SGSAP Service Request for "
-        "IMSI: " IMSI_64_FMT "\n",
-        ue_context_p->emm_context._imsi64);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-  }
   sgsap_service_req_pP = &message_p->ittiMsg.sgsap_service_request;
   memset((void*) sgsap_service_req_pP, 0, sizeof(itti_sgsap_service_request_t));
 
@@ -643,14 +635,6 @@ int mme_app_send_sgsap_paging_reject(
   }
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_PAGING_REJECT);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate new ITTI message for SGSAP Paging Reject for "
-        "IMSI: " IMSI_64_FMT "\n",
-        imsi);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-  }
   sgsap_paging_reject_pP = &message_p->ittiMsg.sgsap_paging_reject;
   memset((void*) sgsap_paging_reject_pP, 0, sizeof(itti_sgsap_paging_reject_t));
 
@@ -748,14 +732,6 @@ static int mme_app_send_sgsap_ue_unreachable(
   }
 
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_UE_UNREACHABLE);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate new ITTI message for SGSAP UE Unreachable for "
-        "IMSI: " IMSI_64_FMT "\n",
-        ue_context_p->emm_context._imsi64);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
-  }
   sgsap_ue_unreachable_pP = &message_p->ittiMsg.sgsap_ue_unreachable;
   memset(
       (void*) sgsap_ue_unreachable_pP, 0, sizeof(itti_sgsap_ue_unreachable_t));

@@ -880,10 +880,6 @@ int s1ap_mme_handle_ue_cap_indication(
 
     message_p = itti_alloc_new_message(TASK_S1AP, S1AP_UE_CAPABILITIES_IND);
 
-    if (message_p == NULL) {
-      OAILOG_ERROR(LOG_S1AP, "message_p is NULL\n");
-      return RETURNerror;
-    }
     ue_cap_ind_p                 = &message_p->ittiMsg.s1ap_ue_cap_ind;
     ue_cap_ind_p->enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
     ue_cap_ind_p->mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
@@ -5252,10 +5248,6 @@ int s1ap_mme_handle_erab_rel_response(
       (const hash_key_t) ie->value.choice.MME_UE_S1AP_ID, &imsi64);
 
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_REL_RSP);
-  if (message_p == NULL) {
-    OAILOG_ERROR(LOG_S1AP, "itti_alloc_new_message Failed\n");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
   S1AP_E_RAB_REL_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_REL_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items           = 1;
@@ -5300,12 +5292,6 @@ int s1ap_mme_remove_stale_ue_context(
   OAILOG_FUNC_IN(LOG_S1AP);
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_REMOVE_STALE_UE_CONTEXT);
-  if (!message_p) {
-    OAILOG_ERROR(
-        LOG_S1AP,
-        "Failed to allocate memory for S1AP_REMOVE_STALE_UE_CONTEXT \n");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
   S1AP_REMOVE_STALE_UE_CONTEXT(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
   S1AP_REMOVE_STALE_UE_CONTEXT(message_p).enb_id         = enb_id;
   OAILOG_INFO(
@@ -5322,12 +5308,6 @@ int s1ap_send_mme_ue_context_release(
     enum s1cause s1_release_cause, S1ap_Cause_t ie_cause, imsi64_t imsi64) {
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_REQ);
-  if (!message_p) {
-    OAILOG_ERROR(
-        LOG_S1AP,
-        "Failed to allocate memory for S1AP_REMOVE_STALE_UE_CONTEXT \n");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
 
   enb_description_t* enb_ref_p =
       s1ap_state_get_enb(state, ue_ref_p->sctp_assoc_id);

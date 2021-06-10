@@ -407,68 +407,65 @@ int s11_mme_handle_create_bearer_request(
   DevAssert(stack_p);
   message_p = itti_alloc_new_message(TASK_S11, S11_CREATE_BEARER_REQUEST);
 
-  if (message_p) {
-    req_p = &message_p->ittiMsg.s11_create_bearer_request;
+  req_p = &message_p->ittiMsg.s11_create_bearer_request;
 
-    req_p->teid = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);
-    req_p->trxn = (void*) pUlpApi->u_api_info.initialReqIndInfo.hTrxn;
+  req_p->teid = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);
+  req_p->trxn = (void*) pUlpApi->u_api_info.initialReqIndInfo.hTrxn;
 
-    // Create a new message parser
-    rc = nwGtpv2cMsgParserNew(
-        *stack_p, NW_GTP_CREATE_BEARER_REQ, s11_ie_indication_generic, NULL,
-        &pMsgParser);
-    DevAssert(NW_OK == rc);
+  // Create a new message parser
+  rc = nwGtpv2cMsgParserNew(
+      *stack_p, NW_GTP_CREATE_BEARER_REQ, s11_ie_indication_generic, NULL,
+      &pMsgParser);
+  DevAssert(NW_OK == rc);
 
-    rc = nwGtpv2cMsgParserAddIe(
-        pMsgParser, NW_GTPV2C_IE_EBI, NW_GTPV2C_IE_INSTANCE_ZERO,
-        NW_GTPV2C_IE_PRESENCE_MANDATORY, gtpv2c_ebi_ie_get,
-        &req_p->linked_eps_bearer_id);
-    DevAssert(NW_OK == rc);
+  rc = nwGtpv2cMsgParserAddIe(
+      pMsgParser, NW_GTPV2C_IE_EBI, NW_GTPV2C_IE_INSTANCE_ZERO,
+      NW_GTPV2C_IE_PRESENCE_MANDATORY, gtpv2c_ebi_ie_get,
+      &req_p->linked_eps_bearer_id);
+  DevAssert(NW_OK == rc);
 
-    rc = nwGtpv2cMsgParserAddIe(
-        pMsgParser, NW_GTPV2C_IE_PCO, NW_GTPV2C_IE_INSTANCE_ZERO,
-        NW_GTPV2C_IE_PRESENCE_OPTIONAL, gtpv2c_pco_ie_get, &req_p->pco);
-    DevAssert(NW_OK == rc);
+  rc = nwGtpv2cMsgParserAddIe(
+      pMsgParser, NW_GTPV2C_IE_PCO, NW_GTPV2C_IE_INSTANCE_ZERO,
+      NW_GTPV2C_IE_PRESENCE_OPTIONAL, gtpv2c_pco_ie_get, &req_p->pco);
+  DevAssert(NW_OK == rc);
 
-    DevAssert(!&req_p->bearer_contexts);
+  DevAssert(!&req_p->bearer_contexts);
 
-    rc = nwGtpv2cMsgParserAddIe(
-        pMsgParser, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO,
-        NW_GTPV2C_IE_PRESENCE_MANDATORY,
-        gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_get,
-        &req_p->bearer_contexts);
-    DevAssert(NW_OK == rc);
+  rc = nwGtpv2cMsgParserAddIe(
+      pMsgParser, NW_GTPV2C_IE_BEARER_CONTEXT, NW_GTPV2C_IE_INSTANCE_ZERO,
+      NW_GTPV2C_IE_PRESENCE_MANDATORY,
+      gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_get,
+      &req_p->bearer_contexts);
+  DevAssert(NW_OK == rc);
 
-    /** Add the PTI to inform to UEs. */
-    rc = nwGtpv2cMsgParserAddIe(
-        pMsgParser, NW_GTPV2C_IE_PROCEDURE_TRANSACTION_ID,
-        NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
-        gtpv2c_pti_ie_get, &req_p->pti);
-    DevAssert(NW_OK == rc);
+  /** Add the PTI to inform to UEs. */
+  rc = nwGtpv2cMsgParserAddIe(
+      pMsgParser, NW_GTPV2C_IE_PROCEDURE_TRANSACTION_ID,
+      NW_GTPV2C_IE_INSTANCE_ZERO, NW_GTPV2C_IE_PRESENCE_CONDITIONAL,
+      gtpv2c_pti_ie_get, &req_p->pti);
+  DevAssert(NW_OK == rc);
 
     // Run the parser
-    rc = nwGtpv2cMsgParserRun(
-        pMsgParser, (pUlpApi->hMsg), &offendingIeType, &offendingIeInstance,
-        &offendingIeLength);
+  rc = nwGtpv2cMsgParserRun(
+      pMsgParser, (pUlpApi->hMsg), &offendingIeType, &offendingIeInstance,
+      &offendingIeLength);
 
-    if (rc != NW_OK) {
-      // TODO: handle this case
-      free(message_p);
-      message_p = NULL;
-      rc        = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
-      DevAssert(NW_OK == rc);
-      rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
-      DevAssert(NW_OK == rc);
-      return RETURNerror;
-    }
-
-    rc = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
+  if (rc != NW_OK) {
+    // TODO: handle this case
+    free(message_p);
+    message_p = NULL;
+    rc        = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
     DevAssert(NW_OK == rc);
     rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
     DevAssert(NW_OK == rc);
-    return send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
+    return RETURNerror;
   }
-  return RETURNerror;
+
+  rc = nwGtpv2cMsgParserDelete(*stack_p, pMsgParser);
+  DevAssert(NW_OK == rc);
+  rc = nwGtpv2cMsgDelete(*stack_p, (pUlpApi->hMsg));
+  DevAssert(NW_OK == rc);
+  return send_msg_to_task(&s11_task_zmq_ctx, TASK_MME_APP, message_p);
 }
 
 //------------------------------------------------------------------------------

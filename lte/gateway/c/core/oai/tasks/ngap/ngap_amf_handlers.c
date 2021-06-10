@@ -1671,10 +1671,6 @@ int ngap_amf_handle_pduSession_release_response(
 
   message_p =
       itti_alloc_new_message(TASK_NGAP, NGAP_PDUSESSIONRESOURCE_REL_RSP);
-  if (message_p == NULL) {
-    OAILOG_ERROR(LOG_NGAP, "itti_alloc_new_message Failed\n");
-    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
-  }
   NGAP_PDUSESSIONRESOURCE_REL_RSP(message_p).amf_ue_ngap_id =
       ue_ref_p->amf_ue_ngap_id;
   NGAP_PDUSESSIONRESOURCE_REL_RSP(message_p).gnb_ue_ngap_id =

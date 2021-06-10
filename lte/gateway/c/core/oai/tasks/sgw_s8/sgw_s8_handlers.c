@@ -370,12 +370,6 @@ static int sgw_s8_send_create_session_response(
   itti_s11_create_session_response_t* create_session_response_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_SGW_S8, S11_CREATE_SESSION_RESPONSE);
-  if (message_p == NULL) {
-    OAILOG_CRITICAL_UE(
-        LOG_SGW_S8, sgw_context_p->imsi64,
-        "Failed to allocate memory for S11_create_session_response \n");
-    OAILOG_FUNC_RETURN(LOG_SGW_S8, RETURNerror);
-  }
   if (!sgw_context_p) {
     OAILOG_ERROR_UE(
         LOG_SGW_S8, sgw_context_p->imsi64, "sgw_context_p is NULL \n");
@@ -675,13 +669,6 @@ static void sgw_send_modify_bearer_response(
       resp_pP->context_teid);
   message_p = itti_alloc_new_message(TASK_SGW_S8, S11_MODIFY_BEARER_RESPONSE);
 
-  if (!message_p) {
-    OAILOG_ERROR_UE(
-        LOG_SGW_S8, imsi64,
-        "Failed to allocate memory for S11_MODIFY_BEARER_RESPONSE\n");
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
-  }
-
   modify_response_p = &message_p->ittiMsg.s11_modify_bearer_response;
 
   if (sgw_context_p) {
@@ -976,14 +963,6 @@ void sgw_s8_handle_delete_session_response(
     OAILOG_FUNC_OUT(LOG_SGW_S8);
   }
   message_p = itti_alloc_new_message(TASK_SGW_S8, S11_DELETE_SESSION_RESPONSE);
-  if (message_p == NULL) {
-    OAILOG_CRITICAL_UE(
-        LOG_SGW_S8, sgw_context_p->imsi64,
-        "Failed to allocate memory for S11_delete_session_response for "
-        "context_teid " TEID_FMT "\n",
-        session_rsp_p->context_teid);
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
-  }
 
   delete_session_response_p = &message_p->ittiMsg.s11_delete_session_response;
   message_p->ittiMsgHeader.imsi = imsi64;
@@ -1026,12 +1005,6 @@ static void sgw_s8_send_failed_delete_session_response(
   teid_t teid                                                   = 0;
 
   message_p = itti_alloc_new_message(TASK_SGW_S8, S11_DELETE_SESSION_RESPONSE);
-  if (message_p == NULL) {
-    OAILOG_CRITICAL_UE(
-        LOG_SGW_S8, sgw_context_p->imsi64,
-        "Failed to allocate memory for S11_delete_session_response \n");
-    OAILOG_FUNC_OUT(LOG_SGW_S8);
-  }
 
   delete_session_response_p = &message_p->ittiMsg.s11_delete_session_response;
   message_p->ittiMsgHeader.imsi = imsi64;

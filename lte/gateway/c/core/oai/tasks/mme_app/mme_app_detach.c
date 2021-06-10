@@ -69,14 +69,6 @@ void mme_app_send_delete_session_request(
       "Handle Delete session request for mme_s11_teid :%d\n",
       ue_context_p->mme_teid_s11);
   message_p = itti_alloc_new_message(TASK_MME_APP, S11_DELETE_SESSION_REQUEST);
-  if (message_p == NULL) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate new ITTI message for S11 Delete Session Request "
-        "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT " and LBI: %u\n",
-        ue_context_p->mme_ue_s1ap_id, ebi);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
 
   ue_context_p->pdn_contexts[cid]
       ->s_gw_address_s11_s4.address.ipv4_address.s_addr =

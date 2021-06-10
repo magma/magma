@@ -70,14 +70,6 @@ static void mme_app_send_sgs_eps_detach_indication(
       "ue_id: " MME_UE_S1AP_ID_FMT "\n",
       detach_type, ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_EPS_DETACH_IND);
-  if (!message_p) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate memory for SGSAP_EPS_DETACH_IND for "
-        "ue_id: " MME_UE_S1AP_ID_FMT "\n",
-        ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   memset(
       (void*) &message_p->ittiMsg.sgsap_eps_detach_ind, 0,
       sizeof(itti_sgsap_eps_detach_ind_t));
@@ -275,14 +267,6 @@ void mme_app_send_sgs_imsi_detach_indication(
       "ue_id " MME_UE_S1AP_ID_FMT "\n",
       detach_type, ue_context_p->mme_ue_s1ap_id);
   message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_IMSI_DETACH_IND);
-  if (!message_p) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to allocate memory for SGSAP_IMSI_DETACH_IND for "
-        "ue_id: " MME_UE_S1AP_ID_FMT "\n",
-        ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_OUT(LOG_MME_APP);
-  }
   memset(
       (void*) &message_p->ittiMsg.sgsap_imsi_detach_ind, 0,
       sizeof(itti_sgsap_imsi_detach_ind_t));

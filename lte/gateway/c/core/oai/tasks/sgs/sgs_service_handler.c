@@ -36,7 +36,6 @@ int handle_sgs_location_update_accept(
   MessageDef* message_p = NULL;
   int rc                = RETURNok;
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_LOCATION_UPDATE_ACC);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
   memset(
       (void*) &message_p->ittiMsg.sgsap_location_update_acc, 0,
       sizeof(itti_sgsap_location_update_acc_t));
@@ -63,7 +62,6 @@ int handle_sgs_location_update_reject(
    *send it to MME App for further processing
    */
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_LOCATION_UPDATE_REJ);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
   OAILOG_DEBUG(
       LOG_SGS,
       "Received SGS Location Update Reject message from FedGW with IMSI %s\n",
@@ -87,7 +85,6 @@ int handle_sgs_eps_detach_ack(
   itti_sgsap_eps_detach_ack_t* sgs_eps_detach_ack_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_S6A, SGSAP_EPS_DETACH_ACK);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
   sgs_eps_detach_ack_p = &message_p->ittiMsg.sgsap_eps_detach_ack;
   memset((void*) sgs_eps_detach_ack_p, 0, sizeof(itti_sgsap_eps_detach_ack_t));
   OAILOG_DEBUG(LOG_SGS, "Received SGS EPS Detach Ack message from FedGW\n");
@@ -107,7 +104,6 @@ int handle_sgs_imsi_detach_ack(
   itti_sgsap_imsi_detach_ack_t* sgs_imsi_detach_ack_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_S6A, SGSAP_IMSI_DETACH_ACK);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
   sgs_imsi_detach_ack_p = &message_p->ittiMsg.sgsap_imsi_detach_ack;
   memset(
       (void*) sgs_imsi_detach_ack_p, 0, sizeof(itti_sgsap_imsi_detach_ack_t));
@@ -128,7 +124,6 @@ int handle_sgs_downlink_unitdata(
   itti_sgsap_downlink_unitdata_t* sgs_dl_unit_data_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_DOWNLINK_UNITDATA);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
   sgs_dl_unit_data_p = &message_p->ittiMsg.sgsap_downlink_unitdata;
   memset((void*) sgs_dl_unit_data_p, 0, sizeof(itti_sgsap_downlink_unitdata_t));
   OAILOG_DEBUG(LOG_SGS, "Received SGS Downlink UnitData message from FedGW\n");
@@ -147,7 +142,6 @@ int handle_sgs_release_req(const itti_sgsap_release_req_t* sgs_release_req_p) {
   itti_sgsap_release_req_t* sgs_rel_req_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_RELEASE_REQ);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
   sgs_rel_req_p = &message_p->ittiMsg.sgsap_release_req;
   memset((void*) sgs_rel_req_p, 0, sizeof(itti_sgsap_release_req_t));
   OAILOG_DEBUG(LOG_SGS, "Received SGS Release Request message from FedGW\n");
@@ -170,11 +164,6 @@ int handle_sgs_mm_information_request(
   OAILOG_FUNC_IN(LOG_SGS);
 
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_MM_INFORMATION_REQ);
-  AssertFatal(
-      message_p,
-      "itti_alloc_new_message Failed while handling MM Information Request "
-      "from "
-      "MSC/VLR");
   itti_sgsap_mm_information_req_t* mm_information_req_p =
       &message_p->ittiMsg.sgsap_mm_information_req;
   memset(
@@ -204,8 +193,6 @@ int handle_sgs_service_abort_req(
 
   OAILOG_FUNC_IN(LOG_SGS);
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_SERVICE_ABORT_REQ);
-  AssertFatal(
-      message_p, "itti_alloc_new_message Failed for SGS Service Abort\n");
   memset(
       (void*) &message_p->ittiMsg.sgsap_service_abort_req, 0,
       sizeof(itti_sgsap_service_abort_req_t));
@@ -236,10 +223,6 @@ int handle_sgs_paging_request(
    *send it to MME App for further processing
    */
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_PAGING_REQUEST);
-  AssertFatal(
-      message_p,
-      "itti_alloc_new_message Failed while handling Paging Request from "
-      "MSC/VLR");
 
   itti_sgsap_paging_request_t* sgs_paging_req_p =
       &message_p->ittiMsg.sgsap_paging_request;
@@ -275,10 +258,6 @@ int handle_sgs_vlr_reset_indication(
    * send it to MME App for further processing
    */
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_VLR_RESET_INDICATION);
-  AssertFatal(
-      message_p,
-      "itti_alloc_new_message Failed while handling Reset Indication from "
-      "MSC/VLR");
 
   itti_sgsap_vlr_reset_indication_t* sgs_vlr_reset_ind_p =
       &message_p->ittiMsg.sgsap_vlr_reset_indication;
@@ -321,10 +300,6 @@ int handle_sgs_status_message(const itti_sgsap_status_t* sgs_status_pP) {
    * send it to MME App for further processing
    */
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_STATUS);
-  AssertFatal(
-      message_p,
-      "itti_alloc_new_message Failed while handling "
-      "SGS Status message from MSC/VLR \n");
 
   itti_sgsap_status_t* sgs_status_p = &message_p->ittiMsg.sgsap_status;
   memset((void*) sgs_status_p, 0, sizeof(itti_sgsap_status_t));
@@ -353,7 +328,6 @@ static void sgs_send_sgsap_vlr_reset_ack(void) {
 
   OAILOG_FUNC_IN(LOG_SGS);
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_VLR_RESET_ACK);
-  AssertFatal(message_p, "itti_alloc_new_message Failed: SGSAP_VLR_RESET_ACK");
   sgsap_reset_ack_pP = &message_p->ittiMsg.sgsap_vlr_reset_ack;
   memset((void*) sgsap_reset_ack_pP, 0, sizeof(itti_sgsap_vlr_reset_ack_t));
 
@@ -377,10 +351,6 @@ int handle_sgsap_alert_request(
    *send it to MME App for further processing
    */
   message_p = itti_alloc_new_message(TASK_SGS, SGSAP_ALERT_REQUEST);
-  AssertFatal(
-      message_p,
-      "itti_alloc_new_message Failed while handling Alert Request from "
-      "MSC/VLR");
 
   memset(
       (void*) &message_p->ittiMsg.sgsap_alert_request, 0,
