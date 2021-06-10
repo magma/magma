@@ -125,6 +125,46 @@ func MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) e
 	return nil
 }
 
+// GetHWIDForSgwCTeid returns the HwID mapped to by teid
+// Derived state, stored in directoryd service.
+// NOTE: this mapping is provided on a best-effort basis, meaning
+//	- a {teid -> HwId} mapping may be missing even though the IMSI has a session ID record
+//	- a {teid -> HwId} mapping may be stale
+func GetHWIDForSgwCTeid(networkID, teid string) (string, error) {
+	client, err := getDirectorydClient()
+	if err != nil {
+		return "", errors.Wrap(err, "failed to get directoryd client")
+	}
+
+	res, err := client.GetHWIDForSgwCTeid(context.Background(), &protos.GetHWIDForSgwCTeidRequest{
+		NetworkID: networkID,
+		Teid:      teid,
+	})
+	if err != nil {
+		return "", fmt.Errorf("failed to get HwID for sgw c teid %s under network ID %s: %s", teid, networkID, err)
+	}
+
+	return res.GetHwid(), nil
+}
+
+// MapSgwCTeidToHWID maps {Teid -> HwId}
+func MapSgwCTeidToHWID(networkID string, teidToHWID map[string]string) error {
+	client, err := getDirectorydClient()
+	if err != nil {
+		return errors.Wrap(err, "failed to get directoryd client")
+	}
+
+	_, err = client.MapSgwCTeidToHWID(context.Background(), &protos.MapSgwCTeidToHWIDRequest{
+		NetworkID:  networkID,
+		TeidToHwid: teidToHWID,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to map sgw c teid to HwId %v under network ID %s: %s", teidToHWID, networkID, err)
+	}
+
+	return nil
+}
+
 //--------------------------
 // State service client APIs
 //--------------------------

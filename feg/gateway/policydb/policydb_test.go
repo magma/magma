@@ -37,11 +37,7 @@ import (
 
 // Mock Cloud Streamer
 type mockStreamProvider struct {
-	Name string
-}
-
-func (m *mockStreamProvider) GetStreamName() string {
-	return m.Name
+	name string
 }
 
 var (
@@ -68,7 +64,7 @@ func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([
 	var updates []*orcprotos.DataUpdate
 
 	// Determine what streamprovider it is before sending the updates
-	switch m.Name {
+	switch m.name {
 	case "base_names":
 		updates = []*orcprotos.DataUpdate{
 			{Key: "base_1", Value: rs1},
@@ -159,7 +155,7 @@ func initOnce(t *testing.T) {
 
 func TestPolicyDBBaseNamesWithGRPC(t *testing.T) {
 	onceTestsInit.Do(func() { initOnce(t) })
-	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{Name: "base_names"})
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{name: "base_names"}, "base_names")
 	dbClient := &policydb.RedisPolicyDBClient{
 		PolicyMap:      &mockObjectStore{},
 		BaseNameMap:    &mockObjectStore{},
@@ -181,7 +177,7 @@ func TestPolicyDBBaseNamesWithGRPC(t *testing.T) {
 
 func TestPolicyDBRulesWithGRPC(t *testing.T) {
 	onceTestsInit.Do(func() { initOnce(t) })
-	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{Name: "policydb"})
+	streamer_test_init.StartNewTestProvider(t, &mockStreamProvider{name: "policydb"}, "policydb")
 	dbClient := &policydb.RedisPolicyDBClient{
 		PolicyMap:      &mockObjectStore{},
 		BaseNameMap:    &mockObjectStore{},

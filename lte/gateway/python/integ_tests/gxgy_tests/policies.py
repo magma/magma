@@ -11,15 +11,16 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
-
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder
 
 MAC_DEST = "5e:cc:cc:b1:49:4b"
 
 
-def create_uplink_rule(id, rating_group, ip_dest, m_key=None,
-                       priority=10, tracking=PolicyRule.ONLY_OCS,
-                       action=FlowDescription.PERMIT):
+def create_uplink_rule(
+    id, rating_group, ip_dest, m_key=None,
+    priority=10, tracking=PolicyRule.ONLY_OCS,
+    action=FlowDescription.PERMIT,
+):
     """
     Create a rule with a single uplink IP flow, useful for testing
     Args:
@@ -37,10 +38,13 @@ def create_uplink_rule(id, rating_group, ip_dest, m_key=None,
     return PolicyRule(
         id=id,
         priority=priority,
-        flow_list=[FlowDescription(
-            match=FlowMatch(
-                ipv4_dst=ip_dest, direction=FlowMatch.UPLINK),
-            action=action)
+        flow_list=[
+            FlowDescription(
+                match=FlowMatch(
+                    ipv4_dst=ip_dest, direction=FlowMatch.UPLINK,
+                ),
+                action=action,
+            ),
         ],
         tracking_type=tracking,
         rating_group=rating_group,

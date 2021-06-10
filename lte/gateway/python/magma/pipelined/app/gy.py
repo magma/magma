@@ -317,6 +317,3 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
     @set_ev_cls(ofp_event.EventOFPErrorMsg, MAIN_DISPATCHER)
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
-
-    def recover_state(self, _):
-        pass

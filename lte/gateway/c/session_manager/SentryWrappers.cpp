@@ -24,7 +24,7 @@
 
 #include "magma_logging_init.h"
 #include "sentry.h"
-#include "ServiceConfigLoader.h"
+#include "includes/ServiceConfigLoader.h"
 
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"
@@ -34,6 +34,8 @@
 #define SERVICE_NAME "service_name"
 
 using std::experimental::optional;
+
+// TODO(@themarwhal) pull common sentry functions into lib common
 
 optional<std::string> get_sentry_url(YAML::Node control_proxy_config) {
   std::string sentry_url;
@@ -69,9 +71,6 @@ void initialize_sentry() {
     sentry_init(options);
     sentry_set_tag(SERVICE_NAME, "SessionD");
     sentry_set_tag(HWID, get_snowflake().c_str());
-
-    sentry_capture_event(sentry_value_new_message_event(
-        SENTRY_LEVEL_INFO, "", "Starting SessionD with Sentry!"));
   }
 }
 

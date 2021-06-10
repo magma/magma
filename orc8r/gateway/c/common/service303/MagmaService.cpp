@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-#include "MagmaService.h"
+#include "includes/MagmaService.h"
 #include <google/protobuf/map.h>                   // for Map
 #include <grpcpp/impl/codegen/completion_queue.h>  // for ServerCompletionQueue
 #include <grpcpp/security/server_credentials.h>    // for InsecureServerCred...
@@ -26,10 +26,10 @@
 #include <unordered_map>                           // for operator==
 #include <utility>                                 // for move
 #include <vector>                                  // for vector
-#include "MetricsRegistry.h"                       // for Registry
-#include "MetricsSingleton.h"                      // for MetricsSingleton
+#include "includes/MetricsRegistry.h"              // for Registry
+#include "includes/MetricsSingleton.h"             // for MetricsSingleton
 #include "ProcFileUtils.h"                         // for ProcFileUtils::mem...
-#include "ServiceRegistrySingleton.h"              // for ServiceRegistrySin...
+#include "includes/ServiceRegistrySingleton.h"     // for ServiceRegistrySin...
 #include "magma_logging_init.h"                    // for set_verbosity
 #include "orc8r/protos/metrics.pb.h"               // for MetricFamily
 #include "orc8r/protos/metricsd.pb.h"              // for MetricsContainer
@@ -116,7 +116,8 @@ void MagmaService::ClearOperationalStatesCallback() {
 }
 
 Status MagmaService::GetServiceInfo(
-    ServerContext* context, const Void* request, ServiceInfo* response) {
+    __attribute__((unused)) ServerContext* context,
+    __attribute__((unused)) const Void* request, ServiceInfo* response) {
   auto start_time_secs =
       time_point_cast<seconds>(wall_start_time_).time_since_epoch().count();
 
@@ -135,13 +136,16 @@ Status MagmaService::GetServiceInfo(
 }
 
 Status MagmaService::StopService(
-    ServerContext* context, const Void* request, Void* response) {
+    __attribute__((unused)) ServerContext* context,
+    __attribute__((unused)) const Void* request,
+    __attribute__((unused)) Void* response) {
   std::raise(SIGTERM);
   return Status::OK;
 }
 
 Status MagmaService::GetMetrics(
-    ServerContext* context, const Void* request, MetricsContainer* response) {
+    __attribute__((unused)) ServerContext* context,
+    __attribute__((unused)) const Void* request, MetricsContainer* response) {
   // Set all common metrics
   setSharedMetrics();
 
@@ -155,7 +159,8 @@ Status MagmaService::GetMetrics(
 }
 
 Status MagmaService::SetLogLevel(
-    ServerContext* context, const LogLevelMessage* request, Void* response) {
+    __attribute__((unused)) ServerContext* context,
+    const LogLevelMessage* request, __attribute__((unused)) Void* response) {
   // log level FATAL is minimum verbosity and maximum level
   auto verbosity = LogLevel::FATAL - request->level();
   set_verbosity(verbosity);
@@ -163,7 +168,8 @@ Status MagmaService::SetLogLevel(
 }
 
 Status MagmaService::ReloadServiceConfig(
-    ServerContext* context, const Void* request,
+    __attribute__((unused)) ServerContext* context,
+    __attribute__((unused)) const Void* request,
     ReloadConfigResponse* response) {
   if (config_reload_callback_ != nullptr) {
     if (config_reload_callback_()) {
@@ -179,7 +185,8 @@ Status MagmaService::ReloadServiceConfig(
 }
 
 Status MagmaService::GetOperationalStates(
-    ServerContext* context, const Void* request,
+    __attribute__((unused)) ServerContext* context,
+    __attribute__((unused)) const Void* request,
     GetOperationalStatesResponse* response) {
   auto op_states = (operational_states_callback_ != nullptr) ?
                        operational_states_callback_() :

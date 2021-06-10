@@ -153,7 +153,8 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         """
         return [
             DynamicRuleInstall(
-                policy_rule=get_allow_all_policy_rule(subscriber_id, apn)),
+                policy_rule=get_allow_all_policy_rule(subscriber_id, apn),
+            ),
         ]
 
     def _get_session_static_rules(
@@ -169,12 +170,16 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             return []
 
         sub_apn_policies = self._apn_rules_by_sid[imsi]
-        assigned_static_rules = [] # type: List[StaticRuleInstall]
+        assigned_static_rules = []  # type: List[StaticRuleInstall]
         # Add global rules
         global_rules = self._get_global_static_rules(sub_apn_policies)
         assigned_static_rules += \
-            list(map(lambda id: StaticRuleInstall(rule_id=id),
-                     global_rules))
+            list(
+                map(
+                    lambda id: StaticRuleInstall(rule_id=id),
+                    global_rules,
+                ),
+            )
         # Add APN specific rules
         for apn_policy_set in sub_apn_policies.rules_per_apn:
             if apn_policy_set.apn != apn:
@@ -182,8 +187,12 @@ class SessionRpcServicer(CentralSessionControllerServicer):
             # Only add rules if the APN matches
             static_rule_ids = self._get_static_rules(apn_policy_set)
             assigned_static_rules +=\
-                list(map(lambda id: StaticRuleInstall(rule_id=id),
-                         static_rule_ids))
+                list(
+                    map(
+                        lambda id: StaticRuleInstall(rule_id=id),
+                        static_rule_ids,
+                    ),
+                )
 
         return assigned_static_rules
 
@@ -197,7 +206,8 @@ class SessionRpcServicer(CentralSessionControllerServicer):
                 # Eventually, basename definition will be streamed from orc8r
                 continue
             global_rules.update(
-                self._rules_by_basename[basename].RuleNames)
+                self._rules_by_basename[basename].RuleNames,
+            )
         return global_rules
 
     def _get_static_rules(
@@ -210,7 +220,8 @@ class SessionRpcServicer(CentralSessionControllerServicer):
                 # Eventually, basename definition will be streamed from orc8r
                 continue
             desired_rules.update(
-                self._rules_by_basename[basename].RuleNames)
+                self._rules_by_basename[basename].RuleNames,
+            )
         return desired_rules
 
     def _get_credits(self, sid: str) -> List[CreditUpdateResponse]:
@@ -218,17 +229,21 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         postpay_keys = self._get_postpay_charging_keys()
         credit_updates = []
         for charging_key in infinite_credit_keys:
-            credit_updates.append(CreditUpdateResponse(
-                success=True,
-                sid=sid,
-                charging_key=charging_key,
-                limit_type=CreditLimitType.Value("INFINITE_UNMETERED")
-            ))
+            credit_updates.append(
+                CreditUpdateResponse(
+                    success=True,
+                    sid=sid,
+                    charging_key=charging_key,
+                    limit_type=CreditLimitType.Value("INFINITE_UNMETERED"),
+                ),
+            )
         for charging_key in postpay_keys:
-            credit_updates.append(CreditUpdateResponse(
-                success=True,
-                sid=sid,
-                charging_key=charging_key,
-                limit_type=CreditLimitType.Value("INFINITE_METERED")
-            ))
+            credit_updates.append(
+                CreditUpdateResponse(
+                    success=True,
+                    sid=sid,
+                    charging_key=charging_key,
+                    limit_type=CreditLimitType.Value("INFINITE_METERED"),
+                ),
+            )
         return credit_updates

@@ -30,14 +30,14 @@ type providerServicer struct {
 
 // StartNewTestProvider starts a new stream provider service which forwards
 // calls to the passed provider.
-func StartNewTestProvider(t *testing.T, provider providers.StreamProvider) {
+func StartNewTestProvider(t *testing.T, provider providers.StreamProvider, streamName string) {
 	labels := map[string]string{
 		orc8r.StreamProviderLabel: "true",
 	}
 	annotations := map[string]string{
-		orc8r.StreamProviderStreamsAnnotation: provider.GetStreamName(),
+		orc8r.StreamProviderStreamsAnnotation: streamName,
 	}
-	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, provider.GetStreamName(), labels, annotations)
+	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, streamName, labels, annotations)
 	servicer := &providerServicer{provider: provider}
 	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicer)
 	go srv.RunTest(lis)

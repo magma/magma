@@ -72,8 +72,6 @@ class RestartMixin(metaclass=ABCMeta):
                               tbl,
                               [flow.match for flow in startup_flows_map[tbl]])
 
-        self.recover_state(startup_flows_map)
-        
         default_msgs = self._get_default_flow_msgs(dp)
         for table, msgs_to_install in default_msgs.items():
             msgs, remaining_flows = self._msg_hub \

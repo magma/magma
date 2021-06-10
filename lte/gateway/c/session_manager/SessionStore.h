@@ -33,10 +33,9 @@ namespace lte {
 using std::experimental::optional;
 
 // Value int represents the request numbers needed for requests to PCRF
-typedef std::set<std::string> SessionRead;
-typedef std::unordered_map<
-    std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>
-    SessionUpdate;
+using SessionRead   = std::set<std::string>;
+using SessionUpdate = std::unordered_map<
+    std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>;
 
 enum SessionSearchCriteriaType {
   IMSI_AND_APN             = 0,

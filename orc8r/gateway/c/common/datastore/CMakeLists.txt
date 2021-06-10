@@ -9,48 +9,60 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+PROJECT(datastore)
 cmake_minimum_required(VERSION 3.7.2)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include_directories("${PROJECT_SOURCE_DIR}/../common/logging")
+include("${PROJECT_SOURCE_DIR}/../CMakeProtoMacros.txt")
+set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
+find_package(MAGMA_LOGGING REQUIRED)
 
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 set(ASYNC_ORC8R_CPP_PROTOS common redis)
-set(ASYNC_LTE_CPP_PROTOS session_manager policydb mobilityd subscriberdb)
+set(ASYNC_LTE_CPP_PROTOS session_manager policydb mobilityd apn subscriberdb)
 set(ASYNC_LTE_GRPC_PROTOS session_manager)
 set(ASYNC_ORC8R_GRPC_PROTOS "")
 
 generate_all_protos("${ASYNC_LTE_CPP_PROTOS}" "${ASYNC_ORC8R_CPP_PROTOS}"
-        "${ASYNC_LTE_GRPC_PROTOS}"
-        "${ASYNC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
+    "${ASYNC_LTE_GRPC_PROTOS}"
+    "${ASYNC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
 
 message("Async Proto_srcs are ${PROTO_SRCS}")
 
 add_library(DATASTORE
-    RedisMap.hpp
     ObjectMap.h
     Serializers.cpp
-    Serializers.h
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
 
-target_link_libraries(DATASTORE
-   tacopie cpp_redis pthread
-   )
+target_link_libraries(DATASTORE PRIVATE
+    tacopie cpp_redis pthread
+    )
+
+target_link_libraries(DATASTORE PRIVATE MAGMA_LOGGING)
 
 # copy headers to build directory so they can be shared with OAI,
 # session_manager, etc.
 add_custom_command(TARGET DATASTORE POST_BUILD
-                   COMMAND ${CMAKE_COMMAND} -E copy
-                   ${PROJECT_SOURCE_DIR}/datastore/*.h*
-                   $<TARGET_FILE_DIR:DATASTORE>)
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${MAGMA_INCLUDE_DIR})
+add_custom_command(TARGET DATASTORE POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+    ${PROJECT_SOURCE_DIR}/includes/*.hpp ${MAGMA_INCLUDE_DIR})
 
 target_include_directories(DATASTORE PUBLIC
-                  $<TARGET_FILE_DIR:DATASTORE>
-)
+    $<TARGET_FILE_DIR:DATASTORE> # protos
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
+
+install(TARGETS DATASTORE EXPORT DATASTORE_TARGETS
+    INCLUDES DESTINATION includes
+    ARCHIVE DESTINATION lib)
+
+set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
+export(TARGETS DATASTORE FILE DATASTOREConfig.cmake)
+export(PACKAGE DATASTORE)

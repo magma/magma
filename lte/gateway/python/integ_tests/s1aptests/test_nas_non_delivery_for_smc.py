@@ -14,7 +14,6 @@ limitations under the License.
 import unittest
 
 import s1ap_types
-
 from integ_tests.s1aptests import s1ap_wrapper
 
 
@@ -47,12 +46,12 @@ class TestNasNonDeliverySmc(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         print("Sending Attach Request ue-id", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         print("Received auth req ind ue-Id", req.ue_id)
 
@@ -72,7 +71,7 @@ class TestNasNonDeliverySmc(unittest.TestCase):
         nas_non_del.causeVal = 3
         print("Sending Set Nas Non Del to enbApp for ue-id", nas_non_del.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del
+            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del,
         )
 
         print("Send Auth Resp", req.ue_id)
@@ -83,12 +82,12 @@ class TestNasNonDeliverySmc(unittest.TestCase):
         auth_res.sqnRcvd = sqnRecvd
 
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print("Received UE_CTX_REL_IND")
 
@@ -102,7 +101,7 @@ class TestNasNonDeliverySmc(unittest.TestCase):
         nas_non_del.causeVal = 3
         print("Sending Reset Nas Non Del ind to enb")
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del
+            s1ap_types.tfwCmd.UE_SET_NAS_NON_DELIVERY, nas_non_del,
         )
 
 

@@ -16,6 +16,8 @@
 const url = process.env.DOCUSAURUS_URL || 'https://magmacore.org'
 const baseUrl = process.env.DOCUSAURUS_BASE_URL || '/'
 
+const mermaid = require('remark-mermaid')
+
 const siteConfig = {
   title: 'Magma Documentation',
   disableTitleTagline: true,
@@ -56,7 +58,9 @@ const siteConfig = {
   },
 
   // Add custom scripts here that would be placed in <script> tags.
-  scripts: ['https://buttons.github.io/buttons.js'],
+  scripts: ['https://buttons.github.io/buttons.js',
+    'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js',
+    '/init.js'],
 
   // On page navigation for the current documentation page.
   onPageNav: 'separate',
@@ -75,6 +79,16 @@ const siteConfig = {
     apiKey: 'f95caeb7bc059b294eec88e340e5445b',
     indexName: 'magma',
   },
+
+  // Enable mermaid
+  markdownPlugins: [ (md) => {
+        md.renderer.rules.fence_custom.mermaid = (tokens, idx, options, env, instance) => {
+            return `<div class="mermaid">${tokens[idx].content}</div>`;
+        };
+    }],
+
+
+
 };
 
 module.exports = siteConfig;

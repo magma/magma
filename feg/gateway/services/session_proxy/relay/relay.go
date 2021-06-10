@@ -33,8 +33,8 @@ func (client *CloseableSessionProxyResponderClient) Close() {
 	client.conn.Close()
 }
 
-// Get a client to the local session manager client. To avoid leaking
-// connections, defer Close() on the returned client.
+// GetSessionProxyResponderClient Get a client to the local session manager client.
+// To avoid leaking connections, defer Close() on the returned client.
 func GetSessionProxyResponderClient(
 	cloudRegistry service_registry.GatewayRegistry) (*CloseableSessionProxyResponderClient, error) {
 

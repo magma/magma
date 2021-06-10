@@ -37,6 +37,7 @@ static_services: [
   'proxy',
   'ryu_rest_service',
   'startup_flows',
+#  'li_mirror',
 #  'packet_tracer',
 ]
 
@@ -85,6 +86,13 @@ dpi:
 
 conntrackd:
   enabled: false
+  zone: 897
+
+# LI mirroring configuration
+# li_local_iface: eth2
+# li_mirror_all: false
+# li_dst_iface: li_port
+
 
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: gtp_br0

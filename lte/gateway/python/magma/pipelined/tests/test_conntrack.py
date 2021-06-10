@@ -93,7 +93,10 @@ class ConntrackTest(unittest.TestCase):
                 'access_control': {
                     'ip_blocklist': [
                     ]
-                }
+                },
+                'conntrackd': {
+                    'zone': 897,
+                },
             },
             mconfig=PipelineD(
                 allowed_gre_peers=[],

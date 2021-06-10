@@ -79,7 +79,7 @@ list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 
-set(SMGR_LTE_CPP_PROTOS session_manager subscriberdb
+set(SMGR_LTE_CPP_PROTOS session_manager apn subscriberdb
   pipelined spgw_service mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
@@ -87,6 +87,11 @@ generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
 set(SMGR_CWF_CPP_PROTOS accounting context)
 generate_cwf_cpp_protos("${SMGR_CWF_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
+
+# TODO: Temp workaround until packages are imported by these cmakefile
+# Will be removed in subsequent patch
+set(MAGMA_COMMON_INCL_DIR $ENV{C_BUILD}/common)
+include_directories(${MAGMA_COMMON_INCL_DIR})
 
 link_directories(
   ${MAGMA_LIB_DIR}/config
@@ -102,7 +107,7 @@ add_library(CONNECTION_TRACKER
     ${PROTO_HDRS})
 
 target_link_libraries(CONNECTION_TRACKER
-  SERVICE303_LIB SERVICE_REGISTRY CONFIG
+  SERVICE303_LIB SERVICE_REGISTRY MAGMA_CONFIG
   glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie mnl tins
   )

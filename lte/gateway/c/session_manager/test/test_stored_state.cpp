@@ -113,6 +113,18 @@ class StoredStateTest : public ::testing::Test {
     return stored;
   }
 
+  PolicyStatsMap get_policy_stats_map() {
+    PolicyStatsMap stored;
+    stored["rule1"]                       = StatsPerPolicy();
+    stored["rule1"].last_reported_version = 1;
+    stored["rule1"].stats_map[1]          = RuleStats{1, 2, 3, 4};
+    stored["rule2"]                       = StatsPerPolicy();
+    stored["rule2"].last_reported_version = 2;
+    stored["rule2"].stats_map[1]          = RuleStats{5, 2, 3, 4};
+    stored["rule2"].stats_map[2]          = RuleStats{50, 20, 30, 40};
+    return stored;
+  }
+
   BearerIDByPolicyID get_bearer_id_by_policy() {
     BearerIDByPolicyID stored;
     stored[PolicyID(DYNAMIC, "rule1")].bearer_id = 32;
@@ -149,6 +161,8 @@ class StoredStateTest : public ::testing::Test {
     stored.bearer_id_by_policy = get_bearer_id_by_policy();
 
     stored.request_number = 1;
+
+    stored.policy_version_and_stats = get_policy_stats_map();
 
     return stored;
   }
@@ -351,6 +365,17 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(deserialized.request_number, 1);
   EXPECT_EQ(deserialized.pdp_start_time, 112233);
   EXPECT_EQ(deserialized.pdp_end_time, 332211);
+
+  EXPECT_EQ(
+      deserialized.policy_version_and_stats["rule1"].last_reported_version, 1);
+  EXPECT_EQ(deserialized.policy_version_and_stats["rule1"].stats_map[1].tx, 1);
+  EXPECT_EQ(deserialized.policy_version_and_stats["rule1"].stats_map[1].rx, 2);
+  EXPECT_EQ(
+      deserialized.policy_version_and_stats["rule2"].stats_map[1].dropped_tx,
+      3);
+  EXPECT_EQ(
+      deserialized.policy_version_and_stats["rule2"].stats_map[2].dropped_rx,
+      40);
 }
 
 TEST_F(StoredStateTest, test_policy_stats_map) {

@@ -27,6 +27,7 @@ message context {
     string ip_addr = 8;
     string auth_session_id = 9;
     string acct_session_id = 10;
+    uint64 created_time_ms = 11;
 }
 
 message Void {

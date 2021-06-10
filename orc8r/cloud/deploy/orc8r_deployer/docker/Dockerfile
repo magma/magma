@@ -1,7 +1,7 @@
 FROM python:3.9-slim-buster
 
 ARG HELM_VERSION="3.5.1"
-ARG TERRAFORM_VERSION="0.14.7"
+ARG TERRAFORM_VERSION="0.15.5"
 ARG KUBECTL_VERSION="1.20.2"
 ARG ANSIBLE_VERSION="3.0.0"
 
@@ -14,6 +14,7 @@ RUN apt-get update && \
             curl \
             vim \
             jq \
+            gcc \
             procps && \
     apt-get clean -y && \
     apt-get autoclean -y && \
@@ -31,8 +32,25 @@ RUN pip3 install --no-cache-dir \
                         docker \
                         pyOpenSSL \
                         unittest2 \
-                        colorama
+                        colorama \
+                        dataclasses-json \
+                        pytest
+
+
+WORKDIR /usr/local
+RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
+    tar xf go1.13.4.linux-amd64.tar.gz && \
+    cp -r go/bin/* /usr/local/bin/
+ENV GO111MODULE=on
+ENV GOPROXY=https://proxy.golang.org
+ENV ANSIBLE_CONFIG=/root/.ansible.cfg
+
 WORKDIR /root/download
+
+# Install avalanche
+RUN go get -v github.com/open-fresh/avalanche/cmd/... && \
+    mv /root/go/bin/cmd /usr/local/bin/avalanche && \
+    chmod +x /usr/local/bin/avalanche
 
 # Install aws cli
 RUN wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "/root/download/awscli2.zip" && \

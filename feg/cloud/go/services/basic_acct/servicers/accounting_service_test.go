@@ -118,13 +118,13 @@ type contractKey struct {
 }
 
 type contract map[string]struct {
-	in, out uint32
+	in, out uint64
 }
 
 // totalIn summs up all IN octets per contract
 func (c contract) totalIn() (sum uint64) {
 	for _, v := range c {
-		sum += uint64(v.in)
+		sum += v.in
 	}
 	return
 }
@@ -132,7 +132,7 @@ func (c contract) totalIn() (sum uint64) {
 // totalIn summs up all OUT octets per contract
 func (c contract) totalOut() (sum uint64) {
 	for _, v := range c {
-		sum += uint64(v.out)
+		sum += v.out
 	}
 	return
 }
@@ -158,7 +158,7 @@ func (s *anContractServer) Start(_ context.Context, in *anpb.Session) (*anpb.Ses
 		provider: in.GetProviderId(),
 	}
 	sessionKey := in.GetIMSI() + in.GetSessionId()
-	s.contracts[key] = contract{sessionKey: struct{ in, out uint32 }{0, 0}}
+	s.contracts[key] = contract{sessionKey: struct{ in, out uint64 }{0, 0}}
 	return &anpb.SessionResp{}, nil
 }
 

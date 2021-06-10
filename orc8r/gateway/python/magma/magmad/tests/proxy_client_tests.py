@@ -105,54 +105,76 @@ class ProxyClientTests(unittest.TestCase):
         asyncio.set_event_loop(loop)
         self._loop = loop
         self._proxy_client = ControlProxyHttpClient()
-        ServiceRegistry._REGISTRY = {"services": {"mobilityd":
-                                                  {"ip_address": "0.0.0.0",
-                                                   "port": 3456}}
-                                     }
+        ServiceRegistry._REGISTRY = {
+            "services": {
+                "mobilityd":
+                {
+                    "ip_address": "0.0.0.0",
+                    "port": 3456,
+                },
+            },
+        }
         ServiceRegistry.add_service('test', '0.0.0.0', 0)
-        self._req_body = GatewayRequest(gwId="test id", authority='mobilityd',
-                                        path='/magma.MobilityService'
-                                             '/ListAddedIPv4Blocks',
-                                        headers={'te': 'trailers',
-                                                 'content-type':
-                                                     'application/grpc',
-                                                 'user-agent':
-                                                     'grpc-python/1.4.0',
-                                                 'grpc-accept-encoding':
-                                                     'identity'},
-                                        payload=bytes.fromhex('0000000000'))
+        self._req_body = GatewayRequest(
+            gwId="test id", authority='mobilityd',
+            path='/magma.MobilityService'
+                 '/ListAddedIPv4Blocks',
+            headers={
+                'te': 'trailers',
+                'content-type':
+                    'application/grpc',
+                'user-agent':
+                    'grpc-python/1.4.0',
+                'grpc-accept-encoding':
+                    'identity',
+            },
+            payload=bytes.fromhex('0000000000'),
+        )
 
     @unittest.mock.patch('aioh2.open_connection')
     def test_http_client_unary(self, mock_conn):
-        req_body = GatewayRequest(gwId="test id", authority='mobilityd',
-                                  path='/magma.MobilityService'
-                                       '/ListAddedIPv4Blocks',
-                                  headers={'te': 'trailers',
-                                           'content-type': 'application/grpc',
-                                           'user-agent': 'grpc-python/1.4.0',
-                                           'grpc-accept-encoding': 'identity'},
-                                  payload=bytes.fromhex('0000000000'))
+        req_body = GatewayRequest(
+            gwId="test id", authority='mobilityd',
+            path='/magma.MobilityService'
+                 '/ListAddedIPv4Blocks',
+            headers={
+                'te': 'trailers',
+                'content-type': 'application/grpc',
+                'user-agent': 'grpc-python/1.4.0',
+                'grpc-accept-encoding': 'identity',
+            },
+            payload=bytes.fromhex('0000000000'),
+        )
         expected_payload = \
             b'\x00\x00\x00\x00\n\n\x08\x12\x04\xc0\xa8\x80\x00\x18\x18'
-        expected_header = [(':status', '200'),
-                           ('content-type', 'application/grpc')]
+        expected_header = [
+            (':status', '200'),
+            ('content-type', 'application/grpc'),
+        ]
         expected_trailers = [('grpc-status', '0'), ('grpc-message', '')]
 
         mock_conn.side_effect = asyncio.coroutine(
             unittest.mock.MagicMock(
-                return_value=MockUnaryClient(expected_payload, expected_header,
-                                             expected_trailers, req_body)))
+                return_value=MockUnaryClient(
+                    expected_payload, expected_header,
+                    expected_trailers, req_body,
+                ),
+            ),
+        )
 
         request_queue = queue.Queue()
         conn_closed_table = {
-            1234: False
+            1234: False,
         }
 
         future = asyncio.ensure_future(
-            self._proxy_client.send(self._req_body,
-                                    1234,
-                                    request_queue,
-                                    conn_closed_table))
+            self._proxy_client.send(
+                self._req_body,
+                1234,
+                request_queue,
+                conn_closed_table,
+            ),
+        )
 
         self._loop.run_until_complete(future)
 
@@ -167,18 +189,24 @@ class ProxyClientTests(unittest.TestCase):
 
     @unittest.mock.patch('aioh2.open_connection')
     def test_http_client_stream(self, mock_conn):
-        req_body = GatewayRequest(gwId="test id", authority='mobilityd',
-                                  path='/magma.MobilityService'
-                                       '/ListAddedIPv4Blocks',
-                                  headers={'te': 'trailers',
-                                           'content-type': 'application/grpc',
-                                           'user-agent': 'grpc-python/1.4.0',
-                                           'grpc-accept-encoding': 'identity'},
-                                  payload=bytes.fromhex('0000000000'))
+        req_body = GatewayRequest(
+            gwId="test id", authority='mobilityd',
+            path='/magma.MobilityService'
+                 '/ListAddedIPv4Blocks',
+            headers={
+                'te': 'trailers',
+                'content-type': 'application/grpc',
+                'user-agent': 'grpc-python/1.4.0',
+                'grpc-accept-encoding': 'identity',
+            },
+            payload=bytes.fromhex('0000000000'),
+        )
         expected_payload = \
             b'\x00\x00\x00\x00\n\n\x08\x12\x04\xc0\xa8\x80\x00\x18\x18'
-        expected_header = [(':status', '200'),
-                           ('content-type', 'application/grpc')]
+        expected_header = [
+            (':status', '200'),
+            ('content-type', 'application/grpc'),
+        ]
         expected_trailers = [('grpc-status', '0'), ('grpc-message', '')]
 
         mock_conn.side_effect = asyncio.coroutine(
@@ -187,21 +215,24 @@ class ProxyClientTests(unittest.TestCase):
                     expected_payload,
                     expected_header,
                     expected_trailers,
-                    req_body
-                )
-            )
+                    req_body,
+                ),
+            ),
         )
 
         request_queue = queue.Queue()
         conn_closed_table = {
-            1234: False
+            1234: False,
         }
 
         future = asyncio.ensure_future(
-            self._proxy_client.send(self._req_body,
-                                    1234,
-                                    request_queue,
-                                    conn_closed_table))
+            self._proxy_client.send(
+                self._req_body,
+                1234,
+                request_queue,
+                conn_closed_table,
+            ),
+        )
 
         self._loop.run_until_complete(future)
 

@@ -15,13 +15,13 @@ import os
 import re
 import sys
 
-
 MAX_ALLOWED_WARNINGS = 20
-COMMON_TYPE = 'OAI-COMMON'
-MME_TYPE = 'OAI-MME'
-SCTPD_TYPE = 'SCTPD'
+COMMON_TYPE = 'MAGMA-COMMON'
+MME_TYPE = 'MAGMA-OAI-MME'
+SCTPD_TYPE = 'MAGMA-SCTPD'
 U18_BUILD_LOG_FILE = 'build_magma_mme.log'
 RHEL8_BUILD_LOG_FILE = 'build_magma_mme_rhel8.log'
+REPORT_NAME = 'build_results_magma_oai_mme.html'
 
 
 class HtmlReport():
@@ -41,12 +41,14 @@ class HtmlReport():
         self.git_merge_request = False
         self.git_target_branch = ''
         self.git_target_commit = ''
+        self.errorWarningInfo = []
+        self.variant = []
 
     def generate_build_report(self):
         """Create the BUILD HTML report."""
         cwd = os.getcwd()
         try:
-            self.file = open(os.path.join(cwd, 'build_results_magma_oai_mme.html'), 'w')
+            self.file = open(os.path.join(cwd, REPORT_NAME), 'w')
         except IOError:
             sys.exit('Could not open write output file')
         self.generate_header()
@@ -57,6 +59,8 @@ class HtmlReport():
         self.add_copy_conf_tools_to_target_mage_row()
         self.add_image_size_row()
         self.add_build_summary_footer()
+
+        self.add_details()
 
         self.generate_footer()
         self.file.close()
@@ -176,7 +180,6 @@ class HtmlReport():
 
     def generate_footer(self):
         """Append the HTML footer to report."""
-        self.file.write('  </nav>\n')
         self.file.write('  <div class="well well-lg">End of Build Report -- Copyright <span class="glyphicon glyphicon-copyright-mark"></span> 2020 <a href="http://www.openairinterface.org/">OpenAirInterface</a>. All Rights Reserved.</div>\n')
         self.file.write('</div></body>\n')
         self.file.write('</html>\n')
@@ -231,11 +234,6 @@ class HtmlReport():
         Args:
             nf_type: which build part
         """
-        if nf_type != COMMON_TYPE and nf_type != MME_TYPE and nf_type != SCTPD_TYPE:
-            self.file.write('      <td>N/A</td>\n')
-            self.file.write('      <td>Wrong NF Type for this Report</td>\n')
-            return
-
         self.file.write('      <td>Builder Image</td>\n')
         cwd = os.getcwd()
 
@@ -245,9 +243,9 @@ class HtmlReport():
                 status = False
                 if nf_type == COMMON_TYPE:
                     section_start_pattern = 'ninja -C  /build/c/magma_common'
-                    section_end_pattern = 'cmake  /magma/lte/gateway/c/oai -DCMAKE_BUILD_TYPE=Debug  -DS6A_OVER_GRPC=False -GNinja'
+                    section_end_pattern = 'cmake  /magma/lte/gateway/c/core/oai -DCMAKE_BUILD_TYPE=Debug  -DS6A_OVER_GRPC=False -GNinja'
                 if nf_type == MME_TYPE:
-                    section_start_pattern = 'ninja -C  /build/c/oai'
+                    section_start_pattern = 'ninja -C  /build/c/core/oai'
                     section_end_pattern = 'cmake  /magma/orc8r/gateway/c/common -DCMAKE_BUILD_TYPE=Debug   -GNinja'
                 if nf_type == SCTPD_TYPE:
                     section_start_pattern = 'ninja -C  /build/c/sctpd'
@@ -265,7 +263,7 @@ class HtmlReport():
                             if nf_type == COMMON_TYPE:
                                 my_res = re.search('Linking CXX static library eventd/libEVENTD.a', line)
                             if nf_type == MME_TYPE:
-                                my_res = re.search('Linking CXX executable oai_mme/mme', line)
+                                my_res = re.search('Linking CXX executable core/oai_mme/mme', line)
                             if nf_type == SCTPD_TYPE:
                                 my_res = re.search('Linking CXX executable sctpd', line)
                             if my_res is not None:
@@ -280,7 +278,7 @@ class HtmlReport():
                 if nf_type == COMMON_TYPE:
                     cell_msg += ' -- ninja -C  /build/c/magma_common</b></pre></td>\n'
                 if nf_type == MME_TYPE:
-                    cell_msg += ' -- ninja -C  /build/c/oai</b></pre></td>\n'
+                    cell_msg += ' -- ninja -C  /build/c/core/oai</b></pre></td>\n'
                 if nf_type == SCTPD_TYPE:
                     cell_msg += ' -- ninja -C  /build/c/sctpd</b></pre></td>\n'
             else:
@@ -296,11 +294,6 @@ class HtmlReport():
         Args:
             nf_type: which build part
         """
-        if nf_type != COMMON_TYPE and nf_type != MME_TYPE and nf_type != SCTPD_TYPE:
-            self.file.write('      <td>N/A</td>\n')
-            self.file.write('      <td>Wrong NF Type for this Report</td>\n')
-            return
-
         self.file.write('      <td>Builder Image</td>\n')
         cwd = os.getcwd()
 
@@ -309,13 +302,20 @@ class HtmlReport():
             nb_errors = 0
             nb_warnings = 0
             nb_notes = 0
+            if log_file_name.count('_rhel8') > 0:
+                variant = 'RHEL8'
+            else:
+                variant = 'UBUNTU 18'
+            self.errorWarningInfo.append([])
+            self.variant.append(nf_type + ' ' + variant)
+            idx = len(self.errorWarningInfo) - 1
 
             if os.path.isfile(cwd + '/archives/' + log_file_name):
                 if nf_type == COMMON_TYPE:
                     section_start_pattern = '/build/c/magma_common'
-                    section_end_pattern = 'mkdir -p  /build/c/oai'
+                    section_end_pattern = 'mkdir -p  /build/c/core/oai'
                 if nf_type == MME_TYPE:
-                    section_start_pattern = '/build/c/oai'
+                    section_start_pattern = '/build/c/core/oai'
                     section_end_pattern = 'mkdir -p  /build/c/magma_common'
                 if nf_type == SCTPD_TYPE:
                     section_start_pattern = '/build/c/sctpd'
@@ -335,9 +335,40 @@ class HtmlReport():
                             my_res = re.search('error:', line)
                             if my_res is not None:
                                 nb_errors += 1
+                                errorandwarnings = {}
+                                file_name = re.sub(':.*$', '', line.strip())
+                                file_name = re.sub('^/magma/', '', file_name)
+                                line_nb = '0'
+                                warning_msg = re.sub('^.*error: ', '', line.strip())
+                                details = re.search(':(?P<linenb>[0-9]+):', line)
+                                if details is not None:
+                                    line_nb = details.group('linenb')
+                                errorandwarnings['kind'] = 'Error'
+                                errorandwarnings['file_name'] = file_name
+                                errorandwarnings['line_nb'] = line_nb
+                                errorandwarnings['warning_msg'] = warning_msg
+                                errorandwarnings['warning_type'] = 'fatal'
+                                self.errorWarningInfo[idx].append(errorandwarnings)
                             my_res = re.search('warning:', line)
                             if my_res is not None:
                                 nb_warnings += 1
+                                errorandwarnings = {}
+                                file_name = re.sub(':.*$', '', line.strip())
+                                file_name = re.sub('^/magma/', '', file_name)
+                                line_nb = '0'
+                                details = re.search(':(?P<linenb>[0-9]+):', line)
+                                if details is not None:
+                                    line_nb = details.group('linenb')
+                                warning_msg = re.sub('^.*warning: ', '', line.strip())
+                                warning_msg = re.sub(' \[-W.*$', '', warning_msg)
+                                warning_type = re.sub('^.* \[-W', '', line.strip())
+                                warning_type = re.sub('\].*$', '', warning_type)
+                                errorandwarnings['kind'] = 'Warning'
+                                errorandwarnings['file_name'] = file_name
+                                errorandwarnings['line_nb'] = line_nb
+                                errorandwarnings['warning_msg'] = warning_msg
+                                errorandwarnings['warning_type'] = warning_type
+                                self.errorWarningInfo[idx].append(errorandwarnings)
                             my_res = re.search('note:', line)
                             if my_res is not None:
                                 nb_notes += 1
@@ -535,6 +566,48 @@ class HtmlReport():
                 cell_msg += 'KO: logfile (' + log_file_name + ') not found</b></pre></td>\n'
 
             self.file.write(cell_msg)
+
+    def add_details(self):
+        """Add the compilation warnings/errors details"""
+        idx = 0
+        needed_details = False
+        while (idx < len(self.errorWarningInfo)):
+            if len(self.errorWarningInfo[idx]) > 0:
+                needed_details = True
+            idx += 1
+        if not needed_details:
+            return
+
+        details = '  <h3>Details</h3>\n'
+        details += '  <button data-toggle="collapse" data-target="#compilation-details">Details for Compilation Errors and Warnings </button>\n'
+        details += '  <div id="compilation-details" class="collapse">\n'
+        idx = 0
+        while (idx < len(self.errorWarningInfo)):
+            if len(self.errorWarningInfo[idx]) == 0:
+                idx += 1
+                continue
+            details += '  <h4>Details for ' + self.variant[idx] + '</h4>\n'
+            details += '   <table class="table-bordered" width = "100%" align = "center" border = "1">\n'
+            details += '      <tr bgcolor = "#33CCFF" >\n'
+            details += '        <th>File</th>\n'
+            details += '        <th>Line Number</th>\n'
+            details += '        <th>Status</th>\n'
+            details += '        <th>Kind</th>\n'
+            details += '        <th>Message</th>\n'
+            details += '      </tr>\n'
+            for info in self.errorWarningInfo[idx]:
+                details += '      <tr>\n'
+                details += '        <td>' + info['file_name'] + '</td>\n'
+                details += '        <td>' + info['line_nb'] + '</td>\n'
+                details += '        <td>' + info['kind'] + '</td>\n'
+                details += '        <td>' + info['warning_type'] + '</td>\n'
+                details += '        <td>' + info['warning_msg'] + '</td>\n'
+                details += '      </tr>\n'
+            details += '   </table>\n'
+            idx += 1
+        details += '  </div>\n'
+        details += '  <br>\n'
+        self.file.write(details)
 
     def append_build_summary(self, mode):
         """

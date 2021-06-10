@@ -63,8 +63,10 @@ class TestMetricsExport(unittest.TestCase):
             get_gateway_hw_id(),
         )
 
-        self._test_server = HTTPServer((self.TEST_VM_IP, self.TEST_VM_PORT),
-                                       TestHTTPServerRequestHandler)
+        self._test_server = HTTPServer(
+            (self.TEST_VM_IP, self.TEST_VM_PORT),
+            TestHTTPServerRequestHandler,
+        )
         self._server_thread = threading.Thread(target=self.run_server)
         self._server_thread.daemon = True
 
@@ -73,8 +75,10 @@ class TestMetricsExport(unittest.TestCase):
         self._cloud_manager.clean_up()
 
     def handle_timeout(self):
-        self.assertTrue(False,
-                        "Metrics not received before timeout, test failed")
+        self.assertTrue(
+            False,
+            "Metrics not received before timeout, test failed",
+        )
 
     def run_server(self):
         self._test_server.timeout = self.METRIC_TIMEOUT

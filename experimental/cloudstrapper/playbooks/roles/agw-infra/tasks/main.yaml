@@ -1,7 +1,11 @@
 ---
 - include: provision-networks.yaml
   tags: createNet
+- include: provision-bridge.yaml
+  tags: createBridge
 - include: provision-instances.yaml
   tags: createGw
-- include: attach-interfaces.yaml
-  tags: attachIface
+- include: cleanup-bridge.yaml
+  tags: cleanupBridge
+- include: cleanup-networks.yaml
+  tags: cleanupNet

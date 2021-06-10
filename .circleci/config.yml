@@ -20,13 +20,15 @@ aliases:
   - &lte_build_verify
     paths: "orc8r lte"
   - &c_cpp_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos feg/protos orc8r/protos"
   - &session_manager_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos feg/protos orc8r/protos"
   - &mme_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos feg/protos orc8r/protos"
   - &li_agent_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos orc8r/protos"
+  - &connection_tracker_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/connection_tracker lte/protos orc8r/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -493,6 +495,20 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
+  sentry-release:
+    docker:
+      - image: circleci/node:4.8.2
+    environment:
+      SENTRY_ENVIRONMENT: staging
+      SENTRY_ORG: lf-9c
+    steps:
+      - checkout  # check out the code in the project directory
+      - run: curl -sL https://sentry.io/get-cli/ | bash
+      - run: |
+          sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${CIRCLE_SHA1:0:8}
+          sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${CIRCLE_SHA1:0:8}
+          sentry-cli --log-level=info releases finalize ${CIRCLE_SHA1:0:8}
+
   backport:
     machine:
       image: ubuntu-1604:201903-01
@@ -576,7 +592,6 @@ jobs:
       - build/determinator:
           <<: *all_gateways_build_verify
       - docker/install-dc
-      - run: sudo apt-get update
       - python/set_version
       - run:
           command: |
@@ -586,6 +601,25 @@ jobs:
       - run: git add .
       - run: git status
       - run: git diff-index --quiet HEAD
+      - magma_slack_notify
+
+  # Fail if terraform variables, helm charts and orcl is out of sync
+  deploy-sync-checkin:
+    machine:
+      image: ubuntu-1604:201903-01
+      # docker_layer_caching: true
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
+      - docker/install-dc
+      - python/set_version
+      - run:
+          command: |
+            cd ${MAGMA_ROOT}/orc8r/cloud/deploy/orc8r_deployer/docker
+            ./run_deployer.bash --deploy-dir /tmp/deploy_dir --build --test check_all
       - magma_slack_notify
 
   orc8r-build:
@@ -940,13 +974,21 @@ jobs:
           command: |
             docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_common;"
       - run:
-          name: Run sctpd tests
+          name: Run sctpd tests with Debug build type
           command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd;"
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=Debug;"
       - run:
-          name: Run mme tests
+          name: Run sctpd tests with RelWithDebInfo build type
           command: |
-            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai;"
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_sctpd BUILD_TYPE=RelWithDebInfo;"
+      - run:
+          name: Run mme tests with Debug build type
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=Debug;"
+      - run:
+          name: Run mme tests with RelWithDebInfo build type
+          command: |
+            docker run -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_oai BUILD_TYPE=RelWithDebInfo;"
       - magma_slack_notify
 
   mme-clang-warnings:
@@ -990,6 +1032,36 @@ jobs:
           name: Run li agent tests
           command: |
             docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_li_agent;"
+          no_output_timeout: 5m
+      - magma_slack_notify
+
+  connection-tracker-test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *connection_tracker_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Build connection tracker with BUILD_TYPE=Debug
+          command: |
+            # TODO run unit tests once we write some tests
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=Debug;"
+          no_output_timeout: 5m
+      - run:
+          name: Build connection tracker with BUILD_TYPE=RelWithDebInfo
+          command: |
+            # TODO run unit tests once we write some tests
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=RelWithDebInfo;"
           no_output_timeout: 5m
       - magma_slack_notify
 
@@ -1353,17 +1425,118 @@ jobs:
           tag-latest: <<parameters.tag-latest>>
       - magma_slack_notify
 
+  publish-amis-to-marketplace:
+    machine:
+      image: ubuntu-2004:202104-01
+      docker_layer_caching: true
+    parameters:
+      aws_account:
+        description: AWS account to push to
+        type: string
+        default: "FB"
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+      CODE_DIR: /home/circleci/project/experimental/cloudstrapper
+      VARS_DIR: /home/circleci/project/experimental/cloudstrapper/playbooks/roles/vars
+      WORK_DIR: /home/circleci/project/experimental/cloudstrapper/playbooks
+    steps:
+      - checkout
+      - run: sudo apt-get update && sudo apt -y upgrade
+      - run: pyenv install 3.7.0
+      - python/set_version:
+          python_version: "3.7.0"
+      - run:
+          name: Install Dependencies
+          command: |
+              pip install ansible awscli boto3
+              sudo apt-get update
+      - run:
+          name: Propagate AWS credentials to ansible and create version
+          command: |
+            if [ "<<parameters.aws_account>>" = "FB" ]; then
+              sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
+              sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
+              echo export VERSION="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)$CIRCLE_BUILD_NUM" >> $BASH_ENV
+            elif  [ "<<parameters.aws_account>>" = "LF" ]; then
+              sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
+              sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
+              echo export VERSION="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)" >> $BASH_ENV
+            fi
+      - run:
+          name: Propagate AWS region information
+          command: |
+            sed -i -e '/^awsAgwRegion: /s/:.*$/: us-east-1/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsOrc8rRegion: /s/:.*$/: us-east-1/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^awsAgwAz: /s/:.*$/: us-east-1b/' $VARS_DIR/cluster.yaml
+            sed -i -e '/^buildAwsRegion: /s/:.*$/: us-east-1/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAwsAz: /s/:.*$/: us-east-1b/' $VARS_DIR/build.yaml
+      - run:
+          name: Propagate names for AWS essential components
+          command: |
+            sed -i -e '/^secgroupDefault: /s/:.*$/: publish-amis-to-marketplace-secgroup/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^stackEssentialsDefault: /s/:.*$/: publish-amis-to-marketplace-stack/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^keyBoot: /s/:.*$/: publish-amis-to-marketplace-keyboot/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^keyHost: /s/:.*$/: publish-amis-to-marketplace-keyhost/' $VARS_DIR/defaults.yaml
+      - run:
+          name: Setup AWS essentials components
+          command: |
+            ansible-playbook $WORK_DIR/aws-prerequisites.yaml -e "dirLocalInventory=$VARS_DIR" --tags keyCreate,essentialsCreate
+      - run:
+          name: Propagate Tags for Cloudstrapper instances
+          command: |
+            sed -i -e '/^devOpsCloudstrapper: /s/:.*$/: publishAmisToMarketplaceDevopsCloudstrapper/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^primaryCloudstrapper: /s/:.*$/: publishAmisToMarketplacePrimaryCloudstrapper/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^stackDevOpsCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-devopscloustrapper/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^stackCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-cloustrapper/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^devOpsAmi: /s/:.*$/: cloudstrapper-'"$VERSION"'/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/build.yaml
+      - run:
+          name: Generate Cloudstrapper AMI
+          command: |
+            ansible-playbook $WORK_DIR/devops-provision.yaml -e "dirLocalInventory=$VARS_DIR"
+            echo "Waiting one minute for the instance to boot up."
+            sleep 60
+            ansible-playbook $WORK_DIR/devops-configure.yaml -e "devops=tag_Name_publishAmisToMarketplaceDevopsCloudstrapper" -e "dirLocalInventory=$VARS_DIR" -i $VARS_DIR/common_instance_aws_ec2.yaml -u ubuntu --skip-tags usingGitSshKey,buildMagma,pubMagma,helm,pubHelm
+            ansible-playbook $WORK_DIR/devops-init.yaml -e "dirLocalInventory=$VARS_DIR"
+      - notify-magma:
+          artifact_name: Cloudstrapper AWS AMI
+          version_path: $VERSION
+      - run:
+          name: Propagate variables for AGW AMI build
+          command: |
+            sed -i -e '/^buildAgwAmiName: /s/:.*$/: agw-ami-'"$VERSION"'/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildGwTagName: /s/:.*$/: publishAmisToMarketplaceAgw/' $VARS_DIR/build.yaml
+            sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/cluster.yaml
+      - run:
+          name: Generate AGW AMI
+          command: |
+            ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge,cleanupBridge,cleanupNet
+            echo "Waiting one minute for the instance to boot up."
+            sleep 60
+            ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+            ansible-playbook $WORK_DIR/ami-init.yaml -e "dirLocalInventory=$VARS_DIR"
+      - run:
+          name: Clean AWS resources
+          command: |
+            ansible-playbook $WORK_DIR/cleanup.yaml -e "dirLocalInventory=$VARS_DIR" --tags agw,subnet,secgroup,vpc,keys --skip-tags orc8r  -e "{"deleteStacks": [stackDevOpspublishAmisToMarketplaceAgw, publish-amis-to-marketplace-stack-devopscloustrapper, publish-amis-to-marketplace-stack, stackDevOpsNetwork]}"
+      - notify-magma:
+          artifact_name: AGW AWS AMI
+          version_path: $VERSION
+      - magma_slack_notify
 workflows:
   version: 2
 
   cloud:
     jobs:
       - insync-checkin
+      - deploy-sync-checkin
       - cloud_lint
       - cloud-test
       - orc8r-build:
           requires:
             - insync-checkin
+            - deploy-sync-checkin
             - cloud_lint
             - cloud-test
 
@@ -1376,6 +1549,7 @@ workflows:
       - lte-test
       - session_manager_test
       - li_agent_test
+      - connection-tracker-test
       - mme_test
       - mme-clang-tidy:
           <<: *only_master
@@ -1390,6 +1564,10 @@ workflows:
             - mme_test
             - lte-integ-test
       - c-cpp-codecov
+      - sentry-release:
+          <<: *only_master
+          requires:
+            - lte-agw-deploy
 
   release:
     jobs:
@@ -1420,8 +1598,11 @@ workflows:
           <<: *only_release
           requires:
             - release-hold
-
-
+      - publish-amis-to-marketplace:
+          aws_account: "LF"
+          <<: *only_release
+          requires:
+            - release-hold
   feg:
     jobs:
       - feg-lint
@@ -1475,6 +1656,14 @@ workflows:
     jobs:
       - xwfm-test:
           notify_magma_ci: false
+
+  weekly_ami_push:
+    triggers:
+      - schedule:
+          cron: "0 0 * * 0"
+          <<: *only_master
+    jobs:
+      - publish-amis-to-marketplace
 
   nms:
     jobs:

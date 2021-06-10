@@ -63,6 +63,11 @@ include_directories(${MAGMA_LIB_DIR}/datastore)
 include_directories(${MAGMA_LIB_DIR}/policydb)
 include_directories(${MAGMA_LIB_DIR}/eventd)
 
+# TODO: Temp workaround until packages are imported by these cmakefile
+# Will be removed in subsequent patch
+set(MAGMA_COMMON_INCL_DIR $ENV{C_BUILD}/common)
+include_directories(${MAGMA_COMMON_INCL_DIR})
+
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 # compile the needed macros
@@ -77,7 +82,7 @@ set(SMGR_ORC8R_CPP_PROTOS common directoryd)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_LTE_CPP_PROTOS session_manager subscriberdb policydb
+set(SMGR_LTE_CPP_PROTOS session_manager apn subscriberdb policydb
   pipelined spgw_service mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
@@ -164,6 +169,8 @@ add_library(SESSION_MANAGER
     GrpcMagmaUtils.h
     SetMessageManagerHandler.h
     SetMessageManagerHandler.cpp
+    UpfMsgManageHandler.h
+    UpfMsgManageHandler.cpp
     SessionStateEnforcer.h
     SessionStateEnforcer.cpp
     AmfServiceClient.h
@@ -193,7 +200,7 @@ set (CMAKE_CXX_FLAGS_RELWITHDEBINFO "${CMAKE_CXX_FLAGS_RELWITHDEBINFO} -DSENTRY_
 endif()
 
 target_link_libraries(SESSION_MANAGER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC MAGMA_CONFIG POLICYDB EVENTD
   DATASTORE
   glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie

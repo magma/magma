@@ -36,9 +36,11 @@ from .spyne_mods import Tr069Application, Tr069Soap11
 # to avoid incorrectly detecting eNodeB timeout.
 SOCKET_TIMEOUT = 240
 
+
 class tr069_WSGIRequestHandler(WSGIRequestHandler):
     timeout = 10
     # pylint: disable=attribute-defined-outside-init
+
     def handle_single(self):
         """Handle a single HTTP request"""
         self.raw_requestline = self.rfile.readline(65537)
@@ -54,7 +56,7 @@ class tr069_WSGIRequestHandler(WSGIRequestHandler):
             return
 
         handler = ServerHandler(
-            self.rfile, self.wfile, self.get_stderr(), self.get_environ()
+            self.rfile, self.wfile, self.get_stderr(), self.get_environ(),
         )
         handler.http_version = "1.1"
         handler.request_handler = self  # backpointer for logging
@@ -118,9 +120,11 @@ def tr069_server(state_machine_manager: StateMachineManager) -> None:
 
     AutoConfigServer.set_state_machine_manager(state_machine_manager)
 
-    app = Tr069Application([AutoConfigServer], CWMP_NS,
-                           in_protocol=Tr069Soap11(validator='soft'),
-                           out_protocol=Tr069Soap11())
+    app = Tr069Application(
+        [AutoConfigServer], CWMP_NS,
+        in_protocol=Tr069Soap11(validator='soft'),
+        out_protocol=Tr069Soap11(),
+    )
     wsgi_app = WsgiApplication(app)
 
     try:
@@ -131,11 +135,15 @@ def tr069_server(state_machine_manager: StateMachineManager) -> None:
         raise e
 
     socket.setdefaulttimeout(SOCKET_TIMEOUT)
-    logger.info('Starting TR-069 server on %s:%s',
-                 ip_address, config['tr069']['port'])
-    server = make_server(ip_address,
-                         config['tr069']['port'], wsgi_app,
-                         WSGIServer, tr069_WSGIRequestHandler)
+    logger.info(
+        'Starting TR-069 server on %s:%s',
+        ip_address, config['tr069']['port'],
+    )
+    server = make_server(
+        ip_address,
+        config['tr069']['port'], wsgi_app,
+        WSGIServer, tr069_WSGIRequestHandler,
+    )
 
     # Note: use single-thread server, to avoid state contention
     try:

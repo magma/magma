@@ -28,10 +28,12 @@ class ServerTests(unittest.TestCase):
 
     def setUp(self):
 
-        self._server = server.S6aServer(Mock(),
-                                        Mock(),
-                                        "mai.facebook.com",
-                                        "hss.mai.facebook.com")
+        self._server = server.S6aServer(
+            Mock(),
+            Mock(),
+            "mai.facebook.com",
+            "hss.mai.facebook.com",
+        )
 
         # Mock the message handler
         self._server._handle_msg = Mock()
@@ -68,8 +70,10 @@ class ServerTests(unittest.TestCase):
                 offset += step
             self.assertTrue(self._server._handle_msg.called)
             # pylint:disable=unsubscriptable-object
-            self.assertEqual(self._server._handle_msg.call_args[0][0],
-                             application_id)
+            self.assertEqual(
+                self._server._handle_msg.call_args[0][0],
+                application_id,
+            )
             self._server._handle_msg.reset_mock()
 
     def test_application_dispatch(self):
@@ -116,10 +120,12 @@ class WriterTests(unittest.TestCase):
         self._transport = MockTransport()
         self._transport.write = Mock(side_effect=convert_memview_to_bytes)
 
-        self.writer = server.Writer("mai.facebook.com",
-                                     "hss.mai.facebook.com",
-                                     "127.0.0.1",
-                                     self._transport)
+        self.writer = server.Writer(
+            "mai.facebook.com",
+            "hss.mai.facebook.com",
+            "127.0.0.1",
+            self._transport,
+        )
 
     def test_send_msg(self):
         """Test that the writer will encode a message and write
@@ -129,7 +135,8 @@ class WriterTests(unittest.TestCase):
         self._writes.assert_called_once_with(
             b'\x01\x00\x00\x14'
             b'\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00'
-            b'\x00\x00\x00')
+            b'\x00\x00\x00',
+        )
         self._writes.reset_mock()
 
     def test_gen_buf(self):

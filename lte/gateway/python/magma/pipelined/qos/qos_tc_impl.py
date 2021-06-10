@@ -158,6 +158,16 @@ class TrafficClass:
             print("Exception dumping Qos State for %s", intf)
 
     @staticmethod
+    def dump_root_class_stats(intf: str):
+        tc_cmd = "tc -s -s -d q ls dev {}".format(intf)
+        args = argSplit(tc_cmd)
+        try:
+            output = subprocess.check_output(args)
+            print(output.decode())
+        except subprocess.CalledProcessError:
+            print("Exception dumping Qos State for %s", intf)
+
+    @staticmethod
     def get_class_rate(intf: str, qid: int) -> Optional[str]:
         qid_hex = hex(qid)
         tc_cmd = "tc class show dev {} classid 1:{}".format(intf, qid_hex)

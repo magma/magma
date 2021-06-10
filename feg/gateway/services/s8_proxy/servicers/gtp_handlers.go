@@ -14,6 +14,7 @@ limitations under the License.
 package servicers
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/wmnsk/go-gtp/gtpv2"
@@ -44,9 +45,27 @@ func (s *S8Proxy) deleteSessionResponseHandler() gtpv2.HandlerFunc {
 	}
 }
 
-// TODO: unimplemented createBearerRequestHandler
 func (s *S8Proxy) createBearerRequestHandler() gtpv2.HandlerFunc {
 	return func(c *gtpv2.Conn, senderAddr net.Addr, msg message.Message) (err error) {
+
+		cbReq, gtpErr, err := parseCreateBearerRequest(msg)
+		if err != nil {
+			return err
+		}
+		if gtpErr != nil {
+			return fmt.Errorf(gtpErr.Msg)
+		}
+		cbRes, err := GWS8ProxyCreateBearerRequest(cbReq)
+		if err != nil {
+			return fmt.Errorf("Failed while CreateBearerRequest to feg relay: %s", err)
+		}
+
+		cbResMsg, _ := buildCreateBearerResMsg(msg.Sequence(), cbRes)
+		err = c.RespondTo(senderAddr, msg, cbResMsg)
+		if err != nil {
+			return err
+		}
+
 		return nil
 	}
 }

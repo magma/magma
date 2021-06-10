@@ -14,6 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "lte/protos/apn.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/subscriberdb.proto";
 import "google/protobuf/timestamp.proto";
@@ -37,6 +38,8 @@ message RuleRecord {
   uint64 rule_version = 9;
   // Uplink TEID
   uint32 teid = 10;
+  //Indicates that the report is final and the flow will be deleted
+  bool final_record = 11;
 }
 
 message RuleRecordTable {
@@ -50,9 +53,9 @@ message RuleRecordTable {
 ///////////////////
 enum RATType {
   // Maps to 06 (EUTRAN, 3GPP TS 29.274) for Gy, 1004 (EUTRAN, 3GPP TS 29.212) S6a, Gx
-  TGPP_LTE = 0;  
+  TGPP_LTE = 0;
   // Maps to 03 (WLAN, 3GPP TS 29.274) for Gy, 0 (WLAN, 3GPP TS 29.212) S6a, Gx
-  TGPP_WLAN = 1; 
+  TGPP_WLAN = 1;
   TGPP_NR = 2;
 }
 
@@ -100,7 +103,7 @@ message RatSpecificNotification {
 
 message SetSmNotificationContext {
   // Common message for 4g, 5g and WiFi.
-  CommonSessionContext common_context = 1;                       
+  CommonSessionContext common_context = 1;
   RatSpecificNotification rat_specific_notification = 2;
 }
 
@@ -137,7 +140,7 @@ message LocalEndSessionResponse {
 
 message UpdateTunnelIdsRequest {
   SubscriberID sid = 1;
-  // default bearerID 
+  // default bearerID
   uint32 bearer_id = 2;
   // TEID for default bearerID
   uint32 enb_teid = 3;
@@ -339,7 +342,7 @@ service LocalSessionManager {
 
   // A response to CreateBearer request defined in spgw service. Sends a mapping of dedicated bearer ID <-> policy.
   rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
-  
+
   // A set interface of subscribers -> currently active rules
   rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
 
@@ -499,7 +502,7 @@ message UsageMonitoringCredit {
     // no need to monitor any more  `AVP: Usage-Monitor-Support`
     DISABLE = 1;
     // monitor no matter if credit is exhausted `AVP: Usage-Monitor-Report` TODO: not implemented on sessiond
-    FORCE = 2; 
+    FORCE = 2;
   }
   Action action = 1;
   bytes monitoring_key = 2;
@@ -553,6 +556,13 @@ message QosInformationRequest {
   uint32 preemption_capability = 4;
   uint32 preemption_vulnerability = 5;
   uint32 qos_class_id = 6;
+
+  enum BitrateUnitsAMBR {
+        BPS = 0;
+        KBPS = 1;
+  }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 7;
 }
 
 // TgppContext is a session specific 3GPP context session proxy may meed session manager to persist
@@ -1002,7 +1012,7 @@ message UPFPagingInfo {
 
 //Set Interface from Pipelined
 service SetInterfaceForUserPlane {
-    rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
+    rpc SetUPFNodeState(UPFNodeState) returns (SmContextVoid) {}
     rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
     rpc SendPagingReuest(UPFPagingInfo) returns (magma.orc8r.Void) {}
 }

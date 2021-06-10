@@ -10,23 +10,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "PolicyLoader.h"
-#include <glog/logging.h>             // for COMPACT_GOOGLE_LOG_INFO, LogMes...
+#include "includes/PolicyLoader.h"
+#include <glog/logging.h>             // for COMPACT_GOOGLE_LOG_INFO, LogMes
 #include <yaml-cpp/yaml.h>            // IWYU pragma: keep
 #include <chrono>                     // for seconds
 #include <cpp_redis/core/client.hpp>  // for client, client::connect_state
 #include <cpp_redis/misc/error.hpp>   // for redis_error
 #include <cstdint>                    // for uint32_t
-#include <memory>                     // for make_shared, __shared_ptr, shar...
-#include <ostream>                    // for operator<<, basic_ostream, size_t
+#include <memory>                     // for make_shared, __shared_ptr, ...
+#include <ostream>                    // for operator<<, basic_ostream, ...
 #include <string>                     // for string, char_traits, operator<<
 #include <thread>                     // for sleep_for
 #include "ObjectMap.h"                // for SUCCESS
-#include "RedisMap.hpp"               // for RedisMap
-#include "Serializers.h"              // for get_proto_deserializer, get_pro...
-#include "ServiceConfigLoader.h"      // for ServiceConfigLoader
-#include "lte/protos/policydb.pb.h"   // for PolicyRule
-#include "magma_logging.h"            // for MLOG, MERROR, MDEBUG, MINFO
+#include "includes/RedisMap.hpp"      // for RedisMap
+#include "includes/Serializers.h"     // for get_proto_deserializer, get_pro
+#include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
+#include "lte/protos/policydb.pb.h"        // for PolicyRule
+#include "magma_logging.h"                 // for MLOG, MERROR, MDEBUG, MINFO
 
 namespace magma {
 
@@ -65,9 +65,6 @@ bool do_loop(
   if (result != SUCCESS) {
     MLOG(MERROR) << "Failed to get rules from map because map error " << result;
     return false;
-  }
-  if (rules.size() > 0) {
-    MLOG(MDEBUG) << rules.size() << " rules synced";
   }
   processor(rules);
   return true;

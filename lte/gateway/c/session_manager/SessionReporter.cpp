@@ -17,7 +17,7 @@
 
 #include "GrpcMagmaUtils.h"
 #include "magma_logging.h"
-#include "ServiceRegistrySingleton.h"
+#include "includes/ServiceRegistrySingleton.h"
 #include "SessionReporter.h"
 
 namespace magma {

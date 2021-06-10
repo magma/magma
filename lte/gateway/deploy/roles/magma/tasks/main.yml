@@ -114,7 +114,7 @@
   when: full_provision
 
 - name: Create symlink for sctpd binary
-  file: src='{{ c_build }}/sctpd/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
+  file: src='{{ c_build }}/sctpd/src/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for OAI mme binary
@@ -191,6 +191,15 @@
       - oai-freediameter
       - prometheus-cpp-dev
       - libczmq-dev
+      - libczmq-dev
+
+- name: Install LI Agent dependencies
+  retries: 5
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - uuid-dev
 
 - name: Fix vport-gtp kernel module for Ubuntu Focal
   when: ansible_distribution == "Ubuntu"

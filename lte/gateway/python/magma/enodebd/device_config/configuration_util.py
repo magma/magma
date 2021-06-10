@@ -14,11 +14,15 @@ from typing import NamedTuple, Optional
 
 from lte.protos.mconfig.mconfigs_pb2 import EnodebD
 
-EnodebConfig = NamedTuple('EnodebConfig', [('serial_num', str),
-                                           ('config', EnodebD.EnodebConfig)])
+EnodebConfig = NamedTuple(
+    'EnodebConfig', [
+        ('serial_num', str),
+        ('config', EnodebD.EnodebConfig),
+    ],
+)
 
 
-def get_enb_rf_tx_desired(mconfig: EnodebD, enb_serial: str, ) -> bool:
+def get_enb_rf_tx_desired(mconfig: EnodebD, enb_serial: str) -> bool:
     """ True if the mconfig specifies to enable transmit on the eNB """
     if mconfig.enb_configs_by_serial is not None and \
             len(mconfig.enb_configs_by_serial) > 0:

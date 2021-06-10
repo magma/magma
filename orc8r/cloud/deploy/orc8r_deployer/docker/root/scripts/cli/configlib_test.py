@@ -15,12 +15,15 @@ limitations under the License.
 
 import os
 import shutil
+import subprocess
 from tempfile import mkdtemp
 from unittest import TestCase, main
 from unittest.mock import patch
 
 import configlib
+import utils.awslib
 import yaml
+from utils.common import get_json
 
 
 class TestConfigManager(TestCase):
@@ -99,8 +102,8 @@ variable "{{k}}" {}{% endfor %}
         shutil.rmtree(self.root_dir, ignore_errors=True)
 
     @patch("configlib.get_input")
-    @patch("configlib.check_call")
-    def test_configure_sanity(self, mock_check_call, mock_get_input):
+    @patch("utils.awslib.run_command")
+    def test_configure_sanity(self, mock_run_command, mock_get_input):
         mock_vals = {
             'aws_access_key_id': 'foo',
             'aws_secret_access_key': 'bar',
@@ -111,13 +114,21 @@ variable "{{k}}" {}{% endfor %}
             mock_vals['aws_secret_access_key'],
             mock_vals['secretsmanager_orc8r_secret'],
         ]
+        mock_run_command.return_value = subprocess.CompletedProcess(
+            args=[], returncode=0)
+
         # verify if components tfvars json is created
         mgr = configlib.ConfigManager(self.constants)
+
+        # check whether defaults are set
+        self.assertIn('lte_orc8r_chart_version', mgr.configs['service'])
+
         mgr.configure('infra')
+        mgr.commit('infra')
 
         # verify if configs are set in infra tfvars json
         fn = "%s/infra.tfvars.json" % self.constants['config_dir']
-        cfg = configlib.get_json(fn)
+        cfg = get_json(fn)
         self.assertEqual(len(cfg.keys()), 3)
         self.assertEqual(cfg['aws_access_key_id'], "foo")
         self.assertEqual(cfg['aws_secret_access_key'], "bar")
@@ -125,9 +136,9 @@ variable "{{k}}" {}{% endfor %}
 
         # check if aws configs are set
         aws_config_cmd = ['aws', 'configure', 'set']
-        mock_check_call.assert_any_call(
+        mock_run_command.assert_any_call(
             aws_config_cmd + ['aws_access_key_id', 'foo'])
-        mock_check_call.assert_any_call(
+        mock_run_command.assert_any_call(
             aws_config_cmd + ['aws_secret_access_key', 'bar'])
 
         # verify that platform tfvars json file isn't present
@@ -136,7 +147,7 @@ variable "{{k}}" {}{% endfor %}
 
         # reset mocks
         mock_get_input.reset_mock()
-        mock_check_call.reset_mock()
+        mock_run_command.reset_mock()
 
         mock_vals = {
             'nms_db_password': 'foo',
@@ -147,14 +158,15 @@ variable "{{k}}" {}{% endfor %}
 
         # configure platform
         mgr.configure('platform')
+        mgr.commit('platform')
 
         # verify that no aws call was invoked
-        self.assertEqual(mock_check_call.call_count, 0)
+        self.assertEqual(mock_run_command.call_count, 0)
 
         # check if we only invoked input for nms_db_password
         self.assertEqual(mock_get_input.call_count, 1)
         fn = "%s/platform.tfvars.json" % self.constants['config_dir']
-        cfg = configlib.get_json(fn)
+        cfg = get_json(fn)
         self.assertEqual(len(cfg.keys()), 1)
         self.assertEqual(cfg['nms_db_password'], "foo")
 
@@ -164,23 +176,24 @@ variable "{{k}}" {}{% endfor %}
 
         # reset mocks
         mock_get_input.reset_mock()
-        mock_check_call.reset_mock()
+        mock_run_command.reset_mock()
 
         # configure service
         mgr.configure('service')
+        mgr.commit('service')
 
         # verify that no input or aws call was invoked
-        self.assertEqual(mock_check_call.call_count, 0)
+        self.assertEqual(mock_run_command.call_count, 0)
         self.assertEqual(mock_get_input.call_count, 0)
 
         fn = "%s/service.tfvars.json" % self.constants['config_dir']
-        cfg = configlib.get_json(fn)
+        cfg = get_json(fn)
         # verify that default value was set
         self.assertEqual(len(cfg.keys()), 1)
         self.assertEqual(cfg['lte_orc8r_chart_version'], "0.2.4")
 
         # finally verify if all configs required by tf is present
-        cfg = configlib.get_json(self.constants['auto_tf'])
+        cfg = get_json(self.constants['auto_tf'])
         self.assertEqual(len(cfg.keys()), 3)
         self.assertEqual(cfg['secretsmanager_orc8r_secret'], "jar")
         self.assertEqual(cfg['nms_db_password'], "foo")
@@ -206,33 +219,38 @@ variable "{{k}}" {}{% endfor %}
         self.assertEqual(set(jinja_cfg), set(mgr.tf_vars))
 
     @patch("configlib.get_input")
-    @patch("configlib.check_call")
-    def test_configure_set(self, mock_check_call, mock_get_input):
+    @patch("utils.awslib.run_command")
+    def test_configure_set(self, mock_run_command, mock_get_input):
         mock_vals = {
             'nms_db_password': 'foo',
         }
         mock_get_input.side_effect = [
             mock_vals['nms_db_password'],
         ]
+        mock_run_command.return_value = 0
 
         # configure platform
         mgr = configlib.ConfigManager(self.constants)
         mgr.configure('platform')
+        mgr.commit('platform')
 
         # check if we only invoked input for nms_db_password
         self.assertEqual(mock_get_input.call_count, 1)
         fn = "%s/platform.tfvars.json" % self.constants['config_dir']
-        cfg = configlib.get_json(fn)
+        cfg = get_json(fn)
         self.assertEqual(len(cfg.keys()), 1)
         self.assertEqual(cfg['nms_db_password'], "foo")
 
+        # set a specific variable
         mgr.set('platform', 'deploy_elastic', 'true')
-        cfg = configlib.get_json(fn)
+        mgr.commit('platform')
+
+        cfg = get_json(fn)
         self.assertEqual(len(cfg.keys()), 2)
         self.assertEqual(cfg['deploy_elastic'], "true")
 
         # finally verify if all configs required by tf is present
-        cfg = configlib.get_json(self.constants['auto_tf'])
+        cfg = get_json(self.constants['auto_tf'])
         self.assertEqual(len(cfg.keys()), 2)
         self.assertEqual(cfg['nms_db_password'], "foo")
         self.assertEqual(cfg['deploy_elastic'], "true")

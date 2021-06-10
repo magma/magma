@@ -42,7 +42,10 @@ type eapAuth struct {
 	accounting       *accountingService
 }
 
-const MacAddrKey = "mac_addr"
+const (
+	MacAddrKey  = "mac_addr"
+	NanoInMilli = int64(time.Millisecond / time.Nanosecond)
+)
 
 var gatewayHardwareId string
 
@@ -134,8 +137,17 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 			}
 			resp.Ctx.AcctSessionId = csResp.GetSessionId()
 		}
+		if srv.accounting != nil {
+			_, err := srv.accounting.baseAccountingStart(resp.Ctx)
+			if err != nil {
+				resp.Payload[eap.EapMsgCode] = eap.FailureCode
+				glog.Errorf("Accounting session start error: %v", err)
+				return resp, nil
+			}
+		}
 		// Add Session & overwrite an existing session with the same ID if present,
 		// otherwise a UE can get stuck on buggy/non-unique AP or Radius session generation
+		resp.Ctx.CreatedTimeMs = uint64(time.Now().UnixNano() / NanoInMilli)
 		_, err := srv.sessions.AddSession(resp.Ctx, srv.sessionTout, srv.accounting.timeoutSessionNotifier, true)
 		if err != nil {
 			glog.Errorf("Error adding a new session for SID: %s: %v", resp.Ctx.GetSessionId(), err)

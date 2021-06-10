@@ -40,13 +40,17 @@ DEFAULT_S1_PORT = 36412
 DEFAULT_CELL_IDENTITY = 138777000
 
 
-SingleEnodebConfig = namedtuple('SingleEnodebConfig',
-                                ['earfcndl', 'subframe_assignment',
-                                 'special_subframe_pattern',
-                                 'pci', 'plmnid_list', 'tac',
-                                 'bandwidth_mhz', 'cell_id',
-                                 'allow_enodeb_transmit',
-                                 'mme_address', 'mme_port'])
+SingleEnodebConfig = namedtuple(
+    'SingleEnodebConfig',
+    [
+        'earfcndl', 'subframe_assignment',
+        'special_subframe_pattern',
+        'pci', 'plmnid_list', 'tac',
+        'bandwidth_mhz', 'cell_id',
+        'allow_enodeb_transmit',
+        'mme_address', 'mme_port',
+    ],
+)
 
 
 def config_assert(condition: bool, message: str = None) -> None:
@@ -84,12 +88,16 @@ def build_desired_config(
     enb_config = _get_enb_yang_config(device_config) or \
                  _get_enb_config(mconfig, device_config)
 
-    _set_earfcn_freq_band_mode(device_config, cfg_desired, data_model,
-                               enb_config.earfcndl)
+    _set_earfcn_freq_band_mode(
+        device_config, cfg_desired, data_model,
+        enb_config.earfcndl,
+    )
     if enb_config.subframe_assignment is not None:
-        _set_tdd_subframe_config(device_config, cfg_desired,
+        _set_tdd_subframe_config(
+            device_config, cfg_desired,
             enb_config.subframe_assignment,
-            enb_config.special_subframe_pattern)
+            enb_config.special_subframe_pattern,
+        )
     _set_pci(cfg_desired, enb_config.pci)
     _set_plmnids_tac(cfg_desired, enb_config.plmnid_list, enb_config.tac)
     _set_bandwidth(cfg_desired, data_model, enb_config.bandwidth_mhz)
@@ -97,19 +105,25 @@ def build_desired_config(
     _set_perf_mgmt(
         cfg_desired,
         get_ip_from_if(service_config['tr069']['interface']),
-        service_config['tr069']['perf_mgmt_port'])
+        service_config['tr069']['perf_mgmt_port'],
+    )
     _set_misc_static_params(device_config, cfg_desired, data_model)
     if enb_config.mme_address is not None and enb_config.mme_port is not None:
-        _set_s1_connection(cfg_desired,
-                           enb_config.mme_address,
-                           enb_config.mme_port)
+        _set_s1_connection(
+            cfg_desired,
+            enb_config.mme_address,
+            enb_config.mme_port,
+        )
     else:
         _set_s1_connection(
-            cfg_desired, get_ip_from_if(service_config['s1_interface']))
+            cfg_desired, get_ip_from_if(service_config['s1_interface']),
+        )
 
     # Enable LTE if we should
-    cfg_desired.set_parameter(ParameterName.ADMIN_STATE,
-                              enb_config.allow_enodeb_transmit)
+    cfg_desired.set_parameter(
+        ParameterName.ADMIN_STATE,
+        enb_config.allow_enodeb_transmit,
+    )
 
     post_processor.postprocess(cfg_desired)
     return cfg_desired
@@ -135,9 +149,14 @@ def _get_enb_yang_config(
         enb_serial = \
             device_config.get_parameter(ParameterName.SERIAL_NUMBER)
         config = json.loads(
-            load_service_mconfig_as_json('yang').get('value', '{}'))
-        enb.extend(filter(lambda entry: entry['serial'] == enb_serial,
-                          config.get('cellular', {}).get('enodeb', [])))
+            load_service_mconfig_as_json('yang').get('value', '{}'),
+        )
+        enb.extend(
+            filter(
+                lambda entry: entry['serial'] == enb_serial,
+                config.get('cellular', {}).get('enodeb', []),
+            ),
+        )
     except (ValueError, KeyError, LoadConfigError):
         return None
     if len(enb) == 0:
@@ -158,8 +177,10 @@ def _get_enb_yang_config(
         cell_id=enb_config.get('cell_id'),
         allow_enodeb_transmit=enb_config.get('transmit_enabled'),
         mme_address=mme_address,
-        mme_port=mme_port)
+        mme_port=mme_port,
+    )
     return single_enodeb_config
+
 
 def _get_enb_config(
     mconfig: mconfigs_pb2.EnodebD,
@@ -186,8 +207,10 @@ def _get_enb_config(
                 special_subframe_pattern = \
                     enb_config.special_subframe_pattern
         else:
-            raise ConfigurationError('Could not construct desired config '
-                                     'for eNB')
+            raise ConfigurationError(
+                'Could not construct desired config '
+                'for eNB',
+            )
     else:
         pci = mconfig.pci
         allow_enodeb_transmit = mconfig.allow_enodeb_transmit
@@ -222,7 +245,8 @@ def _get_enb_config(
         cell_id=cell_id,
         allow_enodeb_transmit=allow_enodeb_transmit,
         mme_address=None,
-        mme_port=None)
+        mme_port=None,
+    )
     return single_enodeb_config
 
 
@@ -250,8 +274,10 @@ def _set_bandwidth(
      - UL bandwidth
     """
     cfg.set_parameter(ParameterName.DL_BANDWIDTH, bandwidth_mhz)
-    _set_param_if_present(cfg, data_model, ParameterName.UL_BANDWIDTH,
-                          bandwidth_mhz)
+    _set_param_if_present(
+        cfg, data_model, ParameterName.UL_BANDWIDTH,
+        bandwidth_mhz,
+    )
 
 
 def _set_cell_id(
@@ -260,7 +286,7 @@ def _set_cell_id(
 ) -> None:
     config_assert(
         cell_id in range(0, 268435456),
-        'Cell Identity should be from 0 - (2^28 - 1)'
+        'Cell Identity should be from 0 - (2^28 - 1)',
     )
     cfg.set_parameter(ParameterName.CELL_ID, cell_id)
 
@@ -283,15 +309,22 @@ def _set_tdd_subframe_config(
 
     config_assert(
         subframe_assignment in range(0, 6 + 1),
-        'Invalid TDD subframe assignment (%d)' % subframe_assignment)
-    config_assert(special_subframe_pattern in range(0, 9 + 1),
-                  'Invalid TDD special subframe pattern (%d)'
-                  % special_subframe_pattern)
+        'Invalid TDD subframe assignment (%d)' % subframe_assignment,
+    )
+    config_assert(
+        special_subframe_pattern in range(0, 9 + 1),
+        'Invalid TDD special subframe pattern (%d)'
+        % special_subframe_pattern,
+    )
 
-    cfg.set_parameter(ParameterName.SUBFRAME_ASSIGNMENT,
-                      subframe_assignment)
-    cfg.set_parameter(ParameterName.SPECIAL_SUBFRAME_PATTERN,
-                      special_subframe_pattern)
+    cfg.set_parameter(
+        ParameterName.SUBFRAME_ASSIGNMENT,
+        subframe_assignment,
+    )
+    cfg.set_parameter(
+        ParameterName.SPECIAL_SUBFRAME_PATTERN,
+        special_subframe_pattern,
+    )
 
 
 def _set_management_server(cfg: EnodebConfiguration) -> None:
@@ -339,10 +372,11 @@ def _set_perf_mgmt(
     # Hence using 300sec
     cfg.set_parameter(
         ParameterName.PERF_MGMT_UPLOAD_INTERVAL,
-        300)
+        300,
+    )
     cfg.set_parameter(
         ParameterName.PERF_MGMT_UPLOAD_URL,
-        'http://%s:%d/' % (perf_mgmt_ip, perf_mgmt_port)
+        'http://%s:%d/' % (perf_mgmt_ip, perf_mgmt_port),
     )
 
 
@@ -356,8 +390,10 @@ def _set_misc_static_params(
      - Local gateway enable
      - GPS enable
     """
-    _set_param_if_present(cfg, data_model, ParameterName.LOCAL_GATEWAY_ENABLE,
-                          0)
+    _set_param_if_present(
+        cfg, data_model, ParameterName.LOCAL_GATEWAY_ENABLE,
+        0,
+    )
     _set_param_if_present(cfg, data_model, ParameterName.GPS_ENABLE, True)
     # For BaiCells eNodeBs, IPSec enable may be either integer or bool.
     # Set to false/0 depending on the current type
@@ -368,8 +404,10 @@ def _set_misc_static_params(
         cfg.set_parameter(ParameterName.IP_SEC_ENABLE, False)
 
     _set_param_if_present(cfg, data_model, ParameterName.CELL_RESERVED, False)
-    _set_param_if_present(cfg, data_model, ParameterName.MME_POOL_ENABLE,
-                          False)
+    _set_param_if_present(
+        cfg, data_model, ParameterName.MME_POOL_ENABLE,
+        False,
+    )
 
 
 def _set_plmnids_tac(
@@ -393,37 +431,50 @@ def _set_plmnids_tac(
     # Multiple PLMNIDs will be supported using comma-separated list.
     # Currently, just one supported
     for char in plmnid_str:
-        config_assert(char in '0123456789, ',
-                      'Unhandled character (%s) in PLMNID' % char)
+        config_assert(
+            char in '0123456789, ',
+            'Unhandled character (%s) in PLMNID' % char,
+        )
     plmnid_list = plmnid_str.split(',')
 
     # TODO - add support for multiple PLMNIDs
-    config_assert(len(plmnid_list) == 1,
-                  'Exactly one PLMNID must be configured')
+    config_assert(
+        len(plmnid_list) == 1,
+        'Exactly one PLMNID must be configured',
+    )
 
     # Validate PLMNIDs
     plmnid_list[0] = plmnid_list[0].strip()
-    config_assert(len(plmnid_list[0]) <= 6,
-                  'PLMNID must be length <=6 (%s)' % plmnid_list[0])
+    config_assert(
+        len(plmnid_list[0]) <= 6,
+        'PLMNID must be length <=6 (%s)' % plmnid_list[0],
+    )
 
     # We just need one PLMN element in the config. Delete all others.
-    for i in range(1, 2):#data_model.get_num_plmns() + 1):
+    for i in range(1, 2):  # data_model.get_num_plmns() + 1):
         object_name = ParameterName.PLMN_N % i
         enable_plmn = i == 1
         cfg.add_object(object_name)
-        cfg.set_parameter_for_object(ParameterName.PLMN_N_ENABLE % i,
-                                     enable_plmn,
-                                     object_name)
+        cfg.set_parameter_for_object(
+            ParameterName.PLMN_N_ENABLE % i,
+            enable_plmn,
+            object_name,
+        )
         if enable_plmn:
             cfg.set_parameter_for_object(
                 ParameterName.PLMN_N_CELL_RESERVED % i,
-                False, object_name)
-            cfg.set_parameter_for_object(ParameterName.PLMN_N_PRIMARY % i,
-                                         enable_plmn,
-                                         object_name)
-            cfg.set_parameter_for_object(ParameterName.PLMN_N_PLMNID % i,
-                                         plmnid_list[i - 1],
-                                         object_name)
+                False, object_name,
+            )
+            cfg.set_parameter_for_object(
+                ParameterName.PLMN_N_PRIMARY % i,
+                enable_plmn,
+                object_name,
+            )
+            cfg.set_parameter_for_object(
+                ParameterName.PLMN_N_PLMNID % i,
+                plmnid_list[i - 1],
+                object_name,
+            )
     cfg.set_parameter(ParameterName.TAC, tac)
 
 
@@ -443,7 +494,8 @@ def _set_earfcn_freq_band_mode(
     # EARFCN, raise ConfigurationError
     try:
         band, duplex_mode, earfcnul = map_earfcndl_to_band_earfcnul_mode(
-            earfcndl)
+            earfcndl,
+        )
     except ValueError as err:
         raise ConfigurationError(err)
 
@@ -451,33 +503,45 @@ def _set_earfcn_freq_band_mode(
     duplex_capability =\
         device_cfg.get_parameter(ParameterName.DUPLEX_MODE_CAPABILITY)
     if duplex_mode == DuplexMode.TDD and duplex_capability != 'TDDMode':
-        raise ConfigurationError(('eNodeB duplex mode capability is <{0}>, '
-                                  'but earfcndl is <{1}>, giving duplex '
-                                  'mode <{2}> instead').format(
-            duplex_capability, str(earfcndl), str(duplex_mode)))
+        raise ConfigurationError((
+            'eNodeB duplex mode capability is <{0}>, '
+            'but earfcndl is <{1}>, giving duplex '
+            'mode <{2}> instead'
+        ).format(
+            duplex_capability, str(earfcndl), str(duplex_mode),
+        ))
     elif duplex_mode == DuplexMode.FDD and duplex_capability != 'FDDMode':
-        raise ConfigurationError(('eNodeB duplex mode capability is <{0}>, '
-                                  'but earfcndl is <{1}>, giving duplex '
-                                  'mode <{2}> instead').format(
-            duplex_capability, str(earfcndl), str(duplex_mode)))
+        raise ConfigurationError((
+            'eNodeB duplex mode capability is <{0}>, '
+            'but earfcndl is <{1}>, giving duplex '
+            'mode <{2}> instead'
+        ).format(
+            duplex_capability, str(earfcndl), str(duplex_mode),
+        ))
     elif duplex_mode not in [DuplexMode.TDD, DuplexMode.FDD]:
         raise ConfigurationError(
-            'Invalid duplex mode (%s)' % str(duplex_mode))
+            'Invalid duplex mode (%s)' % str(duplex_mode),
+        )
 
     # Baicells indicated that they no longer use the band capability list,
     # so it may not be populated correctly
     band_capability_list = device_cfg.get_parameter(
-        ParameterName.BAND_CAPABILITY)
+        ParameterName.BAND_CAPABILITY,
+    )
     band_capabilities = band_capability_list.split(',')
     if str(band) not in band_capabilities:
-        logger.warning('Band %d not in capabilities list (%s). Continuing'
-                        ' with config because capabilities list may not be'
-                        ' correct', band, band_capabilities)
+        logger.warning(
+            'Band %d not in capabilities list (%s). Continuing'
+            ' with config because capabilities list may not be'
+            ' correct', band, band_capabilities,
+        )
 
     cfg.set_parameter(ParameterName.EARFCNDL, earfcndl)
     if duplex_mode == DuplexMode.FDD:
-        _set_param_if_present(cfg, data_model, ParameterName.EARFCNUL,
-                              earfcnul)
+        _set_param_if_present(
+            cfg, data_model, ParameterName.EARFCNUL,
+            earfcnul,
+        )
     else:
         logger.debug('Not setting EARFCNUL - duplex mode is not FDD')
 
@@ -486,8 +550,10 @@ def _set_earfcn_freq_band_mode(
     if duplex_mode == DuplexMode.TDD:
         logger.debug('Set EARFCNDL=%d, Band=%d', earfcndl, band)
     else:
-        logger.debug('Set EARFCNDL=%d, EARFCNUL=%d, Band=%d',
-                      earfcndl, earfcnul, band)
+        logger.debug(
+            'Set EARFCNDL=%d, EARFCNUL=%d, Band=%d',
+            earfcndl, earfcnul, band,
+        )
 
 
 def _set_param_if_present(

@@ -35,7 +35,8 @@ class BaseNameDict(RedisHashDict):
             client,
             self._DICT_HASH,
             get_proto_serializer(),
-            get_proto_deserializer(ChargingRuleNameSet))
+            get_proto_deserializer(ChargingRuleNameSet),
+        )
 
     def send_update_notification(self):
         """

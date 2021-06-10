@@ -122,8 +122,10 @@ func Handle(m modules.Context, ctx *modules.RequestContext, r *radius.Request, _
 	case rfc2866.AcctStatusType_Value_AccountingOff:
 	case rfc2866.AcctStatusType_Value_Stop:
 		stopRequest := &protos.StopRequest{
-			Cause: protos.StopRequest_NAS_REQUEST,
-			Ctx:   c,
+			Cause:     protos.StopRequest_NAS_REQUEST,
+			Ctx:       c,
+			OctetsIn:  getValue(r, rfc2866.AcctInputOctets_Type),
+			OctetsOut: getValue(r, rfc2866.AcctOutputOctets_Type),
 		}
 		_, err = mCtx.client.Stop(context.Background(), stopRequest)
 		if err != nil {

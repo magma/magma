@@ -12,12 +12,12 @@ limitations under the License.
 """
 
 
+import ctypes
+import time
 import unittest
 
 import s1ap_types
 import s1ap_wrapper
-import ctypes
-import time
 
 
 class TestAttachRestrictedPlmn(unittest.TestCase):
@@ -74,19 +74,19 @@ class TestAttachRestrictedPlmn(unittest.TestCase):
             req.ue_id,
         )
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         # Attach Reject
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value,
         )
 
         attach_rej = response.cast(s1ap_types.ueAttachRejInd_t)
         print(
             "************************* Received attach reject for "
-            "UE id %d with cause %d" % (req.ue_id, attach_rej.cause)
+            "UE id %d with cause %d" % (req.ue_id, attach_rej.cause),
         )
 
         # Verify cause
@@ -95,7 +95,7 @@ class TestAttachRestrictedPlmn(unittest.TestCase):
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
         print(
             "************************* Received ue context release cmd for "
@@ -126,7 +126,7 @@ class TestAttachRestrictedPlmn(unittest.TestCase):
         print("********************** Running UE detach for UE id ", req.ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value
+            req.ue_id, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
         )
 
 

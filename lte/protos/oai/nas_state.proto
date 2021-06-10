@@ -389,6 +389,7 @@ message EsmContext {
 
   Timer t3489 = 199;
   bool is_standalone = 200;
+  bool is_pdn_disconnect = 201;
 }
 
 // esm_ebr_context_t

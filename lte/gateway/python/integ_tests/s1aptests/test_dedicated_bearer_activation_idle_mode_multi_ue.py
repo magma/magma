@@ -11,13 +11,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
+import ipaddress
 import time
+import unittest
 
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-import ipaddress
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from lte.protos.policydb_pb2 import FlowMatch
 
@@ -190,11 +190,11 @@ class TestDedicatedBearerActivationIdleModeMultiUe(unittest.TestCase):
                 gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
             )
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, rel_req
+                s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, rel_req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
             )
             # Verify if paging flow rules are created
             ip_list = [default_ips[i]]
@@ -244,7 +244,7 @@ class TestDedicatedBearerActivationIdleModeMultiUe(unittest.TestCase):
 
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value
+                response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value,
             )
             print("*********** Received Paging for UE id ", ue_id)
 
@@ -260,20 +260,20 @@ class TestDedicatedBearerActivationIdleModeMultiUe(unittest.TestCase):
             req.ueMtmsi.pres = False
             req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_SIGNALLING.value
             self._s1ap_wrapper.s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req
+                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
             )
 
             print("*********** Received ICS Request for UE id ", ue_id)
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_req_oai_apn1 = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             print(
                 "*********** Received Activate dedicated EPS bearer"
@@ -281,14 +281,14 @@ class TestDedicatedBearerActivationIdleModeMultiUe(unittest.TestCase):
                 act_ded_ber_req_oai_apn1.bearerId,
             )
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                ue_id, act_ded_ber_req_oai_apn1.bearerId
+                ue_id, act_ded_ber_req_oai_apn1.bearerId,
             )
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value,
             )
             act_ded_ber_req_oai_apn2 = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
+                s1ap_types.UeActDedBearCtxtReq_t,
             )
             print(
                 "*********** Received Activate dedicated EPS bearer"
@@ -297,7 +297,7 @@ class TestDedicatedBearerActivationIdleModeMultiUe(unittest.TestCase):
             )
 
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                ue_id, act_ded_ber_req_oai_apn2.bearerId
+                ue_id, act_ded_ber_req_oai_apn2.bearerId,
             )
 
         print("*********** Sleeping for 5 seconds")
@@ -309,7 +309,7 @@ class TestDedicatedBearerActivationIdleModeMultiUe(unittest.TestCase):
             dl_flow_rules = {default_ips[i]: [flow_list1, flow_list2]}
 
             self._s1ap_wrapper.s1_util.verify_flow_rules(
-                num_ul_flows, dl_flow_rules
+                num_ul_flows, dl_flow_rules,
             )
 
         print("*********** Sleeping for 5 seconds")
@@ -319,7 +319,7 @@ class TestDedicatedBearerActivationIdleModeMultiUe(unittest.TestCase):
 
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True
+                ue, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True,
             )
 
 

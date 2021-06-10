@@ -1,11 +1,11 @@
-From 1ab1e72a6487d830c480f4f2a4dc1cfd235fcccb Mon Sep 17 00:00:00 2001
+From 48b06eccb7773be8f355a7de05895e79a7bbe471 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 29 Jun 2020 06:54:04 +0000
-Subject: [PATCH 06/14] ovs: test: add gtp marker test
+Subject: [PATCH 06/18] ovs: test: add gtp marker test
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
- tests/system-layer3-tunnels.at | 60 ++++++++++++++++++++++++++++++++++++++++++
+ tests/system-layer3-tunnels.at | 60 ++++++++++++++++++++++++++++++++++
  1 file changed, 60 insertions(+)
 
 diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
@@ -77,5 +77,5 @@ index 4bbb2198e..5587d6cde 100644
 +OVS_TRAFFIC_VSWITCHD_STOP
 +AT_CLEANUP
 -- 
-2.13.5
+2.17.1
 

@@ -1,0 +1,33 @@
+---
+
+- name: Clean AGW challenge key
+  file:
+    name: /var/opt/magma/certs/gw_challenge.key
+    state: absent
+  become: true
+
+- name: Clean snowflake directory
+  file:
+    name: /etc/snowflake
+    state: absent
+  become: true
+
+- name: Clean ssh host key
+  command: shred -u /etc/ssh/*_key /etc/ssh/*_key.pub ~/.*history
+  become: true
+  ignore_errors: true
+  tags: clearSSHKeys
+
+- name: Clean authorized keys for ubuntu
+  file:
+    name: /home/ubuntu/.ssh/authorized_keys
+    state: absent
+  become: true
+  tags: clearSSHKeys
+
+- name: Clean authorized keys for root
+  file:
+    name: /root/.ssh/authorized_keys
+    state: absent
+  become: true
+  tags: clearSSHKeys

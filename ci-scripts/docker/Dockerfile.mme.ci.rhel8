@@ -34,6 +34,7 @@ RUN yum update -y && \
     yum -y install --enablerepo="ubi-8-codeready-builder" \
       libubsan \
       libasan \
+      liblsan \
       psmisc \
       tcpdump \
       openssl \
@@ -88,8 +89,8 @@ RUN ldconfig
 
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
-COPY --from=magma-mme-builder $C_BUILD/oai/oai_mme/mme oai_mme
-COPY --from=magma-mme-builder $C_BUILD/sctpd/sctpd .
+COPY --from=magma-mme-builder $C_BUILD/core/oai/oai_mme/mme oai_mme
+COPY --from=magma-mme-builder $C_BUILD/sctpd/src/sctpd .
 
 # Create running dirs
 WORKDIR /var/opt/magma/configs
@@ -103,7 +104,7 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.y
 
 # Adding means to re-generate certificates
 WORKDIR /magma-mme/scripts
-COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/core/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" \
            -e "s@\$SUDO@@" \
            -e "s@echo_error@echo@" \

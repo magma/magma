@@ -4,7 +4,7 @@ dependencies:
   version: 0.1.10
 - name: metrics
   repository: ""
-  version: 1.4.22
+  version: 1.4.23
 - name: nms
   repository: ""
   version: 0.1.11
@@ -14,5 +14,5 @@ dependencies:
 - name: orc8rlib
   repository: file://../orc8rlib
   version: 0.1.2
-digest: sha256:73383945a6f49b14bad2d42ffc0223286cd1d3f106319efc3739dc494547f08c
-generated: "2021-04-06T16:10:45.754709-07:00"
+digest: sha256:2b5a47a7b02c15ee9bd2a740f542f54c6068da49711e6d4fed063f5423b07d2e
+generated: "2021-06-10T08:49:34.426804-07:00"

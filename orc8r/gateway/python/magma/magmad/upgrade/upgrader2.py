@@ -54,7 +54,7 @@ UpgraderGauges = typing.NamedTuple(
         ('canary', Gauge),
         ('stable', Gauge),
         ('idle', Gauge),
-    ]
+    ],
 )
 
 _GAUGES = None  # type: typing.Optional[UpgraderGauges]
@@ -116,7 +116,7 @@ class VersionInfo(
             # it can if you want.
             ("available_versions", typing.Set[VersionT]),
         ],
-    )
+    ),
 ):
     @property
     def all_versions(self) -> typing.Set[VersionT]:
@@ -140,7 +140,7 @@ class UpgradeIntent(
             # use empty string for "no version set"
             ("canary", VersionT),
         ],
-    )
+    ),
 ):
     def version_to_prepare(self, version_info: VersionInfo) -> VersionT:
         """
@@ -148,8 +148,11 @@ class UpgradeIntent(
         Else returns empty string.
         """
         available_versions = version_info.all_versions
-        preference = [version for version in (
-            self.stable, self.canary) if version]
+        preference = [
+            version for version in (
+            self.stable, self.canary,
+            ) if version
+        ]
         for version in preference:
             if version not in available_versions:
                 return version
@@ -227,7 +230,7 @@ class Upgrader2(Upgrader, metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     async def prepare_upgrade(
-        self, version: VersionT, path_to_image: pathlib.Path
+        self, version: VersionT, path_to_image: pathlib.Path,
     ) -> None:
         """
         Prepare the device for upgrade, i.e. by unpacking the image on disk.
@@ -272,7 +275,7 @@ async def do_upgrade2(upgrader: Upgrader2) -> None:
 async def _do_upgrade2(upgrader: Upgrader) -> None:
     gauges = get_gauges()
     upgrade_intent, version_info = await asyncio.gather(
-        upgrader.get_upgrade_intent(), upgrader.get_versions()
+        upgrader.get_upgrade_intent(), upgrader.get_versions(),
     )
 
     current_version = version_info.current_version or object()
@@ -321,12 +324,13 @@ async def _do_upgrade2(upgrader: Upgrader) -> None:
         logging.info("Preparing %r, image is %r", to_prepare, image_name)
         image_path = image_local_path(image_name)
         await ensure_downloaded(
-            upgrader.service.config, image_name, image_path, gauges.downloaded)
+            upgrader.service.config, image_name, image_path, gauges.downloaded,
+        )
         await upgrader.prepare_upgrade(to_prepare, image_path)
         logging.info("%r is prepared", to_prepare)
         gauges.prepared.set(1)
     elif upgrade_intent.active_version not in (
-        VersionT(""), version_info.current_version
+        VersionT(""), version_info.current_version,
     ):
         # We're not the version to be installed, but we don't need to prepare,
         # so we must be prepared
@@ -343,7 +347,8 @@ async def _do_upgrade2(upgrader: Upgrader) -> None:
         image_name = upgrader.version_to_image_name(to_upgrade_to)
         image_path = image_local_path(image_name)
         await ensure_downloaded(
-            upgrader.service.config, image_name, image_path, gauges.downloaded)
+            upgrader.service.config, image_name, image_path, gauges.downloaded,
+        )
         logging.warning(
             "Performing upgrade to %r, device may reboot",
             to_upgrade_to,
@@ -375,7 +380,8 @@ async def ensure_downloaded(
         gauge.set(0)
         logging.info("Downloading %r to %s from s3", image_name, image_path)
         base_url = config["upgrader_factory"].get(
-            "http_base_url", "https://api.magma.test/s3")
+            "http_base_url", "https://api.magma.test/s3",
+        )
         size = await asyncio.get_event_loop().run_in_executor(
             None,
             download,
@@ -393,7 +399,7 @@ async def ensure_downloaded(
     else:
         gauge.set(1)
         logging.info(
-            "Skipping download, image %r is already in %s", image_name, image_path
+            "Skipping download, image %r is already in %s", image_name, image_path,
         )
 
 
@@ -408,7 +414,7 @@ def get_ssl_context() -> ssl.SSLContext:
     try:
         ret.load_cert_chain(
             certfile=proxy_config["gateway_cert"],
-            keyfile=proxy_config["gateway_key"]
+            keyfile=proxy_config["gateway_key"],
         )
     except FileNotFoundError:
         raise RuntimeError("Gateway cert or key file not found")
@@ -442,7 +448,7 @@ def download(
     with urllib.request.urlopen(
         req,
         context=get_ssl_context(),
-        timeout=30  # How long without getting data, not total time
+        timeout=30,  # How long without getting data, not total time
     ) as response:
         assert isinstance(response, http.client.HTTPResponse)  # for types
         # For some reason, talking to any url on api.magma always returns
