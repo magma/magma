@@ -200,6 +200,8 @@
   "ENABLE_GTPU_PRIVATE_IP_CORRECTION"
 
 // Congestion Control
+#define MME_CONFIG_STRING_CONGESTION_CONTROL_ENABLED                           \
+  "CONGESTION_CONTROL_ENABLED"
 #define MME_CONFIG_STRING_S1AP_ZMQ_TH "S1AP_ZMQ_TH"
 #define MME_CONFIG_STRING_MME_APP_ZMQ_CONGEST_TH "MME_APP_ZMQ_CONGEST_TH"
 #define MME_CONFIG_STRING_MME_APP_ZMQ_AUTH_TH "MME_APP_ZMQ_AUTH_TH"
@@ -399,6 +401,7 @@ typedef struct mme_config_s {
   bool enable_gtpu_private_ip_correction;
   bool enable_converged_core;
 
+  bool enable_congestion_control;
   long s1ap_zmq_th;
   long mme_app_zmq_congest_th;
   long mme_app_zmq_auth_th;

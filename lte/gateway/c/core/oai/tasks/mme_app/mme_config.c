@@ -246,6 +246,7 @@ void mme_config_init(mme_config_t* config) {
   config->unauthenticated_imsi_supported = 0;
   config->relative_capacity              = RELATIVE_CAPACITY;
   config->mme_statistic_timer            = MME_STATISTIC_TIMER_S;
+  config->enable_congestion_control = true;
   config->s1ap_zmq_th                    = LONG_MAX;
   config->mme_app_zmq_congest_th         = LONG_MAX;
   config->mme_app_zmq_auth_th            = LONG_MAX;
@@ -537,6 +538,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             setting_mme, MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION,
             (const char**) &astring))) {
       config_pP->enable_gtpu_private_ip_correction = parse_bool(astring);
+    }
+
+    if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_CONGESTION_CONTROL_ENABLED,
+            (const char**) &astring))) {
+      config_pP->enable_congestion_control = parse_bool(astring);
     }
 
     if ((config_setting_lookup_int(
@@ -1594,6 +1601,9 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "- Statistics timer .....................: %u (seconds)\n\n",
       config_pP->mme_statistic_timer);
+  OAILOG_INFO(
+      LOG_CONFIG, "- Congestion control enabled ........................: %s\n",
+      config_pP->enable_congestion_control ? "true" : "false");
   OAILOG_INFO(
       LOG_CONFIG,
       "- S1AP ZMQ Threshold ...........................: %10ld "
