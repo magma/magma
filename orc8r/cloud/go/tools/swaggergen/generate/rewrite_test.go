@@ -35,14 +35,13 @@ func TestRewriteGeneratedRefs(t *testing.T) {
 func runRewriteTestCase(t *testing.T, ymlFile string, outputDir string) {
 	defer cleanupActualFiles(outputDir)
 
-	rootDir := "../../../../../../"
-	specs, err := generate.ParseSwaggerDependencyTree(ymlFile, rootDir)
+	specs, err := generate.ParseSwaggerDependencyTree(ymlFile, "../testdata")
 	assert.NoError(t, err)
 
-	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", rootDir, specs)
+	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", "../../testdata", specs)
 	assert.NoError(t, err)
 
-	err = generate.RewriteGeneratedRefs(ymlFile, rootDir, specs)
+	err = generate.RewriteGeneratedRefs(ymlFile, "../testdata", specs)
 	assert.NoError(t, err)
 
 	goldenFiles, actualFiles := []string{}, []string{}

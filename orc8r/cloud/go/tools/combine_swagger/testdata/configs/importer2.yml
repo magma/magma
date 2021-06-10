@@ -4,8 +4,8 @@ swagger: '2.0'
 magma-gen-meta:
   go-package: magma/orc8r/cloud/go/tools/swaggergen/testdata/importer2/models
   dependencies:
-    - 'orc8r/cloud/go/tools/swaggergen/testdata/base.yml'
-    - 'orc8r/cloud/go/tools/swaggergen/testdata/importer.yml'
+    - 'configs/base.yml'
+    - 'configs/importer.yml'
   temp-gen-filename: importer2-swagger.yml
   output-dir: orc8r/cloud/go/tools/swaggergen/testdata/importer2
   types:
