@@ -12,24 +12,38 @@
  */
 #pragma once
 
+#include <pcap.h>
+
+#include <string>
+#include <memory>
+
 #include "PDUGenerator.h"
+
+namespace magma {
+namespace lte {
 
 #define MAX_PKT_SIZE 2048
 #define PROMISCUOUS_MODE 0
 #define PKT_BUF_READ_TIMEOUT_MS 1000
-
-namespace magma {
 
 class InterfaceMonitor {
  public:
   InterfaceMonitor(
       const std::string& iface_name, std::unique_ptr<PDUGenerator> pkt_gen);
 
-  int init_iface_pcap_monitor();
+  /**
+   * init_iface_pcap_monitor starts a live pcap sniffing for an interface
+   * provided in service configuration.
+   * @return return positif integer if interface monitoring starts successfully.
+   */
+  int init_interface_monitor();
+  int start_capture();
 
  private:
+  pcap_t* pcap_;
   std::string iface_name_;
   std::unique_ptr<PDUGenerator> pkt_gen_;
 };
 
+}  // namespace lte
 }  // namespace magma

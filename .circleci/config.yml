@@ -435,6 +435,17 @@ commands:
             mkdir -p versions
             echo "${CIRCLE_SHA1:0:8}" > versions/<< parameters.file_prefix >>_version
 
+  tag-sentry-release:
+    parameters:
+      project_name:
+        type: string
+    steps:
+      - run: |
+          export SENTRY_RELEASE=${CIRCLE_SHA1:0:8}
+          sentry-cli releases new -p parameters.project_name $SENTRY_RELEASE
+          sentry-cli releases set-commits --auto $SENTRY_RELEASE
+          sentry-cli releases finalize $SENTRY_RELEASE
+
   notify-magma:
     description: Notify Slack when an artifact is published
     parameters:
@@ -495,6 +506,20 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
+  sentry-release:
+    docker:
+      - image: circleci/node:4.8.2
+    environment:
+      SENTRY_ORG: lf-9c
+      SENTRY_ENVIRONMENT: staging
+    steps:
+      - checkout  # check out the code in the project directory
+      - run: curl -sL https://sentry.io/get-cli/ | bash
+      - tag-sentry-release:
+          project_name: lab-agws-python
+      - tag-sentry-release:
+          project_name: lab-agws-native
+
   backport:
     machine:
       image: ubuntu-1604:201903-01
@@ -1550,6 +1575,10 @@ workflows:
             - mme_test
             - lte-integ-test
       - c-cpp-codecov
+      - sentry-release:
+          <<: *only_master
+          requires:
+            - lte-agw-deploy
 
   release:
     jobs:

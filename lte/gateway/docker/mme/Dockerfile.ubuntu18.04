@@ -249,8 +249,8 @@ RUN apt-get install -y python3-pip && \
 # For developer's to have the same run env as in target image to debug
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /magma-mme/bin
-RUN cp $C_BUILD/sctpd/sctpd .
 RUN cp $C_BUILD/core/oai/oai_mme/mme oai_mme
+RUN cp $C_BUILD/sctpd/src/sctpd .
 WORKDIR /magma-mme/etc
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
@@ -351,8 +351,8 @@ RUN ldconfig
 
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
-COPY --from=magma-mme-builder $C_BUILD/sctpd/sctpd .
 COPY --from=magma-mme-builder $C_BUILD/core/oai/oai_mme/mme oai_mme
+COPY --from=magma-mme-builder $C_BUILD/sctpd/src/sctpd .
 
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /magma-mme/etc
