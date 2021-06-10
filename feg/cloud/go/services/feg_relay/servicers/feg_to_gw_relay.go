@@ -71,9 +71,10 @@ func getHwIDFromTeid(ctx context.Context, teid string) (string, error) {
 	for _, nid := range servedIds {
 		hwID, err := directoryd.GetHWIDForSgwCTeid(nid, teid)
 		if err == nil && len(hwID) != 0 {
-			glog.V(2).Infof("TEID to send is %s\n", teid)
+			glog.V(2).Infof("TEID to send is %s", teid)
 			return hwID, nil
 		}
+		glog.V(2).Infof("hwid for teid %s not found at network %s: %s", teid, nid, err)
 	}
 	return "", fmt.Errorf("could not find gateway location for teid: %s", teid)
 }
