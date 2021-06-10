@@ -63,7 +63,8 @@ int s6a_ula_cb(
    */
   CHECK_FCT(fd_msg_answ_getq(ans_p, &qry_p));
   DevAssert(qry_p);
-  message_p = itti_alloc_new_message(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
   s6a_update_location_ans_p = &message_p->ittiMsg.s6a_update_location_ans;
   CHECK_FCT(fd_msg_search_avp(qry_p, s6a_fd_cnf.dataobj_s6a_user_name, &avp_p));
 

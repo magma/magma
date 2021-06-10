@@ -36,7 +36,8 @@
 int sctp_itti_send_lower_layer_conf(
     task_id_t origin_task_id, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream, uint32_t xap_id, bool is_success) {
-  MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_DATA_CNF);
+  MessageDef* msg =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_SCTP, SCTP_DATA_CNF);
 
   SCTP_DATA_CNF(msg).ppid          = ppid;
   SCTP_DATA_CNF(msg).assoc_id      = assoc_id;
@@ -51,7 +52,8 @@ int sctp_itti_send_lower_layer_conf(
 int sctp_itti_send_new_association(
     sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
     sctp_stream_id_t outstreams, STOLEN_REF bstring* ran_cp_ipaddr) {
-  MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_NEW_ASSOCIATION);
+  MessageDef* msg =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_SCTP, SCTP_NEW_ASSOCIATION);
 
   SCTP_NEW_ASSOCIATION(msg).assoc_id   = assoc_id;
   SCTP_NEW_ASSOCIATION(msg).instreams  = instreams;
@@ -80,7 +82,8 @@ int sctp_itti_send_new_association(
 int sctp_itti_send_new_message_ind(
     STOLEN_REF bstring* payload, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream) {
-  MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_DATA_IND);
+  MessageDef* msg =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_SCTP, SCTP_DATA_IND);
 
   SCTP_DATA_IND(msg).payload  = *payload;
   SCTP_DATA_IND(msg).stream   = stream;
@@ -108,7 +111,8 @@ int sctp_itti_send_new_message_ind(
 //------------------------------------------------------------------------------
 int sctp_itti_send_com_down_ind(
     sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, bool reset) {
-  MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_CLOSE_ASSOCIATION);
+  MessageDef* msg =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_SCTP, SCTP_CLOSE_ASSOCIATION);
 
   SCTP_CLOSE_ASSOCIATION(msg).assoc_id = assoc_id;
   SCTP_CLOSE_ASSOCIATION(msg).reset    = reset;

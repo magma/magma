@@ -317,6 +317,14 @@ MessageDef* itti_alloc_new_message(
       origin_task_id, message_id, itti_desc.messages_info[message_id].size);
 }
 
+MessageDef* DEPRECATEDitti_alloc_new_message_fatal(
+    task_id_t origin_task_id, MessagesIds message_id) {
+  MessageDef* message_p = itti_alloc_new_message_sized(
+      origin_task_id, message_id, itti_desc.messages_info[message_id].size);
+  AssertFatal(message_p, "DEPRECATEDitti_alloc_new_message_fatal Failed");
+  return message_p;
+}
+
 status_code_e itti_create_task(
     task_id_t task_id, void* (*start_routine)(void*), void* args_p) {
   thread_id_t thread_id = TASK_GET_THREAD_ID(task_id);
@@ -491,11 +499,11 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx) {
   }
 }
 
-void send_terminate_message(task_zmq_ctx_t* task_zmq_ctx) {
+void send_terminate_message_fatal(task_zmq_ctx_t* task_zmq_ctx) {
   MessageDef* terminate_message_p;
 
-  terminate_message_p =
-      itti_alloc_new_message(task_zmq_ctx->task_id, TERMINATE_MESSAGE);
+  terminate_message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      task_zmq_ctx->task_id, TERMINATE_MESSAGE);
   send_broadcast_msg(task_zmq_ctx, terminate_message_p);
 }
 
