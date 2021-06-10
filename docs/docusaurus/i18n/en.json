@@ -48,6 +48,9 @@
       "faq/faq_magma": {
         "title": "Frequently Asked Questions"
       },
+      "feg/debug_cli": {
+        "title": "Feg Cli"
+      },
       "feg/deploy_build": {
         "title": "Build FeG"
       },
