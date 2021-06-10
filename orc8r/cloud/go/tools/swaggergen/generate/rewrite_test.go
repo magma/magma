@@ -38,7 +38,7 @@ func runRewriteTestCase(t *testing.T, ymlFile string, outputDir string) {
 	specs, err := generate.ParseSwaggerDependencyTree(ymlFile, "../testdata")
 	assert.NoError(t, err)
 
-	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", "../../testdata", specs)
+	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", "../testdata", specs)
 	assert.NoError(t, err)
 
 	err = generate.RewriteGeneratedRefs(ymlFile, "../testdata", specs)
