@@ -196,13 +196,7 @@ def _get_restricted_imeis(service_mconfig):
         return service_mconfig.restricted_imeis
     return {}
 
-
-def _get_context():
-    """
-    Create the context which has the interface IP and the OAI log level to use.
-    """
-    mme_service_config = load_service_mconfig('mme', MME())
-    nat = _get_enable_nat(mme_service_config)
+def _get_sgw_s5s8_if_name(nat):
     if nat:
         iface_name = get_service_config_value(
             'spgw', 'sgw_s5s8_up_iface_name', '',
@@ -211,11 +205,26 @@ def _get_context():
         iface_name = get_service_config_value(
             'spgw', 'sgw_s5s8_up_iface_name_non_nat', '',
         )
+    return iface_name
+
+def _get_sgw_s5s8_ip_from_if_cidr(s5s8_if_name):
+    if not s5s8_if_name:
+        return ""
+    return get_ip_from_if_cidr(s5s8_if_name),
+
+def _get_context():
+    """
+    Create the context which has the interface IP and the OAI log level to use.
+    """
+    mme_service_config = load_service_mconfig('mme', MME())
+    nat = _get_enable_nat(mme_service_config)
+    s5s8_if_name = _get_sgw_s5s8_if_name(nat)
+
     context = {
         "mme_s11_ip": _get_iface_ip("mme", "s11_iface_name"),
         "sgw_s11_ip": _get_iface_ip("spgw", "s11_iface_name"),
-        'sgw_s5s8_up_ip': get_ip_from_if_cidr(iface_name),
-        'sgw_s5s8_up_iface_name': iface_name,
+        'sgw_s5s8_up_iface_name': s5s8_if_name,
+        'sgw_s5s8_up_ip': _get_sgw_s5s8_ip_from_if_cidr(s5s8_if_name),
         "remote_sgw_ip": get_service_config_value("mme", "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
         "oai_log_level": _get_oai_log_level(),
