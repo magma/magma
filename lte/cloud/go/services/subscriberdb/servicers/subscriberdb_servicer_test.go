@@ -23,6 +23,7 @@ import (
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
+	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/servicers"
 	"magma/orc8r/cloud/go/orc8r"
@@ -37,11 +38,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestSubscriberdbCloudServicer(t *testing.T) {
+func TestSubscriberdbServicer(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
-	servicer := servicers.NewSubscriberdbServicer()
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: false})
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -171,7 +172,7 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 	}
 	expectedToken := serializeToken(t, token)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtos, res.Subscribers)
+	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
 	assert.Equal(t, expectedToken, res.NextPageToken)
 
 	expectedProtos2 := []*lte_protos.SubscriberData{
@@ -191,7 +192,7 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 	}
 	res, err = servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtos2, res.Subscribers)
+	assertEqualSubscriberData(t, expectedProtos2, res.Subscribers)
 	assert.Equal(t, "", res.NextPageToken)
 
 	// Create policies and base name associated to sub
@@ -224,7 +225,7 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 	}
 	res, err = servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtos, res.Subscribers)
+	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
 	assert.Equal(t, expectedToken, res.NextPageToken)
 
 	// Create gateway-specific APN configuration
@@ -259,7 +260,7 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 
 	res, err = servicer.ListSubscribers(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtos, res.Subscribers)
+	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
 	assert.Equal(t, expectedToken, res.NextPageToken)
 
 	// Create 8 more subscribers to test max page size
@@ -295,8 +296,114 @@ func TestSubscriberdbCloudServicer(t *testing.T) {
 	assert.Equal(t, expectedToken, res.NextPageToken)
 }
 
+func TestSubscriberdbServicerWithDigest(t *testing.T) {
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+
+	// Create servicer with flat digest feature flag turned on
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	assert.NoError(t, err)
+
+	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
+	ctx := id.NewContextWithIdentity(context.Background())
+
+	// Create 1 APN and 1 subscriber
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.APNEntityType, Key: "apn",
+				Config: &lte_models.ApnConfiguration{},
+			},
+			{
+				Type: lte.SubscriberEntityType, Key: "IMSI99999",
+				Config: &models.SubscriberConfig{
+					Lte: &models.LteSubscription{State: "ACTIVE"},
+				},
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	// Fetching subscribers w/o previous digest string should return full list
+	expectedProtos := []*lte_protos.SubscriberData{
+		{
+			Sid:        &lte_protos.SubscriberID{Id: "99999", Type: lte_protos.SubscriberID_IMSI},
+			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_ACTIVE, AuthKey: []byte{}},
+			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
+			NetworkId:  &protos.NetworkID{Id: "n1"},
+			SubProfile: "default",
+		},
+	}
+	req := &lte_protos.ListSubscribersRequest{
+		PageSize:  2,
+		PageToken: "",
+		Digest:    &lte_protos.SubscribersDigest{Md5Base64Digest: ""},
+	}
+	res, err := servicer.ListSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assert.Equal(t, res.NoUpdates, false)
+	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
+
+	// Fetching subscribers with updated previous digest string should return empty list
+	req = &lte_protos.ListSubscribersRequest{
+		PageSize:  2,
+		PageToken: "",
+		Digest:    res.Digest,
+	}
+	res, err = servicer.ListSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assert.Equal(t, res.NoUpdates, true)
+	assertEqualSubscriberData(t, []*lte_protos.SubscriberData{}, res.Subscribers)
+
+	// Fetching subscribers with outdated previous digest string should return full list
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: "IMSI11111",
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{State: "ACTIVE"},
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	expectedProtos = append([]*lte_protos.SubscriberData{
+		{
+			Sid:        &lte_protos.SubscriberID{Id: "11111", Type: lte_protos.SubscriberID_IMSI},
+			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_ACTIVE, AuthKey: []byte{}},
+			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
+			NetworkId:  &protos.NetworkID{Id: "n1"},
+			SubProfile: "default",
+		},
+	}, expectedProtos...)
+	req = &lte_protos.ListSubscribersRequest{
+		PageSize:  2,
+		PageToken: "",
+		Digest:    res.Digest,
+	}
+	res, err = servicer.ListSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assert.Equal(t, res.NoUpdates, false)
+	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
+}
+
 func serializeToken(t *testing.T, token *configurator_storage.EntityPageToken) string {
 	marshalledToken, err := proto.Marshal(token)
 	assert.NoError(t, err)
 	return base64.StdEncoding.EncodeToString(marshalledToken)
+}
+
+func assertEqualSubscriberData(t *testing.T, expectedProtos []*lte_protos.SubscriberData, actualProtos []*lte_protos.SubscriberData) {
+	assert.True(t, len(expectedProtos) == len(actualProtos))
+	for i := 0; i < len(expectedProtos); i++ {
+		assert.True(t, proto.Equal(expectedProtos[i], actualProtos[i]))
+	}
 }
