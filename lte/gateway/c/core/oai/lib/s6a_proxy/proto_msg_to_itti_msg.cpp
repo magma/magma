@@ -141,10 +141,16 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
   while (itr < itti_msg->subscription_data.num_zcs) {
     auto regional_subscription_zone_code =
         msg.regional_subscription_zone_code(itr);
-    memcpy(
+    // Copy only if the zonecode is <=2 octets
+    if (regional_subscription_zone_code.length() <= ZONE_CODE_LEN) {
+      memcpy(
         itti_msg->subscription_data.reg_sub[itr].zone_code,
         regional_subscription_zone_code.c_str(),
-        MIN(regional_subscription_zone_code.length(), MAX_ZONE_CODE_STR_LEN));
+        ZONE_CODE_LEN);
+    } else {
+      std::cout << "[ERROR] Invalid zonecode length received, ignoring"
+              << regional_subscription_zone_code.length()  << std::endl;
+    }
     ++itr;
   }
 

@@ -1174,9 +1174,10 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         config_pP->sac_to_tacs_map.sac_to_tacs_map_htbl =
             obj_hashtable_create(MAX_SAC_2_TACS_HTBL_SZ, NULL, NULL, NULL, b);
         bdestroy_wrapper(&b);
-        AssertFatal(
-            config_pP->sac_to_tacs_map.sac_to_tacs_map_htbl != NULL,
-            "Error creating SAC_2_TACS_HTBL hashtable\n");
+        if (config_pP->sac_to_tacs_map.sac_to_tacs_map_htbl == NULL) {
+          OAILOG_ERROR(LOG_MME_APP, "Error creating SAC_2_TACS_HTBL hashtable \n");
+          return -1;
+        }
         for (i = 0; i < num; i++) {
           sub2setting = config_setting_get_elem(setting, i);
           if (sub2setting != NULL) {

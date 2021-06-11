@@ -211,7 +211,7 @@ int verify_service_area_restriction(
   for (uint8_t itr = 0; itr < num_reg_sub; itr++) {
     hashtable_rc_t htbl = obj_hashtable_get(
         mme_config.sac_to_tacs_map.sac_to_tacs_map_htbl, reg_sub[itr].zone_code,
-        strlen((const char*) reg_sub[itr].zone_code), (void**) &tac_list);
+        ZONE_CODE_LEN, (void**) &tac_list);
     if (htbl == HASH_TABLE_OK) {
       for (uint8_t idx = 0; idx < tac_list->num_tac_entries; idx++) {
         if (tac_list->tacs[idx] == tac) {
