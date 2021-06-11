@@ -187,7 +187,7 @@ build_session_manager: format_session_manager build_common ## Build session mana
 build_li_agent: format_li_agent build_common ## Build li agent
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
 
-build_connection_tracker: format_connection_tracker build_common ## Build connection tracker
+build_connection_tracker: format_connection_tracker
 	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
 
 build_envoy_controller: ## Build envoy controller
