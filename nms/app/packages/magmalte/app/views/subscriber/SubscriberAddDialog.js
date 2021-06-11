@@ -42,11 +42,7 @@ import Tabs from '@material-ui/core/Tabs';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {
-  AltFormField,
-  LinearProgressWithLabel,
-  PasswordInput,
-} from '../../components/FormField';
+import {AltFormField, PasswordInput} from '../../components/FormField';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {colors, typography} from '../../theme/default';
@@ -503,7 +499,6 @@ function AddSubscriberDetails(props: DialogProps) {
   const policyCtx = useContext(PolicyContext);
   const [error, setError] = useState('');
   const [subscribers, setSubscribers] = useState<Array<SubscriberInfo>>([]);
-  const successCountRef = useRef(0);
 
   const fileInput = useRef(null);
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -519,7 +514,6 @@ function AddSubscriberDetails(props: DialogProps) {
     new Set(Object.keys(policyCtx.state || {})).add('default'),
   );
   const saveSubscribers = async () => {
-    successCountRef.current = 0;
     const addedSubscribers = [];
     for (const subscriber of subscribers) {
       try {
@@ -549,12 +543,12 @@ function AddSubscriberDetails(props: DialogProps) {
             sub_profile: subscriber.dataPlan,
           },
         };
-        successCountRef.current = successCountRef.current + 1;
         addedSubscribers.push(newSubscriber);
       } catch (e) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
-        setError('error saving ' + subscriber.imsi + ' : ' + errMsg);
-        return;
+        enqueueSnackbar('Error saving ' + subscriber.imsi + ' : ' + errMsg, {
+          variant: 'error',
+        });
       }
     }
     //bulk add subscribers at the end
@@ -570,7 +564,7 @@ function AddSubscriberDetails(props: DialogProps) {
     }
     enqueueSnackbar(
       ` Subscriber${
-        successCountRef.current > 0 ? 's ' : ''
+        addedSubscribers.length > 0 ? 's ' : ''
       } saved successfully`,
       {
         variant: 'success',
@@ -582,14 +576,6 @@ function AddSubscriberDetails(props: DialogProps) {
   return (
     <>
       <DialogContent>
-        {successCountRef.current > 0 && subscribers.length > 0 && (
-          <LinearProgressWithLabel
-            value={Math.round(
-              (successCountRef.current * 100) / subscribers.length,
-            )}
-            text={`${successCountRef.current}/${subscribers.length}`}
-          />
-        )}
         {error !== '' && <FormLabel error>{error}</FormLabel>}
         <input
           type="file"
