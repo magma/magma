@@ -80,7 +80,7 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
     *imsi_list  = (imsi64_t*) calloc(num_imsis, sizeof(imsi64_t));
 
     for (const auto& vect_itr : itr_map->second) {
-      *imsi_list[idx++] = vect_itr;
+      (*imsi_list)[idx++] = vect_itr;
       OAILOG_DEBUG_UE(
           LOG_MME_APP, vect_itr, " Found imsi for ip:%x \n", ipv4_addr);
     }
