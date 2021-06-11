@@ -104,17 +104,10 @@ func parseExpectedFiles(t *testing.T, files []string) map[string]generate.MagmaS
 }
 
 func cleanupActualFiles(outputDir string) {
-	_ = recover()
-
-	cleanupFiles := []string{}
 	_ = filepath.Walk(outputDir, func(path string, _ os.FileInfo, _ error) error {
-		if strings.HasSuffix(path, "actual") {
-			cleanupFiles = append(cleanupFiles, path)
+		if strings.HasSuffix(path, ".actual") {
+			_ = os.Remove(path)
 		}
 		return nil
 	})
-
-	for _, cleanupFile := range cleanupFiles {
-		_ = os.Remove(cleanupFile)
-	}
 }
