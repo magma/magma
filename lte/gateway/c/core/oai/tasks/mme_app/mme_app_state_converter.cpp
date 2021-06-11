@@ -513,9 +513,7 @@ void MmeNasStateConverter::regional_subscription_to_proto(
     oai::Regional_subscription* reg_sub_proto = ue_context_proto->add_reg_sub();
     reg_sub_proto->set_zone_code(
         (const char*) state_ue_context.reg_sub[itr].zone_code);
-    OAILOG_DEBUG(
-        LOG_MME_APP,
-        "Writing regional_subscription at index %d", itr);
+    OAILOG_DEBUG(LOG_MME_APP, "Writing regional_subscription at index %d", itr);
   }
 }
 
@@ -526,9 +524,7 @@ void MmeNasStateConverter::proto_to_regional_subscription(
         state_ue_context->reg_sub[itr].zone_code,
         ue_context_proto.reg_sub(itr).zone_code().c_str(),
         ue_context_proto.reg_sub(itr).zone_code().length());
-    OAILOG_DEBUG(
-        LOG_MME_APP, "Reading regional_subscription at index %d",
-        itr);
+    OAILOG_DEBUG(LOG_MME_APP, "Reading regional_subscription at index %d", itr);
   }
 }
 
