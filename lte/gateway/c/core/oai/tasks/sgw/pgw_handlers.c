@@ -145,8 +145,8 @@ void handle_s5_create_session_request(
       break;
 
     default:
-      AssertFatal(
-          0, "BAD paa.pdn_type %d",
+      Fatal(
+          "BAD paa.pdn_type %d",
           new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
               .saved_message.pdn_type);
       break;
