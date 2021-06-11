@@ -118,7 +118,7 @@ message UeContext {
 
   // Regional subscription
   uint32 num_reg_sub = 44;
-  repeated Regional_subscription reg_sub= 45;
+  repeated Regional_subscription reg_sub = 45;
 
   // flags
   bool send_ue_purge_request = 60;

@@ -1182,15 +1182,15 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             obj_hashtable_create(MAX_SAC_2_TACS_HTBL_SZ, NULL, NULL, NULL, b);
         bdestroy_wrapper(&b);
         if (config_pP->sac_to_tacs_map.sac_to_tacs_map_htbl == NULL) {
-          OAILOG_ERROR(LOG_MME_APP, "Error creating SAC_2_TACS_HTBL hashtable \n");
+          OAILOG_ERROR(
+              LOG_MME_APP, "Error creating SAC_2_TACS_HTBL hashtable \n");
           return -1;
         }
         for (i = 0; i < num; i++) {
           sub2setting = config_setting_get_elem(setting, i);
           if (sub2setting != NULL) {
             if ((config_setting_lookup_int(
-                    sub2setting, MME_CONFIG_STRING_SERVICE_AREA_CODE,
-                    &aint))) {
+                    sub2setting, MME_CONFIG_STRING_SERVICE_AREA_CODE, &aint))) {
               // store in network byte order as SAC will come from
               // the network in ULA messsage.
               uint16_t sac_int = htons((uint16_t) aint);

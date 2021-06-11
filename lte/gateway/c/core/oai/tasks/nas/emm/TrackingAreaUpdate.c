@@ -339,9 +339,9 @@ int emm_proc_tracking_area_update_request(
         ue_id, ies->eps_update_type.active_flag);
     // Handle periodic TAU
     if (ue_mm_context->num_reg_sub > 0) {
-      if (
-          verify_service_area_restriction(
-              tac, ue_mm_context->reg_sub, ue_mm_context->num_reg_sub) != RETURNok) {
+      if (verify_service_area_restriction(
+              tac, ue_mm_context->reg_sub, ue_mm_context->num_reg_sub) !=
+          RETURNok) {
         OAILOG_ERROR_UE(
             LOG_MME_APP, ue_mm_context->emm_context._imsi64,
             "No suitable cells found for tac = %d, sending tau_reject "
@@ -349,9 +349,9 @@ int emm_proc_tracking_area_update_request(
             "for ue_id " MME_UE_S1AP_ID_FMT " with emm cause = %d\n",
             tac, ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS);
         free_emm_tau_request_ies(&ies);
-        if (
-            emm_tracking_area_update_reject(
-                ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS) != RETURNok) {
+        if (emm_tracking_area_update_reject(
+                ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS) !=
+            RETURNok) {
           OAILOG_ERROR_UE(
               LOG_MME_APP, ue_mm_context->emm_context._imsi64,
               "Sending of tau reject message failed for "

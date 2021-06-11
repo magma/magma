@@ -289,9 +289,9 @@ int mme_app_handle_s6a_update_location_ans(
   // Verify service area restriction
   if (ula_pP->subscription_data.num_zcs > 0) {
     if (verify_service_area_restriction(
-                        ue_mm_context->emm_context.originating_tai.tac,
-                        ula_pP->subscription_data.reg_sub,
-                        ula_pP->subscription_data.num_zcs) != RETURNok) {
+            ue_mm_context->emm_context.originating_tai.tac,
+            ula_pP->subscription_data.reg_sub,
+            ula_pP->subscription_data.num_zcs) != RETURNok) {
       OAILOG_ERROR_UE(
           LOG_MME_APP, imsi64,
           "No suitable cells found for tac = %d, sending attach_reject "
@@ -299,9 +299,9 @@ int mme_app_handle_s6a_update_location_ans(
           "for ue_id " MME_UE_S1AP_ID_FMT " with emm cause = %d\n",
           ue_mm_context->emm_context.originating_tai.tac,
           ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS);
-      if (
-          emm_proc_attach_reject(
-              ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS) != RETURNok) {
+      if (emm_proc_attach_reject(
+              ue_mm_context->mme_ue_s1ap_id, EMM_CAUSE_NO_SUITABLE_CELLS) !=
+          RETURNok) {
         OAILOG_ERROR_UE(
             LOG_MME_APP, imsi64,
             "Sending of attach reject message failed for "
@@ -313,10 +313,12 @@ int mme_app_handle_s6a_update_location_ans(
     } else {
       // Store the zone codes in ue_mm_context
       ue_mm_context->num_reg_sub = ula_pP->subscription_data.num_zcs;
-      for (uint8_t itr; itr < ue_mm_context->num_reg_sub; itr ++) {
+      for (uint8_t itr; itr < ue_mm_context->num_reg_sub; itr++) {
         memcpy(
-          ue_mm_context->reg_sub[itr].zone_code, ula_pP->subscription_data.reg_sub[itr].zone_code,
-          strlen((const char*)ula_pP->subscription_data.reg_sub[itr].zone_code));
+            ue_mm_context->reg_sub[itr].zone_code,
+            ula_pP->subscription_data.reg_sub[itr].zone_code,
+            strlen((const char*) ula_pP->subscription_data.reg_sub[itr]
+                       .zone_code));
       }
     }
   }
