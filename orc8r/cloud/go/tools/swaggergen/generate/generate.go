@@ -214,7 +214,7 @@ func StripAndWriteSwaggerSpecs(specs map[string]MagmaSwaggerSpec, outDir string)
 			return errors.Wrapf(err, "could not re-marshal swagger spec %s", path)
 		}
 
-		err = ioutil.WriteFile(filepath.Join(outDir, msc.MagmaGenMeta.TempGenFilename), marshaledSanitized, 0666) // \m/
+		err = ioutil.WriteFile(filepath.Join(outDir, msc.MagmaGenMeta.TempGenFilename), marshaledSanitized, 0666)
 		if err != nil {
 			return errors.Wrapf(err, "could not write dependency swagger spec %s", msc.MagmaGenMeta.TempGenFilename)
 		}

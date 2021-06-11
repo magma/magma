@@ -57,6 +57,7 @@ func TestCombine(t *testing.T) {
 	assert.True(t, ok)
 	assert.Len(t, merrs.Errors, nErrsFromCombine)
 
+	// '*' is replaced by a random number to ensure uniqueness
 	outFile, err := ioutil.TempFile(testdataDir, "out*.yml")
 	assert.NoError(t, err)
 	defer os.Remove(outFile.Name())

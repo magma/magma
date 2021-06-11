@@ -41,7 +41,6 @@ func main() {
 	commonFilepath := flag.String("common", "", "Common definitions filepath")
 	outFilepath := flag.String("out", "", "Output directory")
 	generateStandAloneSpec := flag.Bool("standalone", true, "Generate standalone specs")
-	rootDir := flag.String("root", os.Getenv("MAGMA_ROOT"), "Root path to resolve dependency and output directories based on")
 
 	flag.Parse()
 
@@ -69,7 +68,7 @@ func main() {
 	}
 
 	if *generateStandAloneSpec {
-		err := generate.GenerateStandaloneSpecs(*inDir, *rootDir)
+		err := generate.GenerateStandaloneSpecs(*inDir, os.Getenv("MAGMA_ROOT"))
 		if err != nil {
 			glog.Fatalf("Error generating standalone Swagger specs %+v", err)
 		}
