@@ -54,7 +54,6 @@ func main() {
 		glog.Fatalf("Error initializing IP lookup storage: %v", err)
 	}
 
-	// Load service configs
 	serviceConfig := subscriberdb.MustGetServiceConfig()
 	glog.Infof("Subscriberdb service config %v", serviceConfig)
 

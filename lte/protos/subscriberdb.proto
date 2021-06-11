@@ -209,7 +209,7 @@ service SubscriberDBCloud {
 }
 
 message SubscribersDigest {
-  // Base64 encoded MD5 digest of the full list of subscriber data
+  // md5_base64_digest is a base64-encoded MD5 digest of a set of subscriber protos.
   string md5_base64_digest = 1;
 }
 

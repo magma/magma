@@ -300,7 +300,7 @@ func TestSubscriberdbServicerWithDigest(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
-	// Create servicer with flat digest feature flag turned on.
+	// Create servicer with flat digest feature flag turned on
 	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true})
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -312,7 +312,7 @@ func TestSubscriberdbServicerWithDigest(t *testing.T) {
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())
 
-	// Create 1 APN and 1 subscriber.
+	// Create 1 APN and 1 subscriber
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
@@ -331,7 +331,7 @@ func TestSubscriberdbServicerWithDigest(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	// Fetching subscribers w/o previous digest string should return full list.
+	// Fetching subscribers w/o previous digest string should return full list
 	expectedProtos := []*lte_protos.SubscriberData{
 		{
 			Sid:        &lte_protos.SubscriberID{Id: "99999", Type: lte_protos.SubscriberID_IMSI},
@@ -341,7 +341,6 @@ func TestSubscriberdbServicerWithDigest(t *testing.T) {
 			SubProfile: "default",
 		},
 	}
-
 	req := &lte_protos.ListSubscribersRequest{
 		PageSize:  2,
 		PageToken: "",
@@ -352,7 +351,7 @@ func TestSubscriberdbServicerWithDigest(t *testing.T) {
 	assert.Equal(t, res.NoUpdates, false)
 	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
 
-	// Fetching subscribers with updated previous digest string should return empty list.
+	// Fetching subscribers with updated previous digest string should return empty list
 	req = &lte_protos.ListSubscribersRequest{
 		PageSize:  2,
 		PageToken: "",
@@ -363,7 +362,7 @@ func TestSubscriberdbServicerWithDigest(t *testing.T) {
 	assert.Equal(t, res.NoUpdates, true)
 	assertEqualSubscriberData(t, []*lte_protos.SubscriberData{}, res.Subscribers)
 
-	// Fetching subscribers with outdated previous digest string should return full list.
+	// Fetching subscribers with outdated previous digest string should return full list
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{
@@ -385,7 +384,6 @@ func TestSubscriberdbServicerWithDigest(t *testing.T) {
 			SubProfile: "default",
 		},
 	}, expectedProtos...)
-
 	req = &lte_protos.ListSubscribersRequest{
 		PageSize:  2,
 		PageToken: "",

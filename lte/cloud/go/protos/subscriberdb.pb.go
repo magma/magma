@@ -806,7 +806,7 @@ func (m *SubscriberUpdate) GetMask() *field_mask.FieldMask {
 }
 
 type SubscribersDigest struct {
-	// Base64 encoded MD5 digest of the full list of subscriber data
+	// md5_base64_digest is a base64-encoded MD5 digest of a set of subscriber protos.
 	Md5Base64Digest      string   `protobuf:"bytes,1,opt,name=md5_base64_digest,json=md5Base64Digest,proto3" json:"md5_base64_digest,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
