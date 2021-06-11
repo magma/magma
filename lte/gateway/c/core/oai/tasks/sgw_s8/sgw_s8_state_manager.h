@@ -17,6 +17,7 @@ limitations under the License.
 #include "sgw_s8_state.h"
 #include "lte/protos/oai/sgw_state.pb.h"
 #include "sgw_s8_state_converter.h"
+#include "common_defs.h"
 
 namespace {
 constexpr int SGW_STATE_CONTEXT_HT_MAX_SIZE    = 512;
@@ -65,7 +66,7 @@ class SgwStateManager : public StateManager<
    */
   void free_state() override;
 
-  int read_ue_state_from_db() override;
+  status_code_e read_ue_state_from_db() override;
 
  private:
   SgwStateManager();

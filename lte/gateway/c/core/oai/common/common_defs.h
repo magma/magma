@@ -91,15 +91,23 @@ typedef enum {
   TLV_MANDATORY_FIELD_NOT_PRESENT = -3,
   TLV_UNEXPECTED_IEI              = -2,
 
-  RETURNerror = -1,
-  RETURNok    = 0,
-
-  TLV_ERROR_OK = RETURNok,
+  TLV_ERROR_OK = 0,
   /* Defines error code limit below which received message should be discarded
    * because it cannot be further processed */
   TLV_FATAL_ERROR = TLV_VALUE_DOESNT_MATCH
 
-} error_code_e;
+} tlv_error_code_e;
+
+/* Intended to be the primary mechanism to gracefully handle errors across
+ * API boundaries.
+ * Most functions which can produce a recoverable error should be designed to
+ * return this.
+ * Inspired by Google's absl::Status
+ */
+typedef enum {
+  RETURNerror   = -1,   // An internal invariant is broken
+  RETURNok      = 0,    // Ok
+} status_code_e;
 
 /* This enum should match with the ModeMapItem_FederatedMode enum
  * defined in mconfigs.proto
