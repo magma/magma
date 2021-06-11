@@ -76,13 +76,11 @@ def exec_and_parse_subprocesses_async(
             *arg_list_func(param),
             stdout=asyncio.subprocess.PIPE,
             stderr=asyncio.subprocess.PIPE,
-            loop=loop,
         ) for param in params
     ]
     subprocs = yield from asyncio.gather(*futures)
     outputs = yield from asyncio.gather(
         *[subproc.communicate() for subproc in subprocs],
-        loop=loop,
     )
     return _parse_results(params, outputs, result_parser_func)
 
