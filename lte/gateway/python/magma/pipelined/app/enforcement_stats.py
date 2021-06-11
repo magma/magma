@@ -574,6 +574,11 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
                 reply_multi=True)
         #pass response through get usage from flow stat api to convert to rule record
+        '''
+        RRTable = []
+        for resp in response:
+            RRTable.append(self._get_usage_from_flow_stat(resp.body))
+        '''
         RRTable = self._get_usage_from_flow_stat(response[0].body)
         return RRTable
 

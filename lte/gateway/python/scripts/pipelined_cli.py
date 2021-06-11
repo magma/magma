@@ -191,6 +191,7 @@ def get_policy_usage(client, _):
     rule_table = client.GetPolicyUsage(Void())
     pprint(rule_table)
 
+
 @grpc_wrapper
 def stress_test_grpc(client, args):
     print("WARNING: DO NOT USE ON PRODUCTION SETUPS")
@@ -423,7 +424,7 @@ def create_enforcement_parser(apps):
     subcmd.add_argument('--disable_qos', help='If we want to disable QOS',
                         action="store_true")
     subcmd.set_defaults(func=stress_test_grpc)
-    subcmd = subparsers.add_parser('pull_stats_grpc', help = 'Enables or disables pull model for stats collection')
+    subcmd = subparsers.add_parser('pull_stats_grpc', help = 'Have RuleRecords returned based on matching cookie and cookie mask')
     subcmd.add_argument('--cookie', type=int, default=0)
     subcmd.add_argument('--cookie_mask', type=int, default=0)
     subcmd.set_defaults(func=get_stats_rpc)
@@ -584,11 +585,9 @@ def display_flows(client, args):
 
 @grpc_wrapper
 def get_stats_rpc(client, args):
-    print("=============")
     request = GetStatsRequest(cookie = args.cookie, cookie_mask = args.cookie_mask)
-    print(type(request))
     response = client.GetStats(request)
-    return response
+    pprint(response)
     
 
 def create_debug_parser(apps):

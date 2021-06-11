@@ -9,17 +9,11 @@ from lte.protos.policydb_pb2 import (
     FlowDescription,
     FlowMatch,
     PolicyRule,
-    RedirectInformation,
 )
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.policy_converters import (
     convert_ipv4_str_to_ip_proto,
-    convert_ipv6_bytes_to_ip_proto,
-)
-from magma.pipelined.tests.app.packet_builder import (
-    IPPacketBuilder,
-    TCPPacketBuilder,
 )
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import (
@@ -27,20 +21,12 @@ from magma.pipelined.tests.app.start_pipelined import (
     TestSetup,
 )
 from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
-from magma.pipelined.tests.app.table_isolation import (
-    RyuDirectTableIsolator,
-    RyuForwardFlowArgsBuilder,
-)
 from magma.pipelined.tests.pipelined_test_util import (
-    FlowTest,
     SnapshotVerifier,
     create_service_manager,
     fake_controller_setup,
-    get_enforcement_stats,
     start_ryu_app_thread,
     stop_ryu_app_thread,
-    wait_after_send,
-    wait_for_enforcement_stats,
 )
 from magma.pipelined.openflow import flows
 from scapy.all import IP
@@ -137,6 +123,7 @@ class PullStatsTest(unittest.TestCase):
     def tearDown(self):
         stop_ryu_app_thread(self.thread)
         BridgeTools.destroy_bridge(self.BRIDGE)
+        
     def test_poll(self):
         #unit test to help verify stats polling using cookie and cookie_mask
         fake_controller_setup(self.enforcement_controller,

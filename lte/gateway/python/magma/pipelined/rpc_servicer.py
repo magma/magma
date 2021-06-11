@@ -815,6 +815,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                                 True)
 
         return ret     
+    
+    def GetStats(self, request):
+        self._log_grpc_payload(request)
+        if not self._service_manager.is_app_enabled(
+                EnforcementController.APP_NAME):
+            return None
+        response = self.get_stats(request.cookie, request.cookie_mask)
+        return response 
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],
@@ -851,13 +859,4 @@ def _report_enforcement_stats_failures(
             continue
         ENFORCEMENT_STATS_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
                                                    imsi=imsi).inc()
-
-#grpc handler
-def GetStats(self, request):
-    self._log_grpc_payload(request)
-    if not self._service_manager.is_app_enabled(
-            EnforcementController.APP_NAME):
-        return None
-    #call intermediate enforcement stats function defined in enforcement_stats.py
-    response = self.get_stats(request.cookie, request.cookie_mask)
-    return response                                                     
+                                                    
