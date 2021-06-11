@@ -16,15 +16,13 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include("${PROJECT_SOURCE_DIR}/../CMakeProtoMacros.txt")
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
-find_package(MAGMA_LOGGING REQUIRED)
+include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 set(ASYNC_ORC8R_CPP_PROTOS common redis)
-set(ASYNC_LTE_CPP_PROTOS session_manager policydb mobilityd subscriberdb)
+set(ASYNC_LTE_CPP_PROTOS session_manager policydb mobilityd apn subscriberdb)
 set(ASYNC_LTE_GRPC_PROTOS session_manager)
 set(ASYNC_ORC8R_GRPC_PROTOS "")
 
@@ -45,24 +43,6 @@ target_link_libraries(DATASTORE PRIVATE
     tacopie cpp_redis pthread
     )
 
-target_link_libraries(DATASTORE PRIVATE MAGMA_LOGGING)
-
-# copy headers to build directory so they can be shared with OAI,
-# session_manager, etc.
-add_custom_command(TARGET DATASTORE POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${MAGMA_INCLUDE_DIR})
-add_custom_command(TARGET DATASTORE POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    ${PROJECT_SOURCE_DIR}/includes/*.hpp ${MAGMA_INCLUDE_DIR})
-
 target_include_directories(DATASTORE PUBLIC
     $<TARGET_FILE_DIR:DATASTORE> # protos
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>")
-
-install(TARGETS DATASTORE EXPORT DATASTORE_TARGETS
-    INCLUDES DESTINATION includes
-    ARCHIVE DESTINATION lib)
-
-set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
-export(TARGETS DATASTORE FILE DATASTOREConfig.cmake)
-export(PACKAGE DATASTORE)

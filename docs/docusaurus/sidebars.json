@@ -171,6 +171,13 @@
       },
       {
         "type": "subcategory",
+        "label": "Federated Gateway",
+        "ids": [
+          "feg/debug_cli"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Orchestrator",
         "ids": [
           "orc8r/debug_logs"

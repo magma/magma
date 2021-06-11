@@ -885,7 +885,6 @@ int encode_mobile_station_classmark_2_ie(
 int decode_mobile_station_classmark_3_ie(
     mobile_station_classmark3_t* mobilestationclassmark3,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  // AssertFatal(false, "TODO");
   // Temporary fix so that we decode other IEs required for CSFB
   int decoded   = 0;
   uint8_t ielen = 0;
@@ -906,7 +905,6 @@ int decode_mobile_station_classmark_3_ie(
 int encode_mobile_station_classmark_3_ie(
     mobile_station_classmark3_t* mobilestationclassmark3,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  // AssertFatal(false, "TODO");
   return 0;
 }
 
@@ -1031,7 +1029,6 @@ int encode_ms_network_feature_support_ie(
 int decode_network_resource_identifier_container_ie(
     network_resource_identifier_container_t* networkresourceidentifiercontainer,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  // AssertFatal(false, "TODO");
   // Temporary fix so that we decode other IEs
   int decoded   = 0;
   uint8_t ielen = 0;
@@ -1052,6 +1049,5 @@ int decode_network_resource_identifier_container_ie(
 int encode_network_resource_identifier_container_ie(
     network_resource_identifier_container_t* networkresourceidentifiercontainer,
     const bool iei_present, uint8_t* buffer, const uint32_t len) {
-  // AssertFatal(false, "TODO");
   return 0;
 }

@@ -26,7 +26,7 @@ list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 set(ASYNC_ORC8R_CPP_PROTOS common redis eventd)
-set(ASYNC_LTE_CPP_PROTOS session_manager abort_session policydb subscriberdb
+set(ASYNC_LTE_CPP_PROTOS session_manager abort_session policydb apn subscriberdb
     mobilityd pipelined)
 set(ASYNC_LTE_GRPC_PROTOS session_manager abort_session mobilityd pipelined)
 set(ASYNC_ORC8R_GRPC_PROTOS eventd)

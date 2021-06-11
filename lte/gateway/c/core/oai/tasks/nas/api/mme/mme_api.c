@@ -543,8 +543,8 @@ int mme_api_new_guti(
         }
         break;
       default:
-        AssertFatal(
-            0, "BAD TAI list configuration, unknown TAI list type %u",
+        Fatal(
+            "BAD TAI list configuration, unknown TAI list type %u",
             _emm_data.conf.tai_list.partial_tai_list[i].typeoflist);
     }
 

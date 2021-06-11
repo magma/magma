@@ -168,14 +168,14 @@ typedef enum {
 #define IPV4_STR_ADDR_TO_INADDR(AdDr_StR, InAdDr, MeSsAgE)                     \
   do {                                                                         \
     if (inet_aton(AdDr_StR, &InAdDr) <= 0) {                                   \
-      AssertFatal(0, MeSsAgE);                                                 \
+      Fatal(MeSsAgE);                                                          \
     }                                                                          \
   } while (0)
 
 #define IPV6_STR_ADDR_TO_INADDR(AdDr_StR, InAdDr, MeSsAgE)                     \
   do {                                                                         \
     if (inet_pton(AF_INET6, AdDr_StR, &InAdDr) <= 0) {                         \
-      AssertFatal(0, MeSsAgE);                                                 \
+      Fatal(MeSsAgE);                                                          \
     }                                                                          \
   } while (0)
 

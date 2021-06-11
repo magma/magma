@@ -80,8 +80,8 @@ const int itti_debug = ITTI_DEBUG_ISSUES | ITTI_DEBUG_MP_STATISTICS;
 #define MESSAGE_SIZE(mESSAGEiD)                                                \
   (sizeof(MessageHeader) + itti_desc.messages_info[mESSAGEiD].size)
 
-#define likely(x)      __builtin_expect(!!(x), 1)
-#define unlikely(x)    __builtin_expect(!!(x), 0)
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
 
 typedef volatile enum task_state_s {
   TASK_STATE_NOT_CONFIGURED,
@@ -140,7 +140,8 @@ int send_msg_to_task(
     assert(rc == 0);
     pthread_mutex_unlock(&task_zmq_ctx_p->send_mutex);
   } else {
-    OAI_FPRINTF_ERR("Sending msg using uninitialized context. %s to %s!\n",
+    OAI_FPRINTF_ERR(
+        "Sending msg using uninitialized context. %s to %s!\n",
         itti_get_message_name(message->ittiMsgHeader.messageId),
         itti_get_task_name(destination_task_id));
   }

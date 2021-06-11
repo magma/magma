@@ -15,6 +15,8 @@ limitations under the License.
 package registry
 
 import (
+	"time"
+
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
@@ -137,6 +139,12 @@ func GetAnnotationList(service, annotationName string) ([]string, error) {
 // GetConnection provides a gRPC connection to a service in the registry.
 func GetConnection(service string) (*grpc.ClientConn, error) {
 	return globalRegistry.GetConnection(service)
+}
+
+// GetConnectionWithTimeout is same as GetConnection, but caller can provide
+// their own timeout.
+func GetConnectionWithTimeout(service string, timeout time.Duration) (*grpc.ClientConn, error) {
+	return globalRegistry.GetConnectionWithTimeout(service, timeout)
 }
 
 func GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {

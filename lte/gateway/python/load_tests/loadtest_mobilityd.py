@@ -14,21 +14,28 @@ limitations under the License.
 import argparse
 import ipaddress
 import json
+import os
 import subprocess
 from typing import List
 
-import os
 from google.protobuf import json_format
-from lte.protos.mobilityd_pb2 import AllocateIPRequest, ReleaseIPRequest, \
-    IPBlock, RemoveIPBlockRequest
+from lte.protos.apn_pb2 import APNConfiguration
+from lte.protos.mobilityd_pb2 import (
+    AllocateIPRequest,
+    IPBlock,
+    ReleaseIPRequest,
+    RemoveIPBlockRequest,
+)
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-from lte.protos.subscriberdb_pb2 import APNConfiguration, Non3GPPUserProfile, \
-    SubscriberData, SubscriberID
+from lte.protos.subscriberdb_pb2 import (
+    Non3GPPUserProfile,
+    SubscriberData,
+    SubscriberID,
+)
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
-from orc8r.protos.common_pb2 import Void
-
 from magma.common.service_registry import ServiceRegistry
 from magma.subscriberdb.sid import SIDUtils
+from orc8r.protos.common_pb2 import Void
 
 PROTO_DIR = 'lte/protos'
 IMPORT_PATH = '/home/vagrant/magma'
@@ -38,13 +45,15 @@ RESULTS_PATH = '/var/tmp'
 # Helper functions to build input data for gRPC functions
 def _load_subs(num_subs: int) -> List[SubscriberID]:
     client = SubscriberDBStub(
-        ServiceRegistry.get_rpc_channel('subscriberdb', ServiceRegistry.LOCAL))
+        ServiceRegistry.get_rpc_channel('subscriberdb', ServiceRegistry.LOCAL),
+    )
     sids = []
 
     for i in range(1, num_subs):
         sid = SubscriberID(id=str(i).zfill(15))
         config = Non3GPPUserProfile(
-            apn_config=[APNConfiguration(service_selection="magma.ipv4")])
+            apn_config=[APNConfiguration(service_selection="magma.ipv4")],
+        )
         data = SubscriberData(sid=sid, non_3gpp=config)
         client.AddSubscriber(data)
         sids.append(sid)
@@ -53,7 +62,8 @@ def _load_subs(num_subs: int) -> List[SubscriberID]:
 
 def _cleanup_subs():
     client = SubscriberDBStub(
-        ServiceRegistry.get_rpc_channel('subscriberdb', ServiceRegistry.LOCAL))
+        ServiceRegistry.get_rpc_channel('subscriberdb', ServiceRegistry.LOCAL),
+    )
 
     for sid in client.ListSubscribers(Void()).sids:
         client.DeleteSubscriber(SIDUtils.to_pb('IMSI%s' % sid.id))
@@ -63,8 +73,10 @@ def _build_allocate_ip_data(num_subs: int):
     active_sids = _load_subs(num_subs)
     allocate_ip_reqs = []
     for sid in active_sids:
-        ip_req = AllocateIPRequest(sid=sid, version=AllocateIPRequest.IPV4,
-                                   apn='magma.ipv4')  # hardcoding APN
+        ip_req = AllocateIPRequest(
+            sid=sid, version=AllocateIPRequest.IPV4,
+            apn='magma.ipv4',
+        )  # hardcoding APN
         ip_req_dict = json_format.MessageToDict(ip_req)
         # Dumping AllocateIP request into json
         allocate_ip_reqs.append(ip_req_dict)
@@ -79,9 +91,13 @@ def _setup_ip_block(client):
         remove_blocks_req.ip_blocks.append(block)
     client.RemoveIPBlock(remove_blocks_req)
     ip_block = ipaddress.ip_network('192.168.128.0/20')
-    client.AddIPBlock(IPBlock(version=IPBlock.IPV4,
-                              net_address=ip_block.network_address.packed,
-                              prefix_len=ip_block.prefixlen))
+    client.AddIPBlock(
+        IPBlock(
+            version=IPBlock.IPV4,
+            net_address=ip_block.network_address.packed,
+            prefix_len=ip_block.prefixlen,
+        ),
+    )
 
 
 def _build_release_ip_data(client):
@@ -91,8 +107,10 @@ def _build_release_ip_data(client):
         print('No IPs allocated to be freed, please run allocate test first')
         exit(1)
     for entry in table.entries:
-        release_ip_req = ReleaseIPRequest(sid=entry.sid, ip=entry.ip,
-                                          apn=entry.apn)
+        release_ip_req = ReleaseIPRequest(
+            sid=entry.sid, ip=entry.ip,
+            apn=entry.apn,
+        )
         release_ip_dict = json_format.MessageToDict(release_ip_req)
         # Dumping ReleaseIP request into json
         release_ip_reqs.append(release_ip_dict)
@@ -108,12 +126,14 @@ def _get_ghz_cmd_params(req_type: str, num_reqs: int):
         file_name = 'allocate_data.json'
     elif req_type == 'ReleaseIPAddress':
         file_name = 'release_data.json'
-    ghz_cmds = ['ghz',
-                '--insecure', '--proto', '%s/mobilityd.proto' % PROTO_DIR,
-                '-i', IMPORT_PATH, '--total', str(num_reqs),
-                '--call', req_name, '-D', file_name, '-O', 'json',
-                '-o', '%s/result_%s.json' % (RESULTS_PATH, req_type),
-                '0.0.0.0:60051']
+    ghz_cmds = [
+        'ghz',
+        '--insecure', '--proto', '%s/mobilityd.proto' % PROTO_DIR,
+        '-i', IMPORT_PATH, '--total', str(num_reqs),
+        '--call', req_name, '-D', file_name, '-O', 'json',
+        '-o', '%s/result_%s.json' % (RESULTS_PATH, req_type),
+        '0.0.0.0:60051',
+    ]
 
     subprocess.call(ghz_cmds)
     os.remove(file_name)
@@ -134,14 +154,19 @@ def create_parser():
     Creates the argparse parser with all the arguments.
     """
     parser = argparse.ArgumentParser(
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title="subcommands", dest="cmd")
-    parser_allocate = subparsers.add_parser("allocate",
-                                            help="Allocate IP load test")
-    parser_release = subparsers.add_parser("release",
-                                           help="Release IP load test")
+    parser_allocate = subparsers.add_parser(
+        "allocate",
+        help="Allocate IP load test",
+    )
+    parser_release = subparsers.add_parser(
+        "release",
+        help="Release IP load test",
+    )
 
     # Add arguments
     for cmd in [
@@ -167,8 +192,11 @@ def main():
 
     print('Preparing %s load test...' % args.cmd)
     client = MobilityServiceStub(
-        ServiceRegistry.get_rpc_channel('mobilityd',
-                                        ServiceRegistry.LOCAL))
+        ServiceRegistry.get_rpc_channel(
+            'mobilityd',
+            ServiceRegistry.LOCAL,
+        ),
+    )
 
     if args.cmd == 'allocate':
         _setup_ip_block(client)

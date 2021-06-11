@@ -29,6 +29,7 @@ func GetCombinedSpec(yamlCommon string) (string, error) {
 	}
 
 	var yamlSpecs []string
+	// TODO(hcgatewood): parallelize this via goroutines to avoid broken services breaking GetCombinedSpec
 	for _, s := range servicers {
 		yamlSpec, err := s.GetPartialSpec()
 		if err != nil {
