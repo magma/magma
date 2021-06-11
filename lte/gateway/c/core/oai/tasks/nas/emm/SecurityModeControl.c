@@ -164,7 +164,7 @@ static int security_request(nas_emm_smc_proc_t* const smc_proc);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_security_mode_control(
+status_code_e emm_proc_security_mode_control(
     struct emm_context_s* emm_ctx,
     nas_emm_specific_proc_t* const emm_specific_proc, ksi_t ksi,
     success_cb_t success, failure_cb_t failure) {
@@ -407,7 +407,7 @@ int emm_proc_security_mode_control(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int validate_imei(imeisv_t* imeisv) {
+status_code_e validate_imei(imeisv_t* imeisv) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   /* First convert only TAC to uint64_t. If TAC is not found in the hashlist,
    * convert IMEI(TAC + SNR) into uint64_t and check if the key is found
@@ -462,7 +462,7 @@ int validate_imei(imeisv_t* imeisv) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_security_mode_complete(
+status_code_e emm_proc_security_mode_complete(
     mme_ue_s1ap_id_t ue_id, const imeisv_mobile_identity_t* const imeisvmob) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_mm_context_t* ue_mm_context = NULL;
@@ -630,7 +630,7 @@ int emm_proc_security_mode_complete(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
+status_code_e emm_proc_security_mode_reject(mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_mm_context_t* ue_mm_context = NULL;
   emm_context_t* emm_ctx         = NULL;

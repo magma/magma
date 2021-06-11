@@ -42,7 +42,7 @@
 #include "sgs_messages_types.h"
 
 //------------------------------------------------------------------------------
-int mme_app_handle_nas_dl_req(
+status_code_e mme_app_handle_nas_dl_req(
     const mme_ue_s1ap_id_t ue_id, bstring nas_msg,
     nas_error_code_t transaction_status)
 //------------------------------------------------------------------------------

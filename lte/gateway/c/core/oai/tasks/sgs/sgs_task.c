@@ -185,7 +185,7 @@ static void* sgs_thread(__attribute__((unused)) void* args_p) {
 }
 
 //------------------------------------------------------------------------------
-int sgs_init(const mme_config_t* mme_config_p) {
+status_code_e sgs_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_SGS, "Initializing SGS task interface\n");
 
   if (itti_create_task(TASK_SGS, &sgs_thread, NULL) < 0) {

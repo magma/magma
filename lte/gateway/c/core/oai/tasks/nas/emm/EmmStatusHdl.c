@@ -61,7 +61,8 @@
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_status_ind(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
+status_code_e emm_proc_status_ind(
+    mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 

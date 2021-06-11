@@ -56,13 +56,13 @@ void sgw_config_init(sgw_config_t* config_pP) {
   pthread_rwlock_init(&config_pP->rw_lock, NULL);
 }
 //------------------------------------------------------------------------------
-int sgw_config_process(sgw_config_t* config_pP) {
+status_code_e sgw_config_process(sgw_config_t* config_pP) {
   int ret = RETURNok;
   return ret;
 }
 
 //------------------------------------------------------------------------------
-int sgw_config_parse_file(sgw_config_t* config_pP)
+status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
 
 {
   config_t cfg                             = {0};

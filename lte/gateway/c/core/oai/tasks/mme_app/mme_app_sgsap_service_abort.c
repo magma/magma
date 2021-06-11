@@ -42,7 +42,7 @@
  **                      Abort Request message **
  ** Outputs:             Return:    RETURNok, RETURNerror **
  ***********************************************************************************/
-int mme_app_handle_sgsap_service_abort_request(
+status_code_e mme_app_handle_sgsap_service_abort_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_service_abort_req_t* const itti_sgsap_service_abort_req_p) {
   imsi64_t imsi64                      = INVALID_IMSI64;
@@ -105,7 +105,8 @@ int mme_app_handle_sgsap_service_abort_request(
  ** Inputs:              sgs_fsm_t **
  ** Outputs:             Return:    RETURNok, RETURNerror **
  ***********************************************************************************/
-int sgs_fsm_associated_service_abort_request(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_associated_service_abort_request(
+    const sgs_fsm_t* fsm_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   sgs_context_t* sgs_context = (sgs_context_t*) fsm_evt->ctx;
 
@@ -140,7 +141,7 @@ int sgs_fsm_associated_service_abort_request(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t **
  ** Outputs:             Return:    RETURNok, RETURNerror **
  ***********************************************************************************/
-int sgs_fsm_null_service_abort_request(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_null_service_abort_request(const sgs_fsm_t* fsm_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_ERROR(
       LOG_MME_APP,
@@ -159,7 +160,8 @@ int sgs_fsm_null_service_abort_request(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t **
  ** Outputs:             Return:    RETURNok, RETURNerror **
 ***********************************************************************************/
-int sgs_fsm_la_update_req_service_abort_request(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_la_update_req_service_abort_request(
+    const sgs_fsm_t* fsm_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_ERROR(
       LOG_MME_APP,

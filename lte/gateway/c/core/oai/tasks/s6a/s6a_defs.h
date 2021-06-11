@@ -30,6 +30,7 @@
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
 
+#include "common_defs.h"
 #include "mme_config.h"
 #include "queue.h"
 #include "intertask_interface.h"
@@ -202,22 +203,22 @@ extern s6a_fd_cnf_t s6a_fd_cnf;
 #define AVP_CODE_PDN_TYPE (1456)
 #define AVP_CODE_SUBSCRIBED_PERIODIC_RAU_TAU_TIMER (1619)
 
-int s6a_init(const mme_config_t* mme_config);
+status_code_e s6a_init(const mme_config_t* mme_config);
 
-int s6a_fd_new_peer(void);
+status_code_e s6a_fd_new_peer(void);
 
 void s6a_peer_connected_cb(struct peer_info* info, void* arg);
 
-int s6a_fd_init_dict_objs(void);
+status_code_e s6a_fd_init_dict_objs(void);
 
-int s6a_parse_subscription_data(
+status_code_e s6a_parse_subscription_data(
     struct avp* avp_subscription_data, subscription_data_t* subscription_data);
 
 int s6a_parse_supported_features(
     struct avp* avp_supported_features,
     supported_features_t* subscription_data);
 
-int s6a_parse_experimental_result(
+status_code_e s6a_parse_experimental_result(
     struct avp* avp, s6a_experimental_result_t* ptr);
 char* experimental_retcode_2_string(uint32_t ret_code);
 char* retcode_2_string(uint32_t ret_code);

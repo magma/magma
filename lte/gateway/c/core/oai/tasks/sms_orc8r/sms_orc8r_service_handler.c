@@ -26,7 +26,7 @@
 #include "sms_orc8r_messages.h"
 #include "sgs_messages_types.h"
 
-int handle_sms_orc8r_downlink_unitdata(
+status_code_e handle_sms_orc8r_downlink_unitdata(
     const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p) {
   int rc = RETURNok;
 

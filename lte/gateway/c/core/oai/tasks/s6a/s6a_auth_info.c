@@ -195,7 +195,7 @@ static inline int s6a_parse_authentication_info_avp(
   return RETURNok;
 }
 
-int s6a_aia_cb(
+status_code_e s6a_aia_cb(
     struct msg** msg, struct avp* paramavp, struct session* sess, void* opaque,
     enum disp_action* act) {
   struct msg* ans                          = NULL;
@@ -300,7 +300,7 @@ err:
   return RETURNok;
 }
 
-int s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
+status_code_e s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
   struct avp* avp;
   struct msg* msg;
   struct session* sess;

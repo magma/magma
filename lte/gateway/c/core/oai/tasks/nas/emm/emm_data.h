@@ -36,6 +36,7 @@ Description Defines internal private data handled by EPS Mobility
 #define FILE_EMM_DATA_SEEN
 
 #include <sys/types.h>
+#include "common_defs.h"
 #include "queue.h"
 #include "hashtable.h"
 #include "obj_hashtable.h"
@@ -540,8 +541,8 @@ struct emm_context_s* emm_context_get_by_imsi(
 struct emm_context_s* emm_context_get_by_guti(
     emm_data_t* emm_data, guti_t* guti);
 
-int emm_context_upsert_imsi(emm_data_t* emm_data, struct emm_context_s* elm)
-    __attribute__((nonnull));
+status_code_e emm_context_upsert_imsi(
+    emm_data_t* emm_data, struct emm_context_s* elm) __attribute__((nonnull));
 
 void nas_start_T3450(
     const mme_ue_s1ap_id_t ue_id, struct nas_timer_s* const T3450,

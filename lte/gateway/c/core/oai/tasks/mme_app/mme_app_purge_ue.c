@@ -39,7 +39,7 @@
 #include "mme_app_desc.h"
 #include "s6a_messages_types.h"
 
-int mme_app_send_s6a_purge_ue_req(
+status_code_e mme_app_send_s6a_purge_ue_req(
     mme_app_desc_t* mme_app_desc_p,
     struct ue_mm_context_s* const ue_context_pP) {
   struct ue_mm_context_s* ue_context_p = NULL;
@@ -82,7 +82,8 @@ int mme_app_send_s6a_purge_ue_req(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-int mme_app_handle_s6a_purge_ue_ans(const s6a_purge_ue_ans_t* const pua_pP) {
+status_code_e mme_app_handle_s6a_purge_ue_ans(
+    const s6a_purge_ue_ans_t* const pua_pP) {
   uint64_t imsi = 0;
 
   OAILOG_FUNC_IN(LOG_MME_APP);

@@ -116,7 +116,7 @@ proc_tid_t pdn_connectivity_delete(
  **      Others:    _esm_data                                  **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_pdn_connectivity_request(
+status_code_e esm_proc_pdn_connectivity_request(
     emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
     const context_identifier_t context_identifier,
     const esm_proc_pdn_request_t request_type, const_bstring const apn,
@@ -204,7 +204,7 @@ int esm_proc_pdn_connectivity_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_pdn_connectivity_reject(
+status_code_e esm_proc_pdn_connectivity_reject(
     bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
     STOLEN_REF bstring* msg, bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -262,7 +262,7 @@ int esm_proc_pdn_connectivity_reject(
  **                  Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_pdn_connectivity_failure(
+status_code_e esm_proc_pdn_connectivity_failure(
     emm_context_t* emm_context, pdn_cid_t pdn_cid) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   proc_tid_t pti = ESM_PT_UNASSIGNED;

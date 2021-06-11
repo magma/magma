@@ -41,7 +41,7 @@
    \version 0.1
 */
 
-int s6a_fd_init_dict_objs(void) {
+status_code_e s6a_fd_init_dict_objs(void) {
   struct disp_when when;
   vendor_id_t vendor_3gpp  = VENDOR_3GPP;
   application_id_t app_s6a = APP_S6A;

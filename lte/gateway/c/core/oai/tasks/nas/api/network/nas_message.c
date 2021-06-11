@@ -109,7 +109,7 @@ static uint32_t nas_message_get_mac(
  * has been successfully encrypted; Negative error code otherwise. Others:  None
  *
  */
-int nas_message_encrypt(
+status_code_e nas_message_encrypt(
     const unsigned char* inbuf, unsigned char* outbuf,
     const nas_message_security_header_t* header, size_t length,
     void* security) {
@@ -233,7 +233,7 @@ int nas_message_encrypt(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int nas_message_decrypt(
+status_code_e nas_message_decrypt(
     const unsigned char* const inbuf, unsigned char* const outbuf,
     nas_message_security_header_t* header, size_t length, void* security,
     nas_message_decode_status_t* status) {
@@ -332,7 +332,7 @@ int nas_message_decrypt(
        Others:  Return the computed mac if security context is established
 
 */
-int nas_message_decode(
+status_code_e nas_message_decode(
     const unsigned char* const buffer, nas_message_t* msg, size_t length,
     void* security, nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS);
@@ -529,7 +529,7 @@ int nas_message_decode(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int nas_message_encode(
+status_code_e nas_message_encode(
     unsigned char* buffer, const nas_message_t* const msg, size_t length,
     void* security) {
   OAILOG_FUNC_IN(LOG_NAS);
@@ -674,7 +674,7 @@ int nas_message_encode(
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int nas_message_header_decode(
+status_code_e nas_message_header_decode(
     const unsigned char* const buffer,
     nas_message_security_header_t* const header, const size_t length,
     nas_message_decode_status_t* const status, bool* const is_sr) {

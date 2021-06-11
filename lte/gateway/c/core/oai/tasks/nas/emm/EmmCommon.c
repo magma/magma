@@ -136,7 +136,7 @@ struct emm_common_data_s* emm_common_data_context_get(
  **      Others:    _emm_common_data                           **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_initialize(
+status_code_e emm_proc_common_initialize(
     mme_ue_s1ap_id_t ue_id, emm_common_success_callback_t _success,
     emm_common_reject_callback_t _reject,
     emm_common_failure_callback_t _failure,
@@ -197,7 +197,7 @@ int emm_proc_common_initialize(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
   emm_common_success_callback_t emm_callback = {0};
   int rc                                     = RETURNerror;
 
@@ -233,7 +233,7 @@ int emm_proc_common_success(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
   int rc = RETURNerror;
   emm_common_reject_callback_t emm_callback;
 
@@ -252,7 +252,7 @@ int emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx) {
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-int emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
   int rc = RETURNerror;
   emm_common_reject_callback_t emm_callback;
 
@@ -289,7 +289,8 @@ int emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_ll_failure(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_ll_failure(
+    emm_common_data_t* emm_common_data_ctx) {
   emm_common_ll_failure_callback_t emm_callback;
   int rc = RETURNerror;
 
@@ -328,7 +329,8 @@ int emm_proc_common_ll_failure(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_non_delivered(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_non_delivered(
+    emm_common_data_t* emm_common_data_ctx) {
   emm_common_non_delivered_callback_t emm_callback;
   int rc = RETURNerror;
 
@@ -366,7 +368,7 @@ int emm_proc_common_non_delivered(emm_common_data_t* emm_common_data_ctx) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx) {
+status_code_e emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx) {
   emm_common_abort_callback_t emm_callback;
   int rc = RETURNerror;
 

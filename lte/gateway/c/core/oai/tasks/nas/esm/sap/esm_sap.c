@@ -126,7 +126,7 @@ void esm_sap_initialize(void) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_sap_send(esm_sap_t* msg) {
+status_code_e esm_sap_send(esm_sap_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc        = RETURNerror;
   pdn_cid_t pid = MAX_APN_PER_UE;

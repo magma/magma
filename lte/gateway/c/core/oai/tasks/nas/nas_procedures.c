@@ -261,7 +261,7 @@ inline bool is_nas_attach_complete_received(
 }
 
 //------------------------------------------------------------------------------
-int nas_unlink_procedures(
+status_code_e nas_unlink_procedures(
     nas_base_proc_t* const parent_proc, nas_base_proc_t* const child_proc) {
   if ((parent_proc) && (child_proc)) {
     if ((parent_proc->child == child_proc) &&

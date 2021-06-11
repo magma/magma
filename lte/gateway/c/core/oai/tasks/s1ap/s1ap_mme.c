@@ -375,7 +375,7 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
 }
 
 //------------------------------------------------------------------------------
-int s1ap_mme_init(const mme_config_t* mme_config_p) {
+status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S1AP, "Initializing S1AP interface\n");
 
   if (get_asn1c_environment_version() < ASN1_MINIMUM_VERSION) {

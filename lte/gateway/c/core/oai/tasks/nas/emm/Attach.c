@@ -200,7 +200,7 @@ static void create_new_attach_info(
  *
  */
 //------------------------------------------------------------------------------
-int emm_proc_attach_request(
+status_code_e emm_proc_attach_request(
     mme_ue_s1ap_id_t ue_id, const bool is_mm_ctx_new,
     emm_attach_request_ies_t* const ies) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -642,7 +642,8 @@ int emm_proc_attach_request(
  *
  */
 //------------------------------------------------------------------------------
-int emm_proc_attach_reject(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
+status_code_e emm_proc_attach_reject(
+    mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
@@ -699,7 +700,7 @@ int emm_proc_attach_reject(mme_ue_s1ap_id_t ue_id, emm_cause_t emm_cause) {
  *
  */
 //------------------------------------------------------------------------------
-int emm_proc_attach_complete(
+status_code_e emm_proc_attach_complete(
     mme_ue_s1ap_id_t ue_id, const_bstring esm_msg_pP, int emm_cause,
     const nas_message_decode_status_t status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -1032,7 +1033,7 @@ static int emm_attach_release(emm_context_t* emm_context) {
  *      Others:    None
  *
  */
-int _emm_attach_reject(
+status_code_e _emm_attach_reject(
     emm_context_t* emm_context, struct nas_base_proc_s* nas_base_proc) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
@@ -1506,7 +1507,7 @@ static int emm_attach_failure_security_cb(emm_context_t* emm_context) {
  *
  */
 //------------------------------------------------------------------------------
-int emm_attach_security(struct emm_context_s* emm_context) {
+status_code_e emm_attach_security(struct emm_context_s* emm_context) {
   return emm_attach_security_a(emm_context);
 }
 
@@ -1752,7 +1753,7 @@ static void encode_csfb_parameters_attach_accept(
 }
 
 //------------------------------------------------------------------------------
-int emm_cn_wrapper_attach_accept(emm_context_t* emm_context) {
+status_code_e emm_cn_wrapper_attach_accept(emm_context_t* emm_context) {
   return emm_send_attach_accept(emm_context);
 }
 

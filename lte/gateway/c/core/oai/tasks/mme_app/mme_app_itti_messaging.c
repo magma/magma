@@ -115,7 +115,7 @@ void mme_app_itti_ue_context_release(
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-int mme_app_send_s11_release_access_bearers_req(
+status_code_e mme_app_send_s11_release_access_bearers_req(
     struct ue_mm_context_s* const ue_mm_context, const pdn_cid_t pdn_index) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   /*
@@ -183,7 +183,7 @@ int mme_app_send_s11_release_access_bearers_req(
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-int mme_app_send_s11_create_session_req(
+status_code_e mme_app_send_s11_create_session_req(
     mme_app_desc_t* mme_app_desc_p, struct ue_mm_context_s* const ue_mm_context,
     const pdn_cid_t pdn_cid) {
   OAILOG_FUNC_IN(LOG_MME_APP);

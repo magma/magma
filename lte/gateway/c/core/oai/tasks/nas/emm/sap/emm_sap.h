@@ -38,6 +38,7 @@ Description Defines the EMM Service Access Points at which the EPS
 #ifndef FILE_EMM_SAP_SEEN
 #define FILE_EMM_SAP_SEEN
 
+#include "common_defs.h"
 #include "emm_data.h"
 #include "emm_regDef.h"
 #include "emm_esmDef.h"
@@ -166,6 +167,6 @@ typedef struct emm_sap_s {
 
 void emm_sap_initialize(void);
 
-int emm_sap_send(emm_sap_t* msg);
+status_code_e emm_sap_send(emm_sap_t* msg);
 
 #endif /* FILE_EMM_SAP_SEEN*/
