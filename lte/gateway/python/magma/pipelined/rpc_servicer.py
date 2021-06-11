@@ -818,8 +818,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def getStatsHelper(self, request, fut):
         response = self._enforcement_stats.get_stats(request.cookie, request.cookie_mask)
         fut.set_result(response)
-        
+
     def GetStats(self, request, _):
+        #linked to pipelined_cli and returns result of command line invocation on pull stats
         self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 EnforcementController.APP_NAME):
