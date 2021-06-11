@@ -38,6 +38,8 @@ MME :
     ENABLE_GTPU_PRIVATE_IP_CORRECTION = "{{ enable_gtpu_private_ip_correction }}";
     ENABLE_CONVERGED_CORE = "{{ enable_converged_core }}";
 
+    # Congestion control configuration parameters
+    CONGESTION_CONTROL_ENABLED = "{{ congestion_control_enabled }}";
     # Congestion control thresholds (expressed in microseconds)
     S1AP_ZMQ_TH = {{ s1ap_zmq_th_us }};
     MME_APP_ZMQ_CONGEST_TH = {{ mme_app_zmq_congest_th_us }};

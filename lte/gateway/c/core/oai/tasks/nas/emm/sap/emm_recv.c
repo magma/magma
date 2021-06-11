@@ -56,6 +56,7 @@
 /****************************************************************************/
 extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
+extern bool mme_congestion_control_enabled;
 extern mme_congestion_params_t mme_congestion_params;
 
 /****************************************************************************/
@@ -210,12 +211,13 @@ int emm_recv_attach_request(
   }
 
   /*
-   * Handle MME congestion
+   * Handle MME congestion if it's enabled
    */
   // Currently a simple logic, when a more complex logic added
   // refactor this part via helper functions is_mme_congested.
-  if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
-      MME_APP_ZMQ_LATENCY_CONGEST_TH) {
+  if (mme_congestion_control_enabled &&
+      (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+       MME_APP_ZMQ_LATENCY_CONGEST_TH)) {
     OAILOG_WARNING(
         LOG_NAS_EMM,
         "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "

@@ -93,9 +93,6 @@ void itti_free_msg_content(MessageDef* const message_p) {
 
     case MME_APP_UPLINK_DATA_IND:
       bdestroy_wrapper(&message_p->ittiMsg.mme_app_ul_data_ind.nas_msg);
-      AssertFatal(
-          NULL == message_p->ittiMsg.mme_app_ul_data_ind.nas_msg,
-          "TODO clean pointer");
       break;
 
     case MME_APP_HANDOVER_REQUEST:

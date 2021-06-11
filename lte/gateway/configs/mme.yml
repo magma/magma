@@ -27,6 +27,7 @@ enable_apn_correction: false
 apn_correction_map_list:
         - imsi_prefix: "00101"
           apn_override: "magma.ipv4"
+
 s1ap_zmq_th_us: 2000000  # delay threshold used for dropping initial UE message
 mme_app_zmq_congest_th_us: 100000  # delay threshold used for rejecting attach requests
 mme_app_zmq_auth_th_us: 200000  # delay threshold used for dropping Authentication Complete

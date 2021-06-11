@@ -99,10 +99,27 @@ S6aClient& S6aClient::get_s6a_proxy_instance() {
   return s6a_proxy_instance;
 }
 
-S6aClient& S6aClient::get_subdb_instance() {
-  static S6aClient subdb_instance(false);
-  return subdb_instance;
+S6aClient& S6aClient::get_subscriberdb_instance() {
+  static S6aClient subscriberdb_instance(false);
+  return subscriberdb_instance;
 }
+
+S6aClient& S6aClient::get_client_based_on_fed_mode(const char* imsi) {
+  // get_client_based_on_fed_mode finds out the s6a_client (either subscribrdb
+  // or FEG) based on imsi and fed map configured
+  switch (match_fed_mode_map(imsi, LOG_S6A)) {
+    case magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER:
+    case magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER:
+      return get_s6a_proxy_instance();
+    case magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER:
+      return get_subscriberdb_instance();
+    default:
+      std::cout << "[ERROR] Unable to find appropriate fed mode for " << imsi
+                << ". Using local s6a_cli" << std::endl;
+      return get_subscriberdb_instance();
+  }
+}
+
 S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
   // Create channel based on relay_enabled, enable_s6a_proxy_channel and
   // cloud_subscriberdb_enabled flags.
@@ -129,19 +146,7 @@ S6aClient::S6aClient(bool enable_s6a_proxy_channel) {
 
 void S6aClient::purge_ue(
     const char* imsi, std::function<void(Status, PurgeUEAnswer)> callbk) {
-  S6aClient* client_tmp;
-  int fed_mode = match_fed_mode_map(imsi, LOG_S6A);
-  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
-      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
-    client_tmp = &get_s6a_proxy_instance();
-  } else if (
-      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
-    client_tmp = &get_subdb_instance();
-  } else {
-    return;
-  }
-
-  S6aClient& client = *client_tmp;
+  S6aClient& client = get_client_based_on_fed_mode(imsi);
 
   // Create a raw response pointer that stores a callback to be called when the
   // gRPC call is answered
@@ -165,19 +170,8 @@ void S6aClient::purge_ue(
 void S6aClient::authentication_info_req(
     const s6a_auth_info_req_t* const msg,
     std::function<void(Status, feg::AuthenticationInformationAnswer)> callbk) {
-  S6aClient* client_tmp;
-  int fed_mode = match_fed_mode_map(msg->imsi, LOG_S6A);
-  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
-      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
-    client_tmp = &get_s6a_proxy_instance();
-  } else if (
-      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
-    client_tmp = &get_subdb_instance();
-  } else {
-    return;
-  }
+  S6aClient& client = get_client_based_on_fed_mode(msg->imsi);
 
-  S6aClient& client = *client_tmp;
   AuthenticationInformationRequest proto_msg =
       convert_itti_s6a_authentication_info_req_to_proto_msg(msg);
   // Create a raw response pointer that stores a callback to be called when the
@@ -188,7 +182,6 @@ void S6aClient::authentication_info_req(
   // Create a response reader for the `authentication_info_req` RPC call.
   // This reader stores the client context, the request to pass in, and
   // the queue to add the response to when done
-
   auto resp_rdr = client.stub_->AsyncAuthenticationInformation(
       resp->get_context(), proto_msg, &client.queue_);
 
@@ -201,19 +194,8 @@ void S6aClient::authentication_info_req(
 void S6aClient::update_location_request(
     const s6a_update_location_req_t* const msg,
     std::function<void(Status, feg::UpdateLocationAnswer)> callbk) {
-  S6aClient* client_tmp;
-  int fed_mode = match_fed_mode_map(msg->imsi, LOG_S6A);
-  if ((fed_mode == magma::mconfig::ModeMapItem_FederatedMode_SPGW_SUBSCRIBER) ||
-      (fed_mode == magma::mconfig::ModeMapItem_FederatedMode_S8_SUBSCRIBER)) {
-    client_tmp = &get_s6a_proxy_instance();
-  } else if (
-      fed_mode == magma::mconfig::ModeMapItem_FederatedMode_LOCAL_SUBSCRIBER) {
-    client_tmp = &get_subdb_instance();
-  } else {
-    return;
-  }
+  S6aClient& client = get_client_based_on_fed_mode(msg->imsi);
 
-  S6aClient& client = *client_tmp;
   UpdateLocationRequest proto_msg =
       convert_itti_s6a_update_location_request_to_proto_msg(msg);
   // Create a raw response pointer that stores a callback to be called when the
@@ -224,7 +206,6 @@ void S6aClient::update_location_request(
   // Create a response reader for the `update_location_request` RPC call.
   // This reader stores the client context, the request to pass in, and
   // the queue to add the response to when done
-
   auto resp_rdr = client.stub_->AsyncUpdateLocation(
       resp->get_context(), proto_msg, &client.queue_);
 
