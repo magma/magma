@@ -816,8 +816,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         return ret     
 
-        
-
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],
                                         List[RuleModResult]]:
@@ -854,9 +852,8 @@ def _report_enforcement_stats_failures(
         ENFORCEMENT_STATS_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
                                                    imsi=imsi).inc()
 
-  #grpc handler
+#grpc handler
 def GetStats(self, request):
-    print("Received request")
     self._log_grpc_payload(request)
     if not self._service_manager.is_app_enabled(
             EnforcementController.APP_NAME):

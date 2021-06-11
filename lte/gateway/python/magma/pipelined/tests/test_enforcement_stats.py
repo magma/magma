@@ -729,44 +729,6 @@ class EnforcementStatsTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name].rule_id,'rule1')
         self.enforcement_stats_controller._poll_stats = original
         self.assertEqual(len(stats), 1)
-    def test_poll(self):
-        #unit test to help verify functionaility(still in progress)
-        fake_controller_setup(self.enforcement_controller,
-                              self.enforcement_stats_controller)
-        imsi = 'IMSI001010000000013'
-        sub_ip = '192.168.128.74'
-
-        flow_list = [FlowDescription(
-            match=FlowMatch(
-                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
-                direction=FlowMatch.UPLINK),
-            action=FlowDescription.PERMIT)
-        ]
-        policy = VersionedPolicy(
-            rule=PolicyRule(id='rule1', priority=3, flow_list=flow_list),
-            version=1,
-        )
-        self.service_manager.session_rule_version_mapper.save_version(
-            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1', 1)
-
-        """ Setup subscriber, setup table_isolation to fwd pkts """
-        sub_context = RyuDirectSubscriberContext(
-            imsi, sub_ip, self.enforcement_controller,
-            self._main_tbl_num, self.enforcement_stats_controller
-        ).add_policy(policy)
-
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
-        with sub_context, snapshot_verifier:
-            """"
-            TODO: Call your new  enforcement_stats function from here and verify output 
-            """
-            theStats = self.enforcement_stats_controller.get_stats()
-            print("=======================")
-            print(theStats)
-            stat_name = imsi + '|rule1' + '|' + sub_ip + '|' + "1"
-            self.assertEqual(theStats[stat_name].sid, imsi)
-            self.assertEqual(theStats[stat_name].rule_id, "rule1")
-
+        
 if __name__ == "__main__":
     unittest.main()
