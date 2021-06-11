@@ -123,7 +123,7 @@ class PullStatsTest(unittest.TestCase):
     def tearDown(self):
         stop_ryu_app_thread(self.thread)
         BridgeTools.destroy_bridge(self.BRIDGE)
-        
+
     def test_poll(self):
         #unit test to help verify stats polling using cookie and cookie_mask
         fake_controller_setup(self.enforcement_controller,
@@ -153,11 +153,7 @@ class PullStatsTest(unittest.TestCase):
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                             self.service_manager)
         with sub_context, snapshot_verifier:
-            """"
-            TODO: Call your new  enforcement_stats function from here and verify output 
-            """
             theStats = self.enforcement_stats_controller.get_stats()
-            #check records filtered by cookie/cookie mask
             self.assertEqual(theStats.records[0].sid, imsi)
             self.assertEqual(theStats.records[0].rule_id, "rule1")
             self.assertEqual(theStats.records[0].bytes_tx, 0)

@@ -229,7 +229,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                         ) -> None:
         """
         Activate flows for ipv4 / ipv6 or both
-
         CWF won't have an ip_addr passed
         """
         ret = ActivateFlowsResult()
@@ -814,16 +813,26 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                                 encode_imsi(subscriber_id),
                                                 True)
 
-        return ret     
-    
-    def GetStats(self, request):
+        return ret
+
+    def getStatsHelper(self, request, fut):
+        response = self._enforcement_stats.get_stats(request.cookie, request.cookie_mask)
+        fut.set_result(response)
+        
+    def GetStats(self, request, _):
         self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 EnforcementController.APP_NAME):
             return None
-        response = self.get_stats(request.cookie, request.cookie_mask)
-        return response 
 
+        fut = Future()
+        self._loop.call_soon_threadsafe(self.getStatsHelper, request, fut)
+
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("Get Stats timed out")
+            return RuleRecordTable()
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],
                                         List[RuleModResult]]:
@@ -859,4 +868,4 @@ def _report_enforcement_stats_failures(
             continue
         ENFORCEMENT_STATS_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
                                                    imsi=imsi).inc()
-                                                    
+                                                 

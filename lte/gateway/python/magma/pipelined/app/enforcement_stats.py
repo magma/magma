@@ -41,6 +41,7 @@ from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
 import ryu.app.ofctl.api as ofctl_api
+from ryu.app.ofctl.exception import (InvalidDatapath, OFError, UnexpectedMultiReply)
 
 ETH_FRAME_SIZE_BYTES = 14
 
@@ -567,20 +568,20 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error('Could not find rule id for num %d: %s',
                               rule_num, e)
             return ""
+            
     def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
-        #invoke RYU API
         _, parser = self._datapath.ofproto, self._datapath.ofproto_parser
         message = parser.OFPFlowStatsRequest(datapath=self._datapath, cookie = cookie, cookie_mask = cookie_mask)
-        response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
-                reply_multi=True)
-        #pass response through get usage from flow stat api to convert to rule record
-        '''
-        RRTable = []
-        for resp in response:
-            RRTable.append(self._get_usage_from_flow_stat(resp.body))
-        '''
-        RRTable = self._get_usage_from_flow_stat(response[0].body)
-        return RRTable
+        try:
+            response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
+                    reply_multi=True)
+            RRTable = self._get_usage_from_flow_stat(response[0].body)
+            record_table = RuleRecordTable(
+                records=RRTable.values(),
+                epoch=global_epoch)
+            return record_table
+        except (InvalidDatapath, OFError, UnexpectedMultiReply):
+            return RuleRecordTable()
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
