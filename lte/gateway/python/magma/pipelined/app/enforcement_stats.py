@@ -1,9 +1,7 @@
 """
 Copyright 2020 The Magma Authors.
-
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -50,7 +48,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     """
     This openflow controller installs flows for aggregating policy usage
     statistics, which are sent to sessiond for tracking.
-
     It periodically polls OVS for flow stats on the its table and reports the
     usage records to session manager via RPC. Flows are deleted when their
     version (reg4 match) is different from the current version of the rule for
@@ -112,7 +109,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def initialize_on_connect(self, datapath):
         """
         Install the default flows on datapath connect event.
-
         Args:
             datapath: ryu datapath struct
         """
@@ -121,7 +117,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
         Gets the default flow msg that drops traffic
-
         Args:
             datapath: ryu datapath struct
         Returns:
@@ -138,7 +133,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def cleanup_on_disconnect(self, datapath):
         """
         Cleanup flows on datapath disconnect event.
-
         Args:
             datapath: ryu datapath struct
         """
@@ -149,7 +143,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
-
         Args:
             imsi (string): subscriber to install rule for
             msisdn (bytes): subscriber MSISDN
@@ -276,7 +269,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
         Add a low priority flow to drop a subscriber's traffic.
-
         Args:
             imsi (string): subscriber id
             ip_addr (string): subscriber ip_addr
@@ -574,16 +566,19 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and 
         convert to a Rule Record Table
         """
-        _, parser = self._datapath.ofproto, self._datapath.ofproto_parser
+        parser = self._datapath.ofproto_parser
         message = parser.OFPFlowStatsRequest(datapath=self._datapath, cookie = cookie, cookie_mask = cookie_mask)
         try:
             response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
-                    reply_multi=True)
-            RRTable = self._get_usage_from_flow_stat(response[0].body)
-            record_table = RuleRecordTable(
-                records=RRTable.values(),
-                epoch=global_epoch)
-            return record_table
+                    reply_multi=False)
+            if response:
+                flows = self._get_usage_from_flow_stat(response.body)
+                record_table = RuleRecordTable(
+                    records=flows.values(),
+                    epoch=global_epoch)
+                return record_table
+            else:
+                return RuleRecordTable()
         except (InvalidDatapath, OFError, UnexpectedMultiReply):
             return RuleRecordTable()
 

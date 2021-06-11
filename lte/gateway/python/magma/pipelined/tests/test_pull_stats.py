@@ -125,9 +125,9 @@ class PullStatsTest(unittest.TestCase):
         BridgeTools.destroy_bridge(self.BRIDGE)
 
     def test_poll(self):
-        '''
+        """
         Unit test to help verify stats polling using cookie and cookie_mask
-        '''
+        """
         fake_controller_setup(self.enforcement_controller,
                             self.enforcement_stats_controller)
         imsi = 'IMSI001010000000013'
@@ -156,10 +156,23 @@ class PullStatsTest(unittest.TestCase):
                                             self.service_manager)
         with sub_context, snapshot_verifier:
             theStats = self.enforcement_stats_controller.get_stats()
-            self.assertEqual(theStats.records[0].sid, imsi)
-            self.assertEqual(theStats.records[0].rule_id, "rule1")
-            self.assertEqual(theStats.records[0].bytes_tx, 0)
-            self.assertEqual(theStats.records[0].bytes_rx, 0)
+            if (theStats.records[0].rule_id ==  "(ノಠ益ಠ)ノ彡┻━┻"):
+                self.assertEqual(theStats.records[0].sid, imsi)
+                self.assertEqual(theStats.records[0].bytes_tx, 0)
+                self.assertEqual(theStats.records[0].bytes_rx, 0)
+                self.assertEqual(theStats.records[1].sid, imsi)
+                self.assertEqual(theStats.records[1].rule_id, "rule1")
+                self.assertEqual(theStats.records[1].bytes_tx, 0)
+                self.assertEqual(theStats.records[1].bytes_rx, 0)
+            else:
+                self.assertEqual(theStats.records[0].sid, imsi)
+                self.assertEqual(theStats.records[0].rule_id, "rule1")
+                self.assertEqual(theStats.records[0].bytes_tx, 0)
+                self.assertEqual(theStats.records[0].bytes_rx, 0)
+                self.assertEqual(theStats.records[1].sid, imsi)
+                self.assertEqual(theStats.records[1].rule_id, "(ノಠ益ಠ)ノ彡┻━┻")
+                self.assertEqual(theStats.records[1].bytes_tx, 0)
+                self.assertEqual(theStats.records[1].bytes_rx, 0)
     
 
 if __name__ == "__main__":

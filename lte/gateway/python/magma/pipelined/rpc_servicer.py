@@ -1,9 +1,7 @@
 """
 Copyright 2020 The Magma Authors.
-
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -229,6 +227,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                         ) -> None:
         """
         Activate flows for ipv4 / ipv6 or both
+
         CWF won't have an ip_addr passed
         """
         ret = ActivateFlowsResult()
@@ -382,7 +381,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _deactivate_flows(self, request):
         """
         Deactivate flows for ipv4 / ipv6 or both
-
         CWF won't have an ip_addr passed
         """
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
@@ -815,25 +813,29 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         return ret
 
-    def getStatsHelper(self, request, fut):
+    def get_stats(self, request, fut):
         response = self._enforcement_stats.get_stats(request.cookie, request.cookie_mask)
         fut.set_result(response)
 
     def GetStats(self, request, _):
-        #linked to pipelined_cli and returns result of command line invocation on pull stats
+        """
+        Invokes API that returns a RuleRecordTable filtering records based
+        on cookie and cookie mask request parameters
+        """
         self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 EnforcementController.APP_NAME):
             return None
 
         fut = Future()
-        self._loop.call_soon_threadsafe(self.getStatsHelper, request, fut)
+        self._loop.call_soon_threadsafe(self.get_stats, request, fut)
 
         try:
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
-            logging.error("Get Stats timed out")
+            logging.error("Get Stats request processing timed out")
             return RuleRecordTable()
+            
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],
                                         List[RuleModResult]]:
@@ -869,4 +871,3 @@ def _report_enforcement_stats_failures(
             continue
         ENFORCEMENT_STATS_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
                                                    imsi=imsi).inc()
-                                                 
