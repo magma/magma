@@ -167,3 +167,10 @@ ovs_internal_conntrack_port_number: 15579
 
 # Table to forward packets from the internal conntrack
 ovs_internal_conntrack_fwd_tbl_number: 202
+
+dp_irq:
+ enable: True
+ S1_cpu: '2-3'
+ S1_queue_size: 1024
+ SGi_cpu: '2-3'
+ SGi_queue_size: 1024
