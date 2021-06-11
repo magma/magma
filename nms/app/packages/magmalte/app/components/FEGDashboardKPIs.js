@@ -15,7 +15,6 @@
  */
 
 import CardTitleRow from './layout/CardTitleRow';
-import FEGGatewayKPIs from './FEGGatewayKPIs';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import ServicingAccessGatewayKPIs from './ServicingAccessGatewayKPIs';
@@ -27,9 +26,6 @@ export default function () {
     <>
       <CardTitleRow icon={GpsFixed} label="Events" />
       <Grid container item zeroMinWidth alignItems="center" spacing={4}>
-        <Grid item xs={12} lg={6}>
-          <FEGGatewayKPIs />
-        </Grid>
         <Grid item xs={12} lg={6}>
           <ServicingAccessGatewayKPIs />
         </Grid>
