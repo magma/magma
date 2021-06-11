@@ -78,6 +78,8 @@ const (
 	ManageGatewayCellularDNSPath      = ManageGatewayCellularPath + obsidian.UrlSep + "dns"
 	ManageGatewayDNSRecordsPath       = ManageGatewayCellularDNSPath + obsidian.UrlSep + "records"
 	ManageGatewayConnectedEnodebsPath = ManageGatewayPath + obsidian.UrlSep + "connected_enodeb_serials"
+	ManageGatewayApnConfigsPath       = ManageGatewayPath + obsidian.UrlSep + "gateway_apn_configs"
+	ManageGatewayApnConfigPath        = ManageGatewayApnConfigsPath + obsidian.UrlSep + ":gateway_apn_config_id"
 	ManageGatewayCellularPoolingPath  = ManageGatewayCellularPath + obsidian.UrlSep + "pooling"
 	ManageGatewayVPNConfigPath        = ManageGatewayPath + obsidian.UrlSep + "vpn"
 
@@ -109,8 +111,12 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageEnodebPath, Methods: obsidian.DELETE, HandlerFunc: deleteEnodeb},
 		{Path: ManageGatewayConnectedEnodebsPath, Methods: obsidian.POST, HandlerFunc: addConnectedEnodeb},
 		{Path: ManageGatewayConnectedEnodebsPath, Methods: obsidian.DELETE, HandlerFunc: deleteConnectedEnodeb},
+		{Path: ManageGatewayApnConfigsPath, Methods: obsidian.POST, HandlerFunc: addGatewayApnConfig},
+		{Path: ManageGatewayApnConfigsPath, Methods: obsidian.GET, HandlerFunc: listGatewayApnConfigs},
+		{Path: ManageGatewayApnConfigPath, Methods: obsidian.GET, HandlerFunc: getGatewayApnConfig},
+		{Path: ManageGatewayApnConfigPath, Methods: obsidian.PUT, HandlerFunc: updateGatewayApnConfig},
+		{Path: ManageGatewayApnConfigPath, Methods: obsidian.DELETE, HandlerFunc: removeGatewayApnConfig},
 		{Path: GetEnodebStatePath, Methods: obsidian.GET, HandlerFunc: getEnodebState},
-
 		{Path: ListGatewayPoolsPath, Methods: obsidian.GET, HandlerFunc: listGatewayPoolsHandler},
 		{Path: ListGatewayPoolsPath, Methods: obsidian.POST, HandlerFunc: createGatewayPoolHandler},
 		{Path: ManageGatewayPoolsPath, Methods: obsidian.GET, HandlerFunc: getGatewayPoolHandler},
@@ -483,6 +489,64 @@ func addConnectedEnodeb(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func listGatewayApnConfigs(c echo.Context) error {
+	_, _, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	ret := make(map[string]*lte_models.GatewayApnConfig)
+	//TODO - get all gateway apn configs
+	return c.JSON(http.StatusOK, ret)
+}
+
+func addGatewayApnConfig(c echo.Context) error {
+	_, _, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	payload := &lte_models.GatewayApnConfig{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	//TODO - add new gateway apn configs
+	return c.NoContent(http.StatusNoContent)
+}
+
+func updateGatewayApnConfig(c echo.Context) error {
+	_, _, _, nerr := getGatewayApnConfigParams(c)
+	if nerr != nil {
+		return nerr
+	}
+	payload := &lte_models.GatewayApnConfig{}
+	if err := c.Bind(payload); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	//TODO - update new gateway apn config for given ID
+	return c.NoContent(http.StatusNoContent)
+}
+
+func getGatewayApnConfig(c echo.Context) error {
+	_, _, _, nerr := getGatewayApnConfigParams(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	// TODO - get gateway apn config for given ID
+	ret := lte_models.GatewayApnConfig{}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func removeGatewayApnConfig(c echo.Context) error {
+	_, _, _, nerr := getGatewayApnConfigParams(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	//TODO - remove gateway apn config for given ID
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -882,6 +946,14 @@ func getNetworkIDAndGatewayPoolID(c echo.Context) (string, string, *echo.HTTPErr
 		return "", "", err
 	}
 	return vals[0], vals[1], nil
+}
+
+func getGatewayApnConfigParams(c echo.Context) (string, string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", "gateway_id", "gateway_apn_config_id")
+	if err != nil {
+		return "", "", "", err
+	}
+	return vals[0], vals[1], vals[2], nil
 }
 
 func makeErr(err error) *echo.HTTPError {

@@ -13,6 +13,8 @@ limitations under the License.
 
 syntax = "proto3";
 
+import "lte/protos/ip.proto";
+
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
@@ -80,17 +82,15 @@ message APNConfiguration {
 // Network wide APN configuration
 message APNConfig {
   uint32 id = 1;
-  // Contains either the APN Name or wildcard "*"
-  string service_selection = 2;
-  QoSProfile qos_profile = 3;
-  AggregatedMaximumBitrate ambr = 4;
+  QoSProfile qos_profile = 2;
+  AggregatedMaximumBitrate ambr = 3;
   enum PDNType {
       IPV4 = 0;
       IPV6 = 1;
       IPV4V6 = 2;
       IPV4_OR_IPV6 = 3;
   }
-  PDNType pdn = 5;
+  PDNType pdn = 4;
 }
 
 // Gateway specific APN configuration
@@ -123,12 +123,12 @@ message GatewayAPNConfig {
     APNFilter apn_filter = 2;
     string dns_primary = 3;
     string dns_secondary = 4;
-    enum IpAllocatorType {
+    enum IpAllocationMode {
           IP_POOL = 0;
           DHCP = 1;
     }
-    IpAllocatorType ip_allocator_type = 5;
-    string ip_block = 6;
+    IpAllocationMode ip_allocation_mode = 5;
+    repeated IPBlock ip_blocks = 6;
     TransportConfig transport_config = 7;
 }
 

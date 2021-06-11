@@ -1,0 +1,48 @@
+/*
+Copyright 2021 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+
+// --------------------------------------------------------------------------
+// IP Address definition. A generic type for both IPv4 and IPv6 addresses.
+// --------------------------------------------------------------------------
+message IPAddress {
+  enum IPVersion {
+    IPV4 = 0;
+    IPV6 = 1;
+  }
+  IPVersion version  = 1;
+  bytes address = 2; // network byte order
+}
+
+// --------------------------------------------------------------------------
+// IP Block definition.
+//
+// An IP block is a range of IP addresses specified by a network address and
+// a prefix-length of the netmask. For example,
+//    IPv4 IP block:      192.168.0.0/24
+//    IPv6 IP block:      2401:db00:1116:301b::/64
+// --------------------------------------------------------------------------
+message IPBlock {
+  enum IPVersion {
+    IPV4 = 0;
+    IPV6 = 1;
+  }
+  IPVersion version = 1;
+  bytes net_address = 2; // network byte order
+  uint32 prefix_len = 3;
+}

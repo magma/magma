@@ -49,7 +49,7 @@ list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 message("Proto_srcs are ${PROTO_SRCS}")
 set(LI_AGENT_LTE_CPP_PROTOS mconfig/mconfigs mobilityd
-    mobilityd subscriberdb apn)
+    mobilityd subscriberdb ip apn)
 set(RPC_LTE_GRPC_PROTOS mobilityd)
 generate_cpp_protos("${LI_AGENT_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})

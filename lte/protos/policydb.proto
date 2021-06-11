@@ -14,7 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
-import "lte/protos/mobilityd.proto";
+import "lte/protos/ip.proto";
 
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";

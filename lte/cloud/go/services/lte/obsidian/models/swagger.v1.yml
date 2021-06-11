@@ -1282,6 +1282,89 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/gateways/{gateway_id}/gateway_apn_configs:
+    get:
+      summary: Get all apn configs for LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Gateway apn configs
+          schema:
+            $ref: '#/definitions/gateway_apn_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create new gateway apn config in LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'        
+        - in: body
+          name: Gateway APN Config
+          description: LTE Gateway APN Config
+          required: true
+          schema:
+            $ref: '#/definitions/gateway_apn_config'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'          
+
+  /lte/{network_id}/gateways/{gateway_id}/gateway_apn_configs/{gateway_apn_config_id}:
+    get:
+      summary: Retrieve specific apn config from LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - $ref: '#/parameters/gateway_apn_config_id'
+      responses:
+        '200':
+          description: Get specific apn configs for a particular gateway
+          schema:
+            $ref: '#/definitions/gateway_apn_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update apn config in a LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - $ref: '#/parameters/gateway_apn_config_id'
+        - in: body
+          name: Gateway APN Config
+          description: LTE Gateway APN Config
+          required: true
+          schema:
+            $ref: '#/definitions/gateway_apn_config'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete apn config from a LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - $ref: '#/parameters/gateway_apn_config_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'          
+
   /lte/{network_id}/gateways/{gateway_id}/tier:
     get:
       summary: Get the ID of the upgrade tier a gateway belongs to
@@ -1560,6 +1643,13 @@ parameters:
     description: Gateway Pool ID
     in: path
     name: gateway_pool_id
+    required: true
+    type: string
+
+  gateway_apn_config_id:
+    in: path
+    name: gateway_apn_config_id
+    description: Gateway APN config ID
     required: true
     type: string
 
@@ -1865,6 +1955,8 @@ definitions:
         $ref: '#/definitions/enodeb_serials'
       apn_resources:
         $ref: '#/definitions/apn_resources'
+      gateway_apn_configs:
+        $ref: '#/definitions/gateway_apn_configs'
       status:
         $ref: './orc8r-swagger.yml#/definitions/gateway_status'
 
@@ -1899,6 +1991,8 @@ definitions:
         $ref: '#/definitions/enodeb_serials'
       apn_resources:
         $ref: '#/definitions/apn_resources'
+      gateway_apn_configs:
+        $ref: '#/definitions/gateway_apn_configs'
 
   gateway_cellular_configs:
     type: object
@@ -2451,6 +2545,111 @@ definitions:
       gateway_mac:
         type: string
         format: mac
+
+  gateway_apn_config_id:
+    type: string
+    minLength: 1
+    x-nullable: false
+    pattern: '^[a-z][\da-z_-]+$'
+    example: apn_config1
+
+  gateway_apn_configs:
+    description: Gateway specific apn configuration
+    type: array
+    items:
+      $ref: '#/definitions/gateway_apn_config'
+
+  gateway_apn_config:
+    type: object
+    required:
+      - id
+      - apn_name
+    properties:
+      id:
+        $ref: '#/definitions/gateway_apn_config_id'
+      apn_name:
+        $ref: '#/definitions/apn_name'
+      apn_filter:
+        type: string
+        x-nullable: false
+        enum:
+          - 'DEFAULT'
+          - 'BLOCK'
+          - 'PERMIT'
+      dns_primary:
+        type: string
+        minLength: 5
+        maxLength: 45
+        example: '8.8.8.8'
+      dns_secondary:
+        type: string
+        minLength: 5
+        maxLength: 45
+        example: '8.8.4.4'
+      ip_allocation_mode:
+        type: string
+        x-nullable: false
+        enum:
+          - 'IP_POOL'
+          - 'DHCP'
+        example: 'IP_POOL'
+      ip_blocks:
+        type: array
+        items:
+          type: string
+          minLength: 5
+          maxLength: 49
+          example: '192.168.0.0/16'
+      ipv6_blocks:
+        type: array
+        items:
+          type: string
+          x-nullable: false
+          example: 'fdee:5:6c::/48'
+      ipv6_prefix_allocation_mode:
+        type: string
+        x-nullable: false
+        enum:
+          - 'RANDOM'
+          - 'HASH'
+        example: 'RANDOM'
+      transport_config:
+        $ref: '#/definitions/transport_config'
+
+  transport_config:
+    description: APN transport configuration
+    type: object
+    required:
+      - gateway_ip
+      - gateway_mac
+      - egress_type
+    properties:
+      gateway_ip:
+        type: string
+        format: ipv4
+      gateway_mac:
+        type: string
+        format: mac
+      egress_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'VLAN'
+      vlan_config:
+        $ref: '#/definitions/vlan_config'
+
+  vlan_config:
+    description: VLAN configuration
+    type: object
+    required:
+      - vlan_id
+    properties:
+      vlan_id:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 4095
+        example: 1
 
   cellular_gateway_pool:
     description: Highly available gateway pool in an LTE network

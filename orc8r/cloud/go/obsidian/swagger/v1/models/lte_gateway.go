@@ -36,6 +36,9 @@ type LTEGateway struct {
 	// Required: true
 	Device *GatewayDevice `json:"device"`
 
+	// gateway apn configs
+	GatewayAPNConfigs GatewayAPNConfigs `json:"gateway_apn_configs,omitempty"`
+
 	// id
 	// Required: true
 	ID GatewayID `json:"id"`
@@ -77,6 +80,10 @@ func (m *LTEGateway) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateDevice(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateGatewayAPNConfigs(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -181,6 +188,22 @@ func (m *LTEGateway) validateDevice(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *LTEGateway) validateGatewayAPNConfigs(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.GatewayAPNConfigs) { // not required
+		return nil
+	}
+
+	if err := m.GatewayAPNConfigs.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("gateway_apn_configs")
+		}
+		return err
 	}
 
 	return nil

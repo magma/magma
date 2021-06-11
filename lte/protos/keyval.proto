@@ -13,8 +13,8 @@ limitations under the License.
 
 syntax = "proto3";
 
+import "lte/protos/ip.proto";
 import "lte/protos/subscriberdb.proto";
-import "lte/protos/mobilityd.proto";
 
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";

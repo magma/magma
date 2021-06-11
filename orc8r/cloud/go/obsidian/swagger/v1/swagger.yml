@@ -2969,6 +2969,87 @@ paths:
       summary: Update the physical device for an LTE gateway
       tags:
       - LTE Gateways
+  /lte/{network_id}/gateways/{gateway_id}/gateway_apn_configs:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_id'
+      responses:
+        "200":
+          description: Gateway apn configs
+          schema:
+            $ref: '#/definitions/gateway_apn_configs'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get all apn configs for LTE gateway
+      tags:
+      - LTE Gateways
+    post:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_id'
+      - description: LTE Gateway APN Config
+        in: body
+        name: Gateway APN Config
+        required: true
+        schema:
+          $ref: '#/definitions/gateway_apn_config'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Create new gateway apn config in LTE gateway
+      tags:
+      - LTE Gateways
+  /lte/{network_id}/gateways/{gateway_id}/gateway_apn_configs/{gateway_apn_config_id}:
+    delete:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_id'
+      - $ref: '#/parameters/gateway_apn_config_id'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Delete apn config from a LTE gateway
+      tags:
+      - LTE Gateways
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_id'
+      - $ref: '#/parameters/gateway_apn_config_id'
+      responses:
+        "200":
+          description: Get specific apn configs for a particular gateway
+          schema:
+            $ref: '#/definitions/gateway_apn_config'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Retrieve specific apn config from LTE gateway
+      tags:
+      - LTE Gateways
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - $ref: '#/parameters/gateway_id'
+      - $ref: '#/parameters/gateway_apn_config_id'
+      - description: LTE Gateway APN Config
+        in: body
+        name: Gateway APN Config
+        required: true
+        schema:
+          $ref: '#/definitions/gateway_apn_config'
+      responses:
+        "201":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update apn config in a LTE gateway
+      tags:
+      - LTE Gateways
   /lte/{network_id}/gateways/{gateway_id}/magmad:
     get:
       parameters:
@@ -6730,6 +6811,12 @@ parameters:
     name: enodeb_serial
     required: true
     type: string
+  gateway_apn_config_id:
+    description: Gateway APN config ID
+    in: path
+    name: gateway_apn_config_id
+    required: true
+    type: string
   gateway_id:
     description: Gateway ID
     in: path
@@ -8406,6 +8493,73 @@ definitions:
     - max_req_bw_ul
     - max_req_bw_dl
     type: object
+  gateway_apn_config:
+    properties:
+      apn_filter:
+        enum:
+        - DEFAULT
+        - BLOCK
+        - PERMIT
+        type: string
+        x-nullable: false
+      apn_name:
+        $ref: '#/definitions/apn_name'
+      dns_primary:
+        example: 8.8.8.8
+        maxLength: 45
+        minLength: 5
+        type: string
+      dns_secondary:
+        example: 8.8.4.4
+        maxLength: 45
+        minLength: 5
+        type: string
+      id:
+        $ref: '#/definitions/gateway_apn_config_id'
+      ip_allocation_mode:
+        enum:
+        - IP_POOL
+        - DHCP
+        example: IP_POOL
+        type: string
+        x-nullable: false
+      ip_blocks:
+        items:
+          example: 192.168.0.0/16
+          maxLength: 49
+          minLength: 5
+          type: string
+        type: array
+      ipv6_blocks:
+        items:
+          example: fdee:5:6c::/48
+          type: string
+          x-nullable: false
+        type: array
+      ipv6_prefix_allocation_mode:
+        enum:
+        - RANDOM
+        - HASH
+        example: RANDOM
+        type: string
+        x-nullable: false
+      transport_config:
+        $ref: '#/definitions/transport_config'
+    required:
+    - id
+    - apn_name
+    type: object
+  gateway_apn_config_id:
+    example: apn_config1
+    minLength: 1
+    pattern: ^[a-z][\da-z_-]+$
+    type: string
+    x-nullable: false
+  gateway_apn_configs:
+    description: Gateway specific apn configuration
+    items:
+      $ref: '#/definitions/gateway_apn_config'
+    type: array
   gateway_cellular_configs:
     description: Cellular configuration for LTE gateway
     properties:
@@ -9229,6 +9383,8 @@ definitions:
         $ref: '#/definitions/gateway_description'
       device:
         $ref: '#/definitions/gateway_device'
+      gateway_apn_configs:
+        $ref: '#/definitions/gateway_apn_configs'
       id:
         $ref: '#/definitions/gateway_id'
       magmad:
@@ -9661,6 +9817,8 @@ definitions:
         $ref: '#/definitions/gateway_description'
       device:
         $ref: '#/definitions/gateway_device'
+      gateway_apn_configs:
+        $ref: '#/definitions/gateway_apn_configs'
       id:
         $ref: '#/definitions/gateway_id'
       magmad:
@@ -11586,6 +11744,27 @@ definitions:
     example: 0.3.14-123456789-deadbeef
     minLength: 1
     type: string
+  transport_config:
+    description: APN transport configuration
+    properties:
+      egress_type:
+        enum:
+        - VLAN
+        type: string
+        x-nullable: false
+      gateway_ip:
+        format: ipv4
+        type: string
+      gateway_mac:
+        format: mac
+        type: string
+      vlan_config:
+        $ref: '#/definitions/vlan_config'
+    required:
+    - gateway_ip
+    - gateway_mac
+    - egress_type
+    type: object
   unmanaged_enodeb_configuration:
     description: Configuration for externally managed eNodeb devices.
     minLength: 1
@@ -11634,6 +11813,18 @@ definitions:
         example: "12"
         type: string
         x-nullable: false
+    type: object
+  vlan_config:
+    description: VLAN configuration
+    properties:
+      vlan_id:
+        example: 1
+        format: uint32
+        maximum: 4095
+        minimum: 0
+        type: integer
+    required:
+    - vlan_id
     type: object
   webhook_receiver:
     properties:

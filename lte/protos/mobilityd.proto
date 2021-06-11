@@ -13,23 +13,12 @@ limitations under the License.
 
 syntax = "proto3";
 
+import "lte/protos/ip.proto";
 import "lte/protos/subscriberdb.proto";
 import "orc8r/protos/common.proto";
 
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
-
-// --------------------------------------------------------------------------
-// IP Address definition. A generic type for both IPv4 and IPv6 addresses.
-// --------------------------------------------------------------------------
-message IPAddress {
-  enum IPVersion {
-    IPV4 = 0;
-    IPV6 = 1;
-  }
-  IPVersion version  = 1;
-  bytes address = 2; // network byte order
-}
 
 message AllocateIPAddressResponse {
   repeated IPAddress ip_list = 1;
@@ -45,24 +34,6 @@ message IPLookupRequest {
     IPV6 = 1;
   }
   IPVersion version = 3;
-}
-
-// --------------------------------------------------------------------------
-// IP Block definition.
-//
-// An IP block is a range of IP addresses specified by a network address and
-// a prefix-length of the netmask. For example,
-//    IPv4 IP block:      192.168.0.0/24
-//    IPv6 IP block:      2401:db00:1116:301b::/64
-// --------------------------------------------------------------------------
-message IPBlock {
-  enum IPVersion {
-    IPV4 = 0;
-    IPV6 = 1;
-  }
-  IPVersion version = 1;
-  bytes net_address = 2; // network byte order
-  uint32 prefix_len = 3;
 }
 
 message ListAddedIPBlocksResponse {

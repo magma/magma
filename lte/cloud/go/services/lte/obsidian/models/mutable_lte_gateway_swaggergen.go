@@ -38,6 +38,9 @@ type MutableLteGateway struct {
 	// Required: true
 	Device *models4.GatewayDevice `json:"device"`
 
+	// gateway apn configs
+	GatewayApnConfigs GatewayApnConfigs `json:"gateway_apn_configs,omitempty"`
+
 	// id
 	// Required: true
 	ID models3.GatewayID `json:"id"`
@@ -76,6 +79,10 @@ func (m *MutableLteGateway) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateDevice(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateGatewayApnConfigs(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -176,6 +183,22 @@ func (m *MutableLteGateway) validateDevice(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *MutableLteGateway) validateGatewayApnConfigs(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.GatewayApnConfigs) { // not required
+		return nil
+	}
+
+	if err := m.GatewayApnConfigs.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("gateway_apn_configs")
+		}
+		return err
 	}
 
 	return nil

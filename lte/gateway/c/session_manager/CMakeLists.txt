@@ -96,7 +96,7 @@ set(SMGR_ORC8R_GRPC_PROTOS directoryd)
 generate_grpc_protos("${SMGR_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_GRPC_PROTOS session_manager pipelined spgw_service)
+set(SMGR_GRPC_PROTOS session_manager ip pipelined spgw_service)
 generate_grpc_protos("${SMGR_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
