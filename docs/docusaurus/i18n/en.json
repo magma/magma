@@ -418,6 +418,9 @@
       "proposals/p016_nms_regression_test": {
         "title": "NMS Regression Testing"
       },
+      "proposals/p017_apn_refactoring": {
+        "title": "APN Refactoring Proposal"
+      },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
       },
