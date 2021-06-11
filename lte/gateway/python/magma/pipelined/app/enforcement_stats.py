@@ -568,8 +568,12 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error('Could not find rule id for num %d: %s',
                               rule_num, e)
             return ""
-            
+
     def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
+        """
+        Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and 
+        convert to a Rule Record Table
+        """
         _, parser = self._datapath.ofproto, self._datapath.ofproto_parser
         message = parser.OFPFlowStatsRequest(datapath=self._datapath, cookie = cookie, cookie_mask = cookie_mask)
         try:

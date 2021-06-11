@@ -125,7 +125,9 @@ class PullStatsTest(unittest.TestCase):
         BridgeTools.destroy_bridge(self.BRIDGE)
 
     def test_poll(self):
-        #unit test to help verify stats polling using cookie and cookie_mask
+        '''
+        Unit test to help verify stats polling using cookie and cookie_mask
+        '''
         fake_controller_setup(self.enforcement_controller,
                             self.enforcement_stats_controller)
         imsi = 'IMSI001010000000013'
