@@ -385,4 +385,5 @@ variable "orc8r_sns_name" {
 variable "orc8r_sns_email" {
   description = "SNS email endpoint to send notifications"
   type        = string
+  default     = ""
 }
