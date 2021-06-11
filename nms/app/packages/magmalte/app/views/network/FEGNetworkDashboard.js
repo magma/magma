@@ -18,6 +18,7 @@ import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import FEGNetworkContext from '../../components/context/FEGNetworkContext';
 import FEGNetworkInfo from './FEGNetworkInfo';
+import FEGServicingAccessGatewayTable from './FEGServicingAccessGatewayTable';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
@@ -147,6 +148,14 @@ export function NetworkDashboardInternal() {
           <Grid item xs={12}>
             <CardTitleRow label="Network" />
             <FEGNetworkInfo fegNetwork={ctx.state} />
+          </Grid>
+        </Grid>
+        <Grid item xs={12} md={6}>
+          <Grid container spacing={4}>
+            <Grid item xs={12}>
+              <CardTitleRow label="Servicing Access Gateways" />
+              <FEGServicingAccessGatewayTable />
+            </Grid>
           </Grid>
         </Grid>
       </Grid>
