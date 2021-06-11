@@ -172,5 +172,3 @@ class EnodebdRpcServicer(EnodebdServicer):
             request.device_serial,
             self.state_machine_manager,
         )
-    def GetStats(self, request):
-        

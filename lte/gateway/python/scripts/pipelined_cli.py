@@ -55,7 +55,6 @@ from magma.subscriberdb.sid import SIDUtils
 from magma.pipelined.ng_set_session_msg import CreateSessionUtil
 from magma.pipelined.pg_set_session_msg import CreateMMESessionUtils
 from orc8r.protos.common_pb2 import Void
-from magma.pipelined.
 
 LOG_INCREMENT = 25
 UEInfo = namedtuple('UEInfo', ['imsi_str', 'ipv4_src', 'ipv4_dst',
