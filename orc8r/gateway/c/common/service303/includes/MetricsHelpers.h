@@ -37,6 +37,14 @@ void increment_counter(
     const char* name, double increment, size_t n_labels, ...);
 
 /**
+ * Remove the gauge metric that matches name+labels given
+ * @param name
+ * @param n_labels number of labels
+ * @param ... label args (name, value)
+ */
+void remove_gauge(const char* name, size_t n_labels, ...);
+
+/**
  * Increments value for Gauge metric
  * @param name
  * @param increment value to increment

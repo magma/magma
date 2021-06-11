@@ -69,6 +69,13 @@ void MetricsSingleton::IncrementCounter(
   counters_.Get(name, labels).Increment(increment);
 }
 
+void MetricsSingleton::RemoveGauge(
+    const char* name, size_t label_count, va_list& args) {
+  std::map<std::string, std::string> labels;
+  args_to_map(labels, label_count, args);
+  gauges_.Remove(name, labels);
+}
+
 void MetricsSingleton::IncrementGauge(
     const char* name, double increment, size_t label_count, va_list& args) {
   std::map<std::string, std::string> labels;

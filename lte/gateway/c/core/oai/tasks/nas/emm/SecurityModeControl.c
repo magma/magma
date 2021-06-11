@@ -362,11 +362,12 @@ int emm_proc_security_mode_control(
     // smc_proc->imeisv_request = (IS_EMM_CTXT_PRESENT_IMEISV(emm_ctx)) ?
     // false:true;
 
-    if IS_EMM_CTXT_PRESENT_UE_ADDITIONAL_SECURITY_CAPABILITY (emm_ctx) {
-      smc_proc->replayed_ue_add_sec_cap_present = true;
-      smc_proc->_5g_ea = emm_ctx->ue_additional_security_capability._5g_ea;
-      smc_proc->_5g_ia = emm_ctx->ue_additional_security_capability._5g_ia;
-    }
+    if
+      IS_EMM_CTXT_PRESENT_UE_ADDITIONAL_SECURITY_CAPABILITY(emm_ctx) {
+        smc_proc->replayed_ue_add_sec_cap_present = true;
+        smc_proc->_5g_ea = emm_ctx->ue_additional_security_capability._5g_ea;
+        smc_proc->_5g_ia = emm_ctx->ue_additional_security_capability._5g_ia;
+      }
 
     /*
      * Send security mode command message to the UE
