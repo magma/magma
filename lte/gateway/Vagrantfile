@@ -27,7 +27,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - updated vbguest-tool
     magma.vm.box = "magmacore/magma_dev"
     magma.vm.hostname = "magma-dev"
-    magma.vm.box_version = "1.1.20210601"
+    magma.vm.box_version = "1.1.20210611"
     magma.vbguest.auto_update = false
 
 

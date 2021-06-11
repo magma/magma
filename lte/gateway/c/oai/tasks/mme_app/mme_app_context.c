@@ -2224,7 +2224,6 @@ static bool mme_app_recover_timers_for_ue(
   OAILOG_FUNC_RETURN(LOG_MME_APP, false);
 }
 
-
 static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   for (int idx = 0; idx < BEARERS_PER_UE; idx++) {
