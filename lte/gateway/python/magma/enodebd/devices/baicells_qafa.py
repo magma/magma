@@ -206,7 +206,7 @@ class BaicellsQAFATrDataModel(DataModel):
     TRANSFORMS_FOR_MAGMA = {
         # We don't set these parameters
         ParameterName.BAND_CAPABILITY: transform_for_magma.band_capability,
-        ParameterName.DUPLEX_MODE_CAPABILITY: transform_for_magma.duplex_mode
+        ParameterName.DUPLEX_MODE_CAPABILITY: transform_for_magma.duplex_mode,
     }
 
     @classmethod
@@ -236,11 +236,17 @@ class BaicellsQAFATrDataModel(DataModel):
 
     @classmethod
     def get_parameter_names(cls) -> List[ParameterName]:
-        excluded_params = [str(ParameterName.DEVICE),
-                           str(ParameterName.FAP_SERVICE)]
-        names = list(filter(lambda x: (not str(x).startswith('PLMN'))
-                                      and (str(x) not in excluded_params),
-                            cls.PARAMETERS.keys()))
+        excluded_params = [
+            str(ParameterName.DEVICE),
+            str(ParameterName.FAP_SERVICE),
+        ]
+        names = list(
+            filter(
+                lambda x: (not str(x).startswith('PLMN'))
+                          and (str(x) not in excluded_params),
+                cls.PARAMETERS.keys(),
+            ),
+        )
         return names
 
     @classmethod

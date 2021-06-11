@@ -177,7 +177,7 @@
       - awsOrc8rRegion: Region where Orc8r would run
   - Orchestrator : Deploy orchestrator
   ```
-    ansible-playbook orc8r.yaml [ --skip-tags deploy-orc8r ] -e 'dirLocalInventory=<Dir>
+    ansible-playbook orc8r.yaml [ --skip-tags deploy-orc8r ] -e 'dirLocalInventory=<Dir> -e 'varBuildType=community/custom' -e 'varFirstInstall=true/false'
   ```
 
   Note: When using a stable build or a standard environment or a repeat install, the 'deploy-orc8r' tag does not have to be skipped. However, for first time installs skipping helps in identifying unknown issues to make sure the new build works as expected. Additionally, if there are any custom configuration requirements (such as modifying instance sizes or running multiple clusters within the same account requiring deploy_elasticsearch_service_linked_role to be set to False by default, skipping the deployment and making changes to main.tf is recommended.
@@ -222,19 +222,19 @@
     agw-provision: provisions a site with VPC, subnets, gateway, routing tables and one AGW Command:
     ```
 
-    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>"[ --tags createNet,createBridge, createGw ]
+    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>"[ --tags createNet,createBridge,createGw,cleanupBridge,cleanupNet ]
     ```
     - A site needs to be added only once. After a site is up, multiple gatways can be individually provisioned by skipping the createNet tag as laid out below
 
     ```
-    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>" --tags createGw
+    ansible-playbook agw-provision.yaml -e "idSite=<SiteName>" -e "idGw=<GatewayIdentifier>" -e "dirLocalInventory=<WORK_DIR>" --tags infra,createGw --skip-tags createNet,createBridge,cleanupBridge,cleanupNet
     ```
 
   - After the gateway has been provisioned, configure the gateway to attach it to an Orchestrator instance. The orchstrator information is picked up from 'cluster.yaml' file
 
     agw-configure: configures the AGW to include controller information Command:
     ```
-    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu
+    ansible-playbook agw-configure.yaml -i <DynamicInventoryFile> -e "agw=tag_Name_<GatewayId>" -e "dirLocalInventory=<WORK_DIR>" -u ubuntu [ -e KMSKeyID=<KEY_ID_TO_ADD_TO_SSH_AUTHORIZED> -e sshKey=<PATH-TO-PUBLIC-KEY-TO-ADD>]
     ```
 
     Example:
@@ -263,12 +263,15 @@
     - agw-provision: provisions a site with VPC, subnets, gateway, routing tables and one AGW Command:
     ```
 
-    ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=<buildGwTagName>" -e "dirLocalInventory=<WORK_DIR>" -e "agwDevops=1" --tags infra,inventory
+    ansible-playbook agw-provision.yaml -e "idSite=DevOps" -e "idGw=<buildGwTagName>" -e "dirLocalInventory=<WORK_DIR>" -e "agwDevops=1" --tags infra,inventory --skip-tags createBridge,cleanupBridge,cleanupNet
     ```
 
     - ami-configure: Configure AMI for AGW by configuring base AMI image with AGW packages and building OVS.
+        - Add ```--skip-tag clearSSHKeys``` if you want to keep ssh keys on the instance
     ```
-    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
+
+    ansible-playbook ami-configure.yaml -i <DynamicInventoryFile> -e "dirLocalInventory=<WORK_DIR>" -e "aminode=tag_Name_<buildGwTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu --skip-tags clearSSHKeys
+
     ```
     - ami-init: Snapshot the AMI instance
     ```
@@ -302,8 +305,20 @@
   ```
     - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=<Local Dir>" -e "idSite=<Name of Site> --tags clusterCleanup
   ```
+  - Example:
+  ```
+    - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=~/magma-experimental" -e "idSite=MenloPark" --tags clusterCleanup
+  ```
 
-  Login to the Bridge node to access gateways and pick up challenge keys and hardware ids.
+  Create a SSH configuration to the gateways through the jump node
+  ```
+  - ansible-playbook cluster-provision.yaml -e "dirLocalInventory=<Local Dir>" -e "agws=tag_Name_<ump_node_name>" -e "idSite=<Name of the Site>" --tags clusterJump
+  ```
+
+  - Example:
+  ```
+  - ansible-playbook cluster-provision.yaml -i /root/project/common_instance_aws_ec2.yaml -e "dirLocalInventory=/root/project" -e "agws=tag_Name_TestFrameworkGateway" -e "idSite=TestCluster" --tags clusterJump
+  ```
 
 ## 7. Cleanup
 
@@ -316,9 +331,9 @@
       - awsOrc8rRegion : Determines which Region hosts the Orc8r instance to be deleted
       - orc8rClusterName : Local folder with terraform state [ex: ~/magma-experimental/<Name of Cluster>]
 
-  - ansible-playbook -e "dirLocalInventory=<Local Dir>" cleanup.yaml  [ --tags *various* ]
+  - ansible-playbook -e "dirLocalInventory=<Local Dir>" -e "{"deleteStacks": [stackName1, stackName2]}" cleanup.yaml  [ --tags *various* ]
 
-  Available tags include: agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc
+  Available tags include: agw,eks,asg,es,rds,efs,natgw,igw,subnet,secgroup,vpc,orc8r,keys
 
 ## Known Issues, Best Practices & Expected Behavior
 

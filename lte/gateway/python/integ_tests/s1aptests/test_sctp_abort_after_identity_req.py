@@ -14,7 +14,6 @@ limitations under the License.
 import unittest
 
 import s1ap_types
-
 from integ_tests.s1aptests import s1ap_wrapper
 
 
@@ -46,12 +45,12 @@ class TestSctpAbortAfterIdentityReq(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         print("Sending Attach Request ue-id", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value,
         )
         print(
             "Received Identity req ind ",
@@ -62,7 +61,7 @@ class TestSctpAbortAfterIdentityReq(unittest.TestCase):
         sctp_abort = s1ap_types.FwSctpAbortReq_t()
         sctp_abort.cause = 3
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.SCTP_ABORT_REQ, sctp_abort
+            s1ap_types.tfwCmd.SCTP_ABORT_REQ, sctp_abort,
         )
 
 

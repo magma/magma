@@ -14,7 +14,6 @@ limitations under the License.
 import unittest
 
 import s1ap_types
-
 from integ_tests.s1aptests import s1ap_wrapper
 
 
@@ -46,7 +45,7 @@ class TestAuthFailure(unittest.TestCase):
 
         print("Sending Attach Request for ue-id", attach_req.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -61,7 +60,7 @@ class TestAuthFailure(unittest.TestCase):
             auth_failure.auts[idx1] = 0
         print("Sending Authentication Failure for ue-id", auth_failure.ue_Id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_FAILURE, auth_failure
+            s1ap_types.tfwCmd.UE_AUTH_FAILURE, auth_failure,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertTrue(response, s1ap_types.tfwCmd.UE_AUTH_REJ_IND.value)

@@ -10,5 +10,8 @@
   },
   "devDependencies": {
     "docusaurus": "^1.7.2"
+  },
+  "dependencies": {
+    "remark-mermaid": "^0.2.0"
   }
 }

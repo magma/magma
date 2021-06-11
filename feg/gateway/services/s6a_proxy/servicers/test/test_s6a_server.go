@@ -316,6 +316,16 @@ func testHandleULR(settings *sm.Settings, expectedULRFlags uint32) diam.HandlerF
 		// Add Feature-List-ID 2 if exists
 		if len(req.SupportedFeatures) > 0 {
 			for _, suportedFeature := range req.SupportedFeatures {
+				if suportedFeature.FeatureListID == 1 {
+					a.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+						AVP: []*diam.AVP{
+							diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
+							diam.NewAVP(avp.FeatureListID, avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(1)),
+							diam.NewAVP(avp.FeatureList, avp.Vbit, diameter.Vendor3GPP,
+								datatype.Unsigned32(suportedFeature.FeatureList)),
+						},
+					})
+				}
 				if suportedFeature.FeatureListID == 2 {
 					a.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 						AVP: []*diam.AVP{

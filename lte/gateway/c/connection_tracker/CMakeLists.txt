@@ -79,7 +79,7 @@ list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 
-set(SMGR_LTE_CPP_PROTOS session_manager subscriberdb
+set(SMGR_LTE_CPP_PROTOS session_manager apn subscriberdb
   pipelined spgw_service mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})

@@ -1,0 +1,53 @@
+---
+name: Python Format Check
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    types:
+      - opened
+      - reopened
+      - synchronize
+    paths:  # order matters here, always put includes then excludes
+      - 'lte/gateway/python/**.py'
+      - 'orc8r/gateway/python/**.py'
+      - '!**/scripts/**.py'
+      - '!lte/gateway/python/magma/pipelined/**.py'  # TODO add back
+
+jobs:
+  run-formatters-and-check-for-errors:
+    name: Run Python formatters and check for errors
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Get changed files
+        id: py-changes
+        # Set outputs.py to be a list of modified python files
+        run: |
+          echo "::set-output name=py::$(git diff --name-only --diff-filter=ACMRT ${{ github.event.pull_request.base.sha }} ${{ github.sha }} | grep .py$ | xargs)"
+      - if: ${{ steps.py-changes.outputs.py }}
+        name: Docker Build
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./lte/gateway/docker/python-precommit/Dockerfile
+          push: false
+          tags: magma/py-lint:latest
+      - uses: addnab/docker-run-action@v3
+        with:
+          image: magma/py-lint:latest
+          options: -u 0 -v ${{ github.workspace }}:/code
+          run: |
+            for file in ${{ steps.py-changes.outputs.py }};
+            do
+              echo "Running formatting commands for $file...";
+              set -e
+              isort --check-only $file;
+              autopep8 --exit-code --select W291,W293,E2,E3 -r --in-place  $file;
+              add-trailing-comma --py35-plus $file;
+            done;
+      - name: Look here for instructions for when the check fails
+        # TODO figure out how to post this as a PR comment (permission issues with forked PRs)
+        run: |
+          echo "::error Use the formatter script 'lte/gateway/python/precommit.py' to run the formatters locally."
+          echo "::error Run './precommit.py --build' to build the setup, and then run './precommit.py --format --diff'"

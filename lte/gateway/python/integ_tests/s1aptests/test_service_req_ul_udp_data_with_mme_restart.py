@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import time
+import unittest
 
 import gpp_types
 import s1ap_types
@@ -23,7 +23,7 @@ from s1ap_utils import MagmadUtil
 class TestServiceReqUlUdpDataWithMmeRestart(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
+            stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         )
 
     def tearDown(self):
@@ -64,7 +64,7 @@ class TestServiceReqUlUdpDataWithMmeRestart(unittest.TestCase):
         time.sleep(0.5)
 
         ul_test = self._s1ap_wrapper.configUplinkTest(
-            req, duration=1, is_udp=True
+            req, duration=1, is_udp=True,
         )
 
         print(
@@ -77,11 +77,11 @@ class TestServiceReqUlUdpDataWithMmeRestart(unittest.TestCase):
         req.ue_Id = ue_id
         req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value,
         )
 
         print("************************* Restarting MME service on gateway")
@@ -102,7 +102,7 @@ class TestServiceReqUlUdpDataWithMmeRestart(unittest.TestCase):
         req.ueMtmsi.pres = False
         req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req
+            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req,
         )
 
         # Ignore PAGING_IND and wait for INT_CTX_SETUP_IND
@@ -114,7 +114,7 @@ class TestServiceReqUlUdpDataWithMmeRestart(unittest.TestCase):
             response = self._s1ap_wrapper.s1_util.get_response()
 
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value,
         )
 
         print(
@@ -128,7 +128,7 @@ class TestServiceReqUlUdpDataWithMmeRestart(unittest.TestCase):
         print("************************* Running UE detach for UE id ", ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, True,
         )
 
 

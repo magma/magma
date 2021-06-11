@@ -14,7 +14,6 @@ import time
 import unittest
 
 import swagger_client
-
 from integ_tests.cloud import cloud_manager, fixtures
 from integ_tests.cloud.cloud_manager import CloudManager
 from integ_tests.gateway import rpc
@@ -120,8 +119,10 @@ class TestConfigUpdates(unittest.TestCase):
                 ['magmad', 'enodebd', 'dnsd', 'mme'],
             )
             if not verify_mconfigs(mconfigs):
-                print('mconfigs do not match expected values, '
-                      'will poll again')
+                print(
+                    'mconfigs do not match expected values, '
+                    'will poll again',
+                )
                 time.sleep(self.POLL_SEC)
             else:
                 return

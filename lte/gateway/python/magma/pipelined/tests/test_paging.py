@@ -123,7 +123,7 @@ class PagingTest(unittest.TestCase):
         self.classifier_controller._delete_all_flows()
 
         ue_ip_addr = "192.168.128.30"
-        self.classifier_controller._install_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+        self.classifier_controller.install_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                         200, True) 
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
@@ -136,7 +136,7 @@ class PagingTest(unittest.TestCase):
            Delete the paging flow from table 0
         """
         ue_ip_addr = "192.168.128.30"
-        self.classifier_controller._remove_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
+        self.classifier_controller.remove_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')))
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -152,7 +152,7 @@ class PagingTest(unittest.TestCase):
         self.classifier_controller._delete_all_flows() 
 
         ue_ip_addr = "192.168.128.30"
-        self.classifier_controller._install_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
+        self.classifier_controller.install_paging_flow(IPAddress(version=IPAddress.IPV4,address=ue_ip_addr.encode('utf-8')),
                                                         200, True)
         # Create a set of packets
         pkt_sender = ScapyPacketInjector(self.BRIDGE)

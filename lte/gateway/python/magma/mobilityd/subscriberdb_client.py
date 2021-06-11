@@ -16,7 +16,7 @@ import logging
 from typing import Optional
 
 import grpc
-from lte.protos.subscriberdb_pb2 import APNConfiguration
+from lte.protos.apn_pb2 import APNConfiguration
 from magma.subscriberdb.sid import SIDUtils
 
 

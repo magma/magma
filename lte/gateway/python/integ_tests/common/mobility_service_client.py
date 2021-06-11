@@ -11,18 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import abc
 import ipaddress
 import logging
 import time
 
-import abc
 import grpc
-from orc8r.protos.common_pb2 import Void
-from lte.protos.mobilityd_pb2 import IPAddress, IPBlock, RemoveIPBlockRequest
-from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-
 # from integ_tests.cloud.fixtures import GATEWAY_ID, NETWORK_ID
 from integ_tests.gateway.rpc import get_gateway_hw_id, get_rpc_channel
+from lte.protos.mobilityd_pb2 import IPAddress, IPBlock, RemoveIPBlockRequest
+from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
+from orc8r.protos.common_pb2 import Void
 
 
 class MobilityServiceClient(metaclass=abc.ABCMeta):
@@ -124,15 +123,20 @@ class MobilityServiceGrpc(MobilityServiceClient):
                 address_bytes = block.net_address
                 address_int = int.from_bytes(address_bytes, byteorder='big')
                 address = ipaddress.ip_address(address_int)
-                ip_block_list.append(ipaddress.ip_network(
-                    "%s/%d" % (address, block.prefix_len)))
+                ip_block_list.append(
+                    ipaddress.ip_network(
+                    "%s/%d" % (address, block.prefix_len),
+                    ),
+                )
             if ip_block_list is not None:
                 ip_block_list.sort()
             return ip_block_list
         except grpc.RpcError as error:
             err_code = error.exception().code()
-            if (err_code ==
-                    grpc.StatusCode.FAILED_PRECONDITION):
+            if (
+                err_code ==
+                grpc.StatusCode.FAILED_PRECONDITION
+            ):
                 logging.info("Ignoring FAILED_PRECONDITION exception")
             else:
                 raise
@@ -140,25 +144,36 @@ class MobilityServiceGrpc(MobilityServiceClient):
     def remove_ip_blocks(self, blocks):
         try:
             ip_blocks = [
-                IPBlock(version={4: IPAddress.IPV4,
-                                 6: IPAddress.IPV6}[block.version],
-                        net_address=block.network_address.packed,
-                        prefix_len=block.prefixlen)
-                for block in blocks]
+                IPBlock(
+                    version={
+                        4: IPAddress.IPV4,
+                        6: IPAddress.IPV6,
+                    }[block.version],
+                    net_address=block.network_address.packed,
+                    prefix_len=block.prefixlen,
+                )
+                for block in blocks
+            ]
             response = self._mobility_stub.RemoveIPBlock(
-                RemoveIPBlockRequest(ip_blocks=ip_blocks, force=False))
+                RemoveIPBlockRequest(ip_blocks=ip_blocks, force=False),
+            )
             removed_ip_block_list = ()
             for block in response.ip_blocks:
                 address_bytes = block.net_address
                 address_int = int.from_bytes(address_bytes, byteorder='big')
                 address = ipaddress.ip_address(address_int)
-                removed_ip_block_list += (ipaddress.ip_network(
-                    "%s/%d" % (address, block.prefix_len)),)
+                removed_ip_block_list += (
+                    ipaddress.ip_network(
+                    "%s/%d" % (address, block.prefix_len),
+                    ),
+                )
             return removed_ip_block_list
         except grpc.RpcError as error:
             err_code = error.exception().code()
-            if (err_code ==
-                    grpc.StatusCode.FAILED_PRECONDITION):
+            if (
+                err_code ==
+                grpc.StatusCode.FAILED_PRECONDITION
+            ):
                 logging.info("Ignoring FAILED_PRECONDITION exception")
             else:
                 raise

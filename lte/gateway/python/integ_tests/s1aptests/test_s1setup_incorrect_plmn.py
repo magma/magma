@@ -11,8 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
 import ctypes
+import unittest
+
 import s1ap_types
 from integ_tests.s1aptests.s1ap_utils import S1ApUtil
 
@@ -37,7 +38,7 @@ class TestS1SetupFailureIncorrectPlmn(unittest.TestCase):
         # Convert PLMN to ASCII character array of MCC and MNC digits
         # For 5 digit PLMN add \0 in the end, e.g., "00101\0"
         req.plmnId_pr.plmn_id = (ctypes.c_ubyte * 6).from_buffer_copy(
-            bytearray(b"333333")
+            bytearray(b"333333"),
         )
 
         print("************************* Sending ENB configuration Request")

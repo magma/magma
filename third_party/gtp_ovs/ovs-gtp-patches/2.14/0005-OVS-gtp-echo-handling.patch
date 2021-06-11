@@ -1,7 +1,7 @@
-From 6f02a088ddfed42206a52b614d5e37887ef89064 Mon Sep 17 00:00:00 2001
+From 523519e3a84add450a4121ba3973bf93c2917fa5 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 29 Jun 2020 02:45:36 +0000
-Subject: [PATCH 05/18] OVS: gtp echo handling
+Subject: [PATCH 05/19] OVS: gtp echo handling
 
 This uses OVS BFD module to send ech msgs.
 
@@ -785,7 +785,7 @@ index 3426a27b2..5d1bd84d5 100644
  void xlate_mac_learning_update(const struct ofproto_dpif *ofproto,
                                 ofp_port_t in_port, struct eth_addr dl_src,
 diff --git a/ofproto/ofproto-dpif.c b/ofproto/ofproto-dpif.c
-index 4f0638f23..7c6c1ea77 100644
+index 0f8ae8a73..a8a49adf0 100644
 --- a/ofproto/ofproto-dpif.c
 +++ b/ofproto/ofproto-dpif.c
 @@ -5265,6 +5265,23 @@ ofproto_dpif_send_packet(const struct ofport_dpif *ofport, bool oam,

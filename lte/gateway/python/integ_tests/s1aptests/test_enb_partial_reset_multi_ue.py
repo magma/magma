@@ -11,10 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-import unittest
-import time
-from builtins import range
 import random
+import time
+import unittest
+from builtins import range
 
 import s1ap_types
 import s1ap_wrapper
@@ -94,7 +94,7 @@ class TestEnbPartialResetMultiUe(unittest.TestCase):
 
         # Send eNB Partial Reset
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.RESET_REQ, reset_req
+            s1ap_types.tfwCmd.RESET_REQ, reset_req,
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
@@ -106,7 +106,7 @@ class TestEnbPartialResetMultiUe(unittest.TestCase):
         for ue in ue_ids:
             print("************************* Calling detach for UE id ", ue)
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True,
             )
 
 

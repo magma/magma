@@ -13,7 +13,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <lte/protos/mconfig/mconfigs.pb.h>
 #include <thread>
 
 #include "includes/MagmaService.h"
@@ -23,26 +22,8 @@
 #include "InterfaceMonitor.h"
 #include "PDUGenerator.h"
 #include "ProxyConnector.h"
+#include "Utilities.h"
 #include "magma_logging_init.h"
-
-#define LIAGENTD "liagentd"
-#define LIAGENTD_VERSION "1.0"
-
-static magma::mconfig::LIAgentD get_default_mconfig() {
-  magma::mconfig::LIAgentD mconfig;
-  mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
-  return mconfig;
-}
-
-static magma::mconfig::LIAgentD load_mconfig() {
-  magma::mconfig::LIAgentD mconfig;
-  magma::MConfigLoader loader;
-  if (!loader.load_service_mconfig(LIAGENTD, &mconfig)) {
-    MLOG(MERROR) << "Unable to load mconfig for liagentd, using default";
-    return get_default_mconfig();
-  }
-  return mconfig;
-}
 
 static uint32_t get_log_verbosity(
     const YAML::Node& config, magma::mconfig::LIAgentD mconfig) {
@@ -73,10 +54,9 @@ static uint32_t get_log_verbosity(
 int main(void) {
   magma::init_logging(LIAGENTD);
 
-  auto mconfig = load_mconfig();
+  auto mconfig = magma::lte::load_mconfig();
   auto config  = magma::ServiceConfigLoader{}.load_service_config(LIAGENTD);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
-  MLOG(MINFO) << "Starting LI Agent service";
 
   // Ignoring SIGPIPE due to ssl write throwing it occasionally
   sigset_t blockedSignal;
@@ -84,42 +64,59 @@ int main(void) {
   sigaddset(&blockedSignal, SIGPIPE);
   pthread_sigmask(SIG_BLOCK, &blockedSignal, NULL);
 
-  auto directoryd_client = std::make_unique<magma::AsyncDirectorydClient>();
-  std::thread directoryd_response_handling_thread([&]() {
-    MLOG(MINFO) << "Started DirectoryD response thread";
-    directoryd_client->rpc_response_loop();
-  });
+  bool enable = config["enable"].as<bool>();
+  if (!enable) {
+    MLOG(MINFO) << "LI Agent service disabled";
+    return 0;
+  }
+
+  MLOG(MINFO) << "Starting LI Agent service " << config;
 
   std::string interface_name = config["interface_name"].as<std::string>();
   std::string pkt_dst_mac    = config["pkt_dst_mac"].as<std::string>();
   std::string pkt_src_mac    = config["pkt_src_mac"].as<std::string>();
   std::string proxy_addr     = config["proxy_addr"].as<std::string>();
-  int proxy_port             = config["proxy_port"].as<int>();
   std::string cert_file      = config["cert_file"].as<std::string>();
   std::string key_file       = config["key_file"].as<std::string>();
+  int proxy_port             = config["proxy_port"].as<int>();
+  int sync_interval          = config["sync_interval"].as<int>();
+  int inactivity_time        = config["inactivity_time"].as<int>();
+
+  auto mobilityd_client = std::make_unique<magma::lte::AsyncMobilitydClient>();
+  std::thread mobilitydd_response_handling_thread([&]() {
+    MLOG(MINFO) << "Started MobilityD response thread";
+    mobilityd_client->rpc_response_loop();
+  });
 
   magma::service303::MagmaService server(LIAGENTD, LIAGENTD_VERSION);
   server.Start();
 
-  auto proxy_connector = std::make_unique<magma::ProxyConnectorImpl>(
+  auto proxy_connector = std::make_unique<magma::lte::ProxyConnectorImpl>(
       proxy_addr, proxy_port, cert_file, key_file);
   if (proxy_connector->setup_proxy_socket() < 0) {
     MLOG(MERROR) << "Coudn't setup proxy socket, terminating";
     return -1;
   }
-  auto pkt_generator = std::make_unique<magma::PDUGenerator>(
-      std::move(proxy_connector), std::move(directoryd_client), pkt_dst_mac,
-      pkt_src_mac);
 
-  auto interface_watcher = std::make_unique<magma::InterfaceMonitor>(
+  auto pkt_generator = std::make_unique<magma::lte::PDUGenerator>(
+      pkt_dst_mac, pkt_src_mac, sync_interval, inactivity_time,
+      std::move(proxy_connector), std::move(mobilityd_client), mconfig);
+
+  auto interface_watcher = std::make_unique<magma::lte::InterfaceMonitor>(
       interface_name, std::move(pkt_generator));
-  if (interface_watcher->init_iface_pcap_monitor() < 0) {
+  if (interface_watcher->init_interface_monitor() < 0) {
     MLOG(MERROR) << "Coudn't setup interface sniffing, terminating";
+    proxy_connector->cleanup();
     return -1;
   }
 
-  proxy_connector->cleanup();
-  directoryd_response_handling_thread.join();
+  if (interface_watcher->start_capture() < 0) {
+    MLOG(MERROR) << "Coudn't start interface sniffing, terminating";
+    proxy_connector->cleanup();
+    return -1;
+  }
 
+  MLOG(MERROR) << "CleanUP " << pcap_dispatch;
+  proxy_connector->cleanup();
   return 0;
 }

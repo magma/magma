@@ -78,6 +78,7 @@ func (mPgw *MockPgw) Start(ctx context.Context, pgwAddrsStr string) error {
 		message.MsgTypeCreateSessionRequest:       mPgw.getHandleCreateSessionRequest(),
 		message.MsgTypeModifyAccessBearersRequest: mPgw.getHandleModifyBearerRequest(),
 		message.MsgTypeDeleteSessionRequest:       mPgw.getHandleDeleteSessionRequest(),
+		message.MsgTypeCreateBearerResponse:       mPgw.getHandleCreateBearerRequest(),
 	})
 	return nil
 }

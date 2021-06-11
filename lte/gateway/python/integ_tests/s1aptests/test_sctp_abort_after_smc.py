@@ -14,7 +14,6 @@ limitations under the License.
 import unittest
 
 import s1ap_types
-
 from integ_tests.s1aptests import s1ap_wrapper
 
 
@@ -46,12 +45,12 @@ class TestSctpAbortAfterSmc(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         print("Sending Attach Request ue-id", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
+            s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value,
         )
         print("Received auth req ind ue-id", req.ue_id)
 
@@ -62,12 +61,12 @@ class TestSctpAbortAfterSmc(unittest.TestCase):
         auth_res.sqnRcvd = sqn_recvd
         print("Sending Auth Response ue-id", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
+            s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value,
         )
         print("Received Security Mode Command ue-id", req.ue_id)
 
@@ -75,7 +74,7 @@ class TestSctpAbortAfterSmc(unittest.TestCase):
         sctp_abort = s1ap_types.FwSctpAbortReq_t()
         sctp_abort.cause = 3
         self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.SCTP_ABORT_REQ, sctp_abort
+            s1ap_types.tfwCmd.SCTP_ABORT_REQ, sctp_abort,
         )
 
 
