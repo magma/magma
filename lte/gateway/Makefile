@@ -184,7 +184,7 @@ build_sctpd: format_sctpd
 build_session_manager: format_session_manager build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
-build_li_agent: format_li_agent build_common ## Build li agent
+build_li_agent: format_li_agent ## Build li agent
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
 
 build_connection_tracker: format_connection_tracker
