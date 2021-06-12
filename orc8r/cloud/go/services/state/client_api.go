@@ -38,10 +38,10 @@ func GetStateClient() (protos.StateServiceClient, error) {
 }
 
 // GetState returns the state specified by the networkID, typeVal, and hwID.
-func GetState(networkID string, typ string, hwID string, serdes serde.Registry) (state_types.State, error) {
+func GetState(ctx context.Context, networkID string, typ string, hwID string, serdes serde.Registry) (state_types.State, error) {
 	id := state_types.ID{Type: typ, DeviceID: hwID}
 
-	states, err := GetStates(networkID, state_types.IDs{id}, serdes)
+	states, err := GetStates(ctx, networkID, state_types.IDs{id}, serdes)
 	if err != nil {
 		return state_types.State{}, err
 	}
@@ -55,7 +55,7 @@ func GetState(networkID string, typ string, hwID string, serdes serde.Registry) 
 
 // GetStates returns a map of states specified by the networkID and a list of
 // type and key.
-func GetStates(networkID string, stateIDs state_types.IDs, serdes serde.Registry) (state_types.StatesByID, error) {
+func GetStates(ctx context.Context, networkID string, stateIDs state_types.IDs, serdes serde.Registry) (state_types.StatesByID, error) {
 	if len(stateIDs) == 0 {
 		return state_types.StatesByID{}, nil
 	}
@@ -66,7 +66,8 @@ func GetStates(networkID string, stateIDs state_types.IDs, serdes serde.Registry
 	}
 
 	res, err := client.GetStates(
-		context.Background(), &protos.GetStatesRequest{
+		ctx,
+		&protos.GetStatesRequest{
 			NetworkID: networkID,
 			Ids:       makeProtoIDs(stateIDs),
 		},
@@ -83,7 +84,7 @@ func GetStates(networkID string, stateIDs state_types.IDs, serdes serde.Registry
 // If keyPrefix is defined (non-nil and non-empty), it will take precedence
 // the keyFilter argument.
 // e.g.: ["t1", "t2"], ["k1", "k2"] => (t1 OR t2) AND (k1 OR k2)
-func SearchStates(networkID string, typeFilter []string, keyFilter []string, keyPrefix *string, serdes serde.Registry) (state_types.StatesByID, error) {
+func SearchStates(ctx context.Context, networkID string, typeFilter []string, keyFilter []string, keyPrefix *string, serdes serde.Registry) (state_types.StatesByID, error) {
 	client, err := GetStateClient()
 	if err != nil {
 		return nil, err
@@ -99,7 +100,7 @@ func SearchStates(networkID string, typeFilter []string, keyFilter []string, key
 		req.IdPrefix = *keyPrefix
 		req.IdFilter = nil
 	}
-	res, err := client.GetStates(context.Background(), req)
+	res, err := client.GetStates(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -109,13 +110,13 @@ func SearchStates(networkID string, typeFilter []string, keyFilter []string, key
 
 // DeleteStates deletes states specified by the networkID and a list of
 // type and key.
-func DeleteStates(networkID string, stateIDs state_types.IDs) error {
+func DeleteStates(ctx context.Context, networkID string, stateIDs state_types.IDs) error {
 	client, err := GetStateClient()
 	if err != nil {
 		return err
 	}
 	_, err = client.DeleteStates(
-		context.Background(),
+		ctx,
 		&protos.DeleteStatesRequest{
 			NetworkID: networkID,
 			Ids:       makeProtoIDs(stateIDs),
@@ -126,7 +127,7 @@ func DeleteStates(networkID string, stateIDs state_types.IDs) error {
 
 // GetSerializedStates returns a map of states specified by the networkID and
 // a list of type and key.
-func GetSerializedStates(networkID string, stateIDs state_types.IDs) (state_types.SerializedStatesByID, error) {
+func GetSerializedStates(ctx context.Context, networkID string, stateIDs state_types.IDs) (state_types.SerializedStatesByID, error) {
 	if len(stateIDs) == 0 {
 		return state_types.SerializedStatesByID{}, nil
 	}
@@ -137,7 +138,8 @@ func GetSerializedStates(networkID string, stateIDs state_types.IDs) (state_type
 	}
 
 	res, err := client.GetStates(
-		context.Background(), &protos.GetStatesRequest{
+		ctx,
+		&protos.GetStatesRequest{
 			NetworkID: networkID,
 			Ids:       makeProtoIDs(stateIDs),
 		},

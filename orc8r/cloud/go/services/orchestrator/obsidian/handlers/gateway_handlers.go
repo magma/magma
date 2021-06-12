@@ -97,6 +97,7 @@ func listGatewaysHandler(c echo.Context) error {
 		return nerr
 	}
 
+	reqCtx := c.Request().Context()
 	ents, _, err := configurator.LoadEntities(
 		nid, swag.String(orc8r.MagmadGatewayType), nil, nil, nil,
 		configurator.FullEntityLoadCriteria(),
@@ -120,7 +121,7 @@ func listGatewaysHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load devices"), http.StatusInternalServerError)
 	}
-	statusesByID, err := wrappers.GetGatewayStatuses(nid, deviceIDs)
+	statusesByID, err := wrappers.GetGatewayStatuses(reqCtx, nid, deviceIDs)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
 	}
@@ -242,7 +243,7 @@ func LoadMagmadGateway(ctx context.Context, networkID string, gatewayID string) 
 	if err != nil && err != merrors.ErrNotFound {
 		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	status, err := wrappers.GetGatewayStatus(networkID, ent.PhysicalID)
+	status, err := wrappers.GetGatewayStatus(ctx, networkID, ent.PhysicalID)
 	if err != nil && err != merrors.ErrNotFound {
 		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -400,6 +401,7 @@ func GetStateHandler(c echo.Context) error {
 		return nerr
 	}
 
+	reqCtx := c.Request().Context()
 	physicalID, err := configurator.GetPhysicalIDOfEntity(networkID, orc8r.MagmadGatewayType, gatewayID)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
@@ -407,7 +409,7 @@ func GetStateHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	st, err := wrappers.GetGatewayStatus(networkID, physicalID)
+	st, err := wrappers.GetGatewayStatus(reqCtx, networkID, physicalID)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {

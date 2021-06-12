@@ -420,7 +420,9 @@ func getEnodebState(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	st, err := state.GetState(nid, lte.EnodebStateType, eid, serdes.State)
+
+	reqCtx := c.Request().Context()
+	st, err := state.GetState(reqCtx, nid, lte.EnodebStateType, eid, serdes.State)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {

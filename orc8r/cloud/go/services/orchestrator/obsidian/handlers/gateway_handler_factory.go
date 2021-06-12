@@ -215,6 +215,7 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 				return nerr
 			}
 
+			reqCtx := c.Request().Context()
 			ids, err := configurator.ListEntityKeys(nid, gateway.GetGatewayType())
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -273,7 +274,7 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 			if err != nil {
 				return obsidian.HttpError(errors.Wrap(err, "failed to load devices"), http.StatusInternalServerError)
 			}
-			statusesByID, err := wrappers.GetGatewayStatuses(nid, deviceIDs)
+			statusesByID, err := wrappers.GetGatewayStatuses(reqCtx, nid, deviceIDs)
 			if err != nil {
 				return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
 			}
