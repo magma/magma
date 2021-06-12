@@ -28,7 +28,7 @@ import (
 )
 
 func TestParseSwaggerDependencyTree(t *testing.T) {
-	actual, err := generate.ParseSwaggerDependencyTree("../testdata/importer2.yml", os.Getenv("MAGMA_ROOT"))
+	actual, err := generate.ParseSwaggerDependencyTree("../testdata/importer2.yml", "../testdata")
 	assert.NoError(t, err)
 
 	expectedFiles := []string{"../testdata/base.yml", "../testdata/importer.yml", "../testdata/importer2.yml"}
@@ -38,7 +38,7 @@ func TestParseSwaggerDependencyTree(t *testing.T) {
 }
 
 func TestParseSwaggerDependencyTree_Cycle(t *testing.T) {
-	actual, err := generate.ParseSwaggerDependencyTree("../testdata/cycle1.yml", os.Getenv("MAGMA_ROOT"))
+	actual, err := generate.ParseSwaggerDependencyTree("../testdata/cycle1.yml", "../testdata")
 	assert.NoError(t, err)
 
 	expectedFiles := []string{"../testdata/cycle1.yml", "../testdata/cycle2.yml"}
@@ -57,10 +57,9 @@ func TestGenerateModels(t *testing.T) {
 func runTestGenerateCase(t *testing.T, ymlFile string, outputDir string) {
 	defer cleanupActualFiles(outputDir)
 
-	rootDir := os.Getenv("MAGMA_ROOT")
-	specs, err := generate.ParseSwaggerDependencyTree(ymlFile, rootDir)
+	specs, err := generate.ParseSwaggerDependencyTree(ymlFile, "../testdata")
 	assert.NoError(t, err)
-	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", rootDir, specs)
+	err = generate.GenerateModels(ymlFile, "../testdata/config.yml", "../testdata", specs)
 	assert.NoError(t, err)
 
 	// Verify that generated files are the same as the expected golden files
@@ -105,17 +104,10 @@ func parseExpectedFiles(t *testing.T, files []string) map[string]generate.MagmaS
 }
 
 func cleanupActualFiles(outputDir string) {
-	_ = recover()
-
-	cleanupFiles := []string{}
 	_ = filepath.Walk(outputDir, func(path string, _ os.FileInfo, _ error) error {
-		if strings.HasSuffix(path, "actual") {
-			cleanupFiles = append(cleanupFiles, path)
+		if strings.HasSuffix(path, ".actual") {
+			_ = os.Remove(path)
 		}
 		return nil
 	})
-
-	for _, cleanupFile := range cleanupFiles {
-		_ = os.Remove(cleanupFile)
-	}
 }
