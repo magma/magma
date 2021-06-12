@@ -296,8 +296,7 @@ int emm_proc_identification_complete(
         /*
          * Update the GUTI
          */
-        AssertFatal(
-            false,
+        Fatal(
             "TODO, should not happen because this type of identity is not "
             "requested by MME");
       }

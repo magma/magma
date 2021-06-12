@@ -27,6 +27,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"os"
 
 	"magma/orc8r/cloud/go/obsidian/swagger/spec"
 	"magma/orc8r/cloud/go/tools/combine_swagger/combine"
@@ -67,7 +68,7 @@ func main() {
 	}
 
 	if *generateStandAloneSpec {
-		err := generate.GenerateStandaloneSpecs(*inDir)
+		err := generate.GenerateStandaloneSpecs(*inDir, os.Getenv("MAGMA_ROOT"))
 		if err != nil {
 			glog.Fatalf("Error generating standalone Swagger specs %+v", err)
 		}

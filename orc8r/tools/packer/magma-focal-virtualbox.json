@@ -51,6 +51,25 @@
         [
           "modifyvm",
           "{{.Name}}",
+          "--uart1",
+          "0x3F8",
+          "4"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--nestedpaging",
+          "off"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
+          "--paravirtprovider",
+          "hyperv"
+        ],
+        [
+          "modifyvm",
+          "{{.Name}}",
           "--cpus",
           "2"
         ]
@@ -91,11 +110,9 @@
       "type": "shell"
     },
     {
-      "extra_arguments": [
-        "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"
-      ],
-      "inventory_groups": "dev",
+      "type": "ansible-local",
       "playbook_file": "../../../lte/gateway/deploy/magma_dev_focal.yml",
+      "inventory_groups": "focal_dev",
       "role_paths": [
         "../../../orc8r/tools/ansible/roles/apt_cache",
         "../../../orc8r/tools/ansible/roles/distro_snapshot",
@@ -124,7 +141,9 @@
         "../../../lte/gateway/deploy/roles/trfserver",
         "../../../lte/gateway/deploy/roles/uselocalpkgrepo"
       ],
-      "type": "ansible-local"
+      "extra_arguments": [
+        "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"
+      ]
     }
   ],
   "variables": {

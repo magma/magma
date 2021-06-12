@@ -70,6 +70,9 @@ include_directories(${MAGMA_COMMON_INCL_DIR})
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
+add_subdirectory(datastore)
+add_subdirectory(policydb)
+
 # compile the needed macros
 create_proto_dir("lte" LTE_CPP_OUT_DIR)
 create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)

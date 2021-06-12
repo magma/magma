@@ -16,6 +16,7 @@
  */
 
 #include "s1ap_state_manager.h"
+#include "common_defs.h"
 
 namespace {
 constexpr char S1AP_ENB_COLL[]             = "s1ap_eNB_coll";
@@ -126,7 +127,7 @@ void S1apStateManager::free_state() {
   clear_s1ap_imsi_map();
 }
 
-int S1apStateManager::read_ue_state_from_db() {
+status_code_e S1apStateManager::read_ue_state_from_db() {
   if (!persist_state_enabled) {
     return RETURNok;
   }

@@ -76,6 +76,10 @@
   copy: src=99-magma.conf dest=/etc/sysctl.d/99-magma.conf
   when: full_provision
 
+- name: Copy set_irq_affinity
+  copy: src=set_irq_affinity dest=/usr/local/bin/set_irq_affinity mode=751
+  when: full_provision
+
 - name: Add the sysctl config from the step before
   become: yes
   command: 'sysctl -p /etc/sysctl.d/99-magma.conf'
@@ -134,7 +138,7 @@
   when: full_provision
 
 - name: Create symlink for connectiond binary
-  file: src='{{ c_build }}/connection_tracker/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
+  file: src='{{ c_build }}/connection_tracker/src/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for li agent binary
@@ -386,6 +390,7 @@
   when: ansible_distribution == "Ubuntu"
 
 - name: Bring up ovs bridge
+  ignore_errors: yes
   shell: ifup -i /etc/network/interfaces.d/gtp {{ item }}
   with_items:
     - gtp_br0

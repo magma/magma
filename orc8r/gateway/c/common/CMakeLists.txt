@@ -49,19 +49,6 @@ ExternalProject_Add(Service303
         DEPENDS MagmaConfig
         DEPENDS MagmaLogging)
 
-ExternalProject_Add(Datastore
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/datastore
-        BINARY_DIR ${CMAKE_BINARY_DIR}/datastore
-        INSTALL_COMMAND ""
-        DEPENDS MagmaLogging)
-
-ExternalProject_Add(PolicyDb
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/policydb
-        BINARY_DIR ${CMAKE_BINARY_DIR}/policydb
-        INSTALL_COMMAND ""
-        DEPENDS Datastore
-        DEPENDS MagmaLogging)
-
 ExternalProject_Add(Eventd
         SOURCE_DIR ${CMAKE_SOURCE_DIR}/eventd
         BINARY_DIR ${CMAKE_BINARY_DIR}/eventd

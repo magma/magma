@@ -13,10 +13,8 @@ limitations under the License.
 import asyncio
 import calendar
 import logging
-import math
-import sys
 import time
-from typing import Callable, Dict, List, NamedTuple, Optional
+from typing import Callable, Dict, List, NamedTuple, Optional, Union
 
 import metrics_pb2
 import prometheus_client.core
@@ -51,7 +49,7 @@ class MetricsCollector(object):
         collect_interval: int,
         sync_interval: int,
         grpc_timeout: int,
-        grpc_max_msg_size_mb: int,
+        grpc_max_msg_size_mb: Union[int, float],
         loop: Optional[asyncio.AbstractEventLoop] = None,
         post_processing_fn: Optional[Callable] = None,
         scrape_targets: [ScrapeTarget] = None,
@@ -218,16 +216,22 @@ class MetricsCollector(object):
         )
 
     def _chunk_samples(self, samples):
-        # Add 1kiB fpr gRPC overhead
-        sample_size_bytes = sys.getsizeof(samples) + 1000
-        buckets = math.ceil(
-            sample_size_bytes / self.grpc_max_msg_size_bytes,
-        )
-        sample_length = len(samples)
-        chunk_size = sample_length // buckets
+        # Add 1kiB for gRPC overhead
+        max_msg_bytes = self.grpc_max_msg_size_bytes - 1000
 
-        for i in range(0, sample_length, chunk_size):
-            yield samples[i:i + chunk_size]
+        chunked_samples = []
+        chunked_samples_size = 0
+        for s in samples:
+            if chunked_samples_size + s.ByteSize() <= max_msg_bytes:
+                chunked_samples.append(s)
+                chunked_samples_size += s.ByteSize()
+            else:
+                yield chunked_samples
+                chunked_samples = [s]
+                chunked_samples_size = s.ByteSize()
+        # Send leftover samples
+        if chunked_samples_size > 0:
+            yield chunked_samples
 
     def scrape_prometheus_target(self, target: ScrapeTarget) -> None:
         """
@@ -256,11 +260,6 @@ class MetricsCollector(object):
         """
         Send parsed and protobuf-converted metrics to cloud.
         """
-        metrics_container = MetricsContainer(
-            gatewayId=snowflake.snowflake(),
-            family=metrics,
-        )
-
         chan = ServiceRegistry.get_rpc_channel(
             'metricsd',
             ServiceRegistry.CLOUD,
@@ -268,16 +267,21 @@ class MetricsCollector(object):
         )
 
         client = MetricsControllerStub(chan)
-        future = client.Collect.future(
-            metrics_container,
-            self.grpc_timeout,
-        )
-        future.add_done_callback(
-            lambda future:
-            self._loop.call_soon_threadsafe(
-                self.scrape_done, future, target,
-            ),
-        )
+        for chunk in self._chunk_samples(metrics):
+            metrics_container = MetricsContainer(
+                gatewayId=snowflake.snowflake(),
+                family=chunk,
+            )
+            future = client.Collect.future(
+                metrics_container,
+                self.grpc_timeout,
+            )
+            future.add_done_callback(
+                lambda future:
+                self._loop.call_soon_threadsafe(
+                    self.scrape_done, future, target,
+                ),
+            )
 
     def scrape_done(self, collect_future, target):
         """

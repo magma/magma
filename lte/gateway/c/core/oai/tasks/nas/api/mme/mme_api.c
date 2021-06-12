@@ -102,7 +102,10 @@ static int copy_plmn_from_config(
 int mme_api_get_emm_config(
     mme_api_emm_config_t* config, const struct mme_config_s* mme_config_p) {
   OAILOG_FUNC_IN(LOG_NAS);
-  AssertFatal(mme_config_p->served_tai.nb_tai >= 1, "No TAI configured");
+  if (mme_config_p->served_tai.nb_tai < 1) {
+    OAILOG_ERROR(LOG_NAS, "No TAI configured\n");
+    OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
+  }
   OAILOG_INFO(
       LOG_NAS, "Number of GUMMEIs supported = %d\n", mme_config_p->gummei.nb);
 
@@ -128,15 +131,19 @@ int mme_api_get_emm_config(
             &(mme_config_p->served_tai), i,
             &(config->tai_list.partial_tai_list[tai_list_i]
                   .u.tai_one_plmn_consecutive_tacs.plmn));
-        AssertFatal(rc == RETURNok, "BAD MNC length in SERVED TAI");
+        if (rc != RETURNok) {
+          OAILOG_ERROR(LOG_NAS, "BAD MNC length in SERVED TAI\n");
+          OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
+        }
         config->tai_list.partial_tai_list[tai_list_i]
             .u.tai_one_plmn_consecutive_tacs.tac =
             mme_config_p->served_tai.tac[16 * tai_list_i];
         ++tac_i;
       }
-      AssertFatal(
-          tai_list_i < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI,
-          "Too many TAI partial list in TAI list");
+      if (tai_list_i >= TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI) {
+        OAILOG_ERROR(LOG_NAS, "Too many TAI partial list in TAI list\n");
+        OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
+      }
       // LW: number of elements is coded as N-1 (0 -> 1 element, 1 -> 2
       // elements...), see 3GPP TS 24.301, section 9.9.3.33.1
       config->tai_list.partial_tai_list[tai_list_i].numberofelements =
@@ -175,14 +182,18 @@ int mme_api_get_emm_config(
             &(config->tai_list.partial_tai_list[tai_list_i]
                   .u.tai_many_plmn[tac_i]
                   .plmn));
-        AssertFatal(rc == RETURNok, "BAD MNC length in SERVED TAI");
+        if (rc != RETURNok) {
+          OAILOG_ERROR(LOG_NAS, "BAD MNC length in SERVED TAI\n");
+          OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
+        }
         config->tai_list.partial_tai_list[tai_list_i].u.tai_many_plmn[i].tac =
             mme_config_p->served_tai.tac[i];
         ++tac_i;
       }
-      AssertFatal(
-          tai_list_i < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI,
-          "Too many TAI partial list in TAI list");
+      if (tai_list_i >= TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI) {
+        OAILOG_ERROR(LOG_NAS, "Too many TAI partial list in TAI list\n");
+        OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
+      }
       // LW: number of elements is coded as N-1 (0 -> 1 element, 1 -> 2
       // elements...), see 3GPP TS 24.301, section 9.9.3.33.1
       config->tai_list.partial_tai_list[tai_list_i].numberofelements =
@@ -207,15 +218,19 @@ int mme_api_get_emm_config(
             &(mme_config_p->served_tai), i,
             &(config->tai_list.partial_tai_list[tai_list_i]
                   .u.tai_one_plmn_non_consecutive_tacs.plmn));
-        AssertFatal(rc == RETURNok, "BAD MNC length in SERVED TAI");
+        if (rc != RETURNok) {
+          OAILOG_ERROR(LOG_NAS, "BAD MNC length in SERVED TAI\n");
+          OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
+        }
         config->tai_list.partial_tai_list[tai_list_i]
             .u.tai_one_plmn_non_consecutive_tacs.tac[tac_i] =
             mme_config_p->served_tai.tac[i];
         ++tac_i;
       }
-      AssertFatal(
-          tai_list_i < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI,
-          "Too many TAI partial list in TAI list");
+      if (tai_list_i >= TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI) {
+        OAILOG_ERROR(LOG_NAS, "Too many TAI partial list in TAI list\n");
+        OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
+      }
       // LW: number of elements is coded as N-1 (0 -> 1 element, 1 -> 2
       // elements...), see 3GPP TS 24.301, section 9.9.3.33.1
       config->tai_list.partial_tai_list[tai_list_i].numberofelements =
@@ -224,9 +239,11 @@ int mme_api_get_emm_config(
       break;
     }
     default:
-      AssertFatal(
-          0, "BAD TAI list configuration, unknown TAI list type %u",
+      OAILOG_ERROR(
+          LOG_NAS,
+          "BAD TAI list configuration, unknown TAI list type %u\n",
           mme_config_p->served_tai.list_type);
+      OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }
   // Read GUMMEI List
   config->gummei.num_gummei = mme_config_p->gummei.nb;
@@ -526,8 +543,8 @@ int mme_api_new_guti(
         }
         break;
       default:
-        AssertFatal(
-            0, "BAD TAI list configuration, unknown TAI list type %u",
+        Fatal(
+            "BAD TAI list configuration, unknown TAI list type %u",
             _emm_data.conf.tai_list.partial_tai_list[i].typeoflist);
     }
 

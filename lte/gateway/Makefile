@@ -128,10 +128,10 @@ cp -r $(REPORT_DIR) $(MAGMA_ROOT)
 @echo "Reports in magma/reports/.../index.html"
 endef
 
-# run_ctest BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS
+# run_ctest BUILD_DIRECTORY, TEST_BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS
 define run_ctest
-$(call run_cmake, $(1), $(2), $(3) $(TEST_FLAG))
-cd $(1) && ctest --output-on-failure
+$(call run_cmake, $(1), $(3), $(4) $(TEST_FLAG))
+cd $(2) && ctest --output-on-failure
 endef
 
 format_common:
@@ -187,7 +187,7 @@ build_session_manager: format_session_manager build_common ## Build session mana
 build_li_agent: format_li_agent build_common ## Build li agent
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
 
-build_connection_tracker: format_connection_tracker build_common ## Build connection tracker
+build_connection_tracker: format_connection_tracker
 	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
 
 build_envoy_controller: ## Build envoy controller
@@ -205,15 +205,18 @@ test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
 test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
+	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
+
+test_sctpd: ## Run all OAI-specific tests
+	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
 
 test_common: build_common ## Run all tests in magma_common
-	$(call run_ctest, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
+	$(call run_ctest, $(C_BUILD)/magma_common, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
 test_%: build_common
-	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+	$(call run_ctest, $(C_BUILD)/$*, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
 
 coverage_oai: test_oai
 	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_oai.info.raw

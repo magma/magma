@@ -28,6 +28,7 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 
+	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -50,10 +51,14 @@ func StartTestService(t *testing.T) {
 	ipStore := storage.NewIPLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, ipStore.Initialize())
 
+	// Load service configs
+	serviceConfig := subscriberdb.MustGetServiceConfig()
+	glog.Infof("Subscriberdb service config %v", serviceConfig)
+
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer())
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig))
 
 	// Run service
 	go srv.RunTest(lis)

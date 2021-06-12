@@ -18,6 +18,7 @@ extern "C" {
 
 #include "sgw_context_manager.h"
 #include "sgw_s8_state_manager.h"
+#include "common_defs.h"
 
 namespace magma {
 namespace lte {
@@ -107,7 +108,7 @@ void SgwStateManager::free_state() {
   free_wrapper((void**) &state_cache_p);
 }
 
-int SgwStateManager::read_ue_state_from_db() {
+status_code_e SgwStateManager::read_ue_state_from_db() {
   /* TODO handle stateless for SGW_S8 task */
   return RETURNok;
 }

@@ -4075,7 +4075,7 @@ int s1ap_mme_handle_erab_setup_response(
 int s1ap_mme_handle_erab_setup_failure(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message) {
-  AssertFatal(0, "TODO");
+  Fatal("TODO Implement s1ap_mme_handle_erab_setup_failure");
 }
 
 //------------------------------------------------------------------------------
@@ -4684,8 +4684,7 @@ int s1ap_mme_handle_erab_modification_indication(
                .s1_xNB_fteid.ipv6_address,
           transport_layer_address->data, blength(transport_layer_address));
     } else {
-      AssertFatal(
-          0, "TODO IP address %d bytes", blength(transport_layer_address));
+      Fatal("TODO IP address %d bytes", blength(transport_layer_address));
     }
     bdestroy_wrapper(&transport_layer_address);
 
@@ -4741,8 +4740,7 @@ int s1ap_mme_handle_erab_modification_indication(
                  .s1_xNB_fteid.ipv6_address,
             transport_layer_address->data, blength(transport_layer_address));
       } else {
-        AssertFatal(
-            0, "TODO IP address %d bytes", blength(transport_layer_address));
+        Fatal("TODO IP address %d bytes", blength(transport_layer_address));
       }
       bdestroy_wrapper(&transport_layer_address);
 
