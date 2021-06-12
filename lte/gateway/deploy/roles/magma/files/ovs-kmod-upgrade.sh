@@ -23,6 +23,7 @@ done
 apt update
 apt install -y  openvswitch-datapath-dkms libopenvswitch openvswitch-common openvswitch-switch python3-openvswitch
 
+dkms autoinstall
 service magma@* stop
 sleep 5
 ifdown gtp_br0
