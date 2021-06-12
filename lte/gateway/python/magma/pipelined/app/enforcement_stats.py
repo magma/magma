@@ -572,9 +572,9 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
                     reply_multi=False)
             if response:
-                flows = self._get_usage_from_flow_stat(response.body)
+                usage = self._get_usage_from_flow_stat(response.body)
                 record_table = RuleRecordTable(
-                    records=flows.values(),
+                    records=usage.values(),
                     epoch=global_epoch)
                 return record_table
             else:
