@@ -233,7 +233,7 @@ def main():
         command_executor = get_command_executor_impl(service)
 
     # Start loop to monitor unattended upgrade status
-    service.loop.create_task(monitor_unattended_upgrade_status(service.loop))
+    service.loop.create_task(monitor_unattended_upgrade_status())
 
     # Add all servicers to the server
     magmad_servicer = MagmadRpcServicer(
