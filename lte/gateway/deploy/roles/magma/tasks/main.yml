@@ -138,7 +138,7 @@
   when: full_provision
 
 - name: Create symlink for connectiond binary
-  file: src='{{ c_build }}/connection_tracker/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
+  file: src='{{ c_build }}/connection_tracker/src/connectiond' path=/usr/local/bin/connectiond state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for li agent binary
