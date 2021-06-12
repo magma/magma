@@ -19,12 +19,13 @@ import (
 	"testing"
 	"time"
 
-	context2 "golang.org/x/net/context"
 	"magma/orc8r/cloud/go/identity"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/certifier/test_init"
 	"magma/orc8r/lib/go/security/cert"
 	"magma/orc8r/lib/go/security/csr"
+
+	context2 "golang.org/x/net/context"
 
 	"github.com/stretchr/testify/assert"
 )
