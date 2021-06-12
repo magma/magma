@@ -128,7 +128,6 @@ MAGMA_DEPS=(
     "libfolly-dev" # required for C++ services
     "libdouble-conversion-dev" # required for folly
     "libboost-chrono-dev" # required for folly
-    "td-agent-bit >= 1.3.2" # fluent-bit
     "ntpdate" # required for eventd time synchronization
     "python3-scapy >= 2.4.3-4"
     "tshark" # required for call tracing
@@ -141,10 +140,12 @@ MAGMA_DEPS=(
 if grep -q stretch /etc/os-release; then
     MAGMA_DEPS+=("libprotobuf10 >= 3.0.0")
     MAGMA_DEPS+=("nlohmann-json-dev")
+    MAGMA_DEPS+=("td-agent-bit >= 1.3.2")
 else
     MAGMA_DEPS+=("libprotobuf17 >= 3.0.0")
     MAGMA_DEPS+=("nlohmann-json3-dev")
     MAGMA_DEPS+=("sentry-native")   # sessiond
+    MAGMA_DEPS+=("td-agent-bit >= 1.7.8")
 fi
 
 # OAI runtime dependencies
@@ -378,7 +379,7 @@ ${LTE_PY_DEPS} \
 ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
-${CONNECTIOND_BUILD}/connectiond=/usr/local/bin/ \
+${CONNECTIOND_BUILD}/src/connectiond=/usr/local/bin/ \
 ${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
 ${COMMIT_HASH_FILE}=/usr/local/share/magma/commit_hash \
