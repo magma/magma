@@ -34,7 +34,6 @@ var (
 	testdataDir    = "../testdata"
 	specsDir       = filepath.Join(testdataDir, "configs")
 	commonFilepath = filepath.Join(testdataDir, "common/common.yml")
-	outFilepath    = filepath.Join(testdataDir, "out.yml")
 	goldenFilepath = filepath.Join(testdataDir, "monolithic.yml.golden")
 )
 
@@ -45,9 +44,6 @@ var (
 //
 // go-swagger mixin: https://goswagger.io/usage/mixin.html
 func TestCombine(t *testing.T) {
-	cleanup()
-	defer cleanup()
-
 	nErrsFromCombine := 9
 
 	yamlCommon, yamlSpecs, err := combine.Load(commonFilepath, specsDir)
@@ -61,17 +57,17 @@ func TestCombine(t *testing.T) {
 	assert.True(t, ok)
 	assert.Len(t, merrs.Errors, nErrsFromCombine)
 
-	err = combine.Write(combined, outFilepath)
+	// '*' is replaced by a random number to ensure uniqueness
+	outFile, err := ioutil.TempFile(testdataDir, "out*.yml")
+	assert.NoError(t, err)
+	defer os.Remove(outFile.Name())
+
+	err = combine.Write(combined, outFile.Name())
 	assert.NoError(t, err)
 
 	expected := readFile(t, goldenFilepath)
-	actual := readFile(t, outFilepath)
+	actual := readFile(t, outFile.Name())
 	assert.Equal(t, expected, actual)
-}
-
-// cleanup cleans up created tmp files.
-func cleanup() {
-	_ = os.Remove(outFilepath)
 }
 
 // readFile returns the content of the passed filepath.
