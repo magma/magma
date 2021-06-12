@@ -27,6 +27,7 @@ from magma.pipelined.openflow.registers import TUN_PORT_REG
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.policy_converters import get_ue_ip_match_args, get_eth_type
 from magma.pipelined.openflow.registers import Direction
+from lte.protos.pipelined_pb2 import PdrState
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
@@ -376,3 +377,19 @@ class Classifier(MagmaController):
             flows.delete_flow(self._datapath, self.tbl_num, match,
                               priority=priority + 1)
 
+    def gtp_handler(self, pdr_state, precedence:int, local_f_teid:int,
+                    o_teid:int, ue_ip_addr:IPAddress, gnb_ip_addr:str,
+                    sid:int = None, ng_flag: bool = True):
+
+        if pdr_state == PdrState.Value('INSTALL'):
+            self.add_tunnel_flows(precedence, local_f_teid,
+                                  o_teid, ue_ip_addr,
+                                  gnb_ip_addr, sid)
+
+        elif pdr_state == PdrState.Value('IDLE'):
+            self.delete_tunnel_flows(local_f_teid, ue_ip_addr)
+
+        elif pdr_state == PdrState.Value('REMOVE'):
+            self.delete_tunnel_flows(local_f_teid, ue_ip_addr)
+
+        return True

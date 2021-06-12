@@ -160,7 +160,7 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         self._qos_mgr.remove_subscriber_qos(imsi, num)
         self._remove_he_flows(ip_addr, rule_id)
 
-    def _install_flow_for_rule(self, imsi, msisdn:bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn:bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule, ng_session_id):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -193,6 +193,16 @@ class GYController(PolicyMixin, RestartMixin, MagmaController):
         return None
 
     def _install_default_flow_for_subscriber(self, *_):
+        pass
+
+    def _install_default_ng_flow_for_subscriber(self, imsi, ip_addr, ng_session_id):
+        """
+        Install a flow for the subscriber in the event no rule is matched.
+        Subclass should implement this.
+
+        Args:
+            imsi (string): subscriber id
+        """
         pass
 
     def _delete_all_flows(self, datapath):

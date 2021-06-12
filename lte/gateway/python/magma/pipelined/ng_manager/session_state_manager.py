@@ -76,6 +76,9 @@ class SessionStateManager:
                                            version=pdr_entry.pdr_version)
                 return MsgParseOutput(offending_ie, CauseIE.INVALID_FORWARDING_POLICY)
 
+            if not pdr_entry.pdi.ue_ip_adr:
+                return MsgParseOutput(offending_ie, CauseIE.MANDATORY_IE_INCORRECT)
+
             pdr_rules.update({pdr_entry.pdr_id: pdr_create_rule_entry(pdr_entry)})
 
         return None
