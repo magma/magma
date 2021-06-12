@@ -213,6 +213,10 @@ test_sctpd: ## Run all OAI-specific tests
 test_common: build_common ## Run all tests in magma_common
 	$(call run_ctest, $(C_BUILD)/magma_common, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
+test_li_agent:
+	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )
+
+
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
 test_%: build_common
