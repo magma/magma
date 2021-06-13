@@ -41,7 +41,8 @@ from lte.protos.policydb_pb2 import (
     PolicyRule,
     RedirectInformation,
 )
-from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
+
+from lte.protos.apn_pb2 import AggregatedMaximumBitrate
 from magma.common.rpc_utils import grpc_wrapper
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.app.enforcement import EnforcementController
