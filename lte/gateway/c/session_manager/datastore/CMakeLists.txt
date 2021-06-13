@@ -22,8 +22,8 @@ list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 set(ASYNC_ORC8R_CPP_PROTOS common redis)
-set(ASYNC_LTE_CPP_PROTOS session_manager policydb mobilityd apn subscriberdb)
-set(ASYNC_LTE_GRPC_PROTOS session_manager)
+set(ASYNC_LTE_CPP_PROTOS "")
+set(ASYNC_LTE_GRPC_PROTOS "")
 set(ASYNC_ORC8R_GRPC_PROTOS "")
 
 generate_all_protos("${ASYNC_LTE_CPP_PROTOS}" "${ASYNC_ORC8R_CPP_PROTOS}"
