@@ -59,8 +59,6 @@ include_directories(${MAGMA_LIB_DIR}/service303)
 include_directories(${MAGMA_LIB_DIR}/service_registry)
 include_directories(${MAGMA_LIB_DIR}/async_grpc)
 include_directories(${MAGMA_LIB_DIR}/config)
-include_directories(${MAGMA_LIB_DIR}/datastore)
-include_directories(${MAGMA_LIB_DIR}/policydb)
 include_directories(${MAGMA_LIB_DIR}/eventd)
 
 # TODO: Temp workaround until packages are imported by these cmakefile
@@ -112,8 +110,6 @@ link_directories(
   ${MAGMA_LIB_DIR}/async_grpc
   ${MAGMA_LIB_DIR}/config
   ${MAGMA_LIB_DIR}/service303
-  ${MAGMA_LIB_DIR}/datastore
-  ${MAGMA_LIB_DIR}/policydb
   ${MAGMA_LIB_DIR}/eventd
   ${MAGMA_LIB_DIR}/service_registry)
 
