@@ -106,8 +106,9 @@ class SessionRuleToVersionMapper:
             ip_addr_str = ip_addr.address.decode('utf-8').strip()
         with self._lock:
             for k, v in self._version_by_imsi_and_rule.items():
-                _, imsi, ip_addr_str, _ = SubscriberRuleKey(*json.loads(k))
-                if imsi == encoded_imsi and ip_addr_str == ip_addr_str:
+                _, cur_imsi, cur_ip_addr_str, _ = SubscriberRuleKey(*json.loads(k))
+                if cur_imsi == encoded_imsi and (ip_addr_str == "" or
+                                                 ip_addr_str == cur_ip_addr_str):
                     self._version_by_imsi_and_rule[k] = v + 1
 
     def save_version(self, imsi: str, ip_addr: IPAddress,
