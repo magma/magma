@@ -26,6 +26,7 @@
 #include "3gpp_requirements_24.301.h"
 #include "common_types.h"
 #include "common_defs.h"
+#include "common_utility_funs.h"
 #include "3gpp_24.008.h"
 #include "mme_app_ue_context.h"
 #include "emm_proc.h"
