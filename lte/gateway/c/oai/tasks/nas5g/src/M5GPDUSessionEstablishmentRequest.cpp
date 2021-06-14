@@ -67,19 +67,6 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
     return decoded_result;
   else
     decoded += decoded_result;
-  if ((decoded_result =
-           pdu_session_estab_request->pdu_session_type.DecodePDUSessionTypeMsg(
-               &pdu_session_estab_request->pdu_session_type, PDU_SESSION_TYPE,
-               buffer + decoded, len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result = pdu_session_estab_request->ssc_mode.DecodeSSCModeMsg(
-           &pdu_session_estab_request->ssc_mode, SSC_MODE, buffer + decoded,
-           len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
 
   while (decoded < len) {
     // Size is incremented for the unhandled types by 1 byte
@@ -89,6 +76,30 @@ int PDUSessionEstablishmentRequestMsg::DecodePDUSessionEstablishmentRequestMsg(
     decoded_result = 0;
 
     switch (type) {
+      case REQUEST_PDU_SESSION_TYPE_TYPE:
+        if ((decoded_result =
+                 pdu_session_estab_request->pdu_session_type
+                     .DecodePDUSessionTypeMsg(
+                         &pdu_session_estab_request->pdu_session_type,
+                         REQUEST_PDU_SESSION_TYPE_TYPE, buffer + decoded,
+                         len - decoded)) < 0) {
+          return decoded_result;
+        } else {
+          decoded += decoded_result;
+        }
+        break;
+
+      case REQUEST_SSC_MODE_TYPE:
+        if ((decoded_result =
+                 pdu_session_estab_request->ssc_mode.DecodeSSCModeMsg(
+                     &pdu_session_estab_request->ssc_mode,
+                     REQUEST_SSC_MODE_TYPE, buffer + decoded, len - decoded)) <
+            0) {
+          return decoded_result;
+        } else {
+          decoded += decoded_result;
+        }
+        break;
       case REQUEST_5GSM_CAPABILITY_TYPE:
       case REQUEST_MAXIMUM_NUMBER_OF_SUPPORTED_PACKET_FILTERS_TYPE:
       case REQUEST_ALWAYS_ON_PDU_SESSION_REQUESTED_TYPE:

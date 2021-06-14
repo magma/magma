@@ -23,14 +23,19 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "3gpp_23.003.h"
 #include "common_defs.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_authentication.h"
 #include "amf_recv.h"
 #include "amf_identity.h"
 #include "amf_sap.h"
+#include "M5GAuthenticationServiceClient.h"
+
 #define AMF_CAUSE_SUCCESS (1)
 #define MAX_5G_AUTH_VECTORS 1
+
+using magma5g::AsyncM5GAuthenticationServiceClient;
 
 namespace magma5g {
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
@@ -38,6 +43,16 @@ extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 amf_as_data_t amf_data_sec_auth;
 static int authenthication_t3560_handler(
     zloop_t* loop, int timer_id, void* output);
+
+/***************************************************************************
+ ** Name: Stop the T3560 timers                                           **
+ **************************************************************************/
+void amf_proc_stop_t3560_timer(nas5g_amf_auth_proc_t* auth_proc) {
+  if (auth_proc) {
+    stop_timer(&amf_app_task_zmq_ctx, auth_proc->T3560.id);
+  }
+}
+
 /****************************************************************************
  **                                                                        **
  ** Name:        nas_itti_auth_info_req()                                  **
@@ -158,6 +173,9 @@ static int start_authentication_information_procedure(
     amf_context_t* amf_context, nas5g_amf_auth_proc_t* const auth_proc,
     const_bstring auts) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
+
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+
   amf_ue_ngap_id_t ue_id =
       PARENT_STRUCT(amf_context, ue_m5gmm_context_s, amf_context)
           ->amf_ue_ngap_id;
@@ -165,18 +183,56 @@ static int start_authentication_information_procedure(
   nas5g_auth_info_proc_t* auth_info_proc =
       get_nas5g_cn_procedure_auth_info(amf_context);
   if (!auth_info_proc) {
-    auth_info_proc               = nas5g_cn_auth_info_procedure(amf_context);
+    auth_info_proc = nas5g_new_cn_auth_info_procedure(amf_context);
     auth_info_proc->request_sent = false;
   }
-  auth_info_proc->ue_id        = ue_id;
-  auth_info_proc->resync       = auth_info_proc->request_sent;
-  plmn_t visited_plmn          = {0};
+
+  auth_info_proc->cn_proc.base_proc.parent =
+      &auth_proc->amf_com_proc.amf_proc.base_proc;
+  auth_proc->amf_com_proc.amf_proc.base_proc.child =
+      &auth_info_proc->cn_proc.base_proc;
+  // auth_info_proc->success_notif = auth_info_proc_success_cb;
+  // auth_info_proc->failure_notif = auth_info_proc_failure_cb;
+  // auth_info_proc->cn_proc.base_proc.time_out =
+  //    s6a_auth_info_rsp_timer_expiry_handler;
+  auth_info_proc->ue_id  = ue_id;
+  auth_info_proc->resync = auth_info_proc->request_sent;
+
   bool is_initial_req          = !(auth_info_proc->request_sent);
   auth_info_proc->request_sent = true;
-  nas_itti_auth_info_req(
-      ue_id, &amf_context->imsi, is_initial_req, &visited_plmn,
-      MAX_EPS_AUTH_VECTORS, auts);
+
+  IMSI64_TO_STRING(amf_context->imsi64, imsi_str, IMSI_LENGTH);
+
+  if (is_initial_req) {
+    AsyncM5GAuthenticationServiceClient::getInstance().get_subs_auth_info(
+        imsi_str, IMSI_LENGTH, ue_id);
+  } else if (auts->data) {
+    AsyncM5GAuthenticationServiceClient::getInstance()
+        .get_subs_auth_info_resync(
+            imsi_str, IMSI_LENGTH, auts->data, RAND_LENGTH_OCTETS + AUTS_LENGTH,
+            ue_id);
+  }
+
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+}
+
+static int start_authentication_information_procedure_synch(
+    amf_context_t* amf_context, nas5g_amf_auth_proc_t* const auth_proc,
+    const_bstring auts) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+
+  // Ask upper layer to fetch new security context
+  nas5g_auth_info_proc_t* auth_info_proc =
+      get_nas5g_cn_procedure_auth_info(amf_context);
+
+  if (!auth_info_proc) {
+    auth_info_proc = nas5g_new_cn_auth_info_procedure(amf_context);
+    auth_info_proc->request_sent = true;
+    start_authentication_information_procedure(amf_context, auth_proc, auts);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+  }
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
 }
 
 /***************************************************************************
@@ -331,12 +387,13 @@ int amf_proc_authentication(
     auth_proc->amf_com_proc.amf_proc.base_proc.fail_in = NULL;  // only response
     // TODO Negative Scenarios to be taken in future.
     auth_proc->amf_com_proc.amf_proc.base_proc.time_out = NULL;
+
     if (!IS_AMF_CTXT_VALID_AUTH_VECTORS(amf_context)) {
       // Upper layer to fetch new security context
       nas5g_auth_info_proc_t* auth_info_proc =
           get_nas5g_cn_procedure_auth_info(amf_context);
       if (!auth_info_proc) {
-        auth_info_proc = nas5g_cn_auth_info_procedure(amf_context);
+        auth_info_proc = nas5g_new_cn_auth_info_procedure(amf_context);
       }
       if (!auth_info_proc->request_sent) {
         run_auth_info_proc = true;
@@ -412,8 +469,8 @@ int amf_proc_authentication_ksi(
     failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
-  amf_ue_ngap_id_t ue_id;
   nas5g_amf_auth_proc_t* auth_proc;
+  amf_ue_ngap_id_t ue_id;
   auth_proc = get_nas5g_common_procedure_authentication(amf_context);
   if (!auth_proc) {
     auth_proc = nas5g_new_authentication_procedure(amf_context);
@@ -565,6 +622,24 @@ int amf_proc_authentication_complete(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
+inline void amf_ctx_clear_attribute_present(
+    amf_context_t* const ctxt, const int attribute_bit_pos) {
+  ctxt->member_present_mask &= ~attribute_bit_pos;
+  ctxt->member_valid_mask &= ~attribute_bit_pos;
+}
+
+inline void amf_ctx_clear_auth_vectors(amf_context_t* const ctxt) {
+  amf_ctx_clear_attribute_present(ctxt, AMF_CTXT_MEMBER_AUTH_VECTORS);
+
+  for (int i = 0; i < MAX_EPS_AUTH_VECTORS; i++) {
+    memset((void*) &ctxt->_vector[i], 0, sizeof(ctxt->_vector[i]));
+    amf_ctx_clear_attribute_present(ctxt, AMF_CTXT_MEMBER_AUTH_VECTOR0 + i);
+  }
+
+  ctxt->_security.vector_index = AMF_SECURITY_VECTOR_INDEX_INVALID;
+  ;
+}
+
 /****************************************************************************
  **                                                                        **
  ** Name:    amf_proc_authentication_failure()                             **
@@ -674,7 +749,27 @@ int amf_proc_authentication_failure(
       }
     } break;
     case AMF_CAUSE_SYNCH_FAILURE: {
-      // handle SYNCH Failure scenario
+      struct tagbstring resync_param;
+      resync_param.data = (unsigned char*) calloc(1, RESYNC_PARAM_LENGTH);
+      if (resync_param.data == NULL) {
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+      }
+
+      memcpy(
+          resync_param.data,
+          (amf_ctx->_vector[amf_ctx->_security.vector_index].rand),
+          RAND_LENGTH_OCTETS);
+
+      memcpy(
+          (resync_param.data + RAND_LENGTH_OCTETS),
+          msg->auth_failure_ie.authentication_failure_info->data, AUTS_LENGTH);
+
+      start_authentication_information_procedure_synch(
+          amf_ctx, auth_proc, &resync_param);
+      free_wrapper((void**) &resync_param.data);
+
+      amf_ctx_clear_auth_vectors(amf_ctx);
+
     } break;
     default: {
       OAILOG_INFO(LOG_NAS_AMF, "Unsupported 5gmm cause\n");

@@ -186,8 +186,8 @@ int ngap_amf_handle_initial_ue_message(
         Ngap_InitialUEMessage_IEs_t, ie_e_tmsi, container,
         Ngap_ProtocolIE_ID_id_FiveG_S_TMSI, false);
     if (ie_e_tmsi) {
-      OCTET_STRING_TO_AMF_CODE(
-          &ie_e_tmsi->value.choice.FiveG_S_TMSI.aMFSetID, s_tmsi.amf_set_id);
+      FETCH_AMF_SET_ID_FROM_PDU(
+          ie_e_tmsi->value.choice.FiveG_S_TMSI.aMFSetID, s_tmsi.amf_set_id);
       OCTET_STRING_TO_M_TMSI(
           &ie_e_tmsi->value.choice.FiveG_S_TMSI.fiveG_TMSI, s_tmsi.m_tmsi);
     }

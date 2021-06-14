@@ -42,7 +42,7 @@ TEST(test_ngap_pkt_tests, test_ngap_unsuccess_outcome_asn_raw) {
 
   container =
       &decode_pdu.choice.unsuccessfulOutcome.value.choice.NGSetupFailure;
-  NGAP_SETUP_FAILURE_FIND_PROTOCOLIE_BY_ID(
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
       Ngap_NGSetupFailureIEs_t, ie, container, Ngap_ProtocolIE_ID_id_Cause);
 
   EXPECT_FALSE(ie == nullptr);
@@ -81,7 +81,7 @@ TEST(test_ngap_pkt_tests, test_ngap_unsuccess_outcome_pdu) {
 
   container =
       &decode_pdu.choice.unsuccessfulOutcome.value.choice.NGSetupFailure;
-  NGAP_SETUP_FAILURE_FIND_PROTOCOLIE_BY_ID(
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
       Ngap_NGSetupFailureIEs_t, ie, container, Ngap_ProtocolIE_ID_id_Cause);
 
   EXPECT_FALSE(ie == nullptr);
@@ -174,6 +174,32 @@ TEST(test_ngap_pkt_tests, test_ngap_pdusession_resource_rel_cmd_stream) {
   bdestroy(stream);
 
   ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &decode_pdu);
+}
+
+TEST(test_ngap_pkt_tests, test_ngap_init_ue_msg_pdu) {
+  Ngap_NGAP_PDU_t init_ue_pdu;
+  bool res = false;
+  gnb_description_t gNB_ref;
+  m5g_ue_description_t ue_ref;
+
+  memset(&init_ue_pdu, 0, sizeof(Ngap_NGAP_PDU_t));
+
+  memset(&ue_ref, 0, sizeof(m5g_ue_description_t));
+  memset(&gNB_ref, 0, sizeof(gnb_description_t));
+
+  gNB_ref.sctp_assoc_id    = 1;
+  gNB_ref.next_sctp_stream = 3;
+  gNB_ref.gnb_id           = 2;
+
+  memset(&ue_ref, 0, sizeof(m5g_ue_description_t));
+
+  res = generate_guti_ngap_pdu(&init_ue_pdu);
+  EXPECT_TRUE(res == true);
+
+  res = validate_handle_initial_ue_message(&gNB_ref, &ue_ref, &init_ue_pdu);
+  EXPECT_TRUE(res == true);
+
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_Ngap_NGAP_PDU, &init_ue_pdu);
 }
 
 int main(int argc, char** argv) {

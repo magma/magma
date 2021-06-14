@@ -79,6 +79,7 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GNSSAI.cpp   
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GTAIList.cpp 
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GServiceType.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GAuthenticationFailureIE.cpp
     )
 
 add_library(LIB_NAS5G

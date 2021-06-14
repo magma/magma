@@ -404,6 +404,10 @@ void amf_ctx_set_attribute_present(
     amf_context_t* ctxt, const int attribute_bit_pos) __attribute__((nonnull))
 __attribute__((flatten));
 
+void amf_ctx_clear_attribute_present(
+    amf_context_t* const ctxt, const int attribute_bit_pos)
+    __attribute__((nonnull)) __attribute__((flatten));
+
 // NAS encode header
 typedef struct amf_msg_header_t {
   uint8_t extended_protocol_discriminator;
@@ -641,12 +645,6 @@ nas_amf_registration_proc_t* get_nas_specific_procedure_registration(
     const amf_context_t* ctxt);
 bool is_nas_specific_procedure_registration_running(const amf_context_t* ctxt);
 
-#if 0
-int nas5g_message_decode(
-    unsigned char* buffer, amf_nas_message_t* nas_msg, int length,
-    amf_security_context_t* amf_security_context,
-    amf_nas_message_decode_status_t* decode_status);
-#endif
 nas_amf_common_proc_t* get_nas5g_common_procedure(
     const amf_context_t* const ctxt, amf_common_proc_type_t proc_type);
 

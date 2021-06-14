@@ -25,6 +25,22 @@
 #include <iostream>
 #include "util_ngap_pkt.h"
 
+uint8_t intialUeGuti[157] = {
+    0x00, 0x0f, 0x40, 0x80, 0x98, 0x00, 0x00, 0x06, 0x00, 0x55, 0x00, 0x02,
+    0x00, 0x04, 0x00, 0x26, 0x00, 0x63, 0x62, 0x7e, 0x01, 0x93, 0xa0, 0x67,
+    0x05, 0x03, 0x7e, 0x00, 0x41, 0x01, 0x00, 0x0b, 0xf2, 0x22, 0xf2, 0x54,
+    0x00, 0x00, 0x00, 0x70, 0xe5, 0xc5, 0x00, 0x2e, 0x04, 0x80, 0xe0, 0x80,
+    0xe0, 0x71, 0x00, 0x41, 0x7e, 0x00, 0x41, 0x01, 0x00, 0x0b, 0xf2, 0x22,
+    0xf2, 0x54, 0x00, 0x00, 0x00, 0x70, 0xe5, 0xc5, 0x00, 0x10, 0x01, 0x03,
+    0x2e, 0x04, 0x80, 0xe0, 0x80, 0xe0, 0x2f, 0x02, 0x01, 0x01, 0x52, 0x22,
+    0x62, 0x54, 0x00, 0x00, 0x01, 0x17, 0x07, 0x80, 0xe0, 0xe0, 0x60, 0x00,
+    0x1c, 0x30, 0x18, 0x01, 0x00, 0x74, 0x00, 0x0a, 0x09, 0x08, 0x69, 0x6e,
+    0x74, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x53, 0x01, 0x01, 0x00, 0x79, 0x00,
+    0x0f, 0x40, 0x22, 0x42, 0x65, 0x00, 0x00, 0x00, 0x01, 0x00, 0x22, 0x42,
+    0x65, 0x00, 0x00, 0x01, 0x00, 0x5a, 0x40, 0x01, 0x18, 0x00, 0x1a, 0x00,
+    0x07, 0x00, 0x00, 0x00, 0x70, 0xe5, 0xc5, 0x00, 0x00, 0x70, 0x40, 0x01,
+    0x00};
+
 void fill_nR_CGI_cell_identity(Ngap_NRCellIdentity_t& nRCellIdentity) {
   uint64_t nr_cell_id; /* 36 bit */
 
@@ -100,7 +116,6 @@ bool ng_setup_initiate_ue_message_decode(
 
 bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
   Ngap_NGAP_PDU_t pdu;
-  Ngap_NGAP_PDU_t dec_pdu;
   Ngap_InitialUEMessage_t* out;
   Ngap_InitialUEMessage_IEs_t* ie;
   Ngap_UserLocationInformationNR_t* userinfo_nr_p = NULL;
@@ -181,22 +196,6 @@ bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
   userinfo_nr_p->timeStamp->buf[2] = 0x20;
   userinfo_nr_p->timeStamp->buf[3] = 0x41;
 
-#if 0
-  MCC_MNC_TO_TBCD(
-      901,  // instance_p->mcc[ue_desc_p->selected_plmn_identity],
-      70,   // instance_p->mnc[ue_desc_p->selected_plmn_identity],
-      2,    // instance_p->mnc_digit_length[ue_desc_p->selected_plmn_identity],
-      &userinfo_nr_p->nR_CGI.pLMNIdentity);
-
-  /* Set TAI */
-  INT24_TO_OCTET_STRING(1, &userinfo_nr_p->tAI.tAC);
-  MCC_MNC_TO_PLMNID(
-      901,  // instance_p->mcc[ue_desc_p->selected_plmn_identity],
-      70,   // instance_p->mnc[ue_desc_p->selected_plmn_identity],
-      2,    // instance_p->mnc_digit_length[ue_desc_p->selected_plmn_identity],
-      &userinfo_nr_p->tAI.pLMNIdentity);
-#endif
-
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
@@ -223,5 +222,128 @@ bool ngap_initiate_ue_message(bstring& stream_initate_ue) {
 
   stream_initate_ue = blk2bstr(buffer, length);
   free(buffer);
+  return (true);
+}
+
+bool generate_guti_ngap_pdu(Ngap_NGAP_PDU_t* pdu) {
+  asn_dec_rval_t dec_ret;
+  uint32_t guti_len = 157;
+
+  dec_ret = aper_decode(
+      NULL, &asn_DEF_Ngap_NGAP_PDU, (void**) &pdu, intialUeGuti, guti_len, 0,
+      0);
+
+  if (dec_ret.code != RC_OK) {
+    return false;
+  }
+
+  return true;
+}
+
+bool validate_handle_initial_ue_message(
+    gnb_description_t* gNB_ref, m5g_ue_description_t* ue_ref,
+    Ngap_NGAP_PDU_t* pdu) {
+  tai_t tai                       = {0};
+  guamfi_t guamfi                 = {{0}, 0, 0};
+  s_tmsi_m5_t s_tmsi              = {0, 0, INVALID_M_TMSI};
+  gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
+  ecgi_t ecgi                     = {{0}, {0}};
+  csg_id_t csg_id                 = 0;
+
+  Ngap_InitialUEMessage_t* container;
+  Ngap_InitialUEMessage_IEs_t *ie = NULL, *ie_e_tmsi, *ie_csg_id = NULL,
+                              *ie_guamfi, *ie_cause;
+
+  container = &pdu->choice.initiatingMessage.value.choice.InitialUEMessage;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialUEMessage_IEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_RAN_UE_NGAP_ID);
+
+  // gNB UE NGAP ID is limited to 24 bits
+  gnb_ue_ngap_id =
+      (gnb_ue_ngap_id_t)(ie->value.choice.RAN_UE_NGAP_ID & GNB_UE_NGAP_ID_MASK);
+
+  ue_ref->ng_ue_state = NGAP_UE_WAITING_CSR;
+
+  ue_ref->gnb_ue_ngap_id = gnb_ue_ngap_id;
+
+  // Will be allocated by NAS
+  ue_ref->amf_ue_ngap_id = INVALID_AMF_UE_NGAP_ID;
+
+  ue_ref->ngap_ue_context_rel_timer.id  = NGAP_TIMER_INACTIVE_ID;
+  ue_ref->ngap_ue_context_rel_timer.sec = NGAP_UE_CONTEXT_REL_COMP_TIMER;
+
+  // On which stream we received the message
+  ue_ref->sctp_stream_recv = 2;
+  ue_ref->sctp_stream_send = gNB_ref->next_sctp_stream;
+
+  gNB_ref->next_sctp_stream += 1;
+  if (gNB_ref->next_sctp_stream >= gNB_ref->instreams) {
+    gNB_ref->next_sctp_stream = 1;
+  }
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialUEMessage_IEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_UserLocationInformation);
+
+  OCTET_STRING_TO_TAC_5G(
+      &ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
+           .tAI.tAC,
+      tai.tac);
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialUEMessage_IEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_UserLocationInformation);
+
+  TBCD_TO_PLMN_T(
+      &ie->value.choice.UserLocationInformation.choice
+           .userLocationInformationEUTRA.eUTRA_CGI.pLMNIdentity,
+      &ecgi.plmn);
+
+  BIT_STRING_TO_CELL_IDENTITY(
+      &ie->value.choice.UserLocationInformation.choice
+           .userLocationInformationEUTRA.eUTRA_CGI.eUTRACellIdentity,
+      ecgi.cell_identity);
+
+  /** Set the GNB Id. */
+  ecgi.cell_identity.enb_id = gNB_ref->gnb_id;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialUEMessage_IEs_t, ie_e_tmsi, container,
+      Ngap_ProtocolIE_ID_id_FiveG_S_TMSI);
+
+  if (ie_e_tmsi) {
+    NGAP_TEST_PDU_FETCH_AMF_SET_ID_FROM_PDU(
+        ie_e_tmsi->value.choice.FiveG_S_TMSI.aMFSetID, s_tmsi.amf_set_id);
+    OCTET_STRING_TO_M_TMSI(
+        &ie_e_tmsi->value.choice.FiveG_S_TMSI.fiveG_TMSI, s_tmsi.m_tmsi);
+  }
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialUEMessage_IEs_t, ie_guamfi, container,
+      Ngap_ProtocolIE_ID_id_GUAMI);
+
+  memset(&guamfi, 0, sizeof(guamfi));
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialUEMessage_IEs_t, ie, container,
+      Ngap_ProtocolIE_ID_id_NAS_PDU);
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialUEMessage_IEs_t, ie_cause, container,
+      Ngap_ProtocolIE_ID_id_RRCEstablishmentCause);
+
+  Ngap_InitialUEMessage_IEs_t* ie_uecontextrequest = NULL;
+
+  NGAP_TEST_PDU_FIND_PROTOCOLIE_BY_ID(
+      Ngap_InitialUEMessage_IEs_t, ie_uecontextrequest, container,
+      Ngap_ProtocolIE_ID_id_UEContextRequest);
+
+  long ue_context_request = 0;
+  if (ie_uecontextrequest) {
+    ue_context_request = ie_uecontextrequest->value.choice.UEContextRequest + 1;
+  }
+
   return (true);
 }

@@ -22,6 +22,11 @@ S6A_AUTH_FAILURE_TOTAL = Counter('s6a_auth_failure',
 S6A_LUR_TOTAL = Counter('s6a_location_update',
                          'Total S6a location update requests')
 
+M5G_AUTH_SUCCESS_TOTAL = Counter('m5g_auth_success',
+                                 'Total successful M5G auth requests')
+M5G_AUTH_FAILURE_TOTAL = Counter('m5g_auth_failure',
+                                 'Total failed M5G auth requests with reason', ['code'])
+
 DIAMETER_AUTHENTICATION_REJECTED = 4001
 DIAMETER_ERROR_USER_UNKNOWN = 5001
 DIAMETER_AUTHORIZATION_REJECTED = 5003
