@@ -93,7 +93,7 @@ class SessionRuleToVersionMapper:
         key = self._get_json_key(encode_imsi(imsi), ip_addr, rule_id)
         self._version_by_imsi_and_rule[key] = version
 
-    def update_all_ue_versions(self, imsi: str, ip_addr: IPAddress):
+    def remove_all_ue_versions(self, imsi: str, ip_addr: IPAddress):
         """
         Increment the version number for a given subscriber and rule. If the
         rule id is not specified, then all rules for the subscriber will be
@@ -104,12 +104,15 @@ class SessionRuleToVersionMapper:
             ip_addr_str = ""
         else:
             ip_addr_str = ip_addr.address.decode('utf-8').strip()
+        del_list = []
         with self._lock:
-            for k, v in self._version_by_imsi_and_rule.items():
+            for k in self._version_by_imsi_and_rule.keys():
                 _, cur_imsi, cur_ip_addr_str, _ = SubscriberRuleKey(*json.loads(k))
                 if cur_imsi == encoded_imsi and (ip_addr_str == "" or
                                                  ip_addr_str == cur_ip_addr_str):
-                    self._version_by_imsi_and_rule[k] = v + 1
+                    del_list.append(k)
+            for k in del_list:
+                del self._version_by_imsi_and_rule[k]
 
     def save_version(self, imsi: str, ip_addr: IPAddress,
                      rule_id: [str], version: int):
@@ -137,7 +140,7 @@ class SessionRuleToVersionMapper:
         with self._lock:
             version = self._version_by_imsi_and_rule.get(key)
             if version is None:
-                version = 0
+                version = -1
         return version
 
     def remove(self, imsi: str, ip_addr: IPAddress, rule_id: str, version: int):

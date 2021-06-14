@@ -252,7 +252,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 .remove(imsi, ip_address, rule_id, version)
         if not request.policies:
             self._service_manager.session_rule_version_mapper\
-                .update_all_ue_versions(request.sid.id, ip_address)
+                .remove_all_ue_versions(request.sid.id, ip_address)
             return
 
         for policy in request.policies:
