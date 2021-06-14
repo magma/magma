@@ -1002,12 +1002,7 @@ def _report_enforcement_stats_failures(
     for result in activate_flow_result.policy_results:
         if result.result == RuleModResult.SUCCESS:
             continue
-<<<<<<< HEAD
-        ENFORCEMENT_STATS_RULE_INSTALL_FAIL.labels(rule_id=result.rule_id,
-                                                   imsi=imsi).inc()
-=======
         ENFORCEMENT_STATS_RULE_INSTALL_FAIL.labels(
             rule_id=result.rule_id,
             imsi=imsi,
         ).inc()
->>>>>>> 567b5f2e88eb659de99568afb40b8f22d991d252
