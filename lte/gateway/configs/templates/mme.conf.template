@@ -313,4 +313,13 @@ MME :
         }{% if not loop.last %},{% endif %}
         {% endfor %}
    );
+
+   SRVC_AREA_CODE_2_TACS_MAP = (
+     {% for sac2tac in service_area_map -%}
+     {
+       SAC = {{sac2tac.sac}}
+       TACS_PER_SAC = {{sac2tac.tac}}
+     }{% if not loop.last %},{% endif %}
+     {% endfor %}
+   );
 };
