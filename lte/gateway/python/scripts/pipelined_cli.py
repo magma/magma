@@ -585,7 +585,7 @@ def display_flows(client, args):
 @grpc_wrapper
 def get_stats_rpc(client, args):
     request = GetStatsRequest(cookie = args.cookie, cookie_mask = args.cookie_mask)
-    response = client.GetStats(request)
+    response = client.GetStats(request, None)
     pprint(response)
     
 
@@ -639,6 +639,7 @@ def create_parser():
     create_check_flows_parser(apps)
     create_debug_parser(apps)
     return parser
+    
 
 def main():
     parser = create_parser()

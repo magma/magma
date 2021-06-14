@@ -1,7 +1,9 @@
 """
 Copyright 2020 The Magma Authors.
+
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -48,6 +50,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     """
     This openflow controller installs flows for aggregating policy usage
     statistics, which are sent to sessiond for tracking.
+
     It periodically polls OVS for flow stats on the its table and reports the
     usage records to session manager via RPC. Flows are deleted when their
     version (reg4 match) is different from the current version of the rule for
@@ -109,6 +112,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def initialize_on_connect(self, datapath):
         """
         Install the default flows on datapath connect event.
+        
         Args:
             datapath: ryu datapath struct
         """
@@ -578,8 +582,10 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                     epoch=global_epoch)
                 return record_table
             else:
+                self.logger.error("No rule records match the specified parameters")
                 return RuleRecordTable()
         except (InvalidDatapath, OFError, UnexpectedMultiReply):
+            self.logger.error("Could not obtain rule records")
             return RuleRecordTable()
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):

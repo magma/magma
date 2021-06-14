@@ -937,7 +937,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         response = self._enforcement_stats.get_stats(request.cookie, request.cookie_mask)
         fut.set_result(response)
 
-    def GetStats(self, request, _):
+    def GetStats(self, request, context):
         """
         Invokes API that returns a RuleRecordTable filtering records based
         on cookie and cookie mask request parameters
@@ -945,6 +945,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 EnforcementController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
             return None
 
         fut = Future()

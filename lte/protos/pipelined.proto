@@ -493,6 +493,8 @@ service Pipelined {
   // Get policy usage stats
   rpc GetPolicyUsage (magma.orc8r.Void) returns (RuleRecordTable) {}
 
+  rpc GetStats(GetStatsRequest) returns (RuleRecordTable) {}
+
   // --------
   // DPI App:
   // --------
@@ -546,5 +548,4 @@ service Pipelined {
 
   rpc UpdateUEState (UESessionSet) returns (UESessionContextResponse);
 
-  rpc GetStats(GetStatsRequest) returns (RuleRecordTable); 
 }

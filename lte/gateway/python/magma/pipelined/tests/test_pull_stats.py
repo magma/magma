@@ -155,24 +155,16 @@ class PullStatsTest(unittest.TestCase):
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                             self.service_manager)
         with sub_context, snapshot_verifier:
-            theStats = self.enforcement_stats_controller.get_stats()
-            if (theStats.records[0].rule_id ==  "(ノಠ益ಠ)ノ彡┻━┻"):
-                self.assertEqual(theStats.records[0].sid, imsi)
-                self.assertEqual(theStats.records[0].bytes_tx, 0)
-                self.assertEqual(theStats.records[0].bytes_rx, 0)
-                self.assertEqual(theStats.records[1].sid, imsi)
-                self.assertEqual(theStats.records[1].rule_id, "rule1")
-                self.assertEqual(theStats.records[1].bytes_tx, 0)
-                self.assertEqual(theStats.records[1].bytes_rx, 0)
+            rule_map = self.enforcement_stats_controller.get_stats()
+            DEFAULT_DROP_FLOW_NAME = "(ノಠ益ಠ)ノ彡┻━┻"
+            if (rule_map.records[0].rule_id == DEFAULT_DROP_FLOW_NAME):
+                rule_record = rule_map.records[1]
             else:
-                self.assertEqual(theStats.records[0].sid, imsi)
-                self.assertEqual(theStats.records[0].rule_id, "rule1")
-                self.assertEqual(theStats.records[0].bytes_tx, 0)
-                self.assertEqual(theStats.records[0].bytes_rx, 0)
-                self.assertEqual(theStats.records[1].sid, imsi)
-                self.assertEqual(theStats.records[1].rule_id, "(ノಠ益ಠ)ノ彡┻━┻")
-                self.assertEqual(theStats.records[1].bytes_tx, 0)
-                self.assertEqual(theStats.records[1].bytes_rx, 0)
+                rule_record = rule_map.records[0]
+            self.assertEqual(rule_record.sid, imsi)
+            self.assertEqual(rule_record.rule_id, "rule1")
+            self.assertEqual(rule_record.bytes_tx, 0)
+            self.assertEqual(rule_record.bytes_rx, 0)
     
 
 if __name__ == "__main__":
