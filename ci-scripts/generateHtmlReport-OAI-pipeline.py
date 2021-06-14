@@ -246,9 +246,7 @@ class HtmlReport():
                 common3 = False
                 common4 = False
                 common5 = False
-                common6 = False
                 common7 = False
-                common8 = False
                 if nf_type == COMMON_TYPE:
                     section_start_pattern = 'Creating directories for \'MagmaCommon\''
                     section_end_pattern = 'Completed \'MagmaCommon\''
@@ -284,16 +282,10 @@ class HtmlReport():
                                 my_res = re.search('Completed \'AsyncGrpc\'', line)
                                 if my_res is not None:
                                     common5 = True
-                                my_res = re.search('Completed \'Datastore\'', line)
-                                if my_res is not None:
-                                    common6 = True
                                 my_res = re.search('Completed \'Eventd\'', line)
                                 if my_res is not None:
                                     common7 = True
-                                my_res = re.search('Completed \'PolicyDb\'', line)
-                                if my_res is not None:
-                                    common8 = True
-                                if common1 and common2 and common3 and common4 and common5 and common6 and common7 and common8:
+                                if common1 and common2 and common3 and common4 and common5 and common7:
                                    status = True
                             else:
                                 if nf_type == MME_TYPE:
@@ -331,18 +323,10 @@ class HtmlReport():
                         cell_msg += '     ** AsyncGrpc :  OK\n'
                     else:
                         cell_msg += '     ** AsyncGrpc :  KO\n'
-                    if common6:
-                        cell_msg += '     ** Datastore :  OK\n'
-                    else:
-                        cell_msg += '     ** Datastore :  KO\n'
                     if common7:
                         cell_msg += '     ** Eventd :  OK\n'
                     else:
                         cell_msg += '     ** Eventd :  KO\n'
-                    if common8:
-                        cell_msg += '     ** PolicyDb :  OK\n'
-                    else:
-                        cell_msg += '     ** PolicyDb :  KO\n'
                     cell_msg += '</b></pre></td>\n'
                 if nf_type == MME_TYPE:
                     cell_msg += ' -- ninja -C  /build/c/core</b></pre></td>\n'
