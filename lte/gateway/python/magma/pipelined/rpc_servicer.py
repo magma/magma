@@ -1,7 +1,9 @@
 """
 Copyright 2020 The Magma Authors.
+
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
+
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -445,6 +447,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _deactivate_flows(self, request):
         """
         Deactivate flows for ipv4 / ipv6 or both
+        
         CWF won't have an ip_addr passed
         """
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
