@@ -12,12 +12,6 @@
     state: absent
   become: true
 
-- name: Clean ssh host key
-  command: shred -u /etc/ssh/*_key /etc/ssh/*_key.pub ~/.*history
-  become: true
-  ignore_errors: true
-  tags: clearSSHKeys
-
 - name: Clean authorized keys for ubuntu
   file:
     name: /home/ubuntu/.ssh/authorized_keys

@@ -1477,7 +1477,7 @@ jobs:
           name: Propagate names for AWS essential components
           command: |
             sed -i -e '/^secgroupDefault: /s/:.*$/: publish-amis-to-marketplace-secgroup/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket2/' $VARS_DIR/defaults.yaml
             sed -i -e '/^stackEssentialsDefault: /s/:.*$/: publish-amis-to-marketplace-stack/' $VARS_DIR/defaults.yaml
             sed -i -e '/^keyBoot: /s/:.*$/: publish-amis-to-marketplace-keyboot/' $VARS_DIR/defaults.yaml
             sed -i -e '/^keyHost: /s/:.*$/: publish-amis-to-marketplace-keyhost/' $VARS_DIR/defaults.yaml
@@ -1496,6 +1496,7 @@ jobs:
             sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/build.yaml
       - run:
           name: Generate Cloudstrapper AMI
+          no_output_timeout: 30m
           command: |
             ansible-playbook $WORK_DIR/devops-provision.yaml -e "dirLocalInventory=$VARS_DIR"
             echo "Waiting one minute for the instance to boot up."
@@ -1513,12 +1514,20 @@ jobs:
             sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/cluster.yaml
       - run:
           name: Generate AGW AMI
+          no_output_timeout: 30m
           command: |
             ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge,cleanupBridge,cleanupNet
             echo "Waiting one minute for the instance to boot up."
             sleep 60
             ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
             ansible-playbook $WORK_DIR/ami-init.yaml -e "dirLocalInventory=$VARS_DIR"
+      - run:
+          name: Export qcow2 image for fb aws account in s3
+          no_output_timeout: 30m
+          command: |
+            if [ "<<parameters.aws_account>>" = "FB" ]; then
+              ansible-playbook $WORK_DIR/devops-convert-to-qcow2.yaml -e "dirLocalInventory=$VARS_DIR" -e "agwAmiName=agw-ami-$VERSION"
+            fi
       - run:
           name: Clean AWS resources
           command: |
