@@ -121,6 +121,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def _get_default_flow_msgs(self, datapath) -> DefaultMsgsMap:
         """
         Gets the default flow msg that drops traffic
+
         Args:
             datapath: ryu datapath struct
         Returns:
@@ -137,6 +138,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def cleanup_on_disconnect(self, datapath):
         """
         Cleanup flows on datapath disconnect event.
+
         Args:
             datapath: ryu datapath struct
         """
@@ -147,6 +149,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
+
         Args:
             imsi (string): subscriber to install rule for
             msisdn (bytes): subscriber MSISDN
@@ -273,6 +276,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
         Add a low priority flow to drop a subscriber's traffic.
+        
         Args:
             imsi (string): subscriber id
             ip_addr (string): subscriber ip_addr
