@@ -1271,12 +1271,10 @@ workflows:
           <<: *only_master
       - mme-clang-warnings:
           <<: *only_master
-      - lte-integ-test
       - lte-agw-deploy:
           requires:
             - lte-test
             - mme_test
-            - lte-integ-test
       - c-cpp-codecov
 
   feg:
