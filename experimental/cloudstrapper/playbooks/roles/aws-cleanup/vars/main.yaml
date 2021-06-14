@@ -41,6 +41,8 @@ orc8rVpc: "{{ orc8rTfVpc }}"
 orc8rIgw: "{{ orc8rTfVpc }}"
 orc8rRdsSubnetGroup: "{{ orc8rTfVpc }}"
 orc8rEksCluster: "{{ orc8rTfVpc }}"
+orc8rDbNotifs: "{{ orc8rTfRdsNotifs }}"
+orc8rSnsTopic: "{{ orc8rTfSnsTopic }}"
 
 orc8rDomainRecords:
   - api
