@@ -77,11 +77,11 @@ int mme_app_get_imsi_from_ipv4(uint32_t ipv4_addr, imsi64_t** imsi_list) {
   } else {
     uint8_t idx = 0;
     num_imsis   = itr->second.size();
-    *imsi_list  = (imsi64_t*) calloc(num_imsis, sizeof(imsi64_t));
+    (*imsi_list)  = (imsi64_t*) calloc(num_imsis, sizeof(imsi64_t));
 
     for (auto vect_itr = itr->second.begin(); vect_itr != itr->second.end();
          vect_itr++) {
-      *imsi_list[idx++] = *vect_itr;
+      (*imsi_list)[idx++] = *vect_itr;
       OAILOG_DEBUG_UE(
           LOG_MME_APP, *vect_itr, " Found imsi for ip:%x \n", ipv4_addr);
     }
