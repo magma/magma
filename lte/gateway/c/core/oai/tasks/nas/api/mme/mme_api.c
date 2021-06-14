@@ -240,8 +240,7 @@ int mme_api_get_emm_config(
     }
     default:
       OAILOG_ERROR(
-          LOG_NAS,
-          "BAD TAI list configuration, unknown TAI list type %u\n",
+          LOG_NAS, "BAD TAI list configuration, unknown TAI list type %u\n",
           mme_config_p->served_tai.list_type);
       OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
   }

@@ -79,7 +79,8 @@ class RedisClient {
    * @param key
    * @return response code of operation
    */
-  status_code_e read_proto(const std::string& key, google::protobuf::Message& proto_msg);
+  status_code_e read_proto(
+      const std::string& key, google::protobuf::Message& proto_msg);
 
   int read_version(const std::string& key);
 
@@ -99,7 +100,8 @@ class RedisClient {
    * @param state_out
    * @return response code of operation
    */
-  status_code_e read_redis_state(const std::string& key, orc8r::RedisState& state_out);
+  status_code_e read_redis_state(
+      const std::string& key, orc8r::RedisState& state_out);
 
   /**
    * Takes a string and parses it to protobuf Message

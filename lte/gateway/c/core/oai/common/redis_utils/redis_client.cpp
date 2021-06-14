@@ -55,7 +55,8 @@ void RedisClient::init_db_connection() {
   is_connected_ = true;
 }
 
-status_code_e RedisClient::write(const std::string& key, const std::string& value) {
+status_code_e RedisClient::write(
+    const std::string& key, const std::string& value) {
   if (!is_connected()) {
     return RETURNerror;
   }
@@ -103,7 +104,8 @@ status_code_e RedisClient::write_proto_str(
   return RETURNok;
 }
 
-status_code_e RedisClient::read_proto(const std::string& key, Message& proto_msg) {
+status_code_e RedisClient::read_proto(
+    const std::string& key, Message& proto_msg) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
   if (read_redis_state(key, wrapper_proto) != RETURNok) {
     return RETURNerror;
@@ -126,7 +128,8 @@ int RedisClient::read_version(const std::string& key) {
   return wrapper_proto.version();
 }
 
-status_code_e RedisClient::clear_keys(const std::vector<std::string>& keys_to_clear) {
+status_code_e RedisClient::clear_keys(
+    const std::vector<std::string>& keys_to_clear) {
   auto db_write = db_client_->del(keys_to_clear);
   db_client_->sync_commit();
   auto reply = db_write.get();
