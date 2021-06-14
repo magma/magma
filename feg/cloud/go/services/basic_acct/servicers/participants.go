@@ -49,7 +49,8 @@ func RetrieveParticipants(ctx context.Context, session *protos.AcctSession) (pro
 	provider = gwId.GetNetworkId()
 	imsi := session.GetIMSI()
 	if len(imsi) == 0 {
-		err = status.Errorf(codes.InvalidArgument, "user IMSI is required from serving network %s", provider)
+		err = status.Errorf(
+			codes.InvalidArgument, "no IMSI for session: %s, serving network: %s", session.GetSessionId(), provider)
 		return
 	}
 	consumer, err = FindServingFeGNetworkId(provider, imsi)

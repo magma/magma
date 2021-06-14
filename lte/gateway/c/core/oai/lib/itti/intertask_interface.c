@@ -80,8 +80,8 @@ const int itti_debug = ITTI_DEBUG_ISSUES | ITTI_DEBUG_MP_STATISTICS;
 #define MESSAGE_SIZE(mESSAGEiD)                                                \
   (sizeof(MessageHeader) + itti_desc.messages_info[mESSAGEiD].size)
 
-#define likely(x)      __builtin_expect(!!(x), 1)
-#define unlikely(x)    __builtin_expect(!!(x), 0)
+#define likely(x) __builtin_expect(!!(x), 1)
+#define unlikely(x) __builtin_expect(!!(x), 0)
 
 typedef volatile enum task_state_s {
   TASK_STATE_NOT_CONFIGURED,
@@ -118,7 +118,7 @@ typedef struct itti_desc_s {
 
 static itti_desc_t itti_desc;
 
-int send_msg_to_task(
+status_code_e send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message) {
   if (likely(task_zmq_ctx_p->ready)) {
@@ -140,13 +140,14 @@ int send_msg_to_task(
     assert(rc == 0);
     pthread_mutex_unlock(&task_zmq_ctx_p->send_mutex);
   } else {
-    OAI_FPRINTF_ERR("Sending msg using uninitialized context. %s to %s!\n",
+    OAI_FPRINTF_ERR(
+        "Sending msg using uninitialized context. %s to %s!\n",
         itti_get_message_name(message->ittiMsgHeader.messageId),
         itti_get_task_name(destination_task_id));
   }
 
   free(message);
-  return 0;
+  return RETURNok;
 }
 
 MessageDef* receive_msg(zsock_t* reader) {
@@ -316,10 +317,9 @@ MessageDef* itti_alloc_new_message(
       origin_task_id, message_id, itti_desc.messages_info[message_id].size);
 }
 
-int itti_create_task(
+status_code_e itti_create_task(
     task_id_t task_id, void* (*start_routine)(void*), void* args_p) {
   thread_id_t thread_id = TASK_GET_THREAD_ID(task_id);
-  int result            = 0;
 
   AssertFatal(start_routine != NULL, "Start routine is NULL!\n");
   AssertFatal(
@@ -337,7 +337,7 @@ int itti_create_task(
       ITTI_DEBUG_INIT, " Creating thread for task %s ...\n",
       itti_get_task_name(task_id));
 
-  result = pthread_create(
+  int result = pthread_create(
       &itti_desc.threads[thread_id].task_thread, NULL, start_routine, args_p);
 
   AssertFatal(
@@ -353,7 +353,7 @@ int itti_create_task(
   while (itti_desc.threads[thread_id].task_state != TASK_STATE_READY)
     usleep(1000);
 
-  return 0;
+  return RETURNok;
 }
 
 void itti_mark_task_ready(task_id_t task_id) {

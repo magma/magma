@@ -39,7 +39,7 @@ func main() {
 	if cfg == nil {
 		cfg = &servicers.Config{}
 	}
-	glog.Infof("Starting %s service with configs: %v", basic_acct.ServiceName, *cfg)
+	glog.Infof("Starting %s service with configs: %+v", basic_acct.ServiceName, *cfg)
 	protos.RegisterAccountingServer(srv.GrpcServer, bas)
 
 	// Run the service

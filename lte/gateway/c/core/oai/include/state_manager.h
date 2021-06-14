@@ -83,7 +83,7 @@ class StateManager {
    * Reads and parses task state from db if persist_state is enabled
    * @return response code of operation
    */
-  virtual int read_state_from_db() {
+  virtual status_code_e read_state_from_db() {
     if (persist_state_enabled) {
       ProtoType state_proto = ProtoType();
       if (redis_client->read_proto(table_key, state_proto) != RETURNok) {
@@ -99,7 +99,7 @@ class StateManager {
     return RETURNok;
   }
 
-  virtual int read_ue_state_from_db() {
+  virtual status_code_e read_ue_state_from_db() {
     if (!persist_state_enabled) {
       return RETURNok;
     }

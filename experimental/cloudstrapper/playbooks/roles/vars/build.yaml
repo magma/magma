@@ -25,6 +25,6 @@ buildNginxRegistry: nginx
 buildNmsRegistry: magmalte
 buildDockerTag: latest
 buildHelmRepoUrl: "https://{{ gitUser }}:{{ gitPat }}@github.com/{{ gitUser }}/{{ buildHelmRepo }}"
-buildPackageDir: "/home/ubuntu/{{ buildDir }}/magma/orc8r/tools/helm/"
+buildPackageDir: "{{ dirSourceRemote }}/orc8r/tools/helm/"
 buildDeploymentType: all
 buildMagmaRepo: https://github.com/magma/magma.git

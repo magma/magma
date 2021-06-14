@@ -6,7 +6,6 @@
       "tag:Name": "{{ orc8rVpc }}"
   register: valVpc
 
-
 - name: set vpc cidr fact
   set_fact:
     factVpcCidr: "{{ valVpc.vpcs[0].cidr_block }}"
@@ -21,36 +20,22 @@
   ec2_group_info:
     filters:
       vpc_id: "{{ factVpcId }}"
-      "tag:Name": "{{ item }}"
   register: valSecGroup
-  with_items:
-    - "{{ orc8rSgs }}"
-  when: factVpcId is defined
 
-- name: delete limitedsecurity groups in this VPC
+- name: delete all individual rules in each security group
   ec2_group:
-    group_id: "{{ item.security_groups[0].group_id }}"
-    state: absent
+    name: "{{ item.group_name }}"
+    group_id: "{{ item.group_id }}"
+    description: "{{ item.description }}"
+    purge_rules: True
+  when: factVpcId is defined and valSecGroup is defined and item is defined and item.group_name != "default"
   with_items:
-    - "{{ valSecGroup.results }}"
-  when: item.security_groups is defined and item.security_groups[0].group_id
-
-- name: gather all security groups for this vpc
-  ec2_group_info:
-    filters:
-      vpc_id: "{{ factVpcId }}"
-  register: valSecGroup
-  when: factVpcId is defined
-
-- name: debug remaining security groups
-  debug:
-    msg: "{{ valSecGroup }}"
+    - "{{ valSecGroup.security_groups }}"
 
 - name: delete all security groups in this VPC
   ec2_group:
     group_id: "{{ item.group_id }}"
     state: absent
-  when: item is defined and item.group_name != "default"
+  when: factVpcId is defined and valSecGroup is defined and item is defined and item.group_name != "default"
   with_items:
     - "{{ valSecGroup.security_groups }}"
-

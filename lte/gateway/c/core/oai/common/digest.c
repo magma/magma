@@ -45,7 +45,7 @@
 
 //------------------------------------------------------------------------------
 // evp_x can be EVP_sha256, ...
-int digest_buffer(
+status_code_e digest_buffer(
     const EVP_MD* (*evp_x)(void), const unsigned char* buffer,
     size_t buffer_len, unsigned char** digest, unsigned int* digest_len) {
   EVP_MD_CTX* mdctx = NULL;

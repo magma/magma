@@ -246,6 +246,7 @@ void mme_config_init(mme_config_t* config) {
   config->unauthenticated_imsi_supported = 0;
   config->relative_capacity              = RELATIVE_CAPACITY;
   config->mme_statistic_timer            = MME_STATISTIC_TIMER_S;
+  config->enable_congestion_control      = true;
   config->s1ap_zmq_th                    = LONG_MAX;
   config->mme_app_zmq_congest_th         = LONG_MAX;
   config->mme_app_zmq_auth_th            = LONG_MAX;
@@ -342,13 +343,13 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           bdata(config_pP->config_file), config_error_line(&cfg),
           config_error_text(&cfg));
       config_destroy(&cfg);
-      AssertFatal(
-          1 == 0, "Failed to parse MME configuration file %s!\n",
+      Fatal(
+          "Failed to parse MME configuration file %s!\n",
           bdata(config_pP->config_file));
     }
   } else {
     config_destroy(&cfg);
-    AssertFatal(0, "No MME configuration file provided!\n");
+    Fatal("No MME configuration file provided!\n");
   }
 
   setting_mme = config_lookup(&cfg, MME_CONFIG_STRING_MME_CONFIG);
@@ -539,6 +540,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       config_pP->enable_gtpu_private_ip_correction = parse_bool(astring);
     }
 
+    if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_CONGESTION_CONTROL_ENABLED,
+            (const char**) &astring))) {
+      config_pP->enable_congestion_control = parse_bool(astring);
+    }
+
     if ((config_setting_lookup_int(
             setting_mme, MME_CONFIG_STRING_S1AP_ZMQ_TH, &aint))) {
       config_pP->s1ap_zmq_th = (long) aint;
@@ -636,8 +643,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->s6a_config.hss_host_name = bfromcstr(astring);
           }
         } else
-          AssertFatal(
-              1 == 0, "You have to provide a valid HSS hostname %s=...\n",
+          Fatal(
+              "You have to provide a valid HSS hostname %s=...\n",
               MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
       }
       if ((config_setting_lookup_string(
@@ -650,8 +657,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->s6a_config.hss_realm = bfromcstr(astring);
           }
         } else
-          AssertFatal(
-              1 == 0, "You have to provide a valid HSS realm %s=...\n",
+          Fatal(
+              "You have to provide a valid HSS realm %s=...\n",
               MME_CONFIG_STRING_S6A_HSS_REALM);
       }
     }
@@ -1594,6 +1601,9 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "- Statistics timer .....................: %u (seconds)\n\n",
       config_pP->mme_statistic_timer);
+  OAILOG_INFO(
+      LOG_CONFIG, "- Congestion control enabled ........................: %s\n",
+      config_pP->enable_congestion_control ? "true" : "false");
   OAILOG_INFO(
       LOG_CONFIG,
       "- S1AP ZMQ Threshold ...........................: %10ld "

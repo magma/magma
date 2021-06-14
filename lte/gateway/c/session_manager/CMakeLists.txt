@@ -59,8 +59,6 @@ include_directories(${MAGMA_LIB_DIR}/service303)
 include_directories(${MAGMA_LIB_DIR}/service_registry)
 include_directories(${MAGMA_LIB_DIR}/async_grpc)
 include_directories(${MAGMA_LIB_DIR}/config)
-include_directories(${MAGMA_LIB_DIR}/datastore)
-include_directories(${MAGMA_LIB_DIR}/policydb)
 include_directories(${MAGMA_LIB_DIR}/eventd)
 
 # TODO: Temp workaround until packages are imported by these cmakefile
@@ -69,6 +67,9 @@ set(MAGMA_COMMON_INCL_DIR $ENV{C_BUILD}/common)
 include_directories(${MAGMA_COMMON_INCL_DIR})
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
+
+add_subdirectory(datastore)
+add_subdirectory(policydb)
 
 # compile the needed macros
 create_proto_dir("lte" LTE_CPP_OUT_DIR)
@@ -82,7 +83,7 @@ set(SMGR_ORC8R_CPP_PROTOS common directoryd)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_LTE_CPP_PROTOS session_manager subscriberdb policydb
+set(SMGR_LTE_CPP_PROTOS session_manager apn subscriberdb policydb
   pipelined spgw_service mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
@@ -109,8 +110,6 @@ link_directories(
   ${MAGMA_LIB_DIR}/async_grpc
   ${MAGMA_LIB_DIR}/config
   ${MAGMA_LIB_DIR}/service303
-  ${MAGMA_LIB_DIR}/datastore
-  ${MAGMA_LIB_DIR}/policydb
   ${MAGMA_LIB_DIR}/eventd
   ${MAGMA_LIB_DIR}/service_registry)
 

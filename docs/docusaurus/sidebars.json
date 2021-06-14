@@ -171,6 +171,13 @@
       },
       {
         "type": "subcategory",
+        "label": "Federated Gateway",
+        "ids": [
+          "feg/debug_cli"
+        ]
+      },
+      {
+        "type": "subcategory",
         "label": "Orchestrator",
         "ids": [
           "orc8r/debug_logs"
@@ -240,7 +247,9 @@
       "proposals/p011_victoriametrics",
       "proposals/p013_Ubuntu_upgrade",
       "proposals/p014_proposal_process",
-      "proposals/p015_tech_debt_week"
+      "proposals/p015_tech_debt_week",
+      "proposals/p016_nms_regression_testing",
+      "proposals/p017_apn_refactoring"
     ],
     "FAQ": [
       "faq/faq_magma"

@@ -19,6 +19,7 @@
 
 extern "C" {
 #include <dynamic_memory_check.h>
+#include "common_defs.h"
 }
 
 namespace magma {
@@ -107,7 +108,7 @@ void SpgwStateManager::free_state() {
   free_wrapper((void**) &state_cache_p);
 }
 
-int SpgwStateManager::read_ue_state_from_db() {
+status_code_e SpgwStateManager::read_ue_state_from_db() {
   if (!persist_state_enabled) {
     return RETURNok;
   }

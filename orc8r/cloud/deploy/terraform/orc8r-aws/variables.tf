@@ -34,6 +34,13 @@ variable "deploy_elasticsearch_service_linked_role" {
   default     = true
 }
 
+
+variable "enable_aws_db_notifications" {
+  description = "Flag to enable AWS RDS notifications"
+  type        = bool
+  default     = false
+}
+
 variable "magma_uuid" {
   description = "UUID to identify Orc8r deployment"
   type        = string
@@ -251,6 +258,25 @@ variable "orc8r_db_dialect" {
   default     = "postgres"
 }
 
+variable "orc8r_db_backup_retention" {
+  description = "Database backup retention period"
+  type        = number
+  default     = 7
+}
+
+variable "orc8r_db_backup_window" {
+  description = "Database daily backup window in UTC with a 30-minute minimum"
+  type        = string
+  default     = "01:00-01:30"
+}
+
+variable "orc8r_db_event_subscription" {
+  description = "Database event subscription"
+  type        = string
+  default     = "orc8r-event"
+}
+
+
 ##############################################################################
 # Secretmanager configuration
 ##############################################################################
@@ -342,6 +368,22 @@ variable "elasticsearch_domain_tags" {
 
 variable "thanos_enabled" {
   description = "Enable thanos infrastructure"
-  type = bool
-  default = false
+  type        = bool
+  default     = false
+}
+
+##############################################################################
+# Simple Notification Service (SNS) configuration
+##############################################################################
+
+variable "orc8r_sns_name" {
+  description = "SNS for Orc8r to redirect alerts and notifications"
+  type        = string
+  default     = "orc8r-sns"
+  }
+
+variable "orc8r_sns_email" {
+  description = "SNS email endpoint to send notifications"
+  type        = string
+  default     = ""
 }

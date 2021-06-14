@@ -140,7 +140,7 @@
       - python3-setuptools
       - python-setuptools
       - libssl-dev
-      - apt-transport-https 
+      - apt-transport-https
   retries: 5
   when: preburn
 
@@ -412,6 +412,7 @@
 
 - name: Patch multipath conf
   when: preburn and ansible_distribution == "Ubuntu"
+  ignore_errors: yes
   patch:
     src: patches/multipath-conf.patch
     dest: /etc/multipath.conf
