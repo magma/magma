@@ -139,13 +139,12 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
       ((msg.regional_subscription_zone_code_size() > MAX_REGIONAL_SUB) ?
            MAX_REGIONAL_SUB :
            (msg.regional_subscription_zone_code_size()));
-  uint8_t itr         = 0;
   uint8_t reg_sub_idx = 0;
-  while (itr < itti_msg->subscription_data.num_zcs) {
+  for (uint8_t itr = 0; itr < itti_msg->subscription_data.num_zcs; itr++) {
     auto regional_subscription_zone_code =
         msg.regional_subscription_zone_code(itr);
-    // Copy only if the zonecode is <=2 octets
-    if (regional_subscription_zone_code.length() <= ZONE_CODE_LEN) {
+    // Copy only if the zonecode is 2 octets
+    if (regional_subscription_zone_code.length() == ZONE_CODE_LEN) {
       memcpy(
           itti_msg->subscription_data.reg_sub[reg_sub_idx].zone_code,
           regional_subscription_zone_code.c_str(), ZONE_CODE_LEN);
@@ -154,8 +153,8 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
       std::cout << "[ERROR] Invalid zonecode length received, ignoring"
                 << regional_subscription_zone_code.length() << std::endl;
     }
-    ++itr;
   }
+  itti_msg->subscription_data.num_zcs = reg_sub_idx;
 
 #define SUBSCRIBER_PERIODIC_RAU_TAU_TIMER_VAL 10
   itti_msg->subscription_data.rau_tau_timer =
