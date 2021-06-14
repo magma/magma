@@ -105,8 +105,8 @@ typedef enum {
  * Inspired by Google's absl::Status
  */
 typedef enum {
-  RETURNerror   = -1,   // An internal invariant is broken
-  RETURNok      = 0,    // Ok
+  RETURNerror = -1,  // An internal invariant is broken
+  RETURNok    = 0,   // Ok
 } status_code_e;
 
 /* This enum should match with the ModeMapItem_FederatedMode enum
