@@ -13,6 +13,7 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+
 set(SPGW_LIB_DIR $ENV{C_BUILD}/oai/tasks/sgw)
 
 include_directories("/usr/src/googletest/googlemock/include/")
@@ -25,7 +26,7 @@ add_library(SPGW_TASK_TEST_LIB
 link_directories(/usr/src/googletest/googlemock/lib/)
 
 target_link_libraries(SPGW_TASK_TEST_LIB
-    TASK_SGW
+    COMMON TASK_SGW
     gmock_main gtest gtest_main gmock
     pthread rt yaml-cpp
     )
