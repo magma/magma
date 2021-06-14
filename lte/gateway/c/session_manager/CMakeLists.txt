@@ -79,11 +79,11 @@ create_proto_dir("feg/gateway/services/aaa" CWF_CPP_OUT_DIR)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(SMGR_ORC8R_CPP_PROTOS common directoryd)
+set(SMGR_ORC8R_CPP_PROTOS directoryd)
 generate_cpp_protos("${SMGR_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_LTE_CPP_PROTOS session_manager apn subscriberdb policydb
+set(SMGR_LTE_CPP_PROTOS session_manager
   pipelined spgw_service mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
@@ -104,7 +104,7 @@ set(SMGR_CWF_GRPC_PROTOS accounting)
 generate_grpc_protos("${SMGR_CWF_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
 
-message("Proto_srcs are ${PROTO_SRCS}")
+message("SessionManager proto_srcs are ${PROTO_SRCS}")
 
 link_directories(
   ${MAGMA_LIB_DIR}/async_grpc
