@@ -26,6 +26,7 @@ namespace magma5g {
 class PDUSessionEstablishmentRequestMsg {
  public:
 #define PDU_SESSION_ESTABLISH_REQ_MIN_LEN 4
+
   ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
   PDUSessionIdentityMsg pdu_session_identity;
   PTIMsg pti;

@@ -51,9 +51,11 @@ int M5GSMCauseMsg::EncodeM5GSMCauseMsg(
   if (iei > 0) {
     m5gsm_cause->iei = *buffer;
     CHECK_IEI_DECODER(iei, (unsigned char) m5gsm_cause->iei);
+    encoded++;
   }
 
   *(buffer + encoded) = m5gsm_cause->cause_value;
+  encoded++;
   MLOG(MDEBUG) << "EncodeM5GSMCauseMsg__: cause_value = " << hex
                << int(m5gsm_cause->cause_value) << endl;
 

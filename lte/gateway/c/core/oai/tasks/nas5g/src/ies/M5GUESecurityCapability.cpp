@@ -25,7 +25,10 @@ UESecurityCapabilityMsg::~UESecurityCapabilityMsg(){};
 int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
     UESecurityCapabilityMsg* ue_sec_capability, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  int decoded = 0;
+  int decoded        = 0;
+  uint8_t type_len   = sizeof(uint8_t);
+  uint8_t length_len = sizeof(uint8_t);
+
   MLOG(MDEBUG) << " Decoding UE Security Capability : ";
 
   // Checking IEI and pointer
@@ -62,6 +65,36 @@ int UESecurityCapabilityMsg::DecodeUESecurityCapabilityMsg(
   ue_sec_capability->ia6 = (*(buffer + decoded) >> 1) & 0x1;
   ue_sec_capability->ia7 = *(buffer + decoded) & 0x1;
   decoded++;
+
+  // If any optional buffers are present skip it.
+  // 2 = 1 Byte for type + 1 Byte for length
+  type_len   = sizeof(uint8_t);
+  length_len = sizeof(uint8_t);
+  if (ue_sec_capability->length > (decoded - (type_len + length_len))) {
+    // 5GS encryption algorithms
+    ue_sec_capability->eea0    = (*(buffer + decoded) >> 7) & 0x1;
+    ue_sec_capability->ea1_128 = (*(buffer + decoded) >> 6) & 0x1;
+    ue_sec_capability->ea2_128 = (*(buffer + decoded) >> 5) & 0x1;
+    ue_sec_capability->ea3_128 = (*(buffer + decoded) >> 4) & 0x1;
+    ue_sec_capability->eea4    = (*(buffer + decoded) >> 3) & 0x1;
+    ue_sec_capability->eea5    = (*(buffer + decoded) >> 2) & 0x1;
+    ue_sec_capability->eea6    = (*(buffer + decoded) >> 1) & 0x1;
+    ue_sec_capability->eea7    = *(buffer + decoded) & 0x1;
+    decoded++;
+
+    // 5GS integrity algorithm
+    ue_sec_capability->eia0     = (*(buffer + decoded) >> 7) & 0x1;
+    ue_sec_capability->eia1_128 = (*(buffer + decoded) >> 6) & 0x1;
+    ue_sec_capability->eia2_128 = (*(buffer + decoded) >> 5) & 0x1;
+    ue_sec_capability->eia3_128 = (*(buffer + decoded) >> 4) & 0x1;
+    ue_sec_capability->eia4     = (*(buffer + decoded) >> 3) & 0x1;
+    ue_sec_capability->eia5     = (*(buffer + decoded) >> 2) & 0x1;
+    ue_sec_capability->eia6     = (*(buffer + decoded) >> 1) & 0x1;
+    ue_sec_capability->eia7     = *(buffer + decoded) & 0x1;
+    decoded++;
+
+    // decoded = type_len + length_len + ue_sec_capability->length;
+  }
 
   // Decoded 5GS encryption algorithms
   MLOG(MDEBUG) << " ea0 = " << hex << int(ue_sec_capability->ea0) << endl;
@@ -133,6 +166,34 @@ int UESecurityCapabilityMsg::EncodeUESecurityCapabilityMsg(
                << int(*(buffer + encoded));
   encoded++;
 
+  if (ue_sec_capability->length > 2) {
+    // 5GS encryption algorithms
+    *(buffer + encoded) = 0x00 | ((ue_sec_capability->eea0 & 0x1) << 7) |
+                          ((ue_sec_capability->ea1_128 & 0x1) << 6) |
+                          ((ue_sec_capability->ea2_128 & 0x1) << 5) |
+                          ((ue_sec_capability->ea3_128 & 0x1) << 4) |
+                          ((ue_sec_capability->eea4 & 0x1) << 3) |
+                          ((ue_sec_capability->eea5 & 0x1) << 2) |
+                          ((ue_sec_capability->eea6 & 0x1) << 1) |
+                          ((ue_sec_capability->eea7) & 0x1);
+
+    encoded++;
+
+    // 5GS integrity algorithms
+    *(buffer + encoded) = 0x00 | ((ue_sec_capability->eia0 & 0x1) << 7) |
+                          ((ue_sec_capability->eia1_128 & 0x1) << 6) |
+                          ((ue_sec_capability->eia2_128 & 0x1) << 5) |
+                          ((ue_sec_capability->eia3_128 & 0x1) << 4) |
+                          ((ue_sec_capability->eia4 & 0x1) << 3) |
+                          ((ue_sec_capability->eia5 & 0x1) << 2) |
+                          ((ue_sec_capability->eia6 & 0x1) << 1) |
+                          ((ue_sec_capability->eia7) & 0x1);
+
+    encoded++;
+  }
+
+  MLOG(DEBUG) << " Encoding UE Security Capability : encoded  " << encoded
+              << endl;
   return encoded;
 };
 }  // namespace magma5g

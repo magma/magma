@@ -72,6 +72,8 @@ all: build
 
 build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
 
+amf_build: build_common build_oai build_sctpd build_session_manager build_connection_tracker build_envoy_controller build_li_agent ## Build all
+
 smf_build: build_session_manager  ## Build only sessionD component make smf_build
 
 test: test_python test_common test_oai test_sctpd test_session_manager ## Run all tests
