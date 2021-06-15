@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {subscriber} from '@fbcnms/magma-api';
+import type {mutable_subscribers, subscriber} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import ApnContext from '../../components/context/ApnContext';
@@ -42,7 +42,11 @@ import Tabs from '@material-ui/core/Tabs';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {AltFormField, PasswordInput} from '../../components/FormField';
+import {
+  AltFormField,
+  LinearProgressWithLabel,
+  PasswordInput,
+} from '../../components/FormField';
 import {SelectEditComponent} from '../../components/ActionTable';
 import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {colors, typography} from '../../theme/default';
@@ -112,6 +116,7 @@ const MAX_UPLOAD_FILE_SZ_BYTES = 10 * 1024 * 1024;
 const SUBSCRIBER_TITLE = 'Subscriber';
 const TRAFFIC_TITLE = 'Traffic Policy';
 const STATIC_IPS_TITLE = 'APNs Static IPs';
+const SUBSCRIBERS_CHUNK_SIZE = 1000;
 
 type SubscriberInfo = {
   name: string,
@@ -490,7 +495,6 @@ export function SubscriberEditDialog(props: DialogProps) {
     </Dialog>
   );
 }
-
 function AddSubscriberDetails(props: DialogProps) {
   const classes = useStyles();
   const ctx = useContext(SubscriberContext);
@@ -499,7 +503,7 @@ function AddSubscriberDetails(props: DialogProps) {
   const policyCtx = useContext(PolicyContext);
   const [error, setError] = useState('');
   const [subscribers, setSubscribers] = useState<Array<SubscriberInfo>>([]);
-
+  const successCountRef = useRef(0);
   const fileInput = useRef(null);
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -513,8 +517,28 @@ function AddSubscriberDetails(props: DialogProps) {
   const policies = Array.from(
     new Set(Object.keys(policyCtx.state || {})).add('default'),
   );
+  const bulkAdd = async (
+    addedSubscribers: mutable_subscribers,
+    subscriberErrors: string,
+  ) => {
+    let success = true;
+    try {
+      if (subscriberErrors.length > 0) {
+        setError(subscriberErrors);
+        return false;
+      }
+      await ctx.setState?.('', addedSubscribers);
+      return success;
+    } catch (e) {
+      const errMsg = e.response?.data?.message ?? e.message ?? e;
+      setError('error saving subscribers: ' + errMsg);
+      success = false;
+      return success;
+    }
+  };
   const saveSubscribers = async () => {
-    const addedSubscribers = [];
+    let addedSubscribers = [];
+    let subscriberErrors = '';
     for (const subscriber of subscribers) {
       try {
         const err = validateSubscriberInfo(subscriber, ctx.state);
@@ -544,19 +568,31 @@ function AddSubscriberDetails(props: DialogProps) {
           },
         };
         addedSubscribers.push(newSubscriber);
+        // bulk add chunked subscribers
+        if (addedSubscribers.length == SUBSCRIBERS_CHUNK_SIZE) {
+          const success = await bulkAdd(addedSubscribers, subscriberErrors);
+          if (success) {
+            successCountRef.current =
+              successCountRef.current + addedSubscribers.length;
+            addedSubscribers = [];
+          } else {
+            enqueueSnackbar('Saving subscribers to the api failed: ', {
+              variant: 'error',
+            });
+            return;
+          }
+        }
       } catch (e) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
-        enqueueSnackbar('Error saving ' + subscriber.imsi + ' : ' + errMsg, {
-          variant: 'error',
-        });
+        subscriberErrors +=
+          'error saving ' + subscriber.imsi + ' : ' + errMsg + '\n';
       }
     }
-    //bulk add subscribers at the end
+    //bulk add left subscribers
     if (addedSubscribers.length > 0) {
-      try {
-        await ctx.setState?.('', addedSubscribers);
-      } catch (e) {
-        enqueueSnackbar('Saving subscribers to the api failed', {
+      const success = await bulkAdd(addedSubscribers, subscriberErrors);
+      if (!success) {
+        enqueueSnackbar('Saving subscribers to the api failed: ', {
           variant: 'error',
         });
         return;
@@ -564,7 +600,7 @@ function AddSubscriberDetails(props: DialogProps) {
     }
     enqueueSnackbar(
       ` Subscriber${
-        addedSubscribers.length > 0 ? 's ' : ''
+        successCountRef.current > 0 ? 's ' : ''
       } saved successfully`,
       {
         variant: 'success',
@@ -576,6 +612,14 @@ function AddSubscriberDetails(props: DialogProps) {
   return (
     <>
       <DialogContent>
+        {successCountRef.current > 0 && subscribers.length > 0 && (
+          <LinearProgressWithLabel
+            value={Math.round(
+              (successCountRef.current * 100) / subscribers.length,
+            )}
+            text={`${successCountRef.current}/${subscribers.length}`}
+          />
+        )}
         {error !== '' && <FormLabel error>{error}</FormLabel>}
         <input
           type="file"
