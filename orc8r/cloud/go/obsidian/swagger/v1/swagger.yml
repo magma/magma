@@ -10657,6 +10657,9 @@ definitions:
         type: integer
       redirect:
         $ref: '#/definitions/redirect_information'
+      service_identifier:
+        format: uint32
+        type: integer
       tracking_type:
         enum:
         - ONLY_OCS
@@ -10726,6 +10729,9 @@ definitions:
         type: integer
       redirect:
         $ref: '#/definitions/redirect_information'
+      service_identifier:
+        format: uint32
+        type: integer
       tracking_type:
         enum:
         - ONLY_OCS

@@ -21,16 +21,16 @@ include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
-set(ASYNC_ORC8R_CPP_PROTOS common redis)
-set(ASYNC_LTE_CPP_PROTOS "")
-set(ASYNC_LTE_GRPC_PROTOS "")
-set(ASYNC_ORC8R_GRPC_PROTOS "")
+set(DS_ORC8R_CPP_PROTOS common redis)
+set(DS_LTE_CPP_PROTOS "")
+set(DS_LTE_GRPC_PROTOS "")
+set(DS_ORC8R_GRPC_PROTOS "")
 
-generate_all_protos("${ASYNC_LTE_CPP_PROTOS}" "${ASYNC_ORC8R_CPP_PROTOS}"
-    "${ASYNC_LTE_GRPC_PROTOS}"
-    "${ASYNC_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
+generate_all_protos("${DS_LTE_CPP_PROTOS}" "${DS_ORC8R_CPP_PROTOS}"
+    "${DS_LTE_GRPC_PROTOS}"
+    "${DS_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
 
-message("Async Proto_srcs are ${PROTO_SRCS}")
+message("Datastore Proto_srcs are ${PROTO_SRCS}")
 
 add_library(DATASTORE
     ObjectMap.h
