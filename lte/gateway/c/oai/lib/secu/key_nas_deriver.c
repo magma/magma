@@ -238,3 +238,45 @@ int derive_5gkey_nas(
   memcpy(knas, &out[31 - 16 + 1], 16);
   return 0;
 }
+
+int derive_5gkey_xres_star(
+    uint8_t* ck_ik, uint8_t* snn, uint8_t* rand, uint8_t* res,
+    uint8_t* xres_star) {
+  uint8_t offset  = 0;
+  uint8_t s[63]   = {0};
+  uint8_t out[32] = {0};
+
+  // FC
+  s[offset++] = 0x6B;
+
+  // PO
+  for (int idx = 0; idx < 32; idx++) {
+    s[offset++] = snn[idx];
+  }
+
+  // L0
+  s[offset++] = 0x00;
+  s[offset++] = 0x20;
+
+  // P1
+  for (int idx = 0; idx < 16; idx++) {
+    s[offset++] = rand[idx];
+  }
+
+  // L2
+  s[offset++] = 0x00;
+  s[offset++] = 0x10;
+
+  // P1
+  for (int idx = 0; idx < 8; idx++) {
+    s[offset++] = res[idx];
+  }
+
+  // L2
+  s[offset++] = 0x00;
+  s[offset++] = 0x08;
+
+  kdf(ck_ik, 32, &s[0], 63, &out[0], 32);
+  memcpy(xres_star, &out[31 - 16 + 1], 16);
+  return 0;
+}

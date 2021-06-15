@@ -557,6 +557,7 @@ int amf_proc_authentication_complete(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   int idx;
+  bool is_xres_validation = false;
   nas_amf_smc_proc_t nas_amf_smc_proc_autn;
   OAILOG_DEBUG(
       LOG_NAS_AMF,
@@ -595,8 +596,41 @@ int amf_proc_authentication_complete(
     for (idx = 0; idx < amf_ctx->_vector[auth_proc->ksi].xres_size; idx++) {
       if ((amf_ctx->_vector[auth_proc->ksi].xres[idx]) !=
           msg->autn_response_parameter.response_parameter[idx]) {
+        is_xres_validation = true;
         break;
       }
+    }
+
+    if (is_xres_validation == true) {
+      auth_proc->retransmission_count++;
+      nas_amf_registration_proc_t* registration_proc =
+          get_nas_specific_procedure_registration(amf_ctx);
+      OAILOG_INFO(
+          LOG_NAS_AMF, "Authentication failure due to RES,XRES mismatch \n");
+      if (registration_proc &&
+          (amf_ctx->reg_id_type == M5GSMobileIdentityMsg_GUTI)) {
+        rc = amf_proc_identification(
+            amf_ctx, (nas_amf_proc_t*) registration_proc, IDENTITY_TYPE_2_IMSI,
+            amf_registration_success_identification_cb,
+            amf_registration_failure_identification_cb);
+      } else {
+        /*
+         * *          * in case of SUCI BASED REGISTRATION Send AUTH_REJECT */
+        rc = RETURNerror;
+      }
+
+      if (RETURNok != rc) {
+        /*
+         *          * Notify AMF that the authentication procedure successfully
+         * completed
+         *                   */
+        amf_sap_t amf_sap;
+        amf_sap.primitive                    = AMFAS_SECURITY_REJ;
+        amf_sap.u.amf_as.u.security.ue_id    = ue_id;
+        amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
+        rc                                   = amf_sap_send(&amf_sap);
+      }
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
     }
 
     OAILOG_DEBUG(LOG_NAS_AMF, "Authentication of the UE is Successful\n");

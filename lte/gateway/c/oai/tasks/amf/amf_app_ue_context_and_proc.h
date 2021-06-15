@@ -113,6 +113,21 @@ typedef struct amf_app_timer_s {
   long sec; /* The timer interval value in seconds  */
 } amf_app_timer_t;
 
+/* TS-23.003 #2.10 5G Globally Unique Temporary UE Identity (5G-GUTI)
+ *  * <5G-GUTI> = <GUAMI><5G-TMSI>
+ *   * <GUAMI> = <MCC><MNC><AMF Identifier>
+ *    * <AMF Identifier> = <AMF Region ID><AMF Set ID><AMF Pointer>
+ *     */
+// 3 octets of PLMN = MCC + MNC
+typedef struct amf_plmn_s {
+  uint8_t mcc_digit2 : 4;
+  uint8_t mcc_digit1 : 4;
+  uint8_t mnc_digit3 : 4;
+  uint8_t mcc_digit3 : 4;
+  uint8_t mnc_digit2 : 4;
+  uint8_t mnc_digit1 : 4;
+} amf_plmn_t;
+
 /* PDU session resource request and release NGAP messages
  * Request and response
  */
@@ -816,4 +831,5 @@ void amf_delete_child_procedures(
 void amf_delete_common_procedure(
     amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
 void delete_wrapper(void** ptr);
+void format_plmn(amf_plmn_t* plmn);
 }  // namespace magma5g
