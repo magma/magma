@@ -301,6 +301,38 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /networks/{network_id}/sentry:
+    get:
+      summary: Get the Sentry.io configuration for network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Network-wide Sentry.io configuration
+          schema:
+            $ref: '#/definitions/sentry_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the Sentry.io configuration for network
+      tags:
+        - Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: sentry_config
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/sentry_config'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+
   /networks/{network_id}/dns:
     get:
       summary: Get DNS of network
@@ -1347,6 +1379,28 @@ definitions:
         example:
           featureName1: featureProp1
           featureName2: featureProp2
+
+  sentry_config:
+    type: object
+    description: Sentry.io configuration
+    properties:
+      url_python:
+        type: string
+        minLength: 0
+        x-nullable: false
+        example: https://examplePublicKey@o0.ingest.sentry.io/0
+      url_native:
+        type: string
+        minLength: 0
+        x-nullable: false
+        example: https://examplePublicKey@o0.ingest.sentry.io/0
+      upload_mme_log:
+        type: boolean
+        example: false
+      sample_rate:
+        type: number
+        format: float
+        example: 0.5
 
   magmad_gateway:
     type: object

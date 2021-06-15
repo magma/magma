@@ -18,6 +18,16 @@ import "orc8r/protos/common.proto";
 package magma.mconfig;
 option go_package = "magma/lte/cloud/go/protos/mconfig";
 
+// --------------------------------------------------------------------------
+// SentryConfig stores the network-wide sentry.io configuration
+// --------------------------------------------------------------------------
+message SentryConfig {
+    string url_python = 1;
+    string url_native = 2;
+    bool upload_mme_log = 3;
+    float sample_rate = 4;
+}
+
 //------------------------------------------------------------------------------
 // EnodebD configs
 //------------------------------------------------------------------------------
@@ -166,6 +176,7 @@ message SessionD {
     WalletExhaustDetection wallet_exhaust_detection = 3;
     // Enable relaying Gx/Gy messages via FeG RPC
     bool gx_gy_relay_enabled = 4;
+    SentryConfig sentry_config = 5;
 }
 
 message WalletExhaustDetection {
@@ -329,6 +340,9 @@ message MME {
 
     // MME congestion control configs
     bool congestion_control_enabled = 40;
+
+    // MME configuration for sentry.io
+    SentryConfig sentry_config = 45;
 }
 
 message FederatedModeMap {

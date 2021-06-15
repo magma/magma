@@ -194,6 +194,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			SentryConfig: &lte_mconfig.SentryConfig{},
 		},
 		"dnsd": getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
 		"liagentd": &lte_mconfig.LIAgentD{
