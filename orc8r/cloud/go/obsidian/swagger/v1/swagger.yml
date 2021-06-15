@@ -11192,27 +11192,6 @@ definitions:
         type: string
         x-nullable: false
     type: object
-  sentry_config:
-    description: Sentry.io configuration
-    properties:
-      sample_rate:
-        example: 0.5
-        format: float
-        type: number
-      upload_mme_log:
-        example: false
-        type: boolean
-      url_native:
-        example: https://examplePublicKey@o0.ingest.sentry.io/0
-        minLength: 0
-        type: string
-        x-nullable: false
-      url_python:
-        example: https://examplePublicKey@o0.ingest.sentry.io/0
-        minLength: 0
-        type: string
-        x-nullable: false
-    type: object
   served_network_ids:
     description: served network IDs
     items:
