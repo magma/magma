@@ -98,6 +98,18 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           &received_message_p->ittiMsg.s11_release_access_bearers_request,
           imsi64);
     } break;
+    case S8_CREATE_BEARER_REQ: {
+      imsi64_t imsi64 = sgw_s8_handle_create_bearer_request(
+          sgw_state, &received_message_p->ittiMsg.s8_create_bearer_req);
+      if (imsi64 == INVALID_IMSI64) {
+        // Send Failed create bearer response to PGW
+      }
+    } break;
+    case S11_NW_INITIATED_ACTIVATE_BEARER_RESP: {
+      sgw_s8_handle_s11_create_bearer_response(
+          sgw_state, &received_message_p->ittiMsg.s11_nw_init_actv_bearer_rsp,
+          imsi64);
+    } break;
 
     default: {
       OAILOG_DEBUG(

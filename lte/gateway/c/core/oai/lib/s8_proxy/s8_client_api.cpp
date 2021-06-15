@@ -17,6 +17,7 @@ limitations under the License.
 #include "s8_client_api.h"
 #include "S8Client.h"
 #include "pcef_handlers.h"
+#include "s8_itti_proto_conversion.h"
 extern "C" {
 #include "intertask_interface.h"
 #include "log.h"
@@ -30,7 +31,7 @@ static void convert_proto_msg_to_itti_csr(
     magma::feg::CreateSessionResponsePgw& response,
     s8_create_session_response_t* s5_response, bearer_qos_t dflt_bearer_qos);
 
-static void get_qos_from_proto_msg(
+void get_qos_from_proto_msg(
     const magma::feg::QosInformation& proto_qos, bearer_qos_t* bearer_qos) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   bearer_qos->pci       = proto_qos.pci();
@@ -44,7 +45,7 @@ static void get_qos_from_proto_msg(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-static void get_fteid_from_proto_msg(
+void get_fteid_from_proto_msg(
     const magma::feg::Fteid& proto_fteid, fteid_t* pgw_fteid) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   pgw_fteid->teid = proto_fteid.teid();
@@ -442,7 +443,7 @@ void send_s8_create_session_request(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
-static void get_pco_from_proto_msg(
+void get_pco_from_proto_msg(
     const magma::feg::ProtocolConfigurationOptions& proto_pco,
     protocol_configuration_options_t* s8_pco) {
   OAILOG_FUNC_IN(LOG_SGW_S8);

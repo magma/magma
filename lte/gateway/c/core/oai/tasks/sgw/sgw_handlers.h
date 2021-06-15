@@ -101,4 +101,23 @@ void sgw_send_release_access_bearer_response(
 void sgw_process_release_access_bearer_request(
     log_proto_t module, imsi64_t imsi64,
     sgw_eps_bearer_context_information_t* sgw_context);
+
+int sgw_build_and_send_s11_create_bearer_request(
+    sgw_eps_bearer_context_information_t* sgw_eps_bearer_context_information,
+    const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
+    uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    log_proto_t module);
+
+int create_temporary_dedicated_bearer_context(
+    sgw_eps_bearer_context_information_t* sgw_ctxt_p,
+    const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
+    uint32_t sgw_ip_address_S1u_S12_S4_up, teid_t s1_u_sgw_fteid,
+    log_proto_t module);
+
+void handle_failed_create_bearer_response(
+    sgw_eps_bearer_context_information_t* sgw_context_p,
+    gtpv2c_cause_value_t cause, imsi64_t imsi64,
+    bearer_context_within_create_bearer_response_t* bearer_context,
+    log_proto_t module);
+
 #endif /* FILE_SGW_HANDLERS_SEEN */

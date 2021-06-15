@@ -271,12 +271,21 @@ int send_pcrf_bearer_actv_rsp(
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
 
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending create_dedicated_bearer_rsp to SGW with EBI %u s1u teid %u for "
-      "ue id " MME_UE_S1AP_ID_FMT "\n",
-      ebi, bc->s_gw_fteid_s1u.teid, ue_context_p->mme_ue_s1ap_id);
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  if (pdn_context->route_s11_messages_to_s8_task) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Sending create_dedicated_bearer_rsp to SGW_s8 task for EBI %u s1u "
+        "teid " TEID_FMT " for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ebi, bc->s_gw_fteid_s1u.teid, ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Sending create_dedicated_bearer_rsp to SPGW task for EBI %u s1u "
+        "teid " TEID_FMT " for ue id " MME_UE_S1AP_ID_FMT "\n",
+        ebi, bc->s_gw_fteid_s1u.teid, ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -2285,14 +2294,23 @@ void mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
   s11_nw_init_actv_bearer_rsp->bearer_contexts.num_bearer_context++;
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
-
-  OAILOG_INFO_UE(
-      LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      "Sending create_dedicated_bearer_rej to SGW with EBI %u s1u teid %u for "
-      "ue id " MME_UE_S1AP_ID_FMT "\n",
-      pending_ded_ber_req->linked_ebi, pending_ded_ber_req->sgw_fteid.teid,
-      ue_context_p->mme_ue_s1ap_id);
-  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  if (pdn_context->route_s11_messages_to_s8_task) {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Sending create_dedicated_bearer_rej to SGW_s8 task for EBI %u s1u "
+        "teid " TEID_FMT " for ue id " MME_UE_S1AP_ID_FMT "\n",
+        pending_ded_ber_req->linked_ebi, pending_ded_ber_req->sgw_fteid.teid,
+        ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGW_S8, message_p);
+  } else {
+    OAILOG_INFO_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Sending create_dedicated_bearer_rej to SPGW task for EBI %u s1u "
+        "teid " TEID_FMT "for ue id " MME_UE_S1AP_ID_FMT "\n",
+        pending_ded_ber_req->linked_ebi, pending_ded_ber_req->sgw_fteid.teid,
+        ue_context_p->mme_ue_s1ap_id);
+    send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

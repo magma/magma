@@ -43,3 +43,11 @@ void sgw_s8_handle_s11_delete_session_request(
     sgw_state_t* sgw_state,
     const itti_s11_delete_session_request_t* const delete_session_req_p,
     imsi64_t imsi64);
+
+imsi64_t sgw_s8_handle_create_bearer_request(
+    sgw_state_t* sgw_state, const s8_create_bearer_request_t* const cb_req);
+
+void sgw_s8_handle_s11_create_bearer_response(
+    sgw_state_t* sgw_state,
+    const itti_s11_nw_init_actv_bearer_rsp_t* const s11_actv_bearer_rsp,
+    imsi64_t imsi64);

@@ -76,6 +76,22 @@ generate_cpp_protos("${AMFSRV_M5G_CPP_PROTOS}" "${PROTO_SRCS}"
 generate_grpc_protos("${AMFSRV_M5G_GRPC_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
+set(S8SRV_FEG_CPP_PROTOS s8_proxy)
+set(S8SRV_FEG_GRPC_PROTOS s8_proxy)
+set(S8SRV_LTE_CPP_PROTOS oai/spgw_state  oai/common_types oai/std_3gpp_types)
+set(S8SRV_LTE_GRPC_PROTOS oai/spgw_state  oai/common_types oai/std_3gpp_types)
+set(SGW_S8_INCLUDES ${PROJECT_SOURCE_DIR}/lib/s8_proxy ${PROJECT_SOURCE_DIR}/tasks/sgw)
+generate_cpp_protos("${S8SRV_FEG_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${FEG_PROTO_DIR} ${FEG_OUT_DIR})
+generate_grpc_protos("${S8SRV_FEG_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${FEG_PROTO_DIR} ${FEG_OUT_DIR})
+generate_cpp_protos("${S8SRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+generate_grpc_protos("${S8SRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR} ${SGW_S8_INCLUDES})
+
 add_library(TASK_GRPC_SERVICE
     AmfServiceImpl.cpp
     SpgwServiceImpl.cpp
@@ -90,6 +106,7 @@ add_library(TASK_GRPC_SERVICE
     amf_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp
+    S8ServiceImpl.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
