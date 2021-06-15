@@ -1460,7 +1460,7 @@ jobs:
           name: Propagate names for AWS essential components
           command: |
             sed -i -e '/^secgroupDefault: /s/:.*$/: publish-amis-to-marketplace-secgroup/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket3/' $VARS_DIR/defaults.yaml
             sed -i -e '/^stackEssentialsDefault: /s/:.*$/: publish-amis-to-marketplace-stack/' $VARS_DIR/defaults.yaml
             sed -i -e '/^keyBoot: /s/:.*$/: publish-amis-to-marketplace-keyboot/' $VARS_DIR/defaults.yaml
             sed -i -e '/^keyHost: /s/:.*$/: publish-amis-to-marketplace-keyhost/' $VARS_DIR/defaults.yaml
@@ -1587,7 +1587,8 @@ workflows:
             - release-hold
   quentintest:
     jobs:
-      - publish-amis-to-marketplace
+      - publish-amis-to-marketplace:
+          aws_account: "LF"
   feg:
     jobs:
       - feg-lint
