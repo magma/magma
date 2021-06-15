@@ -58,6 +58,9 @@ type PolicyRule struct {
 	// redirect
 	Redirect *RedirectInformation `json:"redirect,omitempty"`
 
+	// service identifier
+	ServiceIdentifier uint32 `json:"service_identifier,omitempty"`
+
 	// tracking type
 	// Enum: [ONLY_OCS ONLY_PCRF OCS_AND_PCRF NO_TRACKING]
 	TrackingType string `json:"tracking_type,omitempty"`
