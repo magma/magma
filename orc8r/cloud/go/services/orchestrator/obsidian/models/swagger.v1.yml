@@ -18,6 +18,8 @@ magma-gen-meta:
       filename: dns_config_record_swaggergen.go
     - go-struct-name: NetworkFeatures
       filename: network_features_swaggergen.go
+    - go-struct-name: NetworkSentryConfig
+      filename: network_sentry_config_swaggergen.go
     - go-struct-name: ChallengeKey
       filename: challenge_key_swaggergen.go
     - go-struct-name: ConfigInfo
