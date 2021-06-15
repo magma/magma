@@ -1084,6 +1084,8 @@ static void authentication_t3460_handler(void* args, imsi64_t* imsi64) {
     // TODO the network shall abort any ongoing EMM specific procedure.
 
     auth_proc->retransmission_count += 1;
+    auth_proc->T3460.id = NAS_TIMER_INACTIVE_ID;
+
     OAILOG_WARNING_UE(
         LOG_NAS_EMM, *imsi64,
         "EMM-PROC  - T3460 timer expired, retransmission "
@@ -1277,6 +1279,9 @@ static int authentication_request(
         /*
          * Start T3460 timer
          */
+        OAILOG_DEBUG(
+            LOG_NAS_EMM, "Timeout period for T3460 is: %u",
+            auth_proc->T3460.sec);
         nas_start_T3460(
             auth_proc->ue_id, &auth_proc->T3460,
             auth_proc->emm_com_proc.emm_proc.base_proc.time_out,
