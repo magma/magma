@@ -165,6 +165,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
 			CongestionControlEnabled: swag.BoolValue(gwEpc.CongestionControlEnabled),
+			SentryConfig:             &lte_mconfig.SentryConfig{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
