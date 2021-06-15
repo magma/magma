@@ -119,10 +119,16 @@ int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
       case REGISTRATION_REQUEST_NAS_MESSAGE_CONTAINER_TYPE:
       case REGISTRATION_REQUEST_EPS_BEARER_CONTEXT_STATUS_TYPE:
         // TLV Types. 1 byte for Type and 1 Byte for size
-        type_len   = sizeof(uint8_t);
-        length_len = sizeof(uint8_t);
 
-        DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
+        if (type == REGISTRATION_REQUEST_NAS_MESSAGE_CONTAINER_TYPE) {
+          type_len   = sizeof(uint8_t);
+          length_len = 2 * sizeof(uint8_t);
+          DECODE_U16(buffer + decoded + type_len, decoded_result, decoded);
+        } else {
+          type_len   = sizeof(uint8_t);
+          length_len = sizeof(uint8_t);
+          DECODE_U8(buffer + decoded + type_len, decoded_result, decoded);
+        }
 
         decoded += (length_len + decoded_result);
         break;
@@ -136,6 +142,7 @@ int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
       return decoded_result;
     }
   }
+
   return decoded;
 }
 

@@ -37,6 +37,8 @@ enum MetricName {
   diameter_capabilities_exchange = 9;
   diameter_watchdog              = 10;
   diameter_disconnect            = 11;
+  m5g_auth_success               = 12;
+  m5g_auth_failure               = 13;
 
   // More prometheus metrics
   python_info                    = 50;

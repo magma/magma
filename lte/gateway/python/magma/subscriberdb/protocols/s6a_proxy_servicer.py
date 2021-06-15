@@ -41,8 +41,6 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
         imsi = request.user_name
         aia = s6a_proxy_pb2.AuthenticationInformationAnswer()
         try:
-            import logging
-
             logging.info("========================")
             logging.info(request)
 

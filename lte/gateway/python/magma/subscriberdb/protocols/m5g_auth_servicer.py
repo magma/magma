@@ -37,8 +37,6 @@ class M5GAuthRpcServicer(subscriberauth_pb2_grpc.M5GSubscriberAuthenticationServ
         imsi = request.user_name
         aia = subscriberauth_pb2.M5GAuthenticationInformationAnswer()
         try:
-            import logging
-
             logging.info("========================")
             logging.info(request)
 
