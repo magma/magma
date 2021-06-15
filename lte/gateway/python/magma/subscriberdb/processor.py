@@ -101,6 +101,59 @@ class LTEProcessor(metaclass=abc.ABCMeta):
         """
         raise NotImplementedError()
 
+    @abc.abstractmethod
+    def generate_5G_xres_star_vector(self, imsi, ck, ik, snni, rand, xres):
+        """
+        Returns the 5G xres star vector  vector for the subscriber by querying the
+        store for the secret key and generating the vector with the crypto algo
+        Args:
+            ck: CK of the subscriber
+            ik: IK of the subscriber
+            snni: Serving network name
+            rand (bytes): 128 bit random challenge
+            xres (bytes): 128 bit expected result
+        Returns:
+            xres_star (bytes)
+        Raises:
+            SubscriberNotFoundError if the subscriber is not present
+            CryptoError if the auth tuple couldn't be generated
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def generate_5G_kausf_vector(self, imsi, ck, ik, snni, autn):
+        """
+        Returns the 5G xres star vector  vector for the subscriber by querying the
+        store for the secret key and generating the vector with the crypto algo
+        Args:
+            imsi: Subscriber Identifier
+            ck: CK of the subscriber
+            ik: IK of the subscriber
+            snni: Serving network name
+            autn (bytes): Authentication
+        Returns:
+            kausf (bytes)
+        Raises:
+            SubscriberNotFoundError if the subscriber is not present
+            CryptoError if the auth tuple couldn't be generated
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
+    def generate_5G_kseaf_vector(self, imsi, kausf, snni):
+        """
+        Returns the 5G xres star vector  vector for the subscriber by querying the
+        store for the secret key and generating the vector with the crypto algo
+        Args:
+            imsi: Subscriber Identifier
+            kausf (bytes): Authentication
+        Returns:
+            kausf (bytes)
+        Raises:
+            SubscriberNotFoundError if the subscriber is not present
+            CryptoError if the auth tuple couldn't be generated
+        """
+        raise NotImplementedError()
 
 class Processor(GSMProcessor, LTEProcessor):
     """
@@ -324,3 +377,58 @@ class Processor(GSMProcessor, LTEProcessor):
             seq (int): the sequence number
         """
         return sqn >> 5
+
+    def generate_5G_xres_star_vector(self, imsi, ck, ik, snni, rand, xres):
+        """
+        Returns the 5G xres star vector for the subscriber by querying the store
+        for the crypto algo and secret keys.
+        """
+        sid = SIDUtils.to_str(SubscriberID(id=imsi, type=SubscriberID.IMSI))
+        subs = self._store.get_subscriber_data(sid)
+
+        if subs.lte.state != LTESubscription.ACTIVE:
+            raise CryptoError("LTE service not active for %s" % sid)
+
+        if subs.lte.auth_algo != LTESubscription.MILENAGE:
+            raise CryptoError("Unknown crypto (%s) for %s" %
+                              (subs.lte.auth_algo, sid))
+
+        milenage = Milenage(self._amf)
+        return milenage.generate_5G_xres_vector(ck, ik, snni, rand, xres)
+
+    def generate_5G_kausf_vector(self, imsi, ck, ik, snni, autn):
+        """
+        Returns the kausf vector for the subscriber by querying the store
+        for the crypto algo and secret keys.
+        """
+        sid = SIDUtils.to_str(SubscriberID(id=imsi, type=SubscriberID.IMSI))
+        subs = self._store.get_subscriber_data(sid)
+
+        if subs.lte.state != LTESubscription.ACTIVE:
+            raise CryptoError("LTE service not active for %s" % sid)
+
+        if subs.lte.auth_algo != LTESubscription.MILENAGE:
+            raise CryptoError("Unknown crypto (%s) for %s" %
+                              (subs.lte.auth_algo, sid))
+
+        milenage = Milenage(self._amf)
+        return milenage.generate_5G_kausf_vector(ck, ik, snni, autn)
+
+    def generate_5G_kseaf_vector(self, imsi, kausf, snni):
+        """
+        Returns the kseaf vector for the subscriber by querying the store
+        for the crypto algo and secret keys.
+        """
+        sid = SIDUtils.to_str(SubscriberID(id=imsi, type=SubscriberID.IMSI))
+        subs = self._store.get_subscriber_data(sid)
+
+        if subs.lte.state != LTESubscription.ACTIVE:
+            raise CryptoError("LTE service not active for %s" % sid)
+
+        if subs.lte.auth_algo != LTESubscription.MILENAGE:
+            raise CryptoError("Unknown crypto (%s) for %s" %
+                              (subs.lte.auth_algo, sid))
+
+        milenage = Milenage(self._amf)
+        return milenage.generate_5G_kseaf_vector(kausf, snni)
+

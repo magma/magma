@@ -23,6 +23,7 @@ from magma.subscriberdb.processor import Processor
 from magma.subscriberdb.protocols.diameter.application import base, s6a
 from magma.subscriberdb.protocols.diameter.server import S6aServer
 from magma.subscriberdb.protocols.s6a_proxy_servicer import S6aProxyRpcServicer
+from magma.subscriberdb.protocols.m5g_auth_servicer import M5GAuthRpcServicer
 from magma.subscriberdb.rpc_servicer import SubscriberDBRpcServicer
 from magma.subscriberdb.store.sqlite import SqliteStore
 from magma.subscriberdb.subscription_profile import get_default_sub_profile
@@ -88,7 +89,12 @@ def main():
             # Waiting for subscribers to be added to store
             await store.on_ready()
 
-        if service.config.get('s6a_over_grpc'):
+        if service.config['m5g_auth_proc']:
+            logging.info('Cater to 5G Authentication')
+            m5g_subs_auth_servicer = M5GAuthRpcServicer(processor)
+            m5g_subs_auth_servicer.add_to_server(service.rpc_server)
+
+        if service.config['s6a_over_grpc']:
             logging.info('Running s6a over grpc')
             s6a_proxy_servicer = S6aProxyRpcServicer(
                 processor,

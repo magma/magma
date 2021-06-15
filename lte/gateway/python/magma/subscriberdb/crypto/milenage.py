@@ -17,7 +17,7 @@ from Crypto.Cipher import AES
 from Crypto.Random import random
 
 from .lte import BaseLTEAuthAlgo
-
+import logging
 
 class Milenage(BaseLTEAuthAlgo):
     """
@@ -45,6 +45,7 @@ class Milenage(BaseLTEAuthAlgo):
         sqn_bytes = bytearray.fromhex('{:012x}'.format(sqn))
         rand = Milenage.generate_rand()
 
+
         mac_a, _ = Milenage.f1(key, sqn_bytes, rand, opc, self.amf)
         xres, ak = Milenage.f2_f5(key, rand, opc)
         ck = Milenage.f3(key, rand, opc)
@@ -52,7 +53,7 @@ class Milenage(BaseLTEAuthAlgo):
 
         autn = Milenage.generate_autn(sqn_bytes, ak, mac_a, self.amf)
         kasme = Milenage.generate_kasme(ck, ik, plmn, sqn_bytes, ak)
-        return rand, xres, autn, kasme
+        return rand, xres, autn, kasme, ck, ik
 
     def generate_auts(self, key, opc, rand, sqn):
         """
@@ -89,6 +90,52 @@ class Milenage(BaseLTEAuthAlgo):
         sqn_ms_int = int.from_bytes(sqn_ms, byteorder='big')
         _, mac_s = self.f1(key, sqn_ms, rand, opc, self.amf)
         return sqn_ms_int, mac_s
+
+    def generate_5G_xres_vector(self, ck, ik, snni, rand, xres):
+        """
+        Compute XRES_STAR = K + FC + P0 + L0 + P1 + L1 + P2 + L2
+        Args:
+            ck: CK of the subscriber
+            ik: IK of the subscriber
+            snni: Serving network name
+            rand (bytes):
+            xres (bytes):
+        Returns:
+            xres_star (bytes)
+        """
+        snni_byte_str =  snni.encode('utf-8')
+        key=ck + ik
+
+        return Milenage.generate_xres_star(key, snni_byte_str, rand, xres)
+
+    def generate_5G_kausf_vector(self, ck, ik, snni, autn):
+        """
+        Compute kausf = K + FC + P0 + L0 + P1 + L1
+        Args:
+            ck: CK of the subscriber
+            ik: IK of the subscriber
+            snni: Serving network name
+            autn: (bytes):
+        Returns:
+            kausf (bytes)
+         """
+        snni_byte_str = snni.encode('utf-8')
+        key  =  ck + ik
+
+        return Milenage.generate_5G_kausf(key, snni_byte_str, autn)
+
+    def generate_5G_kseaf_vector(self, kausf, snni):
+        """
+        Compute kseaf = K + FC + P0 + L0
+        Args:
+            kausf: kausf of the subscriber
+            snni: Serving network name
+        Returns:
+            kseaf (bytes)
+         """
+        snni_byte_str = snni.encode('utf-8')
+
+        return Milenage.generate_5G_kseaf(kausf, snni_byte_str)
 
     @classmethod
     def f1(cls, key, sqn, rand, opc, amf):
@@ -251,6 +298,77 @@ class Milenage(BaseLTEAuthAlgo):
         """
         S = b'\x10' + plmn + b'\x00\x03' + xor(sqn, ak) + b'\x00\x06'
         return cls.KDF(ck + ik, S)
+
+    @classmethod
+    def generate_xres_star(cls, key, snni_byte_str, rand, xres):
+        """
+        Compute XRES_STAR = K + FC + P0 + L0 + P1 + L1 + P2 + L2
+        Args:
+            ck: CK of the subscriber
+            ik: IK of the subscriber
+            snni: Serving network name
+            rand (bytes):
+            xres (bytes):
+        Returns:
+            xres_star (bytes)
+        """
+
+        snni_len=len(snni_byte_str)
+        rand_len=len(rand)
+        xres_len=len(xres)
+
+        K  =  key
+        FC =  bytes.fromhex('6B')
+        P0 =  snni_byte_str
+        L0 =  snni_len.to_bytes(2, 'big')
+        P1 =  rand
+        L1 =  rand_len.to_bytes(2, 'big')
+        P2 =  xres
+        L2 =  xres_len.to_bytes(2, 'big')
+
+        S = FC + P0 + L0 + P1 + L1 + P2 + L2
+
+        return cls.KDF(K, S)
+
+    @classmethod
+    def generate_5G_kausf(cls, key, snni_byte_str, autn):
+        """
+        Compute KAUSF = K + FC + P0 + L0i + P1 + L1
+        Args:
+            key: Combination of CK and IK
+            snni_byte_str: snni
+        Returns:
+            kausf (bytes)
+        """
+        K  =  key 
+        FC =  bytes.fromhex('6A')
+        P0 =  snni_byte_str
+        L0 =  len(snni_byte_str).to_bytes(2, 'big')
+        P1 =  autn[:6]
+        L1 =  len(P1).to_bytes(2, 'big')
+
+        S = FC + P0 + L0 + P1 + L1
+
+        return cls.KDF(K, S)
+
+    @classmethod
+    def generate_5G_kseaf(cls, kausf, snni_byte_str):
+        """
+        Compute KSEAF = K + FC + P0 + L0
+        Args:
+            key: kausf
+            snni_byte_str: snni
+        Returns:
+            kseaf (bytes)
+        """
+        K  =  kausf
+        FC =  bytes.fromhex('6C')
+        P0 =  snni_byte_str
+        L0 =  len(snni_byte_str).to_bytes(2, 'big')
+
+        S = FC + P0 + L0
+
+        return cls.KDF(K, S)
 
     @classmethod
     def generate_rand(cls):

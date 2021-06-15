@@ -34,18 +34,21 @@ namespace magma5g {
 #define AUTH_AMF_SIZE 2 /* Authentication Management Field:  16 bits  */
 #define AUTH_MAC_SIZE 8 /* Message Authentication Code:  64 bits  */
 #define AUTH_AUTN_SIZE                                                         \
-  16                          /* Authentication token:     128 bits            \
-                AUTN = (SQN ⊕ AK) || AMF || MAC        */
-#define AUTH_MACS_SIZE 8      /* Re-synchronization MAC:       64 bits  */
-#define AUTH_AUTS_SIZE 16     /* Re-synchronization AUT:       128 bits */
-#define AUTH_RAND_SIZE 16     /* Random challenge:         128 bits     */
-#define AUTH_CK_SIZE 16       /* Ciphering key:            128 bits     */
-#define AUTH_IK_SIZE 16       /* Integrity key:            128 bits     */
-#define AUTH_RES_SIZE 16      /* Authentication response:      128 bits */
-#define AUTH_SNID_SIZE 3      /* Serving network's identity:   24 bits  */
-#define AUTH_KASME_SIZE 32    /* KASME security key:        256 bits    */
-#define AUTH_KNAS_INT_SIZE 16 /* NAS integrity key     */
-#define AUTH_KNAS_ENC_SIZE 16 /* NAS cyphering key     */
+  16                           /* Authentication token:     128 bits           \
+                 AUTN = (SQN ⊕ AK) || AMF || MAC        */
+#define AUTH_MACS_SIZE 8       /* Re-synchronization MAC:       64 bits  */
+#define AUTH_AUTS_SIZE 16      /* Re-synchronization AUT:       128 bits */
+#define AUTH_RAND_SIZE 16      /* Random challenge:         128 bits     */
+#define AUTH_CK_SIZE 16        /* Ciphering key:            128 bits     */
+#define AUTH_IK_SIZE 16        /* Integrity key:            128 bits     */
+#define AUTH_RES_SIZE 16       /* Authentication response:      128 bits */
+#define AUTH_SNID_SIZE 3       /* Serving network's identity:   24 bits  */
+#define AUTH_KASME_SIZE 32     /* KASME security key:        256 bits    */
+#define AUTH_KAMF_SIZE 32      /* KAMF secuirity key:        256 bits    */
+#define AUTH_KNAS_INT_SIZE 16  /* NAS integrity key     */
+#define AUTH_KNAS_ENC_SIZE 16  /* NAS cyphering key     */
+#define AUTH_KAMF_SIZE 32      /* KAMF secuirity key:        256 bits    */
+#define M5G_AUTH_KSEAF_SIZE 32 /* KASME security key:        256 bits    */
 #define AUTH_KGNB_SIZE AUTH_KASME_SIZE     /* gNodeB security key   */
 #define AUTH_NEXT_HOP_SIZE AUTH_KASME_SIZE /* Next Hop security parameter*/
 
@@ -75,15 +78,15 @@ typedef enum amf_sc_type_s {
 class m5g_auth_vector_t {
  public:
   /* ASME security key                */
-  uint8_t kasme[AUTH_KASME_SIZE];
+  uint8_t kseaf[M5G_AUTH_KSEAF_SIZE];
   /* Random challenge parameter           */
   uint8_t rand[AUTH_RAND_SIZE];
   /* Authentication token parameter       */
   uint8_t autn[AUTH_AUTN_SIZE];
   /* Expected Authentication response parameter   */
 #define AUTH_XRES_SIZE AUTH_RES_SIZE
-  uint8_t xres_size;
-  uint8_t xres[AUTH_XRES_SIZE];
+  uint8_t xres_star[AUTH_XRES_SIZE];
+  uint8_t xres_star_length;
 };
 
 /****************************************************************************/

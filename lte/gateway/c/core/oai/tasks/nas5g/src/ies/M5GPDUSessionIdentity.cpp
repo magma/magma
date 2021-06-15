@@ -13,6 +13,7 @@
 #include <cstdint>
 #include "M5GPDUSessionIdentity.h"
 #include "M5GCommonDefs.h"
+#include "M5gNasMessage.h"
 
 using namespace std;
 namespace magma5g {
@@ -41,6 +42,14 @@ int PDUSessionIdentityMsg::EncodePDUSessionIdentityMsg(
   int encoded = 0;
 
   MLOG(MDEBUG) << " EncodePDUSessionIdentityMsg : ";
+
+  // Checking IEI and pointer
+  if (iei > 0) {
+    CHECK_IEI_ENCODER((unsigned char) iei, PDU_SESSION_IDENTITY);
+    *buffer = iei;
+    encoded++;
+  }
+
   *(buffer + encoded) = pdu_session_identity->pdu_session_id;
   MLOG(MDEBUG) << "PDUSessionIdentity = 0x" << hex << int(*(buffer + encoded));
   encoded++;
