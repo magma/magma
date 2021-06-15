@@ -198,3 +198,4 @@ dp_irq:
  SGi_cpu: '2'
  SGi_queue_size: 256
 
+periodic_stats_reporting: True
