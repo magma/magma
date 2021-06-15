@@ -15,6 +15,12 @@ endif ()
 
 add_list_string_option(CMAKE_BUILD_TYPE "RelWithDebInfo" "Choose the type of build, options are: None(CMAKE_CXX_FLAGS or CMAKE_C_FLAGS used) Debug Release RelWithDebInfo MinSizeRel." Debug Release RelWithDebInfo MinSizeRel)
 message("Build type is ${CMAKE_BUILD_TYPE}")
+message("S6A_OVER_GRPC is ${CMAKE_S6A_OVER_GRPC}")
+message("EMBEDDED_SGW is ${CMAKE_EMBEDDED_SGW}")
+message("ENABLE_OPENFLOW is ${CMAKE_ENABLE_OPENFLOW}")
+message("SPGW_ENABLE_SESSIOND_AND_MOBILITYD is ${CMAKE_SPGW_ENABLE_SESSIOND_AND_MOBILITYD}")
+message("BUILD_TESTS is ${CMAKE_BUILD_TESTS}")
+
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_boolean_option(LINK_GCOV True "Whether to link gcov")

@@ -30,6 +30,13 @@ project(MagmaConvergedCore)
 
 include(ExternalProject)
 
+message("Build type is ${CMAKE_BUILD_TYPE}")
+message("S6A_OVER_GRPC is ${CMAKE_S6A_OVER_GRPC}")
+message("EMBEDDED_SGW is ${CMAKE_EMBEDDED_SGW}")
+message("ENABLE_OPENFLOW is ${CMAKE_ENABLE_OPENFLOW}")
+message("SPGW_ENABLE_SESSIOND_AND_MOBILITYD is ${CMAKE_SPGW_ENABLE_SESSIOND_AND_MOBILITYD}")
+message("BUILD_TESTS is ${CMAKE_BUILD_TESTS}")
+
 ExternalProject_Add(MagmaCommon
     SOURCE_DIR "$ENV{MAGMA_ROOT}/orc8r/gateway/c/common"
     BUILD_ALWAYS 1

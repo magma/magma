@@ -78,7 +78,11 @@ MME :
     # MME code DEFAULT  size = 8 bits
     # MME GROUP ID size = 16 bits
     GUMMEI_LIST = (
-         { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; MME_GID="{{ mmeGid }}" ; MME_CODE="{{ mmeCode }}"; }
+        { MCC: "001"; MNC: "01"; MME_GID: "1"; MME_CODE: "1" },
+        { MCC: "001"; MNC: "02"; MME_GID: "1"; MME_CODE: "1" },
+        { MCC: "001"; MNC: "03"; MME_GID: "1"; MME_CODE: "1" },
+        { MCC: "001"; MNC: "04"; MME_GID: "1"; MME_CODE: "1" },
+        { MCC: "001"; MNC: "05"; MME_GID: "1"; MME_CODE: "1" }
     );
 
     # ------- MME served TAIs
@@ -87,32 +91,26 @@ MME :
     # maximum of 16 TAIs, comma separated
     # !!! Actually use only one PLMN
     TAI_LIST = (
-    {% if not attachedEnodebTacs|length %}
-         { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ tac }}"; }
-    {%- else %}
-         {% for enbTac in attachedEnodebTacs -%}
-         { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ enbTac }}"; }{% if not loop.last %},{% endif %}
-         {% endfor -%}
-    {%- endif %}
+        { MCC: "001"; MNC: "01"; TAC: "1" },
+        { MCC: "001"; MNC: "02"; TAC: "2" },
+        { MCC: "001"; MNC: "03"; TAC: "3" },
+        { MCC: "001"; MNC: "04"; TAC: "4" },
+        { MCC: "001"; MNC: "05"; TAC: "5" }
     );
 
     TAC_LIST = (
-         {% for enbTac in attached_enodeb_tacs -%}
-         { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ enbTac }}"; }{% if not loop.last %},{% endif %}
-         {% endfor %}
+        { MCC: "001"; MNC: "01"; TAC: "1" },
+        { MCC: "001"; MNC: "02"; TAC: "2" },
+        { MCC: "001"; MNC: "03"; TAC: "3" },
+        { MCC: "001"; MNC: "04"; TAC: "4" },
+        { MCC: "001"; MNC: "05"; TAC: "5" }
     );
 
     # List of restricted PLMNs
     # By default this list is empty
     # Max number of restricted plmn is 10
     RESTRICTED_PLMN_LIST = (
-        # PlmnConfig values can be found at magma/lte/protos/mconfig/mconfigs.proto
-        {% for plmn_config in restrictedPlmns -%}
-        {
-          MCC        = "{{ plmn_config.mcc }}"
-          MNC        = "{{ plmn_config.mnc }}"
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
+        { MCC= "123"; MNC= "450"}
     );
 
     # List of blocked IMEIs
@@ -120,17 +118,8 @@ MME :
     # Stored in a hash table on mme side
     # Length of IMEI=15 digits, length of IMEISV=16 digits
     BLOCKED_IMEI_LIST = (
-        # Sample IMEI: TAC(8 digits) + SNR (6 digits)
-        #{ IMEI_TAC="99000482"; SNR="351037"}
-        # Sample IMEI without SNR: TAC(8 digits)
-        #{ IMEI_TAC="99000482";}
-        # ImeiConfig values can be found at magma/lte/protos/mconfig/mconfigs.proto
-        {% for imei_config in restrictedImeis -%}
-        {
-          IMEI_TAC   = "{{ imei_config.tac }}"
-          SNR        = "{{ imei_config.snr }}"
-        }{% if not loop.last %},{% endif %}
-        {% endfor %}
+        { IMEI_TAC="99000482"; SNR="351037" },
+        { IMEI_TAC="99333821"; }
     );
 
     CSFB :
@@ -168,7 +157,7 @@ MME :
         # Initiation of the periodic TAU procedure if the UE is not attached for
         # emergency bearer services. Implicit detach from network if the UE is
         # attached for emergency bearer services.
-        T3412                                 =  54                             # in minutes (default is 54 minutes, network dependent)
+        T3412                                 =  1                             # in minutes (default is 54 minutes, network dependent)
         # T3422 start: DETACH REQUEST sent
         # T3422 stop: DETACH ACCEPT received
         # ON THE 1st, 2nd, 3rd, 4th EXPIRY: Retransmission of DETACH REQUEST
