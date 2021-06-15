@@ -22,6 +22,7 @@ class NAS5GPktSnapShot {
  public:
   static uint8_t reg_req_buffer[38];
   static uint8_t reg_resync_buffer[20];
+  static uint8_t guti_based_registration[91];
   static uint8_t pdu_session_est_req_type1[131];
   static uint8_t pdu_session_est_req_type2[47];
 
@@ -31,6 +32,10 @@ class NAS5GPktSnapShot {
 
   uint32_t get_reg_resync_buffer_len() {
     return sizeof(reg_resync_buffer) / sizeof(unsigned char);
+  }
+
+  uint32_t get_guti_based_registration_len() {
+    return sizeof(guti_based_registration) / sizeof(unsigned char);
   }
 
   uint32_t get_pdu_session_est_type1_len() {

@@ -379,7 +379,7 @@ class Classifier(MagmaController):
 
     def gtp_handler(self, pdr_state, precedence:int, local_f_teid:int,
                     o_teid:int, ue_ip_addr:IPAddress, gnb_ip_addr:str,
-                    sid:int = None, ng_flag: bool = True):
+                    sid:int = None):
 
         if pdr_state == PdrState.Value('INSTALL'):
             self.add_tunnel_flows(precedence, local_f_teid,
