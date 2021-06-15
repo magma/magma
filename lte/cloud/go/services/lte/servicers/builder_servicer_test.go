@@ -157,6 +157,7 @@ func TestBuilder_Build(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+			SentryConfig: &lte_mconfig.SentryConfig{},
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
