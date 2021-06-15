@@ -90,6 +90,7 @@ start: ## Start all services
 
 stop: ## Stop all services
 	sudo service magma@* stop
+	sudo service sctpd stop
 
 restart: stop start ## Restart all services
 
