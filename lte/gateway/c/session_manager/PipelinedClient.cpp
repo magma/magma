@@ -423,6 +423,15 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
   });
 }
 
+void AsyncPipelinedClient::poll_stats(cookie : int = 0, cookie_mask : int = 0){
+  auto req = GetStatsRequest(cookie = cookie, cookie_mask = cookie_mask);
+  poll_stats_rpc(req, [](Status status, RuleRecordTable table){
+    if (!status.ok()){
+      MLOG(MERROR) << "Could not poll stats " << status.error_message();
+    }
+  });
+}
+
 void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
@@ -542,6 +551,17 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(
       std::move(stub_->AsyncUpdateSubscriberQuotaState(
+          local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncPipelinedClient::poll_stats_rpc(
+    const GetStatsRequest& request,
+    std::function<void(Status, RuleRecordTable)> callback) {
+  auto local_resp = new AsyncLocalResponse<RuleRecordTable>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  local_resp->set_response_reader(
+      std::move(stub_->AsyncPollStats(
           local_resp->get_context(), request, &queue_)));
 }
 

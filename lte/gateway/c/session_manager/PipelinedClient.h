@@ -336,6 +336,11 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   void set_upf_session_rpc(
       const SessionSet& request,
       std::function<void(Status, UPFSessionContextState)> callback);
+  
+  void poll_stats_rpc(
+      const GetStatsRequest& request,
+      std::function<void(Status, RuleRecordTable)> callback);
+  )
 };
 
 }  // namespace magma
