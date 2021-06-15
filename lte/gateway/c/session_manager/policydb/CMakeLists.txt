@@ -28,11 +28,11 @@ set(POLICYDB_ORC8R_CPP_PROTOS common)
 generate_cpp_protos("${POLICYDB_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(POLICYDB_LTE_CPP_PROTOS policydb)
+set(POLICYDB_LTE_CPP_PROTOS policydb apn mobilityd subscriberdb)
 generate_cpp_protos("${POLICYDB_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
-message("Proto_srcs are ${PROTO_SRCS}")
+message("Policydb proto_srcs are ${PROTO_SRCS}")
 
 add_library(POLICYDB
     PolicyLoader.cpp
