@@ -21,6 +21,7 @@
     filters:
       vpc_id: "{{ factVpcId }}"
   register: valSecGroup
+  when: factVpcId is defined
 
 - name: delete all individual rules in each security group
   ec2_group:

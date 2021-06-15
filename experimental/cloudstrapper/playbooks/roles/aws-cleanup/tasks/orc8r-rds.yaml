@@ -4,10 +4,6 @@
   rds_instance_info:
   register: dbgRds
 
-- name: print all rds instances
-  debug:
-    msg: "{{ dbgRds }}"
-
 - name: delete rds instances
   command: aws rds delete-db-instance --db-instance-identifier "{{ item }}" --skip-final-snapshot
   environment:
@@ -19,7 +15,7 @@
   register: result
   failed_when:
     - result.stderr != ''
-    - not 'DBInstanceNotFound' in deletedbresult.stderr
+    - not 'DBInstanceNotFound' in result.stderr
 
 - name: wait for database deletion before deleting subnet group
   command: aws rds wait db-instance-deleted --db-instance-identifier "{{ item }}"
@@ -33,3 +29,10 @@
     - result.stderr != ''
     - not 'DBSubnetGroupNotFoundFault' in result.stderr
 
+- name: delete rds event notifications
+  command: aws rds delete-event-subscription --subscription-name "{{ orc8rDbNotifs }}"
+  tags: delrds
+  register: result
+  failed_when:
+    - result.stderr != ''
+    - not 'SubscriptionNotFound' in result.stderr
