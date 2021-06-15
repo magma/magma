@@ -24,5 +24,5 @@ const (
 	StateServiceName        = "state"
 	StreamerServiceName     = "streamer"
 
-	SQLite3 = "sqlite3"
+	SQLiteDriver = "sqlite3"
 )

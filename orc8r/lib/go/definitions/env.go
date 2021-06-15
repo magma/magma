@@ -14,8 +14,9 @@ limitations under the License.
 package definitions
 
 import (
-	"fmt"
 	"os"
+
+	"github.com/pkg/errors"
 )
 
 // GetEnvWithDefault returns the string value of the environment variable,
@@ -33,7 +34,7 @@ func GetEnvWithDefault(variable string, defaultValue string) string {
 func MustGetEnv(variable string) string {
 	value := os.Getenv(variable)
 	if len(value) == 0 {
-		panic(fmt.Errorf("%s env not found", variable))
+		panic(errors.Errorf("%s env not found", variable))
 	}
 	return value
 }

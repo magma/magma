@@ -36,7 +36,7 @@ var (
 // GetSharedMemoryDB returns a singleton in-memory database connection.
 func GetSharedMemoryDB() (*sql.DB, error) {
 	var err error
-	once.Do(func() { instance, err = sqorc.Open(definitions.SQLite3, ":memory:") })
+	once.Do(func() { instance, err = sqorc.Open(definitions.SQLiteDriver, ":memory:") })
 	return instance, err
 }
 
