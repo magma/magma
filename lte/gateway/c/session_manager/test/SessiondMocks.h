@@ -52,6 +52,7 @@ class MockPipelined final : public Pipelined::Service {
         .WillByDefault(Return(Status::OK));
     ON_CALL(*this, SetupUEMacFlows(_, _, _)).WillByDefault(Return(Status::OK));
     ON_CALL(*this, SetupQuotaFlows(_, _, _)).WillByDefault(Return(Status::OK));
+    ON_CALL(*this, PollStats(_, _, _)).WillByDefault(Return(Status::OK));
   }
 
   MOCK_METHOD3(
@@ -78,6 +79,10 @@ class MockPipelined final : public Pipelined::Service {
       SetupQuotaFlows,
       Status(
           grpc::ServerContext*, const SetupQuotaRequest*, SetupFlowsResult*));
+  MOCK_METHOD3(
+      PollStats,
+      Status(
+          grpc::ServcerContext*, const GetStatsRequest*, RuleRecordTable*));
 };
 
 class MockPipelinedClient : public PipelinedClient {
