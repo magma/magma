@@ -806,12 +806,6 @@ jobs:
           project: cwf
           images: <<parameters.images>>
           tag: <<parameters.tag>>
-          registry: $DOCKER_MAGMA_REGISTRY
-          tag-latest: <<parameters.tag-latest>>
-      - tag-push-docker:
-          project: cwf
-          images: <<parameters.images>>
-          tag: <<parameters.tag>>
           tag-latest: <<parameters.tag-latest>>
           registry: $JFROG_DOCKER_CWF_REGISTRY
           username: $JFROG_USERNAME
@@ -1453,7 +1447,12 @@ workflows:
             - eslint
             - nms-yarn-test
             - nms-e2e-test
-
+  quentintest:
+    jobs:
+      - cwag-deploy:
+          tag-latest: false
+          tag: 1.5.1
+          images: 'cwag_go|gateway_sessiond|gateway_pipelined'
   docusaurus:
    jobs:
     - docusaurus_build_and_deploy:
