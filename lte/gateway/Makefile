@@ -184,7 +184,7 @@ build_sctpd: format_sctpd
 build_session_manager: format_session_manager build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
-build_li_agent: format_li_agent build_common ## Build li agent
+build_li_agent: format_li_agent ## Build li agent
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
 
 build_connection_tracker: format_connection_tracker
@@ -212,6 +212,10 @@ test_sctpd: ## Run all OAI-specific tests
 
 test_common: build_common ## Run all tests in magma_common
 	$(call run_ctest, $(C_BUILD)/magma_common, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
+
+test_li_agent:
+	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )
+
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
