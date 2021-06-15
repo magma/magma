@@ -5237,7 +5237,7 @@ paths:
         "200":
           description: Network-wide Sentry.io configuration
           schema:
-            $ref: '#/definitions/sentry_config'
+            $ref: '#/definitions/network_sentry_config'
         default:
           $ref: '#/responses/UnexpectedError'
       summary: Get the Sentry.io configuration for network
@@ -5247,10 +5247,10 @@ paths:
       parameters:
       - $ref: '#/parameters/network_id'
       - in: body
-        name: sentry_config
+        name: network_sentry_config
         required: true
         schema:
-          $ref: '#/definitions/sentry_config'
+          $ref: '#/definitions/network_sentry_config'
       responses:
         "204":
           description: Success
@@ -10325,6 +10325,27 @@ definitions:
     required:
     - bandwidth_mhz
     type: object
+  network_sentry_config:
+    description: Sentry.io configuration
+    properties:
+      sample_rate:
+        example: 0.5
+        format: float
+        type: number
+      upload_mme_log:
+        example: false
+        type: boolean
+      url_native:
+        example: https://examplePublicKey@o0.ingest.sentry.io/0
+        minLength: 0
+        type: string
+        x-nullable: false
+      url_python:
+        example: https://examplePublicKey@o0.ingest.sentry.io/0
+        minLength: 0
+        type: string
+        x-nullable: false
+    type: object
   network_subscriber_config:
     description: Network-wide Subscriber Configuration
     properties:
@@ -11158,27 +11179,6 @@ definitions:
       server_address:
         example: foo.bar.com:5555
         pattern: '[^\:]+(:[0-9]{1,5})?'
-        type: string
-        x-nullable: false
-    type: object
-  sentry_config:
-    description: Sentry.io configuration
-    properties:
-      sample_rate:
-        example: 0.5
-        format: float
-        type: number
-      upload_mme_log:
-        example: false
-        type: boolean
-      url_native:
-        example: https://examplePublicKey@o0.ingest.sentry.io/0
-        minLength: 0
-        type: string
-        x-nullable: false
-      url_python:
-        example: https://examplePublicKey@o0.ingest.sentry.io/0
-        minLength: 0
         type: string
         x-nullable: false
     type: object

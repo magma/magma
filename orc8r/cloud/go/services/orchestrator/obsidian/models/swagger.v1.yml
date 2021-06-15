@@ -312,7 +312,7 @@ paths:
         '200':
           description: Network-wide Sentry.io configuration
           schema:
-            $ref: '#/definitions/sentry_config'
+            $ref: '#/definitions/network_sentry_config'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
     put:
@@ -321,11 +321,11 @@ paths:
         - Networks
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-        - name: sentry_config
+        - name: network_sentry_config
           in: body
           required: true
           schema:
-            $ref: '#/definitions/sentry_config'
+            $ref: '#/definitions/network_sentry_config'
       responses:
         '204':
           description: Success
@@ -1380,7 +1380,7 @@ definitions:
           featureName1: featureProp1
           featureName2: featureProp2
 
-  sentry_config:
+  network_sentry_config:
     type: object
     description: Sentry.io configuration
     properties:
