@@ -59,7 +59,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating state service %v", err)
 	}
-	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
+	db, err := sqorc.Open(storage.GetDatabaseSource(), storage.GetDatabaseSource())
 	if err != nil {
 		glog.Fatalf("Error connecting to database: %v", err)
 	}
@@ -105,7 +105,7 @@ func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstor
 	reindexer := reindex.NewReindexer(queue, reindex.NewStore(store))
 	servicer := servicers.NewIndexerManagerServicer(reindexer, autoReindex)
 
-	if autoReindex && storage.SQLDriver != sqorc.PostgresDriver {
+	if autoReindex && storage.GetDatabaseSource() != sqorc.PostgresDriver {
 		glog.Warning(nonPostgresDriverMessage)
 	}
 

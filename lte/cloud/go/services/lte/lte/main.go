@@ -53,7 +53,7 @@ func main() {
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(lte_service.ServiceName))
 
 	// Init storage
-	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
+	db, err := sqorc.Open(storage.GetDatabaseSource(), storage.GetDatabaseSource())
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %v", err)
 	}

@@ -25,11 +25,6 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-var (
-	SQLDriver      = definitions.MustGetEnv("SQL_DRIVER")
-	DatabaseSource = definitions.MustGetEnv("DATABASE_SOURCE")
-)
-
 type IsolationLevel int
 
 // TxOptions specifies options for transactions
@@ -159,4 +154,12 @@ type UUIDGenerator struct{}
 
 func (*UUIDGenerator) New() string {
 	return uuid.New().String()
+}
+
+func GetSQLDriver() string {
+	return definitions.MustGetEnv("SQL_DRIVER")
+}
+
+func GetDatabaseSource() string {
+	return definitions.MustGetEnv("DATABASE_SOURCE")
 }

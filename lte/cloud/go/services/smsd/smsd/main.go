@@ -37,7 +37,7 @@ func main() {
 	}
 
 	// Storage
-	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
+	db, err := sqorc.Open(storage.GetDatabaseSource(), storage.GetDatabaseSource())
 	if err != nil {
 		glog.Fatalf("error opening db conn: %v", err)
 	}
