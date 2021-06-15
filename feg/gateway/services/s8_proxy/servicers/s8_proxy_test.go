@@ -113,6 +113,20 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	expectedAPN := fmt.Sprintf("%s%s", "internet", s8p.config.ApnOperatorSuffix)
 	assert.Equal(t, expectedAPN, bearer.APN)
 
+	// check ULI received
+	require.NotNil(t, mockPgw.LastULI)
+	assert.Equal(t, csReq.Uli.Ci, uint32(mockPgw.LastULI.CGI.CI))
+	assert.Equal(t, csReq.ServingNetwork.Mcc, mockPgw.LastULI.CGI.MCC)
+	assert.Equal(t, csReq.ServingNetwork.Mnc, mockPgw.LastULI.CGI.MNC)
+
+	assert.Equal(t, csReq.Uli.Lac, uint32(mockPgw.LastULI.LAI.LAC))
+	assert.Equal(t, csReq.ServingNetwork.Mcc, mockPgw.LastULI.LAI.MCC)
+	assert.Equal(t, csReq.ServingNetwork.Mnc, mockPgw.LastULI.LAI.MNC)
+
+	assert.Equal(t, csReq.Uli.Eci, mockPgw.LastULI.ECGI.ECI)
+	assert.Equal(t, csReq.ServingNetwork.Mcc, mockPgw.LastULI.ECGI.MCC)
+	assert.Equal(t, csReq.ServingNetwork.Mnc, mockPgw.LastULI.ECGI.MNC)
+
 	// ------------------------
 	// ---- Delete Session ----
 	cdReq := getDeleteSessionRequest(mockPgw.LocalAddr().String(), csRes.CPgwFteid.Teid)

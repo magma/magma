@@ -172,7 +172,7 @@ func createSession(cmd *commands.Command, args []string) int {
 		CAgwTeid: uint32(AGWTeidC),
 		ServingNetwork: &protos.ServingNetwork{
 			Mcc: "310",
-			Mnc: "14",
+			Mnc: "010",
 		},
 		RatType: protos.RATType_EUTRAN,
 		BearerContext: &protos.BearerContext{
@@ -264,19 +264,13 @@ func createSession(cmd *commands.Command, args []string) int {
 
 		fmt.Println("\n *** Delete Session Test ***")
 		dsReq := &protos.DeleteSessionRequestPgw{
-			PgwAddrs: pgwServerAddr,
-			Imsi:     imsi,
-			BearerId: bearerId,
-			CAgwTeid: uint32(AGWTeidC),
-			CPgwTeid: csRes.CPgwFteid.Teid,
-			ServingNetwork: &protos.ServingNetwork{
-				Mcc: "310",
-				Mnc: "14",
-			},
-			Uli: &protos.UserLocationInformation{
-				Tac: 5,
-				Eci: 6,
-			},
+			PgwAddrs:       pgwServerAddr,
+			Imsi:           imsi,
+			BearerId:       bearerId,
+			CAgwTeid:       uint32(AGWTeidC),
+			CPgwTeid:       csRes.CPgwFteid.Teid,
+			ServingNetwork: csReq.ServingNetwork,
+			Uli:            csReq.Uli,
 		}
 		printGRPCMessage("Sending GRPC message: ", dsReq)
 		dsRes, err := cli.DeleteSession(dsReq)
