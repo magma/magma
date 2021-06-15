@@ -56,7 +56,7 @@ ExternalProject_Add(Eventd
         DEPENDS AsyncGrpc
         DEPENDS ServiceRegistry)
 
-if (BUILD_TESTS)
-  ENABLE_TESTING()
-  ADD_SUBDIRECTORY(test)
-endif (BUILD_TESTS)
+#if (BUILD_TESTS)
+#  ENABLE_TESTING()
+#  ADD_SUBDIRECTORY(test)
+#endif (BUILD_TESTS)
