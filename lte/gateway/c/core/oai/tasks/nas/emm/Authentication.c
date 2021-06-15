@@ -1279,9 +1279,6 @@ static int authentication_request(
         /*
          * Start T3460 timer
          */
-        OAILOG_DEBUG(
-            LOG_NAS_EMM, "Timeout period for T3460 is: %u",
-            auth_proc->T3460.sec);
         nas_start_T3460(
             auth_proc->ue_id, &auth_proc->T3460,
             auth_proc->emm_com_proc.emm_proc.base_proc.time_out,
