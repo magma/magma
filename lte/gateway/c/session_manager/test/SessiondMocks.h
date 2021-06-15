@@ -82,7 +82,7 @@ class MockPipelined final : public Pipelined::Service {
   MOCK_METHOD3(
       PollStats,
       Status(
-          grpc::ServcerContext*, const GetStatsRequest*, RuleRecordTable*));
+          grpc::ServerContext*, const GetStatsRequest*, RuleRecordTable*));
 };
 
 class MockPipelinedClient : public PipelinedClient {

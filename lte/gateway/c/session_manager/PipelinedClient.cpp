@@ -62,6 +62,14 @@ magma::DeactivateFlowsRequest make_deactivate_req(
   return req;
 }
 
+magma::GetStatRequest make_stat_req(
+    int cookie, int cookie_mask){
+  magma::GetStatsRequest req;
+  req.cookie = cookie;
+  req.cookie_mask = cookie_mask;
+  return req;
+}
+
 /**
  * @brief Create a map of Teids -> DeactivateFlowsRequest
  * If to_process is empty, create one default_teids -> DeactivateFlowsRequest
@@ -424,7 +432,7 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
 }
 
 void AsyncPipelinedClient::poll_stats(cookie : int = 0, cookie_mask : int = 0){
-  auto req = GetStatsRequest(cookie = cookie, cookie_mask = cookie_mask);
+  auto req = make_stat_req(cookie, cookie_mask);
   poll_stats_rpc(req, [](Status status, RuleRecordTable table){
     if (!status.ok()){
       MLOG(MERROR) << "Could not poll stats " << status.error_message();
