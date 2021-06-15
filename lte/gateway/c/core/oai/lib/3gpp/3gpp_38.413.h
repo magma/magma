@@ -68,7 +68,6 @@ typedef struct ngap_ue_aggregate_maximum_bit_rate_s {
 } ngap_ue_aggregate_maximum_bit_rate_t;
 
 typedef uint32_t amf_ue_ngap_id_t;
-typedef uint32_t amf_ue_ngap_id_ty;
 typedef uint32_t ran_ue_ngap_id_t;
 
 typedef struct pdusession_setup_item_s {
@@ -174,7 +173,7 @@ typedef struct Ngap_PDUSession_Resource_TO_Release_List_s {
 // Direction: AMF → NG-RAN node
 typedef struct PDU_Session_resource_setup_request_s {
   Ngap_Message_Type_t Ngap_Message_Type;
-  amf_ue_ngap_id_ty
+  amf_ue_ngap_id_t
       amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
                        // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t
@@ -240,7 +239,7 @@ typedef struct Ngap_ue_security_capabilities_s {
 // Direction: AMF → NG-RAN node
 typedef struct Ngap_initial_context_setup_request_s {
   Ngap_Message_Type_t Ngap_Message_Type;
-  amf_ue_ngap_id_ty
+  amf_ue_ngap_id_t
       amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
                        // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t
@@ -320,7 +319,7 @@ typedef struct PDU_Session_Resource_Setup_Response_Transfer_s {
 // Direction: NG-RAN node → AMF
 typedef struct Ngap_initial_context_setup_response_s {
   Ngap_Message_Type_t Ngap_Message_Type;
-  amf_ue_ngap_id_ty
+  amf_ue_ngap_id_t
       amf_ue_ngap_id;  // This IE uniquely identifies the UE association over
                        // the NG interface, as described in TS 38.401
   ran_ue_ngap_id_t

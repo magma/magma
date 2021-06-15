@@ -18,6 +18,9 @@
 #include "M5GSRegistrationResult.h"
 #include "M5GSMobileIdentity.h"
 #include "M5GUESecurityCapability.h"
+#include "M5GNSSAI.h"
+#include "M5GGprsTimer3.h"
+#include "M5GTAIList.h"
 
 using namespace std;
 namespace magma5g {
@@ -29,6 +32,10 @@ class RegistrationAcceptMsg {
   MessageTypeMsg message_type;
   M5GSRegistrationResultMsg m5gs_reg_result;
   M5GSMobileIdentityMsg mobile_id;
+  UESecurityCapabilityMsg security_capability;
+  TAIListMsg tai_list;
+  NSSAIMsg nssai;
+  GPRSTimer3Msg gprs_timer;
 #define REGISTRATION_ACCEPT_MINIMUM_LENGTH 5
 
   RegistrationAcceptMsg();

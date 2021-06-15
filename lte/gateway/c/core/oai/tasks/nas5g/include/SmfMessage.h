@@ -16,6 +16,7 @@
 #include "M5GPDUSessionEstablishmentReject.h"
 #include "M5GPDUSessionReleaseRequest.h"
 #include "M5GPDUSessionReleaseReject.h"
+#include "M5GPDUSessionReleaseCommand.h"
 #include "M5GPDUSessionModificationRequest.h"
 #include "M5GPDUSessionModificationReject.h"
 
@@ -37,6 +38,7 @@ union SMsg_u {
   PDUSessionEstablishmentRejectMsg pdu_session_estab_reject;
   PDUSessionReleaseRequestMsg pdu_session_release_request;
   PDUSessionReleaseRejectMsg pdu_session_release_reject;
+  PDUSessionReleaseCommandMsg pdu_session_release_command;
   PDUSessionModificationRequestMsg pdu_session_modif_request;
   PDUSessionModificationRejectMsg pdu_session_modif_reject;
   SMsg_u();

@@ -22,7 +22,7 @@ class AuthenticationParameterRANDMsg {
 #define RAND_MIN_LEN 16
 #define RAND_MAX_LEN 16
   uint8_t iei;
-  std::string rand_val;
+  uint8_t rand_val[RAND_MAX_LEN];
 
   AuthenticationParameterRANDMsg();
   ~AuthenticationParameterRANDMsg();
