@@ -29,6 +29,12 @@ import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
+/**
+ * Returns the list of federated lte networks serviced by the federation
+ *  network with the id: federationNetworkId.
+ * @param {network_id} federationNetworkId id of the federation network
+ * @param {function} enqueueSnackbar snackbar used to display information
+ */
 export async function getServicedAccessNetworks(
   federationNetworkId: network_id,
   enqueueSnackbar: (
@@ -62,6 +68,10 @@ export async function getServicedAccessNetworks(
   return servicedAccessNetworks;
 }
 
+/**
+ * Returns the total count of access gateways serviced by the
+ * federation network.
+ */
 export default function ServicingAccessGatewayKPIs() {
   const {match} = useRouter();
   const networkId = nullthrows(match.params.networkId);

@@ -17,10 +17,15 @@
 import CardTitleRow from './layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
-import ServicingAccessGatewayKPIs from './ServicingAccessGatewayKPIs';
+import ServicingAccessGatewayKPIs from './FEGServicingAccessGatewayKPIs';
 
 import {GpsFixed} from '@material-ui/icons';
 
+/**
+ * Returns the KPI's in the federation network dashboard.
+ * It currently supports KPI for the count of serviced access gateways
+ * by the federation network.
+ */
 export default function () {
   return (
     <>

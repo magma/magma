@@ -23,6 +23,7 @@ import React, {useState} from 'react';
 import Text from '../../../theme/design-system/Text';
 import TopBar from '../../../components/TopBar';
 import moment from 'moment';
+import {EVENT_STREAM} from '../../events/EventsTable';
 
 import {DateTimePicker} from '@material-ui/pickers';
 import {NetworkCheck} from '@material-ui/icons';
@@ -30,8 +31,6 @@ import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors} from '../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
-
-const EVENT_STREAM = 'NETWORK';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -42,6 +41,11 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+/**
+ * Returns the full federation network dashboard.
+ * It consists of a top bar which helps in adjusting filters such as date
+ * and a network dashboard which provides information about the network.
+ */
 function FEGDashboard() {
   const {relativePath, relativeUrl} = useRouter();
 
@@ -84,6 +88,14 @@ function FEGDashboard() {
   );
 }
 
+/**
+ * Returns the network dashboard of the federation network.
+ * It consists of an event alert chart, an alert table, a kpi for the
+ * federation network and events table which helps in describing the
+ * current network state.
+ * @param {Array<moment>} startEnd: An array of two elements holding the
+ * start and end date.
+ */
 function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
   const classes = useStyles();
 
@@ -102,7 +114,7 @@ function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
         </Grid>
         <Grid item xs={12}>
           <EventsTable
-            eventStream={EVENT_STREAM}
+            eventStream={EVENT_STREAM.NETWORK}
             sz="md"
             inStartDate={startEnd[0]}
             inEndDate={startEnd[1]}
@@ -114,6 +126,12 @@ function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
   );
 }
 
+/**
+ * Returns the topbar of the dashboard which is useful in filtering out the dates.
+ * @param {object} props: props consists of the startDate and endDate selected
+ * by the user. It also consists of functions(setStartDate and setEndDate)
+ * needed to change those values.
+ */
 function FEGNetworkTab(props) {
   const {startDate, endDate, setStartDate, setEndDate} = props;
   const classes = useStyles();
