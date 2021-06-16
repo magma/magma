@@ -69,7 +69,7 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, apnSuffix string, re
 		ie.NewIMSI(req.GetImsi()),
 		bearer,
 		cFegFTeid,
-		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
+		getUserLocationIndication(req.ServingNetwork, req.Uli),
 		getPdnType(req.PdnType),
 		getPDNAddressAllocation(req),
 		getRatType(req.RatType),
@@ -103,7 +103,7 @@ func buildDeleteSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.DeleteSe
 	ies := []*ie.IE{
 		ie.NewEPSBearerID(uint8(req.BearerId)),
 		cFegFTeid,
-		getUserLocationIndication(req.ServingNetwork.Mcc, req.ServingNetwork.Mcc, req.Uli),
+		getUserLocationIndication(req.ServingNetwork, req.Uli),
 	}
 	return message.NewDeleteSessionRequest(req.CPgwTeid, 0, ies...), nil
 }
@@ -128,7 +128,7 @@ func buildCreateBearerResMsg(seq uint32, res *protos.CreateBearerResponsePgw) (m
 		res.CPgwTeid, seq,
 		ie.NewCause(gtpv2.CauseRequestAccepted, 0, 0, 0, nil),
 		bearer,
-		getUserLocationIndication(res.ServingNetwork.Mcc, res.ServingNetwork.Mcc, res.Uli),
+		getUserLocationIndication(res.ServingNetwork, res.Uli),
 		getProtocolConfigurationOptions(res.ProtocolConfigurationOptions),
 		ie.NewUETimeZone(offset, daylightSavingTime),
 	), nil
@@ -192,7 +192,7 @@ func getPdnType(pdnType protos.PDNType) *ie.IE {
 	return ie.NewPDNType(res)
 }
 
-func getUserLocationIndication(mcc, mnc string, uli *protos.UserLocationInformation) *ie.IE {
+func getUserLocationIndication(servingNetwork *protos.ServingNetwork, uli *protos.UserLocationInformation) *ie.IE {
 	var (
 		cgi    *ie.CGI    = nil
 		sai    *ie.SAI    = nil
@@ -203,6 +203,9 @@ func getUserLocationIndication(mcc, mnc string, uli *protos.UserLocationInformat
 		menbi  *ie.MENBI  = nil
 		emenbi *ie.EMENBI = nil
 	)
+
+	mcc := servingNetwork.Mcc
+	mnc := servingNetwork.Mnc
 
 	if uli.Lac != 0 && uli.Ci != 0 {
 		cgi = ie.NewCGI(mcc, mnc, uint16(uli.Lac), uint16(uli.Ci))
