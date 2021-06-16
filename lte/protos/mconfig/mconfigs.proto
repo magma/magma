@@ -22,9 +22,14 @@ option go_package = "magma/lte/cloud/go/protos/mconfig";
 // SentryConfig stores the network-wide sentry.io configuration
 // --------------------------------------------------------------------------
 message SentryConfig {
+    // If set, the Sentry Python SDK will be initialized for all python services
     string url_python = 1;
+    // If set, the Sentry Native SDK will be initialized for MME and SessionD
     string url_native = 2;
+    // If set, /var/log/mme.log will be uploaded along MME crashreports
     bool upload_mme_log = 3;
+    // Rate at which we want to sample Python error events
+    // Should be a number between 0 (0% of errors sent) and 1 (100% of errors sent)
     float sample_rate = 4;
 }
 

@@ -271,9 +271,14 @@ func (ModeMapItem_FederatedMode) EnumDescriptor() ([]byte, []int) {
 // SentryConfig stores the network-wide sentry.io configuration
 // --------------------------------------------------------------------------
 type SentryConfig struct {
-	UrlPython            string   `protobuf:"bytes,1,opt,name=url_python,json=urlPython,proto3" json:"url_python,omitempty"`
-	UrlNative            string   `protobuf:"bytes,2,opt,name=url_native,json=urlNative,proto3" json:"url_native,omitempty"`
-	UploadMmeLog         bool     `protobuf:"varint,3,opt,name=upload_mme_log,json=uploadMmeLog,proto3" json:"upload_mme_log,omitempty"`
+	// If set, the Sentry Python SDK will be initialized for all python services
+	UrlPython string `protobuf:"bytes,1,opt,name=url_python,json=urlPython,proto3" json:"url_python,omitempty"`
+	// If set, the Sentry Native SDK will be initialized for MME and SessionD
+	UrlNative string `protobuf:"bytes,2,opt,name=url_native,json=urlNative,proto3" json:"url_native,omitempty"`
+	// If set, /var/log/mme.log will be uploaded along MME crashreports
+	UploadMmeLog bool `protobuf:"varint,3,opt,name=upload_mme_log,json=uploadMmeLog,proto3" json:"upload_mme_log,omitempty"`
+	// Rate at which we want to sample Python error events
+	// Should be a number between 0 (0% of errors sent) and 1 (100% of errors sent)
 	SampleRate           float32  `protobuf:"fixed32,4,opt,name=sample_rate,json=sampleRate,proto3" json:"sample_rate,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
