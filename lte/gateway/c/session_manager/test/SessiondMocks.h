@@ -52,7 +52,7 @@ class MockPipelined final : public Pipelined::Service {
         .WillByDefault(Return(Status::OK));
     ON_CALL(*this, SetupUEMacFlows(_, _, _)).WillByDefault(Return(Status::OK));
     ON_CALL(*this, SetupQuotaFlows(_, _, _)).WillByDefault(Return(Status::OK));
-    ON_CALL(*this, PollStats(_, _, _)).WillByDefault(Return(Status::OK));
+    ON_CALL(*this, GetStats(_, _, _)).WillByDefault(Return(Status::OK));
   }
 
   MOCK_METHOD3(
