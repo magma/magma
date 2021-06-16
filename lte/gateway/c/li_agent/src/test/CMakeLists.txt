@@ -13,9 +13,6 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
-
-include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("/usr/src/googletest/googlemock/include/")
 
 add_library(LIAGENTD_TEST_LIB
@@ -24,7 +21,10 @@ add_library(LIAGENTD_TEST_LIB
     )
 
 link_directories(/usr/src/googletest/googlemock/lib/)
-target_link_libraries(LIAGENTD_TEST_LIB LI_AGENT gmock_main gtest gtest_main gmock pthread rt)
+target_link_libraries(LIAGENTD_TEST_LIB LI_AGENT gmock_main gtest gtest_main
+    gmock rt)
+target_include_directories(LIAGENTD_TEST_LIB PUBLIC
+    ${PROJECT_SOURCE_DIR})
 
 foreach (li_agent_test pdu_generator)
   add_executable(${li_agent_test}_test test_${li_agent_test}.cpp)

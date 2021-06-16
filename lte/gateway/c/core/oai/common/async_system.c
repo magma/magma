@@ -89,7 +89,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     default: {
       OAILOG_DEBUG(
-          LOG_ASYNC_SYSTEM, "Unkwnon message ID %d: %s\n",
+          LOG_ASYNC_SYSTEM, "Unknown message ID %d: %s\n",
           ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
   }
@@ -112,7 +112,7 @@ static void* async_system_thread(__attribute__((unused)) void* args_p) {
 }
 
 //------------------------------------------------------------------------------
-int async_system_init(void) {
+status_code_e async_system_init(void) {
   OAI_FPRINTF_INFO("Initializing ASYNC_SYSTEM\n");
   if (itti_create_task(TASK_ASYNC_SYSTEM, &async_system_thread, NULL) < 0) {
     perror("pthread_create");
@@ -125,7 +125,7 @@ int async_system_init(void) {
 }
 
 //------------------------------------------------------------------------------
-int async_system_command(
+status_code_e async_system_command(
     int sender_itti_task, bool is_abort_on_error, char* format, ...) {
   va_list args;
   int rv       = 0;
@@ -142,12 +142,11 @@ int async_system_command(
   }
   MessageDef* message_p = NULL;
   message_p = itti_alloc_new_message(sender_itti_task, ASYNC_SYSTEM_COMMAND);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
   ASYNC_SYSTEM_COMMAND(message_p).system_command    = bstr;
   ASYNC_SYSTEM_COMMAND(message_p).is_abort_on_error = is_abort_on_error;
-  rv                                                = send_msg_to_task(
+  status_code_e result                              = send_msg_to_task(
       &async_system_task_zmq_ctx, TASK_ASYNC_SYSTEM, message_p);
-  return rv;
+  return result;
 }
 
 //------------------------------------------------------------------------------

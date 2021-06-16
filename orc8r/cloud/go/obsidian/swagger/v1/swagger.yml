@@ -8483,6 +8483,11 @@ definitions:
   gateway_epc_configs:
     description: EPC configuration for an LTE gateway
     properties:
+      congestion_control_enabled:
+        default: true
+        description: Flag to enable or disable congestion control on MME
+        example: true
+        type: boolean
       dns_primary:
         example: 8.8.8.8
         maxLength: 45
@@ -10652,6 +10657,9 @@ definitions:
         type: integer
       redirect:
         $ref: '#/definitions/redirect_information'
+      service_identifier:
+        format: uint32
+        type: integer
       tracking_type:
         enum:
         - ONLY_OCS
@@ -10721,6 +10729,9 @@ definitions:
         type: integer
       redirect:
         $ref: '#/definitions/redirect_information'
+      service_identifier:
+        format: uint32
+        type: integer
       tracking_type:
         enum:
         - ONLY_OCS
@@ -11096,6 +11107,11 @@ definitions:
   s8:
     description: s8 configuration
     properties:
+      apn_operator_suffix:
+        example: .operator.com
+        pattern: '[^\:]+(:[0-9]{1,5})?'
+        type: string
+        x-nullable: false
       local_address:
         example: foo.bar.com:5555
         pattern: '[^\:]+(:[0-9]{1,5})?'

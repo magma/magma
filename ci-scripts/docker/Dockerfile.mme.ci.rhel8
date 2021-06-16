@@ -90,7 +90,7 @@ RUN ldconfig
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /magma-mme/bin
 COPY --from=magma-mme-builder $C_BUILD/core/oai/oai_mme/mme oai_mme
-COPY --from=magma-mme-builder $C_BUILD/sctpd/sctpd .
+COPY --from=magma-mme-builder $C_BUILD/sctpd/src/sctpd .
 
 # Create running dirs
 WORKDIR /var/opt/magma/configs

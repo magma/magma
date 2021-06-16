@@ -234,6 +234,10 @@ void blocked_imei_config_init(blocked_imei_list_t* blocked_imeis) {
   blocked_imeis->imei_htbl = NULL;
 }
 
+void sac_to_tacs_map_config_init(sac_to_tacs_map_config_t* sac_to_tacs_map) {
+  sac_to_tacs_map->sac_to_tacs_map_htbl = NULL;
+}
+
 //------------------------------------------------------------------------------
 void mme_config_init(mme_config_t* config) {
   memset(config, 0, sizeof(*config));
@@ -246,6 +250,7 @@ void mme_config_init(mme_config_t* config) {
   config->unauthenticated_imsi_supported = 0;
   config->relative_capacity              = RELATIVE_CAPACITY;
   config->mme_statistic_timer            = MME_STATISTIC_TIMER_S;
+  config->enable_congestion_control      = true;
   config->s1ap_zmq_th                    = LONG_MAX;
   config->mme_app_zmq_congest_th         = LONG_MAX;
   config->mme_app_zmq_auth_th            = LONG_MAX;
@@ -264,6 +269,7 @@ void mme_config_init(mme_config_t* config) {
   served_tai_config_init(&config->served_tai);
   service303_config_init(&config->service303_config);
   blocked_imei_config_init(&config->blocked_imei);
+  sac_to_tacs_map_config_init(&config->sac_to_tacs_map);
 }
 
 //------------------------------------------------------------------------------
@@ -293,6 +299,10 @@ void mme_config_exit(void) {
   if (mme_config.blocked_imei.imei_htbl) {
     hashtable_uint64_ts_destroy(mme_config.blocked_imei.imei_htbl);
   }
+
+  if (mme_config.sac_to_tacs_map.sac_to_tacs_map_htbl) {
+    obj_hashtable_destroy(mme_config.sac_to_tacs_map.sac_to_tacs_map_htbl);
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -302,6 +312,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   config_setting_t* setting     = NULL;
   config_setting_t* subsetting  = NULL;
   config_setting_t* sub2setting = NULL;
+  config_setting_t* sub3setting = NULL;
   int aint                      = 0;
   int i = 0, n = 0, stop_index = 0, num = 0;
   const char* astring  = NULL;
@@ -342,13 +353,13 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           bdata(config_pP->config_file), config_error_line(&cfg),
           config_error_text(&cfg));
       config_destroy(&cfg);
-      AssertFatal(
-          1 == 0, "Failed to parse MME configuration file %s!\n",
+      Fatal(
+          "Failed to parse MME configuration file %s!\n",
           bdata(config_pP->config_file));
     }
   } else {
     config_destroy(&cfg);
-    AssertFatal(0, "No MME configuration file provided!\n");
+    Fatal("No MME configuration file provided!\n");
   }
 
   setting_mme = config_lookup(&cfg, MME_CONFIG_STRING_MME_CONFIG);
@@ -539,6 +550,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       config_pP->enable_gtpu_private_ip_correction = parse_bool(astring);
     }
 
+    if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_CONGESTION_CONTROL_ENABLED,
+            (const char**) &astring))) {
+      config_pP->enable_congestion_control = parse_bool(astring);
+    }
+
     if ((config_setting_lookup_int(
             setting_mme, MME_CONFIG_STRING_S1AP_ZMQ_TH, &aint))) {
       config_pP->s1ap_zmq_th = (long) aint;
@@ -636,8 +653,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->s6a_config.hss_host_name = bfromcstr(astring);
           }
         } else
-          AssertFatal(
-              1 == 0, "You have to provide a valid HSS hostname %s=...\n",
+          Fatal(
+              "You have to provide a valid HSS hostname %s=...\n",
               MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
       }
       if ((config_setting_lookup_string(
@@ -650,8 +667,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->s6a_config.hss_realm = bfromcstr(astring);
           }
         } else
-          AssertFatal(
-              1 == 0, "You have to provide a valid HSS realm %s=...\n",
+          Fatal(
+              "You have to provide a valid HSS realm %s=...\n",
               MME_CONFIG_STRING_S6A_HSS_REALM);
       }
     }
@@ -1148,6 +1165,67 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       }
     }
 
+    // SRVC_AREA_CODE_2_TACS_MAP
+    setting = config_setting_get_member(
+        setting_mme, MME_CONFIG_STRING_SRVC_AREA_CODE_2_TACS_MAP);
+    OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_SRVC_AREA_CODE_2_TACS_MAP \n");
+    if (setting != NULL) {
+      const char* sac_str = NULL;
+      num                 = config_setting_length(setting);
+      OAILOG_INFO(
+          LOG_MME_APP, "Number of SRVC_AREA_CODE_2_TACS configured =%d\n", num);
+      if (num > 0) {
+        // Create SRVC_AREA_CODE_2_TACS hashtable
+        hashtable_rc_t h_rc = HASH_TABLE_OK;
+        bstring b           = bfromcstr("mme_app_config_sac_2_tacs_htbl");
+        config_pP->sac_to_tacs_map.sac_to_tacs_map_htbl =
+            obj_hashtable_create(MAX_SAC_2_TACS_HTBL_SZ, NULL, NULL, NULL, b);
+        bdestroy_wrapper(&b);
+        if (config_pP->sac_to_tacs_map.sac_to_tacs_map_htbl == NULL) {
+          OAILOG_ERROR(
+              LOG_MME_APP, "Error creating SAC_2_TACS_HTBL hashtable \n");
+          return -1;
+        }
+        for (i = 0; i < num; i++) {
+          sub2setting = config_setting_get_elem(setting, i);
+          if (sub2setting != NULL) {
+            if ((config_setting_lookup_int(
+                    sub2setting, MME_CONFIG_STRING_SERVICE_AREA_CODE, &aint))) {
+              // store in network byte order as SAC will come from
+              // the network in ULA messsage.
+              uint16_t sac_int = htons((uint16_t) aint);
+              // TAC LIST
+              sub3setting = config_setting_get_member(
+                  sub2setting, MME_CONFIG_STRING_TAC_LIST_PER_SAC);
+              if (sub3setting) {
+                uint8_t num_tacs = config_setting_length(sub3setting);
+                if (num_tacs > 0) {
+                  config_pP->sac_to_tacs_map.tac_list =
+                      calloc(1, sizeof(tac_list_per_sac_t));
+                  AssertFatal(
+                      config_pP->sac_to_tacs_map.tac_list != NULL,
+                      "Memory allocation failed for tac_list\n");
+                  config_pP->sac_to_tacs_map.tac_list->num_tac_entries =
+                      num_tacs;
+                  for (uint8_t itr = 0; itr < num_tacs; itr++) {
+                    config_pP->sac_to_tacs_map.tac_list->tacs[itr] =
+                        config_setting_get_int_elem(sub3setting, itr);
+                  }
+                  h_rc = obj_hashtable_insert(
+                      config_pP->sac_to_tacs_map.sac_to_tacs_map_htbl,
+                      (const void*) &sac_int, sizeof(uint16_t),
+                      (void*) config_pP->sac_to_tacs_map.tac_list);
+                  AssertFatal(
+                      h_rc == HASH_TABLE_OK,
+                      "SAC_2_TACS_HTBL hashtable insertion failed\n");
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
     // NETWORK INTERFACE SETTING
     setting = config_setting_get_member(
         setting_mme, MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG);
@@ -1594,6 +1672,9 @@ void mme_config_display(mme_config_t* config_pP) {
   OAILOG_INFO(
       LOG_CONFIG, "- Statistics timer .....................: %u (seconds)\n\n",
       config_pP->mme_statistic_timer);
+  OAILOG_INFO(
+      LOG_CONFIG, "- Congestion control enabled ........................: %s\n",
+      config_pP->enable_congestion_control ? "true" : "false");
   OAILOG_INFO(
       LOG_CONFIG,
       "- S1AP ZMQ Threshold ...........................: %10ld "

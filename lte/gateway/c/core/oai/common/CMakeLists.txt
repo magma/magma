@@ -49,7 +49,6 @@ set(COMMON_SRC
     dynamic_memory_check.c
     enum_string.c
     itti_free_defined_msg.c
-    mcc_mnc_itu.c
     pid_file.c
     shared_ts_log.c
     log.c

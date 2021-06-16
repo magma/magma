@@ -27,7 +27,7 @@ import (
 )
 
 // buildCreateSessionRequestIE creates a Message with all the IE needed for a Create Session Request
-func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSessionRequestPgw) (message.Message, error) {
+func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, apnSuffix string, req *protos.CreateSessionRequestPgw) (message.Message, error) {
 	// Create session needs two FTEIDs:
 	// - S8 control plane FTEID will be built using local address and control TEID
 	//	 passed by MME
@@ -58,6 +58,9 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSe
 	bearerId := ie.NewEPSBearerID(uint8(req.BearerContext.Id))
 	bearer := ie.NewBearerContext(bearerId, uAgwFTeid, ieQos)
 
+	// APN
+	apnWithSuffix := fmt.Sprintf("%s%s", req.Apn, apnSuffix)
+
 	//timezone
 	offset := time.Duration(req.TimeZone.DeltaSeconds) * time.Second
 	daylightSavingTime := uint8(req.TimeZone.DaylightSavingTime)
@@ -75,7 +78,7 @@ func buildCreateSessionRequestMsg(cPgwUDPAddr *net.UDPAddr, req *protos.CreateSe
 		ie.NewMSISDN(req.Msisdn[:]),
 		ie.NewMobileEquipmentIdentity(req.Mei),
 		ie.NewServingNetwork(req.ServingNetwork.Mcc, req.ServingNetwork.Mnc),
-		ie.NewAccessPointName(req.Apn),
+		ie.NewAccessPointName(apnWithSuffix),
 		ie.NewAggregateMaximumBitRate(uint32(req.Ambr.BrUl), uint32(req.Ambr.BrDl)),
 		ie.NewUETimeZone(offset, daylightSavingTime),
 		// TODO: Hardcoded values

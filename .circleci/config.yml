@@ -27,6 +27,8 @@ aliases:
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos feg/protos orc8r/protos"
   - &li_agent_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos orc8r/protos"
+  - &connection_tracker_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/connection_tracker lte/protos orc8r/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -493,6 +495,20 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
+  sentry-release:
+    docker:
+      - image: circleci/node:4.8.2
+    environment:
+      SENTRY_ENVIRONMENT: staging
+      SENTRY_ORG: lf-9c
+    steps:
+      - checkout  # check out the code in the project directory
+      - run: curl -sL https://sentry.io/get-cli/ | bash
+      - run: |
+          sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${CIRCLE_SHA1:0:8}
+          sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${CIRCLE_SHA1:0:8}
+          sentry-cli --log-level=info releases finalize ${CIRCLE_SHA1:0:8}
+
   backport:
     machine:
       image: ubuntu-1604:201903-01
@@ -890,6 +906,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v $MAGMA_ROOT:/magma -i -t magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
+          no_output_timeout: 20m
       - magma_slack_notify
 
   c-cpp-codecov:
@@ -908,6 +925,7 @@ jobs:
             docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
             ci_env=`bash <(curl -s https://codecov.io/env)`
             docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
+          no_output_timeout: 20m
       - magma_slack_notify
 
   session_manager_test:
@@ -990,6 +1008,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
+          no_output_timeout: 20m
       - magma_slack_notify
 
   li_agent_test:
@@ -1016,6 +1035,36 @@ jobs:
           name: Run li agent tests
           command: |
             docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_li_agent;"
+          no_output_timeout: 5m
+      - magma_slack_notify
+
+  connection-tracker-test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *connection_tracker_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Build connection tracker with BUILD_TYPE=Debug
+          command: |
+            # TODO run unit tests once we write some tests
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=Debug;"
+          no_output_timeout: 5m
+      - run:
+          name: Build connection tracker with BUILD_TYPE=RelWithDebInfo
+          command: |
+            # TODO run unit tests once we write some tests
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=RelWithDebInfo;"
           no_output_timeout: 5m
       - magma_slack_notify
 
@@ -1503,6 +1552,7 @@ workflows:
       - lte-test
       - session_manager_test
       - li_agent_test
+      - connection-tracker-test
       - mme_test
       - mme-clang-tidy:
           <<: *only_master
@@ -1517,6 +1567,10 @@ workflows:
             - mme_test
             - lte-integ-test
       - c-cpp-codecov
+      - sentry-release:
+          <<: *only_master
+          requires:
+            - lte-agw-deploy
 
   release:
     jobs:

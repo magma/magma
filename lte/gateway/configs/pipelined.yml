@@ -37,6 +37,7 @@ static_services: [
   'proxy',
   'ryu_rest_service',
   'startup_flows',
+#  'li_mirror',
 #  'packet_tracer',
 ]
 
@@ -86,6 +87,12 @@ dpi:
 conntrackd:
   enabled: false
   zone: 897
+
+# LI mirroring configuration
+# li_local_iface: eth2
+# li_mirror_all: false
+# li_dst_iface: li_port
+
 
 # Interface to address L2 traffic to and answer ARP for UE subnet
 virtual_interface: gtp_br0
@@ -183,3 +190,11 @@ ovs_internal_conntrack_fwd_tbl_number: 202
 5G_feature_set:
  enable: False
  node_identifier: 192.168.200.1
+
+dp_irq:
+ enable: True
+ S1_cpu: '1'
+ S1_queue_size: 256
+ SGi_cpu: '2'
+ SGi_queue_size: 256
+

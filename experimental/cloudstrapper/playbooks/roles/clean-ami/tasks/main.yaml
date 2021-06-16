@@ -18,9 +18,16 @@
   ignore_errors: true
   tags: clearSSHKeys
 
-- name: Clean authorized keys
+- name: Clean authorized keys for ubuntu
   file:
     name: /home/ubuntu/.ssh/authorized_keys
+    state: absent
+  become: true
+  tags: clearSSHKeys
+
+- name: Clean authorized keys for root
+  file:
+    name: /root/.ssh/authorized_keys
     state: absent
   become: true
   tags: clearSSHKeys

@@ -13,6 +13,9 @@
 
 log_level: INFO
 
+# Enable liagentd
+enable: false
+
 # Interface for internal packet sending
 interface_name: li_port
 
@@ -20,7 +23,12 @@ interface_name: li_port
 pkt_dst_mac: "11:99:99:bb:aa:a3"
 pkt_src_mac: "99:11:44:31:ff:ff"
 
-proxy_addr: "127.0.0.1"
-proxy_port: 5555
-cert_file: "/tmp/domain.crt"
-key_file: "/tmp/domain.key"
+proxy_addr: 192.168.0.100
+proxy_port: 6666
+cert_file: /var/opt/magma/certs/nprobe.pem
+key_file: /var/opt/magma/certs/nprobe.key
+
+# Interval between mconfig updates fetching
+sync_interval: 360
+# Inactivity time after which a state is delete for a probe
+inactivity_time: 86400

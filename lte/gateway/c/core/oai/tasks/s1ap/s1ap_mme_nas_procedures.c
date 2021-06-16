@@ -77,6 +77,7 @@
 #include "S1ap_ProtocolIE-Field.h"
 #include "s1ap_common.h"
 
+extern bool s1ap_congestion_control_enabled;
 extern long s1ap_last_msg_latency;
 extern long s1ap_zmq_th;
 
@@ -104,7 +105,8 @@ int s1ap_mme_handle_initial_ue_message(
       " assoc-id:%d \n",
       (enb_ue_s1ap_id_t) ie->value.choice.ENB_UE_S1AP_ID, assoc_id);
 
-  if (s1ap_last_msg_latency > S1AP_ZMQ_LATENCY_TH) {
+  if (s1ap_congestion_control_enabled &&
+      (s1ap_last_msg_latency > S1AP_ZMQ_LATENCY_TH)) {
     OAILOG_WARNING(
         LOG_S1AP,
         "Discarding S1AP INITIAL_UE_MESSAGE for "

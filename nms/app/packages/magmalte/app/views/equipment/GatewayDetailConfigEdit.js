@@ -16,6 +16,7 @@
 import type {
   apn_resources,
   challenge_key,
+  enodeb,
   enodeb_serials,
   gateway_device,
   gateway_dns_configs,
@@ -774,13 +775,43 @@ export function RanEdit(props: Props) {
   const [connectedEnodebs, setConnectedEnodebs] = useState<enodeb_serials>(
     props.gateway.connected_enodeb_serials,
   );
+  const [unregisteredEnbsInfo, setUnregisteredEnbsInfo] = useState([]);
   const handleRanChange = (key: string, val) => {
     setRanConfig({...ranConfig, [key]: val});
   };
   const handleDnsChange = (key: string, val) => {
     setDnsConfig({...dnsConfig, [key]: val});
   };
-
+  useEffect(() => {
+    const isEnodebUnregistered = (enb: enodeb, currentGateway: lte_gateway) => {
+      const gatewaysList = Object.keys(ctx.state);
+      for (const gatewayId of gatewaysList) {
+        if (
+          ctx.state[gatewayId].connected_enodeb_serials?.includes(enb.serial) &&
+          ctx.state[gatewayId].id != currentGateway.id
+        ) {
+          return false;
+        }
+      }
+      return true;
+    };
+    const newUnregisteredEnbsInfo = [];
+    if (enbsCtx?.state?.enbInfo) {
+      Object.keys(enbsCtx.state.enbInfo).map(enbSerial => {
+        if (
+          isEnodebUnregistered(
+            enbsCtx.state.enbInfo[enbSerial].enb,
+            props.gateway,
+          )
+        ) {
+          newUnregisteredEnbsInfo.push({
+            [enbSerial]: enbsCtx.state.enbInfo[enbSerial],
+          });
+        }
+      });
+    }
+    setUnregisteredEnbsInfo(newUnregisteredEnbsInfo);
+  }, [ctx?.state, enbsCtx?.state?.enbInfo, props?.gateway]);
   const onSave = async () => {
     try {
       const gateway = {
@@ -808,7 +839,6 @@ export function RanEdit(props: Props) {
       setError(e.response?.data?.message ?? e.message);
     }
   };
-
   return (
     <>
       <DialogContent data-testid="ranEdit">
@@ -854,16 +884,18 @@ export function RanEdit(props: Props) {
                   className={connectedEnodebs.length ? '' : classes.placeholder}
                 />
               }>
-              {enbsCtx?.state &&
-                Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
+              {unregisteredEnbsInfo.map(unregisteredEnbInfo => {
+                const enbSerial = Object.keys(unregisteredEnbInfo)[0];
+                return (
                   <MenuItem key={enbSerial} value={enbSerial}>
                     <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
                     <ListItemText
-                      primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
+                      primary={unregisteredEnbInfo[enbSerial].enb.name}
                       secondary={enbSerial}
                     />
                   </MenuItem>
-                ))}
+                );
+              })}
             </Select>
           </AltFormField>
           <AltFormField label={'Transmit Enabled'}>

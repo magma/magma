@@ -150,7 +150,7 @@
     dynamic inventory. The build node was provisioned with the tag Name:buildOrc8r in this example.
 
     ```
-    ansible-playbook build-configure.yaml -i <inventory file> -e "buildnode=tag_Name_<buildTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -e "dirLocalInventory=<inventory folder absolute path>" -e "buildDir=dirLocalInventory" -u ubuntu
+    ansible-playbook build-configure.yaml -i <inventory file> -e "buildnode=tag_Name_<buildTagName>" -e "ansible_python_interpreter=/usr/bin/python3" -e "dirLocalInventory=<inventory folder absolute path>" -u ubuntu
     ```
   - Result: Build instance created, images and helm charts published.
 

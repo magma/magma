@@ -825,7 +825,7 @@ int sgw_handle_sgi_endpoint_deleted(
           break;
 
         default:
-          AssertFatal(0, "Bad paa.pdn_type %d", resp_pP->paa.pdn_type);
+          Fatal("Bad paa.pdn_type %d", resp_pP->paa.pdn_type);
           break;
       }
       OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);

@@ -48,6 +48,9 @@
       "faq/faq_magma": {
         "title": "Frequently Asked Questions"
       },
+      "feg/debug_cli": {
+        "title": "Feg Cli"
+      },
       "feg/deploy_build": {
         "title": "Build FeG"
       },
@@ -414,6 +417,9 @@
       },
       "proposals/p016_nms_regression_test": {
         "title": "NMS Regression Testing"
+      },
+      "proposals/p017_apn_refactoring": {
+        "title": "APN Refactoring Proposal"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"

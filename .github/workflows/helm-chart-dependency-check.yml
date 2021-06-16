@@ -1,0 +1,34 @@
+---
+name: "Check dependencies of helm charts"
+
+on: [pull_request]  # yamllint disable-line rule:truthy
+jobs:
+  check_helm_chart_dependencies:
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        charts:
+          - ["orc8r", "$MAGMA_ROOT/orc8r/cloud/helm/orc8r/"]
+          - ["cwf-orc8r", "$MAGMA_ROOT/cwf/cloud/helm/cwf-orc8r/"]
+          - ["lte-orc8r", "$MAGMA_ROOT/lte/cloud/helm/lte-orc8r/"]
+          - ["feg-orc8r", "$MAGMA_ROOT/feg/cloud/helm/feg-orc8r/"]
+          - ["fbinternal-orc8r", "$MAGMA_ROOT/fbinternal/cloud/helm/fbinternal-orc8r/"]
+          - ["wifi-orc8r", "$MAGMA_ROOT/wifi/cloud/helm/wifi-orc8r/"]
+    name: Check dependency of helm chart ${{ matrix.charts[0] }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: Get chart.lock digest
+        run: |
+          echo "DIGEST=$(cat ${{ matrix.charts[1] }}Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+      - name: Run dependency check against ${{ matrix.charts[0] }}
+        run: |
+          helm dependency update "${{ matrix.charts[1] }}"
+      - name: Get new chart.lock digest
+        run: |
+          echo "NEW_DIGEST=$(cat ${{ matrix.charts[1] }}Chart.lock | grep digest | cut -d ":" -f 2-3 | xargs)" >> $GITHUB_ENV
+      - name: Verify digest is the same
+        if: ${{ env.DIGEST != env.NEW_DIGEST }}
+        run: exit 1

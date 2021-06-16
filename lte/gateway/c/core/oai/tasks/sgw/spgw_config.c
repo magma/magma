@@ -83,14 +83,14 @@ int spgw_config_parse_file(spgw_config_t* config_pP) {
           LOG_SPGW_APP, "%s:%d - %s\n", bdata(config_pP->config_file),
           config_error_line(&cfg), config_error_text(&cfg));
       config_destroy(&cfg);
-      AssertFatal(
-          0, "Failed to parse SP-GW configuration file %s!\n",
+      Fatal(
+          "Failed to parse SP-GW configuration file %s!\n",
           bdata(config_pP->config_file));
     }
   } else {
     OAILOG_ERROR(LOG_SPGW_APP, "No SP-GW configuration file provided!\n");
     config_destroy(&cfg);
-    AssertFatal(0, "No SP-GW configuration file provided!\n");
+    Fatal("No SP-GW configuration file provided!\n");
   }
 
   OAILOG_INFO(

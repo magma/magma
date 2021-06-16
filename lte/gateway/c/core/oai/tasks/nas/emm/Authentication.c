@@ -58,6 +58,7 @@
 /****************************************************************************/
 extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
+extern bool mme_congestion_control_enabled;
 extern mme_congestion_params_t mme_congestion_params;
 
 /****************************************************************************/
@@ -907,8 +908,9 @@ int emm_proc_authentication_complete(
     /* If spent too much in ZMQ, then discard the packet.
      * MME is congested and this would create some relief in processing.
      */
-    if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
-        MME_APP_ZMQ_LATENCY_AUTH_TH) {
+    if (mme_congestion_control_enabled &&
+        (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+         MME_APP_ZMQ_LATENCY_AUTH_TH)) {
       OAILOG_WARNING_UE(
           LOG_NAS_EMM, emm_ctx->_imsi64,
           "Discarding authentication complete as cumulative ZMQ latency "
@@ -1082,6 +1084,7 @@ static void authentication_t3460_handler(void* args, imsi64_t* imsi64) {
     // TODO the network shall abort any ongoing EMM specific procedure.
 
     auth_proc->retransmission_count += 1;
+    auth_proc->T3460.id = NAS_TIMER_INACTIVE_ID;
     OAILOG_WARNING_UE(
         LOG_NAS_EMM, *imsi64,
         "EMM-PROC  - T3460 timer expired, retransmission "

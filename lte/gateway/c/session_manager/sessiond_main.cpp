@@ -49,7 +49,6 @@ extern "C" void __gcov_flush(void);
 static magma::mconfig::SessionD get_default_mconfig() {
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
-  mconfig.set_relay_enabled(false);
   mconfig.set_gx_gy_relay_enabled(false);
   auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
   wallet_config->set_terminate_on_exhaust(false);
@@ -277,11 +276,8 @@ int main(int argc, char* argv[]) {
 
   // Setup SessionReporter which talks to the policy component
   // (FeG+PCRF/PolicyDB).
-  bool gx_gy_relay_enabled = mconfig.relay_enabled();
-  if (!gx_gy_relay_enabled) {
-    gx_gy_relay_enabled = mconfig.gx_gy_relay_enabled();
-  }
-  auto reporter = std::make_shared<magma::SessionReporterImpl>(
+  bool gx_gy_relay_enabled = mconfig.gx_gy_relay_enabled();
+  auto reporter            = std::make_shared<magma::SessionReporterImpl>(
       evb, get_controller_channel(config, gx_gy_relay_enabled));
   std::thread policy_response_handler([&]() {
     MLOG(MINFO) << "Started reporter thread";

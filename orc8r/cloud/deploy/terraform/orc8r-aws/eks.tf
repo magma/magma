@@ -26,7 +26,7 @@ resource "aws_key_pair" "eks_workers" {
 
 module "eks" {
   source  = "terraform-aws-modules/eks/aws"
-  version = "~> 8.0"
+  version = "~> 17.0.3"
 
   cluster_name    = var.cluster_name
   cluster_version = var.cluster_version
