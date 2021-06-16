@@ -14,6 +14,9 @@
 #pragma once
 #include <sstream>
 #include <thread>
+#include "amf_app_messages_types.h"
+#include "amf_app_ue_context_and_proc.h"
+
 namespace magma5g {
 
 // Authentication related procedure
@@ -32,17 +35,25 @@ typedef struct nas5g_amf_auth_proc_s {
 
 typedef struct nas5g_auth_info_proc_s {
   nas5g_cn_proc_t cn_proc;
+  success_cb_t success_notif;
+  failure_cb_t failure_notif;
   bool request_sent;
+  uint8_t nb_vectors;
+  eutran_vector_t* vector[MAX_EPS_AUTH_VECTORS];
+  int nas_cause;
   amf_ue_ngap_id_t ue_id;
   bool resync;  // Indicates whether the authentication information is requested
                 // due to sync failure
 } nas5g_auth_info_proc_t;
 
-nas5g_auth_info_proc_t* nas5g_cn_auth_info_procedure(
+nas5g_auth_info_proc_t* nas5g_new_cn_auth_info_procedure(
     amf_context_t* const amf_context);
 
 nas5g_auth_info_proc_t* get_nas5g_cn_procedure_auth_info(
     const amf_context_t* ctxt);
+
+void nas5g_delete_cn_procedure(
+    struct amf_context_s* amf_context, nas5g_cn_proc_t* cn_proc);
 
 int amf_proc_authentication_ksi(
     amf_context_t* amf_context,
@@ -61,4 +72,10 @@ int amf_proc_authentication_failure(
 int amf_registration_security(amf_context_t* amf_context);
 int amf_send_authentication_request(
     amf_context_t* amf_context, nas5g_amf_auth_proc_t* auth_proc);
+
+int amf_nas_proc_authentication_info_answer(itti_amf_subs_auth_info_ans_t* aia);
+nas5g_amf_auth_proc_t* get_nas5g_common_procedure_authentication(
+    const amf_context_t* const ctxt);
+
+void amf_proc_stop_t3560_timer(nas5g_amf_auth_proc_t* auth_proc);
 }  // namespace magma5g

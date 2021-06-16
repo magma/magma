@@ -40,6 +40,7 @@ add_library(TASK_AMF_APP
     amf_as.cpp
     amf_authentication.cpp
     amf_data.cpp
+    amf_cn.cpp
     amf_sap.cpp
     nas_proc.cpp
     Registration.cpp

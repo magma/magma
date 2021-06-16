@@ -27,10 +27,9 @@ int PDUSessionTypeMsg::DecodePDUSessionTypeMsg(
     uint32_t len) {
   int decoded = 0;
 
-  // CHECKING IEI
+  // Store the IEI Information
   if (iei > 0) {
     pdu_session_type->iei = (*buffer & 0xf0) >> 4;
-    CHECK_IEI_DECODER((unsigned char) iei, pdu_session_type->iei);
     MLOG(MDEBUG) << "In DecodePDUSessionTypeMsg: iei" << hex
                  << int(pdu_session_type->iei) << endl;
     decoded++;

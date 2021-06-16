@@ -138,7 +138,8 @@ int amf_insert_ue_context(
  ***************************************************************************/
 // warning: lock the UE context
 ue_m5gmm_context_s* amf_create_new_ue_context(void) {
-  ue_m5gmm_context_s* new_p = new (ue_m5gmm_context_s);
+  // Make ue_context zero initialize
+  ue_m5gmm_context_s* new_p = new ue_m5gmm_context_s();
 
   if (!new_p) {
     OAILOG_ERROR(LOG_AMF_APP, "Failed to allocate memory for UE context \n");

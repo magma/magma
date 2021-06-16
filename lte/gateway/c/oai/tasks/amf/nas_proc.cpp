@@ -21,6 +21,8 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+#include "conversions.h"
+#include "assertions.h"
 #include "common_defs.h"
 #include <sstream>
 #include "amf_asDefs.h"
@@ -67,31 +69,86 @@ int nas_proc_establish_ind(
 **                                                                        **
 ***************************************************************************/
 amf_procedures_t* nas_new_amf_procedures(amf_context_t* const amf_context) {
-  amf_procedures_t* amf_procedures = new amf_procedures_t;
+  amf_procedures_t* amf_procedures = new amf_procedures_t();
   LIST_INIT(&amf_procedures->amf_common_procs);
   return amf_procedures;
 }
 
+//-----------------------------------------------------------------------------
+static void nas5g_delete_auth_info_procedure(
+    struct amf_context_s* amf_context,
+    nas5g_auth_info_proc_t** auth_info_proc) {
+  if (*auth_info_proc) {
+    if ((*auth_info_proc)->cn_proc.base_proc.parent) {
+      (*auth_info_proc)->cn_proc.base_proc.parent->child = NULL;
+    }
+    free_wrapper((void**) auth_info_proc);
+  }
+}
+
 /***************************************************************************
 **                                                                        **
-** Name:    nas5g_cn_auth_info_procedure()                            **
+** Name:    nas5g_delete_cn_procedure()                                   **
 **                                                                        **
 ** Description: Generic function for new auth info  Procedure             **
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-nas5g_auth_info_proc_t* nas5g_cn_auth_info_procedure(
+void nas5g_delete_cn_procedure(
+    struct amf_context_s* amf_context, nas5g_cn_proc_t* cn_proc) {
+  if (amf_context->amf_procedures) {
+    nas5g_cn_procedure_t* p1 =
+        LIST_FIRST(&amf_context->amf_procedures->cn_procs);
+    nas5g_cn_procedure_t* p2 = NULL;
+
+    while (p1) {
+      p2 = LIST_NEXT(p1, entries);
+      if (p1->proc == cn_proc) {
+        switch (cn_proc->type) {
+          case CN5G_PROC_AUTH_INFO:
+            nas5g_delete_auth_info_procedure(
+                amf_context, (nas5g_auth_info_proc_t**) &cn_proc);
+            break;
+          case CN5G_PROC_NONE:
+            free_wrapper((void**) &cn_proc);
+            break;
+          default:;
+        }
+        LIST_REMOVE(p1, entries);
+        free_wrapper((void**) &p1);
+        return;
+      }
+      p1 = p2;
+    }
+  }
+}
+
+/***************************************************************************
+**                                                                        **
+** Name:    nas5g_new_cn_auth_info_procedure()                            **
+**                                                                        **
+** Description: Generic function for new auth info  Procedure             **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+nas5g_auth_info_proc_t* nas5g_new_cn_auth_info_procedure(
     amf_context_t* const amf_context) {
   if (!(amf_context->amf_procedures)) {
     amf_context->amf_procedures = nas_new_amf_procedures(amf_context);
   }
-  nas5g_auth_info_proc_t* auth_info_proc = new nas5g_auth_info_proc_t;
+  nas5g_auth_info_proc_t* auth_info_proc =
+      (nas5g_auth_info_proc_t*) calloc(1, sizeof(nas5g_auth_info_proc_t));
+
   auth_info_proc->cn_proc.base_proc.nas_puid =
       __sync_fetch_and_add(&nas_puid, 1);
-  auth_info_proc->cn_proc.type  = CN5G_PROC_AUTH_INFO;
-  nas5g_cn_procedure_t* wrapper = new nas5g_cn_procedure_t;
+  auth_info_proc->cn_proc.base_proc.type = NAS_PROC_TYPE_CN;
+  auth_info_proc->cn_proc.type           = CN5G_PROC_AUTH_INFO;
+
+  nas5g_cn_procedure_t* wrapper =
+      (nas5g_cn_procedure_t*) calloc(1, sizeof(*wrapper));
   if (wrapper) {
     wrapper->proc = &auth_info_proc->cn_proc;
+    LIST_INSERT_HEAD(&amf_context->amf_procedures->cn_procs, wrapper, entries);
     return auth_info_proc;
   } else {
     free_wrapper((void**) &auth_info_proc);
@@ -136,46 +193,11 @@ bool is_nas_specific_procedure_registration_running(const amf_context_t* ctxt) {
   return false;
 }
 
-#if 0
 /***************************************************************************
 **                                                                        **
-** Name:    nas5g_message_decode()                                        **
+** Name:    nas5g_new_identification_procedure()                          **
 **                                                                        **
-** Description: Invokes Function to decode NAS Message                    **
-**                                                                        **
-**                                                                        **
-***************************************************************************/
-int nas5g_message_decode(
-    unsigned char* buffer, amf_nas_message_t* nas_msg, int length,
-    amf_security_context_t* amf_security_context,
-    amf_nas_message_decode_status_t* decode_status) {
-  OAILOG_FUNC_IN(LOG_NAS5G);
-  int bytes                  = 0;
-  int size                   = 0;
-  AmfMsgHeader_s* msg_header = NULL;
-  AmfMsg* msg_amf            = NULL;
-  /*
-   * Decode the header
-   */
-  msg_header = (AmfMsgHeader_s*) &nas_msg->header;
-  size       = amf_msg_obj.AmfMsgDecodeHeaderMsg(msg_header, buffer, length);
-  if (size < 0) {
-    OAILOG_FUNC_RETURN(LOG_NAS5G, TLV_BUFFER_TOO_SHORT);
-  }
-  /*
-   * Decode plain NAS message
-   */
-  msg_amf = (AmfMsg*) &nas_msg->plain.amf;
-  bytes   = amf_msg_obj.M5gNasMessageDecodeMsg(msg_amf, buffer, length);
-  OAILOG_FUNC_RETURN(LOG_NAS, bytes);
-}
-#endif
-
-/***************************************************************************
-**                                                                        **
-** Name:    nas5g_message_decode()                                        **
-**                                                                        **
-** Description: Invokes Function to decode NAS Message                    **
+** Description: Invokes Function for new identificaiton procedure         **
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
@@ -357,6 +379,83 @@ int amf_proc_identification(
       rc                      = amf_sap_send(&amf_sap);
     }
   }
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+int amf_nas_proc_auth_param_res(
+    amf_ue_ngap_id_t amf_ue_ngap_id, uint8_t nb_vectors,
+    eutran_vector_t* vectors) {
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+
+  int rc                            = RETURNerror;
+  amf_sap_t amf_sap                 = {};
+  amf_cn_auth_res_t amf_cn_auth_res = {};
+
+  amf_cn_auth_res.ue_id      = amf_ue_ngap_id;
+  amf_cn_auth_res.nb_vectors = nb_vectors;
+  for (int i = 0; i < nb_vectors; i++) {
+    amf_cn_auth_res.vector[i] = &vectors[i];
+  }
+
+  amf_sap.primitive           = AMFCN_AUTHENTICATION_PARAM_RES;
+  amf_sap.u.amf_cn.u.auth_res = &amf_cn_auth_res;
+  rc                          = amf_sap_send(&amf_sap);
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+}
+
+int amf_nas_proc_authentication_info_answer(
+    itti_amf_subs_auth_info_ans_t* aia) {
+  imsi64_t imsi64                       = INVALID_IMSI64;
+  int rc                                = RETURNerror;
+  amf_context_t* amf_ctxt_p             = NULL;
+  ue_m5gmm_context_s* ue_5gmm_context_p = NULL;
+  OAILOG_FUNC_IN(LOG_AMF_APP);
+
+  IMSI_STRING_TO_IMSI64((char*) aia->imsi, &imsi64);
+
+  OAILOG_DEBUG(LOG_AMF_APP, "Handling imsi " IMSI_64_FMT "\n", imsi64);
+
+  ue_5gmm_context_p = lookup_ue_ctxt_by_imsi(imsi64);
+
+  if (ue_5gmm_context_p) {
+    amf_ctxt_p = &ue_5gmm_context_p->amf_context;
+  }
+
+  if (!(amf_ctxt_p)) {
+    OAILOG_ERROR(
+        LOG_NAS_AMF, "That's embarrassing as we don't know this IMSI\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
+
+  amf_ue_ngap_id_t amf_ue_ngap_id = ue_5gmm_context_p->amf_ue_ngap_id;
+
+  OAILOG_INFO(
+      LOG_NAS_AMF,
+      "Received Authentication Information Answer from Subscriberdb for"
+      " ue_id = %d\n",
+      amf_ue_ngap_id);
+
+  if (aia->auth_info.nb_of_vectors) {
+    /*
+     * Check that list is not empty and contain at most MAX_EPS_AUTH_VECTORS
+     * elements
+     */
+    if (aia->auth_info.nb_of_vectors > MAX_EPS_AUTH_VECTORS) {
+      OAILOG_ERROR(LOG_NAS_AMF, "nb_of_vectors > MAX_EPS_AUTH_VECTORS");
+      return RETURNerror;
+    }
+
+    OAILOG_DEBUG(
+        LOG_NAS_AMF, "INFORMING NAS ABOUT AUTH RESP SUCCESS got %u vector(s)\n",
+        aia->auth_info.nb_of_vectors);
+    rc = amf_nas_proc_auth_param_res(
+        amf_ue_ngap_id, aia->auth_info.nb_of_vectors,
+        aia->auth_info.eutran_vector);
+  } else {
+    // TODO ... Handle the failure case
+  }
+
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 }  // namespace magma5g

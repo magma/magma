@@ -113,6 +113,21 @@ typedef struct amf_app_timer_s {
   long sec; /* The timer interval value in seconds  */
 } amf_app_timer_t;
 
+/* TS-23.003 #2.10 5G Globally Unique Temporary UE Identity (5G-GUTI)
+ *  * <5G-GUTI> = <GUAMI><5G-TMSI>
+ *   * <GUAMI> = <MCC><MNC><AMF Identifier>
+ *    * <AMF Identifier> = <AMF Region ID><AMF Set ID><AMF Pointer>
+ *     */
+// 3 octets of PLMN = MCC + MNC
+typedef struct amf_plmn_s {
+  uint8_t mcc_digit2 : 4;
+  uint8_t mcc_digit1 : 4;
+  uint8_t mnc_digit3 : 4;
+  uint8_t mcc_digit3 : 4;
+  uint8_t mnc_digit2 : 4;
+  uint8_t mnc_digit1 : 4;
+} amf_plmn_t;
+
 /* PDU session resource request and release NGAP messages
  * Request and response
  */
@@ -404,6 +419,10 @@ void amf_ctx_set_attribute_present(
     amf_context_t* ctxt, const int attribute_bit_pos) __attribute__((nonnull))
 __attribute__((flatten));
 
+void amf_ctx_clear_attribute_present(
+    amf_context_t* const ctxt, const int attribute_bit_pos)
+    __attribute__((nonnull)) __attribute__((flatten));
+
 // NAS encode header
 typedef struct amf_msg_header_t {
   uint8_t extended_protocol_discriminator;
@@ -641,12 +660,6 @@ nas_amf_registration_proc_t* get_nas_specific_procedure_registration(
     const amf_context_t* ctxt);
 bool is_nas_specific_procedure_registration_running(const amf_context_t* ctxt);
 
-#if 0
-int nas5g_message_decode(
-    unsigned char* buffer, amf_nas_message_t* nas_msg, int length,
-    amf_security_context_t* amf_security_context,
-    amf_nas_message_decode_status_t* decode_status);
-#endif
 nas_amf_common_proc_t* get_nas5g_common_procedure(
     const amf_context_t* const ctxt, amf_common_proc_type_t proc_type);
 
@@ -818,4 +831,5 @@ void amf_delete_child_procedures(
 void amf_delete_common_procedure(
     amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
 void delete_wrapper(void** ptr);
+void format_plmn(amf_plmn_t* plmn);
 }  // namespace magma5g

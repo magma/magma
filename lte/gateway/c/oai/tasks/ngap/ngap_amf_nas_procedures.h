@@ -22,6 +22,11 @@
 #include "ngap_state.h"
 struct ngap_message_s;
 
+#define FETCH_AMF_SET_ID_FROM_PDU(aSN, Amf_Set_Id)                             \
+  DevCheck((aSN).size == 2, (aSN).size, 0, 0);                                 \
+  DevCheck((aSN).bits_unused == 6, (aSN).bits_unused, 6, 0);                   \
+  Amf_Set_Id = (aSN.buf[0] << 2) + ((aSN.buf[1] >> 6) & 0x03);
+
 /** \brief Handle an Initial UE message.
  * \param assocId lower layer assoc id (SCTP)
  * \param stream SCTP stream on which data had been received
