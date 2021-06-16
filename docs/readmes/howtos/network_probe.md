@@ -7,7 +7,7 @@ hide_title: true
 *Last Updated: 6/09/2021*
 
 # Overview
-Network Probe allows a Magma operator to provide standardised lawful interception X2 and X3 interfaces as described in ETSI TS 103 221-2. This feature takes advantage of the rest API (swagger) to provide the X1 interface.
+Network Probe allows a Magma operator to provide standardized lawful interception X2 and X3 interfaces as described in ETSI TS 103 221-2. This feature takes advantage of the rest API (swagger) to provide the X1 interface.
 
 # Architecture
 Current architecture leverages both AGW and Orc8r to deliver the magma LI feature. It aims at providing a 3GPP complaint solution and smooth integration with different Lawful Interception Management System (LIMS).
