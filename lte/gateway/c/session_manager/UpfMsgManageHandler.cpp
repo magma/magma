@@ -12,11 +12,18 @@
 #include <google/protobuf/util/time_util.h>
 #include <chrono>
 #include <thread>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 #include "magma_logging.h"
 #include "GrpcMagmaUtils.h"
 #include "lte/protos/session_manager.pb.h"
+#include "lte/protos/mobilityd.grpc.pb.h"
+#include "lte/protos/mobilityd.pb.h"
+#include <MobilityServiceClient.h>
 
 using grpc::Status;
+using magma::lte::MobilityServiceClient;
 
 namespace magma {
 /**
@@ -119,11 +126,20 @@ void UpfMsgManageHandler::SendPagingRequest(
     std::function<void(Status, SmContextVoid)> response_callback) {
   auto& pag_req = *page_request;
 
-  std::string imsi    = pag_req.subscriber_id();
+  std::string imsi;
   uint32_t fte_id     = pag_req.local_f_teid();
   std::string ip_addr = pag_req.ue_ip_addr();
+  struct in_addr ue_ip;
 
-  MLOG(MINFO) << "IDLE_MODE::: SendingPagingRequest";
+  inet_aton(ip_addr.c_str(), &ue_ip);
+  int ret = MobilityServiceClient::getInstance().GetSubscriberIDFromIPv4(
+      ue_ip, &imsi);
+  if (ret > 0) {
+    MLOG(MERROR) << "Subscriber could not be found for ip " << ip_addr;
+    return;
+  }
+
+  MLOG(MINFO) << "IDLE_MODE::: SendingPagingRequest for subscriber" << imsi;
   conv_enforcer_->get_event_base().runInEventBaseThread([this, imsi, fte_id,
                                                          response_callback]() {
     // Deleting the IMSI prefix from imsi
