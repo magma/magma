@@ -198,15 +198,15 @@ def _get_restricted_imeis(service_mconfig):
 
 def _get_service_area_maps(service_mconfig):
     if service_mconfig.service_area_maps:
-      service_area_map = [] 
+      service_area_map = []
       for sac in service_mconfig.service_area_maps:
         tac_list = []
         service_area_maps_dict = {}
         for idx in service_mconfig.service_area_maps[sac].tac :
-          tac_list.append(idx)  
+          tac_list.append(idx)
         service_area_maps_dict['sac'] = sac
         service_area_maps_dict['tac'] = tac_list
-        service_area_map.append(service_area_maps_dict) 
+        service_area_map.append(service_area_maps_dict)
       return service_area_map
     return {}
 
@@ -219,7 +219,7 @@ def _get_congestion_control_config(service_mconfig):
 
     Returns: congestion control flag
     """
-    if service_mconfig.congestion_control_enabled:
+    if service_mconfig.congestion_control_enabled is not None:
         return service_mconfig.congestion_control_enabled
 
     return True
