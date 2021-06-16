@@ -23,6 +23,4 @@ const (
 	MetricsdServiceName     = "metricsd"
 	StateServiceName        = "state"
 	StreamerServiceName     = "streamer"
-
-	SQLiteDriver = "sqlite3"
 )
