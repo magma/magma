@@ -557,7 +557,7 @@ int amf_proc_authentication_complete(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc = RETURNerror;
   int idx;
-  bool is_xres_validation = false;
+  bool is_xres_validation_failed = false;
   nas_amf_smc_proc_t nas_amf_smc_proc_autn;
   OAILOG_DEBUG(
       LOG_NAS_AMF,
@@ -596,12 +596,12 @@ int amf_proc_authentication_complete(
     for (idx = 0; idx < amf_ctx->_vector[auth_proc->ksi].xres_size; idx++) {
       if ((amf_ctx->_vector[auth_proc->ksi].xres[idx]) !=
           msg->autn_response_parameter.response_parameter[idx]) {
-        is_xres_validation = true;
+        is_xres_validation_failed = true;
         break;
       }
     }
 
-    if (is_xres_validation == true) {
+    if (is_xres_validation_failed) {
       auth_proc->retransmission_count++;
       nas_amf_registration_proc_t* registration_proc =
           get_nas_specific_procedure_registration(amf_ctx);
