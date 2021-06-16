@@ -340,7 +340,6 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   void poll_stats_rpc(
       const GetStatsRequest& request,
       std::function<void(Status, RuleRecordTable)> callback);
-  )
 };
 
 }  // namespace magma
