@@ -539,7 +539,7 @@ function AddSubscriberDetails(props: DialogProps) {
   const saveSubscribers = async () => {
     let addedSubscribers = [];
     let subscriberErrors = '';
-    for (const subscriber of subscribers) {
+    for (const [i, subscriber] of subscribers.entries()) {
       try {
         const err = validateSubscriberInfo(subscriber, ctx.state);
         if (err.length > 0) {
@@ -569,7 +569,10 @@ function AddSubscriberDetails(props: DialogProps) {
         };
         addedSubscribers.push(newSubscriber);
         // bulk add chunked subscribers
-        if (addedSubscribers.length == SUBSCRIBERS_CHUNK_SIZE) {
+        if (
+          addedSubscribers.length == SUBSCRIBERS_CHUNK_SIZE ||
+          i == subscribers.length - 1
+        ) {
           const success = await bulkAdd(addedSubscribers, subscriberErrors);
           if (success) {
             successCountRef.current =
@@ -586,16 +589,6 @@ function AddSubscriberDetails(props: DialogProps) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
         subscriberErrors +=
           'error saving ' + subscriber.imsi + ' : ' + errMsg + '\n';
-      }
-    }
-    //bulk add left subscribers
-    if (addedSubscribers.length > 0) {
-      const success = await bulkAdd(addedSubscribers, subscriberErrors);
-      if (!success) {
-        enqueueSnackbar('Saving subscribers to the api failed: ', {
-          variant: 'error',
-        });
-        return;
       }
     }
     enqueueSnackbar(
