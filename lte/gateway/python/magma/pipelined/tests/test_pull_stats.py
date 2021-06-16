@@ -156,8 +156,7 @@ class PullStatsTest(unittest.TestCase):
                                             self.service_manager)
         with sub_context, snapshot_verifier:
             rule_map = self.enforcement_stats_controller.get_stats()
-            DEFAULT_DROP_FLOW_NAME = "(ノಠ益ಠ)ノ彡┻━┻"
-            if (rule_map.records[0].rule_id == DEFAULT_DROP_FLOW_NAME):
+            if (rule_map.records[0].rule_id == self.DEFAULT_DROP_FLOW_NAME):
                 rule_record = rule_map.records[1]
             else:
                 rule_record = rule_map.records[0]
@@ -165,7 +164,22 @@ class PullStatsTest(unittest.TestCase):
             self.assertEqual(rule_record.rule_id, "rule1")
             self.assertEqual(rule_record.bytes_tx, 0)
             self.assertEqual(rule_record.bytes_rx, 0)
-    
+            rule_map_cookie = self.enforcement_stats_controller.get_stats(1, 0)
+            if (rule_map_cookie.records[0].rule_id == self.DEFAULT_DROP_FLOW_NAME):
+                rule_record_cookie = rule_map_cookie.records[1]
+            else:
+                rule_record_cookie = rule_map_cookie.records[0]
+            self.assertEqual(rule_record_cookie.sid, imsi)
+            self.assertEqual(rule_record_cookie.rule_id, "rule1")
+            self.assertEqual(rule_record_cookie.bytes_tx, 0)
+            self.assertEqual(rule_record_cookie.bytes_rx, 0)    
+            rule_map_cookie_and_mask = self.enforcement_stats_controller.get_stats(1, 1)
+            rule_record_cookie_and_mask = rule_map_cookie_and_mask.records[0]
+            self.assertEqual(rule_record_cookie_and_mask.sid, imsi)
+            self.assertEqual(rule_record_cookie_and_mask.rule_id, "rule1")
+            self.assertEqual(rule_record_cookie_and_mask.bytes_tx, 0)
+            self.assertEqual(rule_record_cookie_and_mask.bytes_rx, 0)    
+            
 
 if __name__ == "__main__":
     unittest.main()
