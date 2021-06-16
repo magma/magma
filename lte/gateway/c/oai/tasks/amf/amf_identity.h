@@ -40,21 +40,6 @@ int amf_proc_identification_complete(
     const amf_ue_ngap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
     imeisv_t* const imeisv, uint32_t* const tmsii, guti_m5_t* amf_ctx_guti);
 
-/* TS-23.003 #2.10 5G Globally Unique Temporary UE Identity (5G-GUTI)
- * <5G-GUTI> = <GUAMI><5G-TMSI>
- * <GUAMI> = <MCC><MNC><AMF Identifier>
- * <AMF Identifier> = <AMF Region ID><AMF Set ID><AMF Pointer>
- */
-// 3 octets of PLMN = MCC + MNC
-typedef struct amf_plmn_s {
-  uint8_t mcc_digit2 : 4;
-  uint8_t mcc_digit1 : 4;
-  uint8_t mnc_digit3 : 4;
-  uint8_t mcc_digit3 : 4;
-  uint8_t mnc_digit2 : 4;
-  uint8_t mnc_digit1 : 4;
-} amf_plmn_t;
-
 typedef struct amf_guamfi_s {
   amf_plmn_t plmn; /*MCC + MNC*/
   uint8_t amf_regionid;

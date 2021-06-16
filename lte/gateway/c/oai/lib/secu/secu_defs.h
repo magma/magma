@@ -99,4 +99,8 @@ int nas_stream_encrypt_eia2(
 
 int derive_5gkey_gnb(const uint8_t* kamf, uint32_t ul_count, uint8_t* kgnb);
 
+int derive_5gkey_xres_star(
+    uint8_t* ck_ik, uint8_t* snn, uint8_t* rand, uint8_t* res,
+    uint8_t* xres_star);
+
 #endif /* FILE_SECU_DEFS_SEEN */

@@ -983,6 +983,11 @@ static int amf_as_security_req(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = 0;
   amf_nas_message_t nas_msg;
+  uint8_t ck_ik[32] = {0};
+  uint8_t snni[32]  = {0};
+  uint8_t xres[16]  = {0};
+  uint8_t rand[16]  = {0};
+  amf_plmn_t plmn;
 
   memset(&nas_msg, 0, sizeof(amf_nas_message_t));
 
@@ -1074,6 +1079,84 @@ static int amf_as_security_req(
                 .ik,
             auth_info_proc->vector[0]->ik, IK_LENGTH_OCTETS);
 
+        memcpy(
+            ue_context->amf_context
+                ._vector
+                    [ue_context->amf_context._security.eksi %
+                     MAX_EPS_AUTH_VECTORS]
+                .xres,
+            auth_info_proc->vector[0]->xres.data,
+            auth_info_proc->vector[0]->xres.size);
+        ue_context->amf_context
+            ._vector
+                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
+            .xres_size = auth_info_proc->vector[0]->xres.size;
+
+        // NAS Integrity key is calculated as specified in TS 33501, Annex A
+        memcpy(&plmn, ue_context->amf_context.imsi.u.value, 3);
+        format_plmn(&plmn);
+
+        /* Building 32 bytes of string with serving network SN
+         * SN value 5G:mnc095.mcc208.3gppnetwork.org
+         * mcc and mnc retrive saved _imsi from amf_context
+         */
+        uint32_t mcc              = 0;
+        uint32_t mnc              = 0;
+        uint32_t mnc_digit_length = 0;
+
+        PLMN_T_TO_MCC_MNC(plmn, mcc, mnc, mnc_digit_length);
+        uint32_t snni_buf_len = sprintf(
+            (char*) snni, "5G:mnc%03d.mcc%03d.3gppnetwork.org", mnc, mcc);
+        if (snni_buf_len != 32) {
+          OAILOG_ERROR(LOG_NAS_AMF, "Failed to create SNNI String\n");
+          OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+        }
+
+        memcpy(
+            rand,
+            ue_context->amf_context
+                ._vector
+                    [ue_context->amf_context._security.eksi %
+                     MAX_EPS_AUTH_VECTORS]
+                .rand,
+            RAND_LENGTH_OCTETS);
+
+        memcpy(
+            ck_ik,
+            ue_context->amf_context
+                ._vector
+                    [ue_context->amf_context._security.eksi %
+                     MAX_EPS_AUTH_VECTORS]
+                .ck,
+            16);
+
+        memcpy(
+            &ck_ik[16],
+            ue_context->amf_context
+                ._vector
+                    [ue_context->amf_context._security.eksi %
+                     MAX_EPS_AUTH_VECTORS]
+                .ik,
+            16);
+
+        memcpy(
+            xres,
+            ue_context->amf_context
+                ._vector
+                    [ue_context->amf_context._security.eksi %
+                     MAX_EPS_AUTH_VECTORS]
+                .xres,
+            AUTH_XRES_SIZE);
+
+        derive_5gkey_xres_star(
+            ck_ik, snni, rand, xres,
+            ue_context->amf_context
+                ._vector
+                    [ue_context->amf_context._security.eksi %
+                     MAX_EPS_AUTH_VECTORS]
+                .xres);
+
+        OAILOG_INFO(LOG_AMF_APP, " \n test\n");
         OAILOG_INFO(
             LOG_AMF_APP, "AMF_TEST: Sending AUTHENTICATION_REQUEST to UE\n");
         size                                                     = 50;
