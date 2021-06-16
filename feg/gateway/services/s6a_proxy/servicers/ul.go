@@ -48,7 +48,7 @@ func (s *s6aProxy) sendULR(sid string, req *protos.UpdateLocationRequest, retryC
 	m.NewAVP(avp.VisitedPLMNID, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.OctetString(req.VisitedPlmn))
 
 	// Supported feature-List-id-1
-	if req.FeatureListId_2 != nil {
+	if req.FeatureListId_1 != nil {
 		m.NewAVP(avp.SupportedFeatures, avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
 				diam.NewAVP(avp.VendorID, avp.Mbit, 0, datatype.Unsigned32(10415)),
