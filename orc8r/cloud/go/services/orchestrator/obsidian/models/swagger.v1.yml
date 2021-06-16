@@ -1388,11 +1388,13 @@ definitions:
     properties:
       url_python:
         type: string
+        format: uri
         minLength: 0
         x-nullable: false
         example: https://examplePublicKey@o0.ingest.sentry.io/0
       url_native:
         type: string
+        format: uri
         minLength: 0
         x-nullable: false
         example: https://examplePublicKey@o0.ingest.sentry.io/0
@@ -1402,6 +1404,8 @@ definitions:
       sample_rate:
         type: number
         format: float
+        minimum: 0
+        maximum: 1
         example: 0.5
 
   magmad_gateway:

@@ -18,31 +18,23 @@ import (
 type NetworkSentryConfig struct {
 
 	// sample rate
-	// Maximum: 1
-	// Minimum: 0
-	SampleRate *float32 `json:"sample_rate,omitempty"`
+	SampleRate float32 `json:"sample_rate,omitempty"`
 
 	// upload mme log
 	UploadMmeLog bool `json:"upload_mme_log,omitempty"`
 
 	// url native
 	// Min Length: 0
-	// Format: uri
-	URLNative strfmt.URI `json:"url_native,omitempty"`
+	URLNative string `json:"url_native,omitempty"`
 
 	// url python
 	// Min Length: 0
-	// Format: uri
-	URLPython strfmt.URI `json:"url_python,omitempty"`
+	URLPython string `json:"url_python,omitempty"`
 }
 
 // Validate validates this network sentry config
 func (m *NetworkSentryConfig) Validate(formats strfmt.Registry) error {
 	var res []error
-
-	if err := m.validateSampleRate(formats); err != nil {
-		res = append(res, err)
-	}
 
 	if err := m.validateURLNative(formats); err != nil {
 		res = append(res, err)
@@ -58,23 +50,6 @@ func (m *NetworkSentryConfig) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *NetworkSentryConfig) validateSampleRate(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.SampleRate) { // not required
-		return nil
-	}
-
-	if err := validate.Minimum("sample_rate", "body", float64(*m.SampleRate), 0, false); err != nil {
-		return err
-	}
-
-	if err := validate.Maximum("sample_rate", "body", float64(*m.SampleRate), 1, false); err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (m *NetworkSentryConfig) validateURLNative(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.URLNative) { // not required
@@ -82,10 +57,6 @@ func (m *NetworkSentryConfig) validateURLNative(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MinLength("url_native", "body", string(m.URLNative), 0); err != nil {
-		return err
-	}
-
-	if err := validate.FormatOf("url_native", "body", "uri", m.URLNative.String(), formats); err != nil {
 		return err
 	}
 
@@ -99,10 +70,6 @@ func (m *NetworkSentryConfig) validateURLPython(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MinLength("url_python", "body", string(m.URLPython), 0); err != nil {
-		return err
-	}
-
-	if err := validate.FormatOf("url_python", "body", "uri", m.URLPython.String(), formats); err != nil {
 		return err
 	}
 

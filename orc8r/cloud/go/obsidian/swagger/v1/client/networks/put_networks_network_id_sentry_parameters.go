@@ -68,8 +68,8 @@ type PutNetworksNetworkIDSentryParams struct {
 
 	*/
 	NetworkID string
-	/*SentryConfig*/
-	SentryConfig *models.SentryConfig
+	/*NetworkSentryConfig*/
+	NetworkSentryConfig *models.NetworkSentryConfig
 
 	timeout    time.Duration
 	Context    context.Context
@@ -120,15 +120,15 @@ func (o *PutNetworksNetworkIDSentryParams) SetNetworkID(networkID string) {
 	o.NetworkID = networkID
 }
 
-// WithSentryConfig adds the sentryConfig to the put networks network ID sentry params
-func (o *PutNetworksNetworkIDSentryParams) WithSentryConfig(sentryConfig *models.SentryConfig) *PutNetworksNetworkIDSentryParams {
-	o.SetSentryConfig(sentryConfig)
+// WithNetworkSentryConfig adds the networkSentryConfig to the put networks network ID sentry params
+func (o *PutNetworksNetworkIDSentryParams) WithNetworkSentryConfig(networkSentryConfig *models.NetworkSentryConfig) *PutNetworksNetworkIDSentryParams {
+	o.SetNetworkSentryConfig(networkSentryConfig)
 	return o
 }
 
-// SetSentryConfig adds the sentryConfig to the put networks network ID sentry params
-func (o *PutNetworksNetworkIDSentryParams) SetSentryConfig(sentryConfig *models.SentryConfig) {
-	o.SentryConfig = sentryConfig
+// SetNetworkSentryConfig adds the networkSentryConfig to the put networks network ID sentry params
+func (o *PutNetworksNetworkIDSentryParams) SetNetworkSentryConfig(networkSentryConfig *models.NetworkSentryConfig) {
+	o.NetworkSentryConfig = networkSentryConfig
 }
 
 // WriteToRequest writes these params to a swagger request
@@ -144,8 +144,8 @@ func (o *PutNetworksNetworkIDSentryParams) WriteToRequest(r runtime.ClientReques
 		return err
 	}
 
-	if o.SentryConfig != nil {
-		if err := r.SetBodyParam(o.SentryConfig); err != nil {
+	if o.NetworkSentryConfig != nil {
+		if err := r.SetBodyParam(o.NetworkSentryConfig); err != nil {
 			return err
 		}
 	}
