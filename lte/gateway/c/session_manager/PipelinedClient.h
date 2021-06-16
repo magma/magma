@@ -288,6 +288,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const magma::UEMacFlowRequest req, const int retries, Status status,
       FlowResponse resp);
 
+  void poll_stats(int cookie, int cookie_mask);
+  
   uint32_t get_next_teid();
   uint32_t get_current_teid();
 

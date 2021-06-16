@@ -65,8 +65,8 @@ magma::DeactivateFlowsRequest make_deactivate_req(
 magma::GetStatsRequest make_stat_req(
     int cookie, int cookie_mask){
   magma::GetStatsRequest req;
-  req.cookie = cookie;
-  req.cookie_mask = cookie_mask;
+  req.set_cookie(cookie);
+  req.set_cookie_mask(cookie_mask);
   return req;
 }
 
@@ -569,7 +569,7 @@ void AsyncPipelinedClient::poll_stats_rpc(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(
-      std::move(stub_->AsyncPollStats(
+      std::move(stub_->AsyncGetStats(
           local_resp->get_context(), request, &queue_)));
 }
 
