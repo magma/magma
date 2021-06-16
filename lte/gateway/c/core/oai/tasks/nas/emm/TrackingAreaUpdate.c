@@ -471,6 +471,7 @@ static void emm_tracking_area_update_t3450_handler(
      * Increment the retransmission counter
      */
     tau_proc->retransmission_count += 1;
+    tau_proc->T3450.id = NAS_TIMER_INACTIVE_ID;
     OAILOG_WARNING_UE(
         LOG_NAS_EMM, *imsi64,
         "EMM-PROC  - T3450 timer expired, retransmission counter = %d for ue "
