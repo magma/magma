@@ -62,7 +62,7 @@ magma::DeactivateFlowsRequest make_deactivate_req(
   return req;
 }
 
-magma::GetStatRequest make_stat_req(
+magma::GetStatsRequest make_stat_req(
     int cookie, int cookie_mask){
   magma::GetStatsRequest req;
   req.cookie = cookie;
@@ -563,7 +563,7 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
 }
 
 void AsyncPipelinedClient::poll_stats_rpc(
-    const GetStatsRequest& request,
+    const magma::GetStatsRequest& request,
     std::function<void(Status, RuleRecordTable)> callback) {
   auto local_resp = new AsyncLocalResponse<RuleRecordTable>(
       std::move(callback), RESPONSE_TIMEOUT);
