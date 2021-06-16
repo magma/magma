@@ -327,6 +327,7 @@ message PDI {
   bytes tr_ep_id = 5;                //8.2.92
   SdfFilters sdf_filters = 6;
   string app_id = 7;
+  string gnb_ipv4_adr = 8;
 }
 
 //Group Type messages - Currently Includes -> 1. PDR 2. FAR 3.For QER ActivateFlowRequest
