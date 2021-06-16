@@ -27,10 +27,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - updated vbguest-tool
     magma.vm.box = "magmacore/magma_dev"
     magma.vm.hostname = "magma-dev"
-    magma.vm.box_version = "1.1.20210611"
+    magma.vm.box_version = "1.1.20210326"
+
     magma.vbguest.auto_update = false
-
-
 
     # Create a private network, which allows host-only access to the machine
     # using a specific IP.
@@ -39,19 +38,68 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
 
     magma.vm.provider "virtualbox" do |vb|
-
       vb.name = "magma-dev"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "6144"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+
+    config.vm.provider :libvirt do |domain, override|
+      override.vm.synced_folder "../..", "/home/vagrant/magma", type: 'nfs', linux__nfs_options: ['rw','no_subtree_check','no_root_squash'], mount_options: ['nolock']
+      domain.uri = "qemu+unix:///system"
+      domain.memory = 6144
+      domain.cpus = 4
+      domain.driver = "kvm"
+      domain.host = "localhost"
+      domain.connect_via_ssh = false
+      domain.username = $user
+      domain.storage_pool_name = "default"
+      domain.nic_model_type = "virtio"
+      domain.management_network_name = "magma-mgmt-net"
+      domain.management_network_address = "172.17.2.0/24"
+      domain.nested = true
+      domain.cpu_mode = "host-passthrough"
+      domain.volume_cache = "unsafe"
+      domain.disk_bus = "virtio"
+      domain.graphics_ip = "0.0.0.0"
+    end
+
+    magma.vm.provision "ansible" do |ansible|
+      ansible.host_key_checking = false
+      ansible.playbook = "deploy/magma_dev.yml"
+      ansible.inventory_path = "deploy/hosts"
+      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+                              ["--timeout=30"]
+      ansible.verbose = 'v'
+    end
+  end
+
+  config.vm.define :magma_focal, primary: false do |magma_focal|
+    # Get our prepackaged box from the atlas cloud, based on
+    # - debian/contrib-jessie64
+    # - linux kernel from debian jessie backports
+    # - updated vbguest-tool
+    magma_focal.vm.box = "ubuntu/focal64"
+    magma_focal.vm.hostname = "magma-dev-focal"
+    magma_focal.vm.box_version = "20210415.0.0"
+    magma_focal.vbguest.auto_update = false
+
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma_focal.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
+    # iperf3 trfserver routable IP.
+    magma_focal.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
+
+    magma_focal.vm.provider "virtualbox" do |vb|
+      vb.name = "magma-focal-dev"
       vb.linked_clone = true
       vb.customize ["modifyvm", :id, "--memory", "8192"]
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
-      vb.customize ["modifyvm", :id, "--uart1", "0x3F8", "4"]
-      vb.customize ["modifyvm", :id, "--uartmode1", "file", File::NULL]
-      vb.customize ["modifyvm", :id, "--nestedpaging", "off"]
       vb.customize ["guestproperty", "set", :id, "/VirtualBox/GuestAdd/VBoxService/--timesync-set-threshold", 10000 ]
-      vb.customize ["modifyvm", :id, "--paravirtprovider", "hyperv"]
     end
-    magma.vm.provision "ansible" do |ansible|
+    magma_focal.vm.provision "ansible" do |ansible|
       ansible.host_key_checking = false
       ansible.playbook = "deploy/magma_dev_focal.yml"
       ansible.inventory_path = "deploy/hosts"
@@ -60,7 +108,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       ansible.verbose = 'v'
     end
   end
-
 
   config.vm.define :magma_trfserver, autostart: false do |magma_trfserver|
     magma_trfserver.vm.box = "magmacore/magma_trfserver"
