@@ -42,11 +42,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-/**
- * Returns the full federation network dashboard.
- * It consists of a top bar which helps in adjusting filters such as date
- * and a network dashboard which provides information about the network.
- */
 function FEGDashboard() {
   const {relativePath, relativeUrl} = useRouter();
 
@@ -89,14 +84,6 @@ function FEGDashboard() {
   );
 }
 
-/**
- * Returns the network dashboard of the federation network.
- * It consists of an event alert chart, an alert table, a kpi for the
- * federation network and events table which helps in describing the
- * current network state.
- * @param {Array<moment>} startEnd: An array of two elements holding the
- * start and end date.
- */
 function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
   const classes = useStyles();
 
@@ -127,12 +114,6 @@ function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
   );
 }
 
-/**
- * Returns the topbar of the dashboard which is useful in filtering out the dates.
- * @param {object} props: props consists of the startDate and endDate selected
- * by the user. It also consists of functions(setStartDate and setEndDate)
- * needed to change those values.
- */
 function FEGNetworkTab(props) {
   const {startDate, endDate, setStartDate, setEndDate} = props;
   const classes = useStyles();
