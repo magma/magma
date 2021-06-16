@@ -41,8 +41,8 @@ class M5GAuthenticationServiceClient {
 };
 
 /**
- * AsyncSmfServiceClient implements SmfServiceClient but sends calls
- * asynchronously to sessiond.
+ * AsyncM5GAuthenticationServiceClient implements M5GAuthenticationServiceClient
+ * but sends calls asynchronously to subscriberdb.
  */
 class AsyncM5GAuthenticationServiceClient
     : public GRPCReceiver,

@@ -56,6 +56,13 @@ uint8_t NAS5GPktSnapShot::pdu_session_est_req_type2[47] = {
     0x00, 0x0d, 0x00, 0x12, 0x01, 0x81, 0x22, 0x04, 0x01, 0x00, 0x00, 0x01,
     0x25, 0x09, 0x08, 0x69, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74};
 
+uint8_t NAS5GPktSnapShot::pdu_session_release_complete[12] = {
+    0x7e, 0x00, 0x67, 0x01, 0x00, 0x04, 0x2e, 0x05, 0x01, 0xd4, 0x12, 0x05};
+
+uint8_t NAS5GPktSnapShot::deregistrarion_request[17] = {
+    0x7e, 0x00, 0x45, 0x01, 0x00, 0x0b, 0xf2, 0x22, 0xf2,
+    0x54, 0x00, 0x00, 0x00, 0x18, 0x5d, 0x2e, 0x00};
+
 TEST(test_amf_nas5g_pkt_process, test_amf_ue_register_req_msg) {
   NAS5GPktSnapShot nas5g_pkt_snap;
   RegistrationRequestMsg reg_request;
@@ -142,7 +149,7 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type1_msg) {
 
   memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
 
-  decode_res = decode_pdu_session_est_req_msg(
+  decode_res = decode_ul_nas_transport_msg(
       &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type1, len);
 
   EXPECT_EQ(decode_res, true);
@@ -156,8 +163,37 @@ TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_est_req_type2_msg) {
   uint32_t len = nas5g_pkt_snap.get_pdu_session_est_type2_len();
 
   memset(&pdu_sess_est_req, 0, sizeof(ULNASTransportMsg));
-  decode_res = decode_pdu_session_est_req_msg(
+  decode_res = decode_ul_nas_transport_msg(
       &pdu_sess_est_req, nas5g_pkt_snap.pdu_session_est_req_type2, len);
+
+  EXPECT_EQ(decode_res, true);
+}
+
+TEST(test_amf_nas5g_pkt_process, test_amf_pdu_sess_release_complete_msg) {
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  ULNASTransportMsg pdu_sess_rel_complete_req;
+  bool decode_res = false;
+
+  uint32_t len = nas5g_pkt_snap.get_pdu_session_release_complete_len();
+
+  memset(&pdu_sess_rel_complete_req, 0, sizeof(ULNASTransportMsg));
+  decode_res = decode_ul_nas_transport_msg(
+      &pdu_sess_rel_complete_req, nas5g_pkt_snap.pdu_session_release_complete,
+      len);
+
+  EXPECT_EQ(decode_res, true);
+}
+
+TEST(test_amf_nas5g_pkt_process, test_amf_deregistration_request_msg) {
+  NAS5GPktSnapShot nas5g_pkt_snap;
+  DeRegistrationRequestUEInitMsg dereg_req;
+  bool decode_res = false;
+
+  uint32_t len = nas5g_pkt_snap.get_deregistrarion_request_len();
+
+  memset(&dereg_req, 0, sizeof(DeRegistrationRequestUEInitMsg));
+  decode_res = decode_ul_nas_deregister_request_msg(
+      &dereg_req, nas5g_pkt_snap.deregistrarion_request, len);
 
   EXPECT_EQ(decode_res, true);
 }

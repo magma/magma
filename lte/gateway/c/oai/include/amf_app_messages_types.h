@@ -100,3 +100,34 @@ typedef struct itti_amf_subs_auth_info_ans_s {
   authentication_info_t auth_info;
 
 } itti_amf_subs_auth_info_ans_t;
+
+typedef struct itti_amf_ip_allocation_response_s {
+  /* IMSI of the subscriber */
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+
+  /* Length of the Imsi. Mostly 15 */
+  uint8_t imsi_length;
+
+  uint8_t apn[101];
+
+  /* PDU Session Identity */
+  uint32_t pdu_session_id;
+
+  /* Procedure Tranction Identity */
+  uint8_t pti;
+
+  /* PDU Session Type */
+  uint32_t pdu_session_type;
+
+  /* GNB GTP Tunnel Identifier */
+  uint8_t gnb_gtp_teid[5];
+
+  /* GNB End Point IP address */
+  uint8_t gnb_gtp_teid_ip_addr[16];
+
+  /* UE IP Address Allocated by MobilityD */
+  char ip_str[INET_ADDRSTRLEN];
+
+  /* Result Type of IP Allocation */
+  int result;
+} itti_amf_ip_allocation_response_t;

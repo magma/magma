@@ -20,7 +20,7 @@ add_library(AMF_TASK_TEST_LIB
     util_nas5g_pkt.h
     util_nas5g_registration_pkt.cpp
     util_nas5g_auth_fail_pkt.cpp
-    util_nas5g_pdu_sess_est_req_pkt.cpp
+    util_nas5g_ul_nas_pdu_decode.cpp
     )
 link_directories(${PROJECT_SOURCE_DIR}/tasks/amf)
 target_link_libraries(AMF_TASK_TEST_LIB

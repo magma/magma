@@ -38,3 +38,6 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     AMF_APP_SUBS_AUTH_INFO_RESP, itti_amf_subs_auth_info_ans_t,
     amf_app_subs_auth_info_resp)
+MESSAGE_DEF(
+    AMF_IP_ALLOCATION_RESPONSE, itti_amf_ip_allocation_response_t,
+    amf_ip_allocation_response)
