@@ -20,22 +20,21 @@ ethtool_utility = '/usr/sbin/ethtool'
 '''
 Following function sets various tuning parameters related
 interface queue.
-1. queue size
-2. queue CPU assignment
+1. RX queue size
+2. TX queue size
+3. queue CPU assignment
 '''
 
 
 def tune_datapath(config_dict):
     # TODO move this to mconfig
     if 'dp_irq' not in config_dict:
-        logging.info("DP Tunning not enabled.")
+        logging.info("DP Tuning not enabled.")
         return
 
-    if not os.path.isfile(irq_utility) or \
-            not os.access(irq_utility, os.X_OK):
-        logging.info("missing set_irq_affinity %s", os.path.isfile(irq_utility))
-        logging.info("missing set_irq_affinity %s", os.access(irq_utility, os.X_OK))
-
+    if _check_util_failed(irq_utility):
+        return
+    if _check_util_failed(ethtool_utility):
         return
 
     tune_dp_irqs = config_dict['dp_irq']
@@ -87,3 +86,11 @@ def tune_datapath(config_dict):
     except subprocess.CalledProcessError as ex:
         logging.debug('%s failed with: %s', set_sgi_queue_sz, ex)
 
+
+def _check_util_failed(path: str):
+    if not os.path.isfile(path) or not os.access(path, os.X_OK):
+        logging.info("missing %s: path: %s perm: %s", path,
+                     os.path.isfile(path),
+                     os.access(path, os.X_OK))
+        return True
+    return False
