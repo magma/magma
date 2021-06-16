@@ -25,6 +25,7 @@ LimitNOFILE=65536
 LimitNPROC=65536
 LimitSIGPENDING=65536
 EnvironmentFile=/etc/environment
+ExecStartPre=/usr/bin/ovs-vsctl --all destroy Flow_Sample_Collector_Set
 ExecStartPre=/usr/bin/ovs-vsctl set bridge gtp_br0 protocols=OpenFlow10,OpenFlow13,OpenFlow14 other-config:disable-in-band=true
 ExecStartPre=/usr/bin/ovs-vsctl set-controller gtp_br0 tcp:127.0.0.1:6633 tcp:127.0.0.1:6654
 ExecStartPre=/usr/bin/ovs-vsctl set-fail-mode gtp_br0 secure
