@@ -248,8 +248,8 @@ void LocalEnforcer::aggregate_records(
 
     auto& session                 = **session_it;
     const std::string& session_id = session->get_session_id();
+    sessions_with_reporting_flows.insert(ImsiAndSessionID(imsi, session_id));
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
-      sessions_with_reporting_flows.insert(ImsiAndSessionID(imsi, session_id));
       MLOG(MDEBUG) << session_id << " used " << record.bytes_tx()
                    << " tx bytes and " << record.bytes_rx()
                    << " rx bytes for rule " << record.rule_id();
