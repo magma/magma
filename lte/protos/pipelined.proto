@@ -454,6 +454,11 @@ message UESessionContextResponse {
     CauseIE cause_info = 4;
 }
 
+message GetStatsRequest{
+   uint32 cookie = 1;
+   uint32 cookie_mask = 2;
+}
+
 // --------------------------------------------------------------------------
 // Pipelined gateway RPC service
 // --------------------------------------------------------------------------
@@ -487,6 +492,8 @@ service Pipelined {
 
   // Get policy usage stats
   rpc GetPolicyUsage (magma.orc8r.Void) returns (RuleRecordTable) {}
+
+  rpc GetStats(GetStatsRequest) returns (RuleRecordTable) {}
 
   // --------
   // DPI App:
@@ -540,4 +547,5 @@ service Pipelined {
   rpc GetAllTableAssignments (magma.orc8r.Void) returns (AllTableAssignments);
 
   rpc UpdateUEState (UESessionSet) returns (UESessionContextResponse);
+
 }
