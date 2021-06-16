@@ -23,7 +23,7 @@ foreach (var ${vars})
     list(APPEND CL_ARGS "-D${var}=${${var}}")
   endif ()
 endforeach ()
-
+list(APPEND CL_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
 
 project(MagmaLiAgent)
 
@@ -33,7 +33,8 @@ ExternalProject_Add(MagmaCommon
     SOURCE_DIR "$ENV{MAGMA_ROOT}/orc8r/gateway/c/common"
     BUILD_ALWAYS 1
     BINARY_DIR "${CMAKE_BINARY_DIR}/common"
-    INSTALL_COMMAND "")
+    INSTALL_COMMAND ""
+    CMAKE_ARGS ${CL_ARGS})
 
 ExternalProject_Add(LiAgent
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/src"
