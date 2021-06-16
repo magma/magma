@@ -29,9 +29,15 @@ import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
+/**
+ * Returns the list of federated lte networks serviced by the federation
+ *  network with the id: federationNetworkId.
+ * @param {network_id} federationNetworkId id of the federation network
+ * @param {function} enqueueSnackbar snackbar used to display information
+ */
 export async function getServicedAccessNetworks(
-  networkId: network_id,
-  enqueueSnackbar?: (
+  federationNetworkId: network_id,
+  enqueueSnackbar: (
     msg: string,
     cfg: EnqueueSnackbarOptions,
   ) => ?(string | number),
@@ -55,13 +61,17 @@ export async function getServicedAccessNetworks(
   });
   const fegLteNetworks = await Promise.all(requests);
   fegLteNetworks.filter(Boolean).forEach(fegLteNetwork => {
-    if (fegLteNetwork?.federation?.feg_network_id === networkId) {
+    if (fegLteNetwork?.federation?.feg_network_id === federationNetworkId) {
       servicedAccessNetworks.push(fegLteNetwork);
     }
   });
   return servicedAccessNetworks;
 }
 
+/**
+ * Returns the total count of access gateways serviced by the
+ * federation network.
+ */
 export default function ServicingAccessGatewayKPIs() {
   const {match} = useRouter();
   const networkId = nullthrows(match.params.networkId);
@@ -117,8 +127,8 @@ export default function ServicingAccessGatewayKPIs() {
         value: 'Serviced Access Gateways',
       },
       {
-        category: 'Gateway Counts',
-        value: servicedAccessGatewaysCount || 0,
+        category: 'Gateway Count',
+        value: servicedAccessGatewaysCount,
         tooltip: 'Number of gateways checked in within last 5 minutes',
       },
     ],

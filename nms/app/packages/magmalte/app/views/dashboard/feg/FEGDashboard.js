@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+
 import DashboardAlertTable from '../../../components/DashboardAlertTable';
 import EventAlertChart from '../../../components/EventAlertChart';
 import EventsTable from '../../events/EventsTable';
@@ -30,6 +31,8 @@ import {colors} from '../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
+const EVENT_STREAM = 'NETWORK';
+
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
@@ -39,8 +42,12 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+/**
+ * Returns the full federation network dashboard.
+ * It consists of a top bar which helps in adjusting filters such as date
+ * and a network dashboard which provides information about the network.
+ */
 function FEGDashboard() {
-  const classes = useStyles();
   const {relativePath, relativeUrl} = useRouter();
 
   // datetime picker
@@ -58,39 +65,12 @@ function FEGDashboard() {
             to: '/network',
             icon: NetworkCheck,
             filters: (
-              <Grid
-                container
-                justify="flex-end"
-                alignItems="center"
-                spacing={2}>
-                <Grid item>
-                  <Text variant="body3" className={classes.dateTimeText}>
-                    Filter By Date
-                  </Text>
-                </Grid>
-                <DateTimePicker
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
-                  maxDate={endDate}
-                  disableFuture
-                  value={startDate}
-                  onChange={setStartDate}
-                />
-                <Grid item>
-                  <Text variant="body3" className={classes.dateTimeText}>
-                    to
-                  </Text>
-                </Grid>
-                <DateTimePicker
-                  autoOk
-                  variant="inline"
-                  inputVariant="outlined"
-                  disableFuture
-                  value={endDate}
-                  onChange={setEndDate}
-                />
-              </Grid>
+              <FEGNetworkTab
+                startDate={startDate}
+                endDate={endDate}
+                setStartDate={setStartDate}
+                setEndDate={setEndDate}
+              />
             ),
           },
         ]}
@@ -108,6 +88,15 @@ function FEGDashboard() {
     </>
   );
 }
+
+/**
+ * Returns the network dashboard of the federation network.
+ * It consists of an event alert chart, an alert table, a kpi for the
+ * federation network and events table which helps in describing the
+ * current network state.
+ * @param {Array<moment>} startEnd: An array of two elements holding the
+ * start and end date.
+ */
 function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
   const classes = useStyles();
 
@@ -126,7 +115,7 @@ function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
         </Grid>
         <Grid item xs={12}>
           <EventsTable
-            eventStream="NETWORK"
+            eventStream={EVENT_STREAM}
             sz="md"
             inStartDate={startEnd[0]}
             inEndDate={startEnd[1]}
@@ -135,6 +124,48 @@ function FEGNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
         </Grid>
       </Grid>
     </div>
+  );
+}
+
+/**
+ * Returns the topbar of the dashboard which is useful in filtering out the dates.
+ * @param {object} props: props consists of the startDate and endDate selected
+ * by the user. It also consists of functions(setStartDate and setEndDate)
+ * needed to change those values.
+ */
+function FEGNetworkTab(props) {
+  const {startDate, endDate, setStartDate, setEndDate} = props;
+  const classes = useStyles();
+  return (
+    <Grid container justify="flex-end" alignItems="center" spacing={2}>
+      <Grid item>
+        <Text variant="body3" className={classes.dateTimeText}>
+          Filter By Date
+        </Text>
+      </Grid>
+      <DateTimePicker
+        autoOk
+        variant="inline"
+        inputVariant="outlined"
+        maxDate={endDate}
+        disableFuture
+        value={startDate}
+        onChange={setStartDate}
+      />
+      <Grid item>
+        <Text variant="body3" className={classes.dateTimeText}>
+          to
+        </Text>
+      </Grid>
+      <DateTimePicker
+        autoOk
+        variant="inline"
+        inputVariant="outlined"
+        disableFuture
+        value={endDate}
+        onChange={setEndDate}
+      />
+    </Grid>
   );
 }
 export default FEGDashboard;

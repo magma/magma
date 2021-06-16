@@ -273,10 +273,12 @@ describe('<ServicingAccessGatewaysKPI />', () => {
       </MemoryRouter>
     );
   };
-  it('renders', async () => {
+  it('renders gateway count correctly', async () => {
     const {getByTestId} = render(<Wrapper />);
     await wait();
+    //first get list of feg_lte networks
     expect(MagmaAPIBindings.getFegLte).toHaveBeenCalledTimes(1);
+    //get info about each feg_lte network
     expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledTimes(3);
     expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork.id,
@@ -287,6 +289,7 @@ describe('<ServicingAccessGatewaysKPI />', () => {
     expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork3.id,
     });
+    //only 2 of the 3 feg_lte networks are serviced by current network
     expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledTimes(2);
     expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork.id,
@@ -294,6 +297,6 @@ describe('<ServicingAccessGatewaysKPI />', () => {
     expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledWith({
       networkId: mockFegLteNetwork3.id,
     });
-    expect(getByTestId('Gateway Counts')).toHaveTextContent('3');
+    expect(getByTestId('Gateway Count')).toHaveTextContent('3');
   });
 });
