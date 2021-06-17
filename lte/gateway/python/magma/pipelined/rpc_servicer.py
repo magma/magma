@@ -62,7 +62,6 @@ from magma.pipelined.metrics import (
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.app.ng_services import NGServiceController
-from lte.protos.subscriberdb_pb2 import SubscriberID
 
 grpc_msg_queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 15
