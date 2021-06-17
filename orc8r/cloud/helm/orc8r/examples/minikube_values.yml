@@ -53,7 +53,7 @@ nms:
       service: true
     #      rbac: true
     env:
-      api_host: orc8r-nginx-proxy:443
+      api_host: orc8r-nginx-proxy
       mapbox_access_token: ""
       mysql_host: mysql
       #labels:

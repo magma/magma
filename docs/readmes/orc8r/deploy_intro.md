@@ -73,7 +73,7 @@ Verified with Terraform version `0.15.0`.
 - `v1.6` [patch branch](https://github.com/magma/magma/tree/v1.6)
 - `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.6`
 Terraform module source
-- `1.5.23` Helm chart version
+- `1.5.24` Helm chart version
 - Additional notes
     - `9.6` PostgreSQL target release. Prefer `12.6` for new deployments.
 

@@ -184,7 +184,6 @@ nms:
       tag: "${docker_tag}"
 
     env:
-      api_host: ${api_hostname}
       mysql_db: ${orc8r_db_name}
       mysql_dialect: ${orc8r_db_dialect}
       mysql_host: ${orc8r_db_host}
