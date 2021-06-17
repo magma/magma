@@ -1025,8 +1025,9 @@ message UPFSessionConfigState {
 }
 
 message UPFPagingInfo {
-  uint32 local_f_teid = 1;
-   string ue_ip_addr = 2;
+  string subscriber_id = 1;
+  uint32 local_f_teid = 2;
+   string ue_ip_addr = 3;
 }
 // Set Interface from Pipelined
 service SetInterfaceForUserPlane {
