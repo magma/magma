@@ -138,6 +138,10 @@ typedef struct emm_as_security_s {
   uint8_t selected_eea; /* Selected EPS encryption algorithms   */
   uint8_t selected_eia; /* Selected EPS integrity algorithms    */
 
+  bool replayed_ue_add_sec_cap_present;
+  uint16_t _5g_ea; /* Replayed 5GS encryption algorithms */
+  uint16_t _5g_ia; /* Replayed 5GS integrity algorithms */
+
 #define EMM_AS_MSG_TYPE_IDENT 0x01 /* Identification message   */
 #define EMM_AS_MSG_TYPE_AUTH 0x02  /* Authentication message   */
 #define EMM_AS_MSG_TYPE_SMC 0x03   /* Security Mode Command    */

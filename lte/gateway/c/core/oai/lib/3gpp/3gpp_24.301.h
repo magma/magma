@@ -301,6 +301,14 @@ typedef struct ue_security_capability_s {
   uint8_t gea : 7;
 } ue_security_capability_t;
 
+// 9.9.3.53 UE additional security capability
+typedef struct ue_additional_security_capability_s {
+  /* NR encryption algorithms supported  */
+  uint16_t _5g_ea;
+  /* NR integrity algorithms supported */
+  uint16_t _5g_ia;
+} ue_additional_security_capability_t;
+
 // 9.2.1.127 NR UE security capability
 #define NR_UE_SECURITY_CAPABILITY_MINIMUM_LENGTH 4
 #define NR_UE_SECURITY_CAPABILITY_MAXIMUM_LENGTH 7

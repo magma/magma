@@ -387,7 +387,7 @@ int decode_tracking_area_update_request(
          * Set corresponding mask to 1 in presencemask
          */
         tracking_area_update_request->presencemask |=
-            TRACKING_AREA_UPDATE_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI;
+            TRACKING_AREA_UPDATE_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT;
         break;
 
       default:
