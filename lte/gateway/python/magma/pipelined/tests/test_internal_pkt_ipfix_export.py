@@ -14,6 +14,7 @@ limitations under the License.
 import unittest
 import warnings
 from concurrent.futures import Future
+from nose.tools import nottest
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.pipelined_pb2 import FlowRequest
@@ -35,6 +36,7 @@ from magma.pipelined.tests.pipelined_test_util import (
 
 
 @unittest.skip("Skipping as it currently breaks debian...")
+@nottest
 class InternalPktIpfixExportTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
