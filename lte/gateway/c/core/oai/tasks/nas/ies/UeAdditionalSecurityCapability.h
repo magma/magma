@@ -21,10 +21,7 @@
 #define UE_ADDITIONAL_SECURITY_CAPABILITY_MINIMUM_LENGTH 6
 #define UE_ADDITIONAL_SECURITY_CAPABILITY_MAXIMUM_LENGTH 6
 
-typedef struct ue_additional_security_capability_s {
-  uint16_t _5g_ea;
-  uint16_t _5g_ia;
-} ue_additional_security_capability_t;
+#include "3gpp_24.301.h"
 
 int encode_ue_additional_security_capability(
     ue_additional_security_capability_t* uasc, uint8_t iei, uint8_t* buffer,

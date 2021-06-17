@@ -245,6 +245,9 @@ typedef struct nas_emm_smc_proc_s {
                         * to the ongoing EMM procedure */
   bool is_new;         /* new security context for SMC header type */
   bool imeisv_request;
+  bool replayed_ue_add_sec_cap_present;
+  uint16_t _5g_ea; /* Replayed 5GS encryption algorithms */
+  uint16_t _5g_ia; /* Replayed 5GS integrity algorithms */
 } nas_emm_smc_proc_t;
 
 typedef struct nas_emm_info_proc_s {
