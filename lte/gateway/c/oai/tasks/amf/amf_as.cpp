@@ -148,7 +148,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
       msg->nas_msg->data, &nas_msg, blength(msg->nas_msg), amf_security_context,
       &decode_status);
 
-  ue_m5gmm_context->mm_state = DEREGISTERED;
+  // ue_m5gmm_context->mm_state = DEREGISTERED;
 
   bdestroy_wrapper(&msg->nas_msg);
 

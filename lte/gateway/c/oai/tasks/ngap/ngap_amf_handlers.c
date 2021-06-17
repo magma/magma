@@ -141,11 +141,10 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
      0},       /* TODO gNBConfigurationTransfer */
     {0, 0, 0}, /* AMFConfigurationTransfer */
     {/*ngap_amf_handle_ue_context_release_request*/ 0,
-     /*ngap_amf_handle_ue_context_release_complete*/ 0,
-     0},       /* UEContextRelease */
-    {0, 0, 0}, /* CellTrafficTrace */
-               // UPDATE RELEASE 9
-    {0, 0, 0}, /* Kill */
+     ngap_amf_handle_ue_context_release_complete, 0},   /* UEContextRelease */
+    {ngap_amf_handle_ue_context_release_request, 0, 0}, /* CellTrafficTrace */
+                                                        // UPDATE RELEASE 9
+    {0, 0, 0},                                          /* Kill */
     {0, 0, 0}, /* DownlinkUEAssociatedLPPaTransport  */
     {0, 0, 0}, /* UplinkUEAssociatedLPPaTransport */
     {ngap_amf_handle_uplink_nas_transport, 0, 0}, /* uplinkNASTransport */
@@ -1094,6 +1093,10 @@ int ngap_amf_generate_ue_context_release_command(
     case NGAP_INITIAL_CONTEXT_SETUP_FAILED:
       cause_type  = Ngap_Cause_PR_radioNetwork;
       cause_value = Ngap_CauseRadioNetwork_unspecified;
+      break;
+    case NGAP_USER_INACTIVITY:
+      cause_type  = Ngap_Cause_PR_radioNetwork;
+      cause_value = 40;
       break;
     default:
       OAILOG_ERROR_UE(LOG_NGAP, imsi64, "Unknown cause for context release");

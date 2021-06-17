@@ -932,7 +932,7 @@ int amf_reg_send(amf_sap_t* const msg) {
         }
 
         /* Update the state */
-        // ue_amf_context->mm_state = REGISTERED_CONNECTED;
+        ue_amf_context->mm_state = REGISTERED_CONNECTED;
       } break;
       case AMFREG_COMMON_PROC_REJ: {
       }

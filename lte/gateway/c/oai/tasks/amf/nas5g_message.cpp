@@ -701,7 +701,7 @@ static int _nas5g_message_decrypt(
           "0x%02x\n",
           length, security_header_type);
       len = sizeof(dest);
-      memset(dest, 0, len);
+      // memset(dest, 0, len);
       memcpy(dest, src, length);
       DECODE_U8(dest, *(uint8_t*) (&header), size);
       OAILOG_FUNC_RETURN(LOG_AMF_APP, header.extended_protocol_discriminator);

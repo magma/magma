@@ -922,7 +922,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
     // UE in connected state and need to check if cause is proper
     if (cm_idle_req.relCause == NGAP_RADIO_NR_GENERATED_REASON) {
       // Change the respective UE/PDU session state to idle/inactive.
-      ue_context->mm_state == REGISTERED_IDLE;
+      ue_context->mm_state = REGISTERED_IDLE;
       // Handling of smf_context as vector
       // TODO: This has been taken care in new PR
       // with multi UE feature
@@ -932,7 +932,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       // construct the proto structure and send message to SMF
       amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
       ue_context_release_command(
-          ue_id, ue_context->gnb_ue_ngap_id, NGAP_NAS_NORMAL_RELEASE);
+          ue_id, ue_context->gnb_ue_ngap_id, NGAP_USER_INACTIVITY);
 
     } else {
       OAILOG_DEBUG(
