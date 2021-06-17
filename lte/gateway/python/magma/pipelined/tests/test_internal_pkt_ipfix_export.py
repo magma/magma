@@ -34,6 +34,7 @@ from magma.pipelined.tests.pipelined_test_util import (
 )
 
 
+@unittest.skip("Skipping as it currently breaks debian...")
 class InternalPktIpfixExportTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
