@@ -76,6 +76,7 @@ type RequestedServiceUnit struct {
 func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
 		glog.V(2).Infof("Received CCR from %s\n", c.RemoteAddr())
+		glog.V(2).Infof("Received Gy CCR message\n%s\n", m)
 		srv.lastDiamMessageReceived = m
 		var ccr ccrMessage
 		if err := m.Unmarshal(&ccr); err != nil {
@@ -211,6 +212,7 @@ func sendAnswer(
 	// SessionID must be the first AVP
 	a.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, ccr.SessionID))
 
+	glog.V(2).Infof("Sending Gy CCA message\n%s\n", a)
 	_, err := a.WriteTo(conn)
 	if err != nil {
 		glog.Errorf("Failed to write message to %s: %s\n%s\n",
