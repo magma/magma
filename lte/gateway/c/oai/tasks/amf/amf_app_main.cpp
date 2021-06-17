@@ -34,6 +34,7 @@ extern "C" {
 #include "amf_authentication.h"
 #include "ngap_messages_types.h"
 #include "amf_app_state_manager.h"
+#include "amf_smfDefs.h"
 #include "common_defs.h"
 
 namespace magma5g {
@@ -88,6 +89,18 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       // &(response_p->auth_info);
       amf_nas_proc_authentication_info_answer(
           &AMF_APP_AUTH_RESPONSE_DATA(received_message_p));
+      break;
+
+    case AMF_IP_ALLOCATION_RESPONSE:
+      itti_amf_ip_allocation_response_t* response_p;
+
+      response_p = &(received_message_p->ittiMsg.amf_ip_allocation_response);
+
+      amf_smf_create_ipv4_session_grpc_req(
+          response_p->imsi, response_p->apn, response_p->pdu_session_id,
+          response_p->pdu_session_type, response_p->gnb_gtp_teid,
+          response_p->pti, response_p->gnb_gtp_teid_ip_addr,
+          response_p->ip_str);
       break;
 
     /* Handle PDU session resource setup response */

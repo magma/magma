@@ -530,9 +530,13 @@ void amf_app_handle_pdu_session_response(
       smf_ctx->gtp_tunnel_id.upf_gtp_teid, pdu_session_resp->upf_endpoint.teid,
       sizeof(smf_ctx->gtp_tunnel_id.upf_gtp_teid));
 
-  OAILOG_DEBUG(
+  smf_ctx->n_active_pdus += 1;
+
+  OAILOG_INFO(
       LOG_AMF_APP,
-      "Sending message to gNB for PDUSessionResourceSetupRequest\n");
+      "Sending message to gNB for PDUSessionResourceSetupRequest "
+      "**n_active_pdus=%d **\n",
+      smf_ctx->n_active_pdus);
   amf_rc = pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx);
   if (amf_rc != RETURNok) {
     OAILOG_DEBUG(
