@@ -729,7 +729,6 @@ class EnforcementStatsTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name].rule_id,'rule1')
         self.enforcement_stats_controller._poll_stats = original
         self.assertEqual(len(stats), 1)
-        
-        
+    
 if __name__ == "__main__":
     unittest.main()

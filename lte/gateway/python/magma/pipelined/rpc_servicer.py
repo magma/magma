@@ -447,7 +447,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _deactivate_flows(self, request):
         """
         Deactivate flows for ipv4 / ipv6 or both
-        
+
         CWF won't have an ip_addr passed
         """
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
@@ -936,31 +936,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         return ret
 
-    def get_stats(self, request, fut):
-        response = self._enforcement_stats.get_stats(request.cookie, request.cookie_mask)
-        fut.set_result(response)
 
-    def GetStats(self, request, context):
-        """
-        Invokes API that returns a RuleRecordTable filtering records based
-        on cookie and cookie mask request parameters
-        """
-        self._log_grpc_payload(request)
-        if not self._service_manager.is_app_enabled(
-                EnforcementController.APP_NAME):
-            context.set_code(grpc.StatusCode.UNAVAILABLE)
-            context.set_details('Service not enabled!')
-            return None
-
-        fut = Future()
-        self._loop.call_soon_threadsafe(self.get_stats, request, fut)
-
-        try:
-            return fut.result(timeout=self._call_timeout)
-        except concurrent.futures.TimeoutError:
-            logging.error("Get Stats request processing timed out")
-            return RuleRecordTable()
-            
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
 ) -> Tuple[
