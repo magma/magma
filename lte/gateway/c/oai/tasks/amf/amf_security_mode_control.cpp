@@ -359,6 +359,8 @@ int amf_proc_security_mode_control(
       // NAS Integrity key is calculated as specified in TS 33501, Annex A
       char imsi[IMSI_BCD_DIGITS_MAX + 1];
       IMSI64_TO_STRING(amf_ctx->imsi64, imsi, 15);
+      memcpy(&plmn, amf_ctx->imsi.u.value, 3);
+      format_plmn(&plmn);
 
       /* Building 32 bytes of string with serving network SN
        * SN value = 5G:mnc<mnc>.mcc<mcc>.3gppnetwork.org
