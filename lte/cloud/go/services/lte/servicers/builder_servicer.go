@@ -26,9 +26,11 @@ import (
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
+	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
@@ -165,7 +167,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
 			CongestionControlEnabled: swag.BoolValue(gwEpc.CongestionControlEnabled),
-			SentryConfig:             &lte_mconfig.SentryConfig{},
+			SentryConfig:             getNetworkSentryConfig(&network),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -195,7 +197,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
-			SentryConfig: &lte_mconfig.SentryConfig{},
+			SentryConfig: getNetworkSentryConfig(&network),
 		},
 		"dnsd": getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
 		"liagentd": &lte_mconfig.LIAgentD{
@@ -603,4 +605,17 @@ func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mc
 		}
 	}
 	return npTasks, liUes
+}
+
+func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryConfig {
+	sentryConfig, found := network.Configs[orc8r.NetworkSentryConfig].(*models.NetworkSentryConfig)
+	if !found || sentryConfig == nil {
+		return nil
+	}
+	return &lte_mconfig.SentryConfig{
+		SampleRate:   swag.Float32Value(sentryConfig.SampleRate),
+		UploadMmeLog: sentryConfig.UploadMmeLog,
+		UrlNative:    string(sentryConfig.URLNative),
+		UrlPython:    string(sentryConfig.URLPython),
+	}
 }

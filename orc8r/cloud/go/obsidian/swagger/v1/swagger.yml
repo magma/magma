@@ -9808,6 +9808,8 @@ definitions:
         $ref: '#/definitions/network_id'
       name:
         $ref: '#/definitions/network_name'
+      sentry_config:
+        $ref: '#/definitions/network_sentry_config'
       type:
         $ref: '#/definitions/network_type'
     required:

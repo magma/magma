@@ -307,6 +307,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Configs: map[string]interface{}{
 			orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 			orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+			orc8r.NetworkSentryConfig:   models.NewDefaultSentryConfig(),
 		},
 	}
 	assert.Equal(t, expectedNetwork1, actualNetwork1)
@@ -1035,6 +1036,7 @@ func seedNetworks(t *testing.T) {
 				Description: "network 1",
 				Configs: map[string]interface{}{
 					orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+					orc8r.NetworkSentryConfig:   models.NewDefaultSentryConfig(),
 					orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 				},
 			},

@@ -1309,6 +1309,8 @@ definitions:
         $ref: '#/definitions/network_dns_config'
       features:
         $ref: '#/definitions/network_features'
+      sentry_config:
+        $ref: '#/definitions/network_sentry_config'
 
   network_dns_config:
     description: DNS configuration for a network
