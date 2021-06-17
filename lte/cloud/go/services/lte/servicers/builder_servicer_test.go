@@ -352,7 +352,6 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               false,
-			SentryConfig:             &lte_mconfig.SentryConfig{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -382,7 +381,6 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
-			SentryConfig: &lte_mconfig.SentryConfig{},
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -624,7 +622,6 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               true,
-			SentryConfig:             &lte_mconfig.SentryConfig{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -661,7 +658,6 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
-			SentryConfig: &lte_mconfig.SentryConfig{},
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -773,7 +769,6 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 					},
 				},
 			},
-			SentryConfig: &lte_mconfig.SentryConfig{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -810,7 +805,6 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
-			SentryConfig: &lte_mconfig.SentryConfig{},
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -924,7 +918,6 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
-			SentryConfig:             &lte_mconfig.SentryConfig{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -954,7 +947,6 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
-			SentryConfig: &lte_mconfig.SentryConfig{},
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -1053,7 +1045,6 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
-			SentryConfig:             &lte_mconfig.SentryConfig{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -1083,7 +1074,6 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
-			SentryConfig: &lte_mconfig.SentryConfig{},
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
@@ -1184,7 +1174,6 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               true,
-			SentryConfig:             &lte_mconfig.SentryConfig{},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -1213,7 +1202,6 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
-			SentryConfig: &lte_mconfig.SentryConfig{},
 		},
 		"dnsd": &lte_mconfig.DnsD{
 			LogLevel:          protos.LogLevel_INFO,
