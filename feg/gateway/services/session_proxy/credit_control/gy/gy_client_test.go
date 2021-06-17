@@ -66,7 +66,7 @@ func TestGyClient(t *testing.T) {
 		&serverConfig,
 		getReAuthHandler(), nil, gyGlobalConfig,
 	)
-
+	si11 := uint32(11)
 	// send init
 	ccrInit := &gy.CreditControlRequest{
 		SessionID:     "1",
@@ -85,6 +85,11 @@ func TestGyClient(t *testing.T) {
 				RatingGroup:    2,
 				RequestedUnits: defaultRSU,
 			},
+			{
+				RatingGroup:       3,
+				ServiceIdentifier: &si11,
+				RequestedUnits:    defaultRSU,
+			},
 		},
 	}
 	done := make(chan interface{}, 1000)
@@ -96,7 +101,7 @@ func TestGyClient(t *testing.T) {
 
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
-	assert.Equal(t, 2, len(answer.Credits))
+	assert.Equal(t, 3, len(answer.Credits))
 	assert.Equal(t, uint32(diam.Success), answer.ResultCode)
 	assertReceivedAPNonOCS(t, ocs, ccrInit.Apn)
 
