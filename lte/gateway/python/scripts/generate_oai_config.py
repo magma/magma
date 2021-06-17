@@ -196,6 +196,7 @@ def _get_restricted_imeis(service_mconfig):
         return service_mconfig.restricted_imeis
     return {}
 
+
 def _get_service_area_maps(service_mconfig):
     if service_mconfig.service_area_maps:
       service_area_map = []
@@ -210,6 +211,7 @@ def _get_service_area_maps(service_mconfig):
       return service_area_map
     return {}
 
+
 def _get_congestion_control_config(service_mconfig):
     """
     Retrieves congestion_control_enabled config value, it it does not exist
@@ -219,6 +221,12 @@ def _get_congestion_control_config(service_mconfig):
 
     Returns: congestion control flag
     """
+    congestion_control_enabled = get_service_config_value(
+        'mme', 'congestion_control_enabled', None)
+
+    if congestion_control_enabled is not None:
+        return congestion_control_enabled
+
     if service_mconfig.congestion_control_enabled is not None:
         return service_mconfig.congestion_control_enabled
 
