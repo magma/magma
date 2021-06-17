@@ -20,6 +20,7 @@ import type {SubscriberContextType} from '../../components/context/SubscriberCon
 import type {SubscriberRowType} from '../../views/subscriber/SubscriberOverview';
 import type {
   mutable_subscriber,
+  mutable_subscribers,
   network_id,
   subscriber,
   subscriber_state,
@@ -187,7 +188,7 @@ type SubscriberStateProps = {
   setSubscriberMap: ({[string]: subscriber}) => void,
   setSessionState: ({[string]: subscriber_state}) => void,
   key: string,
-  value?: mutable_subscriber,
+  value?: mutable_subscriber | mutable_subscribers,
   newState?: {[string]: subscriber},
   newSessionState?: {[string]: subscriber_state},
 };
@@ -210,6 +211,18 @@ export async function setSubscriberState(props: SubscriberStateProps) {
   if (newSessionState) {
     // $FlowIgnore
     setSessionState(newSessionState.sessionState);
+    return;
+  }
+  if (Array.isArray(value)) {
+    await MagmaV1API.postLteByNetworkIdSubscribersV2({
+      networkId,
+      subscribers: value,
+    });
+    const newSubscriberMap = {};
+    value.map(newSubscriber => {
+      newSubscriberMap[newSubscriber.id] = newSubscriber;
+    });
+    setSubscriberMap({...subscriberMap, newSubscriberMap});
     return;
   }
   if (value != null) {
