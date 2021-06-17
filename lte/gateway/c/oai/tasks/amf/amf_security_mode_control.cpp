@@ -33,41 +33,6 @@ extern "C" {
 #include "amf_identity.h"
 #include "conversions.h"
 
-#define IMSI64_TO_IMSI15(iMsI64_t, imsi15)                                     \
-  {                                                                            \
-    if ((iMsI64_t / 100000000000000) != 0) {                                   \
-      imsi15[0]  = iMsI64_t / 100000000000000;                                 \
-      iMsI64_t   = iMsI64_t % 100000000000000;                                 \
-      imsi15[1]  = iMsI64_t / 10000000000000;                                  \
-      iMsI64_t   = iMsI64_t % 10000000000000;                                  \
-      imsi15[2]  = iMsI64_t / 1000000000000;                                   \
-      iMsI64_t   = iMsI64_t % 1000000000000;                                   \
-      imsi15[3]  = iMsI64_t / 100000000000;                                    \
-      iMsI64_t   = iMsI64_t % 100000000000;                                    \
-      imsi15[4]  = iMsI64_t / 10000000000;                                     \
-      iMsI64_t   = iMsI64_t % 10000000000;                                     \
-      imsi15[5]  = iMsI64_t / 1000000000;                                      \
-      iMsI64_t   = iMsI64_t % 1000000000;                                      \
-      imsi15[6]  = iMsI64_t / 100000000;                                       \
-      iMsI64_t   = iMsI64_t % 100000000;                                       \
-      imsi15[7]  = iMsI64_t / 10000000;                                        \
-      iMsI64_t   = iMsI64_t % 10000000;                                        \
-      imsi15[8]  = iMsI64_t / 1000000;                                         \
-      iMsI64_t   = iMsI64_t % 1000000;                                         \
-      imsi15[9]  = iMsI64_t / 100000;                                          \
-      iMsI64_t   = iMsI64_t % 100000;                                          \
-      imsi15[10] = iMsI64_t / 10000;                                           \
-      iMsI64_t   = iMsI64_t % 10000;                                           \
-      imsi15[11] = iMsI64_t / 1000;                                            \
-      iMsI64_t   = iMsI64_t % 1000;                                            \
-      imsi15[12] = iMsI64_t / 100;                                             \
-      iMsI64_t   = iMsI64_t % 100;                                             \
-      imsi15[13] = iMsI64_t / 10;                                              \
-      iMsI64_t   = iMsI64_t % 10;                                              \
-      imsi15[14] = iMsI64_t / 1;                                               \
-    }                                                                          \
-  }
-
 namespace magma5g {
 
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
@@ -392,8 +357,8 @@ int amf_proc_security_mode_control(
           amf_ctx, SECURITY_CTX_TYPE_FULL_NATIVE);
 
       // NAS Integrity key is calculated as specified in TS 33501, Annex A
-      uint8_t imsi[15];
-      IMSI64_TO_IMSI15(amf_ctx->imsi64, imsi);
+      char imsi[IMSI_BCD_DIGITS_MAX + 1];
+      IMSI64_TO_STRING(amf_ctx->imsi64, imsi, 15);
       memcpy(&plmn, amf_ctx->imsi.u.value, 3);
       format_plmn(&plmn);
 
@@ -428,7 +393,7 @@ int amf_proc_security_mode_control(
 
       derive_5gkey_ausf(ck_ik, snni, ak_sqn, kausf);
       derive_5gkey_seaf(kausf, snni, kseaf);
-      derive_5gkey_amf(imsi, 15, kseaf, amf_ctx->_security.kamf);
+      derive_5gkey_amf((uint8_t*) imsi, 15, kseaf, amf_ctx->_security.kamf);
 
       derive_5gkey_nas(
           NAS_INT_ALG, 2, amf_ctx->_security.kamf, amf_ctx->_security.knas_int);
