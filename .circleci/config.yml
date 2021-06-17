@@ -739,6 +739,10 @@ jobs:
       - magma_slack_notify
 
   feg-build:
+    parameters:
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -776,12 +780,14 @@ jobs:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - tag-push-docker:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $JFROG_DOCKER_FEG_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-latest: <<parameters.tag-latest>>
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -1613,6 +1619,7 @@ workflows:
       - feg-build:
           requires:
             - feg-precommit
+          tag-latest: true
 
   cwag:
     jobs:
@@ -1627,6 +1634,7 @@ workflows:
           requires:
             - cwag-precommit
             - cwf-integ-test
+          tag-latest: true
       - xwfm-deploy:
           <<: *only_master
           name: xwfm-deploy-latest
