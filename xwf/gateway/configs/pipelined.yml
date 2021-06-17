@@ -66,6 +66,7 @@ meter:
 enforcement:
   poll_interval: 2
   default_drop_flow_name: 'internal_default_drop_flow_rule'
+  periodic_stats_reporting: true
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
@@ -152,5 +153,3 @@ no_quota_port: 51125
 ovs_gtp_port_number: 32768
 ovs_uplink_port_name: cwag_patch
 enable_nat: false
-
-periodic_stats_reporting: True
