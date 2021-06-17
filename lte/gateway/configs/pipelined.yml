@@ -165,11 +165,6 @@ he_enabled: true
 # Make as a True when gnb ip will support for uplink 
 ovs_multi_tunnel: False
 
-# Paging timeout value
-paging_timeout: 30
-
-classifier_controller_id: 5
-
 # Internal port for processing internal conntrack
 ovs_internal_conntrack_port_number: 15579
 
