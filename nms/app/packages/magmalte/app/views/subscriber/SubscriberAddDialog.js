@@ -536,6 +536,7 @@ function AddSubscriberDetails(props: DialogProps) {
       return success;
     }
   };
+
   const saveSubscribers = async () => {
     let addedSubscribers = [];
     let subscriberErrors = '';
