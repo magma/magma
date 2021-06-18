@@ -150,7 +150,6 @@ installed client certificates. See [here](https://support.globalsign.com/custome
 for instructions. If you use Chrome or Safari, you may have to restart the
 browser before the certificate can be used.
 
-### Accessing the Swagger UI
 After starting the Orchestrator with `HOST [magma/orc8r/cloud/docker]$ ./run.py`
 and importing `admin_operator.pfx`, you should be able to visit the Swagger UI
 at [https://localhost:9443/swagger/v1/ui](https://localhost:9443/swagger/v1/ui).
