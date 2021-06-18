@@ -160,6 +160,7 @@ func TestBuilder_Build(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    180,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -373,6 +374,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    180,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -651,6 +653,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    180,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -799,6 +802,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    180,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -942,6 +946,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    180,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1204,6 +1209,7 @@ func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    180,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -1333,6 +1339,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    180,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
