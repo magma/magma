@@ -279,7 +279,7 @@ int decode_attach_request(
          * Set corresponding mask to 1 in presencemask
          */
         attach_request->presencemask |=
-            ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_IEI;
+            ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT;
         break;
 
       case ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI:

@@ -413,12 +413,6 @@
     dest: /home/vagrant/build/python/lib/python3.5/site-packages/ryu/ofproto/
   when: full_provision
 
-- name: Copy ryu ipfix patch for 3.8
-  copy:
-    src: nx_actions_3.5.py
-    dest: /home/vagrant/build/python/lib/python3.8/site-packages/ryu/ofproto/nx_actions.py
-  when: full_provision
-
 - name: Change build folder ownership
   ansible.builtin.file:
     path: /home/vagrant/build

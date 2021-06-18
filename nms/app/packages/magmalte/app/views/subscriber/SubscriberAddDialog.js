@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {subscriber} from '@fbcnms/magma-api';
+import type {mutable_subscribers, subscriber} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import ApnContext from '../../components/context/ApnContext';
@@ -116,6 +116,7 @@ const MAX_UPLOAD_FILE_SZ_BYTES = 10 * 1024 * 1024;
 const SUBSCRIBER_TITLE = 'Subscriber';
 const TRAFFIC_TITLE = 'Traffic Policy';
 const STATIC_IPS_TITLE = 'APNs Static IPs';
+const SUBSCRIBERS_CHUNK_SIZE = 1000;
 
 type SubscriberInfo = {
   name: string,
@@ -494,7 +495,6 @@ export function SubscriberEditDialog(props: DialogProps) {
     </Dialog>
   );
 }
-
 function AddSubscriberDetails(props: DialogProps) {
   const classes = useStyles();
   const ctx = useContext(SubscriberContext);
@@ -504,7 +504,6 @@ function AddSubscriberDetails(props: DialogProps) {
   const [error, setError] = useState('');
   const [subscribers, setSubscribers] = useState<Array<SubscriberInfo>>([]);
   const successCountRef = useRef(0);
-
   const fileInput = useRef(null);
   const enqueueSnackbar = useEnqueueSnackbar();
 
@@ -518,9 +517,30 @@ function AddSubscriberDetails(props: DialogProps) {
   const policies = Array.from(
     new Set(Object.keys(policyCtx.state || {})).add('default'),
   );
+  const bulkAdd = async (
+    addedSubscribers: mutable_subscribers,
+    subscriberErrors: string,
+  ) => {
+    let success = true;
+    try {
+      if (subscriberErrors.length > 0) {
+        setError(subscriberErrors);
+        return false;
+      }
+      await ctx.setState?.('', addedSubscribers);
+      return success;
+    } catch (e) {
+      const errMsg = e.response?.data?.message ?? e.message ?? e;
+      setError('error saving subscribers: ' + errMsg);
+      success = false;
+      return success;
+    }
+  };
+
   const saveSubscribers = async () => {
-    successCountRef.current = 0;
-    for (const subscriber of subscribers) {
+    let addedSubscribers = [];
+    let subscriberErrors = '';
+    for (const [i, subscriber] of subscribers.entries()) {
       try {
         const err = validateSubscriberInfo(subscriber, ctx.state);
         if (err.length > 0) {
@@ -535,7 +555,7 @@ function AddSubscriberDetails(props: DialogProps) {
           subscriber.authOpc !== undefined && isValidHex(subscriber.authOpc)
             ? hexToBase64(subscriber.authOpc)
             : '';
-        await ctx.setState?.(subscriber.imsi, {
+        const newSubscriber = {
           active_apns: subscriber.apns,
           active_policies: subscriber.policies,
           id: subscriber.imsi,
@@ -547,12 +567,29 @@ function AddSubscriberDetails(props: DialogProps) {
             state: subscriber.state,
             sub_profile: subscriber.dataPlan,
           },
-        });
-        successCountRef.current = successCountRef.current + 1;
+        };
+        addedSubscribers.push(newSubscriber);
+        // bulk add chunked subscribers
+        if (
+          addedSubscribers.length == SUBSCRIBERS_CHUNK_SIZE ||
+          i == subscribers.length - 1
+        ) {
+          const success = await bulkAdd(addedSubscribers, subscriberErrors);
+          if (success) {
+            successCountRef.current =
+              successCountRef.current + addedSubscribers.length;
+            addedSubscribers = [];
+          } else {
+            enqueueSnackbar('Saving subscribers to the api failed: ', {
+              variant: 'error',
+            });
+            return;
+          }
+        }
       } catch (e) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
-        setError('error saving ' + subscriber.imsi + ' : ' + errMsg);
-        return;
+        subscriberErrors +=
+          'error saving ' + subscriber.imsi + ' : ' + errMsg + '\n';
       }
     }
     enqueueSnackbar(

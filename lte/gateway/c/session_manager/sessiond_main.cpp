@@ -201,6 +201,10 @@ int main(int argc, char* argv[]) {
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
 
+  if ((config["print_grpc_payload"].IsDefined())) {
+    set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
+  }
+
   initialize_sentry();
 
   bool converged_access = false;
