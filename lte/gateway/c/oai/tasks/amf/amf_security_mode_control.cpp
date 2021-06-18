@@ -360,6 +360,12 @@ int amf_proc_security_mode_control(
       char imsi[IMSI_BCD_DIGITS_MAX + 1];
       IMSI64_TO_STRING(amf_ctx->imsi64, imsi, 15);
       memcpy(&plmn, amf_ctx->imsi.u.value, 3);
+
+      if ((amf_ctx->imsi.u.value[1] & 0xf) != 0xf) {
+        plmn.mnc_digit1 = (amf_ctx->imsi.u.value[1] & 0xf);
+        plmn.mnc_digit2 = (amf_ctx->imsi.u.value[2] & 0xf0) >> 4;
+        plmn.mnc_digit3 = (amf_ctx->imsi.u.value[2] & 0xf);
+      }
       format_plmn(&plmn);
 
       /* Building 32 bytes of string with serving network SN
