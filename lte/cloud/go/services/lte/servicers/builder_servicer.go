@@ -191,7 +191,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			LteAuthAmf:      nwEpc.LteAuthAmf,
 			SubProfiles:     getSubProfiles(nwEpc),
 			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
-			SyncInterval:    nwEpc.SubscriberdbSyncInterval,
+			SyncInterval:    getSyncInterval(nwEpc, gwEpc),
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -627,4 +627,14 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 		UrlNative:    string(sentryConfig.URLNative),
 		UrlPython:    string(sentryConfig.URLPython),
 	}
+
+// getSyncInterval takes network-wide subscriber_db sync interval and overrides it if also set for gateway
+func getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
+	sync_interval := nwEpc.SubscriberdbSyncInterval
+	fmt.Printf("nw: %d\n", nwEpc.SubscriberdbSyncInterval)
+	fmt.Printf("gw: %d\n", gwEpc.SubscriberdbSyncInterval)
+	if gwEpc.SubscriberdbSyncInterval != 0 {
+		sync_interval = gwEpc.SubscriberdbSyncInterval
+	}
+	return sync_interval
 }

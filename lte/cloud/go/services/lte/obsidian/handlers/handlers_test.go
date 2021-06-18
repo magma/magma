@@ -1793,6 +1793,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 
 	modifiedCellularConfig := newDefaultGatewayConfig()
 	modifiedCellularConfig.Epc.NatEnabled = swag.Bool(false)
+	modifiedCellularConfig.Epc.SubscriberdbSyncInterval = 90
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/cellular/epc", testURLRoot),

@@ -679,6 +679,65 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
+func TestBuilder_Build_ConfigOverride(t *testing.T) {
+	lte_test_init.StartTestService(t)
+
+	nwConfig := lte_models.NewDefaultTDDNetworkConfig()
+	// change sync interval from the default 180
+	nwConfig.Epc.SubscriberdbSyncInterval = 120
+
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: nwConfig,
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
+		},
+	}
+
+	gatewayConfig := newDefaultGatewayConfig()
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             gatewayConfig,
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+
+	// no override. nw-wide 120 expected
+	expected := map[string]proto.Message{
+		"subscriberdb": &lte_mconfig.SubscriberDB{
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
+			SyncInterval:    120,
+		},
+	}
+
+	actual, err := build_non_federated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
+
+	gatewayConfig.Epc.SubscriberdbSyncInterval = 90
+	// override. gw-specific 90 expected
+	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 90
+
+	actual, err = build_non_federated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
+}
+
 func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 	lte_test_init.StartTestService(t)
 
