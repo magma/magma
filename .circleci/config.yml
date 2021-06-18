@@ -1275,7 +1275,6 @@ workflows:
           requires:
             - lte-test
             - mme_test
-      - c-cpp-codecov
 
   feg:
     jobs:

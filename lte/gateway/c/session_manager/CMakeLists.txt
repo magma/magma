@@ -46,7 +46,6 @@ set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")
 
 set(MAGMA_LIB_DIR $ENV{C_BUILD}/magma_common)
 add_definitions(-DLOG_WITH_GLOG)
-set(MAGMA_LIB_OAI_DIR $ENV{C_BUILD}/oai/lib)
 
 message("Build type is ${CMAKE_BUILD_TYPE}")
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -55,7 +54,6 @@ endif ()
 
 include_directories("${OUTPUT_DIR}")
 include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
-include_directories("${MAGMA_ROOT}/lte/gateway/c/oai/lib/mobility_client")
 
 include_directories(${MAGMA_LIB_DIR}/service303)
 include_directories(${MAGMA_LIB_DIR}/service_registry)
@@ -109,8 +107,7 @@ link_directories(
   ${MAGMA_LIB_DIR}/datastore
   ${MAGMA_LIB_DIR}/policydb
   ${MAGMA_LIB_DIR}/eventd
-  ${MAGMA_LIB_DIR}/service_registry
-  ${MAGMA_LIB_OAI_DIR}/mobility_client)
+  ${MAGMA_LIB_DIR}/service_registry)
 
 add_library(SESSION_MANAGER
     AAAClient.cpp
@@ -184,7 +181,7 @@ add_library(SESSION_MANAGER
 
 
 target_link_libraries(SESSION_MANAGER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD LIB_MOBILITY_CLIENT
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
   DATASTORE
   glog gflags folly pthread ${GCOV_LIB} gpr grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie

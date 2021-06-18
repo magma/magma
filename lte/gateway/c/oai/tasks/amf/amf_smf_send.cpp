@@ -27,6 +27,8 @@ extern "C" {
 #include "amf_app_ue_context_and_proc.h"
 #include "SmfServiceClient.h"
 
+using magma5g::AsyncSmfServiceClient;
+
 namespace magma5g {
 #define IMSI_LEN 15
 #define AMF_CAUSE_SUCCESS 1
@@ -290,11 +292,17 @@ int amf_smf_send(
             "PDU session resource release request to gNB failed"
             "\n");
       }
-      OAILOG_DEBUG(LOG_AMF_APP, "notifying SMF about PDU session release\n");
-      /* Execute PDU Session Release and notify to SMF */
-      rc = pdu_state_handle_message(
-          ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE,
-          smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "notifying SMF about PDU session release n_active_pdus=%d\n",
+          smf_ctx->n_active_pdus);
+
+      if (smf_ctx->n_active_pdus) {
+        /* Execute PDU Session Release and notify to SMF */
+        rc = pdu_state_handle_message(
+            ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE,
+            smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
+      }
 
       OAILOG_DEBUG(
           LOG_AMF_APP, "clear saved context associated with the PDU session\n");
@@ -344,14 +352,8 @@ int amf_smf_notification_send(
       "ue_state_idle is set to true \n",
       imsi);
 
-  auto smf_srv_client = std::make_shared<magma5g::AsyncSmfServiceClient>();
-  std::thread smf_srv_client_response_handling_thread(
-      [&]() { smf_srv_client->rpc_response_loop(); });
-  smf_srv_client_response_handling_thread.detach();
+  AsyncSmfServiceClient::getInstance().set_smf_notification(notify_req);
 
-  OAILOG_DEBUG(
-      LOG_AMF_APP, " Sending filled idle notification to SMF by gRPC \n");
-  smf_srv_client->set_smf_notification(notify_req);
   return RETURNok;
 }
 
