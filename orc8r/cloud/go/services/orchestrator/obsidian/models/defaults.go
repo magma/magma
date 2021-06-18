@@ -37,6 +37,7 @@ func NewDefaultDNSConfig() *NetworkDNSConfig {
 
 func NewDefaultSentryConfig() *NetworkSentryConfig {
 	return &NetworkSentryConfig{
+		SampleRate:   swag.Float32(0.5),
 		UploadMmeLog: false,
 		URLNative:    "",
 		URLPython:    "",

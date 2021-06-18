@@ -67,6 +67,7 @@ func (m *Network) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 		ConfigsToAddOrUpdate: map[string]interface{}{
 			orc8r.DnsdNetworkType:       m.DNS,
 			orc8r.NetworkFeaturesConfig: m.Features,
+			orc8r.NetworkSentryConfig:   m.SentryConfig,
 		},
 	}
 }
