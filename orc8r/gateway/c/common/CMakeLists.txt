@@ -19,42 +19,42 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
 ExternalProject_Add(MagmaLogging
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/logging
-        BINARY_DIR ${CMAKE_BINARY_DIR}/logging
-        INSTALL_COMMAND "")
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/logging
+    BINARY_DIR ${CMAKE_BINARY_DIR}/logging
+    INSTALL_COMMAND "")
 
 ExternalProject_Add(AsyncGrpc
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/async_grpc
-        BINARY_DIR ${CMAKE_BINARY_DIR}/async_grpc
-        INSTALL_COMMAND ""
-        DEPENDS MagmaLogging)
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/async_grpc
+    BINARY_DIR ${CMAKE_BINARY_DIR}/async_grpc
+    INSTALL_COMMAND ""
+    DEPENDS MagmaLogging)
 
 ExternalProject_Add(MagmaConfig
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/config
-        BINARY_DIR ${CMAKE_BINARY_DIR}/config
-        INSTALL_COMMAND ""
-        DEPENDS MagmaLogging)
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/config
+    BINARY_DIR ${CMAKE_BINARY_DIR}/config
+    INSTALL_COMMAND ""
+    DEPENDS MagmaLogging)
 
 ExternalProject_Add(ServiceRegistry
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/service_registry
-        BINARY_DIR ${CMAKE_BINARY_DIR}/service_registry
-        INSTALL_COMMAND ""
-        DEPENDS MagmaConfig)
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/service_registry
+    BINARY_DIR ${CMAKE_BINARY_DIR}/service_registry
+    INSTALL_COMMAND ""
+    DEPENDS MagmaConfig)
 
 ExternalProject_Add(Service303
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/service303
-        BINARY_DIR ${CMAKE_BINARY_DIR}/service303
-        INSTALL_COMMAND ""
-        DEPENDS ServiceRegistry
-        DEPENDS MagmaConfig
-        DEPENDS MagmaLogging)
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/service303
+    BINARY_DIR ${CMAKE_BINARY_DIR}/service303
+    INSTALL_COMMAND ""
+    DEPENDS ServiceRegistry
+    DEPENDS MagmaConfig
+    DEPENDS MagmaLogging)
 
 ExternalProject_Add(Eventd
-        SOURCE_DIR ${CMAKE_SOURCE_DIR}/eventd
-        BINARY_DIR ${CMAKE_BINARY_DIR}/eventd
-        INSTALL_COMMAND ""
-        DEPENDS AsyncGrpc
-        DEPENDS ServiceRegistry)
+    SOURCE_DIR ${CMAKE_SOURCE_DIR}/eventd
+    BINARY_DIR ${CMAKE_BINARY_DIR}/eventd
+    INSTALL_COMMAND ""
+    DEPENDS AsyncGrpc
+    DEPENDS ServiceRegistry)
 
 #if (BUILD_TESTS)
 #  ENABLE_TESTING()
