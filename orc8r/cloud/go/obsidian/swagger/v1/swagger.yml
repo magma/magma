@@ -8604,6 +8604,12 @@ definitions:
         maxLength: 4
         minLength: 1
         type: string
+      subscriberdb_sync_interval:
+        example: 180
+        format: uint32
+        minimum: 0
+        type: integer
+        x-nullable: false
     required:
     - ip_block
     - nat_enabled
@@ -10064,6 +10070,12 @@ definitions:
           - max_dl_bit_rate
           type: object
         type: object
+      subscriberdb_sync_interval:
+        example: 180
+        format: uint32
+        minimum: 0
+        type: integer
+        x-nullable: false
       tac:
         example: 1
         format: uint32

@@ -397,6 +397,8 @@ message SubscriberDB {
 
     // Enable relaying S6a messages via FeG RPC
     bool hss_relay_enabled = 6;
+
+    uint32 sync_interval = 7;
 }
 
 //------------------------------------------------------------------------------

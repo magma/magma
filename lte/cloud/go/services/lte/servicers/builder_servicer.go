@@ -191,6 +191,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			LteAuthAmf:      nwEpc.LteAuthAmf,
 			SubProfiles:     getSubProfiles(nwEpc),
 			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
+			SyncInterval:    nwEpc.SubscriberdbSyncInterval,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,

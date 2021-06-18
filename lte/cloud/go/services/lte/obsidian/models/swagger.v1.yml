@@ -1749,6 +1749,12 @@ definitions:
       gx_gy_relay_enabled:
         type: boolean
         example: false
+      subscriberdb_sync_interval:
+        type: integer
+        format: uint32
+        minimum: 0
+        x-nullable: false
+        example: 180
       cloud_subscriberdb_enabled:
         type: boolean
         example: false
@@ -2023,6 +2029,12 @@ definitions:
         type: boolean
         example: true
         default: true
+      subscriberdb_sync_interval:
+        type: integer
+        format: uint32
+        minimum: 0
+        x-nullable: false
+        example: 180
 
 
   gateway_non_eps_configs:
