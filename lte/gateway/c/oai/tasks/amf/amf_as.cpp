@@ -1094,6 +1094,13 @@ static int amf_as_security_req(
 
         // NAS Integrity key is calculated as specified in TS 33501, Annex A
         memcpy(&plmn, ue_context->amf_context.imsi.u.value, 3);
+
+        if ((ue_context->amf_context.imsi.u.value[1] & 0xf) != 0xf) {
+          plmn.mnc_digit1 = (amf_ctx->imsi.u.value[1] & 0xf);
+          plmn.mnc_digit2 = (amf_ctx->imsi.u.value[2] & 0xf0) >> 4;
+          plmn.mnc_digit3 = (amf_ctx->imsi.u.value[2] & 0xf);
+        }
+
         format_plmn(&plmn);
 
         /* Building 32 bytes of string with serving network SN
