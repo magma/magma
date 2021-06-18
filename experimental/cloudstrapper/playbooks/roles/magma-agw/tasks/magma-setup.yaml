@@ -30,7 +30,7 @@
 
 - name: copy vars file
   copy:
-    src: roles/magma-agw-1.5/files/ansible-env.yaml
+    src: roles/magma-agw/files/ansible-env.yaml
     dest: "{{ usrHome }}/ansible-env.yaml"
     owner: ubuntu
     group: ubuntu
@@ -38,7 +38,7 @@
 
 - name: copy inventory file
   copy:
-    src: roles/magma-agw-1.5/files/inventory
+    src: roles/magma-agw/files/inventory
     dest: "{{ usrHome }}/inventory"
     owner: ubuntu
     group: ubuntu
