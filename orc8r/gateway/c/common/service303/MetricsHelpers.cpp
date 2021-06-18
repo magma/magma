@@ -33,6 +33,13 @@ void increment_counter(
   va_end(ap);
 }
 
+void remove_gauge(const char* name, size_t n_labels, ...) {
+  va_list ap;
+  va_start(ap, n_labels);
+  MetricsSingleton::Instance().RemoveGauge(name, n_labels, ap);
+  va_end(ap);
+}
+
 void increment_gauge(const char* name, double increment, size_t n_labels, ...) {
   va_list ap;
   va_start(ap, n_labels);
