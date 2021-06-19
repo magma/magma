@@ -150,6 +150,13 @@ installed client certificates. See [here](https://support.globalsign.com/custome
 for instructions. If you use Chrome or Safari, you may have to restart the
 browser before the certificate can be used.
 
+After starting the Orchestrator with `HOST [magma/orc8r/cloud/docker]$ ./run.py`
+and importing `admin_operator.pfx`, you should be able to visit the Swagger UI
+at [https://localhost:9443/swagger/v1/ui](https://localhost:9443/swagger/v1/ui).
+Note that your browser may refuse to accept the server certificate from
+`localhost:9443`. Firefox and Safari will let you override this warning, but
+Chrome will not.
+
 ### Connecting Your Local LTE Gateway to Your Local Cloud
 
 At this point, you will have built all the code in the LTE access gateway and
