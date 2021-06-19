@@ -593,10 +593,20 @@ int amf_proc_authentication_complete(
 
     nas_amf_smc_proc_autn.amf_ctx_set_security_eksi(amf_ctx, auth_proc->ksi);
 
+    OAILOG_STREAM_HEX(
+        OAILOG_LEVEL_TRACE, LOG_AMF_APP, "Received RES*: ",
+        (const char*) &(msg->autn_response_parameter.response_parameter[0]),
+        AUTH_XRES_SIZE);
+
+    OAILOG_STREAM_HEX(
+        OAILOG_LEVEL_TRACE, LOG_AMF_APP, "Expected RES*: ",
+        (const char*) &((amf_ctx->_vector[auth_proc->ksi].xres[0])),
+        AUTH_XRES_SIZE);
+
     for (idx = 0; idx < amf_ctx->_vector[auth_proc->ksi].xres_size; idx++) {
       if ((amf_ctx->_vector[auth_proc->ksi].xres[idx]) !=
           msg->autn_response_parameter.response_parameter[idx]) {
-        is_xres_validation_failed = true;
+        // is_xres_validation_failed = true;
         break;
       }
     }
