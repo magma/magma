@@ -155,6 +155,9 @@ int amf_handle_registration_request(
   memcpy(
       &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
       sizeof(UESecurityCapabilityMsg));
+  memcpy(
+      &(ue_context->amf_context.originating_tai), (const void*) originating_tai,
+      sizeof(tai_t));
 
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   OAILOG_DEBUG(
