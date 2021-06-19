@@ -1163,6 +1163,46 @@ static int amf_as_security_req(
                      MAX_EPS_AUTH_VECTORS]
                 .xres);
 
+        OAILOG_STREAM_HEX(
+            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "rand: ",
+            (const char*) &(ue_context->amf_context
+                                ._vector
+                                    [ue_context->amf_context._security.eksi %
+                                     MAX_EPS_AUTH_VECTORS]
+                                .rand[0]),
+            RAND_LENGTH_OCTETS);
+
+        OAILOG_STREAM_HEX(
+            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "ik: ",
+            (const char*) &(ue_context->amf_context
+                                ._vector
+                                    [ue_context->amf_context._security.eksi %
+                                     MAX_EPS_AUTH_VECTORS]
+                                .ik[0]),
+            AUTH_IK_SIZE);
+
+        OAILOG_STREAM_HEX(
+            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "ck: ",
+            (const char*) &(ue_context->amf_context
+                                ._vector
+                                    [ue_context->amf_context._security.eksi %
+                                     MAX_EPS_AUTH_VECTORS]
+                                .ck[0]),
+            AUTH_CK_SIZE);
+
+        OAILOG_STREAM_HEX(
+            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "XRES: ", (const char*) &xres[0],
+            AUTH_XRES_SIZE);
+
+        OAILOG_STREAM_HEX(
+            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "XRES*: ",
+            (const char*) &(ue_context->amf_context
+                                ._vector
+                                    [ue_context->amf_context._security.eksi %
+                                     MAX_EPS_AUTH_VECTORS]
+                                .xres[0]),
+            AUTH_XRES_SIZE);
+
         OAILOG_INFO(LOG_AMF_APP, " \n test\n");
         OAILOG_INFO(
             LOG_AMF_APP, "AMF_TEST: Sending AUTHENTICATION_REQUEST to UE\n");
