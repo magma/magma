@@ -55,6 +55,7 @@ int nas_proc_establish_ind(
     amf_sap.u.amf_as.u.establish.is_amf_ctx_new = is_mm_ctx_new;
     amf_sap.u.amf_as.u.establish.nas_msg        = msg;
     amf_sap.u.amf_as.u.establish.ecgi           = ecgi;
+    amf_sap.u.amf_as.u.establish.tai            = originating_tai;
     rc                                          = amf_sap_send(&amf_sap);
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);

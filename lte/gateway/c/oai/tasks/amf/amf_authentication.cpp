@@ -606,7 +606,7 @@ int amf_proc_authentication_complete(
     for (idx = 0; idx < amf_ctx->_vector[auth_proc->ksi].xres_size; idx++) {
       if ((amf_ctx->_vector[auth_proc->ksi].xres[idx]) !=
           msg->autn_response_parameter.response_parameter[idx]) {
-        // is_xres_validation_failed = true;
+        is_xres_validation_failed = true;
         break;
       }
     }
