@@ -113,7 +113,7 @@ func (c *Connection) sendMessage(
 	}
 
 	// It's possible that the connection is closed here in contention for the
-	// connection. This is handled as an error and the sending can retry
+	// connection. This is handled as an error and the sender can retry
 	_, err = message.WriteTo(conn)
 	if err != nil {
 		// write failed, close and cleanup connection
@@ -167,11 +167,21 @@ func (c *Connection) destroyConnection(conn diam.Conn) {
 		return
 	}
 	c.mutex.Lock()
-	if conn == c.conn {
+	match := conn == c.conn
+	if match {
 		c.conn = nil
 		c.metadata = nil
 	}
 	c.mutex.Unlock()
+
+	if glog.V(2) {
+		if match {
+			glog.Infof("destroyed %s->%s connection", conn.LocalAddr().String(), conn.RemoteAddr().String())
+		} else {
+			glog.Infof(
+				"cannot destroy mismatched %s->%s connection", conn.LocalAddr().String(), conn.RemoteAddr().String())
+		}
+	}
 	conn.Close()
 }
 
@@ -183,6 +193,9 @@ func (c *Connection) cleanupConnection() {
 		c.conn = nil
 		c.metadata = nil
 		c.mutex.Unlock()
+		if glog.V(2) {
+			glog.Infof("cleaned up %s->%s connection", conn.LocalAddr().String(), conn.RemoteAddr().String())
+		}
 		conn.Close()
 	} else {
 		c.mutex.Unlock()
