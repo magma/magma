@@ -273,7 +273,7 @@ variable "orc8r_db_backup_window" {
 variable "orc8r_db_event_subscription" {
   description = "Database event subscription"
   type        = string
-  default     = "orc8r-event"
+  default     = "orc8r-rds-events"
 }
 
 
@@ -385,4 +385,5 @@ variable "orc8r_sns_name" {
 variable "orc8r_sns_email" {
   description = "SNS email endpoint to send notifications"
   type        = string
+  default     = ""
 }

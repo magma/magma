@@ -46,8 +46,8 @@ const char* LABEL_SESSION_ID        = "session_id";
 const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
 }  // namespace
 
-using magma::service303::increment_counter;
 using magma::service303::remove_counter;
+using magma::service303::set_gauge;
 
 namespace magma {
 
@@ -473,7 +473,6 @@ optional<RuleStats> SessionState::get_rule_delta(
     const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
     uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
     SessionStateUpdateCriteria* session_uc) {
-  // TODO(@koolzz): Handle drop all stats properly GH7143
   if (policy_version_and_stats_.find(rule_id) ==
       policy_version_and_stats_.end()) {
     if (rule_id.compare(DROP_ALL_RULE)) {
@@ -545,6 +544,11 @@ void SessionState::add_rule_usage(
     SessionStateUpdateCriteria* session_uc) {
   CreditKey charging_key;
 
+  if (rule_id.compare(DROP_ALL_RULE) == 0) {
+    update_data_metrics(UE_DROPPED_COUNTER_NAME, dropped_tx, dropped_rx);
+    return;
+  }
+
   // TODO: Rework logic to work with flat rate, below is a hacky solution
   auto rule_delta = get_rule_delta(
       rule_id, rule_version, used_tx, used_rx, dropped_tx, dropped_rx,
@@ -586,8 +590,7 @@ void SessionState::add_rule_usage(
   if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
     update_data_metrics(UE_USED_COUNTER_NAME, delta.tx, delta.rx);
   }
-  update_data_metrics(
-      UE_DROPPED_COUNTER_NAME, delta.dropped_tx, delta.dropped_rx);
+  update_data_metrics(UE_DROPPED_COUNTER_NAME, dropped_tx, dropped_rx);
 }
 
 void SessionState::apply_session_rule_set(
@@ -2600,10 +2603,10 @@ void SessionState::update_data_metrics(
   const auto sid    = get_config().common_context.sid().id();
   const auto msisdn = get_config().common_context.msisdn();
   const auto apn    = get_config().common_context.apn();
-  increment_counter(
+  set_gauge(
       counter_name, bytes_tx, size_t(4), LABEL_IMSI, sid.c_str(), LABEL_APN,
       apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION, DIRECTION_UP);
-  increment_counter(
+  set_gauge(
       counter_name, bytes_rx, size_t(4), LABEL_IMSI, sid.c_str(), LABEL_APN,
       apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
       DIRECTION_DOWN);

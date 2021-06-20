@@ -48,6 +48,7 @@
 #include "log.h"
 #include "service303.h"
 #include "hashtable.h"
+#include "obj_hashtable.h"
 
 /* Currently supporting max 5 GUMMEI's in the mme configuration */
 #define MIN_GUMMEI 1
@@ -65,6 +66,7 @@
 #define MAX_FED_MODE_MAP_CONFIG 10
 #define MAX_IMSI_LENGTH 15
 #define MAX_IMEI_HTBL_SZ 32
+#define MAX_SAC_2_TACS_HTBL_SZ 32
 
 #define MME_CONFIG_STRING_MME_CONFIG "MME"
 #define MME_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"
@@ -200,6 +202,8 @@
   "ENABLE_GTPU_PRIVATE_IP_CORRECTION"
 
 // Congestion Control
+#define MME_CONFIG_STRING_CONGESTION_CONTROL_ENABLED                           \
+  "CONGESTION_CONTROL_ENABLED"
 #define MME_CONFIG_STRING_S1AP_ZMQ_TH "S1AP_ZMQ_TH"
 #define MME_CONFIG_STRING_MME_APP_ZMQ_CONGEST_TH "MME_APP_ZMQ_CONGEST_TH"
 #define MME_CONFIG_STRING_MME_APP_ZMQ_AUTH_TH "MME_APP_ZMQ_AUTH_TH"
@@ -212,6 +216,9 @@
 #define MME_CONFIG_STRING_APN "APN"
 #define MME_CONFIG_STRING_IMSI_RANGE "IMSI_RANGE"
 #define MME_CONFIG_STRING_PLMN "PLMN"
+#define MME_CONFIG_STRING_SERVICE_AREA_CODE "SAC"
+#define MME_CONFIG_STRING_TAC_LIST_PER_SAC "TACS_PER_SAC"
+#define MME_CONFIG_STRING_SRVC_AREA_CODE_2_TACS_MAP "SRVC_AREA_CODE_2_TACS_MAP"
 
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
@@ -345,6 +352,11 @@ typedef struct fed_mode_map_config_s {
   fed_mode_map_t mode_map[MAX_FED_MODE_MAP_CONFIG];
 } fed_mode_map_config_t;
 
+typedef struct sac_to_tacs_map_config_s {
+  tac_list_per_sac_t* tac_list;
+  obj_hash_table_t* sac_to_tacs_map_htbl;
+} sac_to_tacs_map_config_t;
+
 typedef struct mme_config_s {
   /* Reader/writer lock for this configuration */
   pthread_rwlock_t rw_lock;
@@ -377,6 +389,7 @@ typedef struct mme_config_s {
   restricted_plmn_config_t restricted_plmn;
 
   blocked_imei_list_t blocked_imei;
+  sac_to_tacs_map_config_t sac_to_tacs_map;
 
   served_tai_t served_tai;
 
@@ -399,6 +412,7 @@ typedef struct mme_config_s {
   bool enable_gtpu_private_ip_correction;
   bool enable_converged_core;
 
+  bool enable_congestion_control;
   long s1ap_zmq_th;
   long mme_app_zmq_congest_th;
   long mme_app_zmq_auth_th;

@@ -508,6 +508,27 @@ void MmeNasStateConverter::proto_to_pdn_context_list(
   }
 }
 
+void MmeNasStateConverter::regional_subscription_to_proto(
+    const ue_mm_context_t& state_ue_context, oai::UeContext* ue_context_proto) {
+  for (int itr = 0; itr < state_ue_context.num_reg_sub; itr++) {
+    oai::Regional_subscription* reg_sub_proto = ue_context_proto->add_reg_sub();
+    reg_sub_proto->set_zone_code(
+        (const char*) state_ue_context.reg_sub[itr].zone_code);
+    OAILOG_DEBUG(LOG_MME_APP, "Writing regional_subscription at index %d", itr);
+  }
+}
+
+void MmeNasStateConverter::proto_to_regional_subscription(
+    const oai::UeContext& ue_context_proto, ue_mm_context_t* state_ue_context) {
+  for (int itr = 0; itr < ue_context_proto.num_reg_sub(); itr++) {
+    memcpy(
+        state_ue_context->reg_sub[itr].zone_code,
+        ue_context_proto.reg_sub(itr).zone_code().c_str(),
+        ue_context_proto.reg_sub(itr).zone_code().length());
+    OAILOG_DEBUG(LOG_MME_APP, "Reading regional_subscription at index %d", itr);
+  }
+}
+
 void MmeNasStateConverter::ue_context_to_proto(
     const ue_mm_context_t* state_ue_context, oai::UeContext* ue_context_proto) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -582,6 +603,9 @@ void MmeNasStateConverter::ue_context_to_proto(
       state_ue_context->subscription_known);
   ue_context_proto->set_path_switch_req(state_ue_context->path_switch_req);
   ue_context_proto->set_granted_service(state_ue_context->granted_service);
+
+  ue_context_proto->set_num_reg_sub(state_ue_context->num_reg_sub);
+  regional_subscription_to_proto(*state_ue_context, ue_context_proto);
   ue_context_proto->set_cs_fallback_indicator(
       state_ue_context->cs_fallback_indicator);
   sgs_context_to_proto(
@@ -682,6 +706,8 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   state_ue_mm_context->ppf = ue_context_proto.ppf();
   state_ue_mm_context->subscription_known =
       ue_context_proto.subscription_known();
+  state_ue_mm_context->num_reg_sub = ue_context_proto.num_reg_sub();
+  proto_to_regional_subscription(ue_context_proto, state_ue_mm_context);
   state_ue_mm_context->path_switch_req = ue_context_proto.path_switch_req();
   state_ue_mm_context->granted_service =
       (granted_service_t) ue_context_proto.granted_service();

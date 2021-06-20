@@ -43,3 +43,5 @@
 - include: orc8r-vpc.yaml
   tags: vpc
 
+- include: orc8r-sns.yaml
+  tags: sns

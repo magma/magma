@@ -313,7 +313,7 @@ func testHandleULR(settings *sm.Settings, expectedULRFlags uint32) diam.HandlerF
 		a.NewAVP(avp.OriginRealm, avp.Mbit, 0, settings.OriginRealm)
 		a.NewAVP(avp.OriginStateID, avp.Mbit, 0, settings.OriginStateID)
 
-		// Add Feature-List-ID 2 if exists
+		// Add Feature-List-ID if exists
 		if len(req.SupportedFeatures) > 0 {
 			for _, suportedFeature := range req.SupportedFeatures {
 				if suportedFeature.FeatureListID == 1 {

@@ -41,6 +41,7 @@ from ryu import cfg
 from ryu.base.app_manager import AppManager
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from scapy.arch import get_if_hwaddr
+from magma.pipelined.datapath_setup import tune_datapath
 
 
 def main():
@@ -120,6 +121,9 @@ def main():
         he_enabled_flag = service.mconfig.he_config.enable_header_enrichment
     he_enabled = service.config.get('he_enabled', he_enabled_flag)
     service.config['he_enabled'] = he_enabled
+
+    # tune datapath according to config
+    tune_datapath(service.config)
 
     # monitoring related configuration
     mtr_interface = service.config.get('mtr_interface', None)

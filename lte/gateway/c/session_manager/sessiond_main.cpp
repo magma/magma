@@ -201,6 +201,10 @@ int main(int argc, char* argv[]) {
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
 
+  if ((config["print_grpc_payload"].IsDefined())) {
+    set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
+  }
+
   initialize_sentry();
 
   bool converged_access = false;
@@ -277,7 +281,7 @@ int main(int argc, char* argv[]) {
   // Setup SessionReporter which talks to the policy component
   // (FeG+PCRF/PolicyDB).
   bool gx_gy_relay_enabled = mconfig.gx_gy_relay_enabled();
-  auto reporter = std::make_shared<magma::SessionReporterImpl>(
+  auto reporter            = std::make_shared<magma::SessionReporterImpl>(
       evb, get_controller_channel(config, gx_gy_relay_enabled));
   std::thread policy_response_handler([&]() {
     MLOG(MINFO) << "Started reporter thread";

@@ -14,7 +14,6 @@ limitations under the License.
 package mproto_test
 
 import (
-	"encoding/base64"
 	"io/ioutil"
 	"path/filepath"
 	"testing"
@@ -34,22 +33,22 @@ var (
 	goldenFilepath = "testdata/determinisic-digest.b64.golden"
 )
 
-// TestMarshalManyDeterministic checks if MarshalManyDeterministic truly enforces
+// TestHashManyDeterministic checks if HashManyDeterministic truly enforces
 // deterministic encoding by comparing encoded protobuf messages containing the same data.
 //
 // Ref: https://gist.github.com/kchristidis/39c8b310fd9da43d515c4394c3cd9510
-func TestMarshalManyDeterministic(t *testing.T) {
+func TestHashManyDeterministic(t *testing.T) {
 	// Encode basic proto messages (no compound fields).
 	protos1 := map[string]proto.Message{
 		"12345": &test.TestDataBasic{Key: "12345", Value: 10},
 		"23456": &test.TestDataBasic{Key: "23456", Value: 15},
 		"34567": &test.TestDataBasic{Key: "34567", Value: 20},
 	}
-	encodedCanon1, err1 := mproto.MarshalManyDeterministic(protos1)
+	encodedCanon1, err1 := mproto.HashManyDeterministic(protos1)
 	assert.NoError(t, err1)
 
 	for i := 0; i < iterationCount; i++ {
-		encoded, err := mproto.MarshalManyDeterministic(protos1)
+		encoded, err := mproto.HashManyDeterministic(protos1)
 		assert.NoError(t, err)
 		assert.Equal(t, encodedCanon1, encoded)
 	}
@@ -61,19 +60,19 @@ func TestMarshalManyDeterministic(t *testing.T) {
 		testDataCollections[1].Id: testDataCollections[1],
 		testDataCollections[2].Id: testDataCollections[2],
 	}
-	encodedCanon2, err2 := mproto.MarshalManyDeterministic(protos2)
+	encodedCanon2, err2 := mproto.HashManyDeterministic(protos2)
 	assert.NoError(t, err2)
 
 	for i := 0; i < iterationCount; i++ {
-		encoded, err := mproto.MarshalManyDeterministic(protos2)
+		encoded, err := mproto.HashManyDeterministic(protos2)
 		assert.NoError(t, err)
 		assert.Equal(t, encodedCanon2, encoded)
 	}
 }
 
-// TestMarshalManyDeterministicGoldenFile checks if MarshalManyDeterministic enforces
+// TestHashManyDeterministicGoldenFile checks if HashManyDeterministic enforces
 // deterministic encoding consistently over time by conducting a golden file test.
-func TestMarshalManyDeterministicGoldenFile(t *testing.T) {
+func TestHashManyDeterministicGoldenFile(t *testing.T) {
 	absGoldenFilepath, err1 := filepath.Abs(goldenFilepath)
 	assert.NoError(t, err1)
 	goldenFileContent, err2 := ioutil.ReadFile(absGoldenFilepath)
@@ -87,10 +86,9 @@ func TestMarshalManyDeterministicGoldenFile(t *testing.T) {
 	}
 
 	// Compare encoded digest string to content stored in the golden file.
-	encoded, err3 := mproto.MarshalManyDeterministic(protos)
+	encoded, err3 := mproto.HashManyDeterministic(protos)
 	assert.NoError(t, err3)
-	encodedB64 := base64.StdEncoding.EncodeToString(encoded)
-	assert.Equal(t, string(goldenFileContent), encodedB64)
+	assert.Equal(t, string(goldenFileContent), encoded)
 }
 
 // getTestDataCompound generates proto messages with compound data fields

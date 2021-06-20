@@ -92,13 +92,9 @@ def main():
     grpc_msg_size = metrics_config.get('max_grpc_msg_size_mb', 4)
     metrics_post_processor_fn = metrics_config.get('post_processing_fn')
 
-    metric_scrape_targets = map(
-        lambda x: ScrapeTarget(
-            x['url'], x['name'],
-            x['interval'],
-        ),
-        metrics_config.get('metric_scrape_targets', []),
-    )
+    metric_scrape_targets = [ScrapeTarget(t['url'], t['name'], t['interval'])
+                             for t in
+                             metrics_config.get('metric_scrape_targets', [])]
 
     # Create local metrics collector
     metrics_collector = MetricsCollector(
@@ -237,7 +233,7 @@ def main():
         command_executor = get_command_executor_impl(service)
 
     # Start loop to monitor unattended upgrade status
-    service.loop.create_task(monitor_unattended_upgrade_status(service.loop))
+    service.loop.create_task(monitor_unattended_upgrade_status())
 
     # Add all servicers to the server
     magmad_servicer = MagmadRpcServicer(
@@ -291,8 +287,9 @@ def _get_upgrader_impl(service):
         factory_clsname,
     )
     factory_impl = FactoryClass()
-    assert isinstance(factory_impl, UpgraderFactory),\
-        'upgrader_factory must be a subclass of UpgraderFactory'
+    assert isinstance(factory_impl, UpgraderFactory), ('upgrader_factory '
+                                                       'must be a subclass '
+                                                       'of UpgraderFactory')
 
     return factory_impl.create_upgrader(service, service.loop)
 

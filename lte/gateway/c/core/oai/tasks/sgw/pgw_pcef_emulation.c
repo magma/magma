@@ -468,7 +468,7 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
   }
   if (TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG &
       packetfiltercontents->flags) {
-    AssertFatal(0, "TODO");  // we have time
+    Fatal("TODO Implement pgw_pcef_emulation_packet_filter_2_iptable_string");
   }
   if (TRAFFIC_FLOW_TEMPLATE_PROTOCOL_NEXT_HEADER_FLAG &
       packetfiltercontents->flags) {
@@ -491,7 +491,7 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
   }
   if (TRAFFIC_FLOW_TEMPLATE_LOCAL_PORT_RANGE_FLAG &
       packetfiltercontents->flags) {
-    AssertFatal(0, "TODO LOCAL_PORT_RANGE");
+    Fatal("TODO LOCAL_PORT_RANGE");
   }
   if (TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG &
       packetfiltercontents->flags) {
@@ -508,7 +508,7 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
   }
   if (TRAFFIC_FLOW_TEMPLATE_REMOTE_PORT_RANGE_FLAG &
       packetfiltercontents->flags) {
-    AssertFatal(0, "TODO REMOTE_PORT_RANGE");
+    Fatal("TODO REMOTE_PORT_RANGE");
   }
   if (TRAFFIC_FLOW_TEMPLATE_SECURITY_PARAMETER_INDEX_FLAG &
       packetfiltercontents->flags) {
@@ -524,7 +524,7 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
         packetfiltercontents->typdeofservice_trafficclass.value);
   }
   if (TRAFFIC_FLOW_TEMPLATE_FLOW_LABEL_FLAG & packetfiltercontents->flags) {
-    AssertFatal(0, "TODO");  // we have time
+    Fatal("TODO Implement pgw_pcef_emulation_packet_filter_2_iptable_string");
   }
   return bstr;
 }

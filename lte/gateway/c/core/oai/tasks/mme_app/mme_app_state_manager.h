@@ -61,7 +61,7 @@ class MmeNasStateManager
 
   void free_state() override;
 
-  int read_ue_state_from_db() override;
+  status_code_e read_ue_state_from_db() override;
 
   /**
    * Copy constructor and assignment operator are marked as deleted functions.

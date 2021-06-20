@@ -1501,6 +1501,13 @@ int emm_send_security_mode_command(
   emm_msg->replayeduesecuritycapabilities.gea          = msg->gea;
   emm_msg->presencemask                                = 0;
 
+  if (msg->replayed_ue_add_sec_cap_present) {
+    emm_msg->presencemask |=
+        SECURITY_MODE_COMMAND_REPLAYED_UE_ADDITIONAL_SECU_CAPABILITY_PRESENT;
+    emm_msg->replayedueadditionalsecuritycapabilities._5g_ea = msg->_5g_ea;
+    emm_msg->replayedueadditionalsecuritycapabilities._5g_ia = msg->_5g_ia;
+  }
+
   /*
    *  Setting the IMEISV Request
    */

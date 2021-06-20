@@ -96,6 +96,7 @@ typedef struct itti_mme_app_connection_establishment_cnf_s {
   uint16_t ue_security_capabilities_integrity_algorithms;
 
   // NR UE Security Capabilities
+  bool nr_ue_security_capabilities_present;
   uint16_t nr_ue_security_capabilities_encryption_algorithms;
   uint16_t nr_ue_security_capabilities_integrity_algorithms;
 

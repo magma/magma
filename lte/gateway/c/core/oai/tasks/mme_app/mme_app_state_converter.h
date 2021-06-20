@@ -166,6 +166,14 @@ class MmeNasStateConverter : public StateConverter {
   static void proto_to_ue_mm_context(
       const oai::UeContext& ue_context_proto,
       ue_mm_context_t* state_ue_mm_context);
+
+  static void regional_subscription_to_proto(
+      const ue_mm_context_t& state_ue_context,
+      oai::UeContext* ue_context_proto);
+
+  static void proto_to_regional_subscription(
+      const oai::UeContext& ue_context_proto,
+      ue_mm_context_t* state_ue_context);
 };
 }  // namespace lte
 }  // namespace magma

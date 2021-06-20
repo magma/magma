@@ -496,14 +496,14 @@ int encode_quality_of_service_ie(
 int encode_linked_ti_ie(
     linked_ti_t* linkedti, const bool iei_present, uint8_t* buffer,
     const uint32_t len) {
-  AssertFatal(0, "TODO");
+  Fatal("TODO Implement encode_linked_ti_ie");
   return 0;
 }
 
 int decode_linked_ti_ie(
     linked_ti_t* linkedti, const bool iei_present, uint8_t* buffer,
     const uint32_t len) {
-  AssertFatal(0, "TODO");
+  Fatal("TODO Implement decode_linked_ti_ie");
   return 0;
 }
 

@@ -435,17 +435,6 @@ commands:
             mkdir -p versions
             echo "${CIRCLE_SHA1:0:8}" > versions/<< parameters.file_prefix >>_version
 
-  tag-sentry-release:
-    parameters:
-      project_name:
-        type: string
-    steps:
-      - run: |
-          export SENTRY_RELEASE=${CIRCLE_SHA1:0:8}
-          sentry-cli releases new -p parameters.project_name $SENTRY_RELEASE
-          sentry-cli releases set-commits --auto $SENTRY_RELEASE
-          sentry-cli releases finalize $SENTRY_RELEASE
-
   notify-magma:
     description: Notify Slack when an artifact is published
     parameters:
@@ -510,15 +499,15 @@ jobs:
     docker:
       - image: circleci/node:4.8.2
     environment:
-      SENTRY_ORG: lf-9c
       SENTRY_ENVIRONMENT: staging
+      SENTRY_ORG: lf-9c
     steps:
       - checkout  # check out the code in the project directory
       - run: curl -sL https://sentry.io/get-cli/ | bash
-      - tag-sentry-release:
-          project_name: lab-agws-python
-      - tag-sentry-release:
-          project_name: lab-agws-native
+      - run: |
+          sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${CIRCLE_SHA1:0:8}
+          sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${CIRCLE_SHA1:0:8}
+          sentry-cli --log-level=info releases finalize ${CIRCLE_SHA1:0:8}
 
   backport:
     machine:
@@ -917,6 +906,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v $MAGMA_ROOT:/magma -i -t magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
+          no_output_timeout: 20m
       - magma_slack_notify
 
   c-cpp-codecov:
@@ -935,6 +925,7 @@ jobs:
             docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
             ci_env=`bash <(curl -s https://codecov.io/env)`
             docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
+          no_output_timeout: 20m
       - magma_slack_notify
 
   session_manager_test:
@@ -1017,6 +1008,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
+          no_output_timeout: 20m
       - magma_slack_notify
 
   li_agent_test:

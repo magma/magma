@@ -232,7 +232,7 @@ void MmeNasStateManager::free_state() {
   state_cache_p = nullptr;
 }
 
-int MmeNasStateManager::read_ue_state_from_db() {
+status_code_e MmeNasStateManager::read_ue_state_from_db() {
   if (persist_state_enabled) {
     auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
     for (const auto& key : keys) {

@@ -41,9 +41,10 @@
 #define FILE_ASYNC_SYSTEM_SEEN
 
 #include <stdbool.h>
+#include "common_defs.h"
 
-int async_system_init(void);
-int async_system_command(
+status_code_e async_system_init(void);
+status_code_e async_system_command(
     int sender_itti_task, bool is_abort_on_error, char* format, ...);
 
 #endif /* FILE_SHARED_TS_LOG_SEEN */

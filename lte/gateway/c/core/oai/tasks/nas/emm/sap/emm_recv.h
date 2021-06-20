@@ -103,7 +103,7 @@ int emm_recv_detach_request(
 
 int emm_recv_tracking_area_update_request(
     const mme_ue_s1ap_id_t ueid, tracking_area_update_request_msg* const msg,
-    const bool is_initial, int* const emm_cause,
+    const bool is_initial, tac_t tac, int* const emm_cause,
     const nas_message_decode_status_t* const decode_status);
 
 int emm_recv_service_request(

@@ -102,13 +102,11 @@ class SubprocessWorkflowTests(unittest.TestCase):
                     'param1', 'a', 'b',
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    loop=loop,
                 ),
                 mock.call(
                     'param2', 'a', 'b',
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    loop=loop,
                 ),
             ])
             self.mock_parser_callback.assert_has_calls([
@@ -164,13 +162,11 @@ class SubprocessWorkflowTests(unittest.TestCase):
                     'param1', 'a', 'b',
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    loop=loop,
                 ),
                 mock.call(
                     'param2', 'a', 'b',
                     stdout=subprocess.PIPE,
                     stderr=subprocess.PIPE,
-                    loop=loop,
                 ),
             ])
 
