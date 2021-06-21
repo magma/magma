@@ -3,6 +3,15 @@
 # AWS account pre-requisites: Make sure to create the vm import role used by export function
 # https://docs.aws.amazon.com/vm-import/latest/userguide/vmie_prereqs.html#vmimport-role
 
+- name: Check Export Bucket exist
+  command: aws s3 ls "s3://{{ exportBucket }}"
+
+- name: Create dummy file to test bucket rights
+  command: touch ~/dummy
+
+- name: Check Export Bucket permissions
+  command: aws s3 cp ~/dummy  "s3://{{ exportBucket }}" --dryrun
+
 - name: Get latest agw ami
   ec2_ami_info:
     filters:
@@ -48,7 +57,7 @@
     object: "/exports/{{exportTaskId.stdout}}.vmdk"
     mode: delobj
 
-- name: Clean vmdk file
+- name: Clean default generated file
   amazon.aws.aws_s3:
     bucket: "{{ bucketDefault }}"
     object: "/vmimportexport_write_verification"
