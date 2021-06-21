@@ -17,6 +17,7 @@
 
 export type aaa_server = {
     accounting_enabled ? : boolean,
+    acct_reporting_enabled ? : boolean,
     create_session_on_auth ? : boolean,
     event_logging_enabled ? : boolean,
     idle_session_timeout_ms ? : number,
@@ -856,7 +857,7 @@ export type mutable_enodebd_e2e_test = {
 export type mutable_federation_gateway = {
     description: gateway_description,
     device: gateway_device,
-    federation: gateway_federation_configs,
+    federation ? : gateway_federation_configs,
     id: gateway_id,
     magmad: magmad_gateway_configs,
     name: gateway_name,
@@ -891,6 +892,8 @@ export type mutable_subscriber = {
     name ? : string,
     static_ips ? : subscriber_static_ips,
 };
+export type mutable_subscribers = Array < mutable_subscriber >
+;
 export type mutable_wifi_gateway = {
     description: gateway_description,
     device: gateway_device,
@@ -1007,6 +1010,11 @@ export type network_interface = {
     status ? : "UP" | "DOWN" | "UNKNOWN",
 };
 export type network_name = string;
+export type network_probe_data = {
+    last_exported: string,
+    sequence_number: number,
+    target_id: string,
+};
 export type network_probe_destination = {
     destination_details: network_probe_destination_details,
     destination_id: network_probe_destination_id,
@@ -7095,6 +7103,31 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'GET', query, body);
         }
+    static async postLteByNetworkIdSubscribersV2(
+        parameters: {
+            'networkId': string,
+            'subscribers': mutable_subscribers,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/subscribers_v2';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['subscribers'] === undefined) {
+            throw new Error('Missing required  parameter: subscribers');
+        }
+
+        if (parameters['subscribers'] !== undefined) {
+            body = parameters['subscribers'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
     static async getNetworks(): Promise < Array < string >
         >
         {

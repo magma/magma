@@ -24,7 +24,11 @@ import socket
 from create_oai_certs import generate_mme_certs
 from generate_service_config import generate_template_config
 from lte.protos.mconfig.mconfigs_pb2 import MME
-from magma.common.misc_utils import get_ip_from_if, get_ip_from_if_cidr
+from magma.common.misc_utils import (
+    IpPreference,
+    get_ip_from_if,
+    get_ip_from_if_cidr,
+)
 from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import get_service_config_value
 
@@ -250,7 +254,6 @@ def _get_context():
     context = {
         "mme_s11_ip": _get_iface_ip("mme", "s11_iface_name"),
         "sgw_s11_ip": _get_iface_ip("spgw", "s11_iface_name"),
-        'sgw_s5s8_up_ip': get_ip_from_if_cidr(iface_name),
         'sgw_s5s8_up_iface_name': iface_name,
         "remote_sgw_ip": get_service_config_value("mme", "remote_sgw_ip", ""),
         "s1ap_ip": _get_iface_ip("mme", "s1ap_iface_name"),
@@ -281,6 +284,14 @@ def _get_context():
     context["s1u_ip"] = mme_service_config.ipv4_sgw_s1u_addr or _get_iface_ip(
         "spgw", "s1u_iface_name"
     )
+
+    try:
+        sgw_s5s8_up_ip = get_ip_from_if_cidr(iface_name, IpPreference.IPV4_ONLY)
+    except ValueError:
+        # ignore the error to avoid MME crash
+        logging.warning("Could not read IP of interface: %s", iface_name)
+        sgw_s5s8_up_ip = "127.0.0.1/8"
+    context["sgw_s5s8_up_ip"] = sgw_s5s8_up_ip
 
     # set ovs params
     for key in (
