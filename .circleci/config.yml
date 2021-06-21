@@ -397,7 +397,7 @@ commands:
                for i in `ls -a1 *.deb`
                do
                   echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/stretch-1.6.0/$i;deb.distribution=stretch-1.6.0;deb.component=main;deb.architecture=amd64" -T $i
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-1.6.0/$i;deb.distribution=focal-1.6.0;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"

@@ -5,7 +5,7 @@
 magma ansible_ssh_host=192.168.60.142 ansible_ssh_port=22 ansible_user=vagrant
 
 [focal_dev]
-magma_focal ansible_ssh_host=192.168.60.142 ansible_ssh_port=22 ansible_user=vagrant
+magma ansible_ssh_host=192.168.60.142 ansible_ssh_port=22 ansible_user=vagrant
 
 [trfserver]
 magma_trfserver ansible_ssh_host=192.168.60.144 ansible_ssh_port=22 ansible_user=vagrant
