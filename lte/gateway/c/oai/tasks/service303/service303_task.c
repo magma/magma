@@ -100,6 +100,10 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case APPLICATION_UNHEALTHY_MSG: {
       service303_set_application_health(APP_UNHEALTHY);
     } break;
+    case APPLICATION_STATS_MSG: {
+      service303_mme_statistics_read(
+          &received_message_p->ittiMsg.application_mme_stats_msg);
+    }
     case TERMINATE_MESSAGE:
       free(received_message_p);
       service303_message_exit();
@@ -116,40 +120,10 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
 }
 
 static void* service303_thread(void* args) {
-  bstring pkg_name                   = bfromcstr(SERVICE303_MME_PACKAGE_NAME);
-  service303_data_t* service303_data = (service303_data_t*) args;
-
   itti_mark_task_ready(TASK_SERVICE303);
   init_task_context(
       TASK_SERVICE303, (task_id_t[]){}, 0, handle_service_message,
       &service303_message_task_zmq_ctx);
-
-  if (bstricmp(service303_data->name, pkg_name) == 0) {
-    /* NOTE : Above check for MME package is added since SPGW does not support
-     * stats at present
-     * TODO : Whenever SPGW implements stats,remove the above "if" check so that
-     * timer is started in SPGW also and SPGW stats can also be read as part of
-     * timer expiry handling
-     */
-
-    /*
-     * Check if this thread is started by MME service if so start a timer
-     * to trigger reading the mme stats so that it cen be sent to server
-     * for display
-     * Start periodic timer
-     */
-    if (timer_setup(
-            EPC_STATS_TIMER_VALUE, 0, TASK_SERVICE303, INSTANCE_DEFAULT,
-            TIMER_PERIODIC, NULL, 0, &service303_epc_stats_timer_id) < 0) {
-      OAILOG_ALERT(
-          LOG_UTIL,
-          " TASK SERVICE303_MESSAGE for EPC: Periodic Stat Timer Start: "
-          "ERROR\n");
-      service303_epc_stats_timer_id = 0;
-    }
-  }
-
-  bdestroy(pkg_name);
 
   zloop_start(service303_message_task_zmq_ctx.event_loop);
   service303_message_exit();

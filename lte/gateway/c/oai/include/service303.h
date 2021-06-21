@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "service303_messages_types.h"
+
 #include "bstrlib.h"
 #define SERVICE303_MME_PACKAGE_NAME "mme"
 #define SERVICE303_MME_PACKAGE_VERSION "1.0"
@@ -27,7 +29,7 @@
 #define NO_LABELS 0
 #define EPC_STATS_TIMER_VALUE 60  // In seconds
 
-void service303_statistics_read(void);
+void service303_mme_statistics_read(application_mme_stats_msg_t* stats_msg_p);
 
 // service303 conf type added to be able to use same task interface for MME and
 // SPGW while passing configs from mme_config and spgw_config types
