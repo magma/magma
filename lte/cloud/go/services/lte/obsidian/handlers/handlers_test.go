@@ -1006,10 +1006,15 @@ func TestCreateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(context.Background(), "n1", orc8r.AccessGatewayRecordType, "hw2", &models.GatewayDevice{
-		HardwareID: "hw2",
-		Key:        &models.ChallengeKey{KeyType: "ECHO"},
-	}, serdes.Device)
+	err = device.RegisterDevice(
+		context.Background(),
+		"n1", orc8r.AccessGatewayRecordType, "hw2",
+		&models.GatewayDevice{
+			HardwareID: "hw2",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+		serdes.Device,
+	)
 	assert.NoError(t, err)
 
 	e := echo.New()
