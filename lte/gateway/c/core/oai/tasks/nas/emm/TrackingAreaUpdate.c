@@ -147,6 +147,14 @@ int csfb_handle_tracking_area_req(
         get_nas_specific_procedure_tau(emm_context_p);
     if (!tau_proc) {
       tau_proc = emm_proc_create_procedure_tau(ue_mm_context, ies);
+      if (!tau_proc) {
+        OAILOG_ERROR_UE(
+            LOG_MME_APP, emm_context_p->_imsi64,
+            "Failed to create new tau_proc for "
+            "ue_id" MME_UE_S1AP_ID_FMT "\n",
+            ue_mm_context->mme_ue_s1ap_id);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+      }
       if (ue_mm_context->sgs_context &&
           ((emm_context_p->tau_updt_type ==
             EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
@@ -390,7 +398,7 @@ int emm_proc_tracking_area_update_request(
       } else {
         OAILOG_ERROR(
             LOG_NAS_EMM,
-            "EMM-PROC- Failed to get EMM specific proc"
+            "EMM-PROC- Failed to create EMM specific proc"
             "for TAU for ue_id= " MME_UE_S1AP_ID_FMT ")\n",
             ue_id);
       }
@@ -1016,7 +1024,6 @@ static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
 
   nas_emm_tau_proc_t* tau_proc =
       nas_new_tau_procedure(&ue_mm_context->emm_context);
-  AssertFatal(tau_proc, "TODO Handle this");
   if ((tau_proc)) {
     tau_proc->ies   = ies;
     tau_proc->ue_id = ue_mm_context->mme_ue_s1ap_id;
@@ -1029,6 +1036,10 @@ static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
     tau_proc->emm_spec_proc.emm_proc.base_proc.fail_out = NULL;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, tau_proc);
   }
+  OAILOG_ERROR_UE(
+      LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
+      "Failed to create tau_proc for ue_id " MME_UE_S1AP_ID_FMT "\n",
+      ue_mm_context->mme_ue_s1ap_id);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, NULL);
 }
 

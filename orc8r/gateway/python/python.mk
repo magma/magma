@@ -58,6 +58,10 @@ py_patches:
 	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <$(PATCHES_DIR)/aioeventlet.py38.patch && echo "aioeventlet was patched" ) \
 	|| ( true && echo "skipping aioeventlet patch since it was already applied")
 
+	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/ryu_ipfix_args.patch 2>/dev/null \
+	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/ryu/ofproto/nx_actions.py <$(PATCHES_DIR)/ryu_ipfix_args.patch && echo "ryu was patched" ) \
+	|| ( true && echo "skipping ryu patch since it was already applied")
+
 	$(VIRT_ENV_PIP_INSTALL) --force-reinstall git+https://github.com/URenko/aioh2.git
 
 swagger:: swagger_prereqs $(SWAGGER_LIST)
