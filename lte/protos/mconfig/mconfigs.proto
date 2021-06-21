@@ -19,17 +19,22 @@ package magma.mconfig;
 option go_package = "magma/lte/cloud/go/protos/mconfig";
 
 // --------------------------------------------------------------------------
-// SentryConfig stores the network-wide sentry.io configuration
+// SentryConfig stores the network-wide Sentry.io configuration
 // --------------------------------------------------------------------------
 message SentryConfig {
-    // If set, the Sentry Python SDK will be initialized for all python services
+    // url_python initializes the Sentry Python SDK and sets the remote URL.
+    // If set to empty string, Sentry Python SDK will not be initialized.
     string url_python = 1;
-    // If set, the Sentry Native SDK will be initialized for MME and SessionD
+    // url_native initializes the Sentry Native SDK for C/C++ and sets the
+    // remote URL. If set to empty string, Sentry Native SDK will not be
+    // initialized.
     string url_native = 2;
-    // If set, /var/log/mme.log will be uploaded along MME crashreports
+    // upload_mme_log decides whether MME service log file (/var/log/mme.log)
+    // is uploaded along with MME crashreports
     bool upload_mme_log = 3;
-    // Rate at which we want to sample Python error events
-    // Should be a number between 0 (0% of errors sent) and 1 (100% of errors sent)
+    // sample_rate sets the rate at which Python error events are sampled.
+    // sample_rate should be a number between 0 (0% of errors sent) and 1 (100%
+    // of errors sent)
     float sample_rate = 4;
 }
 
@@ -181,6 +186,7 @@ message SessionD {
     WalletExhaustDetection wallet_exhaust_detection = 3;
     // Enable relaying Gx/Gy messages via FeG RPC
     bool gx_gy_relay_enabled = 4;
+    // sentry_config stores the Sentry.io configuration for this service
     SentryConfig sentry_config = 5;
 }
 
@@ -346,7 +352,7 @@ message MME {
     // MME congestion control configs
     bool congestion_control_enabled = 40;
 
-    // MME configuration for sentry.io
+    // sentry_config stores the Sentry.io configuration for this service
     SentryConfig sentry_config = 45;
 }
 
