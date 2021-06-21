@@ -5,10 +5,9 @@ hide_title: true
 original_id: inbound_roaming
 ---
 
-*Last Updated: 4/08/2021*
+*Last Updated: 6/21/2021*
 
 # Inbound Roaming
-
 Inbound Roaming allows a Magma operator to provide service for subscribers
 belonging to other operators (roaming subscribers)
 
@@ -21,16 +20,23 @@ At the bottom of this document you have
 [configuration example](#configuration-example)
 
 ## Architecture
-
 Currently, we support two Architectures:
-- **Non-Federated + Roaming**: where local subscribers are stored in
-  SubscriberDB and roaming subscribers use a remote Federated Gateway to reach HSS/PGW
-- **Federated + Roaming**: where local Subscribers use local Federated Gateway to reach
-  HSS/PCRF/OCS and roam Subscribers use a remote Federated Gateway to reach HSS/PGW.
 
-The example below shows a possible architecture for a Non-Federated +
-roaming case. As you can see in the picture below, VPN is suggested to
-reach to the user plane at the remote PGW.
+- **Local Non-Federated + Roaming**: where local subscribers are stored in
+  SubscriberDB and roaming subscribers use a remote Federated Gateway to reach
+  HSS/PGW.
+- **Local Federated + Roaming**: where local Subscribers use local Federated
+  Gateway to reach HSS/PCRF/OCS and roaming Subscribers use a remote Federated
+  Gateway to reach HSS/PGW.
+
+Any roaming architecture will be composed of an LTE Federated Network and Feg
+Network that will serve the local subscribers. Then we will have as many extra
+FEG Network as roaming agreements.
+
+The example in the picture blow shows a possible architecture for a
+Local Non-Federated + Roaming case (one roaming agreement). As you can see in
+the picture below, VPN is suggested to reach to the user plane at the remote
+PGW.
 
 ![Magma events table](assets/feg/inbound_roaming_architecture_non_federated.png?raw=true "Non-Federated Inbound Roaming")
 
@@ -41,32 +47,48 @@ Configurations with SubscriberDB, local HSS and remote HSS all at the same
 time is not supported yet.
 
 ## Prerequisites
-
-Before starting to configure roaming setups, first you need to bring up a
-setup to handle your own/local subscribers.
-
-Even one of the architectures mentions `Non-Federated`, Inbound Roaming
-requires a `Federated` setup to work. So the to configure Inbound Roaming
-you need:
-- Functioning [Or8cr](https://docs.magmacore.org/docs/orc8r/architecture_overview),
+Before starting to configure roaming setup, first you need to bring up a
+setup to handle your own/local subscribers. So before configuring Inbound
+Roaming you need:
+- Install [Or8cr](https://docs.magmacore.org/docs/orc8r/architecture_overview),
 - Install [Federatetion Gateway](https://docs.magmacore.org/docs/feg/deploy_intro) and,
 - Install [Access Gateway](https://docs.magmacoreorg/docs/lte/setup_deb).
-- Configure it as a [Federated Deployment](https://docs.magmacore.org/docs/feg/federated_FWA_setup_guide)
+- Create a Federate Deployment (see [below](#Create a Federated Deployment)).
 - Make sure your setup is able to serve calls with your local subscribers
-  (in case of using subscriber DB you will need to set `"hss_relay_enabled":
-  false` on Federated LTE Network temporally to test this. Set it back to
-  `true` once tested!!)
 
-At the end of this you will have:
-- A Federated LTE Network with an LTE Gateway (AGW)
-- A Federation Network with a Federation Gateway (FeG)
+Once you are done you should either:
+- Local Non-Federated case:  `a Federated LTE Network with an LTE Gateway (AGW)` + `a Federation Network WITHOUT Federation Gateway (FeG)`
+- Local Federated case: `a Federated LTE Network with an LTE Gateway (AGW)`+
+  `a Federation Network WITH Federation Gateway (FeG)`
 
 We will refer to them as `local` Networks and Gateways to differentiate them
-from the `roaming`Networks and Gateways we will create in the next step.
+from the `roaming` Networks and Gateways we will create in the next step.
 
-*Note that in case of **Non-Federated + roaming** you can skip the creation
-of the Federated Gateway, but you still need the Federated Gateway Network that will serve your
-Federated LTE Network.*
+### Create a Federated Deployment
+As mentioned, Inbound Roaming requires of a FeG gateway to reach the roaming
+network. That is why Federated Deployment is required. Please, configure it
+using this guide for [Federated Deployment](https://docs.magmacore.org/docs/feg/federated_FWA_setup_guide).
+
+All architectures requiere a Local FeG Network to exist. However depending on
+your architecture, you may not need to create a local FeG Gateway inside that
+FeG Network. Please check the table below which indicates what **gateways**
+are required depending on the architecture
+
+| Network Type ->       | `feg` roaming | `feg` local | `feg_lte` (AGW) |
+| :-------------------: | :-----------: | :----------:| :--------------:|
+| Local - Non Federated | Yes           | No          | Yes             |
+| Local - Federated     | Yes           | Yes         | Yes             |
+
+
+For both, Federated and Non-Federated mode, on `lte_feg` network under `epc`
+you should set `hss_relay_enabled` to `true`. Selection of HSS or
+subscriberDb will be done by Inbound Roaming mapping configuration.
+
+In case you are not using PCRF and OCS, then your
+not need to create a FeG Gateway from the previous gide on your Federated
+Deployment. Also remember in your Federated LTE network, under `epc`, you
+will have to set `gx_gy_relay_enabled` to `false`, so the request are sent to
+internal policy entity, not to the PCRF or OCS.
 
 ## Inbound Roaming configuration
 The following instructions use Orc8r Swagger API to configure Inbound Roaming.
@@ -193,12 +215,20 @@ Roaming Federation Networks configuration the following key
 That means that the Inbound FeG Network will be served by the local network
 (in this case called `example_feg_network`)
 
-### 5. Configure FeG Gateways
-If you have a Federated deployment remember to configure `s6a`, `gx`, `gy` on
-the gateway.
-
-Do the same for FeG gateway serving roaming subscribers, but just configure
-`s6a` and `s8`.
+### 5. Configure Roaming FeG Gateway
+Configure Roaming FeG gateway serving roaming subscribers, but just configure
+`s6a` and `s8`. Configure local GTP port to match with your PGW GTP-U port.
+`apn_operator_sufix` is optional and will just add a suffix to the APN sent by
+the UE.
+```
+   "s8": {
+      "apn_operator_suffix": ".operator.com",
+      "local_address": "foo.bar.com:5555",
+      "pgw_address": "foo.bar.com:5555"
+    },
+```
+Note you don't need to define the local IP, you can just use :port
+`"local_address": ":5555"`
 
 ### 6. Check connectivity
 - From Access Gateway make sure your Access Gateway is able to reach PGW-U

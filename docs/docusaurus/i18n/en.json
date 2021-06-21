@@ -91,6 +91,9 @@
       "howtos/inbound_roaming": {
         "title": "Inbound Roaming"
       },
+      "howtos/network_probe": {
+        "title": "Network Probe"
+      },
       "howtos/readme_package": {
         "title": "Packaging"
       },
