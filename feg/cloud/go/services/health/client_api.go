@@ -40,14 +40,14 @@ func getHealthClient() (protos.HealthClient, error) {
 }
 
 // GetActiveGateway returns the active federated gateway in the network specified by networkID
-func GetActiveGateway(networkID string) (string, error) {
+func GetActiveGateway(ctx context.Context, networkID string) (string, error) {
 	client, err := getHealthClient()
 	if err != nil {
 		return "", err
 	}
 
 	// Currently, we use networkID as clusterID as we only support one cluster per network
-	clusterState, err := client.GetClusterState(context.Background(), &protos.ClusterStateRequest{
+	clusterState, err := client.GetClusterState(ctx, &protos.ClusterStateRequest{
 		NetworkId: networkID,
 		ClusterId: networkID,
 	})
@@ -59,7 +59,7 @@ func GetActiveGateway(networkID string) (string, error) {
 
 // GetHealth fetches the health stats for a given gateway
 // represented by a (networkID, logicalId)
-func GetHealth(networkID string, logicalID string) (*protos.HealthStats, error) {
+func GetHealth(ctx context.Context, networkID string, logicalID string) (*protos.HealthStats, error) {
 	if len(networkID) == 0 {
 		return nil, fmt.Errorf("Empty networkId provided")
 	}
@@ -75,5 +75,5 @@ func GetHealth(networkID string, logicalID string) (*protos.HealthStats, error) 
 		NetworkId: networkID,
 		LogicalId: logicalID,
 	}
-	return client.GetHealth(context.Background(), gatewayHealthReq)
+	return client.GetHealth(ctx, gatewayHealthReq)
 }
