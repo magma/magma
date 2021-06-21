@@ -147,6 +147,44 @@ void LocalEnforcer::setup(
   }
 }
 
+void LocalEnforcer::PollStats(
+    ServerContext* context, const GetStatRequest* request,
+    std::function<void(Status, Void)> response_callback) {
+  set_sentry_transaction("PollStats");
+  auto& request_cpy = *request;
+  if (request_cpy.records_size() > 0) {
+    PrintGrpcMessage(
+        static_cast<const google::protobuf::Message&>(request_cpy));
+  }
+
+  reported_epoch_ = request_cpy.epoch(); //timestamp at which pipelined started
+  if (is_pipelined_restarted()) {
+    MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows,"
+                << " old epoch = " << current_epoch_
+                << ", new epoch = " << reported_epoch_;
+    enforcer_->get_event_base().runInEventBaseThread(
+        [this, epoch = reported_epoch_]() { call_setup_pipelined(epoch); });
+    // Set the current epoch right away to prevent double setup call requests
+    current_epoch_ = reported_epoch_;
+  }
+  response_callback(Status::OK, Void());
+
+  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+    if (!session_store_.is_ready()) {
+      MLOG(MINFO) << "SessionStore client is not yet ready... Ignoring this "
+                     ;
+      return;
+    }
+    auto session_map = session_store_.read_all_sessions();
+    SessionUpdate update =
+        SessionStore::get_default_session_update(session_map);
+    MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
+    enforcer_->aggregate_records(session_map, request_cpy, update);
+    check_usage_for_reporting(std::move(session_map), update);
+  });
+}
+
+
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
   auto session_map    = session_store_.read_all_sessions();
   auto session_update = SessionStore::get_default_session_update(session_map);
@@ -2075,8 +2113,10 @@ UpdateRequestsBySession::UpdateRequestsBySession(
   for (const auto& monitor_request : request.usage_monitors()) {
     const auto id =
         ImsiAndSessionID(monitor_request.sid(), monitor_request.session_id());
-    requests_by_id[id].monitor_requests.push_back(monitor_request);
+    requests_by_id[id].monitor_requests.
+    push_back(monitor_request);
   }
+
 }
 
 }  // namespace magma
