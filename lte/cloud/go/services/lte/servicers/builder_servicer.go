@@ -630,11 +630,8 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 
 // getSyncInterval takes network-wide subscriber_db sync interval and overrides it if also set for gateway
 func getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
-	sync_interval := nwEpc.SubscriberdbSyncInterval
-	fmt.Printf("nw: %d\n", nwEpc.SubscriberdbSyncInterval)
-	fmt.Printf("gw: %d\n", gwEpc.SubscriberdbSyncInterval)
 	if gwEpc.SubscriberdbSyncInterval != 0 {
-		sync_interval = gwEpc.SubscriberdbSyncInterval
+		return gwEpc.SubscriberdbSyncInterval
 	}
-	return sync_interval
+	return nwEpc.SubscriberdbSyncInterval
 }
