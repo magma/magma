@@ -431,7 +431,8 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
   });
 }
 
-void AsyncPipelinedClient::poll_stats(int cookie, int cookie_mask){
+void AsyncPipelinedClient::poll_stats(int cookie, int cookie_mask, 
+  std::function<void(Status, RuleRecordTable)> callback){
   auto req = make_stat_req(cookie, cookie_mask);
   poll_stats_rpc(req, [](Status status, RuleRecordTable table){
     if (!status.ok()){
