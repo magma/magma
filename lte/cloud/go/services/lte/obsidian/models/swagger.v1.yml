@@ -1750,6 +1750,7 @@ definitions:
         type: boolean
         example: false
       subscriberdb_sync_interval:
+        description: Configuration for subscriberdb service. Interval in seconds between gateway and cloud sync.
         type: integer
         format: uint32
         minimum: 0
