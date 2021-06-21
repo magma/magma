@@ -56,17 +56,17 @@ class RuleMappersTest(unittest.TestCase):
             2)
 
         # Test updating version for all rules of a subscriber
-        self._session_rule_version_mapper.update_all_ue_versions(imsi,
+        self._session_rule_version_mapper.remove_all_ue_versions(imsi,
             convert_ipv4_str_to_ip_proto(ip_addr))
 
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[0]),
-            3)
+            -1)
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, convert_ipv4_str_to_ip_proto(ip_addr), rule_ids[1]),
-            2)
+            -1)
 
     def test_session_rule_version_mapper_cwf(self):
         rule_ids = ['rule1', 'rule2']
@@ -93,16 +93,16 @@ class RuleMappersTest(unittest.TestCase):
             2)
 
         # Test updating version for all rules of a subscriber
-        self._session_rule_version_mapper.update_all_ue_versions(imsi, None)
+        self._session_rule_version_mapper.remove_all_ue_versions(imsi, None)
 
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, None, rule_ids[0]),
-            3)
+            -1)
         self.assertEqual(
             self._session_rule_version_mapper.get_version(
                 imsi, None, rule_ids[1]),
-            2)
+            -1)
 
 if __name__ == "__main__":
     unittest.main()

@@ -372,7 +372,9 @@ int mme_app_send_s11_create_session_req(
         (struct sockaddr* const) & session_request_p->edns_peer_ip);
   }
   COPY_PLMN_IN_ARRAY_FMT(
-      (session_request_p->serving_network), (ue_mm_context->e_utran_cgi.plmn));
+      (session_request_p->serving_network),
+      (ue_mm_context->emm_context.originating_tai.plmn));
+
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
   int mode =
       match_fed_mode_map((char*) session_request_p->imsi.digit, LOG_MME_APP);

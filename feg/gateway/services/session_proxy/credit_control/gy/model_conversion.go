@@ -51,17 +51,25 @@ func (request *CreditControlRequest) FromCreditUsageUpdate(update *protos.Credit
 	request.UserLocation = update.UserLocation
 	request.ChargingCharacteristics = update.ChargingCharacteristics
 	request.Type = credit_control.CRTUpdate
-	request.Credits = []*UsedCredits{&UsedCredits{
-		RatingGroup:    update.Usage.ChargingKey,
-		InputOctets:    update.Usage.BytesTx, // transmit == input
-		OutputOctets:   update.Usage.BytesRx, // receive == output
-		TotalOctets:    update.Usage.BytesTx + update.Usage.BytesRx,
-		Type:           UsedCreditsType(update.Usage.Type),
-		RequestedUnits: update.Usage.GetRequestedUnits(),
+	request.Credits = []*UsedCredits{{
+		RatingGroup:       update.Usage.ChargingKey,
+		ServiceIdentifier: fromServiceIdentifier(update.Usage.ServiceIdentifier),
+		InputOctets:       update.Usage.BytesTx, // transmit == input
+		OutputOctets:      update.Usage.BytesRx, // receive == output
+		TotalOctets:       update.Usage.BytesTx + update.Usage.BytesRx,
+		Type:              UsedCreditsType(update.Usage.Type),
+		RequestedUnits:    update.Usage.GetRequestedUnits(),
 	}}
 	request.RatType = GetRATType(common.GetRatType())
 	request.TgppCtx = update.GetTgppCtx()
 	return request
+}
+
+func fromServiceIdentifier(si *protos.ServiceIdentifier) *uint32 {
+	if si == nil {
+		return nil
+	}
+	return &si.Value
 }
 
 func GetRATType(prt protos.RATType) string {

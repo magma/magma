@@ -33,16 +33,16 @@ require (
 	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
 	github.com/mitchellh/mapstructure v1.3.3 // indirect
 	github.com/pkg/errors v0.9.1
-	github.com/prometheus/client_golang v1.5.1
+	github.com/prometheus/client_golang v1.10.0
 	github.com/prometheus/client_model v0.2.0
-	github.com/prometheus/common v0.9.1
+	github.com/prometheus/common v0.18.0
 	github.com/shirou/gopsutil v2.20.3+incompatible
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/thoas/go-funk v0.7.0
-	github.com/wmnsk/go-gtp v0.7.21
+	github.com/wmnsk/go-gtp v0.7.25
 	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
+	golang.org/x/net v0.0.0-20210501142056-aec3718b3fa0
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.26.0
 	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect

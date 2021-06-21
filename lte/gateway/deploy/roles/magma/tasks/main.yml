@@ -387,7 +387,7 @@
     - ipfix0
   when: full_provision
 
-- name: Copy ryu ipfix patch
+- name: Copy ryu ipfix patch for 3.5
   copy:
     src: nx_actions.py
     dest: /home/vagrant/build/python/lib/python3.5/site-packages/ryu/ofproto/
