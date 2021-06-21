@@ -81,8 +81,7 @@ class MockPipelined final : public Pipelined::Service {
           grpc::ServerContext*, const SetupQuotaRequest*, SetupFlowsResult*));
   MOCK_METHOD3(
       GetStats,
-      Status(
-          grpc::ServerContext*, const GetStatsRequest*, RuleRecordTable*));
+      Status(grpc::ServerContext*, const GetStatsRequest*, RuleRecordTable*));
 };
 
 class MockPipelinedClient : public PipelinedClient {

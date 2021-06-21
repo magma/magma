@@ -62,8 +62,7 @@ magma::DeactivateFlowsRequest make_deactivate_req(
   return req;
 }
 
-magma::GetStatsRequest make_stat_req(
-    int cookie, int cookie_mask){
+magma::GetStatsRequest make_stat_req(int cookie, int cookie_mask) {
   magma::GetStatsRequest req;
   req.set_cookie(cookie);
   req.set_cookie_mask(cookie_mask);
@@ -431,11 +430,12 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
   });
 }
 
-void AsyncPipelinedClient::poll_stats(int cookie, int cookie_mask, 
-  std::function<void(Status, RuleRecordTable)> callback){
+void AsyncPipelinedClient::poll_stats(
+    int cookie, int cookie_mask,
+    std::function<void(Status, RuleRecordTable)> callback) {
   auto req = make_stat_req(cookie, cookie_mask);
-  poll_stats_rpc(req, [](Status status, RuleRecordTable table){
-    if (!status.ok()){
+  poll_stats_rpc(req, [](Status status, RuleRecordTable table) {
+    if (!status.ok()) {
       MLOG(MERROR) << "Could not poll stats " << status.error_message();
     }
   });
@@ -569,9 +569,8 @@ void AsyncPipelinedClient::poll_stats_rpc(
   auto local_resp = new AsyncLocalResponse<RuleRecordTable>(
       std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  local_resp->set_response_reader(
-      std::move(stub_->AsyncGetStats(
-          local_resp->get_context(), request, &queue_)));
+  local_resp->set_response_reader(std::move(
+      stub_->AsyncGetStats(local_resp->get_context(), request, &queue_)));
 }
 
 uint32_t AsyncPipelinedClient::get_next_teid() {
