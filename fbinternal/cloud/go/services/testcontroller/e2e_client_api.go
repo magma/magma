@@ -82,12 +82,12 @@ func strPtr(s string) *string {
 	return &s
 }
 
-func GetTestCases(pks []int64, serdes serde.Registry) (map[int64]*UnmarshalledTestCase, error) {
+func GetTestCases(ctx context.Context, pks []int64, serdes serde.Registry) (map[int64]*UnmarshalledTestCase, error) {
 	client, err := getE2EClient()
 	if err != nil {
 		return nil, err
 	}
-	res, err := client.GetTestCases(context.Background(), &protos.GetTestCasesRequest{Pks: pks})
+	res, err := client.GetTestCases(ctx, &protos.GetTestCasesRequest{Pks: pks})
 	if err != nil {
 		return nil, err
 	}
@@ -106,7 +106,7 @@ func GetTestCases(pks []int64, serdes serde.Registry) (map[int64]*UnmarshalledTe
 	return ret, nil
 }
 
-func CreateOrUpdateTestCase(pk int64, testCaseType string, testCaseConfig interface{}, serdes serde.Registry) error {
+func CreateOrUpdateTestCase(ctx context.Context, pk int64, testCaseType string, testCaseConfig interface{}, serdes serde.Registry) error {
 	marshaledConfig, err := serde.Serialize(testCaseConfig, testCaseType, serdes)
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize config")
@@ -117,7 +117,7 @@ func CreateOrUpdateTestCase(pk int64, testCaseType string, testCaseConfig interf
 		return err
 	}
 	_, err = client.CreateOrUpdateTestCase(
-		context.Background(),
+		ctx,
 		&protos.CreateTestCaseRequest{
 			Test: &storage.MutableTestCase{
 				Pk:           pk,
