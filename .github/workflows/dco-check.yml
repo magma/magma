@@ -21,7 +21,7 @@ jobs:
       uses: tim-actions/dco@master
       with:
         commits: ${{ steps.get-pr-commits.outputs.commits }}
-    - name: DCO comment
+    - name: DCO comment on PR
       if: failure()
       uses: actions/github-script@v3
       with:
