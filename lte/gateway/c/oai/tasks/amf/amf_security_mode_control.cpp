@@ -33,41 +33,6 @@ extern "C" {
 #include "amf_identity.h"
 #include "conversions.h"
 
-#define IMSI64_TO_IMSI15(iMsI64_t, imsi15)                                     \
-  {                                                                            \
-    if ((iMsI64_t / 100000000000000) != 0) {                                   \
-      imsi15[0]  = iMsI64_t / 100000000000000;                                 \
-      iMsI64_t   = iMsI64_t % 100000000000000;                                 \
-      imsi15[1]  = iMsI64_t / 10000000000000;                                  \
-      iMsI64_t   = iMsI64_t % 10000000000000;                                  \
-      imsi15[2]  = iMsI64_t / 1000000000000;                                   \
-      iMsI64_t   = iMsI64_t % 1000000000000;                                   \
-      imsi15[3]  = iMsI64_t / 100000000000;                                    \
-      iMsI64_t   = iMsI64_t % 100000000000;                                    \
-      imsi15[4]  = iMsI64_t / 10000000000;                                     \
-      iMsI64_t   = iMsI64_t % 10000000000;                                     \
-      imsi15[5]  = iMsI64_t / 1000000000;                                      \
-      iMsI64_t   = iMsI64_t % 1000000000;                                      \
-      imsi15[6]  = iMsI64_t / 100000000;                                       \
-      iMsI64_t   = iMsI64_t % 100000000;                                       \
-      imsi15[7]  = iMsI64_t / 10000000;                                        \
-      iMsI64_t   = iMsI64_t % 10000000;                                        \
-      imsi15[8]  = iMsI64_t / 1000000;                                         \
-      iMsI64_t   = iMsI64_t % 1000000;                                         \
-      imsi15[9]  = iMsI64_t / 100000;                                          \
-      iMsI64_t   = iMsI64_t % 100000;                                          \
-      imsi15[10] = iMsI64_t / 10000;                                           \
-      iMsI64_t   = iMsI64_t % 10000;                                           \
-      imsi15[11] = iMsI64_t / 1000;                                            \
-      iMsI64_t   = iMsI64_t % 1000;                                            \
-      imsi15[12] = iMsI64_t / 100;                                             \
-      iMsI64_t   = iMsI64_t % 100;                                             \
-      imsi15[13] = iMsI64_t / 10;                                              \
-      iMsI64_t   = iMsI64_t % 10;                                              \
-      imsi15[14] = iMsI64_t / 1;                                               \
-    }                                                                          \
-  }
-
 namespace magma5g {
 
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
@@ -392,25 +357,26 @@ int amf_proc_security_mode_control(
           amf_ctx, SECURITY_CTX_TYPE_FULL_NATIVE);
 
       // NAS Integrity key is calculated as specified in TS 33501, Annex A
-      uint8_t imsi[15];
-      IMSI64_TO_IMSI15(amf_ctx->imsi64, imsi);
-      memcpy(&plmn, amf_ctx->imsi.u.value, 3);
-      format_plmn(&plmn);
+      char imsi[IMSI_BCD_DIGITS_MAX + 1];
+      IMSI64_TO_STRING(amf_ctx->imsi64, imsi, 15);
 
       /* Building 32 bytes of string with serving network SN
-       * SN value 5G:mnc095.mcc208.3gppnetwork.org
-       * mcc and mnc retrive saved _imsi from amf_context
+       * SN value = 5G:mnc<mnc>.mcc<mcc>.3gppnetwork.org
+       * mcc and mnc are retrieved from serving network PLMN
        */
       uint32_t mcc              = 0;
       uint32_t mnc              = 0;
       uint32_t mnc_digit_length = 0;
-
-      PLMN_T_TO_MCC_MNC(plmn, mcc, mnc, mnc_digit_length);
+      PLMN_T_TO_MCC_MNC(
+          amf_ctx->originating_tai.plmn, mcc, mnc, mnc_digit_length);
       uint32_t snni_buf_len =
           sprintf((char*) snni, "5G:mnc%03d.mcc%03d.3gppnetwork.org", mnc, mcc);
       if (snni_buf_len != 32) {
-        OAILOG_ERROR(LOG_NAS_AMF, "Failed to create SNNI String\n");
+        OAILOG_ERROR(
+            LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+      } else {
+        OAILOG_DEBUG(LOG_NAS_AMF, "serving network name: %s", snni);
       }
 
       memcpy(
@@ -428,16 +394,25 @@ int amf_proc_security_mode_control(
 
       derive_5gkey_ausf(ck_ik, snni, ak_sqn, kausf);
       derive_5gkey_seaf(kausf, snni, kseaf);
-      derive_5gkey_amf(imsi, 15, kseaf, amf_ctx->_security.kamf);
+      derive_5gkey_amf((uint8_t*) imsi, 15, kseaf, amf_ctx->_security.kamf);
 
       derive_5gkey_nas(
           NAS_INT_ALG, 2, amf_ctx->_security.kamf, amf_ctx->_security.knas_int);
 
-      derive_key_nas(
-          NAS_ENC_ALG, amf_ctx->_security.selected_algorithms.encryption,
-          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
-              .kasme,
-          amf_ctx->_security.knas_enc);
+      derive_5gkey_nas(
+          NAS_ENC_ALG, 1, amf_ctx->_security.kamf, amf_ctx->_security.knas_enc);
+
+      OAILOG_STREAM_HEX(
+          OAILOG_LEVEL_TRACE, LOG_AMF_APP, "KAUSF: ", (const char*) &(kausf[0]),
+          AUTH_KASME_SIZE);
+      OAILOG_STREAM_HEX(
+          OAILOG_LEVEL_TRACE, LOG_AMF_APP, "KSEAF: ", (const char*) &(kseaf[0]),
+          AUTH_KASME_SIZE);
+      OAILOG_STREAM_HEX(
+          OAILOG_LEVEL_TRACE, LOG_AMF_APP,
+          "KAMF: ", (const char*) &(amf_ctx->_security.kamf[0]),
+          AUTH_KAMF_SIZE);
+
       /*
        * Set new security context indicator
        */

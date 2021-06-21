@@ -62,7 +62,6 @@ from magma.pipelined.metrics import (
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 from magma.pipelined.app.ng_services import NGServiceController
-from lte.protos.subscriberdb_pb2 import SubscriberID
 
 grpc_msg_queue = queue.Queue()
 DEFAULT_CALL_TIMEOUT = 15
@@ -809,8 +808,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                                 pdr_entry.far_action.o_teid,
                                                 pdr_entry.ue_ip_addr,
                                                 gnb_ip_addr,
-                                                encode_imsi(subscriber_id),
-                                                True)
+                                                encode_imsi(subscriber_id))
         return ret
 
     def _ng_qer_update(self, request:SessionSet, pdr_entry: PDRRuleEntry

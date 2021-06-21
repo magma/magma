@@ -155,6 +155,9 @@ int amf_handle_registration_request(
   memcpy(
       &(ue_context->amf_context.ue_sec_capability), &(msg->ue_sec_capability),
       sizeof(UESecurityCapabilityMsg));
+  memcpy(
+      &(ue_context->amf_context.originating_tai), (const void*) originating_tai,
+      sizeof(tai_t));
 
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   OAILOG_DEBUG(
@@ -174,7 +177,7 @@ int amf_handle_registration_request(
         /*
          * Extract the SUPI or IMSI from SUCI as scheme output is not encrypted
          */
-        params->imsi = new (imsi_t);
+        params->imsi = new imsi_t();
         /* Copying PLMN to local supi which is imsi*/
         supi_imsi.plmn.mcc_digit1 =
             msg->m5gs_mobile_identity.mobile_identity.imsi.mcc_digit1;
@@ -195,9 +198,18 @@ int amf_handle_registration_request(
             MSIN_MAX_LENGTH);
         // Copy entire supi_imsi to param->imsi->u.value
         memcpy(&params->imsi->u.value, &supi_imsi, IMSI_BCD8_SIZE);
-        OAILOG_DEBUG(
+
+        if (supi_imsi.plmn.mnc_digit3 != 0xf) {
+          params->imsi->u.value[0] = ((supi_imsi.plmn.mcc_digit1 << 4) & 0xf0) |
+                                     (supi_imsi.plmn.mcc_digit2 & 0xf);
+          params->imsi->u.value[1] = ((supi_imsi.plmn.mcc_digit3 << 4) & 0xf0) |
+                                     (supi_imsi.plmn.mnc_digit1 & 0xf);
+          params->imsi->u.value[2] = ((supi_imsi.plmn.mnc_digit2 << 4) & 0xf0) |
+                                     (supi_imsi.plmn.mnc_digit3 & 0xf);
+        }
+        OAILOG_INFO(
             LOG_AMF_APP, "Value of SUPI/IMSI from params->imsi->u.value\n");
-        OAILOG_DEBUG(
+        OAILOG_INFO(
             LOG_AMF_APP,
             "SUPI as IMSI derived : %02x%02x%02x%02x%02x%02x%02x%02x \n",
             params->imsi->u.value[0], params->imsi->u.value[1],
@@ -226,6 +238,7 @@ int amf_handle_registration_request(
         imsi64_t imsi64                = amf_imsi_to_imsi64(params->imsi);
         guti_and_amf_id.amf_guti       = amf_guti;
         guti_and_amf_id.amf_ue_ngap_id = ue_id;
+        OAILOG_DEBUG(LOG_AMF_APP, "imsi64 : " IMSI_64_FMT "\n", imsi64);
         if (amf_supi_guti_map.size() == 0) {
           // first entry.
           amf_supi_guti_map.insert(
@@ -338,7 +351,7 @@ int amf_handle_registration_request(
   }
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   return rc;
-}
+}  // namespace magma5g
 
 /****************************************************************************
  **                                                                        **

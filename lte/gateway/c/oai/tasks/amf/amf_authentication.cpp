@@ -593,6 +593,16 @@ int amf_proc_authentication_complete(
 
     nas_amf_smc_proc_autn.amf_ctx_set_security_eksi(amf_ctx, auth_proc->ksi);
 
+    OAILOG_STREAM_HEX(
+        OAILOG_LEVEL_TRACE, LOG_AMF_APP, "Received RES*: ",
+        (const char*) &(msg->autn_response_parameter.response_parameter[0]),
+        AUTH_XRES_SIZE);
+
+    OAILOG_STREAM_HEX(
+        OAILOG_LEVEL_TRACE, LOG_AMF_APP, "Expected RES*: ",
+        (const char*) &((amf_ctx->_vector[auth_proc->ksi].xres[0])),
+        AUTH_XRES_SIZE);
+
     for (idx = 0; idx < amf_ctx->_vector[auth_proc->ksi].xres_size; idx++) {
       if ((amf_ctx->_vector[auth_proc->ksi].xres[idx]) !=
           msg->autn_response_parameter.response_parameter[idx]) {
@@ -601,11 +611,13 @@ int amf_proc_authentication_complete(
       }
     }
 
-    /* As per Spec 24.501 Sec 5.4.1.3.5 If the authentication response (RES*) 
-     * returned by the UE is not valid, the network response depends upon the type of 
-     *  identity used by the UE in the initial NAS message. 
-     *  1. If GUTI was used then the network should initiate an identification procedure 
-     *  2. If SUCI was used then the network may send an AUTHENTICATION REJECT message to the UE
+    /* As per Spec 24.501 Sec 5.4.1.3.5 If the authentication response (RES*)
+     * returned by the UE is not valid, the network response depends upon the
+     * type of identity used by the UE in the initial NAS message.
+     *  1. If GUTI was used then the network should initiate an identification
+     * procedure
+     *  2. If SUCI was used then the network may send an AUTHENTICATION REJECT
+     * message to the UE
      */
     if (is_xres_validation_failed) {
       auth_proc->retransmission_count++;
@@ -620,18 +632,18 @@ int amf_proc_authentication_complete(
             amf_registration_success_identification_cb,
             amf_registration_failure_identification_cb);
       } else {
-         rc = RETURNerror;
+        rc = RETURNerror;
       }
 
       if (RETURNok != rc) {
-         /*
-          * Notify AMF that the authentication procedure failed
-          */
-         amf_sap_t amf_sap;
-         amf_sap.primitive                    = AMFAS_SECURITY_REJ;
-         amf_sap.u.amf_as.u.security.ue_id    = ue_id;
-         amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
-         rc                                   = amf_sap_send(&amf_sap);
+        /*
+         * Notify AMF that the authentication procedure failed
+         */
+        amf_sap_t amf_sap;
+        amf_sap.primitive                    = AMFAS_SECURITY_REJ;
+        amf_sap.u.amf_as.u.security.ue_id    = ue_id;
+        amf_sap.u.amf_as.u.security.msg_type = AMF_AS_MSG_TYPE_AUTH;
+        rc                                   = amf_sap_send(&amf_sap);
       }
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
     }

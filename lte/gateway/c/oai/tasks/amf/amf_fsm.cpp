@@ -53,7 +53,7 @@ static UE_Handlers_t UE_handlers[] = {
     {"Deregister_Completed",
      reinterpret_cast<void (*)(void)>(&amf_app_handle_deregistration_req)},
     {"PDU_Creating",
-     reinterpret_cast<void (*)(void)>(&create_session_grpc_req)},
+     reinterpret_cast<void (*)(void)>(&amf_smf_create_pdu_session)},
     {"PDU_Created",
      reinterpret_cast<void (*)(void)>(&amf_app_handle_pdu_session_accept)},
     {"PDU_Release",

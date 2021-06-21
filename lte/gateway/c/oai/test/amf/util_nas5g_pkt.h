@@ -15,6 +15,7 @@
 #include "M5GAuthenticationFailure.h"
 #include "M5gNasMessage.h"
 #include "M5GULNASTransport.h"
+#include "M5GDeRegistrationRequestUEInit.h"
 
 namespace magma5g {
 
@@ -25,6 +26,8 @@ class NAS5GPktSnapShot {
   static uint8_t guti_based_registration[91];
   static uint8_t pdu_session_est_req_type1[131];
   static uint8_t pdu_session_est_req_type2[47];
+  static uint8_t pdu_session_release_complete[12];
+  static uint8_t deregistrarion_request[17];
 
   uint32_t get_reg_req_buffer_len() {
     return sizeof(reg_req_buffer) / sizeof(unsigned char);
@@ -46,6 +49,14 @@ class NAS5GPktSnapShot {
     return sizeof(pdu_session_est_req_type2) / sizeof(unsigned char);
   }
 
+  uint32_t get_pdu_session_release_complete_len() {
+    return sizeof(pdu_session_release_complete) / sizeof(unsigned char);
+  }
+
+  uint32_t get_deregistrarion_request_len() {
+    return sizeof(deregistrarion_request) / sizeof(unsigned char);
+  }
+
   NAS5GPktSnapShot() {}
 };
 
@@ -57,7 +68,10 @@ bool decode_auth_failure_decode_msg(
     AuthenticationFailureMsg* auth_failure, const uint8_t* buffer,
     uint32_t len);
 
-bool decode_pdu_session_est_req_msg(
-    ULNASTransportMsg* ul_pdu_sess_est_req, const uint8_t* buffer,
+bool decode_ul_nas_transport_msg(
+    ULNASTransportMsg* ul_nas_pdu, const uint8_t* buffer, uint32_t len);
+
+bool decode_ul_nas_deregister_request_msg(
+    DeRegistrationRequestUEInitMsg* dereg_req, const uint8_t* buffer,
     uint32_t len);
 }  // namespace magma5g

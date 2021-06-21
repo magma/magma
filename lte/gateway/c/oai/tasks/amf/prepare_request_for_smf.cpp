@@ -31,6 +31,7 @@ extern "C" {
 #include "amf_smfDefs.h"
 #include "conversions.h"
 #include "lte/protos/session_manager.pb.h"
+#include "M5GMobilityServiceClient.h"
 #define VERSION_0 0
 
 using grpc::Channel;
@@ -43,52 +44,8 @@ using magma::lte::IPAddress;
 using magma::lte::MobilityServiceClient;
 using magma::lte::SetSMSessionContext;
 using magma::lte::TeidSet;
+using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
-
-/***************************************************************************
-**                                                                        **
-** Name:    grpc_prep_estab_req_to_smf()                                  **
-**                                                                        **
-** Description: get IP from mobilityd and send session request to SMF     **
-**                                                                        **
-**                                                                        **
-***************************************************************************/
-void grpc_prep_estab_req_to_smf(magma::lte::SetSMSessionContext req) {
-  auto smf_srv_client = std::make_shared<magma5g::AsyncSmfServiceClient>();
-  std::thread smf_srv_client_response_handling_thread(
-      [&]() { smf_srv_client->rpc_response_loop(); });
-  smf_srv_client_response_handling_thread.detach();
-  MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
-      req.common_context().sid().id().c_str(),
-      req.common_context().apn().c_str(),
-      [&req, &smf_srv_client](
-          const Status& status, AllocateIPAddressResponse ip_msg) {
-        struct in_addr ip_addr = {0};
-        char ip_str[INET_ADDRSTRLEN];
-        unsigned char buff_ip[4];
-        memcpy(
-            &(ip_addr), ip_msg.mutable_ip_list(0)->mutable_address()->c_str(),
-            sizeof(in_addr));
-        memset(ip_str, '\0', sizeof(ip_str));
-        //        uint32_t ip_int = ntohl(ip_addr.s_addr);
-        //        INT32_TO_BUFFER(ip_int, buff_ip);
-        //        memcpy(ip_str, buff_ip, sizeof(buff_ip));
-        inet_ntop(AF_INET, &(ip_addr.s_addr), ip_str, INET_ADDRSTRLEN);
-        req.mutable_rat_specific_context()
-            ->mutable_m5gsm_session_context()
-            ->mutable_pdu_address()
-            ->set_redirect_server_address((char*) ip_str);
-        OAILOG_DEBUG(
-            LOG_AMF_APP, "Sending PDU session Establishment Request to SMF");
-
-        smf_srv_client->set_smf_session(req);
-      });
-
-  std::this_thread::sleep_for(std::chrono::milliseconds(
-      20));  // TODO remove this blocking call without which the gRPC call
-             // set_smf_session() doesn't initiate, as per the way its
-             // implemeted now
-}
 
 namespace magma5g {
 
@@ -106,11 +63,6 @@ int create_session_grpc_req_on_gnb_setup_rsp(
     amf_smf_establish_t* message, char* imsi, uint32_t version) {
   int rc = RETURNerror;
   magma::lte::SetSMSessionContext req;
-
-  auto smf_srv_client = std::make_shared<magma5g::AsyncSmfServiceClient>();
-  std::thread smf_srv_client_response_handling_thread(
-      [&]() { smf_srv_client->rpc_response_loop(); });
-  smf_srv_client_response_handling_thread.detach();
 
   auto* req_common = req.mutable_common_context();
   auto* req_rat_specific =
@@ -135,7 +87,8 @@ int create_session_grpc_req_on_gnb_setup_rsp(
 
   OAILOG_DEBUG(
       LOG_AMF_APP, "Sending PDU session Establishment 2nd Request to SMF");
-  smf_srv_client->set_smf_session(req);
+
+  AsyncSmfServiceClient::getInstance().set_smf_session(req);
   OAILOG_DEBUG(LOG_AMF_APP, "sent Establish Request 2nd time to SMF");
 
   return rc;
@@ -143,39 +96,91 @@ int create_session_grpc_req_on_gnb_setup_rsp(
 
 /***************************************************************************
 **                                                                        **
-** Name:    create_session_grpc_req()                                     **
+** Name:    amf_smf_create_ipv4_session_grpc_req()                        **
 **                                                                        **
-** Description: fill session establishment gRPC request to SMF            **
+** Description: Fill session establishment gRPC request to SMF            **
 **                                                                        **
 **                                                                        **
 ***************************************************************************/
-int create_session_grpc_req(amf_smf_establish_t* message, char* imsi) {
+int amf_smf_create_ipv4_session_grpc_req(
+    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    uint32_t pdu_session_type, uint8_t* gnb_gtp_teid, uint8_t pti,
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr) {
+  // Creating the request
   magma::lte::SetSMSessionContext req;
+
   auto* req_common = req.mutable_common_context();
+
+  // Encode IMSI
   req_common->mutable_sid()->mutable_id()->assign(imsi);
+
+  // Encode TYPE IMSI
   req_common->mutable_sid()->set_type(
       magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
-  req_common->set_apn("internet");  // TODO upcoming PR this value as default
+
+  // Encode APU
+  req_common->set_apn((char*) apn);
+
+  // Encode RAT TYPE
   req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
+
+  // Put in CREATING STATE
   req_common->set_sm_session_state(magma::lte::SMSessionFSMState::CREATING_0);
+
+  // Create with Default Version
   req_common->set_sm_session_version(VERSION_0);
+
   auto* req_rat_specific =
       req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
-  req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
-  req_rat_specific->set_pdu_session_id(message->pdu_session_id);
+
+  // Set the Session ID
+  req_rat_specific->set_pdu_session_id(pdu_session_id);
+
+  // Set the Type of Request
   req_rat_specific->set_rquest_type(magma::lte::RequestType::INITIAL_REQUEST);
+
+  // Set the Address type
   req_rat_specific->mutable_pdu_address()->set_redirect_address_type(
       magma::lte::RedirectServer::IPV4);
+
+  // Type is IPv4
   req_rat_specific->set_pdu_session_type(magma::lte::PduSessionType::IPV4);
+
+  // TEID of GNB
   req_rat_specific->mutable_gnode_endpoint()->mutable_teid()->assign(
-      (char*) message->gnb_gtp_teid);
+      (char*) gnb_gtp_teid);
+
+  // IP Address of GNB
   req_rat_specific->mutable_gnode_endpoint()->mutable_end_ipv4_addr()->assign(
-      (char*) message->gnb_gtp_teid_ip_addr);
-  req_rat_specific->set_procedure_trans_identity(
-      (const char*) (&(message->pti)));
-  grpc_prep_estab_req_to_smf(req);
+      (char*) gnb_gtp_teid_ip_addr);
+
+  // Set the PTI
+  req_rat_specific->set_procedure_trans_identity((const char*) (&(pti)));
+
+  // Set the PDU Address
+  req_rat_specific->mutable_pdu_address()->set_redirect_server_address(
+      (char*) ipv4_addr);
+
+  AsyncSmfServiceClient::getInstance().set_smf_session(req);
 
   return RETURNok;
+}
+
+/***************************************************************************
+ * **                                                                        **
+ * ** Name:    amf_smf_create_pdu_session()                                  **
+ * **                                                                        **
+ * ** Description: Trigger PDU Session Creation in SMF                       **
+ * **                                                                        **
+ * **                                                                        **
+ * ***************************************************************************/
+int amf_smf_create_pdu_session(
+    amf_smf_establish_t* message, char* imsi, uint32_t version) {
+  AsyncM5GMobilityServiceClient::getInstance().allocate_ipv4_address(
+      imsi, "internet", message->pdu_session_id, message->pti, AF_INET,
+      message->gnb_gtp_teid, 4, message->gnb_gtp_teid_ip_addr, 4);
+
+  return (RETURNok);
 }
 
 /***************************************************************************
@@ -199,11 +204,8 @@ int release_session_gprc_req(amf_smf_release_t* message, char* imsi) {
   req_rat_specific->set_pdu_session_id(message->pdu_session_id);
   req_rat_specific->set_procedure_trans_identity(
       (const char*) (&(message->pti)));
-  auto smf_srv_client = std::make_shared<magma5g::AsyncSmfServiceClient>();
-  std::thread smf_srv_client_response_handling_thread(
-      [&]() { smf_srv_client->rpc_response_loop(); });
-  smf_srv_client_response_handling_thread.detach();
-  smf_srv_client->set_smf_session(req);
+
+  AsyncSmfServiceClient::getInstance().set_smf_session(req);
 
   return RETURNok;
 }
