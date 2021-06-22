@@ -55,7 +55,6 @@
 static void check_mme_healthy_and_notify_service(void);
 static bool is_mme_app_healthy(void);
 static void mme_app_exit(void);
-static void start_stats_timer(void);
 
 bool mme_hss_associated = false;
 bool mme_sctp_bounded   = false;
@@ -63,7 +62,6 @@ task_zmq_ctx_t mme_app_task_zmq_ctx;
 bool mme_congestion_control_enabled = true;
 long mme_app_last_msg_latency;
 long pre_mme_task_msg_latency;
-static long epc_stats_timer_id;
 
 mme_congestion_params_t mme_congestion_params;
 
@@ -563,23 +561,9 @@ int mme_app_init(const mme_config_t* mme_config_p) {
     OAILOG_ERROR(LOG_MME_APP, "MME APP create task failed\n");
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
-  start_stats_timer();
 
   OAILOG_DEBUG(LOG_MME_APP, "Initializing MME applicative layer: DONE\n");
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
-}
-
-static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  return send_stats_to_service303(
-      &mme_app_task_zmq_ctx, TASK_MME_APP, mme_app_desc_p->nb_enb_connected,
-      mme_app_desc_p->nb_ue_attached, mme_app_desc_p->nb_ue_connected);
-}
-
-static void start_stats_timer(void) {
-  epc_stats_timer_id = start_timer(
-      &mme_app_task_zmq_ctx, EPC_STATS_TIMER_MSEC, TIMER_REPEAT_FOREVER,
-      handle_stats_timer, NULL);
 }
 
 static void check_mme_healthy_and_notify_service(void) {
@@ -594,7 +578,6 @@ static bool is_mme_app_healthy(void) {
 
 //------------------------------------------------------------------------------
 static void mme_app_exit(void) {
-  stop_timer(&mme_app_task_zmq_ctx, epc_stats_timer_id);
   mme_app_edns_exit();
   clear_mme_nas_state();
   // Clean-up NAS module
