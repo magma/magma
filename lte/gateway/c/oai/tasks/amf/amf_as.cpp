@@ -1030,66 +1030,70 @@ static int amf_as_security_req(
         nas5g_auth_info_proc_t* auth_info_proc =
             get_nas5g_cn_procedure_auth_info(amf_ctx);
 
-        memcpy(
-            nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.rand_val,
-            auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
-        memcpy(
-            nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.AUTN,
-            auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
+        // To check the validitiy of the vectors
+        if ((auth_info_proc) && (auth_info_proc->vector[0])) {
+          memcpy(
+              nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.rand_val,
+              auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
+          memcpy(
+              nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.AUTN,
+              auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
 
-        if (ue_context->amf_context._security.eksi >= KSI_NO_KEY_AVAILABLE) {
-          ue_context->amf_context._security.eksi = 0;
+          if (ue_context->amf_context._security.eksi >= KSI_NO_KEY_AVAILABLE) {
+            ue_context->amf_context._security.eksi = 0;
+          }
+          OAILOG_INFO(
+              LOG_AMF_APP, "eksi:%x", ue_context->amf_context._security.eksi);
+          memcpy(
+              ue_context->amf_context
+                  ._vector
+                      [ue_context->amf_context._security.eksi %
+                       MAX_EPS_AUTH_VECTORS]
+                  .kasme,
+              auth_info_proc->vector[0]->kasme, KASME_LENGTH_OCTETS);
+          memcpy(
+              ue_context->amf_context
+                  ._vector
+                      [ue_context->amf_context._security.eksi %
+                       MAX_EPS_AUTH_VECTORS]
+                  .autn,
+              auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
+          memcpy(
+              ue_context->amf_context
+                  ._vector
+                      [ue_context->amf_context._security.eksi %
+                       MAX_EPS_AUTH_VECTORS]
+                  .rand,
+              auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
+          memcpy(
+              ue_context->amf_context
+                  ._vector
+                      [ue_context->amf_context._security.eksi %
+                       MAX_EPS_AUTH_VECTORS]
+                  .ck,
+              auth_info_proc->vector[0]->ck, CK_LENGTH_OCTETS);
+          memcpy(
+              ue_context->amf_context
+                  ._vector
+                      [ue_context->amf_context._security.eksi %
+                       MAX_EPS_AUTH_VECTORS]
+                  .ik,
+              auth_info_proc->vector[0]->ik, IK_LENGTH_OCTETS);
+
+          memcpy(
+              ue_context->amf_context
+                  ._vector
+                      [ue_context->amf_context._security.eksi %
+                       MAX_EPS_AUTH_VECTORS]
+                  .xres,
+              auth_info_proc->vector[0]->xres.data,
+              auth_info_proc->vector[0]->xres.size);
+          ue_context->amf_context
+              ._vector
+                  [ue_context->amf_context._security.eksi %
+                   MAX_EPS_AUTH_VECTORS]
+              .xres_size = auth_info_proc->vector[0]->xres.size;
         }
-        OAILOG_INFO(
-            LOG_AMF_APP, "eksi:%x", ue_context->amf_context._security.eksi);
-        memcpy(
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .kasme,
-            auth_info_proc->vector[0]->kasme, KASME_LENGTH_OCTETS);
-        memcpy(
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .autn,
-            auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
-        memcpy(
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .rand,
-            auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
-        memcpy(
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .ck,
-            auth_info_proc->vector[0]->ck, CK_LENGTH_OCTETS);
-        memcpy(
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .ik,
-            auth_info_proc->vector[0]->ik, IK_LENGTH_OCTETS);
-
-        memcpy(
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .xres,
-            auth_info_proc->vector[0]->xres.data,
-            auth_info_proc->vector[0]->xres.size);
-        ue_context->amf_context
-            ._vector
-                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
-            .xres_size = auth_info_proc->vector[0]->xres.size;
 
         /* Building 32 bytes of string with serving network SN
          * SN value = 5G:mnc<mnc>.mcc<mcc>.3gppnetwork.org
