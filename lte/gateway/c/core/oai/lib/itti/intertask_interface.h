@@ -191,6 +191,16 @@ const char* itti_get_task_name(task_id_t task_id);
 MessageDef* itti_alloc_new_message(
     task_id_t origin_task_id, MessagesIds message_id);
 
+/** \brief Alloc and memset(0) a new itti message.
+ * @note DEPRECATED: Use itti_get_associated_imsi
+ * \param origin_task_id Task ID of the sending task
+ * \param message_id Message ID
+ * @returns newly allocated mesage ref
+ * @note Asserts that newly allocated message ref is non-NULL
+ **/
+MessageDef* DEPRECATEDitti_alloc_new_message_fatal(
+    task_id_t origin_task_id, MessagesIds message_id);
+
 /**
  * \brief Returns IMSI of ITTI task
  * @param msg MessageDef struct
@@ -206,8 +216,9 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx);
 
 /** \brief Send a termination message to all tasks.
  * \param task_id task that is broadcasting the message.
+ * @note Asserts that newly allocated message ref is non-NULL
  **/
-void send_terminate_message(task_zmq_ctx_t* task_zmq_ctx);
+void send_terminate_message_fatal(task_zmq_ctx_t* task_zmq_ctx);
 
 /**
  * \brief Returns the latency of the message

@@ -394,7 +394,7 @@ void mme_app_handle_conn_est_cnf(
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
   }
-  message_p = itti_alloc_new_message(
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_MME_APP, MME_APP_CONNECTION_ESTABLISHMENT_CNF);
   establishment_cnf_p =
       &message_p->ittiMsg.mme_app_connection_establishment_cnf;
@@ -2068,8 +2068,8 @@ static void notify_s1ap_new_ue_mme_s1ap_id_association(
     OAILOG_ERROR(LOG_MME_APP, " NULL UE context pointer!\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
-  message_p =
-      itti_alloc_new_message(TASK_MME_APP, MME_APP_S1AP_MME_UE_ID_NOTIFICATION);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_MME_APP, MME_APP_S1AP_MME_UE_ID_NOTIFICATION);
   notification_p = &message_p->ittiMsg.mme_app_s1ap_mme_ue_id_notification;
   memset(notification_p, 0, sizeof(itti_mme_app_s1ap_mme_ue_id_notification_t));
   notification_p->enb_ue_s1ap_id = ue_context_p->enb_ue_s1ap_id;
@@ -3278,7 +3278,8 @@ void mme_app_handle_handover_required(
         handover_required_p->mme_ue_s1ap_id);
   }
 
-  message_p    = itti_alloc_new_message(TASK_MME_APP, MME_APP_HANDOVER_REQUEST);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_MME_APP, MME_APP_HANDOVER_REQUEST);
   ho_request_p = &message_p->ittiMsg.mme_app_handover_request;
 
   // get the ue security capabilities

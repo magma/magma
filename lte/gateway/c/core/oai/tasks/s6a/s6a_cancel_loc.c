@@ -128,7 +128,8 @@ int s6a_clr_cb(
     CHECK_FCT(fd_msg_avp_hdr(avp_p, &hdr_p));
     if (hdr_p->avp_value->u32 == SUBSCRIPTION_WITHDRAWL) {
       // Send it to MME module for further processing
-      message_p = itti_alloc_new_message(TASK_S6A, S6A_CANCEL_LOCATION_REQ);
+      message_p = DEPRECATEDitti_alloc_new_message_fatal(
+          TASK_S6A, S6A_CANCEL_LOCATION_REQ);
       s6a_cancel_location_req_p = &message_p->ittiMsg.s6a_cancel_location_req;
       memcpy(s6a_cancel_location_req_p->imsi, imsi_str, imsi_len);
       s6a_cancel_location_req_p->imsi[imsi_len]    = '\0';

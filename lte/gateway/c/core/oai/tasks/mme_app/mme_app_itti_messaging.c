@@ -209,7 +209,8 @@ int mme_app_send_s11_create_session_req(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  message_p = itti_alloc_new_message(TASK_MME_APP, S11_CREATE_SESSION_REQUEST);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_MME_APP, S11_CREATE_SESSION_REQUEST);
   /*
    * WARNING:
    * Some parameters should be provided by NAS Layer:

@@ -57,7 +57,7 @@ static int ngap_send_init_sctp(void) {
   // Create and alloc new message
   MessageDef* message_p = NULL;
 
-  message_p = itti_alloc_new_message(TASK_NGAP, SCTP_INIT_MSG);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_NGAP, SCTP_INIT_MSG);
   message_p->ittiMsg.sctpInit.port         = NGAP_PORT_NUMBER;
   message_p->ittiMsg.sctpInit.ppid         = NGAP_SCTP_PPID;
   message_p->ittiMsg.sctpInit.ipv4         = 1;
