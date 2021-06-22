@@ -12,11 +12,11 @@ limitations under the License.
 """
 
 import re
-import subprocess
+import subprocess  # noqa: S404
 import sys
 
 cmd = 'git diff --name-only `git merge-base origin/master HEAD`'
-list_files = subprocess.check_output(cmd, shell=True, universal_newlines=True)
+list_files = subprocess.check_output(cmd, shell=True, universal_newlines=True)  # noqa: S602
 mme_is_impacted = False
 
 for line in list_files.split('\n'):
