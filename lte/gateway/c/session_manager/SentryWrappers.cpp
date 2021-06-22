@@ -37,14 +37,19 @@ using std::experimental::optional;
 
 // TODO(@themarwhal) pull common sentry functions into lib common
 
-optional<std::string> get_sentry_url(YAML::Node control_proxy_config) {
-  std::string sentry_url;
+optional<std::string> get_sentry_url(
+    const magma::mconfig::SentryConfig& sentry_config,
+    YAML::Node control_proxy_config) {
   if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
-    const std::string sentry_dns =
+    const std::string override =
         control_proxy_config[SENTRY_NATIVE_URL].as<std::string>();
-    if (sentry_dns.size()) {
-      return sentry_dns;
+    if (override.size()) {
+      return override;
     }
+  }
+  const std::string sentry_url = sentry_config.url_native();
+  if (sentry_url.size()) {
+    return sentry_url;
   }
   return {};
 }
@@ -56,10 +61,10 @@ std::string get_snowflake() {
   return buffer.str();
 }
 
-void initialize_sentry() {
+void initialize_sentry(const magma::mconfig::SentryConfig& sentry_config) {
   auto control_proxy_config = magma::ServiceConfigLoader{}.load_service_config(
       CONTROL_PROXY_SERVICE_NAME);
-  auto op_sentry_url = get_sentry_url(control_proxy_config);
+  auto op_sentry_url = get_sentry_url(sentry_config, control_proxy_config);
   if (op_sentry_url) {
     MLOG(MINFO) << "Starting SessionD with Sentry!";
     sentry_options_t* options = sentry_options_new();
@@ -83,7 +88,8 @@ void set_sentry_transaction(const std::string& name) {
 }
 
 #else
-void initialize_sentry() {}
+void initialize_sentry(__attribute__((unused))
+                       const magma::mconfig::SentryConfig& sentry_config) {}
 void shutdown_sentry() {}
 void set_sentry_transaction(const std::string& name) {}
 #endif
