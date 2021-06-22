@@ -20,7 +20,9 @@ import Alarms from '@fbcnms/alarms/components/Alarms';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import Button from '@material-ui/core/Button';
 import ContactMailIcon from '@material-ui/icons/ContactMail';
+import Grid from '@material-ui/core/Grid';
 import React from 'react';
+import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
 import {MagmaAlarmsApiUtil} from '../../state/AlarmsApiUtil';
@@ -50,6 +52,12 @@ const useStyles = makeStyles(theme => ({
       background: colors.primary.mirage,
     },
   },
+  emptyAlerts: {
+    color: colors.primary.comet,
+    marginBottom: '15px',
+    width: '50%',
+    textAlign: 'center',
+  },
 }));
 
 const tabs = [
@@ -70,38 +78,50 @@ const tabs = [
   },
 ];
 
-function AlarmsDashboard() {
-  const apiUtil = MagmaAlarmsApiUtil;
+function EmptyAlerts() {
+  const classes = useStyles();
   const isSuperUser = useContext(AppContext).user.isSuperUser;
   const {match} = useRouter();
+
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const networkId = nullthrows(match.params.networkId);
+  return (
+    <Grid container direction="column" alignItems="center">
+      <Text className={classes.emptyAlerts} variant="h5">
+        No Alerts Added
+      </Text>
+      <Text className={classes.emptyAlerts} variant="subtitle1">
+        Find out about possible issues in the network by easily enabling alerts
+        or creating custom ones.
+      </Text>
+      {isSuperUser && (
+        <Button
+          size="large"
+          variant="contained"
+          className={classes.appBarBtn}
+          onClick={async () => {
+            await triggerAlertSync(networkId, enqueueSnackbar);
+          }}>
+          {'Enable Alerts'}
+        </Button>
+      )}
+    </Grid>
+  );
+}
+
+function AlarmsDashboard() {
+  const apiUtil = MagmaAlarmsApiUtil;
   const classes = useStyles();
 
-  const SyncAlertsButton = () => {
-    const classes = useStyles();
-    const enqueueSnackbar = useEnqueueSnackbar();
-    const predefinedAlertsTitle = 'Sync Predefined Alerts';
-    const networkId = nullthrows(match.params.networkId);
-
-    return (
-      <Button
-        variant="contained"
-        className={classes.appBarBtn}
-        onClick={async () => {
-          await triggerAlertSync(networkId, enqueueSnackbar);
-        }}>
-        {predefinedAlertsTitle}
-      </Button>
-    );
-  };
   return (
     <>
       <TopBar header={'Alarms'} tabs={tabs} />
       <div className={classes.root}>
-        {isSuperUser && <SyncAlertsButton />}
         <Alarms
           makeTabLink={makeTabLink}
           disabledTabs={['alerts', 'rules', 'suppressions', 'routes', 'teams']}
           apiUtil={apiUtil}
+          emptyAlerts={<EmptyAlerts />}
         />
       </div>
     </>
