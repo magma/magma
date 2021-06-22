@@ -206,6 +206,33 @@ def _checkout_code(repo: str, branch: str, sha1: str, tag: str, pr_num: str,
         _run_git(f'git reset --hard {sha1}')
 
 
+def _get_test_summaries_and_logs(test_result_code: int):
+    # Copy from node
+    local('mkdir -p test-results')
+    with settings(warn_only=True):
+        get('test-results', 'test-results')
+    # Copy to the directory CircleCI expects
+    local('sudo mkdir -p /tmp/test-results/')
+    if len(os.listdir('test-results')):
+        local('sudo mv test-results/* /tmp/test-results/')
+
+    # On failure, transfer logs from all 3 VMs and copy to the log
+    # directory. This will get stored as an artifact in the CircleCI
+    # config.
+    if test_result_code:
+        tar_file_name = "lte-test-logs.tar.gz"
+        # On failure, transfer logs into current directory
+        log_path = './' + tar_file_name
+        run(f'fab get_test_logs:dst_path="{log_path}"', warn_only=True)
+        # Copy the log files out from the node
+        local('mkdir lte-artifacts')
+        if exists(log_path):
+            get(tar_file_name, 'lte-artifacts')
+        local('sudo mkdir -p /tmp/logs/')
+        if os.listdir('lte-artifacts'):
+            local('sudo mv lte-artifacts/* /tmp/logs/')
+
+
 def _run_remote_lte_integ_test(repo: str, magma_root: str):
     repo_name = _get_repo_name(repo)
     with cd(f'{repo_name}/{magma_root}/lte/gateway'):
@@ -213,29 +240,9 @@ def _run_remote_lte_integ_test(repo: str, magma_root: str):
 
         # Transfer test summaries into current directory
         run('fab get_test_summaries:dst_path="test-results"', warn_only=True)
-        # Copy from node
-        local('mkdir -p test-results')
-        with settings(warn_only=True):
-            get('test-results', 'test-results')
-        # Copy to the directory CircleCI expects
-        local('sudo mkdir -p /tmp/test-results/')
-        if len(os.listdir('test-results')):
-            local('sudo mv test-results/* /tmp/test-results/')
 
-        # On failure, transfer logs from all 3 VMs and copy to the log
-        # directory. This will get stored as an artifact in the CircleCI
-        # config.
-        if test_result.return_code:
-            tar_file_name = "lte-test-logs.tar.gz"
-            # On failure, transfer logs into current directory
-            log_path = './' + tar_file_name
-            run(f'fab get_test_logs:dst_path="{log_path}"', warn_only=True)
-            # Copy the log files out from the node
-            local('mkdir lte-artifacts')
-            if exists(log_path):
-                get(tar_file_name, 'lte-artifacts')
-            local('sudo mkdir -p /tmp/logs/')
-            local('sudo mv lte-artifacts/* /tmp/logs/')
+        _get_test_summaries_and_logs(test_result.return_code)
+
         # Exit with the original test result
         sys.exit(test_result.return_code)
 
