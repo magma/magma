@@ -197,7 +197,8 @@ int main(int argc, char* argv[]) {
 static void send_timer_recovery_message(void) {
   MessageDef* recovery_message_p;
 
-  recovery_message_p = itti_alloc_new_message(TASK_UNKNOWN, RECOVERY_MESSAGE);
+  recovery_message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_UNKNOWN, RECOVERY_MESSAGE);
   send_broadcast_msg(&main_zmq_ctx, recovery_message_p);
   return;
 }

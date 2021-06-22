@@ -177,7 +177,7 @@ int signal_handle(int* end, task_zmq_ctx_t* task_ctx) {
       case SIGINT:
       case SIGTERM:
         printf("Received SIGINT or SIGTERM\n");
-        send_terminate_message(task_ctx);
+        send_terminate_message_fatal(task_ctx);
         *end = 1;
         break;
 

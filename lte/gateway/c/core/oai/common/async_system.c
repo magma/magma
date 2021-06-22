@@ -141,7 +141,8 @@ status_code_e async_system_command(
     return RETURNerror;
   }
   MessageDef* message_p = NULL;
-  message_p = itti_alloc_new_message(sender_itti_task, ASYNC_SYSTEM_COMMAND);
+  message_p             = DEPRECATEDitti_alloc_new_message_fatal(
+      sender_itti_task, ASYNC_SYSTEM_COMMAND);
   ASYNC_SYSTEM_COMMAND(message_p).system_command    = bstr;
   ASYNC_SYSTEM_COMMAND(message_p).is_abort_on_error = is_abort_on_error;
   status_code_e result                              = send_msg_to_task(
