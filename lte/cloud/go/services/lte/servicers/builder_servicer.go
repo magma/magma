@@ -115,6 +115,11 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	if err != nil {
 		return nil, err
 	}
+	congestionControlEnabled := nwEpc.CongestionControlEnabled
+	if gwEpc.CongestionControlEnabled != nil {
+		congestionControlEnabled = gwEpc.CongestionControlEnabled
+	}
+
 
 	vals := map[string]proto.Message{
 		"enodebd": &lte_mconfig.EnodebD{
@@ -166,7 +171,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			RestrictedImeis:          getRestrictedImeis(nwEpc.RestrictedImeis),
 			ServiceAreaMaps:          getServiceAreaMaps(nwEpc.ServiceAreaMaps),
 			FederatedModeMap:         getFederatedModeMap(federatedNetworkConfigs),
-			CongestionControlEnabled: swag.BoolValue(gwEpc.CongestionControlEnabled),
+			CongestionControlEnabled: swag.BoolValue(congestionControlEnabled),
 			SentryConfig:             getNetworkSentryConfig(&network),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
