@@ -29,6 +29,7 @@
 #define COMMIT_HASH_ENV "COMMIT_HASH"
 #define CONTROL_PROXY_SERVICE_NAME "control_proxy"
 #define SENTRY_NATIVE_URL "sentry_url_native"
+#define SENTRY_SAMPLE_RATE "sentry_sample_rate"
 #define SNOWFLAKE_PATH "/etc/snowflake"
 #define HWID "hwid"
 #define SERVICE_NAME "service_name"
@@ -54,6 +55,22 @@ optional<std::string> get_sentry_url(
   return {};
 }
 
+float get_sentry_sample_rate(
+    const magma::mconfig::SentryConfig& sentry_config,
+    YAML::Node control_proxy_config) {
+  if (control_proxy_config[SENTRY_SAMPLE_RATE].IsDefined()) {
+    const float override = control_proxy_config[SENTRY_SAMPLE_RATE].as<float>();
+    if (override) {
+      return override;
+    }
+  }
+  const float sample_rate = sentry_config.sample_rate();
+  if (sample_rate) {
+    return sample_rate;
+  }
+  return 1.0f;
+}
+
 std::string get_snowflake() {
   std::ifstream ifs(SNOWFLAKE_PATH, std::ifstream::in);
   std::stringstream buffer;
@@ -69,6 +86,8 @@ void initialize_sentry(const magma::mconfig::SentryConfig& sentry_config) {
     MLOG(MINFO) << "Starting SessionD with Sentry!";
     sentry_options_t* options = sentry_options_new();
     sentry_options_set_dsn(options, op_sentry_url->c_str());
+    sentry_options_set_sample_rate(
+        options, get_sentry_sample_rate(sentry_config, control_proxy_config));
     if (const char* commit_hash_p = std::getenv(COMMIT_HASH_ENV)) {
       sentry_options_set_release(options, commit_hash_p);
     }
