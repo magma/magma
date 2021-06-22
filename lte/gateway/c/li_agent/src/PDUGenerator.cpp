@@ -173,7 +173,9 @@ void* PDUGenerator::generate_record(
   pdu->correlation_id    = htobe64(state.correlation_id);
   pdu->payload_direction = htons(direction);
 
-  SET_INT64_TLV(&pdu->attrs.timestamp, TIMESTAMP_ATTRID, phdr->ts.tv_sec);
+  uint64_t tm = (uint64_t) phdr->ts.tv_sec << 32 | phdr->ts.tv_usec;
+  SET_INT64_TLV(&pdu->attrs.timestamp, TIMESTAMP_ATTRID, tm);
+
   SET_INT64_TLV(
       &pdu->attrs.sequence_number, SEQNBR_ATTRID, state.sequence_number);
 
