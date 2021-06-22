@@ -16,6 +16,10 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
+	"os"
+	"regexp"
+	"sort"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
@@ -27,11 +31,39 @@ import (
 )
 
 func init() {
-	// Temp
 	flag.Set("logtostderr", "true")
 	flag.Set("stderrthreshold", "INFO")
 	flag.Set("v", "2")
 	flag.Parse()
+
+	logPath := "/var/log/"
+	files, err := ioutil.ReadDir(logPath)
+	if err != nil {
+		glog.Infof("Failed reading %s dir: %s", logPath, err)
+		return
+	}
+
+	maxLogFiles := 5
+	levels := []string{"FATAL", "ERROR", "WARNING", "INFO"}
+	for _, logSeverity := range levels {
+		logFiles := []string{}
+		for _, f := range files {
+			match, _ := regexp.MatchString(".*envoy_controller.*log."+logSeverity+".*", f.Name())
+			if match {
+				logFiles = append(logFiles, f.Name())
+			}
+		}
+		if len(logFiles) < maxLogFiles {
+			continue
+		}
+		sort.Sort(sort.Reverse(sort.StringSlice(logFiles)))
+		for _, file := range logFiles[maxLogFiles:] {
+			err := os.Remove(logPath + file)
+			if err != nil {
+				glog.Infof("Failed removing file %s: %s", file, err)
+			}
+		}
+	}
 }
 
 func main() {
