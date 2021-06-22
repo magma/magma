@@ -26,7 +26,9 @@ extern "C" {
 #include "common_defs.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "SmfServiceClient.h"
+#include "M5GMobilityServiceClient.h"
 
+using magma5g::AsyncM5GMobilityServiceClient;
 using magma5g::AsyncSmfServiceClient;
 
 namespace magma5g {
@@ -268,6 +270,10 @@ int amf_smf_send(
       memcpy(
           amf_smf_msg.u.establish.gnb_gtp_teid,
           smf_ctx->gtp_tunnel_id.gnb_gtp_teid, GNB_TEID_LEN);
+
+      // Initialize default APN
+      memcpy(smf_ctx->apn, "internet", strlen("internet") + 1);
+
       // send request to SMF over grpc
       /*
        * Execute the Grpc Send call of PDU establishment Request from AMF to SMF
@@ -302,6 +308,13 @@ int amf_smf_send(
         rc = pdu_state_handle_message(
             ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE,
             smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
+      }
+
+      if (smf_ctx->pdu_address.pdn_type == IPv4) {
+        // Clean up the Mobility IP Address
+        AsyncM5GMobilityServiceClient::getInstance().release_ipv4_address(
+            imsi, reinterpret_cast<const char*>(smf_ctx->apn),
+            &(smf_ctx->pdu_address.ipv4_address));
       }
 
       OAILOG_DEBUG(
@@ -355,6 +368,82 @@ int amf_smf_notification_send(
   AsyncSmfServiceClient::getInstance().set_smf_notification(notify_req);
 
   return RETURNok;
+}
+
+/***************************************************************************
+**                                                                        **
+** Name:    amf_smf_context_exists_pdu_session_id()                       **
+**                                                                        **
+** Description: Update IP Addrss information in SMF Context               **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+int amf_update_smf_context_pdu_ip(
+    char* imsi, uint8_t* apn, uint32_t pdu_session_id, paa_t* address_info) {
+  ue_m5gmm_context_s* ue_context;
+  smf_context_t* smf_ctx;
+  imsi64_t imsi64;
+  int rc = RETURNerror;
+
+  IMSI_STRING_TO_IMSI64(imsi, &imsi64);
+
+  ue_context = lookup_ue_ctxt_by_imsi(imsi64);
+  if (ue_context == NULL) {
+    return rc;
+  }
+
+  smf_ctx = amf_smf_context_exists_pdu_session_id(ue_context, pdu_session_id);
+  if (NULL == smf_ctx) {
+    return rc;
+  }
+
+  memcpy(&(smf_ctx->pdu_address), address_info, sizeof(paa_t));
+
+  return RETURNok;
+}
+
+/***************************************************************************
+**                                                                        **
+** Name:    amf_smf_context_exists_pdu_session_id()                       **
+**                                                                        **
+** Description: Update IP Addrss information in SMF Context               **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+int amf_smf_handle_ip_address_response(
+    itti_amf_ip_allocation_response_t* response_p) {
+  int rc = RETURNerror;
+
+  rc = amf_update_smf_context_pdu_ip(
+      response_p->imsi, response_p->apn, response_p->pdu_session_id,
+      &(response_p->paa));
+
+  if (rc < 0) {
+    OAILOG_ERROR(
+        LOG_AMF_APP,
+        "SMF Context for PDU not found or Address "
+        "type not supported\n");
+    return rc;
+  }
+
+  if (response_p->paa.pdn_type == IPv4) {
+    char ip_str[INET_ADDRSTRLEN];
+
+    inet_ntop(
+        AF_INET, &(response_p->paa.ipv4_address.s_addr), ip_str,
+        INET_ADDRSTRLEN);
+
+    rc = amf_smf_create_ipv4_session_grpc_req(
+        response_p->imsi, response_p->apn, response_p->pdu_session_id,
+        response_p->pdu_session_type, response_p->gnb_gtp_teid, response_p->pti,
+        response_p->gnb_gtp_teid_ip_addr, ip_str);
+
+    if (rc < 0) {
+      OAILOG_ERROR(LOG_AMF_APP, "Create IPV4 Session \n");
+    }
+  }
+
+  return rc;
 }
 
 }  // namespace magma5g

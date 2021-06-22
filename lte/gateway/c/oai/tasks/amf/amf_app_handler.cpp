@@ -1172,4 +1172,5 @@ int amf_app_handle_notification_received(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
+
 }  // namespace magma5g

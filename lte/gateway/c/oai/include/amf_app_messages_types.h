@@ -126,7 +126,7 @@ typedef struct itti_amf_ip_allocation_response_s {
   uint8_t gnb_gtp_teid_ip_addr[16];
 
   /* UE IP Address Allocated by MobilityD */
-  char ip_str[INET_ADDRSTRLEN];
+  paa_t paa;
 
   /* Result Type of IP Allocation */
   int result;

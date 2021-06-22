@@ -39,8 +39,8 @@ using magma::lte::MobilityServiceClient;
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 static void handle_allocate_ipv4_address_status(
-    const grpc::Status& status, const char* allocated_ip_str, const char* imsi,
-    const char* apn, uint32_t pdu_session_id, uint8_t pti,
+    const grpc::Status& status, struct in_addr in_ip4_addr, int vlan,
+    const char* imsi, const char* apn, uint32_t pdu_session_id, uint8_t pti,
     uint32_t pdu_session_type, uint8_t* gnb_gtp_teid, uint8_t gnb_gtp_teid_len,
     uint8_t* gnb_gtp_teid_ip_addr, uint8_t gnb_gtp_teid_ip_addr_len) {
   MessageDef* message_p;
@@ -58,6 +58,10 @@ static void handle_allocate_ipv4_address_status(
   amf_ip_allocation_response_p->pdu_session_id   = pdu_session_id;
   amf_ip_allocation_response_p->pti              = pti;
   amf_ip_allocation_response_p->pdu_session_type = pdu_session_type;
+  amf_ip_allocation_response_p->paa.ipv4_address = in_ip4_addr;
+  amf_ip_allocation_response_p->paa.pdn_type     = IPv4;
+  amf_ip_allocation_response_p->paa.vlan         = vlan;
+
   memcpy(amf_ip_allocation_response_p->gnb_gtp_teid, gnb_gtp_teid, 4);
   memcpy(
       amf_ip_allocation_response_p->gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr,
@@ -66,9 +70,6 @@ static void handle_allocate_ipv4_address_status(
   memcpy(amf_ip_allocation_response_p->apn, apn, strlen(apn) + 1);
 
   if (status.ok()) {
-    memcpy(
-        amf_ip_allocation_response_p->ip_str, allocated_ip_str,
-        INET_ADDRSTRLEN);
     amf_ip_allocation_response_p->result = 0;
   } else {
     amf_ip_allocation_response_p->result = -1;
@@ -79,7 +80,7 @@ static void handle_allocate_ipv4_address_status(
 
 namespace magma5g {
 
-bool AsyncM5GMobilityServiceClient::allocate_ipv4_address(
+int AsyncM5GMobilityServiceClient::allocate_ipv4_address(
     const char* subscriber_id, const char* apn, uint32_t pdu_session_id,
     uint8_t pti, uint32_t pdu_session_type, uint8_t* gnb_gtp_teid,
     uint8_t gnb_gtp_teid_len, uint8_t* gnb_gtp_teid_ip_addr,
@@ -93,21 +94,27 @@ bool AsyncM5GMobilityServiceClient::allocate_ipv4_address(
        gnb_gtp_teid_ip_addr_len](
           const Status& status, const AllocateIPAddressResponse& ip_msg) {
         struct in_addr addr;
-        std::string net_ipv4_addr_str;
-        char ipv4_str[INET_ADDRSTRLEN];
+        std::string ipv4_addr_str;
 
         if (ip_msg.ip_list_size() > 0) {
-          net_ipv4_addr_str = ip_msg.ip_list(0).address();
-
-          inet_ntop(
-              AF_INET, net_ipv4_addr_str.c_str(), ipv4_str, INET_ADDRSTRLEN);
+          ipv4_addr_str = ip_msg.ip_list(0).address();
         }
+        memcpy(&addr, ipv4_addr_str.c_str(), sizeof(in_addr));
+        int vlan = atoi(ip_msg.vlan().c_str());
+
         handle_allocate_ipv4_address_status(
-            status, ipv4_str, subscriber_id_str.c_str(), apn, pdu_session_id,
+            status, addr, vlan, subscriber_id_str.c_str(), apn, pdu_session_id,
             pti, pdu_session_type, gnb_gtp_teid, gnb_gtp_teid_len,
             gnb_gtp_teid_ip_addr, gnb_gtp_teid_ip_addr_len);
       });
   return RETURNok;
+}
+
+int AsyncM5GMobilityServiceClient::release_ipv4_address(
+    const char* subscriber_id, const char* apn, const struct in_addr* addr) {
+  int status = MobilityServiceClient::getInstance().ReleaseIPv4Address(
+      subscriber_id, apn, *addr);
+  return status;
 }
 
 AsyncM5GMobilityServiceClient::AsyncM5GMobilityServiceClient() {}

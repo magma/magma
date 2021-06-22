@@ -34,6 +34,9 @@ extern "C" {
 #include "amf_sap.h"
 #include "amf_app_state_manager.h"
 #include "conversions.h"
+#include "M5GMobilityServiceClient.h"
+
+using magma5g::AsyncM5GMobilityServiceClient;
 
 namespace magma5g {
 amf_as_data_t amf_data_de_reg_sec;
@@ -239,6 +242,12 @@ void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context) {
     smf_message.pti = i->smf_proc_data.pti.pti;
 
     release_session_gprc_req(&smf_message, imsi);
+
+    if (i->pdu_address.pdn_type == IPv4) {
+      AsyncM5GMobilityServiceClient::getInstance().release_ipv4_address(
+          imsi, reinterpret_cast<const char*>(i->apn),
+          &(i->pdu_address.ipv4_address));
+    }
   }
 }
 
