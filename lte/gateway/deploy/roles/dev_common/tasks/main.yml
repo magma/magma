@@ -140,7 +140,7 @@
       - python3-setuptools
       - python-setuptools
       - libssl-dev
-      - apt-transport-https 
+      - apt-transport-https
   retries: 5
   when: preburn
 
@@ -428,6 +428,7 @@
     systemctl enable networking
     apt-get --assume-yes purge nplan netplan.i
   when: preburn
+  ignore_errors: true
 
 - name: Copy Resolve file.
   copy:
