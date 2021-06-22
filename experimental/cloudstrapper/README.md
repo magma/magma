@@ -253,6 +253,8 @@
       - buildUbuntuAmi: AMI ID of Base Ubuntu 20.04 image
       - buildAgwAmiName: Name of the AGW AMI created, used to label the AMI
       - buildGwTagName: Tag to be used for the AGW Devops instance, used to filter instance for configuration
+      - buildAgwVersion: Version of AGW to be built
+      - buildAgwPackage: Specific package version
 
     - defaults.yaml:
 
