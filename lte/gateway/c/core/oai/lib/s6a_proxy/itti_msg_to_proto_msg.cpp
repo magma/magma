@@ -116,6 +116,11 @@ UpdateLocationRequest convert_itti_s6a_update_location_request_to_proto_msg(
   if (msg->initial_attach) {
     ret.set_initial_attach(INITIAL_ATTACH);
   }
+
+  // Set regional_subscription feature
+  if (msg->supportedfeatures.regional_subscription) {
+    ret.mutable_feature_list_id_1()->set_regional_subscription(1);
+  }
   return ret;
 }
 }  // namespace magma

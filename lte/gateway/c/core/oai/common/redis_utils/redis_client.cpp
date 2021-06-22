@@ -55,7 +55,8 @@ void RedisClient::init_db_connection() {
   is_connected_ = true;
 }
 
-int RedisClient::write(const std::string& key, const std::string& value) {
+status_code_e RedisClient::write(
+    const std::string& key, const std::string& value) {
   if (!is_connected()) {
     return RETURNerror;
   }
@@ -87,7 +88,7 @@ std::string RedisClient::read(const std::string& key) {
   return db_read_reply.as_string();
 }
 
-int RedisClient::write_proto_str(
+status_code_e RedisClient::write_proto_str(
     const std::string& key, const std::string& proto_msg, uint64_t version) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
   wrapper_proto.set_serialized_msg(proto_msg);
@@ -103,7 +104,8 @@ int RedisClient::write_proto_str(
   return RETURNok;
 }
 
-int RedisClient::read_proto(const std::string& key, Message& proto_msg) {
+status_code_e RedisClient::read_proto(
+    const std::string& key, Message& proto_msg) {
   orc8r::RedisState wrapper_proto = orc8r::RedisState();
   if (read_redis_state(key, wrapper_proto) != RETURNok) {
     return RETURNerror;
@@ -126,7 +128,8 @@ int RedisClient::read_version(const std::string& key) {
   return wrapper_proto.version();
 }
 
-int RedisClient::clear_keys(const std::vector<std::string>& keys_to_clear) {
+status_code_e RedisClient::clear_keys(
+    const std::vector<std::string>& keys_to_clear) {
   auto db_write = db_client_->del(keys_to_clear);
   db_client_->sync_commit();
   auto reply = db_write.get();
@@ -168,7 +171,7 @@ std::vector<std::string> RedisClient::get_keys(const std::string& pattern) {
   return replies;
 }
 
-int RedisClient::read_redis_state(
+status_code_e RedisClient::read_redis_state(
     const std::string& key, orc8r::RedisState& state_out) {
   try {
     std::string str_value = read(key);
@@ -181,7 +184,7 @@ int RedisClient::read_redis_state(
   }
 }
 
-int RedisClient::serialize(
+status_code_e RedisClient::serialize(
     const Message& proto_msg, std::string& str_to_serialize) {
   if (!proto_msg.SerializeToString(&str_to_serialize)) {
     return RETURNerror;
@@ -189,7 +192,7 @@ int RedisClient::serialize(
   return RETURNok;
 }
 
-int RedisClient::deserialize(
+status_code_e RedisClient::deserialize(
     Message& proto_msg, const std::string& str_to_deserialize) {
   if (!proto_msg.ParseFromString(str_to_deserialize)) {
     return RETURNerror;

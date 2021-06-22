@@ -20,6 +20,8 @@ class Message;
 }
 }  // namespace google
 
+void set_grpc_logging_level(bool enable);
+
 std::string get_env_var(std::string const& key);
 
 void PrintGrpcMessage(const google::protobuf::Message& message);

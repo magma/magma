@@ -27,6 +27,8 @@ aliases:
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/oai lte/gateway/c/sctpd lte/protos feg/protos orc8r/protos"
   - &li_agent_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/li_agent lte/protos orc8r/protos"
+  - &connection_tracker_build_verify
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/connection_tracker lte/protos orc8r/protos"
   - &federated_build_verify
     paths: "orc8r lte feg"
   - &all_gateways_build_verify
@@ -346,7 +348,7 @@ commands:
                for i in `ls -a1 *.deb`
                do
                   echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/stretch-ci/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"
@@ -493,6 +495,20 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
+  sentry-release:
+    docker:
+      - image: circleci/node:4.8.2
+    environment:
+      SENTRY_ENVIRONMENT: staging
+      SENTRY_ORG: lf-9c
+    steps:
+      - checkout  # check out the code in the project directory
+      - run: curl -sL https://sentry.io/get-cli/ | bash
+      - run: |
+          sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${CIRCLE_SHA1:0:8}
+          sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${CIRCLE_SHA1:0:8}
+          sentry-cli --log-level=info releases finalize ${CIRCLE_SHA1:0:8}
+
   backport:
     machine:
       image: ubuntu-1604:201903-01
@@ -723,6 +739,10 @@ jobs:
       - magma_slack_notify
 
   feg-build:
+    parameters:
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -760,12 +780,14 @@ jobs:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - tag-push-docker:
           project: feg
           images: "gateway_go|gateway_python"
           registry: $JFROG_DOCKER_FEG_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-latest: <<parameters.tag-latest>>
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -890,6 +912,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v $MAGMA_ROOT:/magma -i -t magma-mme-build:latest /bin/bash -c 'cd /magma/lte/gateway;make clang_tidy_oai_upload'
+          no_output_timeout: 20m
       - magma_slack_notify
 
   c-cpp-codecov:
@@ -908,6 +931,7 @@ jobs:
             docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
             ci_env=`bash <(curl -s https://codecov.io/env)`
             docker run $ci_env -e CI=true -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make coverage;ls -al /tmp/;bash <(curl -s https://codecov.io/bash) -f /build/c/coverage.info -F c_cpp"
+          no_output_timeout: 20m
       - magma_slack_notify
 
   session_manager_test:
@@ -990,6 +1014,7 @@ jobs:
             cd $MAGMA_ROOT/lte/gateway/docker/mme
             docker build -t magma-mme-build -f Dockerfile.ubuntu20.04 ../../../../
             docker run --env BRANCH=$BRANCH --env REVISION=$REVISION -v /home/circleci/project:/magma -v /home/circleci/project/lte/gateway/configs:/etc/magma -i -t magma-mme-build:latest /bin/bash -c "cd /magma/lte/gateway;make clang_warning_oai_upload"
+          no_output_timeout: 20m
       - magma_slack_notify
 
   li_agent_test:
@@ -1016,6 +1041,36 @@ jobs:
           name: Run li agent tests
           command: |
             docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make test_li_agent;"
+          no_output_timeout: 5m
+      - magma_slack_notify
+
+  connection-tracker-test:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: large
+    environment:
+      MAGMA_ROOT: /home/circleci/project
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *connection_tracker_build_verify
+      - run:
+          name: Build the base c/c++ container
+          command: |
+            cd $MAGMA_ROOT/lte/gateway/docker/mme
+            docker build -t magma/c_cpp_build -f Dockerfile.ubuntu20.04 ../../../../
+      - run:
+          name: Build connection tracker with BUILD_TYPE=Debug
+          command: |
+            # TODO run unit tests once we write some tests
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=Debug;"
+          no_output_timeout: 5m
+      - run:
+          name: Build connection tracker with BUILD_TYPE=RelWithDebInfo
+          command: |
+            # TODO run unit tests once we write some tests
+            docker run -v $MAGMA_ROOT:/magma -v $MAGMA_ROOT/lte/gateway/configs:/etc/magma -i -t magma/c_cpp_build:latest /bin/bash -c "cd /magma/lte/gateway;make build_connection_tracker BUILD_TYPE=RelWithDebInfo;"
           no_output_timeout: 5m
       - magma_slack_notify
 
@@ -1465,7 +1520,7 @@ jobs:
       - run:
           name: Generate AGW AMI
           command: |
-            ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge
+            ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge,cleanupBridge,cleanupNet
             echo "Waiting one minute for the instance to boot up."
             sleep 60
             ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
@@ -1503,6 +1558,7 @@ workflows:
       - lte-test
       - session_manager_test
       - li_agent_test
+      - connection-tracker-test
       - mme_test
       - mme-clang-tidy:
           <<: *only_master
@@ -1517,6 +1573,10 @@ workflows:
             - mme_test
             - lte-integ-test
       - c-cpp-codecov
+      - sentry-release:
+          <<: *only_master
+          requires:
+            - lte-agw-deploy
 
   release:
     jobs:
@@ -1559,6 +1619,7 @@ workflows:
       - feg-build:
           requires:
             - feg-precommit
+          tag-latest: true
 
   cwag:
     jobs:
@@ -1573,6 +1634,7 @@ workflows:
           requires:
             - cwag-precommit
             - cwf-integ-test
+          tag-latest: true
       - xwfm-deploy:
           <<: *only_master
           name: xwfm-deploy-latest

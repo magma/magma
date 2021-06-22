@@ -40,8 +40,9 @@
 #include <openssl/evp.h>
 #include <openssl/ossl_typ.h>
 #include <stddef.h>
+#include "common_defs.h"
 
-int digest_buffer(
+status_code_e digest_buffer(
     const EVP_MD* (*evp_x)(void), const unsigned char* buffer,
     size_t buffer_len, unsigned char** digest, unsigned int* digest_len);
 

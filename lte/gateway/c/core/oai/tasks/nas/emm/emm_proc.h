@@ -115,6 +115,7 @@ typedef struct emm_attach_request_ies_s {
       mob_st_clsMark2; /* Mobile station classmark2 provided by the UE */
   voice_domain_preference_and_ue_usage_setting_t*
       voicedomainpreferenceandueusagesetting;
+  ue_additional_security_capability_t* ueadditionalsecuritycapability;
 } emm_attach_request_ies_t;
 
 typedef struct emm_detach_request_ies_s {
@@ -210,7 +211,8 @@ void set_callbacks_for_attach_proc(nas_emm_attach_proc_t* attach_proc);
 void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies);
 
 int emm_proc_tracking_area_update_request(
-    const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause);
+    const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
+    tac_t tac);
 
 int emm_proc_tracking_area_update_reject(
     const mme_ue_s1ap_id_t ue_id, const int emm_cause);

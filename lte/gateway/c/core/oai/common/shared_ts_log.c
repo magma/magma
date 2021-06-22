@@ -291,11 +291,10 @@ void shared_log_start_use(void) {
 
 //------------------------------------------------------------------------------
 void shared_log_flush_messages(void) {
-  int rv                          = 0;
   shared_log_queue_item_t* item_p = NULL;
 
-  while ((rv = lfds710_queue_bmm_dequeue(
-              &g_shared_log.log_message_queue, NULL, (void**) &item_p)) == 1) {
+  while (lfds710_queue_bmm_dequeue(
+             &g_shared_log.log_message_queue, NULL, (void**) &item_p) == 1) {
     if ((item_p->app_id >= MIN_SH_TS_LOG_CLIENT) &&
         (item_p->app_id < MAX_SH_TS_LOG_CLIENT)) {
       (*g_shared_log.logger_callback[item_p->app_id])(item_p);

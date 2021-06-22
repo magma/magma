@@ -128,10 +128,10 @@ cp -r $(REPORT_DIR) $(MAGMA_ROOT)
 @echo "Reports in magma/reports/.../index.html"
 endef
 
-# run_ctest BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS
+# run_ctest BUILD_DIRECTORY, TEST_BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS
 define run_ctest
-$(call run_cmake, $(1), $(2), $(3) $(TEST_FLAG))
-cd $(1) && ctest --output-on-failure
+$(call run_cmake, $(1), $(3), $(4) $(TEST_FLAG))
+cd $(2) && ctest --output-on-failure
 endef
 
 format_common:
@@ -148,7 +148,7 @@ build_python: stop ## Build Python environment
 build_common: format_common ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(COMMON_FLAGS))
 
-build_oai: format_oai ## Build OAI
+build_oai: format_core ## Build OAI
 	$(call run_cmake, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS) $(COMMON_FLAGS))
 
 build_oai_clang: ## Build OAI with Clang, store compiler outputs to log
@@ -178,16 +178,16 @@ clang_warning_oai_upload: build_oai_clang ## Generate and then upload warning st
 		--data-urlencode "entry.599425517=$(shell grep '\[-Wtypedef-redefinition\]' /tmp/clang-build.oai.log | wc -l)" \
 		https://docs.google.com/forms/d/e/1FAIpQLScKB3nLPASxzr4AXW5_yeHCjkEURY0K9OAFPIyNFzkA5CY_kw/formResponse?usp=pp_url
 
-build_sctpd: format_sctpd build_common ## Build SCTPD
+build_sctpd: format_sctpd
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
 
 build_session_manager: format_session_manager build_common ## Build session manager
 	$(call run_cmake, $(C_BUILD)/session_manager, $(GATEWAY_C_DIR)/session_manager, )
 
-build_li_agent: format_li_agent build_common ## Build li agent
+build_li_agent: format_li_agent ## Build li agent
 	$(call run_cmake, $(C_BUILD)/li_agent, $(GATEWAY_C_DIR)/li_agent, )
 
-build_connection_tracker: format_connection_tracker build_common ## Build connection tracker
+build_connection_tracker: format_connection_tracker
 	$(call run_cmake, $(C_BUILD)/connection_tracker, $(GATEWAY_C_DIR)/connection_tracker, )
 
 build_envoy_controller: ## Build envoy controller
@@ -205,15 +205,26 @@ test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
 test_oai: ## Run all OAI-specific tests
-	$(call run_ctest, $(C_BUILD)/core, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
+	$(call run_ctest, $(C_BUILD)/core, $(C_BUILD)/core/oai, $(GATEWAY_C_DIR)/core, $(OAI_FLAGS))
 
-test_common: build_common ## Run all tests in magma_common
-	$(call run_ctest, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
+test_sctpd: ## Run all OAI-specific tests
+	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
+
+test_common: ## Run all tests in magma_common
+	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(TEST_FLAG))
+	# Run the common lib tests that exist
+	cd $(C_BUILD)/magma_common/config && ctest --output-on-failure
+	cd $(C_BUILD)/magma_common/service303 && ctest --output-on-failure
+	cd $(C_BUILD)/magma_common/service_registry && ctest --output-on-failure
+
+test_li_agent:
+	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )
+
 
 # Catch all for c service tests
 # This works with test_dpi and test_session_manager
 test_%: build_common
-	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+	$(call run_ctest, $(C_BUILD)/$*, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
 
 coverage_oai: test_oai
 	lcov --capture --directory $(C_BUILD) --output-file /tmp/coverage_oai.info.raw
@@ -240,12 +251,12 @@ precommit_oai: format_oai test_oai
 # TODO: CMake config issue - compile_commands.json is only generated if you first make_oai, then test_oai (or do either twice).
 #       Additionally compile_commands.json is **not capturing all build artifacts this way**
 clang_tidy_oai:
-	mkdir $(GATEWAY_C_DIR)/core/oai/build
-	cd $(GATEWAY_C_DIR)/core/oai/build;cmake ..
-	sed -i 's/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON/g' $(GATEWAY_C_DIR)/core/oai/build/CMakeCache.txt
-	cmake --build $(GATEWAY_C_DIR)/core/oai/build/
-	wget https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py
-	python run-clang-tidy.py -p $(GATEWAY_C_DIR)/core/oai/build/ -j 2 -checks='-*,clang-analyzer-security*,android-*,cert-*,clang-analyzer-*,concurrency,misc-*,-misc-unused-parameters,bugprone-*' 2>&1 | tee /tmp/clang-tidy-oai.findings
+	mkdir -p $(C_BUILD)/core/oai/build
+	cd $(C_BUILD)/core/oai/build;cmake $(GATEWAY_C_DIR)/core
+	sed -i 's/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=OFF/CMAKE_EXPORT_COMPILE_COMMANDS:BOOL=ON/g' $(C_BUILD)/core/oai/build/CMakeCache.txt
+	cmake --build $(C_BUILD)/core/oai/build/
+	cd $(C_BUILD)/core/oai/build;wget https://raw.githubusercontent.com/llvm-mirror/clang-tools-extra/master/clang-tidy/tool/run-clang-tidy.py;\
+	python run-clang-tidy.py -p $(C_BUILD)/core/oai/build/oai -j 2 -checks='-*,clang-analyzer-security*,android-*,cert-*,clang-analyzer-*,concurrency,misc-*,-misc-unused-parameters,bugprone-*' 2>&1 | tee /tmp/clang-tidy-oai.findings
 
 # Pushes per-finding counts to:
 #   https://docs.google.com/forms/d/1-45BZTHh4uBBOCqYM4LAD4zFT91B47sEEntHLkQuXWA/edit#responses

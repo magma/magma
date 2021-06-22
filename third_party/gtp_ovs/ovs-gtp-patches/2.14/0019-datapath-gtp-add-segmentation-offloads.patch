@@ -1,0 +1,101 @@
+From 7127120cdda00421998252ee07b9751219e03a41 Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Tue, 8 Jun 2021 01:44:33 +0000
+Subject: [PATCH 19/19] datapath: gtp: add segmentation offloads
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ datapath/linux/compat/gtp.c    | 22 +++++++++++++++++++---
+ debian/changelog               |  2 +-
+ tests/system-layer3-tunnels.at |  4 ++--
+ 3 files changed, 22 insertions(+), 6 deletions(-)
+
+diff --git a/datapath/linux/compat/gtp.c b/datapath/linux/compat/gtp.c
+index 75c5c547c..5046bd63a 100644
+--- a/datapath/linux/compat/gtp.c
++++ b/datapath/linux/compat/gtp.c
+@@ -440,6 +440,7 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+         __u8 ttl;
+         __u8 set_qfi = 0;
+         __u8 csum;
++        int err;
+ 
+ 	/* Read the IP destination address and resolve the PDP context.
+ 	 * Prepend PDP header with TEI/TID from PDP ctx.
+@@ -458,6 +459,12 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 
+ 	skb_dst_drop(skb);
+         csum = !!(info->key.tun_flags & TUNNEL_CSUM);
++        err = udp_tunnel_handle_offloads(skb, csum);
++        if (err)
++                goto err_rt;
++        netdev_dbg(dev, "skb->protocol %d\n", skb->protocol);
++        ovs_skb_set_inner_protocol(skb, cpu_to_be16(ETH_P_IP));
++
+         ttl = info->key.ttl;
+         df = info->key.tun_flags & TUNNEL_DONT_FRAGMENT ? htons(IP_DF) : 0;
+         netdev_dbg(dev, "packet with opt len %d", info->options_len);
+@@ -484,7 +491,7 @@ static netdev_tx_t gtp_dev_xmit_fb(struct sk_buff *skb, struct net_device *dev)
+ 			    fl4.saddr, fl4.daddr, fl4.flowi4_tos, ttl, df,
+ 			    gtp->gtph_port, gtp->gtph_port,
+ 			    !net_eq(sock_net(gtp->sk1u), dev_net(dev)),
+-                            csum);
++                            !csum);
+ 
+ 	return NETDEV_TX_OK;
+ err_rt:
+@@ -624,8 +631,17 @@ static void gtp_link_setup(struct net_device *dev)
+ 	dev->type = ARPHRD_NONE;
+ 	dev->flags = IFF_POINTOPOINT | IFF_NOARP | IFF_MULTICAST;
+ 
+-	dev->priv_flags	|= IFF_NO_QUEUE;
+-	dev->features	|= NETIF_F_LLTX;
++	dev->priv_flags	 |= IFF_NO_QUEUE;
++
++	dev->features    |= NETIF_F_LLTX;
++	dev->features    |= NETIF_F_SG | NETIF_F_HW_CSUM;
++	dev->features    |= NETIF_F_RXCSUM;
++	dev->features    |= NETIF_F_GSO_SOFTWARE;
++
++	dev->hw_features |= NETIF_F_SG | NETIF_F_HW_CSUM | NETIF_F_RXCSUM;
++	dev->hw_features |= NETIF_F_GSO_SOFTWARE;
++
++
+ 	netif_keep_dst(dev);
+ 
+ 	/* Assume largest header, ie. GTPv0. */
+diff --git a/debian/changelog b/debian/changelog
+index 661dfb991..18edd863a 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,4 +1,4 @@
+-openvswitch (2.14.3-3) unstable; urgency=low
++openvswitch (2.14.3-7) unstable; urgency=low
+    [ Open vSwitch team ]
+    * New upstream version
+ 
+diff --git a/tests/system-layer3-tunnels.at b/tests/system-layer3-tunnels.at
+index 57f39e3ad..e772f55d2 100644
+--- a/tests/system-layer3-tunnels.at
++++ b/tests/system-layer3-tunnels.at
+@@ -304,7 +304,7 @@ RX: 2 TX: 2 remote ip: 172.31.1.1, seq 3, pending send 0
+ OVS_WAIT_UNTIL([cat p1.pcap | egrep "IP 172.31.1.100.2152 > 172.31.1.1.2152: UDP, length 12" 2>&1 1>/dev/null])
+ OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0000:.*0800 4500"                                     2>&1 1>/dev/null])
+ OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0010:.*ac1f 0164 ac1f"       2>&1 1>/dev/null])
+-OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0020:  0101 0868 0868 0014 5ac9 3202 0004 0000"       2>&1 1>/dev/null])
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0020:  0101 0868 0868 0014 0000 3202 0004 0000"       2>&1 1>/dev/null])
+ OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0030:  0000 0003 0e00"                                2>&1 1>/dev/null])
+ 
+ OVS_TRAFFIC_VSWITCHD_STOP
+@@ -434,7 +434,7 @@ sleep 2
+ 
+ OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0000:.*0800 4500"                                2>&1 1>/dev/null])
+ OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0010:.*ac1f 0164 ac1f"                           2>&1 1>/dev/null])
+-OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0020:  0101 0868 0868 0010 5ac5 30fe 0000 0000"  2>&1 1>/dev/null])
++OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0020:  0101 0868 0868 0010 0000 30fe 0000 0000"  2>&1 1>/dev/null])
+ OVS_WAIT_UNTIL([cat p1.pcap | egrep "0x0030:  0064"                                     2>&1 1>/dev/null])
+ 
+ OVS_TRAFFIC_VSWITCHD_STOP
+-- 
+2.17.1
+

@@ -66,7 +66,7 @@ extern "C" {
                  ->memMgr.memAlloc(                                            \
                      ((nw_gtpv2c_stack_t*) (_stack))->memMgr.hMemMgr, _size,   \
                      __FILE__, __LINE__);                                      \
-      AssertFatal(0, "Do not use this Mem manager");                           \
+      Fatal("Do not use this Mem manager");                                    \
     } else {                                                                   \
       _mem = (_type) malloc(_size);                                            \
     }                                                                          \
@@ -80,7 +80,7 @@ extern "C" {
           ->memMgr.memFree(                                                    \
               ((nw_gtpv2c_stack_t*) (_stack))->memMgr.hMemMgr, _mem, __FILE__, \
               __LINE__);                                                       \
-      AssertFatal(0, "Do not use this Mem manager");                           \
+      Fatal("Do not use this Mem manager");                                    \
     } else {                                                                   \
       free((void*) _mem);                                                      \
     }                                                                          \

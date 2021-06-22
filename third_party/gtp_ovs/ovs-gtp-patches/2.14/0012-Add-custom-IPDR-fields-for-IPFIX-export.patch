@@ -1,7 +1,7 @@
-From 76984e225b495bffcaf3e85933520da3e8f7705d Mon Sep 17 00:00:00 2001
+From 8df219052ba373beb03a819b3ec8575879b665e0 Mon Sep 17 00:00:00 2001
 From: Nick Yurchenko <koolzz@fb.com>
 Date: Mon, 1 Feb 2021 21:25:00 -0500
-Subject: [PATCH 12/18] Add custom IPDR fields for IPFIX export
+Subject: [PATCH 12/19] Add custom IPDR fields for IPFIX export
 
 Signed-off-by: Nick Yurchenko <koolzz@fb.com>
 ---
@@ -53,10 +53,10 @@ index a1d0d0fba..9dbff67a4 100644
  int odp_put_userspace_action(uint32_t pid,
                               const void *userdata, size_t userdata_size,
 diff --git a/lib/ofp-actions.c b/lib/ofp-actions.c
-index aa38b884c..4e9a35db9 100644
+index 64e77249b..4db224df1 100644
 --- a/lib/ofp-actions.c
 +++ b/lib/ofp-actions.c
-@@ -6129,10 +6129,13 @@ struct nx_action_sample2 {
+@@ -6156,10 +6156,13 @@ struct nx_action_sample2 {
      ovs_be32 obs_domain_id;         /* ID of sampling observation domain. */
      ovs_be32 obs_point_id;          /* ID of sampling observation point. */
      ovs_be16 sampling_port;         /* Sampling port. */
@@ -71,7 +71,7 @@ index aa38b884c..4e9a35db9 100644
  
  static enum ofperr
  decode_NXAST_RAW_SAMPLE(const struct nx_action_sample *nas,
-@@ -6169,6 +6172,9 @@ decode_SAMPLE2(const struct nx_action_sample2 *nas,
+@@ -6196,6 +6199,9 @@ decode_SAMPLE2(const struct nx_action_sample2 *nas,
      sample->obs_domain_id = ntohl(nas->obs_domain_id);
      sample->obs_point_id = ntohl(nas->obs_point_id);
      sample->sampling_port = u16_to_ofp(ntohs(nas->sampling_port));
@@ -81,7 +81,7 @@ index aa38b884c..4e9a35db9 100644
      sample->direction = direction;
  
      if (sample->probability == 0) {
-@@ -6215,6 +6221,9 @@ encode_SAMPLE2(const struct ofpact_sample *sample,
+@@ -6242,6 +6248,9 @@ encode_SAMPLE2(const struct ofpact_sample *sample,
      nas->obs_point_id = htonl(sample->obs_point_id);
      nas->sampling_port = htons(ofp_to_u16(sample->sampling_port));
      nas->direction = sample->direction;
@@ -91,7 +91,7 @@ index aa38b884c..4e9a35db9 100644
  }
  
  static void
-@@ -6247,8 +6256,11 @@ parse_SAMPLE(char *arg, const struct ofpact_parse_params *pp)
+@@ -6274,8 +6283,11 @@ parse_SAMPLE(char *arg, const struct ofpact_parse_params *pp)
      struct ofpact_sample *os = ofpact_put_SAMPLE(pp->ofpacts);
      os->sampling_port = OFPP_NONE;
      os->direction = NX_ACTION_SAMPLE_DEFAULT;
@@ -103,7 +103,7 @@ index aa38b884c..4e9a35db9 100644
      while (ofputil_parse_key_value(&arg, &key, &value)) {
          char *error = NULL;
  
-@@ -6257,6 +6269,20 @@ parse_SAMPLE(char *arg, const struct ofpact_parse_params *pp)
+@@ -6284,6 +6296,20 @@ parse_SAMPLE(char *arg, const struct ofpact_parse_params *pp)
              if (!error && os->probability == 0) {
                  error = xasprintf("invalid probability value \"%s\"", value);
              }
@@ -124,7 +124,7 @@ index aa38b884c..4e9a35db9 100644
          } else if (!strcmp(key, "collector_set_id")) {
              error = str_to_u32(value, &os->collector_set_id);
          } else if (!strcmp(key, "obs_domain_id")) {
-@@ -6294,12 +6320,18 @@ format_SAMPLE(const struct ofpact_sample *a,
+@@ -6321,12 +6347,18 @@ format_SAMPLE(const struct ofpact_sample *a,
      ds_put_format(fp->s, "%ssample(%s%sprobability=%s%"PRIu16
                    ",%scollector_set_id=%s%"PRIu32
                    ",%sobs_domain_id=%s%"PRIu32

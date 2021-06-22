@@ -12,6 +12,8 @@
 # limitations under the License.
 
 log_level: INFO
+print_grpc_payload: false
+
 rule_update_inteval_sec: 1
 
 # Session manager will report the usage when the usage is greater than

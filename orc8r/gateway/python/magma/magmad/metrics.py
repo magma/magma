@@ -225,7 +225,7 @@ def _collect_ping_metrics(ping_params, loop=None):
 
 
 @asyncio.coroutine
-def monitor_unattended_upgrade_status(loop):
+def monitor_unattended_upgrade_status():
     """
     Call to poll the unattended upgrade status and set the corresponding metric
     """
@@ -242,4 +242,4 @@ def monitor_unattended_upgrade_status(loop):
                         break
         logging.debug('Unattended upgrade status is %d', status)
         UNATTENDED_UPGRADE_STATUS.set(status)
-        yield from asyncio.sleep(POLL_INTERVAL_SECONDS, loop=loop)
+        yield from asyncio.sleep(POLL_INTERVAL_SECONDS)

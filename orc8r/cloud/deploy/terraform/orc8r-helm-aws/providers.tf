@@ -12,20 +12,7 @@
 ################################################################################
 
 provider "aws" {
-  version = ">= 2.6.0"
   region  = var.region
-}
-
-provider "random" {
-  version = "~> 2.1"
-}
-
-provider "tls" {
-  version = "~> 2.1"
-}
-
-provider "template" {
-  version = "~> 2.0"
 }
 
 data "aws_eks_cluster" "cluster" {
@@ -42,7 +29,6 @@ provider "kubernetes" {
   token                  = data.aws_eks_cluster_auth.cluster.token
   load_config_file       = false
   # See https://github.com/terraform-providers/terraform-provider-kubernetes/issues/759
-  version = "~> 1.10.0"
 }
 
 provider "helm" {
@@ -52,7 +38,38 @@ provider "helm" {
     token                  = data.aws_eks_cluster_auth.cluster.token
     load_config_file       = false
   }
-
-  version = "~> 1.0"
 }
 
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = ">= 2.6.0"
+    }
+
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 2.1"
+    }
+
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 2.1"
+    }
+
+    kubernetes = {
+      source  = "hashicorp/kubernetes"
+      version = "~> 1.11.1"
+    }
+
+    template = {
+      source = "hashicorp/template"
+      version = "~> 2.0"
+    }
+
+    helm = {
+        source  = "hashicorp/helm"
+        version = "~> 1.0"
+    }
+  }
+}

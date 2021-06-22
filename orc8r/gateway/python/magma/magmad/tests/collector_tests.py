@@ -120,11 +120,12 @@ class MetricsCollectorTests(unittest.TestCase):
         )
 
         # Reduce max msg size to trigger msg chunking
-        self._collector.grpc_max_msg_size_bytes = 1500
-        samples = self._generate_samples(140)
+        self._collector.grpc_max_msg_size_bytes = 10000
+        samples = self._generate_samples(2000)
         self._collector._samples_for_service[service_name].extend(samples)
-        chunk1 = samples[:70]
-        chunk2 = samples[70:140]
+        chunked_samples = self._collector._chunk_samples(samples)
+        chunk1 = next(chunked_samples)
+        chunk2 = next(chunked_samples)
 
         with unittest.mock.patch('snowflake.snowflake') as mock_snowflake:
             mock_snowflake.side_effect = lambda: self.gateway_id
@@ -403,6 +404,18 @@ class MetricsCollectorTests(unittest.TestCase):
                     2
                     ].cumulative_count,
                 )
+
+    def test_chunk_samples(self):
+        # Generate 1.2 kbs of metric samples
+        test_collector = MetricsCollector(
+            self._services, 5, 10,
+            self.timeout,
+            grpc_max_msg_size_mb=0.01,
+            loop=asyncio.new_event_loop(),
+        )
+        samples = self._generate_samples(2000)
+        chunked_samples = test_collector._chunk_samples(samples)
+        self.assertEqual(len(list(chunked_samples)), 2)
 
     def _generate_samples(self, number):
         samples = []

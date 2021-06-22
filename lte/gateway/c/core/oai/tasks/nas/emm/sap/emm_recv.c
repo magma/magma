@@ -56,6 +56,7 @@
 /****************************************************************************/
 extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
+extern bool mme_congestion_control_enabled;
 extern mme_congestion_params_t mme_congestion_params;
 
 /****************************************************************************/
@@ -210,12 +211,13 @@ int emm_recv_attach_request(
   }
 
   /*
-   * Handle MME congestion
+   * Handle MME congestion if it's enabled
    */
   // Currently a simple logic, when a more complex logic added
   // refactor this part via helper functions is_mme_congested.
-  if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
-      MME_APP_ZMQ_LATENCY_CONGEST_TH) {
+  if (mme_congestion_control_enabled &&
+      (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+       MME_APP_ZMQ_LATENCY_CONGEST_TH)) {
     OAILOG_WARNING(
         LOG_NAS_EMM,
         "EMMAS-SAP - Sending Attach Reject for ue_id = (%08x), emm_cause = "
@@ -444,6 +446,16 @@ int emm_recv_attach_request(
         sizeof(voice_domain_preference_and_ue_usage_setting_t));
   }
 
+  if (msg->presencemask &
+      ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT) {
+    params->ueadditionalsecuritycapability =
+        calloc(1, sizeof(ue_additional_security_capability_t));
+    memcpy(
+        params->ueadditionalsecuritycapability,
+        &msg->ueadditionalsecuritycapability,
+        sizeof(ue_additional_security_capability_t));
+  }
+
   /*
    * Execute the requested UE attach procedure
    */
@@ -572,7 +584,7 @@ int emm_recv_detach_request(
  ***************************************************************************/
 int emm_recv_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, tracking_area_update_request_msg* const msg,
-    const bool is_initial, int* const emm_cause,
+    const bool is_initial, const tac_t const tac, int* const emm_cause,
     const nas_message_decode_status_t* const decode_status) {
   int rc = RETURNok;
 
@@ -701,7 +713,7 @@ int emm_recv_tracking_area_update_request(
   }
 
   ies->decode_status = *decode_status;
-  rc = emm_proc_tracking_area_update_request(ue_id, ies, emm_cause);
+  rc = emm_proc_tracking_area_update_request(ue_id, ies, emm_cause, tac);
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }

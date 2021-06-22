@@ -33,6 +33,7 @@ from lte.protos.pipelined_pb2 import (
     UpdateSubscriberQuotaStateRequest,
     VersionedPolicy,
     VersionedPolicyID,
+    GetStatsRequest
 )
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import (
@@ -41,7 +42,8 @@ from lte.protos.policydb_pb2 import (
     PolicyRule,
     RedirectInformation,
 )
-from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
+
+from lte.protos.apn_pb2 import AggregatedMaximumBitrate
 from magma.common.rpc_utils import grpc_wrapper
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.app.enforcement import EnforcementController
@@ -51,8 +53,8 @@ from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.qos.common import QosManager
 from magma.pipelined.service_manager import Tables
 from magma.subscriberdb.sid import SIDUtils
-from scripts.helpers.ng_set_session_msg import CreateSessionUtil
-from scripts.helpers.pg_set_session_msg import CreateMMESessionUtils
+from magma.pipelined.ng_set_session_msg import CreateSessionUtil
+from magma.pipelined.pg_set_session_msg import CreateMMESessionUtils
 from orc8r.protos.common_pb2 import Void
 
 LOG_INCREMENT = 25
@@ -361,7 +363,7 @@ def create_enforcement_parser(apps):
     """
     app = apps.add_parser('enforcement')
     subparsers = app.add_subparsers(title='subcommands', dest='cmd')
-
+    
     # Add subcommands
     subcmd = subparsers.add_parser('activate_flows',
                                    help='Activate flows')
@@ -423,6 +425,11 @@ def create_enforcement_parser(apps):
     subcmd.add_argument('--disable_qos', help='If we want to disable QOS',
                         action="store_true")
     subcmd.set_defaults(func=stress_test_grpc)
+    subcmd = subparsers.add_parser('pull_stats_grpc', help = 'Have RuleRecords returned based on matching cookie and cookie mask')
+    subcmd.add_argument('--cookie', type=int, default=0)
+    subcmd.add_argument('--cookie_mask', type=int, default=0)
+    subcmd.set_defaults(func=get_stats_rpc)
+
 
 # -------------
 # UE MAC APP
@@ -577,6 +584,12 @@ def display_flows(client, args):
         return
     _display_flows(client, args.apps.split(','))
 
+@grpc_wrapper
+def get_stats_rpc(client, args):
+    request = GetStatsRequest(cookie = args.cookie, cookie_mask = args.cookie_mask)
+    response = client.GetStats(request, None)
+    pprint(response)
+    
 
 def create_debug_parser(apps):
     """

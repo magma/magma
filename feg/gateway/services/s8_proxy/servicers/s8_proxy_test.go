@@ -53,6 +53,9 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	s8p, mockPgw := startSgwAndPgw(t, GtpTimeoutForTest)
 	defer mockPgw.Close()
 
+	// set apn suffix
+	s8p.config.ApnOperatorSuffix = ".operator.suffix.com"
+
 	// ------------------------
 	// ---- Create Session ----
 	csReq := getDefaultCreateSessionRequest(mockPgw.LocalAddr().String())
@@ -107,6 +110,28 @@ func TestS8proxyCreateAndDeleteSession(t *testing.T) {
 	// check PCO
 	assert.NotEmpty(t, csRes.ProtocolConfigurationOptions)
 	assert.Equal(t, csReq.ProtocolConfigurationOptions, csRes.ProtocolConfigurationOptions)
+
+	// check operator suffix
+	pgwSession, err := mockPgw.GetSessionByIMSI(IMSI1)
+	require.NoError(t, err)
+	bearer := pgwSession.GetDefaultBearer()
+	require.NotNil(t, bearer)
+	expectedAPN := fmt.Sprintf("%s%s", "internet", s8p.config.ApnOperatorSuffix)
+	assert.Equal(t, expectedAPN, bearer.APN)
+
+	// check ULI received
+	require.NotNil(t, mockPgw.LastULI)
+	assert.Equal(t, csReq.Uli.Ci, uint32(mockPgw.LastULI.CGI.CI))
+	assert.Equal(t, csReq.ServingNetwork.Mcc, mockPgw.LastULI.CGI.MCC)
+	assert.Equal(t, csReq.ServingNetwork.Mnc, mockPgw.LastULI.CGI.MNC)
+
+	assert.Equal(t, csReq.Uli.Lac, uint32(mockPgw.LastULI.LAI.LAC))
+	assert.Equal(t, csReq.ServingNetwork.Mcc, mockPgw.LastULI.LAI.MCC)
+	assert.Equal(t, csReq.ServingNetwork.Mnc, mockPgw.LastULI.LAI.MNC)
+
+	assert.Equal(t, csReq.Uli.Eci, mockPgw.LastULI.ECGI.ECI)
+	assert.Equal(t, csReq.ServingNetwork.Mcc, mockPgw.LastULI.ECGI.MCC)
+	assert.Equal(t, csReq.ServingNetwork.Mnc, mockPgw.LastULI.ECGI.MNC)
 
 	// ------------------------
 	// ---- Delete Session ----
@@ -171,6 +196,13 @@ func TestS8proxyRepeatedCreateSession(t *testing.T) {
 
 	// check Pgw Control Plane TEID
 	assert.Equal(t, PgwTEIDc, csRes.CPgwFteid.Teid)
+
+	// check operator suffix (no suffix)
+	pgwSession, err := mockPgw.GetSessionByIMSI(IMSI1)
+	require.NoError(t, err)
+	bearer := pgwSession.GetDefaultBearer()
+	require.NotNil(t, bearer)
+	assert.Equal(t, "internet", bearer.APN)
 }
 
 func TestS8proxyCreateWithMissingParam(t *testing.T) {
@@ -621,7 +653,7 @@ func TestCreateBearerRequest(t *testing.T) {
 	csRes, err := s8p.CreateSession(context.Background(), csReq)
 	assert.NoError(t, err)
 	assert.NotEmpty(t, csRes)
-	assert.Empty(t, csRes.GtpError)
+	require.Nil(t, csRes.GtpError)
 	_, err = mockPgw.GetSessionByIMSI(IMSI1)
 	assert.NoError(t, err)
 
@@ -640,7 +672,7 @@ func TestCreateBearerRequest(t *testing.T) {
 	fegRelayTestSrv.DefaultCreateBearerRes =
 		&protos.CreateBearerResponsePgw{
 			CPgwTeid:                     uint32(111),
-			ServingNetwork:               &protos.ServingNetwork{Mcc: "10", Mnc: "101"},
+			ServingNetwork:               &protos.ServingNetwork{Mcc: "011", Mnc: "99"},
 			Cause:                        uint32(gtpv2.CauseRequestAccepted),
 			BearerContext:                csReq.BearerContext,
 			ProtocolConfigurationOptions: csReq.ProtocolConfigurationOptions,
@@ -759,7 +791,7 @@ func getDefaultCreateSessionRequest(pgwAddrs string) *protos.CreateSessionReques
 			Ipv6Prefix:  0,
 		},
 
-		Apn:           "internet.com",
+		Apn:           "internet",
 		SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
 		Ambr: &protos.Ambr{
 			BrUl: 999,
@@ -845,7 +877,7 @@ func getMultipleCreateSessionRequest(nRequest int, pgwAddrs string) []*protos.Cr
 				Ipv6Prefix:  0,
 			},
 
-			Apn:           "internet.com",
+			Apn:           "internet",
 			SelectionMode: protos.SelectionModeType_APN_provided_subscription_verified,
 			Ambr: &protos.Ambr{
 				BrUl: 999,

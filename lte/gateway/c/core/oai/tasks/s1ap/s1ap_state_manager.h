@@ -29,6 +29,7 @@ extern "C" {
 }
 #endif
 
+#include "common_defs.h"
 #include "state_manager.h"
 #include "s1ap_state_converter.h"
 
@@ -77,7 +78,7 @@ class S1apStateManager
    * Reads S1AP context state for all UEs in db
    * @return operation response code
    */
-  int read_ue_state_from_db() override;
+  status_code_e read_ue_state_from_db() override;
 
   /**
    * Serializes s1ap_imsi_map to proto and saves it into data store

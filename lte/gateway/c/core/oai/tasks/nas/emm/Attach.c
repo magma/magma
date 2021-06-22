@@ -1156,6 +1156,11 @@ static int emm_attach_run_procedure(emm_context_t* emm_context) {
     // temporary choice to clear security context if it exist
     emm_ctx_clear_security(emm_context);
 
+    if (attach_proc->ies->ueadditionalsecuritycapability) {
+      emm_ctx_set_ue_additional_security_capability(
+          emm_context, attach_proc->ies->ueadditionalsecuritycapability);
+    }
+
     if (attach_proc->ies->imsi) {
       if ((attach_proc->ies->decode_status.mac_matched) ||
           !(attach_proc->ies->decode_status.integrity_protected_message)) {
@@ -1183,7 +1188,7 @@ static int emm_attach_run_procedure(emm_context_t* emm_context) {
           emm_attach_failure_identification_cb);
     } else if (attach_proc->ies->imei) {
       // emergency allowed if go here, but have to be implemented...
-      AssertFatal(0, "TODO emergency");
+      Fatal("TODO emergency");
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -1232,7 +1237,7 @@ static int emm_attach_failure_identification_cb(emm_context_t* emm_context) {
       LOG_NAS_EMM, emm_context->_imsi64,
       "ATTACH - Identification procedure failed!\n");
 
-  AssertFatal(0, "Cannot happen...\n");
+  Fatal("Cannot happen...\n");
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -2188,7 +2193,7 @@ static bool emm_attach_ies_have_changed(
   }
 
   if ((ies1->guti) && (ies2->guti)) {
-    if (memcmp(ies1->guti, ies2->guti, sizeof(*ies1->guti))) {
+    if (memcmp(ies1->guti, ies2->guti, sizeof(*(ies1->guti)))) {
       OAILOG_DEBUG(
           LOG_NAS_EMM,
           "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed:  guti/tmsi " GUTI_FMT
@@ -2224,7 +2229,7 @@ static bool emm_attach_ies_have_changed(
   if ((ies1->guti) && (ies2->guti)) {
     imsi64_t imsi641 = imsi_to_imsi64(ies1->imsi);
     imsi64_t imsi642 = imsi_to_imsi64(ies2->imsi);
-    if (memcmp(ies1->guti, ies2->guti, sizeof(*ies1->guti))) {
+    if (memcmp(ies1->guti, ies2->guti, sizeof(*(ies1->guti)))) {
       OAILOG_DEBUG(
           LOG_NAS_EMM,
           "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed:  IMSI " IMSI_64_FMT
@@ -2260,7 +2265,7 @@ static bool emm_attach_ies_have_changed(
   }
 
   if ((ies1->imei) && (ies2->imei)) {
-    if (memcmp(ies1->imei, ies2->imei, sizeof(*ies2->imei)) != 0) {
+    if (memcmp(ies1->imei, ies2->imei, sizeof(*(ies2->imei))) != 0) {
       char imei_str[16];
       char imei2_str[16];
 
@@ -2302,7 +2307,7 @@ static bool emm_attach_ies_have_changed(
     if (memcmp(
             ies1->last_visited_registered_tai,
             ies2->last_visited_registered_tai,
-            sizeof(*ies2->last_visited_registered_tai)) != 0) {
+            sizeof(*(ies2->last_visited_registered_tai))) != 0) {
       OAILOG_DEBUG(
           LOG_NAS_EMM,
           "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: LVR TAI " TAI_FMT
@@ -2337,7 +2342,7 @@ static bool emm_attach_ies_have_changed(
   if ((ies1->originating_tai) && (ies2->originating_tai)) {
     if (memcmp(
             ies1->originating_tai, ies2->originating_tai,
-            sizeof(*ies2->originating_tai)) != 0) {
+            sizeof(*(ies2->originating_tai))) != 0) {
       OAILOG_DEBUG(
           LOG_NAS_EMM,
           "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: orig TAI " TAI_FMT
@@ -2368,7 +2373,7 @@ static bool emm_attach_ies_have_changed(
   if ((ies1->originating_ecgi) && (ies2->originating_ecgi)) {
     if (memcmp(
             ies1->originating_ecgi, ies2->originating_ecgi,
-            sizeof(*ies2->originating_ecgi)) != 0) {
+            sizeof(*(ies2->originating_ecgi))) != 0) {
       OAILOG_DEBUG(
           LOG_NAS_EMM,
           "UE " MME_UE_S1AP_ID_FMT " Attach IEs changed: orig ECGI\n", ue_id);
@@ -2411,11 +2416,48 @@ static bool emm_attach_ies_have_changed(
   if ((ies1->ms_network_capability) && (ies2->ms_network_capability)) {
     if (memcmp(
             ies1->ms_network_capability, ies2->ms_network_capability,
-            sizeof(*ies2->ms_network_capability)) != 0) {
+            sizeof(*(ies2->ms_network_capability))) != 0) {
       OAILOG_DEBUG(
           LOG_NAS_EMM,
           "UE " MME_UE_S1AP_ID_FMT
           " Attach IEs changed: MS network capability\n",
+          ue_id);
+      OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
+    }
+  }
+  /*
+   * UE Additional Security Capability
+   */
+  if ((ies1->ueadditionalsecuritycapability) &&
+      (!ies2->ueadditionalsecuritycapability)) {
+    OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "UE " MME_UE_S1AP_ID_FMT
+        " Attach IEs changed: UE additional security capability\n",
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
+  }
+
+  if ((!ies1->ueadditionalsecuritycapability) &&
+      (ies2->ueadditionalsecuritycapability)) {
+    OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "UE " MME_UE_S1AP_ID_FMT
+        " Attach IEs changed: UE additional security capability\n",
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
+  }
+
+  if ((ies1->ueadditionalsecuritycapability) &&
+      (ies2->ueadditionalsecuritycapability)) {
+    if (memcmp(
+            ies1->ueadditionalsecuritycapability,
+            ies2->ueadditionalsecuritycapability,
+            sizeof(*(ies2->ueadditionalsecuritycapability))) != 0) {
+      OAILOG_DEBUG(
+          LOG_NAS_EMM,
+          "UE " MME_UE_S1AP_ID_FMT
+          " Attach IEs changed: UE additional security capability\n",
           ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_EMM, true);
     }
@@ -2459,6 +2501,9 @@ void free_emm_attach_request_ies(emm_attach_request_ies_t** const ies) {
   }
   if ((*ies)->voicedomainpreferenceandueusagesetting) {
     free_wrapper((void**) &(*ies)->voicedomainpreferenceandueusagesetting);
+  }
+  if ((*ies)->ueadditionalsecuritycapability) {
+    free_wrapper((void**) &(*ies)->ueadditionalsecuritycapability);
   }
   free_wrapper((void**) ies);
 }

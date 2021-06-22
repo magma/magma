@@ -147,6 +147,8 @@ class BridgeTools:
         Creates a simple bridge, sets up an interface.
         Used when running unit tests
         """
+        subprocess.Popen(["ovs-vsctl", "--all", "destroy",
+                          "Flow_Sample_Collector_Set"]).wait()
         subprocess.Popen(["ovs-vsctl", "--if-exists", "del-br",
                           bridge_name]).wait()
         subprocess.Popen(["ovs-vsctl", "add-br", bridge_name]).wait()
@@ -216,7 +218,7 @@ class BridgeTools:
             set_cmd.append("table=%s" % table_num)
 
         flows = \
-            subprocess.check_output(set_cmd).decode('utf-8').split('\n')
+            subprocess.check_output(set_cmd).decode('ascii', 'ignore').split('\n')
         flows = list(filter(lambda x: (x is not None and
                                        x != '' and
                                        x.find("NXST_FLOW") == -1),

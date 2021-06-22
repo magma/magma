@@ -478,12 +478,11 @@ void mme_app_handle_conn_est_cnf(
   }
 
   if (emm_context._ue_network_capability.dcnr) {
+    establishment_cnf_p->nr_ue_security_capabilities_present = true;
     establishment_cnf_p->nr_ue_security_capabilities_encryption_algorithms =
-        ((uint16_t) emm_context._nr_ue_security_capability.nea & ~(1 << 7))
-        << 1;
+        emm_context.ue_additional_security_capability._5g_ea << 1;
     establishment_cnf_p->nr_ue_security_capabilities_integrity_algorithms =
-        ((uint16_t) emm_context._nr_ue_security_capability.nia & ~(1 << 7))
-        << 1;
+        emm_context.ue_additional_security_capability._5g_ia << 1;
   }
 
   derive_keNB(
@@ -3629,10 +3628,22 @@ void mme_app_handle_path_switch_request(
   }
   ue_context_p->sctp_assoc_id_key = path_switch_req_p->sctp_assoc_id;
   ue_context_p->e_utran_cgi       = path_switch_req_p->ecgi;
+
+  /* Security capabilities IE within s1ap message, Path Switch Request is of
+   * 16 bit info, encryption algorithms starts with 128-EEA1
+   * second bit set to 128-EEA2,
+   * third bit set to 128-EEA3, other bits are reserved.
+   * Where as, eea within emm context is of 8 bit info and starts from EEA0
+   * So compare only the remaining security capabilities.
+   * The same concept is applicable for integration algorithms
+   */
   ue_network_capability.eea =
-      path_switch_req_p->encryption_algorithm_capabilities;
+      ((path_switch_req_p->encryption_algorithm_capabilities >> 9) |
+       ((0x80 & ue_context_p->emm_context._ue_network_capability.eea)));
   ue_network_capability.eia =
-      path_switch_req_p->integrity_algorithm_capabilities;
+      ((path_switch_req_p->integrity_algorithm_capabilities >> 9) |
+       ((0x80 & ue_context_p->emm_context._ue_network_capability.eia)));
+
   if ((ue_network_capability.eea !=
        ue_context_p->emm_context._ue_network_capability.eea) ||
       (ue_network_capability.eia !=

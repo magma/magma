@@ -81,6 +81,7 @@
 /****************************************************************************/
 extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
+extern bool mme_congestion_control_enabled;
 extern mme_congestion_params_t mme_congestion_params;
 
 /****************************************************************************/
@@ -361,6 +362,13 @@ int emm_proc_security_mode_control(
     // smc_proc->imeisv_request = (IS_EMM_CTXT_PRESENT_IMEISV(emm_ctx)) ?
     // false:true;
 
+    if
+      IS_EMM_CTXT_PRESENT_UE_ADDITIONAL_SECURITY_CAPABILITY(emm_ctx) {
+        smc_proc->replayed_ue_add_sec_cap_present = true;
+        smc_proc->_5g_ea = emm_ctx->ue_additional_security_capability._5g_ea;
+        smc_proc->_5g_ia = emm_ctx->ue_additional_security_capability._5g_ia;
+      }
+
     /*
      * Send security mode command message to the UE
      */
@@ -502,8 +510,9 @@ int emm_proc_security_mode_complete(
     /* If spent too much in ZMQ, then discard the packet.
      * MME is congested and this would create some relief in processing.
      */
-    if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
-        MME_APP_ZMQ_LATENCY_SMC_TH) {
+    if (mme_congestion_control_enabled &&
+        (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+         MME_APP_ZMQ_LATENCY_SMC_TH)) {
       OAILOG_WARNING_UE(
           LOG_NAS_EMM, emm_ctx->_imsi64,
           "Discarding SMC complete as cumulative ZMQ latency ( %ld + %ld ) for "
@@ -747,6 +756,7 @@ static void security_t3460_handler(void* args, imsi64_t* imsi64) {
      * Increment the retransmission counter
      */
     smc_proc->retransmission_count += 1;
+    smc_proc->T3460.id = NAS_TIMER_INACTIVE_ID;
     OAILOG_WARNING_UE(
         LOG_NAS_EMM, *imsi64,
         "EMM-PROC  - T3460 timer expired, retransmission "
@@ -833,6 +843,10 @@ static int security_request(nas_emm_smc_proc_t* const smc_proc) {
     emm_sap.u.emm_as.u.security.selected_eea   = smc_proc->selected_eea;
     emm_sap.u.emm_as.u.security.selected_eia   = smc_proc->selected_eia;
     emm_sap.u.emm_as.u.security.imeisv_request = smc_proc->imeisv_request;
+    emm_sap.u.emm_as.u.security.replayed_ue_add_sec_cap_present =
+        smc_proc->replayed_ue_add_sec_cap_present;
+    emm_sap.u.emm_as.u.security._5g_ea = smc_proc->_5g_ea;
+    emm_sap.u.emm_as.u.security._5g_ia = smc_proc->_5g_ia;
 
     ue_mm_context = mme_ue_context_exists_mme_ue_s1ap_id(smc_proc->ue_id);
     if (ue_mm_context) {

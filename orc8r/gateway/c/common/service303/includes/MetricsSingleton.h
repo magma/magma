@@ -79,6 +79,7 @@ class MetricsSingleton {
   void RemoveCounter(const char* name, size_t label_count, va_list& args);
   void IncrementCounter(
       const char* name, double increment, size_t label_count, va_list& args);
+  void RemoveGauge(const char* name, size_t label_count, va_list& args);
   void IncrementGauge(
       const char* name, double increment, size_t label_count, va_list& args);
   void DecrementGauge(

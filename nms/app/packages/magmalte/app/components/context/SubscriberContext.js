@@ -16,6 +16,7 @@
 import type {
   gateway_id,
   mutable_subscriber,
+  mutable_subscribers,
   subscriber,
   subscriber_id,
   subscriber_state,
@@ -42,7 +43,7 @@ export type SubscriberContextType = {
   gwSubscriberMap: {[gateway_id]: Array<subscriber_id>},
   setState?: (
     key: string,
-    val?: mutable_subscriber,
+    val?: mutable_subscriber | mutable_subscribers,
     newState?: {[string]: subscriber},
     newSessionState?: {[string]: subscriber_state},
   ) => Promise<void>,

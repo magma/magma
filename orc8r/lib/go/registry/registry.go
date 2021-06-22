@@ -367,8 +367,15 @@ func (r *ServiceRegistry) GetAnnotationList(service, annotationName string) ([]s
 // GetConnection provides a gRPC connection to a service in the registry.
 // The service needs to be added to the registry before this.
 func (r *ServiceRegistry) GetConnection(service string) (*grpc.ClientConn, error) {
+	return r.GetConnectionWithTimeout(service, GrpcMaxTimeoutSec*time.Second)
+}
+
+// GetConnectionWithTimeout is same as GetConnection, but caller can provide
+// their own timeout.
+// The service needs to be added to the registry before this.
+func (r *ServiceRegistry) GetConnectionWithTimeout(service string, timeout time.Duration) (*grpc.ClientConn, error) {
 	service = strings.ToLower(service)
-	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
 	return r.GetConnectionImpl(ctx, service, r.getGRPCDialOptions()...)
 }

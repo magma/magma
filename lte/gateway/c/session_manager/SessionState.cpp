@@ -32,15 +32,14 @@
 
 namespace {
 const char* UE_TRAFFIC_COUNTER_NAME = "ue_traffic";
-const char* UE_DROPPED_COUNTER_NAME = "ue_dropped_usage";
+const char* UE_DROPPED_GAUGE_NAME   = "ue_dropped_usage";
 const char* UE_USED_COUNTER_NAME    = "ue_reported_usage";
 const char* LABEL_IMSI              = "IMSI";
 const char* LABEL_APN               = "apn";
-const char* LABEL_MSISDN            = "msisdn";
+const char* LABEL_SESSION_ID        = "session_id";
 const char* LABEL_DIRECTION         = "direction";
 const char* DIRECTION_UP            = "up";
 const char* DIRECTION_DOWN          = "down";
-const char* LABEL_SESSION_ID        = "session_id";
 // TODO(@themarwhal): SessionD should own the naming of the drop all rule so
 // that we never regress here
 const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
@@ -48,6 +47,8 @@ const char* DROP_ALL_RULE = "internal_default_drop_flow_rule";
 
 using magma::service303::increment_counter;
 using magma::service303::remove_counter;
+using magma::service303::remove_gauge;
+using magma::service303::set_gauge;
 
 namespace magma {
 
@@ -184,9 +185,6 @@ SessionState::SessionState(
   }
   for (auto& rule : marshaled.gy_dynamic_rules) {
     gy_dynamic_rules_.insert_rule(rule);
-  }
-  for (auto& it : marshaled.policy_version_and_stats) {
-    policy_version_and_stats_[it.first] = it.second;
   }
 }
 
@@ -476,7 +474,6 @@ optional<RuleStats> SessionState::get_rule_delta(
     const std::string& rule_id, uint64_t rule_version, uint64_t used_tx,
     uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
     SessionStateUpdateCriteria* session_uc) {
-  // TODO(@koolzz): Handle drop all stats properly GH7143
   if (policy_version_and_stats_.find(rule_id) ==
       policy_version_and_stats_.end()) {
     if (rule_id.compare(DROP_ALL_RULE)) {
@@ -534,22 +531,10 @@ optional<RuleStats> SessionState::get_rule_delta(
   policy_version_and_stats_[rule_id].stats_map[rule_version] =
       RuleStats(used_tx, used_rx, dropped_tx, dropped_rx);
 
+  // When policy_version_and_stats_ is updated, we update the whole map in UC
+  // for now
   if (session_uc) {
-    if (!session_uc->policy_version_and_stats) {
-      session_uc->policy_version_and_stats = PolicyStatsMap{};
-    }
-
-    if (session_uc->policy_version_and_stats.value().find(rule_id) ==
-        policy_version_and_stats_.end()) {
-      session_uc->policy_version_and_stats.value()[rule_id] = StatsPerPolicy();
-    }
-    auto& stats_uc = session_uc->policy_version_and_stats.value()[rule_id];
-    stats_uc.current_version =
-        policy_version_and_stats_[rule_id].current_version;
-    stats_uc.last_reported_version =
-        policy_version_and_stats_[rule_id].last_reported_version;
-    stats_uc.stats_map[rule_version] =
-        policy_version_and_stats_[rule_id].stats_map[rule_version];
+    session_uc->policy_version_and_stats = policy_version_and_stats_;
   }
   return ret;
 }
@@ -559,6 +544,11 @@ void SessionState::add_rule_usage(
     uint64_t used_rx, uint64_t dropped_tx, uint64_t dropped_rx,
     SessionStateUpdateCriteria* session_uc) {
   CreditKey charging_key;
+
+  if (rule_id.compare(DROP_ALL_RULE) == 0) {
+    set_data_metrics(UE_DROPPED_GAUGE_NAME, dropped_tx, dropped_rx);
+    return;
+  }
 
   // TODO: Rework logic to work with flat rate, below is a hacky solution
   auto rule_delta = get_rule_delta(
@@ -599,10 +589,9 @@ void SessionState::add_rule_usage(
     add_to_monitor(session_level_key_, delta.tx, delta.rx, session_uc);
   }
   if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
-    update_data_metrics(UE_USED_COUNTER_NAME, delta.tx, delta.rx);
+    increment_data_metrics(UE_USED_COUNTER_NAME, delta.tx, delta.rx);
   }
-  update_data_metrics(
-      UE_DROPPED_COUNTER_NAME, delta.dropped_tx, delta.dropped_rx);
+  set_data_metrics(UE_DROPPED_GAUGE_NAME, dropped_tx, dropped_rx);
 }
 
 void SessionState::apply_session_rule_set(
@@ -2610,46 +2599,54 @@ optional<RuleSetToApply> RuleSetBySubscriber::get_combined_rule_set_for_apn(
   return {};
 }
 
-void SessionState::update_data_metrics(
-    const char* counter_name, uint64_t bytes_tx, uint64_t bytes_rx) {
-  const auto sid    = get_config().common_context.sid().id();
-  const auto msisdn = get_config().common_context.msisdn();
-  const auto apn    = get_config().common_context.apn();
+void SessionState::set_data_metrics(
+    const char* gauge_name, uint64_t bytes_tx, uint64_t bytes_rx) const {
+  const char* imsi = config_.common_context.sid().id().c_str();
+  const char* apn  = config_.common_context.apn().c_str();
+  set_gauge(
+      gauge_name, bytes_tx, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
+      LABEL_DIRECTION, DIRECTION_UP);
+  set_gauge(
+      gauge_name, bytes_rx, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
+      LABEL_DIRECTION, DIRECTION_DOWN);
+}
+
+void SessionState::increment_data_metrics(
+    const char* counter_name, uint64_t delta_tx, uint64_t delta_rx) const {
+  const char* imsi = config_.common_context.sid().id().c_str();
+  const char* apn  = config_.common_context.apn().c_str();
   increment_counter(
-      counter_name, bytes_tx, size_t(4), LABEL_IMSI, sid.c_str(), LABEL_APN,
-      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION, DIRECTION_UP);
+      counter_name, delta_tx, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
+      LABEL_DIRECTION, DIRECTION_UP);
   increment_counter(
-      counter_name, bytes_rx, size_t(4), LABEL_IMSI, sid.c_str(), LABEL_APN,
-      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
-      DIRECTION_DOWN);
+      counter_name, delta_rx, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
+      LABEL_DIRECTION, DIRECTION_DOWN);
 }
 
 void SessionState::clear_session_metrics() const {
-  const auto imsi   = get_config().common_context.sid().id();
-  const auto msisdn = get_config().common_context.msisdn();
-  const auto apn    = get_config().common_context.apn();
+  const char* imsi       = config_.common_context.sid().id().c_str();
+  const char* apn        = config_.common_context.apn().c_str();
+  const char* session_id = session_id_.c_str();
   remove_counter(
-      UE_USED_COUNTER_NAME, size_t(4), LABEL_IMSI, imsi.c_str(), LABEL_APN,
-      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION, DIRECTION_UP);
+      UE_USED_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
+      LABEL_DIRECTION, DIRECTION_UP);
   remove_counter(
-      UE_USED_COUNTER_NAME, size_t(4), LABEL_IMSI, imsi.c_str(), LABEL_APN,
-      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
-      DIRECTION_DOWN);
+      UE_USED_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
+      LABEL_DIRECTION, DIRECTION_DOWN);
+
+  remove_gauge(
+      UE_DROPPED_GAUGE_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
+      LABEL_DIRECTION, DIRECTION_UP);
+  remove_gauge(
+      UE_DROPPED_GAUGE_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_APN, apn,
+      LABEL_DIRECTION, DIRECTION_DOWN);
 
   remove_counter(
-      UE_DROPPED_COUNTER_NAME, size_t(4), LABEL_IMSI, imsi.c_str(), LABEL_APN,
-      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION, DIRECTION_UP);
+      UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_SESSION_ID,
+      session_id, LABEL_DIRECTION, DIRECTION_UP);
   remove_counter(
-      UE_DROPPED_COUNTER_NAME, size_t(4), LABEL_IMSI, imsi.c_str(), LABEL_APN,
-      apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
-      DIRECTION_DOWN);
-
-  remove_counter(
-      UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi.c_str(),
-      LABEL_SESSION_ID, session_id_.c_str(), LABEL_DIRECTION, DIRECTION_UP);
-  remove_counter(
-      UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi.c_str(),
-      LABEL_SESSION_ID, session_id_.c_str(), LABEL_DIRECTION, DIRECTION_DOWN);
+      UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_SESSION_ID,
+      session_id, LABEL_DIRECTION, DIRECTION_DOWN);
 }
 
 CreateSessionResponse SessionState::get_create_session_response() {
