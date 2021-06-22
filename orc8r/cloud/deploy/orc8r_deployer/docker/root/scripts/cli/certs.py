@@ -33,7 +33,8 @@ def certs_cmd(constants: dict, self_signed: bool = False) -> list:
         playbook=f"{playbook_dir}/certs.yml",
         tags=['addcerts'],
         skip_tags=skip_tags,
-        extra_vars=constants)
+        extra_vars=constants,
+    )
 
 
 @click.group()

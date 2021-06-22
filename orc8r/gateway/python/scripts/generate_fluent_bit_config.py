@@ -60,7 +60,7 @@ def main():
         context['is_tls_enabled'] = False
 
     generate_template_config(
-        'td-agent-bit', 'td-agent-bit', CONFIG_OVERRIDE_DIR, context.copy()
+        'td-agent-bit', 'td-agent-bit', CONFIG_OVERRIDE_DIR, context.copy(),
     )
 
 

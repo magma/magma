@@ -193,7 +193,7 @@ class Port(object):
             if ret_val:
                 raise OvsException(
                     "Error deleting port %s on bridge %s" % (
-                    self._iface_name, self._bridge_name,
+                        self._iface_name, self._bridge_name,
                     ),
                 )
 

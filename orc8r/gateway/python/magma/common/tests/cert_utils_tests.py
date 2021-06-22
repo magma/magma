@@ -77,7 +77,7 @@ class CertUtilsTest(TestCase):
             cert_file = os.path.join(temp_dir, 'test.cert')
             cu.write_cert(
                 cert.public_bytes(
-                serialization.Encoding.DER,
+                    serialization.Encoding.DER,
                 ), cert_file,
             )
             cert_load = cu.load_cert(cert_file)

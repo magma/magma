@@ -76,7 +76,10 @@ class GxReauthTest(unittest.TestCase):
         )
 
         # Initialize sub with 1 static and 1 dynamic rule
-        sub = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
+        sub = SubContextConfig(
+            'IMSI001010000088888',
+            '192.168.128.74', default_ambr_config, 4,
+        )
         self.test_util.controller.mock_create_session = Mock(
             return_value=CreateSessionResponse(
                 credits=[create_update_response(sub.imsi, 1, 1024)],

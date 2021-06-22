@@ -54,52 +54,52 @@ class MessageHeaderCodecTests(unittest.TestCase):
         # The default message header is all zeros except the version number
         header = message.MessageHeader()
         self._compare_header(
-            header, b'\x01' +
-            b'\x00' * (message.HEADER_LEN - 1), 0,
+            header, b'\x01'
+            + b'\x00' * (message.HEADER_LEN - 1), 0,
         )
 
         # Next three bytes are the length
         self._compare_header(
-            header, b'\x01\x00\x00\x02' +
-            b'\x00' * (message.HEADER_LEN - 4), 2,
+            header, b'\x01\x00\x00\x02'
+            + b'\x00' * (message.HEADER_LEN - 4), 2,
         )
 
         # Next is our command flags
         header.command_flags = 0x1f
         self._compare_header(
-            header, b'\x01\x00\x00\x02\x1f' +
-            b'\x00' * (message.HEADER_LEN - 5), 2,
+            header, b'\x01\x00\x00\x02\x1f'
+            + b'\x00' * (message.HEADER_LEN - 5), 2,
         )
 
         # Command code is the next three bytes
         header.command_code = 0x1
         self._compare_header(
-            header, b'\x01\x00\x00\x02\x1f\x00\x00\x01' +
-            b'\x00' * (message.HEADER_LEN - 8), 2,
+            header, b'\x01\x00\x00\x02\x1f\x00\x00\x01'
+            + b'\x00' * (message.HEADER_LEN - 8), 2,
         )
 
         # Application id is the next four bytes
         header.application_id = 0x7
         self._compare_header(
-            header, b'\x01\x00\x00\x02\x1f\x00\x00\x01' +
-            b'\x00\x00\x00\x07' +
-            b'\x00' * (message.HEADER_LEN - 12), 2,
+            header, b'\x01\x00\x00\x02\x1f\x00\x00\x01'
+            + b'\x00\x00\x00\x07'
+            + b'\x00' * (message.HEADER_LEN - 12), 2,
         )
 
         # hop by hop id is the next four bytes
         header.hop_by_hop_id = 0xb33f0000
         self._compare_header(
-            header, b'\x01\x00\x00\x02\x1f\x00\x00\x01' +
-            b'\x00\x00\x00\x07\xb3\x3f\x00\x00' +
-            b'\x00' * (message.HEADER_LEN - 16), 2,
+            header, b'\x01\x00\x00\x02\x1f\x00\x00\x01'
+            + b'\x00\x00\x00\x07\xb3\x3f\x00\x00'
+            + b'\x00' * (message.HEADER_LEN - 16), 2,
         )
 
         # end to end id is the last four
         header.end_to_end_id = 0x0000dead
         self._compare_header(
-            header, b'\x01\x00\x00\x02\x1f\x00\x00\x01' +
-            b'\x00\x00\x00\x07\xb3\x3f\x00\x00' +
-            b'\x00\x00\xde\xad', 2,
+            header, b'\x01\x00\x00\x02\x1f\x00\x00\x01'
+            + b'\x00\x00\x00\x07\xb3\x3f\x00\x00'
+            + b'\x00\x00\xde\xad', 2,
         )
 
     def test_header_decode_validate(self):
@@ -110,8 +110,8 @@ class MessageHeaderCodecTests(unittest.TestCase):
         # Must be at least 20 Bytes to decode
         with self.assertRaises(CodecException):
             message.MessageHeader.decode(
-                b'\x00' *
-                (message.HEADER_LEN - 1),
+                b'\x00'
+                * (message.HEADER_LEN - 1),
             )
 
     def test_header_validate_length(self):
@@ -342,9 +342,9 @@ class MessageCodecTests(unittest.TestCase):
         # A message with no arguments is just an empty header
         msg = message.Message()
         self._compare_msg(
-            msg, b'\x01' +  # Version
-            b'\x00\x00\x14' +  # Length 20
-            b'\x00' * (message.HEADER_LEN - 4),
+            msg, b'\x01'  # Version
+            + b'\x00\x00\x14'  # Length 20
+            + b'\x00' * (message.HEADER_LEN - 4),
         )
 
     def test_message_with_avp(self):
@@ -355,10 +355,10 @@ class MessageCodecTests(unittest.TestCase):
         msg = message.Message()
         msg.append_avp(avp.AVP('User-Name', 'hello'))
         self._compare_msg(
-            msg, b'\x01' +  # Version
-            b'\x00\x00\x24' +  # Length 36
-            b'\x00' * (message.HEADER_LEN - 4) +
-            b'\x00\x00\x00\x01@\x00\x00\rhello\x00\x00\x00',
+            msg, b'\x01'  # Version
+            + b'\x00\x00\x24'  # Length 36
+            + b'\x00' * (message.HEADER_LEN - 4)
+            + b'\x00\x00\x00\x01@\x00\x00\rhello\x00\x00\x00',
         )
 
     def test_decode_validate_length(self):
@@ -369,16 +369,16 @@ class MessageCodecTests(unittest.TestCase):
         # Shorter than header by 1
         with self.assertRaises(TooShortException):
             message.decode(
-                b'\x01' +
-                b'\x00' * (message.HEADER_LEN - 2),
+                b'\x01'
+                + b'\x00' * (message.HEADER_LEN - 2),
             )
 
         # Header says 24 bytes but we give 23
         with self.assertRaises(TooShortException):
             payload = (
-                b'\x01' +  # Version
-                b'\x00\x00\x18' +  # Length 24
-                b'\x00' * (message.HEADER_LEN - 1)
+                b'\x01'  # Version
+                + b'\x00\x00\x18'  # Length 24
+                + b'\x00' * (message.HEADER_LEN - 1)
             )
             self.assertEqual(len(payload), 23)
             message.decode(payload)
@@ -391,17 +391,17 @@ class MessageCodecTests(unittest.TestCase):
         # Gave a length that was not a multiple of 4
         with self.assertRaises(CodecException):
             message.decode(
-                b'\x01' +  # Version
-                b'\x00\x00\x15' +  # Length 21
-                b'\x00' * (message.HEADER_LEN - 3),
+                b'\x01'  # Version
+                + b'\x00\x00\x15'  # Length 21
+                + b'\x00' * (message.HEADER_LEN - 3),
             )
 
         # Garbage AVPs
         with self.assertRaises(CodecException):
             message.decode(
-                b'\x01' +  # Version
-                b'\x00\x00\x18' +  # Length 24
-                b'\x00' * (message.HEADER_LEN),
+                b'\x01'  # Version
+                + b'\x00\x00\x18'  # Length 24
+                + b'\x00' * (message.HEADER_LEN),
             )
 
     def test_respond(self):
@@ -462,11 +462,17 @@ class MessageAVPTests(unittest.TestCase):
         self.assertEqual(filtered_avps[1].value, 'world')
 
         # Filter for non-existent
-        self.assertEqual(len(list(self.msg.filter_avps(*avp.resolve('Session-Id')))), 0)
+        self.assertEqual(
+            len(list(self.msg.filter_avps(*avp.resolve('Session-Id')))), 0,
+        )
 
     def test_get_avp(self):
         """We can get the first occurance of an AVP by name or code"""
-        self.assertEqual(self.msg.find_avp(*avp.resolve('User-Name')).value, 'hello')
+        self.assertEqual(
+            self.msg.find_avp(
+                *avp.resolve('User-Name'),
+            ).value, 'hello',
+        )
         self.assertEqual(self.msg.find_avp(0, 257).value, '127.0.0.1')
 
         # Doesn't exist so returns None

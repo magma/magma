@@ -143,8 +143,8 @@ class S6ARelayApplication(S6AApplication):
             if answer.error_code:
                 result_info = avp.AVP(
                     'Experimental-Result', [
-                    avp.AVP('Vendor-Id', 10415),
-                    avp.AVP('Experimental-Result-Code', error_code),
+                        avp.AVP('Vendor-Id', 10415),
+                        avp.AVP('Experimental-Result-Code', error_code),
                     ],
                 )
                 resp = self._gen_response(
@@ -160,14 +160,14 @@ class S6ARelayApplication(S6AApplication):
             else:
                 auth_info = avp.AVP(
                     'Authentication-Info', [
-                    avp.AVP(
-                        'E-UTRAN-Vector', [
-                        avp.AVP('RAND', vector.rand),
-                        avp.AVP('XRES', vector.xres),
-                        avp.AVP('AUTN', vector.autn),
-                        avp.AVP('KASME', vector.kasme),
-                        ],
-                    ) for vector in answer.eutran_vectors
+                        avp.AVP(
+                            'E-UTRAN-Vector', [
+                                avp.AVP('RAND', vector.rand),
+                                avp.AVP('XRES', vector.xres),
+                                avp.AVP('AUTN', vector.autn),
+                                avp.AVP('KASME', vector.kasme),
+                            ],
+                        ) for vector in answer.eutran_vectors
                     ],
                 )
 
@@ -252,8 +252,8 @@ class S6ARelayApplication(S6AApplication):
             if error_code:
                 result_info = avp.AVP(
                     'Experimental-Result', [
-                    avp.AVP('Vendor-Id', 10415),
-                    avp.AVP('Experimental-Result-Code', error_code),
+                        avp.AVP('Vendor-Id', 10415),
+                        avp.AVP('Experimental-Result-Code', error_code),
                     ],
                 )
                 resp = self._gen_response(
@@ -293,7 +293,10 @@ class S6ARelayApplication(S6AApplication):
                                 *[
                                     avp.AVP(
                                         'APN-Configuration', [
-                                            avp.AVP('Context-Identifier', apn.context_id),
+                                            avp.AVP(
+                                                'Context-Identifier',
+                                                apn.context_id,
+                                            ),
                                             avp.AVP('PDN-Type', apn.pdn),
                                             avp.AVP(
                                                 'Service-Selection',

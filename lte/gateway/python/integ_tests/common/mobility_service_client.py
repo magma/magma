@@ -125,7 +125,7 @@ class MobilityServiceGrpc(MobilityServiceClient):
                 address = ipaddress.ip_address(address_int)
                 ip_block_list.append(
                     ipaddress.ip_network(
-                    "%s/%d" % (address, block.prefix_len),
+                        "%s/%d" % (address, block.prefix_len),
                     ),
                 )
             if ip_block_list is not None:
@@ -134,8 +134,8 @@ class MobilityServiceGrpc(MobilityServiceClient):
         except grpc.RpcError as error:
             err_code = error.exception().code()
             if (
-                err_code ==
-                grpc.StatusCode.FAILED_PRECONDITION
+                err_code
+                == grpc.StatusCode.FAILED_PRECONDITION
             ):
                 logging.info("Ignoring FAILED_PRECONDITION exception")
             else:
@@ -164,15 +164,15 @@ class MobilityServiceGrpc(MobilityServiceClient):
                 address = ipaddress.ip_address(address_int)
                 removed_ip_block_list += (
                     ipaddress.ip_network(
-                    "%s/%d" % (address, block.prefix_len),
+                        "%s/%d" % (address, block.prefix_len),
                     ),
                 )
             return removed_ip_block_list
         except grpc.RpcError as error:
             err_code = error.exception().code()
             if (
-                err_code ==
-                grpc.StatusCode.FAILED_PRECONDITION
+                err_code
+                == grpc.StatusCode.FAILED_PRECONDITION
             ):
                 logging.info("Ignoring FAILED_PRECONDITION exception")
             else:

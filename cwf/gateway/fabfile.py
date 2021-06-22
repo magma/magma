@@ -28,10 +28,9 @@ from fabric.api import (
     sudo,
 )
 from fabric.contrib import files
-
-sys.path.append('../../orc8r')
 from tools.fab.hosts import ansible_setup, vagrant_setup
 
+sys.path.append('../../orc8r')
 
 CWAG_ROOT = "$MAGMA_ROOT/cwf/gateway"
 CWAG_INTEG_ROOT = "$MAGMA_ROOT/cwf/gateway/integ_tests"

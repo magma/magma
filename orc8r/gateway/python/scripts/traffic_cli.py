@@ -31,9 +31,13 @@ def interface_exists(interface: str) -> None:
 
 
 def connect_to_wifi(interface: str, password: str) -> None:
-    cmd = 'nmcli device wifi connect {} password {}'.format(interface, password)
+    cmd = 'nmcli device wifi connect {} password {}'.format(
+        interface, password,
+    )
     args = shlex.split(cmd)
-    nmcli = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    nmcli = subprocess.Popen(
+        args, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+    )
     errorstr = 'Error:'
     stdout = nmcli.communicate()[0].decode('utf-8')
     print(stdout)
@@ -45,7 +49,10 @@ def send_traffic(endpt: str) -> int:
     # 30 seconds until timeout
     cmd = 'curl -m 30 {}'.format(endpt)
     args = shlex.split(cmd)
-    proc = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    proc = subprocess.Popen(
+        args, stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+    )
     print(proc.communicate()[0])
     return proc.returncode
 
@@ -68,7 +75,8 @@ def gen_traffic_handler(args):
 def main():
     parser = argparse.ArgumentParser(
         description='Traffic CLI that generates traffic to an endpoint',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title='subcommands', dest='cmd')

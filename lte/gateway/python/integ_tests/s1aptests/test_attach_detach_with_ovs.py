@@ -138,8 +138,8 @@ class TestAttachDetachWithOVS(unittest.TestCase):
         actions = downlink_flows[0]["instructions"][0]["actions"]
         has_tunnel_action = any(
             action for action in actions
-            if action["field"] == "tunnel_id" and
-            action["type"] == "SET_FIELD"
+            if action["field"] == "tunnel_id"
+            and action["type"] == "SET_FIELD"
         )
         self.assertTrue(
             has_tunnel_action,

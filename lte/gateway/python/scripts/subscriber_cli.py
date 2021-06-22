@@ -121,7 +121,7 @@ def update_subscriber(client, args):
             if len(apn_val) != 12:
                 print(
                     "Incorrect APN parameters."
-                    "Please check: subscriber_cli.py update -h"
+                    "Please check: subscriber_cli.py update -h",
                 )
                 return
             apn_dict = dict(zip(apn_keys, apn_val))
@@ -130,10 +130,10 @@ def update_subscriber(client, args):
             apn_config.qos_profile.class_id = int(apn_dict[qci])
             apn_config.qos_profile.priority_level = int(apn_dict[priority])
             apn_config.qos_profile.preemption_capability = int(
-                apn_dict[pre_cap]
+                apn_dict[pre_cap],
             )
             apn_config.qos_profile.preemption_vulnerability = int(
-                apn_dict[pre_vul]
+                apn_dict[pre_vul],
             )
             apn_config.ambr.max_bandwidth_ul = int(apn_dict[ul])
             apn_config.ambr.max_bandwidth_dl = int(apn_dict[dl])
@@ -176,7 +176,8 @@ def create_parser():
     """
     parser = argparse.ArgumentParser(
         description='Management CLI for SubscriberDB',
-        formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
 
     # Add subcommands
     subparsers = parser.add_subparsers(title="subcommands", dest="cmd")

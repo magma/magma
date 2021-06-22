@@ -27,7 +27,8 @@ def get_commit_info() -> str:
         os.getenv("MAGMA_BUILD_BRANCH", "unknown"),
         os.getenv("MAGMA_BUILD_TAG", "unknown"),
         os.getenv("MAGMA_BUILD_COMMIT_HASH", "unknown") or os.getenv(
-            "COMMIT_HASH", "unknown"),
+            "COMMIT_HASH", "unknown",
+        ),
         os.getenv("MAGMA_BUILD_COMMIT_DATE", "unknown"),
     )
 

@@ -29,61 +29,61 @@ class TestContinuousRandomAttach(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def handle_msg(self, msg):
-            if msg.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value:
-                self.auth_req_ind_count += 1
-                m = msg.cast(s1ap_types.ueAuthReqInd_t)
-                print("====> Received UE_AUTH_REQ_IND ue-id", m.ue_Id)
-                auth_res = s1ap_types.ueAuthResp_t()
-                auth_res.ue_Id = m.ue_Id
-                sqn_recvd = s1ap_types.ueSqnRcvd_t()
-                sqn_recvd.pres = 0
-                auth_res.sqnRcvd = sqn_recvd
-                self._s1ap_wrapper._s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
-                )
-            elif msg.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value:
-                self.sec_mod_cmd_ind_count += 1
-                m = msg.cast(s1ap_types.ueSecModeCmdInd_t)
-                print("============>  Received UE_SEC_MOD_CMD_IND ue-id", m.ue_Id)
-                sec_mode_complete = s1ap_types.ueSecModeComplete_t()
-                sec_mode_complete.ue_Id = m.ue_Id
-                self._s1ap_wrapper._s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
-                )
-            elif msg.msg_type == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value:
-                self.attach_accept_ind_count += 1
-                m = msg.cast(s1ap_types.ueAttachAccept_t)
-                print("====================> Received UE_ATTACH_ACCEPT_IND ue-id", m.ue_Id)
-                pdn_type = m.esmInfo.pAddr.pdnType
-                addr = m.esmInfo.pAddr.addrInfo
-                if self._s1ap_wrapper._s1_util.CM_ESM_PDN_IPV4 == pdn_type:
-                    # Cast and cache the IPv4 address
-                    ip = ipaddress.ip_address(bytes(addr[:4]))
-                    with self._s1ap_wrapper._s1_util._lock:
-                        self._s1ap_wrapper._s1_util._ue_ip_map[m.ue_Id] = ip
-                attach_complete = s1ap_types.ueAttachComplete_t()
-                attach_complete.ue_Id = m.ue_Id
-                self._s1ap_wrapper._s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
-                )
-            elif msg.msg_type == s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value:
-                self.identity_req_ind_count += 1
-                m = msg.cast(s1ap_types.ueIdentityReqInd_t)
-                print("=> Received UE_IDENTITY_REQ_IND ue-id", m.ue_Id)
-                us_identity_resp = s1ap_types.ueIdentityResp_t()
-                us_identity_resp.ue_Id = m.ue_Id
-                us_identity_resp.idType = m.idType
-                self._s1ap_wrapper._s1_util.issue_cmd(
-                    s1ap_types.tfwCmd.UE_IDENTITY_RESP, us_identity_resp,
-                )
-            elif msg.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value:
-                self.int_ctx_setup_ind_count += 1
-            elif msg.msg_type == s1ap_types.tfwCmd.UE_EMM_INFORMATION.value:
-                self.ue_emm_information_count += 1
-            elif msg.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value:
-                self.ue_ctx_rel_ind_count += 1
-            else:
-                print("Unhandled msg type", msg.msg_type)
+        if msg.msg_type == s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value:
+            self.auth_req_ind_count += 1
+            m = msg.cast(s1ap_types.ueAuthReqInd_t)
+            print("====> Received UE_AUTH_REQ_IND ue-id", m.ue_Id)
+            auth_res = s1ap_types.ueAuthResp_t()
+            auth_res.ue_Id = m.ue_Id
+            sqn_recvd = s1ap_types.ueSqnRcvd_t()
+            sqn_recvd.pres = 0
+            auth_res.sqnRcvd = sqn_recvd
+            self._s1ap_wrapper._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res,
+            )
+        elif msg.msg_type == s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value:
+            self.sec_mod_cmd_ind_count += 1
+            m = msg.cast(s1ap_types.ueSecModeCmdInd_t)
+            print("============>  Received UE_SEC_MOD_CMD_IND ue-id", m.ue_Id)
+            sec_mode_complete = s1ap_types.ueSecModeComplete_t()
+            sec_mode_complete.ue_Id = m.ue_Id
+            self._s1ap_wrapper._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete,
+            )
+        elif msg.msg_type == s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value:
+            self.attach_accept_ind_count += 1
+            m = msg.cast(s1ap_types.ueAttachAccept_t)
+            print("====================> Received UE_ATTACH_ACCEPT_IND ue-id", m.ue_Id)
+            pdn_type = m.esmInfo.pAddr.pdnType
+            addr = m.esmInfo.pAddr.addrInfo
+            if self._s1ap_wrapper._s1_util.CM_ESM_PDN_IPV4 == pdn_type:
+                # Cast and cache the IPv4 address
+                ip = ipaddress.ip_address(bytes(addr[:4]))
+                with self._s1ap_wrapper._s1_util._lock:
+                    self._s1ap_wrapper._s1_util._ue_ip_map[m.ue_Id] = ip
+            attach_complete = s1ap_types.ueAttachComplete_t()
+            attach_complete.ue_Id = m.ue_Id
+            self._s1ap_wrapper._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_ATTACH_COMPLETE, attach_complete,
+            )
+        elif msg.msg_type == s1ap_types.tfwCmd.UE_IDENTITY_REQ_IND.value:
+            self.identity_req_ind_count += 1
+            m = msg.cast(s1ap_types.ueIdentityReqInd_t)
+            print("=> Received UE_IDENTITY_REQ_IND ue-id", m.ue_Id)
+            us_identity_resp = s1ap_types.ueIdentityResp_t()
+            us_identity_resp.ue_Id = m.ue_Id
+            us_identity_resp.idType = m.idType
+            self._s1ap_wrapper._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_IDENTITY_RESP, us_identity_resp,
+            )
+        elif msg.msg_type == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value:
+            self.int_ctx_setup_ind_count += 1
+        elif msg.msg_type == s1ap_types.tfwCmd.UE_EMM_INFORMATION.value:
+            self.ue_emm_information_count += 1
+        elif msg.msg_type == s1ap_types.tfwCmd.UE_CTX_REL_IND.value:
+            self.ue_ctx_rel_ind_count += 1
+        else:
+            print("Unhandled msg type", msg.msg_type)
 
     def send_attach_req(self, ue_id):
         attach_req = s1ap_types.ueAttachRequest_t()

@@ -371,17 +371,17 @@ class MetricsCollectorTests(unittest.TestCase):
                 self.assertEqual(3, len(proto.metric[0].histogram.bucket))
                 self.assertEqual(
                     1, proto.metric[0].histogram.bucket[
-                    0
+                        0
                     ].cumulative_count,
                 )
                 self.assertEqual(
                     2, proto.metric[0].histogram.bucket[
-                    1
+                        1
                     ].cumulative_count,
                 )
                 self.assertEqual(
                     3, proto.metric[0].histogram.bucket[
-                    2
+                        2
                     ].cumulative_count,
                 )
             else:
@@ -391,17 +391,17 @@ class MetricsCollectorTests(unittest.TestCase):
                 self.assertEqual(3, len(proto.metric[0].histogram.bucket))
                 self.assertEqual(
                     2, proto.metric[0].histogram.bucket[
-                    0
+                        0
                     ].cumulative_count,
                 )
                 self.assertEqual(
                     3, proto.metric[0].histogram.bucket[
-                    1
+                        1
                     ].cumulative_count,
                 )
                 self.assertEqual(
                     4, proto.metric[0].histogram.bucket[
-                    2
+                        2
                     ].cumulative_count,
                 )
 

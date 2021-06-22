@@ -128,7 +128,7 @@ class Service303MetricTests(unittest.TestCase):
         # Add a summary with a label to the regisry
         c = Summary(
             'process_max_fds', 'A summary', [
-            'result',
+                'result',
             ], registry=self.registry,
         )
         c.labels('success').observe(1.23)
