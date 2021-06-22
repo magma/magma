@@ -22,6 +22,3 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     APPLICATION_UNHEALTHY_MSG, application_unhealthy_msg_t,
     application_unhealthy_msg)
-MESSAGE_DEF(
-    APPLICATION_STATS_MSG, application_mme_stats_msg_t,
-    application_mme_stats_msg)
