@@ -17,6 +17,7 @@
 import {isEqual, sortBy} from 'lodash';
 
 import MagmaV1API from '@fbcnms/platform-server/magma/index';
+import Sequelize from 'sequelize';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
 import {CWF} from '@fbcnms/types/network';
 import {
@@ -33,6 +34,7 @@ import {
   SubscriberDBData,
   createDashboard,
 } from './dashboards/Dashboards';
+
 import {Organization} from '@fbcnms/sequelize-models';
 import {XWFMDBData} from './dashboards/XWFMDashboards';
 import {apiCredentials} from '@fbcnms/platform-server/config';
@@ -460,10 +462,12 @@ export async function syncDashboards(
 }> {
   const completedTasks: Array<Task> = [];
   const grafanaOrgID = await getUserGrafanaOrgID(client, req.user);
-
   const org = await Organization.findOne({
     where: {
-      name: req.user.organization || '',
+      name: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('name')),
+        Sequelize.fn('lower', req.user.organization || ''),
+      ),
     },
   });
   let networks: Array<string> = [];

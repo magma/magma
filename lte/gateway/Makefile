@@ -210,8 +210,12 @@ test_oai: ## Run all OAI-specific tests
 test_sctpd: ## Run all OAI-specific tests
 	$(call run_ctest, $(C_BUILD)/sctp, $(C_BUILD)/sctp/src, $(GATEWAY_C_DIR)/sctpd, )
 
-test_common: build_common ## Run all tests in magma_common
-	$(call run_ctest, $(C_BUILD)/magma_common, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
+test_common: ## Run all tests in magma_common
+	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, $(TEST_FLAG))
+	# Run the common lib tests that exist
+	cd $(C_BUILD)/magma_common/config && ctest --output-on-failure
+	cd $(C_BUILD)/magma_common/service303 && ctest --output-on-failure
+	cd $(C_BUILD)/magma_common/service_registry && ctest --output-on-failure
 
 test_li_agent:
 	$(call run_ctest, $(C_BUILD)/li_agent, $(C_BUILD)/li_agent/src, $(GATEWAY_C_DIR)/li_agent, )
