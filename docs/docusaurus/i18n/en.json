@@ -202,8 +202,8 @@
       "lte/upgrade_1_4": {
         "title": "Upgrade to v1.4"
       },
-      "lte/upgrade_1_5": {
-        "title": "Upgrade to v1.5"
+      "nms/admin": {
+        "title": "Admin"
       },
       "nms/alerts": {
         "title": "Alerts"
@@ -225,6 +225,9 @@
       },
       "nms/equipment": {
         "title": "Equipment"
+      },
+      "nms/federation": {
+        "title": "Federation"
       },
       "nms/legacy/grafana": {
         "title": "Custom Grafana Dashboards"
@@ -384,12 +387,6 @@
       },
       "proposals/p014_proposal_process": {
         "title": "Magma Proposals"
-      },
-      "proposals/p015_tech_debt_week": {
-        "title": "Tech Debt Week Processes"
-      },
-      "proposals/p016_nms_regression_test": {
-        "title": "NMS Regression Testing"
       },
       "proposals/qos_enforcement": {
         "title": "proposals/qos_enforcement"
@@ -1154,9 +1151,6 @@
       },
       "version-1.5.0/lte/version-1.5.0-upgrade_1_4": {
         "title": "Upgrade to v1.4"
-      },
-      "version-1.5.0/lte/version-1.5.0-upgrade_1_5": {
-        "title": "Upgrade to v1.5"
       },
       "version-1.5.0/nms/version-1.5.0-alerts": {
         "title": "Alerts"
