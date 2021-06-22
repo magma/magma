@@ -268,17 +268,22 @@ func (ModeMapItem_FederatedMode) EnumDescriptor() ([]byte, []int) {
 }
 
 // --------------------------------------------------------------------------
-// SentryConfig stores the network-wide sentry.io configuration
+// SentryConfig stores the network-wide Sentry.io configuration
 // --------------------------------------------------------------------------
 type SentryConfig struct {
-	// If set, the Sentry Python SDK will be initialized for all python services
+	// url_python initializes the Sentry Python SDK and sets the remote URL.
+	// If set to empty string, Sentry Python SDK will not be initialized.
 	UrlPython string `protobuf:"bytes,1,opt,name=url_python,json=urlPython,proto3" json:"url_python,omitempty"`
-	// If set, the Sentry Native SDK will be initialized for MME and SessionD
+	// url_native initializes the Sentry Native SDK for C/C++ and sets the
+	// remote URL. If set to empty string, Sentry Native SDK will not be
+	// initialized.
 	UrlNative string `protobuf:"bytes,2,opt,name=url_native,json=urlNative,proto3" json:"url_native,omitempty"`
-	// If set, /var/log/mme.log will be uploaded along MME crashreports
+	// upload_mme_log decides whether MME service log file (/var/log/mme.log)
+	// is uploaded along with MME crashreports
 	UploadMmeLog bool `protobuf:"varint,3,opt,name=upload_mme_log,json=uploadMmeLog,proto3" json:"upload_mme_log,omitempty"`
-	// Rate at which we want to sample Python error events
-	// Should be a number between 0 (0% of errors sent) and 1 (100% of errors sent)
+	// sample_rate sets the rate at which Python error events are sampled.
+	// sample_rate should be a number between 0 (0% of errors sent) and 1 (100%
+	// of errors sent)
 	SampleRate           float32  `protobuf:"fixed32,4,opt,name=sample_rate,json=sampleRate,proto3" json:"sample_rate,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
@@ -1110,7 +1115,8 @@ type SessionD struct {
 	RelayEnabled           bool                    `protobuf:"varint,2,opt,name=relay_enabled,json=relayEnabled,proto3" json:"relay_enabled,omitempty"` // Deprecated: Do not use.
 	WalletExhaustDetection *WalletExhaustDetection `protobuf:"bytes,3,opt,name=wallet_exhaust_detection,json=walletExhaustDetection,proto3" json:"wallet_exhaust_detection,omitempty"`
 	// Enable relaying Gx/Gy messages via FeG RPC
-	GxGyRelayEnabled     bool          `protobuf:"varint,4,opt,name=gx_gy_relay_enabled,json=gxGyRelayEnabled,proto3" json:"gx_gy_relay_enabled,omitempty"`
+	GxGyRelayEnabled bool `protobuf:"varint,4,opt,name=gx_gy_relay_enabled,json=gxGyRelayEnabled,proto3" json:"gx_gy_relay_enabled,omitempty"`
+	// sentry_config stores the Sentry.io configuration for this service
 	SentryConfig         *SentryConfig `protobuf:"bytes,5,opt,name=sentry_config,json=sentryConfig,proto3" json:"sentry_config,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
@@ -1485,7 +1491,7 @@ type MME struct {
 	RestrictedImeis  []*MME_ImeiConfig       `protobuf:"bytes,35,rep,name=restricted_imeis,json=restrictedImeis,proto3" json:"restricted_imeis,omitempty"`
 	// MME congestion control configs
 	CongestionControlEnabled bool `protobuf:"varint,40,opt,name=congestion_control_enabled,json=congestionControlEnabled,proto3" json:"congestion_control_enabled,omitempty"`
-	// MME configuration for sentry.io
+	// sentry_config stores the Sentry.io configuration for this service
 	SentryConfig         *SentryConfig `protobuf:"bytes,45,opt,name=sentry_config,json=sentryConfig,proto3" json:"sentry_config,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
 	XXX_unrecognized     []byte        `json:"-"`
