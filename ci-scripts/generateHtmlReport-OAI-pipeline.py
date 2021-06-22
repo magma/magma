@@ -176,7 +176,7 @@ def append_build_summary(args, filename):
                 summary = generate_git_summary(args)
                 org_f.write(summary)
                 build_summary_to_be_done = False
-            org_f.write(line)
+            org_f.write(line + '\n')
 
 
 if __name__ == '__main__':
