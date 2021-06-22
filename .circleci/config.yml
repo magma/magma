@@ -1463,7 +1463,7 @@ jobs:
             elif  [ "<<parameters.aws_account>>" = "LF" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION="beta1.6" >> $BASH_ENV
+              echo export VERSION="beta1.6.0" >> $BASH_ENV
             fi
       - run:
           name: Propagate AWS region information
