@@ -15,7 +15,9 @@
  */
 'use strict';
 
+import Sequelize from 'sequelize';
 import https from 'https';
+
 import {API_HOST, apiCredentials} from '@fbcnms/platform-server/config';
 import {Organization} from '@fbcnms/sequelize-models';
 
@@ -24,7 +26,12 @@ async function enableNetworks(
   networkIDs: Array<string>,
 ) {
   const organization = await Organization.findOne({
-    where: {name: organizationName},
+    where: {
+      name: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('name')),
+        Sequelize.fn('lower', organizationName),
+      ),
+    },
   });
   if (organization) {
     await organization.update({networkIDs});
