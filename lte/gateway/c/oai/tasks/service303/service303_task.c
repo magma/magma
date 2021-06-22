@@ -33,7 +33,6 @@
 static void service303_server_exit(void);
 static void service303_message_exit(void);
 
-static long service303_epc_stats_timer_id;
 task_zmq_ctx_t service303_server_task_zmq_ctx;
 task_zmq_ctx_t service303_message_task_zmq_ctx;
 
@@ -160,7 +159,6 @@ static void service303_server_exit(void) {
 }
 
 static void service303_message_exit(void) {
-  timer_remove(service303_epc_stats_timer_id, NULL);
   destroy_task_context(&service303_message_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_SERVICE303 terminated\n");
   pthread_exit(NULL);

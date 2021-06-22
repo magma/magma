@@ -28,7 +28,6 @@ int send_app_health_to_service303(
 
 int send_stats_to_service303(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id,
-    uint32_t nb_enb_connected, uint32_t nb_ue_attached,
-    uint32_t nb_ue_connected);
+    application_mme_stats_msg_t* stats_msg);
 
 #endif /* FILE_SERVICE303_MESSAGE_UTILS */

@@ -53,3 +53,21 @@ int send_stats_to_service303(
       nb_ue_connected;
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
+
+int send_stats_to_service303(
+    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id,
+    application_mme_stats_msg_t* stats_msg) {
+  MessageDef* message_p =
+      itti_alloc_new_message(origin_id, APPLICATION_STATS_MSG);
+  if (message_p == NULL) {
+    OAILOG_ERROR(LOG_MME_APP, "Unable to allocate memory");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
+  message_p->ittiMsg.application_mme_stats_msg.nb_enb_connected =
+      stats_msg->nb_enb_connected;
+  message_p->ittiMsg.application_mme_stats_msg.nb_ue_attached =
+      stats_msg->nb_ue_attached;
+  message_p->ittiMsg.application_mme_stats_msg.nb_ue_connected =
+      stats_msg->nb_ue_connected;
+  return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
+}
