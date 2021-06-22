@@ -353,7 +353,7 @@ pipeline {
               if (env.ghprbPullId != null) {
                 commitID = sh returnStdout: true, script: 'git rev-parse origin/master'
                 commitID = commitID.trim()
-                sh 'python3 ./ci-scripts/ci-generateHtmlReport-OAI-pipeline.py --mode Build --job_name ' + JOB_NAME + ' --job_id ' + BUILD_ID + ' --job_url ' + BUILD_URL + ' --git_url ' + GIT_URL + ' --git_merge_request True --git_src_branch ' + env.ghprbSourceBranch + ' --git_src_commit ' + env.ghprbActualCommit + ' --git_target_branch master --git_target_commit ' + commitID
+                sh 'python3 ./ci-scripts/ci-generateHtmlReport-OAI-pipeline.py --mode Build --job_name ' + JOB_NAME + ' --job_id ' + BUILD_ID + ' --job_url ' + BUILD_URL + ' --git_url ' + GIT_URL + ' --git_merge_request --git_src_branch ' + env.ghprbSourceBranch + ' --git_src_commit ' + env.ghprbActualCommit + ' --git_target_branch master --git_target_commit ' + commitID
                 if (fileExists('build_results_magma_oai_mme.html')) {
                   sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_LINK#' + env.ghprbPullLink + '#g" build_results_magma_oai_mme.html'
                   if (env.ghprbPullTitle.contains('#')) {
@@ -419,7 +419,7 @@ pipeline {
                   if (env.ghprbPullId != null) {
                     commitID = sh returnStdout: true, script: 'git rev-parse origin/master'
                     commitID = commitID.trim()
-                    sh 'python3 ./ci-scripts/ci-generateHtmlReport-OAI-pipeline.py --mode TestWithDsTest --job_name ' + JOB_NAME + ' --job_id ' + BUILD_ID + ' --job_url ' + BUILD_URL + ' --git_url ' + GIT_URL + ' --git_merge_request True --git_src_branch ' + env.ghprbSourceBranch + ' --git_src_commit ' + env.ghprbActualCommit + ' --git_target_branch master --git_target_commit ' + commitID
+                    sh 'python3 ./ci-scripts/ci-generateHtmlReport-OAI-pipeline.py --mode TestWithDsTest --job_name ' + JOB_NAME + ' --job_id ' + BUILD_ID + ' --job_url ' + BUILD_URL + ' --git_url ' + GIT_URL + ' --git_merge_request --git_src_branch ' + env.ghprbSourceBranch + ' --git_src_commit ' + env.ghprbActualCommit + ' --git_target_branch master --git_target_commit ' + commitID
                     sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_LINK#' + env.ghprbPullLink + '#g" ' + dsTesterPipelineReport
                     if (env.ghprbPullTitle.contains('#')) {
                       sh 'sed -i -e "s@TEMPLATE_PULL_REQUEST_TEMPLATE@' + env.ghprbPullTitle + '@g" ' + dsTesterPipelineReport
@@ -479,7 +479,7 @@ pipeline {
                   if (env.ghprbPullId != null) {
                     commitID = sh returnStdout: true, script: 'git rev-parse origin/master'
                     commitID = commitID.trim()
-                    sh 'python3 ./ci-scripts/ci-generateHtmlReport-OAI-pipeline.py --mode RHEL8SanityCheck --job_name ' + JOB_NAME + ' --job_id ' + BUILD_ID + ' --job_url ' + BUILD_URL + ' --git_url ' + GIT_URL + ' --git_merge_request True --git_src_branch ' + env.ghprbSourceBranch + ' --git_src_commit ' + env.ghprbActualCommit + ' --git_target_branch master --git_target_commit ' + commitID
+                    sh 'python3 ./ci-scripts/ci-generateHtmlReport-OAI-pipeline.py --mode RHEL8SanityCheck --job_name ' + JOB_NAME + ' --job_id ' + BUILD_ID + ' --job_url ' + BUILD_URL + ' --git_url ' + GIT_URL + ' --git_merge_request --git_src_branch ' + env.ghprbSourceBranch + ' --git_src_commit ' + env.ghprbActualCommit + ' --git_target_branch master --git_target_commit ' + commitID
                     sh 'sed -i -e "s#TEMPLATE_PULL_REQUEST_LINK#' + env.ghprbPullLink + '#g" ' + rhel8SanityCheckPipelineReport
                     if (env.ghprbPullTitle.contains('#')) {
                       sh 'sed -i -e "s@TEMPLATE_PULL_REQUEST_TEMPLATE@' + env.ghprbPullTitle + '@g" ' + rhel8SanityCheckPipelineReport
