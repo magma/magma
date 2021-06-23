@@ -10,5 +10,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# flatDigestEnabled is a feature flag for the flat digest functionality.
-flatDigestEnabled: false
+# sleepIntervalSecs is the time interval between each service worker loop.
+sleepIntervalSecs: 5
+# updateIntervalSecs is the target time interval to update each digest.
+updateIntervalSecs: 300

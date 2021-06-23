@@ -204,6 +204,12 @@ service SubscriberDB {
 // SubscriberDB cloud service definition.
 // --------------------------------------------------------------------------
 service SubscriberDBCloud {
+  // CheckSubscribersInSync checks whether the client subscribers flat digest
+  // is up-to-date.
+  rpc CheckSubscribersInSync (CheckSubscribersInSyncRequest) returns (CheckSubscribersInSyncResponse) {}
+  // SyncSubscribers returns the changeset of subscribers between client and
+  // cloud if the set is small; if the set is large, returns signal to resync.
+  rpc SyncSubscribers (SyncSubscribersRequest) returns (SyncSubscribersResponse) {}
   // ListSubscribers lists pages of subscribers stored.
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
 }
@@ -213,14 +219,51 @@ message SubscribersDigest {
   string md5_base64_digest = 1;
 }
 
+message CheckSubscribersInSyncRequest {
+  // flat_digest is the deterministic digest of the full set of subscriber
+  // objects stored on the client side.
+  SubscribersDigest flat_digest = 1;
+}
+
+message CheckSubscribersInSyncResponse {
+  // in_sync is true if client's existing subscribers match those on the server.
+  bool in_sync = 1;
+}
+
+message SyncSubscribersRequest {
+  // per_sub_digest is a set of digests for each client-side subscriber, indexed
+  // by their IDs (IMSI).
+  map<string, SubscribersDigest> per_sub_digests = 1;
+}
+
+message SyncSubscribersResponse {
+  // resync is true if the client-server data difference is too big and an
+  // overall resync is needed. If true, all subscriber changesets will be empty.
+  bool resync = 1;
+  // flat_digest is the deterministic digest of all server-side subscribers.
+  SubscribersDigest flat_digest = 2;
+  // per_sub_digests is a set of digests for each server-side subscriber, indexed
+  // by their IDs (IMSI).
+  map<string, SubscribersDigest> per_sub_digests = 3;
+  // added_modified is the set of all subscriber data modified/added on the server
+  // side, indexed by their IDs (IMSI).
+  map<string, SubscriberDataWithDigest> added_modified = 4;
+  // removed is a list of IDs for subscribers removed on the server side.
+  repeated string removed = 5;
+}
+
+message SubscriberDataWithDigest {
+  // digest is the deterministic digest of a single subscriber.
+  SubscribersDigest digest = 1;
+  // data is the original subscriber data.
+  SubscriberData data = 2;
+}
+
 message ListSubscribersRequest {
   // page_size is the maximum number of entities returned per request.
   uint32 page_size = 1;
   // page_token is a serialized entity page token for paginated loads.
   string page_token = 2;
-  // digest is the digest received from the most-recent request to
-  // ListSubscribers.
-  SubscribersDigest digest = 3;
 }
 
 message ListSubscribersResponse {
@@ -228,10 +271,10 @@ message ListSubscribersResponse {
   // next_page_token is a serialized entity page token for subsequent paginated
   // loads.
   string next_page_token = 2;
-  // digest is the server-defined, deterministic digest of the full set of
+  // flat_digest is the server-defined, deterministic digest of the full set of
   // returned subscriber objects.
-  SubscribersDigest digest = 3;
-  // no_updates is true if client's existing subscribers match those on the
-  // server. If true, the subscribers array will be empty.
-  bool no_updates = 4;
+  SubscribersDigest flat_digest = 3;
+  // per_sub_digests is a set of per-subscriber digests, indexed by the
+  // subscriber IDs (IMSI).
+  map<string, SubscribersDigest> per_sub_digests = 4;
 }
