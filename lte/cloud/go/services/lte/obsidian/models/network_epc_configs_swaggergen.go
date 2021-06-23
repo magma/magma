@@ -77,7 +77,7 @@ type NetworkEpcConfigs struct {
 	// sub profiles
 	SubProfiles map[string]NetworkEpcConfigsSubProfilesAnon `json:"sub_profiles,omitempty"`
 
-	// subscriberdb sync interval
+	// Configuration for subscriberdb service. Interval in seconds between gateway and cloud sync.
 	// Minimum: 0
 	SubscriberdbSyncInterval uint32 `json:"subscriberdb_sync_interval,omitempty"`
 

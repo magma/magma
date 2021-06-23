@@ -2046,7 +2046,8 @@ type SubscriberDB struct {
 	// Enable forwarding S6a related requests to Federated GW
 	RelayEnabled bool `protobuf:"varint,5,opt,name=relay_enabled,json=relayEnabled,proto3" json:"relay_enabled,omitempty"`
 	// Enable relaying S6a messages via FeG RPC
-	HssRelayEnabled      bool     `protobuf:"varint,6,opt,name=hss_relay_enabled,json=hssRelayEnabled,proto3" json:"hss_relay_enabled,omitempty"`
+	HssRelayEnabled bool `protobuf:"varint,6,opt,name=hss_relay_enabled,json=hssRelayEnabled,proto3" json:"hss_relay_enabled,omitempty"`
+	// Interval in seconds between gateway and cloud sync
 	SyncInterval         uint32   `protobuf:"varint,7,opt,name=sync_interval,json=syncInterval,proto3" json:"sync_interval,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
