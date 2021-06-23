@@ -37,7 +37,8 @@
 #include "mme_app_desc.h"
 #include "s6a_messages_types.h"
 
-int mme_app_handle_s6a_reset_req(const s6a_reset_req_t* const rsr_pP) {
+status_code_e mme_app_handle_s6a_reset_req(
+    const s6a_reset_req_t* const rsr_pP) {
   int rc                               = RETURNok;
   struct ue_mm_context_s* ue_context_p = NULL;
   hash_node_t* node                    = NULL;

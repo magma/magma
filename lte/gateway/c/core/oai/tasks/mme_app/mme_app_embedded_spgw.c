@@ -49,7 +49,7 @@ static void usage(char* exe_path) {
       exe_path, PACKAGE_NAME);
 }
 
-int mme_config_embedded_spgw_parse_opt_line(
+status_code_e mme_config_embedded_spgw_parse_opt_line(
     int argc, char* argv[], mme_config_t* mme_config_p,
     spgw_config_t* spgw_config_p) {
   int c;

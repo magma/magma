@@ -58,7 +58,7 @@
 #include "dynamic_memory_check.h"
 
 //------------------------------------------------------------------------------
-int mme_app_send_s6a_update_location_req(
+status_code_e mme_app_send_s6a_update_location_req(
     struct ue_mm_context_s* const ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p                = NULL;
@@ -170,7 +170,7 @@ int mme_app_send_s6a_update_location_req(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-int handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
+status_code_e handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -195,7 +195,7 @@ int handle_ula_failure(struct ue_mm_context_s* ue_context_p) {
 }
 
 //------------------------------------------------------------------------------
-int mme_app_handle_s6a_update_location_ans(
+status_code_e mme_app_handle_s6a_update_location_ans(
     mme_app_desc_t* mme_app_desc_p,
     const s6a_update_location_ans_t* const ula_pP) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -396,7 +396,7 @@ int mme_app_handle_s6a_update_location_ans(
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
 
-int mme_app_handle_s6a_cancel_location_req(
+status_code_e mme_app_handle_s6a_cancel_location_req(
     mme_app_desc_t* mme_app_desc_p,
     const s6a_cancel_location_req_t* const clr_pP) {
   uint64_t imsi                        = 0;
@@ -491,7 +491,7 @@ int mme_app_handle_s6a_cancel_location_req(
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
-int mme_app_send_s6a_cancel_location_ans(
+status_code_e mme_app_send_s6a_cancel_location_ans(
     int cla_result, const char* imsi, uint8_t imsi_length, void* msg_cla_p) {
   MessageDef* message_p                = NULL;
   s6a_cancel_location_ans_t* s6a_cla_p = NULL;

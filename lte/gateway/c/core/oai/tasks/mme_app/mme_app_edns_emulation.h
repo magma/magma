@@ -18,6 +18,7 @@
 #ifndef FILE_MME_APP_EDNS_EMULATION_SEEN
 #define FILE_MME_APP_EDNS_EMULATION_SEEN
 
+#include "common_defs.h"
 #include "bstrlib.h"
 #include "mme_config.h"
 
@@ -30,8 +31,8 @@ struct in_addr;
 */
 
 struct in_addr* mme_app_edns_get_sgw_entry(bstring id);
-int mme_app_edns_add_sgw_entry(bstring id, struct in_addr in_addr);
-int mme_app_edns_init(const mme_config_t* mme_config_p);
+status_code_e mme_app_edns_add_sgw_entry(bstring id, struct in_addr in_addr);
+status_code_e mme_app_edns_init(const mme_config_t* mme_config_p);
 void mme_app_edns_exit(void);
 
 #endif

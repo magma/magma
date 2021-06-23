@@ -36,6 +36,7 @@ Description Defines the EMMAS Service Access Point that provides
 #ifndef FILE_EMM_AS_SEEN
 #define FILE_EMM_AS_SEEN
 
+#include "common_defs.h"
 #include "emm_asDef.h"
 
 /****************************************************************************/
@@ -58,6 +59,6 @@ Description Defines the EMMAS Service Access Point that provides
 
 void emm_as_initialize(void);
 
-int emm_as_send(emm_as_t* msg);
+status_code_e emm_as_send(emm_as_t* msg);
 
 #endif /* FILE_EMM_AS_SEEN*/

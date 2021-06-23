@@ -35,6 +35,7 @@ Description Defines the SGS State Machine handling
 #ifndef FILE_SGS_FSM_SEEN
 #define FILE_SGS_FSM_SEEN
 
+#include "common_defs.h"
 #include "common_types.h"
 #include "sgs_messages_types.h"
 #include "3gpp_36.401.h"
@@ -83,12 +84,11 @@ typedef struct {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int sgs_fsm_process(const sgs_fsm_t* sgs_evt);
-int sgs_fsm_set_status(
+status_code_e sgs_fsm_process(const sgs_fsm_t* sgs_evt);
+status_code_e sgs_fsm_set_status(
     mme_ue_s1ap_id_t ue_id, void* ctx, sgs_fsm_state_t state);
 void sgs_fsm_initialize(void);
 sgs_fsm_state_t sgs_fsm_get_status(mme_ue_s1ap_id_t ueid, void* ctx);
-int sgs_fsm_process(const sgs_fsm_t* sgs_evt);
 
 int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt);
 int sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt);

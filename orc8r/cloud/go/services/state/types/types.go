@@ -79,8 +79,6 @@ type SerializedState struct {
 	ReporterID string
 	// TimeMs is the time the state was received in milliseconds.
 	TimeMs uint64
-	// CertExpirationTime is the expiration time in milliseconds.
-	CertExpirationTime int64
 }
 
 // SerializedStatesByID maps state IDs to state.
@@ -242,10 +240,9 @@ func MakeState(p *protos.State, serdes serde.Registry) (State, *protos.IDAndErro
 	}
 
 	st := State{
-		ReporterID:         serialized.ReporterID,
-		TimeMs:             serialized.TimeMs,
-		CertExpirationTime: serialized.CertExpirationTime,
-		Version:            p.Version,
+		ReporterID: serialized.ReporterID,
+		TimeMs:     serialized.TimeMs,
+		Version:    p.Version,
 	}
 
 	// Recover reported state within state struct

@@ -78,10 +78,10 @@
 
 struct Ngap_IE;
 
-int ngap_generate_ng_setup_response(
+status_code_e ngap_generate_ng_setup_response(
     ngap_state_t* state, gnb_description_t* gnb_association);
 
-int ngap_amf_generate_ue_context_release_command(
+status_code_e ngap_amf_generate_ue_context_release_command(
     ngap_state_t* state, m5g_ue_description_t* ue_ref_p, enum Ngcause,
     imsi64_t imsi64);
 
@@ -153,7 +153,7 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
     {0, 0, 0}, /* UplinkNonUEAssociatedLPPaTransport */
 };
 
-int ngap_amf_handle_message(
+status_code_e ngap_amf_handle_message(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu) {
   /*
@@ -187,7 +187,7 @@ int ngap_amf_handle_message(
 }
 
 //------------------------------------------------------------------------------
-int ngap_amf_set_cause(
+status_code_e ngap_amf_set_cause(
     Ngap_Cause_t* cause_p, const Ngap_Cause_PR cause_type,
     const long cause_value) {
   DevAssert(cause_p != NULL);
@@ -222,7 +222,7 @@ int ngap_amf_set_cause(
 }
 
 //------------------------------------------------------------------------------
-int ngap_amf_generate_ng_setup_failure(
+status_code_e ngap_amf_generate_ng_setup_failure(
     const sctp_assoc_id_t assoc_id, const Ngap_Cause_PR cause_type,
     const long cause_value, const long time_to_wait) {
   uint8_t* buffer_p = 0;
@@ -278,7 +278,7 @@ int ngap_amf_generate_ng_setup_failure(
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int ngap_amf_handle_ng_setup_request(
+status_code_e ngap_amf_handle_ng_setup_request(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu) {
   int rc = RETURNok;
@@ -495,7 +495,7 @@ int ngap_amf_handle_ng_setup_request(
 }
 
 //------------------------------------------------------------------------------
-int ngap_generate_ng_setup_response(
+status_code_e ngap_generate_ng_setup_response(
     ngap_state_t* state, gnb_description_t* gnb_association) {
   Ngap_NGAP_PDU_t pdu;
   Ngap_NGSetupResponse_t* out;
@@ -677,7 +677,7 @@ amf_config_read_lock(&amf_config);
 ////////////////////////////////////////////////////////////////////////////////
 
 //------------------------------------------------------------------------------
-int ngap_amf_handle_initial_context_setup_response(
+status_code_e ngap_amf_handle_initial_context_setup_response(
     ngap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     Ngap_NGAP_PDU_t* pdu) {
@@ -748,8 +748,8 @@ int ngap_amf_handle_initial_context_setup_response(
     }
   }
   ue_ref_p->ng_ue_state = NGAP_UE_CONNECTED;
-  message_p =
-      itti_alloc_new_message(TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_RSP);
+  message_p             = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_RSP);
   AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id = ue_ref_p->amf_ue_ngap_id;
 
   if (ie) {
@@ -784,7 +784,7 @@ int ngap_amf_handle_initial_context_setup_response(
 }
 
 //------------------------------------------------------------------------------
-int ngap_handle_new_association(
+status_code_e ngap_handle_new_association(
     ngap_state_t* state, sctp_new_peer_t* sctp_new_peer_p) {
   gnb_description_t* gnb_association = NULL;
 
@@ -853,7 +853,7 @@ int ngap_handle_new_association(
   OAILOG_FUNC_RETURN(LOG_NGAP, RETURNok);
 }
 
-int ngap_amf_handle_ue_context_release_request(
+status_code_e ngap_amf_handle_ue_context_release_request(
     __attribute__((unused)) ngap_state_t* state,
     __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
@@ -994,8 +994,8 @@ int ngap_amf_handle_ue_context_release_request(
           imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) amf_ue_ngap_id,
           &imsi64);
 
-      message_p =
-          itti_alloc_new_message(TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_REQ);
+      message_p = DEPRECATEDitti_alloc_new_message_fatal(
+          TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_REQ);
 
       NGAP_UE_CONTEXT_RELEASE_REQ(message_p).amf_ue_ngap_id =
           ue_ref_p->amf_ue_ngap_id;
@@ -1021,7 +1021,7 @@ int ngap_amf_handle_ue_context_release_request(
 }
 
 //------------------------------------------------------------------------------
-int ngap_amf_generate_ue_context_release_command(
+status_code_e ngap_amf_generate_ue_context_release_command(
     ngap_state_t* state, m5g_ue_description_t* ue_ref_p, enum Ngcause cause,
     imsi64_t imsi64) {
   uint8_t* buffer = NULL;
@@ -1110,7 +1110,7 @@ int ngap_amf_generate_ue_context_release_command(
 }
 
 //------------------------------------------------------------------------------
-int ngap_handle_ue_context_release_command(
+status_code_e ngap_handle_ue_context_release_command(
     ngap_state_t* state,
     const itti_ngap_ue_context_release_command_t* const
         ue_context_release_command_pP,
@@ -1149,7 +1149,7 @@ int ngap_handle_ue_context_release_command(
 }
 
 //------------------------------------------------------------------------------
-int ngap_amf_handle_ue_context_release_complete(
+status_code_e ngap_amf_handle_ue_context_release_complete(
     ngap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     Ngap_NGAP_PDU_t* pdu) {
@@ -1199,7 +1199,7 @@ int ngap_amf_handle_ue_context_release_complete(
 }
 
 //------------------------------------------------------------------------------
-int ngap_amf_handle_initial_context_setup_failure(
+status_code_e ngap_amf_handle_initial_context_setup_failure(
     ngap_state_t* state, __attribute__((unused)) const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     Ngap_NGAP_PDU_t* pdu) {
@@ -1331,8 +1331,8 @@ int ngap_amf_handle_initial_context_setup_failure(
           cause_type);
       OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
-  message_p =
-      itti_alloc_new_message(TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_FAILURE);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_FAILURE);
   memset(
       (void*) &message_p->ittiMsg.amf_app_initial_context_setup_failure, 0,
       sizeof(itti_amf_app_initial_context_setup_failure_t));
@@ -1382,8 +1382,8 @@ bool ngap_send_gnb_deregistered_ind(
   hashtable_ts_get(ngap_ue_state, (const hash_key_t) dataP, (void**) &ue_ref_p);
   if (ue_ref_p) {
     if (arg->current_ue_index == 0) {
-      arg->message_p =
-          itti_alloc_new_message(TASK_NGAP, NGAP_GNB_DEREGISTERED_IND);
+      arg->message_p = DEPRECATEDitti_alloc_new_message_fatal(
+          TASK_NGAP, NGAP_GNB_DEREGISTERED_IND);
     }
     if (ue_ref_p->amf_ue_ngap_id == INVALID_AMF_UE_NGAP_ID) {
       /*
@@ -1444,7 +1444,7 @@ typedef struct arg_ngap_construct_gnb_reset_req_s {
 } arg_ngap_construct_gnb_reset_req_t;
 
 //------------------------------------------------------------------------------
-int ngap_handle_sctp_disconnection(
+status_code_e ngap_handle_sctp_disconnection(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id, bool reset) {
   arg_ngap_send_gnb_dereg_ind_t arg  = {0};
   int i                              = 0;
@@ -1535,8 +1535,8 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
   /*
    * Remove UE context and inform AMF_APP.
    */
-  message_p =
-      itti_alloc_new_message(TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_COMPLETE);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_COMPLETE);
   memset(
       (void*) &message_p->ittiMsg.ngap_ue_context_release_complete, 0,
       sizeof(itti_ngap_ue_context_release_complete_t));
@@ -1571,8 +1571,8 @@ void ngap_amf_release_ue_context(
   /*
    * Remove UE context and inform AMF_APP.
    */
-  message_p =
-      itti_alloc_new_message(TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_COMPLETE);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_NGAP, NGAP_UE_CONTEXT_RELEASE_COMPLETE);
   memset(
       (void*) &message_p->ittiMsg.ngap_ue_context_release_complete, 0,
       sizeof(itti_ngap_ue_context_release_complete_t));
@@ -1591,7 +1591,7 @@ void ngap_amf_release_ue_context(
 }
 
 //------------------------------------------------------------------------------
-int ngap_amf_handle_error_ind_message(
+status_code_e ngap_amf_handle_error_ind_message(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message) {
   OAILOG_FUNC_IN(LOG_NGAP);
@@ -1618,7 +1618,7 @@ const char* ngap_direction2str(uint8_t dir) {
 }
 
 //------------------------------------------------------------------------------
-int ngap_amf_handle_pduSession_release_response(
+status_code_e ngap_amf_handle_pduSession_release_response(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu) {
   OAILOG_FUNC_IN(LOG_NGAP);
@@ -1711,7 +1711,7 @@ int ngap_amf_handle_pduSession_release_response(
   OAILOG_FUNC_RETURN(LOG_NGAP, rc);
 }
 
-int ngap_amf_handle_pduSession_setup_response(
+status_code_e ngap_amf_handle_pduSession_setup_response(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu) {
   OAILOG_FUNC_IN(LOG_NGAP);
@@ -1765,8 +1765,8 @@ int ngap_amf_handle_pduSession_setup_response(
       imsi_map->amf_ue_id_imsi_htbl,
       (const hash_key_t) ue_ref_p->amf_ue_ngap_id, &imsi64);
 
-  message_p =
-      itti_alloc_new_message(TASK_NGAP, NGAP_PDUSESSIONRESOURCE_SETUP_RSP);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_NGAP, NGAP_PDUSESSIONRESOURCE_SETUP_RSP);
   NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).amf_ue_ngap_id =
       ue_ref_p->amf_ue_ngap_id;
   NGAP_PDUSESSIONRESOURCE_SETUP_RSP(message_p).gnb_ue_ngap_id =
@@ -1871,7 +1871,7 @@ int ngap_amf_handle_pduSession_setup_response(
 }
 
 //-------------------------------------------------------------------------------
-int ngap_handle_paging_request(
+status_code_e ngap_handle_paging_request(
     ngap_state_t* state, const itti_ngap_paging_request_t* paging_request,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_NGAP);

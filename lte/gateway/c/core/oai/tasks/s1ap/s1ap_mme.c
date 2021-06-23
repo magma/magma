@@ -88,7 +88,7 @@ static int s1ap_send_init_sctp(void) {
   // Create and alloc new message
   MessageDef* message_p = NULL;
 
-  message_p = itti_alloc_new_message(TASK_S1AP, SCTP_INIT_MSG);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_S1AP, SCTP_INIT_MSG);
   message_p->ittiMsg.sctpInit.port         = S1AP_PORT_NUMBER;
   message_p->ittiMsg.sctpInit.ppid         = S1AP_SCTP_PPID;
   message_p->ittiMsg.sctpInit.ipv4         = 1;
@@ -375,7 +375,7 @@ static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
 }
 
 //------------------------------------------------------------------------------
-int s1ap_mme_init(const mme_config_t* mme_config_p) {
+status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S1AP, "Initializing S1AP interface\n");
 
   if (get_asn1c_environment_version() < ASN1_MINIMUM_VERSION) {

@@ -472,7 +472,7 @@ static inline int s6a_parse_apn_configuration_profile(
   return RETURNok;
 }
 
-int s6a_parse_subscription_data(
+status_code_e s6a_parse_subscription_data(
     struct avp* avp_subscription_data, subscription_data_t* subscription_data) {
   struct avp* avp = NULL;
   struct avp_hdr* hdr;

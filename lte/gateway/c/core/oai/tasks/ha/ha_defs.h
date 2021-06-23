@@ -18,7 +18,7 @@ limitations under the License.
 
 extern task_zmq_ctx_t ha_task_zmq_ctx;
 
-int ha_init(const mme_config_t* mme_config);
+status_code_e ha_init(const mme_config_t* mme_config);
 
 /*
  * Syncs up with orc8r and fetches eNB connection state

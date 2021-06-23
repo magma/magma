@@ -37,6 +37,7 @@ Description Defines the EMMREG Service Access Point that provides
 #ifndef FILE_EMM_REG_SEEN
 #define FILE_EMM_REG_SEEN
 
+#include "common_defs.h"
 #include "emm_regDef.h"
 
 /****************************************************************************/
@@ -57,6 +58,6 @@ Description Defines the EMMREG Service Access Point that provides
 
 void emm_reg_initialize(void);
 
-int emm_reg_send(emm_reg_t* const msg);
+status_code_e emm_reg_send(emm_reg_t* const msg);
 
 #endif /* FILE_EMM_REG_SEEN*/

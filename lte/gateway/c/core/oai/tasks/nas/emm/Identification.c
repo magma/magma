@@ -110,7 +110,7 @@ static int identification_request(nas_emm_ident_proc_t* const proc);
  **      Others:    _emm_data                                      **
  **                                                                **
  ********************************************************************/
-int emm_proc_identification(
+status_code_e emm_proc_identification(
     struct emm_context_s* const emm_context, nas_emm_proc_t* const emm_proc,
     const identity_type2_t type, success_cb_t success, failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -199,7 +199,7 @@ int emm_proc_identification(
  **      Others:    _emm_data, T3470                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_identification_complete(
+status_code_e emm_proc_identification_complete(
     const mme_ue_s1ap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
     imeisv_t* const imeisv, uint32_t* const tmsi) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);

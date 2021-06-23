@@ -75,7 +75,7 @@ static int mme_app_send_sgsap_alert_ack(
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-int mme_app_handle_sgsap_alert_request(
+status_code_e mme_app_handle_sgsap_alert_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP) {
   uint64_t imsi64                      = 0;
@@ -144,7 +144,7 @@ int mme_app_handle_sgsap_alert_request(
  **          Return:    RETURNok, RETURNerror **
  **
  ***********************************************************************************/
-static int mme_app_send_sgsap_alert_reject(
+static status_code_e mme_app_send_sgsap_alert_reject(
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP, SgsCause_t sgs_cause,
     uint64_t imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -189,7 +189,7 @@ static int mme_app_send_sgsap_alert_reject(
  **          Return:    RETURNok, RETURNerror **
  **
  ***********************************************************************************/
-static int mme_app_send_sgsap_alert_ack(
+static status_code_e mme_app_send_sgsap_alert_ack(
     itti_sgsap_alert_request_t* const sgsap_alert_req_pP, uint64_t imsi64) {
   int rc                                     = RETURNerror;
   MessageDef* message_p                      = NULL;

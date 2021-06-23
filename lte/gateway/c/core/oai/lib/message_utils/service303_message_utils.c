@@ -27,9 +27,11 @@ int send_app_health_to_service303(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id, bool healthy) {
   MessageDef* message_p;
   if (healthy) {
-    message_p = itti_alloc_new_message(origin_id, APPLICATION_HEALTHY_MSG);
+    message_p = DEPRECATEDitti_alloc_new_message_fatal(
+        origin_id, APPLICATION_HEALTHY_MSG);
   } else {
-    message_p = itti_alloc_new_message(origin_id, APPLICATION_UNHEALTHY_MSG);
+    message_p = DEPRECATEDitti_alloc_new_message_fatal(
+        origin_id, APPLICATION_UNHEALTHY_MSG);
   }
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }

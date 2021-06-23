@@ -116,7 +116,7 @@ static void mme_app_free_s11_procedure_create_bearer(
 }
 
 //------------------------------------------------------------------------------
-int mme_app_run_s1ap_procedure_modify_bearer_ind(
+status_code_e mme_app_run_s1ap_procedure_modify_bearer_ind(
     mme_app_s1ap_proc_modify_bearer_ind_t* proc,
     const itti_s1ap_e_rab_modification_ind_t* const e_rab_modification_ind) {
   OAILOG_FUNC_IN(LOG_MME_APP);

@@ -48,7 +48,7 @@ SUBSCRIBER_SYNC_LATENCY = Histogram(
     'subscriber_sync_latency_ms',
     'Latency syncing subscribers from cloud'
     'in milliseconds',
-    buckets=[50, 100, 200, 500, 1000, 2000, 10000],
+    buckets=[50, 100, 200, 500, 1000, 5000, 10000, 30000, 60000],
 )
 
 SUBSCRIBER_SYNC_SUCCESS_TOTAL = Counter(

@@ -22,6 +22,7 @@
   \email: lionel.gauthier@eurecom.fr
 */
 
+#include "common_defs.h"
 #include "sgw_ie_defs.h"
 
 #ifndef FILE_S11_IE_FORMATTER_SEEN
@@ -49,7 +50,7 @@ nw_rc_t gtpv2c_node_type_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
 
-int gtpv2c_node_type_ie_set(
+status_code_e gtpv2c_node_type_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const node_type_t* node_type);
 
 /* PDN Type Information Element
@@ -63,7 +64,7 @@ nw_rc_t gtpv2c_pdn_type_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
 
-int gtpv2c_pdn_type_ie_set(
+status_code_e gtpv2c_pdn_type_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const pdn_type_t* pdn_type);
 
 /* RAT type Information Element
@@ -74,47 +75,49 @@ nw_rc_t gtpv2c_rat_type_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
 
-int gtpv2c_rat_type_ie_set(
+status_code_e gtpv2c_rat_type_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const rat_type_t* rat_type);
 
 nw_rc_t gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_set(
+status_code_e
+gtpv2c_bearer_context_to_be_created_within_create_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_to_be_created_t* bearer_context);
 
 nw_rc_t gtpv2c_failed_bearer_contexts_within_delete_bearer_request_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_failed_bearer_context_within_delete_bearer_request_ie_set(
+status_code_e gtpv2c_failed_bearer_context_within_delete_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_to_be_removed_t* bearer_context);
 
-int gtpv2c_bearer_context_within_create_bearer_response_ie_set(
+status_code_e gtpv2c_bearer_context_within_create_bearer_response_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_within_create_bearer_response_t* bearer_context);
 nw_rc_t gtpv2c_bearer_context_within_create_bearer_response_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
 
-int gtpv2c_ebis_within_delete_bearer_request_ie_set(
+status_code_e gtpv2c_ebis_within_delete_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const ebis_to_be_deleted_t* ebis_tbd);
 nw_rc_t gtpv2c_ebis_to_be_deleted_within_delete_bearer_request_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
 
-int gtpv2c_bearer_context_within_delete_bearer_response_ie_set(
+status_code_e gtpv2c_bearer_context_within_delete_bearer_response_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_within_delete_bearer_response_t* bearer_context);
 nw_rc_t gtpv2c_bearer_context_within_delete_bearer_response_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
 
-int gtpv2c_bearer_context_ebi_only_ie_set(
+status_code_e gtpv2c_bearer_context_ebi_only_ie_set(
     nw_gtpv2c_msg_handle_t* const msg, const ebi_t ebi);
 
-int gtpv2c_bearer_context_to_be_modified_within_modify_bearer_request_ie_set(
+status_code_e
+gtpv2c_bearer_context_to_be_modified_within_modify_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_to_be_modified_t* bearer_context);
 nw_rc_t
@@ -122,7 +125,8 @@ gtpv2c_bearer_context_to_be_modified_within_modify_bearer_request_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
 
-int gtpv2c_bearer_context_to_be_removed_within_modify_bearer_request_ie_set(
+status_code_e
+gtpv2c_bearer_context_to_be_removed_within_modify_bearer_request_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_to_be_removed_t* bearer_context);
 nw_rc_t gtpv2c_bearer_context_to_be_removed_within_modify_bearer_request_ie_get(
@@ -147,7 +151,7 @@ nw_rc_t gtpv2c_bearer_context_modified_ie_get(
 nw_rc_t gtpv2c_bearer_context_marked_for_removal_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_bearer_context_marked_for_removal_ie_set(
+status_code_e gtpv2c_bearer_context_marked_for_removal_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const bearer_context_marked_for_removal_t* const bearer);
 
@@ -157,14 +161,14 @@ int gtpv2c_bearer_context_marked_for_removal_ie_set(
 nw_rc_t gtpv2c_serving_network_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_serving_network_ie_set(
+status_code_e gtpv2c_serving_network_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const ServingNetwork_t* serving_network);
 
 /* Protocol Configuration Options Information Element */
 nw_rc_t gtpv2c_pco_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_pco_ie_set(
+status_code_e gtpv2c_pco_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const protocol_configuration_options_t* pco);
 
 /* Access Point Name Information Element
@@ -177,13 +181,13 @@ nw_rc_t gtpv2c_apn_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
 
-int gtpv2c_apn_ie_set(nw_gtpv2c_msg_handle_t* msg, const char* apn);
+status_code_e gtpv2c_apn_ie_set(nw_gtpv2c_msg_handle_t* msg, const char* apn);
 
-int gtpv2c_apn_plmn_ie_set(
+status_code_e gtpv2c_apn_plmn_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const char* apn,
     const ServingNetwork_t* serving_network);
 
-int gtpv2c_uli_ie_set(nw_gtpv2c_msg_handle_t* msg, const Uli_t* uli);
+status_code_e gtpv2c_uli_ie_set(nw_gtpv2c_msg_handle_t* msg, const Uli_t* uli);
 
 nw_rc_t gtpv2c_mei_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
@@ -199,7 +203,7 @@ nw_rc_t gtpv2c_uli_ie_get(
 nw_rc_t gtpv2c_apn_restriction_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_apn_restriction_ie_set(
+status_code_e gtpv2c_apn_restriction_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const uint8_t apn_restriction);
 
 /* IP address Information Element
@@ -208,7 +212,7 @@ int gtpv2c_apn_restriction_ie_set(
 nw_rc_t gtpv2c_ip_address_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_ip_address_ie_set(
+status_code_e gtpv2c_ip_address_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const gtp_ip_address_t* ip_address);
 
 /* Delay Value Information Element
@@ -217,7 +221,7 @@ int gtpv2c_ip_address_ie_set(
 nw_rc_t gtpv2c_delay_value_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_delay_value_ie_set(
+status_code_e gtpv2c_delay_value_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const DelayValue_t* delay_value);
 
 /* UE Time Zone Information Element
@@ -226,7 +230,7 @@ int gtpv2c_delay_value_ie_set(
 nw_rc_t gtpv2c_ue_time_zone_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_ue_time_zone_ie_set(
+status_code_e gtpv2c_ue_time_zone_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const UETimeZone_t* ue_time_zone);
 
 /* Bearer Flags Information Element
@@ -235,7 +239,7 @@ int gtpv2c_ue_time_zone_ie_set(
 nw_rc_t gtpv2c_bearer_flags_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_bearer_flags_ie_set(
+status_code_e gtpv2c_bearer_flags_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const bearer_flags_t* bearer_flags);
 
 /* Indication Element
@@ -244,7 +248,7 @@ int gtpv2c_bearer_flags_ie_set(
 nw_rc_t gtpv2c_indication_flags_ie_get(
     uint8_t ieType, uint16_t ieLength, uint8_t ieInstance, uint8_t* ieValue,
     void* arg);
-int gtpv2c_indication_flags_ie_set(
+status_code_e gtpv2c_indication_flags_ie_set(
     nw_gtpv2c_msg_handle_t* msg, const indication_flags_t* indication_flags);
 
 /* FQ-CSID Information Element

@@ -46,7 +46,7 @@ struct avp;
 struct msg;
 struct session;
 
-int s6a_ula_cb(
+status_code_e s6a_ula_cb(
     struct msg** msg_pP, struct avp* paramavp_pP, struct session* sess_pP,
     void* opaque_pP, enum disp_action* act_pP) {
   struct msg* ans_p                                    = NULL;
@@ -63,7 +63,8 @@ int s6a_ula_cb(
    */
   CHECK_FCT(fd_msg_answ_getq(ans_p, &qry_p));
   DevAssert(qry_p);
-  message_p = itti_alloc_new_message(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, S6A_UPDATE_LOCATION_ANS);
   s6a_update_location_ans_p = &message_p->ittiMsg.s6a_update_location_ans;
   CHECK_FCT(fd_msg_search_avp(qry_p, s6a_fd_cnf.dataobj_s6a_user_name, &avp_p));
 
@@ -187,7 +188,7 @@ err:
   return RETURNok;
 }
 
-int s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
+status_code_e s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
   struct avp* avp_p      = NULL;
   struct msg* msg_p      = NULL;
   struct session* sess_p = NULL;

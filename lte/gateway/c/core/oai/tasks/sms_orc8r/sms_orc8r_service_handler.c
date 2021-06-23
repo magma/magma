@@ -26,15 +26,15 @@
 #include "sms_orc8r_messages.h"
 #include "sgs_messages_types.h"
 
-int handle_sms_orc8r_downlink_unitdata(
+status_code_e handle_sms_orc8r_downlink_unitdata(
     const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p) {
   int rc = RETURNok;
 
   MessageDef* message_p                              = NULL;
   itti_sgsap_downlink_unitdata_t* sgs_dl_unit_data_p = NULL;
 
-  message_p = itti_alloc_new_message(TASK_SMS_ORC8R, SGSAP_DOWNLINK_UNITDATA);
-  AssertFatal(message_p, "itti_alloc_new_message Failed");
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_SMS_ORC8R, SGSAP_DOWNLINK_UNITDATA);
   sgs_dl_unit_data_p = &message_p->ittiMsg.sgsap_downlink_unitdata;
   memset((void*) sgs_dl_unit_data_p, 0, sizeof(itti_sgsap_downlink_unitdata_t));
 

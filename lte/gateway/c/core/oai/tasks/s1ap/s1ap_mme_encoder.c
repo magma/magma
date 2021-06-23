@@ -31,7 +31,7 @@ static inline int s1ap_mme_encode_successfull_outcome(
 static inline int s1ap_mme_encode_unsuccessfull_outcome(
     S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* len);
 //------------------------------------------------------------------------------
-int s1ap_mme_encode_pdu(
+status_code_e s1ap_mme_encode_pdu(
     S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   int ret = -1;
 

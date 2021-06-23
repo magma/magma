@@ -38,19 +38,19 @@
 
 extern task_zmq_ctx_t sctp_task_zmq_ctx;
 
-int sctp_itti_send_lower_layer_conf(
+status_code_e sctp_itti_send_lower_layer_conf(
     task_id_t origin_task_id, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream, uint32_t agw_ue_xap_id, bool is_success);
 
-int sctp_itti_send_new_association(
+status_code_e sctp_itti_send_new_association(
     sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
     sctp_stream_id_t outstreams, STOLEN_REF bstring* ran_cp_ipaddr);
 
-int sctp_itti_send_new_message_ind(
+status_code_e sctp_itti_send_new_message_ind(
     STOLEN_REF bstring* payload, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream);
 
-int sctp_itti_send_com_down_ind(
+status_code_e sctp_itti_send_com_down_ind(
     sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, bool reset);
 
 #endif /* FILE_SCTP_ITTI_MESSAGING_SEEN */
