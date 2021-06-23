@@ -33,7 +33,7 @@
 #include "itti_free_defined_msg.h"
 
 //------------------------------------------------------------------------------
-int sctp_itti_send_lower_layer_conf(
+status_code_e sctp_itti_send_lower_layer_conf(
     task_id_t origin_task_id, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream, uint32_t xap_id, bool is_success) {
   MessageDef* msg =
@@ -49,7 +49,7 @@ int sctp_itti_send_lower_layer_conf(
 }
 
 //------------------------------------------------------------------------------
-int sctp_itti_send_new_association(
+status_code_e sctp_itti_send_new_association(
     sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
     sctp_stream_id_t outstreams, STOLEN_REF bstring* ran_cp_ipaddr) {
   MessageDef* msg =
@@ -79,7 +79,7 @@ int sctp_itti_send_new_association(
 }
 
 //------------------------------------------------------------------------------
-int sctp_itti_send_new_message_ind(
+status_code_e sctp_itti_send_new_message_ind(
     STOLEN_REF bstring* payload, sctp_ppid_t ppid, sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream) {
   MessageDef* msg =
@@ -109,7 +109,7 @@ int sctp_itti_send_new_message_ind(
 }
 
 //------------------------------------------------------------------------------
-int sctp_itti_send_com_down_ind(
+status_code_e sctp_itti_send_com_down_ind(
     sctp_ppid_t ppid, sctp_assoc_id_t assoc_id, bool reset) {
   MessageDef* msg =
       DEPRECATEDitti_alloc_new_message_fatal(TASK_SCTP, SCTP_CLOSE_ASSOCIATION);

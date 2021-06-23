@@ -44,7 +44,7 @@
 #include "log.h"
 
 //------------------------------------------------------------------------------
-int nas_timer_init(void) {
+status_code_e nas_timer_init(void) {
   return (RETURNok);
 }
 

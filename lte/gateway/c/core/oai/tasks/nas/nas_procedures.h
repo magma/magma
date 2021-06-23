@@ -33,6 +33,7 @@
 #include "3gpp_33.401.h"
 #include "3gpp_36.401.h"
 #include "bstrlib.h"
+#include "common_defs.h"
 #include "common_types.h"
 #include "emm_fsm.h"
 #include "nas_timer.h"
@@ -437,7 +438,7 @@ bool is_nas_attach_reject_sent(const nas_emm_attach_proc_t* const attach_proc);
 bool is_nas_attach_complete_received(
     const nas_emm_attach_proc_t* const attach_proc);
 
-int nas_unlink_procedures(
+status_code_e nas_unlink_procedures(
     nas_base_proc_t* const parent_proc, nas_base_proc_t* const child_proc);
 
 void nas_delete_all_emm_procedures(struct emm_context_s* const emm_context);

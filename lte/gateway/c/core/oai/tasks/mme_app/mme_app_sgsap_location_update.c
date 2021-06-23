@@ -279,7 +279,7 @@ static int build_sgs_status(
  ** Outputs:                                                                   *
  **      Return:    RETURNok, RETURNerror                                      *
  *******************************************************************************/
-static int handle_cs_domain_loc_updt_acc(
+static status_code_e handle_cs_domain_loc_updt_acc(
     itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc,
     struct ue_mm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -367,7 +367,7 @@ static int handle_cs_domain_loc_updt_acc(
  **                      Type of message:Attach Request or TAU Request      **
  **                                                                         **
  ******************************************************************************/
-int mme_app_handle_nas_cs_domain_location_update_req(
+status_code_e mme_app_handle_nas_cs_domain_location_update_req(
     ue_mm_context_t* ue_context_p, uint8_t msg_type) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(
@@ -430,7 +430,8 @@ int mme_app_handle_nas_cs_domain_location_update_req(
  ** Inputs: **
  **
  ***********************************************************************************/
-int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p) {
+status_code_e send_itti_sgsap_location_update_req(
+    ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   MessageDef* message_p = NULL;
@@ -561,7 +562,7 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p) {
  ** Inputs:              nas_sgs_location_update_acc                        **
  **
  ******************************************************************************/
-int mme_app_handle_sgsap_location_update_acc(
+status_code_e mme_app_handle_sgsap_location_update_acc(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_location_update_acc_t* const itti_sgsap_location_update_acc) {
   imsi64_t imsi64                      = INVALID_IMSI64;
@@ -612,7 +613,7 @@ int mme_app_handle_sgsap_location_update_acc(
  ** Inputs:              nas_sgs_location_update_rej                         **
  **
  *******************************************************************************/
-int mme_app_handle_sgsap_location_update_rej(
+status_code_e mme_app_handle_sgsap_location_update_rej(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_location_update_rej_t* const itti_sgsap_location_update_rej) {
   imsi64_t imsi64                      = INVALID_IMSI64;
@@ -666,7 +667,7 @@ int mme_app_handle_sgsap_location_update_rej(
  ** Inputs:              sgs_fsm_t                                           **
  **                                                                          **
  *******************************************************************************/
-int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
   int rc                                                             = RETURNok;
   itti_sgsap_location_update_acc_t* itti_sgsap_location_update_acc_p = NULL;
   MobileIdentity_t* mobileid                                         = NULL;
@@ -733,7 +734,7 @@ int sgs_fsm_null_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t **
  ** **
  ***********************************************************************************/
-int sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
   int rc = RETURNok;
 
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -771,7 +772,7 @@ int sgs_fsm_associated_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t                                           **
  **                                                                          **
  *******************************************************************************/
-int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
   int rc                                                             = RETURNok;
   itti_sgsap_location_update_acc_t* itti_sgsap_location_update_acc_p = NULL;
   struct ue_mm_context_s* ue_context_p                               = NULL;
@@ -857,7 +858,7 @@ int sgs_fsm_la_updt_req_loc_updt_acc(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t **
  ** **
  ***********************************************************************************/
-int sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
   int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_ERROR(
@@ -877,7 +878,7 @@ int sgs_fsm_null_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              sgs_fsm_t **
  ** **
  *****************************************************************************************/
-int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
   int rc                                                             = RETURNok;
   struct ue_mm_context_s* ue_context_p                               = NULL;
   itti_sgsap_location_update_rej_t* itti_sgsap_location_update_rej_p = NULL;
@@ -930,7 +931,8 @@ int sgs_fsm_la_updt_req_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  ** Inputs:              ue_mm_context_s **
  ** **
  ***********************************************************************************/
-int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
+status_code_e mme_app_handle_ts6_1_timer_expiry(
+    zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
   if (!mme_app_get_timer_arg(timer_id, &mme_ue_s1ap_id)) {
@@ -975,7 +977,7 @@ int mme_app_handle_ts6_1_timer_expiry(zloop_t* loop, int timer_id, void* args) {
  ** Inputs:              sgs_fsm_t **
  ** **
  ***********************************************************************************/
-int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
   int rc                                                             = RETURNok;
   struct ue_mm_context_s* ue_context_p                               = NULL;
   itti_sgsap_location_update_rej_t* itti_sgsap_location_update_rej_p = NULL;
@@ -1013,7 +1015,7 @@ int sgs_fsm_associated_loc_updt_rej(const sgs_fsm_t* fsm_evt) {
  **                      RETURNerror: On failure                              **
  **                                                                           **
  ********************************************************************************/
-int mme_app_create_sgs_context(ue_mm_context_t* ue_context_p) {
+status_code_e mme_app_create_sgs_context(ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Invalid UE context \n");

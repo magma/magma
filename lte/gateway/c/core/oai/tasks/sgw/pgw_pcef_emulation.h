@@ -28,13 +28,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include "common_defs.h"
 #include "queue.h"
 #include "bstrlib.h"
 #include "pgw_config.h"
 #include "pgw_types.h"
 #include "spgw_state.h"
 
-int pgw_pcef_emulation_init(
+status_code_e pgw_pcef_emulation_init(
     spgw_state_t* state_p, const pgw_config_t* pgw_config_p);
 void pgw_pcef_emulation_apply_rule(
     spgw_state_t* state_p, sdf_id_t sdf_id, const pgw_config_t* pgw_config_p);
@@ -42,7 +43,7 @@ void pgw_pcef_emulation_apply_sdf_filter(
     sdf_filter_t* sdf_f, sdf_id_t sdf_id, const pgw_config_t* pgw_config_p);
 bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
     packet_filter_contents_t* packetfiltercontents, uint8_t direction);
-int pgw_pcef_get_sdf_parameters(
+status_code_e pgw_pcef_get_sdf_parameters(
     spgw_state_t* state, sdf_id_t sdf_id, bearer_qos_t* bearer_qos,
     packet_filter_t* packet_filter, uint8_t* num_pf);
 

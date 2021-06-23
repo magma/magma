@@ -63,7 +63,7 @@
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int sgs_null_handler(const sgs_fsm_t* evt) {
+status_code_e sgs_null_handler(const sgs_fsm_t* evt) {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
 

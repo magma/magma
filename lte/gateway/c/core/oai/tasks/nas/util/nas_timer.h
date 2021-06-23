@@ -34,6 +34,7 @@ Description Timer utilities
 #ifndef FILE_NAS_TIMER_SEEN
 #define FILE_NAS_TIMER_SEEN
 
+#include "common_defs.h"
 #include "common_types.h"
 /****************************************************************************/
 /*********************  G L O B A L    C O N S T A N T S  *******************/
@@ -71,7 +72,7 @@ typedef struct nas_itti_timer_arg_s {
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int nas_timer_init(void);
+status_code_e nas_timer_init(void);
 void nas_timer_cleanup(void);
 long int nas_timer_start(
     uint32_t sec, uint32_t usec, nas_timer_callback_t nas_timer_callback,

@@ -146,7 +146,7 @@ static void mme_app_send_sgs_eps_detach_indication(
 }
 
 // handle the SGS EPS detach timer expiry
-int mme_app_handle_sgs_eps_detach_timer_expiry(
+status_code_e mme_app_handle_sgs_eps_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
@@ -206,7 +206,7 @@ int mme_app_handle_sgs_eps_detach_timer_expiry(
 }
 
 // handle the SGS Implicit EPS detach timer expiry
-int mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
+status_code_e mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
@@ -347,7 +347,7 @@ void mme_app_send_sgs_imsi_detach_indication(
 }
 
 /* handle the SGS IMSI detach timer expiry. */
-int mme_app_handle_sgs_imsi_detach_timer_expiry(
+status_code_e mme_app_handle_sgs_imsi_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
@@ -430,7 +430,7 @@ int mme_app_handle_sgs_imsi_detach_timer_expiry(
 }
 
 /* handle the SGS Implicit IMSI detach timer expiry. */
-int mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
+status_code_e mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
     zloop_t* loop, int timer_id, void* args) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
@@ -569,7 +569,7 @@ void mme_app_handle_sgs_detach_req(
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-int mme_app_handle_sgs_eps_detach_ack(
+status_code_e mme_app_handle_sgs_eps_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
     const itti_sgsap_eps_detach_ack_t* const eps_detach_ack_p) {
   imsi64_t imsi64                      = INVALID_IMSI64;
@@ -623,7 +623,7 @@ int mme_app_handle_sgs_eps_detach_ack(
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
-int mme_app_handle_sgs_imsi_detach_ack(
+status_code_e mme_app_handle_sgs_imsi_detach_ack(
     mme_app_desc_t* mme_app_desc_p,
     const itti_sgsap_imsi_detach_ack_t* const imsi_detach_ack_p) {
   imsi64_t imsi64                      = INVALID_IMSI64;

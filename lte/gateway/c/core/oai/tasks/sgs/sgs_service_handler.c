@@ -28,7 +28,7 @@
 
 static void sgs_send_sgsap_vlr_reset_ack(void);
 
-int handle_sgs_location_update_accept(
+status_code_e handle_sgs_location_update_accept(
     const itti_sgsap_location_update_acc_t* itti_sgsap_location_update_acc_p) {
   /* Received SGS Location Update Accept from FedGW
    *send it to MME App for further processing
@@ -54,7 +54,7 @@ int handle_sgs_location_update_accept(
 }
 
 //------------------------------------------------------------------------------------------------------------
-int handle_sgs_location_update_reject(
+status_code_e handle_sgs_location_update_reject(
     const itti_sgsap_location_update_rej_t* itti_sgsap_loc_updt_rej_p) {
   MessageDef* message_p = NULL;
   int rc                = RETURNok;
@@ -79,7 +79,7 @@ int handle_sgs_location_update_reject(
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
-int handle_sgs_eps_detach_ack(
+status_code_e handle_sgs_eps_detach_ack(
     const itti_sgsap_eps_detach_ack_t* sgsap_eps_detach_ack_p) {
   // send it to MME module for further processing
   int rc                                            = RETURNok;
@@ -99,7 +99,7 @@ int handle_sgs_eps_detach_ack(
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
-int handle_sgs_imsi_detach_ack(
+status_code_e handle_sgs_imsi_detach_ack(
     const itti_sgsap_imsi_detach_ack_t* sgsap_imsi_detach_ack_p) {
   // send it to MME module for further processing
   int rc                                              = RETURNok;
@@ -120,7 +120,7 @@ int handle_sgs_imsi_detach_ack(
   OAILOG_FUNC_RETURN(LOG_SGS, rc);
 }
 
-int handle_sgs_downlink_unitdata(
+status_code_e handle_sgs_downlink_unitdata(
     const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p) {
   int rc = RETURNok;
 
@@ -140,7 +140,8 @@ int handle_sgs_downlink_unitdata(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
-int handle_sgs_release_req(const itti_sgsap_release_req_t* sgs_release_req_p) {
+status_code_e handle_sgs_release_req(
+    const itti_sgsap_release_req_t* sgs_release_req_p) {
   int rc = RETURNok;
 
   MessageDef* message_p                   = NULL;
@@ -160,7 +161,7 @@ int handle_sgs_release_req(const itti_sgsap_release_req_t* sgs_release_req_p) {
  * MSC/VLR
  */
 
-int handle_sgs_mm_information_request(
+status_code_e handle_sgs_mm_information_request(
     const itti_sgsap_mm_information_req_t* mm_information_req_pP) {
   /* Received SGS MM Information Request from FedGW
    *send it to NAS task for further processing
@@ -190,7 +191,7 @@ int handle_sgs_mm_information_request(
 }
 
 //------------------------------------------------------------------------------------------------------------
-int handle_sgs_service_abort_req(
+status_code_e handle_sgs_service_abort_req(
     const itti_sgsap_service_abort_req_t* itti_sgsap_service_abort_req_p) {
   /* Received SGS SERVICE ABORT Request from FedGW
    *send it to MME App for further processing
@@ -221,7 +222,7 @@ int handle_sgs_service_abort_req(
  * Is function invoked by FedGW on reception of Paging Request from MSC/VLR
  */
 
-int handle_sgs_paging_request(
+status_code_e handle_sgs_paging_request(
     const itti_sgsap_paging_request_t* const sgs_paging_req_pP) {
   MessageDef* message_p = NULL;
   int rc                = RETURNok;
@@ -257,7 +258,7 @@ int handle_sgs_paging_request(
  * Is Function invoked by FedGW on reception of Reset Indication from MSC/VLR
  */
 
-int handle_sgs_vlr_reset_indication(
+status_code_e handle_sgs_vlr_reset_indication(
     const itti_sgsap_vlr_reset_indication_t* const sgs_vlr_reset_ind_pP) {
   MessageDef* message_p = NULL;
   int rc                = RETURNok;
@@ -301,7 +302,8 @@ int handle_sgs_vlr_reset_indication(
  * Is function invoked by FedGW on reception of Sgs Status message from MSC/VLR
  */
 
-int handle_sgs_status_message(const itti_sgsap_status_t* sgs_status_pP) {
+status_code_e handle_sgs_status_message(
+    const itti_sgsap_status_t* sgs_status_pP) {
   MessageDef* message_p = NULL;
   int rc                = RETURNok;
   OAILOG_FUNC_IN(LOG_SGS);
@@ -352,7 +354,7 @@ static void sgs_send_sgsap_vlr_reset_ack(void) {
   OAILOG_FUNC_OUT(LOG_SGS);
 }
 
-int handle_sgsap_alert_request(
+status_code_e handle_sgsap_alert_request(
     const itti_sgsap_alert_request_t* const sgsap_alert_request) {
   MessageDef* message_p = NULL;
   int rc                = RETURNok;

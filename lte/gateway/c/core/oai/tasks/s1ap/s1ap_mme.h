@@ -29,6 +29,7 @@
 #include "intertask_interface.h"
 #endif
 
+#include "common_defs.h"
 #include "s1ap_state.h"
 #include "s1ap_types.h"
 
@@ -40,7 +41,7 @@ extern bool hss_associated;
 /** \brief S1AP layer top init
  * @returns -1 in case of failure
  **/
-int s1ap_mme_init(const mme_config_t* mme_config);
+status_code_e s1ap_mme_init(const mme_config_t* mme_config);
 
 /** \brief S1AP layer top exit
  **/

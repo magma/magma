@@ -13,9 +13,10 @@ limitations under the License.
 
 #pragma once
 
+#include "common_defs.h"
 #include "intertask_interface.h"
 #include "sgw_config.h"
 
 extern task_zmq_ctx_t sgw_s8_task_zmq_ctx;
 
-int sgw_s8_init(sgw_config_t* sgw_config_p);
+status_code_e sgw_s8_init(sgw_config_t* sgw_config_p);

@@ -65,7 +65,7 @@ void pgw_config_init(pgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-int pgw_config_process(pgw_config_t* config_pP) {
+status_code_e pgw_config_process(pgw_config_t* config_pP) {
 #if (!EMBEDDED_SGW)
   async_system_command(
       TASK_ASYNC_SYSTEM, PGW_ABORT_ON_ERROR, "iptables -t mangle -F OUTPUT");
@@ -206,7 +206,7 @@ int pgw_config_process(pgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-int pgw_config_parse_file(pgw_config_t* config_pP) {
+status_code_e pgw_config_parse_file(pgw_config_t* config_pP) {
   config_t cfg                  = {0};
   config_setting_t* setting_pgw = NULL;
   config_setting_t* subsetting  = NULL;

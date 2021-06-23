@@ -36,6 +36,7 @@ Description Defines the ESM Service Access Points at which the EPS
 #ifndef __ESM_SAP_H__
 #define __ESM_SAP_H__
 
+#include "common_defs.h"
 #include "esm_sapDef.h"
 
 /****************************************************************************/
@@ -56,6 +57,6 @@ Description Defines the ESM Service Access Points at which the EPS
 
 void esm_sap_initialize(void);
 
-int esm_sap_send(esm_sap_t* msg);
+status_code_e esm_sap_send(esm_sap_t* msg);
 
 #endif /* __ESM_SAP_H__*/

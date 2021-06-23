@@ -39,7 +39,7 @@ task_zmq_ctx_t ngap_task_zmq_ctx;
  * \param amf_ue_ngap_id_t amf_ue_ngap_id
  * @returns int
  **/
-int ngap_amf_itti_send_sctp_request(
+status_code_e ngap_amf_itti_send_sctp_request(
     STOLEN_REF bstring* payload, const uint32_t sctp_assoc_id_t,
     const sctp_stream_id_t stream, const amf_ue_ngap_id_t ue_id);
 
@@ -50,7 +50,7 @@ int ngap_amf_itti_send_sctp_request(
  * \param cgi E-UTRAN Cell Global Identification
  * @returns int
  **/
-int ngap_amf_itti_nas_uplink_ind(
+status_code_e ngap_amf_itti_nas_uplink_ind(
     const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload,
     const tai_t* const tai, const ecgi_t* const cgi);
 

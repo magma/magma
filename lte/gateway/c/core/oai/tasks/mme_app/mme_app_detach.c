@@ -223,7 +223,7 @@ void mme_app_handle_detach_req(const mme_ue_s1ap_id_t ue_id) {
  **          Return:    RETURNok, RETURNerror                               **
  **                                                                         **
  ******************************************************************************/
-int mme_app_handle_nw_initiated_detach_request(
+status_code_e mme_app_handle_nw_initiated_detach_request(
     mme_ue_s1ap_id_t ue_id, uint8_t detach_type) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   emm_cn_nw_initiated_detach_ue_t emm_cn_nw_initiated_detach = {0};

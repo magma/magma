@@ -59,7 +59,7 @@
 #include "ngap_common.h"
 
 //------------------------------------------------------------------------------
-int ngap_amf_handle_initial_ue_message(
+status_code_e ngap_amf_handle_initial_ue_message(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu) {
   Ngap_InitialUEMessage_t* container;
@@ -231,7 +231,7 @@ int ngap_amf_handle_initial_ue_message(
 
 //------------------------------------------------------------------------------
 
-int ngap_amf_handle_uplink_nas_transport(
+status_code_e ngap_amf_handle_uplink_nas_transport(
     ngap_state_t* state, const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     Ngap_NGAP_PDU_t* pdu) {
@@ -344,7 +344,7 @@ int ngap_amf_handle_uplink_nas_transport(
 }
 
 //------------------------------------------------------------------------------
-int ngap_amf_handle_nas_non_delivery(
+status_code_e ngap_amf_handle_nas_non_delivery(
     ngap_state_t* state, __attribute__((unused)) sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream, Ngap_NGAP_PDU_t* pdu) {
   Ngap_NASNonDeliveryIndication_t* container;
@@ -421,7 +421,7 @@ int ngap_amf_handle_nas_non_delivery(
 }
 
 //------------------------------------------------------------------------------
-int ngap_generate_downlink_nas_transport(
+status_code_e ngap_generate_downlink_nas_transport(
     ngap_state_t* state, const gnb_ue_ngap_id_t gnb_ue_ngap_id,
     const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload,
     const imsi64_t imsi64) {
@@ -593,7 +593,7 @@ void ngap_handle_amf_ue_id_notification(
 }
 
 //------------------------------------------------------------------------------
-int ngap_generate_ngap_pdusession_resource_setup_req(
+status_code_e ngap_generate_ngap_pdusession_resource_setup_req(
     ngap_state_t* state, itti_ngap_pdusession_resource_setup_req_t* const
                              pdusession_resource_setup_req) {
   OAILOG_FUNC_IN(LOG_NGAP);
@@ -870,7 +870,7 @@ int ngap_generate_ngap_pdusession_resource_setup_req(
 }
 
 //------------------------------------------------------------------------------
-int ngap_generate_ngap_pdusession_resource_rel_cmd(
+status_code_e ngap_generate_ngap_pdusession_resource_rel_cmd(
     ngap_state_t* state,
     itti_ngap_pdusessionresource_rel_req_t* const pdusessionresource_rel_cmd) {
   OAILOG_FUNC_IN(LOG_NGAP);

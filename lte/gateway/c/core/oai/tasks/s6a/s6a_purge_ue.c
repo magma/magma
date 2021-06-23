@@ -36,7 +36,7 @@ struct avp;
 struct msg;
 struct session;
 
-int s6a_pua_cb(
+status_code_e s6a_pua_cb(
     struct msg** msg_pP, struct avp* paramavp_pP, struct session* sess_pP,
     void* opaque_pP, enum disp_action* act_pP) {
   struct msg* ans_p                      = NULL;
@@ -166,7 +166,7 @@ err:
   return RETURNok;
 }
 
-int s6a_generate_purge_ue_req(const char* imsi) {
+status_code_e s6a_generate_purge_ue_req(const char* imsi) {
   struct avp* avp_p      = NULL;
   struct msg* msg_p      = NULL;
   struct session* sess_p = NULL;

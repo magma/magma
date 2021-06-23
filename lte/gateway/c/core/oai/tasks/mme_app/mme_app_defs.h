@@ -233,8 +233,8 @@ int mme_app_handle_sgsap_reset_indication(
 
 int sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt);
 
-bool mme_app_handle_reset_indication(
-    hash_key_t keyP, void* ue_context_pP, void* unused_param_pP,
+status_code_e mme_app_handle_reset_indication(
+    hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
     void** unused_result_pP);
 
 int mme_app_handle_sgsap_alert_request(
@@ -312,7 +312,7 @@ void mme_app_handle_path_switch_req_failure(
 void mme_app_send_itti_sgsap_ue_activity_ind(
     const char* imsi, unsigned int imsi_len);
 
-int emm_send_cs_domain_attach_or_tau_accept(
+status_code_e emm_send_cs_domain_attach_or_tau_accept(
     struct ue_mm_context_s* ue_context_p);
 
 void mme_app_update_paging_tai_list(

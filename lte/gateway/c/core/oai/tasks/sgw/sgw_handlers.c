@@ -98,7 +98,7 @@ uint32_t spgw_get_new_s1u_teid(spgw_state_t* state) {
 }
 
 //------------------------------------------------------------------------------
-int sgw_handle_s11_create_session_request(
+status_code_e sgw_handle_s11_create_session_request(
     spgw_state_t* state,
     const itti_s11_create_session_request_t* const session_req_pP,
     imsi64_t imsi64) {
@@ -301,7 +301,7 @@ int sgw_handle_s11_create_session_request(
 }
 
 //------------------------------------------------------------------------------
-int sgw_handle_sgi_endpoint_created(
+status_code_e sgw_handle_sgi_endpoint_created(
     spgw_state_t* state, itti_sgi_create_end_point_response_t* const resp_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -698,7 +698,7 @@ void sgw_handle_sgi_endpoint_updated(
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 //------------------------------------------------------------------------------
-int sgw_handle_sgi_endpoint_deleted(
+status_code_e sgw_handle_sgi_endpoint_deleted(
     const itti_sgi_delete_end_point_request_t* const resp_pP, imsi64_t imsi64) {
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
   int rv                                   = RETURNok;
@@ -880,7 +880,7 @@ void populate_sgi_end_point_update(
 
 //------------------------------------------------------------------------------
 // This function populates and sends MBR failure message to MME APP
-int send_mbr_failure(
+status_code_e send_mbr_failure(
     log_proto_t module,
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
     imsi64_t imsi64) {
@@ -926,7 +926,7 @@ int send_mbr_failure(
 }
 
 //------------------------------------------------------------------------------
-int sgw_handle_modify_bearer_request(
+status_code_e sgw_handle_modify_bearer_request(
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -1039,7 +1039,7 @@ int sgw_handle_modify_bearer_request(
 }
 
 //------------------------------------------------------------------------------
-int sgw_handle_delete_session_request(
+status_code_e sgw_handle_delete_session_request(
     const itti_s11_delete_session_request_t* const delete_session_req_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -1434,7 +1434,7 @@ void handle_s5_create_session_response(
  * TODO for multiple PDN support, suspend all bearers and disard the DL data for
  * the UE
  */
-int sgw_handle_suspend_notification(
+status_code_e sgw_handle_suspend_notification(
     const itti_s11_suspend_notification_t* const suspend_notification_pP,
     imsi64_t imsi64) {
   itti_s11_suspend_acknowledge_t* suspend_acknowledge_p = NULL;
@@ -1520,7 +1520,7 @@ int sgw_handle_suspend_notification(
  * Handle NW initiated Dedicated Bearer Activation Rsp from MME
  */
 
-int sgw_handle_nw_initiated_actv_bearer_rsp(
+status_code_e sgw_handle_nw_initiated_actv_bearer_rsp(
     const itti_s11_nw_init_actv_bearer_rsp_t* const s11_actv_bearer_rsp,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
@@ -1657,7 +1657,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
  * Handle NW-initiated dedicated bearer dectivation rsp from MME
  */
 
-int sgw_handle_nw_initiated_deactv_bearer_rsp(
+status_code_e sgw_handle_nw_initiated_deactv_bearer_rsp(
     spgw_state_t* spgw_state,
     const itti_s11_nw_init_deactv_bearer_rsp_t* const
         s11_pcrf_ded_bearer_deactv_rsp,
@@ -1815,7 +1815,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 
-int sgw_handle_ip_allocation_rsp(
+status_code_e sgw_handle_ip_allocation_rsp(
     spgw_state_t* spgw_state,
     const itti_ip_allocation_response_t* ip_allocation_rsp, imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);

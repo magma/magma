@@ -538,7 +538,7 @@ static void mme_app_init_congestion_params(const mme_config_t* mme_config_p) {
 }
 
 //------------------------------------------------------------------------------
-int mme_app_init(const mme_config_t* mme_config_p) {
+status_code_e mme_app_init(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (mme_nas_state_init(mme_config_p)) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
