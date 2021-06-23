@@ -21,7 +21,6 @@ import (
 
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
-	storage2 "magma/orc8r/cloud/go/storage"
 
 	_ "github.com/mattn/go-sqlite3"
 	"github.com/pkg/errors"
@@ -36,7 +35,7 @@ var (
 // GetSharedMemoryDB returns a singleton in-memory database connection.
 func GetSharedMemoryDB() (*sql.DB, error) {
 	var err error
-	once.Do(func() { instance, err = sqorc.Open(storage2.SQLDriver, ":memory:") })
+	once.Do(func() { instance, err = sqorc.Open(sqorc.SQLiteDriver, ":memory:") })
 	return instance, err
 }
 
