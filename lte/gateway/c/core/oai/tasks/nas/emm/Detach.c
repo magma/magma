@@ -229,7 +229,8 @@ void _clear_emm_ctxt(emm_context_t* emm_context) {
  **      Others:    T3422                                      **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_detach(mme_ue_s1ap_id_t ue_id, emm_proc_detach_type_t type) {
+status_code_e emm_proc_detach(
+    mme_ue_s1ap_id_t ue_id, emm_proc_detach_type_t type) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNerror;
 
@@ -259,7 +260,7 @@ int emm_proc_detach(mme_ue_s1ap_id_t ue_id, emm_proc_detach_type_t type) {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_sgs_detach_request(
+status_code_e emm_proc_sgs_detach_request(
     mme_ue_s1ap_id_t ue_id, emm_proc_sgs_detach_type_t sgs_detach_type) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
@@ -323,7 +324,7 @@ int emm_proc_sgs_detach_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_detach_request(
+status_code_e emm_proc_detach_request(
     mme_ue_s1ap_id_t ue_id, emm_detach_request_ies_t* params)
 
 {
@@ -425,7 +426,7 @@ int emm_proc_detach_request(
  **      and S1AP                                                          **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
+status_code_e emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   emm_context_t* emm_ctx = NULL;
 
@@ -485,7 +486,7 @@ int emm_proc_detach_accept(mme_ue_s1ap_id_t ue_id) {
  **      DETACH REQUEST message to UE                                      **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_nw_initiated_detach_request(
+status_code_e emm_proc_nw_initiated_detach_request(
     mme_ue_s1ap_id_t ue_id, uint8_t detach_type) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc;

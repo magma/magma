@@ -193,7 +193,8 @@ sgw_cm_create_bearer_context_information_in_collection(teid_t teid) {
 }
 
 //-----------------------------------------------------------------------------
-int sgw_cm_remove_bearer_context_information(teid_t teid, imsi64_t imsi64) {
+status_code_e sgw_cm_remove_bearer_context_information(
+    teid_t teid, imsi64_t imsi64) {
   int temp = 0;
 
   hash_table_ts_t* state_teid_ht = get_spgw_teid_state();
@@ -315,7 +316,7 @@ sgw_eps_bearer_ctxt_t* sgw_cm_get_eps_bearer_entry(
 }
 
 //-----------------------------------------------------------------------------
-int sgw_cm_remove_eps_bearer_entry(
+status_code_e sgw_cm_remove_eps_bearer_entry(
     sgw_pdn_connection_t* const sgw_pdn_connection, ebi_t ebi)
 //-----------------------------------------------------------------------------
 {
@@ -361,7 +362,7 @@ spgw_ue_context_t* spgw_create_or_get_ue_context(imsi64_t imsi64) {
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, ue_context_p);
 }
 
-int spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid) {
+status_code_e spgw_update_teid_in_ue_context(imsi64_t imsi64, teid_t teid) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   spgw_ue_context_t* ue_context_p = spgw_create_or_get_ue_context(imsi64);
   if (!ue_context_p) {

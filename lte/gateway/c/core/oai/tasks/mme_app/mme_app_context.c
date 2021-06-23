@@ -595,7 +595,7 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
 }
 
 //------------------------------------------------------------------------------
-int mme_insert_ue_context(
+status_code_e mme_insert_ue_context(
     mme_ue_context_t* const mme_ue_context_p,
     const struct ue_mm_context_s* const ue_context_p) {
   hashtable_rc_t h_rc                 = HASH_TABLE_OK;

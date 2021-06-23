@@ -52,16 +52,16 @@ Description Implements the API used by the NAS layer to send/receive
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int network_api_initialize(const char* host, const char* port);
+status_code_e network_api_initialize(const char* host, const char* port);
 
-int network_api_get_fd(void);
+status_code_e network_api_get_fd(void);
 const void* network_api_get_data(void);
 
-int network_api_read_data(int fd);
-int network_api_send_data(int fd, size_t length);
+status_code_e network_api_read_data(int fd);
+status_code_e network_api_send_data(int fd, size_t length);
 void network_api_close(int fd);
 
-int network_api_decode_data(size_t length);
-int network_api_encode_data(void* data);
+status_code_e network_api_decode_data(size_t length);
+status_code_e network_api_encode_data(void* data);
 
 #endif /* FILE_NETWORK_API_SEEN*/

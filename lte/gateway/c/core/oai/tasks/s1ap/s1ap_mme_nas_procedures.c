@@ -82,7 +82,7 @@ extern long s1ap_last_msg_latency;
 extern long s1ap_zmq_th;
 
 //------------------------------------------------------------------------------
-int s1ap_mme_handle_initial_ue_message(
+status_code_e s1ap_mme_handle_initial_ue_message(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   S1ap_InitialUEMessage_t* container = NULL;
@@ -278,7 +278,7 @@ int s1ap_mme_handle_initial_ue_message(
 }
 
 //------------------------------------------------------------------------------
-int s1ap_mme_handle_uplink_nas_transport(
+status_code_e s1ap_mme_handle_uplink_nas_transport(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     __attribute__((unused)) const sctp_stream_id_t stream,
     S1ap_S1AP_PDU_t* pdu) {
@@ -401,7 +401,7 @@ int s1ap_mme_handle_uplink_nas_transport(
 }
 
 //------------------------------------------------------------------------------
-int s1ap_mme_handle_nas_non_delivery(
+status_code_e s1ap_mme_handle_nas_non_delivery(
     s1ap_state_t* state, __attribute__((unused)) sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   S1ap_NASNonDeliveryIndication_t* container;
@@ -490,7 +490,7 @@ int s1ap_mme_handle_nas_non_delivery(
 }
 
 //------------------------------------------------------------------------------
-int s1ap_generate_downlink_nas_transport(
+status_code_e s1ap_generate_downlink_nas_transport(
     s1ap_state_t* state, const enb_ue_s1ap_id_t enb_ue_s1ap_id,
     const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload,
     const imsi64_t imsi64, bool* is_state_same) {
@@ -624,7 +624,7 @@ int s1ap_generate_downlink_nas_transport(
 }
 
 //------------------------------------------------------------------------------
-int s1ap_generate_s1ap_e_rab_setup_req(
+status_code_e s1ap_generate_s1ap_e_rab_setup_req(
     s1ap_state_t* state, itti_s1ap_e_rab_setup_req_t* const e_rab_setup_req) {
   OAILOG_FUNC_IN(LOG_S1AP);
   ue_description_t* ue_ref              = NULL;
@@ -1203,7 +1203,7 @@ void s1ap_handle_mme_ue_id_notification(
 }
 
 //------------------------------------------------------------------------------
-int s1ap_generate_s1ap_e_rab_rel_cmd(
+status_code_e s1ap_generate_s1ap_e_rab_rel_cmd(
     s1ap_state_t* state, itti_s1ap_e_rab_rel_cmd_t* const e_rab_rel_cmd) {
   OAILOG_FUNC_IN(LOG_S1AP);
 

@@ -25,11 +25,12 @@
 #ifndef FILE_SGW_DEFS_SEEN
 #define FILE_SGW_DEFS_SEEN
 
+#include "common_defs.h"
 #include "intertask_interface.h"
 #include "spgw_config.h"
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 
-int spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state);
+status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state);
 
 #endif /* FILE_SGW_DEFS_SEEN */

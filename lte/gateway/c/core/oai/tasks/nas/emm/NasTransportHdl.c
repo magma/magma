@@ -97,7 +97,8 @@
  **      Others:    _emm_data                                  **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP) {
+status_code_e emm_proc_uplink_nas_transport(
+    mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP) {
   int rc                                     = RETURNok;
   emm_context_t* emm_ctxt_p                  = NULL;
   imeisv_t* p_imeisv                         = NULL;

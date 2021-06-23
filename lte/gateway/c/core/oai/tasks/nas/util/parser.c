@@ -97,7 +97,7 @@ void parser_print_usage(const parser_command_line_t* command_line) {
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int parser_get_options(
+status_code_e parser_get_options(
     int argc, const char** argv, parser_command_line_t* command_line) {
   int argument_not_found, option_not_found = 1;
   int option_length;

@@ -43,7 +43,7 @@ static struct {
 
 #define GTP_DEVNAME "gtp0"
 
-int libgtpnl_init(
+status_code_e libgtpnl_init(
     struct in_addr* ue_net, uint32_t mask, int mtu, int* fd0, int* fd1u,
     bool persist_state) {
   // we don't need GTP v0, but interface with kernel requires 2 file descriptors
@@ -135,20 +135,20 @@ int libgtpnl_init(
   return RETURNok;
 }
 
-int libgtpnl_uninit(void) {
+status_code_e libgtpnl_uninit(void) {
   if (!gtp_nl.is_enabled) return -1;
 
   return gtp_dev_destroy(GTP_DEVNAME);
 }
 
-int libgtpnl_reset(void) {
+status_code_e libgtpnl_reset(void) {
   int rv = 0;
   rv     = system("rmmod gtp");
   rv     = system("modprobe gtp");
   return rv;
 }
 
-int libgtpnl_add_tunnel(
+status_code_e libgtpnl_add_tunnel(
     struct in_addr ue, __attribute__((unused)) struct in6_addr* ue_ipv6,
     __attribute__((unused)) int vlan, struct in_addr enb, uint32_t i_tei,
     uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
@@ -174,7 +174,7 @@ int libgtpnl_add_tunnel(
   return ret;
 }
 
-int libgtpnl_del_tunnel(
+status_code_e libgtpnl_del_tunnel(
     __attribute__((unused)) struct in_addr enb,
     __attribute__((unused)) struct in_addr ue,
     __attribute__((unused)) struct in6_addr* ue_ipv6, uint32_t i_tei,

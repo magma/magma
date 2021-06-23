@@ -77,7 +77,7 @@ void emm_esm_initialize(void) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_esm_send(const emm_esm_t* msg) {
+status_code_e emm_esm_send(const emm_esm_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc                        = RETURNerror;
   emm_esm_primitive_t primitive = msg->primitive;

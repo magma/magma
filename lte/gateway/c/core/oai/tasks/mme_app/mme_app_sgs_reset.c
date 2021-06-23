@@ -61,7 +61,7 @@
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int mme_app_handle_sgsap_reset_indication(
+status_code_e mme_app_handle_sgsap_reset_indication(
     itti_sgsap_vlr_reset_indication_t* const reset_indication_pP) {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -93,7 +93,7 @@ int mme_app_handle_sgsap_reset_indication(
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-bool mme_app_handle_reset_indication(
+status_code_e mme_app_handle_reset_indication(
     const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
     void** unused_result_pP) {
   int rc = RETURNerror;
@@ -147,7 +147,7 @@ bool mme_app_handle_reset_indication(
  **          Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt) {
+status_code_e sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (fsm_evt == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Invalid SGS FSM Event object received\n");

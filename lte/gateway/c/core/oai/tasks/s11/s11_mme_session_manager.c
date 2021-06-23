@@ -56,7 +56,7 @@
 extern hash_table_ts_t* s11_mme_teid_2_gtv2c_teid_handle;
 
 //------------------------------------------------------------------------------
-int s11_mme_create_session_request(
+status_code_e s11_mme_create_session_request(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_create_session_request_t* req_p) {
   nw_gtpv2c_ulp_api_t ulp_req = {0};
@@ -171,7 +171,7 @@ int s11_mme_create_session_request(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_handle_create_session_response(
+status_code_e s11_mme_handle_create_session_response(
     nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
   nw_rc_t rc = NW_OK;
   uint8_t offendingIeType, offendingIeInstance;
@@ -292,7 +292,7 @@ int s11_mme_handle_create_session_response(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_delete_session_request(
+status_code_e s11_mme_delete_session_request(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_delete_session_request_t* req_p) {
   nw_gtpv2c_ulp_api_t ulp_req;
@@ -350,7 +350,7 @@ int s11_mme_delete_session_request(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_handle_delete_session_response(
+status_code_e s11_mme_handle_delete_session_response(
     nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
   nw_rc_t rc = NW_OK;
   uint8_t offendingIeType, offendingIeInstance;
@@ -438,7 +438,7 @@ int s11_mme_handle_delete_session_response(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_handle_ulp_error_indicatior(
+status_code_e s11_mme_handle_ulp_error_indicatior(
     nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
   /** Get the failed transaction. */
   /** Check the message type. */

@@ -111,7 +111,7 @@ void esm_ebr_initialize(void) {
  **      Others:    _esm_ebr_data                                          **
  **                                                                        **
  ***************************************************************************/
-int esm_ebr_assign(emm_context_t* emm_context) {
+status_code_e esm_ebr_assign(emm_context_t* emm_context) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   ue_mm_context_t* ue_context_p =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
@@ -147,7 +147,7 @@ int esm_ebr_assign(emm_context_t* emm_context) {
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
+status_code_e esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   esm_ebr_context_t* ebr_ctx       = NULL;
   bearer_context_t* bearer_context = NULL;
@@ -239,7 +239,7 @@ int esm_ebr_release(emm_context_t* emm_context, ebi_t ebi) {
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-int esm_ebr_start_timer(
+status_code_e esm_ebr_start_timer(
     emm_context_t* emm_context, ebi_t ebi, CLONE_REF const_bstring msg,
     uint32_t sec, nas_timer_callback_t cb) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -352,7 +352,7 @@ int esm_ebr_start_timer(
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-int esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
+status_code_e esm_ebr_stop_timer(emm_context_t* emm_context, ebi_t ebi) {
   esm_ebr_context_t* ebr_ctx       = NULL;
   bearer_context_t* bearer_context = NULL;
 
@@ -474,7 +474,7 @@ ebi_t esm_ebr_get_pending_ebi(
  **      Others:    _esm_ebr_data                              **
  **                                                                        **
  ***************************************************************************/
-int esm_ebr_set_status(
+status_code_e esm_ebr_set_status(
     emm_context_t* emm_context, ebi_t ebi, esm_ebr_state status,
     bool ue_requested) {
   bearer_context_t* bearer_context = NULL;

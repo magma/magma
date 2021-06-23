@@ -83,10 +83,10 @@ static const char* const emm_fsm_status_str[EMM_STATE_MAX] = {
 /* Type of the EPS Mobility Management state machine handler */
 typedef int (*emm_fsm_handler_t)(emm_reg_t* const);
 
-int EmmDeregistered(emm_reg_t* const);
-int EmmRegistered(emm_reg_t* const);
-int EmmDeregisteredInitiated(emm_reg_t* const);
-int EmmCommonProcedureInitiated(emm_reg_t* const);
+status_code_e EmmDeregistered(emm_reg_t* const);
+status_code_e EmmRegistered(emm_reg_t* const);
+status_code_e EmmDeregisteredInitiated(emm_reg_t* const);
+status_code_e EmmCommonProcedureInitiated(emm_reg_t* const);
 
 /* EMM state machine handlers */
 static const emm_fsm_handler_t emm_fsm_handlers[EMM_STATE_MAX] = {
@@ -141,7 +141,7 @@ void emm_fsm_initialize(void) {
  **      Others:    _emm_fsm_status                            **
  **                                                                        **
  ***************************************************************************/
-int emm_fsm_set_state(
+status_code_e emm_fsm_set_state(
     const mme_ue_s1ap_id_t ue_id, struct emm_context_s* const emm_context,
     const emm_fsm_state_t state) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -224,7 +224,7 @@ const char* emm_fsm_get_state_str(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_fsm_process(struct emm_reg_s* const evt) {
+status_code_e emm_fsm_process(struct emm_reg_s* const evt) {
   int rc = RETURNerror;
   emm_fsm_state_t state;
   emm_reg_primitive_t primitive;

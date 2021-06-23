@@ -21,7 +21,7 @@
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
-int send_n11_create_pdu_session_resp_itti(
+status_code_e send_n11_create_pdu_session_resp_itti(
     itti_n11_create_pdu_session_response_t* itti_msg) {
   OAILOG_DEBUG(
       LOG_UTIL, "Sending itti_n11_create_pdu_session_response to AMF \n");

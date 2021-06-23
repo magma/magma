@@ -118,7 +118,8 @@ void OpenflowController::inject_external_event(
   latest_ofconn_->add_immediate_event(cb, ev);
 }
 
-bool OpenflowController::is_controller_connected_to_switch(int conn_timeout) {
+status_code_e OpenflowController::is_controller_connected_to_switch(
+    int conn_timeout) {
   /* c++ provided conditional variable is added to wait for
    * conn_timeout seconds to make sure connection is established
    * between Controller and switch before inserting the OVS rules

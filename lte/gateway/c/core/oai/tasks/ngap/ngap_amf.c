@@ -203,7 +203,7 @@ static void* ngap_amf_thread(__attribute__((unused)) void* args) {
 }
 
 //------------------------------------------------------------------------------
-int ngap_amf_init(const amf_config_t* amf_config_p) {
+status_code_e ngap_amf_init(const amf_config_t* amf_config_p) {
   OAILOG_DEBUG(LOG_NGAP, "Initializing NGAP interface\n");
 
   if (itti_create_task(TASK_NGAP, &ngap_amf_thread, NULL) == RETURNerror) {
