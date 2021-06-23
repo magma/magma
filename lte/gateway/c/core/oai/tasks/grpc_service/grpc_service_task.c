@@ -67,7 +67,7 @@ static void* grpc_service_thread(__attribute__((unused)) void* args) {
   return NULL;
 }
 
-int grpc_service_init(void) {
+status_code_e grpc_service_init(void) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing grpc_service task interface\n");
   grpc_service_config                 = calloc(1, sizeof(grpc_service_data_t));
   grpc_service_config->server_address = bfromcstr(GRPCSERVICES_SERVER_ADDRESS);

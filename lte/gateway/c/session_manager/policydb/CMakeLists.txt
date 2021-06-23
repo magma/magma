@@ -16,12 +16,8 @@ set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-find_package(MAGMA_LOGGING REQUIRED)
-
-set(MAGMA_INCLUDE_DIR $ENV{C_BUILD}/common/includes)
-
 #compile the relevant protos
-include("${PROJECT_SOURCE_DIR}/../CMakeProtoMacros.txt")
+include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 create_proto_dir("lte" LTE_CPP_OUT_DIR)
 create_proto_dir("orc8r" ORC8R_CPP_OUT_DIR)
 
@@ -32,45 +28,22 @@ set(POLICYDB_ORC8R_CPP_PROTOS common)
 generate_cpp_protos("${POLICYDB_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(POLICYDB_LTE_CPP_PROTOS policydb)
+set(POLICYDB_LTE_CPP_PROTOS policydb apn mobilityd subscriberdb)
 generate_cpp_protos("${POLICYDB_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
     "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
-message("Proto_srcs are ${PROTO_SRCS}")
+message("Policydb proto_srcs are ${PROTO_SRCS}")
 
 add_library(POLICYDB
     PolicyLoader.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 
-find_package(DATASTORE REQUIRED)
-find_package(MAGMA_CONFIG REQUIRED)
-
 target_link_libraries(POLICYDB PRIVATE
-    DATASTORE MAGMA_CONFIG
-    glog)
-target_link_libraries(POLICYDB PRIVATE MAGMA_LOGGING)
-
-# copy headers to build directory so they can be shared with OAI,
-# session_manager, etc.
-add_custom_command(TARGET POLICYDB POST_BUILD
-
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${MAGMA_INCLUDE_DIR})
-add_custom_command(TARGET POLICYDB POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy
-    ${PROJECT_SOURCE_DIR}/includes/*.h ${MAGMA_INCLUDE_DIR})
+    DATASTORE MAGMA_CONFIG glog)
 
 
 target_compile_definitions(POLICYDB PUBLIC LOG_WITH_GLOG)
 target_include_directories(POLICYDB PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>"
     $<TARGET_FILE_DIR:POLICYDB>)
-
-install(TARGETS POLICYDB EXPORT POLICYDB_TARGETS
-    INCLUDES DESTINATION includes
-    ARCHIVE DESTINATION lib)
-
-# Export package
-set(CMAKE_EXPORT_PACKAGE_REGISTRY ON)
-export(TARGETS POLICYDB FILE POLICYDBConfig.cmake)
-export(PACKAGE POLICYDB)

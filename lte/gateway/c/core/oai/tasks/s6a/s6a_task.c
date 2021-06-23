@@ -147,7 +147,7 @@ static void* s6a_thread(void* args) {
 }
 
 //------------------------------------------------------------------------------
-int s6a_init(const mme_config_t* mme_config_p) {
+status_code_e s6a_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_S6A, "Initializing S6a interface\n");
 
   if (itti_create_task(

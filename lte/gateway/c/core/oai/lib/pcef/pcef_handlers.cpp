@@ -102,7 +102,7 @@ static void pcef_fill_create_session_req(
  * Send an ITTI message from GRPC service task to SPGW task when the
  * PCEFClient receives the response for the aynchronous Create Sesssion RPC
  */
-int send_itti_pcef_create_session_response(
+status_code_e send_itti_pcef_create_session_response(
     const std::string& imsi, s5_create_session_request_t session_request,
     const grpc::Status& status) {
   MessageDef* message_p = nullptr;

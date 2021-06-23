@@ -28,7 +28,8 @@ int delete_subscriber_request(const char* imsi, const uint imsi_len) {
   // send it to MME module for further processing
   MessageDef* message_p                                = NULL;
   s6a_cancel_location_req_t* s6a_cancel_location_req_p = NULL;
-  message_p = itti_alloc_new_message(TASK_S6A, S6A_CANCEL_LOCATION_REQ);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, S6A_CANCEL_LOCATION_REQ);
   s6a_cancel_location_req_p = &message_p->ittiMsg.s6a_cancel_location_req;
   memcpy(s6a_cancel_location_req_p->imsi, imsi, imsi_len);
   s6a_cancel_location_req_p->imsi[imsi_len]    = '\0';
@@ -42,7 +43,7 @@ int delete_subscriber_request(const char* imsi, const uint imsi_len) {
 void handle_reset_request(void) {
   // send it to MME module for further processing
   MessageDef* message_p = NULL;
-  message_p             = itti_alloc_new_message(TASK_S6A, S6A_RESET_REQ);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, S6A_RESET_REQ);
   // TBD - To add support for partial reset
   send_msg_to_task(&s6a_task_zmq_ctx, TASK_MME_APP, message_p);
   return;

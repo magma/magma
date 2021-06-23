@@ -249,7 +249,7 @@ variable "orc8r_db_password" {
 variable "orc8r_db_engine_version" {
   description = "Postgres engine version for Orchestrator DB."
   type        = string
-  default     = "9.6.15"
+  default     = "12.6"
 }
 
 variable "orc8r_db_dialect" {
@@ -273,7 +273,7 @@ variable "orc8r_db_backup_window" {
 variable "orc8r_db_event_subscription" {
   description = "Database event subscription"
   type        = string
-  default     = "orc8r-event"
+  default     = "orc8r-rds-events"
 }
 
 
@@ -385,4 +385,5 @@ variable "orc8r_sns_name" {
 variable "orc8r_sns_email" {
   description = "SNS email endpoint to send notifications"
   type        = string
+  default     = ""
 }

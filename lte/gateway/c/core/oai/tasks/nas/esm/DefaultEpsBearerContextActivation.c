@@ -95,7 +95,7 @@ static int default_eps_bearer_activate_in_bearer_setup_req(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_default_eps_bearer_context(
+status_code_e esm_proc_default_eps_bearer_context(
     emm_context_t* emm_context, const proc_tid_t pti, pdn_cid_t pid, ebi_t* ebi,
     const qci_t qci, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -176,7 +176,7 @@ int esm_proc_default_eps_bearer_context(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_default_eps_bearer_context_request(
+status_code_e esm_proc_default_eps_bearer_context_request(
     bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
     STOLEN_REF bstring* msg, bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -254,7 +254,7 @@ int esm_proc_default_eps_bearer_context_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_default_eps_bearer_context_accept(
+status_code_e esm_proc_default_eps_bearer_context_accept(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -316,7 +316,7 @@ int esm_proc_default_eps_bearer_context_accept(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_default_eps_bearer_context_reject(
+status_code_e esm_proc_default_eps_bearer_context_reject(
     emm_context_t* emm_context, ebi_t ebi, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -399,7 +399,7 @@ int esm_proc_default_eps_bearer_context_reject(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_default_eps_bearer_context_failure(
+status_code_e esm_proc_default_eps_bearer_context_failure(
     emm_context_t* emm_context, pdn_cid_t* const pid) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;

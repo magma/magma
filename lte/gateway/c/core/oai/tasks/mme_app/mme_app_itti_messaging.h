@@ -45,9 +45,9 @@
 void mme_app_itti_ue_context_release(
     struct ue_mm_context_s* ue_context_p, enum s1cause cause);
 int mme_app_notify_s1ap_ue_context_released(const mme_ue_s1ap_id_t ue_idP);
-int mme_app_send_s11_release_access_bearers_req(
+status_code_e mme_app_send_s11_release_access_bearers_req(
     struct ue_mm_context_s* const ue_mm_context, const pdn_cid_t pdn_index);
-int mme_app_send_s11_create_session_req(
+status_code_e mme_app_send_s11_create_session_req(
     mme_app_desc_t* mme_app_desc_p, struct ue_mm_context_s* const ue_mm_context,
     const pdn_cid_t pdn_cid);
 

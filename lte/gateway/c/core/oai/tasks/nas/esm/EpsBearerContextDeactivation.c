@@ -104,7 +104,7 @@ extern int pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_eps_bearer_context_deactivate(
+status_code_e esm_proc_eps_bearer_context_deactivate(
     emm_context_t* const emm_context_p, const bool is_local, const ebi_t ebi,
     pdn_cid_t* pid, int* const bidx, esm_cause_t* const esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -207,7 +207,7 @@ int esm_proc_eps_bearer_context_deactivate(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_eps_bearer_context_deactivate_request(
+status_code_e esm_proc_eps_bearer_context_deactivate_request(
     const bool is_standalone, emm_context_t* const emm_context_p,
     const ebi_t ebi, STOLEN_REF bstring* msg, const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
@@ -593,7 +593,7 @@ static int eps_bearer_deactivate(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int eps_bearer_release(
+status_code_e eps_bearer_release(
     emm_context_t* emm_context_p, ebi_t ebi, pdn_cid_t* pid, int* bidx) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNerror;

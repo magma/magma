@@ -41,6 +41,7 @@ Description Implements the API used by the NAS layer running in the MME
 #include "TrackingAreaIdentity.h"
 #include "TrackingAreaIdentityList.h"
 #include "3gpp_23.003.h"
+#include "common_defs.h"
 #include "common_types.h"
 #include "3gpp_36.401.h"
 #include "bstrlib.h"
@@ -137,7 +138,7 @@ typedef struct mme_api_qos_s {
 /****************************************************************************/
 struct mme_config_s;
 
-int mme_api_get_emm_config(
+status_code_e mme_api_get_emm_config(
     mme_api_emm_config_t* config, const struct mme_config_s* mme_config_p);
 
 #define REMOVE_OLD_CONTEXT true
@@ -146,20 +147,22 @@ void mme_api_duplicate_enb_ue_s1ap_id_detected(
     const enb_s1ap_id_key_t enb_ue_s1ap_id,
     const mme_ue_s1ap_id_t mme_ue_s1ap_id, const bool is_remove_old);
 
-int mme_api_get_esm_config(mme_api_esm_config_t* config);
+status_code_e mme_api_get_esm_config(mme_api_esm_config_t* config);
 
-int mme_api_notify_imsi(const mme_ue_s1ap_id_t id, const imsi64_t imsi64);
+status_code_e mme_api_notify_imsi(
+    const mme_ue_s1ap_id_t id, const imsi64_t imsi64);
 
-int mme_api_notify_new_guti(const mme_ue_s1ap_id_t ueid, guti_t* const guti);
+status_code_e mme_api_notify_new_guti(
+    const mme_ue_s1ap_id_t ueid, guti_t* const guti);
 
-int mme_api_new_guti(
+status_code_e mme_api_new_guti(
     const imsi_t* const imsi, const guti_t* const old_guti, guti_t* const guti,
     const tai_t* const originating_tai, tai_list_t* const tai_list);
 
-int mme_api_subscribe(
+status_code_e mme_api_subscribe(
     bstring* apn, mme_api_ip_version_t mme_pdn_index, bstring* pdn_addr,
     int is_emergency, mme_api_qos_t* qos);
-int mme_api_unsubscribe(bstring apn);
+status_code_e mme_api_unsubscribe(bstring apn);
 
 void mme_ue_context_update_ue_emm_state(
     mme_ue_s1ap_id_t mme_ue_s1ap_id, mm_state_t new_emm_state);

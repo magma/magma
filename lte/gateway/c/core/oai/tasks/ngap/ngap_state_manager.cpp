@@ -22,6 +22,7 @@
 #include "ngap_state_manager.h"
 #include "bstrlib.h"
 #include "log.h"
+#include "common_defs.h"
 typedef unsigned int uint32_t;
 namespace {
 constexpr char NGAP_GNB_COLL[]             = "ngap_gNB_coll";
@@ -126,7 +127,7 @@ void NgapStateManager::free_state() {
   clear_ngap_imsi_map();
 }
 
-int NgapStateManager::read_ue_state_from_db() {
+status_code_e NgapStateManager::read_ue_state_from_db() {
   if (!persist_state_enabled) {
     return RETURNok;
   }

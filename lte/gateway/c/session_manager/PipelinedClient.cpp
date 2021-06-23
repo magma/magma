@@ -62,6 +62,13 @@ magma::DeactivateFlowsRequest make_deactivate_req(
   return req;
 }
 
+magma::GetStatsRequest make_stat_req(int cookie, int cookie_mask) {
+  magma::GetStatsRequest req;
+  req.set_cookie(cookie);
+  req.set_cookie_mask(cookie_mask);
+  return req;
+}
+
 /**
  * @brief Create a map of Teids -> DeactivateFlowsRequest
  * If to_process is empty, create one default_teids -> DeactivateFlowsRequest
@@ -423,6 +430,17 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
   });
 }
 
+void AsyncPipelinedClient::poll_stats(
+    int cookie, int cookie_mask,
+    std::function<void(Status, RuleRecordTable)> callback) {
+  auto req = make_stat_req(cookie, cookie_mask);
+  poll_stats_rpc(req, [](Status status, RuleRecordTable table) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not poll stats " << status.error_message();
+    }
+  });
+}
+
 void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
@@ -543,6 +561,16 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
   local_resp->set_response_reader(
       std::move(stub_->AsyncUpdateSubscriberQuotaState(
           local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncPipelinedClient::poll_stats_rpc(
+    const magma::GetStatsRequest& request,
+    std::function<void(Status, RuleRecordTable)> callback) {
+  auto local_resp = new AsyncLocalResponse<RuleRecordTable>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  local_resp->set_response_reader(std::move(
+      stub_->AsyncGetStats(local_resp->get_context(), request, &queue_)));
 }
 
 uint32_t AsyncPipelinedClient::get_next_teid() {

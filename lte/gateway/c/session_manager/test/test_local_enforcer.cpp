@@ -896,17 +896,11 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
   local_enforcer->handle_termination_from_access(
       session_map, IMSI1, test_cfg_.common_context.apn(), update);
 
-  // pipelined still reports default drop flow rule when all flows are removed
-  RuleRecordTable only_drop_rule_table;
-  auto record_list = only_drop_rule_table.mutable_records();
-  create_rule_record(
-      IMSI1, test_cfg_.common_context.ue_ipv4(),
-      "internal_default_drop_flow_rule", 0, 0, record_list->Add());
-
+  RuleRecordTable empty_table;
   auto uc = get_default_update_criteria();
   session_map[IMSI1][0]->increment_rule_stats(
       "internal_default_drop_flow_rule", &uc);
-  local_enforcer->aggregate_records(session_map, only_drop_rule_table, update);
+  local_enforcer->aggregate_records(session_map, empty_table, update);
   run_evb();
   run_evb();
   bool success = session_store->update_sessions(update);

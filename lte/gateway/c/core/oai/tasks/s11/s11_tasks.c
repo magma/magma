@@ -382,7 +382,7 @@ static void* s11_mme_thread(void* args) {
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_init(mme_config_t* mme_config_p) {
+status_code_e s11_mme_init(mme_config_t* mme_config_p) {
   int ret = 0;
 
   OAILOG_DEBUG(LOG_S11, "Initializing S11 interface\n");

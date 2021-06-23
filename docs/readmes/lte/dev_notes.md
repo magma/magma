@@ -152,16 +152,11 @@ the section previous (`/var/log/syslog`). By default, it is disabled.
 Note GRPC printing is independent of the `log_level`. So you can enabled GRPC
 printing even that your level is set as `INFO`.
 
-To enable GRPC logging for `magmad`, `pipelined`, `mobilityd`, `directoryd` or
-`subscriberdb` you can modify this line on the `/etc/magma/<service_name>.yml`
-config file:
+To enable GRPC logging for `magmad`, `sessiond`, `pipelined`, `mobilityd`,
+`directoryd` or`subscriberdb` you can modify this line on the
+`/etc/magma/<service_name>.yml` config file:
 ```yaml
 print_grpc_payload: true
-```
-
-To enable this on sessiond you will have to create an environment variable
-```text
-MAGMA_PRINT_GRPC_PAYLOAD=1
 ```
 
 ### CLIs

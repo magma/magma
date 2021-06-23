@@ -18,4 +18,4 @@
     GITHUB_REPO_URL: "{{ buildHelmRepoUrl }}"
     GITHUB_USERNAME: "{{ gitUser }}"
     GITHUB_ACCESS_TOKEN: "{{ gitPat }}"
-    MAGMA_ROOT: "{{ dirSourceLocal }}"
+    MAGMA_ROOT: "{{ dirSourceRemote }}"

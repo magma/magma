@@ -22,6 +22,7 @@
 #include <cpp_redis/cpp_redis>
 #include <google/protobuf/message.h>
 
+#include <common_defs.h>
 #include "orc8r/protos/redis.pb.h"
 
 namespace magma {
@@ -51,7 +52,7 @@ class RedisClient {
    * @param value
    * @return response code of operation
    */
-  int write(const std::string& key, const std::string& value);
+  status_code_e write(const std::string& key, const std::string& value);
 
   /**
    * Writes a protobuf object to redis
@@ -60,15 +61,16 @@ class RedisClient {
    * @param version
    * @return response code of operation
    */
-  int write_proto_str(
+  status_code_e write_proto_str(
       const std::string& key, const std::string& proto_msg, uint64_t version);
 
   /**
    * Converts protobuf Message and parses it to string
    * @param proto_msg
    * @param str_to_serialize
+   * @return response code of operation
    */
-  static int serialize(
+  static status_code_e serialize(
       const google::protobuf::Message& proto_msg,
       std::string& str_to_serialize);
 
@@ -77,11 +79,12 @@ class RedisClient {
    * @param key
    * @return response code of operation
    */
-  int read_proto(const std::string& key, google::protobuf::Message& proto_msg);
+  status_code_e read_proto(
+      const std::string& key, google::protobuf::Message& proto_msg);
 
   int read_version(const std::string& key);
 
-  int clear_keys(const std::vector<std::string>& keys_to_clear);
+  status_code_e clear_keys(const std::vector<std::string>& keys_to_clear);
 
   std::vector<std::string> get_keys(const std::string& pattern);
 
@@ -95,16 +98,18 @@ class RedisClient {
    * Read the wrapper RedisState value from Redis for a key
    * @param key
    * @param state_out
-   * @return
+   * @return response code of operation
    */
-  int read_redis_state(const std::string& key, orc8r::RedisState& state_out);
+  status_code_e read_redis_state(
+      const std::string& key, orc8r::RedisState& state_out);
 
   /**
    * Takes a string and parses it to protobuf Message
    * @param proto_msg
    * @param str_to_deserialize
+   * @return response code of operation
    */
-  static int deserialize(
+  static status_code_e deserialize(
       google::protobuf::Message& proto_msg,
       const std::string& str_to_deserialize);
 };

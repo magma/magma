@@ -85,7 +85,7 @@ static void* sms_orc8r_thread(__attribute__((unused)) void* args_p) {
 }
 
 //------------------------------------------------------------------------------
-int sms_orc8r_init(const mme_config_t* mme_config_p) {
+status_code_e sms_orc8r_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_SMS_ORC8R, "Initializing SMS_ORC8R task interface\n");
 
   if (itti_create_task(TASK_SMS_ORC8R, &sms_orc8r_thread, NULL) < 0) {

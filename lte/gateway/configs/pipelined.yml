@@ -190,3 +190,11 @@ ovs_internal_conntrack_fwd_tbl_number: 202
 5G_feature_set:
  enable: False
  node_identifier: 192.168.200.1
+
+dp_irq:
+ enable: True
+ S1_cpu: '1'
+ S1_queue_size: 256
+ SGi_cpu: '2'
+ SGi_queue_size: 256
+

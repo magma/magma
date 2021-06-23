@@ -1,0 +1,174 @@
+/*
+Copyright 2021 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+
+package magma.lte;
+option go_package = "magma/lte/cloud/go/protos";
+
+// For details about values see 29.212
+message QoSProfile {
+    int32 class_id = 1;
+    uint32 priority_level = 2;
+    bool preemption_capability = 3;
+    bool preemption_vulnerability = 4;
+}
+
+// APN authorized bitrate
+message AggregatedMaximumBitrate {
+  // Maximum uplink bitrate
+  uint32 max_bandwidth_ul = 1;
+  // Maximum downlink bitrate
+  uint32 max_bandwidth_dl = 2;
+
+  enum BitrateUnitsAMBR {
+        BPS = 0;
+        KBPS = 1;
+        }
+  // Unit (either bps or Kbps)
+  BitrateUnitsAMBR br_unit = 3;
+}
+
+message APNConfiguration {
+  // APN identifier
+  uint32 context_id = 1;
+  // Contains either the APN Name or wildcard "*"
+  string service_selection = 2;
+  // APN QoS profile
+  message QoSProfile {
+      int32 class_id = 1;
+      uint32 priority_level = 2;
+      bool preemption_capability = 3;
+      bool preemption_vulnerability = 4;
+  }
+  QoSProfile qos_profile = 3;
+  AggregatedMaximumBitrate ambr = 4;
+
+  enum PDNType  {
+      IPV4 = 0;
+      IPV6 = 1;
+      IPV4V6 = 2;
+      IPV4_OR_IPV6 = 3;
+  }
+  PDNType pdn = 5;
+
+  // Optional static IP to allocate for this subscriber on this APN
+  string assigned_static_ip = 6;
+
+  message APNResource {
+    string apn_name = 1;
+    string gateway_ip = 2;
+    string gateway_mac = 3;
+    uint32 vlan_id = 4;
+  }
+  // resource is gateway-specific guidance for serving the APN
+  APNResource resource = 7;
+}
+
+// APN MODELS 2.0
+
+// Network wide APN configuration
+message APNConfig {
+  uint32 id = 1;
+  // Contains either the APN Name or wildcard "*"
+  string service_selection = 2;
+  QoSProfile qos_profile = 3;
+  AggregatedMaximumBitrate ambr = 4;
+  enum PDNType {
+      IPV4 = 0;
+      IPV6 = 1;
+      IPV4V6 = 2;
+      IPV4_OR_IPV6 = 3;
+  }
+  PDNType pdn = 5;
+}
+
+// Gateway specific APN configuration
+message GatewayAPNConfig {
+    enum APNFilter {
+        DEFAULT = 0;
+        BLOCK = 1;
+        PERMIT = 2;
+    }
+
+    enum EgressType {
+      VLAN = 0;
+
+      // Add other egress configurations including vxlan, gre
+      // in the future
+    }
+
+    message VlanConfig {
+        uint32 vlan_id = 4;
+    }
+
+    message TransportConfig {
+        string gateway_ip = 1;
+        string gateway_mac = 2;
+        EgressType egress_type = 3;
+        VlanConfig vlan_config = 4;
+    }
+
+    uint32 apn_id = 1;
+    APNFilter apn_filter = 2;
+    string dns_primary = 3;
+    string dns_secondary = 4;
+    enum IpAllocatorType {
+          IP_POOL = 0;
+          DHCP = 1;
+    }
+    IpAllocatorType ip_allocator_type = 5;
+    string ip_block = 6;
+    TransportConfig transport_config = 7;
+}
+
+// --------------------------------------------------------------------------
+// SubscriberDB cloud service definition.
+// --------------------------------------------------------------------------
+service ApnDBCloud {
+  // ListApnConfigs lists network wide apn configuration.
+  rpc ListApnConfigs (ListApnConfigRequest) returns (ListApnConfigResponse) {}
+
+  // ListGatewayApnConfigs lists gateway specific apn configuration
+  rpc ListGatewayApnConfigs (ListGatewayApnConfigRequest) returns (ListGatewayApnConfigResponse) {}
+}
+
+message ListApnConfigRequest {
+  // page_size is the maximum number of entities returned per request.
+  uint32 page_size = 1;
+  // page_token is a serialized entity page token for paginated loads.
+  string page_token = 2;
+}
+
+message ListApnConfigResponse {
+  repeated APNConfig configs = 1;
+  // next_page_token is a serialized entity page token for subsequent paginated
+  // loads.
+  string next_page_token = 2;
+}
+
+message ListGatewayApnConfigRequest {
+  // page_size is the maximum number of entities returned per request.
+  uint32 page_size = 1;
+  // page_token is a serialized entity page token for paginated loads.
+  string page_token = 2;
+  // hardware id of the requesting gateway
+  string gateway_id = 3;
+}
+
+message ListGatewayApnConfigResponse {
+  repeated GatewayAPNConfig configs = 1;
+  // next_page_token is a serialized entity page token for subsequent paginated
+  // loads.
+  string next_page_token = 2;
+}

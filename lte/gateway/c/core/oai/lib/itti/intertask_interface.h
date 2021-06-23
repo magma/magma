@@ -46,6 +46,7 @@
 #include "intertask_interface_conf.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
+#include "common_defs.h"
 
 #define ITTI_MSG_ID(mSGpTR) ((mSGpTR)->ittiMsgHeader.messageId)
 #define ITTI_MSG_ORIGIN_ID(mSGpTR) ((mSGpTR)->ittiMsgHeader.originTaskId)
@@ -100,9 +101,9 @@ typedef enum timer_repeat_s {
  \param task_zmq_ctx_p Pointer to task ZMQ context
  \param destination_task_id Destination task ID
  \param message Pointer to the message to send
- @returns -1 on failure, 0 otherwise
+ @returns status_code_e
  **/
-int send_msg_to_task(
+status_code_e send_msg_to_task(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t destination_task_id,
     MessageDef* message);
 
@@ -157,9 +158,10 @@ void send_broadcast_msg(task_zmq_ctx_t* task_zmq_ctx_p, MessageDef* message);
  * \param task_id task to start
  * \param start_routine entry point for the task
  * \param args_p Optional argument to pass to the start routine
- * @returns -1 on failure, 0 otherwise
+ * @returns status_code_e
+ * @note Asserts that task is created
  **/
-int itti_create_task(
+status_code_e itti_create_task(
     task_id_t task_id, void* (*start_routine)(void*), void* args_p);
 
 /** \brief Mark the task as in ready state
@@ -189,6 +191,16 @@ const char* itti_get_task_name(task_id_t task_id);
 MessageDef* itti_alloc_new_message(
     task_id_t origin_task_id, MessagesIds message_id);
 
+/** \brief Alloc and memset(0) a new itti message.
+ * @note DEPRECATED: Use itti_get_associated_imsi
+ * \param origin_task_id Task ID of the sending task
+ * \param message_id Message ID
+ * @returns newly allocated mesage ref
+ * @note Asserts that newly allocated message ref is non-NULL
+ **/
+MessageDef* DEPRECATEDitti_alloc_new_message_fatal(
+    task_id_t origin_task_id, MessagesIds message_id);
+
 /**
  * \brief Returns IMSI of ITTI task
  * @param msg MessageDef struct
@@ -204,10 +216,9 @@ void itti_wait_tasks_end(task_zmq_ctx_t* task_ctx);
 
 /** \brief Send a termination message to all tasks.
  * \param task_id task that is broadcasting the message.
+ * @note Asserts that newly allocated message ref is non-NULL
  **/
-void send_terminate_message(task_zmq_ctx_t* task_zmq_ctx);
-
-int itti_send_broadcast_message(MessageDef* message_p);
+void send_terminate_message_fatal(task_zmq_ctx_t* task_zmq_ctx);
 
 /**
  * \brief Returns the latency of the message

@@ -13,6 +13,18 @@ cmake_minimum_required(VERSION 3.0.2)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
+get_cmake_property(vars CACHE_VARIABLES)
+foreach (var ${vars})
+  get_property(currentHelpString CACHE "${var}" PROPERTY HELPSTRING)
+  # message("${var} = [${${var}}]  --  ${currentHelpString}")
+  if ("${currentHelpString}" MATCHES
+      "No help, variable specified on the command line." OR
+      "${currentHelpString}" STREQUAL "")
+    list(APPEND CL_ARGS "-D${var}=${${var}}")
+  endif ()
+endforeach ()
+list(APPEND CL_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+
 project(MagmaSctpd)
 
 include(ExternalProject)
@@ -21,11 +33,13 @@ ExternalProject_Add(MagmaCommon
     SOURCE_DIR "$ENV{MAGMA_ROOT}/orc8r/gateway/c/common"
     BUILD_ALWAYS 1
     BINARY_DIR "${CMAKE_BINARY_DIR}/common"
-    INSTALL_COMMAND "")
+    INSTALL_COMMAND ""
+    CMAKE_ARGS ${CL_ARGS})
 
 ExternalProject_Add(Sctpd
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/src"
     BUILD_ALWAYS 1
     BINARY_DIR "${CMAKE_BINARY_DIR}/src"
     INSTALL_COMMAND ""
-    DEPENDS MagmaCommon)
+    DEPENDS MagmaCommon
+    CMAKE_ARGS ${CL_ARGS})

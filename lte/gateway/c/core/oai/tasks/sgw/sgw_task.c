@@ -225,7 +225,7 @@ static void* spgw_app_thread(__attribute__((unused)) void* args) {
 }
 
 //------------------------------------------------------------------------------
-int spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
+status_code_e spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Initializing SPGW-APP  task interface\n");
 
   if (spgw_state_init(persist_state, spgw_config_pP) < 0) {

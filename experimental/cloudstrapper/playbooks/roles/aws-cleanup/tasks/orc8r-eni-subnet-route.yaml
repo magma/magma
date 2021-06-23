@@ -6,7 +6,6 @@
       "tag:Name": "{{ orc8rVpc }}"
   register: valVpc
 
-
 - name: set vpc cidr fact
   set_fact:
     factVpcCidr: "{{ valVpc.vpcs[0].cidr_block }}"
@@ -31,13 +30,12 @@
   register: valSubnets
   when: factVpcId is defined
 
-
 - name: loop and delete subnets
   ec2_vpc_subnet:
     state: absent
     vpc_id: "{{ item.vpc_id }}"
     cidr: "{{ item.cidr_block }}"
-  when: item is defined and item.vpc_id is defined and item.cidr_block is defined item.default_for_az == false
+  when: item is defined and item.vpc_id is defined and item.cidr_block is defined and item.default_for_az == false
   with_items:
     - "{{ valSubnets.subnets }}"
 
@@ -48,15 +46,8 @@
   register: valRtb
   when: factVpcId is defined
 
-- name: print all routing table info
-  debug:
-    msg: "{{ valRtb }}"
-
-
 - name: delete all route tables for this VPC
   command: aws ec2 delete-route-table --route-table-id "{{ item.id }}"
   when: item is defined and item.id is defined and item.associations[0] is not defined
   with_items:
     - "{{ valRtb.route_tables }}"
-
-

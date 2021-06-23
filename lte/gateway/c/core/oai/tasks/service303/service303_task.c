@@ -135,7 +135,7 @@ static void* service303_thread(void* args) {
   return NULL;
 }
 
-int service303_init(service303_data_t* service303_data) {
+status_code_e service303_init(service303_data_t* service303_data) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing Service303 task interface\n");
 
   if (itti_create_task(

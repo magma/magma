@@ -56,13 +56,13 @@ void sgw_config_init(sgw_config_t* config_pP) {
   pthread_rwlock_init(&config_pP->rw_lock, NULL);
 }
 //------------------------------------------------------------------------------
-int sgw_config_process(sgw_config_t* config_pP) {
+status_code_e sgw_config_process(sgw_config_t* config_pP) {
   int ret = RETURNok;
   return ret;
 }
 
 //------------------------------------------------------------------------------
-int sgw_config_parse_file(sgw_config_t* config_pP)
+status_code_e sgw_config_parse_file(sgw_config_t* config_pP)
 
 {
   config_t cfg                             = {0};
@@ -95,14 +95,14 @@ int sgw_config_parse_file(sgw_config_t* config_pP)
           LOG_SPGW_APP, "%s:%d - %s\n", bdata(config_pP->config_file),
           config_error_line(&cfg), config_error_text(&cfg));
       config_destroy(&cfg);
-      AssertFatal(
-          1 == 0, "Failed to parse SP-GW configuration file %s!\n",
+      Fatal(
+          "Failed to parse SP-GW configuration file %s!\n",
           bdata(config_pP->config_file));
     }
   } else {
     OAILOG_ERROR(LOG_SPGW_APP, "No SP-GW configuration file provided!\n");
     config_destroy(&cfg);
-    AssertFatal(0, "No SP-GW configuration file provided!\n");
+    Fatal("No SP-GW configuration file provided!\n");
   }
 
   OAILOG_INFO(
@@ -302,7 +302,7 @@ int sgw_config_parse_file(sgw_config_t* config_pP)
     config_setting_t* ovs_settings =
         config_setting_get_member(setting_sgw, SGW_CONFIG_STRING_OVS_CONFIG);
     if (ovs_settings == NULL) {
-      AssertFatal(false, "Couldn't find OVS subsetting in spgw config\n");
+      Fatal("Couldn't find OVS subsetting in spgw config\n");
     }
     char* ovs_bridge_name                       = NULL;
     libconfig_int gtp_port_num                  = 0;
@@ -364,7 +364,7 @@ int sgw_config_parse_file(sgw_config_t* config_pP)
       }
       OAILOG_INFO(LOG_SPGW_APP, "Multi tunnel enable: %s\n", multi_tunnel);
     } else {
-      AssertFatal(false, "Couldn't find all ovs settings in spgw config\n");
+      Fatal("Couldn't find all ovs settings in spgw config\n");
     }
 #endif
   }

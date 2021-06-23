@@ -30,7 +30,7 @@ extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 int send_activate_bearer_request_itti(
     itti_gx_nw_init_actv_bearer_request_t* itti_msg) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Sending nw_init_actv_bearer_request to SPGW \n");
-  MessageDef* message_p = itti_alloc_new_message(
+  MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_GRPC_SERVICE, GX_NW_INITIATED_ACTIVATE_BEARER_REQ);
   message_p->ittiMsg.gx_nw_init_actv_bearer_request = *itti_msg;
 
@@ -42,7 +42,7 @@ int send_activate_bearer_request_itti(
 int send_deactivate_bearer_request_itti(
     itti_gx_nw_init_deactv_bearer_request_t* itti_msg) {
   OAILOG_DEBUG(LOG_SPGW_APP, "Sending spgw_nw_init_deactv_bearer_request\n");
-  MessageDef* message_p = itti_alloc_new_message(
+  MessageDef* message_p = DEPRECATEDitti_alloc_new_message_fatal(
       TASK_GRPC_SERVICE, GX_NW_INITIATED_DEACTIVATE_BEARER_REQ);
   message_p->ittiMsg.gx_nw_init_deactv_bearer_request = *itti_msg;
 

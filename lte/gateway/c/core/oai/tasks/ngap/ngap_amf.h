@@ -13,6 +13,7 @@
 
 #pragma once
 
+#include "common_defs.h"
 #include "intertask_interface.h"
 #include "ngap_types.h"
 #include "amf_config.h"
@@ -22,7 +23,7 @@ extern bool hss_associated;
 /** \brief NGAP layer top init
  * @returns -1 in case of failure
  **/
-int ngap_amf_init(const amf_config_t* amf_config);
+status_code_e ngap_amf_init(const amf_config_t* amf_config);
 
 /** \brief NGAP layer top exit
  **/

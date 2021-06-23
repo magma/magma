@@ -62,7 +62,7 @@ static int esm_information(
 /****************************************************************************/
 
 //------------------------------------------------------------------------------
-int esm_proc_esm_information_request(
+status_code_e esm_proc_esm_information_request(
     emm_context_t* const emm_context_p, const pti_t pti) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -106,7 +106,7 @@ int esm_proc_esm_information_request(
 }
 
 //------------------------------------------------------------------------------
-int esm_proc_esm_information_response(
+status_code_e esm_proc_esm_information_response(
     emm_context_t* emm_context_p, pti_t pti, const_bstring const apn,
     const protocol_configuration_options_t* const pco,
     esm_cause_t* const esm_cause) {

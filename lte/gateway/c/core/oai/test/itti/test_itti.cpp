@@ -112,7 +112,7 @@ class ITTIApiTest : public ::testing::Test {
   }
 
   virtual void TearDown() {
-    send_terminate_message(&task_zmq_ctx_main);
+    send_terminate_message_fatal(&task_zmq_ctx_main);
 
     // Sleep 100 msec to allow message to be received before
     // destroying zmq context
@@ -126,15 +126,15 @@ class ITTIApiTest : public ::testing::Test {
 
 TEST_F(ITTIApiTest, TestMessageLatency) {
   MessageDef* test_message_p;
-  test_message_p =
-      itti_alloc_new_message(task_zmq_ctx_test1.task_id, TEST_MESSAGE);
+  test_message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      task_zmq_ctx_test1.task_id, TEST_MESSAGE);
   send_msg_to_task(&task_zmq_ctx_test1, TASK_TEST_2, test_message_p);
   // Sleep 100 msec to allow message to be received on time
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
   ASSERT_LE(msg_latency, 1000);
 
-  test_message_p =
-      itti_alloc_new_message(task_zmq_ctx_test1.task_id, TEST_MESSAGE);
+  test_message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      task_zmq_ctx_test1.task_id, TEST_MESSAGE);
   send_msg_to_task(&task_zmq_ctx_test1, TASK_TEST_2, test_message_p);
   // Sleep 2 seconds to allow message to be received and processed
   std::this_thread::sleep_for(std::chrono::seconds(2));

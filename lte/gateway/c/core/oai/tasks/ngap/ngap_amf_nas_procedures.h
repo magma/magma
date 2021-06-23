@@ -28,7 +28,7 @@ struct ngap_message_s;
  * \param message The message as decoded by the ASN.1 codec
  * @returns -1 on failure, 0 otherwise
  **/
-int ngap_amf_handle_initial_ue_message(
+status_code_e ngap_amf_handle_initial_ue_message(
     ngap_state_t* state, const sctp_assoc_id_t assocId,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
 
@@ -39,7 +39,7 @@ int ngap_amf_handle_initial_ue_message(
  * \param message The message as decoded by the ASN.1 codec
  * @returns -1 on failure, 0 otherwise
  **/
-int ngap_amf_handle_uplink_nas_transport(
+status_code_e ngap_amf_handle_uplink_nas_transport(
     ngap_state_t* state, const sctp_assoc_id_t assocId,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
 
@@ -51,7 +51,7 @@ int ngap_amf_handle_uplink_nas_transport(
  * \param imsi64 IMSI value
  * @returns int
  **/
-int ngap_generate_downlink_nas_transport(
+status_code_e ngap_generate_downlink_nas_transport(
     ngap_state_t* state, const gnb_ue_ngap_id_t gnb_ue_ngap_id,
     const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload, imsi64_t imsi64);
 
@@ -61,7 +61,7 @@ int ngap_generate_downlink_nas_transport(
  * \param message The message as decoded by the ASN.1 codec
  * @returns -1 on failure, 0 otherwise
  **/
-int ngap_amf_handle_nas_non_delivery(
+status_code_e ngap_amf_handle_nas_non_delivery(
     ngap_state_t* state, const sctp_assoc_id_t assocId,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
 
@@ -80,14 +80,14 @@ void ngap_handle_amf_ue_id_notification(
  * \param message The message as decoded by the ASN.1 codec
  * @returns -1 on failure, 0 otherwise
  **/
-int ngap_amf_handle_nas_non_delivery(
+status_code_e ngap_amf_handle_nas_non_delivery(
     ngap_state_t* state, const sctp_assoc_id_t assocId,
     const sctp_stream_id_t stream, Ngap_NGAP_PDU_t* message);
 
-int ngap_generate_ngap_pdusession_resource_setup_req(
+status_code_e ngap_generate_ngap_pdusession_resource_setup_req(
     ngap_state_t* state, itti_ngap_pdusession_resource_setup_req_t* const
                              pdusession_resource_setup_req);
 
-int ngap_generate_ngap_pdusession_resource_rel_cmd(
+status_code_e ngap_generate_ngap_pdusession_resource_rel_cmd(
     ngap_state_t* state,
     itti_ngap_pdusessionresource_rel_req_t* const pdusessionresource_rel_cmd);

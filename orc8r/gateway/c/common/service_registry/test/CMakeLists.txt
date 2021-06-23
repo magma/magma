@@ -10,27 +10,17 @@
 # limitations under the License.
 
 cmake_minimum_required(VERSION 3.7.2)
+PROJECT(MagmaCommonTests)
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-include_directories("${PROJECT_SOURCE_DIR}")
 include_directories("/usr/src/googletest/googlemock/include/")
 link_directories("/usr/src/googletest/googlemock/lib/")
+add_executable(service_registry_test test_service_registry.cpp)
 
-find_package(SERVICE_REGISTRY REQUIRED)
-find_package(SERVICE303_LIB REQUIRED)
-find_package(MAGMA_CONFIG REQUIRED)
-find_package(MAGMA_LOGGING REQUIRED)
-foreach (common_test yaml_utils magma_service service_registry service303 metrics)
-  add_executable(${common_test}_test test_${common_test}.cpp)
-  target_link_libraries(${common_test}_test
-      MAGMA_CONFIG
-      SERVICE_REGISTRY
-      gmock_main gtest gtest_main gmock
-      yaml-cpp pthread rt
-      ${GCOV_LIB}
-      SERVICE303_LIB)
-  add_test(test_${common_test} ${common_test}_test)
-endforeach (common_test)
+target_link_libraries(service_registry_test
+    gmock_main gtest gtest_main gmock
+    ${GCOV_LIB} SERVICE_REGISTRY pthread)
+add_test(test_service_registry service_registry_test)

@@ -59,6 +59,7 @@ static void mme_app_exit(void);
 bool mme_hss_associated = false;
 bool mme_sctp_bounded   = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
+bool mme_congestion_control_enabled = true;
 long mme_app_last_msg_latency;
 long pre_mme_task_msg_latency;
 
@@ -537,7 +538,7 @@ static void mme_app_init_congestion_params(const mme_config_t* mme_config_p) {
 }
 
 //------------------------------------------------------------------------------
-int mme_app_init(const mme_config_t* mme_config_p) {
+status_code_e mme_app_init(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (mme_nas_state_init(mme_config_p)) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -550,6 +551,7 @@ int mme_app_init(const mme_config_t* mme_config_p) {
   nas_network_initialize(mme_config_p);
 
   // Initialize task global congestion parameters
+  mme_congestion_control_enabled = mme_config_p->enable_congestion_control;
   mme_app_init_congestion_params(mme_config_p);
 
   /*

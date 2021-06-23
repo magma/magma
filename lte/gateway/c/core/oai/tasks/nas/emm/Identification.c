@@ -48,6 +48,7 @@
 /****************************************************************************/
 extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
+extern bool mme_congestion_control_enabled;
 extern mme_congestion_params_t mme_congestion_params;
 
 extern int check_plmn_restriction(imsi_t imsi);
@@ -109,7 +110,7 @@ static int identification_request(nas_emm_ident_proc_t* const proc);
  **      Others:    _emm_data                                      **
  **                                                                **
  ********************************************************************/
-int emm_proc_identification(
+status_code_e emm_proc_identification(
     struct emm_context_s* const emm_context, nas_emm_proc_t* const emm_proc,
     const identity_type2_t type, success_cb_t success, failure_cb_t failure) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -198,7 +199,7 @@ int emm_proc_identification(
  **      Others:    _emm_data, T3470                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_identification_complete(
+status_code_e emm_proc_identification_complete(
     const mme_ue_s1ap_id_t ue_id, imsi_t* const imsi, imei_t* const imei,
     imeisv_t* const imeisv, uint32_t* const tmsi) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -235,8 +236,9 @@ int emm_proc_identification_complete(
       /* If spent too much in ZMQ, then discard the packet.
        * MME is congested and this would create some relief in processing.
        */
-      if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
-          MME_APP_ZMQ_LATENCY_IDENT_TH) {
+      if (mme_congestion_control_enabled &&
+          (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+           MME_APP_ZMQ_LATENCY_IDENT_TH)) {
         OAILOG_WARNING_UE(
             LOG_NAS_EMM, emm_ctx->_imsi64,
             "Discarding identification complete as cumulative ZMQ latency "
@@ -294,8 +296,7 @@ int emm_proc_identification_complete(
         /*
          * Update the GUTI
          */
-        AssertFatal(
-            false,
+        Fatal(
             "TODO, should not happen because this type of identity is not "
             "requested by MME");
       }

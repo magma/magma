@@ -42,7 +42,7 @@
 #include "sgs_messages_types.h"
 
 //------------------------------------------------------------------------------
-int mme_app_handle_nas_dl_req(
+status_code_e mme_app_handle_nas_dl_req(
     const mme_ue_s1ap_id_t ue_id, bstring nas_msg,
     nas_error_code_t transaction_status)
 //------------------------------------------------------------------------------
@@ -52,7 +52,8 @@ int mme_app_handle_nas_dl_req(
   int rc                          = RETURNok;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
 
-  message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_NAS_DL_DATA_REQ);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_MME_APP, S1AP_NAS_DL_DATA_REQ);
 
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   if (!mme_app_desc_p) {

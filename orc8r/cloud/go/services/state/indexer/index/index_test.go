@@ -108,10 +108,9 @@ func serialize(t *testing.T, states state_types.StatesByID) state_types.Serializ
 	serialized := state_types.SerializedStatesByID{}
 	for id, st := range states {
 		s := state_types.SerializedState{
-			Version:            st.Version,
-			ReporterID:         st.ReporterID,
-			TimeMs:             st.TimeMs,
-			CertExpirationTime: st.CertExpirationTime,
+			Version:    st.Version,
+			ReporterID: st.ReporterID,
+			TimeMs:     st.TimeMs,
 		}
 		rep, err := serde.Serialize(st.ReportedState, id.Type, serdes.State)
 		assert.NoError(t, err)

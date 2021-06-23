@@ -91,38 +91,76 @@ static inline int s6a_parse_bitrate(
 static inline int s6a_parse_ambr(struct avp* avp_ambr, ambr_t* ambr) {
   struct avp* avp = NULL;
   struct avp_hdr* hdr;
+  bitrate_t ext_max_req_bw_ul = ULONG_MAX;
+  bitrate_t ext_max_req_bw_dl = ULONG_MAX;
 
   CHECK_FCT(fd_msg_browse(avp_ambr, MSG_BRW_FIRST_CHILD, &avp, NULL));
 
   if (!avp) {
     /*
-     * Child avps for ambr are mandatory
+     * First Child avps for ambr are mandatory
      */
     return RETURNerror;
   }
 
   while (avp) {
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
+    if (hdr) {
+      switch (hdr->avp_code) {
+        case AVP_CODE_MAX_REQUESTED_BANDWIDTH_UL:
+          CHECK_FCT(s6a_parse_bitrate(hdr, &ambr->br_ul));
+          break;
 
-    switch (hdr->avp_code) {
-      case AVP_CODE_BANDWIDTH_UL:
-        CHECK_FCT(s6a_parse_bitrate(hdr, &ambr->br_ul));
-        break;
+        case AVP_CODE_MAX_REQUESTED_BANDWIDTH_DL:
+          CHECK_FCT(s6a_parse_bitrate(hdr, &ambr->br_dl));
+          break;
 
-      case AVP_CODE_BANDWIDTH_DL:
-        CHECK_FCT(s6a_parse_bitrate(hdr, &ambr->br_dl));
-        break;
+        case AVP_CODE_EXTENDED_MAX_REQUESTED_BW_UL:
+          CHECK_FCT(s6a_parse_bitrate(hdr, &ext_max_req_bw_ul));
+          break;
 
-      default:
-        return RETURNerror;
+        case AVP_CODE_EXTENDED_MAX_REQUESTED_BW_DL:
+          CHECK_FCT(s6a_parse_bitrate(hdr, &ext_max_req_bw_dl));
+          break;
+
+        default:
+          OAILOG_DEBUG(
+              LOG_S6A, "AMBR child AVP %u is silently discarded\n",
+              hdr->avp_code);
+          return RETURNerror;
+      }
+    } else {
+      OAILOG_DEBUG(LOG_S6A, "AMBR child AVP header error\n");
     }
-
     /*
      * Go to next AVP in the grouped AVP
      */
     CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
   }
-
+  if ((ambr->br_ul != 4294967295) && (ext_max_req_bw_ul == ULONG_MAX)) {
+    ambr->br_unit = BPS;
+  } else if ((ambr->br_ul == 4294967295)) {
+    ambr->br_unit = KBPS;
+    ambr->br_ul   = ext_max_req_bw_ul;
+  } else {
+    OAILOG_DEBUG(LOG_S6A, "AMBR UL parsing error\n");
+    return RETURNerror;
+  }
+  if ((ambr->br_dl != 4294967295) && (ext_max_req_bw_dl == ULONG_MAX)) {
+    // harmonize
+    if (ambr->br_unit == KBPS) {
+      ambr->br_dl = ambr->br_dl / 1000;
+    }
+  } else if ((ambr->br_dl == 4294967295)) {
+    if (ambr->br_unit == BPS) {
+      ambr->br_unit = KBPS;
+      ambr->br_ul   = ambr->br_ul / 1000;
+    }
+    ambr->br_dl = ext_max_req_bw_dl;
+  } else {
+    OAILOG_DEBUG(LOG_S6A, "AMBR DL parsing error\n");
+    return RETURNerror;
+  }
   return RETURNok;
 }
 
@@ -434,7 +472,7 @@ static inline int s6a_parse_apn_configuration_profile(
   return RETURNok;
 }
 
-int s6a_parse_subscription_data(
+status_code_e s6a_parse_subscription_data(
     struct avp* avp_subscription_data, subscription_data_t* subscription_data) {
   struct avp* avp = NULL;
   struct avp_hdr* hdr;
@@ -443,66 +481,73 @@ int s6a_parse_subscription_data(
       fd_msg_browse(avp_subscription_data, MSG_BRW_FIRST_CHILD, &avp, NULL));
 
   while (avp) {
+    hdr = NULL;
     CHECK_FCT(fd_msg_avp_hdr(avp, &hdr));
 
-    switch (hdr->avp_code) {
-      case AVP_CODE_SUBSCRIBER_STATUS:
-        CHECK_FCT(s6a_parse_subscriber_status(
-            hdr, &subscription_data->subscriber_status));
-        break;
+    if (hdr) {
+      switch (hdr->avp_code) {
+        case AVP_CODE_SUBSCRIBER_STATUS:
+          CHECK_FCT(s6a_parse_subscriber_status(
+              hdr, &subscription_data->subscriber_status));
+          break;
 
-      case AVP_CODE_MSISDN:
-        CHECK_FCT(s6a_parse_msisdn(
-            hdr, subscription_data->msisdn, &subscription_data->msisdn_length));
-        break;
+        case AVP_CODE_MSISDN:
+          CHECK_FCT(s6a_parse_msisdn(
+              hdr, subscription_data->msisdn,
+              &subscription_data->msisdn_length));
+          break;
 
-      case AVP_CODE_NETWORK_ACCESS_MODE:
-        CHECK_FCT(s6a_parse_network_access_mode(
-            hdr, &subscription_data->access_mode));
-        break;
+        case AVP_CODE_NETWORK_ACCESS_MODE:
+          CHECK_FCT(s6a_parse_network_access_mode(
+              hdr, &subscription_data->access_mode));
+          break;
 
-      case AVP_CODE_ACCESS_RESTRICTION_DATA:
-        CHECK_FCT(s6a_parse_access_restriction_data(
-            hdr, &subscription_data->access_restriction));
-        break;
+        case AVP_CODE_ACCESS_RESTRICTION_DATA:
+          CHECK_FCT(s6a_parse_access_restriction_data(
+              hdr, &subscription_data->access_restriction));
+          break;
 
-      case AVP_CODE_AMBR:
-        CHECK_FCT(s6a_parse_ambr(avp, &subscription_data->subscribed_ambr));
-        break;
+        case AVP_CODE_AMBR:
+          CHECK_FCT(s6a_parse_ambr(avp, &subscription_data->subscribed_ambr));
+          break;
 
-      case AVP_CODE_APN_CONFIGURATION_PROFILE:
-        CHECK_FCT(s6a_parse_apn_configuration_profile(
-            avp, &subscription_data->apn_config_profile));
-        break;
+        case AVP_CODE_APN_CONFIGURATION_PROFILE:
+          CHECK_FCT(s6a_parse_apn_configuration_profile(
+              avp, &subscription_data->apn_config_profile));
+          break;
 
-      case AVP_CODE_SUBSCRIBED_PERIODIC_RAU_TAU_TIMER:
-        subscription_data->rau_tau_timer = hdr->avp_value->u32;
-        break;
+        case AVP_CODE_SUBSCRIBED_PERIODIC_RAU_TAU_TIMER:
+          subscription_data->rau_tau_timer = hdr->avp_value->u32;
+          break;
 
-      case AVP_CODE_APN_OI_REPLACEMENT:
-        OAILOG_DEBUG(
-            LOG_S6A, "AVP code %d APN-OI-Replacement not processed\n",
-            hdr->avp_code);
-        break;
+        case AVP_CODE_APN_OI_REPLACEMENT:
+          OAILOG_DEBUG(
+              LOG_S6A, "AVP code %d APN-OI-Replacement not processed\n",
+              hdr->avp_code);
+          break;
 
-      case AVP_CODE_3GPP_CHARGING_CHARACTERISTICS:
-        OAILOG_DEBUG(
-            LOG_S6A,
-            "AVP code %d 3GPP-Charging Characteristics not processed\n",
-            hdr->avp_code);
-        break;
+        case AVP_CODE_3GPP_CHARGING_CHARACTERISTICS:
+          OAILOG_DEBUG(
+              LOG_S6A,
+              "AVP code %d 3GPP-Charging Characteristics not processed\n",
+              hdr->avp_code);
+          break;
 
-      case AVP_CODE_REGIONAL_SUBSCRIPTION_ZONE_CODE:
-        OAILOG_DEBUG(
-            LOG_S6A,
-            "AVP code %d Regional-Subscription-Zone=Code not processed\n",
-            hdr->avp_code);
-        break;
+        case AVP_CODE_REGIONAL_SUBSCRIPTION_ZONE_CODE:
+          OAILOG_DEBUG(
+              LOG_S6A,
+              "AVP code %d Regional-Subscription-Zone=Code not processed\n",
+              hdr->avp_code);
+          break;
 
-      default:
-        OAILOG_DEBUG(
-            LOG_S6A, "Unknown AVP code %d not processed\n", hdr->avp_code);
-        return RETURNerror;
+        default:
+          OAILOG_DEBUG(
+              LOG_S6A, "Unknown AVP code %d not processed\n", hdr->avp_code);
+          return RETURNerror;
+      }
+    } else {
+      OAILOG_DEBUG(LOG_S6A, "Subscription Data parsing Error\n");
+      return RETURNerror;
     }
 
     /*
@@ -510,6 +555,5 @@ int s6a_parse_subscription_data(
      */
     CHECK_FCT(fd_msg_browse(avp, MSG_BRW_NEXT, &avp, NULL));
   }
-
   return RETURNok;
 }

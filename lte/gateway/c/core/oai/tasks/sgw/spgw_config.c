@@ -70,7 +70,7 @@ static int spgw_config_process(spgw_config_t* config_pP) {
 }
 
 //------------------------------------------------------------------------------
-int spgw_config_parse_file(spgw_config_t* config_pP) {
+status_code_e spgw_config_parse_file(spgw_config_t* config_pP) {
   config_t cfg = {0};
   config_init(&cfg);
 
@@ -83,14 +83,14 @@ int spgw_config_parse_file(spgw_config_t* config_pP) {
           LOG_SPGW_APP, "%s:%d - %s\n", bdata(config_pP->config_file),
           config_error_line(&cfg), config_error_text(&cfg));
       config_destroy(&cfg);
-      AssertFatal(
-          0, "Failed to parse SP-GW configuration file %s!\n",
+      Fatal(
+          "Failed to parse SP-GW configuration file %s!\n",
           bdata(config_pP->config_file));
     }
   } else {
     OAILOG_ERROR(LOG_SPGW_APP, "No SP-GW configuration file provided!\n");
     config_destroy(&cfg);
-    AssertFatal(0, "No SP-GW configuration file provided!\n");
+    Fatal("No SP-GW configuration file provided!\n");
   }
 
   OAILOG_INFO(
@@ -139,7 +139,7 @@ static void usage(char* target) {
       LOG_CONFIG, "-V      Print %s version and return\n", PACKAGE_NAME);
 }
 //------------------------------------------------------------------------------
-int spgw_config_parse_opt_line(
+status_code_e spgw_config_parse_opt_line(
     int argc, char* argv[], spgw_config_t* spgw_config_p) {
   int c;
 

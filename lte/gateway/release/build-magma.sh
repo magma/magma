@@ -128,7 +128,6 @@ MAGMA_DEPS=(
     "libfolly-dev" # required for C++ services
     "libdouble-conversion-dev" # required for folly
     "libboost-chrono-dev" # required for folly
-    "td-agent-bit >= 1.3.2" # fluent-bit
     "ntpdate" # required for eventd time synchronization
     "python3-scapy >= 2.4.3-4"
     "tshark" # required for call tracing
@@ -141,10 +140,12 @@ MAGMA_DEPS=(
 if grep -q stretch /etc/os-release; then
     MAGMA_DEPS+=("libprotobuf10 >= 3.0.0")
     MAGMA_DEPS+=("nlohmann-json-dev")
+    MAGMA_DEPS+=("td-agent-bit >= 1.3.2")
 else
     MAGMA_DEPS+=("libprotobuf17 >= 3.0.0")
     MAGMA_DEPS+=("nlohmann-json3-dev")
     MAGMA_DEPS+=("sentry-native")   # sessiond
+    MAGMA_DEPS+=("td-agent-bit >= 1.7.8")
 fi
 
 # OAI runtime dependencies
@@ -378,7 +379,7 @@ ${LTE_PY_DEPS} \
 ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
-${CONNECTIOND_BUILD}/connectiond=/usr/local/bin/ \
+${CONNECTIOND_BUILD}/src/connectiond=/usr/local/bin/ \
 ${GO_BUILD}/envoy_controller=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
 ${COMMIT_HASH_FILE}=/usr/local/share/magma/commit_hash \
@@ -418,6 +419,8 @@ ${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.5/dist-packages/ryu/of
 ${ANSIBLE_FILES}/nx_actions_3.5.py=/usr/local/lib/python3.8/dist-packages/ryu/ofproto/nx_actions.py \
 ${MAGMA_ROOT}/lte/gateway/release/stretch_snapshot=/usr/local/share/magma/ \
 ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc/rsyslog.d/60-fluent-bit.conf \
+${ANSIBLE_FILES}/set_irq_affinity=/usr/local/bin/ \
+${ANSIBLE_FILES}/ovs-kmod-upgrade.sh=/usr/local/bin/ \
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \

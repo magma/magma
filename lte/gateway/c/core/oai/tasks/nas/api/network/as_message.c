@@ -77,7 +77,8 @@
  **    Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int as_message_decode(const char* buffer, as_message_t* msg, size_t length) {
+status_code_e as_message_decode(
+    const char* buffer, as_message_t* msg, size_t length) {
   OAILOG_FUNC_IN(LOG_NAS);
   int bytes;
   uint8_t** data = NULL;

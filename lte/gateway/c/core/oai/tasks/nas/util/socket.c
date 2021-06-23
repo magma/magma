@@ -385,7 +385,7 @@ ssize_t socket_send(const void* id, const char* buffer, size_t length) {
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int socket_get_fd(const void* id) {
+status_code_e socket_get_fd(const void* id) {
   if (id) {
     return ((socket_id_t*) id)->fd;
   }

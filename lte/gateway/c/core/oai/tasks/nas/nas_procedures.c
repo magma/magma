@@ -261,7 +261,7 @@ inline bool is_nas_attach_complete_received(
 }
 
 //------------------------------------------------------------------------------
-int nas_unlink_procedures(
+status_code_e nas_unlink_procedures(
     nas_base_proc_t* const parent_proc, nas_base_proc_t* const child_proc) {
   if ((parent_proc) && (child_proc)) {
     if ((parent_proc->child == child_proc) &&
@@ -315,7 +315,7 @@ static void nas_delete_child_procedures(
 //-----------------------------------------------------------------------------
 static void nas_delete_con_mngt_procedure(nas_emm_con_mngt_proc_t** proc) {
   if (*proc) {
-    AssertFatal(0, "TODO");
+    Fatal("TODO Implement nas_delete_con_mngt_procedure");
     free_wrapper((void**) proc);
   }
 }
@@ -468,6 +468,18 @@ void nas_delete_detach_procedure(struct emm_context_s* emm_context) {
     // free content
     if (proc->ies) {
       free_emm_detach_request_ies(&proc->ies);
+    }
+
+    // Stop T3422 if running
+    if (emm_context->T3422.id != NAS_TIMER_INACTIVE_ID) {
+      void* unused          = NULL;
+      void** timer_callback = &unused;
+      emm_context->T3422.id =
+          nas_timer_stop(emm_context->T3422.id, timer_callback);
+    }
+    if (emm_context->t3422_arg) {
+      free_wrapper(&emm_context->t3422_arg);
+      emm_context->t3422_arg = NULL;
     }
 
     nas_delete_child_procedures(emm_context, (nas_base_proc_t*) proc);

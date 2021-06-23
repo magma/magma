@@ -30,6 +30,7 @@
 #include <freeDiameter/freeDiameter-host.h>
 #include <freeDiameter/libfdcore.h>
 
+#include "common_defs.h"
 #include "mme_config.h"
 #include "queue.h"
 #include "intertask_interface.h"
@@ -117,6 +118,8 @@ typedef struct {
   struct dict_object* dataobj_s6a_cancellation_type;
   struct dict_object* dataobj_s6a_pua_flags;
   struct dict_object* dataobj_s6a_supported_features;
+  struct dict_object* dataobj_s6a_feature_list_id;
+  struct dict_object* dataobj_s6a_feature_list;
 
   /* Handlers */
   struct disp_hdl* aia_hdl; /* Authentication Information Answer Handle */
@@ -142,6 +145,9 @@ extern s6a_fd_cnf_t s6a_fd_cnf;
 #define PUA_FREEZE_M_TMSI (1U)
 #define PUA_FREEZE_P_TMSI (1U << 1)
 
+#define FLID_SMS_IN_MME (1U)
+#define FLID_NR_AS_SECONDARY_RAT (1U << 27)
+
 #define FLAG_IS_SET(x, flag) ((x) & (flag))
 
 #define FLAGS_SET(x, flags) ((x) |= (flags))
@@ -159,9 +165,13 @@ extern s6a_fd_cnf_t s6a_fd_cnf;
 #define AVP_CODE_MIP_HOME_AGENT_ADDRESS (334)
 #define AVP_CODE_MIP6_AGENT_INFO (486)
 #define AVP_CODE_SERVICE_SELECTION (493)
-#define AVP_CODE_BANDWIDTH_UL (516)
-#define AVP_CODE_BANDWIDTH_DL (515)
+#define AVP_CODE_MAX_REQUESTED_BANDWIDTH_UL (516)
+#define AVP_CODE_MAX_REQUESTED_BANDWIDTH_DL (515)
+#define AVP_CODE_EXTENDED_MAX_REQUESTED_BW_UL (555)
+#define AVP_CODE_EXTENDED_MAX_REQUESTED_BW_DL (554)
 #define AVP_CODE_SUPPORTED_FEATURES (628)
+#define AVP_CODE_FEATURE_LIST_ID (629)
+#define AVP_CODE_FEATURE_LIST (630)
 #define AVP_CODE_MSISDN (701)
 #define AVP_CODE_SERVED_PARTY_IP_ADDRESS (848)
 #define AVP_CODE_QCI (1028)
@@ -193,18 +203,22 @@ extern s6a_fd_cnf_t s6a_fd_cnf;
 #define AVP_CODE_PDN_TYPE (1456)
 #define AVP_CODE_SUBSCRIBED_PERIODIC_RAU_TAU_TIMER (1619)
 
-int s6a_init(const mme_config_t* mme_config);
+status_code_e s6a_init(const mme_config_t* mme_config);
 
-int s6a_fd_new_peer(void);
+status_code_e s6a_fd_new_peer(void);
 
 void s6a_peer_connected_cb(struct peer_info* info, void* arg);
 
-int s6a_fd_init_dict_objs(void);
+status_code_e s6a_fd_init_dict_objs(void);
 
-int s6a_parse_subscription_data(
+status_code_e s6a_parse_subscription_data(
     struct avp* avp_subscription_data, subscription_data_t* subscription_data);
 
-int s6a_parse_experimental_result(
+int s6a_parse_supported_features(
+    struct avp* avp_supported_features,
+    supported_features_t* subscription_data);
+
+status_code_e s6a_parse_experimental_result(
     struct avp* avp, s6a_experimental_result_t* ptr);
 char* experimental_retcode_2_string(uint32_t ret_code);
 char* retcode_2_string(uint32_t ret_code);

@@ -36,7 +36,7 @@ struct avp;
 struct msg;
 struct session;
 
-int s6a_pua_cb(
+status_code_e s6a_pua_cb(
     struct msg** msg_pP, struct avp* paramavp_pP, struct session* sess_pP,
     void* opaque_pP, enum disp_action* act_pP) {
   struct msg* ans_p                      = NULL;
@@ -53,7 +53,8 @@ int s6a_pua_cb(
    */
   CHECK_FCT(fd_msg_answ_getq(ans_p, &qry_p));
   DevAssert(qry_p);
-  message_p          = itti_alloc_new_message(TASK_S6A, S6A_PURGE_UE_ANS);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, S6A_PURGE_UE_ANS);
   s6a_purge_ue_ans_p = &message_p->ittiMsg.s6a_purge_ue_ans;
 
   /*
@@ -165,7 +166,7 @@ err:
   return RETURNok;
 }
 
-int s6a_generate_purge_ue_req(const char* imsi) {
+status_code_e s6a_generate_purge_ue_req(const char* imsi) {
   struct avp* avp_p      = NULL;
   struct msg* msg_p      = NULL;
   struct session* sess_p = NULL;

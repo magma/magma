@@ -24,7 +24,13 @@ add_library(MAGMA_CONFIG
     ServiceConfigLoader.cpp
     YAMLUtils.cpp
     )
-target_link_libraries(MAGMA_CONFIG PRIVATE MAGMA_LOGGING glog)
+target_link_libraries(MAGMA_CONFIG PRIVATE MAGMA_LOGGING)
+target_link_libraries(MAGMA_CONFIG PRIVATE glog)
+
+if (BUILD_TESTS)
+  ENABLE_TESTING()
+  ADD_SUBDIRECTORY(test)
+endif (BUILD_TESTS)
 
 # copy headers to build directory so they can be shared with OAI,
 # session_manager, etc.

@@ -23,6 +23,8 @@ foreach (var ${vars})
   endif ()
 endforeach ()
 
+list(APPEND CL_ARGS "-DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}")
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
@@ -34,7 +36,8 @@ ExternalProject_Add(MagmaCommon
     SOURCE_DIR "$ENV{MAGMA_ROOT}/orc8r/gateway/c/common"
     BUILD_ALWAYS 1
     BINARY_DIR "${CMAKE_BINARY_DIR}/common"
-    INSTALL_COMMAND "")
+    INSTALL_COMMAND ""
+    CMAKE_ARGS ${CL_ARGS})
 
 ExternalProject_Add(MagmaCore
     SOURCE_DIR "${CMAKE_SOURCE_DIR}/oai"
