@@ -230,15 +230,18 @@ int main(int argc, char* argv[]) {
   });
 
   //Start off a thread to periodically poll stats from Pipelined
-  auto rule_store = std::make_shared<magma::StaticRuleStore>();
   magma::PollStats periodic_stats_requester;
   std::thread periodic_stats_requester_thread([&]() {
     periodic_stats_requester.start_loop(
       [&](std::vector<magma::PollStats> request){
-        //call enforcer function
+        //call Pipelined Client Poll Stats(need to receive arguments from
+        //some location)
+        int cookie = 0;
+        int cookie_mask = 0;
+        poll_stats(cookie, cookie_mask);
       },
-      config["rule_update_inteval_sec"].as<uint32_t>());
-      periodic_stats_requester.stop();
+      config["rule_update_interval_sec"].as<uint32_t>());
+    periodic_stats_requester.stop();
   });
 
   auto pipelined_client = std::make_shared<magma::AsyncPipelinedClient>();
@@ -350,13 +353,6 @@ int main(int argc, char* argv[]) {
   MLOG(MINFO) << "Added LocalSessionManagerAsyncService to service's server";
   server.AddServiceToServer(&proxy_service);
   MLOG(MINFO) << "Added SessionProxyResponderAsyncService to service's server";
-
-  /** new thread for poll stats
-   * auto poll_stats_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
-   * local_enfrocer, reporter.get(), directoryd_client, events_reporter,
-   * *session_store)
-   * nagna
-   * **/
 
   // Register state polling callback
   server.SetOperationalStatesCallback([evb, session_store]() {

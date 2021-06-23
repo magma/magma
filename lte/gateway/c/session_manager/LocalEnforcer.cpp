@@ -148,8 +148,7 @@ void LocalEnforcer::setup(
 }
 
 void LocalEnforcer::PollStats(
-    ServerContext* context, const GetStatRequest* request,
-    std::function<void(Status, Void)> response_callback) {
+    ServerContext* context, const GetStatRequest* request) {
   set_sentry_transaction("PollStats");
   auto& request_cpy = *request;
   if (request_cpy.records_size() > 0) {
@@ -167,7 +166,6 @@ void LocalEnforcer::PollStats(
     // Set the current epoch right away to prevent double setup call requests
     current_epoch_ = reported_epoch_;
   }
-  response_callback(Status::OK, Void());
 
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     if (!session_store_.is_ready()) {
