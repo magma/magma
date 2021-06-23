@@ -258,7 +258,6 @@ func wrapStateWithAdditionalInfo(st *protos.State, hwID string, time uint64, cer
 	wrap := state_types.SerializedState{
 		ReporterID:              hwID,
 		TimeMs:                  time,
-		CertExpirationTime:      certExpiry,
 		SerializedReportedState: st.Value,
 	}
 	ret, err := json.Marshal(wrap)
