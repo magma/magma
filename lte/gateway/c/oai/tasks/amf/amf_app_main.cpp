@@ -96,11 +96,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
       response_p = &(received_message_p->ittiMsg.amf_ip_allocation_response);
 
-      amf_smf_create_ipv4_session_grpc_req(
-          response_p->imsi, response_p->apn, response_p->pdu_session_id,
-          response_p->pdu_session_type, response_p->gnb_gtp_teid,
-          response_p->pti, response_p->gnb_gtp_teid_ip_addr,
-          response_p->ip_str);
+      amf_smf_handle_ip_address_response(response_p);
+
       break;
 
     /* Handle PDU session resource setup response */

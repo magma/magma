@@ -875,10 +875,12 @@ int amf_send_authentication_request(
 
     if (rc != RETURNerror) {
       OAILOG_ERROR(LOG_NAS_EMM, "Timer:Start Authenthication Timer T3560\n");
+      amf_ue_ngap_id_t* ue_id =
+          (amf_ue_ngap_id_t*) malloc(sizeof(amf_ue_ngap_id_t));
+      *ue_id              = auth_proc->ue_id;
       auth_proc->T3560.id = start_timer(
           &amf_app_task_zmq_ctx, AUTHENTICATION_TIMER_EXPIRY_MSECS,
-          TIMER_REPEAT_ONCE, authenthication_t3560_handler,
-          (void*) auth_proc->ue_id);
+          TIMER_REPEAT_ONCE, authenthication_t3560_handler, (void*) ue_id);
       OAILOG_INFO(LOG_AMF_APP, "Timer: Authenthication timer T3560 started \n");
       OAILOG_INFO(
           LOG_AMF_APP, "Timer: Authenthication timer T3560 id is %d\n",
@@ -899,6 +901,7 @@ static int authenthication_t3560_handler(
   amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
   ue_id                  = *((amf_ue_ngap_id_t*) (arg));
+  free((amf_ue_ngap_id_t*) (arg));
 
   OAILOG_INFO(
       LOG_AMF_APP, "Timer: ZMQ In _identification_t3560_handler - T3560\n");
