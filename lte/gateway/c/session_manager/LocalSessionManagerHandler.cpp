@@ -72,11 +72,44 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     check_usage_for_reporting(std::move(session_map), update);
   });
 
-  reported_epoch_ = request_cpy.epoch();
+  reported_epoch_   = request_cpy.epoch();
+  reported_ovs_pid_ = request_cpy.ovs_pid();
   if (is_pipelined_restarted()) {
     MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows,"
                 << " old epoch = " << current_epoch_
                 << ", new epoch = " << reported_epoch_;
+    if (is_ovs_restarted()) {
+      MLOG(MINFO) << "OVS has been restarted, attempting to bump rule versions"
+                  << " current ovs pid = " << current_ovs_pid_
+                  << ", new ovs pid = " << reported_ovs_pid_;
+      enforcer_->get_event_base().runInEventBaseThread([this]() {
+        auto session_map = session_store_.read_all_sessions();
+        auto session_update =
+            SessionStore::get_default_session_update(session_map);
+        for (auto it = session_map.begin(); it != session_map.end(); it++) {
+          for (const auto& session : it->second) {
+            auto session_info = session->get_session_info_for_setup();
+            SessionStateUpdateCriteria& uc =
+                session_update[session_info.imsi][session->get_session_id()];
+            for (const magma::RuleToProcess val : session_info.gx_rules) {
+              session->increment_rule_stats(val.rule.id(), &uc);
+            }
+            for (const magma::RuleToProcess val :
+                 session_info.gy_dynamic_rules) {
+              session->increment_rule_stats(val.rule.id(), &uc);
+            }
+          }
+        }
+        bool update_success = session_store_.update_sessions(session_update);
+        if (!update_success) {
+          MLOG(MERROR) << "Failed to update rule versions after ovs restart";
+        }
+        MLOG(MERROR) << "Successfully updated rule versions after ovs restart";
+      });
+      current_ovs_pid_ = reported_ovs_pid_;
+    } else if (current_ovs_pid_ == 0) {
+      current_ovs_pid_ = reported_ovs_pid_;
+    }
     enforcer_->get_event_base().runInEventBaseThread(
         [this, epoch = reported_epoch_]() { call_setup_pipelined(epoch); });
     // Set the current epoch right away to prevent double setup call requests
@@ -154,6 +187,11 @@ bool LocalSessionManagerHandlerImpl::is_pipelined_restarted() {
   return (current_epoch_ == 0 || current_epoch_ != reported_epoch_);
 }
 
+bool LocalSessionManagerHandlerImpl::is_ovs_restarted() {
+  // If 0 also setup pipelined because it always waits for setup instructions
+  return (current_ovs_pid_ != 0 || current_ovs_pid_ != reported_ovs_pid_);
+}
+
 void LocalSessionManagerHandlerImpl::handle_setup_callback(
     const std::uint64_t& epoch, Status status, SetupFlowsResult resp) {
   // Run everything in the event base thread since we asynchronously
@@ -195,6 +233,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
 void LocalSessionManagerHandlerImpl::call_setup_pipelined(
     const std::uint64_t& epoch) {
   using namespace std::placeholders;
+
   if (pipelined_state_ == PipelineDState::SETTING_UP) {
     // Return if there is already a Setup call in progress
     return;

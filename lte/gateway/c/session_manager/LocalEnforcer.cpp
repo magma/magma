@@ -108,7 +108,7 @@ void LocalEnforcer::setup(
   bool cwf = false;
   for (auto it = session_map.begin(); it != session_map.end(); it++) {
     for (const auto& session : it->second) {
-      session_infos.push_back(session->get_session_info());
+      session_infos.push_back(session->get_session_info_for_setup());
       const auto& config = session->get_config();
       msisdns.push_back(config.common_context.msisdn());
 

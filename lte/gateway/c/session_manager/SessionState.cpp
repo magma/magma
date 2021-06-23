@@ -936,7 +936,7 @@ bool SessionState::is_radius_cwf_session() const {
   return (config_.common_context.rat_type() == RATType::TGPP_WLAN);
 }
 
-SessionState::SessionInfo SessionState::get_session_info() {
+SessionState::SessionInfo SessionState::get_session_info_for_setup() {
   SessionState::SessionInfo info;
   info.imsi      = get_imsi();
   info.ip_addr   = config_.common_context.ue_ipv4();
@@ -949,6 +949,7 @@ SessionState::SessionInfo SessionState::get_session_info() {
   dynamic_rules_.get_rules(gx_dynamic_rules);
   gy_dynamic_rules_.get_rules(gy_dynamic_rules);
 
+  auto uc = get_default_update_criteria();
   // Set versions
   for (const PolicyRule rule : gx_dynamic_rules) {
     info.gx_rules.push_back(make_rule_to_process(rule));

@@ -46,6 +46,8 @@ message RuleRecordTable {
   repeated RuleRecord records = 1;
   // Time at which PipelineD started
   uint64 epoch = 2;
+  // PID of OVS to detect restarts
+  uint64 ovs_pid = 3;
 }
 
 ///////////////////
