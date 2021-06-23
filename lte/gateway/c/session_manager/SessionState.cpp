@@ -1011,7 +1011,7 @@ bool SessionState::is_radius_cwf_session() const {
   return (config_.common_context.rat_type() == RATType::TGPP_WLAN);
 }
 
-SessionState::SessionInfo SessionState::get_session_info() {
+SessionState::SessionInfo SessionState::get_session_info_for_setup() {
   SessionState::SessionInfo info;
   info.imsi      = get_imsi();
   info.ip_addr   = config_.common_context.ue_ipv4();

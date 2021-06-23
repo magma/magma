@@ -13,10 +13,18 @@ limitations under the License.
 import os
 from collections import defaultdict
 from datetime import datetime, timedelta
+from subprocess import check_output
 
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.policydb_pb2 import FlowDescription
 from lte.protos.session_manager_pb2 import RuleRecord, RuleRecordTable
+
+from magma.common.redis.client import get_default_client
+from magma.common.redis.containers import RedisHashDict
+from magma.common.redis.serializers import (
+    get_json_deserializer,
+    get_json_serializer,
+)
 from magma.pipelined.app.base import (ControllerType, MagmaController,
                                       global_epoch)
 from magma.pipelined.app.policy_mixin import (DROP_FLOW_STATS, IGNORE_STATS,
@@ -64,6 +72,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     DEFAULT_FLOW_COOKIE = 0xfffffffffffffffe
     INIT_SLEEP_TIME = 3
     MAX_DELAY_INTERVALS = 20
+    REDIS_STORE_HASH = "enforcement_stats_info"
 
     _CONTEXTS = {
         'dpset': dpset.DPSet,
@@ -97,6 +106,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
                 kwargs['config'].get('magma_print_grpc_payload', False)
+        self.restart_info_store = RestartInfoStore(self.REDIS_STORE_HASH)
+        self._ovs_restarted = self._was_ovs_restarted()
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
@@ -113,7 +124,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def initialize_on_connect(self, datapath):
         """
         Install the default flows on datapath connect event.
-        
+
         Args:
             datapath: ryu datapath struct
         """
@@ -277,7 +288,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
         Add a low priority flow to drop a subscriber's traffic.
-        
+
         Args:
             imsi (string): subscriber id
             ip_addr (string): subscriber ip_addr
@@ -407,7 +418,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         Report usage to sessiond using rpc
         """
         record_table = RuleRecordTable(records=usage.values(),
-                                       epoch=global_epoch)
+                                       epoch=global_epoch,
+                                       update_rule_versions=self._ovs_restarted)
         if self._print_grpc_payload:
             record_msg = 'Sending RPC payload: {0}{{\n{1}}}'.format(
                 record_table.DESCRIPTOR.name, str(record_table))
@@ -557,6 +569,18 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                           cookie=cookie,
                           cookie_mask=mask)
 
+    def _was_ovs_restarted(self):
+        try:
+            ovs_pid = int(check_output(["pidof","ovs-vswitchd"]).decode())
+        except Exception as e: # pylint: disable=broad-except
+            self.logger.warning("Couldn't get ovs pid: %s", e)
+            ovs_pid = 0
+        stored_ovs_pid = self.restart_info_store["ovs-vswitchd"]
+        self.restart_info_store["ovs-vswitchd"] = ovs_pid
+        self.logger.info("Stored ovs_pid %d, new ovs pid %d",
+                         stored_ovs_pid, ovs_pid)
+        return ovs_pid != stored_ovs_pid
+
     def _get_rule_id(self, flow):
         """
         Return the rule id from the rule cookie
@@ -574,7 +598,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
     def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
         """
-        Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and 
+        Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and
         convert to a Rule Record Table
         """
         if not self._datapath:
@@ -658,3 +682,14 @@ def _get_policy_type(match):
 def get_adjusted_delta(begin, end):
     # Add on a bit of time to compensate for grpc
     return (end - begin + timedelta(milliseconds=150)).total_seconds()
+
+
+class RestartInfoStore(RedisHashDict):
+    def __init__(self, redis_type):
+        self.client = get_default_client()
+        super().__init__(self.client, redis_type,
+                         get_json_serializer(), get_json_deserializer())
+
+    def __missing__(self, key):
+        """Instead of throwing a key error, return 0 when key not found"""
+        return 0

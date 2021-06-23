@@ -45,6 +45,8 @@ message RuleRecordTable {
   repeated RuleRecord records = 1;
   // Time at which PipelineD started
   uint64 epoch = 2;
+  // If policy rule versions need to be incremented(only used for startup)
+  bool update_rule_versions = 3;
 }
 
 ///////////////////
@@ -829,16 +831,16 @@ message M5GSMSessionContext {
   // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
   string imei = 6;
   // Length is 10 bytes + 2 bytes country code generic public subscription id.
-  string gpsi = 7; 
+  string gpsi = 7;
   // up to 6 byte. TS-23.003 - 28.15.3
   string user_location_info = 8;
   // length 16 bytes as UUID "Universally Unique IDentifier" TS-29.571 to ietf rfc 4122
   string pcf_id = 9;
   // Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
-  repeated LadnServiceArea ladn_service_area = 10; 
+  repeated LadnServiceArea ladn_service_area = 10;
   // Subscription For PDU Session Status Notification true or false
   bool pdu_session_status_notification_sub = 11;
-  // TS-29-502 - 6.1.6.3.10 
+  // TS-29-502 - 6.1.6.3.10
   DnnSelectionMode dnn_selection_mode = 12;
   // TS-29.571 5.6.
   string trace_requirement = 13;
@@ -853,7 +855,7 @@ message M5GSMSessionContext {
   // Always-on PDU session requested TS-24.501 9.11.4.4
   bool pdu_session_req_always_on = 19;
   // SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
-  string sm_pdu_dn_req = 20; 
+  string sm_pdu_dn_req = 20;
   M5GSMCause m5gsm_cause = 21;
   // TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
   QosRules requested_qos_rules = 22;
@@ -879,7 +881,7 @@ message SmContextVoid {
                 rpc SetAmfSessionContext (SetSMSessionContext) returns (SmContextVoid);
         }
 
-// SET MESSAGE PROTO DEFINITION OF SMF TO AMF ON RESPONSE 
+// SET MESSAGE PROTO DEFINITION OF SMF TO AMF ON RESPONSE
 
 // 4G response message has not been refactored yet. Hence only considering M5G.
 message RatSpecificContextAccess {
@@ -924,7 +926,7 @@ message M5GSMSessionContextAccess{
     uint32   downlink_units = 6;
     AmbrUnit uplink_unit_type = 7;
     // Only to use lower 2 bytes (16 bit values)
-    uint32   uplink_units = 8; 
+    uint32   uplink_units = 8;
     // TS-24501 - 9.11.4.2
     M5GSMCause M5gsm_cause = 9;
     // PDU session is requested to be established as always-on PDU session.

@@ -108,7 +108,7 @@ void LocalEnforcer::setup(
   bool cwf = false;
   for (auto it = session_map.begin(); it != session_map.end(); it++) {
     for (const auto& session : it->second) {
-      session_infos.push_back(session->get_session_info());
+      session_infos.push_back(session->get_session_info_for_setup());
       const auto& config = session->get_config();
       msisdns.push_back(config.common_context.msisdn());
 
@@ -154,6 +154,28 @@ void LocalEnforcer::poll_stats_enforcer() {
                    << status.error_message();
     }
   });
+}
+
+void LocalEnforcer::increment_all_policy_versions(SessionMap& session_map) {
+  auto session_update = SessionStore::get_default_session_update(session_map);
+  for (auto it = session_map.begin(); it != session_map.end(); it++) {
+    for (const auto& session : it->second) {
+      auto session_info = session->get_session_info_for_setup();
+      SessionStateUpdateCriteria& uc =
+          session_update[session_info.imsi][session->get_session_id()];
+      for (const magma::RuleToProcess val : session_info.gx_rules) {
+        session->increment_rule_stats(val.rule.id(), &uc);
+      }
+      for (const magma::RuleToProcess val : session_info.gy_dynamic_rules) {
+        session->increment_rule_stats(val.rule.id(), &uc);
+      }
+    }
+  }
+  bool update_success = session_store_.update_sessions(session_update);
+  if (!update_success) {
+    MLOG(MINFO) << "Failed to update rule versions after ovs restart";
+  }
+  MLOG(MINFO) << "Successfully updated rule versions after ovs restart";
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
