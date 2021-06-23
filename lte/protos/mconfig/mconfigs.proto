@@ -162,7 +162,7 @@ message SessionD {
     orc8r.LogLevel log_level = 1;
     // DEPRECATED
     // Enable forwarding S6a related requests to Federated GW
-    bool relay_enabled = 2;
+    bool relay_enabled = 2 [deprecated = true];
     WalletExhaustDetection wallet_exhaust_detection = 3;
     // Enable relaying Gx/Gy messages via FeG RPC
     bool gx_gy_relay_enabled = 4;
@@ -306,6 +306,7 @@ message MME {
     // SGW S1U endpoint on AGW
     string ipv4_sgw_s1u_addr = 31;
 
+    // PLMN restriction configs
     message PlmnConfig {
         string mcc = 1;
         string mnc = 2;
@@ -318,11 +319,16 @@ message MME {
     map<string, TacList> service_area_maps = 33;
 
     FederatedModeMap federated_mode_map = 34;
+
+    // IMEI restriction configs
     message ImeiConfig {
         string tac = 1;
         string snr = 2;
     }
     repeated ImeiConfig restricted_imeis = 35;
+
+    // MME congestion control configs
+    bool congestion_control_enabled = 40;
 }
 
 message FederatedModeMap {

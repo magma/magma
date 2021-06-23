@@ -178,6 +178,7 @@ func (m *PolicyRule) getConfig() *PolicyRuleConfig {
 		MonitoringKey:           m.MonitoringKey,
 		Priority:                m.Priority,
 		RatingGroup:             m.RatingGroup,
+		ServiceIdentifier:       m.ServiceIdentifier,
 		Redirect:                m.Redirect,
 		TrackingType:            m.TrackingType,
 		AppName:                 m.AppName,
@@ -200,6 +201,7 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	m.MonitoringKey = monKey
 	m.Priority = cfg.Priority
 	m.RatingGroup = cfg.RatingGroup
+	m.ServiceIdentifier = cfg.ServiceIdentifier
 	m.Redirect = cfg.Redirect
 	m.TrackingType = cfg.TrackingType
 	m.AppName = cfg.AppName
@@ -262,6 +264,7 @@ func (m *PolicyRuleConfig) ToProto(id string, qos *protos.FlowQos) *protos.Polic
 			protoMKey = []byte(m.MonitoringKey)
 		}
 	}
+
 	rule := &protos.PolicyRule{
 		Id:             id,
 		Priority:       swag.Uint32Value(m.Priority),
@@ -272,6 +275,9 @@ func (m *PolicyRuleConfig) ToProto(id string, qos *protos.FlowQos) *protos.Polic
 		AppServiceType: protos.PolicyRule_AppServiceType(protos.PolicyRule_AppServiceType_value[m.AppServiceType]),
 		HardTimeout:    0,
 		Qos:            qos,
+	}
+	if m.ServiceIdentifier != 0 {
+		rule.ServiceIdentifier = &protos.ServiceIdentifier{Value: m.ServiceIdentifier}
 	}
 	if m.Redirect != nil {
 		rule.Redirect = m.Redirect.ToProto()

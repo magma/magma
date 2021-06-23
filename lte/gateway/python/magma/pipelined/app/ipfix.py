@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import shlex
 import subprocess
 from typing import Dict, NamedTuple
 
@@ -118,13 +117,6 @@ class IPFIXController(MagmaController):
         self._datapath = datapath
         self._delete_all_flows(datapath)
         self._install_default_flows(datapath)
-
-        rm_cmd = "ovs-vsctl destroy Flow_Sample_Collector_Set {}" \
-            .format(self.ipfix_config.collector_set_id)
-
-        args = shlex.split(rm_cmd)
-        ret = subprocess.call(args)
-        self.logger.debug("Removed old Flow_Sample_Collector_Set ret %d", ret)
 
         if not self.ipfix_config.enabled:
             return

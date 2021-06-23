@@ -91,7 +91,9 @@ Following example show required parameters for Header enrichment rule.
 2. Mandatory field: `Direction` needs to be `uplink`.
 3. Mandatory field: `tcp_dst` port needs to be `80 (http)`.
 4. Mandatory field: `ip_dst` is IP address range of the HTTP servers.
-5. Mandatory field: `header_enrichment_targets` which is list of URLs.
+5. Mandatory field: `header_enrichment_targets` which is list of URLs. Do not
+   specify http protocol in URL name, for example `http://abc.com` is not supported,
+   but `abc.com` is a valid target.
 6. Define Policy tracking according to your requirements.
 
 ## 3. Apply the policy to subscribers

@@ -48,6 +48,7 @@
 /****************************************************************************/
 extern long mme_app_last_msg_latency;
 extern long pre_mme_task_msg_latency;
+extern bool mme_congestion_control_enabled;
 extern mme_congestion_params_t mme_congestion_params;
 
 extern int check_plmn_restriction(imsi_t imsi);
@@ -235,8 +236,9 @@ int emm_proc_identification_complete(
       /* If spent too much in ZMQ, then discard the packet.
        * MME is congested and this would create some relief in processing.
        */
-      if (mme_app_last_msg_latency + pre_mme_task_msg_latency >
-          MME_APP_ZMQ_LATENCY_IDENT_TH) {
+      if (mme_congestion_control_enabled &&
+          (mme_app_last_msg_latency + pre_mme_task_msg_latency >
+           MME_APP_ZMQ_LATENCY_IDENT_TH)) {
         OAILOG_WARNING_UE(
             LOG_NAS_EMM, emm_ctx->_imsi64,
             "Discarding identification complete as cumulative ZMQ latency "
@@ -294,8 +296,7 @@ int emm_proc_identification_complete(
         /*
          * Update the GUTI
          */
-        AssertFatal(
-            false,
+        Fatal(
             "TODO, should not happen because this type of identity is not "
             "requested by MME");
       }

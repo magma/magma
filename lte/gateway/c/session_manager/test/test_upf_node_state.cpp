@@ -47,7 +47,6 @@ class SetUPFNodeState : public ::testing::Test {
 
     magma::mconfig::SessionD mconfig;
     mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
-    mconfig.set_relay_enabled(false);
     auto config =
         magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
     magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);

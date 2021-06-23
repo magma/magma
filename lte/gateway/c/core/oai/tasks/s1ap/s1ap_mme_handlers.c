@@ -984,8 +984,8 @@ int s1ap_mme_handle_initial_context_setup_response(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   ue_ref_p->s1_ue_state = S1AP_UE_CONNECTED;
-  message_p =
-      itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_RSP);
+  message_p             = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_RSP);
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id = ue_ref_p->mme_ue_s1ap_id;
   MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list.no_of_items =
       ie->value.choice.E_RABSetupListCtxtSURes.list.count;
@@ -1691,8 +1691,8 @@ int s1ap_mme_handle_initial_context_setup_failure(
           cause_type);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-  message_p =
-      itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_FAILURE);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_FAILURE);
   memset(
       (void*) &message_p->ittiMsg.mme_app_initial_context_setup_failure, 0,
       sizeof(itti_mme_app_initial_context_setup_failure_t));
@@ -1763,7 +1763,7 @@ int s1ap_mme_handle_ue_context_modification_response(
           imsi_map->mme_ue_id_imsi_htbl,
           (const hash_key_t) ie->value.choice.MME_UE_S1AP_ID, &imsi64);
 
-      message_p = itti_alloc_new_message(
+      message_p = DEPRECATEDitti_alloc_new_message_fatal(
           TASK_S1AP, S1AP_UE_CONTEXT_MODIFICATION_RESPONSE);
       memset(
           (void*) &message_p->ittiMsg.s1ap_ue_context_mod_response, 0,
@@ -1912,7 +1912,7 @@ int s1ap_mme_handle_ue_context_modification_failure(
               cause_type);
           OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
       }
-      message_p = itti_alloc_new_message(
+      message_p = DEPRECATEDitti_alloc_new_message_fatal(
           TASK_S1AP, S1AP_UE_CONTEXT_MODIFICATION_FAILURE);
       memset(
           (void*) &message_p->ittiMsg.s1ap_ue_context_mod_response, 0,
@@ -3492,8 +3492,8 @@ bool s1ap_send_enb_deregistered_ind(
   hashtable_ts_get(s1ap_ue_state, (const hash_key_t) dataP, (void**) &ue_ref_p);
   if (ue_ref_p) {
     if (arg->current_ue_index == 0) {
-      arg->message_p =
-          itti_alloc_new_message(TASK_S1AP, S1AP_ENB_DEREGISTERED_IND);
+      arg->message_p = DEPRECATEDitti_alloc_new_message_fatal(
+          TASK_S1AP, S1AP_ENB_DEREGISTERED_IND);
       OAILOG_DEBUG(LOG_S1AP, "eNB Deregesteration");
     }
     if (ue_ref_p->mme_ue_s1ap_id == INVALID_MME_UE_S1AP_ID) {
@@ -3771,8 +3771,8 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
   /*
    * Remove UE context and inform MME_APP.
    */
-  message_p =
-      itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
   memset(
       (void*) &message_p->ittiMsg.s1ap_ue_context_release_complete, 0,
       sizeof(itti_s1ap_ue_context_release_complete_t));
@@ -3810,8 +3810,8 @@ void s1ap_mme_release_ue_context(
   /*
    * Remove UE context and inform MME_APP.
    */
-  message_p =
-      itti_alloc_new_message(TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S1AP, S1AP_UE_CONTEXT_RELEASE_COMPLETE);
   memset(
       (void*) &message_p->ittiMsg.s1ap_ue_context_release_complete, 0,
       sizeof(itti_s1ap_ue_context_release_complete_t));
@@ -4012,7 +4012,8 @@ int s1ap_mme_handle_erab_setup_response(
       imsi_map->mme_ue_id_imsi_htbl,
       (const hash_key_t) ue_ref_p->mme_ue_s1ap_id, &imsi64);
 
-  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_SETUP_RSP);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_S1AP, S1AP_E_RAB_SETUP_RSP);
   S1AP_E_RAB_SETUP_RSP(message_p).mme_ue_s1ap_id = ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_SETUP_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
   S1AP_E_RAB_SETUP_RSP(message_p).e_rab_setup_list.no_of_items           = 0;
@@ -4075,7 +4076,7 @@ int s1ap_mme_handle_erab_setup_response(
 int s1ap_mme_handle_erab_setup_failure(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* message) {
-  AssertFatal(0, "TODO");
+  Fatal("TODO Implement s1ap_mme_handle_erab_setup_failure");
 }
 
 //------------------------------------------------------------------------------
@@ -4171,7 +4172,8 @@ int s1ap_mme_handle_enb_reset(
           reset_count, enb_association->nb_ue_associated);
     }
   }
-  msg       = itti_alloc_new_message(TASK_S1AP, S1AP_ENB_INITIATED_RESET_REQ);
+  msg = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S1AP, S1AP_ENB_INITIATED_RESET_REQ);
   reset_req = &S1AP_ENB_INITIATED_RESET_REQ(msg);
 
   reset_req->s1ap_reset_type = s1ap_reset_type;
@@ -4632,7 +4634,8 @@ int s1ap_mme_handle_erab_modification_indication(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_E_RAB_MODIFICATION_IND);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S1AP, S1AP_E_RAB_MODIFICATION_IND);
   S1AP_E_RAB_MODIFICATION_IND(message_p).mme_ue_s1ap_id =
       ue_ref_p->mme_ue_s1ap_id;
   S1AP_E_RAB_MODIFICATION_IND(message_p).enb_ue_s1ap_id =
@@ -4684,8 +4687,7 @@ int s1ap_mme_handle_erab_modification_indication(
                .s1_xNB_fteid.ipv6_address,
           transport_layer_address->data, blength(transport_layer_address));
     } else {
-      AssertFatal(
-          0, "TODO IP address %d bytes", blength(transport_layer_address));
+      Fatal("TODO IP address %d bytes", blength(transport_layer_address));
     }
     bdestroy_wrapper(&transport_layer_address);
 
@@ -4741,8 +4743,7 @@ int s1ap_mme_handle_erab_modification_indication(
                  .s1_xNB_fteid.ipv6_address,
             transport_layer_address->data, blength(transport_layer_address));
       } else {
-        AssertFatal(
-            0, "TODO IP address %d bytes", blength(transport_layer_address));
+        Fatal("TODO IP address %d bytes", blength(transport_layer_address));
       }
       bdestroy_wrapper(&transport_layer_address);
 

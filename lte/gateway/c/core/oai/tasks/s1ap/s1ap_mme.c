@@ -78,15 +78,17 @@ bool s1ap_dump_ue_hash_cb(
 bool hss_associated = false;
 static int indent   = 0;
 task_zmq_ctx_t s1ap_task_zmq_ctx;
-long s1ap_last_msg_latency = 0;
-long s1ap_zmq_th           = LONG_MAX;
+
+bool s1ap_congestion_control_enabled = true;
+long s1ap_last_msg_latency           = 0;
+long s1ap_zmq_th                     = LONG_MAX;
 
 //------------------------------------------------------------------------------
 static int s1ap_send_init_sctp(void) {
   // Create and alloc new message
   MessageDef* message_p = NULL;
 
-  message_p = itti_alloc_new_message(TASK_S1AP, SCTP_INIT_MSG);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(TASK_S1AP, SCTP_INIT_MSG);
   message_p->ittiMsg.sctpInit.port         = S1AP_PORT_NUMBER;
   message_p->ittiMsg.sctpInit.ppid         = S1AP_SCTP_PPID;
   message_p->ittiMsg.sctpInit.ipv4         = 1;
@@ -385,7 +387,8 @@ int s1ap_mme_init(const mme_config_t* mme_config_p) {
 
   OAILOG_DEBUG(LOG_S1AP, "ASN1C version %d\n", get_asn1c_environment_version());
 
-  s1ap_zmq_th = mme_config_p->s1ap_zmq_th;
+  s1ap_congestion_control_enabled = mme_config_p->enable_congestion_control;
+  s1ap_zmq_th                     = mme_config_p->s1ap_zmq_th;
 
   if (s1ap_state_init(
           mme_config_p->max_ues, mme_config_p->max_enbs,

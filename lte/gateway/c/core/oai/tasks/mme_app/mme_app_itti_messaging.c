@@ -209,7 +209,8 @@ int mme_app_send_s11_create_session_req(
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
-  message_p = itti_alloc_new_message(TASK_MME_APP, S11_CREATE_SESSION_REQUEST);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_MME_APP, S11_CREATE_SESSION_REQUEST);
   /*
    * WARNING:
    * Some parameters should be provided by NAS Layer:
@@ -386,7 +387,9 @@ int mme_app_send_s11_create_session_req(
         (struct sockaddr* const) & session_request_p->edns_peer_ip);
   }
   COPY_PLMN_IN_ARRAY_FMT(
-      (session_request_p->serving_network), (ue_mm_context->e_utran_cgi.plmn));
+      (session_request_p->serving_network),
+      (ue_mm_context->emm_context.originating_tai.plmn));
+
   session_request_p->selection_mode = MS_O_N_P_APN_S_V;
   int mode =
       match_fed_mode_map((char*) session_request_p->imsi.digit, LOG_MME_APP);

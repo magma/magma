@@ -213,7 +213,8 @@ int s6a_aia_cb(
    */
   CHECK_FCT(fd_msg_answ_getq(ans, &qry));
   DevAssert(qry);
-  message_p           = itti_alloc_new_message(TASK_S6A, S6A_AUTH_INFO_ANS);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_S6A, S6A_AUTH_INFO_ANS);
   s6a_auth_info_ans_p = &message_p->ittiMsg.s6a_auth_info_ans;
   OAILOG_DEBUG(
       LOG_S6A, "Received S6A Authentication Information Answer (AIA)\n");

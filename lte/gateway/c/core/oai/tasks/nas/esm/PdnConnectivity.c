@@ -403,10 +403,10 @@ static int pdn_connectivity_create(
             break;
           // TODO Handle static IPv4v6 addr allocation
           case IPv4_AND_v6:
-            AssertFatal(0, "TODO\n");
+            Fatal("TODO Implement pdn_connectivity_create IPv4_AND_v6 \n");
             break;
           case IPv4_OR_v6:
-            AssertFatal(0, "TODO\n");
+            Fatal("TODO Implement pdn_connectivity_create IPv4_OR_v6 \n");
             break;
           default:;
         }
@@ -467,10 +467,10 @@ static int pdn_connectivity_create(
                 "BAD IPv6 ADDRESS FORMAT FOR PAA!\n");
             break;
           case IPv4_AND_v6:
-            AssertFatal(0, "TODO\n");
+            Fatal("TODO Implement pdn_connectivity_create IPv4_AND_v6 \n");
             break;
           case IPv4_OR_v6:
-            AssertFatal(0, "TODO\n");
+            Fatal("TODO Implement pdn_connectivity_create IPv4_OR_v6 \n");
             break;
           default:;
         }

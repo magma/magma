@@ -133,8 +133,7 @@ func NewClient(clientCfg *DiameterClientConfig) *Client {
 		AuthApplicationID:           authAppIdAvps,
 		VendorSpecificApplicationID: vendorSpecificApplicationIDs,
 	}
-	go logErrors(mux.ErrorReports())
-	return &Client{
+	client := &Client{
 		mux:            mux,
 		smClient:       cli,
 		connMan:        NewConnectionManager(),
@@ -142,12 +141,58 @@ func NewClient(clientCfg *DiameterClientConfig) *Client {
 		cfg:            clientCfg,
 		originStateID:  originStateID,
 	}
+	go client.handleErrors(mux.ErrorReports())
+	return client
 }
 
-// logErrors logs errors received during transmission
-func logErrors(ec <-chan *diam.ErrorReport) {
+const (
+	connectionRecoveryBackoff    = time.Millisecond * 100
+	connectionRecoveryMaxRetries = 10
+)
+
+// handleErrors logs errors received during transmission & tries to recover errored out connections
+func (client *Client) handleErrors(ec <-chan *diam.ErrorReport) {
+	cm := client.connMan
+	if cm == nil {
+		glog.Error("<nil> Connection Manager")
+	}
+
 	for err := range ec {
-		glog.Error(err)
+		if err != nil && err.Conn != nil && client != nil {
+			dc := err.Conn
+			connStr := dc.LocalAddr().String() + "->" + dc.RemoteAddr().String()
+			glog.Errorf("diameter connection %s error: %v", connStr, err)
+			if cm == nil {
+				continue
+			}
+			conn := cm.Find(dc)
+			if conn != nil {
+				// first, try to close the existing connection if it hasn't been reestablished yet
+				conn.destroyConnection(dc)
+				// recover connection in a dedicated routine, it can take long time
+				// getDiamConnection(0 will just return success if the connection was already recovered
+				go func(conn *Connection) {
+					backoff := connectionRecoveryBackoff
+					for retry := 0; retry < connectionRecoveryMaxRetries; retry++ {
+						_, _, retryErr := conn.getDiamConnection()
+						if retryErr == nil {
+							glog.Infof("diameter connection %s is successfully recovered", connStr)
+							return
+						}
+						glog.Errorf(
+							"failed to recover diameter connection %s; attempt #%d: %v",
+							connStr, retry, retryErr)
+
+						time.Sleep(backoff)
+						backoff *= 2
+					}
+				}(conn)
+			} else {
+				glog.Errorf("cannot find connection for %s", connStr)
+			}
+		} else {
+			glog.Error(err)
+		}
 	}
 }
 

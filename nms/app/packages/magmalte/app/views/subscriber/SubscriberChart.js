@@ -76,12 +76,12 @@ async function getDatasets(props: DatasetFetchProps) {
 
   const queries = [
     {
-      q: `sum(increase(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
+      q: `sum(sum_over_time(ue_reported_usage{IMSI="${subscriberId}",direction="down"}[${step}]))`,
       color: colors.secondary.dodgerBlue,
       label: 'download',
     },
     {
-      q: `sum(increase(ue_reported_usage{IMSI="${subscriberId}",direction="up"}[${step}]))`,
+      q: `sum(sum_over_time(ue_reported_usage{IMSI="${subscriberId}",direction="up"}[${step}]))`,
       color: colors.data.flamePea,
       label: 'upload',
     },

@@ -216,7 +216,8 @@ static int build_sgs_status(
   OAILOG_FUNC_IN(LOG_MME_APP);
 
   MessageDef* message_p = NULL;
-  message_p             = itti_alloc_new_message(TASK_MME_APP, SGSAP_STATUS);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_MME_APP, SGSAP_STATUS);
   itti_sgsap_status_t* sgsap_status = &message_p->ittiMsg.sgsap_status;
   memset((void*) sgsap_status, 0, sizeof(itti_sgsap_status_t));
 
@@ -436,7 +437,8 @@ int send_itti_sgsap_location_update_req(ue_mm_context_t* ue_context_p) {
   int rc                = RETURNok;
   uint8_t tau_updt_type = -1;
 
-  message_p = itti_alloc_new_message(TASK_MME_APP, SGSAP_LOCATION_UPDATE_REQ);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_MME_APP, SGSAP_LOCATION_UPDATE_REQ);
   itti_sgsap_location_update_req_t* sgsap_location_update_req =
       &message_p->ittiMsg.sgsap_location_update_req;
   memset(

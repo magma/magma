@@ -550,6 +550,39 @@ inline void emm_ctx_set_valid_drx_parameter(
 }
 
 //------------------------------------------------------------------------------
+/* Clear UE additional security capability */
+inline void emm_ctx_clear_ue_additional_security_capability(
+    emm_context_t* const ctxt) {
+  memset(
+      &ctxt->ue_additional_security_capability, 0,
+      sizeof(ue_additional_security_capability_t));
+  emm_ctx_clear_attribute_present(
+      ctxt, EMM_CTXT_MEMBER_UE_ADDITIONAL_SECURITY_CAPABILITY);
+  OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "ue_id=" MME_UE_S1AP_ID_FMT
+      " cleared ue additional security capability\n",
+      (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
+          ->mme_ue_s1ap_id);
+}
+
+/* Set UE additional security capability */
+inline void emm_ctx_set_ue_additional_security_capability(
+    emm_context_t* const ctxt, ue_additional_security_capability_t* uasc) {
+  memcpy(
+      &ctxt->ue_additional_security_capability, uasc,
+      sizeof(ue_additional_security_capability_t));
+  emm_ctx_set_attribute_present(
+      ctxt, EMM_CTXT_MEMBER_UE_ADDITIONAL_SECURITY_CAPABILITY);
+  OAILOG_DEBUG(
+      LOG_NAS_EMM,
+      "ue_id=" MME_UE_S1AP_ID_FMT
+      " set ue additional security capability (present)\n",
+      (PARENT_STRUCT(ctxt, struct ue_mm_context_s, emm_context))
+          ->mme_ue_s1ap_id);
+}
+
+//------------------------------------------------------------------------------
 /* Clear EPS bearer context status   */
 inline void emm_ctx_clear_eps_bearer_context_status(emm_context_t* const ctxt) {
   memset(
@@ -917,6 +950,7 @@ void emm_init_context(
   emm_ctx_clear_ue_nw_cap(emm_ctx);
   emm_ctx_clear_drx_parameter(emm_ctx);
   emm_ctx_clear_mobile_station_clsMark2(emm_ctx);
+  emm_ctx_clear_ue_additional_security_capability(emm_ctx);
   emm_ctx->T3422.id        = NAS_TIMER_INACTIVE_ID;
   emm_ctx->T3422.sec       = T3422_DEFAULT_VALUE;
   emm_ctx->new_attach_info = NULL;

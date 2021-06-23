@@ -44,6 +44,8 @@
 #include "common_types.h"
 #include "3gpp_29.274.h"
 #include "log.h"
+#include "hashtable.h"
+#include "mme_config.h"
 
 /* Clear GUTI without free it */
 void clear_guti(guti_t* const guti) {

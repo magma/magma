@@ -1,7 +1,7 @@
-From 2da46c5e703da0d812d04832518a5cb71b7728a3 Mon Sep 17 00:00:00 2001
+From a65af73631599aea3621a8e50c24adb0fcf29190 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 24 Feb 2020 04:29:56 +0000
-Subject: [PATCH 02/18] userspace: IPFIX: Add tunnel type GTP
+Subject: [PATCH 02/19] userspace: IPFIX: Add tunnel type GTP
 
 Add support for ingress/egress tunnel type GTP
 in IPFIX.

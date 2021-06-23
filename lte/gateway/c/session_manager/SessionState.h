@@ -937,13 +937,22 @@ class SessionState {
       PolicyRule* rule_out);
 
   /**
-   * Increments data usage values for session
-   * @param usage_label either UE_DROPPED_LABEL / UE_USED_LABEL
+   * Set data usage values for session
+   * @param gauge_name
    * @param bytes_tx
    * @param bytes_rx
    */
-  void update_data_metrics(
-      const char* counter_name, uint64_t bytes_tx, uint64_t bytes_rx);
+  void set_data_metrics(
+      const char* gauge_name, uint64_t bytes_tx, uint64_t bytes_rx) const;
+
+  /**
+   * Increment data usage values for session
+   * @param counter_name
+   * @param delta_tx
+   * @param delta_rx
+   */
+  void increment_data_metrics(
+      const char* counter_name, uint64_t delta_tx, uint64_t delta_rx) const;
 
   /**
    * Computes delta from previous rule report
