@@ -26,6 +26,7 @@ extern "C" {
 #endif
 #include "common_defs.h"
 #include "conversions.h"
+#include "amf_config.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_asDefs.h"
 #include "amf_sap.h"
@@ -39,10 +40,10 @@ extern "C" {
 #define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
   LENGTH += QUADLET - (LENGTH % QUADLET)
 
+extern amf_config_t amf_config;
 static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg);
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
-amf_config_t amf_config_handler;
 
 //----------------------------------------------------------------------------
 static void amf_directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
@@ -219,17 +220,18 @@ static bool amf_app_construct_guti(
    */
   bool is_guti_valid =
       false;  // Set to true if serving AMF is found and GUTI is constructed
-  uint8_t num_amf           = 0;  // Number of configured AMF in the AMF pool
-  guti_p->m_tmsi            = s_tmsi_p->m_tmsi;
-  guti_p->guamfi.amf_set_id = s_tmsi_p->amf_pointer;
+  uint8_t num_amf            = 0;  // Number of configured AMF in the AMF pool
+  guti_p->m_tmsi             = s_tmsi_p->m_tmsi;
+  guti_p->guamfi.amf_set_id  = s_tmsi_p->amf_set_id;
+  guti_p->guamfi.amf_pointer = s_tmsi_p->amf_pointer;
   // Create GUTI by using PLMN Id and AMF-Group Id of serving AMF
   OAILOG_DEBUG(
       LOG_AMF_APP,
-      "Construct GUTI using S-TMSI received form UE and AMG Group Id and "
+      "Construct GUTI using S-TMSI received form UE and AMG set Id and pointer"
       "PLMN "
-      "id from AMF Conf: %u, %u \n",
-      s_tmsi_p->m_tmsi, s_tmsi_p->amf_pointer);
-  amf_config_read_lock(&amf_config_handler);
+      "id from AMF Conf: %0x, %u %u\n",
+      s_tmsi_p->m_tmsi, s_tmsi_p->amf_set_id, s_tmsi_p->amf_pointer);
+  amf_config_read_lock(&amf_config);
   /*
    * Check number of MMEs in the pool.
    * At present it is assumed that one AMF is supported in AMF pool but in
@@ -237,38 +239,38 @@ static bool amf_app_construct_guti(
    * using AMF code. Assumption is that within one PLMN only one pool of AMF
    * will be configured
    */
-  if (amf_config_handler.guamfi.nb > 1) {
+  if (amf_config.guamfi.nb > 1) {
     OAILOG_DEBUG(LOG_AMF_APP, "More than one AMFs are configured.");
   }
-  for (num_amf = 0; num_amf < amf_config_handler.guamfi.nb; num_amf++) {
+  for (num_amf = 0; num_amf < amf_config.guamfi.nb; num_amf++) {
     /*Verify that the AMF code within S-TMSI is same as what is configured in
      * AMF conf*/
     if ((plmn_p->mcc_digit2 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mcc_digit2) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mcc_digit2) &&
         (plmn_p->mcc_digit1 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mcc_digit1) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mcc_digit1) &&
         (plmn_p->mnc_digit3 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit3) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mnc_digit3) &&
         (plmn_p->mcc_digit3 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mcc_digit3) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mcc_digit3) &&
         (plmn_p->mnc_digit2 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit2) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mnc_digit2) &&
         (plmn_p->mnc_digit1 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit1) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mnc_digit1) &&
         (guti_p->guamfi.amf_set_id ==
-         amf_config_handler.guamfi.guamfi[num_amf].amf_set_id)) {
+         amf_config.guamfi.guamfi[num_amf].amf_set_id)) {
       break;
     }
   }
-  if (num_amf >= amf_config_handler.guamfi.nb) {
+  if (num_amf >= amf_config.guamfi.nb) {
     OAILOG_DEBUG(LOG_AMF_APP, "No AMF serves this UE");
   } else {
-    guti_p->guamfi.plmn = amf_config_handler.guamfi.guamfi[num_amf].plmn;
-    guti_p->guamfi.amf_set_id =
-        amf_config_handler.guamfi.guamfi[num_amf].amf_set_id;
-    is_guti_valid = true;
+    guti_p->guamfi.plmn        = amf_config.guamfi.guamfi[num_amf].plmn;
+    guti_p->guamfi.amf_set_id  = amf_config.guamfi.guamfi[num_amf].amf_set_id;
+    guti_p->guamfi.amf_pointer = amf_config.guamfi.guamfi[num_amf].amf_pointer;
+    is_guti_valid              = true;
   }
-  amf_config_unlock(&amf_config_handler);
+  amf_config_unlock(&amf_config);
   return is_guti_valid;
 }
 
@@ -926,7 +928,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
     // UE in connected state and need to check if cause is proper
     if (cm_idle_req.relCause == NGAP_RADIO_NR_GENERATED_REASON) {
       // Change the respective UE/PDU session state to idle/inactive.
-      ue_context->mm_state == REGISTERED_IDLE;
+      ue_context->mm_state = REGISTERED_IDLE;
       // Handling of smf_context as vector
       // TODO: This has been taken care in new PR
       // with multi UE feature
@@ -936,7 +938,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       // construct the proto structure and send message to SMF
       amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
       ue_context_release_command(
-          ue_id, ue_context->gnb_ue_ngap_id, NGAP_NAS_NORMAL_RELEASE);
+          ue_id, ue_context->gnb_ue_ngap_id, NGAP_USER_INACTIVITY);
 
     } else {
       OAILOG_DEBUG(

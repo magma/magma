@@ -193,7 +193,8 @@ enum Ngcause {
   NGAP_INITIAL_CONTEXT_SETUP_TMR_EXPRD,
   NGAP_INVALID_GNB_ID,
   NGAP_CSFB_TRIGGERED,
-  NGAP_NAS_UE_NOT_AVAILABLE_FOR_PS
+  NGAP_NAS_UE_NOT_AVAILABLE_FOR_PS,
+  NGAP_USER_INACTIVITY
 };
 typedef struct itti_ngap_ue_context_release_command_s {
   amf_ue_ngap_id_t amf_ue_ngap_id;

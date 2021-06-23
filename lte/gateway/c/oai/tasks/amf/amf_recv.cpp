@@ -42,8 +42,7 @@ int amf_handle_service_request(
   notify_ue_event notify_ue_event_type;
 
   OAILOG_INFO(
-      LOG_AMF_APP,
-      "Received TMSI in message : %02x%02x%02x%02x%02x%02x%02x%02x",
+      LOG_AMF_APP, "Received TMSI in message : %02x%02x%02x%02x",
       msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[0],
       msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[1],
       msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[2],
@@ -223,6 +222,7 @@ int amf_handle_registration_request(
         amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
 
         ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
+        ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
         imsi64_t imsi64                = amf_imsi_to_imsi64(params->imsi);
         guti_and_amf_id.amf_guti       = amf_guti;
         guti_and_amf_id.amf_ue_ngap_id = ue_id;

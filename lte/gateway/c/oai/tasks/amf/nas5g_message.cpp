@@ -585,6 +585,12 @@ int _nas5g_message_plain_encode(
   OAILOG_FUNC_IN(LOG_AMF_APP);
   int bytes = TLV_PROTOCOL_NOT_SUPPORTED;
   AmfMsg amf_msg_test;
+
+  OAILOG_INFO(
+      LOG_AMF_APP, " AMF Set Id %u\n",
+      msg->amf.msg.registrationacceptmsg.mobile_id.mobile_identity.guti
+          .amf_setid);
+
   if (M5GS_MOBILITY_MANAGEMENT_MESSAGE ==
       msg->amf.header.extended_protocol_discriminator) {
     /*

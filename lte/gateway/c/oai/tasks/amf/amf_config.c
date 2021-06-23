@@ -498,6 +498,76 @@ int amf_config_parse_file(amf_config_t* config_pP) {
     }
   }
 
+  // GUAMFI SETTING
+  setting =
+      config_setting_get_member(setting_mme, MME_CONFIG_STRING_GUAMFI_LIST);
+  config_pP->guamfi.nb = 0;
+  if (setting != NULL) {
+    num = config_setting_length(setting);
+    OAILOG_INFO(LOG_AMF_APP, "Number of GUAMFIs configured =%d\n", num);
+    AssertFatal(
+        num >= MIN_GUAMI,
+        "Not even one GUAMI is configured, configure minimum one GUMMEI \n");
+    AssertFatal(
+        num <= MAX_GUAMI,
+        "Number of GUAMIs configured:%d exceeds number of GUMMEIs supported "
+        ":%d \n",
+        num, MAX_GUMMEI);
+
+    for (i = 0; i < num; i++) {
+      sub2setting = config_setting_get_elem(setting, i);
+
+      if (sub2setting != NULL) {
+        if ((config_setting_lookup_string(
+                sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
+          AssertFatal(
+              strlen(mcc) == MAX_MCC_LENGTH,
+              "Bad MCC length (%ld), it must be %u digit ex: 001", strlen(mcc),
+              MAX_MCC_LENGTH);
+          char c[2]                                   = {mcc[0], 0};
+          config_pP->guamfi.guamfi[i].plmn.mcc_digit1 = (uint8_t) atoi(c);
+          c[0]                                        = mcc[1];
+          config_pP->guamfi.guamfi[i].plmn.mcc_digit2 = (uint8_t) atoi(c);
+          c[0]                                        = mcc[2];
+          config_pP->guamfi.guamfi[i].plmn.mcc_digit3 = (uint8_t) atoi(c);
+        }
+
+        if ((config_setting_lookup_string(
+                sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
+          AssertFatal(
+              (strlen(mnc) == MIN_MNC_LENGTH) ||
+                  (strlen(mnc) == MAX_MNC_LENGTH),
+              "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123",
+              strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
+          char c[2]                                   = {mnc[0], 0};
+          config_pP->guamfi.guamfi[i].plmn.mnc_digit1 = (uint8_t) atoi(c);
+          c[0]                                        = mnc[1];
+          config_pP->guamfi.guamfi[i].plmn.mnc_digit2 = (uint8_t) atoi(c);
+          if (3 == strlen(mnc)) {
+            c[0]                                        = mnc[2];
+            config_pP->guamfi.guamfi[i].plmn.mnc_digit3 = (uint8_t) atoi(c);
+          } else {
+            config_pP->guamfi.guamfi[i].plmn.mnc_digit3 = 0x0F;
+          }
+        }
+
+        if ((config_setting_lookup_string(
+                sub2setting, MME_CONFIG_STRING_AMF_REGION_ID, &mnc))) {
+          config_pP->guamfi.guamfi[i].amf_regionid = (uint16_t) atoi(mnc);
+        }
+        if ((config_setting_lookup_string(
+                sub2setting, MME_CONFIG_STRING_AMF_SET_ID, &mnc))) {
+          config_pP->guamfi.guamfi[i].amf_set_id = (uint8_t) atoi(mnc);
+        }
+        if ((config_setting_lookup_string(
+                sub2setting, MME_CONFIG_STRING_AMF_POINTER, &mnc))) {
+          config_pP->guamfi.guamfi[i].amf_pointer = (uint8_t) atoi(mnc);
+        }
+        config_pP->guamfi.nb += 1;
+      }
+    }
+  }
+
   config_destroy(&cfg);
   return 0;
 }

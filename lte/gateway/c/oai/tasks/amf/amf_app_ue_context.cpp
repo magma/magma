@@ -159,6 +159,7 @@ ue_m5gmm_context_s* amf_create_new_ue_context(void) {
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_ULR_RESPONSE_TIMER_VALUE};
   new_p->m5_ue_context_modification_timer = (amf_app_timer_t){
       AMF_APP_TIMER_INACTIVE_ID, AMF_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE};
+  new_p->mm_state = DEREGISTERED;
 
   return new_p;
 }

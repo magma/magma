@@ -589,6 +589,11 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
        * response complete, now assign to amf_sap
        */
       amf_sap.u.amf_as.u.establish.guti = amf_context->m5_guti;
+      OAILOG_INFO(
+          LOG_AMF_APP, " Region_id %u set_id %u pointer %u \n",
+          amf_context->m5_guti.guamfi.amf_regionid,
+          amf_context->m5_guti.guamfi.amf_set_id,
+          amf_context->m5_guti.guamfi.amf_pointer);
       amf_sap.u.amf_as.u.establish.guti.m_tmsi =
           htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
       rc = amf_sap_send(&amf_sap);
@@ -932,7 +937,9 @@ int amf_reg_send(amf_sap_t* const msg) {
         }
 
         /* Update the state */
-        // ue_amf_context->mm_state = REGISTERED_CONNECTED;
+        ue_amf_context->mm_state = REGISTERED_CONNECTED;
+        OAILOG_INFO(
+            LOG_NAS_AMF, "UE current state is %u\n", ue_amf_context->mm_state);
       } break;
       case AMFREG_COMMON_PROC_REJ: {
       }

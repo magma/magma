@@ -148,7 +148,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
       msg->nas_msg->data, &nas_msg, blength(msg->nas_msg), amf_security_context,
       &decode_status);
 
-  ue_m5gmm_context->mm_state = DEREGISTERED;
+  // ue_m5gmm_context->mm_state = DEREGISTERED;
 
   bdestroy_wrapper(&msg->nas_msg);
 
@@ -420,7 +420,17 @@ static int amf_reg_acceptmsg(
   offset++;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.tmsi3 = *offset;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_regionid = msg->guti.guamfi.amf_regionid;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_setid = msg->guti.guamfi.amf_set_id;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_pointer = msg->guti.guamfi.amf_pointer;
 
+  OAILOG_INFO(
+      LOG_AMF_APP, "AMF_REGION_ID %u AMF_SET_ID %u AMF_POINTER %u \n",
+      msg->guti.guamfi.amf_regionid, msg->guti.guamfi.amf_set_id,
+      msg->guti.guamfi.amf_pointer);
   // TAI List, Allowed NSSAI and GPRS Timer 3 harcoded
   nas_msg->header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;  // sit_change
