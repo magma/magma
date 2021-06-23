@@ -895,12 +895,7 @@ void mme_app_handle_delete_session_rsp(
    */
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
-  /* In case of pdn disconnect, secondary pdn session gets deleted after
-   * receiving deactivate bearer accept message, do not decrement
-   * nb_active_pdn_contexts here
-   */
-  if ((ue_context_p->nb_active_pdn_contexts > 0) &&
-      (!ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
+  if (ue_context_p->nb_active_pdn_contexts > 0) {
     ue_context_p->nb_active_pdn_contexts -= 1;
   }
 

@@ -550,9 +550,6 @@ proc_tid_t pdn_connectivity_delete(
         "\n",
         pdn_cid, ue_mm_context->mme_ue_s1ap_id);
   }
-  if (ue_mm_context->nb_active_pdn_contexts > 0) {
-    ue_mm_context->nb_active_pdn_contexts -= 1;
-  }
   // Return the procedure transaction identity
   return (pti);
 }
