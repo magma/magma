@@ -134,6 +134,19 @@ void bit_rate_value_to_eps_qos(
       apn_ambr->apnambrfordownlink_extended =
           ((ambr_dl_kbps - 128000) / 2000) + 186;
     }
+  } else if (ambr_dl_kbps > 256000) {
+    apn_ambr->apnambrfordownlink = 0xfa;
+    apn_ambr->extensions =
+        APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION2_PRESENT;
+    if ((ambr_dl_kbps >= 260000) && (ambr_dl_kbps <= 500000)) {
+      apn_ambr->apnambrfordownlink_extended2 = (ambr_dl_kbps - 256000) / 4000;
+    } else if ((ambr_dl_kbps > 510000) && (ambr_dl_kbps <= 1500000)) {
+      apn_ambr->apnambrfordownlink_extended2 =
+          ((ambr_dl_kbps - 150000) / 10000) + 61;
+    } else if ((ambr_dl_kbps > 1600000) && (ambr_dl_kbps <= 10000000)) {
+      apn_ambr->apnambrfordownlink_extended2 =
+          ((ambr_dl_kbps - 1500000) / 100000) + 161;
+    }
   }
 
   if (ambr_ul_kbps == 0) {
@@ -159,6 +172,18 @@ void bit_rate_value_to_eps_qos(
     }
   }
 
-  apn_ambr->apnambrfordownlink_extended2 = 0;
-  apn_ambr->apnambrforuplink_extended2   = 0;
+  else if (ambr_ul_kbps > 256000) {
+    apn_ambr->apnambrforuplink_extended2 = 0xfa;
+    apn_ambr->extensions =
+        APN_AGGREGATE_MAXIMUM_BIT_RATE_MAXIMUM_EXTENSION2_PRESENT;
+    if ((ambr_ul_kbps >= 260000) && (ambr_ul_kbps <= 500000)) {
+      apn_ambr->apnambrforuplink_extended2 = (ambr_ul_kbps - 256000) / 4000;
+    } else if ((ambr_ul_kbps > 510000) && (ambr_ul_kbps <= 1500000)) {
+      apn_ambr->apnambrforuplink_extended2 =
+          ((ambr_ul_kbps - 150000) / 10000) + 61;
+    } else if ((ambr_ul_kbps > 1600000) && (ambr_ul_kbps <= 10000000)) {
+      apn_ambr->apnambrforuplink_extended2 =
+          ((ambr_ul_kbps - 1500000) / 100000) + 161;
+    }
+  }
 }

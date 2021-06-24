@@ -88,6 +88,20 @@ status_code_e decode_eps_quality_of_service(
     epsqualityofservice->bitRatesExtPresent = 0;
   }
 
+  if (ielen > 10 + (iei > 0) ? 1 : 0) {
+    /*
+     * bitRatesExt2 is present
+     */
+    epsqualityofservice->bitRatesExt2Present = 1;
+    decoded += decode_eps_qos_bit_rates(
+        &epsqualityofservice->bitRatesExt2, buffer + decoded);
+  } else {
+    /*
+     * bitRatesExt2 is not present
+     */
+    epsqualityofservice->bitRatesExt2Present = 0;
+  }
+
   return decoded;
 }
 
@@ -138,6 +152,11 @@ status_code_e encode_eps_quality_of_service(
   if (epsqualityofservice->bitRatesExtPresent) {
     encoded += encode_eps_qos_bit_rates(
         &epsqualityofservice->bitRatesExt, buffer + encoded);
+  }
+
+  if (epsqualityofservice->bitRatesExt2Present) {
+    encoded += encode_eps_qos_bit_rates(
+        &epsqualityofservice->bitRatesExt2, buffer + encoded);
   }
 
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
@@ -208,7 +227,20 @@ status_code_e qos_params_to_eps_qos(
           eps_qos->bitRatesExt.maxBitRateForUL =
               ((mbr_ul_kbps - 128000) / 2000) + 186;
         }
+      } else if (mbr_ul_kbps > 256000) {
+        eps_qos->bitRates.maxBitRateForUL = 0xfa;
+        eps_qos->bitRatesExt2Present      = 1;
+        if ((mbr_ul_kbps >= 260000) && (mbr_ul_kbps <= 500000)) {
+          eps_qos->bitRatesExt2.maxBitRateForUL = (mbr_ul_kbps - 256000) / 4000;
+        } else if ((mbr_ul_kbps > 510000) && (mbr_ul_kbps <= 1500000)) {
+          eps_qos->bitRatesExt2.maxBitRateForUL =
+              ((mbr_ul_kbps - 150000) / 10000) + 61;
+        } else if ((mbr_ul_kbps > 1600000) && (mbr_ul_kbps <= 10000000)) {
+          eps_qos->bitRatesExt2.maxBitRateForUL =
+              ((mbr_ul_kbps - 1500000) / 100000) + 161;
+        }
       }
+
       if (mbr_dl_kbps == 0) {
         eps_qos->bitRates.maxBitRateForDL = 0xff;
       } else if ((mbr_dl_kbps > 0) && (mbr_dl_kbps <= 63)) {
@@ -229,7 +261,20 @@ status_code_e qos_params_to_eps_qos(
           eps_qos->bitRatesExt.maxBitRateForDL =
               ((mbr_dl_kbps - 128000) / 2000) + 186;
         }
+      } else if (mbr_dl_kbps > 256000) {
+        eps_qos->bitRates.maxBitRateForDL = 0xfa;
+        eps_qos->bitRatesExt2Present      = 1;
+        if ((mbr_dl_kbps >= 260000) && (mbr_dl_kbps <= 500000)) {
+          eps_qos->bitRatesExt2.maxBitRateForDL = (mbr_dl_kbps - 256000) / 4000;
+        } else if ((mbr_dl_kbps > 510000) && (mbr_dl_kbps <= 1500000)) {
+          eps_qos->bitRatesExt2.maxBitRateForDL =
+              ((mbr_dl_kbps - 150000) / 10000) + 61;
+        } else if ((mbr_dl_kbps > 1600000) && (mbr_dl_kbps <= 10000000)) {
+          eps_qos->bitRatesExt2.maxBitRateForDL =
+              ((mbr_dl_kbps - 1500000) / 100000) + 161;
+        }
       }
+
       if (gbr_ul_kbps == 0) {
         eps_qos->bitRates.guarBitRateForUL = 0xff;
       } else if ((gbr_ul_kbps > 0) && (gbr_ul_kbps <= 63)) {
