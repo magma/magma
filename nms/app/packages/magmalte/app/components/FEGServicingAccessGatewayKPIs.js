@@ -37,7 +37,7 @@ import {useRouter} from '@fbcnms/ui/hooks';
  */
 export async function getServicedAccessNetworks(
   federationNetworkId: network_id,
-  enqueueSnackbar: (
+  enqueueSnackbar?: (
     msg: string,
     cfg: EnqueueSnackbarOptions,
   ) => ?(string | number),
