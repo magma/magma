@@ -7,7 +7,6 @@ on:  # yamllint disable-line rule:truthy
       - master
 jobs:
   docusaurus-build-and-deploy:
-    env:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
