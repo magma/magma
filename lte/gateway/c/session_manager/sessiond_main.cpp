@@ -32,6 +32,7 @@
 #include "SessionManagerServer.h"
 #include "SessionReporter.h"
 #include "SessionStore.h"
+#include "PollStatsThread.h"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -229,21 +230,6 @@ int main(int argc, char* argv[]) {
     policy_loader.stop();
   });
 
-  //Start off a thread to periodically poll stats from Pipelined
-  magma::PollStats periodic_stats_requester;
-  std::thread periodic_stats_requester_thread([&]() {
-    periodic_stats_requester.start_loop(
-      [&](std::vector<magma::PollStats> request){
-        //call Pipelined Client Poll Stats(need to receive arguments from
-        //some location)
-        int cookie = 0;
-        int cookie_mask = 0;
-        poll_stats(cookie, cookie_mask);
-      },
-      config["rule_update_interval_sec"].as<uint32_t>());
-    periodic_stats_requester.stop();
-  });
-
   auto pipelined_client = std::make_shared<magma::AsyncPipelinedClient>();
   std::thread pipelined_response_handling_thread([&]() {
     MLOG(MINFO) << "Started PipelineD response thread";
@@ -334,6 +320,15 @@ int main(int argc, char* argv[]) {
     } else if (config["support_carrier_wifi"].as<bool>()) {
       restart_handler->setup_aaa_sessions();
     }
+  });
+
+  // Start off a thread to periodically poll stats from Pipelined
+  magma::PollStatsThread periodic_stats_requester;
+
+  std::thread periodic_stats_requester_thread([&]() {
+    periodic_stats_requester.start_loop(
+        local_enforcer, config["rule_update_interval_sec"].as<uint32_t>());
+    periodic_stats_requester.stop();
   });
 
   // Setup threads to serve as GRPC servers for the LocalSessionManagerHandler
