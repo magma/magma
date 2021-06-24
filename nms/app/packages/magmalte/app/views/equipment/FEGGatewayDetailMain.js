@@ -21,6 +21,7 @@ import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import EventsTable from '../../views/events/EventsTable';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
+import FEGGatewayDetailConfig from './FEGGatewayDetailConfig';
 import FEGGatewayDetailStatus from './FEGGatewayDetailStatus';
 import FEGGatewaySummary from './FEGGatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
@@ -91,6 +92,10 @@ export default function FEGGatewayDetail() {
         <Route
           path={relativePath('/overview')}
           component={FEGGatewayOverview}
+        />
+        <Route
+          path={relativePath('/config')}
+          component={FEGGatewayDetailConfig}
         />
         <Redirect to={relativeUrl('/overview')} />
       </Switch>
