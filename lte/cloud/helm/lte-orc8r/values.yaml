@@ -142,4 +142,3 @@ subscriberdb_cache:
   service:
     labels: {}
     annotations: {}
-
