@@ -11,4 +11,4 @@
 # limitations under the License.
 
 # flatDigestEnabled is a feature flag for the flat digest functionality.
-flatDigestEnabled: false
+flatDigestEnabled: true

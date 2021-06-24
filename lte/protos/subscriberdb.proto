@@ -214,11 +214,6 @@ service SubscriberDBCloud {
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
 }
 
-message Digest {
-  // md5_base64_digest is a base64-encoded MD5 digest of a set of subscriber protos.
-  string md5_base64_digest = 1;
-}
-
 message CheckSubscribersInSyncRequest {
   // flat_digest is the deterministic digest of the full set of subscriber
   // objects stored on the client side.
@@ -270,4 +265,9 @@ message ListSubscribersResponse {
   // per_sub_digests is a set of per-subscriber digests, indexed by the
   // subscriber IDs (IMSI).
   map<string, Digest> per_sub_digests = 4;
+}
+
+message Digest {
+  // md5_base64_digest is a base64-encoded MD5 digest of a set of subscriber protos.
+  string md5_base64_digest = 1;
 }
