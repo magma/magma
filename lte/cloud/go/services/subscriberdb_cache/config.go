@@ -11,7 +11,7 @@
  * limitations under the License.
  */
 
-package subscriberdb
+package subscriberdb_cache
 
 import (
 	"magma/lte/cloud/go/lte"
@@ -21,15 +21,17 @@ import (
 )
 
 type Config struct {
-	// FlatDigestEnabled is a feature flag for the flat digest functionality.
-	FlatDigestEnabled bool `yaml:"flatDigestEnabled"`
+	// SleepIntervalSecs is the time interval between each service worker loop.
+	SleepIntervalSecs int `yaml:"sleepIntervalSecs"`
+	// UpdateIntervalSecs is the target time interval to update each digest.
+	UpdateIntervalSecs int `yaml:"updateIntervalSecs"`
 }
 
 func MustGetServiceConfig() Config {
 	var serviceConfig Config
 	_, _, err := config.GetStructuredServiceConfig(lte.ModuleName, ServiceName, &serviceConfig)
 	if err != nil {
-		glog.Fatalf("Failed parsing the subscriberdb config file: %+v", err)
+		glog.Fatalf("Failed parsing the subscriberdb_cache config file: %+v", err)
 	}
 
 	return serviceConfig

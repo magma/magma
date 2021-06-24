@@ -41,8 +41,9 @@ column type to name inside the data structure for each builder.
 */
 
 var postgresColumnTypeMap = map[ColumnType]string{
-	ColumnTypeText: "TEXT",
-	ColumnTypeInt:  "INTEGER",
+	ColumnTypeText:   "TEXT",
+	ColumnTypeInt:    "INTEGER",
+	ColumnTypeBigInt: "BIGINT",
 	// BYTEA is effectively limited to 1GB
 	ColumnTypeBytes: "BYTEA",
 	ColumnTypeBool:  "BOOLEAN",
@@ -50,8 +51,9 @@ var postgresColumnTypeMap = map[ColumnType]string{
 
 var mariaColumnTypeMap = map[ColumnType]string{
 	// Mysql won't index TEXT columns, so choose VARCHAR(255) for text type
-	ColumnTypeText: "VARCHAR(255)",
-	ColumnTypeInt:  "INT",
+	ColumnTypeText:   "VARCHAR(255)",
+	ColumnTypeInt:    "INT",
+	ColumnTypeBigInt: "BIGINT",
 	// LONGBLOB stores up to 4GB and the cost is a flat extra 2 bytes of
 	// storage over BLOB, which is limited to 64KB
 	ColumnTypeBytes: "LONGBLOB",
@@ -74,6 +76,7 @@ type ColumnType uint8
 const (
 	ColumnTypeText ColumnType = iota
 	ColumnTypeInt
+	ColumnTypeBigInt
 	ColumnTypeBytes
 	ColumnTypeBool
 	// Fill in other types as needed

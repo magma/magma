@@ -11,12 +11,8 @@
  limitations under the License.
 */
 
-package subscriberdb
+package subscriberdb_cache
 
 const (
-	ServiceName = "subscriberdb"
-
-	EntityType = "subscriber"
-
-	LookupTableBlobstore = "subscriber_lookup_blobstore"
+	ServiceName = "subscriberdb_cache"
 )
