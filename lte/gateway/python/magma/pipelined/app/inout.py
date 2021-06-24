@@ -256,7 +256,7 @@ class InOutController(RestartMixin, MagmaController):
         if vlan.isdigit():
             vid = 0x1000 | int(vlan)
             uplink_match = MagmaMatch(direction=Direction.OUT,
-                                      vlan_vid=(vid, vid))
+                                      vlan_vid=(vid))
         else:
             uplink_match = MagmaMatch(direction=Direction.OUT)
 
