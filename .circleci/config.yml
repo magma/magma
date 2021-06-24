@@ -20,7 +20,7 @@ aliases:
   - &lte_build_verify
     paths: "orc8r lte"
   - &c_cpp_build_verify
-    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos feg/protos orc8r/protos"
+    paths: "orc8r/gateway/c orc8r/protos lte/gateway/c lte/protos feg/protos orc8r/protos lte/gateway/Makefile"
   - &session_manager_build_verify
     paths: "orc8r/gateway/c orc8r/protos lte/gateway/c/session_manager lte/protos feg/protos orc8r/protos"
   - &mme_build_verify
