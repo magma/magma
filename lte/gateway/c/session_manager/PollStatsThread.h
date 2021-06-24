@@ -26,7 +26,7 @@ class PollStatsThread {
    * Pipelined and call the enforcer callback
    */
   void start_loop(
-      std::shared_ptr<magma::LocalEnforcer>& local_enforcer,
+      std::shared_ptr<magma::LocalEnforcer> local_enforcer,
       uint32_t loop_interval_seconds);
 
   /**

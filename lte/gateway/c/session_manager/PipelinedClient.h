@@ -211,7 +211,7 @@ class PipelinedClient {
 
   virtual void poll_stats(
       int cookie, int cookie_mask,
-      std::function<void(Status, RuleRecordTable)> callback);
+      std::function<void(Status, RuleRecordTable)> callback) = 0;
 };
 
 /**
