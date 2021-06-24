@@ -405,6 +405,12 @@ service:
     Required: false
     ConfigApps:
       - tf
+  elasticsearch_disk_threshold:
+    Description: Size threshold in GB.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
   existing_tiller_service_account_name:
     Description: Name of existing Tiller service account to use for Helm.
     Type: string
@@ -470,7 +476,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.4
+    Default: 0.2.5
   monitoring_kubernetes_namespace:
     Description: K8s namespace to install Orchestrator monitoring components into.
     Type: string
