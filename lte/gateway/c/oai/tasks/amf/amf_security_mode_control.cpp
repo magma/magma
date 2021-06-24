@@ -32,6 +32,7 @@ extern "C" {
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_identity.h"
 #include "conversions.h"
+#include "amf_app_timer_management.h"
 
 namespace magma5g {
 
@@ -173,10 +174,9 @@ static int amf_security_request(nas_amf_smc_proc_t* const smc_proc) {
     if (rc != RETURNerror) {
       OAILOG_INFO(
           LOG_AMF_APP, "Timer: Security Mode Calling start_timer_T3560 \n");
-      smc_proc->T3560.id = start_timer(
-          &amf_app_task_zmq_ctx, SECURITY_MODE_TIMER_EXPIRY_MSECS,
-          TIMER_REPEAT_ONCE, security_mode_t3560_handler,
-          (void*) smc_proc->ue_id);
+      smc_proc->T3560.id = amf_app_start_timer(
+          SECURITY_MODE_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
+          security_mode_t3560_handler, smc_proc->ue_id);
       OAILOG_INFO(
           LOG_AMF_APP,
           "Timer:  After starting SECURITY_MODE_TIMER timer T3560 "
@@ -192,65 +192,72 @@ static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg) {
   OAILOG_INFO(LOG_AMF_APP, "Timer: In security_mode_t3560_handler - T3560\n");
   amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
-  ue_id                  = *((amf_ue_ngap_id_t*) (arg));
+
+  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+    OAILOG_WARNING(
+        LOG_AMF_APP,
+        "Invalid Timer Id expiration, Timer Id: %u and ue Id: %d \n", timer_id,
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
 
   ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
 
   if (ue_context == NULL) {
     OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
-    return -1;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
-  OAILOG_INFO(
-      LOG_AMF_APP,
-      "Timer: Created ue_mm_context from global context - T3560\n");
   amf_ctx = &ue_context->amf_context;
-  OAILOG_INFO(LOG_AMF_APP, "Timer: got amf ctx and calling common procedure\n");
+
   if (!(amf_ctx)) {
     OAILOG_ERROR(LOG_AMF_APP, "T3560 timer expired No AMF context\n");
-    return 1;
-    // OAILOG_FUNC_OUT(LOG_AMF_APP);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
 
   nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
-
-  OAILOG_ERROR(LOG_AMF_APP, "Timer:In Identity Expiration Handler ZMQ TIMER\n");
 
   if (smc_proc) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3560 timer   timer id %d ue id %d\n", smc_proc->T3560.id,
         smc_proc->ue_id);
     smc_proc->T3560.id = -1;
-  }
-
-  /*
-   * Increment the retransmission counter
-   */
-  smc_proc->retransmission_count += 1;
-  OAILOG_ERROR(
-      LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
-      smc_proc->retransmission_count);
-
-  if (smc_proc->retransmission_count < SECURITY_COUNTER_MAX) {
     /*
-     * Send identity request message to the UE
+     * Increment the retransmission counter
      */
+    smc_proc->retransmission_count += 1;
     OAILOG_ERROR(
-        LOG_AMF_APP,
-        "Timer: timer has expired Sending Security Command Mode request "
-        "again\n");
-    amf_security_request(smc_proc);
+        LOG_AMF_APP, "Timer T3560: Incrementing retransmission_count to %d\n",
+        smc_proc->retransmission_count);
+
+    if (smc_proc->retransmission_count < SECURITY_COUNTER_MAX) {
+      /*
+       * Retransmission of security request message to the UE
+       */
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "Timer: timer T3560 has expired for ud id:%d, so Retransmission of "
+          "Security Command Mode request again\n",
+          ue_id);
+      amf_security_request(smc_proc);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+    } else {
+      /*
+       * Abort the smc procedure
+       */
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "Timer: Maximum retires: %d for T3560 done hence"
+          " Abort the security mode command procedure\n",
+          smc_proc->retransmission_count);
+      amf_remove_ue_context(ue_context);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+    }
   } else {
-    /*
-     * Abort the smc procedure
-     */
     OAILOG_ERROR(
-        LOG_AMF_APP,
-        "Timer: Maximum retires done hence Abort the smc procedure\n");
-    return -1;
+        LOG_AMF_APP, "T3560 timer expired No nas_amf_smc_proc_t context\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
-
-  return 0;
 }
 
 /*

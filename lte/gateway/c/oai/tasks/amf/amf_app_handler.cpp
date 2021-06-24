@@ -1170,7 +1170,4 @@ int amf_app_handle_notification_received(
       OAILOG_INFO(LOG_AMF_APP, "AMF_APP : default case nothing to do\n");
       break;
   }
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-}
-
-}  // namespace magma5g
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF

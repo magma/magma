@@ -77,5 +77,4 @@ int amf_nas_proc_authentication_info_answer(itti_amf_subs_auth_info_ans_t* aia);
 nas5g_amf_auth_proc_t* get_nas5g_common_procedure_authentication(
     const amf_context_t* const ctxt);
 
-void amf_proc_stop_t3560_timer(nas5g_amf_auth_proc_t* auth_proc);
 }  // namespace magma5g

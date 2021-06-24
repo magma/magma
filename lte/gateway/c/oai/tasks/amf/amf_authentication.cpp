@@ -975,4 +975,4 @@ static int authenthication_t3560_handler(
   }
 }
 
-}  // namespace magma5g
+}  // namespace magm

@@ -30,13 +30,13 @@ extern "C" {
 #include "amf_as.h"
 #include "amf_sap.h"
 #include "amf_recv.h"
+#include "amf_app_timer_management.h"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t) 0
 #define INVALID_AMF_UE_NGAP_ID 0x0
 
 namespace magma5g {
-extern task_zmq_ctx_s amf_app_task_zmq_ctx;
 amf_as_data_t amf_data_sec;
 nas_amf_smc_proc_t smc_proc;
 static int amf_registration_failure_authentication_cb(
@@ -595,11 +595,9 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
       /*
        * Start T3550 timer
        */
-      OAILOG_INFO(LOG_AMF_APP, "Timer: registration_accept timer start\n");
-      registration_proc->T3550.id = start_timer(
-          &amf_app_task_zmq_ctx, REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS,
-          TIMER_REPEAT_ONCE, registration_accept_t3550_handler,
-          (void*) registration_proc->ue_id);
+      registration_proc->T3550.id = amf_app_start_timer(
+          REGISTRATION_ACCEPT_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
+          registration_accept_t3550_handler, registration_proc->ue_id);
       OAILOG_INFO(
           LOG_AMF_APP,
           "Timer: Registration_accept timer T3550 with id  %d Started\n",
@@ -612,13 +610,16 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
 static int registration_accept_t3550_handler(
     zloop_t* loop, int timer_id, void* arg) {
   OAILOG_INFO(LOG_AMF_APP, "Timer: In registration_accept_t3550 handler\n");
-#if 0 /* TIMER_CHANGES_REVIEW */
   amf_context_t* amf_ctx                         = NULL;
   ue_m5gmm_context_s* ue_amf_context             = NULL;
   nas_amf_registration_proc_t* registration_proc = NULL;
   amf_ue_ngap_id_t ue_id                         = 0;
 
-  ue_id = *((amf_ue_ngap_id_t*) (arg));
+  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+    OAILOG_WARNING(
+        LOG_AMF_APP, "Invalid Timer Id expiration, Timer Id: %u\n", timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  }
   /*
    * Get the UE context
    */
@@ -626,8 +627,10 @@ static int registration_accept_t3550_handler(
 
   if (ue_amf_context == NULL) {
     OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
-    return -1;
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
+
+  amf_ctx = &ue_amf_context->amf_context;
 
   registration_proc =
       (nas_amf_registration_proc_t*)
@@ -647,28 +650,29 @@ static int registration_accept_t3550_handler(
         LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
         registration_proc->retransmission_count);
     if (registration_proc->retransmission_count < REGISTRATION_COUNTER_MAX) {
-      /* Send entity Registration request message to the UE */
+      /* Send entity Registration accept message to the UE */
 
       OAILOG_ERROR(
           LOG_AMF_APP,
-          "Timer: timer has expired Sending Registration request again\n");
-      // amf_registration_request(registration_proc); /* TO DO for negative
-      // scenario */
+          "Timer: timer has expired Sending Registration accept again\n");
+      amf_send_registration_accept(amf_ctx);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
     } else {
       /* Abort the registration procedure */
-
       OAILOG_ERROR(
           LOG_AMF_APP,
-          "Timer: Maximum retires done hence Abort the registration "
-          "procedure\n");
-      return -1;
+          "Timer: Maximum retires:%d, for Registration accept done hence Abort "
+          "the registration "
+          "procedure\n",
+          registration_proc->retransmission_count);
+      // As per standard, ther is no reject message for this timer
+      // only need to remove the ue related context
+      amf_remove_ue_context(ue_amf_context);
+      OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
     }
-
-    return 0;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
-
-#endif /* TIMER_CHANGES_REVIEW */
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, 0);
 }
 
 /****************************************************************************
@@ -762,9 +766,10 @@ int amf_proc_registration_complete(
               ue_amf_context->amf_context.amf_procedures->amf_specific_proc;
       amf_ctx = &ue_amf_context->amf_context;
 
-      stop_timer(&amf_app_task_zmq_ctx, registration_proc->T3550.id);
+      amf_app_stop_timer(registration_proc->T3550.id);
       OAILOG_INFO(
-          LOG_AMF_APP, "Timer: after stop registration timer with id = %d\n",
+          LOG_AMF_APP,
+          "Timer: after stop registration timer T3550 with id = %d\n",
           registration_proc->T3550.id);
       registration_proc->T3550.id = NAS5G_TIMER_INACTIVE_ID;
 
