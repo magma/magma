@@ -1750,12 +1750,7 @@ definitions:
         type: boolean
         example: false
       subscriberdb_sync_interval:
-        description: Configuration for subscriberdb service. Interval in seconds between gateway and cloud sync.
-        type: integer
-        format: uint32
-        minimum: 0
-        x-nullable: false
-        example: 300
+        $ref: '#/definitions/subscriberdb_sync_interval'
       cloud_subscriberdb_enabled:
         type: boolean
         example: false
@@ -2031,11 +2026,7 @@ definitions:
         example: true
         default: true
       subscriberdb_sync_interval:
-        type: integer
-        format: uint32
-        minimum: 0
-        x-nullable: false
-        example: 300
+        $ref: '#/definitions/subscriberdb_sync_interval'
 
 
   gateway_non_eps_configs:
@@ -2164,6 +2155,13 @@ definitions:
           - 'BASE64'
           - 'HEX2BIN'
         example: 'BASE64'
+
+  subscriberdb_sync_interval:
+    description: Interval in seconds between gateway requests to sync its subscriberdb with the cloud.
+    type: integer
+    format: uint32
+    x-nullable: true
+    example: 300
 
   enodeb_serials:
     type: array

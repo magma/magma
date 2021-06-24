@@ -8605,11 +8605,7 @@ definitions:
         minLength: 1
         type: string
       subscriberdb_sync_interval:
-        example: 180
-        format: uint32
-        minimum: 0
-        type: integer
-        x-nullable: false
+        $ref: '#/definitions/subscriberdb_sync_interval'
     required:
     - ip_block
     - nat_enabled
@@ -10071,12 +10067,7 @@ definitions:
           type: object
         type: object
       subscriberdb_sync_interval:
-        description: Configuration for subscriberdb service. Interval in seconds between gateway and cloud sync.
-        example: 180
-        format: uint32
-        minimum: 0
-        type: integer
-        x-nullable: false
+        $ref: '#/definitions/subscriberdb_sync_interval'
       tac:
         example: 1
         format: uint32
@@ -11512,6 +11503,12 @@ definitions:
       icmp:
         $ref: '#/definitions/icmp_status'
     type: object
+  subscriberdb_sync_interval:
+    description: Interval in seconds between gateway requests to sync its subscriberdb with the cloud.
+    example: 300
+    format: uint32
+    type: integer
+    x-nullable: true
   subscription_profile:
     description: HSS Subscription Profile
     minLength: 1

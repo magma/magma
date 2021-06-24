@@ -77,9 +77,8 @@ type NetworkEpcConfigs struct {
 	// sub profiles
 	SubProfiles map[string]NetworkEpcConfigsSubProfilesAnon `json:"sub_profiles,omitempty"`
 
-	// Configuration for subscriberdb service. Interval in seconds between gateway and cloud sync.
-	// Minimum: 0
-	SubscriberdbSyncInterval uint32 `json:"subscriberdb_sync_interval,omitempty"`
+	// subscriberdb sync interval
+	SubscriberdbSyncInterval *SubscriberdbSyncInterval `json:"subscriberdb_sync_interval,omitempty"`
 
 	// tac
 	// Required: true
@@ -381,8 +380,13 @@ func (m *NetworkEpcConfigs) validateSubscriberdbSyncInterval(formats strfmt.Regi
 		return nil
 	}
 
-	if err := validate.MinimumInt("subscriberdb_sync_interval", "body", int64(m.SubscriberdbSyncInterval), 0, false); err != nil {
-		return err
+	if m.SubscriberdbSyncInterval != nil {
+		if err := m.SubscriberdbSyncInterval.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("subscriberdb_sync_interval")
+			}
+			return err
+		}
 	}
 
 	return nil
