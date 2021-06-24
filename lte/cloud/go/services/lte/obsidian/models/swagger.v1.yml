@@ -1755,7 +1755,7 @@ definitions:
         format: uint32
         minimum: 0
         x-nullable: false
-        example: 180
+        example: 300
       cloud_subscriberdb_enabled:
         type: boolean
         example: false
@@ -2035,7 +2035,7 @@ definitions:
         format: uint32
         minimum: 0
         x-nullable: false
-        example: 180
+        example: 300
 
 
   gateway_non_eps_configs:
