@@ -29,16 +29,14 @@ class PollStatsThread {
    * callback.
    */
   void start_loop(
-      std::shared_ptr<LocalEnforcer>&, uint32_t loop_interval_seconds) {
+      std::shared_ptr<LocalEnforcer>& local_enforcer,
+      uint32_t loop_interval_seconds) {
     is_running_ = true;
     while (is_running_) {
       // call local enforcer(arguments might need to be passed in)
       // call Pipelined Client Poll Stats(need to receive arguments from
       // some location)
-      printf("Calling pipelined service\n");
-      int cookie      = 0;
-      int cookie_mask = 0;
-      enforcer->PollStats();
+      local_enforcer->PollStats();
       std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
     }
   }
