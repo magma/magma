@@ -101,9 +101,9 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	digest, _, err = storage.GetDigest(digestStore, "n2")
 	assert.NoError(t, err)
 	assert.NotEqual(t, "", digest)
-	clock.UnfreezeClock(t)
 
 	allNetworks, err = storage.GetAllNetworks(digestStore)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"n2"}, allNetworks)
+	clock.UnfreezeClock(t)
 }

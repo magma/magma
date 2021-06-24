@@ -105,8 +105,7 @@ func getApnResourcesDigest(networkID string) (string, error) {
 	for _, apnResourceEnt := range apnResourceEnts {
 		apnResource, ok := apnResourceEnt.Config.(*lte_models.ApnResource)
 		if !ok {
-			glog.Errorf("Attempt to convert entity %+v of type %T into apn resource failed.",
-				apnResourceEnt.Key, apnResourceEnt)
+			glog.Errorf("Attempt to convert entity %+v of type %T into apn resource failed.", apnResourceEnt.Key, apnResourceEnt)
 			continue
 		}
 		apnResourceProto := apnResource.ToProto()

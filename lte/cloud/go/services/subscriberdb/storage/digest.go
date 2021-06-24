@@ -28,17 +28,6 @@ type digestLookup struct {
 	builder sqorc.StatementBuilder
 }
 
-type DigestInfos []digestInfo
-
-// Networks returns a list of network IDs for all digests in DigestInfos.
-func (digestInfoSet DigestInfos) Networks() []string {
-	ret := []string{}
-	for _, digestInfo := range digestInfoSet {
-		ret = append(ret, digestInfo.network)
-	}
-	return ret
-}
-
 type DigestLookup interface {
 	// Initialize the backing store.
 	Initialize() error
@@ -48,7 +37,7 @@ type DigestLookup interface {
 	// Caveats:
 	// 1. If networks is empty, returns digests for all networks.
 	// 2. earliestUpdateTime is recorded in unix seconds. Filters for all digests that
-	//	// were last updated earlier than this time. Use zero to ignore the filter.
+	// were last updated earlier than this time.
 	GetDigests(networks []string, earliestUpdateTime int64) (DigestInfos, error)
 
 	// SetDigest creates/updates the subscribers digest for a particular network.
@@ -86,14 +75,11 @@ func (l *digestLookup) Initialize() error {
 	return err
 }
 
-func (l *digestLookup) GetDigests(networks []string, earliestUpdateTime int64) (DigestInfos, error) {
+func (l *digestLookup) GetDigests(networks []string, lastUpdatedBefore int64) (DigestInfos, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		filters := squirrel.And{}
+		filters := squirrel.And{squirrel.LtOrEq{digestLookupLastUpdatedTimeCol: lastUpdatedBefore}}
 		if len(networks) > 0 {
 			filters = append(filters, squirrel.Eq{digestLookupNidCol: networks})
-		}
-		if earliestUpdateTime > 0 {
-			filters = append(filters, squirrel.Lt{digestLookupLastUpdatedTimeCol: earliestUpdateTime})
 		}
 
 		rows, err := l.builder.
@@ -107,7 +93,7 @@ func (l *digestLookup) GetDigests(networks []string, earliestUpdateTime int64) (
 		}
 		defer sqorc.CloseRowsLogOnError(rows, "GetDigest")
 
-		digestInfoSet := DigestInfos{}
+		digestInfos := DigestInfos{}
 		for rows.Next() {
 			network, digest, lastUpdatedTime := "", "", int64(0)
 			err = rows.Scan(&network, &digest, &lastUpdatedTime)
@@ -119,13 +105,13 @@ func (l *digestLookup) GetDigests(networks []string, earliestUpdateTime int64) (
 				digest:          digest,
 				lastUpdatedTime: lastUpdatedTime,
 			}
-			digestInfoSet = append(digestInfoSet, digestInfo)
+			digestInfos = append(digestInfos, digestInfo)
 		}
 		err = rows.Err()
 		if err != nil {
 			return nil, errors.Wrap(err, "select digests for network, SQL rows error")
 		}
-		return digestInfoSet, nil
+		return digestInfos, nil
 	}
 
 	txRet, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
@@ -181,37 +167,37 @@ func (l *digestLookup) DeleteDigests(networks []string) error {
 
 // GetDigest returns the digest information for a particular network.
 func GetDigest(l DigestLookup, network string) (string, int64, error) {
-	digestInfoSet, err := l.GetDigests([]string{network}, 0)
+	digestInfos, err := l.GetDigests([]string{network}, clock.Now().Unix())
 	if err != nil {
 		return "", 0, err
 	}
 	// There should be at most 1 digest for each network
 	// if digest not found, return default value
-	if len(digestInfoSet) == 0 {
+	if len(digestInfos) == 0 {
 		return "", 0, nil
 	}
-	digestInfo := digestInfoSet[0]
+	digestInfo := digestInfos[0]
 	return digestInfo.digest, digestInfo.lastUpdatedTime, nil
 }
 
 // GetOutdatedNetworks returns all networks with digests last updated at a time
 // earlier than the specified deadline.
-func GetOutdatedNetworks(l DigestLookup, updateDeadlineTime int64) ([]string, error) {
-	digestInfoSet, err := l.GetDigests([]string{}, updateDeadlineTime)
+func GetOutdatedNetworks(l DigestLookup, lastUpdatedBefore int64) ([]string, error) {
+	digestInfos, err := l.GetDigests([]string{}, lastUpdatedBefore)
 	if err != nil {
 		return nil, err
 	}
-	networks := digestInfoSet.Networks()
+	networks := digestInfos.Networks()
 	return networks, nil
 }
 
 // GetAllNetworks returns all networks currently stored.
 func GetAllNetworks(l DigestLookup) ([]string, error) {
-	digestInfoSet, err := l.GetDigests([]string{}, 0)
+	digestInfos, err := l.GetDigests([]string{}, clock.Now().Unix())
 	if err != nil {
 		return nil, err
 	}
-	networks := digestInfoSet.Networks()
+	networks := digestInfos.Networks()
 	return networks, nil
 }
 
@@ -219,4 +205,15 @@ type digestInfo struct {
 	network         string
 	digest          string
 	lastUpdatedTime int64
+}
+
+type DigestInfos []digestInfo
+
+// Networks returns a list of network IDs for all digests in DigestInfos.
+func (digestInfos DigestInfos) Networks() []string {
+	ret := []string{}
+	for _, digestInfo := range digestInfos {
+		ret = append(ret, digestInfo.network)
+	}
+	return ret
 }

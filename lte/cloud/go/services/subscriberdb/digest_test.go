@@ -45,7 +45,7 @@ func TestGetDigestDeterministic(t *testing.T) {
 	// Create 1 APN and 5 pages of subscribers to test deterministic digest over multiple pages
 	// Note: the page size is determined by the TestServiceMaxLoadSize of configurator
 	subs := []configurator.NetworkEntity{}
-	sub_count := 5 * configurator_test_init.TestServiceMaxLoadSize
+	sub_count := 5 * configurator_test_init.TestServiceMaxPageSize
 	for i := 0; i < sub_count; i++ {
 		subs = append(subs, configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: fmt.Sprintf("IMSI000%02d", i),
