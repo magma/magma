@@ -18,6 +18,8 @@ buildUbuntuAmi: ami-0df99b3a8349462c6
 buildGwTagName: buildAgw
 buildAgwAmi: ami-0aac5cd08e351ff0f
 buildAgwAmiName: imgMagmaAgw15Delta
+buildAgwVersion: v1.6
+buildAgwPackage: 1.6.0
 
 #Repo variables
 buildControlRegistry: controller

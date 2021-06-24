@@ -16,7 +16,7 @@ awsBootKey: "{{ keyBoot }}"
 awsHostKey: "{{ keyHost }}"
 awsAgwRegion: us-west-2
 awsOrc8rRegion: us-west-2
-awsAgwAz: us-west-2a
+awsAgwAz: "{{ awsAgwRegion }}a"
 awsAgwVersion: v1.5
 
 awsAgwAmi: ami-06447b6fef489a898
