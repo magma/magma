@@ -124,6 +124,15 @@ const proxyErrorHandler = (err, res, next) => {
 };
 
 router.use(
+  /^\/magma\/v1\/feg_lte$/,
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    userResDecorator: networksResponseDecorator,
+    proxyErrorHandler,
+  }),
+);
+
+router.use(
   /^\/magma\/v1\/networks$/,
   proxy(API_HOST, {
     ...PROXY_OPTIONS,
