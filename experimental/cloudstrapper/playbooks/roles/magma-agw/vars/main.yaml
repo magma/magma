@@ -1,5 +1,6 @@
 ---
 magmaVersion: "{{ awsAgwVersion }}"
+magma_pkgrepo_dist: "focal-{{ buildAgwPackage }}"
 magmaRepo: https://github.com/magma/magma.git
 agwUsr: ubuntu
 usrHome: "/home/{{ agwUsr }}"
