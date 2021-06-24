@@ -43,6 +43,7 @@ from lte.protos.pipelined_pb2 import (
     UESessionSet,
     UPFSessionContextState,
     VersionedPolicy,
+    VersionedPolicyID,
 )
 from lte.protos.session_manager_pb2 import RuleRecordTable
 from magma.pipelined.app.check_quota import CheckQuotaController
@@ -71,7 +72,7 @@ from magma.pipelined.policy_converters import (
 )
 
 grpc_msg_queue = queue.Queue()
-DEFAULT_CALL_TIMEOUT = 15
+DEFAULT_CALL_TIMEOUT = 5
 
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
@@ -218,6 +219,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("ActivateFlows request processing timed out")
+            deactivate_req = get_deactivate_req(request)
+            self._loop.call_soon_threadsafe(self._deactivate_flows,
+                                            deactivate_req)
             return ActivateFlowsResult()
 
     def _update_ipv6_prefix_store(self, ipv6_addr: bytes):
@@ -447,7 +451,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _deactivate_flows(self, request):
         """
         Deactivate flows for ipv4 / ipv6 or both
-        
+
         CWF won't have an ip_addr passed
         """
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
@@ -960,7 +964,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         except concurrent.futures.TimeoutError:
             logging.error("Get Stats request processing timed out")
             return RuleRecordTable()
-            
+
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
 ) -> Tuple[
@@ -1011,3 +1015,20 @@ def _report_enforcement_stats_failures(
             rule_id=result.rule_id,
             imsi=imsi,
         ).inc()
+
+
+def get_deactivate_req(request: ActivateFlowsRequest):
+    versioned_policy_ids = [
+        VersionedPolicyID(rule_id = p.rule.id, version=p.version) for
+        p in request.policies
+    ]
+    return DeactivateFlowsRequest(
+        sid=request.sid,
+        ip_addr=request.ip_addr,
+        ipv6_addr=request.ipv6_addr,
+        request_origin=request.request_origin,
+        remove_default_drop_flows=True,
+        uplink_tunnel=request.uplink_tunnel,
+        downlink_tunnel=request.downlink_tunnel,
+        policies=versioned_policy_ids
+    )
