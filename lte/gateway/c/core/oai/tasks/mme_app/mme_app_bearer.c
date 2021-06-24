@@ -895,12 +895,7 @@ void mme_app_handle_delete_session_rsp(
    */
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
-  /* In case of pdn disconnect, secondary pdn session gets deleted after
-   * receiving deactivate bearer accept message, do not decrement
-   * nb_active_pdn_contexts here
-   */
-  if ((ue_context_p->nb_active_pdn_contexts > 0) &&
-      (!ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
+  if (ue_context_p->nb_active_pdn_contexts > 0) {
     ue_context_p->nb_active_pdn_contexts -= 1;
   }
 
@@ -919,7 +914,7 @@ void mme_app_handle_delete_session_rsp(
     if (ue_context_p->nb_active_pdn_contexts == 0) {
       nas_delete_all_emm_procedures(&ue_context_p->emm_context);
       free_esm_context_content(&ue_context_p->emm_context.esm_ctx);
-      proc_new_attach_req(ue_context_p);
+      proc_new_attach_req(&mme_app_desc_p->mme_ue_contexts, ue_context_p);
     }
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }

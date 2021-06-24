@@ -27,7 +27,6 @@ jobs:
 
             Please take a moment to read through the Magma project's
             - [Contributing Conventions](https://docs.magmacore.org/docs/next/contributing/contribute_conventions) for norms around contributed code
-            - [Commit msg style](https://docs.magmacore.org/docs/next/contributing/contribute_commit_msg) recommended style for writing commit msg
 
             If this is your first Magma PR, also consider reading
             - [Developer Onboarding](https://docs.magmacore.org/docs/next/contributing/contribute_onboarding) for onboarding as a new Magma developer
