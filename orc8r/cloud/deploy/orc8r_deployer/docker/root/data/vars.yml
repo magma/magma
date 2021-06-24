@@ -294,7 +294,7 @@ platform:
     Type: string
     Required: false
     ConfigApps:
-      - tf     
+      - tf
   orc8r_db_identifier:
     Default: orc8rdb
     Description: Identifier for the RDS instance for Orchestrator.
@@ -305,7 +305,7 @@ platform:
   orc8r_db_instance_class:
     Default: "db.m4.large"
     Description: RDS instance Type for Orchestrator DB.
-    Type: string  
+    Type: string
     Required: false
     ConfigApps:
       - tf
@@ -411,7 +411,7 @@ service:
     Type: number
     Required: false
     ConfigApps:
-      - tf      
+      - tf
   existing_tiller_service_account_name:
     Description: Name of existing Tiller service account to use for Helm.
     Type: string
@@ -477,7 +477,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.4
+    Default: 0.2.5
   monitoring_kubernetes_namespace:
     Description: K8s namespace to install Orchestrator monitoring components into.
     Type: string
