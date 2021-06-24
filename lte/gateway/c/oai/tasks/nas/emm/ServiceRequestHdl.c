@@ -123,11 +123,6 @@ static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
   rc = emm_sap_send(&emm_sap);
 
   // Release EMM context
-  if (emm_ctx) {
-    if (emm_ctx->is_dynamic) {
-      _clear_emm_ctxt(emm_ctx);
-    }
-  }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
