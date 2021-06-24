@@ -19,7 +19,7 @@
   "gateway": {
       "prefix" : "agw",
       "count" : 1,
-      "ami" : "ami-06447b6fef489a898",
+      "ami" : "ami-044bc7506dfacf204",
       "cloudstrapper_ami": "ami-051d6db85d3a56804",
       "region": "us-west-2",
       "az" : "us-west-2a",
