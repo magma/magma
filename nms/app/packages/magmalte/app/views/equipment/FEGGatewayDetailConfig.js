@@ -15,6 +15,7 @@
  */
 
 import type {DataRows} from '../../components/DataGrid';
+import type {TabOption} from '../../components/feg/FEGGatewayDialog';
 import type {
   diameter_client_configs,
   federation_gateway,
@@ -23,11 +24,13 @@ import type {
 
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
+import EditGatewayButton from './FEGGatewayDetailConfigEdit';
 import FEGGatewayContext from '../../components/context/FEGGatewayContext';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import nullthrows from '@fbcnms/util/nullthrows';
 
+import {TAB_OPTIONS} from '../../components/feg/FEGGatewayDialog';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -49,7 +52,17 @@ export default function FEGGatewayConfig() {
   const {match} = useRouter();
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const ctx = useContext(FEGGatewayContext);
-  const gwInfo = ctx.state[gatewayId];
+  const gwInfo: federation_gateway = ctx.state[gatewayId];
+
+  function editFilter(tabOption: TabOption) {
+    return (
+      <EditGatewayButton
+        title={'Edit'}
+        tabOption={tabOption}
+        editingGateway={gwInfo}
+      />
+    );
+  }
 
   return (
     <div className={classes.dashboardRoot}>
@@ -63,14 +76,20 @@ export default function FEGGatewayConfig() {
                   <GatewayInfoConfig gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleRow label="Gx" />
+                  <CardTitleRow
+                    label="Gx"
+                    filter={() => editFilter(TAB_OPTIONS.GX)}
+                  />
                   <GatewayDiameterServerConfig
                     serverConfig={gwInfo?.federation?.gx?.server || {}}
                     testID={'Gx'}
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleRow label="CSFB" />
+                  <CardTitleRow
+                    label="CSFB"
+                    filter={() => editFilter(TAB_OPTIONS.CSFB)}
+                  />
                   <GatewaySctpServerConfig
                     serverConfig={gwInfo?.federation?.csfb?.client || {}}
                     testID={'CSFB'}
@@ -81,21 +100,30 @@ export default function FEGGatewayConfig() {
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleRow label="Gy" />
+                  <CardTitleRow
+                    label="Gy"
+                    filter={() => editFilter(TAB_OPTIONS.GY)}
+                  />
                   <GatewayDiameterServerConfig
                     serverConfig={gwInfo?.federation?.gy?.server || {}}
                     testID={'Gy'}
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleRow label="SWx" />
+                  <CardTitleRow
+                    label="SWx"
+                    filter={() => editFilter(TAB_OPTIONS.SWX)}
+                  />
                   <GatewayDiameterServerConfig
                     serverConfig={gwInfo?.federation?.swx?.server || {}}
                     testID={'SWx'}
                   />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleRow label="S6a" />
+                  <CardTitleRow
+                    label="S6a"
+                    filter={() => editFilter(TAB_OPTIONS.S6A)}
+                  />
                   <GatewayDiameterServerConfig
                     serverConfig={gwInfo?.federation?.s6a?.server || {}}
                     testID={'S6a'}
