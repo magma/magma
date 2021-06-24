@@ -941,12 +941,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         return ret
 
 
-        try:
-            return fut.result(timeout=self._call_timeout)
-        except concurrent.futures.TimeoutError:
-            logging.error("Get Stats request processing timed out")
-            return RuleRecordTable()
-
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
 ) -> Tuple[
