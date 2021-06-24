@@ -26,7 +26,7 @@ ovs_build_config:
 ovs_pkgrepo_proto: https
 ovs_pkgrepo_host: artifactory.magmacore.org/artifactory/debian
 ovs_pkgrepo_path: ""
-ovs_pkgrepo_dist: stretch-1.5.1
+ovs_pkgrepo_dist: stretch-1.5.2
 ovs_pkgrepo_component: main
 ovs_pkgrepo_name: "magma"
 
