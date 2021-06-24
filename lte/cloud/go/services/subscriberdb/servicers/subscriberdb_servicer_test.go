@@ -319,53 +319,29 @@ func TestCheckSubscribersInSync(t *testing.T) {
 
 	// Requests with blank digests should get an update signal in return
 	req := &lte_protos.CheckSubscribersInSyncRequest{
-		FlatDigest: &lte_protos.SubscribersDigest{Md5Base64Digest: ""},
+		FlatDigest: &lte_protos.Digest{Md5Base64Digest: ""},
 	}
 	res, err := servicer.CheckSubscribersInSync(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, false, res.InSync)
+	assert.False(t, res.InSync)
 
 	// Requests with up-to-date digests should get a no-update signal in return
 	req = &lte_protos.CheckSubscribersInSyncRequest{
-		FlatDigest: &lte_protos.SubscribersDigest{Md5Base64Digest: "digest_cherry"},
+		FlatDigest: &lte_protos.Digest{Md5Base64Digest: "digest_cherry"},
 	}
 	res, err = servicer.CheckSubscribersInSync(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, true, res.InSync)
+	assert.True(t, res.InSync)
 
 	// Requests with outdated digests should get an update signal in return
 	err = digestStore.SetDigest("n1", "digest_banana")
 	assert.NoError(t, err)
 	req = &lte_protos.CheckSubscribersInSyncRequest{
-		FlatDigest: &lte_protos.SubscribersDigest{Md5Base64Digest: "digest_cherry"},
+		FlatDigest: &lte_protos.Digest{Md5Base64Digest: "digest_cherry"},
 	}
 	res, err = servicer.CheckSubscribersInSync(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, false, res.InSync)
-}
-
-func TestSyncSubscribers(t *testing.T) {
-	lte_test_init.StartTestService(t)
-	configurator_test_init.StartTestService(t)
-	digestStore := initializeDigestStore(t)
-
-	// Create servicer with flat digest and digest store feature flags turned on
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true}, digestStore)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
-	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
-	assert.NoError(t, err)
-	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
-	ctx := id.NewContextWithIdentity(context.Background())
-
-	err = digestStore.SetDigest("n1", "digest_banana")
-	assert.NoError(t, err)
-
-	// SyncSubscribersResponse should contain the digest in store
-	req := &lte_protos.SyncSubscribersRequest{}
-	res, err := servicer.SyncSubscribers(ctx, req)
-	assert.NoError(t, err)
-	assert.Equal(t, &lte_protos.SubscribersDigest{Md5Base64Digest: "digest_banana"}, res.FlatDigest)
+	assert.False(t, res.InSync)
 }
 
 func serializeToken(t *testing.T, token *configurator_storage.EntityPageToken) string {

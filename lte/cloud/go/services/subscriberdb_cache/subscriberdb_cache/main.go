@@ -30,7 +30,7 @@ func main() {
 		glog.Fatalf("Error creating service: %+v", err)
 	}
 
-	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
+	db, err := sqorc.Open(storage.GetSQLDriver(), storage.GetDatabaseSource())
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %+v", err)
 	}

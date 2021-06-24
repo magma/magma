@@ -214,7 +214,7 @@ service SubscriberDBCloud {
   rpc ListSubscribers (ListSubscribersRequest) returns (ListSubscribersResponse) {}
 }
 
-message SubscribersDigest {
+message Digest {
   // md5_base64_digest is a base64-encoded MD5 digest of a set of subscriber protos.
   string md5_base64_digest = 1;
 }
@@ -222,7 +222,7 @@ message SubscribersDigest {
 message CheckSubscribersInSyncRequest {
   // flat_digest is the deterministic digest of the full set of subscriber
   // objects stored on the client side.
-  SubscribersDigest flat_digest = 1;
+  Digest flat_digest = 1;
 }
 
 message CheckSubscribersInSyncResponse {
@@ -233,7 +233,7 @@ message CheckSubscribersInSyncResponse {
 message SyncSubscribersRequest {
   // per_sub_digest is a set of digests for each client-side subscriber, indexed
   // by their IDs (IMSI).
-  map<string, SubscribersDigest> per_sub_digests = 1;
+  map<string, Digest> per_sub_digests = 1;
 }
 
 message SyncSubscribersResponse {
@@ -241,22 +241,15 @@ message SyncSubscribersResponse {
   // overall resync is needed. If true, all subscriber changesets will be empty.
   bool resync = 1;
   // flat_digest is the deterministic digest of all server-side subscribers.
-  SubscribersDigest flat_digest = 2;
+  Digest flat_digest = 2;
   // per_sub_digests is a set of digests for each server-side subscriber, indexed
   // by their IDs (IMSI).
-  map<string, SubscribersDigest> per_sub_digests = 3;
+  map<string, Digest> per_sub_digests = 3;
   // added_modified is the set of all subscriber data modified/added on the server
   // side, indexed by their IDs (IMSI).
-  map<string, SubscriberDataWithDigest> added_modified = 4;
+  map<string, SubscriberData> added_modified = 4;
   // removed is a list of IDs for subscribers removed on the server side.
   repeated string removed = 5;
-}
-
-message SubscriberDataWithDigest {
-  // digest is the deterministic digest of a single subscriber.
-  SubscribersDigest digest = 1;
-  // data is the original subscriber data.
-  SubscriberData data = 2;
 }
 
 message ListSubscribersRequest {
@@ -273,8 +266,8 @@ message ListSubscribersResponse {
   string next_page_token = 2;
   // flat_digest is the server-defined, deterministic digest of the full set of
   // returned subscriber objects.
-  SubscribersDigest flat_digest = 3;
+  Digest flat_digest = 3;
   // per_sub_digests is a set of per-subscriber digests, indexed by the
   // subscriber IDs (IMSI).
-  map<string, SubscribersDigest> per_sub_digests = 4;
+  map<string, Digest> per_sub_digests = 4;
 }

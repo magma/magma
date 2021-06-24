@@ -77,20 +77,17 @@ func RenewDigests(store storage.DigestLookup, config Config) (map[string]string,
 }
 
 // getNetworksToUpdate returns networks to renew or delete in the store.
-func getNetworksToUpdate(
-	store storage.DigestLookup,
-	updateIntervalSecs int,
-) ([]string, []string, error) {
-	allNetworks, err := configurator.ListNetworkIDs()
+func getNetworksToUpdate(store storage.DigestLookup, updateIntervalSecs int) ([]string, []string, error) {
+	all, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load current networks for subscriberdb cache")
 	}
-	trackedNetworks, err := storage.GetAllNetworks(store)
+	tracked, err := storage.GetAllNetworks(store)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load networks in store for subscriberdb cache")
 	}
 
-	newlyCreated, deleted := funk.DifferenceString(allNetworks, trackedNetworks)
+	newlyCreated, deleted := funk.DifferenceString(all, tracked)
 	outdated, err := storage.GetOutdatedNetworks(store, clock.Now().Unix()-int64(updateIntervalSecs))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load outdated networks for subscriberdb cache")

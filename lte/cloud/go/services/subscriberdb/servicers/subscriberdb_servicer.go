@@ -45,8 +45,6 @@ func NewSubscriberdbServicer(config subscriberdb.Config, digestStore storage.Dig
 	return servicer
 }
 
-// CheckSubscribersInSync checks if the client-side subscriber digest is up-to-date with the
-// cloud version, and returns signal for whether the client needs an update.
 func (s *subscriberdbServicer) CheckSubscribersInSync(
 	ctx context.Context,
 	req *lte_protos.CheckSubscribersInSyncRequest,
@@ -61,9 +59,8 @@ func (s *subscriberdbServicer) CheckSubscribersInSync(
 	networkID := gateway.NetworkId
 	_, inSync := s.getDigestInfo(req.FlatDigest, networkID)
 
-	return &lte_protos.CheckSubscribersInSyncResponse{
-		InSync: inSync,
-	}, nil
+	res := &lte_protos.CheckSubscribersInSyncResponse{InSync: inSync}
+	return res, nil
 }
 
 func (s *subscriberdbServicer) SyncSubscribers(
@@ -72,19 +69,8 @@ func (s *subscriberdbServicer) SyncSubscribers(
 ) (*lte_protos.SyncSubscribersResponse, error) {
 	// TODO(wangyyt1013): implement logic to return subscriber changeset.
 	// The current scaffolding code is for backward-compatibility purposes.
-	gateway := protos.GetClientGateway(ctx)
-	if gateway == nil {
-		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
-	}
-	if !gateway.Registered() {
-		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
-	}
-	networkID := gateway.NetworkId
-	digest, _ := s.getDigestInfo(&lte_protos.SubscribersDigest{Md5Base64Digest: ""}, networkID)
-	return &lte_protos.SyncSubscribersResponse{
-		Resync:     true,
-		FlatDigest: digest,
-	}, nil
+	res := &lte_protos.SyncSubscribersResponse{Resync: true}
+	return res, nil
 }
 
 // ListSubscribers returns a page of subscribers and a token to be used on
@@ -121,7 +107,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		return nil, err
 	}
 
-	digest, _ := s.getDigestInfo(&lte_protos.SubscribersDigest{Md5Base64Digest: ""}, networkID)
+	digest, _ := s.getDigestInfo(&lte_protos.Digest{Md5Base64Digest: ""}, networkID)
 	listRes := &lte_protos.ListSubscribersResponse{
 		Subscribers:   subProtos,
 		NextPageToken: nextToken,
@@ -130,26 +116,26 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 	return listRes, nil
 }
 
-// getDigestInfo returns the correctly formatted SubscribersDigest and NoUpdates
-// values according to the client digest.
+// getDigestInfo returns the correctly formatted Digest and NoUpdates values
+// according to the client digest.
 func (s *subscriberdbServicer) getDigestInfo(
-	clientDigest *lte_protos.SubscribersDigest,
+	clientDigest *lte_protos.Digest,
 	networkID string,
-) (*lte_protos.SubscribersDigest, bool) {
+) (*lte_protos.Digest, bool) {
 	// The flat digest functionality is currently placed behind a feature flag
 	if !s.flatDigestEnabled {
-		return &lte_protos.SubscribersDigest{Md5Base64Digest: ""}, false
+		return &lte_protos.Digest{Md5Base64Digest: ""}, false
 	}
 
 	digest, _, err := storage.GetDigest(s.digestStore, networkID)
 	// If digest generation fails, the error is swallowed to not affect the main functionality
 	if err != nil {
 		glog.Errorf("Generating digest for network %s failed: %+v", networkID, err)
-		return &lte_protos.SubscribersDigest{Md5Base64Digest: ""}, false
+		return &lte_protos.Digest{Md5Base64Digest: ""}, false
 	}
 
 	noUpdates := digest != "" && digest == clientDigest.GetMd5Base64Digest()
-	digestProto := &lte_protos.SubscribersDigest{Md5Base64Digest: digest}
+	digestProto := &lte_protos.Digest{Md5Base64Digest: digest}
 	return digestProto, noUpdates
 }
 

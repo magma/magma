@@ -97,10 +97,10 @@ func getApnResourcesDigest(networkID string) (string, error) {
 		configurator.EntityLoadCriteria{LoadConfig: true},
 		serdes.Entity,
 	)
-
 	if err != nil {
 		return "", err
 	}
+
 	apnResourcesProtosByID := map[string]proto.Message{}
 	for _, apnResourceEnt := range apnResourceEnts {
 		apnResource, ok := apnResourceEnt.Config.(*lte_models.ApnResource)

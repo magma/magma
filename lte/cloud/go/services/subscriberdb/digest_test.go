@@ -31,14 +31,6 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const (
-	iterationCount = 50
-	// subscriberCount is the number of test subscribers created to test deterministic streaming of subscribers.
-	// You can test for deterministic digest generation over multiple pages of subscriber data by reducing
-	// the maximum page load size for configurator to less than this value.
-	subscriberCount = 50
-)
-
 func TestGetDigestDeterministic(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
@@ -50,9 +42,11 @@ func TestGetDigestDeterministic(t *testing.T) {
 	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
-	// Create 1 APN and <subscriberCount> subscribers
+	// Create 1 APN and 5 pages of subscribers to test deterministic digest over multiple pages
+	// Note: the page size is determined by the TestServiceMaxLoadSize of configurator
 	subs := []configurator.NetworkEntity{}
-	for i := 0; i < subscriberCount; i++ {
+	sub_count := 5 * configurator_test_init.TestServiceMaxLoadSize
+	for i := 0; i < sub_count; i++ {
 		subs = append(subs, configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: fmt.Sprintf("IMSI000%02d", i),
 			Config: &models.SubscriberConfig{
@@ -70,7 +64,7 @@ func TestGetDigestDeterministic(t *testing.T) {
 
 	expected, err := subscriberdb.GetDigest("n1")
 	assert.NoError(t, err)
-	for i := 0; i < iterationCount; i++ {
+	for i := 0; i < 50; i++ {
 		digest, err := subscriberdb.GetDigest("n1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, digest)
@@ -109,11 +103,12 @@ func TestGetDigestDeterministic(t *testing.T) {
 		},
 		Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn"}},
 	})
-	writes = append(writes, configurator.EntityUpdateCriteria{
+	write := configurator.EntityUpdateCriteria{
 		Type:              lte.CellularGatewayEntityType,
 		Key:               gw.Key,
 		AssociationsToAdd: storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource"}},
-	})
+	}
+	writes = append(writes, write)
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
