@@ -167,7 +167,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.22"
+  default     = "1.5.23"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -246,6 +246,12 @@ variable "elasticsearch_endpoint" {
   description = "Endpoint of the Elasticsearch datasink for aggregated logs and events."
   type        = string
   default     = null
+}
+
+variable "elasticsearch_disk_threshold" {
+  description = "Size threshold in GB."
+  type        = number
+  default     = 10
 }
 
 variable "elasticsearch_retention_days" {

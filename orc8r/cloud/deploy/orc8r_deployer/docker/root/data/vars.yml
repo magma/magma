@@ -294,7 +294,7 @@ platform:
     Type: string
     Required: false
     ConfigApps:
-      - tf
+      - tf     
   orc8r_db_identifier:
     Default: orc8rdb
     Description: Identifier for the RDS instance for Orchestrator.
@@ -303,8 +303,9 @@ platform:
     ConfigApps:
       - tf
   orc8r_db_instance_class:
+    Default: "db.m4.large"
     Description: RDS instance Type for Orchestrator DB.
-    Type: string
+    Type: string  
     Required: false
     ConfigApps:
       - tf
@@ -410,7 +411,7 @@ service:
     Type: number
     Required: false
     ConfigApps:
-      - tf
+      - tf      
   existing_tiller_service_account_name:
     Description: Name of existing Tiller service account to use for Helm.
     Type: string
@@ -489,7 +490,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 1.5.22
+    Default: 1.5.23
   orc8r_controller_replicas:
     Description: Replica count for Orchestrator controller pods.
     Type: number

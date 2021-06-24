@@ -78,9 +78,10 @@ module "orc8r-app" {
   efs_provisioner_role_arn = module.orc8r.efs_provisioner_role_arn
 
   elasticsearch_endpoint = module.orc8r.es_endpoint
+  elasticsearch_disk_threshold = tonumber(module.orc8r.es_volume_size * 75 / 100)
 
   orc8r_deployment_type = "fwa"
-  orc8r_tag             = "1.4.0"
+  orc8r_tag             = "1.5.0"
 }
 
 output "nameservers" {

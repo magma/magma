@@ -47,6 +47,11 @@ output "es_endpoint" {
   value       = join("", aws_elasticsearch_domain.es.*.endpoint)
 }
 
+output "es_volume_size" {
+  description = "Endpoint of the ES cluster if deployed."
+  value       = var.elasticsearch_ebs_volume_size
+}
+
 output "secretsmanager_secret_name" {
   description = "Name of the Secrets Manager secret for deployment secrets"
   value       = aws_secretsmanager_secret.orc8r_secrets.name
