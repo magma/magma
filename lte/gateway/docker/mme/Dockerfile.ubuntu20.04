@@ -281,3 +281,9 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
 # E.g. in CI environments access to repo should occur through docker volume from the parent OS.
 # Further, some environments assume specific mount points for the source code (e.g. GitHub Actions).
 RUN rm -rf $MAGMA_ROOT
+
+# TODO: Move this up, but for now leverage cache and iterate at bottom
+RUN cd /usr/sbin/ && \
+    wget https://github.com/bazelbuild/bazelisk/releases/download/v1.6.1/bazelisk-linux-amd64 && \
+    chmod +x bazelisk-linux-amd64 && \
+    ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
