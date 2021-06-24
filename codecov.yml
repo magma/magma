@@ -1,3 +1,4 @@
+comment: false
 coverage:
   status:
     project:
@@ -13,7 +14,7 @@ coverage:
         target: auto
         threshold: 0%
         flags:
-          - feg-lint 
+          - feg-lint
       lte-test:
         target: auto
         threshold: 0%
