@@ -683,7 +683,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 	lte_test_init.StartTestService(t)
 
 	nwConfig := lte_models.NewDefaultTDDNetworkConfig()
-	// change sync interval from the default 300
+	// Change sync interval from the default 300
 	nwConfig.Epc.SubscriberdbSyncInterval = 120
 
 	nw := configurator.Network{
