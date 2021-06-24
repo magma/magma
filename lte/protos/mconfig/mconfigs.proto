@@ -18,6 +18,26 @@ import "orc8r/protos/common.proto";
 package magma.mconfig;
 option go_package = "magma/lte/cloud/go/protos/mconfig";
 
+// --------------------------------------------------------------------------
+// SentryConfig stores the network-wide Sentry.io configuration
+// --------------------------------------------------------------------------
+message SentryConfig {
+    // url_python initializes the Sentry Python SDK and sets the remote URL.
+    // If set to empty string, Sentry Python SDK will not be initialized.
+    string url_python = 1;
+    // url_native initializes the Sentry Native SDK for C/C++ and sets the
+    // remote URL. If set to empty string, Sentry Native SDK will not be
+    // initialized.
+    string url_native = 2;
+    // upload_mme_log decides whether MME service log file (/var/log/mme.log)
+    // is uploaded along with MME crashreports
+    bool upload_mme_log = 3;
+    // sample_rate sets the rate at which Python error events are sampled.
+    // sample_rate should be a number between 0 (0% of errors sent) and 1 (100%
+    // of errors sent)
+    float sample_rate = 4;
+}
+
 //------------------------------------------------------------------------------
 // EnodebD configs
 //------------------------------------------------------------------------------
@@ -166,6 +186,8 @@ message SessionD {
     WalletExhaustDetection wallet_exhaust_detection = 3;
     // Enable relaying Gx/Gy messages via FeG RPC
     bool gx_gy_relay_enabled = 4;
+    // sentry_config stores the Sentry.io configuration for this service
+    SentryConfig sentry_config = 5;
 }
 
 message WalletExhaustDetection {
@@ -329,6 +351,9 @@ message MME {
 
     // MME congestion control configs
     bool congestion_control_enabled = 40;
+
+    // sentry_config stores the Sentry.io configuration for this service
+    SentryConfig sentry_config = 45;
 }
 
 message FederatedModeMap {
