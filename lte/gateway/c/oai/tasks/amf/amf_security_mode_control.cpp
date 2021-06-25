@@ -363,19 +363,22 @@ int amf_proc_security_mode_control(
       format_plmn(&plmn);
 
       /* Building 32 bytes of string with serving network SN
-       * SN value 5G:mnc095.mcc208.3gppnetwork.org
-       * mcc and mnc retrive saved _imsi from amf_context
+       * SN value = 5G:mnc<mnc>.mcc<mcc>.3gppnetwork.org
+       * mcc and mnc are retrieved from serving network PLMN
        */
       uint32_t mcc              = 0;
       uint32_t mnc              = 0;
       uint32_t mnc_digit_length = 0;
-
-      PLMN_T_TO_MCC_MNC(plmn, mcc, mnc, mnc_digit_length);
+      PLMN_T_TO_MCC_MNC(
+          amf_ctx->originating_tai.plmn, mcc, mnc, mnc_digit_length);
       uint32_t snni_buf_len =
           sprintf((char*) snni, "5G:mnc%03d.mcc%03d.3gppnetwork.org", mnc, mcc);
       if (snni_buf_len != 32) {
-        OAILOG_ERROR(LOG_NAS_AMF, "Failed to create SNNI String\n");
+        OAILOG_ERROR(
+            LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+      } else {
+        OAILOG_DEBUG(LOG_NAS_AMF, "serving network name: %s", snni);
       }
 
       memcpy(
@@ -398,11 +401,20 @@ int amf_proc_security_mode_control(
       derive_5gkey_nas(
           NAS_INT_ALG, 2, amf_ctx->_security.kamf, amf_ctx->_security.knas_int);
 
-      derive_key_nas(
-          NAS_ENC_ALG, amf_ctx->_security.selected_algorithms.encryption,
-          amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
-              .kasme,
-          amf_ctx->_security.knas_enc);
+      derive_5gkey_nas(
+          NAS_ENC_ALG, 1, amf_ctx->_security.kamf, amf_ctx->_security.knas_enc);
+
+      OAILOG_STREAM_HEX(
+          OAILOG_LEVEL_TRACE, LOG_AMF_APP, "KAUSF: ", (const char*) &(kausf[0]),
+          AUTH_KASME_SIZE);
+      OAILOG_STREAM_HEX(
+          OAILOG_LEVEL_TRACE, LOG_AMF_APP, "KSEAF: ", (const char*) &(kseaf[0]),
+          AUTH_KASME_SIZE);
+      OAILOG_STREAM_HEX(
+          OAILOG_LEVEL_TRACE, LOG_AMF_APP,
+          "KAMF: ", (const char*) &(amf_ctx->_security.kamf[0]),
+          AUTH_KAMF_SIZE);
+
       /*
        * Set new security context indicator
        */

@@ -103,7 +103,7 @@ int ngap_amf_handle_initial_ue_message(
         .plmn         = {0},
         .amf_set_id   = 0,
         .amf_regionid = 0};  // initialized after
-                             //.plmn = {0}, .amf_code = 0, .amf_gid = 0};  //
+                             //{.plmn = {0}, .amf_code = 0, .amf_gid = 0};  //
                              // initialized after
     s_tmsi_m5_t s_tmsi = {.amf_set_id = 0, .m_tmsi = INVALID_M_TMSI};
     ecgi_t ecgi        = {.plmn = {0}, .cell_identity = {0}};

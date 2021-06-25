@@ -509,8 +509,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             return
         #Report only if their is no change in version
         if self.ng_config.ng_service_enabled == True and mark_flow_deleted == False:
-            self._prepare_session_config_report(stats_msgs)
-
+            #self._prepare_session_config_report(stats_msgs)
+            self.logger.debug(" No Reporting ")
 
     def deactivate_default_flow(self, imsi, ip_addr):
         if self._datapath is None:

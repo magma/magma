@@ -1153,7 +1153,7 @@ int ngap_handle_ue_context_release_command(
         ue_context_release_command_pP->cause ==
             NGAP_INITIAL_CONTEXT_SETUP_TMR_EXPRD ||
         ue_context_release_command_pP->cause == NGAP_INVALID_GNB_ID) {
-      // ngap_remove_ue(state, ue_ref_p);
+      ngap_remove_ue(state, ue_ref_p);
     } else {
       rc = ngap_amf_generate_ue_context_release_command(
           state, ue_ref_p, ue_context_release_command_pP->cause, imsi64);
@@ -1567,7 +1567,7 @@ void ngap_amf_handle_ue_context_rel_comp_timer_expiry(
   OAILOG_DEBUG_UE(
       LOG_NGAP, imsi64, "Removed NGAP UE " AMF_UE_NGAP_ID_FMT "\n",
       (uint32_t) ue_ref_p->amf_ue_ngap_id);
-  // ngap_remove_ue(state, ue_ref_p);
+  ngap_remove_ue(state, ue_ref_p);
 
   hashtable_uint64_ts_remove(
       imsi_map->amf_ue_id_imsi_htbl,
@@ -1604,7 +1604,7 @@ void ngap_amf_release_ue_context(
       LOG_NGAP, imsi64, "Removed NGAP UE " AMF_UE_NGAP_ID_FMT "\n",
       (uint32_t) ue_ref_p->amf_ue_ngap_id);
 
-  // ngap_remove_ue(state, ue_ref_p);
+  ngap_remove_ue(state, ue_ref_p);
   OAILOG_FUNC_OUT(LOG_NGAP);
 }
 

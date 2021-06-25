@@ -144,7 +144,7 @@ void ngap_amf_itti_ngap_initial_ue_message(
   }
 #endif
   NGAP_INITIAL_UE_MESSAGE(message_p).gnb_ue_ngap_id = gnb_ue_ngap_id;
-
+  NGAP_INITIAL_UE_MESSAGE(message_p).tai            = *tai;
   send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);
   OAILOG_INFO(LOG_NGAP, "iniUEmsg sent to TASK_AMF_APP");
   OAILOG_FUNC_OUT(LOG_NGAP);
