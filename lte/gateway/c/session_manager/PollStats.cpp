@@ -15,27 +15,22 @@
 #include <functional>                    // for function
 #include <vector>                        // for vector
 #include "lte/protos/subscriberdb.pb.h"  // for lte
-#include "LocalEnforcer.h"
+#include "PollStats.h"
+
 namespace magma {
-using namespace lte;
 
-class PollStatsThread {
- public:
-  /**
-   * start_loop is the main function to call to initiate a loop. Based
-   * on the given loop interval length, this function will poll stats from
-   * Pipelined every loop_interval_seconds
-   */
-  void start_loop(
-      std::shared_ptr<LocalEnforcer> local_enforcer,
-      uint32_t loop_interval_seconds);
+void PollStats::start_loop(
+    std::shared_ptr<magma::LocalEnforcer> local_enforcer,
+    uint32_t loop_interval_seconds) {
+  is_running_ = true;
+  while (is_running_) {
+    local_enforcer->poll_stats_enforcer();
+    std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
+  }
+}
 
-  /**
-   * Stop the config loop on the next loop
-   */
-  void stop();
+void PollStats::stop() {
+  is_running_ = false;
+}
 
- private:
-  std::atomic<bool> is_running_;
-};
 }  // namespace magma

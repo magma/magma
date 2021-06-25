@@ -150,8 +150,8 @@ add_library(SESSION_MANAGER
     DiameterCodes.cpp
     DiameterCodes.h
     CreditKey.h
-    PollStatsThread.cpp
-    PollStatsThread.h
+    PollStats.cpp
+    PollStats.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
     StoredState.cpp

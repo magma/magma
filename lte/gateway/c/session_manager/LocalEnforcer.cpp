@@ -147,8 +147,13 @@ void LocalEnforcer::setup(
   }
 }
 
-void LocalEnforcer::PollStats() {
-  pipelined_client_->poll_stats(0, 0, NULL);
+void LocalEnforcer::poll_stats_enforcer() {
+  pipelined_client_->poll_stats(0, 0, [](Status status, RuleRecordTable resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not successfully poll stats: "
+                   << status.error_message();
+    }
+  });
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
