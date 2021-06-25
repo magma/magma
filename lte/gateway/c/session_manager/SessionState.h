@@ -115,7 +115,7 @@ class SessionState {
     RulesToProcess gy_dynamic_rules;
     optional<AggregatedMaximumBitrate> ambr;
     // 5G specific extensions
-    std::vector<SetGroupPDR> Pdr_rules_;
+    std::vector<SetGroupPDR> pdr_rules;
     magma::lte::Fsm_state_FsmState state;
     std::string subscriber_id;
     uint32_t ver_no;
@@ -157,22 +157,31 @@ class SessionState {
   void set_current_version(
       int new_session_version, SessionStateUpdateCriteria* session_uc);
 
-  void insert_pdr(SetGroupPDR* rule);
+  void insert_pdr(
+      SetGroupPDR* rule, bool crit_add, SessionStateUpdateCriteria* session_uc);
+
+  /* method to change the PDR state */
+  void set_all_pdrs(enum PdrState);
+
+  int32_t get_pdr_index(uint32_t pdr_index);
+
+  /* method to search specific pdr id existence */
+  bool search_pdr(unsigned int id);
 
   void set_remove_all_pdrs();
 
-  void insert_far(SetGroupFAR* rule);
-
-  void remove_all_rules();
+  /* method to reset retransmit count */
+  void reset_rtx_counter();
 
   /**
    * Increment retransmit counter and return the updated value
    */
   uint32_t get_incremented_rtx_counter();
 
-  std::vector<SetGroupPDR>& get_all_pdr_rules();
+  /* method to remove all pdrs */
+  void remove_all_rules(SessionStateUpdateCriteria* session_uc);
 
-  std::vector<SetGroupFAR>& get_all_far_rules();
+  std::vector<SetGroupPDR>& get_all_pdr_rules();
 
   /**
    * Updates rules to be scheduled, active, or removed, depending on the
@@ -259,9 +268,14 @@ class SessionState {
 
   std::string get_session_id() const { return session_id_; }
 
-  uint32_t get_local_teid() const;
+  uint32_t get_pdu_id() const;
 
-  void set_local_teid(uint32_t teid, SessionStateUpdateCriteria* session_uc);
+  uint32_t get_upf_local_teid() const;
+
+  void set_upf_teid_endpoint(
+      const std::string ip_addr, uint32_t teid, SessionStateUpdateCriteria* uc);
+
+  bool is_5g_session() const;
 
   SubscriberQuotaUpdate_Type get_subscriber_quota_state() const;
 
@@ -471,7 +485,7 @@ class SessionState {
   DynamicRuleInstall get_dynamic_rule_install(
       const std::string& rule_id, const RuleLifetime& lifetime);
 
-  SessionFsmState get_state() { return curr_state_; }
+  SessionFsmState get_state() const;
 
   void get_rules_per_credit_key(
       const CreditKey& charging_key, RulesToProcess* to_process,
@@ -731,7 +745,7 @@ class SessionState {
   uint32_t rtx_counter_;
   // All 5G specific rules
   // use as shared_ptr to check
-  std::vector<SetGroupPDR> PdrList_;
+  std::vector<SetGroupPDR> pdr_list_;
   // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;

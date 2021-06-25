@@ -74,9 +74,8 @@ class SetMessageManagerHandler : public SetMessageManager {
    * It uses SessionStateEnforcer object to create new session state.
    */
   void send_create_session(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& session_ctx_id, const SessionConfig& cfg,
-      const std::string& dnn);
+      SessionMap& session_map, const std::string& imsi, SessionConfig& cfg,
+      uint32_t& pdu_id);
   /*initialize the session message from proto message*/
   SessionConfig m5g_build_session_config(const SetSMSessionContext& request);
 

@@ -29,6 +29,7 @@ using grpc::Status;
 
 namespace {  // anonymous
 using std::experimental::optional;
+
 // Preparation of Set Session request to UPF
 magma::SessionSet create_session_set_req(
     magma::SessionState::SessionInfo info) {
@@ -40,7 +41,7 @@ magma::SessionSet create_session_set_req(
   req.mutable_node_id()->set_node_id_type(magma::NodeID::IPv4);
   req.mutable_state()->set_state(info.state);
 
-  for (const auto& final_req : info.Pdr_rules_) {
+  for (const auto& final_req : info.pdr_rules) {
     req.mutable_set_gr_pdr()->Add()->CopyFrom(final_req);
   }
   return req;
