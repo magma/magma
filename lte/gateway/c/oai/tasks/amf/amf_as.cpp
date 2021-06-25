@@ -1252,10 +1252,6 @@ static int amf_as_security_req(
         if (ue_context) {
           amf_security_context_t* amf_security_context =
               &ue_context->amf_context._security;
-          amf_security_context->selected_algorithms.integrity =
-              M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA2;  // TODO get this computed
-          amf_security_context->selected_algorithms.encryption =
-              M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;  // TODO get this computed
           nas_msg.security_protected.plain.amf.msg.securitymodecommandmsg
               .nas_sec_algorithms.tca =
               amf_security_context->selected_algorithms.encryption;

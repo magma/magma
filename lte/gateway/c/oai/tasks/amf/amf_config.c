@@ -350,6 +350,70 @@ int amf_config_parse_file(amf_config_t* config_pP) {
       config_pP->unauthenticated_imsi_supported = parse_bool(astring);
     }
 
+    // NAS SETTING
+    setting =
+        config_setting_get_member(setting_mme, MME_CONFIG_STRING_NAS_CONFIG);
+
+    if (setting != NULL) {
+      subsetting = config_setting_get_member(
+          setting, MME_CONFIG_STRING_NAS_SUPPORTED_INTEGRITY_ALGORITHM_LIST);
+
+      if (subsetting != NULL) {
+        num = config_setting_length(subsetting);
+
+        if (num <= 8) {
+          for (i = 0; i < num; i++) {
+            astring = config_setting_get_string_elem(subsetting, i);
+
+            if (strcmp("EIA0", astring) == 0)
+              config_pP->nas_config.prefered_integrity_algorithm[i] =
+                  EIA0_ALG_ID;
+            else if (strcmp("EIA1", astring) == 0)
+              config_pP->nas_config.prefered_integrity_algorithm[i] =
+                  EIA1_128_ALG_ID;
+            else if (strcmp("EIA2", astring) == 0)
+              config_pP->nas_config.prefered_integrity_algorithm[i] =
+                  EIA2_128_ALG_ID;
+            else
+              config_pP->nas_config.prefered_integrity_algorithm[i] =
+                  EIA0_ALG_ID;
+          }
+
+          for (i = num; i < 8; i++) {
+            config_pP->nas_config.prefered_integrity_algorithm[i] = EIA0_ALG_ID;
+          }
+        }
+      }
+      subsetting = config_setting_get_member(
+          setting, MME_CONFIG_STRING_NAS_SUPPORTED_CIPHERING_ALGORITHM_LIST);
+
+      if (subsetting != NULL) {
+        num = config_setting_length(subsetting);
+
+        if (num <= 8) {
+          for (i = 0; i < num; i++) {
+            astring = config_setting_get_string_elem(subsetting, i);
+
+            if (strcmp("EEA0", astring) == 0)
+              config_pP->nas_config.prefered_ciphering_algorithm[i] =
+                  EEA0_ALG_ID;
+            else if (strcmp("EEA1", astring) == 0)
+              config_pP->nas_config.prefered_ciphering_algorithm[i] =
+                  EEA1_128_ALG_ID;
+            else if (strcmp("EEA2", astring) == 0)
+              config_pP->nas_config.prefered_ciphering_algorithm[i] =
+                  EEA2_128_ALG_ID;
+            else
+              config_pP->nas_config.prefered_ciphering_algorithm[i] =
+                  EEA0_ALG_ID;
+          }
+
+          for (i = num; i < 8; i++) {
+            config_pP->nas_config.prefered_ciphering_algorithm[i] = EEA0_ALG_ID;
+          }
+        }
+      }
+    }
     // TAI list setting
     setting =
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_TAI_LIST);

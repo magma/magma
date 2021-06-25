@@ -76,6 +76,9 @@ void format_plmn(amf_plmn_t* plmn) {
 }
 
 static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg);
+static int m5g_security_select_algorithms(
+    UESecurityCapabilityMsg ue_capabilities, int* const amf_eiaP,
+    int* const amf_eeaP);
 
 /****************************************************************************
  **                                                                        **
@@ -295,8 +298,8 @@ int amf_proc_security_mode_control(
   int rc                       = RETURNerror;
   bool security_context_is_new = false;
   // TODO: Hardcoded values Will be taken care in upcoming PR
-  int amf_eea = 0;
-  int amf_eia = 0;  // Integrity Algorithm 2
+  int amf_eea = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
+  int amf_eia = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;  // Integrity Algorithm 2
   amf_plmn_t plmn;
   uint8_t snni[32]  = {0};
   uint8_t kausf[32] = {0};
@@ -347,7 +350,8 @@ int amf_proc_security_mode_control(
       amf_ctx->_security.dl_count.overflow = 0;
       amf_ctx->_security.dl_count.seq_num  = 0;
 
-      rc                                                = RETURNok;
+      rc = m5g_security_select_algorithms(
+          amf_ctx->ue_sec_capability, &amf_eia, &amf_eea);
       amf_ctx->_security.selected_algorithms.encryption = amf_eea;
       amf_ctx->_security.selected_algorithms.integrity  = amf_eia;
       if (rc == RETURNerror) {
@@ -455,4 +459,30 @@ int amf_proc_security_mode_control(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
+/* =========================================================== */
+
+static int m5g_security_select_algorithms(
+    UESecurityCapabilityMsg ue_capabilities, int* const amf_eiaP,
+    int* const amf_eeaP) {
+  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  int preference_index;
+
+  *amf_eiaP = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;
+  *amf_eeaP = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
+
+  if (ue_capabilities.ea0 == 1) {
+    *amf_eeaP = amf_config.nas_config.prefered_ciphering_algorithm[0];
+  } else if (ue_capabilities.ea1 == 1) {
+    *amf_eeaP = amf_config.nas_config.prefered_ciphering_algorithm[1];
+  } else if (ue_capabilities.ea2 == 1) {
+    *amf_eeaP = amf_config.nas_config.prefered_ciphering_algorithm[2];
+  }
+
+  if (ue_capabilities.ia2 == 1) {
+    *amf_eiaP = amf_config.nas_config.prefered_integrity_algorithm[0];
+  } else if (ue_capabilities.ia1 == 1) {
+    *amf_eiaP = amf_config.nas_config.prefered_integrity_algorithm[1];
+  }
+  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+}
 }  // namespace magma5g

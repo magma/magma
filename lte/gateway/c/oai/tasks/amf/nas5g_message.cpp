@@ -712,6 +712,102 @@ static int _nas5g_message_decrypt(
       if (amf_security_context) {
         direction = amf_security_context->direction_decode;
         switch (amf_security_context->selected_algorithms.encryption) {
+          case M5G_NAS_SECURITY_ALGORITHMS_128_5G_EA1: {
+            if (0 == status->mac_matched) {
+              OAILOG_ERROR(LOG_NAS, "MAC integrity failed\n");
+              OAILOG_FUNC_RETURN(LOG_NAS, 0);
+            }
+            if (direction == SECU_DIRECTION_UPLINK) {
+              count = 0x00000000 |
+                      ((amf_security_context->ul_count.overflow & 0x0000FFFF)
+                       << 8) |
+                      (amf_security_context->ul_count.seq_num & 0x000000FF);
+            } else {
+              count = 0x00000000 |
+                      ((amf_security_context->dl_count.overflow & 0x0000FFFF)
+                       << 8) |
+                      (amf_security_context->dl_count.seq_num & 0x000000FF);
+            }
+
+            OAILOG_INFO(
+                LOG_AMF_APP,
+                "M5G_NAS_SECURITY_ALGORITHMS_128_5G_EA1: dir %s count.seq_num "
+                "%u count "
+                "%u\n",
+                (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
+                (direction == SECU_DIRECTION_UPLINK) ?
+                    amf_security_context->ul_count.seq_num :
+                    amf_security_context->dl_count.seq_num,
+                count);
+            stream_cipher.key        = amf_security_context->knas_enc;
+            stream_cipher.key_length = AUTH_KNAS_ENC_SIZE;
+            stream_cipher.count      = count;
+            stream_cipher.bearer     = 0x00;  // 33.401 section 8.1.1
+            stream_cipher.direction  = direction;
+            stream_cipher.message    = (uint8_t*) src;
+            /*
+             *              * length in bits
+             *                           */
+            stream_cipher.blength = length << 3;
+            nas_stream_encrypt_eea1(&stream_cipher, (uint8_t*) dest);
+            /*
+             * Decode the first octet (security header type and protocol
+             * discriminator)
+             */
+            DECODE_U16(dest, *(uint8_t*) (&header), size);
+            OAILOG_FUNC_RETURN(LOG_NAS, header.extended_protocol_discriminator);
+          } break;
+
+          case M5G_NAS_SECURITY_ALGORITHMS_128_5G_EA2: {
+            if (0 == status->mac_matched) {
+              OAILOG_ERROR(LOG_NAS, "MAC integrity failed\n");
+              OAILOG_FUNC_RETURN(LOG_NAS, 0);
+            }
+            if (direction == SECU_DIRECTION_UPLINK) {
+              count = 0x00000000 |
+                      ((amf_security_context->ul_count.overflow & 0x0000FFFF)
+                       << 8) |
+                      (amf_security_context->ul_count.seq_num & 0x000000FF);
+            } else {
+              count = 0x00000000 |
+                      ((amf_security_context->dl_count.overflow & 0x0000FFFF)
+                       << 8) |
+                      (amf_security_context->dl_count.seq_num & 0x000000FF);
+            }
+
+            OAILOG_INFO(
+                LOG_NAS,
+                "M5G_NAS_SECURITY_ALGORITHMS_128_5G_EA2  dir %s count.seq_num "
+                "%u count "
+                "%u\n",
+                (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
+                (direction == SECU_DIRECTION_UPLINK) ?
+                    amf_security_context->ul_count.seq_num :
+                    amf_security_context->dl_count.seq_num,
+                count);
+            stream_cipher.key        = amf_security_context->knas_enc;
+            stream_cipher.key_length = AUTH_KNAS_ENC_SIZE;
+            stream_cipher.count      = count;
+            stream_cipher.bearer     = 0x00;  // 33.401 section 8.1.1
+            stream_cipher.direction  = direction;
+            stream_cipher.message    = (uint8_t*) src;
+            /*
+             *              * length in bits
+             *                           */
+            stream_cipher.blength = length << 3;
+            nas_stream_encrypt_eea2(&stream_cipher, (uint8_t*) dest);
+            /*
+             *              * Decode the first octet (security header type or
+             * EPS bearer
+             *                           * identity,
+             *                                        * * * * and protocol
+             * discriminator)
+             *                                                     */
+            DECODE_U8(
+                dest, *(uint8_t*) (&header.extended_protocol_discriminator),
+                size);
+            OAILOG_FUNC_RETURN(LOG_NAS, header.extended_protocol_discriminator);
+          } break;
           case M5G_NAS_SECURITY_ALGORITHMS_5G_EA0:
             OAILOG_INFO(
                 LOG_AMF_APP,
@@ -814,6 +910,78 @@ static int _nas5g_message_encrypt(
     case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED:
     case SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED_NEW:
       switch (amf_security_context->selected_algorithms.encryption) {
+        case M5G_NAS_SECURITY_ALGORITHMS_128_5G_EA1: {
+          if (direction == SECU_DIRECTION_UPLINK) {
+            count =
+                0x00000000 |
+                ((amf_security_context->ul_count.overflow & 0x0000FFFF) << 8) |
+                (amf_security_context->ul_count.seq_num & 0x000000FF);
+          } else {
+            count =
+                0x00000000 |
+                ((amf_security_context->dl_count.overflow & 0x0000FFFF) << 8) |
+                (amf_security_context->dl_count.seq_num & 0x000000FF);
+          }
+
+          OAILOG_INFO(
+              LOG_AMF_APP,
+              "M5G_NAS_SECURITY_ALGORITHMS_128_5G_EA1 dir %s count.seq_num %u "
+              "count %u\n",
+              (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
+              (direction == SECU_DIRECTION_UPLINK) ?
+                  amf_security_context->ul_count.seq_num :
+                  amf_security_context->dl_count.seq_num,
+              count);
+          stream_cipher.key        = amf_security_context->knas_enc;
+          stream_cipher.key_length = AUTH_KNAS_ENC_SIZE;
+          stream_cipher.count      = count;
+          stream_cipher.bearer     = 0x00;  // 33.401 section 8.1.1
+          stream_cipher.direction  = direction;
+          stream_cipher.message    = (uint8_t*) src;
+          /*
+           *            * length in bits
+           *                       */
+          stream_cipher.blength = length << 3;
+          nas_stream_encrypt_eea1(&stream_cipher, (uint8_t*) dest);
+          OAILOG_FUNC_RETURN(LOG_NAS, length);
+        } break;
+
+        case M5G_NAS_SECURITY_ALGORITHMS_128_5G_EA2: {
+          if (direction == SECU_DIRECTION_UPLINK) {
+            count =
+                0x00000000 |
+                ((amf_security_context->ul_count.overflow & 0x0000FFFF) << 8) |
+                (amf_security_context->ul_count.seq_num & 0x000000FF);
+          } else {
+            count =
+                0x00000000 |
+                ((amf_security_context->dl_count.overflow & 0x0000FFFF) << 8) |
+                (amf_security_context->dl_count.seq_num & 0x000000FF);
+          }
+
+          OAILOG_INFO(
+              LOG_AMF_APP,
+              "M5G_NAS_SECURITY_ALGORITHMS_128_5G_EA2 dir %s count.seq_num %u "
+              "count %u\n",
+              (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
+              (direction == SECU_DIRECTION_UPLINK) ?
+                  amf_security_context->ul_count.seq_num :
+                  amf_security_context->dl_count.seq_num,
+              count);
+          stream_cipher.key        = amf_security_context->knas_enc;
+          stream_cipher.key_length = AUTH_KNAS_ENC_SIZE;
+          stream_cipher.count      = count;
+          stream_cipher.bearer     = 0x00;  // 33.401 section 8.1.1
+          stream_cipher.direction  = direction;
+          stream_cipher.message    = (uint8_t*) src;
+          /*
+           *            * length in bits
+           *                       */
+          stream_cipher.blength = length << 3;
+          nas_stream_encrypt_eea2(&stream_cipher, (uint8_t*) dest);
+          OAILOG_FUNC_RETURN(LOG_NAS, length);
+        } break;
+
         case M5G_NAS_SECURITY_ALGORITHMS_5G_EA0:
           OAILOG_DEBUG(
               LOG_AMF_APP,
@@ -883,6 +1051,54 @@ static uint32_t _nas5g_message_get_mac(
   }
 
   switch (amf_security_context->selected_algorithms.integrity) {
+    case M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1: {
+      uint8_t mac[4];
+      nas_stream_cipher_t stream_cipher;
+      uint32_t count;
+      uint32_t* mac32;
+
+      if (direction == SECU_DIRECTION_UPLINK) {
+        count = 0x00000000 |
+                ((amf_security_context->ul_count.overflow & 0x0000FFFF) << 8) |
+                (amf_security_context->ul_count.seq_num & 0x000000FF);
+      } else {
+        count = 0x00000000 |
+                ((amf_security_context->dl_count.overflow & 0x0000FFFF) << 8) |
+                (amf_security_context->dl_count.seq_num & 0x000000FF);
+      }
+
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1 %s count.seq_num %u count "
+          "%u\n",
+          (direction == SECU_DIRECTION_UPLINK) ? "UPLINK" : "DOWNLINK",
+          (direction == SECU_DIRECTION_UPLINK) ?
+              amf_security_context->ul_count.seq_num :
+              amf_security_context->dl_count.seq_num,
+          count);
+      stream_cipher.key        = amf_security_context->knas_int;
+      stream_cipher.key_length = AUTH_KNAS_INT_SIZE;
+      stream_cipher.count      = count;
+      stream_cipher.bearer     = 0x01;  // 33.401 section 8.1.1
+      stream_cipher.direction  = direction;
+      stream_cipher.message    = (uint8_t*) buffer;
+      /*
+       *        * length in bits
+       *               */
+      stream_cipher.blength = length << 3;
+      nas_stream_encrypt_eia1(&stream_cipher, mac);
+      OAILOG_INFO(
+          LOG_AMF_APP,
+          "M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA1 returned MAC %x.%x.%x.%x(%u) "
+          "for "
+          "length "
+          "%lu direction %d, count %d\n",
+          mac[0], mac[1], mac[2], mac[3], *((uint32_t*) &mac), length,
+          direction, count);
+      mac32 = (uint32_t*) &mac;
+      OAILOG_FUNC_RETURN(LOG_NAS, ntohl(*mac32));
+    } break;
+
     case M5G_NAS_SECURITY_ALGORITHMS_128_5G_IA2: {
       uint8_t mac[4];
       nas_stream_cipher_t stream_cipher;
