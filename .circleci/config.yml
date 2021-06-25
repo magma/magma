@@ -7,6 +7,10 @@ aliases:
     filters:
       branches:
         only: master
+  - &only_v1_6
+    filters:
+      branches:
+        only: v1.6
   - &master_and_develop
     filters:
       branches:
@@ -1587,7 +1591,7 @@ workflows:
       - mme-clang-warnings:
           <<: *only_master
       - lte-integ-test:
-          <<: *master_and_develop
+          <<: *only_v1_6
       - lte-agw-deploy:
           <<: *only_master
           requires:
