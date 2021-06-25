@@ -1,12 +1,19 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+
+# Doing this now to save time, but is this OK in practice?
+package(default_visibility = ["//visibility:public"])
 
 cc_proto_library(
     name = "common_cc_proto",
     deps = [":common_proto"],
 )
+cpp_grpc_library(
+    name = "common_cpp_grpc",
+    protos = [":common_proto"],
+)
 proto_library(
     name = "common_proto",
     srcs = ["common.proto"],
-	visibility = ["//visibility:public"],
 )

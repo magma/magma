@@ -1,5 +1,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
 
 
 # Doing this now to save time, but is this OK in practice?
@@ -26,6 +27,10 @@ cc_proto_library(
     name = "apn_cc_proto",
     deps = [":apn_proto"],
 )
+cpp_grpc_library(
+    name = "apn_cpp_grpc",
+    protos = [":apn_proto"],
+)
 proto_library(
     name = "apn_proto",
     srcs = ["apn.proto"],
@@ -35,6 +40,14 @@ proto_library(
 cc_proto_library(
     name = "subscriberdb_cc_proto",
     deps = [":subscriberdb_proto"],
+)
+cpp_grpc_library(
+    name = "subscriberdb_cpp_grpc",
+    protos = [":subscriberdb_proto"],
+    deps = [
+        ":apn_cpp_grpc",
+        "//orc8r/protos:common_cpp_grpc",
+    ],
 )
 proto_library(
     name = "subscriberdb_proto",
@@ -50,6 +63,14 @@ cc_proto_library(
     name = "mobilityd_cc_proto",
     deps = [":mobilityd_proto"],
 )
+cpp_grpc_library(
+    name = "mobilityd_cpp_grpc",
+    protos = [":mobilityd_proto"],
+    deps = [
+        ":subscriberdb_cpp_grpc",
+        "//orc8r/protos:common_cpp_grpc",
+    ],
+)
 proto_library(
     name = "mobilityd_proto",
     srcs = ["mobilityd.proto"],
@@ -64,6 +85,14 @@ cc_proto_library(
     deps = [":policydb_proto"],
     visibility = ["//visibility:public"],
 )
+cpp_grpc_library(
+    name = "policydb_cpp_grpc",
+    protos = [":policydb_proto"],
+    deps = [
+        ":mobilityd_cpp_grpc",
+        "//orc8r/protos:common_cpp_grpc",
+    ],
+)
 proto_library(
     name = "policydb_proto",
     srcs = ["policydb.proto"],
@@ -77,6 +106,15 @@ cc_proto_library(
     name = "session_manager_cc_proto",
     deps = [":session_manager_proto"],
     visibility = ["//visibility:public"],
+)
+cpp_grpc_library(
+    name = "session_manager_cpp_grpc",
+    protos = [":session_manager_proto"],
+    deps = [
+        ":apn_cpp_grpc",
+        ":policydb_cpp_grpc",
+        "//orc8r/protos:common_cpp_grpc",
+    ],
 )
 proto_library(
     name = "session_manager_proto",
@@ -93,6 +131,16 @@ proto_library(
 cc_proto_library(
     name = "pipelined_cc_proto",
     deps = [":pipelined_proto"],
+)
+cpp_grpc_library(
+    name = "pipelined_cpp_grpc",
+    protos = [":pipelined_proto"],
+    deps  = [
+        "apn_cpp_grpc",
+        "policydb_cpp_grpc",
+        ":session_manager_cpp_grpc",
+        "//orc8r/protos:common_cpp_grpc",
+    ],
 )
 proto_library(
     name = "pipelined_proto",
