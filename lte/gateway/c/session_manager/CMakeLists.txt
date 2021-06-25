@@ -53,7 +53,7 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif ()
 
 include_directories("${OUTPUT_DIR}")
-include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
+#include_directories("${MAGMA_ROOT}/orc8r/gateway/c/common/logging")
 
 include_directories(${MAGMA_LIB_DIR}/service303)
 include_directories(${MAGMA_LIB_DIR}/service_registry)
