@@ -1,15 +1,11 @@
 cc_library(
-	name = "diameter_codes",
-	srcs = ["DiameterCodes.cpp"],
-	hdrs = ["DiameterCodes.h"],
+	name = "logging",
+	srcs = [],
+	hdrs = ["magma_logging.h", "magma_logging_init.h"],
 )
 cc_library(
 	name = "utilities",
-	srcs = ["Utilities.cpp"],
-	hdrs = ["Utilities.h"],
-)
-cc_library(
-	name = "session_id",
-	srcs = ["SessionID.cpp"],
-	hdrs = ["SessionID.h"],
+	srcs = ["Utilities.cpp", "GrpcMagmaUtils.cpp", "DiameterCodes.cpp", "SessionID.cpp"],
+	hdrs = ["Utilities.h", "GrpcMagmaUtils.h", "DiameterCodes.h", "SessionID.h"],
+	deps = [":logging"],
 )
