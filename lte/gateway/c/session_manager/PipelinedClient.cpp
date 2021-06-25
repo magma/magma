@@ -570,6 +570,7 @@ void AsyncPipelinedClient::poll_stats_rpc(
     std::function<void(Status, RuleRecordTable)> callback) {
   auto local_resp = new AsyncLocalResponse<RuleRecordTable>(
       std::move(callback), RESPONSE_TIMEOUT);
+  MLOG(MINFO) << "Retrieving response from stats request: ";
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   local_resp->set_response_reader(std::move(
       stub_->AsyncGetStats(local_resp->get_context(), request, &queue_)));

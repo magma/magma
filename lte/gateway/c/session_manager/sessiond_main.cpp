@@ -326,8 +326,7 @@ int main(int argc, char* argv[]) {
   auto periodic_stats_requester = std::make_shared<magma::PollStatsThread>();
   std::thread periodic_stats_requester_thread([&]() {
     MLOG(MINFO) << "started polling thread";
-    periodic_stats_requester->start_loop(
-        local_enforcer, 5);
+    periodic_stats_requester->start_loop(local_enforcer, 5);
     periodic_stats_requester->stop();
   });
 
