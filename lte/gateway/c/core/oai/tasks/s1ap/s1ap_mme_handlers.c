@@ -46,7 +46,6 @@
 #include "s1ap_mme.h"
 #include "s1ap_mme_ta.h"
 #include "s1ap_mme_handlers.h"
-#include "mme_app_statistics.h"
 #include "mme_events.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
@@ -664,7 +663,7 @@ int s1ap_mme_handle_s1_setup_request(
   s1ap_dump_enb(enb_association);
   rc = s1ap_generate_s1_setup_response(state, enb_association);
   if (rc == RETURNok) {
-    update_mme_app_stats_connected_enb_add();
+    state->num_enbs++;
     set_gauge("s1_connection", 1, 1, "enb_name", enb_association->enb_name);
     increment_counter("s1_setup", 1, 1, "result", "success");
     s1_setup_success_event(enb_name, enb_id);
@@ -3608,7 +3607,7 @@ int s1ap_handle_sctp_disconnection(
       OAILOG_INFO(
           LOG_S1AP, "Moving eNB with assoc_id %u to INIT state\n", assoc_id);
       enb_association->s1_state = S1AP_INIT;
-      update_mme_app_stats_connected_enb_sub();
+      state->num_enbs--;
     } else {
       OAILOG_INFO(
           LOG_S1AP,

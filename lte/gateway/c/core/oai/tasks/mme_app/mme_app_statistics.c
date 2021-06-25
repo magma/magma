@@ -32,14 +32,6 @@ int mme_app_statistics_display(void) {
       "since last display |\n");
   OAILOG_DEBUG(
       LOG_MME_APP,
-      "Connected eNBs | %10u      |     %10u              |    %10u            "
-      "  "
-      " |\n",
-      mme_app_desc_p->nb_enb_connected,
-      mme_app_desc_p->nb_enb_connected_since_last_stat,
-      mme_app_desc_p->nb_enb_released_since_last_stat);
-  OAILOG_DEBUG(
-      LOG_MME_APP,
       "Attached UEs   | %10u      |     %10u              |    %10u            "
       "  "
       " |\n",
@@ -76,8 +68,6 @@ int mme_app_statistics_display(void) {
       "============================================\n\n");
 
   // resetting stats for next display
-  mme_app_desc_p->nb_enb_connected_since_last_stat           = 0;
-  mme_app_desc_p->nb_enb_released_since_last_stat            = 0;
   mme_app_desc_p->nb_ue_connected_since_last_stat            = 0;
   mme_app_desc_p->nb_ue_disconnected_since_last_stat         = 0;
   mme_app_desc_p->nb_s1u_bearers_established_since_last_stat = 0;
@@ -92,25 +82,6 @@ int mme_app_statistics_display(void) {
 
 /*********************************** Utility Functions to update
  * Statistics**************************************/
-
-// Number of Connected eNBs
-void update_mme_app_stats_connected_enb_add(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  // These stats will be persisted by mme_app task clocked
-  // by its incoming messages
-  (mme_app_desc_p->nb_enb_connected)++;
-  (mme_app_desc_p->nb_enb_connected_since_last_stat)++;
-  return;
-}
-void update_mme_app_stats_connected_enb_sub(void) {
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  // These stats will be persisted by mme_app task clocked
-  // by its incoming messages
-  if (mme_app_desc_p->nb_enb_connected != 0)
-    (mme_app_desc_p->nb_enb_connected)--;
-  (mme_app_desc_p->nb_enb_released_since_last_stat)++;
-  return;
-}
 
 /*****************************************************/
 // Number of Connected UEs
