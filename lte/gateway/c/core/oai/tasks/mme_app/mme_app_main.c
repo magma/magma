@@ -571,11 +571,10 @@ status_code_e mme_app_init(const mme_config_t* mme_config_p) {
 
 static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
-  application_mme_stats_msg_t stats_msg;
-  stats_msg.nb_ue_attached   = mme_app_desc_p->nb_ue_attached;
-  stats_msg.nb_ue_connected  = mme_app_desc_p->nb_ue_connected;
-  stats_msg.nb_enb_connected = mme_app_desc_p->nb_enb_connected;
-  return send_stats_to_service303(
+  application_mme_app_stats_msg_t stats_msg;
+  stats_msg.nb_ue_attached  = mme_app_desc_p->nb_ue_attached;
+  stats_msg.nb_ue_connected = mme_app_desc_p->nb_ue_connected;
+  return send_mme_app_stats_to_service303(
       &mme_app_task_zmq_ctx, TASK_MME_APP, &stats_msg);
 }
 
