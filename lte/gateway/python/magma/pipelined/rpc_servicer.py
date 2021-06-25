@@ -447,7 +447,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _deactivate_flows(self, request):
         """
         Deactivate flows for ipv4 / ipv6 or both
-        
+
         CWF won't have an ip_addr passed
         """
         if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
@@ -483,6 +483,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 request.sid.id,
                 ip_address,
             )
+            if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+                self._loop.call_soon_threadsafe(
+                    self._ipfix_app.delete_ue_sample_flow, request.sid.id
+                )
+
         rule_ids = [policy.rule_id for policy in request.policies]
         self._enforcer_app.deactivate_rules(
             request.sid.id, ip_address,
@@ -960,7 +965,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         except concurrent.futures.TimeoutError:
             logging.error("Get Stats request processing timed out")
             return RuleRecordTable()
-            
+
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
 ) -> Tuple[
