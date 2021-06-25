@@ -608,8 +608,12 @@ func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mc
 }
 
 func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryConfig {
-	sentryConfig, found := network.Configs[orc8r.NetworkSentryConfig].(*models.NetworkSentryConfig)
-	if !found || sentryConfig == nil {
+	iSentryConfig, found := network.Configs[orc8r.NetworkSentryConfig]
+	if !found || iSentryConfig == nil {
+		return nil
+	}
+	sentryConfig, ok := iSentryConfig.(*models.NetworkSentryConfig)
+	if !ok {
 		return nil
 	}
 	return &lte_mconfig.SentryConfig{
