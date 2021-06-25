@@ -12,7 +12,6 @@ limitations under the License.
 """
 import ipaddress
 import logging
-import threading
 from typing import List, MutableMapping, Optional
 
 import netifaces
@@ -49,8 +48,6 @@ class UplinkGatewayInfo:
             gw_info_map: map to store GW info.
         """
         self._backing_map = gw_info_map
-        self._read_default_gw_timer = None
-        self._read_default_gw_interval_seconds = 120
 
     def get_gw_ip(self, vlan_id: Optional[str] = "") -> Optional[str]:
         """
@@ -65,17 +62,6 @@ class UplinkGatewayInfo:
             return str(ip)
 
     def read_default_gw(self):
-        self._do_read_default_gw()
-
-        if self._read_default_gw_timer is not None:
-            return
-        self._read_default_gw_timer = threading.Timer(
-            self._read_default_gw_interval_seconds,
-            self._do_read_default_gw,
-        )
-        self._read_default_gw_timer.start()
-
-    def _do_read_default_gw(self):
         gws = netifaces.gateways()
         logging.info("Using GW info: %s", gws)
         if gws is not None:
