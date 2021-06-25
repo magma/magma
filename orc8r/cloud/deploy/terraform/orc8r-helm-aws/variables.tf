@@ -472,5 +472,5 @@ variable "nprobe_delivery_server" {
 variable "nprobe_skip_verify_server" {
   description = "allows nprobe service to skip tls server verification when exporting records."
   type        = bool
-  default     = true
+  default     = false
 }

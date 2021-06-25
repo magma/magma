@@ -11,20 +11,32 @@
 # limitations under the License.
 
 # operatorID represents the mobile operator identifier
-# updateIntervalSecs sets the priodic time between runs in seconds
-# backoffIntervalSecs sets the backoff time when remote records collector is not available
-# maxExportRetries sets the number of retries when exporting a record
-# deliveryServer defines the address of the remote server collecting records
-# exporterKey provides the absolute path to exporter tls private key
-# exporterCrt provides the absolute path to exporter tls certificate
-# verifyServer enables exporter to skip server tls certificate verifications
-
 operatorID: 49002
+
+# updateIntervalSecs sets the periodic time between
+# runs in seconds
 updateIntervalSecs: 60
+
+# backoffIntervalSecs sets the backoff time when
+# remote records collector is not available
 backoffIntervalSecs: 360
+
+# maxExportRetries sets the number of retries when
+# exporting a record
 maxExportRetries: 10
 
+# deliveryServer defines the address of the remote
+# server collecting records
 deliveryServer: 10.10.0.1:6666
+
+# exporterKey provides the absolute path to exporter
+# tls client private key
 exporterKey: /var/opt/magma/certs/nprobe.key
+
+# exporterCrt provides the absolute path to exporter
+# tls client certificate
 exporterCrt: /var/opt/magma/certs/nprobe.pem
+
+# skipVerifyServer enables exporter to skip server
+# tls certificate verifications
 skipVerifyServer: true

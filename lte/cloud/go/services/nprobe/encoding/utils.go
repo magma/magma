@@ -99,7 +99,7 @@ func encodeIMEI(imei []rune) []byte {
 		return []byte{}
 	}
 
-	// encode snr and tac
+	// Encoding snr and tac
 	encodedIMEI := make([]byte, 8)
 	for idx := 0; idx+1 < len(imei)-2; idx += 2 {
 		firstDigit := int(imei[idx])
@@ -111,7 +111,7 @@ func encodeIMEI(imei []rune) []byte {
 		encodedIMEI[i] = byte((firstDigit << 4) + secondDigit)
 	}
 
-	// encode spare
+	// Encoding spare
 	lastDigit := int(imei[iLen-1])
 	if iLen%2 == 1 {
 		encodedIMEI[7] = byte(0xF0 + lastDigit)

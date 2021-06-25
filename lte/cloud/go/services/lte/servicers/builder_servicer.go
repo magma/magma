@@ -597,8 +597,7 @@ func getNetworkProbeConfig(networkID string) ([]*lte_mconfig.NProbeTask, *lte_mc
 
 	for _, ent := range ents {
 		task := (&nprobe_models.NetworkProbeTask{}).FromBackendModels(ent)
-		if task.TaskDetails.DeliveryType ==
-			nprobe_models.NetworkProbeTaskDetailsDeliveryTypeEventsOnly {
+		if task.TaskDetails.DeliveryType == nprobe_models.NetworkProbeTaskDetailsDeliveryTypeEventsOnly {
 			// data plane is not requested.
 			continue
 		}
