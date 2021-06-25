@@ -30,6 +30,7 @@ extern "C" {
 #include "amf_as.h"
 #include "amf_sap.h"
 #include "amf_recv.h"
+#include "amf_app_state_manager.h"
 
 #define M5GS_REGISTRATION_RESULT_MAXIMUM_LENGTH 1
 #define INVALID_IMSI64 (imsi64_t) 0
@@ -597,6 +598,7 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
       amf_sap.u.amf_as.u.establish.guti.m_tmsi =
           htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
       rc = amf_sap_send(&amf_sap);
+
       /*
        * Start T3550 timer
        */
@@ -726,6 +728,8 @@ int amf_send_registration_accept_dl_nas(
   amf_msg->mobile_id.mobile_identity.guti.tmsi2 = *offset;
   offset++;
   amf_msg->mobile_id.mobile_identity.guti.tmsi3 = *offset;
+  offset++;
+  amf_msg->mobile_id.mobile_identity.guti.tmsi4 = *offset;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
 

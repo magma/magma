@@ -207,6 +207,18 @@ void amf_ue_context_update_coll_keys(
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
+void amf_ue_context_on_new_guti(
+    ue_m5gmm_context_t* const ue_context_p, const guti_m5_t* const guti_p) {
+  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+
+  if (ue_context_p)
+    amf_ue_context_update_coll_keys(
+        &amf_app_desc_p->amf_ue_contexts, ue_context_p,
+        ue_context_p->gnb_ngap_id_key, ue_context_p->amf_ue_ngap_id,
+        ue_context_p->amf_context.imsi64, ue_context_p->amf_teid_n11, guti_p);
+
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
+}
 //----------------------------------------------------------------------------------------------
 /* This is deprecated function and removed in upcoming PRs related to
  * Service request and Periodic Reg updating.*/
@@ -220,10 +232,11 @@ static bool amf_app_construct_guti(
    */
   bool is_guti_valid =
       false;  // Set to true if serving AMF is found and GUTI is constructed
-  uint8_t num_amf            = 0;  // Number of configured AMF in the AMF pool
-  guti_p->m_tmsi             = s_tmsi_p->m_tmsi;
-  guti_p->guamfi.amf_set_id  = s_tmsi_p->amf_set_id;
-  guti_p->guamfi.amf_pointer = s_tmsi_p->amf_pointer;
+  uint8_t num_amf             = 0;  // Number of configured AMF in the AMF pool
+  guti_p->m_tmsi              = s_tmsi_p->m_tmsi;
+  guti_p->guamfi.amf_set_id   = s_tmsi_p->amf_set_id;
+  guti_p->guamfi.amf_pointer  = s_tmsi_p->amf_pointer;
+  guti_p->guamfi.amf_regionid = amf_config.guamfi.guamfi[0].amf_regionid;
   // Create GUTI by using PLMN Id and AMF-Group Id of serving AMF
   OAILOG_DEBUG(
       LOG_AMF_APP,
@@ -285,8 +298,8 @@ ue_m5gmm_context_s* amf_ue_context_exists_guti(
       sizeof(*guti_p), &amf_ue_ngap_id64);
 
   if (HASH_TABLE_OK == h_rc) {
-    //  return amf_ue_context_exists_amf_ue_ngap_id(  //TODO -  NEED-RECHECK
-    //    (amf_ue_ngap_id_t) amf_ue_ngap_id64);
+    return amf_ue_context_exists_amf_ue_ngap_id(
+        (amf_ue_ngap_id_t) amf_ue_ngap_id64);
   } else {
     OAILOG_WARNING(LOG_AMF_APP, " No GUTI hashtable for GUTI ");
   }
@@ -412,35 +425,36 @@ imsi64_t amf_app_handle_initial_ue_message(
     amf_insert_ue_context(
         ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
         ue_context_p);
-    ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
-    ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
-
-    // UEContextRequest
-    ue_context_p->ue_context_request = initial_pP->ue_context_request;
-    OAILOG_DEBUG(
-        LOG_AMF_APP, "ue_context_requext received: %d\n ",
-        ue_context_p->ue_context_request);
-
-    notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
-    s_tmsi_m5_t s_tmsi = {0};
-    if (initial_pP->is_s_tmsi_valid) {
-      s_tmsi = initial_pP->opt_s_tmsi;
-    } else {
-      s_tmsi.amf_pointer = 0;
-      s_tmsi.m_tmsi      = INVALID_M_TMSI;
-    }
-    is_mm_ctx_new = true;
-
-    OAILOG_DEBUG(
-        LOG_AMF_APP,
-        " Sending NAS Establishment Indication to NAS for ue_id = "
-        "(%d)\n",
-        ue_context_p->amf_ue_ngap_id);
-    nas_proc_establish_ind(
-        ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
-        initial_pP->ecgi, initial_pP->m5g_rrc_establishment_cause, s_tmsi,
-        initial_pP->nas);
   }
+  ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
+  ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
+
+  // UEContextRequest
+  ue_context_p->ue_context_request = initial_pP->ue_context_request;
+  OAILOG_DEBUG(
+      LOG_AMF_APP, "ue_context_requext received: %d\n ",
+      ue_context_p->ue_context_request);
+
+  notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
+  s_tmsi_m5_t s_tmsi = {0};
+  if (initial_pP->is_s_tmsi_valid) {
+    s_tmsi = initial_pP->opt_s_tmsi;
+  } else {
+    s_tmsi.amf_pointer = 0;
+    s_tmsi.m_tmsi      = INVALID_M_TMSI;
+  }
+  is_mm_ctx_new = true;
+
+  OAILOG_DEBUG(
+      LOG_AMF_APP,
+      " Sending NAS Establishment Indication to NAS for ue_id = "
+      "(%d)\n",
+      ue_context_p->amf_ue_ngap_id);
+  nas_proc_establish_ind(
+      ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
+      initial_pP->ecgi, initial_pP->m5g_rrc_establishment_cause, s_tmsi,
+      initial_pP->nas);
+  //}
   return RETURNok;
 }
 
@@ -939,6 +953,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
       ue_context_release_command(
           ue_id, ue_context->gnb_ue_ngap_id, NGAP_USER_INACTIVITY);
+      ue_context->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
 
     } else {
       OAILOG_DEBUG(

@@ -30,8 +30,8 @@ class ServiceAcceptMsg {
   ServiceAcceptMsg();
   ~ServiceAcceptMsg();
   int DecodeServiceAcceptMsg(
-      ServiceAcceptMsg* auth_request, uint8_t* buffer, uint32_t len);
+      ServiceAcceptMsg* service_accept, uint8_t* buffer, uint32_t len);
   int EncodeServiceAcceptMsg(
-      ServiceAcceptMsg* auth_request, uint8_t* buffer, uint32_t len);
+      ServiceAcceptMsg* service_accept, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
