@@ -2614,6 +2614,11 @@ void proc_new_attach_req(
    */
   if (attach_info.is_mm_ctx_new) {
     if (ue_context_p->ecm_state == ECM_IDLE) {
+      OAILOG_INFO_UE(
+          LOG_NAS_EMM, ue_context_p->emm_context._imsi64,
+          "Remove UE context for ue_id " MME_UE_S1AP_ID_FMT
+          " as ue is in idle mode \n",
+          ue_context_p->mme_ue_s1ap_id);
       mme_remove_ue_context(mme_ue_context_p, ue_context_p);
     } else {
       ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
