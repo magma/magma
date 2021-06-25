@@ -1013,7 +1013,7 @@ message UPFPagingInfo {
 //Set Interface from Pipelined
 service SetInterfaceForUserPlane {
     rpc SetUPFNodeState(UPFNodeState) returns (SmContextVoid) {}
-    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
+    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (SmContextVoid) {}
     rpc SendPagingReuest(UPFPagingInfo) returns (magma.orc8r.Void) {}
 }
 
