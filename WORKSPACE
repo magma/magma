@@ -12,13 +12,6 @@ http_archive(
     ],
 )
 
-# rules_proto defines abstract rules for building Protocol Buffers.
-git_repository(
-    name = "rules_proto",
-    commit = "cfdc2fa31879c0aebe31ce7702b1a9c8a4be02d2",
-    remote = "https://github.com/bazelbuild/rules_proto.git",
- )
-
 skylib_version = "1.0.2"
 http_archive(
     name = "bazel_skylib",
@@ -35,6 +28,13 @@ bazel_skylib_workspace()
 load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies")
 rules_cc_dependencies()
 
+
+# rules_proto defines abstract rules for building Protocol Buffers.
+git_repository(
+    name = "rules_proto",
+    commit = "cfdc2fa31879c0aebe31ce7702b1a9c8a4be02d2",
+    remote = "https://github.com/bazelbuild/rules_proto.git",
+ )
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
 rules_proto_dependencies()
 rules_proto_toolchains()

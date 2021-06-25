@@ -40,3 +40,16 @@ cc_library(
 		"//lte/protos:session_manager_cc_proto",
 	],
 )
+
+# TODO this is lacking folly dependency
+#cc_library(
+#	name = "stored_state",
+#	hdrs = ["StoredState.h"],
+#	srcs = ["StoredState.cpp"],
+#		":credit_key",
+#		":logging",
+#		":types",
+#		"//lte/protos:pipelined_cpp_grpc",
+#		"//lte/protos:session_manager_cpp_grpc",
+#	],
+#)
