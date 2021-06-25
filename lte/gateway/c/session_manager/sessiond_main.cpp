@@ -327,7 +327,7 @@ int main(int argc, char* argv[]) {
   std::thread periodic_stats_requester_thread([&]() {
     MLOG(MINFO) << "started polling thread";
     periodic_stats_requester->start_loop(
-        local_enforcer, config["rule_update_inteval_sec"].as<uint32_t>());
+        local_enforcer, 5);
     periodic_stats_requester->stop();
   });
 
