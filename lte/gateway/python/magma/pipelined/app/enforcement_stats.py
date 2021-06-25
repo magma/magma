@@ -93,6 +93,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._last_poll_time = datetime.now()
         self._last_report_timestamp = datetime.now()
         self._bridge_name = kwargs['config']['bridge_name']
+        self._periodic_stats_reporting = kwargs['config']['enforcement'].get('periodic_stats_reporting', True)
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
                 kwargs['config'].get('magma_print_grpc_payload', False)
@@ -301,6 +302,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             # Still send an empty report -> for pipelined setup
             self._report_usage({})
             hub.sleep(self.INIT_SLEEP_TIME)
+        if not self._periodic_stats_reporting:
+            return
         while True:
             hub.sleep(poll_interval)
             now = datetime.now()
