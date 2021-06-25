@@ -213,6 +213,10 @@ commands:
   tag-push-docker:
     description: Tag docker image and push it
     parameters:
+      job_name:
+        description: Name of the tag-push-docker task
+        type: string
+        default: publish docker images to docker registry
       tag:
         description: Containers to tag and push
         type: string
@@ -240,41 +244,43 @@ commands:
         default: false
         type: boolean
     steps:
-      - run: |
-          if [ "${CIRCLE_BRANCH}" != "master" ]; then
-            echo "Push only happens for master branch"
-            exit 0
-          fi
-
-          DOCKER_REGISTRY="<< parameters.registry >>"
-          DOCKER_USERNAME="<< parameters.username >>"
-          DOCKER_PASSWORD="<< parameters.password >>"
-
-          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
-
-          IMAGES="<< parameters.images >>"
-          IMAGES_ARRAY=($(echo $IMAGES | tr "|" "\n"))
-          PROJECT=<< parameters.project >>
-          TAG=<< parameters.tag >>
-          TAG_LATEST=<< parameters.tag-latest >>
-
-          function tag_and_push {
-            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
-            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
-            docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
-          }
-
-          for IMAGE in "${IMAGES_ARRAY[@]}"; do
-            IMAGE_TOSEARCH=$IMAGE
-            if [ ! -z $PROJECT ]; then
-              IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
+      - run:
+          name: << parameters.job_name >>
+          command: |
+            if [ "${CIRCLE_BRANCH}" != "master" ]; then
+              echo "Push only happens for master branch"
+              exit 0
             fi
-            IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
-            tag_and_push "$TAG"
-            if [ "$TAG_LATEST" = true ]; then
-              tag_and_push "latest"
-            fi
-          done
+
+            DOCKER_REGISTRY="<< parameters.registry >>"
+            DOCKER_USERNAME="<< parameters.username >>"
+            DOCKER_PASSWORD="<< parameters.password >>"
+
+            docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+
+            IMAGES="<< parameters.images >>"
+            IMAGES_ARRAY=($(echo $IMAGES | tr "|" "\n"))
+            PROJECT=<< parameters.project >>
+            TAG=<< parameters.tag >>
+            TAG_LATEST=<< parameters.tag-latest >>
+
+            function tag_and_push {
+              docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
+              echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
+              docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
+            }
+
+            for IMAGE in "${IMAGES_ARRAY[@]}"; do
+              IMAGE_TOSEARCH=$IMAGE
+              if [ ! -z $PROJECT ]; then
+                IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
+              fi
+              IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
+              tag_and_push "$TAG"
+              if [ "$TAG_LATEST" = true ]; then
+                tag_and_push "latest"
+              fi
+            done
 
   sentry-upload:
     parameters:
@@ -813,11 +819,13 @@ jobs:
             cd ${MAGMA_ROOT}/feg/gateway
             DOCKER_REGISTRY=feg_ make -C ${MAGMA_ROOT}/feg/gateway docker_healthcheck
       - tag-push-docker:
+          job_name: publish docker images to facebookincubator docker registry
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
           tag-latest: <<parameters.tag-latest>>
       - tag-push-docker:
+          job_name: publish docker images to magmacore docker registry
           project: feg
           images: "gateway_go|gateway_python"
           registry: $JFROG_DOCKER_FEG_REGISTRY
