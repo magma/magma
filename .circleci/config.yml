@@ -770,6 +770,7 @@ jobs:
           test: 'False'
           build: 'True'
           deploy: 'True'
+      - sentry-release
       - notify-magma:
           artifact_name: LTE AGW
           version_path: versions/magma_version
