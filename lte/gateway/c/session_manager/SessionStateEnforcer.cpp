@@ -56,14 +56,16 @@ SessionStateEnforcer::SessionStateEnforcer(
     std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
     std::shared_ptr<PipelinedClient> pipelined_client,
     std::shared_ptr<AmfServiceClient> amf_srv_client,
-    magma::mconfig::SessionD mconfig, long session_force_termination_timeout_ms)
+    magma::mconfig::SessionD mconfig, long session_force_termination_timeout_ms,
+    uint32_t session_max_rtx_count)
     : session_store_(session_store),
       pipelined_client_(pipelined_client),
       amf_srv_client_(amf_srv_client),
       retry_timeout_(1),
       mconfig_(mconfig),
       session_force_termination_timeout_ms_(
-          session_force_termination_timeout_ms) {
+          session_force_termination_timeout_ms),
+      session_max_rtx_count_(session_max_rtx_count) {
   // for now this is the right place, need to move if find  anohter right place
   static_rule_init();
 }
@@ -322,6 +324,17 @@ void SessionStateEnforcer::m5g_remove_rules_and_update_upf(
   // Set PDR state as  REMOVE for all PDRs
   session->set_remove_all_pdrs();
   sess_info.Pdr_rules_ = session->get_all_pdr_rules();
+  // Set the node Id
+  sess_info.nodeId.node_id = get_upf_node_id();
+  pipelined_client_->set_upf_session(sess_info, call_back_upf);
+  return;
+}
+
+void SessionStateEnforcer::m5g_send_session_request_to_upf(
+    const std::unique_ptr<SessionState>& session) {
+  // Update to UPF
+  SessionState::SessionInfo sess_info;
+  session->sess_infocopy(&sess_info);
   // Set the node Id
   sess_info.nodeId.node_id = get_upf_node_id();
   pipelined_client_->set_upf_session(sess_info, call_back_upf);
@@ -602,6 +615,12 @@ bool SessionStateEnforcer::set_upf_node(
   MLOG(MDEBUG) << "Set_upf_node_id: " << upf_node_id_;
   MLOG(MDEBUG) << "Set_upf_n3_addr: " << upf_node_ip_addr_;
   return true;
+}
+
+bool SessionStateEnforcer::is_incremented_rtx_counter_within_max(
+    const std::unique_ptr<SessionState>& session) {
+  uint32_t rtx_counter = session->get_incremented_rtx_counter();
+  return rtx_counter < session_max_rtx_count_;
 }
 
 std::string SessionStateEnforcer::get_upf_n3_addr() const {

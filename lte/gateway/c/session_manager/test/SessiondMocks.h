@@ -323,6 +323,11 @@ class MockSetInterfaceForUserPlane final
       SetUPFNodeState, Status(
                            grpc::ServerContext*, const UPFNodeState*,
                            std::function<void(Status, SmContextVoid)>));
+  MOCK_METHOD3(
+      SetUPFSessionConfig,
+      Status(
+          grpc::ServerContext*, const UPFSessionConfigState*,
+          std::function<void(Status, SmContextVoid)>));
 };
 
 }  // namespace magma

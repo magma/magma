@@ -47,7 +47,8 @@ class SessionStateEnforcer {
       std::shared_ptr<PipelinedClient> pipelined_client,
       std::shared_ptr<AmfServiceClient> amf_srv_client,
       magma::mconfig::SessionD mconfig,
-      long session_force_termination_timeout_ms);
+      long session_force_termination_timeout_ms,
+      uint32_t session_max_rtx_count);
 
   ~SessionStateEnforcer() {}
 
@@ -75,6 +76,10 @@ class SessionStateEnforcer {
   void m5g_update_session_state_to_amf(
       const std::string& imsi, uint32_t teid, uint32_t version);
 
+  /* Send session requst to upf */
+  void m5g_send_session_request_to_upf(
+      const std::unique_ptr<SessionState>& session);
+
   std::vector<std::string> static_rules;
 
   /* Get N3 ip  address of UPF */
@@ -86,6 +91,18 @@ class SessionStateEnforcer {
   /* Initialize the upf node id and n3 address
    */
   bool set_upf_node(const std::string& node_id, const std::string& n3_addr);
+
+  /**
+   * If UPF received session version doesn't match with SMF local session
+   * version no, then we continue to resend till SESSION_THROTTLE_CNT reaches.
+   * Gets the incremented rtx counter and compares with SESSION_THROTTLE_CNT
+   *
+   * @param session : reference to SessionState
+   * @return true : if incremented rtx counter < SESSION_THROTTLE_CNT
+   * 	     Otherwise false
+   */
+  bool is_incremented_rtx_counter_within_max(
+      const std::unique_ptr<SessionState>& session);
 
  private:
   ConvergedRuleStore GlobalRuleList;
@@ -105,6 +122,7 @@ class SessionStateEnforcer {
 
   // Timer used to forcefully terminate session context on time out
   long session_force_termination_timeout_ms_;
+  uint32_t session_max_rtx_count_;
   bool static_rule_init();
   /* To send response back to AMF
    * Fill the response structure and call rpc of AmfServiceClient
@@ -138,7 +156,6 @@ class SessionStateEnforcer {
   void m5g_remove_rules_and_update_upf(
       const std::string& imsi, const std::unique_ptr<SessionState>& session,
       const std::string& dnn, SessionStateUpdateCriteria& uc);
-
 };  // End of class SessionStateEnforcer
 
 }  // end namespace magma

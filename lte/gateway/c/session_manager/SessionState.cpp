@@ -2648,6 +2648,14 @@ void SessionState::clear_session_metrics() const {
       UE_TRAFFIC_COUNTER_NAME, size_t(3), LABEL_IMSI, imsi, LABEL_SESSION_ID,
       session_id, LABEL_DIRECTION, DIRECTION_DOWN);
 }
+/*
+ * If UPF received session version doesn't match with SMF local
+ * session version no, then we continue to resend till SESSION_THROTTLE_CNT
+ * reaches
+ */
+uint32_t SessionState::get_incremented_rtx_counter() {
+  return rtx_counter_++;
+}
 
 CreateSessionResponse SessionState::get_create_session_response() {
   return create_session_response_;
