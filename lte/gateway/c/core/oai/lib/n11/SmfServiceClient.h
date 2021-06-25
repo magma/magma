@@ -22,14 +22,22 @@
 #include <memory>
 
 using grpc::Status;
+using magma::lte::SetSmNotificationContext;
+using magma::lte::SetSMSessionContext;
+using magma::lte::SmContextVoid;
 
 namespace magma5g {
+
+SetSMSessionContext create_sm_pdu_session_v4(
+    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    uint32_t pdu_session_type, uint8_t* gnb_gtp_teid, uint8_t pti,
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version);
 
 class SmfServiceClient {
  public:
   virtual ~SmfServiceClient() {}
-  virtual bool set_smf_session(
-      const magma::lte::SetSMSessionContext& request) = 0;
+  virtual bool set_smf_session(SetSMSessionContext& request)          = 0;
+  virtual bool set_smf_notification(SetSmNotificationContext& notify) = 0;
 };
 
 /**
@@ -39,16 +47,32 @@ class SmfServiceClient {
 class AsyncSmfServiceClient : public magma::GRPCReceiver,
                               public SmfServiceClient {
  private:
-  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
-  std::unique_ptr<magma::lte::AmfPduSessionSmContext::Stub> stub_;
-  void set_smf_session_rpc(
-      const magma::lte::SetSMSessionContext& request,
-      std::function<void(Status, magma::lte::SmContextVoid)> callback);
+  AsyncSmfServiceClient();
+  static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
+  std::unique_ptr<magma::lte::AmfPduSessionSmContext::Stub> stub_{};
+
+  void SetSMFSessionRPC(
+      SetSMSessionContext& request,
+      const std::function<void(Status, SmContextVoid)>& callback);
+
+  void SetSMFNotificationRPC(
+      SetSmNotificationContext& notify,
+      const std::function<void(Status, SmContextVoid)>& callback);
 
  public:
-  AsyncSmfServiceClient();
-  AsyncSmfServiceClient(std::shared_ptr<grpc::Channel> smf_srv_channel);
-  bool set_smf_session(const magma::lte::SetSMSessionContext& request);
+  static AsyncSmfServiceClient& getInstance();
+
+  AsyncSmfServiceClient(AsyncSmfServiceClient const&) = delete;
+  void operator=(AsyncSmfServiceClient const&) = delete;
+
+  int amf_smf_create_pdu_session_ipv4(
+      char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+      uint32_t pdu_session_type, uint8_t* gnb_gtp_teid, uint8_t pti,
+      uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr, uint32_t version);
+
+  bool set_smf_session(SetSMSessionContext& request);
+
+  bool set_smf_notification(SetSmNotificationContext& notify);
 };
 
 }  // namespace magma5g
