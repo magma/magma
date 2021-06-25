@@ -15,6 +15,7 @@
 #include <functional>                    // for function
 #include <vector>                        // for vector
 #include "lte/protos/subscriberdb.pb.h"  // for lte
+#include "LocalEnforcer.h"
 namespace magma {
 using namespace lte;
 
@@ -26,7 +27,7 @@ class PollStatsThread {
    * Pipelined and call the enforcer callback
    */
   void start_loop(
-      std::shared_ptr<magma::LocalEnforcer> local_enforcer,
+      std::shared_ptr<LocalEnforcer> local_enforcer,
       uint32_t loop_interval_seconds);
 
   /**

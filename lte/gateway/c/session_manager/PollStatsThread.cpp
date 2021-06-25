@@ -15,6 +15,7 @@
 #include <functional>                    // for function
 #include <vector>                        // for vector
 #include "lte/protos/subscriberdb.pb.h"  // for lte
+#include "PollStatsThread.h"
 
 namespace magma {
 
@@ -27,12 +28,14 @@ namespace magma {
  * callback.
  */
 void PollStatsThread::start_loop(
-    std::shared_ptr<magma::LocalEnforcer>, uint32_t loop_interval_seconds) {
+    std::shared_ptr<magma::LocalEnforcer> local_enforcer,
+    uint32_t loop_interval_seconds) {
   is_running_ = true;
   while (is_running_) {
     // call local enforcer(arguments might need to be passed in)
     // call Pipelined Client Poll Stats(need to receive arguments from
     // some location)
+    MLOG(MINFO) << "Calling upon enforcer poll stats";
     local_enforcer->PollStats();
     std::this_thread::sleep_for(std::chrono::seconds(loop_interval_seconds));
   }

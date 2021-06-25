@@ -323,12 +323,12 @@ int main(int argc, char* argv[]) {
   });
 
   // Start off a thread to periodically poll stats from Pipelined
-  magma::PollStatsThread periodic_stats_requester;
-
+  auto periodic_stats_requester = std::make_shared<magma::PollStatsThread>();
   std::thread periodic_stats_requester_thread([&]() {
-    periodic_stats_requester.start_loop(
-        local_enforcer, config["rule_update_interval_sec"].as<uint32_t>());
-    periodic_stats_requester.stop();
+    MLOG(MINFO) << "started polling thread";
+    periodic_stats_requester->start_loop(
+        local_enforcer, config["rule_update_inteval_sec"].as<uint32_t>());
+    periodic_stats_requester->stop();
   });
 
   // Setup threads to serve as GRPC servers for the LocalSessionManagerHandler

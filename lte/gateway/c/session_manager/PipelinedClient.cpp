@@ -437,6 +437,8 @@ void AsyncPipelinedClient::poll_stats(
   poll_stats_rpc(req, [](Status status, RuleRecordTable table) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not poll stats " << status.error_message();
+    } else {
+      MLOG(MINFO) << "Successfully polled stats ";
     }
   });
 }
