@@ -26,7 +26,6 @@ from lte.protos.subscriberdb_pb2 import (
     ListSubscribersResponse,
     SubscriberData,
     SubscriberID,
-    SyncSubscribersResponse,
 )
 from lte.protos.subscriberdb_pb2_grpc import (
     SubscriberDBCloudServicer,
@@ -70,20 +69,6 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
         """
         in_sync = request.flat_digest.md5_base64_digest == "digest_pear"
         return CheckSubscribersInSyncResponse(in_sync=in_sync)
-
-    def SyncSubscribers(self, request, context):
-        """
-        Mock to trigger SyncSubscribers-related test cases
-
-        Args:
-            request: SyncSubscribersRequest
-            context: request context
-
-        Returns:
-            SyncSubscribersResponse
-        """
-        # TODO (wangyyt1013): replace mock of servicer scaffolding code
-        return SyncSubscribersResponse(resync=True)
 
     def ListSubscribers(self, request, context):  # noqa: N802
         """
@@ -269,7 +254,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             ret = (
                 await self.subscriberdb_cloud_client._get_all_subscribers()
             )
-            self.assertEqual(None, ret)
+            self.assertEqual((None, None), ret)
 
         # Cancel the client's loop so there are no other activities
         self.subscriberdb_cloud_client._periodic_task.cancel()
@@ -332,27 +317,6 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
                 await self.subscriberdb_cloud_client._check_subscribers_in_sync()
             )
             self.assertEqual(True, in_sync)
-
-        # Cancel the client's loop so there are no other activities
-        self.subscriberdb_cloud_client._periodic_task.cancel()
-        self.loop.run_until_complete(test())
-
-    @ unittest.mock.patch(
-        'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
-    )
-    def test_sync_subscribers(self, get_grpc_mock):
-        """
-        Test QueryPerSubscriberDigest RPC success
-
-        Args:
-            get_grpc_mock: mock for service registry
-        """
-        async def test():  # noqa: WPS430
-            # TODO (wangyyt1013): implement test for functioning server-side
-            # set difference code
-            get_grpc_mock.return_value = self.channel
-            resync = (await self.subscriberdb_cloud_client._sync_subscribers())
-            self.assertEqual(True, resync)
 
         # Cancel the client's loop so there are no other activities
         self.subscriberdb_cloud_client._periodic_task.cancel()
