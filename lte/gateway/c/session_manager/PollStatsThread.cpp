@@ -19,9 +19,6 @@
 
 namespace magma {
 
-/**
- * PollStats is used to request stats from Pipelined
- */
 void PollStatsThread::start_loop(
     std::shared_ptr<magma::LocalEnforcer> local_enforcer,
     uint32_t loop_interval_seconds) {
