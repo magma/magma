@@ -26,8 +26,12 @@
 int send_app_health_to_service303(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id, bool healthy);
 
-int send_stats_to_service303(
+int send_mme_app_stats_to_service303(
     task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id,
-    application_mme_stats_msg_t* stats_msg);
+    application_mme_app_stats_msg_t* stats_msg);
+
+int send_s1ap_stats_to_service303(
+    task_zmq_ctx_t* task_zmq_ctx_p, task_id_t origin_id,
+    application_s1ap_stats_msg_t* stats_msg);
 
 #endif /* FILE_SERVICE303_MESSAGE_UTILS */
