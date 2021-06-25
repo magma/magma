@@ -27,6 +27,7 @@ extern "C" {
 #include "amf_as.h"
 #include "amf_recv.h"
 #include "amf_identity.h"
+#include "amf_sap.h"
 
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
@@ -40,10 +41,10 @@ int amf_handle_service_request(
   tmsi_t tmsi_rcv;
   tmsi_t tmsi_stored;
   notify_ue_event notify_ue_event_type;
+  amf_sap_t amf_sap;
 
   OAILOG_INFO(
-      LOG_AMF_APP,
-      "Received TMSI in message : %02x%02x%02x%02x%02x%02x%02x%02x",
+      LOG_AMF_APP, "Received TMSI in message : %02x%02x%02x%02x",
       msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[0],
       msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[1],
       msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi[2],
@@ -52,10 +53,13 @@ int amf_handle_service_request(
       &tmsi_rcv, &msg->m5gs_mobile_identity.mobile_identity.tmsi.m5g_tmsi,
       sizeof(tmsi_t));
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+  tmsi_rcv   = ntohl(tmsi_rcv);
 
   if (ue_context == NULL) {
     OAILOG_INFO(LOG_AMF_APP, "ue_context is NULL\n");
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
   }
+
   tmsi_stored = ue_context->amf_context.m5_guti.m_tmsi;
   // Check TMSI and then check MAC
   OAILOG_INFO(
@@ -68,23 +72,11 @@ int amf_handle_service_request(
         "TMSI matched for the UE id %d "
         " receved TMSI %08X stored TMSI %08X \n",
         ue_id, tmsi_rcv, tmsi_stored);
-    // Calculate MAC and compare if matches send message to SMF
-    if (decode_status.mac_matched) {
-      OAILOG_INFO(
-          LOG_NAS_AMF, "MAC in security header matched for the UE id %d ",
-          ue_id);
-      // Set event type as service request
-      notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
-      // construct the proto structure and send message to SMF
-      rc = amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
-    }  // MAC matched
-    else {
-      OAILOG_INFO(
-          LOG_NAS_AMF,
-          "MAC in security header not matched for the UE id %d "
-          "and prepare for reject message on DL",
-          ue_id);
-    }
+    notify_ue_event_type = UE_SERVICE_REQUEST_ON_PAGING;
+    // construct the proto structure and send message to SMF
+    rc = amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
+
+    amf_sap.primitive = AMFAS_ESTABLISH_CNF;
   } else {
     OAILOG_INFO(
         LOG_NAS_AMF,
@@ -93,8 +85,23 @@ int amf_handle_service_request(
         " receved TMSI %08X stored TMSI %08X\n",
         ue_id, tmsi_rcv, tmsi_stored);
     // Send prepare and send reject message.
+    amf_sap.primitive = AMFAS_ESTABLISH_REJ;
   }
-  return rc;
+
+  amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
+  amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
+
+  /* GUTI have already updated in amf_context during Identification
+   * response complete, now assign to amf_sap
+   */
+  amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
+  amf_sap.u.amf_as.u.establish.guti.m_tmsi =
+      htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
+  rc = amf_sap_send(&amf_sap);
+
+  ue_context->mm_state = REGISTERED_CONNECTED;
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
 /* Identifies 5GS Registration type and processes the Message accordingly */
@@ -222,7 +229,10 @@ int amf_handle_registration_request(
 
         amf_app_generate_guti_on_supi(&amf_guti, &supi_imsi);
 
+        amf_ue_context_on_new_guti(ue_context, (guti_m5_t*) &amf_guti);
+
         ue_context->amf_context.m5_guti.m_tmsi = amf_guti.m_tmsi;
+        ue_context->amf_context.m5_guti.guamfi = amf_guti.guamfi;
         imsi64_t imsi64                = amf_imsi_to_imsi64(params->imsi);
         guti_and_amf_id.amf_guti       = amf_guti;
         guti_and_amf_id.amf_ue_ngap_id = ue_id;
@@ -460,6 +470,7 @@ int amf_handle_identity_response(
         amf_ue_context_exists_amf_ue_ngap_id(ue_id);
     if (ue_context) {
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_SUCI_IMSI;
+      amf_ue_context_on_new_guti(ue_context, (guti_m5_t*) &amf_guti);
     }
   }
   /*

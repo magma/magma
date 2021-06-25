@@ -796,12 +796,18 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _ng_tunnel_update(self, pdr_entry: PDRRuleEntry, subscriber_id: str) -> bool:
 
+        gnb_ip_addr = None
+        if pdr_entry.gnb_ip_addr:
+            gnb_ip_addr = pdr_entry.gnb_ip_addr
+        elif pdr_entry.far_action.gnb_ip_addr:
+            gnb_ip_addr = pdr_entry.far_action.gnb_ip_addr
+
         ret = self._classifier_app.gtp_handler(pdr_entry.pdr_state,
                                                 pdr_entry.precedence,
                                                 pdr_entry.local_f_teid,
                                                 pdr_entry.far_action.o_teid,
                                                 pdr_entry.ue_ip_addr,
-                                                pdr_entry.far_action.gnb_ip_addr,
+                                                gnb_ip_addr,
                                                 encode_imsi(subscriber_id))
         return ret
 

@@ -420,7 +420,20 @@ static int amf_reg_acceptmsg(
   offset++;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.tmsi3 = *offset;
+  offset++;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.tmsi4 = *offset;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_regionid = msg->guti.guamfi.amf_regionid;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_setid = msg->guti.guamfi.amf_set_id;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_pointer = msg->guti.guamfi.amf_pointer;
 
+  OAILOG_INFO(
+      LOG_AMF_APP, "AMF_REGION_ID %u AMF_SET_ID %u AMF_POINTER %u \n",
+      msg->guti.guamfi.amf_regionid, msg->guti.guamfi.amf_set_id,
+      msg->guti.guamfi.amf_pointer);
   // TAI List, Allowed NSSAI and GPRS Timer 3 harcoded
   nas_msg->header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;  // sit_change
@@ -471,6 +484,45 @@ static int amf_reg_acceptmsg(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
 }
 
+/****************************************************************************
+ **                                                                        **
+ ** Name:        amf_service_acceptmsg()                                   **
+ **                                                                        **
+ ** Description: Builds Service accept message                             **
+ **                                                                        **
+ **              The Service Accept message is sent by the                 **
+ **              network to the UEi.                                       **
+ **                                                                        **
+ ** Inputs:      msg:           The AMFMsg    primitive to process         **
+ **              Others:        None                                       **
+ **                                                                        **
+ ** Outputs:     amf_msg:       The AMF message to be sent                 **
+ **              Return:        The size of the AMF message                **
+ **              Others:        None                                       **
+ **                                                                        **
+ ***************************************************************************/
+static int amf_service_acceptmsg(
+    const amf_as_establish_t* msg, amf_nas_message_t* nas_msg) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+  int size = SERVICE_ACCEPT_MINIMUM_LENGTH;
+  nas_msg->security_protected.plain.amf.header.message_type =
+      M5G_SERVICE_ACCEPT;
+  nas_msg->security_protected.plain.amf.header.extended_protocol_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
+      .extended_protocol_discriminator.extended_proto_discriminator =
+      M5G_MOBILITY_MANAGEMENT_MESSAGES;
+  nas_msg->security_protected.plain.amf.msg.service_accept.sec_header_type
+      .sec_hdr = SECURITY_HEADER_TYPE_NOT_PROTECTED;
+  nas_msg->security_protected.plain.amf.msg.service_accept.message_type
+      .msg_type = M5G_SERVICE_ACCEPT;
+  nas_msg->header.security_header_type =
+      SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;  // sit_change
+
+  nas_msg->security_protected.header.message_type = M5G_SERVICE_ACCEPT;
+  size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
+}
 /****************************************************************************
  **                                                                        **
  ** Name:        amf_dl_nas_transport_msg()                            **
@@ -1464,14 +1516,9 @@ uint16_t amf_as_establish_cnf(
       "Send AS connection establish confirmation for (ue_id = "
       "%d)\n",
       msg->ue_id);
-  amf_nas_message_t nas_msg;
+  amf_nas_message_t nas_msg = {0};
   // Setting-up the AS message
   as_msg->ue_id = msg->ue_id;
-
-  if (msg->pds_id.guti == NULL) {
-    OAILOG_WARNING(LOG_NAS_AMF, "AMFAS-SAP - GUTI is NULL...");
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
-  }
 
   as_msg->nas_msg                              = msg->nas_msg;
   as_msg->presencemask                         = msg->presencemask;
@@ -1493,6 +1540,9 @@ uint16_t amf_as_establish_cnf(
   } else {
     OAILOG_WARNING(LOG_NAS_AMF, "AMFAS-SAP - AMF Context is NULL...!");
   }
+
+  nas_amf_registration_proc_t* registration_proc =
+      get_nas_specific_procedure_registration(amf_ctx);
   /*
    * Setup the NAS security header
    */
@@ -1504,6 +1554,11 @@ uint16_t amf_as_establish_cnf(
           SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
       /* TODO amf_as_set_header() is incorrectly setting the security header
        * type for Registration Accept. Fix it in that function*/
+      break;
+    case AMF_AS_NAS_INFO_SR:
+      size = amf_service_acceptmsg(msg, &nas_msg);
+      nas_msg.header.security_header_type =
+          SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
       break;
     case AMF_AS_NAS_INFO_TAU:
     case AMF_AS_NAS_INFO_NONE:  // Response to SR
@@ -1535,8 +1590,6 @@ uint16_t amf_as_establish_cnf(
     OAILOG_DEBUG(LOG_AMF_APP, "NAS encoding success\n");
     m5gmm_state_t state =
         PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->mm_state;
-    nas_amf_registration_proc_t* registration_proc =
-        get_nas_specific_procedure_registration(amf_ctx);
 
     if ((state != REGISTERED_CONNECTED) &&
         !(registration_proc->registration_accept_sent)) {
@@ -1548,13 +1601,15 @@ uint16_t amf_as_establish_cnf(
       OAILOG_DEBUG(LOG_AMF_APP, "prep and send initial_context_setup_request");
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
       registration_proc->registration_accept_sent++;
+      OAILOG_INFO(
+          LOG_AMF_APP, "registration_accept_sent: %d",
+          registration_proc->registration_accept_sent);
+      registration_proc->registration_accept_sent++;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
+    } else if (state == REGISTERED_IDLE) {
+      initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
+      OAILOG_INFO(LOG_AMF_APP, "service_accept_sent");
     }
-    registration_proc->registration_accept_sent++;
-
-    OAILOG_INFO(
-        LOG_AMF_APP, "registration_accept_sent: %d",
-        registration_proc->registration_accept_sent);
 
     as_msg->err_code = M5G_AS_SUCCESS;
     ret_val          = AS_NAS_ESTABLISH_CNF_;

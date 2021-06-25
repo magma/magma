@@ -226,9 +226,21 @@ bool SessionStateEnforcer::insert_pdr_from_core(
 uint32_t SessionStateEnforcer::insert_pdr_from_access(
     std::unique_ptr<SessionState>& session_state,
     SessionStateUpdateCriteria& session_uc, SetGroupPDR& rule) {
-  uint32_t upf_teid = get_next_teid();
-  MLOG(MDEBUG) << "Acquried Teid: " << upf_teid;
+  uint32_t upf_teid  = get_next_teid();
+  const auto& config = session_state->get_config();
+  char ip_str[INET_ADDRSTRLEN];
+  struct sockaddr_in ip_sa;
+  std::string ip_addr;
+  *ip_str = '\0';
+  ip_addr.assign(config.rat_specific_context.m5gsm_session_context()
+                     .gnode_endpoint()
+                     .end_ipv4_addr());
+  memcpy(&(ip_sa.sin_addr), ip_addr.c_str(), ip_addr.length());
+  inet_ntop(AF_INET, &(ip_sa.sin_addr), ip_str, INET_ADDRSTRLEN);
+
+  MLOG(MINFO) << "Acquried Teid: " << upf_teid;
   rule.mutable_pdi()->set_local_f_teid(upf_teid);
+  rule.mutable_pdi()->set_gnb_ipv4_adr(ip_str);
   // Insert the PDR along with teid into the session
   session_state->insert_pdr(&rule, session_uc, true);
   return upf_teid;

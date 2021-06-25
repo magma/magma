@@ -141,10 +141,10 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
      0},       /* TODO gNBConfigurationTransfer */
     {0, 0, 0}, /* AMFConfigurationTransfer */
     {/*ngap_amf_handle_ue_context_release_request*/ 0,
-     ngap_amf_handle_ue_context_release_complete, 0},   /* UEContextRelease */
-    {ngap_amf_handle_ue_context_release_request, 0, 0}, /* CellTrafficTrace */
-                                                        // UPDATE RELEASE 9
-    {0, 0, 0},                                          /* Kill */
+     ngap_amf_handle_ue_context_release_complete, 0}, /* UEContextRelease */
+    {ngap_amf_handle_ue_context_release_request,
+     *ngap_amf_handle_ue_context_release_complete, 0}, /* CellTrafficTrace */
+    {0, 0, 0},                                         /* Kill */
     {0, 0, 0}, /* DownlinkUEAssociatedLPPaTransport  */
     {0, 0, 0}, /* UplinkUEAssociatedLPPaTransport */
     {ngap_amf_handle_uplink_nas_transport, 0, 0}, /* uplinkNASTransport */

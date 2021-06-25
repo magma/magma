@@ -10,14 +10,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-#include "SmfServiceClient.h"
-#include "ServiceRegistrySingleton.h"
 #include <google/protobuf/util/time_util.h>
+#include <cassert>
+#include <grpcpp/impl/codegen/client_context.h>
+#include <grpcpp/impl/codegen/status.h>
+#include <cstring>
+#include <iostream>
+#include <memory>
+#include <string>
+#include <thread>
+#include <google/protobuf/util/time_util.h>
+#include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/session_manager.pb.h>
 
+#include "ServiceRegistrySingleton.h"
+#include "SmfServiceClient.h"
 using grpc::Status;
+using magma::AsyncLocalResponse;
+using magma::ServiceRegistrySingleton;
 
-void SetAmfSessionContextRpcCallback(
+void handle_session_context_response(
     grpc::Status status, magma::lte::SmContextVoid response) {
   if (!status.ok()) {
     std::cout << "AsyncSetAmfSessionContext fails with code "
@@ -29,42 +41,56 @@ void SetAmfSessionContextRpcCallback(
 using namespace magma::lte;
 namespace magma5g {
 
-AsyncSmfServiceClient::AsyncSmfServiceClient(
-    std::shared_ptr<grpc::Channel> smf_srv_channel)
-    : stub_(AmfPduSessionSmContext::NewStub(smf_srv_channel)) {}
+bool AsyncSmfServiceClient::set_smf_session(SetSMSessionContext& request) {
+  SetSMFSessionRPC(
+      request, [](const Status& status, const SmContextVoid& response) {
+        handle_session_context_response(status, response);
+      });
 
-AsyncSmfServiceClient::AsyncSmfServiceClient()
-    : AsyncSmfServiceClient(
-          magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-              "sessiond", magma::ServiceRegistrySingleton::LOCAL)) {}
-
-bool AsyncSmfServiceClient::set_smf_session(
-    const SetSMSessionContext& request) {
-  set_smf_session_rpc(request, SetAmfSessionContextRpcCallback);
   return true;
 }
+
+void AsyncSmfServiceClient::SetSMFSessionRPC(
+    SetSMSessionContext& request,
+    const std::function<void(Status, SmContextVoid)>& callback) {
+  auto localResp = new AsyncLocalResponse<SmContextVoid>(
+      std::move(callback), RESPONSE_TIMEOUT);
+
+  localResp->set_response_reader(std::move(stub_->AsyncSetAmfSessionContext(
+      localResp->get_context(), request, &queue_)));
+}
+
 bool AsyncSmfServiceClient::set_smf_notification(
-    const SetSmNotificationContext& notify) {
-  set_smf_notification_rpc(notify, SetAmfSessionContextRpcCallback);
+    SetSmNotificationContext& notify) {
+  SetSMFNotificationRPC(
+      notify, [](const Status& status, const SmContextVoid& response) {
+        handle_session_context_response(status, response);
+      });
+
   return true;
 }
 
-void AsyncSmfServiceClient::set_smf_session_rpc(
-    const SetSMSessionContext& request,
-    std::function<void(Status, SmContextVoid)> callback) {
-  auto local_resp = new magma::AsyncLocalResponse<SmContextVoid>(
+void AsyncSmfServiceClient::SetSMFNotificationRPC(
+    SetSmNotificationContext& notify,
+    const std::function<void(Status, SmContextVoid)>& callback) {
+  auto localResp = new AsyncLocalResponse<SmContextVoid>(
       std::move(callback), RESPONSE_TIMEOUT);
-  local_resp->set_response_reader(std::move(stub_->AsyncSetAmfSessionContext(
-      local_resp->get_context(), request, &queue_)));
+
+  localResp->set_response_reader(std::move(stub_->AsyncSetSmfNotification(
+      localResp->get_context(), notify, &queue_)));
 }
 
-void AsyncSmfServiceClient::set_smf_notification_rpc(
-    const SetSmNotificationContext& notify,
-    std::function<void(Status, SmContextVoid)> callback) {
-  auto local_resp = new magma::AsyncLocalResponse<SmContextVoid>(
-      std::move(callback), RESPONSE_TIMEOUT);
-  local_resp->set_response_reader(std::move(stub_->AsyncSetSmfNotification(
-      local_resp->get_context(), notify, &queue_)));
+AsyncSmfServiceClient::AsyncSmfServiceClient() {
+  auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
+      "sessiond", ServiceRegistrySingleton::LOCAL);
+  stub_ = AmfPduSessionSmContext::NewStub(channel);
+  std::thread resp_loop_thread([&]() { rpc_response_loop(); });
+  resp_loop_thread.detach();
+}
+
+AsyncSmfServiceClient& AsyncSmfServiceClient::getInstance() {
+  static AsyncSmfServiceClient instance;
+  return instance;
 }
 
 }  // namespace magma5g

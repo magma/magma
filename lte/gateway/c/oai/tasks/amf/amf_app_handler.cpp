@@ -26,6 +26,7 @@ extern "C" {
 #endif
 #include "common_defs.h"
 #include "conversions.h"
+#include "amf_config.h"
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_asDefs.h"
 #include "amf_sap.h"
@@ -39,10 +40,10 @@ extern "C" {
 #define AMF_GET_BYTE_ALIGNED_LENGTH(LENGTH)                                    \
   LENGTH += QUADLET - (LENGTH % QUADLET)
 
+extern amf_config_t amf_config;
 static int paging_t3513_handler(zloop_t* loop, int timer_id, void* arg);
 namespace magma5g {
 extern task_zmq_ctx_s amf_app_task_zmq_ctx;
-amf_config_t amf_config_handler;
 
 //----------------------------------------------------------------------------
 static void amf_directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
@@ -206,6 +207,18 @@ void amf_ue_context_update_coll_keys(
   OAILOG_FUNC_OUT(LOG_AMF_APP);
 }
 
+void amf_ue_context_on_new_guti(
+    ue_m5gmm_context_t* const ue_context_p, const guti_m5_t* const guti_p) {
+  amf_app_desc_t* amf_app_desc_p = get_amf_nas_state(false);
+
+  if (ue_context_p)
+    amf_ue_context_update_coll_keys(
+        &amf_app_desc_p->amf_ue_contexts, ue_context_p,
+        ue_context_p->gnb_ngap_id_key, ue_context_p->amf_ue_ngap_id,
+        ue_context_p->amf_context.imsi64, ue_context_p->amf_teid_n11, guti_p);
+
+  OAILOG_FUNC_OUT(LOG_AMF_APP);
+}
 //----------------------------------------------------------------------------------------------
 /* This is deprecated function and removed in upcoming PRs related to
  * Service request and Periodic Reg updating.*/
@@ -219,17 +232,19 @@ static bool amf_app_construct_guti(
    */
   bool is_guti_valid =
       false;  // Set to true if serving AMF is found and GUTI is constructed
-  uint8_t num_amf           = 0;  // Number of configured AMF in the AMF pool
-  guti_p->m_tmsi            = s_tmsi_p->m_tmsi;
-  guti_p->guamfi.amf_set_id = s_tmsi_p->amf_pointer;
+  uint8_t num_amf             = 0;  // Number of configured AMF in the AMF pool
+  guti_p->m_tmsi              = s_tmsi_p->m_tmsi;
+  guti_p->guamfi.amf_set_id   = s_tmsi_p->amf_set_id;
+  guti_p->guamfi.amf_pointer  = s_tmsi_p->amf_pointer;
+  guti_p->guamfi.amf_regionid = amf_config.guamfi.guamfi[0].amf_regionid;
   // Create GUTI by using PLMN Id and AMF-Group Id of serving AMF
   OAILOG_DEBUG(
       LOG_AMF_APP,
-      "Construct GUTI using S-TMSI received form UE and AMG Group Id and "
+      "Construct GUTI using S-TMSI received form UE and AMG set Id and pointer"
       "PLMN "
-      "id from AMF Conf: %u, %u \n",
-      s_tmsi_p->m_tmsi, s_tmsi_p->amf_pointer);
-  amf_config_read_lock(&amf_config_handler);
+      "id from AMF Conf: %0x, %u %u\n",
+      s_tmsi_p->m_tmsi, s_tmsi_p->amf_set_id, s_tmsi_p->amf_pointer);
+  amf_config_read_lock(&amf_config);
   /*
    * Check number of MMEs in the pool.
    * At present it is assumed that one AMF is supported in AMF pool but in
@@ -237,38 +252,38 @@ static bool amf_app_construct_guti(
    * using AMF code. Assumption is that within one PLMN only one pool of AMF
    * will be configured
    */
-  if (amf_config_handler.guamfi.nb > 1) {
+  if (amf_config.guamfi.nb > 1) {
     OAILOG_DEBUG(LOG_AMF_APP, "More than one AMFs are configured.");
   }
-  for (num_amf = 0; num_amf < amf_config_handler.guamfi.nb; num_amf++) {
+  for (num_amf = 0; num_amf < amf_config.guamfi.nb; num_amf++) {
     /*Verify that the AMF code within S-TMSI is same as what is configured in
      * AMF conf*/
     if ((plmn_p->mcc_digit2 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mcc_digit2) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mcc_digit2) &&
         (plmn_p->mcc_digit1 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mcc_digit1) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mcc_digit1) &&
         (plmn_p->mnc_digit3 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit3) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mnc_digit3) &&
         (plmn_p->mcc_digit3 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mcc_digit3) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mcc_digit3) &&
         (plmn_p->mnc_digit2 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit2) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mnc_digit2) &&
         (plmn_p->mnc_digit1 ==
-         amf_config_handler.guamfi.guamfi[num_amf].plmn.mnc_digit1) &&
+         amf_config.guamfi.guamfi[num_amf].plmn.mnc_digit1) &&
         (guti_p->guamfi.amf_set_id ==
-         amf_config_handler.guamfi.guamfi[num_amf].amf_set_id)) {
+         amf_config.guamfi.guamfi[num_amf].amf_set_id)) {
       break;
     }
   }
-  if (num_amf >= amf_config_handler.guamfi.nb) {
+  if (num_amf >= amf_config.guamfi.nb) {
     OAILOG_DEBUG(LOG_AMF_APP, "No AMF serves this UE");
   } else {
-    guti_p->guamfi.plmn = amf_config_handler.guamfi.guamfi[num_amf].plmn;
-    guti_p->guamfi.amf_set_id =
-        amf_config_handler.guamfi.guamfi[num_amf].amf_set_id;
-    is_guti_valid = true;
+    guti_p->guamfi.plmn        = amf_config.guamfi.guamfi[num_amf].plmn;
+    guti_p->guamfi.amf_set_id  = amf_config.guamfi.guamfi[num_amf].amf_set_id;
+    guti_p->guamfi.amf_pointer = amf_config.guamfi.guamfi[num_amf].amf_pointer;
+    is_guti_valid              = true;
   }
-  amf_config_unlock(&amf_config_handler);
+  amf_config_unlock(&amf_config);
   return is_guti_valid;
 }
 
@@ -283,8 +298,8 @@ ue_m5gmm_context_s* amf_ue_context_exists_guti(
       sizeof(*guti_p), &amf_ue_ngap_id64);
 
   if (HASH_TABLE_OK == h_rc) {
-    //  return amf_ue_context_exists_amf_ue_ngap_id(  //TODO -  NEED-RECHECK
-    //    (amf_ue_ngap_id_t) amf_ue_ngap_id64);
+    return amf_ue_context_exists_amf_ue_ngap_id(
+        (amf_ue_ngap_id_t) amf_ue_ngap_id64);
   } else {
     OAILOG_WARNING(LOG_AMF_APP, " No GUTI hashtable for GUTI ");
   }
@@ -410,35 +425,36 @@ imsi64_t amf_app_handle_initial_ue_message(
     amf_insert_ue_context(
         ue_context_p->amf_ue_ngap_id, &amf_app_desc_p->amf_ue_contexts,
         ue_context_p);
-    ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
-    ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
-
-    // UEContextRequest
-    ue_context_p->ue_context_request = initial_pP->ue_context_request;
-    OAILOG_DEBUG(
-        LOG_AMF_APP, "ue_context_requext received: %d\n ",
-        ue_context_p->ue_context_request);
-
-    notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
-    s_tmsi_m5_t s_tmsi = {0};
-    if (initial_pP->is_s_tmsi_valid) {
-      s_tmsi = initial_pP->opt_s_tmsi;
-    } else {
-      s_tmsi.amf_pointer = 0;
-      s_tmsi.m_tmsi      = INVALID_M_TMSI;
-    }
-    is_mm_ctx_new = true;
-
-    OAILOG_DEBUG(
-        LOG_AMF_APP,
-        " Sending NAS Establishment Indication to NAS for ue_id = "
-        "(%d)\n",
-        ue_context_p->amf_ue_ngap_id);
-    nas_proc_establish_ind(
-        ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
-        initial_pP->ecgi, initial_pP->m5g_rrc_establishment_cause, s_tmsi,
-        initial_pP->nas);
   }
+  ue_context_p->sctp_assoc_id_key = initial_pP->sctp_assoc_id;
+  ue_context_p->gnb_ue_ngap_id    = initial_pP->gnb_ue_ngap_id;
+
+  // UEContextRequest
+  ue_context_p->ue_context_request = initial_pP->ue_context_request;
+  OAILOG_DEBUG(
+      LOG_AMF_APP, "ue_context_requext received: %d\n ",
+      ue_context_p->ue_context_request);
+
+  notify_ngap_new_ue_amf_ngap_id_association(ue_context_p);
+  s_tmsi_m5_t s_tmsi = {0};
+  if (initial_pP->is_s_tmsi_valid) {
+    s_tmsi = initial_pP->opt_s_tmsi;
+  } else {
+    s_tmsi.amf_pointer = 0;
+    s_tmsi.m_tmsi      = INVALID_M_TMSI;
+  }
+  is_mm_ctx_new = true;
+
+  OAILOG_DEBUG(
+      LOG_AMF_APP,
+      " Sending NAS Establishment Indication to NAS for ue_id = "
+      "(%d)\n",
+      ue_context_p->amf_ue_ngap_id);
+  nas_proc_establish_ind(
+      ue_context_p->amf_ue_ngap_id, is_mm_ctx_new, initial_pP->tai,
+      initial_pP->ecgi, initial_pP->m5g_rrc_establishment_cause, s_tmsi,
+      initial_pP->nas);
+  //}
   return RETURNok;
 }
 
@@ -530,9 +546,13 @@ void amf_app_handle_pdu_session_response(
       smf_ctx->gtp_tunnel_id.upf_gtp_teid, pdu_session_resp->upf_endpoint.teid,
       sizeof(smf_ctx->gtp_tunnel_id.upf_gtp_teid));
 
-  OAILOG_DEBUG(
+  smf_ctx->n_active_pdus += 1;
+
+  OAILOG_INFO(
       LOG_AMF_APP,
-      "Sending message to gNB for PDUSessionResourceSetupRequest\n");
+      "Sending message to gNB for PDUSessionResourceSetupRequest "
+      "**n_active_pdus=%d **\n",
+      smf_ctx->n_active_pdus);
   amf_rc = pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx);
   if (amf_rc != RETURNok) {
     OAILOG_DEBUG(
@@ -933,6 +953,7 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
       ue_context_release_command(
           ue_id, ue_context->gnb_ue_ngap_id, NGAP_USER_INACTIVITY);
+      ue_context->gnb_ngap_id_key = INVALID_GNB_UE_NGAP_ID_KEY;
 
     } else {
       OAILOG_DEBUG(

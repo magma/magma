@@ -832,4 +832,8 @@ void amf_delete_common_procedure(
     amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
 void delete_wrapper(void** ptr);
 void format_plmn(amf_plmn_t* plmn);
+void amf_ue_context_on_new_guti(
+    ue_m5gmm_context_t* ue_context_p, const guti_m5_t* const guti_p);
+ue_m5gmm_context_s* amf_ue_context_exists_guti(
+    amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p);
 }  // namespace magma5g

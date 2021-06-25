@@ -203,6 +203,12 @@ void amf_app_generate_guti_on_supi(
   amf_guti->guamfi.amf_set_id  = amf_config.guamfi.guamfi[0].amf_set_id;
   amf_guti->guamfi.amf_pointer = amf_config.guamfi.guamfi[0].amf_pointer;
 
+  OAILOG_INFO(
+      LOG_AMF_APP, "amf_region_id %u amf_set_id %u amf_pointer %u",
+      amf_config.guamfi.guamfi[0].amf_regionid,
+      amf_config.guamfi.guamfi[0].amf_set_id,
+      amf_config.guamfi.guamfi[0].amf_pointer);
+
   amf_config_unlock(&amf_config);
   return;
 }

@@ -394,11 +394,11 @@ int M5GSMobileIdentityMsg::EncodeGutiMobileIdentityMsg(
   *(buffer + encoded) = 0x00 | guti->amf_regionid;
   MLOG(MDEBUG) << "amf_regionid = " << hex << int(*(buffer + encoded));
   encoded++;
-  *(buffer + encoded) = 0x00 | guti->amf_setid;
+  *(buffer + encoded) = 0x00 | ((guti->amf_setid >> 2) & 0xFF);
   MLOG(MDEBUG) << "amf_setid = " << hex << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) =
-      0x00 | ((guti->amf_setid & 0x03) << 6) | (guti->amf_pointer & 0x3f);
+      0x00 | ((guti->amf_setid & 0xF3) << 6) | (guti->amf_pointer & 0x3f);
   MLOG(MDEBUG) << "amf_setid amf_pointer = " << hex << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) = 0x00 | guti->tmsi1;
