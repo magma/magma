@@ -1357,35 +1357,6 @@ jobs:
       - run: sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
       - magma_slack_notify
 
-  ### DOCUSAURUS
-
-  docusaurus_build_and_deploy:
-    docker:
-      - image: circleci/node:8.11.1
-    environment:
-      DOCUSAURUS_URL: https://magma.github.io
-      DOCUSAURUS_BASE_URL: /magma/
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *docs_only
-      - run:
-          name: Setup docusaurus expected directory structure
-          command: |
-            mv docs/docusaurus website/
-            mv docs/readmes readmes/
-            rm -rf docs/
-            mv readmes/ docs/
-      - run:
-          name: Deploying to GitHub Pages
-          command: |
-            git config --global user.email "bots@magmacore.org"
-            git config --global user.name "magma-docusaurus-bot"
-            echo "machine github.com login magma-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
-            cd website && yarn install
-            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=magma-docusaurus-bot yarn run publish-gh-pages
-      - magma_slack_notify
-
   ### XWF
 
   xwfm-test:
@@ -1726,11 +1697,6 @@ workflows:
             - eslint
             - nms-yarn-test
             - nms-e2e-test
-
-  docusaurus:
-   jobs:
-    - docusaurus_build_and_deploy:
-        <<: *only_master
 
   fossa:
     jobs:
