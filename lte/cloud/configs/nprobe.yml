@@ -39,4 +39,4 @@ exporterCrt: /var/opt/magma/certs/nprobe.pem
 
 # skipVerifyServer enables exporter to skip server
 # tls certificate verifications
-skipVerifyServer: true
+skipVerifyServer: false
