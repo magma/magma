@@ -22,9 +22,9 @@ using namespace lte;
 class PollStatsThread {
  public:
   /**
-   * start_loop is the main function to call to initiate a load lv oop. Based
+   * start_loop is the main function to call to initiate a loop. Based
    * on the given loop interval length, this function will poll stats from
-   * Pipelined and call the enforcer callback
+   * Pipelined every loop_interval_seconds
    */
   void start_loop(
       std::shared_ptr<LocalEnforcer> local_enforcer,

@@ -148,7 +148,6 @@ void LocalEnforcer::setup(
 }
 
 void LocalEnforcer::PollStats() {
-  MLOG(MINFO) << "Calling upon pipelined client";
   pipelined_client_->poll_stats(0, 0, NULL);
 }
 

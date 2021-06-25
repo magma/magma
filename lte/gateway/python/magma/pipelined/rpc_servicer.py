@@ -957,7 +957,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
 
         fut = Future()
-        logging.info("Polling pipelined")
         self._loop.call_soon_threadsafe(self.get_stats, request, fut)
 
         try:
