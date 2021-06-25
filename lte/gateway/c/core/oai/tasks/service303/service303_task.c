@@ -84,7 +84,7 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case APPLICATION_STATS_MSG: {
       service303_mme_statistics_read(
           &received_message_p->ittiMsg.application_mme_stats_msg);
-    }
+    } break;
     case TERMINATE_MESSAGE:
       free(received_message_p);
       service303_message_exit();
