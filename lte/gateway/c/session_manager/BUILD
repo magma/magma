@@ -14,12 +14,29 @@ cc_library(
 	hdrs = ["Utilities.h", "GrpcMagmaUtils.h", "DiameterCodes.h", "SessionID.h"],
 	deps = [":logging"],
 )
-
 cc_library(
 	name = "credit_key",
 	hdrs = ["CreditKey.h"],
 	deps = [
 		"//lte/protos:policydb_cc_proto",
+		"//lte/protos:session_manager_cc_proto",
+	],
+)
+cc_library(
+	name = "types",
+	hdrs = ["Types.h"],
+	deps = [
+		":credit_key",
+		"//lte/protos:pipelined_cc_proto",
+		"//lte/protos:session_manager_cc_proto",
+	],
+)
+cc_library(
+	name = "service_action",
+	hdrs = ["ServiceAction.h"],
+	deps = [
+		":credit_key",
+		":types",
 		"//lte/protos:session_manager_cc_proto",
 	],
 )
