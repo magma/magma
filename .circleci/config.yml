@@ -239,9 +239,16 @@ commands:
       tag-latest:
         default: false
         type: boolean
+      tag-release:
+        type: boolean
+        default: false
+      force-push:
+        type: boolean
+        default: false
     steps:
       - run: |
-          if [ "${CIRCLE_BRANCH}" != "master" ]; then
+          FORCE_PUSH=<< parameters.force-push >>
+          if [ "${CIRCLE_BRANCH}" != "master" && "$FORCE_PUSH" = false ]; then
             echo "Push only happens for master branch"
             exit 0
           fi
@@ -257,6 +264,7 @@ commands:
           PROJECT=<< parameters.project >>
           TAG=<< parameters.tag >>
           TAG_LATEST=<< parameters.tag-latest >>
+          TAG_RELEASE=<< parameters.tag-release >>
 
           function tag_and_push {
             docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
@@ -273,6 +281,9 @@ commands:
             tag_and_push "$TAG"
             if [ "$TAG_LATEST" = true ]; then
               tag_and_push "latest"
+            fi
+            if [ "$TAG_RELEASE" = true ]; then
+              tag_and_push "1.6.0"
             fi
           done
 
@@ -684,6 +695,8 @@ jobs:
           registry: $JFROG_DOCKER_ORC8R_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -744,6 +757,19 @@ jobs:
           file: /home/circleci/project/feg/gateway/coverage/feg.gocov
           flags: feg-lint
       - magma_slack_notify
+
+  lte-agw-deploy-release:
+    machine:
+      image: ubuntu-1604:201903-01
+    steps:
+      - magma_integ_test:
+          stack: lte
+          test: 'False'
+          build: 'True'
+          deploy: 'True'
+      - notify-magma:
+          artifact_name: LTE AGW
+          version_path: versions/magma_version
 
   feg-precommit:
     machine:
@@ -815,6 +841,8 @@ jobs:
           registry: $JFROG_DOCKER_FEG_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -915,6 +943,8 @@ jobs:
           registry: $JFROG_DOCKER_CWF_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: cwag
       - notify-magma:
@@ -1216,6 +1246,8 @@ jobs:
           registry: $JFROG_DOCKER_CWF_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: cwf_operator
       - notify-magma:
@@ -1320,6 +1352,8 @@ jobs:
           registry: $JFROG_DOCKER_ORC8R_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-release: true
+          force-push: true
       - persist-githash-version:
           file_prefix: nms
       - notify-magma:
@@ -1602,7 +1636,7 @@ workflows:
     jobs:
       - release-hold:
           type: approval
-      - lte-agw-deploy:
+      - lte-agw-deploy-release:
           requires:
             - release-hold
       - cwag-deploy:
