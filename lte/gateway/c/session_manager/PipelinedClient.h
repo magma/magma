@@ -288,6 +288,17 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const magma::UEMacFlowRequest req, const int retries, Status status,
       FlowResponse resp);
 
+  /**
+   * @brief Retrieves relevant records from Pipelined stats enforcements table
+   * based on cookie and cookie mask
+   *
+   * @param cookie require matching entries to contain the cookie value
+   * @param cookie_mask mask used to restrict the cookie bits that must match
+   */
+  void poll_stats(
+      int cookie, int cookie_mask,
+      std::function<void(Status, RuleRecordTable)> callback);
+
   uint32_t get_next_teid();
   uint32_t get_current_teid();
 
@@ -336,6 +347,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   void set_upf_session_rpc(
       const SessionSet& request,
       std::function<void(Status, UPFSessionContextState)> callback);
+
+  void poll_stats_rpc(
+      const GetStatsRequest& request,
+      std::function<void(Status, RuleRecordTable)> callback);
 };
 
 }  // namespace magma

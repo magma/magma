@@ -16,7 +16,7 @@
 
 - name: sleep for a while before deleting filesystem
   pause:
-    minutes: 2
+    minutes: "{{ varDefaultSleep }}"
 
 - name: delete orc8r efs volume
   command: aws efs delete-file-system --file-system-id "{{ item.file_system_id }}"
@@ -25,4 +25,3 @@
     - "{{ valEfs.efs }}"
   environment:
     AWS_REGION: "{{ awsOrc8rRegion }}"
-

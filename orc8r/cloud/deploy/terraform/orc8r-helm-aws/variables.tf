@@ -167,7 +167,7 @@ variable "orc8r_deployment_type" {
 variable "orc8r_chart_version" {
   description = "Version of the core orchestrator Helm chart to install."
   type        = string
-  default     = "1.5.22"
+  default     = "1.5.23"
 }
 
 variable "cwf_orc8r_chart_version" {
@@ -191,7 +191,7 @@ variable "feg_orc8r_chart_version" {
 variable "lte_orc8r_chart_version" {
   description = "Version of the orchestrator lte module Helm chart to install."
   type        = string
-  default     = "0.2.4"
+  default     = "0.2.5"
 }
 
 variable "wifi_orc8r_chart_version" {
@@ -246,6 +246,12 @@ variable "elasticsearch_endpoint" {
   description = "Endpoint of the Elasticsearch datasink for aggregated logs and events."
   type        = string
   default     = null
+}
+
+variable "elasticsearch_disk_threshold" {
+  description = "Size threshold in GB."
+  type        = number
+  default     = 10
 }
 
 variable "elasticsearch_retention_days" {
@@ -401,27 +407,27 @@ variable "analytics_metrics_prefix" {
 
 variable "analytics_app_secret" {
   description = "App secret for which the metrics is to be exported to"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 
 variable "analytics_app_id" {
   description = "App ID for which the metrics is to be exported to"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "analytics_metric_export_url" {
   description = "Metric Export URL"
-  type = string
-  default = ""
+  type        = string
+  default     = ""
 }
 
 variable "analytics_category_name" {
   description = "Category under which the exported metrics will be placed under"
-  type = string
-  default = "magma"
+  type        = string
+  default     = "magma"
 }
 
 

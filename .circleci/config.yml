@@ -276,6 +276,55 @@ commands:
             fi
           done
 
+  sentry-upload:
+    parameters:
+      executable_name:
+        description: Name of executable that should be pushed to sentry
+        type: string
+    steps:
+      - run:
+          name: Upload debug artifacts for an executable to Sentry.io
+          command: |
+            # The assumption here is that packages.tar.gz was tarred in
+            # $MAGMA_ROOT/circleci in the magma_integ_test step
+            cd circleci/executables
+
+            SENTRY_ORG="lf-9c"
+            NATIVE_PROJECT="lab-agws-native"
+            EXEC="<< parameters.executable_name >>"
+            objcopy --only-keep-debug "$EXEC" "$EXEC".debug
+            objcopy --strip-debug --strip-unneeded "$EXEC"
+            objcopy --add-gnu-debuglink="$EXEC".debug "$EXEC"
+
+            # [Optional] Log included debug information
+            sentry-cli difutil check "$EXEC"
+            sentry-cli difutil check "$EXEC".debug
+
+            # Upload the debug artifact with `symtab`, `debug`, and `sources`
+            sentry-cli upload-dif --log-level=info --org="$SENTRY_ORG" --project="$NATIVE_PROJECT" --include-sources  "$EXEC".debug
+            # Upload the stripped executable with `unwind`
+            sentry-cli upload-dif --log-level=info --org="$SENTRY_ORG" --project="$NATIVE_PROJECT" "$EXEC"
+
+  sentry-release:
+    steps:
+      - run: curl -sL https://sentry.io/get-cli/ | bash
+      - run:
+          name: Export Sentry Env Vars
+          command: |
+            echo export SENTRY_ENVIRONMENT="staging" >> $BASH_ENV
+            echo export SENTRY_ORG="lf-9c" >> $BASH_ENV
+      - sentry-upload:
+          executable_name: sessiond
+      - sentry-upload:
+          executable_name: mme
+      - run:
+          name: Create a release in Sentry.io with the commit hash
+          command: |
+            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${CIRCLE_SHA1:0:8}
+            sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${CIRCLE_SHA1:0:8}
+            sentry-cli --log-level=info releases finalize ${CIRCLE_SHA1:0:8}
+
+
   magma_integ_test:
     parameters:
       stack:
@@ -348,7 +397,7 @@ commands:
                for i in `ls -a1 *.deb`
                do
                   echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/stretch-ci/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"
@@ -495,20 +544,6 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
-  sentry-release:
-    docker:
-      - image: circleci/node:4.8.2
-    environment:
-      SENTRY_ENVIRONMENT: staging
-      SENTRY_ORG: lf-9c
-    steps:
-      - checkout  # check out the code in the project directory
-      - run: curl -sL https://sentry.io/get-cli/ | bash
-      - run: |
-          sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${CIRCLE_SHA1:0:8}
-          sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${CIRCLE_SHA1:0:8}
-          sentry-cli --log-level=info releases finalize ${CIRCLE_SHA1:0:8}
-
   backport:
     machine:
       image: ubuntu-1604:201903-01
@@ -1141,6 +1176,7 @@ jobs:
           test: 'False'
           build: 'True'
           deploy: 'True'
+      - sentry-release
       - notify-magma:
           artifact_name: LTE AGW
           version_path: versions/magma_version
@@ -1573,10 +1609,6 @@ workflows:
             - mme_test
             - lte-integ-test
       - c-cpp-codecov
-      - sentry-release:
-          <<: *only_master
-          requires:
-            - lte-agw-deploy
 
   release:
     jobs:

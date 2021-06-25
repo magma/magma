@@ -38,7 +38,8 @@ def input_to_type(input_str: str, input_type: str):
     ''' convert input string to its appropriate type '''
     if input_type == 'map':
         return json.loads(input_str)
-
+    elif input_type == 'bool':
+        return input_str.lower() in ["true", "True"]
     return input_str
 
 
@@ -81,10 +82,11 @@ class ConfigManager(object):
         click.echo(f"Setting key {key} value {value} "
                    f"for component {component}")
         config_vars = self.config_vars[component]
-        if not config_vars.get(key):
+        config_info = config_vars.get(key)
+        if not config_info:
             print_error_msg(f"{key} not a valid attribute in {component}")
             return
-        self.configs[component][key] = value
+        self.configs[component][key] = input_to_type(value, config_info.get('Type'))
 
     def commit(self, component):
         set_aws_configs(self.aws_vars, self.configs[component])
@@ -94,6 +96,9 @@ class ConfigManager(object):
     def configure(self, component: str):
         print_title(f"\nConfiguring {component} deployment variables")
         cfgs = self.configs[component]
+
+        self.initialize_defaults(component)
+
         # TODO: use a different yaml loader to ensure we load inorder
         # sort the variables to group the inputs together
         config_vars = self.config_vars[component].items()
@@ -196,8 +201,7 @@ class ConfigManager(object):
         except OSError:
             click.echo(f"Failed opening vars file {vars_fn}")
 
-        # read all configs to initialize defaults and to identify
-        # app specific configs(terraform, awscli etc)
+        # read configs
         for component in constants['components']:
             self.configs[component] = {}
             try:
@@ -206,7 +210,6 @@ class ConfigManager(object):
             except OSError:
                 pass
 
-            cfgs = self.configs[component]
             for config_key, config_info in self.config_vars[component].items():
                 if 'tf' in config_info["ConfigApps"]:
                     self.tf_vars.add(config_key)
@@ -214,8 +217,18 @@ class ConfigManager(object):
                 if 'awscli' in config_info["ConfigApps"]:
                     self.aws_vars.add(config_key)
 
-                # add defaults to configs inorder to run prechecks
-                default = config_info.get('Default')
-                typ = config_info.get('Type')
-                if default is not None:
-                    cfgs[config_key] = input_to_type(default, typ)
+    def initialize_defaults(self, component):
+        cfgs = self.configs[component]
+        for config_key, config_info in self.config_vars[component].items():
+            # add defaults to configs inorder to run prechecks
+            default = config_info.get('Default')
+            typ = config_info.get('Type')
+            if default is not None:
+                curr_val = cfgs.get(config_key)
+
+                # if defaults are overriden already, explicitly confirm
+                # to reset defaults
+                if (not curr_val or (curr_val and default != curr_val and
+                    click.confirm(f"Override {config_key} "
+                    f"current val {curr_val} with default {default}"))):
+                    cfgs[config_key] = default

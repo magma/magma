@@ -595,7 +595,7 @@ void mme_ue_context_dump_coll_keys(const mme_ue_context_t* mme_ue_contexts_p) {
 }
 
 //------------------------------------------------------------------------------
-int mme_insert_ue_context(
+status_code_e mme_insert_ue_context(
     mme_ue_context_t* const mme_ue_context_p,
     const struct ue_mm_context_s* const ue_context_p) {
   hashtable_rc_t h_rc                 = HASH_TABLE_OK;
@@ -703,7 +703,7 @@ int mme_insert_ue_context(
     // filled guti
     if ((0 != ue_context_p->emm_context._guti.gummei.mme_code) ||
         (0 != ue_context_p->emm_context._guti.gummei.mme_gid) ||
-        (0 != ue_context_p->emm_context._guti.m_tmsi) ||
+        (INVALID_TMSI != ue_context_p->emm_context._guti.m_tmsi) ||
         (0 != ue_context_p->emm_context._guti.gummei.plmn
                   .mcc_digit1) ||  // MCC 000 does not exist in ITU table
         (0 != ue_context_p->emm_context._guti.gummei.plmn.mcc_digit2) ||
@@ -1754,7 +1754,8 @@ void mme_app_handle_enb_reset_req(
   }
 
   // Send Reset Ack to S1AP module
-  msg = itti_alloc_new_message(TASK_MME_APP, S1AP_ENB_INITIATED_RESET_ACK);
+  msg = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_MME_APP, S1AP_ENB_INITIATED_RESET_ACK);
   reset_ack = &S1AP_ENB_INITIATED_RESET_ACK(msg);
 
   // ue_to_reset_list needs to be freed by S1AP module

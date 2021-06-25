@@ -848,7 +848,7 @@ static int send_attach_accept(struct emm_context_s* emm_ctx_p) {
 }
 
 //------------------------------------------------------------------------------
-int emm_send_cs_domain_attach_or_tau_accept(
+status_code_e emm_send_cs_domain_attach_or_tau_accept(
     struct ue_mm_context_s* ue_context_p) {
   int rc                    = RETURNok;
   emm_fsm_state_t fsm_state = EMM_DEREGISTERED;
@@ -1150,7 +1150,7 @@ static int emm_cn_pdn_disconnect_rsp(emm_cn_pdn_disconnect_rsp_t* msg) {
 }
 
 //------------------------------------------------------------------------------
-int emm_cn_send(const emm_cn_t* msg) {
+status_code_e emm_cn_send(const emm_cn_t* msg) {
   int rc                       = RETURNerror;
   emm_cn_primitive_t primitive = msg->primitive;
 

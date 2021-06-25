@@ -5229,6 +5229,36 @@ paths:
       summary: Modify a rating group
       tags:
       - Rating Groups
+  /networks/{network_id}/sentry:
+    get:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      responses:
+        "200":
+          description: Network-wide Sentry.io configuration
+          schema:
+            $ref: '#/definitions/network_sentry_config'
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Get the Sentry.io configuration for network
+      tags:
+      - Networks
+    put:
+      parameters:
+      - $ref: '#/parameters/network_id'
+      - in: body
+        name: network_sentry_config
+        required: true
+        schema:
+          $ref: '#/definitions/network_sentry_config'
+      responses:
+        "204":
+          description: Success
+        default:
+          $ref: '#/responses/UnexpectedError'
+      summary: Update the Sentry.io configuration for network
+      tags:
+      - Networks
   /networks/{network_id}/tiers:
     get:
       parameters:
@@ -10294,6 +10324,31 @@ definitions:
         x-go-custom-tag: magma_alt_name:"NetworkRANConfigTDDConfig"
     required:
     - bandwidth_mhz
+    type: object
+  network_sentry_config:
+    description: Sentry.io configuration
+    properties:
+      sample_rate:
+        example: 0.5
+        format: float
+        maximum: 1
+        minimum: 0
+        type: number
+      upload_mme_log:
+        example: false
+        type: boolean
+      url_native:
+        example: https://examplePublicKey@o0.ingest.sentry.io/0
+        format: uri
+        minLength: 0
+        type: string
+        x-nullable: false
+      url_python:
+        example: https://examplePublicKey@o0.ingest.sentry.io/0
+        format: uri
+        minLength: 0
+        type: string
+        x-nullable: false
     type: object
   network_subscriber_config:
     description: Network-wide Subscriber Configuration

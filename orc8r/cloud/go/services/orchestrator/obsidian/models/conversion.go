@@ -75,6 +75,14 @@ func (m *NetworkFeatures) ToUpdateCriteria(network configurator.Network) (config
 	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.NetworkFeaturesConfig, m), nil
 }
 
+func (m *NetworkSentryConfig) GetFromNetwork(network configurator.Network) interface{} {
+	return GetNetworkConfig(network, orc8r.NetworkSentryConfig)
+}
+
+func (m *NetworkSentryConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.NetworkSentryConfig, m), nil
+}
+
 func (m *NetworkDNSConfig) GetFromNetwork(network configurator.Network) interface{} {
 	return GetNetworkConfig(network, orc8r.DnsdNetworkType)
 }

@@ -37,7 +37,7 @@
 #include "pgw_config.h"
 
 //------------------------------------------------------------------------------
-int pgw_pco_push_protocol_or_container_id(
+status_code_e pgw_pco_push_protocol_or_container_id(
     protocol_configuration_options_t* const pco,
     pco_protocol_or_container_id_t* const
         poc_id /* STOLEN_REF poc_id->contents*/) {
@@ -60,7 +60,7 @@ int pgw_pco_push_protocol_or_container_id(
 }
 
 //------------------------------------------------------------------------------
-int pgw_process_pco_request_ipcp(
+status_code_e pgw_process_pco_request_ipcp(
     protocol_configuration_options_t* const pco_resp,
     const pco_protocol_or_container_id_t* const poc_id) {
   in_addr_t ipcp_dns_prim_ipv4_addr          = INADDR_NONE;
@@ -267,7 +267,7 @@ int pgw_process_pco_request_ipcp(
 }
 
 //------------------------------------------------------------------------------
-int pgw_process_pco_dns_server_request(
+status_code_e pgw_process_pco_dns_server_request(
     protocol_configuration_options_t* const pco_resp,
     const pco_protocol_or_container_id_t* const poc_id) {
   in_addr_t ipcp_out_dns_prim_ipv4_addr =
@@ -289,7 +289,7 @@ int pgw_process_pco_dns_server_request(
   return pgw_pco_push_protocol_or_container_id(pco_resp, &poc_id_resp);
 }
 //------------------------------------------------------------------------------
-int pgw_process_pco_link_mtu_request(
+status_code_e pgw_process_pco_link_mtu_request(
     protocol_configuration_options_t* const pco_resp,
     const pco_protocol_or_container_id_t* const poc_id) {
   pco_protocol_or_container_id_t poc_id_resp = {0};
@@ -307,7 +307,7 @@ int pgw_process_pco_link_mtu_request(
 }
 
 //------------------------------------------------------------------------------
-int pgw_process_pco_pcscf_ipv4_address_req(
+status_code_e pgw_process_pco_pcscf_ipv4_address_req(
     protocol_configuration_options_t* const pco_resp) {
   if (!spgw_config.pgw_config.pcscf.ipv4_addr.s_addr) {
     OAILOG_ERROR(
@@ -334,7 +334,7 @@ int pgw_process_pco_pcscf_ipv4_address_req(
 }
 
 //------------------------------------------------------------------------------
-int pgw_process_pco_pcscf_ipv6_address_req(
+status_code_e pgw_process_pco_pcscf_ipv6_address_req(
     protocol_configuration_options_t* const pco_resp) {
   if (!strlen((char*) spgw_config.pgw_config.pcscf.ipv6_addr.s6_addr)) {
     OAILOG_ERROR(
@@ -362,7 +362,7 @@ int pgw_process_pco_pcscf_ipv6_address_req(
 }
 
 //------------------------------------------------------------------------------
-int pgw_process_pco_dns_server_ipv6_address_req(
+status_code_e pgw_process_pco_dns_server_ipv6_address_req(
     protocol_configuration_options_t* const pco_resp) {
   struct in6_addr dns_ipv6_addr = spgw_config.pgw_config.ipv6.dns_ipv6_addr;
   pco_protocol_or_container_id_t poc_id_resp = {0};
@@ -380,7 +380,7 @@ int pgw_process_pco_dns_server_ipv6_address_req(
 
 //------------------------------------------------------------------------------
 
-int pgw_process_pco_request(
+status_code_e pgw_process_pco_request(
     const protocol_configuration_options_t* const pco_req,
     protocol_configuration_options_t* pco_resp,
     protocol_configuration_options_ids_t* const pco_ids) {

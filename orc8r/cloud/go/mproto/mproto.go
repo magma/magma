@@ -29,10 +29,7 @@ func HashManyDeterministic(protosByID map[string]proto.Message) (string, error) 
 	if err != nil {
 		return "", err
 	}
-	// Convert to a constant-length hash of the encoded value.
-	sum := md5.Sum(marshaled)
-	digest := base64.StdEncoding.EncodeToString(sum[:])
-	return digest, nil
+	return getMd5Base64Digest(marshaled)
 }
 
 // marshalManyDeterministic deterministically encodes a slice of protobuf messages,
@@ -57,6 +54,16 @@ func marshalManyDeterministic(protosByID map[string]proto.Message) ([]byte, erro
 	return MarshalDeterministic(&protos.ProtosByID{BytesById: bytesByID})
 }
 
+// HashDeterministic takes a proto message and returns a deterministic base64-encoded
+// md5 hash of the message.
+func HashDeterministic(proto proto.Message) (string, error) {
+	marshaled, err := MarshalDeterministic(proto)
+	if err != nil {
+		return "", err
+	}
+	return getMd5Base64Digest(marshaled)
+}
+
 // MarshalDeterministic encodes protobuf while enforcing deterministic serialization.
 // NOTE: deterministic != canonical, so do not expect this encoding to be
 // equal across languages or even versions of golang/protobuf/proto.
@@ -69,4 +76,11 @@ func MarshalDeterministic(pb proto.Message) ([]byte, error) {
 
 	err := buf.Marshal(pb)
 	return buf.Bytes(), err
+}
+
+// getMd5Base64Digest generates a base64-encoded MD5 digest of the input data.
+func getMd5Base64Digest(bytes []byte) (string, error) {
+	sum := md5.Sum(bytes)
+	digest := base64.StdEncoding.EncodeToString(sum[:])
+	return digest, nil
 }

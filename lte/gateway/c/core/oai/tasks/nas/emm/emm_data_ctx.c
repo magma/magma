@@ -750,7 +750,8 @@ void emm_data_context_remove_mobile_ids(
 }
 //------------------------------------------------------------------------------
 
-int emm_context_upsert_imsi(emm_data_t* emm_data, struct emm_context_s* elm) {
+status_code_e emm_context_upsert_imsi(
+    emm_data_t* emm_data, struct emm_context_s* elm) {
   hashtable_rc_t h_rc = HASH_TABLE_OK;
   mme_ue_s1ap_id_t ue_id =
       (PARENT_STRUCT(elm, struct ue_mm_context_s, emm_context))->mme_ue_s1ap_id;

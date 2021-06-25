@@ -188,10 +188,9 @@ func TestIndexerSessionID(t *testing.T) {
 
 func serialize(t *testing.T, st state_types.State, typ string) state_types.SerializedState {
 	s := state_types.SerializedState{
-		Version:            st.Version,
-		ReporterID:         st.ReporterID,
-		TimeMs:             st.TimeMs,
-		CertExpirationTime: st.CertExpirationTime,
+		Version:    st.Version,
+		ReporterID: st.ReporterID,
+		TimeMs:     st.TimeMs,
 	}
 	rep, err := serde.Serialize(st.ReportedState, typ, serdes.State)
 	assert.NoError(t, err)

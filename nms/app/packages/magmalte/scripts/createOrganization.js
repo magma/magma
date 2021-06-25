@@ -18,6 +18,8 @@
 import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
 import type {Tab} from '@fbcnms/types/tabs';
 
+import Sequelize from 'sequelize';
+
 import {Organization} from '@fbcnms/sequelize-models';
 import {coerceToTab} from '@fbcnms/types/tabs';
 import {difference} from 'lodash';
@@ -71,7 +73,10 @@ async function createOrUpdateOrganization(
 ) {
   const organization = await Organization.findOne({
     where: {
-      name: organizationObject.name,
+      name: Sequelize.where(
+        Sequelize.fn('lower', Sequelize.col('name')),
+        Sequelize.fn('lower', organizationObject.name),
+      ),
     },
   });
   if (!organization) {

@@ -30,8 +30,9 @@
 #include "hashtable.h"
 #include "queue.h"
 #include "nas/commonDef.h"
+#include "common_defs.h"
 #include "common_types.h"
 
-int sgs_init(const mme_config_t* mme_config);
+status_code_e sgs_init(const mme_config_t* mme_config);
 
 #endif

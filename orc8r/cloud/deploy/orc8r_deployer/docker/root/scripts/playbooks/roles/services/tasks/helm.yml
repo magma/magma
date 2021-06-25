@@ -6,6 +6,14 @@
     - install_precheck
     - upgrade_precheck
 
+
+- name: Remove Helm repo if already present
+  ansible.builtin.shell: helm repo remove test
+  ignore_errors: true
+  tags:
+    - install_precheck
+    - upgrade_precheck
+
 - name: Verify the Helm repo
   ansible.builtin.shell: "helm repo add test {{service_configs.helm_repo}} {% if service_configs.helm_user != '' %} --username {{service_configs.helm_user}} --password {{service_configs.helm_pass}}  {% endif %}"
   tags:

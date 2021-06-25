@@ -13,7 +13,11 @@ limitations under the License.
 
 package definitions
 
-import "os"
+import (
+	"os"
+
+	"github.com/pkg/errors"
+)
 
 // GetEnvWithDefault returns the string value of the environment variable,
 // defaulting to a specified value if it doesn't exist.
@@ -21,6 +25,16 @@ func GetEnvWithDefault(variable string, defaultValue string) string {
 	value := os.Getenv(variable)
 	if len(value) == 0 {
 		value = defaultValue
+	}
+	return value
+}
+
+// MustGetEnv returns the string value of the environment variable,
+// panics it doesn't exist
+func MustGetEnv(variable string) string {
+	value := os.Getenv(variable)
+	if len(value) == 0 {
+		panic(errors.Errorf("%s env not found", variable))
 	}
 	return value
 }

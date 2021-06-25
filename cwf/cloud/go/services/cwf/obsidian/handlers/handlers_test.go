@@ -410,7 +410,6 @@ func TestCwfGateways(t *testing.T) {
 		},
 	}
 	expected["g1"].Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
-	expected["g1"].Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/cwf/n1/gateways",
@@ -451,7 +450,6 @@ func TestCwfGateways(t *testing.T) {
 		Status: models.NewDefaultGatewayStatus("hw1"),
 	}
 	expectedGet.Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
-	expectedGet.Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/cwf/n1/gateways/g1",

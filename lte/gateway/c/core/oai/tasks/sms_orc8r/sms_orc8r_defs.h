@@ -27,11 +27,12 @@
 #include <stdint.h>
 #include <netinet/in.h>
 #include "bstrlib.h"
+#include "common_defs.h"
 #include "hashtable.h"
 #include "queue.h"
 #include "nas/commonDef.h"
 #include "common_types.h"
 
-int sms_orc8r_init(const mme_config_t* mme_config);
+status_code_e sms_orc8r_init(const mme_config_t* mme_config);
 
 #endif

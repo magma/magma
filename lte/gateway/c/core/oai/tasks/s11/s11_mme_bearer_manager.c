@@ -49,7 +49,7 @@
 extern hash_table_ts_t* s11_mme_teid_2_gtv2c_teid_handle;
 
 //------------------------------------------------------------------------------
-int s11_mme_release_access_bearers_request(
+status_code_e s11_mme_release_access_bearers_request(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_release_access_bearers_request_t* req_p) {
   nw_gtpv2c_ulp_api_t ulp_req;
@@ -94,7 +94,7 @@ int s11_mme_release_access_bearers_request(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_downlink_data_notification_acknowledge(
+status_code_e s11_mme_downlink_data_notification_acknowledge(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_downlink_data_notification_acknowledge_t* ack_p) {
   nw_gtpv2c_ulp_api_t ulp_ack;
@@ -144,7 +144,7 @@ int s11_mme_downlink_data_notification_acknowledge(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_handle_release_access_bearer_response(
+status_code_e s11_mme_handle_release_access_bearer_response(
     nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
   nw_rc_t rc = NW_OK;
   uint8_t offendingIeType, offendingIeInstance;
@@ -154,8 +154,8 @@ int s11_mme_handle_release_access_bearer_response(
   nw_gtpv2c_msg_parser_t* pMsgParser;
 
   DevAssert(stack_p);
-  message_p =
-      itti_alloc_new_message(TASK_S11, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S11, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
   resp_p = &message_p->ittiMsg.s11_release_access_bearers_response;
 
   resp_p->teid = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);
@@ -196,7 +196,7 @@ int s11_mme_handle_release_access_bearer_response(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_modify_bearer_request(
+status_code_e s11_mme_modify_bearer_request(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_modify_bearer_request_t* req_p) {
   nw_gtpv2c_ulp_api_t ulp_req;
@@ -264,7 +264,7 @@ int s11_mme_modify_bearer_request(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_handle_modify_bearer_response(
+status_code_e s11_mme_handle_modify_bearer_response(
     nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
   nw_rc_t rc = NW_OK;
   uint8_t offendingIeType, offendingIeInstance;
@@ -274,8 +274,9 @@ int s11_mme_handle_modify_bearer_response(
   nw_gtpv2c_msg_parser_t* pMsgParser;
 
   DevAssert(stack_p);
-  message_p = itti_alloc_new_message(TASK_S11, S11_MODIFY_BEARER_RESPONSE);
-  resp_p    = &message_p->ittiMsg.s11_modify_bearer_response;
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S11, S11_MODIFY_BEARER_RESPONSE);
+  resp_p = &message_p->ittiMsg.s11_modify_bearer_response;
 
   resp_p->teid           = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);
   resp_p->internal_flags = pUlpApi->u_api_info.triggeredRspIndInfo.trx_flags;
@@ -348,7 +349,7 @@ int s11_mme_handle_modify_bearer_response(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_delete_bearer_command(
+status_code_e s11_mme_delete_bearer_command(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_delete_bearer_command_t* cmd_p) {
   nw_gtpv2c_ulp_api_t ulp_req;
@@ -395,7 +396,7 @@ int s11_mme_delete_bearer_command(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_handle_create_bearer_request(
+status_code_e s11_mme_handle_create_bearer_request(
     nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
   nw_rc_t rc = NW_OK;
   uint8_t offendingIeType, offendingIeInstance;
@@ -405,7 +406,8 @@ int s11_mme_handle_create_bearer_request(
   nw_gtpv2c_msg_parser_t* pMsgParser;
 
   DevAssert(stack_p);
-  message_p = itti_alloc_new_message(TASK_S11, S11_CREATE_BEARER_REQUEST);
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S11, S11_CREATE_BEARER_REQUEST);
 
   if (message_p) {
     req_p = &message_p->ittiMsg.s11_create_bearer_request;
@@ -472,7 +474,7 @@ int s11_mme_handle_create_bearer_request(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_create_bearer_response(
+status_code_e s11_mme_create_bearer_response(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_create_bearer_response_t* response_p) {
   gtpv2c_cause_t cause;
@@ -538,8 +540,9 @@ int s11_mme_handle_downlink_data_notification(
   MessageDef* message_p;
 
   DevAssert(stack_p);
-  message_p = itti_alloc_new_message(TASK_S10, S11_DOWNLINK_DATA_NOTIFICATION);
-  notif_p   = &message_p->ittiMsg.s11_downlink_data_notification;
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S10, S11_DOWNLINK_DATA_NOTIFICATION);
+  notif_p = &message_p->ittiMsg.s11_downlink_data_notification;
   memset(notif_p, 0, sizeof(*notif_p));
   notif_p->teid = nwGtpv2cMsgGetTeid(
       pUlpApi->hMsg); /**< When the message is sent, this is the field,

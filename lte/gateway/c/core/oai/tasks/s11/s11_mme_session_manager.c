@@ -56,7 +56,7 @@
 extern hash_table_ts_t* s11_mme_teid_2_gtv2c_teid_handle;
 
 //------------------------------------------------------------------------------
-int s11_mme_create_session_request(
+status_code_e s11_mme_create_session_request(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_create_session_request_t* req_p) {
   nw_gtpv2c_ulp_api_t ulp_req = {0};
@@ -171,7 +171,7 @@ int s11_mme_create_session_request(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_handle_create_session_response(
+status_code_e s11_mme_handle_create_session_response(
     nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
   nw_rc_t rc = NW_OK;
   uint8_t offendingIeType, offendingIeInstance;
@@ -181,8 +181,9 @@ int s11_mme_handle_create_session_response(
   nw_gtpv2c_msg_parser_t* pMsgParser;
 
   DevAssert(stack_p);
-  message_p = itti_alloc_new_message(TASK_S11, S11_CREATE_SESSION_RESPONSE);
-  resp_p    = &message_p->ittiMsg.s11_create_session_response;
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S11, S11_CREATE_SESSION_RESPONSE);
+  resp_p = &message_p->ittiMsg.s11_create_session_response;
 
   resp_p->teid = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);
 
@@ -291,7 +292,7 @@ int s11_mme_handle_create_session_response(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_delete_session_request(
+status_code_e s11_mme_delete_session_request(
     nw_gtpv2c_stack_handle_t* stack_p,
     itti_s11_delete_session_request_t* req_p) {
   nw_gtpv2c_ulp_api_t ulp_req;
@@ -349,7 +350,7 @@ int s11_mme_delete_session_request(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_handle_delete_session_response(
+status_code_e s11_mme_handle_delete_session_response(
     nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
   nw_rc_t rc = NW_OK;
   uint8_t offendingIeType, offendingIeInstance;
@@ -360,8 +361,9 @@ int s11_mme_handle_delete_session_response(
   hashtable_rc_t hash_rc                     = HASH_TABLE_OK;
 
   DevAssert(stack_p);
-  message_p = itti_alloc_new_message(TASK_S11, S11_DELETE_SESSION_RESPONSE);
-  resp_p    = &message_p->ittiMsg.s11_delete_session_response;
+  message_p = DEPRECATEDitti_alloc_new_message_fatal(
+      TASK_S11, S11_DELETE_SESSION_RESPONSE);
+  resp_p = &message_p->ittiMsg.s11_delete_session_response;
 
   resp_p->teid           = nwGtpv2cMsgGetTeid(pUlpApi->hMsg);
   resp_p->internal_flags = pUlpApi->u_api_info.triggeredRspIndInfo.trx_flags;
@@ -436,7 +438,7 @@ int s11_mme_handle_delete_session_response(
 }
 
 //------------------------------------------------------------------------------
-int s11_mme_handle_ulp_error_indicatior(
+status_code_e s11_mme_handle_ulp_error_indicatior(
     nw_gtpv2c_stack_handle_t* stack_p, nw_gtpv2c_ulp_api_t* pUlpApi) {
   /** Get the failed transaction. */
   /** Check the message type. */
@@ -449,8 +451,9 @@ int s11_mme_handle_ulp_error_indicatior(
     {
       itti_s11_create_session_response_t* rsp_p;
       /** Respond with an S10 Context Reponse Failure. */
-      message_p = itti_alloc_new_message(TASK_S11, S11_CREATE_SESSION_RESPONSE);
-      rsp_p     = &message_p->ittiMsg.s11_create_session_response;
+      message_p = DEPRECATEDitti_alloc_new_message_fatal(
+          TASK_S11, S11_CREATE_SESSION_RESPONSE);
+      rsp_p = &message_p->ittiMsg.s11_create_session_response;
       memset(rsp_p, 0, sizeof(*rsp_p));
       /** Set the destination TEID (our TEID). */
       rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
@@ -463,8 +466,9 @@ int s11_mme_handle_ulp_error_indicatior(
     } break;
     case NW_GTP_MODIFY_BEARER_REQ: {
       itti_s11_modify_bearer_response_t* rsp_p;
-      message_p = itti_alloc_new_message(TASK_S11, S11_MODIFY_BEARER_RESPONSE);
-      rsp_p     = &message_p->ittiMsg.s11_modify_bearer_response;
+      message_p = DEPRECATEDitti_alloc_new_message_fatal(
+          TASK_S11, S11_MODIFY_BEARER_RESPONSE);
+      rsp_p = &message_p->ittiMsg.s11_modify_bearer_response;
       memset(rsp_p, 0, sizeof(*rsp_p));
       /** Set the destination TEID (our TEID). */
       rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
@@ -481,8 +485,9 @@ int s11_mme_handle_ulp_error_indicatior(
        * UE context should always be removed.
        */
       itti_s11_delete_session_response_t* rsp_p;
-      message_p = itti_alloc_new_message(TASK_S11, S11_DELETE_SESSION_RESPONSE);
-      rsp_p     = &message_p->ittiMsg.s11_delete_session_response;
+      message_p = DEPRECATEDitti_alloc_new_message_fatal(
+          TASK_S11, S11_DELETE_SESSION_RESPONSE);
+      rsp_p = &message_p->ittiMsg.s11_delete_session_response;
       memset(rsp_p, 0, sizeof(*rsp_p));
       /** Set the destination TEID (our TEID). */
       rsp_p->teid = pUlpApi->u_api_info.rspFailureInfo.teidLocal;
@@ -506,8 +511,8 @@ int s11_mme_handle_ulp_error_indicatior(
        * UE context should always be removed.
        */
       itti_s11_release_access_bearers_response_t* rsp_p;
-      message_p =
-          itti_alloc_new_message(TASK_S11, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
+      message_p = DEPRECATEDitti_alloc_new_message_fatal(
+          TASK_S11, S11_RELEASE_ACCESS_BEARERS_RESPONSE);
       rsp_p = &message_p->ittiMsg.s11_release_access_bearers_response;
       memset(rsp_p, 0, sizeof(*rsp_p));
       /** Set the destination TEID (our TEID). */

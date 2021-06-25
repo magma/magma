@@ -44,15 +44,15 @@
 extern task_zmq_ctx_t s1ap_task_zmq_ctx;
 extern long s1ap_last_msg_latency;
 
-int s1ap_mme_itti_send_sctp_request(
+status_code_e s1ap_mme_itti_send_sctp_request(
     STOLEN_REF bstring* payload, const uint32_t sctp_assoc_id_t,
     const sctp_stream_id_t stream, const mme_ue_s1ap_id_t ue_id);
 
-int s1ap_mme_itti_nas_uplink_ind(
+status_code_e s1ap_mme_itti_nas_uplink_ind(
     const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload,
     const tai_t* const tai, const ecgi_t* const cgi);
 
-int s1ap_mme_itti_nas_downlink_cnf(
+status_code_e s1ap_mme_itti_nas_downlink_cnf(
     const mme_ue_s1ap_id_t ue_id, const bool is_success);
 
 void s1ap_mme_itti_s1ap_initial_ue_message(
@@ -71,7 +71,7 @@ void s1ap_mme_itti_nas_non_delivery_ind(
     const size_t nas_msg_length, const S1ap_Cause_t* const cause,
     imsi64_t imsi64);
 
-int s1ap_mme_itti_s1ap_path_switch_request(
+status_code_e s1ap_mme_itti_s1ap_path_switch_request(
     const sctp_assoc_id_t assoc_id, const uint32_t enb_id,
     const enb_ue_s1ap_id_t enb_ue_s1ap_id,
     const e_rab_to_be_switched_in_downlink_list_t* const
@@ -80,13 +80,13 @@ int s1ap_mme_itti_s1ap_path_switch_request(
     const tai_t* const tai, const uint16_t encryption_algorithm_capabilitie,
     uint16_t integrity_algorithm_capabilities, imsi64_t imsi64);
 
-int s1ap_mme_itti_s1ap_handover_required(
+status_code_e s1ap_mme_itti_s1ap_handover_required(
     const sctp_assoc_id_t assoc_id, uint32_t enb_id, const S1ap_Cause_t cause,
     const S1ap_HandoverType_t handover_type,
     const mme_ue_s1ap_id_t mme_ue_s1ap_id, const bstring src_tgt_container,
     imsi64_t imsi64);
 
-int s1ap_mme_itti_s1ap_handover_request_ack(
+status_code_e s1ap_mme_itti_s1ap_handover_request_ack(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
     const enb_ue_s1ap_id_t src_enb_ue_s1ap_id,
     const enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id,
@@ -95,7 +95,7 @@ int s1ap_mme_itti_s1ap_handover_request_ack(
     const uint32_t source_enb_id, const uint32_t target_enb_id,
     imsi64_t imsi64);
 
-int s1ap_mme_itti_s1ap_handover_notify(
+status_code_e s1ap_mme_itti_s1ap_handover_notify(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
     const s1ap_handover_state_t handover_state,
     const enb_ue_s1ap_id_t target_ue_s1ap_id,

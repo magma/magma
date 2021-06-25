@@ -85,7 +85,7 @@ static void* ha_thread(__attribute__((unused)) void* args_p) {
 }
 
 //------------------------------------------------------------------------------
-int ha_init(const mme_config_t* mme_config_p) {
+status_code_e ha_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing HA task interface\n");
 
   if (itti_create_task(TASK_HA, &ha_thread, NULL) < 0) {

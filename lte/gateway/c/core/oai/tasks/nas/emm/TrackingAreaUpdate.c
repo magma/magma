@@ -89,7 +89,8 @@ static int send_tau_accept_and_check_for_neaf_flag(
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int emm_proc_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
+status_code_e emm_proc_tracking_area_update_accept(
+    nas_emm_tau_proc_t* const tau_proc) {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   rc = emm_tracking_area_update_accept(tau_proc);
@@ -108,7 +109,7 @@ int emm_proc_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
  ** Outputs: Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int csfb_handle_tracking_area_req(
+status_code_e csfb_handle_tracking_area_req(
     emm_context_t* emm_context_p, emm_tau_request_ies_t* ies) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_mm_context_t* ue_mm_context = NULL;
@@ -190,7 +191,7 @@ int csfb_handle_tracking_area_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
 }
 
-int emm_proc_tracking_area_update_request(
+status_code_e emm_proc_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
     tac_t tac) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -423,7 +424,7 @@ int emm_proc_tracking_area_update_request(
  **                  Others:    _emm_data                                  **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_tracking_area_update_reject(
+status_code_e emm_proc_tracking_area_update_reject(
     const mme_ue_s1ap_id_t ue_id, const int emm_cause) {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -580,13 +581,6 @@ static int emm_tracking_area_update_reject(
   }
   rc = emm_sap_send(&emm_sap);
   increment_counter("tracking_area_update", 1, 1, "action", "tau_reject_sent");
-
-  // Release EMM context
-  if (emm_context) {
-    if (emm_context->is_dynamic) {
-      _clear_emm_ctxt(emm_context);
-    }
-  }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -963,7 +957,7 @@ void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies) {
  **      Others:    _emm_data, T3450                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id) {
+status_code_e emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id) {
   emm_context_t* emm_ctx               = NULL;
   struct ue_mm_context_s* ue_context_p = NULL;
 

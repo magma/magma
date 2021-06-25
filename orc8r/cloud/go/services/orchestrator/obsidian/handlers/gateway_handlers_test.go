@@ -93,7 +93,6 @@ func TestListGateways(t *testing.T) {
 
 	expectedState := models.NewDefaultGatewayStatus("hw1")
 	expectedState.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
-	expectedState.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
 
 	expectedResult = map[string]models.MagmadGateway{
 		"g1": {ID: "g1", Magmad: &models.MagmadGatewayConfigs{}, Device: gatewayRecord, Status: expectedState},
@@ -395,7 +394,6 @@ func TestGetGateway(t *testing.T) {
 		Status: models.NewDefaultGatewayStatus("hw1"),
 	}
 	expected.Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
-	expected.Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
 
 	tc := tests.Test{
 		Method:         "GET",
@@ -738,7 +736,6 @@ func TestGetPartialReadHandlers(t *testing.T) {
 
 	expectedState := models.NewDefaultGatewayStatus("hw1")
 	expectedState.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
-	expectedState.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
 
 	// happy path state
 	tc = tests.Test{

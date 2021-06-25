@@ -60,6 +60,7 @@ typedef enum {
   EMM_STATE_MAX
 } emm_fsm_state_t;
 
+#include "common_defs.h"
 #include "emm_regDef.h"
 #include "3gpp_36.401.h"
 
@@ -78,13 +79,13 @@ void emm_fsm_initialize(void);
 struct emm_context_s;
 struct emm_reg_s;
 
-int emm_fsm_set_state(
+status_code_e emm_fsm_set_state(
     const mme_ue_s1ap_id_t ueid, struct emm_context_s* const emm_context,
     const emm_fsm_state_t status);
 emm_fsm_state_t emm_fsm_get_state(
     const struct emm_context_s* const emm_context);
 const char* emm_fsm_get_state_str(
     const struct emm_context_s* const emm_context);
-int emm_fsm_process(struct emm_reg_s* const evt);
+status_code_e emm_fsm_process(struct emm_reg_s* const evt);
 
 #endif /* FILE_EMM_FSM_SEEN*/

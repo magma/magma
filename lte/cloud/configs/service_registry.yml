@@ -59,6 +59,12 @@ services:
         /magma/v1/lte/:network_id/subscribers,
         /magma/v1/lte/:network_id/subscribers_v2,
 
+  subscriberdb_cache:
+    host: "localhost"
+    port: 9089
+    echo_port: 10087
+    proxy_type: "clientcert"
+
   policydb:
     host: "localhost"
     port: 9085

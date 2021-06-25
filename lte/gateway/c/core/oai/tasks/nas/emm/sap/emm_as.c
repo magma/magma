@@ -164,7 +164,7 @@ void emm_as_initialize(void) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_as_send(emm_as_t* msg) {
+status_code_e emm_as_send(emm_as_t* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc                       = RETURNok;
   int emm_cause                = EMM_CAUSE_SUCCESS;

@@ -20,8 +20,8 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.6.0 # magma version number
-SCTPD_MIN_VERSION=1.6.0 # earliest version of sctpd with which this version is compatible
+VERSION=1.7.0 # magma version number
+SCTPD_MIN_VERSION=1.7.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -30,7 +30,7 @@ BUILD_TYPE=Debug
 COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
 CERT_FILE="$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 CONTROL_PROXY_FILE="$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
-OS="debian"
+OS="ubuntu"
 
 while [[ $# -gt 0 ]]
 do
@@ -439,4 +439,3 @@ if grep -q stretch /etc/os-release; then
       "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
   fi
 fi
-

@@ -45,6 +45,7 @@ Description Defines callback functions executed within EMM common procedures
 #define FILE_EMM_COMMON_SEEN
 #include <pthread.h>
 
+#include "common_defs.h"
 #include "common_types.h"
 #include "tree.h"
 #include "3gpp_36.401.h"
@@ -106,19 +107,21 @@ extern emm_common_data_head_t emm_common_data_head;
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int emm_proc_common_initialize(
+status_code_e emm_proc_common_initialize(
     mme_ue_s1ap_id_t ue_id, emm_common_success_callback_t success,
     emm_common_reject_callback_t reject, emm_common_failure_callback_t failure,
     emm_common_ll_failure_callback_t ll_failure,
     emm_common_non_delivered_callback_t non_delivered,
     emm_common_abort_callback_t abort, void* args);
 
-int emm_proc_common_success(emm_common_data_t* emm_common_data_ctx);
-int emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx);
-int emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx);
-int emm_proc_common_ll_failure(emm_common_data_t* emm_common_data_ctx);
-int emm_proc_common_non_delivered(emm_common_data_t* emm_common_data_ctx);
-int emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx);
+status_code_e emm_proc_common_success(emm_common_data_t* emm_common_data_ctx);
+status_code_e emm_proc_common_reject(emm_common_data_t* emm_common_data_ctx);
+status_code_e emm_proc_common_failure(emm_common_data_t* emm_common_data_ctx);
+status_code_e emm_proc_common_ll_failure(
+    emm_common_data_t* emm_common_data_ctx);
+status_code_e emm_proc_common_non_delivered(
+    emm_common_data_t* emm_common_data_ctx);
+status_code_e emm_proc_common_abort(emm_common_data_t* emm_common_data_ctx);
 
 void* emm_proc_common_get_args(mme_ue_s1ap_id_t ue_id);
 // Free args and set it to NULL

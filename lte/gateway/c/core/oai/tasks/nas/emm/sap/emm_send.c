@@ -92,7 +92,8 @@
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_status(const emm_as_status_t* msg, emm_status_msg* emm_msg) {
+status_code_e emm_send_status(
+    const emm_as_status_t* msg, emm_status_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -129,7 +130,7 @@ int emm_send_status(const emm_as_status_t* msg, emm_status_msg* emm_msg) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_detach_accept(
+status_code_e emm_send_detach_accept(
     const emm_as_data_t* msg, detach_accept_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -158,7 +159,7 @@ int emm_send_detach_accept(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int emm_send_nw_detach_request(
+status_code_e emm_send_nw_detach_request(
     const emm_as_data_t* msg, nw_detach_request_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -205,7 +206,7 @@ int emm_send_nw_detach_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_attach_accept(
+status_code_e emm_send_attach_accept(
     const emm_as_establish_t* msg, attach_accept_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -518,7 +519,7 @@ int emm_send_attach_accept(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int emm_send_attach_accept_dl_nas(
+status_code_e emm_send_attach_accept_dl_nas(
     const emm_as_data_t* msg, attach_accept_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -772,7 +773,7 @@ int emm_send_attach_accept_dl_nas(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_attach_reject(
+status_code_e emm_send_attach_reject(
     const emm_as_establish_t* msg, attach_reject_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -825,7 +826,7 @@ int emm_send_attach_reject(
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_tracking_area_update_accept(
+status_code_e emm_send_tracking_area_update_accept(
     const emm_as_establish_t* msg, tracking_area_update_accept_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -1098,7 +1099,7 @@ int emm_send_tracking_area_update_accept(
  **                                                                        **
  ***************************************************************************/
 
-int emm_send_tracking_area_update_accept_dl_nas(
+status_code_e emm_send_tracking_area_update_accept_dl_nas(
     const emm_as_data_t* msg, tracking_area_update_accept_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -1208,7 +1209,7 @@ int emm_send_tracking_area_update_accept_dl_nas(
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_tracking_area_update_reject(
+status_code_e emm_send_tracking_area_update_reject(
     const emm_as_establish_t* msg, tracking_area_update_reject_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -1247,7 +1248,7 @@ int emm_send_tracking_area_update_reject(
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_service_reject(
+status_code_e emm_send_service_reject(
     const uint8_t emm_cause, service_reject_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -1285,7 +1286,7 @@ int emm_send_service_reject(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_identity_request(
+status_code_e emm_send_identity_request(
     const emm_as_security_t* msg, identity_request_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -1338,7 +1339,7 @@ int emm_send_identity_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_authentication_request(
+status_code_e emm_send_authentication_request(
     const emm_as_security_t* msg, authentication_request_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -1424,7 +1425,8 @@ void emm_free_send_authentication_request(authentication_request_msg* emm_msg) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_authentication_reject(authentication_reject_msg* emm_msg) {
+status_code_e emm_send_authentication_reject(
+    authentication_reject_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
 
@@ -1453,7 +1455,7 @@ int emm_send_authentication_reject(authentication_reject_msg* emm_msg) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_security_mode_command(
+status_code_e emm_send_security_mode_command(
     const emm_as_security_t* msg, security_mode_command_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -1546,7 +1548,7 @@ int emm_send_security_mode_command(
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_send_emm_information(
+status_code_e emm_send_emm_information(
     const emm_as_data_t* msg, emm_information_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   char string[MAX_MINUTE_DIGITS] = {0};
@@ -1692,7 +1694,7 @@ int emm_send_emm_information(
  **                                                                        **
  ***************************************************************************/
 
-int emm_send_dl_nas_transport(
+status_code_e emm_send_dl_nas_transport(
     const emm_as_data_t* msg, downlink_nas_transport_msg* emm_msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int size = EMM_HEADER_MAXIMUM_LENGTH;
@@ -1744,7 +1746,7 @@ void emm_free_send_emm_information(emm_information_msg* emm_msg) {
  ** Outputs:            Returns the Timezone numerical format              **
  **                                                                        **
  ***************************************************************************/
-int get_time_zone(void) {
+status_code_e get_time_zone(void) {
   char timestr[20]               = {0};
   char string[MAX_MINUTE_DIGITS] = {0};
   time_t t;

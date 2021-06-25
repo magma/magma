@@ -30,7 +30,7 @@
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
 //------------------------------------------------------------------------------
-int ngap_amf_itti_send_sctp_request(
+status_code_e ngap_amf_itti_send_sctp_request(
     STOLEN_REF bstring* payload, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, const amf_ue_ngap_id_t ue_id) {
   MessageDef* message_p = NULL;
@@ -52,7 +52,7 @@ int ngap_amf_itti_send_sctp_request(
   return send_msg_to_task(&ngap_task_zmq_ctx, TASK_SCTP, message_p);
 }
 
-int ngap_amf_itti_nas_uplink_ind(
+status_code_e ngap_amf_itti_nas_uplink_ind(
     const amf_ue_ngap_id_t ue_id, STOLEN_REF bstring* payload,
     const tai_t* const tai, const ecgi_t* const cgi) {
   MessageDef* message_p = NULL;

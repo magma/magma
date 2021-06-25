@@ -18,16 +18,55 @@ import EnodebContext from '../context/EnodebContext';
 import EnodebKPIs from '../EnodebKPIs';
 import GatewayContext from '../context/GatewayContext';
 import GatewayKPIs from '../GatewayKPIs';
+import MagmaAPIBindings from '@fbcnms/magma-api';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
+import ServicingAccessGatewaysKPI from '../FEGServicingAccessGatewayKPIs';
+import axiosMock from 'axios';
 import defaultTheme from '../../theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
-import type {enodeb_state, lte_gateway} from '@fbcnms/magma-api';
+import type {
+  enodeb_state,
+  feg_lte_network,
+  lte_gateway,
+} from '@fbcnms/magma-api';
 
 afterEach(cleanup);
 
+const mockFegLteNetworks: Array<string> = [
+  'test_network1',
+  'test_network2',
+  'test_network3',
+];
+
+const mockFegLteNetwork: feg_lte_network = {
+  cellular: {
+    epc: {
+      gx_gy_relay_enabled: false,
+      hss_relay_enabled: false,
+      lte_auth_amf: '',
+      lte_auth_op: '',
+      mcc: '',
+      mnc: '',
+      tac: 1,
+    },
+    ran: {
+      bandwidth_mhz: 20,
+    },
+  },
+  description: 'I am a test federated lte network',
+  dns: {
+    enable_caching: false,
+    local_ttl: 0,
+  },
+  federation: {
+    feg_network_id: 'mynetwork',
+  },
+  id: 'test_network1',
+  name: 'test_network',
+};
 const mockGwSt: lte_gateway = {
   id: 'test_gw1',
   name: 'test_gateway',
@@ -193,5 +232,71 @@ describe('<EnodebKPIs />', () => {
     const {getByTestId} = render(<Wrapper />);
     expect(getByTestId('Total')).toHaveTextContent('3');
     expect(getByTestId('Transmitting')).toHaveTextContent('2');
+  });
+});
+
+describe('<ServicingAccessGatewaysKPI />', () => {
+  const mockFegLteNetwork2 = {
+    ...mockFegLteNetwork,
+    federation: {feg_network_id: ''},
+    id: 'test_network2',
+  };
+  const mockFegLteNetwork3 = {...mockFegLteNetwork, id: 'test_network3'};
+  beforeEach(() => {
+    MagmaAPIBindings.getFegLte.mockResolvedValue(mockFegLteNetworks);
+    MagmaAPIBindings.getFegLteByNetworkId
+      .mockReturnValueOnce(mockFegLteNetwork)
+      .mockReturnValueOnce(mockFegLteNetwork2)
+      .mockResolvedValue(mockFegLteNetwork3);
+    MagmaAPIBindings.getLteByNetworkIdGateways
+      .mockReturnValueOnce({
+        [mockGwSt.id]: mockGwSt,
+        test_gw2: {...mockGwSt, id: 'test_gw2'},
+      })
+      .mockResolvedValue({[mockGwSt.id]: mockGwSt});
+  });
+
+  afterEach(() => {
+    axiosMock.get.mockClear();
+  });
+  const Wrapper = () => {
+    return (
+      <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
+        <MuiThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <Route
+              path="/nms/:networkId"
+              component={ServicingAccessGatewaysKPI}
+            />
+          </MuiStylesThemeProvider>
+        </MuiThemeProvider>
+      </MemoryRouter>
+    );
+  };
+  it('renders gateway count correctly', async () => {
+    const {getByTestId} = render(<Wrapper />);
+    await wait();
+    // first get list of feg_lte networks
+    expect(MagmaAPIBindings.getFegLte).toHaveBeenCalledTimes(1);
+    // get info about each feg_lte network
+    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledTimes(3);
+    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
+      networkId: mockFegLteNetwork.id,
+    });
+    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
+      networkId: mockFegLteNetwork2.id,
+    });
+    expect(MagmaAPIBindings.getFegLteByNetworkId).toHaveBeenCalledWith({
+      networkId: mockFegLteNetwork3.id,
+    });
+    // only 2 of the 3 feg_lte networks are serviced by current network
+    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledTimes(2);
+    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledWith({
+      networkId: mockFegLteNetwork.id,
+    });
+    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledWith({
+      networkId: mockFegLteNetwork3.id,
+    });
+    expect(getByTestId('Gateway Count')).toHaveTextContent('3');
   });
 });
