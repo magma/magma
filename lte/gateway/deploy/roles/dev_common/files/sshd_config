@@ -86,3 +86,5 @@ UsePAM yes
 X11Forwarding yes
 ClientAliveInterval 60
 ClientAliveCountMax 50
+
+Subsystem    sftp    /usr/lib/openssh/sftp-server
