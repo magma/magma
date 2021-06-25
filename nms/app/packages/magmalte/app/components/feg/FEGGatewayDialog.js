@@ -222,7 +222,7 @@ export default function FEGGatewayDialog(props: Props) {
               hardware_id: generalFields.hardwareID,
               key: {
                 key: generalFields.challengeKey,
-                key_type: 'ECHO',
+                key_type: 'SOFTWARE_ECDSA_SHA256', // default key type should be ECDSA (do not use ECHO for prod)
               },
             },
             federation: getFederationConfigs(),
