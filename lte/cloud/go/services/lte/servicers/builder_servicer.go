@@ -120,7 +120,6 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		congestionControlEnabled = gwEpc.CongestionControlEnabled
 	}
 
-
 	vals := map[string]proto.Message{
 		"enodebd": &lte_mconfig.EnodebD{
 			LogLevel:            protos.LogLevel_INFO,

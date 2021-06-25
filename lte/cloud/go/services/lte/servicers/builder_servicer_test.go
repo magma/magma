@@ -1404,8 +1404,8 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 			TransmitEnabled: swag.Bool(true),
 		},
 		Epc: &lte_models.GatewayEpcConfigs{
-			NatEnabled: swag.Bool(true),
-			IPBlock:    "192.168.128.0/24",
+			NatEnabled:               swag.Bool(true),
+			IPBlock:                  "192.168.128.0/24",
 			CongestionControlEnabled: swag.Bool(true),
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
