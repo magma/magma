@@ -487,6 +487,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 request.sid.id,
                 ip_address,
             )
+            if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+                self._loop.call_soon_threadsafe(
+                    self._ipfix_app.delete_ue_sample_flow, request.sid.id
+                )
+
         rule_ids = [policy.rule_id for policy in request.policies]
         self._enforcer_app.deactivate_rules(
             request.sid.id, ip_address,
