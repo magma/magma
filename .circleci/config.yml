@@ -333,7 +333,7 @@ commands:
       - run:
           name: Create a release in Sentry.io with the commit hash
           command: |
-            COMMIT_HASH_WITH_VERSION="v1.6-${CIRCLE_SHA1:0:8}"
+            COMMIT_HASH_WITH_VERSION="1.6.0-${CIRCLE_SHA1:0:8}"
             sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
             sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
