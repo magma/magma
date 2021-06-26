@@ -15,3 +15,7 @@ flatDigestEnabled: true
 # changesetSizeTheshold specifies the max size of the cloud-agw changeset
 # past which a resync signal will be sent back to the agw.
 changesetSizeTheshold: 500
+
+# syncInterval is the interval in seconds between gateway requests to sync its
+# subscriberdb with the cloud.
+syncInterval: 300

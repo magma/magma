@@ -11508,7 +11508,6 @@ definitions:
     example: 300
     format: uint32
     type: integer
-    x-nullable: true
   subscription_profile:
     description: HSS Subscription Profile
     minLength: 1

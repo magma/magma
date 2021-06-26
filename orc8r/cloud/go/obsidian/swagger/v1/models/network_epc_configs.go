@@ -78,7 +78,7 @@ type NetworkEpcConfigs struct {
 	SubProfiles map[string]NetworkEpcConfigsSubProfilesAnon `json:"sub_profiles,omitempty"`
 
 	// subscriberdb sync interval
-	SubscriberdbSyncInterval *SubscriberdbSyncInterval `json:"subscriberdb_sync_interval,omitempty"`
+	SubscriberdbSyncInterval SubscriberdbSyncInterval `json:"subscriberdb_sync_interval,omitempty"`
 
 	// tac
 	// Required: true
@@ -380,13 +380,11 @@ func (m *NetworkEpcConfigs) validateSubscriberdbSyncInterval(formats strfmt.Regi
 		return nil
 	}
 
-	if m.SubscriberdbSyncInterval != nil {
-		if err := m.SubscriberdbSyncInterval.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("subscriberdb_sync_interval")
-			}
-			return err
+	if err := m.SubscriberdbSyncInterval.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("subscriberdb_sync_interval")
 		}
+		return err
 	}
 
 	return nil

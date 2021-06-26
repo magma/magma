@@ -684,7 +684,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 
 	nwConfig := lte_models.NewDefaultTDDNetworkConfig()
 	// Change sync interval from the default 300
-	nwConfig.Epc.SubscriberdbSyncInterval = 120
+	nwConfig.Epc.SubscriberdbSyncInterval = lte_models.SubscriberdbSyncInterval(120)
 
 	nw := configurator.Network{
 		ID: "n1",
@@ -729,9 +729,19 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
 
-	gatewayConfig.Epc.SubscriberdbSyncInterval = 90
+	gatewayConfig.Epc.SubscriberdbSyncInterval = lte_models.SubscriberdbSyncInterval(90)
 	// override. gw-specific 90 expected
 	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 90
+
+	actual, err = build_non_federated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
+
+	nwConfig.Epc.SubscriberdbSyncInterval = 0
+	gatewayConfig.Epc.SubscriberdbSyncInterval = 0
+
+	// nw-wide and gw-specific not set. Service-level default expected
+	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 300
 
 	actual, err = build_non_federated(&nw, &graph, "gw1")
 	assert.NoError(t, err)

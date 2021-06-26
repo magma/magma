@@ -26,6 +26,7 @@ type Config struct {
 	// ChangesetSizeTheshold specifies the max size of the cloud-agw changeset
 	// past which a resync signal will be sent back to the agw.
 	ChangesetSizeTheshold int `yaml:"changesetSizeTheshold"`
+	SyncInterval      uint32 `yaml:"syncInterval"`
 }
 
 func MustGetServiceConfig() Config {

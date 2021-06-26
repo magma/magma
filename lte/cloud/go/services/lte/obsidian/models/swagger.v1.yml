@@ -2160,7 +2160,6 @@ definitions:
     description: Interval in seconds between gateway requests to sync its subscriberdb with the cloud.
     type: integer
     format: uint32
-    x-nullable: true
     example: 300
 
   enodeb_serials:

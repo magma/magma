@@ -582,7 +582,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	epcConfig := lteModels.NewDefaultTDDNetworkConfig().Epc
 	epcConfig.HssRelayEnabled = swag.Bool(true)
 	epcConfig.GxGyRelayEnabled = swag.Bool(true)
-	epcConfig.SubscriberdbSyncInterval = 90
+	epcConfig.SubscriberdbSyncInterval = lteModels.SubscriberdbSyncInterval(90)
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/%s/cellular/epc/", testURLRoot, "n2"),
@@ -1793,7 +1793,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 
 	modifiedCellularConfig := newDefaultGatewayConfig()
 	modifiedCellularConfig.Epc.NatEnabled = swag.Bool(false)
-	modifiedCellularConfig.Epc.SubscriberdbSyncInterval = 90
+	modifiedCellularConfig.Epc.SubscriberdbSyncInterval = lteModels.SubscriberdbSyncInterval(90)
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/cellular/epc", testURLRoot),
