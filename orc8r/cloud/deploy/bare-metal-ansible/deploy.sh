@@ -37,9 +37,9 @@ ansible-galaxy install git+https://github.com/uoi-io/ansible-haproxy,fe397a380ad
 
 
 # Update Ansible inventory file with inventory builder
-HOST_PREFIX=compute KUBE_MASTERS_MASTERS=3 CONFIG_FILE=inventory/$CLUSTER_NAME/hosts.yml python3 kubespray/contrib/inventory_builder/inventory.py ${IPS[@]}
+HOST_PREFIX="${HOST_PREFIX:-compute}" KUBE_MASTERS_MASTERS=3 CONFIG_FILE=inventory/$CLUSTER_NAME/hosts.yml python3 kubespray/contrib/inventory_builder/inventory.py ${IPS[@]}
 
-ansible-playbook -b -i inventory/$CLUSTER_NAME/hosts.yml  $playbook -e @ansible_vars.yaml
+ansible-playbook -b -i inventory/$CLUSTER_NAME/hosts.yml  $playbook -e @ansible_vars.yaml -v
 
 echo "If you did not specify passwords, you can find generated passwords here:"
 find inventory/$CLUSTER_NAME/credentials
