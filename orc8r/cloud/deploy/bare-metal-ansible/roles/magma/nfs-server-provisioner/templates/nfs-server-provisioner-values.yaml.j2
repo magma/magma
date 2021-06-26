@@ -9,7 +9,7 @@ nodeSelector:
 persistence:
   enabled: true
   size: 200Gi
-  storageClass: nfs-provisioner
+  storageClass: {{ nfs_provisioner_storage_class }}
 replicaCount: 1
 resources:
   requests:

@@ -1,8 +1,9 @@
+---
 ansible_user: ubuntu
 
 helm_enabled: true
 kube_network_plugin: calico
-kube_network_plugin_multus: true
+kube_network_plugin_multus: false
 
 kube_apiserver_port: 6443
 kube_pods_subnet: 10.233.64.0/18
@@ -53,19 +54,20 @@ kubelet_cgroup_driver: systemd
 # orc8r_nms_admin_email:
 
 # Component versions (orc8r 1.3.x or 1.4.x supported)
-# orc8r_chart_version: 1.4.x
-# orc8r_image_tag: 1.3.x
-# orc8r_nms_image_tag: 1.3.x
-# orc8r_nginx_image_tag: 1.3.x
+# orc8r_chart_version: 1.5.x
+# orc8r_image_tag: 1.5.x
+# orc8r_nms_image_tag: 1.5.x
+# orc8r_nginx_image_tag: 1.5.x
 
 # Component passwords are randomly generated (and stored in credentials dir).
 # Uncomment the following lines to explicitly set passwords
+# db_root_user:
 # db_root_password:
 # orc8r_db_pass:
 # orc8r_nms_db_pass:
 # orc8r_nms_admin_pass:
 
-# LoadBalancer settings for Magma services publicly exposed
+# (REQUIRED): LoadBalancer settings for Magma services publicly exposed
 # metallb_addresses: 192.168.10.200-192.168.10.230
 
 # Advanced options for enabling/disabling Helm charts
@@ -75,5 +77,4 @@ deploy_metallb: True
 deploy_mariadb: True
 deploy_elasticsearch: True
 deploy_fluentd: True
-deploy_kibana: False
-
+magma_namespace: magma
