@@ -717,11 +717,11 @@ bool SessionStateEnforcer::add_default_rules(
    * Lets add the default uplink and downlink PDR rule to this
    * imsi
    */
-  if (!session->search_pdr(DEFAULT_DOWN_LINK_PDR_ID)) {
+  if (!session->contains_pdr(DEFAULT_DOWN_LINK_PDR_ID)) {
     pdr_map_.insert(
         std::pair<std::string, uint32_t>(imsi, DEFAULT_DOWN_LINK_PDR_ID));
   }
-  if (!session->search_pdr(DEFAULT_UP_LINK_PDR_ID)) {
+  if (!session->contains_pdr(DEFAULT_UP_LINK_PDR_ID)) {
     pdr_map_.insert(
         std::pair<std::string, uint32_t>(imsi, DEFAULT_UP_LINK_PDR_ID));
   }

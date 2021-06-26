@@ -166,7 +166,7 @@ class SessionState {
   int32_t get_pdr_index(uint32_t pdr_index);
 
   /* method to search specific pdr id existence */
-  bool search_pdr(unsigned int id);
+  bool contains_pdr(unsigned int id);
 
   void set_remove_all_pdrs();
 

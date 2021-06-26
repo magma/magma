@@ -276,7 +276,7 @@ int32_t SessionState::get_pdr_index(uint32_t id) {
 }
 
 /* method to search specific pdr id existence */
-bool SessionState::search_pdr(unsigned int id) {
+bool SessionState::contains_pdr(unsigned int id) {
   for (auto& rule : pdr_list_) {
     if (rule.pdr_id() == id) return true;
   }

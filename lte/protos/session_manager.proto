@@ -827,7 +827,7 @@ message M5GSMSessionContext {
   AccessType access_type = 5;
   // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
   string imei = 6;
-  // Lenght is 10 bytes + 2 bytes country code generic public subscription id.
+  // Length is 10 bytes + 2 bytes country code generic public subscription id.
   string gpsi = 7; 
   // up to 6 byte. TS-23.003 - 28.15.3
   string user_location_info = 8;

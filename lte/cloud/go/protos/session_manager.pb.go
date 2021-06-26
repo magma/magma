@@ -4876,7 +4876,7 @@ type M5GSMSessionContext struct {
 	AccessType AccessType `protobuf:"varint,5,opt,name=access_type,json=accessType,proto3,enum=magma.lte.AccessType" json:"access_type,omitempty"`
 	// pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
 	Imei string `protobuf:"bytes,6,opt,name=imei,proto3" json:"imei,omitempty"`
-	// Lenght is 10 bytes + 2 bytes country code generic public subscription id.
+	// Length is 10 bytes + 2 bytes country code generic public subscription id.
 	Gpsi string `protobuf:"bytes,7,opt,name=gpsi,proto3" json:"gpsi,omitempty"`
 	// up to 6 byte. TS-23.003 - 28.15.3
 	UserLocationInfo string `protobuf:"bytes,8,opt,name=user_location_info,json=userLocationInfo,proto3" json:"user_location_info,omitempty"`
