@@ -199,6 +199,15 @@ int amf_proc_registration_request(
   if (!(is_nas_specific_procedure_registration_running(
           &ue_m5gmm_context->amf_context))) {
     amf_proc_create_procedure_registration_request(ue_m5gmm_context, ies);
+  } else {
+    /* Update the GUTI */
+    if (ies->guti) {
+      nas_amf_registration_proc_t* registration_proc =
+          get_nas_specific_procedure_registration(
+              &(ue_m5gmm_context->amf_context));
+
+      registration_proc->ies = ies;
+    }
   }
 
   OAILOG_INFO(LOG_AMF_APP, "ue_m5gmm_context %p\n", ue_m5gmm_context);
@@ -356,17 +365,29 @@ int amf_registration_run_procedure(amf_context_t* amf_context) {
             amf_registration_failure_identification_cb);
       }
     } else if (registration_proc->ies->guti) {
-      /* TODO: Currently we are not receving GUTI during intial
-       * Registration procedure and in future this code can be used.
-       */
-      rc = amf_proc_identification(
-          amf_context, (nas_amf_proc_t*) registration_proc,
-          IDENTITY_TYPE_2_IMSI, amf_registration_success_identification_cb,
-          amf_registration_failure_identification_cb);
+      if (amf_context->is_initial_identity_imsi == true) {
+        if (registration_proc->ies->decode_status.mac_matched == 0) {
+          /* IMSI is known but mac-mismatch start the authentication process */
+          amf_ctx_clear_auth_vectors(amf_context);
+
+          rc = amf_start_registration_proc_authentication(
+              amf_context, registration_proc);
+        } else {
+          /* IMSI is known and Mac is matching */
+          amf_registration(amf_context);
+        }
+      } else {
+        /* If its first time GUTI Identify the IMSI */
+        rc = amf_proc_identification(
+            amf_context, (nas_amf_proc_t*) registration_proc,
+            IDENTITY_TYPE_2_IMSI, amf_registration_success_identification_cb,
+            amf_registration_failure_identification_cb);
+      }
     } else {
-      OAILOG_ERROR(LOG_NAS_AMF, "Unsupported IE type! \n");
+      OAILOG_ERROR(LOG_NAS_AMF, "Unsupported Identifier type! \n");
     }
   }
+
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
@@ -966,7 +987,7 @@ void amf_delete_registration_proc(amf_context_t* amf_ctx) {
   }
 
   amf_delete_child_procedures(amf_ctx, (nas5g_base_proc_t*) proc);
-}  // namespace magma5g
+}
 
 /***********************************************************************
  ** Name:    amf_delete_registration_ies()                            **

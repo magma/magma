@@ -167,6 +167,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
 
   // Process initial NAS message
   AMFMsg* amf_msg = &nas_msg.plain.amf;
+
   switch (amf_msg->header.message_type) {
     case REG_REQUEST:
       memcpy(&originating_tai, &msg->tai, sizeof(originating_tai));
@@ -216,6 +217,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
           LOG_NAS_AMF, "unknown message type: %d, in %s ",
           amf_msg->header.message_type, __FUNCTION__);
   }
+
   return rc;
 }
 
@@ -797,104 +799,6 @@ static void _s6a_handle_authentication_info_ans(
 
 /***************************************************************************
  **                                                                       **
- ** Name:        amf_auth_request()                                  **
- **                                                                       **
- ** Description: Send authentication Request to UE                        **
- **                                                                       **
- ** Inputs:      msg: Security msg                                        **
- **              amf_msg :   amf msg                                      **
- **                                                                       **
- ** Return:   size                                                        **
- **                                                                       **
- **************************************************************************/
-static int amf_auth_request(
-    const amf_as_security_t* msg, AuthenticationRequestMsg* amf_msg) {
-  s6a_auth_info_req_t air_t;
-  memset(&air_t, 0, sizeof(s6a_auth_info_req_t));
-
-  ue_m5gmm_context_s* ue_context =
-      amf_ue_context_exists_amf_ue_ngap_id(msg->ue_id);
-  if (ue_context) {
-    IMSI64_TO_STRING(ue_context->amf_context.imsi64, air_t.imsi, IMSI_LENGTH);
-  } else {
-    OAILOG_ERROR(
-        LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
-    OAILOG_FUNC_RETURN(LOG_AMF_APP, RETURNerror);
-  }
-  air_t.imsi_length = IMSI_LENGTH;
-  memcpy(
-      &air_t.visited_plmn, &ue_context->amf_context.imsi,
-      sizeof(air_t.visited_plmn));
-  air_t.nb_of_vectors      = 1;
-  air_t.re_synchronization = 0;
-  s6a_auth_info_ans_t aia_t;
-  memset(&aia_t, 0, sizeof(s6a_auth_info_ans_t));
-  auto imsi_len = air_t.imsi_length;
-  OAILOG_DEBUG(LOG_AMF_APP, "Sending S6A-AUTHENTICATION_INFORMATION_REQUEST\n");
-  magma::S6aClient::authentication_info_req(
-      &air_t,
-      [imsiStr = std::string(air_t.imsi), imsi_len, &aia_t](
-          grpc::Status status, feg::AuthenticationInformationAnswer response) {
-        _s6a_handle_authentication_info_ans(
-            imsiStr, imsi_len, status, response, &aia_t);
-      });
-  std::this_thread::sleep_for(std::chrono::milliseconds(60));
-
-  if (aia_t.auth_info.nb_of_vectors == 1) {
-#if 0
-    amf_msg->auth_autn.AUTN.assign(
-        (const char*) aia_t.auth_info.eutran_vector[0].autn,
-        AUTN_LENGTH_OCTETS);
-    amf_msg->auth_rand.rand_val.assign(
-        (const char*) aia_t.auth_info.eutran_vector[0].rand,
-        RAND_LENGTH_OCTETS);
-#endif
-    memcpy(
-        ue_context->amf_context
-            ._vector
-                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
-            .autn,
-        aia_t.auth_info.eutran_vector[0].autn, AUTN_LENGTH_OCTETS);
-    memcpy(
-        ue_context->amf_context
-            ._vector
-                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
-            .rand,
-        aia_t.auth_info.eutran_vector[0].rand, RAND_LENGTH_OCTETS);
-    memcpy(
-        ue_context->amf_context
-            ._vector
-                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
-            .ck,
-        aia_t.auth_info.eutran_vector[0].ck, CK_LENGTH_OCTETS);
-    memcpy(
-        ue_context->amf_context
-            ._vector
-                [ue_context->amf_context._security.eksi % MAX_EPS_AUTH_VECTORS]
-            .ik,
-        aia_t.auth_info.eutran_vector[0].ik, IK_LENGTH_OCTETS);
-  } else {
-    OAILOG_DEBUG(LOG_AMF_APP, "s6a_air request failed\n");
-  }
-  OAILOG_DEBUG(LOG_AMF_APP, "Sending AUTHENTICATION_REQUEST to UE\n");
-  int size = AUTHENTICATION_REQUEST_MINIMUM_LENGTH;
-  amf_msg->extended_protocol_discriminator.extended_proto_discriminator =
-      M5G_MOBILITY_MANAGEMENT_MESSAGES;
-  amf_msg->message_type.msg_type      = AUTH_REQUEST;
-  amf_msg->nas_key_set_identifier.tsc = NATIVE_SECURITY_CONTEXT;
-  amf_msg->nas_key_set_identifier.nas_key_set_identifier = 0x1;
-  uint8_t abba_buff[]                                    = {0x00, 0x00};
-  // amf_msg->abba.contents.assign((const char*) abba_buff, sizeof(abba_buff));
-  memcpy(amf_msg->abba.contents, abba_buff, sizeof(abba_buff));
-  size += RAND_MAX_LEN;
-  amf_msg->auth_rand.iei = AUTH_PARAM_RAND;
-  size += AUTN_MAX_LEN;
-  amf_msg->auth_autn.iei = AUTH_PARAM_AUTN;
-  OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
-}
-
-/***************************************************************************
- **                                                                       **
  ** Name:        amf_auth_reject()                                        **
  **                                                                       **
  ** Description: Send authentication Reject to UE                         **
@@ -986,7 +890,6 @@ static int amf_as_security_req(
   uint8_t ck_ik[32] = {0};
   uint8_t snni[32]  = {0};
   uint8_t xres[16]  = {0};
-  uint8_t rand[16]  = {0};
 
   memset(&nas_msg, 0, sizeof(amf_nas_message_t));
 
@@ -1027,181 +930,11 @@ static int amf_as_security_req(
         amf_context_t* amf_ctx = NULL;
 
         amf_ctx = &ue_context->amf_context;
-        nas5g_auth_info_proc_t* auth_info_proc =
-            get_nas5g_cn_procedure_auth_info(amf_ctx);
-
-        // To check the validitiy of the vectors
-        if ((auth_info_proc) && (auth_info_proc->vector[0])) {
-          memcpy(
-              nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.rand_val,
-              auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
-          memcpy(
-              nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.AUTN,
-              auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
-
-          if (ue_context->amf_context._security.eksi >= KSI_NO_KEY_AVAILABLE) {
-            ue_context->amf_context._security.eksi = 0;
-          }
-          OAILOG_INFO(
-              LOG_AMF_APP, "eksi:%x", ue_context->amf_context._security.eksi);
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .kasme,
-              auth_info_proc->vector[0]->kasme, KASME_LENGTH_OCTETS);
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .autn,
-              auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .rand,
-              auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .ck,
-              auth_info_proc->vector[0]->ck, CK_LENGTH_OCTETS);
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .ik,
-              auth_info_proc->vector[0]->ik, IK_LENGTH_OCTETS);
-
-          memcpy(
-              ue_context->amf_context
-                  ._vector
-                      [ue_context->amf_context._security.eksi %
-                       MAX_EPS_AUTH_VECTORS]
-                  .xres,
-              auth_info_proc->vector[0]->xres.data,
-              auth_info_proc->vector[0]->xres.size);
-          ue_context->amf_context
-              ._vector
-                  [ue_context->amf_context._security.eksi %
-                   MAX_EPS_AUTH_VECTORS]
-              .xres_size = auth_info_proc->vector[0]->xres.size;
-        }
-
-        /* Building 32 bytes of string with serving network SN
-         * SN value = 5G:mnc<mnc>.mcc<mcc>.3gppnetwork.org
-         * mcc and mnc are retrieved from serving network PLMN
-         */
-        uint32_t mcc              = 0;
-        uint32_t mnc              = 0;
-        uint32_t mnc_digit_length = 0;
-        PLMN_T_TO_MCC_MNC(
-            ue_context->amf_context.originating_tai.plmn, mcc, mnc,
-            mnc_digit_length);
-        uint32_t snni_buf_len = sprintf(
-            (char*) snni, "5G:mnc%03d.mcc%03d.3gppnetwork.org", mnc, mcc);
-        if (snni_buf_len != 32) {
-          OAILOG_ERROR(
-              LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
-          OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
-        } else {
-          OAILOG_DEBUG(LOG_NAS_AMF, "serving network name: %s", snni);
-        }
-
-        memcpy(
-            rand,
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .rand,
-            RAND_LENGTH_OCTETS);
-
-        memcpy(
-            ck_ik,
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .ck,
-            16);
-
-        memcpy(
-            &ck_ik[16],
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .ik,
-            16);
-
-        memcpy(
-            xres,
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .xres,
-            AUTH_XRES_SIZE);
-
-        derive_5gkey_xres_star(
-            ck_ik, snni, rand, xres,
-            ue_context->amf_context
-                ._vector
-                    [ue_context->amf_context._security.eksi %
-                     MAX_EPS_AUTH_VECTORS]
-                .xres);
-
-        OAILOG_STREAM_HEX(
-            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "rand: ",
-            (const char*) &(ue_context->amf_context
-                                ._vector
-                                    [ue_context->amf_context._security.eksi %
-                                     MAX_EPS_AUTH_VECTORS]
-                                .rand[0]),
-            RAND_LENGTH_OCTETS);
-
-        OAILOG_STREAM_HEX(
-            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "ik: ",
-            (const char*) &(ue_context->amf_context
-                                ._vector
-                                    [ue_context->amf_context._security.eksi %
-                                     MAX_EPS_AUTH_VECTORS]
-                                .ik[0]),
-            AUTH_IK_SIZE);
-
-        OAILOG_STREAM_HEX(
-            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "ck: ",
-            (const char*) &(ue_context->amf_context
-                                ._vector
-                                    [ue_context->amf_context._security.eksi %
-                                     MAX_EPS_AUTH_VECTORS]
-                                .ck[0]),
-            AUTH_CK_SIZE);
-
-        OAILOG_STREAM_HEX(
-            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "XRES: ", (const char*) &xres[0],
-            AUTH_XRES_SIZE);
-
-        OAILOG_STREAM_HEX(
-            OAILOG_LEVEL_TRACE, LOG_AMF_APP, "XRES*: ",
-            (const char*) &(ue_context->amf_context
-                                ._vector
-                                    [ue_context->amf_context._security.eksi %
-                                     MAX_EPS_AUTH_VECTORS]
-                                .xres[0]),
-            AUTH_XRES_SIZE);
 
         OAILOG_INFO(LOG_AMF_APP, " \n test\n");
         OAILOG_INFO(
-            LOG_AMF_APP, "AMF_TEST: Sending AUTHENTICATION_REQUEST to UE\n");
+            LOG_AMF_APP, "Sending AUTHENTICATION_REQUEST to UE ksi %d\n",
+            msg->ksi);
         size                                                     = 50;
         nas_msg.header.extended_protocol_discriminator           = 0x7E;
         nas_msg.header.security_header_type                      = 0x0;
@@ -1215,8 +948,20 @@ static int amf_as_security_req(
         nas_msg.plain.amf.msg.authenticationrequestmsg.nas_key_set_identifier
             .tsc = 0;
         nas_msg.plain.amf.msg.authenticationrequestmsg.nas_key_set_identifier
-            .nas_key_set_identifier = ue_context->amf_context._security.eksi;
-        uint8_t abba_buff[]         = {0x00, 0x00};
+            .nas_key_set_identifier = msg->ksi;
+        memcpy(
+            nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.rand_val,
+            amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
+                .rand,
+            RAND_LENGTH_OCTETS);
+
+        memcpy(
+            nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.AUTN,
+            amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS]
+                .autn,
+            AUTN_LENGTH_OCTETS);
+
+        uint8_t abba_buff[] = {0x00, 0x00};
         memcpy(
             &(nas_msg.plain.amf.msg.authenticationrequestmsg.abba.contents),
             (const char*) abba_buff, 2);
@@ -1224,9 +969,6 @@ static int amf_as_security_req(
         //    (const char*) abba_buff, 2);
         nas_msg.plain.amf.msg.authenticationrequestmsg.auth_rand.iei = 0x21;
         nas_msg.plain.amf.msg.authenticationrequestmsg.auth_autn.iei = 0x20;
-
-        nas5g_delete_cn_procedure(
-            &(ue_context->amf_context), &auth_info_proc->cn_proc);
 
       } break;
       case AMF_AS_MSG_TYPE_SMC: {

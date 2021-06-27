@@ -134,8 +134,8 @@ int amf_handle_registration_request(
       msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_MOBILITY_UPDATING) {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_MOBILITY_UPDATING;
   } else if (
-      msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERODIC_UPDATING) {
-    params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_PERODIC_UPDATING;
+      msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
+    params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_PERIODIC_UPDATING;
   } else if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_EMERGENCY) {
     params->m5gsregistrationtype = AMF_REGISTRATION_TYPE_EMERGENCY;
   } else if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_RESERVED) {
@@ -263,13 +263,14 @@ int amf_handle_registration_request(
         msg->m5gs_mobile_identity.mobile_identity.guti.type_of_identity ==
         M5GSMobileIdentityMsg_GUTI) {
       OAILOG_INFO(LOG_NAS_AMF, "New REGITRATION_REQUEST Id is GUTI\n");
-      params->guti                        = new (guti_m5_t)();
+      params->guti = new (guti_m5_t)();
+
       ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
     }
   }  // end of AMF_REGISTRATION_TYPE_INITIAL
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
 
-  if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERODIC_UPDATING) {
+  if (msg->m5gs_reg_type.type_val == AMF_REGISTRATION_TYPE_PERIODIC_UPDATING) {
     /*
      * This request for periodic registration update
      * For registered UE, is_amf_ctx_new = False
@@ -281,7 +282,7 @@ int amf_handle_registration_request(
      */
     OAILOG_INFO(
         LOG_NAS_AMF,
-        "AMF_REGISTRATION_TYPE_PERODIC_UPDATING processing"
+        "AMF_REGISTRATION_TYPE_PERIODIC_UPDATING processing"
         " is_amf_ctx_new = %d and identity type = %d ",
         is_amf_ctx_new,
         msg->m5gs_mobile_identity.mobile_identity.imsi.type_of_identity);
@@ -327,6 +328,12 @@ int amf_handle_registration_request(
           "In periodic registration update: New GUTI updated in "
           "map and ue contxt, sending accept message in DL\n");
 
+      params->guti = new (guti_m5_t)();
+      memcpy(
+          params->guti, &(ue_context->amf_context.m5_guti), sizeof(guti_m5_t));
+
+      ue_context->amf_context.reg_id_type = M5GSMobileIdentityMsg_GUTI;
+
       // Call the registration accept API to send accept messaeg in DL
       rc = amf_send_registration_accept(&ue_context->amf_context);
     } else {
@@ -339,19 +346,20 @@ int amf_handle_registration_request(
       // TODO Implement Reject message
       return RETURNerror;
     }
-  }  // end of AMF_REGISTRATION_TYPE_PERODIC_UPDATING
+  }  // end of AMF_REGISTRATION_TYPE_PERIODIC_UPDATING
+
+  params->decode_status = decode_status;
   /*
    * Execute the requested new UE registration procedure
    * This will initiate identity req in DL.
    */
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
-  if (is_amf_ctx_new) {
-    rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
-    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
-  }
+  rc = amf_proc_registration_request(ue_id, is_amf_ctx_new, params);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+
   OAILOG_DEBUG(LOG_NAS_AMF, "Processing REGITRATION_REQUEST message\n");
   return rc;
-}  // namespace magma5g
+}
 
 /****************************************************************************
  **                                                                        **
@@ -413,6 +421,16 @@ int amf_handle_identity_response(
           MSIN_MAX_LENGTH);
       // Copy entire supi_imsi to imsi.u.value which is 8 bytes
       memcpy(&imsi.u.value, &supi_imsi, IMSI_BCD8_SIZE);
+
+      if (supi_imsi.plmn.mnc_digit3 != 0xf) {
+        imsi.u.value[0] = ((supi_imsi.plmn.mcc_digit1 << 4) & 0xf0) |
+                          (supi_imsi.plmn.mcc_digit2 & 0xf);
+        imsi.u.value[1] = ((supi_imsi.plmn.mcc_digit3 << 4) & 0xf0) |
+                          (supi_imsi.plmn.mnc_digit1 & 0xf);
+        imsi.u.value[2] = ((supi_imsi.plmn.mnc_digit2 << 4) & 0xf0) |
+                          (supi_imsi.plmn.mnc_digit3 & 0xf);
+      }
+
     } else {
       /* Mobile identity is SUPI type IMSI but Protection scheme is not NULL
        * which is not valid message from UE. Return from here after

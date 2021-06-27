@@ -73,9 +73,14 @@ int amf_registration_security(amf_context_t* amf_context);
 int amf_send_authentication_request(
     amf_context_t* amf_context, nas5g_amf_auth_proc_t* auth_proc);
 
+// To be called when authentication is successful from subscriberdb
+int amf_authentication_proc_success(amf_context_t* amf_context);
+
 int amf_nas_proc_authentication_info_answer(itti_amf_subs_auth_info_ans_t* aia);
 nas5g_amf_auth_proc_t* get_nas5g_common_procedure_authentication(
     const amf_context_t* const ctxt);
 
 void amf_proc_stop_t3560_timer(nas5g_amf_auth_proc_t* auth_proc);
+
+inline void amf_ctx_clear_auth_vectors(amf_context_t* const);
 }  // namespace magma5g

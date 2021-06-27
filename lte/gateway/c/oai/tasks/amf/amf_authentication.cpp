@@ -20,6 +20,7 @@ extern "C" {
 #include "conversions.h"
 #include "log.h"
 #include "dynamic_memory_check.h"
+#include "secu_defs.h"
 #ifdef __cplusplus
 }
 #endif
@@ -365,6 +366,7 @@ int amf_proc_authentication(
   if (!auth_proc) {
     auth_proc = nas5g_new_authentication_procedure(amf_context);
   }
+
   if (auth_proc) {
     if (amf_specific_proc) {
       if (AMF_SPEC_PROC_TYPE_REGISTRATION == amf_specific_proc->type) {
@@ -559,6 +561,9 @@ int amf_proc_authentication_complete(
   int idx;
   bool is_xres_validation_failed = false;
   nas_amf_smc_proc_t nas_amf_smc_proc_autn;
+  nas_amf_registration_proc_t* registration_proc = NULL;
+  nas5g_amf_auth_proc_t* auth_proc               = NULL;
+
   OAILOG_DEBUG(
       LOG_NAS_AMF,
       "Authentication  procedures complete for "
@@ -578,8 +583,9 @@ int amf_proc_authentication_complete(
   }
 
   amf_ctx = &ue_mm_context->amf_context;
-  nas5g_amf_auth_proc_t* auth_proc =
-      get_nas5g_common_procedure_authentication(amf_ctx);
+
+  registration_proc = get_nas_specific_procedure_registration(amf_ctx);
+  auth_proc         = get_nas5g_common_procedure_authentication(amf_ctx);
 
   if (auth_proc) {
     /*    Stop Timer T3560 */
@@ -589,9 +595,10 @@ int amf_proc_authentication_complete(
         auth_proc->T3560.id);
     stop_timer(&amf_app_task_zmq_ctx, auth_proc->T3560.id);
     auth_proc->T3560.id = NAS5G_TIMER_INACTIVE_ID;
-    OAILOG_INFO(LOG_NAS_EMM, "Timer: After Stopping T3560 Timer\n");
+    OAILOG_INFO(LOG_NAS_AMF, "Timer: After Stopping T3560 Timer\n");
 
     nas_amf_smc_proc_autn.amf_ctx_set_security_eksi(amf_ctx, auth_proc->ksi);
+    registration_proc->ksi = auth_proc->ksi;
 
     OAILOG_STREAM_HEX(
         OAILOG_LEVEL_TRACE, LOG_AMF_APP, "Received RES*: ",
@@ -603,8 +610,11 @@ int amf_proc_authentication_complete(
         (const char*) &((amf_ctx->_vector[auth_proc->ksi].xres[0])),
         AUTH_XRES_SIZE);
 
-    for (idx = 0; idx < amf_ctx->_vector[auth_proc->ksi].xres_size; idx++) {
-      if ((amf_ctx->_vector[auth_proc->ksi].xres[idx]) !=
+    for (idx = 0;
+         idx <
+         amf_ctx->_vector[auth_proc->ksi % MAX_EPS_AUTH_VECTORS].xres_size;
+         idx++) {
+      if ((amf_ctx->_vector[auth_proc->ksi % MAX_EPS_AUTH_VECTORS].xres[idx]) !=
           msg->autn_response_parameter.response_parameter[idx]) {
         is_xres_validation_failed = true;
         break;
@@ -621,8 +631,6 @@ int amf_proc_authentication_complete(
      */
     if (is_xres_validation_failed) {
       auth_proc->retransmission_count++;
-      nas_amf_registration_proc_t* registration_proc =
-          get_nas_specific_procedure_registration(amf_ctx);
       OAILOG_INFO(
           LOG_NAS_AMF, "Authentication failure due to RES,XRES mismatch \n");
       if (registration_proc &&
@@ -686,7 +694,6 @@ inline void amf_ctx_clear_auth_vectors(amf_context_t* const ctxt) {
   }
 
   ctxt->_security.vector_index = AMF_SECURITY_VECTOR_INDEX_INVALID;
-  ;
 }
 
 /****************************************************************************
@@ -893,11 +900,150 @@ int amf_send_authentication_request(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
+// Fetch the serving network name
+static int calculate_amf_serving_network_name(
+    amf_context_t* amf_ctx, uint8_t* snni) {
+  uint32_t mcc              = 0;
+  uint32_t mnc              = 0;
+  uint32_t mnc_digit_length = 0;
+
+  /* Building 32 bytes of string with serving network SN
+   * SN value = 5G:mnc<mnc>.mcc<mcc>.3gppnetwork.org
+   * mcc and mnc are retrieved from serving network PLMN
+   */
+
+  PLMN_T_TO_MCC_MNC(amf_ctx->originating_tai.plmn, mcc, mnc, mnc_digit_length);
+
+  uint32_t snni_buf_len =
+      sprintf((char*) snni, "5G:mnc%03d.mcc%03d.3gppnetwork.org", mnc, mcc);
+
+  if (snni_buf_len != 32) {
+    OAILOG_ERROR(LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
+  } else {
+    OAILOG_INFO(LOG_NAS_AMF, "serving network name: %s", snni);
+  }
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    amf_authentication_proc_success()                             **
+ **                                                                        **
+ ** Description: Process Authentication Success response from Subsdb       **
+ **                                                                        **
+ ** Inputs:  args: pointer to amf context                                  **
+ **                handler parameters                                      **
+ **                                                                        **
+ ** Outputs:     None                                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **                                                                        **
+ ***************************************************************************/
+int amf_authentication_proc_success(amf_context_t* amf_ctx) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
+
+  nas5g_amf_auth_proc_t* auth_proc       = NULL;
+  nas5g_auth_info_proc_t* auth_info_proc = NULL;
+  uint8_t ck_ik[32]                      = {0};
+  uint8_t xres[16]                       = {0};
+  uint8_t snni[32]                       = {0};
+  uint8_t rand[RAND_LENGTH_OCTETS]       = {0};
+  int rc                                 = RETURNerror;
+
+  /* Get Auth Proc */
+  auth_proc = get_nas5g_common_procedure_authentication(amf_ctx);
+  if (auth_proc == NULL) {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
+
+  /* Get Auth Info Pro */
+  auth_info_proc = get_nas5g_cn_procedure_auth_info(amf_ctx);
+  if (auth_info_proc == NULL) {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
+
+  // compute next eksi
+  ksi_t eksi = 0;
+  if (amf_ctx->_security.eksi < KSI_NO_KEY_AVAILABLE) {
+    eksi = (amf_ctx->_security.eksi + 1) % (EKSI_MAX_VALUE + 1);
+  }
+
+  OAILOG_INFO(
+      LOG_AMF_APP, "security eksi:%x, eksi=%x", amf_ctx->_security.eksi, eksi);
+
+  rc = calculate_amf_serving_network_name(amf_ctx, snni);
+  if (rc != RETURNok) {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
+  }
+
+  memcpy(
+      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].kasme,
+      auth_info_proc->vector[0]->kasme, KASME_LENGTH_OCTETS);
+
+  memcpy(
+      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].autn,
+      auth_info_proc->vector[0]->autn, AUTN_LENGTH_OCTETS);
+
+  memcpy(
+      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].rand,
+      auth_info_proc->vector[0]->rand, RAND_LENGTH_OCTETS);
+
+  memcpy(
+      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].ck,
+      auth_info_proc->vector[0]->ck, CK_LENGTH_OCTETS);
+
+  memcpy(
+      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].ik,
+      auth_info_proc->vector[0]->ik, IK_LENGTH_OCTETS);
+
+  memcpy(
+      ck_ik,
+      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].ck, 16);
+
+  memcpy(
+      &ck_ik[16],
+      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].ik, 16);
+
+  memcpy(
+      xres, auth_info_proc->vector[0]->xres.data,
+      auth_info_proc->vector[0]->xres.size);
+
+  memcpy(
+      rand,
+      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].rand,
+      RAND_LENGTH_OCTETS);
+
+  derive_5gkey_xres_star(
+      ck_ik, snni, rand, xres,
+      amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].xres);
+
+  amf_ctx->_vector[amf_ctx->_security.eksi % MAX_EPS_AUTH_VECTORS].xres_size =
+      auth_info_proc->vector[0]->xres.size;
+
+  /* Set the vector and corrosponding vectors */
+  amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_AUTH_VECTOR0);
+
+  if (auth_info_proc->nb_vectors > 0) {
+    amf_ctx_set_attribute_valid(amf_ctx, AMF_CTXT_MEMBER_AUTH_VECTORS);
+  }
+
+  auth_proc->ksi = eksi;
+
+  /* Send the authentication request */
+  amf_send_authentication_request(amf_ctx, auth_proc);
+
+  nas5g_delete_cn_procedure(amf_ctx, &auth_info_proc->cn_proc);
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+}
+
 /* Timer Expiry Handler for AUTHENTHICATION Timer T3560 */
 static int authenthication_t3560_handler(
     zloop_t* loop, int timer_id, void* arg) {
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
 
+#if 0  /* TIMER_TO_BE_TESTED */
   amf_context_t* amf_ctx = NULL;
   amf_ue_ngap_id_t ue_id = 0;
   ue_id                  = *((amf_ue_ngap_id_t*) (arg));
@@ -976,6 +1122,9 @@ static int authenthication_t3560_handler(
     }
     return 0;
   }
+#endif /* TIMER_TO_BE_TESTED */
+
+  return (0);
 }
 
 }  // namespace magma5g

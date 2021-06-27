@@ -324,6 +324,10 @@ int amf_proc_security_mode_control(
     amf_ctx->_security.vector_index = 0;
   }
 
+  if (amf_ctx->_security.eksi == KSI_NO_KEY_AVAILABLE) {
+    amf_ctx->_security.eksi = 0;
+  }
+
   amf_ue_ngap_id_t ue_id =
       PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->amf_ue_ngap_id;
   nas_amf_smc_proc_t* smc_proc = get_nas5g_common_procedure_smc(amf_ctx);
@@ -376,7 +380,7 @@ int amf_proc_security_mode_control(
             LOG_NAS_AMF, "Failed to create proper SNNI String: %s ", snni);
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
       } else {
-        OAILOG_DEBUG(LOG_NAS_AMF, "serving network name: %s", snni);
+        OAILOG_INFO(LOG_NAS_AMF, "serving network name: %s", snni);
       }
 
       memcpy(
@@ -433,12 +437,13 @@ int amf_proc_security_mode_control(
     smc_proc->amf_com_proc.amf_proc.base_proc.fail_out      = NULL;
     smc_proc->ue_id                                         = ue_id;
     smc_proc->retransmission_count                          = 0;
-    smc_proc->ksi                                           = ksi;
+    smc_proc->ksi          = amf_ctx->_security.eksi;
     smc_proc->selected_eea = amf_ctx->_security.selected_algorithms.encryption;
-    OAILOG_DEBUG(
+    OAILOG_INFO(
         LOG_NAS_AMF,
-        "5G CN encryption algorithm selected is (%d) for ue_id (%u)\n",
-        smc_proc->selected_eea, ue_id);
+        "5G CN encryption algorithm selected is (%d) for ue_id (%u) "
+        "smc_proc->ksi=%d\n",
+        smc_proc->selected_eea, ue_id, smc_proc->ksi);
     smc_proc->selected_eia = amf_ctx->_security.selected_algorithms.integrity;
     OAILOG_DEBUG(
         LOG_NAS_AMF,
@@ -454,5 +459,4 @@ int amf_proc_security_mode_control(
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
-
 }  // namespace magma5g
