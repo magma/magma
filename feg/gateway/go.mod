@@ -36,7 +36,7 @@ require (
 	github.com/prometheus/client_golang v1.10.0
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.18.0
-	github.com/shirou/gopsutil v2.20.3+incompatible
+	github.com/shirou/gopsutil/v3 v3.21.5
 	github.com/stretchr/objx v0.3.0 // indirect
 	github.com/stretchr/testify v1.6.1
 	github.com/thoas/go-funk v0.7.0
