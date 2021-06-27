@@ -21,8 +21,8 @@ import (
 
 	"magma/feg/cloud/go/protos"
 
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/mem"
+	"github.com/shirou/gopsutil/v3/cpu"
+	"github.com/shirou/gopsutil/v3/mem"
 )
 
 // CollectSystemStats fills out the SystemHealthStats protos with system related
