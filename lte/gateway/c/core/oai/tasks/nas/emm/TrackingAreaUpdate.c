@@ -342,11 +342,6 @@ status_code_e emm_proc_tracking_area_update_request(
      * EPS and non-EPS services, subject to operator policies the MME should
      * allocate a TAI list that does not span more than one location area.
      */
-    OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "EMM-PROC- Sending Tracking Area Update Accept. "
-        "ue_id=" MME_UE_S1AP_ID_FMT ", active flag=%d)\n",
-        ue_id, ies->eps_update_type.active_flag);
     // Handle periodic TAU
     if (ue_mm_context->num_reg_sub > 0) {
       if (verify_service_area_restriction(
@@ -372,6 +367,11 @@ status_code_e emm_proc_tracking_area_update_request(
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
       }
     }
+    OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "EMM-PROC- Sending Tracking Area Update Accept. "
+        "ue_id=" MME_UE_S1AP_ID_FMT ", active flag=%d)\n",
+        ue_id, ies->eps_update_type.active_flag);
     nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_context);
     if (!tau_proc) {
       tau_proc = emm_proc_create_procedure_tau(ue_mm_context, ies);
