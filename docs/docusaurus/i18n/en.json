@@ -20,6 +20,9 @@
       "contributing/contribute_codeowners": {
         "title": "Codeowners Workflow"
       },
+      "contributing/contribute_commit_msg": {
+        "title": "Commit message style"
+      },
       "contributing/contribute_conventions": {
         "title": "Contributing Conventions"
       },

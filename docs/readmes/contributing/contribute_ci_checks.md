@@ -18,24 +18,27 @@ When submitting PRs to the Magma repo, a suite of Continuous Integration tests a
 | GCC Warnings & Errors / gen_build_container | Passive Check generates container for GCC builds |  |
 | GCC Warnings & Errors / build_oai | Annotate Pull Requests with any GCC Warnings or Errors for MME target | electronjoe (GH), Scott Moeller (slack) |
 | GCC Warnings & Errors / build_session_manager | Annotate Pull Requests with any GCC Warnings or Errors for session_manager target | electronjoe (GH), Scott Moeller (slack) |
-| Jenkins | ? |  |
-| Jenkins CWAG Libvirt | CWAG Docker Compose based integration test? |  themarwhal (GH), Marie Bremner (slack) |
+| Jenkins | LTE integration test suite in Jenkins | mattymo (GH), Matthew Mosesohn |
+| Jenkins CWAG Libvirt | CWF integration test suite in Jenkins |  themarwhal (GH), Marie Bremner (slack) |
 | Jenkins LTE | A lighter weight and low flake subset of LTE tests including...? |  |
 | Code scanning results / CodeQL | How does this differ from the other CodeQL / Analyzer stages? |  |
 | Magma CI autolabel | ? |  |
 | Magma-OAI-Jenkins | OAI's MME integration test run on OAI Jenkins | rdefosse (GH), Raphael Defosseux (slack) |
 | ci/circleci: c-cpp-codecov | AGW c/c++ unit tests and push coverage to codecov.io | electronjoe (GH), Scott Moeller (slack) |
-| ci/circleci: cloud-test | ? |  |
+| ci/circleci: cloud-test | Orc8r unit tests | hcgatewood (GH), Hunter Gatewood (slack) |
 | ci/circleci: cloud_lint | ? |  |
-| ci/circleci: cwag-precommit | ? |  |
+| ci/circleci: cwag-precommit | CWF Unit Tests | themarwhal (GH), Marie Bremner (slack); uri200 (GH), Oriol Batalla (slack) |
+| ci/circleci: cwag-build | Validate that CWAG builds | themarwhal (GH), Marie Bremner (slack); uri200 (GH), Oriol Batalla (slack) |
+| ci/circleci: cwf-integ-test | Run CWF integration test suite in CircleCI | themarwhal (GH), Marie Bremner (slack); uri200 (GH), Oriol Batalla (slack) |
 | ci/circleci: cwf-operator-build | ? |  |
 | ci/circleci: cwf-operator-precommit | ? |  |
 | ci/circleci: eslint | ? |  |
-| ci/circleci: feg-build | Builds Docker images for FEG | themarwhal (GH), Marie Bremner (slack); mpgermano(GH), Michael Germano (slack); uri200 (GH), Oriol Batalla (slack); emakeev (GH), Evgeniy Makeev (slack) |
-| ci/circleci: feg-lint | FEG Go linter and code coverage | themarwhal (GH), Marie Bremner (slack); mpgermano(GH), Michael Germano (slack); uri200 (GH), Oriol Batalla (slack); emakeev (GH), Evgeniy Makeev (slack) |
-| ci/circleci: feg-precommit | Runs FEG unittest | themarwhal (GH), Marie Bremner (slack); mpgermano(GH), Michael Germano (slack); uri200 (GH), Oriol Batalla (slack); emakeev (GH), Evgeniy Makeev (slack) |
+| ci/circleci: feg-build | 	Validate that FeG builds | themarwhal (GH), Marie Bremner (slack); uri200 (GH), Oriol Batalla (slack); emakeev (GH), emak (slack) |
+| ci/circleci: feg-lint | FEG Go linter and code coverage | themarwhal (GH), Marie Bremner (slack);  uri200 (GH), Oriol Batalla (slack); emakeev (GH), emak (slack) |
+| ci/circleci: feg-precommit | Run FEG unit tests | themarwhal (GH), Marie Bremner (slack);  uri200 (GH), Oriol Batalla (slack); emakeev (GH), emak (slack) |
 | ci/circleci: insync-checkin | ? |  |
-| ci/circleci: lte-test | ? Is this dupe with Jenkins LTE?... |  |
+| ci/circleci: lte-test | Run AGW Python unit tests | pshelar (GH), Pravin Shelar (slack); ardzoht (GH), Alex Rodriguez (slack) |
+| ci/circleci: lte-integ-test | Run LTE integration test suite in CircleCI | ardzoht (GH), Alex Rodriguez (slack); ulaskozat (GH), Ulas Kozat (slack) |
 | ci/circleci: mme_test | Validate that MME related unit tests build and pass | themarwhal (GH), Marie Bremner (slack) |
 | ci/circleci: nms-build | Validate that the NMS builds | karthiksubravet (GH), karthik subraveti (slack); andreilee (GH), Andre Lee (slack) |
 | ci/circleci: nms-e2e-test | ? | karthiksubravet (GH), karthik subraveti (slack); andreilee (GH), Andre Lee (slack) |
