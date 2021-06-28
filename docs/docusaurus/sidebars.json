@@ -189,7 +189,8 @@
       "contributing/contribute_workflow",
       "contributing/contribute_conventions",
       "contributing/contribute_ci_checks",
-      "contributing/contribute_codeowners"
+      "contributing/contribute_codeowners",
+      "contributing/contribute_id_mappings"
     ],
     "Technical Reference": [
       {

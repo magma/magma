@@ -26,6 +26,9 @@
       "contributing/contribute_conventions": {
         "title": "Contributing Conventions"
       },
+      "contributing/contribute_id_mappings": {
+        "title": "Codeowners GitHub to Slack IDs"
+      },
       "contributing/contribute_onboarding": {
         "title": "Developer Onboarding"
       },
