@@ -30,6 +30,7 @@
 #include "magma_logging.h"
 #include "includes/ServiceRegistrySingleton.h"
 #include "Utilities.h"
+#include "GrpcMagmaUtils.h"
 
 namespace magma {
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE   = false;
@@ -145,6 +146,25 @@ void LocalEnforcer::setup(
   } else {
     pipelined_client_->setup_lte(session_infos, epoch, callback);
   }
+}
+
+void LocalEnforcer::HandlePipelinedResponse(
+    Status status, RuleRecordTable resp) {
+  if (!status.ok()) {
+    MLOG(MERROR) << "Could not successfully poll stats: "
+                 << status.error_message();
+  } else {
+    auto session_map = session_store_.read_all_sessions();
+    SessionUpdate update =
+        SessionStore::get_default_session_update(session_map);
+    MLOG(MDEBUG) << "Aggregating " << resp.records_size() << " records";
+    aggregate_records(session_map, resp, update);
+  }
+}
+
+void LocalEnforcer::poll_stats_enforcer() {
+  pipelined_client_->poll_stats(
+      0, 0, std::bind(&LocalEnforcer::HandlePipelinedResponse, this, _1, _2));
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {

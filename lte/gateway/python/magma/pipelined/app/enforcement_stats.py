@@ -577,6 +577,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and 
         convert to a Rule Record Table
         """
+        if (self._datapath == None):
+            return RuleRecordTable()
         parser = self._datapath.ofproto_parser
         message = parser.OFPFlowStatsRequest(datapath=self._datapath, cookie = cookie, cookie_mask = cookie_mask)
         try:

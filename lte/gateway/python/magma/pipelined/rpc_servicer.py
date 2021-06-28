@@ -963,7 +963,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()
         self._loop.call_soon_threadsafe(self.get_stats, request, fut)
-
+        
         try:
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:

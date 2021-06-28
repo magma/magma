@@ -294,6 +294,9 @@ class LocalEnforcer {
       SessionMap& session_map, const PolicyBearerBindingRequest& request,
       SessionUpdate& session_update);
 
+  void HandlePipelinedResponse(Status status, RuleRecordTable resp);
+
+  void poll_stats_enforcer();
   /**
    * Sends enb_teid and agw_teid for a specific bearer to a flow for a specific
    * UE on pipelined. UE will be identified by pipelined using its IP
