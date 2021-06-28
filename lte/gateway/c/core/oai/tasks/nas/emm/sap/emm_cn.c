@@ -521,7 +521,7 @@ static int emm_cn_cs_response_success(emm_cn_cs_response_success_t* msg_pP) {
 
   memset(&esm_msg, 0, sizeof(ESM_msg));
 
-  is_standalone = emm_ctx->esm_ctx.is_standalone;
+  is_standalone = (emm_ctx->esm_ctx.pending_standalone > 0 ? true : false);
   /* msg_pP->pdn_type enum is as per 29.272( S6a spec).Convert the PDN type
    * to be aligned to 3gpp 24.301 before sending the NAS message to UE
    */
