@@ -34,12 +34,12 @@ func StartTestService(t *testing.T) {
 
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	digestStore := storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, digestStore.Initialize())
+	flatDigestStore := storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, flatDigestStore.Initialize())
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
-	go subscriberdb_cache.MonitorDigests(digestStore, serviceConfig)
+	go subscriberdb_cache.MonitorDigests(flatDigestStore, serviceConfig)
 	srv.RunTest(lis)
 }

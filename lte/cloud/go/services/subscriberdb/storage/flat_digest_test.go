@@ -23,17 +23,16 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDigestLookup(t *testing.T) {
+func TestFlatDigestLookup(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	s := storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	s := storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, s.Initialize())
 
 	t.Run("empty initially", func(t *testing.T) {
-		digest, timestamp, err := storage.GetDigest(s, "n0")
+		digest, err := s.GetDigest("n0")
 		assert.NoError(t, err)
-		assert.Equal(t, digest, "")
-		assert.Equal(t, timestamp, int64(0))
+		checkFlatDigest(t, "", digest)
 
 		networkIDs, err := storage.GetAllNetworks(s)
 		assert.NoError(t, err)
@@ -41,40 +40,40 @@ func TestDigestLookup(t *testing.T) {
 	})
 
 	t.Run("basic insert", func(t *testing.T) {
-		err = s.SetDigest("n0", "apple")
+		err = s.SetDigest("n0", "", "apple")
 		assert.NoError(t, err)
-		err = s.SetDigest("n1", "lemon")
+		err = s.SetDigest("n1", "", "lemon")
 		assert.NoError(t, err)
-		err = s.SetDigest("n2", "peach")
+		err = s.SetDigest("n2", "", "peach")
 		assert.NoError(t, err)
 
 		networkIDs, err := storage.GetAllNetworks(s)
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"n0", "n1", "n2"}, networkIDs)
 
-		digest, _, err := storage.GetDigest(s, "n0")
+		digest, err := s.GetDigest("n0")
 		assert.NoError(t, err)
-		assert.Equal(t, "apple", digest)
-		digest, _, err = storage.GetDigest(s, "n1")
+		checkFlatDigest(t, "apple", digest)
+		digest, err = s.GetDigest("n1")
 		assert.NoError(t, err)
-		assert.Equal(t, "lemon", digest)
-		digest, _, err = storage.GetDigest(s, "n2")
+		checkFlatDigest(t, "lemon", digest)
+		digest, err = s.GetDigest("n2")
 		assert.NoError(t, err)
-		assert.Equal(t, "peach", digest)
+		checkFlatDigest(t, "peach", digest)
 	})
 
 	t.Run("upsert", func(t *testing.T) {
-		err = s.SetDigest("n0", "banana")
+		err = s.SetDigest("n0", "", "banana")
 		assert.NoError(t, err)
-		digest, _, err := storage.GetDigest(s, "n0")
+		digest, err := s.GetDigest("n0")
 		assert.NoError(t, err)
-		assert.Equal(t, "banana", digest)
+		checkFlatDigest(t, "banana", digest)
 
-		err = s.SetDigest("n0", "watermelon")
+		err = s.SetDigest("n0", "", "watermelon")
 		assert.NoError(t, err)
-		digest, _, err = storage.GetDigest(s, "n0")
+		digest, err = s.GetDigest("n0")
 		assert.NoError(t, err)
-		assert.Equal(t, "watermelon", digest)
+		checkFlatDigest(t, "watermelon", digest)
 	})
 
 	t.Run("get outdated", func(t *testing.T) {
@@ -95,11 +94,17 @@ func TestDigestLookup(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"n0"}, networks)
 
-		digest, _, err := storage.GetDigest(s, "n1")
+		digest, err := s.GetDigest("n1")
 		assert.NoError(t, err)
-		assert.Equal(t, "", digest)
-		digest, _, err = storage.GetDigest(s, "n0")
+		checkFlatDigest(t, "", digest)
+		digest, err = s.GetDigest("n0")
 		assert.NoError(t, err)
-		assert.Equal(t, "watermelon", digest)
+		checkFlatDigest(t, "watermelon", digest)
 	})
+}
+
+func checkFlatDigest(t *testing.T, expected string, digest interface{}) {
+	digestInfo, ok := digest.(storage.DigestInfo)
+	assert.True(t, ok)
+	assert.Equal(t, expected, digestInfo.Digest)
 }

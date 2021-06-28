@@ -34,13 +34,13 @@ import (
 
 type subscriberdbServicer struct {
 	flatDigestEnabled bool
-	digestStore       storage.DigestLookup
+	flatDigestStore   storage.DigestLookup
 }
 
-func NewSubscriberdbServicer(config subscriberdb.Config, digestStore storage.DigestLookup) lte_protos.SubscriberDBCloudServer {
+func NewSubscriberdbServicer(config subscriberdb.Config, flatDigestStore storage.DigestLookup) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
 		flatDigestEnabled: config.FlatDigestEnabled,
-		digestStore:       digestStore,
+		flatDigestStore:   flatDigestStore,
 	}
 	return servicer
 }
@@ -124,15 +124,21 @@ func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, ne
 		return &lte_protos.Digest{Md5Base64Digest: ""}, false
 	}
 
-	digest, _, err := storage.GetDigest(s.digestStore, networkID)
+	digest, err := s.flatDigestStore.GetDigest(networkID)
 	// If digest generation fails, the error is swallowed to not affect the main functionality
 	if err != nil {
 		glog.Errorf("Generating digest for network %s failed: %+v", networkID, err)
 		return &lte_protos.Digest{Md5Base64Digest: ""}, false
 	}
+	digestInfo, ok := digest.(storage.DigestInfo)
+	if !ok {
+		glog.Errorf("Converting GetDigest result into DigestInfo for network %s failed: %+v", networkID, err)
+		return &lte_protos.Digest{Md5Base64Digest: ""}, false
+	}
 
-	noUpdates := digest != "" && digest == clientDigest.GetMd5Base64Digest()
-	digestProto := &lte_protos.Digest{Md5Base64Digest: digest}
+	digestStr := digestInfo.Digest
+	noUpdates := digestStr != "" && digestStr == clientDigest.GetMd5Base64Digest()
+	digestProto := &lte_protos.Digest{Md5Base64Digest: digestStr}
 	return digestProto, noUpdates
 }
 

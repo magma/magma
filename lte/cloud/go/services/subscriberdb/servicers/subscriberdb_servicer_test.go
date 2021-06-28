@@ -44,9 +44,9 @@ import (
 func TestListSubscribers(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	digestStore := initializeDigestStore(t)
+	flatDigestStore := initializeFlatDigestStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: false}, digestStore)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: false}, flatDigestStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -303,10 +303,10 @@ func TestListSubscribers(t *testing.T) {
 func TestCheckSubscribersInSync(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	digestStore := initializeDigestStore(t)
+	flatDigestStore := initializeFlatDigestStore(t)
 
 	// Create servicer with flat digest feature flag turned on
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true}, digestStore)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true}, flatDigestStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
@@ -314,7 +314,7 @@ func TestCheckSubscribersInSync(t *testing.T) {
 
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())
-	err = digestStore.SetDigest("n1", "digest_cherry")
+	err = flatDigestStore.SetDigest("n1", "", "digest_cherry")
 	assert.NoError(t, err)
 
 	// Requests with blank digests should get an update signal in return
@@ -334,7 +334,7 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	assert.True(t, res.InSync)
 
 	// Requests with outdated digests should get an update signal in return
-	err = digestStore.SetDigest("n1", "digest_banana")
+	err = flatDigestStore.SetDigest("n1", "", "digest_banana")
 	assert.NoError(t, err)
 	req = &lte_protos.CheckSubscribersInSyncRequest{
 		FlatDigest: &lte_protos.Digest{Md5Base64Digest: "digest_cherry"},
@@ -357,10 +357,10 @@ func assertEqualSubscriberData(t *testing.T, expectedProtos []*lte_protos.Subscr
 	}
 }
 
-func initializeDigestStore(t *testing.T) subscriberdb_storage.DigestLookup {
+func initializeFlatDigestStore(t *testing.T) subscriberdb_storage.DigestLookup {
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	digestStore := subscriberdb_storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, digestStore.Initialize())
-	return digestStore
+	store := subscriberdb_storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, store.Initialize())
+	return store
 }

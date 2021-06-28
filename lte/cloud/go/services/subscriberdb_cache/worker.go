@@ -27,9 +27,9 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func MonitorDigests(store storage.DigestLookup, config Config) {
+func MonitorDigests(flatDigestStore storage.DigestLookup, config Config) {
 	for {
-		generatedDigestsByNetworks, err := RenewDigests(store, config)
+		generatedDigestsByNetworks, err := RenewDigests(flatDigestStore, config)
 		if err != nil {
 			glog.Errorf("Error monitoring digests: %+v", err)
 		}
@@ -47,12 +47,12 @@ func MonitorDigests(store storage.DigestLookup, config Config) {
 //
 // Note: RenewDigests renews digests only a single time. Prefer MonitorDigests
 // for continuously updating the digests.
-func RenewDigests(store storage.DigestLookup, config Config) (map[string]string, error) {
-	networksToRenew, networksToRemove, err := getNetworksToUpdate(store, config.UpdateIntervalSecs)
+func RenewDigests(flatDigestStore storage.DigestLookup, config Config) (map[string]string, error) {
+	networksToRenew, networksToRemove, err := getNetworksToUpdate(flatDigestStore, config.UpdateIntervalSecs)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get networks to update")
 	}
-	err = store.DeleteDigests(networksToRemove)
+	err = flatDigestStore.DeleteDigests(networksToRemove)
 	if err != nil {
 		return nil, errors.Wrapf(err, "remove invalid networks")
 	}
@@ -66,7 +66,7 @@ func RenewDigests(store storage.DigestLookup, config Config) (map[string]string,
 			continue
 		}
 
-		err = store.SetDigest(network, digest)
+		err = flatDigestStore.SetDigest(network, "", digest)
 		if err != nil {
 			multierror.Append(errors.Wrapf(err, "set digest"))
 			continue
@@ -77,18 +77,18 @@ func RenewDigests(store storage.DigestLookup, config Config) (map[string]string,
 }
 
 // getNetworksToUpdate returns networks to renew or delete in the store.
-func getNetworksToUpdate(store storage.DigestLookup, updateIntervalSecs int) ([]string, []string, error) {
+func getNetworksToUpdate(flatDigestStore storage.DigestLookup, updateIntervalSecs int) ([]string, []string, error) {
 	all, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load current networks for subscriberdb cache")
 	}
-	tracked, err := storage.GetAllNetworks(store)
+	tracked, err := storage.GetAllNetworks(flatDigestStore)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load networks in store for subscriberdb cache")
 	}
 
 	newlyCreated, deleted := funk.DifferenceString(all, tracked)
-	outdated, err := storage.GetOutdatedNetworks(store, clock.Now().Unix()-int64(updateIntervalSecs))
+	outdated, err := storage.GetOutdatedNetworks(flatDigestStore, clock.Now().Unix()-int64(updateIntervalSecs))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load outdated networks for subscriberdb cache")
 	}

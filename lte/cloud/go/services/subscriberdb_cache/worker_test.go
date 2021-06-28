@@ -36,8 +36,8 @@ import (
 func TestSubscriberdbCacheWorker(t *testing.T) {
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	digestStore := storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, digestStore.Initialize())
+	flatDigestStore := storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, flatDigestStore.Initialize())
 	serviceConfig := subscriberdb_cache.Config{
 		SleepIntervalSecs:  5,
 		UpdateIntervalSecs: 300,
@@ -46,21 +46,21 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
-	allNetworks, err := storage.GetAllNetworks(digestStore)
+	allNetworks, err := storage.GetAllNetworks(flatDigestStore)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{}, allNetworks)
-	digest, _, err := storage.GetDigest(digestStore, "n1")
+	digest, err := flatDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, "", digest)
+	checkDigestEqual(t, "", digest, true)
 
 	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	subscriberdb_cache.RenewDigests(digestStore, serviceConfig)
-	digest, _, err = storage.GetDigest(digestStore, "n1")
+	subscriberdb_cache.RenewDigests(flatDigestStore, serviceConfig)
+	digest, err = flatDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.NotEqual(t, "", digest)
-	digestCanon := digest
+	checkDigestEqual(t, "", digest, false)
+	digestCanon := digest.(storage.DigestInfo).Digest
 
 	// Detect outdated digest and update
 	_, err = configurator.CreateEntities(
@@ -82,10 +82,10 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.NoError(t, err)
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(10*time.Minute))
-	subscriberdb_cache.RenewDigests(digestStore, serviceConfig)
-	digest, _, err = storage.GetDigest(digestStore, "n1")
+	subscriberdb_cache.RenewDigests(flatDigestStore, serviceConfig)
+	digest, err = flatDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.NotEqual(t, digestCanon, digest)
+	checkDigestEqual(t, digestCanon, digest, false)
 	clock.UnfreezeClock(t)
 
 	// Detect newly added and removed networks
@@ -94,16 +94,26 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	configurator.DeleteNetwork("n1")
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(20*time.Minute))
-	subscriberdb_cache.RenewDigests(digestStore, serviceConfig)
-	digest, _, err = storage.GetDigest(digestStore, "n1")
+	subscriberdb_cache.RenewDigests(flatDigestStore, serviceConfig)
+	digest, err = flatDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, "", digest)
-	digest, _, err = storage.GetDigest(digestStore, "n2")
+	checkDigestEqual(t, "", digest, true)
+	digest, err = flatDigestStore.GetDigest("n2")
 	assert.NoError(t, err)
-	assert.NotEqual(t, "", digest)
+	checkDigestEqual(t, "", digest, false)
 
-	allNetworks, err = storage.GetAllNetworks(digestStore)
+	allNetworks, err = storage.GetAllNetworks(flatDigestStore)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"n2"}, allNetworks)
 	clock.UnfreezeClock(t)
+}
+
+func checkDigestEqual(t *testing.T, expected string, digest interface{}, equal bool) {
+	digestInfo, ok := digest.(storage.DigestInfo)
+	assert.True(t, ok)
+	if equal {
+		assert.Equal(t, expected, digestInfo.Digest)
+	} else {
+		assert.NotEqual(t, expected, digestInfo.Digest)
+	}
 }
