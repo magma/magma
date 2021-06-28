@@ -371,6 +371,7 @@ class QosManager(object):
             rule_num: int,
             direction: FlowMatch.Direction,
             qos_info: QosInfo,
+            cleanup_rule=None
     ):
         with QosManager.lock:
             if not self._qos_enabled or not self._initialized:
@@ -405,7 +406,9 @@ class QosManager(object):
                 LOG.debug("existing root rec: ambr_qos_handle_root %d", ambr_qos_handle_root)
 
                 if not ambr_qos_handle_root:
-                    ambr_qos_handle_root = self.impl.add_qos(direction, QosInfo(gbr=None, mbr=apn_ambr), skip_filter=True)
+                    ambr_qos_handle_root = self.impl.add_qos(direction, QosInfo(gbr=None, mbr=apn_ambr),
+                                                             cleanup_rule,
+                                                             skip_filter=True)
                     if not ambr_qos_handle_root:
                         LOG.error('Failed adding root ambr qos mbr %u direction %d',
                                   apn_ambr, direction)
@@ -420,6 +423,7 @@ class QosManager(object):
                 if not ambr_qos_handle_leaf:
                     ambr_qos_handle_leaf = self.impl.add_qos(direction,
                                                              QosInfo(gbr=None, mbr=apn_ambr),
+                                                             cleanup_rule,
                                                              parent=ambr_qos_handle_root)
                     if ambr_qos_handle_leaf:
                         session.set_ambr(direction, ambr_qos_handle_root, ambr_qos_handle_leaf)
@@ -433,7 +437,8 @@ class QosManager(object):
                 qos_handle = ambr_qos_handle_leaf
 
             if qos_info:
-                qos_handle = self.impl.add_qos(direction, qos_info, parent=ambr_qos_handle_root)
+                qos_handle = self.impl.add_qos(direction, qos_info, cleanup_rule,
+                                               parent=ambr_qos_handle_root)
                 LOG.debug("Added ded brr handle: %d", qos_handle)
                 if qos_handle:
                     LOG.debug('Adding qos %s direction %d qos_handle %d ',

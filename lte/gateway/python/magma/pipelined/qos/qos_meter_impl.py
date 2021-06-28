@@ -60,7 +60,8 @@ class MeterManager(object):
         return None, parser.OFPInstructionMeter(meter_id, ofproto.OFPIT_METER)
 
     # pylint:disable=unused-argument
-    def add_qos(self, _, qos_info: QosInfo, parent=None, skip_filter=False) -> int:
+    def add_qos(self, _, qos_info: QosInfo, cleanup_rule,
+                parent=None, skip_filter=False) -> int:
         if self._qos_impl_broken:
             raise RuntimeError(BROKEN_KERN_ERROR_MSG)
 
