@@ -36,10 +36,12 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, err)
 	flatDigestStore := storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, flatDigestStore.Initialize())
+	perSubDigestStore := storage.NewPerSubDigestLookup(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, perSubDigestStore.Initialize())
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
-	go subscriberdb_cache.MonitorDigests(flatDigestStore, serviceConfig)
+	go subscriberdb_cache.MonitorDigests(flatDigestStore, perSubDigestStore, serviceConfig)
 	srv.RunTest(lis)
 }

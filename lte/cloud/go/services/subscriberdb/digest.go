@@ -24,13 +24,14 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+	"github.com/thoas/go-funk"
 )
 
 const defaultSubProfile = "default"
 
-// GetDigest returns a deterministic digest of the current configurations of a
+// GetFlatDigest returns a deterministic digest of the current configurations of a
 // network, which is a concatenation of its subscribers digest and apn resources digest.
-func GetDigest(networkID string) (string, error) {
+func GetFlatDigest(network string) (string, error) {
 	// HACK: Workaround to decouple apn resources data from subscriber data
 	// despite current construction logic.
 	//
@@ -38,12 +39,12 @@ func GetDigest(networkID string) (string, error) {
 	// that the digests are per-network, instead of having to account for
 	// gateway-specific apn resources configs for subscribers. We can do this
 	// because APN resource IDs are unique within each network.
-	subscribersDigest, err := getSubscribersDigest(networkID)
+	subscribersDigest, err := getSubscribersDigest(network)
 	if err != nil {
 		return "", err
 	}
 
-	apnResourcesDigest, err := getApnResourcesDigest(networkID)
+	apnResourcesDigest, err := getApnResourcesDigest(network)
 	if err != nil {
 		return "", err
 	}
@@ -52,9 +53,61 @@ func GetDigest(networkID string) (string, error) {
 	return digest, nil
 }
 
+func GetPerSubDigests(network string) (map[string]string, error) {
+	apnsByName, err := LoadApnsByName(network)
+	if err != nil {
+		return nil, err
+	}
+
+	perSubDigests := map[string]string{}
+	token := ""
+	foundEmptyToken := false
+	for !foundEmptyToken {
+		subProtos, nextToken, err := LoadSubProtosPage(0, token, network, apnsByName, lte_models.ApnResources{})
+		if err != nil {
+			return nil, err
+		}
+		for _, subProto := range subProtos {
+			digest, err := mproto.HashDeterministic(subProto)
+			if err != nil {
+				// Swallow errors related to a single subscriber digest to avoid affecting the rest
+				glog.Errorf("Failed to generate digest for subscriber %+v of network %+v: %+v", subProto.Sid.Id, network, err)
+				digest = ""
+			}
+			perSubDigests[subProto.Sid.Id] = digest
+		}
+		foundEmptyToken = nextToken == ""
+		token = nextToken
+	}
+
+	apnDigest, err := getApnResourcesDigest(network)
+	if err != nil {
+		glog.Errorf("Failed to generate digest for apn resources of network %+v: %+v", network, err)
+		perSubDigests["apn"] = ""
+	} else {
+		perSubDigests["apn"] = apnDigest
+	}
+
+	return perSubDigests, nil
+}
+
+func GetSubDigestsDiff(all map[string]string, tracked map[string]string) (map[string]string, []string, error) {
+	allSubs, trackedSubs := funk.Keys(all).([]string), funk.Keys(tracked).([]string)
+	deleted, _ := funk.DifferenceString(trackedSubs, allSubs)
+
+	toRenew := map[string]string{}
+	for sub, digest := range all {
+		trackedDigest, ok := tracked[sub]
+		if !ok || (ok && trackedDigest != digest) {
+			toRenew[sub] = digest
+		}
+	}
+	return toRenew, deleted, nil
+}
+
 // getSubscribersDigest returns a deterministic digest of all subscribers in the network.
-func getSubscribersDigest(networkID string) (string, error) {
-	apnsByName, err := LoadApnsByName(networkID)
+func getSubscribersDigest(network string) (string, error) {
+	apnsByName, err := LoadApnsByName(network)
 	if err != nil {
 		return "", err
 	}
@@ -66,7 +119,7 @@ func getSubscribersDigest(networkID string) (string, error) {
 
 	for !foundEmptyToken {
 		subProtosById := map[string]proto.Message{}
-		subProtos, nextToken, err := LoadSubProtosPage(0, token, networkID, apnsByName, lte_models.ApnResources{})
+		subProtos, nextToken, err := LoadSubProtosPage(0, token, network, apnsByName, lte_models.ApnResources{})
 		if err != nil {
 			return "", err
 		}
@@ -92,9 +145,9 @@ func getSubscribersDigest(networkID string) (string, error) {
 
 // getApnResourcesDigest returns a deterministic digest of the apn resources configurations
 // in a network.
-func getApnResourcesDigest(networkID string) (string, error) {
+func getApnResourcesDigest(network string) (string, error) {
 	apnResourceEnts, _, err := configurator.LoadAllEntitiesOfType(
-		networkID, lte.APNResourceEntityType,
+		network, lte.APNResourceEntityType,
 		configurator.FullEntityLoadCriteria(),
 		serdes.Entity,
 	)

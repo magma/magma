@@ -39,17 +39,24 @@ func TestPerSubDigestLookup(t *testing.T) {
 	})
 
 	t.Run("basic insert", func(t *testing.T) {
-		err = s.SetDigest("n0", "IMSI0001", "apple")
+		err = s.SetDigest("n0", storage.PerSubDigestUpsertArgs{
+			ToRenew: map[string]string{
+				"IMSI0001": "apple",
+				"IMSI0002": "lemon",
+				"IMSI0003": "peach",
+			},
+		})
 		assert.NoError(t, err)
-		err = s.SetDigest("n0", "IMSI0002", "lemon")
+		err = s.SetDigest("n1", storage.PerSubDigestUpsertArgs{
+			ToRenew: map[string]string{
+				"IMSI1111": "banana",
+				"IMSI1112": "durian",
+			},
+		})
 		assert.NoError(t, err)
-		err = s.SetDigest("n0", "IMSI0003", "peach")
-		assert.NoError(t, err)
-		err = s.SetDigest("n1", "IMSI1111", "banana")
-		assert.NoError(t, err)
-		err = s.SetDigest("n1", "IMSI1112", "durian")
-		assert.NoError(t, err)
-		err = s.SetDigest("n2", "IMSI2221", "cherry")
+		err = s.SetDigest("n2", storage.PerSubDigestUpsertArgs{
+			ToRenew: map[string]string{"IMSI2221": "cherry"},
+		})
 		assert.NoError(t, err)
 
 		networkIDs, err := storage.GetAllNetworks(s)
@@ -80,27 +87,30 @@ func TestPerSubDigestLookup(t *testing.T) {
 	})
 
 	t.Run("upsert", func(t *testing.T) {
-		err = s.SetDigest("n0", "IMSI0001", "orange")
+		err = s.SetDigest("n0", storage.PerSubDigestUpsertArgs{
+			ToRenew: map[string]string{"IMSI0001": "orange", "IMSI0004": "papaya"},
+			Deleted: []string{"IMSI0002"},
+		})
 		assert.NoError(t, err)
-		err = s.SetDigest("n0", "IMSI0003", "papaya")
 		digest, err := s.GetDigest("n0")
 		assert.NoError(t, err)
 		expected := map[string]string{
 			"IMSI0001": "orange",
-			"IMSI0002": "lemon",
-			"IMSI0003": "papaya",
+			"IMSI0003": "peach",
+			"IMSI0004": "papaya",
 		}
 		checkPerSubDigests(t, expected, digest)
 
-		err = s.SetDigest("n2", "IMSI2221", "starfruit")
+		err = s.SetDigest("n1", storage.PerSubDigestUpsertArgs{
+			ToRenew: map[string]string{"IMSI1113": "starfruit", "IMSI1114": "cactus"},
+			Deleted: []string{"IMSI1111", "IMSI1112"},
+		})
 		assert.NoError(t, err)
-		err = s.SetDigest("n2", "IMSI2222", "cactus")
-		assert.NoError(t, err)
-		digest, err = s.GetDigest("n2")
+		digest, err = s.GetDigest("n1")
 		assert.NoError(t, err)
 		expected = map[string]string{
-			"IMSI2221": "starfruit",
-			"IMSI2222": "cactus",
+			"IMSI1113": "starfruit",
+			"IMSI1114": "cactus",
 		}
 		checkPerSubDigests(t, expected, digest)
 	})
@@ -120,8 +130,8 @@ func TestPerSubDigestLookup(t *testing.T) {
 		assert.NoError(t, err)
 		expected := map[string]string{
 			"IMSI0001": "orange",
-			"IMSI0002": "lemon",
-			"IMSI0003": "papaya",
+			"IMSI0003": "peach",
+			"IMSI0004": "papaya",
 		}
 		checkPerSubDigests(t, expected, digest)
 	})

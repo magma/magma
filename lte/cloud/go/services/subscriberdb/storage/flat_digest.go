@@ -40,8 +40,8 @@ type DigestLookup interface {
 	// digests (the source of truth for whether a network's digests are up-to-date).
 	GetDigests(networks []string, lastUpdatedBefore int64) (DigestInfos, error)
 
-	// SetDigest creates/updates the digest for a particular network/subscriber.
-	SetDigest(network string, subscriber string, digest string) error
+	// SetDigest updates the digest(s) for a particular network based on the specified arguments.
+	SetDigest(network string, args interface{}) error
 
 	// DeleteDigests removes digests by network IDs.
 	DeleteDigests(networks []string) error
@@ -133,8 +133,14 @@ func (l *flatDigestLookup) GetDigests(networks []string, lastUpdatedBefore int64
 	return ret, nil
 }
 
-func (l *flatDigestLookup) SetDigest(network string, subscriber string, digest string) error {
+func (l *flatDigestLookup) SetDigest(network string, args interface{}) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
+		flatDigestUpsertArgs, ok := args.(FlatDigestUpsertArgs)
+		if !ok {
+			return nil, errors.Errorf("invalid args for setting flat digest of network %+v", network)
+		}
+		digest := flatDigestUpsertArgs.Digest
+
 		now := clock.Now().Unix()
 		_, err := l.builder.
 			Insert(flatDigestTableName).
@@ -210,6 +216,11 @@ func GetAllNetworks(l DigestLookup) ([]string, error) {
 	networks := digestInfos.Networks()
 	networksUniq := funk.UniqString(networks)
 	return networksUniq, nil
+}
+
+// FlatDigestUpsertArgs specifies the flat digest to be added/updated in store for a network.
+type FlatDigestUpsertArgs struct {
+	Digest string
 }
 
 type DigestInfo struct {

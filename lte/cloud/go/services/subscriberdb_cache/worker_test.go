@@ -38,6 +38,8 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.NoError(t, err)
 	flatDigestStore := storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, flatDigestStore.Initialize())
+	perSubDigestStore := storage.NewPerSubDigestLookup(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, perSubDigestStore.Initialize())
 	serviceConfig := subscriberdb_cache.Config{
 		SleepIntervalSecs:  5,
 		UpdateIntervalSecs: 300,
@@ -49,20 +51,32 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	allNetworks, err := storage.GetAllNetworks(flatDigestStore)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{}, allNetworks)
-	digest, err := flatDigestStore.GetDigest("n1")
+	flatDigest, err := flatDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	checkDigestEqual(t, "", digest, true)
+	checkDigestEqual(t, "", flatDigest, true)
+	perSubDigests, err := perSubDigestStore.GetDigest("n1")
+	assert.NoError(t, err)
+	_, ok := perSubDigests.(map[string]string)
+	assert.True(t, ok)
+	assert.Equal(t, map[string]string{}, perSubDigests)
 
 	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	subscriberdb_cache.RenewDigests(flatDigestStore, serviceConfig)
-	digest, err = flatDigestStore.GetDigest("n1")
+	subscriberdb_cache.RenewDigests(flatDigestStore, perSubDigestStore, serviceConfig)
+	flatDigest, err = flatDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	checkDigestEqual(t, "", digest, false)
-	digestCanon := digest.(storage.DigestInfo).Digest
+	checkDigestEqual(t, "", flatDigest, false)
+	flatDigestCanon := flatDigest.(storage.DigestInfo).Digest
+	perSubDigests, err = perSubDigestStore.GetDigest("n1")
+	assert.NoError(t, err)
+	_, ok = perSubDigests.(map[string]string)
+	assert.True(t, ok)
+	assert.Contains(t, perSubDigests, "apn")
+	assert.NotEqual(t, "", perSubDigests.(map[string]string)["apn"])
+	apnDigestCanon := perSubDigests.(map[string]string)["apn"]
 
-	// Detect outdated digest and update
+	// Detect outdated digests and update
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
@@ -82,10 +96,18 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.NoError(t, err)
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(10*time.Minute))
-	subscriberdb_cache.RenewDigests(flatDigestStore, serviceConfig)
-	digest, err = flatDigestStore.GetDigest("n1")
+	subscriberdb_cache.RenewDigests(flatDigestStore, perSubDigestStore, serviceConfig)
+	flatDigest, err = flatDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	checkDigestEqual(t, digestCanon, digest, false)
+	checkDigestEqual(t, flatDigestCanon, flatDigest, false)
+
+	perSubDigests, err = perSubDigestStore.GetDigest("n1")
+	assert.NoError(t, err)
+	_, ok = perSubDigests.(map[string]string)
+	assert.True(t, ok)
+	assert.Contains(t, perSubDigests, "99999")
+	assert.NotEqual(t, "", perSubDigests.(map[string]string)["99999"])
+	assert.Equal(t, apnDigestCanon, perSubDigests.(map[string]string)["apn"])
 	clock.UnfreezeClock(t)
 
 	// Detect newly added and removed networks
@@ -94,13 +116,25 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	configurator.DeleteNetwork("n1")
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(20*time.Minute))
-	subscriberdb_cache.RenewDigests(flatDigestStore, serviceConfig)
-	digest, err = flatDigestStore.GetDigest("n1")
+	subscriberdb_cache.RenewDigests(flatDigestStore, perSubDigestStore, serviceConfig)
+	flatDigest, err = flatDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	checkDigestEqual(t, "", digest, true)
-	digest, err = flatDigestStore.GetDigest("n2")
+	checkDigestEqual(t, "", flatDigest, true)
+	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	checkDigestEqual(t, "", digest, false)
+	_, ok = perSubDigests.(map[string]string)
+	assert.True(t, ok)
+	assert.Equal(t, map[string]string{}, perSubDigests.(map[string]string))
+
+	flatDigest, err = flatDigestStore.GetDigest("n2")
+	assert.NoError(t, err)
+	checkDigestEqual(t, "", flatDigest, false)
+	perSubDigests, err = perSubDigestStore.GetDigest("n2")
+	assert.NoError(t, err)
+	_, ok = perSubDigests.(map[string]string)
+	assert.True(t, ok)
+	assert.Contains(t, perSubDigests, "apn")
+	assert.NotEqual(t, "", perSubDigests.(map[string]string)["apn"])
 
 	allNetworks, err = storage.GetAllNetworks(flatDigestStore)
 	assert.NoError(t, err)

@@ -29,9 +29,10 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/thoas/go-funk"
 )
 
-func TestGetDigestDeterministic(t *testing.T) {
+func TestGetFlatDigestDeterministic(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
@@ -62,10 +63,10 @@ func TestGetDigestDeterministic(t *testing.T) {
 	_, err = configurator.CreateEntities("n1", networkEntities, serdes.Entity)
 	assert.NoError(t, err)
 
-	expected, err := subscriberdb.GetDigest("n1")
+	expected, err := subscriberdb.GetFlatDigest("n1")
 	assert.NoError(t, err)
 	for i := 0; i < 50; i++ {
-		digest, err := subscriberdb.GetDigest("n1")
+		digest, err := subscriberdb.GetFlatDigest("n1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, digest)
 	}
@@ -83,7 +84,7 @@ func TestGetDigestDeterministic(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	digest, err := subscriberdb.GetDigest("n1")
+	digest, err := subscriberdb.GetFlatDigest("n1")
 	assert.NoError(t, err)
 	assert.NotEqual(t, expected, digest)
 	expected = digest
@@ -112,14 +113,14 @@ func TestGetDigestDeterministic(t *testing.T) {
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
-	digest, err = subscriberdb.GetDigest("n1")
+	digest, err = subscriberdb.GetFlatDigest("n1")
 	assert.NoError(t, err)
 	assert.NotEqual(t, expected, digest)
 }
 
-// TestGetDigestApnResourceAssocs is a regression test to check whether the flat
+// TestGetFlatDigestApnResourceAssocs is a regression test to check whether the flat
 // digest reflects changes in the apn/gateway associations of apn resources.
-func TestGetDigestApnResourceAssocs(t *testing.T) {
+func TestGetFlatDigestApnResourceAssocs(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
@@ -195,7 +196,7 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 	}
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
-	expected, err := subscriberdb.GetDigest("n1")
+	expected, err := subscriberdb.GetFlatDigest("n1")
 	assert.NoError(t, err)
 
 	// Digest reflects changes in gateway->apn resource associations
@@ -219,7 +220,7 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
-	digest, err := subscriberdb.GetDigest("n1")
+	digest, err := subscriberdb.GetFlatDigest("n1")
 	assert.NoError(t, err)
 	assert.NotEqual(t, expected, digest)
 	expected = digest
@@ -247,7 +248,121 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
-	digest, err = subscriberdb.GetDigest("n1")
+	digest, err = subscriberdb.GetFlatDigest("n1")
 	assert.NoError(t, err)
 	assert.NotEqual(t, expected, digest)
+}
+
+func TestGetPerSubDigests(t *testing.T) {
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
+	assert.NoError(t, err)
+	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	assert.NoError(t, err)
+
+	// Initially there should only be the placeholder apn digest in the generated digest map
+	perSubDigests, err := subscriberdb.GetPerSubDigests("n1")
+	assert.NoError(t, err)
+	assert.Equal(t, []string{"apn"}, funk.Keys(perSubDigests).([]string))
+
+	// Generate individual digests for each newly detected subscriber in the network
+	_, err = configurator.CreateEntities("n1", configurator.NetworkEntities{
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: fmt.Sprintf("IMSI0001"),
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{State: "ACTIVE"},
+			},
+		},
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: fmt.Sprintf("IMSI0002"),
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{State: "ACTIVE"},
+			},
+		},
+		configurator.NetworkEntity{
+			Type: lte.APNEntityType, Key: "apn",
+			Config: &lte_models.ApnConfiguration{},
+		},
+	}, serdes.Entity)
+	assert.NoError(t, err)
+
+	perSubDigests, err = subscriberdb.GetPerSubDigests("n1")
+	assert.NoError(t, err)
+	digest1, ok := perSubDigests["0001"]
+	assert.True(t, ok)
+	assert.NotEqual(t, "", digest1)
+	digest2, ok := perSubDigests["0002"]
+	assert.True(t, ok)
+	assert.NotEqual(t, "", digest2)
+	digestApn, ok := perSubDigests["apn"]
+	assert.True(t, ok)
+	assert.NotEqual(t, "", digestApn)
+
+	// Detect changes in subscriber data and reflect them in the generated digests
+	_, err = configurator.CreateEntity("n1",
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: fmt.Sprintf("IMSI0003"),
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{State: "ACTIVE"},
+			},
+		}, serdes.Entity,
+	)
+	assert.NoError(t, err)
+	err = configurator.DeleteEntity("n1", lte.SubscriberEntityType, "IMSI0001")
+	assert.NoError(t, err)
+	err = configurator.DeleteEntity("n1", lte.SubscriberEntityType, "IMSI0002")
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1",
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: fmt.Sprintf("IMSI0001"),
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{State: "INACTIVE"},
+			},
+		}, serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	perSubDigests, err = subscriberdb.GetPerSubDigests("n1")
+	assert.NoError(t, err)
+	assert.NotContains(t, perSubDigests, "0002")
+	digest1V2, ok := perSubDigests["0001"]
+	assert.True(t, ok)
+	assert.NotEqual(t, digest1, digest1V2)
+	digest3, ok := perSubDigests["0003"]
+	assert.True(t, ok)
+	assert.NotEqual(t, "", digest3)
+
+	// Detect changes in apn resources data and reflect them in the generated digests
+	var writes []configurator.EntityWriteOperation
+	writes = append(writes, configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.APNResourceEntityType,
+		Key:       "resource",
+		Config: &lte_models.ApnResource{
+			ApnName:    "apn",
+			GatewayIP:  "172.16.254.1",
+			GatewayMac: "00:0a:95:9d:68:16",
+			ID:         "resource",
+			VlanID:     42,
+		},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn"}},
+	})
+	write := configurator.EntityUpdateCriteria{
+		Type:              lte.CellularGatewayEntityType,
+		Key:               gw.Key,
+		AssociationsToAdd: storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource"}},
+	}
+	writes = append(writes, write)
+	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	assert.NoError(t, err)
+
+	perSubDigests, err = subscriberdb.GetPerSubDigests("n1")
+	assert.NoError(t, err)
+	digestApnV2, ok := perSubDigests["apn"]
+	assert.True(t, ok)
+	assert.NotEqual(t, digestApn, digestApnV2)
 }

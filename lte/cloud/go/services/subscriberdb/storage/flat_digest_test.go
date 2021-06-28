@@ -40,11 +40,11 @@ func TestFlatDigestLookup(t *testing.T) {
 	})
 
 	t.Run("basic insert", func(t *testing.T) {
-		err = s.SetDigest("n0", "", "apple")
+		err = s.SetDigest("n0", storage.FlatDigestUpsertArgs{Digest: "apple"})
 		assert.NoError(t, err)
-		err = s.SetDigest("n1", "", "lemon")
+		err = s.SetDigest("n1", storage.FlatDigestUpsertArgs{Digest: "lemon"})
 		assert.NoError(t, err)
-		err = s.SetDigest("n2", "", "peach")
+		err = s.SetDigest("n2", storage.FlatDigestUpsertArgs{Digest: "peach"})
 		assert.NoError(t, err)
 
 		networkIDs, err := storage.GetAllNetworks(s)
@@ -63,13 +63,13 @@ func TestFlatDigestLookup(t *testing.T) {
 	})
 
 	t.Run("upsert", func(t *testing.T) {
-		err = s.SetDigest("n0", "", "banana")
+		err = s.SetDigest("n0", storage.FlatDigestUpsertArgs{Digest: "banana"})
 		assert.NoError(t, err)
 		digest, err := s.GetDigest("n0")
 		assert.NoError(t, err)
 		checkFlatDigest(t, "banana", digest)
 
-		err = s.SetDigest("n0", "", "watermelon")
+		err = s.SetDigest("n0", storage.FlatDigestUpsertArgs{Digest: "watermelon"})
 		assert.NoError(t, err)
 		digest, err = s.GetDigest("n0")
 		assert.NoError(t, err)

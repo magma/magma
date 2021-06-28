@@ -36,13 +36,17 @@ func main() {
 	}
 	flatDigestStore := subscriberdb_storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
 	if err := flatDigestStore.Initialize(); err != nil {
-		glog.Fatalf("Error initializing digest lookup storage: %+v", err)
+		glog.Fatalf("Error initializing flat digest storage: %+v", err)
+	}
+	perSubDigestStore := subscriberdb_storage.NewPerSubDigestLookup(db, sqorc.GetSqlBuilder())
+	if err := perSubDigestStore.Initialize(); err != nil {
+		glog.Fatalf("Error initializing per sub digest storage: %+v", err)
 	}
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
-	go subscriberdb_cache.MonitorDigests(flatDigestStore, serviceConfig)
+	go subscriberdb_cache.MonitorDigests(flatDigestStore, perSubDigestStore, serviceConfig)
 
 	err = srv.Run()
 	if err != nil {

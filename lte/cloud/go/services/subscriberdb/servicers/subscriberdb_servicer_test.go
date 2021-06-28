@@ -314,7 +314,9 @@ func TestCheckSubscribersInSync(t *testing.T) {
 
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())
-	err = flatDigestStore.SetDigest("n1", "", "digest_cherry")
+	err = flatDigestStore.SetDigest("n1", subscriberdb_storage.FlatDigestUpsertArgs{
+		Digest: "digest_cherry",
+	})
 	assert.NoError(t, err)
 
 	// Requests with blank digests should get an update signal in return
@@ -334,7 +336,9 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	assert.True(t, res.InSync)
 
 	// Requests with outdated digests should get an update signal in return
-	err = flatDigestStore.SetDigest("n1", "", "digest_banana")
+	err = flatDigestStore.SetDigest("n1", subscriberdb_storage.FlatDigestUpsertArgs{
+		Digest: "digest_banana",
+	})
 	assert.NoError(t, err)
 	req = &lte_protos.CheckSubscribersInSyncRequest{
 		FlatDigest: &lte_protos.Digest{Md5Base64Digest: "digest_cherry"},

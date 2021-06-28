@@ -27,14 +27,15 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func MonitorDigests(flatDigestStore storage.DigestLookup, config Config) {
+func MonitorDigests(flatDigestStore storage.DigestLookup, perSubDigestStore storage.DigestLookup, config Config) {
 	for {
-		generatedDigestsByNetworks, err := RenewDigests(flatDigestStore, config)
+		flatDigestsByNetworks, perSubDigestsByNetwork, err := RenewDigests(flatDigestStore, perSubDigestStore, config)
 		if err != nil {
 			glog.Errorf("Error monitoring digests: %+v", err)
 		}
-		if len(generatedDigestsByNetworks) > 0 {
-			glog.Infof("Generated digests per network: %+v", generatedDigestsByNetworks)
+		if len(flatDigestsByNetworks) > 0 {
+			glog.Infof("Generated digests per network: %+v", flatDigestsByNetworks)
+			glog.Infof("Updated per-sub digests per network: %+v", perSubDigestsByNetwork)
 		}
 
 		time.Sleep(time.Duration(config.SleepIntervalSecs) * time.Second)
@@ -47,33 +48,57 @@ func MonitorDigests(flatDigestStore storage.DigestLookup, config Config) {
 //
 // Note: RenewDigests renews digests only a single time. Prefer MonitorDigests
 // for continuously updating the digests.
-func RenewDigests(flatDigestStore storage.DigestLookup, config Config) (map[string]string, error) {
+func RenewDigests(
+	flatDigestStore storage.DigestLookup,
+	perSubDigestStore storage.DigestLookup,
+	config Config,
+) (map[string]string, map[string]storage.PerSubDigestUpsertArgs, error) {
 	networksToRenew, networksToRemove, err := getNetworksToUpdate(flatDigestStore, config.UpdateIntervalSecs)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get networks to update")
+		return nil, nil, errors.Wrapf(err, "get networks to update")
 	}
 	err = flatDigestStore.DeleteDigests(networksToRemove)
 	if err != nil {
-		return nil, errors.Wrapf(err, "remove invalid networks")
+		return nil, nil, errors.Wrapf(err, "remove flat digests of invalid networks")
+	}
+	err = perSubDigestStore.DeleteDigests(networksToRemove)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "remove per sub digests of invalid networks")
 	}
 
 	errs := &multierror.Error{}
-	digestsByNetwork := map[string]string{}
+	flatDigestsByNetwork := map[string]string{}
+	perSubDigestsByNetwork := map[string]storage.PerSubDigestUpsertArgs{}
 	for _, network := range networksToRenew {
-		digest, err := subscriberdb.GetDigest(network)
+		digest, err := subscriberdb.GetFlatDigest(network)
 		if err != nil {
-			multierror.Append(errors.Wrapf(err, "generate digest"))
+			multierror.Append(errors.Wrapf(err, "generate flat digest"))
 			continue
 		}
+		err = flatDigestStore.SetDigest(network, storage.FlatDigestUpsertArgs{Digest: digest})
+		if err != nil {
+			multierror.Append(errors.Wrapf(err, "set flat digest"))
+			continue
+		}
+		flatDigestsByNetwork[network] = digest
 
-		err = flatDigestStore.SetDigest(network, "", digest)
+		perSubDigestsToRenew, perSubDigestsDeleted, err := getPerSubDigestsToUpdate(network, perSubDigestStore)
 		if err != nil {
-			multierror.Append(errors.Wrapf(err, "set digest"))
+			multierror.Append(errors.Wrapf(err, "get per sub dgests to update"))
 			continue
 		}
-		digestsByNetwork[network] = digest
+		perSubDigestUpsertArgs := storage.PerSubDigestUpsertArgs{
+			ToRenew: perSubDigestsToRenew,
+			Deleted: perSubDigestsDeleted,
+		}
+		err = perSubDigestStore.SetDigest(network, perSubDigestUpsertArgs)
+		if err != nil {
+			multierror.Append(errors.Wrapf(err, "set per sub digest"))
+			continue
+		}
+		perSubDigestsByNetwork[network] = perSubDigestUpsertArgs
 	}
-	return digestsByNetwork, errs.ErrorOrNil()
+	return flatDigestsByNetwork, perSubDigestsByNetwork, errs.ErrorOrNil()
 }
 
 // getNetworksToUpdate returns networks to renew or delete in the store.
@@ -95,5 +120,22 @@ func getNetworksToUpdate(flatDigestStore storage.DigestLookup, updateIntervalSec
 	trackedToRenew, _ := funk.DifferenceString(outdated, deleted)
 	toRenew := append(newlyCreated, trackedToRenew...)
 
+	return toRenew, deleted, nil
+}
+
+func getPerSubDigestsToUpdate(network string, perSubDigestStore storage.DigestLookup) (map[string]string, []string, error) {
+	all, err := subscriberdb.GetPerSubDigests(network)
+	if err != nil {
+		return nil, nil, err
+	}
+	tracked, err := perSubDigestStore.GetDigest(network)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	toRenew, deleted, err := subscriberdb.GetSubDigestsDiff(all, tracked.(map[string]string))
+	if err != nil {
+		return nil, nil, err
+	}
 	return toRenew, deleted, nil
 }

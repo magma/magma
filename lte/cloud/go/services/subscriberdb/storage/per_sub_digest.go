@@ -64,7 +64,7 @@ func (l *perSubDigestLookup) GetDigests(networks []string, lastUpdatedBefore int
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		filters := squirrel.And{}
 		if len(networks) > 0 {
-			filters = append(filters, squirrel.Eq{flatDigestNidCol: networks})
+			filters = append(filters, squirrel.Eq{perSubDigestNidCol: networks})
 		}
 		rows, err := l.builder.
 			Select(perSubDigestNidCol, perSubDigestSidCol, perSubDigestDigestCol).
@@ -106,26 +106,47 @@ func (l *perSubDigestLookup) GetDigests(networks []string, lastUpdatedBefore int
 	return ret, nil
 }
 
-func (l *perSubDigestLookup) SetDigest(network string, subscriber string, digest string) error {
+func (l *perSubDigestLookup) SetDigest(network string, args interface{}) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		_, err := l.builder.
-			Insert(perSubDigestTableName).
-			Columns(perSubDigestNidCol, perSubDigestSidCol, perSubDigestDigestCol).
-			Values(network, subscriber, digest).
-			OnConflict(
-				[]sqorc.UpsertValue{
-					{Column: perSubDigestDigestCol, Value: digest},
-				},
-				perSubDigestNidCol, perSubDigestSidCol,
-			).
-			RunWith(tx).
-			Exec()
-		if err != nil {
-			return nil, errors.Wrapf(err, "insert sub digest for network %+v and subscriber %+v", network, subscriber)
+		perSubDigestUpsertArgs, ok := args.(PerSubDigestUpsertArgs)
+		if !ok {
+			return nil, errors.Errorf("invalid args for setting flat digest of network %+v", network)
+		}
+		toRenew := perSubDigestUpsertArgs.ToRenew
+		deleted := perSubDigestUpsertArgs.Deleted
+
+		for _, subscriber := range deleted {
+			_, err := l.builder.
+				Delete(perSubDigestTableName).
+				Where(squirrel.And{
+					squirrel.Eq{perSubDigestNidCol: network},
+					squirrel.Eq{perSubDigestSidCol: subscriber},
+				}).
+				RunWith(tx).
+				Exec()
+			if err != nil {
+				return nil, errors.Wrapf(err, "delete digest of subscriber %+v of network %+v", subscriber, network)
+			}
+		}
+		for subscriber, digest := range toRenew {
+			_, err := l.builder.
+				Insert(perSubDigestTableName).
+				Columns(perSubDigestNidCol, perSubDigestSidCol, perSubDigestDigestCol).
+				Values(network, subscriber, digest).
+				OnConflict(
+					[]sqorc.UpsertValue{
+						{Column: perSubDigestDigestCol, Value: digest},
+					},
+					perSubDigestNidCol, perSubDigestSidCol,
+				).
+				RunWith(tx).
+				Exec()
+			if err != nil {
+				return nil, errors.Wrapf(err, "insert sub digest for subscriber %+v of network %+v", subscriber, network)
+			}
 		}
 		return nil, nil
 	}
-
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
 }
@@ -134,7 +155,7 @@ func (l *perSubDigestLookup) DeleteDigests(networks []string) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		_, err := l.builder.
 			Delete(perSubDigestTableName).
-			Where(squirrel.Eq{flatDigestNidCol: networks}).
+			Where(squirrel.Eq{perSubDigestNidCol: networks}).
 			RunWith(tx).
 			Exec()
 		if err != nil {
@@ -145,4 +166,12 @@ func (l *perSubDigestLookup) DeleteDigests(networks []string) error {
 
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
+}
+
+// PerSubDigestUpsertArgs specifies for a certain network:
+// 1. subscribers whose digests need to be added/updated in store
+// 2. subscribers who need to be removed from the store.
+type PerSubDigestUpsertArgs struct {
+	ToRenew map[string]string
+	Deleted []string
 }
