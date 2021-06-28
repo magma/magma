@@ -10,11 +10,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include <stdint.h>                      // for uint32_t
-#include <atomic>                        // for atomic
-#include <functional>                    // for function
-#include <vector>                        // for vector
-#include "lte/protos/subscriberdb.pb.h"  // for lte
+#include <stdint.h>                      
+#include <atomic>                       
+#include <functional>                    
+#include <vector>                        
+#include "lte/protos/subscriberdb.pb.h"  
 #include "PollStats.h"
 
 namespace magma {
