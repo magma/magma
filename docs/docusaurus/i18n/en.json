@@ -109,6 +109,9 @@
       "howtos/troubleshooting/analyze_service_crashes_in_agw": {
         "title": "Analyze Service crashes in AGW"
       },
+      "howtos/troubleshooting/datapath_connectivity": {
+        "title": "Debugging AGW datapath issues"
+      },
       "howtos/troubleshooting/generate_admin_operator_certificates": {
         "title": "Generate and update admin_operator certificates"
       },
