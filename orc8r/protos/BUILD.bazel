@@ -19,3 +19,18 @@ proto_library(
     name = "common_proto",
     srcs = ["common.proto"],
 )
+
+cc_proto_library(
+    name = "redis_cc_proto",
+    deps = [":redis_proto"],
+)
+
+cpp_grpc_library(
+    name = "redis_cpp_grpc",
+    protos = [":redis_proto"],
+)
+
+proto_library(
+    name = "redis_proto",
+    srcs = ["redis.proto"],
+)

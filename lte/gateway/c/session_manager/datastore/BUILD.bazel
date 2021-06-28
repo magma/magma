@@ -1,0 +1,21 @@
+cc_library(
+    name = "logging",
+    srcs = [],
+    hdrs = [
+        "magma_logging.h",
+    ],
+)
+
+cc_library(
+    name = "datastore",
+    srcs = ["Serializers.cpp"],
+    hdrs = [
+        "ObjectMap.h",
+        "includes/RedisMap.hpp",
+        "includes/Serializers.h",
+    ],
+    deps = [
+        ":logging",
+        "//orc8r/protos:redis_cpp_grpc",
+    ],
+)
