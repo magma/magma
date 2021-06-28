@@ -49,6 +49,12 @@ func TestBuilder_Build(t *testing.T) {
 			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
 				EnableCaching: swag.Bool(true),
 			},
+			orc8r.NetworkSentryConfig: &models.NetworkSentryConfig{
+				SampleRate:   swag.Float32(0.75),
+				UploadMmeLog: true,
+				URLPython:    "https://www.example.com/v1/api",
+				URLNative:    "https://www.example.com/v1/api",
+			},
 		},
 	}
 	gw := configurator.NetworkEntity{
@@ -128,6 +134,12 @@ func TestBuilder_Build(t *testing.T) {
 			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{15000},
 			NatEnabled:               true,
+			SentryConfig: &lte_mconfig.SentryConfig{
+				SampleRate:   0.75,
+				UploadMmeLog: true,
+				UrlPython:    "https://www.example.com/v1/api",
+				UrlNative:    "https://www.example.com/v1/api",
+			},
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -156,6 +168,12 @@ func TestBuilder_Build(t *testing.T) {
 			GxGyRelayEnabled: false,
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
+			},
+			SentryConfig: &lte_mconfig.SentryConfig{
+				SampleRate:   0.75,
+				UploadMmeLog: true,
+				UrlPython:    "https://www.example.com/v1/api",
+				UrlNative:    "https://www.example.com/v1/api",
 			},
 		},
 		"dnsd": &lte_mconfig.DnsD{
