@@ -12,9 +12,9 @@
 ################################################################################
 
 magma_pkgrepo_proto: https
-magma_pkgrepo_host: artifactory.magmacore.org/artifactory/debian
+magma_pkgrepo_host: artifactory.magmacore.org/artifactory/debian-test
 magma_pkgrepo_path: ""
-magma_pkgrepo_dist: focal-1.5.0
+magma_pkgrepo_dist: focal-1.6.0
 magma_pkgrepo_component: main
 magma_pkgrepo_name: "magma"
 
