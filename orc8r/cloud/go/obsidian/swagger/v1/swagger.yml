@@ -11504,7 +11504,8 @@ definitions:
         $ref: '#/definitions/icmp_status'
     type: object
   subscriberdb_sync_interval:
-    description: Interval in seconds between gateway requests to sync its subscriberdb with the cloud.
+    description: Interval in seconds between gateway requests to sync its subscriberdb
+      with the cloud.
     example: 300
     format: uint32
     type: integer
