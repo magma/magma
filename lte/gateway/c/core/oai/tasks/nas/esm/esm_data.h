@@ -178,7 +178,7 @@ typedef struct esm_context_s {
                         services is established       */
   struct esm_proc_data_s* esm_proc_data;
   struct nas_timer_s T3489;
-  int32_t pending_standalone;
+  bool is_standalone;
   bool is_pdn_disconnect;
 } esm_context_t;
 
