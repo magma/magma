@@ -294,6 +294,19 @@ class LocalEnforcer {
       SessionMap& session_map, const PolicyBearerBindingRequest& request,
       SessionUpdate& session_update);
 
+  void report_session_update_event(
+      SessionMap& session_map, const UpdateRequestsBySession& updates);
+
+  void report_session_update_event_failure(
+      SessionMap& session_map, const UpdateRequestsBySession& failed_updates,
+      const std::string& failure_reason);
+
+  /*
+   * Report flow stats from pipelined and track the usage per rule
+   */
+  void check_usage_for_reporting(
+      SessionMap session_map, SessionUpdate& session_uc);
+
   void HandlePipelinedResponse(Status status, RuleRecordTable resp);
 
   void poll_stats_enforcer();

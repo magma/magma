@@ -148,6 +148,102 @@ void LocalEnforcer::setup(
   }
 }
 
+void LocalEnforcer::report_session_update_event(
+    SessionMap& session_map, const UpdateRequestsBySession& updates) {
+  for (auto& it : updates.requests_by_id) {
+    const std::string &imsi = it.first.first, &session_id = it.first.second;
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MWARNING) << "Not reporting session update event for " << session_id
+                     << " because it couldn't be found";
+      continue;
+    }
+    events_reporter_->session_updated(
+        session_id, (**session_it)->get_config(), it.second);
+  }
+}
+
+void LocalEnforcer::report_session_update_event_failure(
+    SessionMap& session_map, const UpdateRequestsBySession& failed_updates,
+    const std::string& failure_reason) {
+  for (auto& it : failed_updates.requests_by_id) {
+    const std::string &imsi = it.first.first, &session_id = it.first.second;
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MWARNING) << "Not reporting session update failure event for "
+                     << session_id << " because it couldn't be found";
+      continue;
+    }
+    std::ostringstream failure_stream;
+    failure_stream << "UpdateSession request to FeG/PolicyDB failed: "
+                   << failure_reason;
+    std::string failure_msg = failure_stream.str();
+    MLOG(MERROR) << failure_msg;
+    events_reporter_->session_update_failure(
+        session_id, (**session_it)->get_config(), it.second, failure_msg);
+  }
+}
+
+void LocalEnforcer::check_usage_for_reporting(
+    SessionMap session_map, SessionUpdate& session_uc) {
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto request = collect_updates(session_map, actions, session_uc);
+  execute_actions(session_map, actions, session_uc);
+  if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
+    auto update_success = session_store_.update_sessions(session_uc);
+    if (update_success) {
+      MLOG(MDEBUG) << "Succeeded in updating session after no reporting";
+    } else {
+      MLOG(MERROR) << "Failed in updating session after no reporting";
+    }
+    return;  // nothing to report
+  }
+
+  MLOG(MINFO) << "Sending " << request.updates_size()
+              << " charging updates and " << request.usage_monitors_size()
+              << " monitor updates to OCS and PCRF";
+
+  // set reporting flag for those sessions reporting
+  session_store_.set_and_save_reporting_flag(true, request, session_uc);
+
+  // Before reporting and returning control to the event loop, increment the
+  // request numbers stored for the sessions in SessionStore
+  session_store_.sync_request_numbers(session_uc);
+
+  // report to cloud
+  reporter_->report_updates(
+      request,
+      [this, request, session_uc,
+       session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
+          Status status, UpdateSessionResponse response) mutable {
+        PrintGrpcMessage(
+            static_cast<const google::protobuf::Message&>(response));
+
+        // clear all the reporting flags
+        // TODO this could be done in one go with the SessionStore update below
+        session_store_.set_and_save_reporting_flag(false, request, session_uc);
+        auto updates_by_session = UpdateRequestsBySession(request);
+        if (!status.ok()) {
+          MLOG(MERROR)
+              << "UpdateSession request to FeG/PolicyDB failed entirely: "
+              << status.error_message();
+          handle_update_failure(
+              *session_map_ptr, updates_by_session, session_uc);
+          report_session_update_event_failure(
+              *session_map_ptr, updates_by_session, status.error_message());
+          session_store_.update_sessions(session_uc);
+          return;
+        }
+        // Success!
+        update_session_credits_and_rules(
+            *session_map_ptr, response, session_uc);
+        report_session_update_event(*session_map_ptr, updates_by_session);
+        session_store_.update_sessions(session_uc);
+      });
+}
+
 void LocalEnforcer::HandlePipelinedResponse(
     Status status, RuleRecordTable resp) {
   if (!status.ok()) {
@@ -159,6 +255,8 @@ void LocalEnforcer::HandlePipelinedResponse(
         SessionStore::get_default_session_update(session_map);
     MLOG(MDEBUG) << "Aggregating " << resp.records_size() << " records";
     aggregate_records(session_map, resp, update);
+
+    check_usage_for_reporting(std::move(session_map), update);
   }
 }
 
