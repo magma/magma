@@ -389,9 +389,6 @@ amf_ue_ngap_id_t amf_app_ctx_get_new_ue_id(
  * sctp assoc id + gnb_ue_ngap_id */
 void notify_ngap_new_ue_amf_ngap_id_association(
     const ue_m5gmm_context_s* ue_context_p);
-// void amf_remove_ue_context(
-//    amf_ue_context_t* const amf_ue_context,
-//    ue_m5gmm_context_s* const ue_context_p);
 
 ue_m5gmm_context_s* amf_create_new_ue_context(void);
 /*Multi PDU Session*/
@@ -693,7 +690,7 @@ typedef struct nas_amf_ident_proc_s {
 enum amf_proc_registration_type_t {
   AMF_REGISTRATION_TYPE_INITIAL = 1,
   AMF_REGISTRATION_TYPE_MOBILITY_UPDATING,
-  AMF_REGISTRATION_TYPE_PERODIC_UPDATING,
+  AMF_REGISTRATION_TYPE_PERIODIC_UPDATING,
   AMF_REGISTRATION_TYPE_EMERGENCY,
   AMF_REGISTRATION_TYPE_RESERVED = 7,
 };
@@ -775,8 +772,7 @@ int amf_send_registration_accept(amf_context_t* amf_context);
 int amf_proc_deregistration_request(
     amf_ue_ngap_id_t ue_id, amf_deregistration_request_ies_t* params);
 int amf_app_handle_deregistration_req(amf_ue_ngap_id_t ue_id);
-void amf_remove_ue_context(
-    amf_ue_context_t* amf_ue_context_p, ue_m5gmm_context_s* ue_context_p);
+void amf_remove_ue_context(ue_m5gmm_context_s* ue_context_p);
 void amf_smf_context_cleanup_pdu_session(ue_m5gmm_context_s* ue_context);
 
 // PDU session related communication to gNB
@@ -835,4 +831,6 @@ void amf_delete_common_procedure(
     amf_context_t* amf_ctx, nas_amf_common_proc_t** proc);
 void delete_wrapper(void** ptr);
 void format_plmn(amf_plmn_t* plmn);
+int amf_proc_registration_abort(
+    amf_context_t* amf_ctx, struct ue_m5gmm_context_s* ue_amf_context);
 }  // namespace magma5g

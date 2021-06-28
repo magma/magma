@@ -60,10 +60,7 @@ static int amf_cn_authentication_res(amf_cn_auth_res_t* const msg) {
       }
       auth_info_proc->nb_vectors = msg->nb_vectors;
 
-      nas5g_amf_auth_proc_t* auth_proc = NULL;
-
-      auth_proc = get_nas5g_common_procedure_authentication(amf_ctx);
-      rc        = amf_send_authentication_request(amf_ctx, auth_proc);
+      rc = amf_authentication_proc_success(amf_ctx);
     } else {
       OAILOG_ERROR(
           LOG_NAS_AMF,
@@ -96,9 +93,9 @@ int amf_cn_send(const amf_cn_t* msg) {
   }
 
   if (rc != RETURNok) {
-    OAILOG_ERROR(LOG_NAS_EMM, "AMF-SAP - Failed to process primitive \n");
+    OAILOG_ERROR(LOG_NAS_AMF, "AMF-SAP - Failed to process primitive \n");
   }
 
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 }  // namespace magma5g

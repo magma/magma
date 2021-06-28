@@ -29,6 +29,7 @@ extern "C" {
 #include "amf_app_ue_context_and_proc.h"
 #include "amf_authentication.h"
 #include "amf_sap.h"
+#include "amf_app_timer_management.h"
 
 extern amf_config_t amf_config;
 namespace magma5g {
@@ -260,12 +261,11 @@ static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
     /*
      * Start Identification T3570 timer
      */
-    // TODO
     OAILOG_INFO(
         LOG_AMF_APP, "AMF_TEST: Timer: Starting Identity timer T3570 \n");
-    proc->T3570.id = start_timer(
-        &amf_app_task_zmq_ctx, IDENTITY_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
-        identification_t3570_handler, (void*) proc->ue_id);
+    proc->T3570.id = amf_app_start_timer(
+        IDENTITY_TIMER_EXPIRY_MSECS, TIMER_REPEAT_ONCE,
+        identification_t3570_handler, proc->ue_id);
     OAILOG_INFO(
         LOG_AMF_APP, "Timer: Started Identity timer T3570 with id %d\n",
         proc->T3570.id);
@@ -276,23 +276,32 @@ static int amf_identification_request(nas_amf_ident_proc_t* const proc) {
 /* Identification Timer T3570 Expiry Handler */
 static int identification_t3570_handler(
     zloop_t* loop, int timer_id, void* arg) {
-#if 0  /* TIMER_CHANGES_REVIEW */
-  amf_ue_ngap_id_t ue_id = NULL;
-  ue_id                  = *((amf_ue_ngap_id_t*) (arg));
+  amf_ue_ngap_id_t ue_id = 0;
   amf_context_t* amf_ctx = NULL;
-  OAILOG_INFO(LOG_AMF_APP, "Timer: identification T3570 handler \n");
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
 
-  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
-
-  if (ue_context == NULL) {
-    OAILOG_INFO(LOG_AMF_APP, "AMF_TEST: ue_context is NULL\n");
-    return -1;
+  if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
+    OAILOG_WARNING(
+        LOG_AMF_APP, "T3570: Invalid Timer Id expiration, timer Id: %u\n",
+        timer_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
-  amf_ctx = &ue_context->amf_context;
+  ue_m5gmm_context_s* ue_amf_context =
+      amf_ue_context_exists_amf_ue_ngap_id(ue_id);
+
+  if (ue_amf_context == NULL) {
+    OAILOG_INFO(
+        LOG_AMF_APP, "T3570: ue_amf_context is NULL for ue id: %d\n", ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
+
+  amf_ctx = &ue_amf_context->amf_context;
   if (!(amf_ctx)) {
-    OAILOG_ERROR(LOG_AMF_APP, "Timer: T3570 timer expired No AMF context\n");
-    return 1;
+    OAILOG_ERROR(
+        LOG_AMF_APP, "T3570: timer expired No AMF context for ue id: %d\n",
+        ue_id);
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
   }
 
   nas_amf_ident_proc_t* ident_proc =
@@ -300,41 +309,39 @@ static int identification_t3570_handler(
 
   if (ident_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3570 timer   timer id %d ue id %d\n",
+        LOG_AMF_APP, "T3570: Timer expired for timer id %d ue id %d\n",
         ident_proc->T3570.id, ident_proc->ue_id);
     ident_proc->T3570.id = NAS5G_TIMER_INACTIVE_ID;
-  }
-  /*
-   * Increment the retransmission counter
-   */
-  ident_proc->retransmission_count += 1;
-  OAILOG_ERROR(
-      LOG_AMF_APP, "Timer: Incrementing retransmission_count to %d\n",
-      ident_proc->retransmission_count);
+    /*
+     * Increment the retransmission counter
+     */
+    ident_proc->retransmission_count += 1;
+    OAILOG_ERROR(
+        LOG_AMF_APP, "T3570: Incrementing retransmission_count to %d\n",
+        ident_proc->retransmission_count);
 
-  if (ident_proc->retransmission_count < IDENTIFICATION_COUNTER_MAX) {
-    /*
-     * Send identity request message to the UE
-     */
-    OAILOG_ERROR(
-        LOG_AMF_APP, "Timer: IDENTIFICATION_COUNTER_MAX =  %d\n",
-        IDENTIFICATION_COUNTER_MAX);
-    OAILOG_ERROR(
-        LOG_AMF_APP,
-        "Timer: timer has expired Sending Identification request again\n");
-    amf_identification_request(ident_proc);
-  } else {
-    /*
-     * Abort the identification procedure
-     */
-    OAILOG_ERROR(
-        LOG_AMF_APP,
-        "Timer: Maximum retires done hence Abort the identification "
-        "procedure\n");
-    return -1;
+    if (ident_proc->retransmission_count < IDENTIFICATION_COUNTER_MAX) {
+      /*
+       * Send identity request message to the UE
+       */
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "T3570: timer has expired retransmitting Identification request \n");
+      amf_identification_request(ident_proc);
+    } else {
+      /*
+       * Abort the identification procedure
+       */
+      OAILOG_ERROR(
+          LOG_AMF_APP,
+          "T3570: Maximum retires:%d, done hence Abort the "
+          "identification "
+          "procedure\n",
+          ident_proc->retransmission_count);
+      amf_proc_registration_abort(amf_ctx, ue_amf_context);
+    }
   }
-#endif /*  TIMER_CHANGES_REVIEW */
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 
 //-------------------------------------------------------------------------------------
