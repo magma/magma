@@ -44,6 +44,7 @@ class SetUPFNodeState : public ::testing::Test {
     rule_store    = std::make_shared<StaticRuleStore>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
+    std::unordered_multimap<std::string, uint32_t> pdr_map;
     auto pipelined_client = std::make_shared<magma::AsyncPipelinedClient>();
     amf_srv_client        = std::make_shared<magma::AsyncAmfServiceClient>();
 
@@ -54,8 +55,8 @@ class SetUPFNodeState : public ::testing::Test {
     magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
 
     session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
-        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig,
-        config["session_force_termination_timeout_ms"].as<int32_t>(),
+        rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
+        mconfig, config["session_force_termination_timeout_ms"].as<int32_t>(),
         session_max_rtx_count);
 
     set_interface_for_up_mock =
