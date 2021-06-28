@@ -26,8 +26,8 @@ import (
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/lte/cloud/go/services/subscriberdb"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
@@ -628,6 +628,7 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 		UrlNative:    string(sentryConfig.URLNative),
 		UrlPython:    string(sentryConfig.URLPython),
 	}
+}
 
 // getSyncInterval takes network-wide subscriber_db sync interval and overrides it if also set for gateway.
 // If sync interval is unset for both network and gateway, a default is read from lte/cloud/configs/subscriberdb.yml
