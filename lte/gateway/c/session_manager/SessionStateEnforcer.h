@@ -80,9 +80,14 @@ class SessionStateEnforcer {
       SessionMap& session_map, const std::string& imsi,
       std::unique_ptr<SessionState>& session_state);
 
+  /* Move to idle state */
+  void m5g_move_to_inactive_state(
+      const std::string& imsi, std::unique_ptr<SessionState>& session,
+      SetSmNotificationContext notif, SessionStateUpdateCriteria* session_uc);
+
   /*Release request handle*/
   bool m5g_release_session(
-      SessionMap& session_map, const std::string& imsi, const std::string& dnn,
+      SessionMap& session_map, const std::string& imsi, const uint32_t& pdu_id,
       SessionUpdate& session_update);
 
   /*Handle and update respective session upon receiving message from UPF*/
@@ -135,6 +140,25 @@ class SessionStateEnforcer {
   bool add_default_rules(
       std::unique_ptr<SessionState>& session_state, const std::string& imsi);
 
+  /* Send session requst to upf */
+  void m5g_send_session_request_to_upf(
+      const std::string& imsi, const std::unique_ptr<SessionState>& session);
+
+  /* Pdr State change routine */
+  void m5g_pdr_rules_change_and_update_upf(
+      const std::string& imsi, const std::unique_ptr<SessionState>& session,
+      enum PdrState pdrstate);
+
+  /*Start processing to terminate respective session requested from AMF*/
+  void m5g_start_session_termination(
+      SessionMap& session_map, const std::unique_ptr<SessionState>& session,
+      const uint32_t& pdu_id, SessionStateUpdateCriteria* uc);
+
+  /* Set new fsm state and increment version*/
+  void set_new_fsm_state_and_increment_version(
+      std::unique_ptr<SessionState>& session, SessionFsmState target_state,
+      SessionStateUpdateCriteria* session_uc);
+
  private:
   ConvergedRuleStore GlobalRuleList;
   std::shared_ptr<StaticRuleStore> rule_store_;
@@ -161,11 +185,6 @@ class SessionStateEnforcer {
       SessionState& session_state, const magma::lte::M5GSMCause m5gsmcause,
       std::string upf_ip, uint32_t upf_teid);
 
-  /*Start processing to terminate respective session requested from AMF*/
-  void m5g_start_session_termination(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      const std::string& dnn, SessionStateUpdateCriteria* uc);
-
   /* Function to handle termination if UPF doesn't send required report
    * As per current implementation, upf report is not in place and
    * termination on time out will be executed forcefully
@@ -177,11 +196,6 @@ class SessionStateEnforcer {
   void m5g_complete_termination(
       SessionMap& session_map, const std::string& imsi,
       const std::string& session_id, SessionUpdate& session_update);
-
-  /*Function is to remove the associated rules to respective sessions*/
-  void m5g_remove_rules_and_update_upf(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      const std::string& dnn, SessionStateUpdateCriteria* uc);
 
   /* update the GNB endpoint details in a rule */
   bool insert_pdr_from_core(
@@ -195,16 +209,6 @@ class SessionStateEnforcer {
   uint32_t update_session_rules(
       const std::string& imsi, std::unique_ptr<SessionState>& session_state,
       bool gnb_teid_get, bool upf_teid_get,
-      SessionStateUpdateCriteria* session_uc);
-
-  /* Pdr State change routine */
-  void m5g_pdr_rules_change_and_update_upf(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      enum PdrState pdrstate);
-
-  /* State change execution code */
-  void m5g_execute_state_change_action(
-      std::unique_ptr<SessionState>& session, SessionFsmState targetState,
       SessionStateUpdateCriteria* session_uc);
 
   bool inc_rtx_counter(const std::unique_ptr<SessionState>& session);
