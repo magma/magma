@@ -35,7 +35,6 @@ import (
 	"magma/orc8r/lib/go/security/key"
 
 	"github.com/golang/protobuf/ptypes"
-	context2 "golang.org/x/net/context"
 )
 
 // Common to several add... handlers definitions & functions
@@ -68,6 +67,7 @@ func addInit(f *flag.FlagSet) {
 //
 // addACL is used by add & add_admin handlers
 func addACL(oid string, acl []*accessprotos.AccessControl_Entity) int {
+	ctx := context.Background()
 
 	// Create Operator Identity for the oid
 	operator := identity.NewOperator(oid)
@@ -97,7 +97,7 @@ func addACL(oid string, acl []*accessprotos.AccessControl_Entity) int {
 			"Failed to write private key into %s, Error: %s", keyFile, err)
 	}
 	// Create & sign new cert
-	certDer, sn, err := createAndSignCert(operator, priv)
+	certDer, sn, err := createAndSignCert(ctx, operator, priv)
 	if err != nil {
 		cleanupCertFiles(keyFile, certFile, certOut)
 		log.Fatalf(
@@ -120,9 +120,9 @@ func addACL(oid string, acl []*accessprotos.AccessControl_Entity) int {
 			sn, cert.SerialToString(signedCert[0].SerialNumber))
 	}
 
-	err = accessd.SetOperator(context.Background(), operator, acl)
+	err = accessd.SetOperator(ctx, operator, acl)
 	if err != nil {
-		certifier.RevokeCertificateSN(context2.Background(), sn)
+		certifier.RevokeCertificateSN(ctx, sn)
 		cleanupCertFiles(keyFile, certFile, nil)
 		log.Fatalf("Set Operator %s ACL Error: %s", operator.HashString(), err)
 	}
@@ -133,6 +133,7 @@ func addACL(oid string, acl []*accessprotos.AccessControl_Entity) int {
 // createAndSignCert does it using values given by country, org, orgUnit and
 // validFor command line flags or their defaults
 func createAndSignCert(
+	ctx context.Context,
 	operator *protos.Identity,
 	privKey interface{},
 ) (der []byte, sn string, err error) {
@@ -159,7 +160,7 @@ func createAndSignCert(
 		ValidTime: ptypes.DurationProto(time.Hour * 24 * time.Duration(validFor)),
 		CsrDer:    csrDER,
 	}
-	certMsg, err := certifier.SignCSR(context.Background(), csr)
+	certMsg, err := certifier.SignCSR(ctx, csr)
 	if err != nil {
 		return der, sn, fmt.Errorf("Certifier Sign Error: %s", err)
 	}

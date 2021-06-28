@@ -16,6 +16,7 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -23,8 +24,6 @@ import (
 
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
-
-	context2 "golang.org/x/net/context"
 )
 
 // Revoke command - prints out all registered Operators and their attributes
@@ -50,7 +49,7 @@ func revoke(cmd *commands.Command, args []string) int {
 	}
 	fmt.Printf("Revoking Certificate Serial Number: %s\n", csn)
 
-	err := certifier.RevokeCertificateSN(context2.Background(), csn)
+	err := certifier.RevokeCertificateSN(context.Background(), csn)
 	if err != nil {
 		log.Fatalf("Error %s revoking certificate %s", csn, err)
 	}

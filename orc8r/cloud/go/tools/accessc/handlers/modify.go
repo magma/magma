@@ -27,8 +27,6 @@ import (
 	"magma/orc8r/cloud/go/services/accessd/protos"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
-
-	context2 "golang.org/x/net/context"
 )
 
 // Add-existing command - Creates a new Operator and its ACL from specified
@@ -61,6 +59,9 @@ func modify(cmd *commands.Command, args []string) int {
 		f.Usage()
 		log.Fatalf("A single Operator Id must be specified.")
 	}
+
+	ctx := context.Background()
+
 	// Find Operator Identity for the oid
 	operator := identity.NewOperator(oid)
 	cn := operator.ToCommonName()
@@ -68,11 +69,11 @@ func modify(cmd *commands.Command, args []string) int {
 		log.Fatalf("Invalid common name for %s", oid)
 	}
 	opname := operator.HashString()
-	aclMap, err := accessd.GetOperatorACL(context.Background(), operator)
+	aclMap, err := accessd.GetOperatorACL(ctx, operator)
 	if err != nil {
 		log.Fatalf("Operator %s does not exist. Error: %v", opname, err)
 	}
-	certSNs, err := certifier.FindCertificates(context2.Background(), operator)
+	certSNs, err := certifier.FindCertificates(ctx, operator)
 	if err != nil {
 		log.Printf("Error %s getting certificates for %s\n", err, opname)
 		certSNs = []string{}
@@ -94,7 +95,7 @@ func modify(cmd *commands.Command, args []string) int {
 			ent.Permissions.ToString(),
 			ent.Permissions)
 	}
-	err = accessd.SetOperator(context.Background(), operator, acl)
+	err = accessd.SetOperator(ctx, operator, acl)
 	if err != nil {
 		log.Fatalf("Set Operator %s ACL Error: %s", operator.HashString(), err)
 	}

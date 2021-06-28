@@ -26,8 +26,6 @@ import (
 	"magma/orc8r/cloud/go/services/accessd"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
-
-	context2 "golang.org/x/net/context"
 )
 
 // Delete command - removes given Operator, its ACLs & Certificates
@@ -52,24 +50,26 @@ func deleteCmd(cmd *commands.Command, args []string) int {
 		f.Usage()
 		log.Fatalf("A single Operator Id must be specified.")
 	}
+
+	ctx := context.Background()
 	// Create Operator Identity for the oid
 	operator := identity.NewOperator(oid)
 	fmt.Printf("Removing Operator: %s (%s)\n", oid, operator.HashString())
-	certSNs, err := certifier.FindCertificates(context2.Background(), operator)
+	certSNs, err := certifier.FindCertificates(ctx, operator)
 	if err != nil {
 		log.Printf("Error %s getting certificates for %s", err, oid)
 	} else {
 		fmt.Printf(
 			"%d certificates associated with %s found\n", len(certSNs), oid)
 		for _, csn := range certSNs {
-			err = certifier.RevokeCertificateSN(context2.Background(), csn)
+			err = certifier.RevokeCertificateSN(ctx, csn)
 			if err != nil {
 				log.Printf(
 					"Error %s deleting certificate SN:%s for %s", err, csn, oid)
 			}
 		}
 	}
-	err = accessd.DeleteOperator(context.Background(), operator)
+	err = accessd.DeleteOperator(ctx, operator)
 	if err != nil {
 		log.Printf("Error while removing Operator %s: %s", oid, err)
 	}
