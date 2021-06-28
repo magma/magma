@@ -49,9 +49,15 @@ SetMessageManagerHandler::SetMessageManagerHandler(
 SessionConfig SetMessageManagerHandler::m5g_build_session_config(
     const SetSMSessionContext& request) {
   SessionConfig cfg;
-  /*copying pnly 5G specific data to respective elements*/
+  /*copying only 5G specific data to respective elements*/
   cfg.common_context       = request.common_context();
   cfg.rat_specific_context = request.rat_specific_context();
+
+  /* As we dont have 5G polices defined yet, for now
+   * for all new connection we set SSC  mode as SSC_MODE_3
+   */
+  cfg.rat_specific_context.mutable_m5gsm_session_context()->set_ssc_mode(
+      SSC_MODE_3);
 
   return cfg;
 }
@@ -78,6 +84,11 @@ void SetMessageManagerHandler::SetAmfSessionContext(
     // extract values from proto
     auto imsi       = request_cpy.common_context().sid().id();
     std::string dnn = request_cpy.common_context().apn();
+    // pdu_id is unique to IMSI
+    auto pdu_id = request_cpy.rat_specific_context()
+                      .m5gsm_session_context()
+                      .pdu_session_id();
+
     // Fetch complete message from proto message
     SessionConfig cfg = m5g_build_session_config(request_cpy);
 
@@ -99,9 +110,8 @@ void SetMessageManagerHandler::SetAmfSessionContext(
       initiate_release_session(session_map, dnn, imsi);
     } else {
       // The Event Based main_thread invocation and runs to handle session state
-      std::string session_id = id_gen_.gen_session_id(imsi);
-      MLOG(MINFO) << "Requested session from UE with IMSI: " << imsi
-                  << " Generated session " << session_id;
+      MLOG(MDEBUG) << "Requested session from UE with IMSI: " << imsi
+                   << " PDU ID " << pdu_id;
 
       /* Message may be intial or modification message. Only taken care
        * intial message. Check if it's initial message
@@ -115,37 +125,88 @@ void SetMessageManagerHandler::SetAmfSessionContext(
         MLOG(MINFO)
             << "AMF request type INITIAL_REQUEST and session state CREATING";
         auto session_map = session_store_.read_sessions({imsi});
-        send_create_session(session_map, imsi, session_id, cfg, dnn);
+        send_create_session(session_map, imsi, cfg, pdu_id);
+        response_callback(Status::OK, SmContextVoid());
+        return;
       }
+      MLOG(MERROR)
+          << "AMF request type- Unhandled request type:"
+          << cfg.rat_specific_context.m5gsm_session_context().rquest_type();
+      Status status(grpc::UNKNOWN, "Unknown session state or request");
+      response_callback(status, SmContextVoid());
     }
-    response_callback(Status::OK, SmContextVoid());
+    return;
   });
 }
 
 /* Creeate respective SessionState and context*/
 void SetMessageManagerHandler::send_create_session(
-    SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, const SessionConfig& cfg,
-    const std::string& dnn) {
+    SessionMap& session_map, const std::string& imsi, SessionConfig& cfg_new,
+    uint32_t& pdu_id) {
   /* If it is new session to be created, check for same DNN exists
    * for same IMSI, i.e if IMSI found and respective DNN found in
    * SessionStore, then return from here and nothing to do
    * as already same session exist, its duplicate request
    */
 
-  SessionSearchCriteria criteria(imsi, IMSI_AND_APN, dnn);
+  SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
   auto session_it = session_store_.find_session(session_map, criteria);
   if (session_it) {
-    // DNN or APN found and return from here
-    MLOG(MERROR) << "Duplicate request of same DNN " << dnn << " of IMSI "
+    auto& session = **session_it;
+    /* check if session state is in "CREATING" state
+     * then update the state, otherwise fire an error
+     */
+    if (session->get_state() == CREATING) {
+      // Get the GNODEB teid and IP address from config
+      SessionConfig cfg = session->get_config();
+      cfg.rat_specific_context.mutable_m5gsm_session_context()
+          ->mutable_gnode_endpoint()
+          ->set_end_ipv4_addr(
+              cfg_new.rat_specific_context.m5gsm_session_context()
+                  .gnode_endpoint()
+                  .end_ipv4_addr());
+      cfg.rat_specific_context.mutable_m5gsm_session_context()
+          ->mutable_gnode_endpoint()
+          ->set_teid(cfg_new.rat_specific_context.m5gsm_session_context()
+                         .gnode_endpoint()
+                         .teid());
+      MLOG(MDEBUG) << "2nd Request of session from UE with IMSI: " << imsi
+                   << " PDU id " << pdu_id;
+      session->set_config(cfg);
+      SessionUpdate update =
+          SessionStore::get_default_session_update(session_map);
+      bool success = m5g_enforcer_->m5g_update_session_context(
+          session_map, imsi, session, update);
+      if (!success) {
+        MLOG(MERROR) << "Failed to update  SessionStore for 5G session "
+                     << session->get_session_id();
+        return;
+      }
+      /* update the session changes back to sessionsotre
+       */
+      bool update_success = session_store_.update_sessions(update);
+      if (!update_success) {
+        MLOG(MERROR) << "Failed to update the session, re-get gnode teid and ip"
+                     << imsi;
+        return;
+      }
+      MLOG(MDEBUG) << " Successfully updated SessionStore of subscriber: "
+                   << imsi;
+      return;
+    }
+    // PDU ID found and return from here
+    MLOG(MERROR) << "Duplicate request of same PDU_id " << pdu_id << " of IMSI "
                  << imsi << " nothing to do";
     return;
   }
+  std::string session_id = id_gen_.gen_session_id(imsi);
+  MLOG(MDEBUG) << "First Requested session from UE with IMSI: " << imsi
+               << " Generated session " << session_id << " PDU id " << pdu_id;
 
   auto session_map_ptr = std::make_shared<SessionMap>(std::move(session_map));
   /* initialization of SessionState for IMSI by SessionStateEnforcer*/
   bool success = m5g_enforcer_->m5g_init_session_credit(
-      *session_map_ptr, imsi, session_id, cfg);
+      *session_map_ptr, imsi, session_id, cfg_new);
   if (!success) {
     MLOG(MERROR) << "Failed to initialize SessionStore for 5G session "
                  << session_id;
@@ -154,16 +215,18 @@ void SetMessageManagerHandler::send_create_session(
     /* writing of SessionMap in memory through SessionStore object*/
     if (session_store_.create_sessions(
             imsi, std::move((*session_map_ptr)[imsi]))) {
-      MLOG(MINFO)
-          << "Successfully initialized 5G session for subscriber "
-          << cfg.common_context.sid().id() << " with PDU session ID "
-          << cfg.rat_specific_context.m5gsm_session_context().pdu_session_id();
+      MLOG(MDEBUG) << "Successfully initialized 5G session for subscriber "
+                   << cfg_new.common_context.sid().id()
+                   << " with PDU session ID "
+                   << cfg_new.rat_specific_context.m5gsm_session_context()
+                          .pdu_session_id();
     } else {
-      MLOG(MERROR)
-          << "Failed to initialize 5G session for subscriber"
-          << cfg.common_context.sid().id() << " with PDU session ID  from UE"
-          << cfg.rat_specific_context.m5gsm_session_context().pdu_session_id()
-          << " due to failure writing to SessionStore.";
+      MLOG(MERROR) << "Failed to initialize 5G session for subscriber"
+                   << cfg_new.common_context.sid().id()
+                   << " with PDU session ID  from UE"
+                   << cfg_new.rat_specific_context.m5gsm_session_context()
+                          .pdu_session_id()
+                   << " due to failure writing to SessionStore.";
     }
   }
 }

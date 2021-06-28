@@ -366,9 +366,10 @@ int main(int argc, char* argv[]) {
     // Initialize the main thread of session management by folly event to handle
     // logical component of 5G of SessionD
     extern std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
+    std::unordered_multimap<std::string, uint32_t> pdr_map;
     conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
-        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig,
-        config["session_force_termination_timeout_ms"].as<long>(),
+        rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
+        mconfig, config["session_force_termination_timeout_ms"].as<long>(),
         session_max_rtx_count);
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
