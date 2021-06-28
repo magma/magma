@@ -1,6 +1,10 @@
 package(default_visibility = ["//visibility:public"])
+
 cc_library(
-	name = "magma_logging",
-	srcs = [],
-	hdrs = ["magma_logging_init.h", "magma_logging.h"],
+    name = "magma_logging",
+    srcs = [],
+    hdrs = [
+        "magma_logging.h",
+        "magma_logging_init.h",
+    ],
 )

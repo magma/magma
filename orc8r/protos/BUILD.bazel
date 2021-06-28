@@ -9,10 +9,12 @@ cc_proto_library(
     name = "common_cc_proto",
     deps = [":common_proto"],
 )
+
 cpp_grpc_library(
     name = "common_cpp_grpc",
     protos = [":common_proto"],
 )
+
 proto_library(
     name = "common_proto",
     srcs = ["common.proto"],
