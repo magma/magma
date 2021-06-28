@@ -405,8 +405,7 @@ void NasStateConverter::esm_context_to_proto(
     oai::EsmContext* esm_context_proto) {
   esm_context_proto->set_n_active_ebrs(state_esm_context->n_active_ebrs);
   esm_context_proto->set_is_emergency(state_esm_context->is_emergency);
-  esm_context_proto->set_pending_standalone(
-      state_esm_context->pending_standalone);
+  esm_context_proto->set_is_standalone(state_esm_context->is_standalone);
   esm_context_proto->set_is_pdn_disconnect(
       state_esm_context->is_pdn_disconnect);
   if (state_esm_context->esm_proc_data) {
@@ -423,8 +422,7 @@ void NasStateConverter::proto_to_esm_context(
   state_esm_context->n_active_ebrs     = esm_context_proto.n_active_ebrs();
   state_esm_context->is_emergency      = esm_context_proto.is_emergency();
   state_esm_context->is_pdn_disconnect = esm_context_proto.is_pdn_disconnect();
-  state_esm_context->pending_standalone =
-      esm_context_proto.pending_standalone();
+  state_esm_context->is_standalone     = esm_context_proto.is_standalone();
   if (esm_context_proto.has_esm_proc_data()) {
     state_esm_context->esm_proc_data =
         (esm_proc_data_t*) calloc(1, sizeof(*state_esm_context->esm_proc_data));

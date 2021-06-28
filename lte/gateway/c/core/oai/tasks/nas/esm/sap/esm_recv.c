@@ -383,7 +383,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
         "ue " MME_UE_S1AP_ID_FMT "\n",
         ue_id);
 
-    emm_context->esm_ctx.pending_standalone += 1;
+    emm_context->esm_ctx.is_standalone = true;
 
     mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
     mme_app_send_s11_create_session_req(
@@ -788,9 +788,9 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
   /* If activate default EPS bearer context accept message is received for a
    * new standalone PDN connection, send modify bearer request to sgw
    */
-  if (emm_context->esm_ctx.pending_standalone > 0) {
-    emm_context->esm_ctx.pending_standalone -= 1;
-    bearer_context_t* bearer_ctx = mme_app_get_bearer_context(
+  if (emm_context->esm_ctx.is_standalone == true) {
+    emm_context->esm_ctx.is_standalone = false;
+    bearer_context_t* bearer_ctx       = mme_app_get_bearer_context(
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context), ebi);
     if (!bearer_ctx) {
       OAILOG_ERROR(

@@ -512,8 +512,7 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
           emm_context);
       bearer_context_t* bc =
           mme_app_get_bearer_context(ue_context_p, esm_ebr_timer_data->ebi);
-      if (((emm_context_t*) esm_ebr_timer_data->ctx)
-              ->esm_ctx.pending_standalone &&
+      if (((emm_context_t*) esm_ebr_timer_data->ctx)->esm_ctx.is_standalone &&
           (!(bc->enb_fteid_s1u.teid))) {
         default_eps_bearer_activate_in_bearer_setup_req(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
@@ -530,11 +529,6 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
       pdn_cid_t pid = MAX_APN_PER_UE;
       int bidx      = BEARERS_PER_UE;
 
-      if (((emm_context_t*) esm_ebr_timer_data->ctx)
-              ->esm_ctx.pending_standalone > 0) {
-        ((emm_context_t*) esm_ebr_timer_data->ctx)
-            ->esm_ctx.pending_standalone -= 1;
-      }
       /*
        * Release the default EPS bearer context and enter state INACTIVE
        */

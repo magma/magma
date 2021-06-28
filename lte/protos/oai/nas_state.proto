@@ -395,9 +395,8 @@ message EsmContext {
   EsmProcData esm_proc_data = 5;
 
   Timer t3489 = 199;
-  bool is_standalone = 200 [deprecated=true];
+  bool is_standalone = 200;
   bool is_pdn_disconnect = 201;
-  int32 pending_standalone = 202;
 }
 
 // esm_ebr_context_t
