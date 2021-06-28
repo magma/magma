@@ -223,6 +223,9 @@
       "nms/alerts": {
         "title": "Alerts"
       },
+      "nms/alerts_troubleshooting": {
+        "title": "Alerts"
+      },
       "nms/nms_arch_overview": {
         "title": "Overview"
       },
