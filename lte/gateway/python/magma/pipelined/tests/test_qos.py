@@ -118,8 +118,6 @@ class TestQosManager(unittest.TestCase):
         mock_get_action_inst.assert_any_call(qid)
         mock_traffic_cls.init_qdisc.assert_any_call(self.ul_intf, enable_pyroute2=False)
         mock_traffic_cls.init_qdisc.assert_any_call(self.dl_intf, enable_pyroute2=False)
-        mock_traffic_cls.create_class.assert_any_call(intf, qid, qos_info.mbr,
-            rate=qos_info.gbr, parent_qid=parent_qid, skip_filter=skip_filter)
 
     def verifyTcCleanRestart(self, prior_qids, mock_traffic_cls):
         for qid_tuple in prior_qids[self.ul_intf]:
@@ -839,7 +837,7 @@ class TestMeters(unittest.TestCase):
         MockSt = namedtuple("MockSt", "max_meter")
         m.handle_meter_feature_stats([MockSt(0)])
         try:
-            m.add_qos(0, QosInfo(100000, 100000))
+            m.add_qos(0, QosInfo(100000, 100000), cleanup_rule=None)
             self.fail("unexpectedly add_qos succeeded")
         except RuntimeError:
             pass

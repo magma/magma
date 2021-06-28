@@ -247,8 +247,11 @@ class PolicyMixin(metaclass=ABCMeta):
                 qos_info = QosInfo(gbr=qos.gbr_dl, mbr=mbr_dl)
 
         if qos_info or ambr:
+            cleanup_rule_func = lambda: self._invalidate_rule_version(imsi,
+                                                                      ip_addr, rule_id)
             action, inst = qos_mgr.add_subscriber_qos(
-                imsi, ip_addr.address.decode('utf8'), ambr, rule_num, d, qos_info)
+                imsi, ip_addr.address.decode('utf8'), ambr, rule_num, d,
+                qos_info, cleanup_rule_func)
 
             self.logger.debug("adding Actions %s instruction %s ", action, inst)
             if action:
@@ -262,6 +265,14 @@ class PolicyMixin(metaclass=ABCMeta):
              parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
              ])
         return actions, instructions
+
+    # this function is used to schedule the rule removal in rule cleanup.
+    def _invalidate_rule_version(self, imsi, ip_addr, rule_id):
+        self.logger.debug("Invalidate rule: imsi: %s ip: %s rule_id %s", imsi,
+                          ip_addr.address.decode('utf8'),
+                          rule_id)
+
+        self._session_rule_version_mapper.save_version(imsi, ip_addr, rule_id, -1)
 
     def _get_ue_specific_flow_msgs(self, requests: List[ActivateFlowsRequest]):
         msg_list = []
