@@ -314,7 +314,7 @@ int mme_app_handle_s6a_update_location_ans(
     } else {
       // Store the zone codes in ue_mm_context
       ue_mm_context->num_reg_sub = ula_pP->subscription_data.num_zcs;
-      for (uint8_t itr; itr < ue_mm_context->num_reg_sub; itr++) {
+      for (uint8_t itr = 0; itr < ue_mm_context->num_reg_sub; itr++) {
         memcpy(
             ue_mm_context->reg_sub[itr].zone_code,
             ula_pP->subscription_data.reg_sub[itr].zone_code,
