@@ -1,0 +1,12 @@
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+cc_test(
+    name = "config_test",
+    size = "small",
+    srcs = ["test_yaml_utils.cpp"],
+    copts = ["-DBAZEL=1"],
+    deps = [
+        "//orc8r/gateway/c/common/config",
+        "@com_google_googletest//:gtest_main",
+    ],
+)

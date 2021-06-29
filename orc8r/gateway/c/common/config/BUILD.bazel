@@ -1,0 +1,20 @@
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "config",
+    srcs = [
+        "MConfigLoader.cpp",
+        "ServiceConfigLoader.cpp",
+        "YAMLUtils.cpp",
+    ],
+    hdrs = [
+        "YAMLUtils.h",
+        "includes/MConfigLoader.h",
+        "includes/ServiceConfigLoader.h",
+    ],
+    copts = ["-DBAZEL=1"],
+    deps = [
+        "//orc8r/gateway/c/common/logging:magma_logging",
+        "@yaml-cpp//:yaml-cpp",
+    ],
+)

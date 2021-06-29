@@ -18,7 +18,12 @@
 #include <iostream>               // for operator<<, basic_ostream
 #include <string>                 // for allocator, operator+, char_traits
 #include "YAMLUtils.h"            // for YAMLUtils
-#include "magma_logging.h"        // for MLOG
+
+#if BAZEL
+#include "orc8r/gateway/c/common/logging/magma_logging.h"  // for MLOG
+#else
+#include "magma_logging.h"  // for MLOG
+#endif
 
 namespace magma {
 

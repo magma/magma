@@ -1,6 +1,5 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
-load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 
 # buildifier is written in Go and hence needs rules_go to be built.
 # See https://github.com/bazelbuild/rules_go for the up to date setup instructions.
@@ -61,36 +60,49 @@ http_archive(
     ],
 )
 
-skylib_version = "1.0.2"
+# skylib_version = "1.0.2"
 
-http_archive(
-    name = "bazel_skylib",
-    sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
-    urls = [
-        "https://github.com/bazelbuild/bazel-skylib/releases/download/{}/bazel-skylib-{}.tar.gz"
-            .format(skylib_version, skylib_version),
-    ],
-)
+# http_archive(
+#     name = "bazel_skylib",
+#     sha256 = "97e70364e9249702246c0e9444bccdc4b847bed1eb03c5a3ece4f83dfe6abc44",
+#     urls = [
+#         "https://github.com/bazelbuild/bazel-skylib/releases/download/{}/bazel-skylib-{}.tar.gz"
+#             .format(skylib_version, skylib_version),
+#     ],
+# )
 
-load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
+# load("@bazel_skylib//:workspace.bzl", "bazel_skylib_workspace")
 
-bazel_skylib_workspace()
+# bazel_skylib_workspace()
 
 load("@rules_cc//cc:repositories.bzl", "rules_cc_dependencies")
 
 rules_cc_dependencies()
 
 # rules_proto defines abstract rules for building Protocol Buffers.
-git_repository(
+# git_repository(
+#     name = "rules_proto",
+#     commit = "cfdc2fa31879c0aebe31ce7702b1a9c8a4be02d2",
+#     remote = "https://github.com/bazelbuild/rules_proto.git",
+# )
+
+# load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
+
+# rules_proto_dependencies()
+
+# rules_proto_toolchains()
+
+http_archive(
     name = "rules_proto",
-    commit = "cfdc2fa31879c0aebe31ce7702b1a9c8a4be02d2",
-    remote = "https://github.com/bazelbuild/rules_proto.git",
+    sha256 = "602e7161d9195e50246177e7c55b2f39950a9cf7366f74ed5f22fd45750cd208",
+    strip_prefix = "rules_proto-97d8af4dc474595af3900dd85cb3a29ad28cc313",
+    urls = [
+        "https://mirror.bazel.build/github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
+        "https://github.com/bazelbuild/rules_proto/archive/97d8af4dc474595af3900dd85cb3a29ad28cc313.tar.gz",
+    ],
 )
-
 load("@rules_proto//proto:repositories.bzl", "rules_proto_dependencies", "rules_proto_toolchains")
-
 rules_proto_dependencies()
-
 rules_proto_toolchains()
 
 load("@com_google_protobuf//:protobuf_deps.bzl", "protobuf_deps")
@@ -135,4 +147,17 @@ git_repository(
     name = "cpp_redis",
     commit = "99b1dda835f529b2ab4bc431a4bd99d344dbd4e9",
     remote = "https://github.com/cpp-redis/cpp_redis.git",
+)
+
+git_repository(
+    name = "yaml-cpp",
+    commit = "a6bbe0e50ac4074f0b9b44188c28cf00caf1a723",  # This is just master might want to pin to a release
+    remote = "https://github.com/jbeder/yaml-cpp.git",
+)
+
+# Testing gtest / gmock
+http_archive(
+    name = "com_google_googletest",
+    strip_prefix = "googletest-609281088cfefc76f9d0ce82e1ff6c30cc3591e5",
+    urls = ["https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip"],
 )

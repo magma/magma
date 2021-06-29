@@ -13,7 +13,11 @@
 #include <gtest/gtest.h>
 #include "yaml-cpp/yaml.h"
 
+#if BAZEL
+#include "orc8r/gateway/c/common/config/YAMLUtils.h"
+#else
 #include "YAMLUtils.h"
+#endif
 
 using ::testing::Test;
 using YAML::Node;
