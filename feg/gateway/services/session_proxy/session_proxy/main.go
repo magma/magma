@@ -32,6 +32,7 @@ import (
 	"magma/feg/gateway/services/session_proxy/credit_control/gx"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	"magma/feg/gateway/services/session_proxy/servicers"
+	"magma/feg/gateway/utils"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/service"
 	"magma/orc8r/lib/go/util"
@@ -39,11 +40,15 @@ import (
 	"github.com/golang/glog"
 )
 
+//var MagmaGitCommit string
+
 func init() {
 	flag.Parse()
 }
 
 func main() {
+	glog.Info(utils.PrintBuildInfo())
+
 	serviceBaseName := filepath.Base(os.Args[0])
 	serviceBaseName = strings.TrimSuffix(serviceBaseName, filepath.Ext(serviceBaseName))
 	if credit_control.SessionProxyServiceName != serviceBaseName {
@@ -73,6 +78,8 @@ func main() {
 	}
 	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, sessionManagerAndHealthServer)
 	protos.RegisterServiceHealthServer(srv.GrpcServer, sessionManagerAndHealthServer)
+
+	glog.Fatal("DELME")
 
 	// Run the service
 	err = srv.Run()

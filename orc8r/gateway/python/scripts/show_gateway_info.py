@@ -15,10 +15,20 @@ limitations under the License.
 
 import argparse
 import textwrap
+import os
 
 import snowflake
 from magma.common.cert_utils import load_public_key_to_base64der
 
+
+def get_commit_info() -> str:
+   return "Commit Branch: {}\n" \
+          "Commit Tag: {}\n" \
+          "Commit Hash: {}\n" \
+          "Commit Date: {}".format(os.getenv("MAGMA_BUILD_BRANCH"),
+                                   os.getenv("MAGMA_BUILD_TAG"),
+                                   os.getenv("MAGMA_BUILD_COMMIT_HASH") or os.getenv("COMMIT_HASH"),
+                                   os.getenv("MAGMA_BUILD_COMMIT_DATE"))
 
 def main():
     parser = argparse.ArgumentParser(
@@ -42,14 +52,22 @@ def main():
         -------------
         {}
 
+        Build info
+        -------------
+        {}
+
         Notes
         -----
         - Hardware ID is this gateway's unique identifier
         - Challenge key is this gateway's long-term keypair used for
           bootstrapping a secure connection to the cloud
+        - Build info shows git commit information of this build
         """
     )
-    print(msg.format(snowflake.snowflake(), public_key.decode('utf-8')))
+    print(msg.format(
+        snowflake.snowflake(),
+        public_key.decode('utf-8'),
+        get_commit_info()))
 
 
 if __name__ == "__main__":

@@ -806,7 +806,7 @@ jobs:
           name: build docker
           command: |
             cd ${MAGMA_ROOT}/feg/gateway/docker
-            DOCKER_REGISTRY=feg_ docker-compose build --parallel
+            DOCKER_REGISTRY=feg_ ./build.py
       - run:
           name: run docker containers and check health
           command: |

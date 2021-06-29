@@ -24,6 +24,7 @@ import (
 	"magma/feg/gateway/services/csfb/servicers"
 	"magma/feg/gateway/services/csfb/servicers/decode"
 	"magma/feg/gateway/services/csfb/servicers/decode/message"
+	"magma/feg/gateway/utils"
 	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
@@ -36,6 +37,7 @@ func init() {
 }
 
 func main() {
+	glog.Info(utils.PrintBuildInfo())
 	// Create the service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.CSFB)
 	if err != nil {

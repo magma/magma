@@ -117,3 +117,20 @@ func getFlagValue(flagName string) string {
 	}
 	return res
 }
+
+func PrintBuildInfo() string {
+	delimiter := "********"
+	return fmt.Sprintf("%s\n"+
+		"Build Info\n"+
+		"\tCommit Branch: %s\n"+
+		"\tCommit Tag: %s\n"+
+		"\tCommit Hash: %s\n"+
+		"\tCommit Date: %s\n"+
+		"%s\n",
+		delimiter,
+		os.Getenv("MAGMA_BUILD_BRANCH"),
+		os.Getenv("MAGMA_BUILD_TAG"),
+		os.Getenv("MAGMA_BUILD_COMMIT_HASH"),
+		os.Getenv("MAGMA_BUILD_COMMIT_DATE"),
+		delimiter)
+}

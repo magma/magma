@@ -1,5 +1,7 @@
 .PHONY: all build download fmt test clean run install build_only gen precommit
 
+MAGMA_GIT_COMMIT := $(shell git rev-list -1 HEAD)
+
 ifndef MAGMA_ROOT
 MAGMA_ROOT = /home/$USER/magma
 endif
@@ -18,6 +20,7 @@ download:
 	go mod download
 
 install:
+	#go install -ldflags "-X main.MagmaGitCommit=$(MAGMA_GIT_COMMIT)"  ./... magma/gateway/services/magmad
 	go install ./... magma/gateway/services/magmad
 
 install_envoy_controller:

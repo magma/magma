@@ -20,6 +20,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/swx_proxy/servicers"
+	"magma/feg/gateway/utils"
 	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
@@ -30,6 +31,7 @@ func init() {
 }
 
 func main() {
+	glog.Info(utils.PrintBuildInfo())
 	// Create the service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.SWX_PROXY)
 	if err != nil {

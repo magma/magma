@@ -18,12 +18,16 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
+	"magma/feg/gateway/utils"
 	"magma/orc8r/lib/go/service"
+
+	"github.com/golang/glog"
 )
 
 func init() {
@@ -31,6 +35,7 @@ func init() {
 }
 
 func main() {
+	glog.Info(fmt.Print(utils.PrintBuildInfo()))
 	// Create the service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.S6A_PROXY)
 	if err != nil {

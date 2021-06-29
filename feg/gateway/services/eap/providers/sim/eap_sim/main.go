@@ -17,6 +17,8 @@ package main
 import (
 	"flag"
 
+	"magma/feg/gateway/utils"
+
 	"github.com/golang/glog"
 
 	"magma/feg/cloud/go/protos/mconfig"
@@ -34,6 +36,7 @@ func init() {
 }
 
 func main() {
+	glog.Info(utils.PrintBuildInfo())
 	// Create the EAP SIM Provider service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.EAP_SIM)
 	if err != nil {

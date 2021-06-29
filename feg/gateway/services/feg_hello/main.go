@@ -19,6 +19,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/feg_hello/servicers"
+	"magma/feg/gateway/utils"
 	"magma/orc8r/lib/go/service"
 
 	"github.com/golang/glog"
@@ -29,6 +30,7 @@ func init() {
 }
 
 func main() {
+	glog.Info(utils.PrintBuildInfo())
 	// Create the service
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.FEG_HELLO)
 	if err != nil {
