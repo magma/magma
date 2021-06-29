@@ -11,7 +11,6 @@
  * limitations under the License.
  */
 #include "PolicyLoader.h"
-#include <glog/logging.h>             // for COMPACT_GOOGLE_LOG_INFO, LogMes
 #include <yaml-cpp/yaml.h>            // IWYU pragma: keep
 #include <chrono>                     // for seconds
 #include <cpp_redis/core/client.hpp>  // for client, client::connect_state
