@@ -670,6 +670,9 @@ int log_init(
       &g_oai_log.log_proto2str[LOG_ASYNC_SYSTEM][0], LOG_MAX_PROTO_NAME_LENGTH,
       "CMD");
   snprintf(
+      &g_oai_log.log_proto2str[LOG_SERVICE303][0], LOG_MAX_PROTO_NAME_LENGTH,
+      "SERVICE303");
+  snprintf(
       &g_oai_log.log_proto2str[LOG_ASSERT][0], LOG_MAX_PROTO_NAME_LENGTH,
       "ASSERT");
 

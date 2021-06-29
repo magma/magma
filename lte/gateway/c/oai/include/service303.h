@@ -25,9 +25,13 @@
 
 #define NO_BOUNDARIES 0
 #define NO_LABELS 0
-#define EPC_STATS_TIMER_VALUE 60  // In seconds
+#define EPC_STATS_TIMER_MSEC 60000  // In milliseconds
+#define EPC_STATS_DISPLAY_TIMER_MSEC 60000 // In milliseconds
 
-void service303_statistics_read(void);
+void service303_mme_app_statistics_read(
+    application_mme_app_stats_msg_t* stats_msg_p);
+void service303_s1ap_statistics_read(application_s1ap_stats_msg_t* stats_msg_p);
+void service303_statistics_display(void);
 
 // service303 conf type added to be able to use same task interface for MME and
 // SPGW while passing configs from mme_config and spgw_config types
@@ -118,6 +122,7 @@ void decrement_gauge(const char* name, double decrement, size_t n_labels, ...);
  * @param value1: the value of the first label
  */
 void set_gauge(const char* name, double value, size_t n_labels, ...);
+double get_gauge(const char* name, size_t n_labels, ...);
 
 /**
  * Record an observation in the histogram defined by the name and label set.
