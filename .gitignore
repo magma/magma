@@ -79,6 +79,9 @@ orc8r/cloud/helm/**/.secrets/
 # CMake debug files
 lte/gateway/c/session_manager/cmake-build-debug/
 
+# Bazel
+bazel-*
+
 # Log files
 *.log
 
