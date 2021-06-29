@@ -262,10 +262,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             received_message_p->ittiMsg.timer_has_expired.timer_id);
         is_task_state_same = true;
         break;
-      }
-      if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-          mme_app_desc_p->statistic_timer_id) {
-        mme_app_statistics_display();
       } else if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
         mme_app_nas_timer_handle_signal_expiry(
             TIMER_HAS_EXPIRED(received_message_p).timer_id,
