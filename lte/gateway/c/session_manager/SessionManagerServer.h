@@ -559,4 +559,33 @@ class PolicyReAuthCallData : public AsyncGRPCRequest<
   SessionProxyResponderHandler& handler_;
 };
 
+/*
+ *  Class to handle SendPagingReqestCallData
+ */
+class SendPagingRequestCallData : public AsyncGRPCRequest<
+                                      SetInterfaceForUserPlane::AsyncService,
+                                      UPFPagingInfo, SmContextVoid> {
+ public:
+  SendPagingRequestCallData(
+      ServerCompletionQueue* cq,
+      SetInterfaceForUserPlane::AsyncService& service,
+      UpfMsgManageHandler& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestSendPagingRequest(
+        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+  }
+
+ protected:
+  void clone() override {
+    new SendPagingRequestCallData(cq_, service_, handler_);
+  }
+
+  void process() override {
+    handler_.SendPagingRequest(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  UpfMsgManageHandler& handler_;
+};
+
 }  // namespace magma
