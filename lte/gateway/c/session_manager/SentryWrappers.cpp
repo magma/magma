@@ -42,10 +42,10 @@ optional<std::string> get_sentry_url(
     const magma::mconfig::SentryConfig& sentry_config,
     YAML::Node control_proxy_config) {
   if (control_proxy_config[SENTRY_NATIVE_URL].IsDefined()) {
-    const std::string override =
+    const std::string dns_override =
         control_proxy_config[SENTRY_NATIVE_URL].as<std::string>();
-    if (override.size()) {
-      return override;
+    if (dns_override.size()) {
+      return dns_override;
     }
   }
   const std::string sentry_url = sentry_config.url_native();
@@ -59,9 +59,9 @@ float get_sentry_sample_rate(
     const magma::mconfig::SentryConfig& sentry_config,
     YAML::Node control_proxy_config) {
   if (control_proxy_config[SENTRY_SAMPLE_RATE].IsDefined()) {
-    const float override = control_proxy_config[SENTRY_SAMPLE_RATE].as<float>();
-    if (override) {
-      return override;
+    const float sample_rate_override = control_proxy_config[SENTRY_SAMPLE_RATE].as<float>();
+    if (sample_rate_override) {
+      return sample_rate_override;
     }
   }
   const float sample_rate = sentry_config.sample_rate();
