@@ -261,9 +261,10 @@ void LocalEnforcer::handle_pipelined_response(
 }
 
 void LocalEnforcer::poll_stats_enforcer() {
-  //we need to pass in a function pointer. Binding is required because we the function
-  //is part of the LocalEnforcer class and has arguments so we bind to the object and
-  //the two arguments the function needs which are the status and RuleRecordTable response
+  //we need to pass in a function pointer. Binding is required because
+  //the function is part of the LocalEnforcer class and has arguments 
+  //so we bind to the object and the two arguments the function needs 
+  //which are the status and RuleRecordTable response
   pipelined_client_->poll_stats(
       0, 0, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
 }
