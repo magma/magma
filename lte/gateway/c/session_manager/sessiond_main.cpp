@@ -206,7 +206,7 @@ int main(int argc, char* argv[]) {
     set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
   }
 
-  initialize_sentry();
+  initialize_sentry(mconfig.sentry_config());
 
   bool converged_access          = false;
   uint32_t session_max_rtx_count = 0;
