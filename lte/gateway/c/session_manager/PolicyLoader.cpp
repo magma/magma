@@ -11,10 +11,10 @@
  * limitations under the License.
  */
 #include "PolicyLoader.h"
-#include <yaml-cpp/yaml.h>            // IWYU pragma: keep
 #include <chrono>                     // for seconds
 #include <cpp_redis/core/client.hpp>  // for client, client::connect_state
 #include <cpp_redis/misc/error.hpp>   // for redis_error
+#include <yaml-cpp/yaml.h>            // IWYU pragma: keep
 #include <cstdint>                    // for uint32_t
 #include <memory>                     // for make_shared, __shared_ptr, ...
 #include <ostream>                    // for operator<<, basic_ostream, ...

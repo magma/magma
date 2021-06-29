@@ -188,7 +188,7 @@ add_library(SESSION_MANAGER
     ObjectMap.h
     RedisMap.hpp
     Serializers.cpp
-    serializers.h
+    Serializers.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 

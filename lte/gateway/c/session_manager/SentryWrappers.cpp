@@ -15,12 +15,12 @@
 
 #if SENTRY_ENABLED
 #include <experimental/optional>
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 
 #include <cstdlib>
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 
 #include "magma_logging_init.h"
 #include "sentry.h"
