@@ -52,7 +52,7 @@ MmeNasStateManager& MmeNasStateManager::getInstance() {
 
 // Constructor for MME NAS state object
 MmeNasStateManager::MmeNasStateManager()
-    : max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS), mme_statistic_timer_(10) {}
+    : max_ue_htbl_lists_(NUM_MAX_UE_HTBL_LISTS) {}
 
 // Destructor for MME NAS state object
 MmeNasStateManager::~MmeNasStateManager() {
@@ -62,7 +62,6 @@ MmeNasStateManager::~MmeNasStateManager() {
 int MmeNasStateManager::initialize_state(const mme_config_t* mme_config_p) {
   persist_state_enabled = mme_config_p->use_stateless;
   max_ue_htbl_lists_    = mme_config_p->max_ues;
-  mme_statistic_timer_  = mme_config_p->mme_statistic_timer;
   log_task              = LOG_MME_APP;
   task_name             = MME_TASK_NAME;
   table_key             = MME_NAS_STATE_KEY;
@@ -120,23 +119,7 @@ void MmeNasStateManager::clear_db_state() {
 }
 
 // Initialize state that is non-persistent, e.g. timers
-void MmeNasStateManager::mme_nas_state_init_local_state() {
-  // create statistic timer locally
-  state_cache_p->statistic_timer_period = mme_statistic_timer_;
-
-  // Request for periodic timer to print statistics in debug mode
-  if (timer_setup(
-          mme_statistic_timer_, 0, TASK_MME_APP, INSTANCE_DEFAULT,
-          TIMER_PERIODIC, nullptr, 0,
-          &(state_cache_p->statistic_timer_id)) < 0) {
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Failed to request new timer for statistics with %ds "
-        "of periocidity\n",
-        mme_statistic_timer_);
-    state_cache_p->statistic_timer_id = 0;
-  }
-}
+void MmeNasStateManager::mme_nas_state_init_local_state() {}
 
 // Create the hashtables for MME NAS state
 void MmeNasStateManager::create_hashtables() {
