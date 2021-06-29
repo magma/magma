@@ -14,7 +14,6 @@
 #include <atomic>
 #include "LocalEnforcer.h"
 namespace magma {
-using namespace lte;
 
 class StatsPoller {
  public:

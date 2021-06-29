@@ -12,9 +12,7 @@
  */
 #include <stdint.h>
 #include <atomic>
-#include <functional>
-#include <vector>
-#include "lte/protos/subscriberdb.pb.h"
+#include <memory>
 #include "StatsPoller.h"
 
 namespace magma {
