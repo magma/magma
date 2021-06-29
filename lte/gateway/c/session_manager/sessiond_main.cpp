@@ -23,7 +23,7 @@
 #include "includes/MagmaService.h"
 #include "includes/MConfigLoader.h"
 #include "OperationalStatesHandler.h"
-#include "includes/PolicyLoader.h"
+#include "PolicyLoader.h"
 #include "RedisStoreClient.h"
 #include "RestartHandler.h"
 #include "SentryWrappers.h"
