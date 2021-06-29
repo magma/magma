@@ -384,27 +384,27 @@ func TestGetPerSubscriberDigestsDiff(t *testing.T) {
 	})
 	t.Run("all empty", func(t *testing.T) {
 		prev := []*lte_protos.SubscriberDigestWithID{
-			{Sid: &lte_protos.SubscriberID{Id: "00000"}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00000", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
 		}
 		next := []*lte_protos.SubscriberDigestWithID{}
 		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(prev, next)
 
 		assert.Empty(t, toRenew)
-		assert.Equal(t, []string{"00000", "00001", "00002"}, deleted)
+		assert.Equal(t, []string{"IMSI00000", "IMSI00001", "IMSI00002"}, deleted)
 	})
 	t.Run("tracked empty", func(t *testing.T) {
 		prev := []*lte_protos.SubscriberDigestWithID{}
 		next := []*lte_protos.SubscriberDigestWithID{
-			{Sid: &lte_protos.SubscriberID{Id: "00000"}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00000", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
 		}
 		expectedToRenew := map[string]string{
-			"00000": "apple",
-			"00001": "banana",
-			"00002": "cherry",
+			"IMSI00000": "apple",
+			"IMSI00001": "banana",
+			"IMSI00002": "cherry",
 		}
 		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(prev, next)
 		assert.Equal(t, expectedToRenew, toRenew)
@@ -412,9 +412,9 @@ func TestGetPerSubscriberDigestsDiff(t *testing.T) {
 	})
 	t.Run("both not empty, basic", func(t *testing.T) {
 		prev := []*lte_protos.SubscriberDigestWithID{
-			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00004"}, Digest: &lte_protos.Digest{Md5Base64Digest: "dragonfruit"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00004", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "dragonfruit"}},
 		}
 		next := []*lte_protos.SubscriberDigestWithID{
 			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
@@ -422,12 +422,12 @@ func TestGetPerSubscriberDigestsDiff(t *testing.T) {
 			{Sid: &lte_protos.SubscriberID{Id: "00003"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
 		}
 		expectedToRenew := map[string]string{
-			"00002": "banana2",
-			"00003": "cherry",
+			"IMSI00002": "banana2",
+			"IMSI00003": "cherry",
 		}
 		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(prev, next)
 		assert.Equal(t, expectedToRenew, toRenew)
-		assert.Equal(t, []string{"00004"}, deleted)
+		assert.Equal(t, []string{"IMSI00004"}, deleted)
 	})
 	t.Run("both not empty, involved", func(t *testing.T) {
 		prev := []*lte_protos.SubscriberDigestWithID{
@@ -438,21 +438,21 @@ func TestGetPerSubscriberDigestsDiff(t *testing.T) {
 			{Sid: &lte_protos.SubscriberID{Id: "00007"}, Digest: &lte_protos.Digest{Md5Base64Digest: "grape"}},
 		}
 		next := []*lte_protos.SubscriberDigestWithID{
-			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "orange"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00003"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00005"}, Digest: &lte_protos.Digest{Md5Base64Digest: "eggplant"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00006"}, Digest: &lte_protos.Digest{Md5Base64Digest: "fig2"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00008"}, Digest: &lte_protos.Digest{Md5Base64Digest: "honeydew"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "orange"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00003", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00005", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "eggplant"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00006", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "fig2"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00008", Type: lte_protos.SubscriberID_IMSI}, Digest: &lte_protos.Digest{Md5Base64Digest: "honeydew"}},
 		}
 		expectedToRenew := map[string]string{
-			"00003": "cherry",
-			"00005": "eggplant",
-			"00006": "fig2",
-			"00008": "honeydew",
+			"IMSI00003": "cherry",
+			"IMSI00005": "eggplant",
+			"IMSI00006": "fig2",
+			"IMSI00008": "honeydew",
 		}
 		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(prev, next)
 		assert.Equal(t, expectedToRenew, toRenew)
-		assert.Equal(t, []string{"00004", "00007"}, deleted)
+		assert.Equal(t, []string{"IMSI00004", "IMSI00007"}, deleted)
 	})
 }

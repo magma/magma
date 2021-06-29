@@ -22,8 +22,10 @@ import (
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	storage2 "magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 )
@@ -59,6 +61,40 @@ func LoadSubProtosPage(
 	}
 
 	return subProtos, nextToken, nil
+}
+
+func LoadSubProtosByID(
+	sids []string, networkID string,
+	apnsByName map[string]*lte_models.ApnConfiguration,
+	apnResourcesByAPN lte_models.ApnResources,
+) (map[string]*lte_protos.SubscriberData, error) {
+	lc := configurator.EntityLoadCriteria{
+		LoadConfig:         true,
+		LoadAssocsToThis:   true,
+		LoadAssocsFromThis: true,
+	}
+
+	subEnts, _, err := configurator.LoadEntities(networkID,
+		swag.String(lte.SubscriberEntityType), nil, nil,
+		storage2.MakeTKs(lte.SubscriberEntityType, sids),
+		lc, serdes.Entity,
+	)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Load added/modified subscriber entities")
+	}
+
+	subProtosById := map[string]*lte_protos.SubscriberData{}
+	for _, subEnt := range subEnts {
+		subProto, err := ConvertSubEntsToProtos(subEnt, apnsByName, apnResourcesByAPN)
+		if err != nil {
+			return nil, errors.Wrapf(err, "convert subscriber entity into proto object")
+		}
+		subProto.NetworkId = &protos.NetworkID{Id: networkID}
+
+		sid := lte_protos.SidString(subProto.Sid)
+		subProtosById[sid] = subProto
+	}
+	return subProtosById, nil
 }
 
 func LoadApnsByName(networkID string) (map[string]*lte_models.ApnConfiguration, error) {

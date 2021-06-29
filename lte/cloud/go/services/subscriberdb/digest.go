@@ -107,27 +107,29 @@ func GetPerSubscriberDigestsDiff(prev []*lte_protos.SubscriberDigestWithID, next
 	deleted := []string{}
 
 	for i < n && j < m {
-		iSid, jSid := prev[i].Sid.Id, next[j].Sid.Id
-		if iSid == jSid {
+		iSidStr, jSidStr := lte_protos.SidString(prev[i].Sid), lte_protos.SidString(next[j].Sid)
+		if iSidStr == jSidStr {
 			if prev[i].Digest.Md5Base64Digest != next[j].Digest.Md5Base64Digest {
-				toRenew[jSid] = next[j].Digest.Md5Base64Digest
+				toRenew[jSidStr] = next[j].Digest.Md5Base64Digest
 			}
 			i++
 			j++
-		} else if iSid > jSid {
-			toRenew[jSid] = next[j].Digest.Md5Base64Digest
+		} else if iSidStr > jSidStr {
+			toRenew[jSidStr] = next[j].Digest.Md5Base64Digest
 			j++
 		} else {
-			deleted = append(deleted, iSid)
+			deleted = append(deleted, iSidStr)
 			i++
 		}
 	}
 
 	for ; i < n; i++ {
-		deleted = append(deleted, prev[i].Sid.Id)
+		prevSidStr := lte_protos.SidString(prev[i].Sid)
+		deleted = append(deleted, prevSidStr)
 	}
 	for ; j < m; j++ {
-		toRenew[next[j].Sid.Id] = next[j].Digest.Md5Base64Digest
+		nextSidStr := lte_protos.SidString(next[j].Sid)
+		toRenew[nextSidStr] = next[j].Digest.Md5Base64Digest
 	}
 
 	return toRenew, deleted

@@ -20,6 +20,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -34,13 +35,19 @@ import (
 
 type subscriberdbServicer struct {
 	flatDigestEnabled bool
-	digestStore       storage.DigestStore
+	digestStore   storage.DigestStore
+	perSubDigestStore *storage.PerSubDigestStore
 }
 
-func NewSubscriberdbServicer(config subscriberdb.Config, digestStore storage.DigestStore) lte_protos.SubscriberDBCloudServer {
+func NewSubscriberdbServicer(
+	config subscriberdb.Config,
+	flatDigestStore storage.DigestStore,
+	perSubDigestStore *storage.PerSubDigestStore,
+) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
 		flatDigestEnabled: config.FlatDigestEnabled,
-		digestStore:       digestStore,
+		digestStore:   flatDigestStore,
+		perSubDigestStore: perSubDigestStore,
 	}
 	return servicer
 }
@@ -67,9 +74,42 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	ctx context.Context,
 	req *lte_protos.SyncSubscribersRequest,
 ) (*lte_protos.SyncSubscribersResponse, error) {
-	// TODO(wangyyt1013): implement logic to return subscriber changeset.
-	// The current scaffolding code is for backward-compatibility purposes.
-	res := &lte_protos.SyncSubscribersResponse{Resync: true}
+	gateway := protos.GetClientGateway(ctx)
+	if gateway == nil {
+		return nil, status.Errorf(codes.PermissionDenied, "missing gateway identity")
+	}
+	if !gateway.Registered() {
+		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
+	}
+	networkID := gateway.NetworkId
+	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
+	if err != nil {
+		return nil, err
+	}
+
+	flatDigest, err := storage.GetDigest(s.digestStore, networkID)
+	clientPerSubDigests := req.PerSubDigests
+	cloudPerSubDigests, err := s.perSubDigestStore.GetDigest(networkID)
+	if err != nil {
+		return nil, err
+	}
+
+	toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(cloudPerSubDigests, clientPerSubDigests)
+	// TODO(wangyyt1013): determine resync based on size of changeset
+	sids := funk.Keys(toRenew).([]string)
+	// TODO(wangyyt1013): load apn resource changes as well
+	subProtosById, err := subscriberdb.LoadSubProtosByID(sids, networkID, apnsByName, apnResourcesByAPN)
+	if err != nil {
+		return nil, err
+	}
+
+	res := &lte_protos.SyncSubscribersResponse{
+		FlatDigest: &lte_protos.Digest{Md5Base64Digest: flatDigest},
+		PerSubDigests: cloudPerSubDigests,
+		ToRenew: subProtosById,
+		Deleted: deleted,
+		Resync: true,
+	}
 	return res, nil
 }
 
@@ -88,17 +128,8 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		return nil, status.Errorf(codes.PermissionDenied, "gateway is not registered")
 	}
 	networkID := gateway.NetworkId
-	gatewayID := gateway.LogicalId
 
-	lteGateway, err := configurator.LoadEntity(
-		networkID, lte.CellularGatewayEntityType, gatewayID,
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
-		serdes.Entity,
-	)
-	if err != nil {
-		return nil, errors.Wrapf(err, "load cellular gateway for gateway %s", gatewayID)
-	}
-	apnsByName, apnResourcesByAPN, err := loadAPNs(lteGateway)
+	apnsByName, apnResourcesByAPN, err := loadAPNs(gateway)
 	if err != nil {
 		return nil, err
 	}
@@ -136,12 +167,23 @@ func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, ne
 	return digestProto, noUpdates
 }
 
-func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
-	apnsByName, err := subscriberdb.LoadApnsByName(gateway.NetworkID)
+func loadAPNs(gateway *protos.Identity_Gateway) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
+	networkID := gateway.NetworkId
+	gatewayID := gateway.LogicalId
+	lteGateway, err := configurator.LoadEntity(
+		networkID, lte.CellularGatewayEntityType, gatewayID,
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "load cellular gateway for gateway %s", gatewayID)
+	}
+
+	apnsByName, err := subscriberdb.LoadApnsByName(networkID)
 	if err != nil {
 		return nil, nil, err
 	}
-	apnResources, err := lte_models.LoadAPNResources(gateway.NetworkID, gateway.Associations.Filter(lte.APNResourceEntityType).Keys())
+	apnResources, err := lte_models.LoadAPNResources(networkID, lteGateway.Associations.Filter(lte.APNResourceEntityType).Keys())
 	if err != nil {
 		return nil, nil, err
 	}
