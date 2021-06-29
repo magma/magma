@@ -307,7 +307,7 @@ class LocalEnforcer {
   void check_usage_for_reporting(
       SessionMap session_map, SessionUpdate& session_uc);
 
-  void HandlePipelinedResponse(Status status, RuleRecordTable resp);
+  void handle_pipelined_response(Status status, RuleRecordTable resp);
 
   void poll_stats_enforcer();
   /**

@@ -244,7 +244,7 @@ void LocalEnforcer::check_usage_for_reporting(
       });
 }
 
-void LocalEnforcer::HandlePipelinedResponse(
+void LocalEnforcer::handle_pipelined_response(
     Status status, RuleRecordTable resp) {
   if (!status.ok()) {
     MLOG(MERROR) << "Could not successfully poll stats: "
@@ -261,8 +261,11 @@ void LocalEnforcer::HandlePipelinedResponse(
 }
 
 void LocalEnforcer::poll_stats_enforcer() {
+  //we need to pass in a function pointer. Binding is required because we the function
+  //is part of the LocalEnforcer class and has arguments so we bind to the object and
+  //the two arguments the function needs which are the status and RuleRecordTable response
   pipelined_client_->poll_stats(
-      0, 0, std::bind(&LocalEnforcer::HandlePipelinedResponse, this, _1, _2));
+      0, 0, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
