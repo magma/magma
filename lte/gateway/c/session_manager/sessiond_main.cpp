@@ -32,7 +32,7 @@
 #include "SessionManagerServer.h"
 #include "SessionReporter.h"
 #include "SessionStore.h"
-#include "PollStats.h"
+#include "StatsPoller.h"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -324,7 +324,7 @@ int main(int argc, char* argv[]) {
 
   // Start off a thread to periodically poll stats from Pipelined
   // every fixed interval of time
-  auto periodic_stats_requester = std::make_shared<magma::PollStats>();
+  auto periodic_stats_requester = std::make_shared<magma::StatsPoller>();
   std::thread periodic_stats_requester_thread([&]() {
     periodic_stats_requester->start_loop(local_enforcer, 5);
     periodic_stats_requester->stop();
