@@ -9871,6 +9871,11 @@ definitions:
       cloud_subscriberdb_enabled:
         example: false
         type: boolean
+      congestion_control_enabled:
+        default: true
+        description: Network configuration flag for congestion control on EPC
+        example: true
+        type: boolean
       default_rule_id:
         example: default_rule_1
         type: string
