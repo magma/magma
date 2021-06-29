@@ -53,6 +53,8 @@ func ccaHandler(message *diam.Message) diameter.KeyAndAnswer {
 			EventTriggers:          cca.EventTriggers,
 			RevalidationTime:       cca.RevalidationTime,
 			Qos:                    cca.Qos,
+			Online:                 cca.Online,
+			Offline:                cca.Offline,
 		},
 	}
 }
