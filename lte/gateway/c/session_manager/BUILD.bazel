@@ -28,8 +28,8 @@ cc_library(
     name = "credit_key",
     hdrs = ["CreditKey.h"],
     deps = [
-        "//lte/protos:policydb_cc_proto",
-        "//lte/protos:session_manager_cc_proto",
+        "//lte/protos:policydb_cpp_proto",
+        "//lte/protos:session_manager_cpp_proto",
     ],
 )
 
@@ -38,8 +38,8 @@ cc_library(
     hdrs = ["Types.h"],
     deps = [
         ":credit_key",
-        "//lte/protos:pipelined_cc_proto",
-        "//lte/protos:session_manager_cc_proto",
+        "//lte/protos:pipelined_cpp_proto",
+        "//lte/protos:session_manager_cpp_proto",
     ],
 )
 
@@ -49,7 +49,7 @@ cc_library(
     deps = [
         ":credit_key",
         ":types",
-        "//lte/protos:session_manager_cc_proto",
+        "//lte/protos:session_manager_cpp_proto",
     ],
 )
 

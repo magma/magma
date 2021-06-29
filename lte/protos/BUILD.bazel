@@ -1,30 +1,25 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("@rules_proto_grpc//cpp:defs.bzl", "cpp_grpc_library")
+load("@rules_proto_grpc//cpp:defs.bzl", "cpp_proto_library")
 
 # Doing this now to save time, but is this OK in practice?
 package(default_visibility = ["//visibility:public"])
 
-# Convention:
-# A cc_proto_library that wraps a proto_library named foo_proto
-# should be called foo_cc_proto.
-cc_proto_library(
-    name = "abort_session_cc_proto",
-    deps = [":abort_session_proto"],
+cpp_proto_library(
+    name = "abort_session_cpp_proto",
+    protos = [":abort_session_proto"],
 )
 
-# Conventions:
-# 1. One proto_library rule per .proto file.
-# 2. A file named foo.proto will be in a rule named foo_proto.
 proto_library(
     name = "abort_session_proto",
     srcs = ["abort_session.proto"],
     deps = [],
 )
 
-cc_proto_library(
-    name = "apn_cc_proto",
-    deps = [":apn_proto"],
+cpp_proto_library(
+    name = "apn_cpp_proto",
+    protos = [":apn_proto"],
 )
 
 cpp_grpc_library(
@@ -38,9 +33,13 @@ proto_library(
     deps = [],
 )
 
-cc_proto_library(
-    name = "subscriberdb_cc_proto",
-    deps = [":subscriberdb_proto"],
+cpp_proto_library(
+    name = "subscriberdb_cpp_proto",
+    protos = [":subscriberdb_proto"],
+    deps = [
+        ":apn_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
 )
 
 cpp_grpc_library(
@@ -62,9 +61,12 @@ proto_library(
     ],
 )
 
-cc_proto_library(
-    name = "mobilityd_cc_proto",
-    deps = [":mobilityd_proto"],
+cpp_proto_library(
+    name = "mobilityd_cpp_proto",
+    protos = [":mobilityd_proto"],
+    deps = [
+        ":subscriberdb_cpp_proto",
+    ],
 )
 
 cpp_grpc_library(
@@ -85,10 +87,13 @@ proto_library(
     ],
 )
 
-cc_proto_library(
-    name = "policydb_cc_proto",
-    visibility = ["//visibility:public"],
-    deps = [":policydb_proto"],
+cpp_proto_library(
+    name = "policydb_cpp_proto",
+    protos = [":policydb_proto"],
+    deps = [
+        ":mobilityd_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
 )
 
 cpp_grpc_library(
@@ -109,10 +114,14 @@ proto_library(
     ],
 )
 
-cc_proto_library(
-    name = "session_manager_cc_proto",
-    visibility = ["//visibility:public"],
-    deps = [":session_manager_proto"],
+cpp_proto_library(
+    name = "session_manager_cpp_proto",
+    protos = [":session_manager_proto"],
+    deps = [
+        ":apn_cpp_proto",
+        ":policydb_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
 )
 
 cpp_grpc_library(
@@ -137,9 +146,15 @@ proto_library(
     ],
 )
 
-cc_proto_library(
-    name = "pipelined_cc_proto",
-    deps = [":pipelined_proto"],
+cpp_proto_library(
+    name = "pipelined_cpp_proto",
+    protos = [":pipelined_proto"],
+    deps = [
+        "apn_cpp_proto",
+        "policydb_cpp_proto",
+        ":session_manager_cpp_proto",
+        "//orc8r/protos:common_cpp_proto",
+    ],
 )
 
 cpp_grpc_library(
@@ -166,9 +181,13 @@ proto_library(
     ],
 )
 
-cc_proto_library(
-    name = "spgw_service_cc_proto",
-    deps = [":spgw_service_proto"],
+cpp_proto_library(
+    name = "spgw_service_cpp_proto",
+    protos = [":spgw_service_proto"],
+    deps = [
+        ":policydb_cpp_proto",
+        ":subscriberdb_cpp_proto",
+    ],
 )
 
 proto_library(

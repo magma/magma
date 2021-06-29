@@ -1,9 +1,3 @@
-load("@com_github_bazelbuild_buildtools//buildifier:def.bzl", "buildifier")
-
-buildifier(
-    name = "buildifier",
-)
-
 # EXPERIMENTAL TEST THING： DELETE LATER
 load("@rules_cc//cc:defs.bzl", "cc_test")
 
@@ -12,7 +6,7 @@ cc_test(
     size = "small",
     srcs = ["hello_test.cpp"],
     deps = [
-      "@com_google_googletest//:gtest_main",
-      "//orc8r/protos:common_cc_proto",
+        "//orc8r/protos:common_cpp_proto",
+        "@com_google_googletest//:gtest_main",
     ],
 )

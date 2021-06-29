@@ -287,3 +287,7 @@ RUN cd /usr/sbin/ && \
     wget https://github.com/bazelbuild/bazelisk/releases/download/v1.6.1/bazelisk-linux-amd64 && \
     chmod +x bazelisk-linux-amd64 && \
     ln -s /usr/sbin/bazelisk-linux-amd64 /usr/sbin/bazel
+
+# Install buildifier to format bazel files
+RUN go get github.com/bazelbuild/buildtools/buildifier && \
+    export PATH="/root/go/bin:$PATH"
