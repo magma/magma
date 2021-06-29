@@ -16,5 +16,6 @@ cc_library(
     deps = [
         "//orc8r/gateway/c/common/logging:magma_logging",
         "@yaml-cpp//:yaml-cpp",
+        "@com_google_protobuf//:protobuf",
     ],
 )
