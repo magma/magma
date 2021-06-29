@@ -37,3 +37,6 @@ echo "deb https://artifactory.magmacore.org/artifactory/debian-test $OS_VERSION-
 
 apt update
 apt install -y magma -o Dpkg::Options::="--force-overwrite"
+
+#Upgrade OVS
+ovs-kmod-upgrade.sh -y
