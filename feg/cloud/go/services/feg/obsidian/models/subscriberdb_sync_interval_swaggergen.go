@@ -7,6 +7,9 @@ package models
 
 import (
 	strfmt "github.com/go-openapi/strfmt"
+
+	"github.com/go-openapi/errors"
+	"github.com/go-openapi/validate"
 )
 
 // SubscriberdbSyncInterval Interval in seconds between gateway requests to sync its subscriberdb with the cloud.
@@ -15,5 +18,14 @@ type SubscriberdbSyncInterval uint32
 
 // Validate validates this subscriberdb sync interval
 func (m SubscriberdbSyncInterval) Validate(formats strfmt.Registry) error {
+	var res []error
+
+	if err := validate.MinimumInt("", "body", int64(m), 60, false); err != nil {
+		return err
+	}
+
+	if len(res) > 0 {
+		return errors.CompositeValidationError(res...)
+	}
 	return nil
 }

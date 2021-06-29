@@ -11508,6 +11508,7 @@ definitions:
       with the cloud.
     example: 300
     format: uint32
+    minimum: 60
     type: integer
   subscription_profile:
     description: HSS Subscription Profile
