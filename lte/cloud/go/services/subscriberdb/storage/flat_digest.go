@@ -28,9 +28,6 @@ type DigestLookup interface {
 	// Initialize the backing store.
 	Initialize() error
 
-	// GetDigest returns the latest flat digest/per sub digests of a particular network.
-	GetDigest(network string) (interface{}, error)
-
 	// GetDigests returns a list of digests that satisfy the filtering criteria
 	// specified by the arguments.
 	// Caveats:
@@ -58,12 +55,6 @@ const (
 	flatDigestNidCol             = "network_id"
 	flatDigestDigestCol          = "digest"
 	flatDigestLastUpdatedTimeCol = "last_updated_at"
-
-	perSubDigestTableName = "subscriberdb_per_sub_digests"
-
-	perSubDigestNidCol    = "network_id"
-	perSubDigestSidCol    = "susbcriber_id"
-	perSubDigestDigestCol = "digest"
 )
 
 func NewFlatDigestLookup(db *sql.DB, builder sqorc.StatementBuilder) DigestLookup {
@@ -182,18 +173,12 @@ func (l *flatDigestLookup) DeleteDigests(networks []string) error {
 	return err
 }
 
-func (l *flatDigestLookup) GetDigest(network string) (interface{}, error) {
+func GetDigest(l DigestLookup, network string) (DigestInfos, error) {
 	digestInfos, err := l.GetDigests([]string{network}, clock.Now().Unix())
 	if err != nil {
 		return nil, err
 	}
-	// There should be at most 1 digest for each network
-	// if digest not found, return default value
-	if len(digestInfos) == 0 {
-		return DigestInfo{}, nil
-	}
-	digestInfo := digestInfos[0]
-	return digestInfo, nil
+	return digestInfos, nil
 }
 
 // GetOutdatedNetworks returns all networks with digests last updated at a time

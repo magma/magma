@@ -16,6 +16,7 @@ package subscriberdb_cache
 import (
 	"time"
 
+	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/clock"
@@ -123,19 +124,42 @@ func getNetworksToUpdate(flatDigestStore storage.DigestLookup, updateIntervalSec
 	return toRenew, deleted, nil
 }
 
+// getPerSubDigestsToUpdate returns the per-subscriber digests to be updated or to be
+// deleted in store.
 func getPerSubDigestsToUpdate(network string, perSubDigestStore storage.DigestLookup) (map[string]string, []string, error) {
 	all, err := subscriberdb.GetPerSubDigests(network)
 	if err != nil {
 		return nil, nil, err
 	}
-	tracked, err := perSubDigestStore.GetDigest(network)
+	tracked, err := getSubscriberDigestByIDsInStore(network, perSubDigestStore)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	toRenew, deleted, err := subscriberdb.GetSubDigestsDiff(all, tracked.(map[string]string))
+	toRenew, deleted := subscriberdb.GetSubDigestsDiff(all, tracked)
 	if err != nil {
 		return nil, nil, err
 	}
 	return toRenew, deleted, nil
+}
+
+// getSubscriberDigestByIDsInStore gets the per-subscriber digests from store and converts them
+// into a list of SubscriberDigestByID objects.
+func getSubscriberDigestByIDsInStore(network string, perSubDigestStore storage.DigestLookup) ([]*lte_protos.SubscriberDigestByID, error) {
+	digestInfos, err := storage.GetDigest(perSubDigestStore, network)
+	if err != nil {
+		return nil, err
+	}
+	subscriberDigestByIDs := []*lte_protos.SubscriberDigestByID{}
+	for _, digestInfo := range digestInfos {
+		subscriberDigestByID := &lte_protos.SubscriberDigestByID{
+			Digest: &lte_protos.Digest{Md5Base64Digest: digestInfo.Digest},
+			Sid:    &lte_protos.SubscriberID{
+				Type: lte_protos.SubscriberID_IMSI,
+				Id: digestInfo.Subscriber,
+			},
+		}
+		subscriberDigestByIDs = append(subscriberDigestByIDs, subscriberDigestByID)
+	}
+	return subscriberDigestByIDs, nil
 }

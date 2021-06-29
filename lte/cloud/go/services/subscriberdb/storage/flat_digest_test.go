@@ -30,7 +30,7 @@ func TestFlatDigestLookup(t *testing.T) {
 	assert.NoError(t, s.Initialize())
 
 	t.Run("empty initially", func(t *testing.T) {
-		digest, err := s.GetDigest("n0")
+		digest, err := storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
 		checkFlatDigest(t, "", digest)
 
@@ -51,13 +51,13 @@ func TestFlatDigestLookup(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"n0", "n1", "n2"}, networkIDs)
 
-		digest, err := s.GetDigest("n0")
+		digest, err := storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
 		checkFlatDigest(t, "apple", digest)
-		digest, err = s.GetDigest("n1")
+		digest, err = storage.GetDigest(s, "n1")
 		assert.NoError(t, err)
 		checkFlatDigest(t, "lemon", digest)
-		digest, err = s.GetDigest("n2")
+		digest, err = storage.GetDigest(s, "n2")
 		assert.NoError(t, err)
 		checkFlatDigest(t, "peach", digest)
 	})
@@ -65,13 +65,13 @@ func TestFlatDigestLookup(t *testing.T) {
 	t.Run("upsert", func(t *testing.T) {
 		err = s.SetDigest("n0", storage.FlatDigestUpsertArgs{Digest: "banana"})
 		assert.NoError(t, err)
-		digest, err := s.GetDigest("n0")
+		digest, err := storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
 		checkFlatDigest(t, "banana", digest)
 
 		err = s.SetDigest("n0", storage.FlatDigestUpsertArgs{Digest: "watermelon"})
 		assert.NoError(t, err)
-		digest, err = s.GetDigest("n0")
+		digest, err = storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
 		checkFlatDigest(t, "watermelon", digest)
 	})
@@ -94,17 +94,20 @@ func TestFlatDigestLookup(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"n0"}, networks)
 
-		digest, err := s.GetDigest("n1")
+		digest, err := storage.GetDigest(s, "n1")
 		assert.NoError(t, err)
 		checkFlatDigest(t, "", digest)
-		digest, err = s.GetDigest("n0")
+		digest, err = storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
 		checkFlatDigest(t, "watermelon", digest)
 	})
 }
 
-func checkFlatDigest(t *testing.T, expected string, digest interface{}) {
-	digestInfo, ok := digest.(storage.DigestInfo)
-	assert.True(t, ok)
-	assert.Equal(t, expected, digestInfo.Digest)
+func checkFlatDigest(t *testing.T, expected string, digest storage.DigestInfos) {
+	if len(digest) == 0 {
+		assert.Equal(t, expected, "")
+	} else {
+		assert.Equal(t, 1, len(digest))
+		assert.Equal(t, expected, digest[0].Digest)
+	}
 }

@@ -29,9 +29,9 @@ func TestPerSubDigestLookup(t *testing.T) {
 	assert.NoError(t, s.Initialize())
 
 	t.Run("empty initially", func(t *testing.T) {
-		digest, err := s.GetDigest("n0")
+		digest, err := storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
-		checkPerSubDigests(t, map[string]string{}, digest)
+		checkPerSubDigests(t, storage.DigestInfos{}, digest)
 
 		networkIDs, err := storage.GetAllNetworks(s)
 		assert.NoError(t, err)
@@ -63,26 +63,26 @@ func TestPerSubDigestLookup(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"n0", "n1", "n2"}, networkIDs)
 
-		digest, err := s.GetDigest("n0")
+		digest, err := storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
-		expected := map[string]string{
-			"IMSI0001": "apple",
-			"IMSI0002": "lemon",
-			"IMSI0003": "peach",
+		expected := storage.DigestInfos{
+			{Subscriber: "IMSI0001", Digest: "apple"},
+			{Subscriber: "IMSI0002", Digest: "lemon"},
+			{Subscriber: "IMSI0003", Digest: "peach"},
 		}
 		checkPerSubDigests(t, expected, digest)
 
-		digest, err = s.GetDigest("n1")
+		digest, err = storage.GetDigest(s, "n1")
 		assert.NoError(t, err)
-		expected = map[string]string{
-			"IMSI1111": "banana",
-			"IMSI1112": "durian",
+		expected = storage.DigestInfos{
+			{Subscriber: "IMSI1111", Digest: "banana"},
+			{Subscriber: "IMSI1112", Digest: "durian"},
 		}
 		checkPerSubDigests(t, expected, digest)
 
-		digest, err = s.GetDigest("n2")
+		digest, err = storage.GetDigest(s, "n2")
 		assert.NoError(t, err)
-		expected = map[string]string{"IMSI2221": "cherry"}
+		expected = storage.DigestInfos{{Subscriber: "IMSI2221", Digest: "cherry"}}
 		checkPerSubDigests(t, expected, digest)
 	})
 
@@ -92,12 +92,12 @@ func TestPerSubDigestLookup(t *testing.T) {
 			Deleted: []string{"IMSI0002"},
 		})
 		assert.NoError(t, err)
-		digest, err := s.GetDigest("n0")
+		digest, err := storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
-		expected := map[string]string{
-			"IMSI0001": "orange",
-			"IMSI0003": "peach",
-			"IMSI0004": "papaya",
+		expected := storage.DigestInfos{
+			{Subscriber: "IMSI0001", Digest: "orange"},
+			{Subscriber: "IMSI0003", Digest: "peach"},
+			{Subscriber: "IMSI0004", Digest: "papaya"},
 		}
 		checkPerSubDigests(t, expected, digest)
 
@@ -106,11 +106,11 @@ func TestPerSubDigestLookup(t *testing.T) {
 			Deleted: []string{"IMSI1111", "IMSI1112"},
 		})
 		assert.NoError(t, err)
-		digest, err = s.GetDigest("n1")
+		digest, err = storage.GetDigest(s, "n1")
 		assert.NoError(t, err)
-		expected = map[string]string{
-			"IMSI1113": "starfruit",
-			"IMSI1114": "cactus",
+		expected = storage.DigestInfos{
+			{Subscriber: "IMSI1113", Digest: "starfruit"},
+			{Subscriber: "IMSI1114", Digest: "cactus"},
 		}
 		checkPerSubDigests(t, expected, digest)
 	})
@@ -123,25 +123,24 @@ func TestPerSubDigestLookup(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"n0"}, networks)
 
-		digest, err := s.GetDigest("n1")
+		digest, err := storage.GetDigest(s, "n1")
 		assert.NoError(t, err)
-		checkPerSubDigests(t, map[string]string{}, digest)
-		digest, err = s.GetDigest("n0")
+		checkPerSubDigests(t, storage.DigestInfos{}, digest)
+		digest, err = storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
-		expected := map[string]string{
-			"IMSI0001": "orange",
-			"IMSI0003": "peach",
-			"IMSI0004": "papaya",
+		expected := storage.DigestInfos{
+			{Subscriber: "IMSI0001", Digest: "orange"},
+			{Subscriber: "IMSI0003", Digest: "peach"},
+			{Subscriber: "IMSI0004", Digest: "papaya"},
 		}
 		checkPerSubDigests(t, expected, digest)
 	})
 }
 
-func checkPerSubDigests(t *testing.T, expected map[string]string, digest interface{}) {
-	digestsBySubscriber, ok := digest.(map[string]string)
-	assert.True(t, ok)
-	assert.Equal(t, len(expected), len(digestsBySubscriber))
-	for k := range expected {
-		assert.Equal(t, expected[k], digestsBySubscriber[k])
+func checkPerSubDigests(t *testing.T, expected storage.DigestInfos, got storage.DigestInfos) {
+	assert.Equal(t, len(expected), len(got))
+	for ind := range expected {
+		assert.Equal(t, expected[ind].Digest, got[ind].Digest)
+		assert.Equal(t, expected[ind].Subscriber, got[ind].Subscriber)
 	}
 }

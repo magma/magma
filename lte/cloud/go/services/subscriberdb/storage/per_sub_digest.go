@@ -16,7 +16,6 @@ package storage
 import (
 	"database/sql"
 
-	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/Masterminds/squirrel"
@@ -27,6 +26,14 @@ type perSubDigestLookup struct {
 	db      *sql.DB
 	builder sqorc.StatementBuilder
 }
+
+const (
+	perSubDigestTableName = "subscriberdb_per_sub_digests"
+
+	perSubDigestNidCol    = "network_id"
+	perSubDigestSidCol    = "susbcriber_id"
+	perSubDigestDigestCol = "digest"
+)
 
 func NewPerSubDigestLookup(db *sql.DB, builder sqorc.StatementBuilder) DigestLookup {
 	return &perSubDigestLookup{db: db, builder: builder}
@@ -48,18 +55,7 @@ func (l *perSubDigestLookup) Initialize() error {
 	return err
 }
 
-func (l *perSubDigestLookup) GetDigest(network string) (interface{}, error) {
-	digestInfos, err := l.GetDigests([]string{network}, clock.Now().Unix())
-	if err != nil {
-		return nil, err
-	}
-	digestsBySubscriber := map[string]string{}
-	for _, digestInfo := range digestInfos {
-		digestsBySubscriber[digestInfo.Subscriber] = digestInfo.Digest
-	}
-	return digestsBySubscriber, nil
-}
-
+// GetDigests for PerSubDigestLookup returns a list of digests ordered by their network ID and subscriber ID.
 func (l *perSubDigestLookup) GetDigests(networks []string, lastUpdatedBefore int64) (DigestInfos, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		filters := squirrel.And{}
@@ -70,12 +66,13 @@ func (l *perSubDigestLookup) GetDigests(networks []string, lastUpdatedBefore int
 			Select(perSubDigestNidCol, perSubDigestSidCol, perSubDigestDigestCol).
 			From(perSubDigestTableName).
 			Where(filters).
+			OrderBy(perSubDigestNidCol, perSubDigestSidCol).
 			RunWith(tx).
 			Query()
 		if err != nil {
 			return nil, errors.Wrapf(err, "gets per sub digest for networks %+v", networks)
 		}
-		defer sqorc.CloseRowsLogOnError(rows, "GetDigest")
+		defer sqorc.CloseRowsLogOnError(rows, "GetDigests")
 
 		digestInfos := DigestInfos{}
 		for rows.Next() {

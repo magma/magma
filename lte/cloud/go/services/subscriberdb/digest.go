@@ -15,6 +15,7 @@ package subscriberdb
 
 import (
 	"magma/lte/cloud/go/lte"
+	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/protos"
@@ -24,7 +25,6 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/thoas/go-funk"
 )
 
 const defaultSubProfile = "default"
@@ -53,16 +53,19 @@ func GetFlatDigest(network string) (string, error) {
 	return digest, nil
 }
 
-func GetPerSubDigests(network string) (map[string]string, error) {
+// GetPerSubDigests generates a set of individual subscriber digests ordered by their IDs.
+func GetPerSubDigests(network string) ([]*lte_protos.SubscriberDigestByID, error) {
 	apnsByName, err := LoadApnsByName(network)
 	if err != nil {
 		return nil, err
 	}
 
-	perSubDigests := map[string]string{}
+	perSubDigests := []*lte_protos.SubscriberDigestByID{}
 	token := ""
 	foundEmptyToken := false
 	for !foundEmptyToken {
+		// the resultant subProtos lists are already ordered by subscriber id due to the nature
+		// of LoadSubProtosPage
 		subProtos, nextToken, err := LoadSubProtosPage(0, token, network, apnsByName, lte_models.ApnResources{})
 		if err != nil {
 			return nil, err
@@ -74,35 +77,69 @@ func GetPerSubDigests(network string) (map[string]string, error) {
 				glog.Errorf("Failed to generate digest for subscriber %+v of network %+v: %+v", subProto.Sid.Id, network, err)
 				digest = ""
 			}
-			perSubDigests[subProto.Sid.Id] = digest
+			perSubDigest := &lte_protos.SubscriberDigestByID{
+				Digest: &lte_protos.Digest{Md5Base64Digest: digest},
+				Sid:    subProto.Sid,
+			}
+			perSubDigests = append(perSubDigests, perSubDigest)
 		}
 		foundEmptyToken = nextToken == ""
 		token = nextToken
 	}
 
+	// The digest for apn resources is ordered last because its index begins with an underscore
 	apnDigest, err := getApnResourcesDigest(network)
 	if err != nil {
 		glog.Errorf("Failed to generate digest for apn resources of network %+v: %+v", network, err)
-		perSubDigests["apn"] = ""
-	} else {
-		perSubDigests["apn"] = apnDigest
+		apnDigest = ""
 	}
+	perSubDigests = append(perSubDigests, &lte_protos.SubscriberDigestByID{
+		Digest: &lte_protos.Digest{Md5Base64Digest: apnDigest},
+		Sid:    &lte_protos.SubscriberID{
+			Id: "_apn_resources",
+			Type: lte_protos.SubscriberID_IMSI,
+		},
+	})
 
 	return perSubDigests, nil
 }
 
-func GetSubDigestsDiff(all map[string]string, tracked map[string]string) (map[string]string, []string, error) {
-	allSubs, trackedSubs := funk.Keys(all).([]string), funk.Keys(tracked).([]string)
-	deleted, _ := funk.DifferenceString(trackedSubs, allSubs)
-
+// GetSubDigestsDiff computes the changeset between two lists of per-subscriber digests,
+// ordered by their subscriber IDs (unique within a network). It returns
+// 1. A set of subscribers that have been added/modified, with the new digests.
+// 2. A list of subscribers that have been removed.
+func GetSubDigestsDiff(
+	all []*lte_protos.SubscriberDigestByID,
+	tracked []*lte_protos.SubscriberDigestByID,
+) (map[string]string, []string) {
+	n, m, i, j := len(all), len(tracked), 0, 0
 	toRenew := map[string]string{}
-	for sub, digest := range all {
-		trackedDigest, ok := tracked[sub]
-		if !ok || (ok && trackedDigest != digest) {
-			toRenew[sub] = digest
+	deleted := []string{}
+
+	for i < n && j < m {
+		if all[i].Sid.Id == tracked[j].Sid.Id {
+			if all[i].Digest.Md5Base64Digest != tracked[j].Digest.Md5Base64Digest {
+				toRenew[all[i].Sid.Id] = all[i].Digest.Md5Base64Digest
+			}
+			i++
+			j++
+		} else if all[i].Sid.Id > tracked[j].Sid.Id {
+			deleted = append(deleted, tracked[j].Sid.Id)
+			j++
+		} else {
+			toRenew[all[i].Sid.Id] = all[i].Digest.Md5Base64Digest
+			i++
 		}
 	}
-	return toRenew, deleted, nil
+
+	for ; i < n; i++ {
+		toRenew[all[i].Sid.Id] = all[i].Digest.Md5Base64Digest
+	}
+	for ; j < m; j++ {
+		deleted = append(deleted, tracked[j].Sid.Id)
+	}
+
+	return toRenew, deleted
 }
 
 // getSubscribersDigest returns a deterministic digest of all subscribers in the network.
