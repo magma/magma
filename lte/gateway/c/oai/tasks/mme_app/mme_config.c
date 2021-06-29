@@ -245,7 +245,6 @@ void mme_config_init(mme_config_t* config) {
   config->max_ues                        = 2;
   config->unauthenticated_imsi_supported = 0;
   config->relative_capacity              = RELATIVE_CAPACITY;
-  config->mme_statistic_timer            = MME_STATISTIC_TIMER_S;
 
   log_config_init(&config->log_config);
   eps_network_feature_config_init(&config->eps_network_feature_support);
@@ -504,11 +503,6 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     if ((config_setting_lookup_int(
             setting_mme, MME_CONFIG_STRING_RELATIVE_CAPACITY, &aint))) {
       config_pP->relative_capacity = (uint8_t) aint;
-    }
-
-    if ((config_setting_lookup_int(
-            setting_mme, MME_CONFIG_STRING_STATISTIC_TIMER, &aint))) {
-      config_pP->mme_statistic_timer = (uint32_t) aint;
     }
 
     if ((config_setting_lookup_string(
@@ -1562,8 +1556,38 @@ void mme_config_display(mme_config_t* config_pP) {
       LOG_CONFIG, "- Relative capa ........................: %u\n",
       config_pP->relative_capacity);
   OAILOG_INFO(
+<<<<<<< HEAD:lte/gateway/c/oai/tasks/mme_app/mme_config.c
       LOG_CONFIG, "- Statistics timer .....................: %u (seconds)\n\n",
       config_pP->mme_statistic_timer);
+=======
+      LOG_CONFIG, "- Congestion control enabled ........................: %s\n",
+      config_pP->enable_congestion_control ? "true" : "false");
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "- S1AP ZMQ Threshold ...........................: %10ld "
+      "(microseconds)\n",
+      config_pP->s1ap_zmq_th);
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "- MME APP ZMQ Congestion Threshold .............: %10ld "
+      "(microseconds)\n",
+      config_pP->mme_app_zmq_congest_th);
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "- MME APP ZMQ Auth Complete Threshold...........: %10ld "
+      "(microseconds)\n",
+      config_pP->mme_app_zmq_auth_th);
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "- MME APP ZMQ Identity Complete Threshold.......: %10ld "
+      "(microseconds)\n",
+      config_pP->mme_app_zmq_ident_th);
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "- MME APP ZMQ SMC Complete Threshold ...........: %10ld "
+      "(microseconds)\n\n",
+      config_pP->mme_app_zmq_smc_th);
+>>>>>>> ebce0821e (Remove stats display from mme thread):lte/gateway/c/core/oai/tasks/mme_app/mme_config.c
   OAILOG_INFO(
       LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
       config_pP->use_stateless ? "true" : "false");
