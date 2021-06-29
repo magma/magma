@@ -247,10 +247,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           %lu, but it has already been deleted\n",
             received_message_p->ittiMsg.timer_has_expired.timer_id);
         break;
-      }
-      if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-          mme_app_desc_p->statistic_timer_id) {
-        mme_app_statistics_display();
       } else if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
         mme_app_nas_timer_handle_signal_expiry(
             TIMER_HAS_EXPIRED(received_message_p).timer_id,
