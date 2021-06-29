@@ -326,6 +326,8 @@ int main(int argc, char* argv[]) {
   // every fixed interval of time
   auto periodic_stats_requester = std::make_shared<magma::StatsPoller>();
   std::thread periodic_stats_requester_thread([&]() {
+    //random value assigned for interval period, the value will be loaded
+    //from a config field later
     periodic_stats_requester->start_loop(local_enforcer, 5);
     periodic_stats_requester->stop();
   });
