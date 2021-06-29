@@ -1707,6 +1707,7 @@ bool SessionState::receive_charging_credit(
     // new credit
     return init_charging_credit(update, session_uc);
   }
+
   auto& grant                            = it->second;
   SessionCreditUpdateCriteria* credit_uc = get_credit_uc(key, session_uc);
   auto credit_validity = ChargingGrant::is_valid_credit_response(update);
