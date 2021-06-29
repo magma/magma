@@ -15,7 +15,6 @@
 
 #if SENTRY_ENABLED
 #include <experimental/optional>
-#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
 
 #include <cstdlib>
 #include <fstream>

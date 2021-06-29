@@ -19,7 +19,6 @@
 #include <glog/logging.h>             // for COMPACT_GOOGLE_LOG_INFO, LogMes...
 #include <stddef.h>                   // for size_t
 #include <stdint.h>                   // for uint32_t
-#include <yaml-cpp/yaml.h>            // IWYU pragma: keep
 #include <algorithm>                  // for max
 #include <cpp_redis/core/client.hpp>  // for client, client::connect_state
 #include <cpp_redis/core/reply.hpp>   // for reply
