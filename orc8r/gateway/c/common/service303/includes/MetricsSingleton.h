@@ -88,6 +88,7 @@ class MetricsSingleton {
       const char* name, double value, size_t label_count, va_list& args);
   void ObserveHistogram(
       const char* name, double observation, size_t label_count, va_list& args);
+  double GetGauge(const char* name, size_t label_count, va_list& args);
 
  private:
   MetricsSingleton();                         // Prevent construction
