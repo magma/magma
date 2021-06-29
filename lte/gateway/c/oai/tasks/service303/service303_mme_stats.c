@@ -63,10 +63,3 @@ void service303_statistics_display(void) {
       "======================================= STATISTICS "
       "============================================\n\n");
 }
-
-void service303_s1ap_statistics_read(
-    application_s1ap_stats_msg_t* stats_msg_p) {
-  size_t label = 0;
-  set_gauge("enb_connected", stats_msg_p->nb_enb_connected, label);
-  return;
-}

@@ -42,11 +42,11 @@ int send_mme_app_stats_to_service303(
       itti_alloc_new_message(origin_id, APPLICATION_MME_APP_STATS_MSG);
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Unable to allocate memory");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, -1);
   }
   message_p->ittiMsg.application_mme_app_stats_msg.nb_ue_attached =
       stats_msg->nb_ue_attached;
-  message_p->ittiMsg.application_mme_app_stats_msg.nb_ue_connected ==
+  message_p->ittiMsg.application_mme_app_stats_msg.nb_ue_connected =
       stats_msg->nb_ue_connected;
   return send_msg_to_task(task_zmq_ctx_p, TASK_SERVICE303, message_p);
 }
@@ -58,7 +58,7 @@ int send_s1ap_stats_to_service303(
       itti_alloc_new_message(origin_id, APPLICATION_S1AP_STATS_MSG);
   if (message_p == NULL) {
     OAILOG_ERROR(LOG_MME_APP, "Unable to allocate memory");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, -1);
   }
   message_p->ittiMsg.application_s1ap_stats_msg.nb_enb_connected =
       stats_msg->nb_enb_connected;

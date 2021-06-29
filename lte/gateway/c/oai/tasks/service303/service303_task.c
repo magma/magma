@@ -21,13 +21,11 @@
 
 #include "log.h"
 #include "intertask_interface.h"
-#include "timer.h"
 #include "common_defs.h"
 #include "service303.h"
 #include "bstrlib.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-#include "timer_messages_types.h"
 #include "itti_free_defined_msg.h"
 
 static void service303_server_exit(void);
@@ -70,7 +68,6 @@ static void* service303_server_thread(__attribute__((unused)) void* args) {
   init_task_context(
       TASK_SERVICE303_SERVER, (task_id_t[]){}, 0,
       handle_service303_server_message, &service303_server_task_zmq_ctx);
-
   zloop_start(service303_server_task_zmq_ctx.event_loop);
   service303_server_exit();
   return NULL;
@@ -80,22 +77,6 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
 
   switch (ITTI_MSG_ID(received_message_p)) {
-    case TIMER_HAS_EXPIRED: {
-      /*
-       * Check statistic timer
-       */
-      if (!timer_exists(
-              received_message_p->ittiMsg.timer_has_expired.timer_id)) {
-        break;
-      }
-      if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-          service303_epc_stats_timer_id) {
-        service303_statistics_read();
-      }
-      timer_handle_expired(
-          received_message_p->ittiMsg.timer_has_expired.timer_id);
-      break;
-    }
     case APPLICATION_HEALTHY_MSG: {
       service303_set_application_health(APP_HEALTHY);
     } break;
@@ -109,7 +90,7 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
     case APPLICATION_S1AP_STATS_MSG: {
       service303_s1ap_statistics_read(
           &received_message_p->ittiMsg.application_s1ap_stats_msg);
-    }
+    } break;
     case TERMINATE_MESSAGE:
       free(received_message_p);
       service303_message_exit();
@@ -126,9 +107,6 @@ static int handle_service_message(zloop_t* loop, zsock_t* reader, void* arg) {
 }
 
 static void* service303_thread(void* args) {
-  bstring pkg_name                   = bfromcstr(SERVICE303_MME_PACKAGE_NAME);
-  service303_data_t* service303_data = (service303_data_t*) args;
-
   itti_mark_task_ready(TASK_SERVICE303);
   init_task_context(
       TASK_SERVICE303, (task_id_t[]){}, 0, handle_service_message,

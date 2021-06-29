@@ -62,10 +62,12 @@
 static void check_mme_healthy_and_notify_service(void);
 static bool is_mme_app_healthy(void);
 static void mme_app_exit(void);
+static void start_stats_timer(void);
 
 bool mme_hss_associated = false;
 bool mme_sctp_bounded   = false;
 task_zmq_ctx_t mme_app_task_zmq_ctx;
+static long epc_stats_timer_id;
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   MessageDef* received_message_p = receive_msg(reader);
@@ -539,6 +541,7 @@ static bool is_mme_app_healthy(void) {
 
 //------------------------------------------------------------------------------
 static void mme_app_exit(void) {
+  stop_timer(&mme_app_task_zmq_ctx, epc_stats_timer_id);
   mme_app_edns_exit();
   clear_mme_nas_state();
   // Clean-up NAS module

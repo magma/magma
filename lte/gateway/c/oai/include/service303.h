@@ -17,6 +17,8 @@
 
 #pragma once
 
+#include "service303_messages_types.h"
+
 #include "bstrlib.h"
 #define SERVICE303_MME_PACKAGE_NAME "mme"
 #define SERVICE303_MME_PACKAGE_VERSION "1.0"
