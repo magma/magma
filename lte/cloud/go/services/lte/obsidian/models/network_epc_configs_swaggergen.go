@@ -23,6 +23,9 @@ type NetworkEpcConfigs struct {
 	// cloud subscriberdb enabled
 	CloudSubscriberdbEnabled bool `json:"cloud_subscriberdb_enabled,omitempty"`
 
+	// Network configuration flag for congestion control on EPC
+	CongestionControlEnabled *bool `json:"congestion_control_enabled,omitempty"`
+
 	// default rule id
 	DefaultRuleID string `json:"default_rule_id,omitempty"`
 
