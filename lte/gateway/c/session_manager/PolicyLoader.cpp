@@ -10,7 +10,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#include "includes/PolicyLoader.h"
+#include "PolicyLoader.h"
 #include <glog/logging.h>             // for COMPACT_GOOGLE_LOG_INFO, LogMes
 #include <yaml-cpp/yaml.h>            // IWYU pragma: keep
 #include <chrono>                     // for seconds
@@ -22,8 +22,8 @@
 #include <string>                     // for string, char_traits, operator<<
 #include <thread>                     // for sleep_for
 #include "ObjectMap.h"                // for SUCCESS
-#include "includes/RedisMap.hpp"      // for RedisMap
-#include "includes/Serializers.h"     // for get_proto_deserializer, get_pro
+#include "RedisMap.hpp"               // for RedisMap
+#include "Serializers.h"              // for get_proto_deserializer, get_pro
 #include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
 #include "lte/protos/policydb.pb.h"        // for PolicyRule
 #include "magma_logging.h"                 // for MLOG, MERROR, MDEBUG, MINFO
