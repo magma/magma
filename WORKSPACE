@@ -123,3 +123,16 @@ rules_proto_grpc_cpp_repos()
 load("@com_github_grpc_grpc//bazel:grpc_deps.bzl", "grpc_deps")
 
 grpc_deps()
+
+http_archive(
+    name = "tacopie",
+    sha256 = "bbdebecdb68d5f9eb64170217000daf844e0aee18b8c4d3dd373d07efd9f7316",
+    strip_prefix = "tacopie-master",
+    url = "https://github.com/cylix/tacopie/archive/master.zip",
+)
+
+git_repository(
+    name = "cpp_redis",
+    commit = "99b1dda835f529b2ab4bc431a4bd99d344dbd4e9",
+    remote = "https://github.com/cpp-redis/cpp_redis.git",
+)
