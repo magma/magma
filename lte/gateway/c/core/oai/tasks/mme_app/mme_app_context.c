@@ -1669,7 +1669,7 @@ void mme_app_handle_s1ap_ue_context_modification_fail(
     OAILOG_ERROR(
         LOG_MME_APP,
         " UE CONTEXT MODIFICATION FAILURE RECEIVED, Failed to find UE context"
-        "for mme_ue_s1ap_id 0x%06" PRIX32 " \n",
+        "for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
         s1ap_ue_context_mod_fail->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -1705,7 +1705,7 @@ void mme_app_handle_s1ap_ue_context_modification_resp(
     OAILOG_ERROR(
         LOG_MME_APP,
         " UE CONTEXT MODIFICATION RESPONSE RECEIVED, Failed to find UE context"
-        "for mme_ue_s1ap_id 0x%06" PRIX32 " \n",
+        "for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " \n",
         s1ap_ue_context_mod_resp->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
