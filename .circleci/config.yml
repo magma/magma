@@ -1123,8 +1123,9 @@ jobs:
       SWAGGER_CODEGEN_JAR: /home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
+      - run: pyenv install 3.8.5
       - python/set_version:
-          python_version: "3.9.4"
+          python_version: "3.8.5"
       - build/determinator:
           <<: *lte_build_verify
       - run: mkdir -p /var/tmp/test_results
