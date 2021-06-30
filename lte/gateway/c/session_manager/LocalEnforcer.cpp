@@ -147,6 +147,15 @@ void LocalEnforcer::setup(
   }
 }
 
+void LocalEnforcer::poll_stats_enforcer() {
+  pipelined_client_->poll_stats(0, 0, [](Status status, RuleRecordTable resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not successfully poll stats: "
+                   << status.error_message();
+    }
+  });
+}
+
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
   auto session_map    = session_store_.read_all_sessions();
   auto session_update = SessionStore::get_default_session_update(session_map);
