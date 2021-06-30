@@ -1124,6 +1124,7 @@ jobs:
     steps:
       - checkout
       - python/set_version
+          python_version: "3.9.4"
       - build/determinator:
           <<: *lte_build_verify
       - run: mkdir -p /var/tmp/test_results
