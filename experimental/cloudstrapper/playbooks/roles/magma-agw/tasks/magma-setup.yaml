@@ -26,15 +26,6 @@
     dest: "{{ usrHome }}/magma"
     version: "{{ buildAgwVersion }}"
 
-
-- name: copy vars file
-  copy:
-    src: roles/magma-agw/files/ansible-env.yaml
-    dest: "{{ usrHome }}/ansible-env.yaml"
-    owner: ubuntu
-    group: ubuntu
-    mode: '0644'
-
 - name: copy inventory file
   copy:
     src: roles/magma-agw/files/inventory

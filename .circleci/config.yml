@@ -1470,17 +1470,18 @@ jobs:
       - run:
           name: Propagate AWS credentials to ansible and create version
           command: |
+            GIT_TAG="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)"
             if [ "<<parameters.aws_account>>" = "FB" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)$CIRCLE_BUILD_NUM" >> $BASH_ENV
+              echo export VERSION="$GIT_TAG$CIRCLE_BUILD_NUM" >> $BASH_ENV
             elif  [ "<<parameters.aws_account>>" = "LF" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)" >> $BASH_ENV
+              echo export VERSION="$GIT_TAG" >> $BASH_ENV
             fi
-            echo export GIT_TAG="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)" >> $BASH_ENV
-            echo export PACKAGE_VERSION="$(GIT_TAG:1)" >> $BASH_ENV
+            echo export GIT_TAG="$GIT_TAG" >> $BASH_ENV
+            echo export PACKAGE_VERSION="${GIT_TAG:1}" >> $BASH_ENV
       - run:
           name: Propagate AWS region information
           command: |
