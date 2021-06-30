@@ -153,6 +153,7 @@
         "label": "Orchestrator",
         "ids": [
           "orc8r/upgrade_intro",
+          "orc8r/upgrade_1_6",
           "orc8r/upgrade_1_5",
           "orc8r/upgrade_1_4",
           "orc8r/upgrade_1_3",

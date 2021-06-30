@@ -129,26 +129,17 @@ override the following parameters
 - `nms_db_password` must be at least 8 characters
 - `orc8r_db_password` must be at least 8 characters
 - `orc8r_domain_name` your registered domain name
-- `docker_registry` registry containing desired Orchestrator containers
-- `docker_user`
-- `docker_pass`
-- `helm_repo` repo containing desired Helm charts
-- `helm_user`
-- `helm_pass`
-- `seed_certs_dir`: local certs directory (e.g. `"~/secrets/certs"`)
-- `orc8r_tag`: tag used when you published your Orchestrator containers
-- `orc8r_deployment_type`: type of orc8r deployment (`fwa`, `federated_fwa`, `all`)
-
-If you don't know what values to put for the `docker_*` and `helm_*` variables,
-go through the [building Orchestrator](./deploy_build.md) section first.
+- `seed_certs_dir` local certs directory (e.g. `"~/secrets/certs"`)
+- `orc8r_tag` tag used when you published your Orchestrator containers
+- `orc8r_deployment_type` type of orc8r deployment (`fwa`, `federated_fwa`, `all`)
+- `orc8r_db_engine_version` on fresh Orc8r installs, target Postgres `12.6`
 
 Make sure that the `source` variables for the module definitions point to
-`github.com/magma/magma//orc8r/cloud/deploy/terraform/<module>?ref=v1.5`.
-Adjust any other parameters as you see fit - check the READMEs for the
+`github.com/magma/magma//orc8r/cloud/deploy/terraform/MODULE?ref=v1.6`.
+Adjust any other parameters as you see fit. Check the READMEs for the
 relevant Terraform modules to see additional variables that can be set.
-
-Additionally, you can [override values](./override_values_of_terraform_files.md)
-that are part of the terraform files that are used in the github repository.
+You can [override values](./override_values_of_terraform_files.md)
+that are part of the Terraform files that are used in the GitHub repository.
 
 Finally, initialize Terraform
 
@@ -164,7 +155,7 @@ Initializing provider plugins...
 Terraform has been successfully initialized!
 ```
 
-By default, terraform state file will be stored locally. However, you can [hold the state file remotely](./hold_terraform_state_on_s3.md) using an AWS S3 bucket.
+By default, Terraform state file will be stored locally. However, you can [hold the state file remotely](./hold_terraform_state_on_s3.md) using an AWS S3 bucket.
 
 ### Terraform Infrastructure
 
