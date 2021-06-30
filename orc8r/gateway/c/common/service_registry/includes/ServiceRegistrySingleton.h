@@ -12,10 +12,15 @@
  */
 #pragma once
 
-#include <yaml-cpp/yaml.h>                 // IWYU pragma: keep
-#include <memory>                          // for shared_ptr, unique_ptr
-#include <string>                          // for string
+#include <yaml-cpp/yaml.h>  // IWYU pragma: keep
+#include <memory>           // for shared_ptr, unique_ptr
+#include <string>           // for string
+
+#if BAZEL
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"  // for MLOG
+#else
 #include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
+#endif
 namespace grpc {
 class Channel;
 }

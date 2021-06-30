@@ -95,3 +95,29 @@ http_archive(
     strip_prefix = "googletest-609281088cfefc76f9d0ce82e1ff6c30cc3591e5",
     urls = ["https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip"],
 )
+
+### BOOST DEPENDENCY USED IN orc8r/gateway/c/common/config
+load("@bazel_tools//tools/build_defs/repo:git.bzl", "git_repository")
+
+git_repository(
+    name = "com_github_nelhage_rules_boost",
+    commit = "1e3a69bf2d5cd10c34b74f066054cd335d033d71",
+    remote = "https://github.com/nelhage/rules_boost",
+    shallow_since = "1591047380 -0700",
+)
+
+load("@com_github_nelhage_rules_boost//:boost/boost.bzl", "boost_deps")
+
+boost_deps()
+### BOOST DEPENDENCY USED IN orc8r/gateway/c/common/config
+
+### DEPENDENCY FOR https://github.com/nlohmann/json/tree/v3.9.1 / used in common
+http_archive(
+    name = "github_nlohmann_json",
+    build_file = "//bazel:nlohmann_json.BUILD",
+    sha256 = "69cc88207ce91347ea530b227ff0776db82dcb8de6704e1a3d74f4841bc651cf",
+    urls = [
+        "https://github.com/nlohmann/json/releases/download/v3.6.1/include.zip",
+    ],
+)
+### DEPENDENCY FOR https://github.com/nlohmann/json/tree/v3.9.1 / used in common

@@ -15,7 +15,9 @@ cc_library(
     copts = ["-DBAZEL=1"],
     deps = [
         "//orc8r/gateway/c/common/logging:magma_logging",
-        "@yaml-cpp//:yaml-cpp",
+        "@boost//:iterator",
         "@com_google_protobuf//:protobuf",
+        "@github_nlohmann_json//:json",
+        "@yaml-cpp//:yaml-cpp",
     ],
 )
