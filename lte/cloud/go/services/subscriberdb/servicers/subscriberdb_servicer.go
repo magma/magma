@@ -118,10 +118,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 
 // getDigestInfo returns the correctly formatted Digest and NoUpdates values
 // according to the client digest.
-func (s *subscriberdbServicer) getDigestInfo(
-	clientDigest *lte_protos.Digest,
-	networkID string,
-) (*lte_protos.Digest, bool) {
+func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, networkID string) (*lte_protos.Digest, bool) {
 	// The flat digest functionality is currently placed behind a feature flag
 	if !s.flatDigestEnabled {
 		return &lte_protos.Digest{Md5Base64Digest: ""}, false
