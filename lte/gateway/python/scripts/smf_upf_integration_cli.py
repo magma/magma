@@ -49,7 +49,7 @@ class CreateAmfSession(object):
             rat_specific_context=RatSpecificContext(
                 m5gsm_session_context=M5GSMSessionContext(
                     pdu_session_id=1,
-                    rquest_type=RequestType.Name(
+                    request_type=RequestType.Name(
                         0,
                     ),
                     gnode_endpoint=TeidSet(
@@ -82,7 +82,7 @@ class CreateAmfMultiSession(object):
                 rat_specific_context=RatSpecificContext(
                     m5gsm_session_context=M5GSMSessionContext(
                         pdu_session_id=2,
-                        rquest_type=RequestType.Name(
+                        request_type=RequestType.Name(
                             0,
                         ),
                         gnode_endpoint=TeidSet(
@@ -115,7 +115,7 @@ class ReleaseAmfSession(object):
                 rat_specific_context=RatSpecificContext(
                     m5gsm_session_context=M5GSMSessionContext(
                         pdu_session_id=1,
-                        rquest_type=RequestType.Name(
+                        request_type=RequestType.Name(
                             1,
                         ),
                         pdu_address=RedirectServer(
@@ -143,7 +143,7 @@ class CleanAmfSession(object):
                 rat_specific_context=RatSpecificContext(
                     m5gsm_session_context=M5GSMSessionContext(
                         pdu_session_id=1,
-                        rquest_type=RequestType.Name(
+                        request_type=RequestType.Name(
                             1,
                         ),
                         pdu_address=RedirectServer(
@@ -170,7 +170,7 @@ class CreateAmfSecondSubSession(object):
                 rat_specific_context=RatSpecificContext(
                     m5gsm_session_context=M5GSMSessionContext(
                         pdu_session_id=2,
-                        rquest_type=RequestType.Name(
+                        request_type=RequestType.Name(
                             0,
                         ),
                         gnode_endpoint=TeidSet(
@@ -202,7 +202,7 @@ class CreateAmfSecondSubSecondSession(object):
                 rat_specific_context=RatSpecificContext(
                     m5gsm_session_context=M5GSMSessionContext(
                         pdu_session_id=2,
-                        rquest_type=RequestType.Name(
+                        request_type=RequestType.Name(
                             0,
                         ),
                         gnode_endpoint=TeidSet(
@@ -234,7 +234,7 @@ class ReleaseAmfSecondSubSession(object):
                 rat_specific_context=RatSpecificContext(
                     m5gsm_session_context=M5GSMSessionContext(
                         pdu_session_id=2,
-                        rquest_type=RequestType.Name(
+                        request_type=RequestType.Name(
                             1,
                         ),
                         pdu_address=RedirectServer(
@@ -261,7 +261,7 @@ class ReleaseAmfSecondSubSecondSession(object):
                 rat_specific_context=RatSpecificContext(
                     m5gsm_session_context=M5GSMSessionContext(
                         pdu_session_id=2,
-                        rquest_type=RequestType.Name(
+                        request_type=RequestType.Name(
                             1,
                         ),
                         pdu_address=RedirectServer(
