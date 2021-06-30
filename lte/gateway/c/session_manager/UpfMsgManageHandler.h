@@ -54,10 +54,7 @@ class UpfMsgHandler {
       ServerContext* context, const UPFSessionConfigState* sess_config,
       std::function<void(Status, SmContextVoid)> response_callback) = 0;
 
-  /**
-   * Paging Notification handling
-   *
-   */
+  // Paging Notification handling
   virtual void SendPagingRequest(
       ServerContext* context, const UPFPagingInfo* paging_req,
       std::function<void(Status, SmContextVoid)> response_callback) = 0;
@@ -102,6 +99,10 @@ class UpfMsgManageHandler : public UpfMsgHandler {
   SessionStore& session_store_;
   std::shared_ptr<SessionStateEnforcer> conv_enforcer_;
   std::shared_ptr<MobilitydClient> mobilityd_client_;
+
+  void get_session_from_imsi(
+      const std::string& imsi, uint32_t te_id,
+      std::function<void(Status, SmContextVoid)> response_callback);
 };
 
 }  // namespace magma

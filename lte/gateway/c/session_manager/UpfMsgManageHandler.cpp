@@ -97,7 +97,7 @@ void UpfMsgManageHandler::SetUPFSessionsConfig(
       uint32_t teid        = upf_session.local_f_teid();
       auto session_map     = session_store_.read_sessions({imsi});
       /* Search with session search criteria of IMSI and session_id and
-       * find  respective sesion to operate
+       * find  respective session to operate
        */
       SessionSearchCriteria criteria(imsi, IMSI_AND_TEID, teid);
       auto session_it = session_store_.find_session(session_map, criteria);
@@ -151,45 +151,54 @@ void UpfMsgManageHandler::SendPagingRequest(
           MLOG(MERROR) << "Subscriber could not be found for ip ";
         }
         const std::string& imsi = sid.id();
-        conv_enforcer_->get_event_base().runInEventBaseThread(
-            [this, imsi, fte_id, response_callback]() {
-              if (!imsi.length()) {
-                MLOG(MERROR) << "Subscriber is NULL";
-                Status status(grpc::NOT_FOUND, "Sesion Not found");
-                response_callback(status, SmContextVoid());
-                return;
-              }
-
-              // retreive session_map entry
-              auto session_map = session_store_.read_sessions({imsi});
-              /* Search with session search criteria of IMSI and session_id and
-               * find  respective sesion to operate
-               */
-              SessionSearchCriteria criteria(imsi, IMSI_AND_TEID, fte_id);
-
-              auto session_it =
-                  session_store_.find_session(session_map, criteria);
-              if (!session_it) {
-                MLOG(MERROR) << "No session found in SessionMap for IMSI "
-                             << imsi << " with teid " << fte_id;
-                Status status(grpc::NOT_FOUND, "Sesion Not found");
-                response_callback(status, SmContextVoid());
-                return;
-              }
-
-              MLOG(MINFO) << "IDLE_MODE::: Session found in SendingPaging "
-                             "Request of imsi:"
-                          << imsi;
-              auto& session = **session_it;
-              // Generate Paging trigget to AMF.
-              conv_enforcer_->handle_state_update_to_amf(
-                  *session, magma::lte::M5GSMCause::OPERATION_SUCCESS,
-                  UE_PAGING_NOTIFY);
-              MLOG(MINFO) << "UPF Paging notificaiton forwarded to AMF of imsi:"
-                          << imsi;
-              response_callback(Status::OK, SmContextVoid());
-            });
+        get_session_from_imsi(imsi, fte_id, response_callback);
+        return;
       });
+}
+
+void UpfMsgManageHandler::get_session_from_imsi(
+    const std::string& imsi, uint32_t te_id,
+    std::function<void(Status, SmContextVoid)> response_callback) {
+  conv_enforcer_->get_event_base().runInEventBaseThread([this, imsi, te_id,
+                                                         response_callback]() {
+    if (!imsi.length()) {
+      MLOG(MERROR) << "get_subscriberid_from_ipv4 for IP"
+                      "returned an empty subscriber ID";
+      Status status(
+          grpc::NOT_FOUND,
+          "Session Not found because"
+          "subscriber ID not found for IP");
+      response_callback(status, SmContextVoid());
+      return;
+    }
+
+    // retreive session_map entry
+    auto session_map = session_store_.read_sessions({imsi});
+    /* Search with session search criteria of IMSI and session_id and
+     * find  respective session to operate
+     */
+    SessionSearchCriteria criteria(imsi, IMSI_AND_TEID, te_id);
+
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
+                   << " with teid " << te_id;
+      Status status(
+          grpc::NOT_FOUND, "Session was not found for IMSI with teid");
+      response_callback(status, SmContextVoid());
+      return;
+    }
+
+    auto& session = **session_it;
+    MLOG(MINFO) << "IDLE_MODE::: Session found in SendingPaging "
+                   "Request of imsi: "
+                << imsi << "  session_id: " << session->get_session_id();
+    // Generate Paging trigget to AMF.
+    conv_enforcer_->handle_state_update_to_amf(
+        *session, magma::lte::M5GSMCause::OPERATION_SUCCESS, UE_PAGING_NOTIFY);
+    MLOG(MINFO) << "UPF Paging notificaiton forwarded to AMF of imsi:" << imsi;
+    response_callback(Status::OK, SmContextVoid());
+  });
   return;
 }
 }  // end namespace magma
