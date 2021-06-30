@@ -119,10 +119,6 @@ variable "{{k}}" {}{% endfor %}
 
         # verify if components tfvars json is created
         mgr = configlib.ConfigManager(self.constants)
-
-        # check whether defaults are set
-        self.assertIn('lte_orc8r_chart_version', mgr.configs['service'])
-
         mgr.configure('infra')
         mgr.commit('infra')
 
@@ -188,6 +184,7 @@ variable "{{k}}" {}{% endfor %}
 
         fn = "%s/service.tfvars.json" % self.constants['config_dir']
         cfg = get_json(fn)
+
         # verify that default value was set
         self.assertEqual(len(cfg.keys()), 1)
         self.assertEqual(cfg['lte_orc8r_chart_version'], "0.2.4")
