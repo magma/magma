@@ -155,10 +155,10 @@
         "title": "Configure eNodeB"
       },
       "lte/deploy_install_ubuntu": {
-        "title": "Install AGW on Ubuntu 20.04"
+        "title": "Install AGW"
       },
       "lte/deploy_install": {
-        "title": "Install AGW"
+        "title": "Install AGW on Debian Stretch."
       },
       "lte/dev_notes": {
         "title": "Developer Notes"
