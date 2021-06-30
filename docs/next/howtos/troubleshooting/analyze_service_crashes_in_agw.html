@@ -81,10 +81,7 @@ service:</p>
 </ul>
 <p><strong>3. Verify if the restart was intentionally triggered</strong> by a user (AGW reboot)</p>
 <ul>
-<li><p>Use <code>last reboot</code> to list the last logged in users and system last reboot time and date.</p></li>
-<li><p>You can confirm the same information in <code>/var/log/syslog</code>, logs like kernel loading should indicate the AGW has been rebooted. Example of what the log could look like:</p>
-<pre><code class="hljs">magma kernel: [<span class="hljs-number">0.000000</span>] Linux version <span class="hljs-number">4.9</span><span class="hljs-number">.0</span><span class="hljs-number">-9</span>-amd64 (<span class="hljs-symbol">debiankernel@</span>lists.debian.org) (gcc version <span class="hljs-number">6.3</span><span class="hljs-number">.0</span> <span class="hljs-number">20170516</span> (Debian <span class="hljs-number">6.3</span><span class="hljs-number">.0</span><span class="hljs-number">-18</span>+deb9u1)) #<span class="hljs-number">1</span> SMP Debian <span class="hljs-number">4.9</span><span class="hljs-number">.168</span><span class="hljs-number">-1</span>
-</code></pre>
+<li><p>Use <code>last reboot</code> to list the last logged in users and system last reboot time and date.</p>
 <p>Use this timestamp and compare with the timestamp in the metrics degradation to confirm both events are related(Consider the time zone difference between Orc8r and AGW.)</p>
 <p>If the service was not intentionally restarted. Follow below steps to confirm the outage was caused due to a service crash.</p></li>
 </ul>
@@ -96,7 +93,7 @@ service:</p>
 Dec <span class="hljs-number">5</span> <span class="hljs-number">22</span>:<span class="hljs-number">25</span>:<span class="hljs-number">59</span> magma systemd[<span class="hljs-number">1</span>]: <span class="hljs-symbol">magma@</span>mme.service: Main process exited, code=killed, status=<span class="hljs-number">11</span>/SEGV
 </code></pre>
 <ul>
-<li>Service crashes with a segmentation fault will create coredumps in <code>/tmp/</code> folder. Verify if coredumps have been created and obtain the coredump that matches the time of the outage/crash. Depending on the type of service crash the name of the coredump will vary. More detail in <a href="https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps">https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps</a></li>
+<li>Service crashes with a segmentation fault will create coredumps in <code>/var/core/</code> folder. Verify if coredumps have been created and obtain the coredump that matches the time of the outage/crash. Depending on the type of service crash the name of the coredump will vary. More detail in <a href="https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps">https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps</a></li>
 </ul>
 <p><strong>5. Get the backtrace using the coredumps</strong>. To analyze the coredumps, you need 3 requirements.</p>
 <ul>
