@@ -56,40 +56,7 @@ RUN echo "Install general purpouse packages" && \
         unzip \
         vim \
         wget && \
-        gem install fpm && \
-        update-alternatives --install /usr/bin/clang clang /usr/lib/llvm-11/bin/clang 10 && \
-        update-alternatives --install /usr/bin/clang++ clang++ /usr/lib/llvm-11/bin/clang++ 10 && \
-        update-alternatives --install /usr/bin/clang-format clang-format /usr/lib/llvm-7/bin/clang-format 10 && \
-        update-alternatives --install /usr/bin/clang-tidy clang-tidy /usr/lib/llvm-11/bin/clang-tidy 10 && \
-        update-alternatives --install /usr/bin/clang-apply-replacements clang-apply-replacements /usr/lib/llvm-11/bin/clang-apply-replacements 10
-
-RUN echo "Install 3rd party dependencies" && \
-    apt-get update && \
-    echo "Install CMake" && \
-    apt-get -y install cmake && \
-    echo "Install FMT lib requirements" && \
-    apt-get -y install libunwind8-dev libelf-dev libdwarf-dev bzip2 && \
-    echo "Install Folly requirements" && \
-    apt-get -y install libboost-all-dev libevent-dev libdouble-conversion-dev \
-    libgoogle-glog-dev libgflags-dev libiberty-dev liblz4-dev liblzma-dev \
-    libsnappy-dev binutils-dev libjemalloc-dev libssl-dev pkg-config libunwind-dev && \
-    echo "Install check for test support" && \
-    apt-get -y install check && \
-    echo "Install gtest for test support" && \
-    apt-get -y install libgtest-dev && \
-    echo "Install FreeDiameter requirements" && \
-    apt-get -y install libsctp1 libsctp-dev libgcrypt-dev \
-    bison flex libidn11-dev && \
-    echo "Install libgtpnl requirements" && \
-    apt-get -y install libmnl-dev && \
-    echo "Install Nettle requirements" && \
-    apt-get install -y libgoogle-glog-dev libconfig-dev libxml2-dev \
-    libyaml-cpp-dev nlohmann-json3-dev && \
-    echo "Install ZeroMQ" && \
-    apt-get install -y libczmq-dev && \
-    ln -s /usr/bin/python2.7 /usr/local/bin/python && \
-    # TODO(fixup this include in source code @ MConfigLoader.cpp)
-    ln -s /usr/include/nlohmann/json.hpp /usr/include/json.hpp
+        gem install fpm 
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
 
