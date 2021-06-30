@@ -1112,7 +1112,7 @@ jobs:
 
   lte-test:
     machine:
-      image: ubuntu-1604:201903-01
+      image: ubuntu-2004:202104-01
     environment:
       MAGMA_ROOT: /home/circleci/project
       PYTHON_BUILD: ${MAGMA_ROOT}/build
