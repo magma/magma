@@ -46,12 +46,6 @@ service:
 
   - Use `last reboot` to list the last logged in users and system last reboot time and date.
 
-  - You can confirm the same information in `/var/log/syslog`, logs like kernel loading should indicate the AGW has been rebooted. Example of what the log could look like:
-
-    ```
-    magma kernel: [0.000000] Linux version 4.9.0-9-amd64 (debiankernel@lists.debian.org) (gcc version 6.3.0 20170516 (Debian 6.3.0-18+deb9u1)) #1 SMP Debian 4.9.168-1
-    ```
-
     Use this timestamp and compare with the timestamp in the metrics degradation to confirm both events are related(Consider the time zone difference between Orc8r and AGW.)
 
     If the service was not intentionally restarted. Follow below steps to confirm the outage was caused due to a service crash.
@@ -65,7 +59,7 @@ service:
   Dec 5 22:25:59 magma systemd[1]: magma@mme.service: Main process exited, code=killed, status=11/SEGV
   ```
 
-  - Service crashes with a segmentation fault will create coredumps in `/tmp/` folder. Verify if coredumps have been created and obtain the coredump that matches the time of the outage/crash. Depending on the type of service crash the name of the coredump will vary. More detail in https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps
+  - Service crashes with a segmentation fault will create coredumps in `/var/core/` folder. Verify if coredumps have been created and obtain the coredump that matches the time of the outage/crash. Depending on the type of service crash the name of the coredump will vary. More detail in https://magma.github.io/magma/docs/lte/dev_notes#analyzing-coredumps
 
 **5. Get the backtrace using the coredumps**. To analyze the coredumps, you need 3 requirements.
 
