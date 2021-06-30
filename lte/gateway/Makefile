@@ -114,7 +114,7 @@ mkdir -p $(1)
 cd $(1) && $(4) cmake $(2) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(3) -GNinja
 # Turn on generation of compile_commands.json (See GH Issue #5488)
 cd $(1) && awk '{if (/^CMAKE_EXPORT_COMPILE_COMMANDS/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt
-ninja -v -C $(1)
+ninja -C $(1)
 endef
 
 # run_scanbuild BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS

@@ -5,6 +5,7 @@ cc_library(
         "magma_logging.h",
         "magma_logging_init.h",
     ],
+    deps = ["@com_github_google_glog//:glog"],
 )
 
 cc_library(
@@ -21,7 +22,10 @@ cc_library(
         "SessionID.h",
         "Utilities.h",
     ],
-    deps = [":logging"],
+    deps = [
+        ":logging",
+        "@com_google_protobuf//:protobuf",
+    ],
 )
 
 cc_library(
