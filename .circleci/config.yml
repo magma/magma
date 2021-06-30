@@ -1123,7 +1123,7 @@ jobs:
       SWAGGER_CODEGEN_JAR: /home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
-      - python/set_version
+      - python/set_version:
           python_version: "3.9.4"
       - build/determinator:
           <<: *lte_build_verify
