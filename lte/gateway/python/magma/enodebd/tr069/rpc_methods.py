@@ -96,7 +96,7 @@ class AutoConfigServer(ServiceBase):
         else:
             logger.debug('Handling TR069 message.')
 
-        req = cls.__get_tr069_response_from_sm(ctx, message)
+        req = cls._get_tr069_response_from_sm(ctx, message)
 
         # Log outgoing msg
         if hasattr(req, 'as_dict'):
@@ -117,7 +117,7 @@ class AutoConfigServer(ServiceBase):
         return cls._generate_acs_to_cpe_request_copy(req)
 
     @classmethod
-    def __get_tr069_response_from_sm(
+    def _get_tr069_response_from_sm(
             cls,
             ctx: WsgiMethodContext,
             message: ComplexModelBase,
