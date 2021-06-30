@@ -154,9 +154,9 @@ func getSubscriberDigestByIDsInStore(network string, perSubDigestStore storage.D
 	for _, digestInfo := range digestInfos {
 		subscriberDigestByID := &lte_protos.SubscriberDigestByID{
 			Digest: &lte_protos.Digest{Md5Base64Digest: digestInfo.Digest},
-			Sid:    &lte_protos.SubscriberID{
+			Sid: &lte_protos.SubscriberID{
 				Type: lte_protos.SubscriberID_IMSI,
-				Id: digestInfo.Subscriber,
+				Id:   digestInfo.Subscriber,
 			},
 		}
 		subscriberDigestByIDs = append(subscriberDigestByIDs, subscriberDigestByID)

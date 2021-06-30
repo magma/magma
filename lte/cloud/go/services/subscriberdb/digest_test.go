@@ -267,7 +267,7 @@ func TestGetPerSubDigests(t *testing.T) {
 	// Initially there should only be the placeholder apn digest in the generated digest map
 	perSubDigests, err := subscriberdb.GetPerSubDigests("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, "_apn_resources", perSubDigests[0].Sid.Id)
+	assert.Equal(t, []*lte_protos.SubscriberDigestByID{}, perSubDigests)
 
 	// Generate individual digests for each newly detected subscriber in the network
 	_, err = configurator.CreateEntities("n1", configurator.NetworkEntities{
@@ -296,10 +296,7 @@ func TestGetPerSubDigests(t *testing.T) {
 	assert.NotEqual(t, "", perSubDigests[0].Digest.Md5Base64Digest)
 	assert.Equal(t, "0002", perSubDigests[1].Sid.Id)
 	assert.NotEqual(t, "", perSubDigests[1].Digest.Md5Base64Digest)
-	assert.Equal(t, "_apn_resources", perSubDigests[2].Sid.Id)
-	assert.NotEqual(t, "", perSubDigests[2].Digest.Md5Base64Digest)
 	digestSub1 := perSubDigests[0].Digest.Md5Base64Digest
-	digestApn := perSubDigests[2].Digest.Md5Base64Digest
 
 	// Detect changes in subscriber data and reflect them in the generated digests
 	_, err = configurator.CreateEntity("n1",
@@ -331,8 +328,10 @@ func TestGetPerSubDigests(t *testing.T) {
 	assert.NotEqual(t, digestSub1, perSubDigests[0].Digest.Md5Base64Digest)
 	assert.Equal(t, "0003", perSubDigests[1].Sid.Id)
 	assert.NotEqual(t, "", perSubDigests[1].Digest.Md5Base64Digest)
+	digestSub1 = perSubDigests[0].Digest.Md5Base64Digest
+	digestSub3 := perSubDigests[1].Digest.Md5Base64Digest
 
-	// Detect changes in apn resources data and reflect them in the generated digests
+	// Detect changes in apn resources data and reflect them in the ENTIRE set of generated digests
 	var writes []configurator.EntityWriteOperation
 	writes = append(writes, configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -358,8 +357,10 @@ func TestGetPerSubDigests(t *testing.T) {
 
 	perSubDigests, err = subscriberdb.GetPerSubDigests("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, "_apn_resources", perSubDigests[2].Sid.Id)
-	assert.NotEqual(t, digestApn, perSubDigests[2].Digest.Md5Base64Digest)
+	assert.Equal(t, "0001", perSubDigests[0].Sid.Id)
+	assert.NotEqual(t, digestSub1, perSubDigests[0].Digest.Md5Base64Digest)
+	assert.Equal(t, "0003", perSubDigests[1].Sid.Id)
+	assert.NotEqual(t, digestSub3, perSubDigests[1].Digest.Md5Base64Digest)
 }
 
 func TestGetSubDigestsDiff(t *testing.T) {
@@ -423,7 +424,6 @@ func TestGetSubDigestsDiff(t *testing.T) {
 			{Sid: &lte_protos.SubscriberID{Id: "00005"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cactus"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00006"}, Digest: &lte_protos.Digest{Md5Base64Digest: "sand"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00008"}, Digest: &lte_protos.Digest{Md5Base64Digest: "dirt"}},
-			{Sid: &lte_protos.SubscriberID{Id: "_apn_resources"}, Digest: &lte_protos.Digest{Md5Base64Digest: "lizard"}},
 		}
 		tracked := []*lte_protos.SubscriberDigestByID{
 			{Sid: &lte_protos.SubscriberID{Id: "00000"}, Digest: &lte_protos.Digest{Md5Base64Digest: "citrus"}},
@@ -431,15 +431,13 @@ func TestGetSubDigestsDiff(t *testing.T) {
 			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00004"}, Digest: &lte_protos.Digest{Md5Base64Digest: "sky"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00006"}, Digest: &lte_protos.Digest{Md5Base64Digest: "bird"}},
-			{Sid: &lte_protos.SubscriberID{Id: "_apn_resources"}, Digest: &lte_protos.Digest{Md5Base64Digest: "snake"}},
 		}
 		toRenew, deleted := subscriberdb.GetSubDigestsDiff(all, tracked)
 		assert.Equal(t, map[string]string{
-			"00003":          "cherry",
-			"00005":          "cactus",
-			"00006":          "sand",
-			"00008":          "dirt",
-			"_apn_resources": "lizard",
+			"00003": "cherry",
+			"00005": "cactus",
+			"00006": "sand",
+			"00008": "dirt",
 		}, toRenew)
 		assert.Equal(t, []string{"00000", "00004"}, deleted)
 	})

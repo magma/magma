@@ -55,11 +55,18 @@ func GetFlatDigest(network string) (string, error) {
 
 // GetPerSubDigests generates a set of individual subscriber digests ordered by their IDs.
 func GetPerSubDigests(network string) ([]*lte_protos.SubscriberDigestByID, error) {
+	// HACK: apn resources digest is concatenated to every individual subscriber digest
+	// so that the entire set of per-sub digests would capture changes in apn resources
+	apnDigest, err := getApnResourcesDigest(network)
+	if err != nil {
+		glog.Errorf("Failed to generate digest for apn resources of network %+v: %+v", network, err)
+		apnDigest = ""
+	}
+
 	apnsByName, err := LoadApnsByName(network)
 	if err != nil {
 		return nil, err
 	}
-
 	perSubDigests := []*lte_protos.SubscriberDigestByID{}
 	token := ""
 	foundEmptyToken := false
@@ -77,8 +84,9 @@ func GetPerSubDigests(network string) ([]*lte_protos.SubscriberDigestByID, error
 				glog.Errorf("Failed to generate digest for subscriber %+v of network %+v: %+v", subProto.Sid.Id, network, err)
 				digest = ""
 			}
+			fullDigest := digest + apnDigest
 			perSubDigest := &lte_protos.SubscriberDigestByID{
-				Digest: &lte_protos.Digest{Md5Base64Digest: digest},
+				Digest: &lte_protos.Digest{Md5Base64Digest: fullDigest},
 				Sid:    subProto.Sid,
 			}
 			perSubDigests = append(perSubDigests, perSubDigest)
@@ -86,20 +94,6 @@ func GetPerSubDigests(network string) ([]*lte_protos.SubscriberDigestByID, error
 		foundEmptyToken = nextToken == ""
 		token = nextToken
 	}
-
-	// The digest for apn resources is ordered last because its index begins with an underscore
-	apnDigest, err := getApnResourcesDigest(network)
-	if err != nil {
-		glog.Errorf("Failed to generate digest for apn resources of network %+v: %+v", network, err)
-		apnDigest = ""
-	}
-	perSubDigests = append(perSubDigests, &lte_protos.SubscriberDigestByID{
-		Digest: &lte_protos.Digest{Md5Base64Digest: apnDigest},
-		Sid:    &lte_protos.SubscriberID{
-			Id: "_apn_resources",
-			Type: lte_protos.SubscriberID_IMSI,
-		},
-	})
 
 	return perSubDigests, nil
 }
