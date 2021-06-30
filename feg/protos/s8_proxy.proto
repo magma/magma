@@ -14,6 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "lte/protos/oai/spgw_state.proto";
+import "orc8r/protos/common.proto";
 
 package magma.feg;
 option go_package = "magma/feg/cloud/go/protos";
@@ -22,10 +23,12 @@ service S8Proxy {
     rpc CreateSession(CreateSessionRequestPgw) returns (CreateSessionResponsePgw) {}
     rpc DeleteSession(DeleteSessionRequestPgw) returns (DeleteSessionResponsePgw) {}
     rpc SendEcho(EchoRequest) returns (EchoResponse) {}
+
+    rpc CreateBearerResponse(CreateBearerResponsePgw) returns (magma.orc8r.Void) {}
 }
 
 service S8ProxyResponder {
-    rpc CreateBearer(CreateBearerRequestPgw) returns (CreateBearerResponsePgw) {}
+    rpc CreateBearer(CreateBearerRequestPgw) returns (magma.orc8r.Void) {}
 }
 
 // 3GPP TS 29.274  (not all 3gpp create session fields are included)
@@ -176,25 +179,28 @@ message DeleteSessionResponsePgw{
 }
 
 message CreateBearerRequestPgw {
-    uint32 c_agw_teid = 1;
-    uint32 linked_bearer_id = 2;
-    ProtocolConfigurationOptions protocol_configuration_options = 3;
-    BearerContext bearer_context = 4;
-    bytes indication_flag = 5;
+    uint32 sequence_number = 1;
+    uint32 c_agw_teid = 2;
+    uint32 linked_bearer_id = 3;
+    ProtocolConfigurationOptions protocol_configuration_options = 4;
+    BearerContext bearer_context = 5;
+    bytes indication_flag = 6;
     // TODO: PGW-FQ-CSID-1
 }
 
 message CreateBearerResponsePgw {
-    string pgwAddrs = 1;        // Ip:port of pgw to send the request. If empty
+    string imsi = 1;
+    uint32 sequence_number = 2;
+    string pgwAddrs = 3;        // Ip:port of pgw to send the request. If empty
                                 // s8_proxy will use value in its config
-    uint32 c_pgw_teid = 2;
-    ServingNetwork serving_network = 3;
+    uint32 c_pgw_teid = 4;
+    ServingNetwork serving_network = 5;
 
-    uint32 cause = 4;
-    BearerContext bearer_context = 5;
-    ProtocolConfigurationOptions protocol_configuration_options = 6;
-    TimeZone time_zone = 7;
-    UserLocationInformation uli = 8;
+    uint32 cause = 6;
+    BearerContext bearer_context = 7;
+    ProtocolConfigurationOptions protocol_configuration_options = 8;
+    TimeZone time_zone = 9;
+    UserLocationInformation uli = 19;
     //TODO: SGW-FQ-CSID
 }
 

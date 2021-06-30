@@ -17,9 +17,11 @@ import (
 	"context"
 	"fmt"
 
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/lib/go/errors"
+	orc8r_protos "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
 )
@@ -32,28 +34,30 @@ const GTPCauseNotAvailable = 73 // gtp CauseNoResourcesAvailable
 func (srv *FegToGwRelayServer) CreateBearer(
 	ctx context.Context,
 	req *fegprotos.CreateBearerRequestPgw,
-) (*fegprotos.CreateBearerResponsePgw, error) {
+) (*orc8r_protos.Void, error) {
 	if err := validateFegContext(ctx); err != nil {
 		return nil, err
 	}
 	if req == nil {
-		glog.Error("unable to send CreateBearerPGW, request is nil")
-		return &fegprotos.CreateBearerResponsePgw{Cause: 73}, nil
+		err := fmt.Errorf("unable to send CreateBearerPGW, request is nil: ")
+		glog.Error(err)
+		return nil, err
 	}
 	teid := fmt.Sprint(req.CAgwTeid)
 	hwId, err := getHwIDFromTeid(ctx, teid)
 	if err != nil {
-		glog.Errorf("unable to get HwID from TEID %s. err: %v", teid, err)
+		err = fmt.Errorf("unable to get HwID from TEID %s. err: %v", teid, err)
+		glog.Error(err)
 		if _, ok := err.(errors.ClientInitError); ok {
 			// CauseNoResourcesAvailable uint8 = 73
-			return &fegprotos.CreateBearerResponsePgw{Cause: GTPCauseNotAvailable}, nil
+			return nil, err
 		}
 	}
 	conn, ctx, err := gateway_registry.GetGatewayConnection(
 		gateway_registry.GwS8Service, hwId)
 	if err != nil {
-		glog.Errorf("unable to get connection to the gateway ID: %s", hwId)
-		return &fegprotos.CreateBearerResponsePgw{Cause: GTPCauseNotAvailable}, nil
+		err = fmt.Errorf("unable to get connection to the gateway ID: %s", hwId)
+		return nil, err
 	}
 	client := fegprotos.NewS8ProxyResponderClient(conn)
 	return client.CreateBearer(ctx, req)
