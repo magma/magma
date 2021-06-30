@@ -788,6 +788,7 @@ jobs:
     steps:
       - checkout
       - docker/install-dc
+      - python/set_version
       - build/determinator:
           <<: *federated_build_verify
       - run:
@@ -806,12 +807,12 @@ jobs:
           name: build docker
           command: |
             cd ${MAGMA_ROOT}/feg/gateway/docker
-            DOCKER_REGISTRY=feg_ docker-compose build --parallel
+            DOCKER_REGISTRY=feg_ python3 build.py
       - run:
           name: run docker containers and check health
           command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            DOCKER_REGISTRY=feg_ make -C ${MAGMA_ROOT}/feg/gateway docker_healthcheck
+            cd ${MAGMA_ROOT}/feg/gateway/docker
+            DOCKER_REGISTRY=feg_ python3 build.py -e
       - tag-push-docker:
           project: feg
           images: "gateway_go|gateway_python"
