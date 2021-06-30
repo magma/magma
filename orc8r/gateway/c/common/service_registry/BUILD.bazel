@@ -1,0 +1,17 @@
+package(default_visibility = ["//visibility:public"])
+
+cc_library(
+    name = "service_registry",
+    srcs = [
+        "ServiceRegistrySingleton.cpp",
+    ],
+    hdrs = [
+        "includes/ServiceRegistrySingleton.h",
+    ],
+    copts = ["-DBAZEL=1"],
+    deps = [
+        "//orc8r/gateway/c/common/config",
+        "@com_github_grpc_grpc//:grpc++",
+        "@yaml-cpp//:yaml-cpp",
+    ],
+)
