@@ -64,6 +64,15 @@
       paramAgwInstanceType: "t2.medium"
   when: agwDevops is undefined
 
+- name: Get EBS encryption default
+  command: aws ec2 get-ebs-encryption-by-default --query 'EbsEncryptionByDefault' --output text
+  register: ebsEncryptiondefault
+  when: agwDevops is defined
+
+- name: Disable EBS encryption to permit export of ami
+  command: aws ec2 disable-ebs-encryption-by-default
+  when: agwDevops is defined and ebsEncryptiondefault.stdout == 'True'
+
 - name: provision agw with dual NICs for devops
   cloudformation:
     stack_name: "stack{{ siteName }}{{ idGw }}"
@@ -80,3 +89,7 @@
       paramAgwTagSite: "{{ siteName }}"
       paramAgwInstanceType: "t2.medium"
   when: agwDevops is defined
+
+- name: Enable EBS encryption to permit export of ami
+  command: aws ec2 enable-ebs-encryption-by-default
+  when: agwDevops is defined and ebsEncryptiondefault.stdout == 'True'
