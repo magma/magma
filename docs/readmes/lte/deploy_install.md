@@ -1,11 +1,13 @@
 ---
 id: deploy_install
-title: Install AGW
+title: Install AGW on Debian Stretch.
 hide_title: true
 ---
 
-For Installing AGW on Ubuntu refer to : [_deploy_on_ubuntu_](https://magma.github.io/magma/docs/feg/deploy_install_ubuntu)
-# Install Access Gateway (Bare Metal)
+For Installing AGW on Ubuntu refer to : [_deploy_on_ubuntu_](https://magma.github.io/magma/docs/lte/deploy_install_ubuntu)
+# Install Access Gateway on Debian Stretch (Bare Metal)
+
+### AGW deployment on Debian distribution is DEPRECATED! Release 1.5 is last release supporting debian based AGW.
 
 ## Prerequisites
 
@@ -52,7 +54,7 @@ installation process to get an IP using DHCP.
 
 ```bash
 su
-wget https://raw.githubusercontent.com/facebookincubator/magma/v1.4/lte/gateway/deploy/agw_install.sh
+wget https://raw.githubusercontent.com/facebookincubator/magma/v1.5.2/lte/gateway/deploy/agw_install.sh
 bash agw_install.sh
 ```
 
