@@ -255,7 +255,7 @@ func TestListSubscribers(t *testing.T) {
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
-	expectedProtos[0].Non_3Gpp.ApnConfig[0].Resource = &lte_protos.APNConfiguration_APNResource{
+	expectedProtos[0].Non_3Gpp.ApnConfig[0].Resource = &lte_protos.APNResource{
 		ApnName:    "apn1",
 		GatewayIp:  "172.16.254.1",
 		GatewayMac: "00:0a:95:9d:68:16",

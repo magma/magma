@@ -65,14 +65,15 @@ message APNConfiguration {
   // Optional static IP to allocate for this subscriber on this APN
   string assigned_static_ip = 6;
 
-  message APNResource {
-    string apn_name = 1;
-    string gateway_ip = 2;
-    string gateway_mac = 3;
-    uint32 vlan_id = 4;
-  }
   // resource is gateway-specific guidance for serving the APN
   APNResource resource = 7;
+}
+
+message APNResource {
+  string apn_name = 1;
+  string gateway_ip = 2;
+  string gateway_mac = 3;
+  uint32 vlan_id = 4;
 }
 
 // APN MODELS 2.0
