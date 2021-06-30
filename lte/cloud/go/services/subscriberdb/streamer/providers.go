@@ -29,6 +29,8 @@ import (
 	"github.com/pkg/errors"
 )
 
+// TODO(hcgatewood): after v1.6, remove this servicer in favor of the direct gRPC ListSubscribers
+
 // SubscribersProvider provides the implementation for subscriber streaming.
 type SubscribersProvider struct{}
 

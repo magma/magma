@@ -59,7 +59,7 @@ func getSubscribersDigest(networkID string) (string, error) {
 		return "", err
 	}
 
-	pageDigestsByToken := map[string][]byte{}
+	digestsByPage := map[string][]byte{}
 	token := ""
 	curPage := 0
 	foundEmptyToken := false
@@ -80,13 +80,13 @@ func getSubscribersDigest(networkID string) (string, error) {
 		if err != nil {
 			return "", nil
 		}
-		pageDigestsByToken[string(curPage)] = []byte(pageDigest)
+		digestsByPage[string(curPage)] = []byte(pageDigest)
 
 		foundEmptyToken = nextToken == ""
 		token = nextToken
 		curPage++
 	}
-	digestProto := &mproto_protos.ProtosByID{BytesById: pageDigestsByToken}
+	digestProto := &mproto_protos.ProtosByID{BytesById: digestsByPage}
 	return mproto.HashDeterministic(digestProto)
 }
 

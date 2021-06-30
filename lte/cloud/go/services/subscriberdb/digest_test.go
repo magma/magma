@@ -117,8 +117,8 @@ func TestGetDigestDeterministic(t *testing.T) {
 	assert.NotEqual(t, expected, digest)
 }
 
-// Regression test to check whether the flat digest reflects changes in the
-// apn/gateway associations of apn resources.
+// TestGetDigestApnResourceAssocs is a regression test to check whether the flat
+// digest reflects changes in the apn/gateway associations of apn resources.
 func TestGetDigestApnResourceAssocs(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
@@ -224,6 +224,7 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 	assert.NotEqual(t, expected, digest)
 	expected = digest
 
+	// Digest reflects changes in apn resource->apn associations
 	err = configurator.DeleteEntity("n1", lte.APNResourceEntityType, "resource1")
 	assert.NoError(t, err)
 	writes = []configurator.EntityWriteOperation{

@@ -43,16 +43,14 @@ func LoadSubProtosPage(
 		LoadAssocsFromThis: true,
 	}
 
-	subEnts, nextToken, err := configurator.LoadAllEntitiesOfType(
-		networkID, lte.SubscriberEntityType, lc, serdes.Entity,
-	)
+	subEnts, nextToken, err := configurator.LoadAllEntitiesOfType(networkID, lte.SubscriberEntityType, lc, serdes.Entity)
 	if err != nil {
 		return nil, "", errors.Wrapf(err, "load subscribers in network of gateway %s", networkID)
 	}
 
 	subProtos := make([]*lte_protos.SubscriberData, 0, len(subEnts))
 	for _, sub := range subEnts {
-		subProto, err := convertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
+		subProto, err := ConvertSubEntsToProtos(sub, apnsByName, apnResourcesByAPN)
 		if err != nil {
 			return nil, "", err
 		}
@@ -84,7 +82,7 @@ func LoadApnsByName(networkID string) (map[string]*lte_models.ApnConfiguration, 
 	return apnsByName, err
 }
 
-func convertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[string]*lte_models.ApnConfiguration, apnResources lte_models.ApnResources) (*lte_protos.SubscriberData, error) {
+func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[string]*lte_models.ApnConfiguration, apnResources lte_models.ApnResources) (*lte_protos.SubscriberData, error) {
 	subData := &lte_protos.SubscriberData{}
 	t, err := lte_protos.SidProto(ent.Key)
 	if err != nil {
@@ -119,10 +117,9 @@ func convertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 	}
 
 	// Construct the non-3gpp profile
-	non3gpp := &lte_protos.Non3GPPUserProfile{
-		ApnConfig: make([]*lte_protos.APNConfiguration, 0, len(ent.Associations)),
-	}
-	for _, assoc := range ent.Associations {
+	non3gpp := &lte_protos.Non3GPPUserProfile{}
+	apns := ent.Associations.Filter(lte.APNEntityType)
+	for _, assoc := range apns {
 		apnConfig, apnFound := apnConfigs[assoc.Key]
 		if !apnFound {
 			continue
