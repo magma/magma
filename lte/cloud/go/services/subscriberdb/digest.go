@@ -17,6 +17,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/orc8r/cloud/go/mproto"
 	mproto_protos "magma/orc8r/cloud/go/mproto/protos"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -58,7 +59,7 @@ func getSubscribersDigest(networkID string) (string, error) {
 		return "", err
 	}
 
-	pageDigestsByToken := map[string][]byte{}
+	digestsByPage := map[string][]byte{}
 	token := ""
 	curPage := 0
 	foundEmptyToken := false
@@ -79,13 +80,13 @@ func getSubscribersDigest(networkID string) (string, error) {
 		if err != nil {
 			return "", nil
 		}
-		pageDigestsByToken[string(curPage)] = []byte(pageDigest)
+		digestsByPage[string(curPage)] = []byte(pageDigest)
 
 		foundEmptyToken = nextToken == ""
 		token = nextToken
 		curPage++
 	}
-	digestProto := &mproto_protos.ProtosByID{BytesById: pageDigestsByToken}
+	digestProto := &mproto_protos.ProtosByID{BytesById: digestsByPage}
 	return mproto.HashDeterministic(digestProto)
 }
 
@@ -94,14 +95,14 @@ func getSubscribersDigest(networkID string) (string, error) {
 func getApnResourcesDigest(networkID string) (string, error) {
 	apnResourceEnts, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, lte.APNResourceEntityType,
-		configurator.EntityLoadCriteria{LoadConfig: true},
+		configurator.FullEntityLoadCriteria(),
 		serdes.Entity,
 	)
 	if err != nil {
 		return "", err
 	}
 
-	apnResourcesProtosByID := map[string]proto.Message{}
+	apnResourceInternalProtosByID := map[string]proto.Message{}
 	for _, apnResourceEnt := range apnResourceEnts {
 		apnResource, ok := apnResourceEnt.Config.(*lte_models.ApnResource)
 		if !ok {
@@ -109,10 +110,21 @@ func getApnResourcesDigest(networkID string) (string, error) {
 			continue
 		}
 		apnResourceProto := apnResource.ToProto()
-		apnResourcesProtosByID[apnResource.ID] = apnResourceProto
+
+		// HACK: use the ApnResourceInternal proto to capture ingoing and outgoing
+		// associations of the apn_resource
+		parentGateways := apnResourceEnt.ParentAssociations.Filter(lte.CellularGatewayEntityType)
+		childAPNs := apnResourceEnt.Associations.Filter(lte.APNEntityType)
+		apnResourceInternalProto := &protos.ApnResourceInternal{
+			AssocApns:     childAPNs.Keys(),
+			AssocGateways: parentGateways.Keys(),
+			ApnResource:   apnResourceProto,
+		}
+
+		apnResourceInternalProtosByID[apnResource.ID] = apnResourceInternalProto
 	}
 
-	digest, err := mproto.HashManyDeterministic(apnResourcesProtosByID)
+	digest, err := mproto.HashManyDeterministic(apnResourceInternalProtosByID)
 	if err != nil {
 		return "", err
 	}
