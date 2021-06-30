@@ -65,3 +65,24 @@ cc_library(
 #		"//lte/protos:session_manager_cpp_grpc",
 #	],
 #)
+
+cc_library(
+    name = "policy_loader",
+    srcs = [
+        "PolicyLoader.cpp",
+    ],
+    hdrs = [
+        "ObjectMap.h",
+        "PolicyLoader.h",
+        "RedisMap.hpp",
+        "Serializers.h",
+    ],
+    copts = ["-DBAZEL=1"],
+    deps = [
+        ":logging",
+        "//lte/protos:policydb_cpp_proto",
+        "//orc8r/gateway/c/common/config",
+        "//orc8r/protos:redis_cpp_proto",
+        "@cpp_redis",
+    ],
+)

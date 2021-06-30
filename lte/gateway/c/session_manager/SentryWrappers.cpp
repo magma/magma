@@ -58,7 +58,8 @@ float get_sentry_sample_rate(
     const magma::mconfig::SentryConfig& sentry_config,
     YAML::Node control_proxy_config) {
   if (control_proxy_config[SENTRY_SAMPLE_RATE].IsDefined()) {
-    const float sample_rate_override = control_proxy_config[SENTRY_SAMPLE_RATE].as<float>();
+    const float sample_rate_override =
+        control_proxy_config[SENTRY_SAMPLE_RATE].as<float>();
     if (sample_rate_override) {
       return sample_rate_override;
     }

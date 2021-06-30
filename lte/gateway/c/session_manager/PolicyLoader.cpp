@@ -22,11 +22,18 @@
 #include "ObjectMap.h"                // for SUCCESS
 #include "RedisMap.hpp"               // for RedisMap
 #include "Serializers.h"              // for get_proto_deserializer, get_pro
+
+#if BAZEL
+#include "orc8r/gateway/c/common/config/includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
+#else
 #include "includes/ServiceConfigLoader.h"  // for ServiceConfigLoader
-#include "lte/protos/policydb.pb.h"        // for PolicyRule
-#include "magma_logging.h"                 // for MLOG, MERROR, MDEBUG, MINFO
+#endif
+
+#include "lte/protos/policydb.pb.h"  // for PolicyRule
+#include "magma_logging.h"           // for MLOG, MERROR, MDEBUG, MINFO
 
 namespace magma {
+using namespace cpp_redis;
 
 bool try_redis_connect(cpp_redis::client& client) {
   ServiceConfigLoader loader;
@@ -36,9 +43,8 @@ bool try_redis_connect(cpp_redis::client& client) {
   try {
     client.connect(
         addr, port,
-        [](const std::string& host, std::size_t port,
-           cpp_redis::client::connect_state status) {
-          if (status == cpp_redis::client::connect_state::dropped) {
+        [](const std::string& host, std::size_t port, connect_state status) {
+          if (status == connect_state::dropped) {
             MLOG(MERROR) << "Client disconnected from " << host << ":" << port;
           }
         });
