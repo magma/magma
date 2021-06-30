@@ -42,6 +42,7 @@
 #define MAX_USAGE_REPORTING_THRESHOLD 1.0
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
 #define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000  // 30sec
+#define DEFAULT_SESSION_MAX_RTX_COUNT 3
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -206,13 +207,21 @@ int main(int argc, char* argv[]) {
     set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
   }
 
-  initialize_sentry();
+  initialize_sentry(mconfig.sentry_config());
 
-  bool converged_access = false;
+  bool converged_access          = false;
+  uint32_t session_max_rtx_count = 0;
   // Check converged sessiond is enabled or not
   if ((config["converged_access"].IsDefined()) &&
       (config["converged_access"].as<bool>())) {
     converged_access = true;
+  }
+  if (config["session_rtx_count"].IsDefined()) {
+    session_max_rtx_count = config["session_rtx_count"].as<long>();
+  } else {
+    MLOG(MWARNING)
+        << "session_rtx_count is not defined in conf,set default value";
+    session_max_rtx_count = DEFAULT_SESSION_MAX_RTX_COUNT;
   }
   MLOG(MINFO) << "Starting Session Manager";
   folly::EventBase* evb = folly::EventBaseManager::get()->getEventBase();
@@ -368,9 +377,11 @@ int main(int argc, char* argv[]) {
     // Initialize the main thread of session management by folly event to handle
     // logical component of 5G of SessionD
     extern std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
+    std::unordered_multimap<std::string, uint32_t> pdr_map;
     conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
-        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig,
-        config["session_force_termination_timeout_ms"].as<long>());
+        rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
+        mconfig, config["session_force_termination_timeout_ms"].as<long>(),
+        session_max_rtx_count);
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(

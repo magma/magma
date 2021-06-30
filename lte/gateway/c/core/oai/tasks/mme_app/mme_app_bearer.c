@@ -1659,7 +1659,7 @@ void mme_app_handle_release_access_bearers_resp(
 
   if (ue_context_p == NULL) {
     OAILOG_DEBUG(
-        LOG_MME_APP, "We didn't find this teid in list of UE: %" PRIX32 "\n",
+        LOG_MME_APP, "We didn't find this teid in list of UE: " TEID_FMT "\n",
         rel_access_bearers_rsp_pP->teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -1694,7 +1694,7 @@ void mme_app_handle_s11_create_bearer_req(
 
   if (ue_context_p == NULL) {
     OAILOG_DEBUG(
-        LOG_MME_APP, "We didn't find this teid in list of UE: %" PRIX32 "\n",
+        LOG_MME_APP, "We didn't find this teid in list of UE: " TEID_FMT "\n",
         create_bearer_request_pP->teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -2471,20 +2471,20 @@ void mme_app_handle_suspend_acknowledge(
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(
-      LOG_MME_APP, "Rx Suspend Acknowledge with MME_S11_TEID :%d \n",
+      LOG_MME_APP, "Rx Suspend Acknowledge with MME_S11_TEID: " TEID_FMT "\n",
       suspend_acknowledge_pP->teid);
 
   ue_context_p = mme_ue_context_exists_s11_teid(
       &mme_app_desc_p->mme_ue_contexts, suspend_acknowledge_pP->teid);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
-        LOG_MME_APP, "We didn't find this teid in list of UE: %" PRIX32 "\n",
+        LOG_MME_APP, "We didn't find this teid in list of UE: " TEID_FMT "\n",
         suspend_acknowledge_pP->teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   OAILOG_DEBUG_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      " Rx Suspend Acknowledge with MME_S11_TEID " TEID_FMT "\n",
+      " Rx Suspend Acknowledge with MME_S11_TEID: " TEID_FMT "\n",
       suspend_acknowledge_pP->teid);
   /*
    * Updating statistics
@@ -3599,7 +3599,7 @@ void mme_app_handle_path_switch_request(
     OAILOG_ERROR(
         LOG_MME_APP,
         "PATH_SWITCH_REQUEST RECEIVED, Failed to find UE context for "
-        "mme_ue_s1ap_id 0x%06" PRIX32 " \n",
+        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " \n",
         path_switch_req_p->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }

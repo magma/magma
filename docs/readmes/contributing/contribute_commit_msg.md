@@ -77,6 +77,11 @@ already a bot to set component for every git PR.
   - ci
   - cwg
   - xwf
+  - agw
+  - cloud
+  - upf
+  - smf
+  - amf
 ```
 
 For an up-to-date list of types we support see checkout Semantic Github APP config:

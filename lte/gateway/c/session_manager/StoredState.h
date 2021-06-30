@@ -70,7 +70,6 @@ struct StoredSessionState {
   std::string session_level_key;  // "" maps to nullptr
   std::string imsi;
   std::string session_id;
-  uint32_t local_teid;
   uint64_t pdp_start_time;
   uint64_t pdp_end_time;
   // will store the response from the core between Create and Activate Session
@@ -89,7 +88,8 @@ struct StoredSessionState {
   EventTriggerStatus pending_event_triggers;
   google::protobuf::Timestamp revalidation_time;
   BearerIDByPolicyID bearer_id_by_policy;
-  std::vector<SetGroupPDR> PdrList;
+  // converged core PDR rules
+  std::vector<SetGroupPDR> pdr_list;
   PolicyStatsMap policy_version_and_stats;
 };
 
@@ -124,12 +124,10 @@ struct SessionStateUpdateCriteria {
   bool is_config_updated;
   SessionConfig updated_config;
   bool is_fsm_updated;
-  bool is_local_teid_updated;
   SessionFsmState updated_fsm_state;
   // TODO keeping this structure updated for future use.
   bool is_current_version_updated;
   uint32_t updated_current_version;
-  uint32_t local_teid_updated;
   // true if any of the event trigger state is updated
   bool is_pending_event_triggers_updated;
   EventTriggerStatus pending_event_triggers;
@@ -150,6 +148,9 @@ struct SessionStateUpdateCriteria {
   std::set<std::string> dynamic_rules_to_uninstall;
   std::set<std::string> gy_dynamic_rules_to_uninstall;
   std::vector<PolicyRule> new_scheduled_dynamic_rules;
+  // Converged rules part of 5G rules
+  bool clear_pdr_list;
+  std::vector<SetGroupPDR> pdrs_to_install;
   std::unordered_map<std::string, RuleLifetime> new_rule_lifetimes;
   StoredChargingCreditMap charging_credit_to_install;
   std::unordered_map<

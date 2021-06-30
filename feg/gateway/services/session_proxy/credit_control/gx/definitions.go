@@ -93,6 +93,8 @@ type CreditControlAnswer struct {
 	EventTriggers          []EventTrigger
 	RevalidationTime       *time.Time
 	Qos                    *QosInformation
+	Online                 int32
+	Offline                int32
 }
 
 type UsageReport struct {
@@ -133,6 +135,8 @@ type RuleDefinition struct {
 	RedirectInformation *RedirectInformation `avp:"Redirect-Information"`
 	Qos                 *QosInformation      `avp:"QoS-Information"`
 	ServiceIdentifier   *uint32              `avp:"Service-Identifier"`
+	Online              int32                `avp:"Online"`
+	Offline             int32                `avp:"Offline"`
 }
 
 // QoS per service date flow message
@@ -187,6 +191,8 @@ type CCADiameterMessage struct {
 	EventTriggers    []EventTrigger         `avp:"Event-Trigger"`
 	RevalidationTime *time.Time             `avp:"Revalidation-Time"`
 	Qos              *QosInformation        `avp:"QoS-Information"`
+	Online           int32                  `avp:"Online"`
+	Offline          int32                  `avp:"Offline"`
 }
 
 //<RA-Request> ::= 	< Diameter Header: 258, REQ, PXY >

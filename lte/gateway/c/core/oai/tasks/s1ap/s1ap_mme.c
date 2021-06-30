@@ -39,12 +39,12 @@
 #include "hashtable.h"
 #include "log.h"
 #include "assertions.h"
-#include "mme_app_statistics.h"
 #include "s1ap_mme_decoder.h"
 #include "s1ap_mme_handlers.h"
 #include "s1ap_mme_nas_procedures.h"
 #include "s1ap_mme_itti_messaging.h"
 #include "service303.h"
+#include "service303_message_utils.h"
 #include "dynamic_memory_check.h"
 #include "mme_config.h"
 #include "timer.h"
@@ -74,6 +74,9 @@
 bool s1ap_dump_ue_hash_cb(
     const hash_key_t keyP, void* const ue_void, void* parameter,
     void** unused_res);
+static void start_stats_timer(void);
+static int handle_stats_timer(zloop_t* loop, int id, void* arg);
+static long epc_stats_timer_id;
 
 bool hss_associated = false;
 static int indent   = 0;
@@ -362,12 +365,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 static void* s1ap_mme_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_S1AP);
   init_task_context(
-      TASK_S1AP, (task_id_t[]){TASK_MME_APP, TASK_SCTP}, 2, handle_message,
-      &s1ap_task_zmq_ctx);
+      TASK_S1AP, (task_id_t[]){TASK_MME_APP, TASK_SCTP, TASK_SERVICE303}, 3,
+      handle_message, &s1ap_task_zmq_ctx);
 
   if (s1ap_send_init_sctp() < 0) {
     OAILOG_ERROR(LOG_S1AP, "Error while sendind SCTP_INIT_MSG to SCTP \n");
   }
+  start_stats_timer();
 
   zloop_start(s1ap_task_zmq_ctx.event_loop);
   s1ap_mme_exit();
@@ -409,6 +413,7 @@ status_code_e s1ap_mme_init(const mme_config_t* mme_config_p) {
 //------------------------------------------------------------------------------
 void s1ap_mme_exit(void) {
   OAILOG_DEBUG(LOG_S1AP, "Cleaning S1AP\n");
+  stop_timer(&s1ap_task_zmq_ctx, epc_stats_timer_id);
 
   put_s1ap_state();
   put_s1ap_imsi_map();
@@ -495,8 +500,6 @@ enb_description_t* s1ap_new_enb(s1ap_state_t* state) {
    * * * * TODO: Notify eNB with a cause like Hardware Failure.
    */
   DevAssert(enb_ref != NULL);
-  // Update number of eNB associated
-  state->num_enbs++;
   bstring bs = bfromcstr("s1ap_ue_coll");
   hashtable_uint64_ts_init(&enb_ref->ue_id_coll, mme_config.max_ues, NULL, bs);
   bdestroy_wrapper(&bs);
@@ -597,7 +600,7 @@ void s1ap_remove_ue(s1ap_state_t* state, ue_description_t* ue_ref) {
       OAILOG_INFO(LOG_S1AP, "Moving eNB state to S1AP_INIT \n");
       enb_ref->s1_state = S1AP_INIT;
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name);
-      update_mme_app_stats_connected_enb_sub();
+      state->num_enbs--;
     } else if (enb_ref->s1_state == S1AP_SHUTDOWN) {
       OAILOG_INFO(LOG_S1AP, "Deleting eNB \n");
       set_gauge("s1_connection", 0, 1, "enb_name", enb_ref->enb_name);
@@ -615,5 +618,18 @@ void s1ap_remove_enb(s1ap_state_t* state, enb_description_t* enb_ref) {
   hashtable_uint64_ts_destroy(&enb_ref->ue_id_coll);
   hashtable_ts_free(&state->enbs, enb_ref->sctp_assoc_id);
   state->num_enbs--;
-  update_mme_app_stats_connected_enb_sub();
+}
+
+static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
+  s1ap_state_t* s1ap_state_p = get_s1ap_state(false);
+  application_s1ap_stats_msg_t stats_msg;
+  stats_msg.nb_enb_connected = s1ap_state_p->num_enbs;
+  return send_s1ap_stats_to_service303(
+      &s1ap_task_zmq_ctx, TASK_S1AP, &stats_msg);
+}
+
+static void start_stats_timer(void) {
+  epc_stats_timer_id = start_timer(
+      &s1ap_task_zmq_ctx, EPC_STATS_TIMER_MSEC, TIMER_REPEAT_FOREVER,
+      handle_stats_timer, NULL);
 }

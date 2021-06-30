@@ -9,22 +9,28 @@ credentials_dir: "{{ inventory_dir }}/credentials"
 magma_namespace: magma
 orc8r_domain: magma.local
 dns_domain: cluster.local
+kube_dns_resolver: coredns.kube-system.svc.{{ dns_domain }}
 
+orc8r_db_driver: mysql
+orc8r_db_sql_dialect: maria
 orc8r_image_tag: latest # Unsafe!! Use specific version
 orc8r_db_user: orc8r
+orc8r_db_port: 3306
 orc8r_db_host: mariadb.{{ mariadb_namespace | default("mariadb") }}
-orc8r_db_pass: "{{ lookup('password', credentials_dir + '/orc8r_db_pass.creds length=24 chars=hexdigits') | lower }}"
+orc8r_db_pass: "{{ lookup('password', credentials_dir + '/orc8r_db_pass.creds length=24 chars=asci_lowercase,digits') }}"
 orc8r_db_name: orc8r
 
 # NMS settings
 orc8r_nms_image_tag: latest # Unsafe!! Use specific version
+orc8r_nms_db_sql_dialect: mariadb
+orc8r_nms_db_port: 3306
 orc8r_nms_db_user: nms
 orc8r_nms_db_host: mariadb.{{ mariadb_namespace | default("mariadb") }}
-orc8r_nms_db_pass: "{{ lookup('password', credentials_dir + '/orc8r_nms_db_pass.creds length=24 chars=hexdigits') | lower }}"
+orc8r_nms_db_pass: "{{ lookup('password', credentials_dir + '/orc8r_nms_db_pass.creds length=24 chars=ascii_lowercase,digits') }}"
 orc8r_nms_db_name: nms
 
 orc8r_nms_admin_email: "admin@{{ orc8r_domain }}"
-orc8r_nms_admin_pass: "{{ lookup('password', credentials_dir + '/orc8r_nms_admin_pass.creds length=24 chars=hexdigits') | lower }}"
+orc8r_nms_admin_pass: "{{ lookup('password', credentials_dir + '/orc8r_nms_admin_pass.creds length=24 chars=ascii_lowercase,digits')}}"
 
 
 # Monitoring component settings

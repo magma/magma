@@ -20,6 +20,9 @@
       "contributing/contribute_codeowners": {
         "title": "Codeowners Workflow"
       },
+      "contributing/contribute_commit_msg": {
+        "title": "Commit message style"
+      },
       "contributing/contribute_conventions": {
         "title": "Contributing Conventions"
       },
@@ -106,6 +109,9 @@
       "howtos/troubleshooting/analyze_service_crashes_in_agw": {
         "title": "Analyze Service crashes in AGW"
       },
+      "howtos/troubleshooting/datapath_connectivity": {
+        "title": "Debugging AGW datapath issues"
+      },
       "howtos/troubleshooting/generate_admin_operator_certificates": {
         "title": "Generate and update admin_operator certificates"
       },
@@ -149,10 +155,10 @@
         "title": "Configure eNodeB"
       },
       "lte/deploy_install_ubuntu": {
-        "title": "Install AGW on Ubuntu 20.04"
+        "title": "Install AGW"
       },
       "lte/deploy_install": {
-        "title": "Install AGW"
+        "title": "Install AGW on Debian Stretch."
       },
       "lte/dev_notes": {
         "title": "Developer Notes"
@@ -221,6 +227,9 @@
         "title": "Admin"
       },
       "nms/alerts": {
+        "title": "Alerts"
+      },
+      "nms/alerts_troubleshooting": {
         "title": "Alerts"
       },
       "nms/nms_arch_overview": {

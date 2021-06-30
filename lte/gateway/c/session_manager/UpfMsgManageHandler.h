@@ -45,6 +45,13 @@ class UpfMsgHandler {
   virtual void SetUPFNodeState(
       ServerContext* context, const UPFNodeState* node_request,
       std::function<void(Status, SmContextVoid)> response_callback) = 0;
+  /**
+   * Periodic messages about UPF session config
+   *
+   */
+  virtual void SetUPFSessionsConfig(
+      ServerContext* context, const UPFSessionConfigState* sess_config,
+      std::function<void(Status, SmContextVoid)> response_callback) = 0;
 };
 
 /**
@@ -66,6 +73,14 @@ class UpfMsgManageHandler : public UpfMsgHandler {
 
   virtual void SetUPFNodeState(
       ServerContext* context, const UPFNodeState* node_request,
+      std::function<void(Status, SmContextVoid)> response_callback);
+
+  /**
+   * Periodic messages about UPF session config
+   *
+   */
+  virtual void SetUPFSessionsConfig(
+      ServerContext* context, const UPFSessionConfigState* sess_config,
       std::function<void(Status, SmContextVoid)> response_callback);
 
  private:

@@ -1533,6 +1533,18 @@
   resolved "https://registry.yarnpkg.com/@fbcnms/projects/-/projects-0.1.0.tgz#7e1d6641e6dbe0f8137560f25c6d89b1d5cd9354"
   integrity sha512-vdP5+Y4XWkdVR3H97NCbZiuMpi2xSelyUFg5AR7vZXWzXLFKVziSQEvvqG442U3PQbuLV15LShfYJhEHDc13fA==
 
+"@fbcnms/sequelize-models@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.10.tgz#f2207602361aeb0edd1e61872a116d1e82e0fcc4"
+  integrity sha512-msnqzWmcZ0FzmcxX+6MQiaO0XIMMHTRWZEJLHqPeT/A9LThrx3y4IcZSGfL+7Io250lfY/m00rmN/AaSAP6X6A==
+  dependencies:
+    "@fbcnms/babel-register" "^0.1.0"
+    inquirer "^8.0.0"
+    mariadb "^2.4.2"
+    minimist "^1.2.5"
+    pg "^8.6.0"
+    sequelize "^5.8.5"
+
 "@fbcnms/sequelize-models@^0.1.9":
   version "0.1.9"
   resolved "https://registry.yarnpkg.com/@fbcnms/sequelize-models/-/sequelize-models-0.1.9.tgz#f6913ded822aa1c7d0f05c1f6a2572ff73a91411"

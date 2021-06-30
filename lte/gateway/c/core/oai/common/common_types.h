@@ -69,13 +69,10 @@ typedef uint64_t enb_s1ap_id_key_t;
 
 //------------------------------------------------------------------------------
 // UE S1AP IDs
-
 #define INVALID_ENB_UE_S1AP_ID_KEY 0xFFFFFFFFFFFFFFFF
 #define ENB_UE_S1AP_ID_MASK 0x00FFFFFF
-#define ENB_UE_S1AP_ID_FMT "0x%06" PRIX32
-
-#define MME_UE_S1AP_ID_FMT "0x%08" PRIX32
-
+#define ENB_UE_S1AP_ID_FMT "%u"
+#define MME_UE_S1AP_ID_FMT "%u"
 #define COMP_S1AP_ID_FMT "0x%016" PRIX64
 
 /* INVALID_MME_UE_S1AP_ID
@@ -88,12 +85,10 @@ typedef uint64_t enb_s1ap_id_key_t;
 
 // UE NGAP IDs
 #define INVALID_AMF_UE_NGAP_ID 0x0
-
 #define INVALID_GNB_UE_NGAP_ID_KEY 0xFFFFFFFFFFFFFFFF
 #define GNB_UE_NGAP_ID_MASK 0x00FFFFFF
-#define GNB_UE_NGAP_ID_FMT "0x%06" PRIX32
-
-#define AMF_UE_NGAP_ID_FMT "0x%08" PRIX32
+#define GNB_UE_NGAP_ID_FMT "%u"
+#define AMF_UE_NGAP_ID_FMT "%u"
 
 /* INVALID_AMF_UE_NGAP_ID
  * Any value between 0..2^32-1, is allowed/valid as per 3GPP spec 36.413.
@@ -111,7 +106,7 @@ typedef uint64_t enb_s1ap_id_key_t;
 //------------------------------------------------------------------------------
 // TEIDs
 typedef uint32_t teid_t;
-#define TEID_FMT "0x%" PRIX32
+#define TEID_FMT "%u"
 #define TEID_SCAN_FMT SCNx32
 typedef teid_t s11_teid_t;
 typedef teid_t s1u_teid_t;

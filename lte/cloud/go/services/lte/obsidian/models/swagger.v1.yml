@@ -1752,6 +1752,11 @@ definitions:
       cloud_subscriberdb_enabled:
         type: boolean
         example: false
+      congestion_control_enabled:
+        description: Network configuration flag for congestion control on EPC
+        type: boolean
+        example: true
+        default: true
       network_services:
         description: Configuration for network services. Services will be instantiated in the listed order.
         type: array

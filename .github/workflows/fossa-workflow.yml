@@ -1,0 +1,43 @@
+---
+name: fossa-workflow
+
+on:  # yamllint disable-line rule:truthy
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  fossa-analyze:
+    env:
+      MAGMA_ROOT: "${{ github.workspace }}"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Download fossa analyze script
+        # yamllint disable rule:line-length
+        run: |
+            echo "Downloading CLI"
+            mkdir -p /tmp/magma && cd /tmp/magma
+            wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
+            bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
+            rm -f /tmp/magma/fossa
+            tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
+            sudo cp /tmp/magma/fossa /usr/local/bin/
+        # yamllint enable
+      - name: Run fossa analyze script
+        run: |
+            echo "Running fossa-analyze-go.sh"
+            sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
+      # Notify ci channel when failing
+      # Plugin info: https://github.com/marketplace/actions/slack-notify
+      - name: Notify failure to slack
+        if: failure() && github.ref == 'refs/heads/master'
+        uses: rtCamp/action-slack-notify@v2.0.2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK_CI }}
+          SLACK_TITLE: "Github action fossa-analyze update failed"
+          SLACK_USERNAME: "Docusaurus update "
+          SLACK_ICON_EMOJI: ":boom:"
+          SLACK_COLOR: "#FF0000"

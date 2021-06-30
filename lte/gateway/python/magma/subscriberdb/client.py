@@ -18,6 +18,8 @@ import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
 from lte.protos.subscriberdb_pb2 import (
+    CheckSubscribersInSyncRequest,
+    Digest,
     ListSubscribersRequest,
     LTESubscription,
     SubscriberData,
@@ -77,32 +79,73 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         self._grpc_client_manager = grpc_client_manager
 
     async def _run(self) -> None:
-        subscribers = await self._get_subscribers()
-        if subscribers is not None:
-            self._process_subscribers(subscribers)
+        in_sync = await self._check_subscribers_in_sync()
+        if in_sync:
+            return
 
-    async def _get_subscribers(self) -> [SubscriberData]:
+        subscribers, flat_digest = await self._get_all_subscribers()
+        if subscribers is None:
+            return
+        self._update_flat_digest(flat_digest)
+        self._process_subscribers(subscribers)
+
+    async def _check_subscribers_in_sync(self) -> bool:
+        """
+        Check if the local subscriber data is up-to-date with the cloud by
+        comparing flat digests
+
+        Returns:
+            boolean value for whether the local data is in sync
+        """
+        subscriberdb_cloud_client = self._grpc_client_manager.get_client()
+        req = CheckSubscribersInSyncRequest(
+            flat_digest=Digest(
+                md5_base64_digest=self._store.get_current_digest(),
+            ),
+        )
+        try:
+            res = await grpc_async_wrapper(
+                subscriberdb_cloud_client.CheckSubscribersInSync.future(
+                    req,
+                    self.SUBSCRIBERDB_REQUEST_TIMEOUT,
+                ),
+                self._loop,
+            )
+        except grpc.RpcError as err:
+            logging.error(
+                "Check subscribers in sync request error! [%s] %s", err.code(),
+                err.details(),
+            )
+            return False
+        return res.in_sync
+
+    async def _get_all_subscribers(self) -> (SubscriberData, Digest):
         subscriberdb_cloud_client = self._grpc_client_manager.get_client()
         subscribers = []
+        flat_digest = None
         req_page_token = ""  # noqa: S105
-        res_page_token = "start_token"  # noqa: S105
+        found_empty_token = False
         sync_start = datetime.datetime.now()
-        while res_page_token != "":  # noqa: S105
+
+        # Next page token empty means read all updates
+        while not found_empty_token:  # noqa: S105
             try:
                 req = ListSubscribersRequest(
                     page_size=self._subscriber_page_size,
                     page_token=req_page_token,
                 )
-                response = await grpc_async_wrapper(
+                res = await grpc_async_wrapper(
                     subscriberdb_cloud_client.ListSubscribers.future(
                         req,
                         self.SUBSCRIBERDB_REQUEST_TIMEOUT,
                     ),
                     self._loop,
                 )
-                subscribers.extend(response.subscribers)
-                res_page_token = response.next_page_token
-                req_page_token = response.next_page_token
+                subscribers.extend(res.subscribers)
+                flat_digest = res.flat_digest
+                req_page_token = res.next_page_token
+                found_empty_token = req_page_token == ""
+
             except grpc.RpcError as err:
                 logging.error(
                     "Fetch subscribers error! [%s] %s", err.code(),
@@ -113,7 +156,7 @@ class SubscriberDBCloudClient(SDWatchdogTask):
                     time_elapsed.total_seconds() * 1000,
                 )
                 SUBSCRIBER_SYNC_FAILURE_TOTAL.inc()
-                return None
+                return None, None
         logging.info(
             "Successfully fetched all subscriber "
             "pages from the cloud!",
@@ -123,7 +166,13 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         SUBSCRIBER_SYNC_LATENCY.observe(
             time_elapsed.total_seconds() * 1000,
         )
-        return subscribers
+
+        return subscribers, flat_digest
+
+    def _update_flat_digest(self, flat_digest: Digest) -> None:
+        if Digest is None:
+            return
+        self._store.update_digest(flat_digest.md5_base64_digest)
 
     def _process_subscribers(self, subscribers: SubscriberData) -> None:
         active_subscriber_ids = []

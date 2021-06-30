@@ -70,6 +70,7 @@ meter:
 enforcement:
   poll_interval: 2
   default_drop_flow_name: 'internal_default_drop_flow_rule'
+  periodic_stats_reporting: true
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
@@ -197,4 +198,3 @@ dp_irq:
  S1_queue_size: 256
  SGi_cpu: '2'
  SGi_queue_size: 256
-

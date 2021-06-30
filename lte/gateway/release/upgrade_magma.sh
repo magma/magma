@@ -1,7 +1,7 @@
 #!/bin/bash
 
 WHOAMI=$(whoami)
-MAGMA_VERSION="1.5.1"
+MAGMA_VERSION="1.5.2"
 # Default is focal
 OS_VERSION="focal"
 
@@ -37,3 +37,6 @@ echo "deb https://artifactory.magmacore.org/artifactory/debian $OS_VERSION-$MAGM
 
 apt update
 apt install -y magma -o Dpkg::Options::="--force-overwrite"
+
+#Upgrade OVS
+ovs-kmod-upgrade.sh -y
