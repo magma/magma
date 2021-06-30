@@ -1,0 +1,3 @@
+---
+# Bucket where qcow2 image will be exported
+exportBucket: qcow2images

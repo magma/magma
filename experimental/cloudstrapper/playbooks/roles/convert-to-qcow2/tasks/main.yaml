@@ -1,0 +1,64 @@
+---
+# convert-to-qcow2 export agw ami to qcow2 through magma s3 bucket
+# AWS account pre-requisites: Make sure to create the vm import role used by export function
+# https://docs.aws.amazon.com/vm-import/latest/userguide/vmie_prereqs.html#vmimport-role
+
+- name: Check Export Bucket exist
+  command: aws s3 ls "s3://{{ exportBucket }}"
+
+- name: Create dummy file to test bucket rights
+  command: touch ~/dummy
+
+- name: Check Export Bucket permissions
+  command: aws s3 cp ~/dummy  "s3://{{ exportBucket }}" --dryrun
+
+- name: Get latest agw ami
+  ec2_ami_info:
+    filters:
+      name: "{{ agwAmiName }}"
+  register: agwAMI
+
+- name: Export ami in vmdk format
+  command: aws ec2 export-image --image-id "{{agwAMI.images[0].image_id}}" --disk-image-format VMDK --s3-export-location S3Bucket="{{ bucketDefault }}",S3Prefix=exports/ --query 'ExportImageTaskId' --output text
+  register: exportTaskId
+
+- name: Wait for the export to complete
+  shell: |
+    status=$(aws ec2 describe-export-image-tasks --export-image-task-ids "{{exportTaskId.stdout}}" --query 'ExportImageTasks[0].Status' --output text)
+    while [ "$status" != "completed" ]; do sleep 30; status=$(aws ec2 describe-export-image-tasks --export-image-task-ids "{{exportTaskId.stdout}}" --query 'ExportImageTasks[0].Status' --output text); echo $status; done
+
+- name: Download exported AMI in vmdk format
+  amazon.aws.aws_s3:
+    bucket: "{{ bucketDefault }}"
+    object: "/exports/{{exportTaskId.stdout}}.vmdk"
+    dest: ~/agwami.vmdk
+    mode: get
+
+- name: Install qemu-utils package
+  apt:
+    name: qemu-utils
+    state: present
+    update_cache: true
+  become: true
+
+- name: Convert to qcow2
+  command: qemu-img convert -f raw -O qcow2 ~/agwami.vmdk "~/{{ agwAmiName }}.qcow2"
+
+- name: Upload to export bucket
+  amazon.aws.aws_s3:
+    bucket: "{{ exportBucket }}"
+    src: "~/{{ agwAmiName }}.qcow2"
+    object: "/agwqcow2/{{ agwAmiName }}.qcow2"
+    mode: put
+
+- name: Clean vmdk file
+  amazon.aws.aws_s3:
+    bucket: "{{ bucketDefault }}"
+    object: "/exports/{{exportTaskId.stdout}}.vmdk"
+    mode: delobj
+
+- name: Clean default generated file
+  amazon.aws.aws_s3:
+    bucket: "{{ bucketDefault }}"
+    object: "/vmimportexport_write_verification"
+    mode: delobj
