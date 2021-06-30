@@ -555,8 +555,8 @@ func (m *ApnResources) ToTKs() storage.TKs {
 	return tks
 }
 
-func (m *ApnResources) ToProto() map[string]*protos.APNResource {
-	byAPN := map[string]*protos.APNResource{}
+func (m *ApnResources) ToProto() map[string]*protos.APNConfiguration_APNResource {
+	byAPN := map[string]*protos.APNConfiguration_APNResource{}
 	if m == nil {
 		return nil
 	}
@@ -601,11 +601,11 @@ func (m *ApnResource) ToDeleteCriteria() configurator.EntityUpdateCriteria {
 	}
 }
 
-func (m *ApnResource) ToProto() *protos.APNResource {
+func (m *ApnResource) ToProto() *protos.APNConfiguration_APNResource {
 	if m == nil {
 		return nil
 	}
-	proto := &protos.APNResource{
+	proto := &protos.APNConfiguration_APNResource{
 		ApnName:    string(m.ApnName),
 		GatewayIp:  m.GatewayIP.String(),
 		GatewayMac: m.GatewayMac.String(),

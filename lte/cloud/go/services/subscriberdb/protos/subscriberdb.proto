@@ -114,6 +114,7 @@ message IPMapping {
   string apn = 3;
 }
 
+// ApnResourceInternal is the cloud-internal version of the ApnResource proto.
 // HACK: This proto message is used exclusively during the generation of
 // deterministic digests of apn resources, in order to capture its APN and
 // gateway associations.
@@ -123,5 +124,5 @@ message ApnResourceInternal {
   // assoc_gateways is a list of gateway ids associated to the resource (parent association).
   repeated string assoc_gateways = 2;
   // apn_resource is the original apn resource proto message.
-  APNResource apn_resource = 3;
+  APNConfiguration.APNResource apn_resource = 3;
 }

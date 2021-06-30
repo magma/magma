@@ -95,7 +95,7 @@ func getSubscribersDigest(networkID string) (string, error) {
 func getApnResourcesDigest(networkID string) (string, error) {
 	apnResourceEnts, _, err := configurator.LoadAllEntitiesOfType(
 		networkID, lte.APNResourceEntityType,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true, LoadAssocsFromThis: true},
+		configurator.FullEntityLoadCriteria(),
 		serdes.Entity,
 	)
 	if err != nil {
@@ -111,8 +111,8 @@ func getApnResourcesDigest(networkID string) (string, error) {
 		}
 		apnResourceProto := apnResource.ToProto()
 
-		// HACK: Utilize the ApnResourceInternal proto to capture ingoing and outgoing
-		// associations of the apn resource
+		// HACK: use the ApnResourceInternal proto to capture ingoing and outgoing
+		// associations of the apn_resource
 		parentGateways := apnResourceEnt.ParentAssociations.Filter(lte.CellularGatewayEntityType)
 		childAPNs := apnResourceEnt.Associations.Filter(lte.APNEntityType)
 		apnResourceInternalProto := &protos.ApnResourceInternal{

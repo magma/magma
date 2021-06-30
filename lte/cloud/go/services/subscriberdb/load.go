@@ -124,7 +124,7 @@ func ConvertSubEntsToProtos(ent configurator.NetworkEntity, apnConfigs map[strin
 		if !apnFound {
 			continue
 		}
-		var apnResource *lte_protos.APNResource
+		var apnResource *lte_protos.APNConfiguration_APNResource
 		if apnResourceModel, ok := apnResources[assoc.Key]; ok {
 			apnResource = apnResourceModel.ToProto()
 		}
