@@ -21,12 +21,14 @@ jobs:
         run: |
           if [ "${GITHUB_REF##*/}" = "master" ] ;then
             echo "VERSION=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-          else
-            echo "VERSION=${GITHUB_REF##*/}" >> $GITHUB_ENV
           fi
       - name: Launch build and publish script
         run: |
-          orc8r/tools/helm/package.sh --deployment-type all --version $VERSION
+          if [ "${GITHUB_REF##*/}" = "master" ] ;then
+            orc8r/tools/helm/package.sh --deployment-type all --version $VERSION
+          else
+            orc8r/tools/helm/package.sh --deployment-type all
+          fi
       # Notify ci channel when failing
       # Plugin info: https://github.com/marketplace/actions/slack-notify
       - name: Notify failure to slack
