@@ -19,6 +19,17 @@ endif
 GOOS ?= $(shell go env GOOS)
 GOARCH ?= $(shell go env GOARCH)
 
+MAGMA_BUILD_BRANCH ?= $(shell git rev-parse --abbrev-ref HEAD)
+MAGMA_BUILD_TAG ?= $(shell git describe --tags --abbrev=0)
+MAGMA_BUILD_COMMIT_HASH ?= $(shell git rev-parse HEAD)
+MAGMA_BUILD_COMMIT_DATE ?= $(shell git log -1 --format=%cd)
+
+LDFLAGS := -ldflags="-X 'magma/orc8r/lib/go/build_info.buildBranch=$(MAGMA_BUILD_BRANCH)' \
+	-X 'magma/orc8r/lib/go/build_info.buildCommitHash=$(MAGMA_BUILD_COMMIT_HASH)' \
+	-X 'magma/orc8r/lib/go/build_info.buildCommitDate=$(MAGMA_BUILD_COMMIT_DATE)' \
+	-X 'magma/orc8r/lib/go/build_info.buildTag=$(MAGMA_BUILD_TAG)' \
+	-X 'magma/orc8r/lib/go/build_info.buildDate=$(shell date)'"
+
 all: fmt test vet install
 
 build: install
@@ -28,7 +39,7 @@ download:
 
 install:
 	mkdir -p $(GOBIN)
-	GOARCH=$(GOARCH) GOOS=$(GOOS) go build -o $(BUILD_OUT) $(GOFLAGS) magma/gateway/services/magmad
+	GOARCH=$(GOARCH) GOOS=$(GOOS) go build -o $(BUILD_OUT) $(GOFLAGS) $(LDFLAGS) magma/gateway/services/magmad
 	$(MAKE) -C $(MAGMA_ROOT)/orc8r/cloud/go/tools GOARCH=$(GOARCH) GOOS=$(GOOS) GOFLAGS=$(GOFLAGS) BUILD_OUT=$(BUILD_OUT) gateway_tools
 
 test:

@@ -116,3 +116,138 @@ func TestGetDigestDeterministic(t *testing.T) {
 	assert.NoError(t, err)
 	assert.NotEqual(t, expected, digest)
 }
+
+// TestGetDigestApnResourceAssocs is a regression test to check whether the flat
+// digest reflects changes in the apn/gateway associations of apn resources.
+func TestGetDigestApnResourceAssocs(t *testing.T) {
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+	gw1, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	assert.NoError(t, err)
+	gw2, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g2"}, serdes.Entity)
+	assert.NoError(t, err)
+	gw3, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g3"}, serdes.Entity)
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntities("n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.APNEntityType, Key: "apn1",
+				Config: &lte_models.ApnConfiguration{},
+			},
+			{
+				Type: lte.APNEntityType, Key: "apn2",
+				Config: &lte_models.ApnConfiguration{},
+			},
+		}, serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	writes := []configurator.EntityWriteOperation{
+		configurator.NetworkEntity{
+			NetworkID: "n1",
+			Type:      lte.APNResourceEntityType,
+			Key:       "resource1",
+			Config: &lte_models.ApnResource{
+				ApnName:    "apn1",
+				GatewayIP:  "172.16.254.1",
+				GatewayMac: "00:0a:95:9d:68:16",
+				ID:         "resource1",
+				VlanID:     42,
+			},
+			Associations: storage.TKs{
+				{Type: lte.APNEntityType, Key: "apn1"},
+			},
+		},
+		configurator.NetworkEntity{
+			NetworkID: "n1",
+			Type:      lte.APNResourceEntityType,
+			Key:       "resource2",
+			Config: &lte_models.ApnResource{
+				ApnName:    "apn2",
+				GatewayIP:  "172.16.254.2",
+				GatewayMac: "00:0a:95:9d:68:16",
+				ID:         "resource2",
+				VlanID:     43,
+			},
+			Associations: storage.TKs{
+				{Type: lte.APNEntityType, Key: "apn2"},
+			},
+		},
+		configurator.EntityUpdateCriteria{
+			Type: lte.CellularGatewayEntityType,
+			Key:  gw1.Key,
+			AssociationsToAdd: storage.TKs{
+				{Type: lte.APNResourceEntityType, Key: "resource1"},
+				{Type: lte.APNResourceEntityType, Key: "resource2"},
+			},
+		},
+		configurator.EntityUpdateCriteria{
+			Type: lte.CellularGatewayEntityType,
+			Key:  gw2.Key,
+			AssociationsToAdd: storage.TKs{
+				{Type: lte.APNResourceEntityType, Key: "resource1"},
+			},
+		},
+	}
+	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	assert.NoError(t, err)
+	expected, err := subscriberdb.GetDigest("n1")
+	assert.NoError(t, err)
+
+	// Digest reflects changes in gateway->apn resource associations
+	writes = []configurator.EntityWriteOperation{
+		configurator.EntityUpdateCriteria{
+			Type: lte.CellularGatewayEntityType,
+			Key:  gw2.Key,
+			AssociationsToAdd: storage.TKs{
+				{Type: lte.APNResourceEntityType, Key: "resource2"},
+			},
+		},
+		configurator.EntityUpdateCriteria{
+			Type: lte.CellularGatewayEntityType,
+			Key:  gw3.Key,
+			AssociationsToAdd: storage.TKs{
+				{Type: lte.APNResourceEntityType, Key: "resource1"},
+				{Type: lte.APNResourceEntityType, Key: "resource2"},
+			},
+		},
+	}
+	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	assert.NoError(t, err)
+
+	digest, err := subscriberdb.GetDigest("n1")
+	assert.NoError(t, err)
+	assert.NotEqual(t, expected, digest)
+	expected = digest
+
+	// Digest reflects changes in apn resource->apn associations
+	err = configurator.DeleteEntity("n1", lte.APNResourceEntityType, "resource1")
+	assert.NoError(t, err)
+	writes = []configurator.EntityWriteOperation{
+		configurator.NetworkEntity{
+			NetworkID: "n1",
+			Type:      lte.APNResourceEntityType,
+			Key:       "resource1",
+			Config: &lte_models.ApnResource{
+				ApnName:    "apn2",
+				GatewayIP:  "172.16.254.1",
+				GatewayMac: "00:0a:95:9d:68:16",
+				ID:         "resource1",
+				VlanID:     42,
+			},
+			Associations: storage.TKs{
+				{Type: lte.APNEntityType, Key: "apn2"},
+			},
+		},
+	}
+	err = configurator.WriteEntities("n1", writes, serdes.Entity)
+	assert.NoError(t, err)
+
+	digest, err = subscriberdb.GetDigest("n1")
+	assert.NoError(t, err)
+	assert.NotEqual(t, expected, digest)
+}

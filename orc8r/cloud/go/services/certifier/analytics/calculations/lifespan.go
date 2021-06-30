@@ -16,8 +16,8 @@ package calculations
 import (
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"strings"
 	"time"
@@ -28,6 +28,7 @@ import (
 	"magma/orc8r/lib/go/metrics"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -66,7 +67,7 @@ func calculateCertLifespanHours(certsDirectory string, certName string, metricCo
 	}
 	cert, err := x509.ParseCertificate(dat)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to parse x509 certificate data for %s", certName))
 	}
 	// Hours remaining
 	hoursLeft := math.Floor(time.Until(cert.NotAfter).Hours())
@@ -82,12 +83,14 @@ func calculateCertLifespanHours(certsDirectory string, certName string, metricCo
 func getCert(certPath string) ([]byte, error) {
 	dat, err := ioutil.ReadFile(certPath)
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, fmt.Sprintf("failed to read cert file %s", certPath))
 	}
 	if strings.HasSuffix(certPath, ".pem") || strings.HasSuffix(certPath, ".crt") {
 		block, _ := pem.Decode(dat)
-		if block == nil || block.Type != "PUBLIC KEY" {
-			log.Fatal("failed to decode PEM block containing public key")
+		if block == nil {
+			return nil, fmt.Errorf("failed to decode a PEM block containing public key for certificate %s", certPath)
+		} else if block.Type != "PUBLIC KEY" && block.Type != "CERTIFICATE" {
+			return nil, fmt.Errorf("certificate %s has a PEM block type that is not PUBLIC KEY or CERTIFICATE, and instead is %s", certPath, block.Type)
 		}
 		return block.Bytes, nil
 	}

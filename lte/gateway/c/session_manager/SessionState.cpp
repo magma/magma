@@ -260,7 +260,7 @@ void SessionState::insert_pdr(
 }
 
 /* method to change the PDR state */
-void SessionState::set_all_pdrs(enum PdrState pdr_state) {
+void SessionState::set_all_pdrs(PdrState pdr_state) {
   for (auto& rule : pdr_list_) {
     rule.set_pdr_state(pdr_state);
   }
@@ -1707,6 +1707,7 @@ bool SessionState::receive_charging_credit(
     // new credit
     return init_charging_credit(update, session_uc);
   }
+
   auto& grant                            = it->second;
   SessionCreditUpdateCriteria* credit_uc = get_credit_uc(key, session_uc);
   auto credit_validity = ChargingGrant::is_valid_credit_response(update);

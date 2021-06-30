@@ -40,6 +40,11 @@ scopes:
   - ci
   - cwg
   - xwf
+  - agw
+  - cloud
+  - upf
+  - smf
+  - amf
 
 # By default types specified in commitizen/conventional-commit-types is used.
 # See: https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json

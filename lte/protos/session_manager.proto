@@ -14,7 +14,6 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
-import "lte/protos/apn.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/subscriberdb.proto";
 import "google/protobuf/timestamp.proto";
@@ -614,6 +613,8 @@ message CreateSessionResponse {
   TgppContext tgpp_ctx = 10;
   repeated EventTrigger event_triggers = 11;
   google.protobuf.Timestamp revalidation_time = 12;
+  bool online = 13;
+  bool offline = 15;
 }
 
 message StaticRuleInstall {
@@ -819,7 +820,7 @@ enum SMSessionFSMState {
 message M5GSMSessionContext {
   uint32 pdu_session_id = 1;
  // Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial requerst, existing pdusession etc...
-  RequestType rquest_type = 2;
+  RequestType request_type = 2;
   // IP address. Imported from session_manager.proto file
   RedirectServer pdu_address = 3;
   priorityaccess priority_access = 4;

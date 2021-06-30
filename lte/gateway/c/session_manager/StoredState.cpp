@@ -201,7 +201,8 @@ std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
   marshaled["time_of_first_usage"] = std::to_string(stored.time_of_first_usage);
   marshaled["time_of_last_usage"]  = std::to_string(stored.time_of_last_usage);
 
-  for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
+  for (int bucket_int = USED_TX; bucket_int != BUCKET_ENUM_MAX_VALUE;
+       bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     marshaled["buckets"][std::to_string(bucket_int)] =
         std::to_string(stored.buckets[bucket]);
@@ -233,7 +234,8 @@ StoredSessionCredit deserialize_stored_session_credit(
   stored.time_of_last_usage = static_cast<uint64_t>(
       std::stoul(marshaled["time_of_last_usage"].getString()));
 
-  for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
+  for (int bucket_int = USED_TX; bucket_int != BUCKET_ENUM_MAX_VALUE;
+       bucket_int++) {
     Bucket bucket          = static_cast<Bucket>(bucket_int);
     stored.buckets[bucket] = static_cast<uint64_t>(std::stoul(
         marshaled["buckets"][std::to_string(bucket_int)].getString()));
