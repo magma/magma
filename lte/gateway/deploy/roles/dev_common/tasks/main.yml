@@ -30,7 +30,6 @@
   become: yes
   with_items:
     - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
-  when: preburn
 
 - name: Restart service ssh
   become: yes
