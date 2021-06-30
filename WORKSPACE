@@ -96,6 +96,7 @@ git_repository(
     name = "cpp_redis",
     commit = "99b1dda835f529b2ab4bc431a4bd99d344dbd4e9",
     remote = "https://github.com/cpp-redis/cpp_redis.git",
+    shallow_since = "1590000158 -0500",
 )
 ### CPP_REDIS DEPENDENCIES ###
 
@@ -103,6 +104,7 @@ git_repository(
     name = "yaml-cpp",
     commit = "a6bbe0e50ac4074f0b9b44188c28cf00caf1a723",  # This is just master might want to pin to a release
     remote = "https://github.com/jbeder/yaml-cpp.git",
+    shallow_since = "1609854028 -0600",
 )
 
 # Testing gtest / gmock
@@ -110,6 +112,7 @@ http_archive(
     name = "com_google_googletest",
     strip_prefix = "googletest-609281088cfefc76f9d0ce82e1ff6c30cc3591e5",
     urls = ["https://github.com/google/googletest/archive/609281088cfefc76f9d0ce82e1ff6c30cc3591e5.zip"],
+    sha256 = "5cf189eb6847b4f8fc603a3ffff3b0771c08eec7dd4bd961bfd45477dd13eb73",
 )
 
 ### BOOST DEPENDENCY USED IN orc8r/gateway/c/common/config
