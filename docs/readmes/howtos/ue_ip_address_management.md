@@ -1,16 +1,16 @@
 ---
 id: config_agw_bridged
-title: AGW Bridged Mode
+title: AGW Non-NAT Mode
 hide_title: true
 ---
-# Magma AGW Bridged mode
+# Magma AGW Non-NAT mode
 
-Bridged mode on the Access Gateway refers to any IP allocation strategy that
+Non-NAT mode on the Access Gateway refers to any IP allocation strategy that
 does not NAT assigned UE IP addresses at the AGW.
 
 There are 3 components to reconfigure to enable bridged mode:
 
-- Bridged (Non-NAT) config option for AGW
+- Non-NAT config option for AGW
 - UE IP allocation mode
 - AGW management plane traffic
 
@@ -20,11 +20,11 @@ update these values if you don't have access to the API. Navigate to the
 corresponding component on the NMS (e.g. gateway, network, subscriber) and
 use the JSON editor to edit its configuration.
 
-## Enable Bridged Mode
+## Non-NAT config option for AGW
 
-To configure an AGW in bridged mode, you need to disable NAT on the AGW.
+To configure an AGW in Non-NAT mode, you need to disable NAT on the AGW.
 Note that this is a gateway-level configuration, so you will need to change
-this for every AGW in the network that you want to run in bridged mode.
+this for every AGW in the network that you want to run in Non-NAT mode.
 
 ```
 API: /lte/{network_id}/gateways/{gateway_id}/cellular
@@ -39,12 +39,29 @@ This mode will turn on the `uplink_br0` interface in the AGW to bridge UE
 traffic to the SGi interface. You will need to configure an internet gateway
 node that handles NAT and routing for all user plane traffic. The AGW will
 detect the (default) internet gateway from its networking stack and start ARP
-probes to get the gateway MAC address. This gateway MAC address is used as the
-target host for all bridged user plane traffic. If the AGW is not able complete
-ARP resolution, it floods user plane packets in SGi L2 segment. To avoid
-flooding SGi network, you can statically set the fallback MAC address of the
-internet gateway in `/var/opt/magma/configs/pipelined.yml` with the key
+probes to get the internet gateway MAC address. This gateway MAC address is
+used as the target host for all Non-NAT user plane traffic. If the AGW is not
+able complete ARP resolution, it floods user plane packets in the SGi L2 segment.
+To avoid flooding SGi network, you can statically set the fallback MAC address
+of the internet gateway in `/var/opt/magma/configs/pipelined.yml` with the key
 `uplink_gw_mac`.
+
+### Router mode
+By default, the AGW is pre-configured in router mode where the AGW acts as the L3
+next hop for the UE allocated subnet (UEs can be allocated IP addresses via the
+IP address pool or Static assignment). Note that currently the AGW does not
+advertise this prefix dynamically. So the upstream networks need to be configured
+with a static route pointing to the SGi interface for the UE subnet(s)
+
+This support is added in Release 1.6.
+
+### Bridged mode
+Bridged mode is on along with router mode. The AGW does respond to ARP
+requests for each UE IP even when router mode is on. If you do not want router
+mode on you need to edit pipelined.yml file to change `dp_router_enabled` to
+false.
+
+## Configuring AGW NAT mode
 
 When switching between NAT modes, we recommend rebooting the AGW. You can do
 this from the NMS or manually if you have direct access to your AGW.
@@ -204,15 +221,15 @@ to the MAC address of your internet gateway. This value will be used as a
 fallback if all other methods of determining the MAC of the uplink internet
 gateway have failed.
 
-## AGW Management Traffic
+## AGW management plane traffic
 
 Magma allows to SGi inteface to act as management interface.
 By default SGi interface would start DHCP client on the port.
-In NATed mode this sets this IP address to SGi interface.
-This sets IP address on SGi eth port in NATed mode. In bridged mode
-this IP is set to Bridge interface.
+In NATed mode this configuration applies to the SGi interface.
+In Non-NAT mode this IP is set to uplink bridge interface.
 
-There is orc8r API to assign static IP and default Gateway for each AGW.
+There is orc8r API to assign static IP and default Gateway for each AGW, both
+are required to successfully set the SGi IP address.
 
 ```
 API: /lte/{network_id}/gateways/{gateway_id}/cellular
@@ -226,7 +243,7 @@ API: /lte/{network_id}/gateways/{gateway_id}/cellular
 ```
 
 You can also set VLAN for SGi management port using following orc8r.
-This only works in Bridged mode.
+This only works in Non-NAT mode.
 
 ```
 API: /lte/{network_id}/gateways/{gateway_id}/cellular
