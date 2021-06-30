@@ -183,6 +183,13 @@
         "ids": [
           "orc8r/debug_logs"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/alerts_troubleshooting"
+        ]
       }
     ],
     "Contribute": [
