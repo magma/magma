@@ -80,6 +80,88 @@ class SessionManagerHandlerTest : public ::testing::Test {
     rule_store->insert_rule(create_policy_rule(rule_id, m_key, rating_group));
   }
 
+  void set_sm_session_context(magma::SetSMSessionContext* request) {
+    auto* req = request->mutable_rat_specific_context()
+                    ->mutable_m5gsm_session_context();
+    auto* reqcmn = request->mutable_common_context();
+    req->set_pdu_session_id({0x5});
+    req->set_request_type(magma::RequestType::INITIAL_REQUEST);
+    req->mutable_pdu_address()->set_redirect_address_type(
+        magma::RedirectServer::IPV4);
+    req->mutable_pdu_address()->set_redirect_server_address("10.20.30.40");
+    req->set_priority_access(magma::priorityaccess::High);
+    req->set_access_type(magma::AccessType::M_3GPP_ACCESS_3GPP);
+    req->set_imei("123456789012345");
+    req->set_gpsi("9876543210");
+    req->set_pcf_id("1357924680123456");
+
+    reqcmn->mutable_sid()->set_id("IMSI000000000000001");
+    reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
+
+    EXPECT_EQ(req->pdu_session_id(), 0x5);
+    EXPECT_EQ(req->request_type(), magma::RequestType::INITIAL_REQUEST);
+    EXPECT_EQ(
+        req->pdu_address().redirect_address_type(),
+        magma::RedirectServer::IPV4);
+    EXPECT_EQ(req->pdu_address().redirect_server_address(), "10.20.30.40");
+    EXPECT_EQ(req->priority_access(), magma::priorityaccess::High);
+    EXPECT_EQ(req->access_type(), magma::AccessType::M_3GPP_ACCESS_3GPP);
+    EXPECT_EQ(req->imei(), "123456789012345");
+    EXPECT_EQ(req->gpsi(), "9876543210");
+    EXPECT_EQ(req->pcf_id(), "1357924680123456");
+
+    EXPECT_EQ(reqcmn->sid().id(), "IMSI000000000000001");
+    EXPECT_EQ(reqcmn->sm_session_state(), magma::SMSessionFSMState::CREATING_0);
+  }
+
+  void set_sm_notif_context(
+      magma::SetSmNotificationContext* request,
+      magma::SetSMSessionContext* session_ctx_req) {
+    auto* req    = request->mutable_rat_specific_notification();
+    auto* reqcmn = request->mutable_common_context();
+    req->set_pdu_session_id({0x5});
+    req->set_request_type(magma::RequestType::INITIAL_REQUEST);
+    req->set_access_type(magma::AccessType::M_3GPP_ACCESS_3GPP);
+    req->set_notify_ue_event(
+        magma::NotifyUeEvents::PDU_SESSION_INACTIVE_NOTIFY);
+
+    reqcmn->mutable_sid()->set_id("IMSI000000000000001");
+    reqcmn->set_apn("BLR");
+    reqcmn->set_ue_ipv4("192.168.128.11");
+    reqcmn->set_rat_type(magma::RATType::TGPP_NR);
+    reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
+
+    auto imsi   = reqcmn->sid().id();
+    auto apn    = reqcmn->apn();
+    auto pdu_id = req->pdu_session_id();
+    auto cfg = set_session_manager->m5g_build_session_config(*session_ctx_req);
+    auto& noti    = *req;
+    auto ue_event = noti.notify_ue_event();
+    std::function<void(Status, SmContextVoid)> response_callback;
+
+    EXPECT_EQ(pdu_id, 0x5);
+    EXPECT_EQ(imsi, "IMSI000000000000001");
+    EXPECT_EQ(apn, "BLR");
+    EXPECT_EQ(req->request_type(), magma::RequestType::INITIAL_REQUEST);
+    EXPECT_EQ(req->access_type(), magma::AccessType::M_3GPP_ACCESS_3GPP);
+
+    EXPECT_EQ(reqcmn->ue_ipv4(), "192.168.128.11");
+    EXPECT_EQ(reqcmn->rat_type(), magma::RATType::TGPP_NR);
+    set_session_manager->send_create_session(session_map_, imsi, cfg, pdu_id);
+
+    EXPECT_EQ(reqcmn->sm_session_state(), magma::SMSessionFSMState::CREATING_0);
+    EXPECT_EQ(ue_event, magma::NotifyUeEvents::PDU_SESSION_INACTIVE_NOTIFY);
+
+    req->set_notify_ue_event(magma::NotifyUeEvents::UE_IDLE_MODE_NOTIFY);
+    EXPECT_EQ(
+        noti.notify_ue_event(), magma::NotifyUeEvents::UE_IDLE_MODE_NOTIFY);
+
+    set_session_manager->initiate_release_session(session_map_, pdu_id, imsi);
+    reqcmn->set_sm_session_state(magma::SMSessionFSMState::RELEASED_4);
+    EXPECT_EQ(reqcmn->sm_session_state(), magma::SMSessionFSMState::RELEASED_4);
+    EXPECT_EQ(reqcmn->sm_session_version(), 0);
+  }
+
  public:
   std::shared_ptr<SessionStore> session_store;
   std::shared_ptr<SetMessageManagerHandler> set_session_manager;
@@ -94,21 +176,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
 
 TEST_F(SessionManagerHandlerTest, test_SetAmfSessionContext) {
   magma::SetSMSessionContext request;
-  auto* req =
-      request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
-  auto* reqcmn = request.mutable_common_context();
-  req->set_pdu_session_id({0x5});
-  req->set_rquest_type(magma::RequestType::INITIAL_REQUEST);
-  req->mutable_pdu_address()->set_redirect_address_type(
-      magma::RedirectServer::IPV4);
-  req->mutable_pdu_address()->set_redirect_server_address("10.20.30.40");
-  req->set_priority_access(magma::priorityaccess::High);
-  req->set_imei("123456789012345");
-  req->set_gpsi("9876543210");
-  req->set_pcf_id("1357924680123456");
-
-  reqcmn->mutable_sid()->set_id("IMSI000000000000001");
-  reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
+  set_sm_session_context(&request);
 
   grpc::ServerContext server_context;
 
@@ -129,21 +197,7 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionContext) {
 }
 TEST_F(SessionManagerHandlerTest, test_InitSessionContext) {
   magma::SetSMSessionContext request;
-  auto* req =
-      request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
-  auto* reqcmn = request.mutable_common_context();
-  req->set_pdu_session_id({0x5});
-  req->set_rquest_type(magma::RequestType::INITIAL_REQUEST);
-  req->mutable_pdu_address()->set_redirect_address_type(
-      magma::RedirectServer::IPV4);
-  req->mutable_pdu_address()->set_redirect_server_address("10.20.30.40");
-  req->set_priority_access(magma::priorityaccess::High);
-  req->set_imei("123456789012345");
-  req->set_gpsi("9876543210");
-  req->set_pcf_id("1357924680123456");
-
-  reqcmn->mutable_sid()->set_id("IMSI000000000000001");
-  reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
+  set_sm_session_context(&request);
 
   grpc::ServerContext server_context;
 
@@ -167,21 +221,7 @@ TEST_F(SessionManagerHandlerTest, test_InitSessionContext) {
 
 TEST_F(SessionManagerHandlerTest, test_UpdateSessionContext) {
   magma::SetSMSessionContext request;
-  auto* req =
-      request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
-  auto* reqcmn = request.mutable_common_context();
-  req->set_pdu_session_id({0x5});
-  req->set_rquest_type(magma::RequestType::INITIAL_REQUEST);
-  req->mutable_pdu_address()->set_redirect_address_type(
-      magma::RedirectServer::IPV4);
-  req->mutable_pdu_address()->set_redirect_server_address("10.20.30.40");
-  req->set_priority_access(magma::priorityaccess::High);
-  req->set_imei("123456789012345");
-  req->set_gpsi("9876543210");
-  req->set_pcf_id("1357924680123456");
-
-  reqcmn->mutable_sid()->set_id("IMSI000000000000001");
-  reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
+  set_sm_session_context(&request);
 
   grpc::ServerContext server_context;
 
@@ -208,6 +248,28 @@ TEST_F(SessionManagerHandlerTest, test_UpdateSessionContext) {
   session_enforcer->add_default_rules(session, IMSI1);
   session_enforcer->m5g_update_session_context(
       session_map, IMSI1, session, update);
+}
+
+TEST_F(SessionManagerHandlerTest, test_SetSmfNotification) {
+  magma::SetSMSessionContext session_ctx_req;
+  set_sm_session_context(&session_ctx_req);
+
+  magma::SetSmNotificationContext request;
+  set_sm_notif_context(&request, &session_ctx_req);
+
+  grpc::ServerContext server_context;
+
+  set_session_manager->SetSmfNotification(
+      &server_context, &request,
+      [this](grpc::Status status, SmContextVoid Void) {});
+  set_session_manager->idle_mode_change_sessions_handle(
+      request, [](grpc::Status status, SmContextVoid Void) {});
+
+  set_session_manager->pdu_session_inactive(
+      request, [](grpc::Status status, SmContextVoid Void) {});
+
+  // Run session creation in the EventBase loop
+  evb->loopOnce();
 }
 
 int main(int argc, char** argv) {

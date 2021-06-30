@@ -260,7 +260,7 @@ void SessionState::insert_pdr(
 }
 
 /* method to change the PDR state */
-void SessionState::set_all_pdrs(enum PdrState pdr_state) {
+void SessionState::set_all_pdrs(PdrState pdr_state) {
   for (auto& rule : pdr_list_) {
     rule.set_pdr_state(pdr_state);
   }
