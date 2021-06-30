@@ -33,7 +33,7 @@ rm -rf /etc/apt/sources.list.d/*
 wget https://artifactory.magmacore.org:443/artifactory/api/gpg/key/public -O /tmp/public
 apt-key add /tmp/public
 
-echo "deb https://artifactory.magmacore.org/artifactory/debian-test $OS_VERSION-$MAGMA_VERSION main" >> /etc/apt/sources.list.d/magma.list
+echo "deb https://artifactory.magmacore.org/artifactory/debian $OS_VERSION-$MAGMA_VERSION main" >> /etc/apt/sources.list.d/magma.list
 
 apt update
 apt install -y magma -o Dpkg::Options::="--force-overwrite"
