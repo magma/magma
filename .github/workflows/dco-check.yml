@@ -17,23 +17,3 @@ jobs:
       uses: tim-actions/dco@master
       with:
         commits: ${{ steps.get-pr-commits.outputs.commits }}
-    - name: DCO comment on PR
-      if: failure()
-      uses: actions/github-script@v3
-      with:
-        script: |
-          var msg = `Oops! Looks like you failed the \`DCO check\`. Be sure to sign all your commits.
-
-          ### Howto
-
-          - [Magma guidelines on signing commits](https://magma.github.io/magma/docs/next/contributing/contribute_workflow#guidelines)
-          - [About the \`signoff\` feature](https://stackoverflow.com/questions/1962094/what-is-the-sign-off-feature-in-git-for)
-          - [Howto: sign-off most-recent commit](https://stackoverflow.com/questions/13043357/git-sign-off-previous-commits)
-          - [Howto: sign-off multiple past commits](https://gist.github.com/kwk/d70f20d17b18c4f3296d)`
-
-          github.issues.createComment({
-            issue_number: context.issue.number,
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            body: msg,
-          })
