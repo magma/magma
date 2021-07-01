@@ -34,20 +34,22 @@ import (
 )
 
 type subscriberdbServicer struct {
-	flatDigestEnabled bool
-	digestStore   storage.DigestStore
-	perSubDigestStore *storage.PerSubDigestStore
+	flatDigestEnabled        bool
+	maxNoResyncChangesetSize int
+	digestStore          storage.DigestStore
+	perSubDigestStore        *storage.PerSubDigestStore
 }
 
 func NewSubscriberdbServicer(
 	config subscriberdb.Config,
-	flatDigestStore storage.DigestStore,
+	digestStore storage.DigestStore,
 	perSubDigestStore *storage.PerSubDigestStore,
 ) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
-		flatDigestEnabled: config.FlatDigestEnabled,
-		digestStore:   flatDigestStore,
-		perSubDigestStore: perSubDigestStore,
+		flatDigestEnabled:        config.FlatDigestEnabled,
+		maxNoResyncChangesetSize: config.MaxNoResyncChangesetSize,
+		digestStore:          digestStore,
+		perSubDigestStore:        perSubDigestStore,
 	}
 	return servicer
 }
@@ -93,22 +95,22 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	if err != nil {
 		return nil, err
 	}
-
 	toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(cloudPerSubDigests, clientPerSubDigests)
-	// TODO(wangyyt1013): determine resync based on size of changeset
+	if len(toRenew) > s.maxNoResyncChangesetSize {
+		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
+	}
 	sids := funk.Keys(toRenew).([]string)
-	// TODO(wangyyt1013): load apn resource changes as well
 	subProtosById, err := subscriberdb.LoadSubProtosByID(sids, networkID, apnsByName, apnResourcesByAPN)
 	if err != nil {
 		return nil, err
 	}
 
 	res := &lte_protos.SyncSubscribersResponse{
-		FlatDigest: &lte_protos.Digest{Md5Base64Digest: flatDigest},
+		FlatDigest:    &lte_protos.Digest{Md5Base64Digest: flatDigest},
 		PerSubDigests: cloudPerSubDigests,
-		ToRenew: subProtosById,
-		Deleted: deleted,
-		Resync: true,
+		ToRenew:       subProtosById,
+		Deleted:       deleted,
+		Resync:        false,
 	}
 	return res, nil
 }
@@ -138,11 +140,21 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		return nil, err
 	}
 
-	digest, _ := s.getDigestInfo(&lte_protos.Digest{Md5Base64Digest: ""}, networkID)
+	flatDigest, perSubDigests := &lte_protos.Digest{Md5Base64Digest: ""}, []*lte_protos.SubscriberDigestByID{}
+	if req.PageToken == "" {
+		// the digests are sent back during the request for the first page of subscriber data
+		flatDigest, _ = s.getDigestInfo(&lte_protos.Digest{Md5Base64Digest: ""}, networkID)
+		perSubDigests, err = s.perSubDigestStore.GetDigest(networkID)
+		if err != nil {
+			glog.Errorf("Failed to get per-sub digests from store for network %+v: %+v", networkID, err)
+		}
+	}
+
 	listRes := &lte_protos.ListSubscribersResponse{
 		Subscribers:   subProtos,
 		NextPageToken: nextToken,
-		FlatDigest:    digest,
+		FlatDigest:    flatDigest,
+		PerSubDigests: perSubDigests,
 	}
 	return listRes, nil
 }

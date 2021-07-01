@@ -262,9 +262,9 @@ message ListSubscribersResponse {
   // flat_digest is the server-defined, deterministic digest of the full set of
   // returned subscriber objects.
   Digest flat_digest = 3;
-  // per_sub_digests is a set of per-subscriber digests, indexed by the
-  // subscriber IDs (IMSI).
-  map<string, Digest> per_sub_digests = 4;
+  // per_sub_digests is a set of per-subscriber digests, ordered by their
+  // subscriber IDs.
+  repeated SubscriberDigestWithID per_sub_digests = 4;
 }
 
 message SubscriberDigestWithID {

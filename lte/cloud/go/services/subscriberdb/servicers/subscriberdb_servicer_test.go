@@ -27,13 +27,13 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/servicers"
 	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
+	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_storage "magma/orc8r/cloud/go/services/configurator/storage"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
-	"magma/orc8r/cloud/go/test_utils"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/swag"
@@ -47,7 +47,7 @@ func TestListSubscribers(t *testing.T) {
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
 
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: false}, digestStore, perSubDigestStore)
+	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true}, digestStore, perSubDigestStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
@@ -112,6 +112,27 @@ func TestListSubscribers(t *testing.T) {
 		},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
+
+	// Flat and per-sub digests in the cloud store should be returned as well
+	expectedDigest := "cherry"
+	expectedPerSubDigests := []*lte_protos.SubscriberDigestByID{
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "12345", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "cat"},
+		},
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "67890", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "dog"},
+		},
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "99999", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "turtle"},
+		},
+	}
+	err = digestStore.SetDigest("n1", expectedDigest)
+	assert.NoError(t, err)
+	err = perSubDigestStore.SetDigest("n1", expectedPerSubDigests)
 	assert.NoError(t, err)
 
 	// Fetch first page of subscribers
@@ -179,6 +200,8 @@ func TestListSubscribers(t *testing.T) {
 	assert.NoError(t, err)
 	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
 	assert.Equal(t, expectedToken, res.NextPageToken)
+	assert.Equal(t, expectedDigest, res.FlatDigest.GetMd5Base64Digest())
+	assert.Equal(t, expectedPerSubDigests, res.PerSubDigests)
 
 	expectedProtos2 := []*lte_protos.SubscriberData{
 		{
@@ -345,23 +368,22 @@ func TestCheckSubscribersInSync(t *testing.T) {
 	assert.False(t, res.InSync)
 }
 
-func sTestSyncSubscribers(t *testing.T) {
+func TestSyncSubscribers(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	flatDigestStore := initializeFlatDigestStore(t)
+	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
 
 	// Create servicer with flat digest feature flag turned on
-	servicer := servicers.NewSubscriberdbServicer(subscriberdb.Config{FlatDigestEnabled: true}, flatDigestStore, perSubDigestStore)
+	configs := subscriberdb.Config{FlatDigestEnabled: true, MaxNoResyncChangesetSize: 100}
+	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())
-	err = flatDigestStore.SetDigest("n1", subscriberdb_storage.FlatDigestUpsertArgs{
-		Digest: "digest_cherry",
-	})
+	err = digestStore.SetDigest("n1", "digest_cherry")
 	assert.NoError(t, err)
 
 	// Initially no digests
@@ -384,24 +406,19 @@ func sTestSyncSubscribers(t *testing.T) {
 		},
 		serdes.Entity,
 	)
-	err = perSubDigestStore.SetDigest("n1", subscriberdb_storage.PerSubDigestUpsertArgs{
-		ToRenew: map[string]string{
-			"IMSI00000": "apple",
-			"IMSI00001": "tree",
-		},
-	})
-	assert.NoError(t, err)
-
 	expectedPerSubDigests := []*lte_protos.SubscriberDigestByID{
 		{
-			Sid: &lte_protos.SubscriberID{Id: "00000", Type: lte_protos.SubscriberID_IMSI},
+			Sid:    &lte_protos.SubscriberID{Id: "00000", Type: lte_protos.SubscriberID_IMSI},
 			Digest: &lte_protos.Digest{Md5Base64Digest: "apple"},
 		},
 		{
-			Sid: &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
+			Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
 			Digest: &lte_protos.Digest{Md5Base64Digest: "tree"},
 		},
 	}
+	err = perSubDigestStore.SetDigest("n1", expectedPerSubDigests)
+	assert.NoError(t, err)
+
 	expectedToRenewData := map[string]*lte_protos.SubscriberData{
 		"IMSI00000": {
 			Sid:        &lte_protos.SubscriberID{Id: "00000", Type: lte_protos.SubscriberID_IMSI},
@@ -440,25 +457,21 @@ func sTestSyncSubscribers(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = perSubDigestStore.SetDigest("n1", subscriberdb_storage.PerSubDigestUpsertArgs{
-		ToRenew: map[string]string{
-			"IMSI00001": "cactus",
-			"IMSI00002": "needle",
-		},
-		Deleted: []string{"IMSI00000"},
-	})
-	assert.NoError(t, err)
 
 	expectedPerSubDigests = []*lte_protos.SubscriberDigestByID{
 		{
-			Sid: &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
+			Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
 			Digest: &lte_protos.Digest{Md5Base64Digest: "cactus"},
 		},
 		{
-			Sid: &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
+			Sid:    &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
 			Digest: &lte_protos.Digest{Md5Base64Digest: "needle"},
 		},
 	}
+	err = perSubDigestStore.SetDigest("n1", expectedPerSubDigests)
+	assert.NoError(t, err)
+
+
 	expectedToRenewData = map[string]*lte_protos.SubscriberData{
 		"IMSI00001": {
 			Sid:        &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
@@ -484,6 +497,102 @@ func sTestSyncSubscribers(t *testing.T) {
 	assert.Equal(t, []string{"IMSI00000"}, res.Deleted)
 }
 
+func TestSyncSubscribersResync(t *testing.T) {
+	lte_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+	digestStore := initializeDigestStore(t)
+	perSubDigestStore := initializePerSubDigestStore(t)
+
+	// Create servicer with a small MaxNoResyncChangesetSize
+	configs := subscriberdb.Config{
+		FlatDigestEnabled:        true,
+		MaxNoResyncChangesetSize: 2,
+	}
+	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore)
+
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
+	assert.NoError(t, err)
+	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
+	ctx := id.NewContextWithIdentity(context.Background())
+
+	// When changeset is no larger than MaxNoResyncChangesetSize, the servicer should return the full changeset
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{Type: lte.SubscriberEntityType, Key: "IMSI00000", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+			{Type: lte.SubscriberEntityType, Key: "IMSI00001", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+	expectedPerSubDigests := []*lte_protos.SubscriberDigestWithID{
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "00000", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "apple"},
+		},
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "tree"},
+		},
+	}
+	err = perSubDigestStore.SetDigest("n1", expectedPerSubDigests)
+	assert.NoError(t, err)
+
+	expectedToRenewData := map[string]*lte_protos.SubscriberData{
+		"IMSI00000": {
+			Sid:        &lte_protos.SubscriberID{Id: "00000", Type: lte_protos.SubscriberID_IMSI},
+			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
+			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
+			NetworkId:  &protos.NetworkID{Id: "n1"},
+			SubProfile: "foo",
+		},
+		"IMSI00001": {
+			Sid:        &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
+			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE, AuthKey: []byte{}},
+			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
+			NetworkId:  &protos.NetworkID{Id: "n1"},
+			SubProfile: "foo",
+		},
+	}
+	req := &lte_protos.SyncSubscribersRequest{
+		PerSubDigests: []*lte_protos.SubscriberDigestWithID{},
+	}
+	res, err := servicer.SyncSubscribers(ctx, req)
+	assert.False(t, res.Resync)
+	assert.Equal(t, expectedPerSubDigests, res.PerSubDigests)
+	assert.Equal(t, expectedToRenewData, res.ToRenew)
+	assert.Equal(t, []string{}, res.Deleted)
+
+	// When the changeset is larger than MaxNoResyncChangesetSize, the servicer should return resync and nothing else
+	curPerSubDigests := expectedPerSubDigests
+	err = perSubDigestStore.SetDigest("n1", []*lte_protos.SubscriberDigestByID{
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "cockatiel"},
+		},
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "00003", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "parakeet"},
+		},
+		{
+			Sid:    &lte_protos.SubscriberID{Id: "00004", Type: lte_protos.SubscriberID_IMSI},
+			Digest: &lte_protos.Digest{Md5Base64Digest: "conure"},
+		},
+	})
+	assert.NoError(t, err)
+
+	req = &lte_protos.SyncSubscribersRequest{
+		PerSubDigests: curPerSubDigests,
+	}
+	res, err = servicer.SyncSubscribers(ctx, req)
+	assert.NoError(t, err)
+	assert.True(t, res.Resync)
+	assert.Nil(t, res.ToRenew)
+	assert.Nil(t, res.Deleted)
+}
+
 func serializeToken(t *testing.T, token *configurator_storage.EntityPageToken) string {
 	marshalledToken, err := proto.Marshal(token)
 	assert.NoError(t, err)
@@ -497,18 +606,20 @@ func assertEqualSubscriberData(t *testing.T, expectedProtos []*lte_protos.Subscr
 	}
 }
 
+
 func initializeDigestStore(t *testing.T) subscriberdb_storage.DigestStore {
-	db, err := test_utils.GetSharedMemoryDB()
+	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	digestStore := subscriberdb_storage.NewDigestStore(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, digestStore.Initialize())
-	return digestStore
+	store := subscriberdb_storage.NewDigestStore(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, store.Initialize())
+	return store
 }
 
-func initializePerSubDigestStore(t *testing.T) subscriberdb_storage.DigestLookup {
-	db, err := test_utils.GetSharedMemoryDB()
+func initializePerSubDigestStore(t *testing.T) *subscriberdb_storage.PerSubDigestStore {
+	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	store := subscriberdb_storage.NewPerSubDigestLookup(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, store.Initialize())
+	fact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, fact.InitializeFactory())
+	store := subscriberdb_storage.NewPerSubDigestStore(fact)
 	return store
 }

@@ -60,7 +60,7 @@ func main() {
 	}
 
 	perSubDigestFact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
-	if err := fact.InitializeFactory(); err != nil {
+	if err := perSubDigestFact.InitializeFactory(); err != nil {
 		glog.Fatalf("Error initializing per-sub digest storage: %+v", err)
 	}
 	perSubDigestStore := subscriberdb_storage.NewPerSubDigestLookup(perSubDigestFact)

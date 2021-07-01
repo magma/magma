@@ -53,7 +53,7 @@ func StartTestService(t *testing.T) {
 	digestStore := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, digestStore.Initialize())
 	perSubDigestFact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
-	assert.NoError(t, fact.InitializeFactory())
+	assert.NoError(t, perSubDigestFact.InitializeFactory())
 	perSubDigestStore := storage.NewPerSubDigestLookup(perSubDigestFact)
 
 	// Load service configs

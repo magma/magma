@@ -12,3 +12,6 @@
 
 # flatDigestEnabled is a feature flag for the flat digest functionality.
 flatDigestEnabled: true
+# maxNoResyncChangesetSize specifies the max size of the cloud-agw changeset
+# past which a resync signal will be sent back to the agw.
+maxNoResyncChangesetSize: 500
