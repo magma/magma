@@ -1,7 +1,7 @@
 name: DCO check
 on:  # yamllint disable-line rule:truthy
   pull_request:
-    types: [opened, reopened, synchronize]
+    types: [opened, reopened]
 
 jobs:
   dco_check_job:
