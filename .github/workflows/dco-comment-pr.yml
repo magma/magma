@@ -17,7 +17,7 @@ jobs:
         uses: actions/github-script@v3
         with:
           script: |
-            var msg = `Oops! Looks like you failed the \`DCO check\`. Be sure to sign all your commits.
+            var msg = `Oopss! Looks like you failed the \`DCO check\`. Be sure to sign all your commits.
 
             ### Howto
 
