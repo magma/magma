@@ -1549,6 +1549,7 @@ jobs:
             fi
       - run:
           name: Clean AWS resources
+          when: always
           command: |
             ansible-playbook $WORK_DIR/cleanup.yaml -e "dirLocalInventory=$VARS_DIR" --tags agw,subnet,secgroup,vpc,keys --skip-tags orc8r  -e "{"deleteStacks": [stackDevOpspublishAmisToMarketplaceAgw, publish-amis-to-marketplace-stack-devopscloustrapper, publish-amis-to-marketplace-stack, stackDevOpsNetwork]}"
       - notify-magma:
