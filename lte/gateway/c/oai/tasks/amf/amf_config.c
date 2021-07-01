@@ -350,7 +350,7 @@ int amf_config_parse_file(amf_config_t* config_pP) {
       config_pP->unauthenticated_imsi_supported = parse_bool(astring);
     }
 
-    // NAS SETTING
+    // NAS5G SETTING
     setting =
         config_setting_get_member(setting_mme, MME_CONFIG_STRING_NAS_CONFIG);
 

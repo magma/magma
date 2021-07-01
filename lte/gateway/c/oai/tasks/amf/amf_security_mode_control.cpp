@@ -77,8 +77,8 @@ void format_plmn(amf_plmn_t* plmn) {
 
 static int security_mode_t3560_handler(zloop_t* loop, int timer_id, void* arg);
 static int m5g_security_select_algorithms(
-    UESecurityCapabilityMsg ue_capabilities, int* const amf_eiaP,
-    int* const amf_eeaP);
+    UESecurityCapabilityMsg ue_capabilities, int* const amf_iaP,
+    int* const amf_eaP);
 
 /****************************************************************************
  **                                                                        **
@@ -99,7 +99,7 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
   smc_proc->amf_com_proc.amf_proc.type           = NAS_AMF_PROC_TYPE_COMMON;
   smc_proc->amf_com_proc.type                    = AMF_COMM_PROC_SMC;
 
-  // smc_proc->T3460.sec = mme_config.nas_config.t3460_sec;
+  // smc_proc->T3460.sec = amf_config.nas_config.t3460_sec;
   // smc_proc->T3460.id  = NAS5G_TIMER_INACTIVE_ID;
 
   // nas_amf_common_procedure_t* wrapper = calloc(1, sizeof(*wrapper));
@@ -108,7 +108,7 @@ nas_amf_smc_proc_t* nas5g_new_smc_procedure(amf_context_t* const amf_context) {
     wrapper->proc = &smc_proc->amf_com_proc;
     LIST_INSERT_HEAD(
         &amf_context->amf_procedures->amf_common_procs, wrapper, entries);
-    OAILOG_TRACE(LOG_NAS_EMM, "New EMM_COMM_PROC_AUTH\n");
+    OAILOG_TRACE(LOG_NAS_AMF, "New AMF_COMM_PROC_AUTH\n");
     return smc_proc;
   } else {
     free_wrapper((void**) &smc_proc);
@@ -297,9 +297,8 @@ int amf_proc_security_mode_control(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int rc                       = RETURNerror;
   bool security_context_is_new = false;
-  // TODO: Hardcoded values Will be taken care in upcoming PR
-  int amf_eea = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
-  int amf_eia = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;  // Integrity Algorithm 2
+  int amf_ea                   = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
+  int amf_ia                   = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;
   amf_plmn_t plmn;
   uint8_t snni[32]  = {0};
   uint8_t kausf[32] = {0};
@@ -350,10 +349,11 @@ int amf_proc_security_mode_control(
       amf_ctx->_security.dl_count.overflow = 0;
       amf_ctx->_security.dl_count.seq_num  = 0;
 
+      // Compute NAS cyphering and integrity keys
       rc = m5g_security_select_algorithms(
-          amf_ctx->ue_sec_capability, &amf_eia, &amf_eea);
-      amf_ctx->_security.selected_algorithms.encryption = amf_eea;
-      amf_ctx->_security.selected_algorithms.integrity  = amf_eia;
+          amf_ctx->ue_sec_capability, &amf_ia, &amf_ea);
+      amf_ctx->_security.selected_algorithms.encryption = amf_ea;
+      amf_ctx->_security.selected_algorithms.integrity  = amf_ia;
       if (rc == RETURNerror) {
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
       }
@@ -459,30 +459,47 @@ int amf_proc_security_mode_control(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
-/* =========================================================== */
-
+/****************************************************************************
+ **                                                                        **
+ ** Name:    m5g_security_select_algorithms()                              **
+ **                                                                        **
+ ** Description: Select int and enc algorithms based on UE capabilities and**
+ **      AMF capabilities and AMF preferences                              **
+ **                                                                        **
+ ** Inputs:  ue_capabilities:  security capabilities supported by UE       **
+ **                                                                        **
+ ** Outputs: amf_ia:     integrity algorithms supported by AMF             **
+ **          amf_ea:     ciphering algorithms supported by AMF             **
+ **                                                                        **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
+ **                                                                        **
+ ***************************************************************************/
 static int m5g_security_select_algorithms(
-    UESecurityCapabilityMsg ue_capabilities, int* const amf_eiaP,
-    int* const amf_eeaP) {
-  OAILOG_FUNC_IN(LOG_NAS_EMM);
+    UESecurityCapabilityMsg ue_capabilities, int* const amf_iaP,
+    int* const amf_eaP) {
+  OAILOG_FUNC_IN(LOG_NAS_AMF);
   int preference_index;
 
-  *amf_eiaP = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;
-  *amf_eeaP = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
+  *amf_iaP = M5G_NAS_SECURITY_ALGORITHMS_5G_IA0;
+  *amf_eaP = M5G_NAS_SECURITY_ALGORITHMS_5G_EA0;
 
+  // ciphering algorithm selection, Ordered preference : {EA0, EA1, EA2}
   if (ue_capabilities.ea0 == 1) {
-    *amf_eeaP = amf_config.nas_config.prefered_ciphering_algorithm[0];
+    *amf_eaP = amf_config.nas_config.prefered_ciphering_algorithm[0];
   } else if (ue_capabilities.ea1 == 1) {
-    *amf_eeaP = amf_config.nas_config.prefered_ciphering_algorithm[1];
+    *amf_eaP = amf_config.nas_config.prefered_ciphering_algorithm[1];
   } else if (ue_capabilities.ea2 == 1) {
-    *amf_eeaP = amf_config.nas_config.prefered_ciphering_algorithm[2];
+    *amf_eaP = amf_config.nas_config.prefered_ciphering_algorithm[2];
   }
 
+  // integrity algorithm selection, Ordered preference : {IA2, IA1, IA0}
   if (ue_capabilities.ia2 == 1) {
-    *amf_eiaP = amf_config.nas_config.prefered_integrity_algorithm[0];
+    *amf_iaP = amf_config.nas_config.prefered_integrity_algorithm[0];
   } else if (ue_capabilities.ia1 == 1) {
-    *amf_eiaP = amf_config.nas_config.prefered_integrity_algorithm[1];
+    *amf_iaP = amf_config.nas_config.prefered_integrity_algorithm[1];
   }
-  OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
+
+  OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 }  // namespace magma5g
