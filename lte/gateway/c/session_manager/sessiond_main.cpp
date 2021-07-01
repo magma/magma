@@ -43,6 +43,7 @@
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
 #define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000  // 30sec
 #define DEFAULT_SESSION_MAX_RTX_COUNT 3
+#define DEFAULT_POLL_INTERVAL_TIME 5
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -337,8 +338,13 @@ int main(int argc, char* argv[]) {
   std::thread periodic_stats_requester_thread([&]() {
     // random value assigned for interval period, the value will be loaded
     // from a config field later
-    periodic_stats_requester->start_loop(
-        local_enforcer, config["poll_stats_interval"].as<uint32_t>());
+    if (config["poll_stats_interval"].IsDefined()) {
+      periodic_stats_requester->start_loop(
+          local_enforcer, config["poll_stats_interval"].as<uint32_t>());
+    } else {
+      periodic_stats_requester->start_loop(
+          local_enforcer, DEFAULT_POLL_INTERVAL_TIME);
+    }
     periodic_stats_requester->stop();
   });
 
