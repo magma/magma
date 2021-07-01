@@ -210,7 +210,7 @@ int s6a_add_result_code(
   return 0;
 }
 
-int s6a_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
+status_code_e s6a_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
   struct msg** msg_p       = NULL;
   struct msg* ans_p        = NULL;
   struct avp* failed_avp_p = NULL;
@@ -225,7 +225,7 @@ int s6a_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
 
   msg_p = (struct msg**) cla_pP->msg_cla_p;
   if (msg_p == NULL) {
-    return -1;
+    return RETURNerror;
   }
   ans_p = *msg_p; /* Get the received CLA */
   /*
@@ -234,5 +234,5 @@ int s6a_send_cancel_location_ans(s6a_cancel_location_ans_t* cla_pP) {
   CHECK_FCT(
       s6a_add_result_code(ans_p, failed_avp_p, result_code, experimental));
   CHECK_FCT(fd_msg_send(msg_p, NULL, NULL));
-  return 0;
+  return RETURNok;
 }

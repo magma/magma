@@ -117,7 +117,7 @@ int init_sctpd_downlink_client(bool force_restart) {
 }
 
 // init
-int sctpd_init(sctp_init_t* init) {
+status_code_e sctpd_init(sctp_init_t* init) {
   assert(init != nullptr);
 
   int i;
@@ -136,7 +136,7 @@ int sctpd_init(sctp_init_t* init) {
     auto ipv4_addr = init->ipv4_address[i];
     if (inet_ntop(AF_INET, &ipv4_addr, ipv4_str, INET_ADDRSTRLEN) == nullptr) {
       Fatal("failed to convert ipv4 addr\n");
-      return -1;
+      return RETURNerror;
     }
     req.add_ipv4_addrs(ipv4_str);
   }
@@ -146,7 +146,7 @@ int sctpd_init(sctp_init_t* init) {
     if (inet_ntop(AF_INET6, &ipv6_addr, ipv6_str, INET6_ADDRSTRLEN) ==
         nullptr) {
       Fatal("failed to convert ipv6 addr\n");
-      return -1;
+      return RETURNerror;
     }
     req.add_ipv6_addrs(ipv6_str);
   }
@@ -156,9 +156,9 @@ int sctpd_init(sctp_init_t* init) {
   req.set_force_restart(client->should_force_restart);
 
 #define MAX_SCTPD_INIT_ATTEMPTS 50
-  int num_inits      = 0;
-  int sctpd_init_res = -1;
-  while (sctpd_init_res != 0) {
+  int num_inits                = 0;
+  status_code_e sctpd_init_res = RETURNerror;
+  while (sctpd_init_res != RETURNok) {
     if (num_inits >= MAX_SCTPD_INIT_ATTEMPTS) {
       OAILOG_ERROR(LOG_SCTP, "Reached max attempts for Sctpd init");
       break;
@@ -168,7 +168,7 @@ int sctpd_init(sctp_init_t* init) {
     auto rc      = client->init(req, &res);
     auto init_ok = res.result() == InitRes::INIT_OK;
     if ((rc == 0) && init_ok) {
-      sctpd_init_res = 0;
+      sctpd_init_res = RETURNok;
     } else {
       useconds_t sleep_time = std::min(current_delay, max_backoff_usecs);
       OAILOG_DEBUG(LOG_SCTP, "Sleeping for %d usecs", sleep_time);
@@ -178,11 +178,11 @@ int sctpd_init(sctp_init_t* init) {
       }
     }
   }
-  return sctpd_init_res;
+  return RETURNok;
 }
 
 // sendDl
-int sctpd_send_dl(
+status_code_e sctpd_send_dl(
     uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload) {
   SendDlReq req;
   SendDlRes res;
@@ -200,5 +200,6 @@ int sctpd_send_dl(
         (uint32_t) stream, rc);
   }
 
-  return rc == 0 && res.result() == SendDlRes::SEND_DL_OK ? 0 : -1;
+  return rc == 0 && res.result() == SendDlRes::SEND_DL_OK ? RETURNok :
+                                                            RETURNerror;
 }

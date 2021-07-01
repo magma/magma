@@ -136,7 +136,7 @@ status_code_e libgtpnl_init(
 }
 
 status_code_e libgtpnl_uninit(void) {
-  if (!gtp_nl.is_enabled) return -1;
+  if (!gtp_nl.is_enabled) return RETURNerror;
 
   return gtp_dev_destroy(GTP_DEVNAME);
 }

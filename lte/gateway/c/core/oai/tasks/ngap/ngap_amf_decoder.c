@@ -32,7 +32,8 @@
 #include "constr_TYPE.h"
 #include "per_decoder.h"
 
-int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t* pdu, const_bstring const raw) {
+status_code_e ngap_amf_decode_pdu(
+    Ngap_NGAP_PDU_t* pdu, const_bstring const raw) {
   asn_dec_rval_t dec_ret;
   DevAssert(pdu != NULL);
   DevAssert(blength(raw) != 0);
@@ -42,7 +43,7 @@ int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t* pdu, const_bstring const raw) {
 
   if (dec_ret.code != RC_OK) {
     OAILOG_ERROR(LOG_NGAP, "Failed to decode PDU\n");
-    return -1;
+    return RETURNerror;
   }
-  return 0;
+  return RETURNok;
 }

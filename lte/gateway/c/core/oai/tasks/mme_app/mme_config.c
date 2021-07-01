@@ -68,12 +68,21 @@
 #if EMBEDDED_SGW
 #include "sgw_config.h"
 #endif
+
+#define RETURN_IF_FALSE(cOND, fORMAT, aRGS...)                                 \
+  do {                                                                         \
+    if (!(cOND)) {                                                             \
+      OAILOG_CRITICAL(LOG_CONFIG, fORMAT "\n", ##aRGS);                        \
+      return RETURNerror;                                                      \
+    }                                                                          \
+  } while (0)
+
 static bool parse_bool(const char* str);
 
 struct mme_config_s mme_config = {.rw_lock = PTHREAD_RWLOCK_INITIALIZER, 0};
 
 //------------------------------------------------------------------------------
-int mme_config_find_mnc_length(
+status_or_int_t mme_config_find_mnc_length(
     const char mcc_digit1P, const char mcc_digit2P, const char mcc_digit3P,
     const char mnc_digit1P, const char mnc_digit2P, const char mnc_digit3P) {
   uint16_t mcc   = 100 * mcc_digit1P + 10 * mcc_digit2P + mcc_digit3P;
@@ -86,32 +95,32 @@ int mme_config_find_mnc_length(
     OAILOG_ERROR(
         LOG_MME_APP, "BAD MCC PARAMETER (%d%d%d)!\n", mcc_digit1P, mcc_digit2P,
         mcc_digit3P);
-    return 0;
+    RETURN_INT_ERROR;
   }
   if (mnc_digit2P < 0 || mnc_digit2P > 9 || mnc_digit1P < 0 ||
       mnc_digit1P > 9) {
     OAILOG_ERROR(
         LOG_MME_APP, "BAD MNC PARAMETER (%d%d%d)!\n", mnc_digit1P, mnc_digit2P,
         mnc_digit3P);
-    return 0;
+    RETURN_INT_ERROR;
   }
 
   while (plmn_index < mme_config.served_tai.nb_tai) {
     if (mme_config.served_tai.plmn_mcc[plmn_index] == mcc) {
       if ((mme_config.served_tai.plmn_mnc[plmn_index] == mnc2) &&
           (mme_config.served_tai.plmn_mnc_len[plmn_index] == 2)) {
-        return 2;
+        return (status_or_int_t){RETURNok, 2};
       } else if (
           (mme_config.served_tai.plmn_mnc[plmn_index] == mnc3) &&
           (mme_config.served_tai.plmn_mnc_len[plmn_index] == 3)) {
-        return 3;
+        return (status_or_int_t){RETURNok, 3};
       }
     }
 
     plmn_index += 1;
   }
 
-  return 0;
+  RETURN_INT_ERROR;
 }
 
 void log_config_init(log_config_t* log_conf) {
@@ -308,7 +317,7 @@ void mme_config_exit(void) {
 }
 
 //------------------------------------------------------------------------------
-int mme_config_parse_file(mme_config_t* config_pP) {
+status_code_e mme_config_parse_file(mme_config_t* config_pP) {
   config_t cfg                  = {0};
   config_setting_t* setting_mme = NULL;
   config_setting_t* setting     = NULL;
@@ -356,13 +365,12 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           bdata(config_pP->config_file), config_error_line(&cfg),
           config_error_text(&cfg));
       config_destroy(&cfg);
-      Fatal(
-          "Failed to parse MME configuration file %s!\n",
-          bdata(config_pP->config_file));
+      return RETURNerror;
     }
   } else {
     config_destroy(&cfg);
-    Fatal("No MME configuration file provided!\n");
+    OAILOG_CRITICAL(LOG_CONFIG, "No MME configuration file provided!\n");
+    return RETURNerror;
   }
 
   setting_mme = config_lookup(&cfg, MME_CONFIG_STRING_MME_CONFIG);
@@ -657,9 +665,10 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->s6a_config.hss_host_name = bfromcstr(astring);
           }
         } else
-          Fatal(
-              "You have to provide a valid HSS hostname %s=...\n",
+          OAILOG_CRITICAL(
+              LOG_CONFIG, "You have to provide a valid HSS hostname %s=...\n",
               MME_CONFIG_STRING_S6A_HSS_HOSTNAME);
+        return RETURNerror;
       }
       if ((config_setting_lookup_string(
               setting, MME_CONFIG_STRING_S6A_HSS_REALM,
@@ -671,9 +680,10 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->s6a_config.hss_realm = bfromcstr(astring);
           }
         } else
-          Fatal(
-              "You have to provide a valid HSS realm %s=...\n",
+          OAILOG_CRITICAL(
+              LOG_CONFIG, "You have to provide a valid HSS realm %s=...\n",
               MME_CONFIG_STRING_S6A_HSS_REALM);
+        return RETURNerror;
       }
     }
 #endif /* !S6A_OVER_GRPC */
@@ -758,12 +768,14 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             config_pP->served_tai.plmn_mnc[i]     = (uint16_t) atoi(mnc);
             config_pP->served_tai.plmn_mnc_len[i] = strlen(mnc);
 
-            AssertFatal(
-                (config_pP->served_tai.plmn_mnc_len[i] == MIN_MNC_LENGTH) ||
-                    (config_pP->served_tai.plmn_mnc_len[i] == MAX_MNC_LENGTH),
-                "Bad MNC length %u, must be %d or %d",
-                config_pP->served_tai.plmn_mnc_len[i], MIN_MNC_LENGTH,
-                MAX_MNC_LENGTH);
+            if ((config_pP->served_tai.plmn_mnc_len[i] != MIN_MNC_LENGTH) &&
+                (config_pP->served_tai.plmn_mnc_len[i] != MAX_MNC_LENGTH)) {
+              OAILOG_CRITICAL(
+                  LOG_CONFIG, "Bad MNC length %u, must be %d or %d",
+                  config_pP->served_tai.plmn_mnc_len[i], MIN_MNC_LENGTH,
+                  MAX_MNC_LENGTH);
+              return RETURNerror;
+            }
           }
 
           if ((config_setting_lookup_string(
@@ -864,14 +876,10 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     if (setting != NULL) {
       num = config_setting_length(setting);
       OAILOG_INFO(LOG_MME_APP, "Number of GUMMEIs configured =%d\n", num);
-      AssertFatal(
-          num >= MIN_GUMMEI,
-          "Not even one GUMMEI is configured, configure minimum one GUMMEI \n");
-      AssertFatal(
-          num <= MAX_GUMMEI,
-          "Number of GUMMEIs configured:%d exceeds number of GUMMEIs supported "
-          ":%d \n",
-          num, MAX_GUMMEI);
+      RETURN_IF_FALSE(
+          num >= MIN_GUMMEI && num <= MAX_GUMMEI,
+          "Invalid GUMMEIs configured: %d is not between %d and %d\n", num,
+          MIN_GUMMEI, MAX_GUMMEI);
 
       for (i = 0; i < num; i++) {
         sub2setting = config_setting_get_elem(setting, i);
@@ -879,7 +887,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         if (sub2setting != NULL) {
           if ((config_setting_lookup_string(
                   sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
-            AssertFatal(
+            RETURN_IF_FALSE(
                 strlen(mcc) == MAX_MCC_LENGTH,
                 "Bad MCC length (%ld), it must be %u digit ex: 001",
                 strlen(mcc), MAX_MCC_LENGTH);
@@ -893,7 +901,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
 
           if ((config_setting_lookup_string(
                   sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
-            AssertFatal(
+            RETURN_IF_FALSE(
                 (strlen(mnc) == MIN_MNC_LENGTH) ||
                     (strlen(mnc) == MAX_MNC_LENGTH),
                 "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123",
@@ -932,7 +940,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
       num = config_setting_length(setting);
       OAILOG_INFO(
           LOG_MME_APP, "Number of restricted PLMNs configured =%d\n", num);
-      AssertFatal(
+      RETURN_IF_FALSE(
           num <= MAX_RESTRICTED_PLMN,
           "Number of restricted PLMNs configured:%d exceeds number of "
           "restricted PLMNs supported :%d \n",
@@ -944,44 +952,43 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         if (sub2setting != NULL) {
           if ((config_setting_lookup_string(
                   sub2setting, MME_CONFIG_STRING_MCC, &mcc))) {
-            AssertFatal(
+            RETURN_IF_FALSE(
                 strlen(mcc) == MAX_MCC_LENGTH,
                 "Bad MCC length (%ld), it must be %u digit ex: 001\n",
                 strlen(mcc), MAX_MCC_LENGTH);
-            // NULL terminated string
-            AssertFatal(
+            RETURN_IF_FALSE(
                 mcc[0] >= '0' && mcc[0] <= '9',
                 "MCC[0] is not a decimal digit\n");
-            config_pP->restricted_plmn.plmn[i].mcc_digit1 = mcc[0] - '0';
-            AssertFatal(
+            RETURN_IF_FALSE(
                 mcc[1] >= '0' && mcc[1] <= '9',
                 "MCC[1] is not a decimal digit\n");
-            config_pP->restricted_plmn.plmn[i].mcc_digit2 = mcc[1] - '0';
-            AssertFatal(
+            RETURN_IF_FALSE(
                 mcc[2] >= '0' && mcc[2] <= '9',
                 "MCC[2] is not a decimal digit\n");
+            // NULL terminated string
+            config_pP->restricted_plmn.plmn[i].mcc_digit1 = mcc[0] - '0';
+            config_pP->restricted_plmn.plmn[i].mcc_digit2 = mcc[1] - '0';
             config_pP->restricted_plmn.plmn[i].mcc_digit3 = mcc[2] - '0';
           }
 
           if ((config_setting_lookup_string(
                   sub2setting, MME_CONFIG_STRING_MNC, &mnc))) {
-            AssertFatal(
+            RETURN_IF_FALSE(
                 (strlen(mnc) == MIN_MNC_LENGTH) ||
                     (strlen(mnc) == MAX_MNC_LENGTH),
                 "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
                 "123\n",
                 strlen(mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
-            // NULL terminated string
-            AssertFatal(
+            RETURN_IF_FALSE(
                 mnc[0] >= '0' && mnc[0] <= '9',
                 "MNC[0] is not a decimal digit\n");
-            config_pP->restricted_plmn.plmn[i].mnc_digit1 = mnc[0] - '0';
-            AssertFatal(
+            RETURN_IF_FALSE(
                 mnc[1] >= '0' && mnc[1] <= '9',
                 "MNC[1] is not a decimal digit\n");
+            config_pP->restricted_plmn.plmn[i].mnc_digit1 = mnc[0] - '0';
             config_pP->restricted_plmn.plmn[i].mnc_digit2 = mnc[1] - '0';
             if (3 == strlen(mnc)) {
-              AssertFatal(
+              RETURN_IF_FALSE(
                   mnc[2] >= '0' && mnc[2] <= '9',
                   "MNC[2] is not a decimal digit\n");
               config_pP->restricted_plmn.plmn[i].mnc_digit3 = mnc[2] - '0';
@@ -1002,7 +1009,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     if (setting != NULL) {
       num = config_setting_length(setting);
       OAILOG_INFO(LOG_MME_APP, "Number of mode maps configured =%d\n", num);
-      AssertFatal(
+      RETURN_IF_FALSE(
           num <= MAX_FED_MODE_MAP_CONFIG,
           "Number of mode maps configured:%d exceeds number of "
           "mode maps supported :%d \n",
@@ -1031,28 +1038,28 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             n                            = strlen(astring) - MAX_MCC_LENGTH;
             memcpy(fed_mode_mnc, astring + MAX_MCC_LENGTH, n);
             fed_mode_mnc[n] = '\0';  // null terminated string
-            AssertFatal(
+            RETURN_IF_FALSE(
                 strlen(fed_mode_mcc) == MAX_MCC_LENGTH,
                 "Bad MCC length (%ld), it must be %u digit ex: 001\n",
                 strlen(fed_mode_mcc), MAX_MCC_LENGTH);
-            AssertFatal(
+            RETURN_IF_FALSE(
                 fed_mode_mcc[0] >= '0' && fed_mode_mcc[0] <= '9',
                 "MCC[0] is not a decimal digit\n");
-            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit1 =
-                fed_mode_mcc[0] - '0';
-            AssertFatal(
+            RETURN_IF_FALSE(
                 fed_mode_mcc[1] >= '0' && fed_mode_mcc[1] <= '9',
                 "MCC[1] is not a decimal digit\n");
-            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit2 =
-                fed_mode_mcc[1] - '0';
-            AssertFatal(
+            RETURN_IF_FALSE(
                 fed_mode_mcc[2] >= '0' && fed_mode_mcc[2] <= '9',
                 "MCC[2] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit1 =
+                fed_mode_mcc[0] - '0';
+            config_pP->mode_map_config.mode_map[i].plmn.mcc_digit2 =
+                fed_mode_mcc[1] - '0';
             config_pP->mode_map_config.mode_map[i].plmn.mcc_digit3 =
                 fed_mode_mcc[2] - '0';
 
             // MNC
-            AssertFatal(
+            RETURN_IF_FALSE(
                 (strlen(fed_mode_mnc) == MIN_MNC_LENGTH) ||
                     (strlen(fed_mode_mnc) == MAX_MNC_LENGTH),
                 "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or "
@@ -1060,18 +1067,18 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                 strlen(fed_mode_mnc), MIN_MNC_LENGTH, MAX_MNC_LENGTH);
 
             // NULL terminated string
-            AssertFatal(
+            RETURN_IF_FALSE(
                 fed_mode_mnc[0] >= '0' && fed_mode_mnc[0] <= '9',
                 "MNC[0] is not a decimal digit\n");
-            config_pP->mode_map_config.mode_map[i].plmn.mnc_digit1 =
-                fed_mode_mnc[0] - '0';
-            AssertFatal(
+            RETURN_IF_FALSE(
                 fed_mode_mnc[1] >= '0' && fed_mode_mnc[1] <= '9',
                 "MNC[1] is not a decimal digit\n");
+            config_pP->mode_map_config.mode_map[i].plmn.mnc_digit1 =
+                fed_mode_mnc[0] - '0';
             config_pP->mode_map_config.mode_map[i].plmn.mnc_digit2 =
                 fed_mode_mnc[1] - '0';
             if (3 == strlen(fed_mode_mnc)) {
-              AssertFatal(
+              RETURN_IF_FALSE(
                   fed_mode_mnc[2] >= '0' && fed_mode_mnc[2] <= '9',
                   "MNC[2] is not a decimal digit\n");
               config_pP->mode_map_config.mode_map[i].plmn.mnc_digit3 =
@@ -1089,14 +1096,14 @@ int mme_config_parse_file(mme_config_t* config_pP) {
               memcpy(
                   (char*) config_pP->mode_map_config.mode_map[i].imsi_low,
                   imsi_low_tmp, strlen(imsi_low_tmp));
-              AssertFatal(
+              RETURN_IF_FALSE(
                   strlen((char*) config_pP->mode_map_config.mode_map[i]
                              .imsi_low) <= MAX_IMSI_LENGTH,
                   "Invalid imsi_low length\n");
               memcpy(
                   (char*) config_pP->mode_map_config.mode_map[i].imsi_high,
                   imsi_high_tmp, strlen(imsi_high_tmp));
-              AssertFatal(
+              RETURN_IF_FALSE(
                   strlen((char*) config_pP->mode_map_config.mode_map[i]
                              .imsi_high) <= MAX_IMSI_LENGTH,
                   "Invalid imsi_high length\n");
@@ -1129,7 +1136,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         config_pP->blocked_imei.imei_htbl =
             hashtable_uint64_ts_create(MAX_IMEI_HTBL_SZ, NULL, b);
         bdestroy_wrapper(&b);
-        AssertFatal(
+        RETURN_IF_FALSE(
             config_pP->blocked_imei.imei_htbl != NULL,
             "Error creating IMEI hashtable\n");
 
@@ -1139,7 +1146,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           if (sub2setting != NULL) {
             if ((config_setting_lookup_string(
                     sub2setting, MME_CONFIG_STRING_IMEI_TAC, &tac_str))) {
-              AssertFatal(
+              RETURN_IF_FALSE(
                   strlen(tac_str) == MAX_LEN_TAC,
                   "Bad TAC length (%ld), it must be %u digits\n",
                   strlen(tac_str), MAX_LEN_TAC);
@@ -1148,7 +1155,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             if ((config_setting_lookup_string(
                     sub2setting, MME_CONFIG_STRING_SNR, &snr_str))) {
               if (strlen(snr_str)) {
-                AssertFatal(
+                RETURN_IF_FALSE(
                     strlen(snr_str) == MAX_LEN_SNR,
                     "Bad SNR length (%ld), it must be %u digits\n",
                     strlen(snr_str), MAX_LEN_SNR);
@@ -1161,7 +1168,8 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             h_rc = hashtable_uint64_ts_insert(
                 config_pP->blocked_imei.imei_htbl, (const hash_key_t) imei64,
                 0);
-            AssertFatal(h_rc == HASH_TABLE_OK, "Hashtable insertion failed\n");
+            RETURN_IF_FALSE(
+                h_rc == HASH_TABLE_OK, "Hashtable insertion failed\n");
 
             config_pP->blocked_imei.num += 1;
           }
@@ -1205,7 +1213,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                 if (num_tacs > 0) {
                   config_pP->sac_to_tacs_map.tac_list =
                       calloc(1, sizeof(tac_list_per_sac_t));
-                  AssertFatal(
+                  RETURN_IF_FALSE(
                       config_pP->sac_to_tacs_map.tac_list != NULL,
                       "Memory allocation failed for tac_list\n");
                   config_pP->sac_to_tacs_map.tac_list->num_tac_entries =
@@ -1218,7 +1226,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
                       config_pP->sac_to_tacs_map.sac_to_tacs_map_htbl,
                       (const void*) &sac_int, sizeof(uint16_t),
                       (void*) config_pP->sac_to_tacs_map.tac_list);
-                  AssertFatal(
+                  RETURN_IF_FALSE(
                       h_rc == HASH_TABLE_OK,
                       "SAC_2_TACS_HTBL hashtable insertion failed\n");
                 }
@@ -1253,7 +1261,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         config_pP->ip.if_name_s1_mme = bfromcstr(if_name_s1_mme);
         cidr                         = bfromcstr(s1_mme);
         struct bstrList* list        = bsplit(cidr, '/');
-        AssertFatal(
+        RETURN_IF_FALSE(
             list->qty == CIDR_SPLIT_LIST_COUNT, "Bad S1-MME CIDR address: %s",
             bdata(cidr));
         address = list->entry[0];
@@ -1275,7 +1283,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         config_pP->ip.if_name_s11 = bfromcstr(if_name_s11);
         cidr                      = bfromcstr(s11);
         list                      = bsplit(cidr, '/');
-        AssertFatal(
+        RETURN_IF_FALSE(
             list->qty == CIDR_SPLIT_LIST_COUNT, "Bad MME S11 CIDR address: %s",
             bdata(cidr));
         address = list->entry[0];
@@ -1312,7 +1320,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         // Check CSFB MCC. MNC and LAC only if NON-EPS feature is enabled.
         if ((config_setting_lookup_string(
                 setting, MME_CONFIG_STRING_CSFB_MCC, &csfb_mcc))) {
-          AssertFatal(
+          RETURN_IF_FALSE(
               strlen(csfb_mcc) == MAX_MCC_LENGTH,
               "Bad MCC length(%ld), it must be %u digit ex: 001",
               strlen(csfb_mcc), MAX_MCC_LENGTH);
@@ -1325,7 +1333,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         }
         if ((config_setting_lookup_string(
                 setting, MME_CONFIG_STRING_CSFB_MNC, &csfb_mnc))) {
-          AssertFatal(
+          RETURN_IF_FALSE(
               (strlen(csfb_mnc) == MIN_MNC_LENGTH) ||
                   (strlen(csfb_mnc) == MAX_MNC_LENGTH),
               "Bad MNC length (%ld), it must be %u or %u digit ex: 12 or 123",
@@ -1484,7 +1492,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           OAILOG_INFO(
               LOG_MME_APP, "Number of apn correction map configured =%d\n",
               num);
-          AssertFatal(
+          RETURN_IF_FALSE(
               num <= MAX_APN_CORRECTION_MAP_LIST,
               "Number of apn correction map configured:%d exceeds the maximum "
               "number supported"
@@ -1605,7 +1613,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
   }
 
   config_destroy(&cfg);
-  return 0;
+  return RETURNok;
 }
 
 //------------------------------------------------------------------------------
@@ -2012,7 +2020,8 @@ static void usage(char* target) {
 }
 
 //------------------------------------------------------------------------------
-int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
+status_code_e mme_config_parse_opt_line(
+    int argc, char* argv[], mme_config_t* config_pP) {
   int c;
 
   mme_config_init(config_pP);
@@ -2065,7 +2074,7 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
     config_pP->config_file = bfromcstr("/var/opt/magma/tmp/mme.conf");
   }
   if (mme_config_parse_file(config_pP) != 0) {
-    return -1;
+    return RETURNerror;
   }
 
   /*
@@ -2073,7 +2082,7 @@ int mme_config_parse_opt_line(int argc, char* argv[], mme_config_t* config_pP) {
    */
   mme_config_display(config_pP);
 
-  return 0;
+  return RETURNok;
 }
 
 static bool parse_bool(const char* str) {

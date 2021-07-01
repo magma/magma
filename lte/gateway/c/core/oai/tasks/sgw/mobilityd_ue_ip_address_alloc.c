@@ -42,14 +42,14 @@ void release_ue_ipv6_address(
   release_ipv6_address(imsi, apn, addr);
 }
 
-int get_ip_block(struct in_addr* netaddr, uint32_t* netmask) {
+status_or_int_t get_ip_block(struct in_addr* netaddr, uint32_t* netmask) {
   int rv;
 
   rv = get_assigned_ipv4_block(0, netaddr, netmask);
   if (rv != 0) {
     OAILOG_CRITICAL(
         LOG_GTPV1U, "ERROR in getting assigned IP block from mobilityd\n");
-    return -1;
+    RETURN_INT_ERROR;
   }
-  return rv;
+  return (status_or_int_t){RETURNok, rv};
 }

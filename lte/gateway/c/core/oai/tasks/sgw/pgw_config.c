@@ -154,7 +154,7 @@ status_code_e pgw_config_process(pgw_config_t* config_pP) {
           OAILOG_CRITICAL(
               LOG_SPGW_APP,
               "ERROR in getting assigned IP block from mobilityd\n");
-          return -1;
+          return RETURNerror;
         } else {
           OAILOG_DEBUG(
               LOG_SPGW_APP, "mobilityD IP block read: retry attempt: %d",
@@ -202,7 +202,7 @@ status_code_e pgw_config_process(pgw_config_t* config_pP) {
 
   // TODO: Fix me: Add tc support
 
-  return 0;
+  return RETURNok;
 }
 
 //------------------------------------------------------------------------------

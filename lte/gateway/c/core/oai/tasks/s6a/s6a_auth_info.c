@@ -378,13 +378,14 @@ status_code_e s6a_generate_authentication_info_req(s6a_auth_info_req_t* air_p) {
     uint8_t plmn[3] = {0x00, 0x00, 0x00};  //{ 0x02, 0xF8, 0x29 };
     CHECK_FCT(fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_visited_plmn_id, 0, &avp));
 
-    uint8_t mnc_length = mme_config_find_mnc_length(
+    status_or_int_t mnc_length_res = mme_config_find_mnc_length(
         air_p->visited_plmn.mcc_digit1, air_p->visited_plmn.mcc_digit2,
         air_p->visited_plmn.mcc_digit3, air_p->visited_plmn.mnc_digit1,
         air_p->visited_plmn.mnc_digit2, air_p->visited_plmn.mnc_digit3);
-    if (mnc_length != 2 && mnc_length != 3) {
+    if (!IS_STATUS_OK(mnc_length_res)) {
       OAILOG_FUNC_RETURN(LOG_S6A, RETURNerror);
     }
+    uint8_t mnc_length = mnc_length_res.value;
     PLMN_T_TO_TBCD(air_p->visited_plmn, plmn, mnc_length);
     value.os.data = plmn;
     value.os.len  = 3;

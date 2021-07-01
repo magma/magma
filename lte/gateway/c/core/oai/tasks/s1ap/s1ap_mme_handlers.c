@@ -1403,19 +1403,20 @@ status_code_e s1ap_mme_generate_ue_context_modification(
   if ((ue_context_mod_req_pP->presencemask & S1AP_UE_CONTEXT_MOD_LAI_PRESENT) ==
       S1AP_UE_CONTEXT_MOD_LAI_PRESENT) {
 #define PLMN_SIZE 3
-    S1ap_LAI_t* lai_item        = &ie->value.choice.LAI;
-    lai_item->pLMNidentity.size = PLMN_SIZE;
-    lai_item->pLMNidentity.buf  = calloc(PLMN_SIZE, sizeof(uint8_t));
-    uint8_t mnc_length          = mme_config_find_mnc_length(
+    S1ap_LAI_t* lai_item           = &ie->value.choice.LAI;
+    lai_item->pLMNidentity.size    = PLMN_SIZE;
+    lai_item->pLMNidentity.buf     = calloc(PLMN_SIZE, sizeof(uint8_t));
+    status_or_int_t mnc_length_res = mme_config_find_mnc_length(
         ue_context_mod_req_pP->lai.mccdigit1,
         ue_context_mod_req_pP->lai.mccdigit2,
         ue_context_mod_req_pP->lai.mccdigit3,
         ue_context_mod_req_pP->lai.mncdigit1,
         ue_context_mod_req_pP->lai.mncdigit2,
         ue_context_mod_req_pP->lai.mncdigit3);
-    if (mnc_length != 2 && mnc_length != 3) {
+    if (!IS_STATUS_OK(mnc_length_res)) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
+    uint8_t mnc_length = mnc_length_res.value;
     LAI_T_TO_TBCD(
         ue_context_mod_req_pP->lai, lai_item->pLMNidentity.buf, mnc_length);
 
@@ -3114,7 +3115,7 @@ status_code_e s1ap_mme_handle_handover_notify(
     }
     if ((new_ue_ref_p = s1ap_new_ue(state, assoc_id, tgt_enb_ue_s1ap_id)) ==
         NULL) {
-      // If we failed to allocate a new UE return -1
+      // If we failed to allocate a new UE return RETURNerror
       OAILOG_ERROR_UE(
           LOG_S1AP, imsi64,
           "S1AP:Handover Notify- Failed to allocate S1AP UE Context, "
@@ -3379,7 +3380,7 @@ status_code_e s1ap_mme_handle_path_switch_request(
      * from source eNB.
      */
     if ((new_ue_ref_p = s1ap_new_ue(state, assoc_id, enb_ue_s1ap_id)) == NULL) {
-      // If we failed to allocate a new UE return -1
+      // If we failed to allocate a new UE return RETURNerror
       OAILOG_ERROR_UE(
           LOG_S1AP, imsi64,
           "S1AP:Path Switch Request- Failed to allocate S1AP UE Context, "

@@ -76,7 +76,7 @@ int ngap_amf_encode_pdu(
 }
 
 //------------------------------------------------------------------------------
-static inline int ngap_amf_encode_initiating(
+static inline status_code_e ngap_amf_encode_initiating(
     Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
@@ -96,7 +96,7 @@ static inline int ngap_amf_encode_initiating(
           (int) pdu->choice.initiatingMessage.procedureCode);
       *buffer = NULL;
       *length = 0;
-      return -1;
+      return RETURNerror;
   }
 
   memset(&res, 0, sizeof(res));
@@ -104,11 +104,11 @@ static inline int ngap_amf_encode_initiating(
       NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_Ngap_NGAP_PDU, pdu);
   *buffer = (uint8_t*) res.buffer;
   *length = res.result.encoded;
-  return 0;
+  return RETURNok;
 }
 
 //------------------------------------------------------------------------------
-static inline int ngap_amf_encode_successful_outcome(
+static inline status_code_e ngap_amf_encode_successful_outcome(
     Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
@@ -124,7 +124,7 @@ static inline int ngap_amf_encode_successful_outcome(
           (int) pdu->choice.successfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
-      return -1;
+      return RETURNerror;
   }
 
   memset(&res, 0, sizeof(res));
@@ -133,11 +133,11 @@ static inline int ngap_amf_encode_successful_outcome(
 
   *buffer = res.buffer;
   *length = res.result.encoded;
-  return 0;
+  return RETURNok;
 }
 
 //------------------------------------------------------------------------------
-static inline int ngap_amf_encode_unsuccessful_outcome(
+static inline status_code_e ngap_amf_encode_unsuccessful_outcome(
     Ngap_NGAP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
@@ -153,7 +153,7 @@ static inline int ngap_amf_encode_unsuccessful_outcome(
           (int) pdu->choice.unsuccessfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
-      return -1;
+      return RETURNerror;
   }
 
   memset(&res, 0, sizeof(res));
@@ -162,5 +162,5 @@ static inline int ngap_amf_encode_unsuccessful_outcome(
 
   *buffer = res.buffer;
   *length = res.result.encoded;
-  return 0;
+  return RETURNok;
 }

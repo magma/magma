@@ -116,7 +116,7 @@ status_code_e ngap_amf_handle_initial_ue_message(
      * * * * Forward message to NAS.
      */
     if ((ue_ref = ngap_new_ue(state, assoc_id, gnb_ue_ngap_id)) == NULL) {
-      // If we failed to allocate a new UE return -1
+      // If we failed to allocate a new UE return RETURNerror
       OAILOG_ERROR(
           LOG_NGAP,
           "Initial UE Message- Failed to allocate NGAP UE Context, "

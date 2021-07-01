@@ -54,7 +54,7 @@ static const char* esm_ebr_state_str[ESM_EBR_STATE_MAX] = {
 
 /* Returns the index of the next available entry in the list of EPS bearer
    context data */
-static int esm_ebr_get_available_entry(emm_context_t* emm_context);
+static status_or_int_t esm_ebr_get_available_entry(emm_context_t* emm_context);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -116,8 +116,8 @@ status_code_e esm_ebr_assign(emm_context_t* emm_context) {
   ue_mm_context_t* ue_context_p =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
 
-  int i = esm_ebr_get_available_entry(emm_context);
-  if (i < 0) {
+  status_or_int_t i = esm_ebr_get_available_entry(emm_context);
+  if (!IS_STATUS_OK(i)) {
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_EBI_UNASSIGNED);
   }
 
@@ -125,8 +125,8 @@ status_code_e esm_ebr_assign(emm_context_t* emm_context) {
       LOG_NAS_ESM,
       "ESM-FSM - EPS bearer identity = %u assigned for "
       "ue_id:" MME_UE_S1AP_ID_FMT "\n",
-      INDEX_TO_EBI(i), ue_context_p->mme_ue_s1ap_id);
-  OAILOG_FUNC_RETURN(LOG_NAS_ESM, INDEX_TO_EBI(i));
+      INDEX_TO_EBI(i.value), ue_context_p->mme_ue_s1ap_id);
+  OAILOG_FUNC_RETURN(LOG_NAS_ESM, INDEX_TO_EBI(i.value));
 }
 
 /****************************************************************************
@@ -651,16 +651,16 @@ bool esm_ebr_is_not_in_use(emm_context_t* emm_context, ebi_t ebi) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static int esm_ebr_get_available_entry(emm_context_t* emm_context) {
+static status_or_int_t esm_ebr_get_available_entry(emm_context_t* emm_context) {
   ue_mm_context_t* ue_mm_context =
       PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
   int i;
 
   for (i = 0; i < BEARERS_PER_UE; i++) {
     if (ue_mm_context->bearer_contexts[i] == NULL) {
-      return i;
+      return (status_or_int_t){RETURNok, i};
     }
   }
 
-  return -1;
+  return (status_or_int_t){RETURNerror, 0};
 }

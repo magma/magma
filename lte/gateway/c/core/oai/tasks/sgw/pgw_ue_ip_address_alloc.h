@@ -34,7 +34,7 @@
 void release_ue_ipv4_address(
     const char* imsi, const char* apn, struct in_addr* addr);
 
-int get_ip_block(struct in_addr* netaddr, uint32_t* netmask);
+status_or_int_t get_ip_block(struct in_addr* netaddr, uint32_t* netmask);
 
 void release_ue_ipv6_address(
     const char* imsi, const char* apn, struct in6_addr* addr);

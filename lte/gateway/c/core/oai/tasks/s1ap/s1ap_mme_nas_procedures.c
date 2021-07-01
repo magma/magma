@@ -146,7 +146,7 @@ status_code_e s1ap_mme_handle_initial_ue_message(
      * * * * Forward message to NAS.
      */
     if ((ue_ref = s1ap_new_ue(state, assoc_id, enb_ue_s1ap_id)) == NULL) {
-      // If we failed to allocate a new UE return -1
+      // If we failed to allocate a new UE return RETURNerror
       OAILOG_ERROR(
           LOG_S1AP,
           "Initial UE Message- Failed to allocate S1AP UE Context, "

@@ -26,8 +26,8 @@
 int init_sctpd_downlink_client(bool force_restart);
 
 // init
-int sctpd_init(sctp_init_t* init);
+status_code_e sctpd_init(sctp_init_t* init);
 
 // sendDl
-int sctpd_send_dl(
+status_code_e sctpd_send_dl(
     uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload);

@@ -269,13 +269,14 @@ status_code_e s6a_generate_update_location(s6a_update_location_req_t* ulr_pP) {
     CHECK_FCT(
         fd_msg_avp_new(s6a_fd_cnf.dataobj_s6a_visited_plmn_id, 0, &avp_p));
 
-    uint8_t mnc_length = mme_config_find_mnc_length(
+    status_or_int_t mnc_length_res = mme_config_find_mnc_length(
         ulr_pP->visited_plmn.mcc_digit1, ulr_pP->visited_plmn.mcc_digit2,
         ulr_pP->visited_plmn.mcc_digit3, ulr_pP->visited_plmn.mnc_digit1,
         ulr_pP->visited_plmn.mnc_digit2, ulr_pP->visited_plmn.mnc_digit3);
-    if (mnc_length != 2 && mnc_length != 3) {
+    if (!IS_STATUS_OK(mnc_length_res)) {
       OAILOG_FUNC_RETURN(LOG_S6A, RETURNerror);
     }
+    uint8_t mnc_length = mnc_length_res.value;
     PLMN_T_TO_TBCD(ulr_pP->visited_plmn, plmn, mnc_length);
     value.os.data = plmn;
     value.os.len  = 3;

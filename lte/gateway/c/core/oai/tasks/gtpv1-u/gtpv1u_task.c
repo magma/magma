@@ -108,7 +108,7 @@ static bool ue_ip_is_in_subnet(
 }
 
 //------------------------------------------------------------------------------
-int gtpv1u_init(
+status_code_e gtpv1u_init(
     spgw_state_t* spgw_state_p, spgw_config_t* spgw_config,
     bool persist_state) {
   int rv = 0;
@@ -134,22 +134,23 @@ int gtpv1u_init(
 
   if (gtp_tunnel_ops == NULL) {
     OAILOG_CRITICAL(LOG_GTPV1U, "ERROR in initializing gtp_tunnel_ops\n");
-    return -1;
+    return RETURNerror;
   }
 
   // Reset GTP tunnel states
   rv = gtp_tunnel_ops->reset();
   if (rv != 0) {
     OAILOG_CRITICAL(LOG_GTPV1U, "ERROR clean existing gtp states.\n");
-    return -1;
+    return RETURNerror;
   }
 
+  status_or_int_t ip_block;
   if (spgw_config->pgw_config.enable_nat) {
-    rv = get_ip_block(&netaddr, &netmask);
-    if (rv != 0) {
+    ip_block = get_ip_block(&netaddr, &netmask);
+    if (!IS_STATUS_OK(ip_block)) {
       OAILOG_CRITICAL(
           LOG_GTPV1U, "ERROR in getting assigned IP block from mobilityd\n");
-      return -1;
+      return RETURNerror;
     }
   } else {
     // Allow All IPs in Non-NAT case.
@@ -169,7 +170,7 @@ int gtpv1u_init(
   add_route_for_ue_block(netaddr, netmask);
 
   OAILOG_DEBUG(LOG_GTPV1U, "Initializing GTPV1U interface: DONE\n");
-  return 0;
+  return RETURNok;
 }
 
 int gtpv1u_add_tunnel(
@@ -184,8 +185,8 @@ int gtpv1u_add_tunnel(
       uint32_t netmask = 0;
 
       // get new block from mobility.
-      int rv = get_ip_block(&netaddr, &netmask);
-      if (rv != 0) {
+      status_or_int_t rv = get_ip_block(&netaddr, &netmask);
+      if (!IS_STATUS_OK(rv)) {
         OAILOG_INFO(
             LOG_GTPV1U,
             "ERROR in getting assigned IP block from mobilityd,"

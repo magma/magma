@@ -109,6 +109,27 @@ typedef enum {
   RETURNok    = 0,   // Ok
 } status_code_e;
 
+/* status_or structs should be returned by functions that have error handling.
+ * If the function returns a value without issue, the status should be RETURNok
+ * If the function has an error, then status should not be RETURNok,
+ * and the value should be ignored.
+ */
+#define TYPEDEF_STATUS_OR(nAME, tYPE)                                          \
+  typedef struct {                                                             \
+    status_code_e status;                                                      \
+    tYPE value;                                                                \
+  } nAME;
+
+#define IS_STATUS_OK(sTATUS_OR) (sTATUS_OR.status == RETURNok)
+
+#define RETURN_ERROR(sTATUS_OR) return (sTATUS_OR){RETURNerror, 0};
+
+TYPEDEF_STATUS_OR(status_or_int_t, int);
+TYPEDEF_STATUS_OR(status_or_uint32_t, uint32_t);
+
+#define RETURN_INT_ERROR return (status_or_int_t){RETURNerror, 0};
+#define RETURN_UINT_ERROR return (status_or_uint32_t){RETURNerror, 0};
+
 /* This enum should match with the ModeMapItem_FederatedMode enum
  * defined in mconfigs.proto
  */
