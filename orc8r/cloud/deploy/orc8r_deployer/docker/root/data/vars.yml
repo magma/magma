@@ -738,24 +738,3 @@ service:
     Required: false
     ConfigApps:
       - tf
-  nprobe_operator_id:
-    Description: Mobile operator id used by nprobe service
-    Type: number
-    Default: 1
-    Required: false
-    ConfigApps:
-      - tf
-  nprobe_delivery_server:
-    Description: Remote LIMS address where nprobe service exports records
-    Type: string
-    Default: "10.10.0.2:6666"
-    Required: false
-    ConfigApps:
-      - tf
-  nprobe_skip_verify_server:
-    Description: Skip tls server verification when exporting records.
-    Type: bool
-    Default: true
-    Required: false
-    ConfigApps:
-      - tf

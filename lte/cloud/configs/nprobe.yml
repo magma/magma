@@ -10,9 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# operatorID represents the mobile operator identifier
-operatorID: 49002
-
 # updateIntervalSecs sets the periodic time between
 # runs in seconds
 updateIntervalSecs: 60
@@ -25,10 +22,6 @@ backoffIntervalSecs: 360
 # exporting a record
 maxExportRetries: 10
 
-# deliveryServer defines the address of the remote
-# server collecting records
-deliveryServer: 10.10.0.1:6666
-
 # exporterKey provides the absolute path to exporter
 # tls client private key
 exporterKey: /var/opt/magma/certs/nprobe.key
@@ -39,4 +32,4 @@ exporterCrt: /var/opt/magma/certs/nprobe.pem
 
 # skipVerifyServer enables exporter to skip server
 # tls certificate verifications
-skipVerifyServer: false
+skipVerifyServer: true

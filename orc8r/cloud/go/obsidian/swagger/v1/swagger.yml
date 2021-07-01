@@ -10262,6 +10262,12 @@ definitions:
         example: 300
         minimum: 0
         type: integer
+      operator_id:
+        default: 1
+        description: represents the mobile operator identifier
+        format: uint32
+        type: integer
+        x-nullable: false
       target_id:
         type: string
         x-nullable: false

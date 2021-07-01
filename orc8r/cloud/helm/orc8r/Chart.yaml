@@ -23,7 +23,7 @@ keywords:
 
 dependencies:
   - name: secrets
-    version: 0.1.11
+    version: 0.1.10
     repository: ""
     condition: secrets.create
   - name: metrics

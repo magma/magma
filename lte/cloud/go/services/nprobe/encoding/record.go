@@ -117,7 +117,7 @@ func makeEpsIRIContent(
 func MakeRecord(
 	event *eventdM.Event,
 	task *models.NetworkProbeTask,
-	operatorID, sequenceNbr uint32,
+	sequenceNbr uint32,
 ) ([]byte, error) {
 
 	// map event type to 3gpp event id
@@ -146,7 +146,7 @@ func MakeRecord(
 	correlationID := task.TaskDetails.CorrelationID
 	record := EpsIRIRecord{
 		Header:  NewEpsIRIHeader(uuid, correlationID, attrs, attrs_len),
-		Payload: makeEpsIRIContent(event, eventID, correlationID, operatorID, timestamp),
+		Payload: makeEpsIRIContent(event, eventID, correlationID, task.TaskDetails.OperatorID, timestamp),
 	}
 	return record.Encode()
 }

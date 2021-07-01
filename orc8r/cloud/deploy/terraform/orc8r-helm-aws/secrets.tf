@@ -123,12 +123,6 @@ resource "kubernetes_secret" "orc8r_configs" {
       "metricExportURL": var.analytics_metric_export_url == null ? "" : var.analytics_metric_export_url,
       "categoryName": var.analytics_category_name == null ? "" : var.analytics_category_name,
     })
-
-    "nprobe.yml" = yamlencode({
-      "operatorID": var.nprobe_operator_id,
-      "deliveryServer" : var.nprobe_delivery_server,
-      "skipVerifyServer" : var.nprobe_skip_verify_server,
-    })
   }
 }
 

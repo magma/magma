@@ -72,9 +72,7 @@ func main() {
 		glog.Fatalf("Failed to create new TlsConfig: %v", err)
 	}
 
-	// Init records exporter
-	recordExporter := exporter.NewRecordExporter(serviceConfig.DeliveryServer, tlsConfig)
-	nProbeManager, err := manager.NewNProbeManager(serviceConfig, nprobeBlobstore, recordExporter)
+	nProbeManager, err := manager.NewNProbeManager(serviceConfig, nprobeBlobstore)
 	if err != nil {
 		glog.Fatalf("Failed to create new NProbeManager: %v", err)
 	}
@@ -82,7 +80,7 @@ func main() {
 	// Run LI service in Loop
 	go func() {
 		for {
-			err := nProbeManager.ProcessNProbeTasks()
+			err := nProbeManager.ProcessNProbeTasks(tlsConfig)
 			if err != nil {
 				glog.Errorf("Failed to process tasks: %v", err)
 				<-time.After(time.Duration(serviceConfig.BackOffIntervalSecs) * time.Second)

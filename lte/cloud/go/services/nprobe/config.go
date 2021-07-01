@@ -15,7 +15,6 @@ package nprobe
 
 import (
 	"magma/lte/cloud/go/lte"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
@@ -32,8 +31,6 @@ const (
 
 // Config represents the configuration provided to nprobe service
 type Config struct {
-	// OperatorID represents the mobile operator identifier
-	OperatorID uint32 `yaml:"operatorID"`
 	// UpdateIntervalSecs sets the periodic time between runs in seconds
 	UpdateIntervalSecs uint32 `yaml:"updateIntervalSecs"`
 	// BackoffIntervalSecs sets the backoff time when remote records collector is not available
@@ -41,8 +38,6 @@ type Config struct {
 	// MaxExportRetries sets the number of retries when exporting a record
 	MaxExportRetries uint32 `yaml:"maxExportRetries"`
 
-	// DeliveryServer defines the address of the remote server collecting records
-	DeliveryServer string `yaml:"deliveryServer"`
 	// ExporterKey provides the absolute path to exporter tls client private key
 	ExporterKey string `yaml:"exporterKey"`
 	// ExporterCrt provides the absolute path to exporter tls client certificate
@@ -66,19 +61,6 @@ func GetServiceConfig() Config {
 	}
 	if serviceConfig.MaxExportRetries == 0 {
 		serviceConfig.MaxExportRetries = DefaultMaxExportRetries
-	}
-
-	// overrided nprobe config sits within orc8r module.
-	var overrideConfig Config
-	_, _, err = config.GetStructuredServiceConfig(orc8r.ModuleName, ServiceName, &overrideConfig)
-	if err == nil {
-		if overrideConfig.OperatorID > 0 {
-			serviceConfig.OperatorID = overrideConfig.OperatorID
-		}
-		if overrideConfig.DeliveryServer != "" {
-			serviceConfig.DeliveryServer = overrideConfig.DeliveryServer
-			serviceConfig.SkipVerifyServer = overrideConfig.SkipVerifyServer
-		}
 	}
 	return serviceConfig
 }

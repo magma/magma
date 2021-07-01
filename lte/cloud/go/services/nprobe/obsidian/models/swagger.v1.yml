@@ -259,6 +259,12 @@ definitions:
         format: date-time
         example: 2020-03-11T00:36:59.65Z
         description: The timestamp in ISO 8601 format
+      operator_id:
+        type: integer
+        format: uint32
+        default: 1
+        x-nullable: false
+        description: represents the mobile operator identifier
 
   network_probe_destination:
     description: Network Probe Destination
