@@ -31,7 +31,8 @@ jobs:
             If this is your first Magma PR, also consider reading
             - [Developer Onboarding](https://docs.magmacore.org/docs/next/contributing/contribute_onboarding) for onboarding as a new Magma developer
             - [Development Workflow](https://docs.magmacore.org/docs/next/contributing/contribute_workflow) for guidance on your first pull request
-            - [CI Checks](https://magma.github.io/magma/docs/next/contributing/contribute_ci_checks) for points of contact for failing or flaky CI checks`
+            - [CI Checks](https://magma.github.io/magma/docs/next/contributing/contribute_ci_checks) for points of contact for failing or flaky CI checks
+            - [GitHub to Slack ID mappings for Magma maintainers](https://docs.magmacore.org/docs/next/contributing/contribute_id_mappings) for guidance on how to contact maintainers on Slack`
 
             github.issues.createComment({
               issue_number: context.issue.number,
