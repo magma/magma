@@ -161,7 +161,6 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
       SUBSCRIBER_PERIODIC_RAU_TAU_TIMER_VAL;
 
   // apn configuration
-  itti_msg->subscription_data.apn_config_profile.nb_apns = msg.apn_size();
   uint8_t idx                                            = 0;
   while (idx < msg.apn_size() && idx < MAX_APN_PER_UE) {
     auto apn                                 = msg.apn(idx);
@@ -203,6 +202,7 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
     itti_msg_apn->ambr.br_unit = (apn_ambr_bitrate_unit_t) apn.ambr().unit();
     ++idx;
   }
+  itti_msg->subscription_data.apn_config_profile.nb_apns = idx;
   return;
 }
 
