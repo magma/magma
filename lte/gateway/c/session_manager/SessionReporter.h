@@ -94,8 +94,6 @@ class SessionReporterImpl : public SessionReporter {
       const UpdateSessionRequest& request,
       std::function<void(grpc::Status, UpdateSessionResponse)> callback);
 
-  void report_updates_callback(UpdateSessionRequest& request, SessionMap ,grpc::Status status, UpdateSessionResponse resp);
-
   void report_create_session(
       const CreateSessionRequest& request,
       std::function<void(grpc::Status, CreateSessionResponse)> callback);
@@ -103,10 +101,6 @@ class SessionReporterImpl : public SessionReporter {
   void report_terminate_session(
       const SessionTerminateRequest& request,
       std::function<void(grpc::Status, SessionTerminateResponse)> callback);
-      
-  void report_update_callback(UpdateSessionRequest &request,
-        SessionMap session_map_ptr, SessionUpdate session_update, grpc::Status status, 
-        UpdateSessionResponse &response);
 
  private:
   folly::EventBase* base_;
