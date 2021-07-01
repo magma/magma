@@ -4,20 +4,14 @@ on:  # yamllint disable-line rule:truthy
   # Ref: https://github.blog/2020-08-03-github-actions-improvements-for-fork-and-pull-request-workflows/
   pull_request_target:
     types: [opened, reopened, synchronize]
+
 jobs:
   dco_check_job:
     runs-on: ubuntu-latest
     name: DCO Check
     steps:
-    - name: Get PR Commits
-      id: 'get-pr-commits'
-      uses: tim-actions/get-pr-commits@master
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
     - name: DCO Check
-      uses: tim-actions/dco@master
-      with:
-        commits: ${{ steps.get-pr-commits.outputs.commits }}
+      uses: nadock/verified_commits_check@v1
     - name: DCO comment on PR
       if: failure()
       uses: actions/github-script@v3
