@@ -1461,7 +1461,7 @@ jobs:
       - run:
           name: Propagate AWS credentials to ansible and create version
           command: |
-            GIT_TAG="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)"
+            GIT_TAG="v1.6"
             if [ "<<parameters.aws_account>>" = "FB" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
@@ -1472,7 +1472,7 @@ jobs:
               echo export VERSION="$GIT_TAG" >> $BASH_ENV
             fi
             echo export GIT_TAG="$GIT_TAG" >> $BASH_ENV
-            echo export PACKAGE_VERSION="${GIT_TAG:1}" >> $BASH_ENV
+            echo export PACKAGE_VERSION="1.6.0" >> $BASH_ENV
       - run:
           name: Propagate AWS region information
           command: |
@@ -1485,7 +1485,7 @@ jobs:
           name: Propagate names for AWS essential components
           command: |
             sed -i -e '/^secgroupDefault: /s/:.*$/: publish-amis-to-marketplace-secgroup/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket2/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket3/' $VARS_DIR/defaults.yaml
             sed -i -e '/^stackEssentialsDefault: /s/:.*$/: publish-amis-to-marketplace-stack/' $VARS_DIR/defaults.yaml
             sed -i -e '/^keyBoot: /s/:.*$/: publish-amis-to-marketplace-keyboot/' $VARS_DIR/defaults.yaml
             sed -i -e '/^keyHost: /s/:.*$/: publish-amis-to-marketplace-keyhost/' $VARS_DIR/defaults.yaml
@@ -1622,6 +1622,10 @@ workflows:
           <<: *only_release
           requires:
             - release-hold
+  quentintest:
+    jobs:
+      - publish-amis-to-marketplace:
+          aws_account: "LF"
   feg:
     jobs:
       - feg-lint
