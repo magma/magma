@@ -260,8 +260,8 @@ class LocalEnforcer {
    * IMSI
    */
   void handle_cwf_roaming(
-      SessionMap& session_map, const std::string& imsi,
-      const magma::SessionConfig& config, SessionUpdate& session_update);
+      std::unique_ptr<SessionState>& session, const SessionConfig& new_config,
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * Execute actions on subscriber's service, eg. terminate, redirect data, or
