@@ -154,11 +154,8 @@
       "lte/deploy_config_enodebd": {
         "title": "Configure eNodeB"
       },
-      "lte/deploy_install_ubuntu": {
-        "title": "Install AGW"
-      },
       "lte/deploy_install": {
-        "title": "Install AGW on Debian Stretch."
+        "title": "Install AGW"
       },
       "lte/dev_notes": {
         "title": "Developer Notes"
@@ -222,6 +219,9 @@
       },
       "lte/upgrade_1_5": {
         "title": "Upgrade to v1.5"
+      },
+      "lte/upgrade_1_6": {
+        "title": "Upgrade to v1.6"
       },
       "nms/admin": {
         "title": "Admin"
