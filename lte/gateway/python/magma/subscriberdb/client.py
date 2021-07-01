@@ -18,7 +18,6 @@ import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
 from lte.protos.subscriberdb_pb2 import (
-    CheckSubscribersInSyncRequest,
     Digest,
     ListSubscribersRequest,
     LTESubscription,
@@ -79,45 +78,11 @@ class SubscriberDBCloudClient(SDWatchdogTask):
         self._grpc_client_manager = grpc_client_manager
 
     async def _run(self) -> None:
-        in_sync = await self._check_subscribers_in_sync()
-        if in_sync:
-            return
-
         subscribers, flat_digest = await self._get_all_subscribers()
         if subscribers is None:
             return
         self._update_flat_digest(flat_digest)
         self._process_subscribers(subscribers)
-
-    async def _check_subscribers_in_sync(self) -> bool:
-        """
-        Check if the local subscriber data is up-to-date with the cloud by
-        comparing flat digests
-
-        Returns:
-            boolean value for whether the local data is in sync
-        """
-        subscriberdb_cloud_client = self._grpc_client_manager.get_client()
-        req = CheckSubscribersInSyncRequest(
-            flat_digest=Digest(
-                md5_base64_digest=self._store.get_current_digest(),
-            ),
-        )
-        try:
-            res = await grpc_async_wrapper(
-                subscriberdb_cloud_client.CheckSubscribersInSync.future(
-                    req,
-                    self.SUBSCRIBERDB_REQUEST_TIMEOUT,
-                ),
-                self._loop,
-            )
-        except grpc.RpcError as err:
-            logging.error(
-                "Check subscribers in sync request error! [%s] %s", err.code(),
-                err.details(),
-            )
-            return False
-        return res.in_sync
 
     async def _get_all_subscribers(self) -> (SubscriberData, Digest):
         subscriberdb_cloud_client = self._grpc_client_manager.get_client()

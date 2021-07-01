@@ -21,7 +21,6 @@ from unittest.mock import MagicMock
 import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.subscriberdb_pb2 import (
-    CheckSubscribersInSyncResponse,
     Digest,
     ListSubscribersResponse,
     SubscriberData,
@@ -55,20 +54,6 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
         add_SubscriberDBCloudServicer_to_server(
             self, server,
         )
-
-    def CheckSubscribersInSync(self, request, context):
-        """
-        Mock to trigger CheckSubscribersInSync-related test cases
-
-        Args:
-            request: CheckSubscribersInSyncRequest
-            context: request context
-
-        Returns:
-            CheckSubscribersInSyncResponse
-        """
-        in_sync = request.flat_digest.md5_base64_digest == "digest_pear"
-        return CheckSubscribersInSyncResponse(in_sync=in_sync)
 
     def ListSubscribers(self, request, context):  # noqa: N802
         """
@@ -294,30 +279,3 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
         mock.DeleteSubscriber.future.assert_called_once_with(
             DeleteSubscriberRequest(imsi_list=["101", "303"]),
         )
-
-    @ unittest.mock.patch(
-        'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
-    )
-    def test_check_subscribers_in_sync(self, get_grpc_mock):
-        """
-        Test QueryFlatDigest RPC success
-
-        Args:
-            get_grpc_mock: mock for service registry
-        """
-        async def test():  # noqa: WPS430
-            get_grpc_mock.return_value = self.channel
-            in_sync = (
-                await self.subscriberdb_cloud_client._check_subscribers_in_sync()
-            )
-            self.assertEqual(False, in_sync)
-
-            self.subscriberdb_cloud_client._store.update_digest("digest_pear")
-            in_sync = (
-                await self.subscriberdb_cloud_client._check_subscribers_in_sync()
-            )
-            self.assertEqual(True, in_sync)
-
-        # Cancel the client's loop so there are no other activities
-        self.subscriberdb_cloud_client._periodic_task.cancel()
-        self.loop.run_until_complete(test())
