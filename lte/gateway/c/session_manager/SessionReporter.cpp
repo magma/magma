@@ -66,6 +66,36 @@ void SessionReporterImpl::report_updates(
       controller_response->get_context(), request, &queue_)));
 }
 
+/*void SessionReporterImpl::report_update_callback(UpdateSessionRequest &request,
+                                    SessionMap session_map_ptr, SessionUpdate session_update, grpc::Status status, 
+                                    UpdateSessionResponse &response){
+        PrintGrpcMessage(
+        static_cast<const google::protobuf::Message&>(response));
+
+        // clear all the reporting flags
+        // TODO this could be done in one go with the SessionStore update below
+        session_store_.set_and_save_reporting_flag(false, request, session_uc);
+        auto updates_by_session = UpdateRequestsBySession(request);
+        if (!status.ok()) {
+          MLOG(MERROR)
+              << "UpdateSession request to FeG/PolicyDB failed entirely: "
+              << status.error_message();
+          handle_update_failure(
+              *session_map_ptr, updates_by_session, session_uc);
+          report_session_update_event_failure(
+              *session_map_ptr, updates_by_session, status.error_message());
+          session_store_.update_sessions(session_uc);
+          return;
+        }
+        // Success!
+        update_session_credits_and_rules(
+            *session_map_ptr, response, session_uc);
+        report_session_update_event(*session_map_ptr, updates_by_session);
+        session_store_.update_sessions(session_uc);
+      });
+                                      
+                                      }*/
+
 void SessionReporterImpl::report_create_session(
     const CreateSessionRequest& request,
     ReporterCallbackFn<CreateSessionResponse> callback) {

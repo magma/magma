@@ -294,7 +294,6 @@ class LocalEnforcer {
       SessionMap& session_map, const PolicyBearerBindingRequest& request,
       SessionUpdate& session_update);
 
-<<<<<<< HEAD
   void report_session_update_event(
       SessionMap& session_map, const UpdateRequestsBySession& updates);
 
@@ -310,8 +309,6 @@ class LocalEnforcer {
 
   void handle_pipelined_response(Status status, RuleRecordTable resp);
 
-=======
->>>>>>> 8a93779d084bd6e9253dedcd9887f2888e1e8398
   void poll_stats_enforcer();
   /**
    * Sends enb_teid and agw_teid for a specific bearer to a flow for a specific

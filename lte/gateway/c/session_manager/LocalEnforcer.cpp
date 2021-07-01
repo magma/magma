@@ -212,6 +212,8 @@ void LocalEnforcer::check_usage_for_reporting(
   // request numbers stored for the sessions in SessionStore
   session_store_.sync_request_numbers(session_uc);
 
+  /*reporter_->report_updates(request, std::bind(&SessionReporter::report_updates_callback, 
+      this, session_store, request, session_uc, session_map_ptr, _1, _2) */
   // report to cloud
   reporter_->report_updates(
       request,
