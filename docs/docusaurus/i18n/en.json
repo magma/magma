@@ -122,7 +122,7 @@
         "title": "User is unable to attach to Magma"
       },
       "howtos/config_agw_bridged": {
-        "title": "AGW Bridged Mode"
+        "title": "AGW Non-NAT Mode"
       },
       "howtos/ue_metering": {
         "title": "UE Usage Metering"
@@ -366,6 +366,9 @@
       },
       "orc8r/upgrade_1_5": {
         "title": "Upgrade to v1.5"
+      },
+      "orc8r/upgrade_1_6": {
+        "title": "Upgrade to v1.6"
       },
       "orc8r/upgrade_intro": {
         "title": "Introduction"

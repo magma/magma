@@ -18,8 +18,6 @@
 #ifndef FILE_MME_APP_STATISTICS_SEEN
 #define FILE_MME_APP_STATISTICS_SEEN
 
-int mme_app_statistics_display(void);
-
 /*********************************** Utility Functions to update
  * Statistics**************************************/
 void update_mme_app_stats_connected_ue_add(void);

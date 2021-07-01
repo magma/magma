@@ -213,6 +213,10 @@ commands:
   tag-push-docker:
     description: Tag docker image and push it
     parameters:
+      job_name:
+        description: Name of the tag-push-docker task
+        type: string
+        default: publish docker images to docker registry
       tag:
         description: Containers to tag and push
         type: string
@@ -240,41 +244,43 @@ commands:
         default: false
         type: boolean
     steps:
-      - run: |
-          if [ "${CIRCLE_BRANCH}" != "master" ]; then
-            echo "Push only happens for master branch"
-            exit 0
-          fi
-
-          DOCKER_REGISTRY="<< parameters.registry >>"
-          DOCKER_USERNAME="<< parameters.username >>"
-          DOCKER_PASSWORD="<< parameters.password >>"
-
-          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
-
-          IMAGES="<< parameters.images >>"
-          IMAGES_ARRAY=($(echo $IMAGES | tr "|" "\n"))
-          PROJECT=<< parameters.project >>
-          TAG=<< parameters.tag >>
-          TAG_LATEST=<< parameters.tag-latest >>
-
-          function tag_and_push {
-            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
-            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
-            docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
-          }
-
-          for IMAGE in "${IMAGES_ARRAY[@]}"; do
-            IMAGE_TOSEARCH=$IMAGE
-            if [ ! -z $PROJECT ]; then
-              IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
+      - run:
+          name: << parameters.job_name >>
+          command: |
+            if [ "${CIRCLE_BRANCH}" != "master" ]; then
+              echo "Push only happens for master branch"
+              exit 0
             fi
-            IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
-            tag_and_push "$TAG"
-            if [ "$TAG_LATEST" = true ]; then
-              tag_and_push "latest"
-            fi
-          done
+
+            DOCKER_REGISTRY="<< parameters.registry >>"
+            DOCKER_USERNAME="<< parameters.username >>"
+            DOCKER_PASSWORD="<< parameters.password >>"
+
+            docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+
+            IMAGES="<< parameters.images >>"
+            IMAGES_ARRAY=($(echo $IMAGES | tr "|" "\n"))
+            PROJECT=<< parameters.project >>
+            TAG=<< parameters.tag >>
+            TAG_LATEST=<< parameters.tag-latest >>
+
+            function tag_and_push {
+              docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
+              echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
+              docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
+            }
+
+            for IMAGE in "${IMAGES_ARRAY[@]}"; do
+              IMAGE_TOSEARCH=$IMAGE
+              if [ ! -z $PROJECT ]; then
+                IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
+              fi
+              IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
+              tag_and_push "$TAG"
+              if [ "$TAG_LATEST" = true ]; then
+                tag_and_push "latest"
+              fi
+            done
 
   sentry-upload:
     parameters:
@@ -813,11 +819,13 @@ jobs:
             cd ${MAGMA_ROOT}/feg/gateway
             DOCKER_REGISTRY=feg_ make -C ${MAGMA_ROOT}/feg/gateway docker_healthcheck
       - tag-push-docker:
+          job_name: publish docker images to facebookincubator docker registry
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
           tag-latest: <<parameters.tag-latest>>
       - tag-push-docker:
+          job_name: publish docker images to magmacore docker registry
           project: feg
           images: "gateway_go|gateway_python"
           registry: $JFROG_DOCKER_FEG_REGISTRY
@@ -1340,24 +1348,6 @@ jobs:
           version_path: versions/nms_version
       - magma_slack_notify
 
-  ### FOSSA
-
-  fossa-analyze:
-    docker:
-      - image: circleci/buildpack-deps:xenial
-    working_directory: /tmp/magma
-    environment:
-      MAGMA_ROOT: /tmp/magma
-    steps:
-      - checkout
-      - run: wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
-      - run: bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
-      - run: rm -f /tmp/magma/fossa
-      - run: tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
-      - run: sudo cp /tmp/magma/fossa /usr/local/bin/
-      - run: sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
-      - magma_slack_notify
-
   ### XWF
 
   xwfm-test:
@@ -1708,10 +1698,6 @@ workflows:
             - nms-yarn-test
             - nms-e2e-test
 
-  fossa:
-    jobs:
-      - fossa-analyze:
-          <<: *only_master
   github:
     jobs:
       - backport:
