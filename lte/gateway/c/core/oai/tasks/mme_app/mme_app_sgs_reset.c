@@ -90,7 +90,7 @@ status_code_e mme_app_handle_sgsap_reset_indication(
  **          unused_param_pP: Unused param list                            **
  **          unused_result_pP: Unused result                               **
  ** Outputs:                                                               **
- **          Return:    RETURNok, RETURNerror                              **
+ **          Return:    true, false                                        **
  **                                                                        **
  ***************************************************************************/
 bool mme_app_handle_reset_indication(
