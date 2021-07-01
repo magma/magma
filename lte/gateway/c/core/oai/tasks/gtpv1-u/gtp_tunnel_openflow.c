@@ -159,7 +159,8 @@ static uint32_t create_gtp_port(struct in_addr enb_addr, char port_name[]) {
       gtp_port_create, sizeof(gtp_port_create),
       "sudo ovs-vsctl --may-exist add-port gtp_br0 %s -- set Interface %s "
       "type=%s "
-      "options:remote_ip=%s options:key=flow",
+      "options:remote_ip=%s options:key=flow "
+      "bfd:enable=true",
       port_name, port_name, ovs_gtp_type, inet_ntoa(enb_addr));
   if (rc < 0) {
     OAILOG_ERROR(LOG_GTPV1U, "gtp-port create: format error %d", rc);
