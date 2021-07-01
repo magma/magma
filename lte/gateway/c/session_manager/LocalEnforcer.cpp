@@ -186,6 +186,30 @@ void LocalEnforcer::report_session_update_event_failure(
   }
 }
 
+void LocalEnforcer::report_updates_callback(
+    UpdateSessionRequest& request, std::shared_ptr<SessionMap> session_map_ptr,
+    SessionUpdate& session_uc, Status status, UpdateSessionResponse response) {
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(response));
+
+  // clear all the reporting flags
+  // TODO this could be done in one go with the SessionStore update below
+  session_store_.set_and_save_reporting_flag(false, request, session_uc);
+  auto updates_by_session = UpdateRequestsBySession(request);
+  if (!status.ok()) {
+    MLOG(MERROR) << "UpdateSession request to FeG/PolicyDB failed entirely: "
+                 << status.error_message();
+    handle_update_failure(*session_map_ptr, updates_by_session, session_uc);
+    report_session_update_event_failure(
+        *session_map_ptr, updates_by_session, status.error_message());
+    session_store_.update_sessions(session_uc);
+    return;
+  }
+  // Success!
+  update_session_credits_and_rules(*session_map_ptr, response, session_uc);
+  report_session_update_event(*session_map_ptr, updates_by_session);
+  session_store_.update_sessions(session_uc);
+}
+
 void LocalEnforcer::check_usage_for_reporting(
     SessionMap session_map, SessionUpdate& session_uc) {
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -212,37 +236,13 @@ void LocalEnforcer::check_usage_for_reporting(
   // request numbers stored for the sessions in SessionStore
   session_store_.sync_request_numbers(session_uc);
 
-  /*reporter_->report_updates(request, std::bind(&SessionReporter::report_updates_callback, 
-      this, session_store, request, session_uc, session_map_ptr, _1, _2) */
-  // report to cloud
   reporter_->report_updates(
       request,
-      [this, request, session_uc,
-       session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
-          Status status, UpdateSessionResponse response) mutable {
-        PrintGrpcMessage(
-            static_cast<const google::protobuf::Message&>(response));
-
-        // clear all the reporting flags
-        // TODO this could be done in one go with the SessionStore update below
-        session_store_.set_and_save_reporting_flag(false, request, session_uc);
-        auto updates_by_session = UpdateRequestsBySession(request);
-        if (!status.ok()) {
-          MLOG(MERROR)
-              << "UpdateSession request to FeG/PolicyDB failed entirely: "
-              << status.error_message();
-          handle_update_failure(
-              *session_map_ptr, updates_by_session, session_uc);
-          report_session_update_event_failure(
-              *session_map_ptr, updates_by_session, status.error_message());
-          session_store_.update_sessions(session_uc);
-          return;
-        }
-        // Success!
-        update_session_credits_and_rules(
-            *session_map_ptr, response, session_uc);
-        report_session_update_event(*session_map_ptr, updates_by_session);
-        session_store_.update_sessions(session_uc);
+      [this, request,
+       session_map_ptr = std::make_shared<SessionMap>(std::move(session_map)),
+       session_uc](Status status, UpdateSessionResponse response) mutable {
+        report_updates_callback(
+            request, session_map_ptr, session_uc, status, response);
       });
 }
 
@@ -263,10 +263,10 @@ void LocalEnforcer::handle_pipelined_response(
 }
 
 void LocalEnforcer::poll_stats_enforcer() {
-  //we need to pass in a function pointer. Binding is required because
-  //the function is part of the LocalEnforcer class and has arguments 
-  //so we bind to the object and the two arguments the function needs 
-  //which are the status and RuleRecordTable response
+  // we need to pass in a function pointer. Binding is required because
+  // the function is part of the LocalEnforcer class and has arguments
+  // so we bind to the object and the two arguments the function needs
+  // which are the status and RuleRecordTable response
   pipelined_client_->poll_stats(
       0, 0, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
 }

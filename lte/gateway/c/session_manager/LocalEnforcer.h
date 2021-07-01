@@ -309,6 +309,12 @@ class LocalEnforcer {
 
   void handle_pipelined_response(Status status, RuleRecordTable resp);
 
+  void report_updates_callback(
+      UpdateSessionRequest& request,
+      std::shared_ptr<SessionMap> session_map_ptr,
+      SessionUpdate& session_update, grpc::Status status,
+      UpdateSessionResponse response);
+
   void poll_stats_enforcer();
   /**
    * Sends enb_teid and agw_teid for a specific bearer to a flow for a specific
