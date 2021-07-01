@@ -18,6 +18,8 @@ from google.protobuf.json_format import MessageToJson
 from lte.protos import subscriberdb_pb2, subscriberdb_pb2_grpc
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
+from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
+from lte.protos.s6a_service_pb2_grpc import S6aServiceStub
 
 from .store.base import DuplicateSubscriberError, SubscriberNotFoundError
 
@@ -63,6 +65,28 @@ class SubscriberDBRpcServicer(subscriberdb_pb2_grpc.SubscriberDBServicer):
         sid = SIDUtils.to_str(request)
         logging.debug("Delete subscriber rpc for sid: %s", sid)
         self._store.delete_subscriber(sid)
+
+    @return_void
+    def PurgeSubscriber(self, request, context):
+        """
+        Triggers a network initiated detach
+        """
+        self._print_grpc(request)
+        sid = SIDUtils.to_str(request)
+        logging.debug("Purge subscriber rpc for sid: %s", sid)
+        self._store.delete_subscriber(sid)
+
+        # send detach request to mme for all deleted subscribers.
+        chan = ServiceRegistry.get_rpc_channel(
+            's6a_service',
+            ServiceRegistry.LOCAL,
+        )
+        client = S6aServiceStub(chan)
+        req = DeleteSubscriberRequest()
+
+        req.imsi_list.extend([imsi_to_delete])
+        client.DeleteSubscriber.future(req)
+
 
     @return_void
     def UpdateSubscriber(self, request, context):

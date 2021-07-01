@@ -159,6 +159,11 @@ def delete_subscriber(client, args):
 
 
 @grpc_wrapper
+def purge_subscriber(client, args):
+    client.PurgeSubscriber(SIDUtils.to_pb(args.sid))
+
+
+@grpc_wrapper
 def get_subscriber(client, args):
     data = client.GetSubscriberData(SIDUtils.to_pb(args.sid))
     print(data)
@@ -182,6 +187,7 @@ def create_parser():
     subparsers = parser.add_subparsers(title="subcommands", dest="cmd")
     parser_add = subparsers.add_parser("add", help="Add a new subscriber")
     parser_del = subparsers.add_parser("delete", help="Delete a subscriber")
+    parser_purge = subparsers.add_parser("purge", help="Purge a subscriber")
     parser_update = subparsers.add_parser("update", help="Update a subscriber")
     parser_get = subparsers.add_parser("get", help="Get subscriber data")
     parser_list = subparsers.add_parser("list", help="List all subscriber ids")
@@ -190,6 +196,7 @@ def create_parser():
     for cmd in [
         parser_add,
         parser_del,
+        parser_purge,
         parser_update,
         parser_get,
     ]:
@@ -240,6 +247,7 @@ def create_parser():
 # Add function callbacks
     parser_add.set_defaults(func=add_subscriber)
     parser_del.set_defaults(func=delete_subscriber)
+    parser_purge.set_defaults(func=purge_subscriber)
     parser_update.set_defaults(func=update_subscriber)
     parser_get.set_defaults(func=get_subscriber)
     parser_list.set_defaults(func=list_subscribers)
