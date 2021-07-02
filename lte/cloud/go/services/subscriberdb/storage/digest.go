@@ -33,12 +33,11 @@ type DigestLookup interface {
 	// Caveats:
 	// 1. If networks is empty, returns digests for all networks.
 	// 2. lastUpdatedBefore is recorded in unix seconds. Filters for all digests that
-	// were last updated earlier than this time. Only applied when querying for flat
-	// digests (the source of truth for whether a network's digests are up-to-date).
+	// were last updated earlier than this time.
 	GetDigests(networks []string, lastUpdatedBefore int64) (DigestInfos, error)
 
-	// SetDigest updates the digest(s) for a particular network based on the specified arguments.
-	SetDigest(network string, args interface{}) error
+	// SetDigest updates the digest for a particular network based on the specified arguments.
+	SetDigest(network string, digest string) error
 
 	// DeleteDigests removes digests by network IDs.
 	DeleteDigests(networks []string) error
@@ -75,6 +74,19 @@ func (l *flatDigestLookup) Initialize() error {
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
+}
+
+// GetDigest returns the digest for a single network.
+func GetDigest(l DigestLookup, network string) (string, error) {
+	digestInfos, err := l.GetDigests([]string{network}, clock.Now().Unix())
+	if err != nil {
+		return "", err
+	}
+	// Each network has at most 1 digest; if digest not set yet, return empty digest
+	if len(digestInfos) == 0 {
+		return "", nil
+	}
+	return digestInfos[0].Digest, nil
 }
 
 func (l *flatDigestLookup) GetDigests(networks []string, lastUpdatedBefore int64) (DigestInfos, error) {
@@ -124,14 +136,8 @@ func (l *flatDigestLookup) GetDigests(networks []string, lastUpdatedBefore int64
 	return ret, nil
 }
 
-func (l *flatDigestLookup) SetDigest(network string, args interface{}) error {
+func (l *flatDigestLookup) SetDigest(network string, digest string) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		flatDigestUpsertArgs, ok := args.(FlatDigestUpsertArgs)
-		if !ok {
-			return nil, errors.Errorf("invalid args for setting flat digest of network %+v", network)
-		}
-		digest := flatDigestUpsertArgs.Digest
-
 		now := clock.Now().Unix()
 		_, err := l.builder.
 			Insert(flatDigestTableName).
@@ -173,14 +179,6 @@ func (l *flatDigestLookup) DeleteDigests(networks []string) error {
 	return err
 }
 
-func GetDigest(l DigestLookup, network string) (DigestInfos, error) {
-	digestInfos, err := l.GetDigests([]string{network}, clock.Now().Unix())
-	if err != nil {
-		return nil, err
-	}
-	return digestInfos, nil
-}
-
 // GetOutdatedNetworks returns all networks with digests last updated at a time
 // earlier than the specified deadline.
 func GetOutdatedNetworks(l DigestLookup, lastUpdatedBefore int64) ([]string, error) {
@@ -203,14 +201,8 @@ func GetAllNetworks(l DigestLookup) ([]string, error) {
 	return networksUniq, nil
 }
 
-// FlatDigestUpsertArgs specifies the flat digest to be added/updated in store for a network.
-type FlatDigestUpsertArgs struct {
-	Digest string
-}
-
 type DigestInfo struct {
 	Network         string
-	Subscriber      string
 	Digest          string
 	LastUpdatedTime int64
 }

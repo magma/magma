@@ -17,8 +17,10 @@ import (
 	"testing"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/lte/cloud/go/services/subscriberdb_cache"
+	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 
@@ -36,8 +38,9 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, err)
 	flatDigestStore := storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, flatDigestStore.Initialize())
-	perSubDigestStore := storage.NewPerSubDigestLookup(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, perSubDigestStore.Initialize())
+	fact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, fact.InitializeFactory())
+	perSubDigestStore := storage.NewPerSubDigestLookup(fact)
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)

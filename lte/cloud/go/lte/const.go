@@ -95,5 +95,6 @@ const (
 	SubscriberStateType = "subscriber_state"
 
 	// MSISDNBlobstoreType etc. denote blob types stored in blobstore tables.
-	MSISDNBlobstoreType = "msisdn"
+	MSISDNBlobstoreType       = "msisdn"
+	PerSubDigestBlobstoreType = "per_sub_digest"
 )

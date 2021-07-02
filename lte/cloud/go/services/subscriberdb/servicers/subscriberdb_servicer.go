@@ -124,15 +124,11 @@ func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, ne
 		return &lte_protos.Digest{Md5Base64Digest: ""}, false
 	}
 
-	digestInfos, err := storage.GetDigest(s.flatDigestStore, networkID)
+	digest, err := storage.GetDigest(s.flatDigestStore, networkID)
 	// If digest generation fails, the error is swallowed to not affect the main functionality
 	if err != nil {
 		glog.Errorf("Generating digest for network %s failed: %+v", networkID, err)
 		return &lte_protos.Digest{Md5Base64Digest: ""}, false
-	}
-	digest := ""
-	if len(digestInfos) > 0 {
-		digest = digestInfos[0].Digest
 	}
 
 	noUpdates := digest != "" && digest == clientDigest.GetMd5Base64Digest()

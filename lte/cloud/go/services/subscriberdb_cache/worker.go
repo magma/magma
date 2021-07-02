@@ -16,7 +16,6 @@ package subscriberdb_cache
 import (
 	"time"
 
-	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/clock"
@@ -28,15 +27,14 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func MonitorDigests(flatDigestStore storage.DigestLookup, perSubDigestStore storage.DigestLookup, config Config) {
+func MonitorDigests(flatDigestStore storage.DigestLookup, perSubDigestStore *storage.PerSubDigestLookup, config Config) {
 	for {
-		flatDigestsByNetworks, perSubDigestsByNetwork, err := RenewDigests(flatDigestStore, perSubDigestStore, config)
+		flatDigestsByNetworks, err := RenewDigests(flatDigestStore, perSubDigestStore, config)
 		if err != nil {
 			glog.Errorf("Error monitoring digests: %+v", err)
 		}
 		if len(flatDigestsByNetworks) > 0 {
 			glog.Infof("Generated digests per network: %+v", flatDigestsByNetworks)
-			glog.Infof("Updated per-sub digests per network: %+v", perSubDigestsByNetwork)
 		}
 
 		time.Sleep(time.Duration(config.SleepIntervalSecs) * time.Second)
@@ -51,55 +49,51 @@ func MonitorDigests(flatDigestStore storage.DigestLookup, perSubDigestStore stor
 // for continuously updating the digests.
 func RenewDigests(
 	flatDigestStore storage.DigestLookup,
-	perSubDigestStore storage.DigestLookup,
+	perSubDigestStore *storage.PerSubDigestLookup,
 	config Config,
-) (map[string]string, map[string]storage.PerSubDigestUpsertArgs, error) {
+) (map[string]string, error) {
 	networksToRenew, networksToRemove, err := getNetworksToUpdate(flatDigestStore, config.UpdateIntervalSecs)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "get networks to update")
+		return nil, errors.Wrapf(err, "get networks to update")
 	}
 	err = flatDigestStore.DeleteDigests(networksToRemove)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "remove flat digests of invalid networks")
+		return nil, errors.Wrapf(err, "remove flat digests of invalid networks")
 	}
 	err = perSubDigestStore.DeleteDigests(networksToRemove)
 	if err != nil {
-		return nil, nil, errors.Wrapf(err, "remove per sub digests of invalid networks")
+		return nil, errors.Wrapf(err, "remove per sub digests of invalid networks")
 	}
 
 	errs := &multierror.Error{}
 	flatDigestsByNetwork := map[string]string{}
-	perSubDigestsByNetwork := map[string]storage.PerSubDigestUpsertArgs{}
 	for _, network := range networksToRenew {
 		digest, err := subscriberdb.GetFlatDigest(network)
 		if err != nil {
 			multierror.Append(errors.Wrapf(err, "generate flat digest"))
 			continue
 		}
-		err = flatDigestStore.SetDigest(network, storage.FlatDigestUpsertArgs{Digest: digest})
+		err = flatDigestStore.SetDigest(network, digest)
 		if err != nil {
 			multierror.Append(errors.Wrapf(err, "set flat digest"))
 			continue
 		}
 		flatDigestsByNetwork[network] = digest
 
-		perSubDigestsToRenew, perSubDigestsDeleted, err := getPerSubDigestsToUpdate(network, perSubDigestStore)
+		// The per-sub digests in store are updated en masse (collectively serialized into one blob per network)
+		// This update takes place along with every flat digest update for consistency
+		perSubDigests, err := subscriberdb.GetPerSubDigests(network)
 		if err != nil {
 			multierror.Append(errors.Wrapf(err, "get per sub dgests to update"))
 			continue
 		}
-		perSubDigestUpsertArgs := storage.PerSubDigestUpsertArgs{
-			ToRenew: perSubDigestsToRenew,
-			Deleted: perSubDigestsDeleted,
-		}
-		err = perSubDigestStore.SetDigest(network, perSubDigestUpsertArgs)
+		err = perSubDigestStore.SetDigest(network, perSubDigests)
 		if err != nil {
 			multierror.Append(errors.Wrapf(err, "set per sub digest"))
 			continue
 		}
-		perSubDigestsByNetwork[network] = perSubDigestUpsertArgs
 	}
-	return flatDigestsByNetwork, perSubDigestsByNetwork, errs.ErrorOrNil()
+	return flatDigestsByNetwork, errs.ErrorOrNil()
 }
 
 // getNetworksToUpdate returns networks to renew or delete in the store.
@@ -122,44 +116,4 @@ func getNetworksToUpdate(flatDigestStore storage.DigestLookup, updateIntervalSec
 	toRenew := append(newlyCreated, trackedToRenew...)
 
 	return toRenew, deleted, nil
-}
-
-// getPerSubDigestsToUpdate returns the per-subscriber digests to be updated or to be
-// deleted in store.
-func getPerSubDigestsToUpdate(network string, perSubDigestStore storage.DigestLookup) (map[string]string, []string, error) {
-	all, err := subscriberdb.GetPerSubDigests(network)
-	if err != nil {
-		return nil, nil, err
-	}
-	tracked, err := getSubscriberDigestByIDsInStore(network, perSubDigestStore)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	toRenew, deleted := subscriberdb.GetSubDigestsDiff(all, tracked)
-	if err != nil {
-		return nil, nil, err
-	}
-	return toRenew, deleted, nil
-}
-
-// getSubscriberDigestByIDsInStore gets the per-subscriber digests from store and converts them
-// into a list of SubscriberDigestByID objects.
-func getSubscriberDigestByIDsInStore(network string, perSubDigestStore storage.DigestLookup) ([]*lte_protos.SubscriberDigestByID, error) {
-	digestInfos, err := storage.GetDigest(perSubDigestStore, network)
-	if err != nil {
-		return nil, err
-	}
-	subscriberDigestByIDs := []*lte_protos.SubscriberDigestByID{}
-	for _, digestInfo := range digestInfos {
-		subscriberDigestByID := &lte_protos.SubscriberDigestByID{
-			Digest: &lte_protos.Digest{Md5Base64Digest: digestInfo.Digest},
-			Sid: &lte_protos.SubscriberID{
-				Type: lte_protos.SubscriberID_IMSI,
-				Id:   digestInfo.Subscriber,
-			},
-		}
-		subscriberDigestByIDs = append(subscriberDigestByIDs, subscriberDigestByID)
-	}
-	return subscriberDigestByIDs, nil
 }

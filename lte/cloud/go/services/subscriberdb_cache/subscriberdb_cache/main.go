@@ -15,8 +15,10 @@ package main
 
 import (
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/services/subscriberdb"
 	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/lte/cloud/go/services/subscriberdb_cache"
+	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -38,10 +40,12 @@ func main() {
 	if err := flatDigestStore.Initialize(); err != nil {
 		glog.Fatalf("Error initializing flat digest storage: %+v", err)
 	}
-	perSubDigestStore := subscriberdb_storage.NewPerSubDigestLookup(db, sqorc.GetSqlBuilder())
-	if err := perSubDigestStore.Initialize(); err != nil {
-		glog.Fatalf("Error initializing per sub digest storage: %+v", err)
+
+	fact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	if err := fact.InitializeFactory(); err != nil {
+		glog.Fatalf("Error initializing per-sub digest storage: %+v", err)
 	}
+	perSubDigestStore := subscriberdb_storage.NewPerSubDigestLookup(fact)
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)

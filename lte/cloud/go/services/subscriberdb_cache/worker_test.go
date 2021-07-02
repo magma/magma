@@ -18,12 +18,15 @@ import (
 	"time"
 
 	"magma/lte/cloud/go/lte"
+	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
+	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/lte/cloud/go/services/subscriberdb_cache"
+	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -38,8 +41,9 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.NoError(t, err)
 	flatDigestStore := storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, flatDigestStore.Initialize())
-	perSubDigestStore := storage.NewPerSubDigestLookup(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, perSubDigestStore.Initialize())
+	fact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, fact.InitializeFactory())
+	perSubDigestStore := storage.NewPerSubDigestLookup(fact)
 	serviceConfig := subscriberdb_cache.Config{
 		SleepIntervalSecs:  5,
 		UpdateIntervalSecs: 300,
@@ -53,10 +57,10 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.Equal(t, []string{}, allNetworks)
 	flatDigest, err := storage.GetDigest(flatDigestStore, "n1")
 	assert.NoError(t, err)
-	checkFlatDigestEqual(t, "", flatDigest, true)
-	perSubDigests, err := storage.GetDigest(perSubDigestStore, "n1")
+	assert.Equal(t, "", flatDigest)
+	perSubDigests, err := perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, storage.DigestInfos{}, perSubDigests)
+	assert.Equal(t, 0, len(perSubDigests))
 
 	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -64,10 +68,11 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	subscriberdb_cache.RenewDigests(flatDigestStore, perSubDigestStore, serviceConfig)
 	flatDigest, err = storage.GetDigest(flatDigestStore, "n1")
 	assert.NoError(t, err)
-	flatDigestExpected := checkFlatDigestEqual(t, "", flatDigest, false)
-	perSubDigests, err = storage.GetDigest(perSubDigestStore, "n1")
+	assert.NotEqual(t, "", flatDigest)
+	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, storage.DigestInfos{}, perSubDigests)
+	assert.Equal(t, 0, len(perSubDigests))
+	flatDigestExpected := flatDigest
 
 	// Detect outdated digests and update
 	_, err = configurator.CreateEntities(
@@ -98,15 +103,15 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	subscriberdb_cache.RenewDigests(flatDigestStore, perSubDigestStore, serviceConfig)
 	flatDigest, err = storage.GetDigest(flatDigestStore, "n1")
 	assert.NoError(t, err)
-	checkFlatDigestEqual(t, flatDigestExpected, flatDigest, false)
+	assert.NotEqual(t, flatDigestExpected, flatDigest)
 
-	perSubDigests, err = storage.GetDigest(perSubDigestStore, "n1")
+	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
 	// The individual subscriber digests are ordered by subscriber ID
-	assert.Equal(t, "11111", perSubDigests[0].Subscriber)
-	assert.NotEqual(t, "", perSubDigests[0].Digest)
-	assert.Equal(t, "99999", perSubDigests[1].Subscriber)
-	assert.NotEqual(t, "", perSubDigests[1].Digest)
+	assert.Equal(t, "11111", perSubDigests[0].Sid.Id)
+	assert.NotEqual(t, "", perSubDigests[0].Digest.GetMd5Base64Digest())
+	assert.Equal(t, "99999", perSubDigests[1].Sid.Id)
+	assert.NotEqual(t, "", perSubDigests[1].Digest.GetMd5Base64Digest())
 	clock.UnfreezeClock(t)
 
 	// Detect newly added and removed networks
@@ -118,35 +123,20 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	subscriberdb_cache.RenewDigests(flatDigestStore, perSubDigestStore, serviceConfig)
 	flatDigest, err = storage.GetDigest(flatDigestStore, "n1")
 	assert.NoError(t, err)
-	checkFlatDigestEqual(t, "", flatDigest, true)
-	perSubDigests, err = storage.GetDigest(perSubDigestStore, "n1")
+	assert.Equal(t, "", flatDigest)
+	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, storage.DigestInfos{}, perSubDigests)
+	assert.Equal(t, []*lte_protos.SubscriberDigestByID{}, perSubDigests)
 
 	flatDigest, err = storage.GetDigest(flatDigestStore, "n2")
 	assert.NoError(t, err)
-	checkFlatDigestEqual(t, "", flatDigest, false)
-	perSubDigests, err = storage.GetDigest(perSubDigestStore, "n2")
+	assert.NotEqual(t, "", flatDigest)
+	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, storage.DigestInfos{}, perSubDigests)
+	assert.Equal(t, []*lte_protos.SubscriberDigestByID{}, perSubDigests)
 
 	allNetworks, err = storage.GetAllNetworks(flatDigestStore)
 	assert.NoError(t, err)
 	assert.Equal(t, []string{"n2"}, allNetworks)
 	clock.UnfreezeClock(t)
-}
-
-func checkFlatDigestEqual(t *testing.T, expected string, digest storage.DigestInfos, equal bool) string {
-	// A network has at most 1 flat digest in store
-	got := ""
-	if len(digest) > 0 {
-		assert.Equal(t, 1, len(digest))
-		got = digest[0].Digest
-	}
-	if equal {
-		assert.Equal(t, expected, got)
-	} else {
-		assert.NotEqual(t, expected, got)
-	}
-	return got
 }

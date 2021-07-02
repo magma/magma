@@ -16,7 +16,10 @@ package storage_test
 import (
 	"testing"
 
+	lte_protos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
+	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/sqorc"
 
 	"github.com/stretchr/testify/assert"
@@ -25,122 +28,90 @@ import (
 func TestPerSubDigestLookup(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	s := storage.NewPerSubDigestLookup(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, s.Initialize())
+	fact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, fact.InitializeFactory())
+	s := storage.NewPerSubDigestLookup(fact)
 
 	t.Run("empty initially", func(t *testing.T) {
-		digest, err := storage.GetDigest(s, "n0")
+		digest, err := s.GetDigest("n0")
 		assert.NoError(t, err)
-		checkPerSubDigests(t, storage.DigestInfos{}, digest)
-
-		networkIDs, err := storage.GetAllNetworks(s)
-		assert.NoError(t, err)
-		assert.Equal(t, []string{}, networkIDs)
+		checkPerSubDigests(t, []*lte_protos.SubscriberDigestByID{}, digest)
 	})
 
 	t.Run("basic insert", func(t *testing.T) {
-		err = s.SetDigest("n0", storage.PerSubDigestUpsertArgs{
-			ToRenew: map[string]string{
-				"IMSI0001": "apple",
-				"IMSI0002": "lemon",
-				"IMSI0003": "peach",
+		expected := []*lte_protos.SubscriberDigestByID{
+			{
+				Sid:    &lte_protos.SubscriberID{Id: "00000", Type: lte_protos.SubscriberID_IMSI},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "apple"},
 			},
-		})
-		assert.NoError(t, err)
-		err = s.SetDigest("n1", storage.PerSubDigestUpsertArgs{
-			ToRenew: map[string]string{
-				"IMSI1111": "banana",
-				"IMSI1112": "durian",
+			{
+				Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "lemon"},
 			},
-		})
-		assert.NoError(t, err)
-		err = s.SetDigest("n2", storage.PerSubDigestUpsertArgs{
-			ToRenew: map[string]string{"IMSI2221": "cherry"},
-		})
-		assert.NoError(t, err)
-
-		networkIDs, err := storage.GetAllNetworks(s)
-		assert.NoError(t, err)
-		assert.Equal(t, []string{"n0", "n1", "n2"}, networkIDs)
-
-		digest, err := storage.GetDigest(s, "n0")
-		assert.NoError(t, err)
-		expected := storage.DigestInfos{
-			{Subscriber: "IMSI0001", Digest: "apple"},
-			{Subscriber: "IMSI0002", Digest: "lemon"},
-			{Subscriber: "IMSI0003", Digest: "peach"},
+			{
+				Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "peach"},
+			},
 		}
-		checkPerSubDigests(t, expected, digest)
-
-		digest, err = storage.GetDigest(s, "n1")
+		err = s.SetDigest("n0", expected)
 		assert.NoError(t, err)
-		expected = storage.DigestInfos{
-			{Subscriber: "IMSI1111", Digest: "banana"},
-			{Subscriber: "IMSI1112", Digest: "durian"},
-		}
-		checkPerSubDigests(t, expected, digest)
 
-		digest, err = storage.GetDigest(s, "n2")
+		got, err := s.GetDigest("n0")
 		assert.NoError(t, err)
-		expected = storage.DigestInfos{{Subscriber: "IMSI2221", Digest: "cherry"}}
-		checkPerSubDigests(t, expected, digest)
+		checkPerSubDigests(t, expected, got)
 	})
 
 	t.Run("upsert", func(t *testing.T) {
-		err = s.SetDigest("n0", storage.PerSubDigestUpsertArgs{
-			ToRenew: map[string]string{"IMSI0001": "orange", "IMSI0004": "papaya"},
-			Deleted: []string{"IMSI0002"},
-		})
-		assert.NoError(t, err)
-		digest, err := storage.GetDigest(s, "n0")
-		assert.NoError(t, err)
-		expected := storage.DigestInfos{
-			{Subscriber: "IMSI0001", Digest: "orange"},
-			{Subscriber: "IMSI0003", Digest: "peach"},
-			{Subscriber: "IMSI0004", Digest: "papaya"},
+		expected := []*lte_protos.SubscriberDigestByID{
+			{
+				Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "turtle"},
+			},
+			{
+				Sid:    &lte_protos.SubscriberID{Id: "00003", Type: lte_protos.SubscriberID_IMSI},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "donkey"},
+			},
+			{
+				Sid:    &lte_protos.SubscriberID{Id: "00004", Type: lte_protos.SubscriberID_IMSI},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "monkey"},
+			},
 		}
-		checkPerSubDigests(t, expected, digest)
+		// The upserted set should completely replace the original set
+		err = s.SetDigest("n1", expected)
+		assert.NoError(t, err)
+		got, err := s.GetDigest("n1")
+		assert.NoError(t, err)
+		checkPerSubDigests(t, expected, got)
 
-		err = s.SetDigest("n1", storage.PerSubDigestUpsertArgs{
-			ToRenew: map[string]string{"IMSI1113": "starfruit", "IMSI1114": "cactus"},
-			Deleted: []string{"IMSI1111", "IMSI1112"},
-		})
+		err = s.SetDigest("n0", expected)
 		assert.NoError(t, err)
-		digest, err = storage.GetDigest(s, "n1")
+		got, err = s.GetDigest("n0")
 		assert.NoError(t, err)
-		expected = storage.DigestInfos{
-			{Subscriber: "IMSI1113", Digest: "starfruit"},
-			{Subscriber: "IMSI1114", Digest: "cactus"},
-		}
-		checkPerSubDigests(t, expected, digest)
+		checkPerSubDigests(t, expected, got)
 	})
 
-	t.Run("delete", func(t *testing.T) {
-		err = s.DeleteDigests([]string{"n1", "n2"})
+	t.Run("delete many", func(t *testing.T) {
+		err = s.DeleteDigests([]string{"n0", "n1"})
 		assert.NoError(t, err)
 
-		networks, err := storage.GetAllNetworks(s)
+		got, err := s.GetDigest("n0")
 		assert.NoError(t, err)
-		assert.Equal(t, []string{"n0"}, networks)
+		checkPerSubDigests(t, []*lte_protos.SubscriberDigestByID{}, got)
 
-		digest, err := storage.GetDigest(s, "n1")
+		got, err = s.GetDigest("n1")
 		assert.NoError(t, err)
-		checkPerSubDigests(t, storage.DigestInfos{}, digest)
-		digest, err = storage.GetDigest(s, "n0")
+		checkPerSubDigests(t, []*lte_protos.SubscriberDigestByID{}, got)
+
+		// Deleting digests of a non-existent network shouldn't cause an error
+		err = s.DeleteDigests([]string{"n2"})
 		assert.NoError(t, err)
-		expected := storage.DigestInfos{
-			{Subscriber: "IMSI0001", Digest: "orange"},
-			{Subscriber: "IMSI0003", Digest: "peach"},
-			{Subscriber: "IMSI0004", Digest: "papaya"},
-		}
-		checkPerSubDigests(t, expected, digest)
 	})
 }
 
-func checkPerSubDigests(t *testing.T, expected storage.DigestInfos, got storage.DigestInfos) {
+func checkPerSubDigests(t *testing.T, expected []*lte_protos.SubscriberDigestByID, got []*lte_protos.SubscriberDigestByID) {
 	assert.Equal(t, len(expected), len(got))
 	for ind := range expected {
-		assert.Equal(t, expected[ind].Digest, got[ind].Digest)
-		assert.Equal(t, expected[ind].Subscriber, got[ind].Subscriber)
+		assert.Equal(t, expected[ind].Digest.GetMd5Base64Digest(), got[ind].Digest.GetMd5Base64Digest())
+		assert.Equal(t, expected[ind].Sid.Id, got[ind].Sid.Id)
 	}
 }
