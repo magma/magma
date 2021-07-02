@@ -195,7 +195,9 @@ class TestConcurrentSecondaryPdns(unittest.TestCase):
         )
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
-            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False,
+            ue_id,
+            s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
+            wait_for_s1_ctxt_release=False,
         )
 
 

@@ -135,8 +135,6 @@ s1aptests/test_attach_detach_dedicated_deactivation_timer_expiry.py \
 s1aptests/test_dedicated_bearer_activation_idle_mode.py \
 s1aptests/test_attach_detach_secondary_pdn.py \
 s1aptests/test_attach_detach_secondary_pdn_looped.py \
-s1aptests/test_concurrent_secondary_pdns.py \
-s1aptests/test_concurrent_secondary_pdn_reject.py \
 s1aptests/test_attach_service_with_multi_pdns_and_bearers.py \
 s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer.py \
 s1aptests/test_attach_detach_secondary_pdn_with_dedicated_bearer_looped.py \
@@ -162,6 +160,8 @@ s1aptests/test_attach_complete_after_ics_timer_expiry.py \
 s1aptests/test_send_error_ind_for_dl_nas_with_auth_req.py \
 s1aptests/test_send_error_ind_for_erab_setup_req.py \
 s1aptests/test_attach_detach_with_ipv6_pcscf_and_dns_addr.py \
+s1aptests/test_concurrent_secondary_pdns.py \
+s1aptests/test_concurrent_secondary_pdn_reject.py \
 s1aptests/test_ipv4v6_secondary_pdn_rs_retransmit.py \
 s1aptests/test_ipv4v6_secondary_pdn_spgw_initiated_ded_bearer.py \
 s1aptests/test_ipv6_secondary_pdn_rs_retransmit.py \
