@@ -25,6 +25,7 @@ import (
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/metrics"
 
 	"github.com/golang/glog"
@@ -48,19 +49,25 @@ func (x *CertLifespanCalculation) Calculate(prometheusClient query_api.Prometheu
 		return results, nil
 	}
 
+	networks, err := configurator.ListNetworkIDs()
+	if err != nil {
+		glog.Errorf("Unable to retrieve any networks: %+v", err)
+		return results, nil
+	}
+
 	for _, certName := range x.Certs {
-		result, err := calculateCertLifespanHours(x.CertsDirectory, certName, metricConfig.Labels)
+		cert_results, err := calculateCertLifespanHours(x.CertsDirectory, certName, metricConfig.Labels, networks)
 		if err != nil {
 			glog.Errorf("Could not get lifespan for cert %s: %+v", certName, err)
 			continue
 		}
-		results = append(results, result)
+		results = append(results, cert_results...)
 	}
-
 	return results, nil
 }
 
-func calculateCertLifespanHours(certsDirectory string, certName string, metricConfigLabels map[string]string) (*protos.CalculationResult, error) {
+func calculateCertLifespanHours(certsDirectory string, certName string, metricConfigLabels map[string]string, networks []string) ([]*protos.CalculationResult, error) {
+	var results []*protos.CalculationResult
 	dat, err := getCert(certsDirectory + certName)
 	if err != nil {
 		return nil, err
@@ -71,13 +78,21 @@ func calculateCertLifespanHours(certsDirectory string, certName string, metricCo
 	}
 	// Hours remaining
 	hoursLeft := math.Floor(time.Until(cert.NotAfter).Hours())
-	labels := prometheus.Labels{
-		metrics.CertNameLabel: certName,
-	}
-	labels = calculations.CombineLabels(labels, metricConfigLabels)
-	result := calculations.NewResult(hoursLeft, metrics.CertExpiresInHoursMetric, labels)
 	glog.V(2).Infof("Calculated metric %s for %s: %f", metrics.CertExpiresInHoursMetric, certName, hoursLeft)
-	return result, nil
+
+	// Here we are broadcasting infra level certificate alert on all networks
+	// This is not a typical pattern, however we are currently doing this to
+	// enable the certificate expiry alert to be displayed on per tenant NMS portal
+	for _, networkID := range networks {
+		labels := prometheus.Labels{
+			metrics.NetworkLabelName: networkID,
+			metrics.CertNameLabel:    certName,
+		}
+		labels = calculations.CombineLabels(labels, metricConfigLabels)
+		result := calculations.NewResult(hoursLeft, metrics.CertExpiresInHoursMetric, labels)
+		results = append(results, result)
+	}
+	return results, nil
 }
 
 func getCert(certPath string) ([]byte, error) {
