@@ -1,6 +1,6 @@
 ---
 id: deploy_install_ubuntu
-title: Install AGW on Ubuntu 20.04
+title: Install AGW
 hide_title: true
 ---
 

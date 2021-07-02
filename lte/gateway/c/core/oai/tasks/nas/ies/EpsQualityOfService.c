@@ -43,7 +43,7 @@ static int decode_eps_qos_bit_rates(
 }
 
 //------------------------------------------------------------------------------
-int decode_eps_quality_of_service(
+status_code_e decode_eps_quality_of_service(
     EpsQualityOfService* epsqualityofservice, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
   int decoded   = 0;
@@ -108,7 +108,7 @@ static int encode_eps_qos_bit_rates(
 }
 
 //------------------------------------------------------------------------------
-int encode_eps_quality_of_service(
+status_code_e encode_eps_quality_of_service(
     EpsQualityOfService* epsqualityofservice, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
   uint8_t* lenPtr;
@@ -146,7 +146,7 @@ int encode_eps_quality_of_service(
 
 #define EPS_QOS_BIT_RATE_MAX 262144  // 256 Mbps
 //------------------------------------------------------------------------------
-int eps_qos_bit_rate_value(uint8_t br) {
+status_code_e eps_qos_bit_rate_value(uint8_t br) {
   if (br < 0b00000001) {
     return (EPS_QOS_BIT_RATE_MAX);
   } else if ((br > 0b00000000) && (br < 0b01000000)) {
@@ -161,7 +161,7 @@ int eps_qos_bit_rate_value(uint8_t br) {
 }
 
 //------------------------------------------------------------------------------
-int eps_qos_bit_rate_ext_value(uint8_t br) {
+status_code_e eps_qos_bit_rate_ext_value(uint8_t br) {
   if ((br > 0b00000000) && (br < 0b01001011)) {
     return (8600 + br * 100);
   } else if ((br > 0b01001010) && (br < 0b10111011)) {
@@ -174,7 +174,7 @@ int eps_qos_bit_rate_ext_value(uint8_t br) {
 }
 
 //------------------------------------------------------------------------------
-int qos_params_to_eps_qos(
+status_code_e qos_params_to_eps_qos(
     const qci_t qci, const bitrate_t mbr_dl, const bitrate_t mbr_ul,
     const bitrate_t gbr_dl, const bitrate_t gbr_ul,
     EpsQualityOfService* const eps_qos, bool is_default_bearer) {

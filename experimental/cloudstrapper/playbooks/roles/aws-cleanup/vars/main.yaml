@@ -50,3 +50,5 @@ orc8rDomainRecords:
   - controller
   - fluentd
   - nms
+
+varDefaultSleep: 5

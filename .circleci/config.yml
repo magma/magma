@@ -213,6 +213,10 @@ commands:
   tag-push-docker:
     description: Tag docker image and push it
     parameters:
+      job_name:
+        description: Name of the tag-push-docker task
+        type: string
+        default: publish docker images to docker registry
       tag:
         description: Containers to tag and push
         type: string
@@ -240,41 +244,93 @@ commands:
         default: false
         type: boolean
     steps:
-      - run: |
-          if [ "${CIRCLE_BRANCH}" != "master" ]; then
-            echo "Push only happens for master branch"
-            exit 0
-          fi
-
-          DOCKER_REGISTRY="<< parameters.registry >>"
-          DOCKER_USERNAME="<< parameters.username >>"
-          DOCKER_PASSWORD="<< parameters.password >>"
-
-          docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
-
-          IMAGES="<< parameters.images >>"
-          IMAGES_ARRAY=($(echo $IMAGES | tr "|" "\n"))
-          PROJECT=<< parameters.project >>
-          TAG=<< parameters.tag >>
-          TAG_LATEST=<< parameters.tag-latest >>
-
-          function tag_and_push {
-            docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
-            echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
-            docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
-          }
-
-          for IMAGE in "${IMAGES_ARRAY[@]}"; do
-            IMAGE_TOSEARCH=$IMAGE
-            if [ ! -z $PROJECT ]; then
-              IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
+      - run:
+          name: << parameters.job_name >>
+          command: |
+            if [ "${CIRCLE_BRANCH}" != "master" ]; then
+              echo "Push only happens for master branch"
+              exit 0
             fi
-            IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
-            tag_and_push "$TAG"
-            if [ "$TAG_LATEST" = true ]; then
-              tag_and_push "latest"
-            fi
-          done
+
+            DOCKER_REGISTRY="<< parameters.registry >>"
+            DOCKER_USERNAME="<< parameters.username >>"
+            DOCKER_PASSWORD="<< parameters.password >>"
+
+            docker login "${DOCKER_REGISTRY}" -u "${DOCKER_USERNAME}" -p "${DOCKER_PASSWORD}"
+
+            IMAGES="<< parameters.images >>"
+            IMAGES_ARRAY=($(echo $IMAGES | tr "|" "\n"))
+            PROJECT=<< parameters.project >>
+            TAG=<< parameters.tag >>
+            TAG_LATEST=<< parameters.tag-latest >>
+
+            function tag_and_push {
+              docker tag "$IMAGE_ID" "${DOCKER_REGISTRY}/$IMAGE:$1"
+              echo "Pushing ${DOCKER_REGISTRY}/$IMAGE:$1"
+              docker push "${DOCKER_REGISTRY}/$IMAGE:$1"
+            }
+
+            for IMAGE in "${IMAGES_ARRAY[@]}"; do
+              IMAGE_TOSEARCH=$IMAGE
+              if [ ! -z $PROJECT ]; then
+                IMAGE_TOSEARCH="${PROJECT}_${IMAGE}"
+              fi
+              IMAGE_ID=$(docker images "$IMAGE_TOSEARCH:latest" --format "{{.ID}}")
+              tag_and_push "$TAG"
+              if [ "$TAG_LATEST" = true ]; then
+                tag_and_push "latest"
+              fi
+            done
+
+  sentry-upload:
+    parameters:
+      executable_name:
+        description: Name of executable that should be pushed to sentry
+        type: string
+    steps:
+      - run:
+          name: Upload debug artifacts for an executable to Sentry.io
+          command: |
+            # The assumption here is that packages.tar.gz was tarred in
+            # $MAGMA_ROOT/circleci in the magma_integ_test step
+            cd circleci/executables
+
+            SENTRY_ORG="lf-9c"
+            NATIVE_PROJECT="lab-agws-native"
+            EXEC="<< parameters.executable_name >>"
+            objcopy --only-keep-debug "$EXEC" "$EXEC".debug
+            objcopy --strip-debug --strip-unneeded "$EXEC"
+            objcopy --add-gnu-debuglink="$EXEC".debug "$EXEC"
+
+            # [Optional] Log included debug information
+            sentry-cli difutil check "$EXEC"
+            sentry-cli difutil check "$EXEC".debug
+
+            # Upload the debug artifact with `symtab`, `debug`, and `sources`
+            sentry-cli upload-dif --log-level=info --org="$SENTRY_ORG" --project="$NATIVE_PROJECT" --include-sources  "$EXEC".debug
+            # Upload the stripped executable with `unwind`
+            sentry-cli upload-dif --log-level=info --org="$SENTRY_ORG" --project="$NATIVE_PROJECT" "$EXEC"
+
+  sentry-release:
+    steps:
+      - run: curl -sL https://sentry.io/get-cli/ | bash
+      - run:
+          name: Export Sentry Env Vars
+          command: |
+            echo export SENTRY_ENVIRONMENT="staging" >> $BASH_ENV
+            echo export SENTRY_ORG="lf-9c" >> $BASH_ENV
+      - sentry-upload:
+          executable_name: sessiond
+      - sentry-upload:
+          executable_name: mme
+      - run:
+          name: Create a release in Sentry.io with the commit hash
+          command: |
+            COMMIT_HASH_WITH_VERSION="v1.7-${CIRCLE_SHA1:0:8}"
+            sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${COMMIT_HASH_WITH_VERSION}
+            sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${COMMIT_HASH_WITH_VERSION}
+            sentry-cli --log-level=info releases finalize ${COMMIT_HASH_WITH_VERSION}
+
 
   magma_integ_test:
     parameters:
@@ -348,7 +404,7 @@ commands:
                for i in `ls -a1 *.deb`
                do
                   echo "Pushing package $i to JFROG artifiactory: ${JFROG_DEBIANLOCAL_REGISTRY}"
-                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/stretch-ci/$i;deb.distribution=stretch-ci;deb.component=main;deb.architecture=amd64" -T $i
+                  curl -uci-bot:${JFROG_CIBOT_APIKEYS} -XPUT "${JFROG_DEBIANLOCAL_REGISTRY}/focal-ci/$i;deb.distribution=focal-ci;deb.component=main;deb.architecture=amd64" -T $i
                done
             else
                echo "${PACKAGE_FILE} does NOT exist"
@@ -495,20 +551,6 @@ commands:
             curl -X POST -H 'Content-type: application/json' --data "${slack_data}" "${SLACK_WEBHOOK_OSS}"
 
 jobs:
-  sentry-release:
-    docker:
-      - image: circleci/node:4.8.2
-    environment:
-      SENTRY_ENVIRONMENT: staging
-      SENTRY_ORG: lf-9c
-    steps:
-      - checkout  # check out the code in the project directory
-      - run: curl -sL https://sentry.io/get-cli/ | bash
-      - run: |
-          sentry-cli --log-level=info releases new -p lab-agws-python -p lab-agws-native ${CIRCLE_SHA1:0:8}
-          sentry-cli --log-level=info releases set-commits --auto --ignore-missing ${CIRCLE_SHA1:0:8}
-          sentry-cli --log-level=info releases finalize ${CIRCLE_SHA1:0:8}
-
   backport:
     machine:
       image: ubuntu-1604:201903-01
@@ -739,6 +781,10 @@ jobs:
       - magma_slack_notify
 
   feg-build:
+    parameters:
+      tag-latest:
+        default: false
+        type: boolean
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -748,6 +794,7 @@ jobs:
     steps:
       - checkout
       - docker/install-dc
+      - python/set_version
       - build/determinator:
           <<: *federated_build_verify
       - run:
@@ -766,22 +813,26 @@ jobs:
           name: build docker
           command: |
             cd ${MAGMA_ROOT}/feg/gateway/docker
-            DOCKER_REGISTRY=feg_ docker-compose build --parallel
+            DOCKER_REGISTRY=feg_ python3 build.py
       - run:
           name: run docker containers and check health
           command: |
-            cd ${MAGMA_ROOT}/feg/gateway
-            DOCKER_REGISTRY=feg_ make -C ${MAGMA_ROOT}/feg/gateway docker_healthcheck
+            cd ${MAGMA_ROOT}/feg/gateway/docker
+            DOCKER_REGISTRY=feg_ python3 build.py -e
       - tag-push-docker:
+          job_name: publish docker images to facebookincubator docker registry
           project: feg
           images: "gateway_go|gateway_python"
           registry: $DOCKER_FEG_REGISTRY
+          tag-latest: <<parameters.tag-latest>>
       - tag-push-docker:
+          job_name: publish docker images to magmacore docker registry
           project: feg
           images: "gateway_go|gateway_python"
           registry: $JFROG_DOCKER_FEG_REGISTRY
           username: $JFROG_USERNAME
           password: $JFROG_PASSWORD
+          tag-latest: <<parameters.tag-latest>>
       - persist-githash-version:
           file_prefix: feg
       - notify-magma:
@@ -1135,6 +1186,7 @@ jobs:
           test: 'False'
           build: 'True'
           deploy: 'True'
+      - sentry-release
       - notify-magma:
           artifact_name: LTE AGW
           version_path: versions/magma_version
@@ -1297,53 +1349,6 @@ jobs:
           version_path: versions/nms_version
       - magma_slack_notify
 
-  ### FOSSA
-
-  fossa-analyze:
-    docker:
-      - image: circleci/buildpack-deps:xenial
-    working_directory: /tmp/magma
-    environment:
-      MAGMA_ROOT: /tmp/magma
-    steps:
-      - checkout
-      - run: wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
-      - run: bash -c 'sha256sum fossa-cli_1.0.11_linux_amd64.tar.gz | grep -q 0e20286630a9bc5a17408c81e6ba9003f91a14fdd680b96ca4def400693e028e'
-      - run: rm -f /tmp/magma/fossa
-      - run: tar xzf fossa-cli_1.0.11_linux_amd64.tar.gz
-      - run: sudo cp /tmp/magma/fossa /usr/local/bin/
-      - run: sudo ${MAGMA_ROOT}/circleci/fossa-analyze-go.sh
-      - magma_slack_notify
-
-  ### DOCUSAURUS
-
-  docusaurus_build_and_deploy:
-    docker:
-      - image: circleci/node:8.11.1
-    environment:
-      DOCUSAURUS_URL: https://magma.github.io
-      DOCUSAURUS_BASE_URL: /magma/
-    steps:
-      - checkout
-      - build/determinator:
-          <<: *docs_only
-      - run:
-          name: Setup docusaurus expected directory structure
-          command: |
-            mv docs/docusaurus website/
-            mv docs/readmes readmes/
-            rm -rf docs/
-            mv readmes/ docs/
-      - run:
-          name: Deploying to GitHub Pages
-          command: |
-            git config --global user.email "bots@magmacore.org"
-            git config --global user.name "magma-docusaurus-bot"
-            echo "machine github.com login magma-docusaurus-bot password $GITHUB_TOKEN" > ~/.netrc
-            cd website && yarn install
-            CUSTOM_COMMIT_MESSAGE="[skip ci] Deploy website" GIT_USER=magma-docusaurus-bot yarn run publish-gh-pages
-      - magma_slack_notify
-
   ### XWF
 
   xwfm-test:
@@ -1456,15 +1461,18 @@ jobs:
       - run:
           name: Propagate AWS credentials to ansible and create version
           command: |
+            GIT_TAG="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)"
             if [ "<<parameters.aws_account>>" = "FB" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_QUENTIN}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)$CIRCLE_BUILD_NUM" >> $BASH_ENV
+              echo export VERSION="$GIT_TAG$CIRCLE_BUILD_NUM" >> $BASH_ENV
             elif  [ "<<parameters.aws_account>>" = "LF" ]; then
               sed -i -e "s@awsAccessKey:@& ${AWS_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
               sed -i -e "s@awsSecretKey:@& ${AWS_SECRET_ACCESS_KEY_AMI_LF}@1"  $VARS_DIR/secrets.yaml
-              echo export VERSION="$(cd $MAGMA_ROOT && git describe --tags `git rev-list --tags --max-count=1`)" >> $BASH_ENV
+              echo export VERSION="$GIT_TAG" >> $BASH_ENV
             fi
+            echo export GIT_TAG="$GIT_TAG" >> $BASH_ENV
+            echo export PACKAGE_VERSION="${GIT_TAG:1}" >> $BASH_ENV
       - run:
           name: Propagate AWS region information
           command: |
@@ -1477,7 +1485,7 @@ jobs:
           name: Propagate names for AWS essential components
           command: |
             sed -i -e '/^secgroupDefault: /s/:.*$/: publish-amis-to-marketplace-secgroup/' $VARS_DIR/defaults.yaml
-            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket/' $VARS_DIR/defaults.yaml
+            sed -i -e '/^bucketDefault: /s/:.*$/: publish-amis-to-marketplace-bucket2/' $VARS_DIR/defaults.yaml
             sed -i -e '/^stackEssentialsDefault: /s/:.*$/: publish-amis-to-marketplace-stack/' $VARS_DIR/defaults.yaml
             sed -i -e '/^keyBoot: /s/:.*$/: publish-amis-to-marketplace-keyboot/' $VARS_DIR/defaults.yaml
             sed -i -e '/^keyHost: /s/:.*$/: publish-amis-to-marketplace-keyhost/' $VARS_DIR/defaults.yaml
@@ -1494,8 +1502,11 @@ jobs:
             sed -i -e '/^stackCloudstrapper: /s/:.*$/: publish-amis-to-marketplace-stack-cloustrapper/' $VARS_DIR/defaults.yaml
             sed -i -e '/^devOpsAmi: /s/:.*$/: cloudstrapper-'"$VERSION"'/' $VARS_DIR/defaults.yaml
             sed -i -e '/^buildUbuntuAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAgwVersion: /s/:.*$/: '"$GIT_TAG"'/' $VARS_DIR/build.yaml
+            sed -i -e '/^buildAgwPackage: /s/:.*$/: '"$PACKAGE_VERSION"'/' $VARS_DIR/build.yaml
       - run:
           name: Generate Cloudstrapper AMI
+          no_output_timeout: 30m
           command: |
             ansible-playbook $WORK_DIR/devops-provision.yaml -e "dirLocalInventory=$VARS_DIR"
             echo "Waiting one minute for the instance to boot up."
@@ -1513,6 +1524,7 @@ jobs:
             sed -i -e '/^awsAgwAmi: /s/:.*$/: ami-09e67e426f25ce0d7/' $VARS_DIR/cluster.yaml
       - run:
           name: Generate AGW AMI
+          no_output_timeout: 30m
           command: |
             ansible-playbook $WORK_DIR/agw-provision.yaml -e "idSite=DevOps" -e "idGw=publishAmisToMarketplaceAgw" -e "dirLocalInventory=$VARS_DIR" --tags infra,inventory  -e "agwDevops=1" --skip-tags createBridge,cleanupBridge,cleanupNet
             echo "Waiting one minute for the instance to boot up."
@@ -1520,7 +1532,15 @@ jobs:
             ansible-playbook $WORK_DIR/ami-configure.yaml -i "$VARS_DIR/common_instance_aws_ec2.yaml" -e "dirLocalInventory=$VARS_DIR" -e "aminode=tag_Name_publishAmisToMarketplaceAgw" -e "ansible_python_interpreter=/usr/bin/python3" -u ubuntu
             ansible-playbook $WORK_DIR/ami-init.yaml -e "dirLocalInventory=$VARS_DIR"
       - run:
+          name: Export qcow2 image for fb aws account in s3
+          no_output_timeout: 30m
+          command: |
+            if [ "<<parameters.aws_account>>" = "FB" ]; then
+              ansible-playbook $WORK_DIR/devops-convert-to-qcow2.yaml -e "dirLocalInventory=$VARS_DIR" -e "agwAmiName=agw-ami-$VERSION"
+            fi
+      - run:
           name: Clean AWS resources
+          when: always
           command: |
             ansible-playbook $WORK_DIR/cleanup.yaml -e "dirLocalInventory=$VARS_DIR" --tags agw,subnet,secgroup,vpc,keys --skip-tags orc8r  -e "{"deleteStacks": [stackDevOpspublishAmisToMarketplaceAgw, publish-amis-to-marketplace-stack-devopscloustrapper, publish-amis-to-marketplace-stack, stackDevOpsNetwork]}"
       - notify-magma:
@@ -1567,10 +1587,6 @@ workflows:
             - mme_test
             - lte-integ-test
       - c-cpp-codecov
-      - sentry-release:
-          <<: *only_master
-          requires:
-            - lte-agw-deploy
 
   release:
     jobs:
@@ -1613,6 +1629,7 @@ workflows:
       - feg-build:
           requires:
             - feg-precommit
+          tag-latest: true
 
   cwag:
     jobs:
@@ -1627,6 +1644,7 @@ workflows:
           requires:
             - cwag-precommit
             - cwf-integ-test
+          tag-latest: true
       - xwfm-deploy:
           <<: *only_master
           name: xwfm-deploy-latest
@@ -1687,15 +1705,6 @@ workflows:
             - nms-yarn-test
             - nms-e2e-test
 
-  docusaurus:
-   jobs:
-    - docusaurus_build_and_deploy:
-        <<: *only_master
-
-  fossa:
-    jobs:
-      - fossa-analyze:
-          <<: *only_master
   github:
     jobs:
       - backport:

@@ -109,13 +109,16 @@ func (srv *CentralSessionController) CreateSession(
 	gxOriginHost, gyOriginHost := gxCCAInit.OriginHost, ""
 
 	credits := []*protos.CreditUpdateResponse{}
-	// Gy
+
+	// Gy: only send Gy if it is Enabled and flag Online is true (1)
 	if !srv.cfg.DisableGy {
 		if srv.cfg.UseGyForAuthOnly {
 			return srv.handleUseGyForAuthOnly(
 				imsi, request, staticRuleInstalls, dynamicRuleInstalls, gxCCAInit)
 		}
-		if len(chargingKeys) > 0 {
+		if !gx.Int32ToBoolean(gxCCAInit.Online) {
+			glog.V(2).Info("Online AVP (1009) is 0. Not sending Gy CCI-R")
+		} else if len(chargingKeys) > 0 {
 			gyCCRInit := makeCCRInit(imsi, request, chargingKeys)
 			gyCCAInit, err := srv.sendSingleCreditRequest(gyCCRInit)
 			metrics.ReportCreateGySession(err)
@@ -138,6 +141,8 @@ func (srv *CentralSessionController) CreateSession(
 		SessionId:        request.SessionId,
 		EventTriggers:    eventTriggers,
 		RevalidationTime: revalidationTime,
+		Online:           gx.Int32ToBoolean(gxCCAInit.Online),
+		Offline:          gx.Int32ToBoolean(gxCCAInit.Offline),
 	}, nil
 }
 

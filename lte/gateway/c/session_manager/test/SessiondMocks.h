@@ -52,6 +52,8 @@ class MockPipelined final : public Pipelined::Service {
         .WillByDefault(Return(Status::OK));
     ON_CALL(*this, SetupUEMacFlows(_, _, _)).WillByDefault(Return(Status::OK));
     ON_CALL(*this, SetupQuotaFlows(_, _, _)).WillByDefault(Return(Status::OK));
+    ON_CALL(*this, GetStats(_, _, _)).WillByDefault(Return(Status::OK));
+    ON_CALL(*this, SetSMFSessions(_, _, _)).WillByDefault(Return(Status::OK));
   }
 
   MOCK_METHOD3(
@@ -78,6 +80,12 @@ class MockPipelined final : public Pipelined::Service {
       SetupQuotaFlows,
       Status(
           grpc::ServerContext*, const SetupQuotaRequest*, SetupFlowsResult*));
+  MOCK_METHOD3(
+      GetStats,
+      Status(grpc::ServerContext*, const GetStatsRequest*, RuleRecordTable*));
+  MOCK_METHOD3(
+      SetSMFSessions,
+      Status(grpc::ServerContext*, const SessionSet*, UPFSessionContextState*));
 };
 
 class MockPipelinedClient : public PipelinedClient {
@@ -159,6 +167,10 @@ class MockPipelinedClient : public PipelinedClient {
           std::function<void(Status status, UPFSessionContextState)> callback));
   MOCK_METHOD0(get_next_teid, uint32_t());
   MOCK_METHOD0(get_current_teid, uint32_t());
+  MOCK_METHOD3(
+      poll_stats, void(
+                      int cookie, int cookie_mask,
+                      std::function<void(Status, RuleRecordTable)> callback));
 };
 
 class MockDirectorydClient : public DirectorydClient {
@@ -319,6 +331,11 @@ class MockSetInterfaceForUserPlane final
       SetUPFNodeState, Status(
                            grpc::ServerContext*, const UPFNodeState*,
                            std::function<void(Status, SmContextVoid)>));
+  MOCK_METHOD3(
+      SetUPFSessionConfig,
+      Status(
+          grpc::ServerContext*, const UPFSessionConfigState*,
+          std::function<void(Status, SmContextVoid)>));
 };
 
 }  // namespace magma

@@ -88,7 +88,7 @@ static int pdn_disconnect_get_pid(emm_context_t* emm_context, proc_tid_t pti);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_pdn_disconnect_request(
+status_code_e esm_proc_pdn_disconnect_request(
     emm_context_t* emm_context, proc_tid_t pti, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   pdn_cid_t pid = RETURNerror;
@@ -154,7 +154,7 @@ int esm_proc_pdn_disconnect_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_pdn_disconnect_accept(
+status_code_e esm_proc_pdn_disconnect_accept(
     emm_context_t* emm_context, pdn_cid_t pid, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   mme_ue_s1ap_id_t ue_id =
@@ -210,7 +210,7 @@ int esm_proc_pdn_disconnect_accept(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int esm_proc_pdn_disconnect_reject(
+status_code_e esm_proc_pdn_disconnect_reject(
     const bool is_standalone, emm_context_t* emm_context, ebi_t ebi,
     STOLEN_REF bstring* msg, const bool ue_triggered) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);

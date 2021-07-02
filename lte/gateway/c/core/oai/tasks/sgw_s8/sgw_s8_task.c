@@ -38,7 +38,7 @@ static void* sgw_s8_thread(void* args) {
   return NULL;
 }
 
-int sgw_s8_init(sgw_config_t* sgw_config_p) {
+status_code_e sgw_s8_init(sgw_config_t* sgw_config_p) {
   OAILOG_DEBUG(LOG_SGW_S8, "Initializing SGW-S8 interface\n");
   if (sgw_state_init(false, sgw_config_p) < 0) {
     OAILOG_CRITICAL(LOG_SGW_S8, "Error while initializing SGW_S8 state\n");

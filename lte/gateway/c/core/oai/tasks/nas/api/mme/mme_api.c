@@ -99,7 +99,7 @@ static int copy_plmn_from_config(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int mme_api_get_emm_config(
+status_code_e mme_api_get_emm_config(
     mme_api_emm_config_t* config, const struct mme_config_s* mme_config_p) {
   OAILOG_FUNC_IN(LOG_NAS);
   if (mme_config_p->served_tai.nb_tai < 1) {
@@ -306,7 +306,7 @@ int mme_api_get_emm_config(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int mme_api_get_esm_config(mme_api_esm_config_t* config) {
+status_code_e mme_api_get_esm_config(mme_api_esm_config_t* config) {
   OAILOG_FUNC_IN(LOG_NAS);
   if (strcmp((const char*) mme_config.non_eps_service_control->data, "SMS") ==
       0) {
@@ -338,7 +338,7 @@ int mme_api_get_esm_config(mme_api_esm_config_t* config) {
  *  Return:    RETURNok, RETURNerror
  *
  */
-int mme_api_notify_imsi(const mme_ue_s1ap_id_t id, imsi64_t imsi64) {
+status_code_e mme_api_notify_imsi(const mme_ue_s1ap_id_t id, imsi64_t imsi64) {
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   ue_mm_context_t* ue_mm_context = NULL;
 
@@ -368,7 +368,8 @@ int mme_api_notify_imsi(const mme_ue_s1ap_id_t id, imsi64_t imsi64) {
  *  Return:    RETURNok, RETURNerror
  *
  */
-int mme_api_notify_new_guti(const mme_ue_s1ap_id_t id, guti_t* const guti) {
+status_code_e mme_api_notify_new_guti(
+    const mme_ue_s1ap_id_t id, guti_t* const guti) {
   ue_mm_context_t* ue_mm_context = NULL;
   mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
   OAILOG_FUNC_IN(LOG_NAS);
@@ -405,7 +406,7 @@ int mme_api_notify_new_guti(const mme_ue_s1ap_id_t id, guti_t* const guti) {
  **      Others:    None                                               **
  **                                                                    **
  ***********************************************************************/
-int mme_api_new_guti(
+status_code_e mme_api_new_guti(
     const imsi_t* const imsi, const guti_t* const old_guti, guti_t* const guti,
     const tai_t* const originating_tai, tai_list_t* const tai_list) {
   OAILOG_FUNC_IN(LOG_NAS);
@@ -592,7 +593,7 @@ int mme_api_new_guti(
  **                  Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int mme_api_subscribe(
+status_code_e mme_api_subscribe(
     bstring* apn, mme_api_ip_version_t mme_pdn_index, bstring* pdn_addr,
     int is_emergency, mme_api_qos_t* qos) {
   int rc = RETURNok;
@@ -617,7 +618,7 @@ int mme_api_subscribe(
  **                  Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int mme_api_unsubscribe(bstring apn) {
+status_code_e mme_api_unsubscribe(bstring apn) {
   OAILOG_FUNC_IN(LOG_NAS);
   int rc = RETURNok;
 

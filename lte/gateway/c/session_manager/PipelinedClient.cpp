@@ -29,6 +29,7 @@ using grpc::Status;
 
 namespace {  // anonymous
 using std::experimental::optional;
+
 // Preparation of Set Session request to UPF
 magma::SessionSet create_session_set_req(
     magma::SessionState::SessionInfo info) {
@@ -40,7 +41,7 @@ magma::SessionSet create_session_set_req(
   req.mutable_node_id()->set_node_id_type(magma::NodeID::IPv4);
   req.mutable_state()->set_state(info.state);
 
-  for (const auto& final_req : info.Pdr_rules_) {
+  for (const auto& final_req : info.pdr_rules) {
     req.mutable_set_gr_pdr()->Add()->CopyFrom(final_req);
   }
   return req;
@@ -59,6 +60,13 @@ magma::DeactivateFlowsRequest make_deactivate_req(
   req.set_uplink_tunnel(teids.agw_teid());
   req.set_remove_default_drop_flows(remove_default_drop_rules);
   req.mutable_request_origin()->set_type(origin_type);
+  return req;
+}
+
+magma::GetStatsRequest make_stat_req(int cookie, int cookie_mask) {
+  magma::GetStatsRequest req;
+  req.set_cookie(cookie);
+  req.set_cookie_mask(cookie_mask);
   return req;
 }
 
@@ -423,6 +431,17 @@ void AsyncPipelinedClient::update_subscriber_quota_state(
   });
 }
 
+void AsyncPipelinedClient::poll_stats(
+    int cookie, int cookie_mask,
+    std::function<void(Status, RuleRecordTable)> callback) {
+  auto req = make_stat_req(cookie, cookie_mask);
+  poll_stats_rpc(req, [](Status status, RuleRecordTable table) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not poll stats " << status.error_message();
+    }
+  });
+}
+
 void AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const Teids teids, const std::string& msisdn,
@@ -543,6 +562,16 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
   local_resp->set_response_reader(
       std::move(stub_->AsyncUpdateSubscriberQuotaState(
           local_resp->get_context(), request, &queue_)));
+}
+
+void AsyncPipelinedClient::poll_stats_rpc(
+    const magma::GetStatsRequest& request,
+    std::function<void(Status, RuleRecordTable)> callback) {
+  auto local_resp = new AsyncLocalResponse<RuleRecordTable>(
+      std::move(callback), RESPONSE_TIMEOUT);
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
+  local_resp->set_response_reader(std::move(
+      stub_->AsyncGetStats(local_resp->get_context(), request, &queue_)));
 }
 
 uint32_t AsyncPipelinedClient::get_next_teid() {

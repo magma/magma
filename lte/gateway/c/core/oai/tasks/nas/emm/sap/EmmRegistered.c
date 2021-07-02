@@ -51,7 +51,7 @@
  **      Others:    emm_fsm_status                             **
  **                                                                        **
  ***************************************************************************/
-int EmmRegistered(const emm_reg_t* evt) {
+status_code_e EmmRegistered(const emm_reg_t* evt) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc                 = RETURNerror;
   emm_context_t* emm_ctx = evt->ctx;

@@ -68,7 +68,7 @@ static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id);
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
-int emm_proc_service_reject(
+status_code_e emm_proc_service_reject(
     const mme_ue_s1ap_id_t ue_id, const uint8_t emm_cause) {
   int rc = RETURNok;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -120,12 +120,6 @@ static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
   }
   rc = emm_sap_send(&emm_sap);
 
-  // Release EMM context
-  if (emm_ctx) {
-    if (emm_ctx->is_dynamic) {
-      _clear_emm_ctxt(emm_ctx);
-    }
-  }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
 
@@ -139,7 +133,7 @@ static int emm_service_reject(mme_ue_s1ap_id_t ue_id, uint8_t emm_cause)
  **              and EPC supports CS or SMS                                **
  **              send the extended service req notification to mme_app     **
  ***************************************************************************/
-int emm_proc_extended_service_request(
+status_code_e emm_proc_extended_service_request(
     const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc                 = RETURNok;
@@ -207,7 +201,7 @@ int emm_proc_extended_service_request(
  **              and EPC supports CS call or SMS                           **
  **              send the extended service req notification to mme_app     **
  ***************************************************************************/
-int emm_recv_initial_ext_service_request(
+status_code_e emm_recv_initial_ext_service_request(
     const mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg,
     int* emm_cause, const nas_message_decode_status_t* decode_status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -324,7 +318,7 @@ static int check_paging_received_without_lai(mme_ue_s1ap_id_t ue_id) {
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, false);
 }
 
-int emm_send_service_reject_in_dl_nas(
+status_code_e emm_send_service_reject_in_dl_nas(
     const mme_ue_s1ap_id_t ue_id, const uint8_t emm_cause) {
   int rc                 = RETURNok;
   emm_sap_t emm_sap      = {0};

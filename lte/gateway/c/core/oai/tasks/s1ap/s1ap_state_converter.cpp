@@ -60,6 +60,14 @@ void S1apStateConverter::state_to_proto(s1ap_state_t* state, S1apState* proto) {
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
 
+  keys                        = hashtable_ts_get_keys(&state->enbs);
+  uint32_t expected_enb_count = keys ? keys->num_keys : 0;
+  if (expected_enb_count != state->num_enbs) {
+    OAILOG_ERROR(
+        LOG_S1AP, "Updating num_eNBs from maintained to actual count %u->%u",
+        state->num_enbs, expected_enb_count);
+    state->num_enbs = expected_enb_count;
+  }
   proto->set_num_enbs(state->num_enbs);
 }
 
@@ -79,7 +87,15 @@ void S1apStateConverter::proto_to_state(
     AssertFatal(ht_rc == HASH_TABLE_OK, "failed to insert associd");
   }
 
-  state->num_enbs = proto.num_enbs();
+  state->num_enbs             = proto.num_enbs();
+  hashtable_key_array_t* keys = hashtable_ts_get_keys(&state->enbs);
+  uint32_t expected_enb_count = keys ? keys->num_keys : 0;
+  if (expected_enb_count != state->num_enbs) {
+    OAILOG_WARNING(
+        LOG_S1AP, "Updating num_eNBs from maintained to actual count %u->%u",
+        state->num_enbs, expected_enb_count);
+    state->num_enbs = expected_enb_count;
+  }
 }
 
 void S1apStateConverter::enb_to_proto(

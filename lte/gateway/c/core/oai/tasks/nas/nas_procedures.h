@@ -33,6 +33,7 @@
 #include "3gpp_33.401.h"
 #include "3gpp_36.401.h"
 #include "bstrlib.h"
+#include "common_defs.h"
 #include "common_types.h"
 #include "emm_fsm.h"
 #include "nas_timer.h"
@@ -245,6 +246,9 @@ typedef struct nas_emm_smc_proc_s {
                         * to the ongoing EMM procedure */
   bool is_new;         /* new security context for SMC header type */
   bool imeisv_request;
+  bool replayed_ue_add_sec_cap_present;
+  uint16_t _5g_ea; /* Replayed 5GS encryption algorithms */
+  uint16_t _5g_ia; /* Replayed 5GS integrity algorithms */
 } nas_emm_smc_proc_t;
 
 typedef struct nas_emm_info_proc_s {
@@ -434,7 +438,7 @@ bool is_nas_attach_reject_sent(const nas_emm_attach_proc_t* const attach_proc);
 bool is_nas_attach_complete_received(
     const nas_emm_attach_proc_t* const attach_proc);
 
-int nas_unlink_procedures(
+status_code_e nas_unlink_procedures(
     nas_base_proc_t* const parent_proc, nas_base_proc_t* const child_proc);
 
 void nas_delete_all_emm_procedures(struct emm_context_s* const emm_context);

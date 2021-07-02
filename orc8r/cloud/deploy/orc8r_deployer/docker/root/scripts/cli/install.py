@@ -26,7 +26,7 @@ from utils.common import execute_command
 
 
 def tf_install(constants: dict, warn: bool = True,
-               max_retries: int = 3) -> int:
+               max_retries: int = 2) -> int:
     """Run through terraform installation
 
     Args:
@@ -96,7 +96,7 @@ def install(ctx):
         else:
             print_warning_msg(f"Skipping installation prechecks")
 
-    tf_install(ctx.obj)
+        tf_install(ctx.obj)
 
 
 def precheck_cmd(constants: dict) -> list:

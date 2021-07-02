@@ -91,7 +91,7 @@ static int emm_initiate_default_bearer_re_establishment(emm_context_t* emm_ctx);
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_status(
+status_code_e emm_recv_status(
     mme_ue_s1ap_id_t ue_id, emm_status_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -133,7 +133,7 @@ int emm_recv_status(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int check_plmn_restriction(imsi_t imsi) {
+status_code_e check_plmn_restriction(imsi_t imsi) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   for (uint8_t itr = 0; itr < mme_config.restricted_plmn.num; itr++) {
     if ((imsi.u.num.digit1 ==
@@ -177,7 +177,7 @@ int check_plmn_restriction(imsi_t imsi) {
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_attach_request(
+status_code_e emm_recv_attach_request(
     const mme_ue_s1ap_id_t ue_id, const tai_t* const originating_tai,
     const ecgi_t* const originating_ecgi, attach_request_msg* const msg,
     const bool is_initial, const bool is_mm_ctx_new, int* const emm_cause,
@@ -446,6 +446,16 @@ int emm_recv_attach_request(
         sizeof(voice_domain_preference_and_ue_usage_setting_t));
   }
 
+  if (msg->presencemask &
+      ATTACH_REQUEST_UE_ADDITIONAL_SECURITY_CAPABILITY_PRESENT) {
+    params->ueadditionalsecuritycapability =
+        calloc(1, sizeof(ue_additional_security_capability_t));
+    memcpy(
+        params->ueadditionalsecuritycapability,
+        &msg->ueadditionalsecuritycapability,
+        sizeof(ue_additional_security_capability_t));
+  }
+
   /*
    * Execute the requested UE attach procedure
    */
@@ -468,7 +478,7 @@ int emm_recv_attach_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_attach_complete(
+status_code_e emm_recv_attach_complete(
     mme_ue_s1ap_id_t ue_id, const attach_complete_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -502,7 +512,7 @@ int emm_recv_attach_complete(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_detach_request(
+status_code_e emm_recv_detach_request(
     mme_ue_s1ap_id_t ue_id, const detach_request_msg* msg,
     const bool is_initial, int* emm_cause,
     const nas_message_decode_status_t* status) {
@@ -572,7 +582,7 @@ int emm_recv_detach_request(
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_tracking_area_update_request(
+status_code_e emm_recv_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, tracking_area_update_request_msg* const msg,
     const bool is_initial, const tac_t const tac, int* const emm_cause,
     const nas_message_decode_status_t* const decode_status) {
@@ -723,7 +733,7 @@ int emm_recv_tracking_area_update_request(
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_service_request(
+status_code_e emm_recv_service_request(
     mme_ue_s1ap_id_t ue_id, const service_request_msg* msg,
     const bool is_initial, int* emm_cause,
     const nas_message_decode_status_t* decode_status) {
@@ -819,7 +829,7 @@ int emm_recv_service_request(
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_ext_service_request(
+status_code_e emm_recv_ext_service_request(
     mme_ue_s1ap_id_t ue_id, const extended_service_request_msg* msg,
     int* emm_cause, const nas_message_decode_status_t* decode_status) {
   int rc = RETURNok;
@@ -867,7 +877,7 @@ int emm_recv_ext_service_request(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_identity_response(
+status_code_e emm_recv_identity_response(
     mme_ue_s1ap_id_t ue_id, identity_response_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -990,7 +1000,7 @@ int emm_recv_identity_response(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_authentication_response(
+status_code_e emm_recv_authentication_response(
     mme_ue_s1ap_id_t ue_id, authentication_response_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -1047,7 +1057,7 @@ int emm_recv_authentication_response(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_authentication_failure(
+status_code_e emm_recv_authentication_failure(
     mme_ue_s1ap_id_t ue_id, authentication_failure_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -1111,7 +1121,7 @@ int emm_recv_authentication_failure(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_security_mode_complete(
+status_code_e emm_recv_security_mode_complete(
     mme_ue_s1ap_id_t ue_id, security_mode_complete_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -1173,7 +1183,7 @@ int emm_recv_security_mode_complete(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_security_mode_reject(
+status_code_e emm_recv_security_mode_reject(
     mme_ue_s1ap_id_t ue_id, security_mode_reject_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -1232,7 +1242,7 @@ int emm_recv_security_mode_reject(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_detach_accept(mme_ue_s1ap_id_t ue_id, int* emm_cause) {
+status_code_e emm_recv_detach_accept(mme_ue_s1ap_id_t ue_id, int* emm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc = RETURNok;
 
@@ -1287,7 +1297,7 @@ static int emm_initiate_default_bearer_re_establishment(
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_tau_complete(
+status_code_e emm_recv_tau_complete(
     mme_ue_s1ap_id_t ue_id, const tracking_area_update_complete_msg* msg) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   int rc;
@@ -1314,7 +1324,7 @@ int emm_recv_tau_complete(
  **          Others:    None                                               **
  **                                                                        **
  ***************************************************************************/
-int emm_recv_uplink_nas_transport(
+status_code_e emm_recv_uplink_nas_transport(
     mme_ue_s1ap_id_t ue_id, uplink_nas_transport_msg* msg, int* emm_cause,
     const nas_message_decode_status_t* status) {
   int rc = RETURNok;

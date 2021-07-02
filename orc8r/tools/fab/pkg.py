@@ -162,9 +162,12 @@ def copy_packages():
             run('echo "%s %s %s" >> /tmp/packages.txt'
                 % (pkg_name, version, f))
 
-    # Tar up the packages
+    run('mkdir -p /tmp/packages/executables')
+    run('cp ~/magma-packages/executables/* /tmp/packages/executables')
+
+    # Tar up the packages and executables
     with cd('/tmp/packages'):
-        run('tar czf /tmp/packages.tar.gz *.deb')
+        run('tar czf /tmp/packages.tar.gz ./*.deb ./executables')
 
     # Pull the artifacts onto the local machine
     get('/tmp/packages.tar.gz', '/tmp/packages.tar.gz')

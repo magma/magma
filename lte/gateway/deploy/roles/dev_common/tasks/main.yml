@@ -30,14 +30,12 @@
   become: yes
   with_items:
     - {src: 'sshd_config', dest: '/etc/ssh/sshd_config'}
-  when: preburn
 
 - name: Restart service ssh
   become: yes
   service:
     name: ssh
     state: restarted
-  when: preburn
 
 - name: Install ansible community collection
   shell: su - {{ ansible_user }} -c 'ansible-galaxy collection install community.general'
@@ -140,7 +138,7 @@
       - python3-setuptools
       - python-setuptools
       - libssl-dev
-      - apt-transport-https 
+      - apt-transport-https
   retries: 5
   when: preburn
 
@@ -428,6 +426,7 @@
     systemctl enable networking
     apt-get --assume-yes purge nplan netplan.i
   when: preburn
+  ignore_errors: true
 
 - name: Copy Resolve file.
   copy:

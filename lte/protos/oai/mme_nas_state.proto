@@ -158,7 +158,7 @@ message MmeUeContext {
 // mme_app_desc_t
 message MmeNasState {
   MmeUeContext mme_ue_contexts = 1; // mme_ue_context_t
-  uint32 nb_enb_connected = 2;
+  uint32 nb_enb_connected = 2 [deprecated=true];
   uint32 nb_ue_attached = 3;
   uint32 nb_ue_connected = 4;
   uint32 nb_default_eps_bearers = 5;

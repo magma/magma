@@ -147,6 +147,15 @@ void LocalEnforcer::setup(
   }
 }
 
+void LocalEnforcer::poll_stats_enforcer() {
+  pipelined_client_->poll_stats(0, 0, [](Status status, RuleRecordTable resp) {
+    if (!status.ok()) {
+      MLOG(MERROR) << "Could not successfully poll stats: "
+                   << status.error_message();
+    }
+  });
+}
+
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
   auto session_map    = session_store_.read_all_sessions();
   auto session_update = SessionStore::get_default_session_update(session_map);
@@ -248,8 +257,8 @@ void LocalEnforcer::aggregate_records(
 
     auto& session                 = **session_it;
     const std::string& session_id = session->get_session_id();
+    sessions_with_reporting_flows.insert(ImsiAndSessionID(imsi, session_id));
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
-      sessions_with_reporting_flows.insert(ImsiAndSessionID(imsi, session_id));
       MLOG(MDEBUG) << session_id << " used " << record.bytes_tx()
                    << " tx bytes and " << record.bytes_rx()
                    << " rx bytes for rule " << record.rule_id();
@@ -558,9 +567,9 @@ void LocalEnforcer::handle_update_failure(
  */
 static bool should_activate(
     const PolicyRule& rule,
-    const std::unordered_set<uint32_t>& successful_credits) {
-  if (rule.tracking_type() == PolicyRule::ONLY_OCS ||
-      rule.tracking_type() == PolicyRule::OCS_AND_PCRF) {
+    const std::unordered_set<uint32_t>& successful_credits, bool online) {
+  if (online && (rule.tracking_type() == PolicyRule::ONLY_OCS ||
+                 rule.tracking_type() == PolicyRule::OCS_AND_PCRF)) {
     const bool exists = successful_credits.count(rule.rating_group()) > 0;
     if (!exists) {
       MLOG(MERROR) << "Not activating Gy tracked " << rule.id()
@@ -575,13 +584,26 @@ static bool should_activate(
                   << " with monitoring key " << rule.monitoring_key();
       break;
     case PolicyRule::ONLY_OCS:
-      MLOG(MINFO) << "Activating Gy tracked rule " << rule.id()
-                  << " with rating group " << rule.rating_group();
+      if (!online) {
+        MLOG(MINFO) << "Online=0. Not activating Gy tracked rule, "
+                    << "only activating untracked rule " << rule.id();
+        break;
+      } else {
+        MLOG(MINFO) << "Activating Gy tracked rule " << rule.id()
+                    << " with rating group " << rule.rating_group();
+      }
       break;
     case PolicyRule::OCS_AND_PCRF:
-      MLOG(MINFO) << "Activating Gx+Gy tracked rule " << rule.id()
-                  << " with monitoring key " << rule.monitoring_key()
-                  << " with rating group " << rule.rating_group();
+      if (!online) {
+        MLOG(MINFO) << "Online=0. Not activating Gy tracked rule, "
+                    << " only activating tracked rule " << rule.id()
+                    << " with monitoring key " << rule.monitoring_key();
+        break;
+      } else {
+        MLOG(MINFO) << "Activating Gx+Gy tracked rule " << rule.id()
+                    << " with monitoring key " << rule.monitoring_key()
+                    << " with rating group " << rule.rating_group();
+      }
       break;
     case PolicyRule::NO_TRACKING:
       MLOG(MINFO) << "Activating untracked rule " << rule.id();
@@ -806,10 +828,11 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
 }
 
 void LocalEnforcer::filter_rule_installs(
-    std::vector<StaticRuleInstall>& static_installs,
+    bool online, std::vector<StaticRuleInstall>& static_installs,
     std::vector<DynamicRuleInstall>& dynamic_installs,
     const std::unordered_set<uint32_t>& successful_credits) {
   // Filter out static rules that we will not install nor schedule
+
   auto end_of_valid_st_rules = std::remove_if(
       static_installs.begin(), static_installs.end(),
       [&](StaticRuleInstall& rule_install) {
@@ -820,7 +843,7 @@ void LocalEnforcer::filter_rule_installs(
                      << " because it could not be found";
           return true;
         }
-        return !should_activate(rule, successful_credits);
+        return !should_activate(rule, successful_credits, online);
       });
   static_installs.erase(end_of_valid_st_rules, static_installs.end());
 
@@ -828,7 +851,8 @@ void LocalEnforcer::filter_rule_installs(
   auto end_of_valid_dy_rules = std::remove_if(
       dynamic_installs.begin(), dynamic_installs.end(),
       [&](DynamicRuleInstall& rule_install) {
-        return !should_activate(rule_install.policy_rule(), successful_credits);
+        return !should_activate(
+            rule_install.policy_rule(), successful_credits, online);
       });
   dynamic_installs.erase(end_of_valid_dy_rules, dynamic_installs.end());
 }
@@ -838,13 +862,13 @@ void LocalEnforcer::handle_session_activate_rule_updates(
     std::unordered_set<uint32_t>& charging_credits_received) {
   RulesToProcess pending_activation, pending_deactivation, pending_bearer_setup;
   RulesToSchedule pending_scheduling;
-
   std::vector<StaticRuleInstall> static_rule_installs =
       to_vec(response.static_rules());
   std::vector<DynamicRuleInstall> dynamic_rule_installs =
       to_vec(response.dynamic_rules());
   filter_rule_installs(
-      static_rule_installs, dynamic_rule_installs, charging_credits_received);
+      response.online(), static_rule_installs, dynamic_rule_installs,
+      charging_credits_received);
 
   SessionStateUpdateCriteria uc;  // TODO remove unused UC
   session.process_rules_to_install(

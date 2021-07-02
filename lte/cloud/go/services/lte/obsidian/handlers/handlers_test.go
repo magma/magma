@@ -1311,7 +1311,6 @@ func TestListAndGetGateways(t *testing.T) {
 		},
 	}
 	expected["g1"].Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
-	expected["g1"].Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
 
 	tc := tests.Test{
 		Method:         "GET",
@@ -1347,7 +1346,6 @@ func TestListAndGetGateways(t *testing.T) {
 		ApnResources:           lteModels.ApnResources{},
 	}
 	expectedGet.Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
-	expectedGet.Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            testURLRoot,

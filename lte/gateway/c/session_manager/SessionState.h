@@ -115,7 +115,7 @@ class SessionState {
     RulesToProcess gy_dynamic_rules;
     optional<AggregatedMaximumBitrate> ambr;
     // 5G specific extensions
-    std::vector<SetGroupPDR> Pdr_rules_;
+    std::vector<SetGroupPDR> pdr_rules;
     magma::lte::Fsm_state_FsmState state;
     std::string subscriber_id;
     uint32_t ver_no;
@@ -157,17 +157,31 @@ class SessionState {
   void set_current_version(
       int new_session_version, SessionStateUpdateCriteria* session_uc);
 
-  void insert_pdr(SetGroupPDR* rule);
+  void insert_pdr(
+      SetGroupPDR* rule, bool crit_add, SessionStateUpdateCriteria* session_uc);
+
+  /* method to change the PDR state */
+  void set_all_pdrs(enum PdrState);
+
+  int32_t get_pdr_index(uint32_t pdr_index);
+
+  /* method to search specific pdr id existence */
+  bool contains_pdr(unsigned int id);
 
   void set_remove_all_pdrs();
 
-  void insert_far(SetGroupFAR* rule);
+  /* method to reset retransmit count */
+  void reset_rtx_counter();
 
-  void remove_all_rules();
+  /**
+   * Increment retransmit counter and return the updated value
+   */
+  uint32_t get_incremented_rtx_counter();
+
+  /* method to remove all pdrs */
+  void remove_all_rules(SessionStateUpdateCriteria* session_uc);
 
   std::vector<SetGroupPDR>& get_all_pdr_rules();
-
-  std::vector<SetGroupFAR>& get_all_far_rules();
 
   /**
    * Updates rules to be scheduled, active, or removed, depending on the
@@ -254,9 +268,14 @@ class SessionState {
 
   std::string get_session_id() const { return session_id_; }
 
-  uint32_t get_local_teid() const;
+  uint32_t get_pdu_id() const;
 
-  void set_local_teid(uint32_t teid, SessionStateUpdateCriteria* session_uc);
+  uint32_t get_upf_local_teid() const;
+
+  void set_upf_teid_endpoint(
+      const std::string ip_addr, uint32_t teid, SessionStateUpdateCriteria* uc);
+
+  bool is_5g_session() const;
 
   SubscriberQuotaUpdate_Type get_subscriber_quota_state() const;
 
@@ -466,7 +485,7 @@ class SessionState {
   DynamicRuleInstall get_dynamic_rule_install(
       const std::string& rule_id, const RuleLifetime& lifetime);
 
-  SessionFsmState get_state() { return curr_state_; }
+  SessionFsmState get_state() const;
 
   void get_rules_per_credit_key(
       const CreditKey& charging_key, RulesToProcess* to_process,
@@ -719,9 +738,14 @@ class SessionState {
   uint64_t pdp_end_time_;
   /*5G related message to handle session state context */
   uint32_t current_version_;  // To compare with incoming session version
+  /**
+   *  Counter to keep track of number of retries in case of SMF-UPF version
+   *  mismatch
+   */
+  uint32_t rtx_counter_;
   // All 5G specific rules
   // use as shared_ptr to check
-  std::vector<SetGroupPDR> PdrList_;
+  std::vector<SetGroupPDR> pdr_list_;
   // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;
@@ -937,13 +961,22 @@ class SessionState {
       PolicyRule* rule_out);
 
   /**
-   * Increments data usage values for session
-   * @param usage_label either UE_DROPPED_LABEL / UE_USED_LABEL
+   * Set data usage values for session
+   * @param gauge_name
    * @param bytes_tx
    * @param bytes_rx
    */
-  void update_data_metrics(
-      const char* counter_name, uint64_t bytes_tx, uint64_t bytes_rx);
+  void set_data_metrics(
+      const char* gauge_name, uint64_t bytes_tx, uint64_t bytes_rx) const;
+
+  /**
+   * Increment data usage values for session
+   * @param counter_name
+   * @param delta_tx
+   * @param delta_rx
+   */
+  void increment_data_metrics(
+      const char* counter_name, uint64_t delta_tx, uint64_t delta_rx) const;
 
   /**
    * Computes delta from previous rule report

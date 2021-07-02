@@ -150,7 +150,7 @@ static void s6a_auth_info_rsp_timer_expiry_handler(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_authentication_ksi(
+status_code_e emm_proc_authentication_ksi(
     struct emm_context_s* emm_context,
     nas_emm_specific_proc_t* const emm_specific_proc, ksi_t ksi,
     const uint8_t* const rand, const uint8_t* const autn, success_cb_t success,
@@ -246,7 +246,7 @@ int emm_proc_authentication_ksi(
 }
 
 //------------------------------------------------------------------------------
-int emm_proc_authentication(
+status_code_e emm_proc_authentication(
     struct emm_context_s* emm_context,
     nas_emm_specific_proc_t* const emm_specific_proc, success_cb_t success,
     failure_cb_t failure) {
@@ -600,7 +600,7 @@ static int auth_info_proc_failure_cb(struct emm_context_s* emm_ctx) {
 }
 
 //------------------------------------------------------------------------------
-int emm_proc_authentication_failure(
+status_code_e emm_proc_authentication_failure(
     mme_ue_s1ap_id_t ue_id, int emm_cause, const_bstring auts) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   // Get the UE context
@@ -862,7 +862,7 @@ int emm_proc_authentication_failure(
  **      Others:    _emm_data, T3460                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_authentication_complete(
+status_code_e emm_proc_authentication_complete(
     mme_ue_s1ap_id_t ue_id, authentication_response_msg* msg, int emm_cause,
     const_bstring const res) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);

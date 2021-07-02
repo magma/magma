@@ -40,6 +40,8 @@ from ryu.controller import dpset, ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
+import ryu.app.ofctl.api as ofctl_api
+from ryu.app.ofctl.exception import (InvalidDatapath, OFError, UnexpectedMultiReply)
 
 ETH_FRAME_SIZE_BYTES = 14
 
@@ -91,6 +93,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         self._last_poll_time = datetime.now()
         self._last_report_timestamp = datetime.now()
         self._bridge_name = kwargs['config']['bridge_name']
+        self._periodic_stats_reporting = kwargs['config']['enforcement'].get('periodic_stats_reporting', True)
         if self._print_grpc_payload is None:
             self._print_grpc_payload = \
                 kwargs['config'].get('magma_print_grpc_payload', False)
@@ -110,7 +113,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def initialize_on_connect(self, datapath):
         """
         Install the default flows on datapath connect event.
-
+        
         Args:
             datapath: ryu datapath struct
         """
@@ -274,7 +277,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
         Add a low priority flow to drop a subscriber's traffic.
-
+        
         Args:
             imsi (string): subscriber id
             ip_addr (string): subscriber ip_addr
@@ -299,6 +302,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             # Still send an empty report -> for pipelined setup
             self._report_usage({})
             hub.sleep(self.INIT_SLEEP_TIME)
+        if not self._periodic_stats_reporting:
+            return
         while True:
             hub.sleep(poll_interval)
             now = datetime.now()
@@ -566,6 +571,32 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             self.logger.error('Could not find rule id for num %d: %s',
                               rule_num, e)
             return ""
+
+    def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
+        """
+        Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and 
+        convert to a Rule Record Table
+        """
+        if not self._datapath:
+            self.logger.error("Could not initialize datapath for stats retrieval")
+            return RuleRecordTable()
+        parser = self._datapath.ofproto_parser
+        message = parser.OFPFlowStatsRequest(datapath=self._datapath, cookie = cookie, cookie_mask = cookie_mask)
+        try:
+            response = ofctl_api.send_msg(self, message, reply_cls=parser.OFPFlowStatsReply,
+                    reply_multi=False)
+            if response == None:
+                self.logger.error("No rule records match the specified cookie and cookie mask")
+                return RuleRecordTable()
+            else:
+                usage = self._get_usage_from_flow_stat(response.body)
+                record_table = RuleRecordTable(
+                    records=usage.values(),
+                    epoch=global_epoch)
+                return record_table
+        except (InvalidDatapath, OFError, UnexpectedMultiReply):
+            self.logger.error("Could not obtain rule records due to either InvalidDatapath, OFError or UnexpectedMultiReply")
+            return RuleRecordTable()
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """

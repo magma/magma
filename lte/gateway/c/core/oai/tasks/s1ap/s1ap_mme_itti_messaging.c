@@ -26,7 +26,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <mme_app_ue_context.h>
-#include <mme_app_state.h>
 
 #include "bstrlib.h"
 #include "log.h"
@@ -41,7 +40,7 @@
 #include "sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
-int s1ap_mme_itti_send_sctp_request(
+status_code_e s1ap_mme_itti_send_sctp_request(
     STOLEN_REF bstring* payload, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, const mme_ue_s1ap_id_t ue_id) {
   MessageDef* message_p = NULL;
@@ -64,7 +63,7 @@ int s1ap_mme_itti_send_sctp_request(
 }
 
 //------------------------------------------------------------------------------
-int s1ap_mme_itti_nas_uplink_ind(
+status_code_e s1ap_mme_itti_nas_uplink_ind(
     const mme_ue_s1ap_id_t ue_id, STOLEN_REF bstring* payload,
     const tai_t* const tai, const ecgi_t* const cgi) {
   MessageDef* message_p = NULL;
@@ -98,7 +97,7 @@ int s1ap_mme_itti_nas_uplink_ind(
 }
 
 //------------------------------------------------------------------------------
-int s1ap_mme_itti_nas_downlink_cnf(
+status_code_e s1ap_mme_itti_nas_downlink_cnf(
     const mme_ue_s1ap_id_t ue_id, const bool is_success) {
   MessageDef* message_p = NULL;
   imsi64_t imsi64       = INVALID_IMSI64;
@@ -276,7 +275,7 @@ void s1ap_mme_itti_nas_non_delivery_ind(
 }
 
 //------------------------------------------------------------------------------
-int s1ap_mme_itti_s1ap_path_switch_request(
+status_code_e s1ap_mme_itti_s1ap_path_switch_request(
     const sctp_assoc_id_t assoc_id, uint32_t enb_id,
     const enb_ue_s1ap_id_t enb_ue_s1ap_id,
     const e_rab_to_be_switched_in_downlink_list_t* const
@@ -314,7 +313,7 @@ int s1ap_mme_itti_s1ap_path_switch_request(
 }
 
 //------------------------------------------------------------------------------
-int s1ap_mme_itti_s1ap_handover_required(
+status_code_e s1ap_mme_itti_s1ap_handover_required(
     const sctp_assoc_id_t assoc_id, uint32_t enb_id, const S1ap_Cause_t cause,
     const S1ap_HandoverType_t handover_type,
     const mme_ue_s1ap_id_t mme_ue_s1ap_id, const bstring src_tgt_container,
@@ -342,7 +341,7 @@ int s1ap_mme_itti_s1ap_handover_required(
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-int s1ap_mme_itti_s1ap_handover_request_ack(
+status_code_e s1ap_mme_itti_s1ap_handover_request_ack(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
     const enb_ue_s1ap_id_t src_enb_ue_s1ap_id,
     const enb_ue_s1ap_id_t tgt_enb_ue_s1ap_id,
@@ -375,7 +374,7 @@ int s1ap_mme_itti_s1ap_handover_request_ack(
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 
-int s1ap_mme_itti_s1ap_handover_notify(
+status_code_e s1ap_mme_itti_s1ap_handover_notify(
     const mme_ue_s1ap_id_t mme_ue_s1ap_id,
     const s1ap_handover_state_t handover_state,
     const enb_ue_s1ap_id_t target_enb_ue_s1ap_id,

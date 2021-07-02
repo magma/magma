@@ -144,7 +144,7 @@ spgw_ue_context_t* sgw_create_or_get_ue_context(
   OAILOG_FUNC_RETURN(LOG_SGW_S8, ue_context_p);
 }
 
-int sgw_update_teid_in_ue_context(
+status_code_e sgw_update_teid_in_ue_context(
     sgw_state_t* sgw_state, imsi64_t imsi64, teid_t teid) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
   spgw_ue_context_t* ue_context_p =

@@ -90,6 +90,8 @@ func generateGxLessCCAInit() (*gx.CreditControlAnswer, error) {
 		UsageMonitors:          []*gx.UsageMonitoringInfo{},
 		EventTriggers:          []gx.EventTrigger{},
 		RevalidationTime:       nil,
+		Online:                 1,
+		Offline:                0,
 	}, nil
 }
 

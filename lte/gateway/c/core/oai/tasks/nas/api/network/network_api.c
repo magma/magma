@@ -127,7 +127,7 @@ static as_message_t _as_data = {}; /* Access Stratum message     */
  **      Others:  _network_api_id                            **
  **                                                                        **
  ***************************************************************************/
-int network_api_initialize(const char* host, const char* port) {
+status_code_e network_api_initialize(const char* host, const char* port) {
   OAILOG_FUNC_IN(LOG_NAS);
   /*
    * Initialize network socket handlers
@@ -174,7 +174,7 @@ int network_api_initialize(const char* host, const char* port) {
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int network_api_get_fd(void) {
+status_code_e network_api_get_fd(void) {
   OAILOG_FUNC_IN(LOG_NAS);
   OAILOG_FUNC_RETURN(LOG_NAS, NETWORK_API_GETFD());
 }
@@ -214,7 +214,7 @@ const void* network_api_get_data(void) {
  **      Others:  _network_api_recv_buffer, _network_api_id  **
  **                                                                        **
  ***************************************************************************/
-int network_api_read_data(int fd) {
+status_code_e network_api_read_data(int fd) {
   OAILOG_FUNC_IN(LOG_NAS);
   int rbytes;
 
@@ -273,7 +273,7 @@ int network_api_read_data(int fd) {
  **      Others:  None                                       **
  **                                                                        **
  ***************************************************************************/
-int network_api_send_data(int fd, size_t length) {
+status_code_e network_api_send_data(int fd, size_t length) {
   OAILOG_FUNC_IN(LOG_NAS);
   int sbytes;
 
@@ -368,7 +368,7 @@ void network_api_close(int fd) {
  **      Others:  _as_data                                   **
  **                                                                        **
  ***************************************************************************/
-int network_api_decode_data(size_t length) {
+status_code_e network_api_decode_data(size_t length) {
   OAILOG_FUNC_IN(LOG_NAS);
   /*
    * Decode the Access Stratum message received from the network
@@ -398,7 +398,7 @@ int network_api_decode_data(size_t length) {
  **      Others:  _network_api_send_buffer                   **
  **                                                                        **
  ***************************************************************************/
-int network_api_encode_data(void* data) {
+status_code_e network_api_encode_data(void* data) {
   OAILOG_FUNC_IN(LOG_NAS);
   /*
    * Encode the Access Stratum  message
@@ -430,7 +430,7 @@ int network_api_encode_data(void* data) {
  **      Others:  _network_api_send_buffer                   **
  **                                                                        **
  ***************************************************************************/
-int as_message_send(as_message_t* as_msg) {
+status_code_e as_message_send(as_message_t* as_msg) {
   int bytes;
 
   OAILOG_FUNC_IN(LOG_NAS);

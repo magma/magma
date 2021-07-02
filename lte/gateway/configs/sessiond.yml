@@ -12,6 +12,8 @@
 # limitations under the License.
 
 log_level: INFO
+print_grpc_payload: false
+
 rule_update_inteval_sec: 1
 
 # Session manager will report the usage when the usage is greater than
@@ -66,3 +68,7 @@ cleanup_all_dangling_flows: true
 # set to true if subscriber information export over IPFIX needs to be enabled
 # in order to enable ipfix, make sure to add ipfix as a static service in pipelined.yml
 enable_ipfix: false
+
+# Session manager max resending throttle count when the UPF session info version is
+# not matching with UPF received version no.
+session_rtx_count: 3

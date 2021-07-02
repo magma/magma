@@ -37,6 +37,7 @@ Description Defines the EMMESM Service Access Point that provides
 #ifndef FILE_EMM_ESM_SEEN
 #define FILE_EMM_ESM_SEEN
 
+#include "common_defs.h"
 #include "emm_esmDef.h"
 
 /****************************************************************************/
@@ -57,6 +58,6 @@ Description Defines the EMMESM Service Access Point that provides
 
 void emm_esm_initialize(void);
 
-int emm_esm_send(const emm_esm_t* msg);
+status_code_e emm_esm_send(const emm_esm_t* msg);
 
 #endif /* FILE_EMM_ESM_SEEN*/

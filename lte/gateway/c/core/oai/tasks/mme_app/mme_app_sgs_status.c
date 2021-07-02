@@ -61,7 +61,7 @@ static void mme_app_handle_sgs_status_for_loc_upd_req(
  **                                                                        **
  ***************************************************************************/
 
-int mme_app_handle_sgs_status_message(
+status_code_e mme_app_handle_sgs_status_message(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_status_t* const sgsap_status_pP) {
   struct ue_mm_context_s* ue_context_p = NULL;

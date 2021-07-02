@@ -43,6 +43,7 @@ from lte.protos.pipelined_pb2 import (
     UESessionSet,
     UPFSessionContextState,
     VersionedPolicy,
+    VersionedPolicyID,
 )
 from lte.protos.session_manager_pb2 import RuleRecordTable
 from magma.pipelined.app.check_quota import CheckQuotaController
@@ -71,7 +72,7 @@ from magma.pipelined.policy_converters import (
 )
 
 grpc_msg_queue = queue.Queue()
-DEFAULT_CALL_TIMEOUT = 15
+DEFAULT_CALL_TIMEOUT = 5
 
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
@@ -218,6 +219,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return fut.result(timeout=self._call_timeout)
         except concurrent.futures.TimeoutError:
             logging.error("ActivateFlows request processing timed out")
+            deactivate_req = get_deactivate_req(request)
+            self._loop.call_soon_threadsafe(self._deactivate_flows,
+                                            deactivate_req)
             return ActivateFlowsResult()
 
     def _update_ipv6_prefix_store(self, ipv6_addr: bytes):
@@ -483,6 +487,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 request.sid.id,
                 ip_address,
             )
+            if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+                self._loop.call_soon_threadsafe(
+                    self._ipfix_app.delete_ue_sample_flow, request.sid.id
+                )
+
         rule_ids = [policy.rule_id for policy in request.policies]
         self._enforcer_app.deactivate_rules(
             request.sid.id, ip_address,
@@ -936,6 +945,30 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         return ret
 
+    def get_stats(self, request, fut):
+        response = self._enforcement_stats.get_stats(request.cookie, request.cookie_mask)
+        fut.set_result(response)
+
+    def GetStats(self, request, context):
+        """
+        Invokes API that returns a RuleRecordTable filtering records based
+        on cookie and cookie mask request parameters
+        """
+        self._log_grpc_payload(request)
+        if not self._service_manager.is_app_enabled(
+                EnforcementController.APP_NAME):
+            context.set_code(grpc.StatusCode.UNAVAILABLE)
+            context.set_details('Service not enabled!')
+            return None
+
+        fut = Future()
+        self._loop.call_soon_threadsafe(self.get_stats, request, fut)
+
+        try:
+            return fut.result(timeout=self._call_timeout)
+        except concurrent.futures.TimeoutError:
+            logging.error("Get Stats request processing timed out")
+            return RuleRecordTable()
 
 def _retrieve_failed_results(
     activate_flow_result: ActivateFlowsResult,
@@ -987,3 +1020,20 @@ def _report_enforcement_stats_failures(
             rule_id=result.rule_id,
             imsi=imsi,
         ).inc()
+
+
+def get_deactivate_req(request: ActivateFlowsRequest):
+    versioned_policy_ids = [
+        VersionedPolicyID(rule_id = p.rule.id, version=p.version) for
+        p in request.policies
+    ]
+    return DeactivateFlowsRequest(
+        sid=request.sid,
+        ip_addr=request.ip_addr,
+        ipv6_addr=request.ipv6_addr,
+        request_origin=request.request_origin,
+        remove_default_drop_flows=True,
+        uplink_tunnel=request.uplink_tunnel,
+        downlink_tunnel=request.downlink_tunnel,
+        policies=versioned_policy_ids
+    )

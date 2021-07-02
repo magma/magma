@@ -59,7 +59,8 @@
           "howtos/troubleshooting/user_unable_to_attach",
           "howtos/troubleshooting/update_certificates",
           "howtos/troubleshooting/generate_admin_operator_certificates",
-          "howtos/troubleshooting/analyze_service_crashes_in_agw"
+          "howtos/troubleshooting/analyze_service_crashes_in_agw",
+          "howtos/troubleshooting/datapath_connectivity"
         ]
       }
     ],
@@ -152,6 +153,7 @@
         "label": "Orchestrator",
         "ids": [
           "orc8r/upgrade_intro",
+          "orc8r/upgrade_1_6",
           "orc8r/upgrade_1_5",
           "orc8r/upgrade_1_4",
           "orc8r/upgrade_1_3",
@@ -182,6 +184,13 @@
         "ids": [
           "orc8r/debug_logs"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "NMS",
+        "ids": [
+          "nms/alerts_troubleshooting"
+        ]
       }
     ],
     "Contribute": [
@@ -189,7 +198,8 @@
       "contributing/contribute_workflow",
       "contributing/contribute_conventions",
       "contributing/contribute_ci_checks",
-      "contributing/contribute_codeowners"
+      "contributing/contribute_codeowners",
+      "contributing/contribute_id_mappings"
     ],
     "Technical Reference": [
       {

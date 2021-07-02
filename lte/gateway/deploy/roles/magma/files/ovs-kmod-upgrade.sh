@@ -10,15 +10,21 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+SKIP_CHECK=${1:-""}
+
 echo "This upgrade would result in datapath level downtime for few minutes!"
-while true; do
-    read -p "Do you want to proceed with upgrade ?(y/n)" yn
-    case $yn in
-        [Yy]* ) break;;
-        [Nn]* ) exit;;
-        * ) echo "Please answer yes or no.";;
-    esac
-done
+
+if [[ "$SKIP_CHECK" != '-y' ]];
+then
+    while true; do
+        read -p "Do you want to proceed with upgrade ?(y/n)" yn
+        case $yn in
+            [Yy]* ) break;;
+            [Nn]* ) exit;;
+            * ) echo "Please answer yes or no.";;
+        esac
+    done
+fi
 
 apt update
 apt install -y  openvswitch-datapath-dkms libopenvswitch openvswitch-common openvswitch-switch python3-openvswitch

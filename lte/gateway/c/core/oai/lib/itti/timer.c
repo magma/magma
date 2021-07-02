@@ -89,9 +89,10 @@ int timer_handle_signal(siginfo_t* info, task_zmq_ctx_t* task_ctx) {
   timer_p = (struct timer_elm_s*) info->si_ptr;
   // LG: To many traces for msc timer:
   // TMR_DEBUG("Timer with id 0x%lx has expired", (long)timer_p->timer);
-  task_id         = timer_p->task_id;
-  message_p       = itti_alloc_new_message(TASK_MAIN, TIMER_HAS_EXPIRED);
-  timer_expired_p = &message_p->ittiMsg.timer_has_expired;
+  task_id = timer_p->task_id;
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_MAIN, TIMER_HAS_EXPIRED);
+  timer_expired_p           = &message_p->ittiMsg.timer_has_expired;
   timer_expired_p->timer_id = (long) timer_p->timer;
   timer_expired_p->arg      = timer_p->timer_arg;
 

@@ -759,7 +759,7 @@ nw_rc_t gtpv2c_target_identification_ie_get(
 }
 
 //------------------------------------------------------------------------------
-int gtpv2c_target_identification_ie_set(
+status_code_e gtpv2c_target_identification_ie_set(
     nw_gtpv2c_msg_handle_t* msg,
     const target_identification_t* target_identification) {
   nw_rc_t rc;

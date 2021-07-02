@@ -20,8 +20,8 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.6.0 # magma version number
-SCTPD_MIN_VERSION=1.6.0 # earliest version of sctpd with which this version is compatible
+VERSION=1.7.0 # magma version number
+SCTPD_MIN_VERSION=1.7.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -30,7 +30,7 @@ BUILD_TYPE=Debug
 COMMIT_HASH=""  # hash of top magma commit (hg log $MAGMA_PATH)
 CERT_FILE="$MAGMA_ROOT/.cache/test_certs/rootCA.pem"
 CONTROL_PROXY_FILE="$MAGMA_ROOT/lte/gateway/configs/control_proxy.yml"
-OS="debian"
+OS="ubuntu"
 
 while [[ $# -gt 0 ]]
 do
@@ -266,7 +266,7 @@ fi
 cd "${MAGMA_ROOT}/lte/gateway"
 OAI_BUILD="${C_BUILD}/core/oai"
 SESSIOND_BUILD="${C_BUILD}/session_manager"
-CONNECTIOND_BUILD="${C_BUILD}/connection_tracker/src"
+CONNECTIOND_BUILD="${C_BUILD}/connection_tracker"
 SCTPD_BUILD="${C_BUILD}/sctpd/src"
 
 make build_oai BUILD_TYPE="${BUILD_TYPE}"
@@ -290,6 +290,7 @@ if [ -d ${PY_TMP_BUILD} ]; then
 fi
 
 FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
+COMMIT_HASH_WITH_VERSION=${VERSION}-${COMMIT_HASH}
 
 # first do python protos and then build the python packages.
 # library will be dropped in $PY_TMP_BUILD/usr/lib/python3/dist-packages
@@ -342,7 +343,7 @@ trap "rm -f '${SCTPD_VERSION_FILE}' '${SCTPD_MIN_VERSION_FILE}' '${COMMIT_HASH_F
 
 echo "${FULL_VERSION}" > "${SCTPD_VERSION_FILE}"
 echo "${SCTPD_MIN_VERSION}" > "${SCTPD_MIN_VERSION_FILE}"
-echo "COMMIT_HASH=\"${COMMIT_HASH}\"" > "${COMMIT_HASH_FILE}"
+echo "COMMIT_HASH=\"${COMMIT_HASH_WITH_VERSION}\"" > "${COMMIT_HASH_FILE}"
 
 BUILDCMD="fpm \
 -s dir \
@@ -439,4 +440,3 @@ if grep -q stretch /etc/os-release; then
       "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
   fi
 fi
-

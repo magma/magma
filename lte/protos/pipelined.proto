@@ -228,7 +228,7 @@ message PacketDropTableId {
 //
 
 
-//ToDo latest state change will reflect in upcoming proto
+// ToDo latest state change will reflect in upcoming proto
 message Fsm_state {
   enum FsmState {
         SESSION_ACTIVE                        = 0;
@@ -265,7 +265,7 @@ message FlowMatchNew {
   uint32 src_port = 5;
 }
 
-//8.2.26
+// 8.2.26
 enum Action {
   DROP = 0;
   FORW = 1;
@@ -293,7 +293,7 @@ message OuterHeaderCreation {
  uint32 port_no = 3;
 }
 
-//Table 7.5.2.3-2: Forwarding Parameters IE in FAR
+// Table 7.5.2.3-2: Forwarding Parameters IE in FAR
 message FwdParam {
   uint32 dest_iface = 1;
   string net_instance = 2;
@@ -301,19 +301,25 @@ message FwdParam {
   OuterHeaderCreation outr_head_cr = 4;
 }
 
-//Table 7.5.2.3-3: Duplicating Parameters IE in FAR
+// Table 7.5.2.3-3: Duplicating Parameters IE in FAR
 message DupParam {
   uint32 dest_iface = 1;
 }
 
-//pdr_state variable for SessionSet message per PDR.
+enum  SourceInterfaceType {
+  ACCESS = 0;
+  CORE   = 1;
+  SGiLAN = 2;
+}
+
+// pdr_state variable for SessionSet message per PDR.
 enum PdrState {
   INSTALL = 0;
   REMOVE  = 1;
   IDLE    = 2;
 }
 
-//PDI Message Table 7.5.2.2-2: PDI IE within PFCP Session Establishment Request
+// PDI Message Table 7.5.2.2-2: PDI IE within PFCP Session Establishment Request
 message PDI {
   uint32 src_interface = 1;
   uint32 local_f_teid = 2;
@@ -324,9 +330,9 @@ message PDI {
   string app_id = 7;
 }
 
-//Group Type messages - Currently Includes -> 1. PDR 2. FAR 3.For QER ActivateFlowRequest
+// Group Type messages - Currently Includes -> 1. PDR 2. FAR 3.For QER ActivateFlowRequest
 
-//PDR message Table 7.5.2.2-1: Create PDR IE within PFCP Session Establishment
+// PDR message Table 7.5.2.2-1: Create PDR IE within PFCP Session Establishment
 message SetGroupPDR {
   uint32 pdr_id = 1;
   int32 pdr_version = 2;
@@ -340,7 +346,7 @@ message SetGroupPDR {
   ActivateFlowsRequest activate_flow_req = 10;
 }
 
-//FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment
+// FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment
 message SetGroupFAR {
   uint32 far_id = 1;
   repeated Action far_action_to_apply = 2;
@@ -348,10 +354,7 @@ message SetGroupFAR {
   DupParam du_param = 4;
 }
 
-// ToDO  SetGroupQER
-// ToDo  SetGroupBAR
-
-//SET message - SMF to Upf Session Requests
+// SET message - SMF to Upf Session Requests
 message SessionSet {
   string subscriber_id = 1;
   uint32 local_f_teid = 2;
@@ -369,9 +372,9 @@ message UPFSessionContextState {
     FailureRuleInformation failure_rule_id = 3; // The session and version which failed in UPF
 }
 
-//15.8,  Section 8.2.1
+// 15.8,  Section 8.2.1
 message CauseIE {
-   //15.8, Table 8.2.1-1
+   // 15.8, Table 8.2.1-1
    enum CauseValues {
        RESERVED = 0;
        REQUEST_ACCEPTED = 1;
@@ -394,12 +397,12 @@ message CauseIE {
    CauseValues cause_ie=1;
 }
 
-//For now only PDR is encoded as it encompass FAR and QER.
+// For now only PDR is encoded as it encompass FAR and QER.
 message FailureRuleInformation {
    repeated OffendingIE pdr = 1;
 }
 
-//Failure Report
+// Failure Report
 message OffendingIE {
     uint32 identifier = 1;
     uint32 version = 2;
@@ -454,6 +457,11 @@ message UESessionContextResponse {
     CauseIE cause_info = 4;
 }
 
+message GetStatsRequest{
+   uint32 cookie = 1;
+   uint32 cookie_mask = 2;
+}
+
 // --------------------------------------------------------------------------
 // Pipelined gateway RPC service
 // --------------------------------------------------------------------------
@@ -487,6 +495,8 @@ service Pipelined {
 
   // Get policy usage stats
   rpc GetPolicyUsage (magma.orc8r.Void) returns (RuleRecordTable) {}
+
+  rpc GetStats(GetStatsRequest) returns (RuleRecordTable) {}
 
   // --------
   // DPI App:
@@ -540,4 +550,5 @@ service Pipelined {
   rpc GetAllTableAssignments (magma.orc8r.Void) returns (AllTableAssignments);
 
   rpc UpdateUEState (UESessionSet) returns (UESessionContextResponse);
+
 }

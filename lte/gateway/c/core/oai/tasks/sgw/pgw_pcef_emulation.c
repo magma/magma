@@ -50,7 +50,7 @@
  * Function that adds predefined PCC rules to PGW struct,
  * it returns an error or success code after adding rules.
  */
-int pgw_pcef_emulation_init(
+status_code_e pgw_pcef_emulation_init(
     spgw_state_t* state_p, const pgw_config_t* const pgw_config_p) {
   int rc             = RETURNok;
   hashtable_rc_t hrc = HASH_TABLE_OK;
@@ -530,7 +530,7 @@ bstring pgw_pcef_emulation_packet_filter_2_iptable_string(
 }
 
 //------------------------------------------------------------------------------
-int pgw_pcef_get_sdf_parameters(
+status_code_e pgw_pcef_get_sdf_parameters(
     spgw_state_t* state_p, const sdf_id_t sdf_id,
     bearer_qos_t* const bearer_qos, packet_filter_t* const packet_filter,
     uint8_t* const num_pf) {

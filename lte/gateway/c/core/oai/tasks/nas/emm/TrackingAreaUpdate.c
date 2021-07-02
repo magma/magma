@@ -89,7 +89,8 @@ static int send_tau_accept_and_check_for_neaf_flag(
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
 
-int emm_proc_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
+status_code_e emm_proc_tracking_area_update_accept(
+    nas_emm_tau_proc_t* const tau_proc) {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   rc = emm_tracking_area_update_accept(tau_proc);
@@ -108,7 +109,7 @@ int emm_proc_tracking_area_update_accept(nas_emm_tau_proc_t* const tau_proc) {
  ** Outputs: Return:    RETURNok, RETURNerror                              **
  **                                                                        **
  ***************************************************************************/
-int csfb_handle_tracking_area_req(
+status_code_e csfb_handle_tracking_area_req(
     emm_context_t* emm_context_p, emm_tau_request_ies_t* ies) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   ue_mm_context_t* ue_mm_context = NULL;
@@ -147,6 +148,14 @@ int csfb_handle_tracking_area_req(
         get_nas_specific_procedure_tau(emm_context_p);
     if (!tau_proc) {
       tau_proc = emm_proc_create_procedure_tau(ue_mm_context, ies);
+      if (!tau_proc) {
+        OAILOG_ERROR_UE(
+            LOG_MME_APP, emm_context_p->_imsi64,
+            "Failed to create new tau_proc for "
+            "ue_id" MME_UE_S1AP_ID_FMT "\n",
+            ue_mm_context->mme_ue_s1ap_id);
+        OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+      }
       if (ue_mm_context->sgs_context &&
           ((emm_context_p->tau_updt_type ==
             EPS_UPDATE_TYPE_COMBINED_TA_LA_UPDATING) ||
@@ -182,7 +191,7 @@ int csfb_handle_tracking_area_req(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
 }
 
-int emm_proc_tracking_area_update_request(
+status_code_e emm_proc_tracking_area_update_request(
     const mme_ue_s1ap_id_t ue_id, emm_tau_request_ies_t* ies, int* emm_cause,
     tac_t tac) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -333,11 +342,6 @@ int emm_proc_tracking_area_update_request(
      * EPS and non-EPS services, subject to operator policies the MME should
      * allocate a TAI list that does not span more than one location area.
      */
-    OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "EMM-PROC- Sending Tracking Area Update Accept. "
-        "ue_id=" MME_UE_S1AP_ID_FMT ", active flag=%d)\n",
-        ue_id, ies->eps_update_type.active_flag);
     // Handle periodic TAU
     if (ue_mm_context->num_reg_sub > 0) {
       if (verify_service_area_restriction(
@@ -363,6 +367,11 @@ int emm_proc_tracking_area_update_request(
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
       }
     }
+    OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "EMM-PROC- Sending Tracking Area Update Accept. "
+        "ue_id=" MME_UE_S1AP_ID_FMT ", active flag=%d)\n",
+        ue_id, ies->eps_update_type.active_flag);
     nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_context);
     if (!tau_proc) {
       tau_proc = emm_proc_create_procedure_tau(ue_mm_context, ies);
@@ -390,7 +399,7 @@ int emm_proc_tracking_area_update_request(
       } else {
         OAILOG_ERROR(
             LOG_NAS_EMM,
-            "EMM-PROC- Failed to get EMM specific proc"
+            "EMM-PROC- Failed to create EMM specific proc"
             "for TAU for ue_id= " MME_UE_S1AP_ID_FMT ")\n",
             ue_id);
       }
@@ -415,7 +424,7 @@ int emm_proc_tracking_area_update_request(
  **                  Others:    _emm_data                                  **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_tracking_area_update_reject(
+status_code_e emm_proc_tracking_area_update_reject(
     const mme_ue_s1ap_id_t ue_id, const int emm_cause) {
   int rc = RETURNerror;
   OAILOG_FUNC_IN(LOG_NAS_EMM);
@@ -572,13 +581,6 @@ static int emm_tracking_area_update_reject(
   }
   rc = emm_sap_send(&emm_sap);
   increment_counter("tracking_area_update", 1, 1, "action", "tau_reject_sent");
-
-  // Release EMM context
-  if (emm_context) {
-    if (emm_context->is_dynamic) {
-      _clear_emm_ctxt(emm_context);
-    }
-  }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -955,7 +957,7 @@ void free_emm_tau_request_ies(emm_tau_request_ies_t** const ies) {
  **      Others:    _emm_data, T3450                                       **
  **                                                                        **
  ***************************************************************************/
-int emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id) {
+status_code_e emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id) {
   emm_context_t* emm_ctx               = NULL;
   struct ue_mm_context_s* ue_context_p = NULL;
 
@@ -1016,7 +1018,6 @@ static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
 
   nas_emm_tau_proc_t* tau_proc =
       nas_new_tau_procedure(&ue_mm_context->emm_context);
-  AssertFatal(tau_proc, "TODO Handle this");
   if ((tau_proc)) {
     tau_proc->ies   = ies;
     tau_proc->ue_id = ue_mm_context->mme_ue_s1ap_id;
@@ -1029,6 +1030,10 @@ static nas_emm_tau_proc_t* emm_proc_create_procedure_tau(
     tau_proc->emm_spec_proc.emm_proc.base_proc.fail_out = NULL;
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, tau_proc);
   }
+  OAILOG_ERROR_UE(
+      LOG_NAS_EMM, ue_mm_context->emm_context._imsi64,
+      "Failed to create tau_proc for ue_id " MME_UE_S1AP_ID_FMT "\n",
+      ue_mm_context->mme_ue_s1ap_id);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, NULL);
 }
 

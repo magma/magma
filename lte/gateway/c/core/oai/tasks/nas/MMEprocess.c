@@ -69,7 +69,7 @@ static void _nas_clean(int net_fd);
 /****************************************************************************/
 
 /****************************************************************************/
-int main(int argc, const char* argv[]) {
+status_code_e main(int argc, const char* argv[]) {
   /*
    * Get the command line options
    */

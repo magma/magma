@@ -207,7 +207,7 @@ void spgw_handle_pcef_create_session_response(
 /*
  * Handle NW initiated Dedicated Bearer Activation from SPGW service
  */
-int spgw_handle_nw_initiated_bearer_actv_req(
+status_code_e spgw_handle_nw_initiated_bearer_actv_req(
     spgw_state_t* spgw_state,
     const itti_gx_nw_init_actv_bearer_request_t* const bearer_req_p,
     imsi64_t imsi64, gtpv2c_cause_value_t* failed_cause) {
@@ -470,7 +470,7 @@ static int32_t spgw_build_and_send_s11_deactivate_bearer_req(
 }
 
 //------------------------------------------------------------------------------
-int spgw_send_nw_init_activate_bearer_rsp(
+status_code_e spgw_send_nw_init_activate_bearer_rsp(
     gtpv2c_cause_value_t cause, imsi64_t imsi64,
     bearer_context_within_create_bearer_response_t* bearer_ctx,
     uint8_t default_bearer_id, char* policy_rule_name) {

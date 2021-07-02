@@ -260,18 +260,31 @@ class TCManager(object):
         parser = self._datapath.ofproto_parser
         return parser.OFPActionSetField(pkt_mark=qid), None
 
-    def add_qos(self, d: FlowMatch.Direction, qos_info: QosInfo,
-                parent=None, skip_filter=False) -> int:
-        LOG.debug("add QoS: %s", qos_info)
-        qid = self._id_manager.allocate_idx()
+    def create_class_async(self, d: FlowMatch.Direction, qos_info: QosInfo,
+                           qid,
+                           parent, skip_filter, cleanup_rule):
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
+
         err = TrafficClass.create_class(intf, qid, qos_info.mbr,
                                         rate=qos_info.gbr,
                                         parent_qid=parent,
                                         skip_filter=skip_filter)
         # typecast to int to avoid MagicMock related error in unit test
-        if int(err) < 0:
-            return 0
+        err_no = int(err)
+        if err_no < 0:
+            if cleanup_rule:
+                cleanup_rule()
+            LOG.error("qos create error: qid %d err %d", qid, err_no)
+            return
+
+        LOG.debug("create done: qid %d err %s", qid, err_no)
+
+    def add_qos(self, d: FlowMatch.Direction, qos_info: QosInfo,
+                cleanup_rule=None, parent=None, skip_filter=False) -> int:
+        LOG.debug("add QoS: %s", qos_info)
+        qid = self._id_manager.allocate_idx()
+        self._loop.call_soon_threadsafe(self.create_class_async, d, qos_info,
+                                        qid, parent, skip_filter, cleanup_rule)
         LOG.debug("assigned qid: %d", qid)
         return qid
 

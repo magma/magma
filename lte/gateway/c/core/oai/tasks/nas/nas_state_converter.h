@@ -162,6 +162,18 @@ class NasStateConverter : StateConverter {
       voice_domain_preference_and_ue_usage_setting_t*
           state_voice_domain_preference_and_ue_usage_setting);
 
+  static void ue_additional_security_capability_to_proto(
+      const ue_additional_security_capability_t*
+          state_ue_additional_security_capability,
+      oai::UeAdditionalSecurityCapability*
+          ue_additional_security_capability_proto);
+
+  static void proto_to_ue_additional_security_capability(
+      const oai::UeAdditionalSecurityCapability&
+          ue_additional_security_capability_proto,
+      ue_additional_security_capability_t*
+          state_ue_additional_security_capability);
+
   static void ambr_to_proto(const ambr_t& state_ambr, oai::Ambr* ambr_proto);
 
   static void proto_to_ambr(const oai::Ambr& ambr_proto, ambr_t* state_ambr);

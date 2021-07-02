@@ -355,6 +355,39 @@ func (a *Client) GetNetworksNetworkIDName(params *GetNetworksNetworkIDNameParams
 }
 
 /*
+GetNetworksNetworkIDSentry gets the sentry io configuration for network
+*/
+func (a *Client) GetNetworksNetworkIDSentry(params *GetNetworksNetworkIDSentryParams) (*GetNetworksNetworkIDSentryOK, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewGetNetworksNetworkIDSentryParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "GetNetworksNetworkIDSentry",
+		Method:             "GET",
+		PathPattern:        "/networks/{network_id}/sentry",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &GetNetworksNetworkIDSentryReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*GetNetworksNetworkIDSentryOK)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	unexpectedSuccess := result.(*GetNetworksNetworkIDSentryDefault)
+	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
+}
+
+/*
 GetNetworksNetworkIDType gets the type of a network
 */
 func (a *Client) GetNetworksNetworkIDType(params *GetNetworksNetworkIDTypeParams) (*GetNetworksNetworkIDTypeOK, error) {
@@ -681,6 +714,39 @@ func (a *Client) PutNetworksNetworkIDName(params *PutNetworksNetworkIDNameParams
 	}
 	// unexpected success response
 	unexpectedSuccess := result.(*PutNetworksNetworkIDNameDefault)
+	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
+}
+
+/*
+PutNetworksNetworkIDSentry updates the sentry io configuration for network
+*/
+func (a *Client) PutNetworksNetworkIDSentry(params *PutNetworksNetworkIDSentryParams) (*PutNetworksNetworkIDSentryNoContent, error) {
+	// TODO: Validate the params before sending
+	if params == nil {
+		params = NewPutNetworksNetworkIDSentryParams()
+	}
+
+	result, err := a.transport.Submit(&runtime.ClientOperation{
+		ID:                 "PutNetworksNetworkIDSentry",
+		Method:             "PUT",
+		PathPattern:        "/networks/{network_id}/sentry",
+		ProducesMediaTypes: []string{"application/json"},
+		ConsumesMediaTypes: []string{"application/json"},
+		Schemes:            []string{"http", "https"},
+		Params:             params,
+		Reader:             &PutNetworksNetworkIDSentryReader{formats: a.formats},
+		Context:            params.Context,
+		Client:             params.HTTPClient,
+	})
+	if err != nil {
+		return nil, err
+	}
+	success, ok := result.(*PutNetworksNetworkIDSentryNoContent)
+	if ok {
+		return success, nil
+	}
+	// unexpected success response
+	unexpectedSuccess := result.(*PutNetworksNetworkIDSentryDefault)
 	return nil, runtime.NewAPIError("unexpected success response: content available as default response in error", unexpectedSuccess, unexpectedSuccess.Code())
 }
 

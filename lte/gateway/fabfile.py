@@ -74,7 +74,7 @@ def test():
 def package(vcs='git', all_deps="False",
             cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
             destroy_vm='False',
-            vm='magma', os="debian"):
+            vm='magma', os="ubuntu"):
     """ Builds the magma package """
     all_deps = False if all_deps == "False" else True
     destroy_vm = bool(strtobool(destroy_vm))
@@ -299,6 +299,8 @@ def get_test_summaries(
         test_host=None,
         dst_path="/tmp"):
     local('mkdir -p ' + dst_path)
+
+    # TODO we may want to zip up all these files
     _switch_to_vm_no_provision(gateway_host, "magma", "magma_dev.yml")
     with settings(warn_only=True):
         get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
@@ -430,11 +432,13 @@ def _copy_out_c_execs_in_magma_vm():
     with settings(warn_only=True):
         exec_paths = ['/usr/local/bin/sessiond', '/usr/local/bin/mme',
                       '/usr/local/sbin/sctpd', '/usr/local/bin/connectiond']
+        dest_path = '~/magma-packages/executables'
+        run('mkdir -p ' + dest_path)
         for exec_path in exec_paths:
             if not exists(exec_path):
                 print(exec_path + " does not exist")
                 continue
-            run('cp ' + exec_path + ' ~/magma-packages')
+            run('cp ' + exec_path + ' ' + dest_path)
 
 
 

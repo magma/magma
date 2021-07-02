@@ -38,7 +38,8 @@ void sgw_send_paging_request(const struct in_addr* dest_ip) {
   MessageDef* message_p                       = NULL;
   itti_s11_paging_request_t* paging_request_p = NULL;
 
-  message_p        = itti_alloc_new_message(TASK_SPGW_APP, S11_PAGING_REQUEST);
+  message_p =
+      DEPRECATEDitti_alloc_new_message_fatal(TASK_SPGW_APP, S11_PAGING_REQUEST);
   paging_request_p = &message_p->ittiMsg.s11_paging_request;
   memset((void*) paging_request_p, 0, sizeof(itti_s11_paging_request_t));
   paging_request_p->ipv4_addr = *dest_ip;

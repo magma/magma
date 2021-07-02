@@ -55,7 +55,7 @@
  **      Return:    RETURNok, RETURNerror                                  **
  **                                                                        **
  ***************************************************************************/
-int mme_app_handle_sgsap_paging_request(
+status_code_e mme_app_handle_sgsap_paging_request(
     mme_app_desc_t* mme_app_desc_p,
     itti_sgsap_paging_request_t* const sgsap_paging_req_pP) {
   struct ue_mm_context_s* ue_context_p = NULL;

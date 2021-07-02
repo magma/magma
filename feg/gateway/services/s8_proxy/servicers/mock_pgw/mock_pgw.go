@@ -44,6 +44,7 @@ type LastValues struct {
 	LastTEIDu uint32
 	LastTEIDc uint32
 	LastQos   *protos.QosInformation
+	LastULI   *ie.UserLocationInformationFields
 }
 
 // CreateSessionOptions to control Create Session Response values to produce errors

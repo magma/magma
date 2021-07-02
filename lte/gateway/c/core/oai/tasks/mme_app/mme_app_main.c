@@ -55,6 +55,7 @@
 static void check_mme_healthy_and_notify_service(void);
 static bool is_mme_app_healthy(void);
 static void mme_app_exit(void);
+static void start_stats_timer(void);
 
 bool mme_hss_associated = false;
 bool mme_sctp_bounded   = false;
@@ -62,6 +63,7 @@ task_zmq_ctx_t mme_app_task_zmq_ctx;
 bool mme_congestion_control_enabled = true;
 long mme_app_last_msg_latency;
 long pre_mme_task_msg_latency;
+static long epc_stats_timer_id;
 
 mme_congestion_params_t mme_congestion_params;
 
@@ -260,10 +262,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
             received_message_p->ittiMsg.timer_has_expired.timer_id);
         is_task_state_same = true;
         break;
-      }
-      if (received_message_p->ittiMsg.timer_has_expired.timer_id ==
-          mme_app_desc_p->statistic_timer_id) {
-        mme_app_statistics_display();
       } else if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
         mme_app_nas_timer_handle_signal_expiry(
             TIMER_HAS_EXPIRED(received_message_p).timer_id,
@@ -520,6 +518,7 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
 
   // Service started, but not healthy yet
   send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, false);
+  start_stats_timer();
 
   zloop_start(mme_app_task_zmq_ctx.event_loop);
   mme_app_exit();
@@ -538,7 +537,7 @@ static void mme_app_init_congestion_params(const mme_config_t* mme_config_p) {
 }
 
 //------------------------------------------------------------------------------
-int mme_app_init(const mme_config_t* mme_config_p) {
+status_code_e mme_app_init(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   if (mme_nas_state_init(mme_config_p)) {
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
@@ -566,6 +565,23 @@ int mme_app_init(const mme_config_t* mme_config_p) {
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
+static int handle_stats_timer(zloop_t* loop, int id, void* arg) {
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  application_mme_app_stats_msg_t stats_msg;
+  stats_msg.nb_ue_attached         = mme_app_desc_p->nb_ue_attached;
+  stats_msg.nb_ue_connected        = mme_app_desc_p->nb_ue_connected;
+  stats_msg.nb_default_eps_bearers = mme_app_desc_p->nb_default_eps_bearers;
+  stats_msg.nb_s1u_bearers         = mme_app_desc_p->nb_s1u_bearers;
+  return send_mme_app_stats_to_service303(
+      &mme_app_task_zmq_ctx, TASK_MME_APP, &stats_msg);
+}
+
+static void start_stats_timer(void) {
+  epc_stats_timer_id = start_timer(
+      &mme_app_task_zmq_ctx, EPC_STATS_TIMER_MSEC, TIMER_REPEAT_FOREVER,
+      handle_stats_timer, NULL);
+}
+
 static void check_mme_healthy_and_notify_service(void) {
   if (is_mme_app_healthy()) {
     send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, true);
@@ -578,6 +594,7 @@ static bool is_mme_app_healthy(void) {
 
 //------------------------------------------------------------------------------
 static void mme_app_exit(void) {
+  stop_timer(&mme_app_task_zmq_ctx, epc_stats_timer_id);
   mme_app_edns_exit();
   clear_mme_nas_state();
   // Clean-up NAS module
