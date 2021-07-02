@@ -201,7 +201,7 @@ func TestListSubscribers(t *testing.T) {
 	assertEqualSubscriberData(t, expectedProtos, res.Subscribers)
 	assert.Equal(t, expectedToken, res.NextPageToken)
 	assert.Equal(t, expectedDigest, res.FlatDigest.GetMd5Base64Digest())
-	assert.Equal(t, expectedPerSubDigests, res.PerSubDigests)
+	assertEqualPerSubDigests(t, expectedPerSubDigests, res.PerSubDigests)
 
 	expectedProtos2 := []*lte_protos.SubscriberData{
 		{
@@ -406,6 +406,7 @@ func TestSyncSubscribers(t *testing.T) {
 		},
 		serdes.Entity,
 	)
+	assert.NoError(t, err)
 	expectedPerSubDigests := []*lte_protos.SubscriberDigestByID{
 		{
 			Sid:    &lte_protos.SubscriberID{Id: "00000", Type: lte_protos.SubscriberID_IMSI},
@@ -439,7 +440,8 @@ func TestSyncSubscribers(t *testing.T) {
 		PerSubDigests: []*lte_protos.SubscriberDigestByID{},
 	}
 	res, err = servicer.SyncSubscribers(ctx, req)
-	assert.Equal(t, expectedPerSubDigests, res.PerSubDigests)
+	assert.NoError(t, err)
+	assertEqualPerSubDigests(t, expectedPerSubDigests, res.PerSubDigests)
 	assert.Equal(t, expectedToRenewData, res.ToRenew)
 	assert.Equal(t, []string{}, res.Deleted)
 
@@ -471,7 +473,6 @@ func TestSyncSubscribers(t *testing.T) {
 	err = perSubDigestStore.SetDigest("n1", expectedPerSubDigests)
 	assert.NoError(t, err)
 
-
 	expectedToRenewData = map[string]*lte_protos.SubscriberData{
 		"IMSI00001": {
 			Sid:        &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
@@ -492,7 +493,7 @@ func TestSyncSubscribers(t *testing.T) {
 		PerSubDigests: curPerSubDigests,
 	}
 	res, err = servicer.SyncSubscribers(ctx, req)
-	assert.Equal(t, expectedPerSubDigests, res.PerSubDigests)
+	assertEqualPerSubDigests(t, expectedPerSubDigests, res.PerSubDigests)
 	assert.Equal(t, expectedToRenewData, res.ToRenew)
 	assert.Equal(t, []string{"IMSI00000"}, res.Deleted)
 }
@@ -561,7 +562,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 	}
 	res, err := servicer.SyncSubscribers(ctx, req)
 	assert.False(t, res.Resync)
-	assert.Equal(t, expectedPerSubDigests, res.PerSubDigests)
+	assertEqualPerSubDigests(t, expectedPerSubDigests, res.PerSubDigests)
 	assert.Equal(t, expectedToRenewData, res.ToRenew)
 	assert.Equal(t, []string{}, res.Deleted)
 
@@ -622,4 +623,12 @@ func initializePerSubDigestStore(t *testing.T) *subscriberdb_storage.PerSubDiges
 	assert.NoError(t, fact.InitializeFactory())
 	store := subscriberdb_storage.NewPerSubDigestStore(fact)
 	return store
+}
+
+func assertEqualPerSubDigests(t *testing.T, expected []*lte_protos.SubscriberDigestByID, got []*lte_protos.SubscriberDigestByID) {
+	assert.Equal(t, len(expected), len(got))
+	for ind := range expected {
+		assert.Equal(t, expected[ind].Digest.GetMd5Base64Digest(), got[ind].Digest.GetMd5Base64Digest())
+		assert.Equal(t, expected[ind].Sid.Id, got[ind].Sid.Id)
+	}
 }

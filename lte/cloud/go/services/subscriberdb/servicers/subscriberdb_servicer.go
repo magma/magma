@@ -48,7 +48,7 @@ func NewSubscriberdbServicer(
 	servicer := &subscriberdbServicer{
 		flatDigestEnabled:        config.FlatDigestEnabled,
 		maxNoResyncChangesetSize: config.MaxNoResyncChangesetSize,
-		digestStore:          digestStore,
+		digestStore:              digestStore,
 		perSubDigestStore:        perSubDigestStore,
 	}
 	return servicer
@@ -90,6 +90,10 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	}
 
 	flatDigest, err := storage.GetDigest(s.digestStore, networkID)
+	if err != nil {
+		return nil, err
+	}
+
 	clientPerSubDigests := req.PerSubDigests
 	cloudPerSubDigests, err := s.perSubDigestStore.GetDigest(networkID)
 	if err != nil {
