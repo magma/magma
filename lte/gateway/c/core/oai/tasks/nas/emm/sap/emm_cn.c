@@ -1043,7 +1043,7 @@ static int emm_cn_cs_domain_mm_information_req(
       }
     }
   } else {
-    /* TODO CSFB Rashmi, what should be handling in idle mode */
+    // TODO - CSFB Handle MM Information Request in idle mode
     OAILOG_INFO(
         LOG_NAS_EMM,
         "Received MM Information Request while UE is in idle mode for "

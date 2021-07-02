@@ -3870,7 +3870,7 @@ void mme_app_handle_erab_rel_cmd(
     s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id =
         bearer_context->ebi;
   }
-  /* TODO Pruthvi, To fill cause for all bearers that are to be released
+  /* TODO Fill cause for all bearers that are to be released
    * s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].cause = 0;
    */
   s1ap_e_rab_rel_cmd->nas_pdu = nas_msg;
