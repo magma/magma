@@ -31,5 +31,3 @@ analytics:
     cert_expires_in_hours:
       register: true
       export: false
-      labels:
-        class: reliability
