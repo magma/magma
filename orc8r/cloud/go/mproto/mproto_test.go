@@ -140,7 +140,6 @@ func getTestDataCompound() []*test.TestDataCompound {
 	}
 }
 
-// TODO(elainew): add test case for UnmarshalDeterministic
 func TestUnmarshalDeterministic(t *testing.T) {
 	basicProto1 := &test.TestDataBasic{Key: "12345", Value: 10}
 	serialized, err := mproto.MarshalDeterministic(basicProto1)

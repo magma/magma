@@ -24,6 +24,11 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+type digestLookup struct {
+	db      *sql.DB
+	builder sqorc.StatementBuilder
+}
+
 type DigestLookup interface {
 	// Initialize the backing store.
 	Initialize() error
@@ -36,74 +41,56 @@ type DigestLookup interface {
 	// were last updated earlier than this time.
 	GetDigests(networks []string, lastUpdatedBefore int64) (DigestInfos, error)
 
-	// SetDigest updates the digest for a particular network based on the specified arguments.
+	// SetDigest creates/updates the subscribers digest for a particular network.
 	SetDigest(network string, digest string) error
 
 	// DeleteDigests removes digests by network IDs.
 	DeleteDigests(networks []string) error
 }
 
-type flatDigestLookup struct {
-	db      *sql.DB
-	builder sqorc.StatementBuilder
-}
-
 const (
-	flatDigestTableName = "subscriberdb_flat_digests"
+	digestTableName = "subscriberdb_flat_digests"
 
-	flatDigestNidCol             = "network_id"
-	flatDigestDigestCol          = "digest"
-	flatDigestLastUpdatedTimeCol = "last_updated_at"
+	digestNidCol             = "network_id"
+	digestDigestCol          = "digest"
+	digestLastUpdatedTimeCol = "last_updated_at"
 )
 
-func NewFlatDigestLookup(db *sql.DB, builder sqorc.StatementBuilder) DigestLookup {
-	return &flatDigestLookup{db: db, builder: builder}
+func NewDigestLookup(db *sql.DB, builder sqorc.StatementBuilder) DigestLookup {
+	return &digestLookup{db: db, builder: builder}
 }
 
-func (l *flatDigestLookup) Initialize() error {
+func (l *digestLookup) Initialize() error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		_, err := l.builder.CreateTable(flatDigestTableName).
+		_, err := l.builder.CreateTable(digestTableName).
 			IfNotExists().
-			Column(flatDigestNidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-			Column(flatDigestDigestCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
-			Column(flatDigestLastUpdatedTimeCol).Type(sqorc.ColumnTypeBigInt).NotNull().EndColumn().
-			PrimaryKey(flatDigestNidCol).
+			Column(digestNidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+			Column(digestDigestCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
+			Column(digestLastUpdatedTimeCol).Type(sqorc.ColumnTypeBigInt).NotNull().EndColumn().
+			PrimaryKey(digestNidCol).
 			RunWith(tx).
 			Exec()
-		return nil, errors.Wrap(err, "initialize flat digest lookup table")
+		return nil, errors.Wrap(err, "initialize digest lookup table")
 	}
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
 }
 
-// GetDigest returns the digest for a single network.
-func GetDigest(l DigestLookup, network string) (string, error) {
-	digestInfos, err := l.GetDigests([]string{network}, clock.Now().Unix())
-	if err != nil {
-		return "", err
-	}
-	// Each network has at most 1 digest; if digest not set yet, return empty digest
-	if len(digestInfos) == 0 {
-		return "", nil
-	}
-	return digestInfos[0].Digest, nil
-}
-
-func (l *flatDigestLookup) GetDigests(networks []string, lastUpdatedBefore int64) (DigestInfos, error) {
+func (l *digestLookup) GetDigests(networks []string, lastUpdatedBefore int64) (DigestInfos, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
-		filters := squirrel.And{squirrel.LtOrEq{flatDigestLastUpdatedTimeCol: lastUpdatedBefore}}
+		filters := squirrel.And{squirrel.LtOrEq{digestLastUpdatedTimeCol: lastUpdatedBefore}}
 		if len(networks) > 0 {
-			filters = append(filters, squirrel.Eq{flatDigestNidCol: networks})
+			filters = append(filters, squirrel.Eq{digestNidCol: networks})
 		}
 
 		rows, err := l.builder.
-			Select(flatDigestNidCol, flatDigestDigestCol, flatDigestLastUpdatedTimeCol).
-			From(flatDigestTableName).
+			Select(digestNidCol, digestDigestCol, digestLastUpdatedTimeCol).
+			From(digestTableName).
 			Where(filters).
 			RunWith(tx).
 			Query()
 		if err != nil {
-			return nil, errors.Wrapf(err, "gets flat digest for networks %+v", networks)
+			return nil, errors.Wrapf(err, "gets digest for networks %+v", networks)
 		}
 		defer sqorc.CloseRowsLogOnError(rows, "GetDigest")
 
@@ -112,18 +99,18 @@ func (l *flatDigestLookup) GetDigests(networks []string, lastUpdatedBefore int64
 			network, digest, lastUpdatedTime := "", "", int64(0)
 			err = rows.Scan(&network, &digest, &lastUpdatedTime)
 			if err != nil {
-				return nil, errors.Wrap(err, "select flat digests for networks, SQL row scan error")
+				return nil, errors.Wrap(err, "select digests for networks, SQL row scan error")
 			}
-			digestInfo := DigestInfo{
-				Network:         network,
-				Digest:          digest,
-				LastUpdatedTime: lastUpdatedTime,
+			digestInfo := digestInfo{
+				network:         network,
+				digest:          digest,
+				lastUpdatedTime: lastUpdatedTime,
 			}
 			digestInfos = append(digestInfos, digestInfo)
 		}
 		err = rows.Err()
 		if err != nil {
-			return nil, errors.Wrap(err, "select flat digests for network, SQL rows error")
+			return nil, errors.Wrap(err, "select digests for network, SQL rows error")
 		}
 		return digestInfos, nil
 	}
@@ -136,24 +123,24 @@ func (l *flatDigestLookup) GetDigests(networks []string, lastUpdatedBefore int64
 	return ret, nil
 }
 
-func (l *flatDigestLookup) SetDigest(network string, digest string) error {
+func (l *digestLookup) SetDigest(network string, digest string) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		now := clock.Now().Unix()
 		_, err := l.builder.
-			Insert(flatDigestTableName).
-			Columns(flatDigestNidCol, flatDigestDigestCol, flatDigestLastUpdatedTimeCol).
+			Insert(digestTableName).
+			Columns(digestNidCol, digestDigestCol, digestLastUpdatedTimeCol).
 			Values(network, digest, now).
 			OnConflict(
 				[]sqorc.UpsertValue{
-					{Column: flatDigestDigestCol, Value: digest},
-					{Column: flatDigestLastUpdatedTimeCol, Value: now},
+					{Column: digestDigestCol, Value: digest},
+					{Column: digestLastUpdatedTimeCol, Value: now},
 				},
-				flatDigestNidCol,
+				digestNidCol,
 			).
 			RunWith(tx).
 			Exec()
 		if err != nil {
-			return nil, errors.Wrapf(err, "insert flat digest for network %+v", network)
+			return nil, errors.Wrapf(err, "insert digest for network %+v", network)
 		}
 		return nil, nil
 	}
@@ -162,11 +149,11 @@ func (l *flatDigestLookup) SetDigest(network string, digest string) error {
 	return err
 }
 
-func (l *flatDigestLookup) DeleteDigests(networks []string) error {
+func (l *digestLookup) DeleteDigests(networks []string) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		_, err := l.builder.
-			Delete(flatDigestTableName).
-			Where(squirrel.Eq{flatDigestNidCol: networks}).
+			Delete(digestTableName).
+			Where(squirrel.Eq{digestNidCol: networks}).
 			RunWith(tx).
 			Exec()
 		if err != nil {
@@ -177,6 +164,19 @@ func (l *flatDigestLookup) DeleteDigests(networks []string) error {
 
 	_, err := sqorc.ExecInTx(l.db, nil, nil, txFn)
 	return err
+}
+
+// GetDigest returns the digest information for a particular network.
+func GetDigest(l DigestLookup, network string) (string, error) {
+	digestInfos, err := l.GetDigests([]string{network}, clock.Now().Unix())
+	if err != nil {
+		return "", err
+	}
+	// Each network has at most 1 digest; if digest not set yet, return empty digest
+	if len(digestInfos) == 0 {
+		return "", nil
+	}
+	return digestInfos[0].digest, nil
 }
 
 // GetOutdatedNetworks returns all networks with digests last updated at a time
@@ -201,19 +201,19 @@ func GetAllNetworks(l DigestLookup) ([]string, error) {
 	return networksUniq, nil
 }
 
-type DigestInfo struct {
-	Network         string
-	Digest          string
-	LastUpdatedTime int64
+type digestInfo struct {
+	network         string
+	digest          string
+	lastUpdatedTime int64
 }
 
-type DigestInfos []DigestInfo
+type DigestInfos []digestInfo
 
 // Networks returns a list of network IDs for all digests in DigestInfos.
 func (digestInfos DigestInfos) Networks() []string {
 	ret := []string{}
 	for _, digestInfo := range digestInfos {
-		ret = append(ret, digestInfo.Network)
+		ret = append(ret, digestInfo.network)
 	}
 	return ret
 }

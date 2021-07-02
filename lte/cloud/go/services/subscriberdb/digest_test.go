@@ -32,7 +32,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetFlatDigestDeterministic(t *testing.T) {
+func TestGetDigestDeterministic(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
@@ -63,10 +63,10 @@ func TestGetFlatDigestDeterministic(t *testing.T) {
 	_, err = configurator.CreateEntities("n1", networkEntities, serdes.Entity)
 	assert.NoError(t, err)
 
-	expected, err := subscriberdb.GetFlatDigest("n1")
+	expected, err := subscriberdb.GetDigest("n1")
 	assert.NoError(t, err)
 	for i := 0; i < 50; i++ {
-		digest, err := subscriberdb.GetFlatDigest("n1")
+		digest, err := subscriberdb.GetDigest("n1")
 		assert.NoError(t, err)
 		assert.Equal(t, expected, digest)
 	}
@@ -84,7 +84,7 @@ func TestGetFlatDigestDeterministic(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	digest, err := subscriberdb.GetFlatDigest("n1")
+	digest, err := subscriberdb.GetDigest("n1")
 	assert.NoError(t, err)
 	assert.NotEqual(t, expected, digest)
 	expected = digest
@@ -113,14 +113,14 @@ func TestGetFlatDigestDeterministic(t *testing.T) {
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
-	digest, err = subscriberdb.GetFlatDigest("n1")
+	digest, err = subscriberdb.GetDigest("n1")
 	assert.NoError(t, err)
 	assert.NotEqual(t, expected, digest)
 }
 
-// TestGetFlatDigestApnResourceAssocs is a regression test to check whether the flat
+// TestGetDigestApnResourceAssocs is a regression test to check whether the flat
 // digest reflects changes in the apn/gateway associations of apn resources.
-func TestGetFlatDigestApnResourceAssocs(t *testing.T) {
+func TestGetDigestApnResourceAssocs(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
@@ -196,7 +196,7 @@ func TestGetFlatDigestApnResourceAssocs(t *testing.T) {
 	}
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
-	expected, err := subscriberdb.GetFlatDigest("n1")
+	expected, err := subscriberdb.GetDigest("n1")
 	assert.NoError(t, err)
 
 	// Digest reflects changes in gateway->apn resource associations
@@ -220,7 +220,7 @@ func TestGetFlatDigestApnResourceAssocs(t *testing.T) {
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
-	digest, err := subscriberdb.GetFlatDigest("n1")
+	digest, err := subscriberdb.GetDigest("n1")
 	assert.NoError(t, err)
 	assert.NotEqual(t, expected, digest)
 	expected = digest
@@ -248,7 +248,7 @@ func TestGetFlatDigestApnResourceAssocs(t *testing.T) {
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
-	digest, err = subscriberdb.GetFlatDigest("n1")
+	digest, err = subscriberdb.GetDigest("n1")
 	assert.NoError(t, err)
 	assert.NotEqual(t, expected, digest)
 }
@@ -363,10 +363,10 @@ func TestGetPerSubDigests(t *testing.T) {
 	assert.NotEqual(t, digestSub3, perSubDigests[1].Digest.Md5Base64Digest)
 }
 
-func TestGetSubDigestsDiff(t *testing.T) {
+func TestGetPerSubDigestsDiff(t *testing.T) {
 	t.Run("both empty", func(t *testing.T) {
 		all, tracked := []*lte_protos.SubscriberDigestByID{}, []*lte_protos.SubscriberDigestByID{}
-		toRenew, deleted := subscriberdb.GetSubDigestsDiff(all, tracked)
+		toRenew, deleted := subscriberdb.GetPerSubDigestsDiff(all, tracked)
 		assert.Equal(t, map[string]string{}, toRenew)
 		assert.Equal(t, []string{}, deleted)
 	})
@@ -377,7 +377,7 @@ func TestGetSubDigestsDiff(t *testing.T) {
 			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
 		}
-		toRenew, deleted := subscriberdb.GetSubDigestsDiff(all, tracked)
+		toRenew, deleted := subscriberdb.GetPerSubDigestsDiff(all, tracked)
 
 		assert.Equal(t, map[string]string{}, toRenew)
 		assert.Equal(t, []string{"00000", "00001", "00002"}, deleted)
@@ -389,7 +389,7 @@ func TestGetSubDigestsDiff(t *testing.T) {
 			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
 		}
 		tracked := []*lte_protos.SubscriberDigestByID{}
-		toRenew, deleted := subscriberdb.GetSubDigestsDiff(all, tracked)
+		toRenew, deleted := subscriberdb.GetPerSubDigestsDiff(all, tracked)
 
 		assert.Equal(t, map[string]string{
 			"00000": "apple",
@@ -409,7 +409,7 @@ func TestGetSubDigestsDiff(t *testing.T) {
 			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
 		}
-		toRenew, deleted := subscriberdb.GetSubDigestsDiff(all, tracked)
+		toRenew, deleted := subscriberdb.GetPerSubDigestsDiff(all, tracked)
 		assert.Equal(t, map[string]string{
 			"00002": "banana",
 			"00003": "cherry",
@@ -432,7 +432,7 @@ func TestGetSubDigestsDiff(t *testing.T) {
 			{Sid: &lte_protos.SubscriberID{Id: "00004"}, Digest: &lte_protos.Digest{Md5Base64Digest: "sky"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00006"}, Digest: &lte_protos.Digest{Md5Base64Digest: "bird"}},
 		}
-		toRenew, deleted := subscriberdb.GetSubDigestsDiff(all, tracked)
+		toRenew, deleted := subscriberdb.GetPerSubDigestsDiff(all, tracked)
 		assert.Equal(t, map[string]string{
 			"00003": "cherry",
 			"00005": "cactus",

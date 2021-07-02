@@ -34,13 +34,13 @@ import (
 
 type subscriberdbServicer struct {
 	flatDigestEnabled bool
-	flatDigestStore   storage.DigestLookup
+	digestStore       storage.DigestLookup
 }
 
-func NewSubscriberdbServicer(config subscriberdb.Config, flatDigestStore storage.DigestLookup) lte_protos.SubscriberDBCloudServer {
+func NewSubscriberdbServicer(config subscriberdb.Config, digestStore storage.DigestLookup) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
 		flatDigestEnabled: config.FlatDigestEnabled,
-		flatDigestStore:   flatDigestStore,
+		digestStore:       digestStore,
 	}
 	return servicer
 }
@@ -124,7 +124,7 @@ func (s *subscriberdbServicer) getDigestInfo(clientDigest *lte_protos.Digest, ne
 		return &lte_protos.Digest{Md5Base64Digest: ""}, false
 	}
 
-	digest, err := storage.GetDigest(s.flatDigestStore, networkID)
+	digest, err := storage.GetDigest(s.digestStore, networkID)
 	// If digest generation fails, the error is swallowed to not affect the main functionality
 	if err != nil {
 		glog.Errorf("Generating digest for network %s failed: %+v", networkID, err)

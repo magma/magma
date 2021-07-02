@@ -54,9 +54,9 @@ func main() {
 		glog.Fatalf("Error initializing IP lookup storage: %+v", err)
 	}
 
-	flatDigestStore := subscriberdb_storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
-	if err := flatDigestStore.Initialize(); err != nil {
-		glog.Fatalf("Error initializing digest lookup storage: %+v", err)
+	digestStore := subscriberdb_storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	if err := digestStore.Initialize(); err != nil {
+		glog.Fatalf("Error initializing digest storage: %+v", err)
 	}
 
 	serviceConfig := subscriberdb.MustGetServiceConfig()
@@ -66,7 +66,7 @@ func main() {
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, flatDigestStore))
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore))
 
 	swagger_protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(subscriberdb.ServiceName))
 

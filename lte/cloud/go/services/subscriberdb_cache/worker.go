@@ -27,9 +27,9 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func MonitorDigests(flatDigestStore storage.DigestLookup, perSubDigestStore *storage.PerSubDigestLookup, config Config) {
+func MonitorDigests(digestStore storage.DigestLookup, perSubDigestStore *storage.PerSubDigestLookup, config Config) {
 	for {
-		flatDigestsByNetworks, err := RenewDigests(flatDigestStore, perSubDigestStore, config)
+		flatDigestsByNetworks, err := RenewDigests(digestStore, perSubDigestStore, config)
 		if err != nil {
 			glog.Errorf("Error monitoring digests: %+v", err)
 		}
@@ -48,15 +48,15 @@ func MonitorDigests(flatDigestStore storage.DigestLookup, perSubDigestStore *sto
 // Note: RenewDigests renews digests only a single time. Prefer MonitorDigests
 // for continuously updating the digests.
 func RenewDigests(
-	flatDigestStore storage.DigestLookup,
+	digestStore storage.DigestLookup,
 	perSubDigestStore *storage.PerSubDigestLookup,
 	config Config,
 ) (map[string]string, error) {
-	networksToRenew, networksToRemove, err := getNetworksToUpdate(flatDigestStore, config.UpdateIntervalSecs)
+	networksToRenew, networksToRemove, err := getNetworksToUpdate(digestStore, config.UpdateIntervalSecs)
 	if err != nil {
 		return nil, errors.Wrapf(err, "get networks to update")
 	}
-	err = flatDigestStore.DeleteDigests(networksToRemove)
+	err = digestStore.DeleteDigests(networksToRemove)
 	if err != nil {
 		return nil, errors.Wrapf(err, "remove flat digests of invalid networks")
 	}
@@ -68,12 +68,12 @@ func RenewDigests(
 	errs := &multierror.Error{}
 	flatDigestsByNetwork := map[string]string{}
 	for _, network := range networksToRenew {
-		digest, err := subscriberdb.GetFlatDigest(network)
+		digest, err := subscriberdb.GetDigest(network)
 		if err != nil {
 			multierror.Append(errors.Wrapf(err, "generate flat digest"))
 			continue
 		}
-		err = flatDigestStore.SetDigest(network, digest)
+		err = digestStore.SetDigest(network, digest)
 		if err != nil {
 			multierror.Append(errors.Wrapf(err, "set flat digest"))
 			continue
@@ -97,18 +97,18 @@ func RenewDigests(
 }
 
 // getNetworksToUpdate returns networks to renew or delete in the store.
-func getNetworksToUpdate(flatDigestStore storage.DigestLookup, updateIntervalSecs int) ([]string, []string, error) {
+func getNetworksToUpdate(digestStore storage.DigestLookup, updateIntervalSecs int) ([]string, []string, error) {
 	all, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load current networks for subscriberdb cache")
 	}
-	tracked, err := storage.GetAllNetworks(flatDigestStore)
+	tracked, err := storage.GetAllNetworks(digestStore)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load networks in store for subscriberdb cache")
 	}
 
 	newlyCreated, deleted := funk.DifferenceString(all, tracked)
-	outdated, err := storage.GetOutdatedNetworks(flatDigestStore, clock.Now().Unix()-int64(updateIntervalSecs))
+	outdated, err := storage.GetOutdatedNetworks(digestStore, clock.Now().Unix()-int64(updateIntervalSecs))
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load outdated networks for subscriberdb cache")
 	}

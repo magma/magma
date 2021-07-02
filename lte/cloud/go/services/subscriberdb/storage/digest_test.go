@@ -23,10 +23,10 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestFlatDigestLookup(t *testing.T) {
+func TestDigestLookup(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	s := storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
+	s := storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, s.Initialize())
 
 	t.Run("empty initially", func(t *testing.T) {

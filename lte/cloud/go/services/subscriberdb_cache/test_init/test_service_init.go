@@ -36,8 +36,8 @@ func StartTestService(t *testing.T) {
 
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	flatDigestStore := storage.NewFlatDigestLookup(db, sqorc.GetSqlBuilder())
-	assert.NoError(t, flatDigestStore.Initialize())
+	digestStore := storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, digestStore.Initialize())
 	fact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
 	perSubDigestStore := storage.NewPerSubDigestLookup(fact)
@@ -45,6 +45,6 @@ func StartTestService(t *testing.T) {
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
-	go subscriberdb_cache.MonitorDigests(flatDigestStore, perSubDigestStore, serviceConfig)
+	go subscriberdb_cache.MonitorDigests(digestStore, perSubDigestStore, serviceConfig)
 	srv.RunTest(lis)
 }

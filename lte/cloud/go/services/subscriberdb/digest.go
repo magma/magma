@@ -29,9 +29,9 @@ import (
 
 const defaultSubProfile = "default"
 
-// GetFlatDigest returns a deterministic digest of the current configurations of a
+// GetDigest returns a deterministic digest of the current configurations of a
 // network, which is a concatenation of its subscribers digest and apn resources digest.
-func GetFlatDigest(network string) (string, error) {
+func GetDigest(network string) (string, error) {
 	// HACK: Workaround to decouple apn resources data from subscriber data
 	// despite current construction logic.
 	//
@@ -98,11 +98,11 @@ func GetPerSubDigests(network string) ([]*lte_protos.SubscriberDigestByID, error
 	return perSubDigests, nil
 }
 
-// GetSubDigestsDiff computes the changeset between two lists of per-subscriber digests,
+// GetPerSubDigestsDiff computes the changeset between two lists of per-subscriber digests,
 // ordered by their subscriber IDs (unique within a network). It returns
 // 1. A set of subscribers that have been added/modified, with the new digests.
 // 2. A list of subscribers that have been removed.
-func GetSubDigestsDiff(
+func GetPerSubDigestsDiff(
 	all []*lte_protos.SubscriberDigestByID,
 	tracked []*lte_protos.SubscriberDigestByID,
 ) (map[string]string, []string) {
