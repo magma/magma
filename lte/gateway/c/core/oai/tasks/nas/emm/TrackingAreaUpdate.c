@@ -985,8 +985,7 @@ status_code_e emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id) {
     if (tau_proc) {
       OAILOG_INFO(
           LOG_NAS_EMM,
-          "EMM-PROC  - Stop timer T3450 (%ld) for ue id " MME_UE_S1AP_ID_FMT
-          "\n",
+          "EMM-PROC  - Stop timer T3450 for ue id " MME_UE_S1AP_ID_FMT "\n",
           ue_id);
       if (emm_ctx->csfbparams.newTmsiAllocated) {
         nas_delete_tau_procedure(emm_ctx);

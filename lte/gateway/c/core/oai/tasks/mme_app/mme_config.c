@@ -1164,8 +1164,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
         setting_mme, MME_CONFIG_STRING_SRVC_AREA_CODE_2_TACS_MAP);
     OAILOG_INFO(LOG_MME_APP, "MME_CONFIG_STRING_SRVC_AREA_CODE_2_TACS_MAP \n");
     if (setting != NULL) {
-      const char* sac_str = NULL;
-      num                 = config_setting_length(setting);
+      num = config_setting_length(setting);
       OAILOG_INFO(
           LOG_MME_APP, "Number of SRVC_AREA_CODE_2_TACS configured =%d\n", num);
       if (num > 0) {
