@@ -519,7 +519,7 @@ void MmeNasStateConverter::regional_subscription_to_proto(
 
 void MmeNasStateConverter::proto_to_regional_subscription(
     const oai::UeContext& ue_context_proto, ue_mm_context_t* state_ue_context) {
-  for (int itr = 0; itr < ue_context_proto.num_reg_sub(); itr++) {
+  for (unsigned int itr = 0; itr < ue_context_proto.num_reg_sub(); itr++) {
     memcpy(
         state_ue_context->reg_sub[itr].zone_code,
         ue_context_proto.reg_sub(itr).zone_code().c_str(),
