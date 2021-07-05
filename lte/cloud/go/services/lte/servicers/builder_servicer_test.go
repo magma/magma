@@ -1144,6 +1144,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			LteAuthAmf:      []byte("\x80\x00"),
 			SubProfiles:     nil,
 			HssRelayEnabled: false,
+			SyncInterval:    300,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
