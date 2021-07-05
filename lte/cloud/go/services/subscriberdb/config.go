@@ -27,6 +27,9 @@ type Config struct {
 	// past which a resync signal will be sent back to the agw.
 	ChangesetSizeTheshold int `yaml:"changesetSizeTheshold"`
 	SyncInterval      uint32 `yaml:"syncInterval"`
+	// DefaultSyncInterval is the the default interval in seconds between
+	// gateway requests to sync its subscriberdb with the cloud.
+	DefaultSyncInterval uint32 `yaml:"defaultSyncInterval"`
 }
 
 func MustGetServiceConfig() Config {
