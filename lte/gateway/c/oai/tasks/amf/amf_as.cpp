@@ -148,7 +148,7 @@ static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause) {
       msg->nas_msg->data, &nas_msg, blength(msg->nas_msg), amf_security_context,
       &decode_status);
 
-  ue_m5gmm_context->mm_state = DEREGISTERED;
+  // ue_m5gmm_context->mm_state = DEREGISTERED;
 
   bdestroy_wrapper(&msg->nas_msg);
 
@@ -276,7 +276,6 @@ int amf_as_send_ng(const amf_as_t* msg) {
         OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
       } break;
       case AS_NAS_ESTABLISH_RSP_: {
-        // case AS_NAS_ESTABLISH_CNF_: {
         if (as_msg.msg.nas_establish_rsp.err_code == M5G_AS_SUCCESS) {
           // This flow is to release the UE context after sending the NAS
           // message.
@@ -300,6 +299,14 @@ int amf_as_send_ng(const amf_as_t* msg) {
         break;
     }
   }
+
+  /* ICS goes as a seperate message.
+   * Return ok here
+   */
+  if (msg->primitive == _AMFAS_ESTABLISH_CNF) {
+    OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
+  }
+
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
 }
 
@@ -374,8 +381,7 @@ static int amf_as_encode(
  **              Others:        None                                       **
  **                                                                        **
  ***************************************************************************/
-static int amf_reg_acceptmsg(
-    const amf_as_establish_t* msg, amf_nas_message_t* nas_msg) {
+int amf_reg_acceptmsg(const guti_m5_t* guti, amf_nas_message_t* nas_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = REGISTRATION_ACCEPT_MINIMUM_LENGTH;
   nas_msg->security_protected.plain.amf.header.message_type = REG_ACCEPT;
@@ -401,19 +407,29 @@ static int amf_reg_acceptmsg(
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.type_of_identity = M5GSMobileIdentityMsg_GUTI;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mcc_digit1 = msg->guti.guamfi.plmn.mcc_digit1;
+      .mobile_identity.guti.mcc_digit1 = guti->guamfi.plmn.mcc_digit1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mcc_digit2 = msg->guti.guamfi.plmn.mcc_digit2;
+      .mobile_identity.guti.mcc_digit2 = guti->guamfi.plmn.mcc_digit2;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mcc_digit3 = msg->guti.guamfi.plmn.mcc_digit3;
+      .mobile_identity.guti.mcc_digit3 = guti->guamfi.plmn.mcc_digit3;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mnc_digit1 = msg->guti.guamfi.plmn.mnc_digit1;
+      .mobile_identity.guti.mnc_digit1 = guti->guamfi.plmn.mnc_digit1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mnc_digit2 = msg->guti.guamfi.plmn.mnc_digit2;
+      .mobile_identity.guti.mnc_digit2 = guti->guamfi.plmn.mnc_digit2;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
-      .mobile_identity.guti.mnc_digit3 = msg->guti.guamfi.plmn.mnc_digit3;
+      .mobile_identity.guti.mnc_digit3 = guti->guamfi.plmn.mnc_digit3;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_regionid = guti->guamfi.amf_regionid;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_setid = guti->guamfi.amf_set_id;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.amf_pointer = guti->guamfi.amf_pointer;
+
   uint8_t* offset;
-  offset = (uint8_t*) &msg->guti.m_tmsi;
+  uint32_t encoded_tmsi = ntohl(guti->m_tmsi);
+
+  offset = (uint8_t*) &encoded_tmsi;
+
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.tmsi1 = *offset;
   offset++;
@@ -422,6 +438,9 @@ static int amf_reg_acceptmsg(
   offset++;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
       .mobile_identity.guti.tmsi3 = *offset;
+  offset++;
+  nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.mobile_id
+      .mobile_identity.guti.tmsi4 = *offset;
 
   // TAI List, Allowed NSSAI and GPRS Timer 3 harcoded
   nas_msg->header.security_header_type =
@@ -436,17 +455,17 @@ static int amf_reg_acceptmsg(
       .num_elements =
       0x0;  // 0 implies 1 as per ts_124501v1506 section 9.11.3.9
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mcc_digit1 = msg->guti.guamfi.plmn.mcc_digit1;
+      .mcc_digit1 = guti->guamfi.plmn.mcc_digit1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mcc_digit2 = msg->guti.guamfi.plmn.mcc_digit2;
+      .mcc_digit2 = guti->guamfi.plmn.mcc_digit2;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mcc_digit3 = msg->guti.guamfi.plmn.mcc_digit3;
+      .mcc_digit3 = guti->guamfi.plmn.mcc_digit3;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mnc_digit1 = msg->guti.guamfi.plmn.mnc_digit1;
+      .mnc_digit1 = guti->guamfi.plmn.mnc_digit1;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mnc_digit2 = msg->guti.guamfi.plmn.mnc_digit2;
+      .mnc_digit2 = guti->guamfi.plmn.mnc_digit2;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
-      .mnc_digit3 = msg->guti.guamfi.plmn.mnc_digit3;
+      .mnc_digit3 = guti->guamfi.plmn.mnc_digit3;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
       .tac[0] = 0x00;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg.tai_list
@@ -577,19 +596,18 @@ static int amf_de_reg_acceptmsg(
 uint16_t amf_as_data_req(
     const amf_as_data_t* msg, m5g_dl_info_transfer_req_t* as_msg) {
   OAILOG_FUNC_IN(LOG_NAS_AMF);
-  int size       = 0;
-  int is_encoded = false;
-  amf_nas_message_t nas_msg;
+  int size                                    = 0;
+  int is_encoded                              = false;
+  amf_nas_message_t nas_msg                   = {0};
   nas_msg.security_protected.header           = {0};
   nas_msg.security_protected.plain.amf.header = {0};
   nas_msg.security_protected.plain.amf.header = {0};
 
   // Setup the AS message
+  as_msg->ue_id = msg->ue_id;
   if (msg->guti) {
     as_msg->s_tmsi.amf_set_id = msg->guti->guamfi.amf_set_id;
     as_msg->s_tmsi.m_tmsi     = msg->guti->m_tmsi;
-  } else {
-    as_msg->ue_id = msg->ue_id;
   }
 
   // Setup the NAS security header
@@ -599,8 +617,12 @@ uint16_t amf_as_data_req(
   if (amf_msg) {
     switch (msg->nas_info) {
       case AMF_AS_NAS_DATA_REGISTRATION_ACCEPT:
-        size = amf_send_registration_accept_dl_nas(
-            msg, &amf_msg->msg.registrationacceptmsg);
+        size = amf_reg_acceptmsg(msg->guti, &nas_msg);
+
+        if (msg->guti) {
+          delete (msg->guti);
+        }
+
         break;
       case AMF_AS_NAS_DL_NAS_TRANSPORT:
         // DL messages to NGAP on Identity/Authentication request
@@ -628,18 +650,12 @@ uint16_t amf_as_data_req(
 
     if (ue_m5gmm_context) {
       amf_ctx = &ue_m5gmm_context->amf_context;
-#if 1  // TODO-RECHECK for NW initiated derestration and security
       if (amf_ctx) {
-        // if (amf_msg->nw_deregister_request.nw_deregistertype ==
-        //    NW_DEREGISTER_TYPE_IMSI_DEREGISTER) {
-        //  amf_ctx->is_imsi_only_deregister = true;
-        //}
         if (IS_AMF_CTXT_PRESENT_SECURITY(amf_ctx)) {
-          amf_security_context = &amf_ctx->_security;
-          // is_encoded           = true;// TODO
+          amf_security_context           = &amf_ctx->_security;
+          nas_msg.header.sequence_number = amf_ctx->_security.dl_count.seq_num;
         }
       }
-#endif
     } else {
       OAILOG_ERROR(
           LOG_AMF_APP, "ue context not found for the ue_id=%u\n", msg->ue_id);
@@ -658,7 +674,7 @@ uint16_t amf_as_data_req(
       OAILOG_DEBUG(LOG_AMF_APP, "NAS encoding successful\n");
       as_msg->err_code = M5G_AS_SUCCESS;
     } else {
-      OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed\n");
+      OAILOG_ERROR(LOG_AMF_APP, "NAS encoding failed bytes=%d\n", bytes);
     }
 
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, AS_DL_INFO_TRANSFER_REQ_);
@@ -1249,7 +1265,7 @@ uint16_t amf_as_establish_cnf(
       "Send AS connection establish confirmation for (ue_id = "
       "%d)\n",
       msg->ue_id);
-  amf_nas_message_t nas_msg;
+  amf_nas_message_t nas_msg = {};
   // Setting-up the AS message
   as_msg->ue_id = msg->ue_id;
 
@@ -1284,7 +1300,7 @@ uint16_t amf_as_establish_cnf(
   amf_as_set_header(&nas_msg, &msg->sctx);
   switch (msg->nas_info) {
     case AMF_AS_NAS_INFO_REGISTERD:
-      size = amf_reg_acceptmsg(msg, &nas_msg);
+      size = amf_reg_acceptmsg(&(msg->guti), &nas_msg);
       nas_msg.header.security_header_type =
           SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;
       /* TODO amf_as_set_header() is incorrectly setting the security header
@@ -1332,17 +1348,8 @@ uint16_t amf_as_establish_cnf(
           amf_security_context->kgnb);
       OAILOG_DEBUG(LOG_AMF_APP, "prep and send initial_context_setup_request");
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
-      registration_proc->registration_accept_sent++;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
     }
-    registration_proc->registration_accept_sent++;
-
-    OAILOG_INFO(
-        LOG_AMF_APP, "registration_accept_sent: %d",
-        registration_proc->registration_accept_sent);
-
-    as_msg->err_code = M5G_AS_SUCCESS;
-    ret_val          = AS_NAS_ESTABLISH_CNF_;
   } else {
     OAILOG_INFO(LOG_AMF_APP, "NAS Encoding Failed");
     OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNerror);
