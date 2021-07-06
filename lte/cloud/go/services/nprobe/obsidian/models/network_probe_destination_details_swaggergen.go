@@ -19,6 +19,11 @@ import (
 // swagger:model network_probe_destination_details
 type NetworkProbeDestinationDetails struct {
 
+	// destination tls client certificate.
+	// Required: true
+	// Format: byte
+	Certificate *strfmt.Base64 `json:"certificate"`
+
 	// delivery address
 	// Required: true
 	DeliveryAddress string `json:"delivery_address"`
@@ -27,11 +32,24 @@ type NetworkProbeDestinationDetails struct {
 	// Required: true
 	// Enum: [all events_only]
 	DeliveryType string `json:"delivery_type"`
+
+	// destination tls client private key.
+	// Required: true
+	// Format: byte
+	PrivateKey *strfmt.Base64 `json:"private_key"`
+
+	// enables exporter to skip server certs verification.
+	// Required: true
+	SkipVerifyServer bool `json:"skip_verify_server"`
 }
 
 // Validate validates this network probe destination details
 func (m *NetworkProbeDestinationDetails) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateCertificate(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateDeliveryAddress(formats); err != nil {
 		res = append(res, err)
@@ -41,9 +59,28 @@ func (m *NetworkProbeDestinationDetails) Validate(formats strfmt.Registry) error
 		res = append(res, err)
 	}
 
+	if err := m.validatePrivateKey(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSkipVerifyServer(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *NetworkProbeDestinationDetails) validateCertificate(formats strfmt.Registry) error {
+
+	if err := validate.Required("certificate", "body", m.Certificate); err != nil {
+		return err
+	}
+
+	// Format "byte" (base64 string) is already validated when unmarshalled
+
 	return nil
 }
 
@@ -93,6 +130,26 @@ func (m *NetworkProbeDestinationDetails) validateDeliveryType(formats strfmt.Reg
 
 	// value enum
 	if err := m.validateDeliveryTypeEnum("delivery_type", "body", m.DeliveryType); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkProbeDestinationDetails) validatePrivateKey(formats strfmt.Registry) error {
+
+	if err := validate.Required("private_key", "body", m.PrivateKey); err != nil {
+		return err
+	}
+
+	// Format "byte" (base64 string) is already validated when unmarshalled
+
+	return nil
+}
+
+func (m *NetworkProbeDestinationDetails) validateSkipVerifyServer(formats strfmt.Registry) error {
+
+	if err := validate.Required("skip_verify_server", "body", bool(m.SkipVerifyServer)); err != nil {
 		return err
 	}
 

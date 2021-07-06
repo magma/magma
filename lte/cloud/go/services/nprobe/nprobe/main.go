@@ -19,7 +19,6 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/nprobe"
-	"magma/lte/cloud/go/services/nprobe/exporter"
 	manager "magma/lte/cloud/go/services/nprobe/nprobe_manager"
 	"magma/lte/cloud/go/services/nprobe/obsidian/handlers"
 	np_storage "magma/lte/cloud/go/services/nprobe/storage"
@@ -63,15 +62,6 @@ func main() {
 	protos.RegisterSwaggerSpecServer(srv.GrpcServer, swagger.NewSpecServicerFromFile(nprobe.ServiceName))
 
 	serviceConfig := nprobe.GetServiceConfig()
-	tlsConfig, err := exporter.NewTlsConfig(
-		serviceConfig.ExporterCrt,
-		serviceConfig.ExporterKey,
-		serviceConfig.SkipVerifyServer,
-	)
-	if err != nil {
-		glog.Fatalf("Failed to create new TlsConfig: %v", err)
-	}
-
 	nProbeManager, err := manager.NewNProbeManager(serviceConfig, nprobeBlobstore)
 	if err != nil {
 		glog.Fatalf("Failed to create new NProbeManager: %v", err)
@@ -80,7 +70,7 @@ func main() {
 	// Run LI service in Loop
 	go func() {
 		for {
-			err := nProbeManager.ProcessNProbeTasks(tlsConfig)
+			err := nProbeManager.ProcessNProbeTasks()
 			if err != nil {
 				glog.Errorf("Failed to process tasks: %v", err)
 				<-time.After(time.Duration(serviceConfig.BackOffIntervalSecs) * time.Second)

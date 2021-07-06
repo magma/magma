@@ -37,13 +37,6 @@ type Config struct {
 	BackOffIntervalSecs uint32 `yaml:"backoffIntervalSecs"`
 	// MaxExportRetries sets the number of retries when exporting a record
 	MaxExportRetries uint32 `yaml:"maxExportRetries"`
-
-	// ExporterKey provides the absolute path to exporter tls client private key
-	ExporterKey string `yaml:"exporterKey"`
-	// ExporterCrt provides the absolute path to exporter tls client certificate
-	ExporterCrt string `yaml:"exporterCrt"`
-	// SkipVerifyServer enables exporter to skip server tls certificate verifications
-	SkipVerifyServer bool `yaml:"skipVerifyServer"`
 }
 
 // GetServiceConfig parses nprobe service config and returns Config

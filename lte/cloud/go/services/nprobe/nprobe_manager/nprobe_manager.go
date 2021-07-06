@@ -15,7 +15,6 @@ package npmanager
 
 import (
 	"context"
-	"crypto/tls"
 	"fmt"
 	"time"
 
@@ -89,7 +88,7 @@ func getNetworkProbeTasks(networkID string) (map[string]*models.NetworkProbeTask
 
 // createNewRecordExporter retrieves the first destination provisioned
 // for a specific network and creates a record exporter
-func createNewRecordExporter(networkID string, tlsConfig *tls.Config) (*exporter.RecordExporter, error) {
+func createNewRecordExporter(networkID string) (*exporter.RecordExporter, error) {
 	ents, _, err := configurator.LoadAllEntitiesOfType(
 		networkID,
 		lte.NetworkProbeDestinationEntityType,
@@ -104,11 +103,8 @@ func createNewRecordExporter(networkID string, tlsConfig *tls.Config) (*exporter
 		return nil, fmt.Errorf("Could not find a destination for network  %v", networkID)
 	}
 
-	dst := (&models.NetworkProbeDestination{}).FromBackendModels(ents[0])
-	return exporter.NewRecordExporter(
-		dst.DestinationDetails.DeliveryAddress,
-		tlsConfig,
-	), nil
+	destination := (&models.NetworkProbeDestination{}).FromBackendModels(ents[0])
+	return exporter.NewRecordExporter(destination)
 }
 
 // getEvents retrieves all events since start_time from fluentd
@@ -198,7 +194,7 @@ func (np *NProbeManager) processNProbeTask(networkID string, task *models.Networ
 // ProcessNProbeTasks runs in loop, retrieves all nprobe tasks and process them.
 // For each task, it collects latest events, creates the corresponding IRI record then
 // export them to a remote destination.
-func (np *NProbeManager) ProcessNProbeTasks(tlsConfig *tls.Config) error {
+func (np *NProbeManager) ProcessNProbeTasks() error {
 	networks, err := configurator.ListNetworksOfType(LteNetwork)
 	if err != nil {
 		glog.Errorf("Failed to retrieve lte network list: %s", err)
@@ -207,7 +203,7 @@ func (np *NProbeManager) ProcessNProbeTasks(tlsConfig *tls.Config) error {
 
 	for _, networkID := range networks {
 		if np.Exporters[networkID] == nil {
-			exporter, err := createNewRecordExporter(networkID, tlsConfig)
+			exporter, err := createNewRecordExporter(networkID)
 			if err != nil || exporter == nil {
 				glog.Infof("Could not create an exporter for network %s: %s", networkID, err)
 				continue

@@ -10211,6 +10211,10 @@ definitions:
     type: object
   network_probe_destination_details:
     properties:
+      certificate:
+        description: destination tls client certificate.
+        format: byte
+        type: string
       delivery_address:
         example: 127.0.0.1:4040
         type: string
@@ -10222,9 +10226,20 @@ definitions:
         example: events_only
         type: string
         x-nullable: false
+      private_key:
+        description: destination tls client private key.
+        format: byte
+        type: string
+      skip_verify_server:
+        default: false
+        description: enables exporter to skip server certs verification.
+        type: boolean
     required:
     - delivery_type
     - delivery_address
+    - certificate
+    - private_key
+    - skip_verify_server
     type: object
   network_probe_destination_id:
     example: xxxx-yyyy-zzzz

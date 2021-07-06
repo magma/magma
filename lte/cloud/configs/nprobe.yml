@@ -21,15 +21,3 @@ backoffIntervalSecs: 360
 # maxExportRetries sets the number of retries when
 # exporting a record
 maxExportRetries: 10
-
-# exporterKey provides the absolute path to exporter
-# tls client private key
-exporterKey: /var/opt/magma/certs/nprobe.key
-
-# exporterCrt provides the absolute path to exporter
-# tls client certificate
-exporterCrt: /var/opt/magma/certs/nprobe.pem
-
-# skipVerifyServer enables exporter to skip server
-# tls certificate verifications
-skipVerifyServer: true
