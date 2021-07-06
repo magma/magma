@@ -338,13 +338,12 @@ int main(int argc, char* argv[]) {
   std::thread periodic_stats_requester_thread([&]() {
     // random value assigned for interval period, the value will be loaded
     // from a config field later
+    uint32_t interval = DEFAULT_POLL_INTERVAL_TIME;
     if (config["poll_stats_interval"].IsDefined()) {
-      periodic_stats_requester->start_loop(
-          local_enforcer, config["poll_stats_interval"].as<uint32_t>());
-    } else {
-      periodic_stats_requester->start_loop(
-          local_enforcer, DEFAULT_POLL_INTERVAL_TIME);
+      interval = config["poll_stats_interval"].as<uint32_t>();
     }
+    periodic_stats_requester->start_loop(
+          local_enforcer, config["poll_stats_interval"].as<uint32_t>());
     periodic_stats_requester->stop();
   });
 
