@@ -241,8 +241,9 @@ status_code_e qos_params_to_eps_qos(
               ((mbr_ul_kbps - 128000) / 2000) + 186;
         }
       } else if (mbr_ul_kbps > 256000) {
-        eps_qos->bitRates.maxBitRateForUL = 0xfa;
-        eps_qos->bitRatesExt2Present      = 1;
+        eps_qos->bitRates.maxBitRateForUL    = 0xfe;
+        eps_qos->bitRatesExt.maxBitRateForUL = 0xfa;
+        eps_qos->bitRatesExt2Present         = 1;
         if ((mbr_ul_kbps >= 260000) && (mbr_ul_kbps <= 500000)) {
           eps_qos->bitRatesExt2.maxBitRateForUL = (mbr_ul_kbps - 256000) / 4000;
         } else if ((mbr_ul_kbps > 510000) && (mbr_ul_kbps <= 1500000)) {
@@ -275,10 +276,17 @@ status_code_e qos_params_to_eps_qos(
               ((mbr_dl_kbps - 128000) / 2000) + 186;
         }
       } else if (mbr_dl_kbps > 256000) {
-        eps_qos->bitRates.maxBitRateForDL = 0xfa;
-        eps_qos->bitRatesExt2Present      = 1;
+        eps_qos->bitRates.maxBitRateForDL    = 0xfe;
+        eps_qos->bitRatesExt.maxBitRateForDL = 0xfa;
+        eps_qos->bitRatesExt2Present         = 1;
         if ((mbr_dl_kbps >= 260000) && (mbr_dl_kbps <= 500000)) {
           eps_qos->bitRatesExt2.maxBitRateForDL = (mbr_dl_kbps - 256000) / 4000;
+          OAILOG_DEBUG(
+              LOG_NAS_EMM, "EPS QoS AMBR extended2 value for %d\n",
+              mbr_dl_kbps);
+          OAILOG_DEBUG(
+              LOG_NAS_EMM, "EPS QoS AMBR extended2 value9 for %d\n",
+              eps_qos->bitRatesExt2.maxBitRateForDL);
         } else if ((mbr_dl_kbps > 510000) && (mbr_dl_kbps <= 1500000)) {
           eps_qos->bitRatesExt2.maxBitRateForDL =
               ((mbr_dl_kbps - 150000) / 10000) + 61;

@@ -324,7 +324,6 @@ status_code_e esm_send_activate_default_eps_bearer_context_request(
   bit_rate_value_to_eps_qos(
       &msg->apnambr, pdn_context_p->subscribed_apn_ambr.br_dl,
       pdn_context_p->subscribed_apn_ambr.br_ul);
-
   /*
    * Optional - Extended APN-AMBR
    */
