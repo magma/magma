@@ -318,10 +318,9 @@ void LocalSessionManagerHandlerImpl::CreateSession(
 bool LocalSessionManagerHandlerImpl::initialize_session(
     SessionMap& session_map, const std::string& session_id,
     const SessionConfig& cfg) {
-  MLOG(MINFO)
-      << "Initializing the new session in SessionStore before sending a "
-         "CreateSessionRequest for "
-      << session_id;
+  MLOG(MINFO) << "Initializing " << session_id
+              << " in SessionStore before sending a "
+                 "CreateSessionRequest";
   const std::string& imsi = cfg.get_imsi();
 
   session_map[imsi].push_back(
@@ -380,8 +379,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
 
         bool write_success = session_store_.update_sessions(update);
         if (write_success) {
-          MLOG(MINFO) << "Successfully initialized new session " << session_id
-                      << " in SessionD for subscriber " << imsi;
+          MLOG(MINFO) << "Successfully initialized " << session_id
+                      << " in SessionD after talking to PolicyDB/SessionProxy";
           add_session_to_directory_record(
               imsi, session_id, cfg.common_context.msisdn());
         } else {

@@ -66,7 +66,7 @@ struct SessionActionOrStatus {
   }
   void set_end_existing_session() { create_new_session = true; }
   void set_status(grpc::Status status) { status_back_to_access = status; }
-};  // namespace magma
+};
 
 class LocalSessionManagerHandler {
  public:

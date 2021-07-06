@@ -191,16 +191,6 @@ class LocalEnforcer {
       std::unordered_set<uint32_t>& charging_credits_received);
 
   /**
-   * Initialize session on session map. Adds some information comming from
-   * the core (cloud). Rules will be installed by init_session_credit
-   * @param credit_response - message from cloud containing initial credits
-   */
-  void init_session(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& session_id, const SessionConfig& cfg,
-      const CreateSessionResponse& response);
-
-  /**
    * @brief
    *
    * @param session
