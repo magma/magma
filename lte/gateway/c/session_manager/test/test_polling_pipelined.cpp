@@ -46,6 +46,7 @@ class LocalEnforcerTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     reporter      = std::make_shared<MockSessionReporter>();
+    pipelined_mock  = std::make_shared<MockPipelined>();
     rule_store    = std::make_shared<StaticRuleStore>();
     session_store = std::make_shared<SessionStore>(
         rule_store, std::make_shared<MeteringReporter>());
@@ -108,6 +109,7 @@ class LocalEnforcerTest : public ::testing::Test {
   std::shared_ptr<MockSpgwServiceClient> spgw_client;
   std::shared_ptr<MockAAAClient> aaa_client;
   std::shared_ptr<MockEventsReporter> events_reporter;
+  std::shared_ptr<MockPipelined> pipelined_mock;
   SessionMap session_map;
   SessionConfig test_cfg_;
   SessionConfig default_cfg_1;
@@ -146,30 +148,25 @@ TEST_F(LocalEnforcerTest, test_polling_pipelined) {
 
   auto update = SessionStore::get_default_session_update(session_map);
 
-  //auto uc = get_default_update_criteria();
-  /*session_map[IMSI1][0]->increment_rule_stats("rule1", &uc);
-  session_map[IMSI1][0]->increment_rule_stats("rule2", &uc);
-  session_map[IMSI1][0]->increment_rule_stats("rule3", &uc);
-  session_map[IMSI1][0]->increment_rule_stats("rule4", &uc);*/
   local_enforcer->aggregate_records(session_map, table, update);
 
   int cookie = 0;
   int cookie_mask = 0;
-  local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
   EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, 
       testing::_)).Times(1);
-  /*EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, 
-            std::bind(&LocalEnforcer::handle_pipelined_response, local_enforcer, cookie, cookie_mask)));*/
-
-  /*cookie = 1;
-  cookie_mask = 0;
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
-  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_));
+
+  cookie = 1;
+  cookie_mask = 0;
+  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, 
+      testing::_)).Times(1);
+  local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
 
   cookie = 0;
   cookie_mask = 1;
+  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, 
+      testing::_)).Times(1);
   local_enforcer->poll_stats_enforcer(cookie, cookie_mask);
-  EXPECT_CALL(*pipelined_client, poll_stats(cookie, cookie_mask, testing::_));*/
 }
 
 int main(int argc, char** argv) {
