@@ -72,3 +72,7 @@ enable_ipfix: false
 # Session manager max resending throttle count when the UPF session info version is
 # not matching with UPF received version no.
 session_rtx_count: 3
+
+# set to a certain interval measured in seconds for which sessiond should poll pipelined
+# for relevant stats
+poll_stats_interval: 5
