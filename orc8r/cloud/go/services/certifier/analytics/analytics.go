@@ -16,17 +16,28 @@ package analytics
 import (
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/certifier"
+	"magma/orc8r/lib/go/metrics"
+
+	"github.com/prometheus/client_golang/prometheus"
+
 	certifier_calcs "magma/orc8r/cloud/go/services/certifier/analytics/calculations"
 )
 
 // GetAnalyticsCalculations returns all calculations computed by the component
 func GetAnalyticsCalculations(serviceConfig *certifier.Config) []calculations.Calculation {
+	certLabels := []string{metrics.CertNameLabel, metrics.NetworkLabelName}
+	gauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: metrics.CertExpiresInHoursMetric}, certLabels)
+	prometheus.MustRegister(gauge)
 	calcs := make([]calculations.Calculation, 0)
 	calcs = append(calcs, &certifier_calcs.CertLifespanCalculation{
 		CertsDirectory: serviceConfig.CertsDirectory,
 		Certs:          serviceConfig.Certs,
 		BaseCalculation: calculations.BaseCalculation{
-			CalculationParams: calculations.CalculationParams{AnalyticsConfig: &serviceConfig.Analytics},
+			CalculationParams: calculations.CalculationParams{
+				AnalyticsConfig:     &serviceConfig.Analytics,
+				RegisteredGauge:     gauge,
+				ExpectedGaugeLabels: certLabels,
+			},
 		},
 	})
 	return calcs

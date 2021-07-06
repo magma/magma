@@ -26,7 +26,6 @@
 #include <stdbool.h>
 #include <stdint.h>
 #include <mme_app_ue_context.h>
-#include <mme_app_state.h>
 
 #include "bstrlib.h"
 #include "log.h"

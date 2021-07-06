@@ -20,8 +20,14 @@
       "contributing/contribute_codeowners": {
         "title": "Codeowners Workflow"
       },
+      "contributing/contribute_commit_msg": {
+        "title": "Commit message style"
+      },
       "contributing/contribute_conventions": {
         "title": "Contributing Conventions"
+      },
+      "contributing/contribute_id_mappings": {
+        "title": "Codeowners GitHub to Slack IDs"
       },
       "contributing/contribute_onboarding": {
         "title": "Developer Onboarding"
@@ -106,6 +112,9 @@
       "howtos/troubleshooting/analyze_service_crashes_in_agw": {
         "title": "Analyze Service crashes in AGW"
       },
+      "howtos/troubleshooting/datapath_connectivity": {
+        "title": "Debugging AGW datapath issues"
+      },
       "howtos/troubleshooting/generate_admin_operator_certificates": {
         "title": "Generate and update admin_operator certificates"
       },
@@ -116,7 +125,7 @@
         "title": "User is unable to attach to Magma"
       },
       "howtos/config_agw_bridged": {
-        "title": "AGW Bridged Mode"
+        "title": "AGW Non-NAT Mode"
       },
       "howtos/ue_metering": {
         "title": "UE Usage Metering"
@@ -149,10 +158,10 @@
         "title": "Configure eNodeB"
       },
       "lte/deploy_install_ubuntu": {
-        "title": "Install AGW on Ubuntu 20.04"
+        "title": "Install AGW"
       },
       "lte/deploy_install": {
-        "title": "Install AGW"
+        "title": "Install AGW on Debian Stretch."
       },
       "lte/dev_notes": {
         "title": "Developer Notes"
@@ -221,6 +230,9 @@
         "title": "Admin"
       },
       "nms/alerts": {
+        "title": "Alerts"
+      },
+      "nms/alerts_troubleshooting": {
         "title": "Alerts"
       },
       "nms/nms_arch_overview": {
@@ -357,6 +369,9 @@
       },
       "orc8r/upgrade_1_5": {
         "title": "Upgrade to v1.5"
+      },
+      "orc8r/upgrade_1_6": {
+        "title": "Upgrade to v1.6"
       },
       "orc8r/upgrade_intro": {
         "title": "Introduction"

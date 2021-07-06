@@ -90,10 +90,10 @@ status_code_e mme_app_handle_sgsap_reset_indication(
  **          unused_param_pP: Unused param list                            **
  **          unused_result_pP: Unused result                               **
  ** Outputs:                                                               **
- **          Return:    RETURNok, RETURNerror                              **
+ **          Return:    true, false                                        **
  **                                                                        **
  ***************************************************************************/
-status_code_e mme_app_handle_reset_indication(
+bool mme_app_handle_reset_indication(
     const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
     void** unused_result_pP) {
   int rc = RETURNerror;
@@ -104,20 +104,20 @@ status_code_e mme_app_handle_reset_indication(
       (struct ue_mm_context_s*) ue_context_pP;
   if (ue_context_p == NULL) {
     OAILOG_WARNING(LOG_MME_APP, "UE context not found \n");
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     OAILOG_ERROR(
         LOG_MME_APP, "UE is not registered for ue_id:" MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
   if (ue_context_p->sgs_context == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
         "SGS context not created for ue_id:" MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, false);
   }
 
   ue_context_p->sgs_context->sgsap_msg = NULL; /* sgs message */
@@ -131,7 +131,7 @@ status_code_e mme_app_handle_reset_indication(
         LOG_MME_APP, "Failed  to execute SGS State machine for ue_id :%u \n",
         ue_context_p->mme_ue_s1ap_id);
   }
-  OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
+  OAILOG_FUNC_RETURN(LOG_MME_APP, true);
 }
 
 /****************************************************************************

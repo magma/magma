@@ -303,6 +303,7 @@ platform:
     ConfigApps:
       - tf
   orc8r_db_instance_class:
+    Default: "db.m4.large"
     Description: RDS instance Type for Orchestrator DB.
     Type: string
     Required: false
@@ -405,6 +406,12 @@ service:
     Required: false
     ConfigApps:
       - tf
+  elasticsearch_disk_threshold:
+    Description: Size threshold in GB.
+    Type: number
+    Required: false
+    ConfigApps:
+      - tf
   existing_tiller_service_account_name:
     Description: Name of existing Tiller service account to use for Helm.
     Type: string
@@ -470,7 +477,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 0.2.4
+    Default: 0.2.5
   monitoring_kubernetes_namespace:
     Description: K8s namespace to install Orchestrator monitoring components into.
     Type: string
@@ -483,7 +490,7 @@ service:
     Required: false
     ConfigApps:
       - tf
-    Default: 1.5.22
+    Default: 1.5.23
   orc8r_controller_replicas:
     Description: Replica count for Orchestrator controller pods.
     Type: number

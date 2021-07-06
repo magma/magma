@@ -74,7 +74,7 @@ def test():
 def package(vcs='git', all_deps="False",
             cert_file=DEFAULT_CERT, proxy_config=DEFAULT_PROXY,
             destroy_vm='False',
-            vm='magma', os="debian"):
+            vm='magma', os="ubuntu"):
     """ Builds the magma package """
     all_deps = False if all_deps == "False" else True
     destroy_vm = bool(strtobool(destroy_vm))
@@ -300,10 +300,10 @@ def get_test_summaries(
         dst_path="/tmp"):
     local('mkdir -p ' + dst_path)
 
-    # Currently broken on master: GH7688
-    # _switch_to_vm_no_provision(gateway_host, "magma", "magma_dev.yml")
-    # with settings(warn_only=True):
-    #     get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
+    # TODO we may want to zip up all these files
+    _switch_to_vm_no_provision(gateway_host, "magma", "magma_dev.yml")
+    with settings(warn_only=True):
+        get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)
     _switch_to_vm_no_provision(test_host, "magma_test", "magma_test.yml")
     with settings(warn_only=True):
         get(remote_path=TEST_SUMMARY_GLOB, local_path=dst_path)

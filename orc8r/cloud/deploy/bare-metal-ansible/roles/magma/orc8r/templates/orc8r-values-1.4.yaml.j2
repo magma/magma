@@ -7,12 +7,14 @@ controller:
   replicas: 2
   spec:
     database:
-      driver: mysql
-      sql_dialect: maria
-      db: {{ orc8r_db_user }}
+      driver: {{ orc8r_db_driver }}
+{% if orc8r_db_sql_dialect != "postgres" %}
+      sql_dialect: {{ orc8r_db_sql_dialect }}
+{% endif %}
+      db: {{ orc8r_db_name }}
       host: {{ orc8r_db_host }}
       pass: {{ orc8r_db_pass }}
-      port: 3306
+      port: {{ orc8r_db_port }}
       user: {{ orc8r_db_user }}
 imagePullSecrets:
 - name: artifactory
@@ -98,7 +100,7 @@ nginx:
     type: LoadBalancer
   spec:
     hostname: controller.{{ orc8r_domain }}
-    resolver: coredns.kube-system.svc.{{ dns_domain }} valid=10s
+    resolver: {{ kube_dns_resolver }} valid=10s
 nms:
   enabled: true
   imagePullSecrets:
@@ -110,9 +112,9 @@ nms:
       mysql_db: {{ orc8r_nms_db_name }}
       mysql_host: {{ orc8r_nms_db_host }}
       mysql_pass: {{ orc8r_nms_db_pass }}
-      mysql_port: 3306
+      mysql_port: {{ orc8r_nms_db_port }}
       mysql_user: {{ orc8r_nms_db_user }}
-      mysql_dialect: mariadb
+      mysql_dialect: {{ orc8r_nms_db_sql_dialect }}
     image:
       pullPolicy: IfNotPresent
       repository: {{ orc8r_image_repo | mandatory }}/magmalte

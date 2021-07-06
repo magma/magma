@@ -133,6 +133,35 @@ func Test_GetNetworkHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// add Sentry config
+	sentryConfig := models.NewDefaultSentryConfig()
+	update1 = configurator.NetworkUpdateCriteria{
+		ID:                   "n1",
+		ConfigsToAddOrUpdate: map[string]interface{}{orc8r.NetworkSentryConfig: sentryConfig},
+	}
+	err = configurator.UpdateNetworks([]configurator.NetworkUpdateCriteria{update1}, serdes.Network)
+	assert.NoError(t, err)
+
+	expectedNetwork1 = models.Network{
+		ID:           models1.NetworkID("n1"),
+		Name:         models1.NetworkName(networkName1),
+		Features:     networkFeatures1,
+		SentryConfig: sentryConfig,
+	}
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/%s/", testURLRoot, "n1"),
+		Payload:        nil,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        getNetwork,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expectedNetwork1),
+		ExpectedError:  "",
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// add dnsd configs and a description
 	dnsdConfig := models.NewDefaultDNSConfig()
 	description1 := "A Network"
@@ -145,11 +174,12 @@ func Test_GetNetworkHandlers(t *testing.T) {
 	assert.NoError(t, err)
 
 	expectedNetwork1 = models.Network{
-		ID:          models1.NetworkID("n1"),
-		Name:        models1.NetworkName(networkName1),
-		Description: models1.NetworkDescription("A Network"),
-		Features:    networkFeatures1,
-		DNS:         dnsdConfig,
+		ID:           models1.NetworkID("n1"),
+		Name:         models1.NetworkName(networkName1),
+		Description:  models1.NetworkDescription("A Network"),
+		Features:     networkFeatures1,
+		SentryConfig: sentryConfig,
+		DNS:          dnsdConfig,
 	}
 
 	tc = tests.Test{
@@ -307,6 +337,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Configs: map[string]interface{}{
 			orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 			orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+			orc8r.NetworkSentryConfig:   models.NewDefaultSentryConfig(),
 		},
 	}
 	assert.Equal(t, expectedNetwork1, actualNetwork1)
@@ -478,6 +509,8 @@ func Test_PutNetworkHandlers(t *testing.T) {
 	// change configs
 	network1.DNS.EnableCaching = swag.Bool(false)
 	network1.Features.Features["new-feature"] = "foobar"
+	network1.SentryConfig.SampleRate = swag.Float32(0.75)
+	network1.SentryConfig.UploadMmeLog = true
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot,
@@ -1035,6 +1068,7 @@ func seedNetworks(t *testing.T) {
 				Description: "network 1",
 				Configs: map[string]interface{}{
 					orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
+					orc8r.NetworkSentryConfig:   models.NewDefaultSentryConfig(),
 					orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
 				},
 			},

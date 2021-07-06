@@ -17,22 +17,3 @@
     path: /usr/include/json.hpp
     state: link
     src: /usr/include/nlohmann/json.hpp
-
-- name: Check if sftp is enabled
-  shell: grep -c "Subsystem    sftp    /usr/lib/openssh/sftp-server" /etc/ssh/sshd_config || true
-  register: sftp_enabled
-  become: yes
-
-- name: Add sftp config to sshd_config
-  lineinfile:
-    dest: /etc/ssh/sshd_config
-    line: Subsystem    sftp    /usr/lib/openssh/sftp-server
-  when: sftp_enabled.stdout == "0"
-  become: yes
-
-- name: Reload service ssh, in all cases
-  ansible.builtin.service:
-    name: ssh
-    state: reloaded
-  when: sftp_enabled.stdout == "0"
-  become: yes

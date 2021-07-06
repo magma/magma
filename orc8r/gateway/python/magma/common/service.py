@@ -19,7 +19,7 @@ import os
 import signal
 import time
 from concurrent import futures
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 
 import grpc
 import pkg_resources
@@ -175,7 +175,7 @@ class MagmaService(Service303Servicer):
         return self._state
 
     @property
-    def config(self):
+    def config(self) -> Dict[str, Any]:
         """Return the service config"""
         return self._config
 

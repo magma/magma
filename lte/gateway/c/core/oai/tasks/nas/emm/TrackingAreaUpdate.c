@@ -342,11 +342,6 @@ status_code_e emm_proc_tracking_area_update_request(
      * EPS and non-EPS services, subject to operator policies the MME should
      * allocate a TAI list that does not span more than one location area.
      */
-    OAILOG_DEBUG(
-        LOG_NAS_EMM,
-        "EMM-PROC- Sending Tracking Area Update Accept. "
-        "ue_id=" MME_UE_S1AP_ID_FMT ", active flag=%d)\n",
-        ue_id, ies->eps_update_type.active_flag);
     // Handle periodic TAU
     if (ue_mm_context->num_reg_sub > 0) {
       if (verify_service_area_restriction(
@@ -372,6 +367,11 @@ status_code_e emm_proc_tracking_area_update_request(
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
       }
     }
+    OAILOG_DEBUG(
+        LOG_NAS_EMM,
+        "EMM-PROC- Sending Tracking Area Update Accept. "
+        "ue_id=" MME_UE_S1AP_ID_FMT ", active flag=%d)\n",
+        ue_id, ies->eps_update_type.active_flag);
     nas_emm_tau_proc_t* tau_proc = get_nas_specific_procedure_tau(emm_context);
     if (!tau_proc) {
       tau_proc = emm_proc_create_procedure_tau(ue_mm_context, ies);
@@ -581,13 +581,6 @@ static int emm_tracking_area_update_reject(
   }
   rc = emm_sap_send(&emm_sap);
   increment_counter("tracking_area_update", 1, 1, "action", "tau_reject_sent");
-
-  // Release EMM context
-  if (emm_context) {
-    if (emm_context->is_dynamic) {
-      _clear_emm_ctxt(emm_context);
-    }
-  }
 
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
 }
@@ -992,8 +985,7 @@ status_code_e emm_proc_tau_complete(mme_ue_s1ap_id_t ue_id) {
     if (tau_proc) {
       OAILOG_INFO(
           LOG_NAS_EMM,
-          "EMM-PROC  - Stop timer T3450 (%ld) for ue id " MME_UE_S1AP_ID_FMT
-          "\n",
+          "EMM-PROC  - Stop timer T3450 for ue id " MME_UE_S1AP_ID_FMT "\n",
           ue_id);
       if (emm_ctx->csfbparams.newTmsiAllocated) {
         nas_delete_tau_procedure(emm_ctx);

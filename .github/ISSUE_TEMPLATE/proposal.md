@@ -1,7 +1,7 @@
 ---
-name: "\U+1F56E Bug report"
+name: Proposal
 about: A magma change proposal
-title: ''
+title: "[Proposal] <your short title here>"
 labels: 'type: proposal'
 assignees: ''
 
@@ -46,4 +46,3 @@ considerable outcomes.]
 [A description of the security and/or privacy impact of the change (if any).]
 
 ## Open issues (if applicable)
-

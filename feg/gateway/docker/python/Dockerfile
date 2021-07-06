@@ -64,6 +64,10 @@ RUN make -C $MAGMA_ROOT/orc8r/gateway/python swagger
 # Production image
 # -----------------------------------------------------------------------------
 FROM ubuntu:focal AS gateway_python
+ARG MAGMA_BUILD_BRANCH=unknown
+ARG MAGMA_BUILD_TAG=unknown
+ARG MAGMA_BUILD_COMMIT_HASH=unknonw
+ARG MAGMA_BUILD_COMMIT_DATE=unknown
 
 # Add the magma apt repo
 RUN apt-get update && \
@@ -129,3 +133,9 @@ COPY orc8r/gateway/configs/templates /etc/magma/templates
 
 RUN mkdir -p /var/opt/magma/configs
 RUN mkdir -p /var/opt/magma/fluent-bit
+
+# Add commit information
+ENV MAGMA_BUILD_BRANCH $MAGMA_BUILD_BRANCH
+ENV MAGMA_BUILD_TAG $MAGMA_BUILD_TAG
+ENV MAGMA_BUILD_COMMIT_HASH $MAGMA_BUILD_COMMIT_HASH
+ENV MAGMA_BUILD_COMMIT_DATE $MAGMA_BUILD_COMMIT_DATE

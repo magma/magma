@@ -37,6 +37,7 @@ func NewDefaultTDDNetworkConfig() *NetworkCellularConfigs {
 			HssRelayEnabled:          swag.Bool(false),
 			GxGyRelayEnabled:         swag.Bool(false),
 			CloudSubscriberdbEnabled: false,
+			CongestionControlEnabled: swag.Bool(true),
 			DefaultRuleID:            "",
 		},
 	}

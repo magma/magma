@@ -15,6 +15,7 @@
 #include <memory>
 #include <string>
 #include "magma_logging.h"
+#include "SessionStateEnforcer.h"
 #include "GrpcMagmaUtils.h"
 #include "lte/protos/session_manager.pb.h"
 
@@ -67,6 +68,58 @@ void UpfMsgManageHandler::SetUPFNodeState(
     }
   });
   response_callback(status, SmContextVoid());
+  return;
+}
+
+/**
+ * Periodic messages about UPF session config
+ *
+ */
+void UpfMsgManageHandler::SetUPFSessionsConfig(
+    ServerContext* context, const UPFSessionConfigState* sess_config,
+    std::function<void(Status, SmContextVoid)> response_callback) {
+  auto& ses_config = *sess_config;
+  int32_t count    = 0;
+  conv_enforcer_->get_event_base().runInEventBaseThread([this, &count,
+                                                         ses_config]() {
+    for (auto& upf_session : ses_config.upf_session_state()) {
+      // Deleting the IMSI prefix from imsi
+      std::string imsi_upf = upf_session.subscriber_id();
+      std::string imsi     = imsi_upf.substr(4, imsi_upf.length() - 4);
+      uint32_t version     = upf_session.session_version();
+      uint32_t teid        = upf_session.local_f_teid();
+      auto session_map     = session_store_.read_sessions({imsi});
+      /* Search with session search criteria of IMSI and session_id and
+       * find  respective sesion to operate
+       */
+      SessionSearchCriteria criteria(imsi, IMSI_AND_TEID, teid);
+      auto session_it = session_store_.find_session(session_map, criteria);
+      if (!session_it) {
+        MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
+                     << " with teid " << teid;
+        continue;
+      }
+      auto& session    = **session_it;
+      auto cur_version = session->get_current_version();
+      if (version < cur_version) {
+        MLOG(MINFO) << "UPF verions of session imsi " << imsi << " of  teid "
+                    << teid << " recevied version " << version
+                    << " SMF latest version: " << cur_version << " Resending";
+        if (conv_enforcer_->is_incremented_rtx_counter_within_max(session)) {
+          conv_enforcer_->m5g_send_session_request_to_upf(session);
+        }
+      } else {
+        count++;
+      }
+    }
+#if 0
+    if (ses_config.upf_session_state_size() != count) {
+      MLOG(MINFO) << "UPF periodic report config missmatch session:"
+                  << (ses_config.upf_session_state_size() - count);
+    }
+#endif
+  });
+  response_callback(Status::OK, SmContextVoid());
   return;
 }
 
