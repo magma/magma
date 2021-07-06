@@ -58,7 +58,7 @@ func (rtr *Router) GetFegServiceConnection(
 
 	// There is a Router with connections cache, use & update it
 	var addr string
-	addr, err = gateway_registry.GetServiceAddressForGateway(fegHwId)
+	addr, err = gateway_registry.GetServiceAddressForGateway(inCtx, fegHwId)
 	if err != nil {
 		return
 	}

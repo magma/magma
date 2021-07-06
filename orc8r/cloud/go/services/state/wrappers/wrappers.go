@@ -16,6 +16,8 @@
 package wrappers
 
 import (
+	"context"
+
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -25,8 +27,8 @@ import (
 )
 
 // GetGatewayStatus returns the status for an indicated gateway.
-func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus, error) {
-	st, err := state.GetState(networkID, orc8r.GatewayStateType, deviceID, serdes.State)
+func GetGatewayStatus(ctx context.Context, networkID string, deviceID string) (*models.GatewayStatus, error) {
+	st, err := state.GetState(ctx, networkID, orc8r.GatewayStateType, deviceID, serdes.State)
 	if err != nil {
 		return nil, err
 	}
@@ -38,9 +40,9 @@ func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus,
 
 // GetGatewayStatuses returns the status for indicated gateways, keyed by
 // device ID.
-func GetGatewayStatuses(networkID string, deviceIDs []string) (map[string]*models.GatewayStatus, error) {
+func GetGatewayStatuses(ctx context.Context, networkID string, deviceIDs []string) (map[string]*models.GatewayStatus, error) {
 	stateIDs := types.MakeIDs(orc8r.GatewayStateType, deviceIDs...)
-	res, err := state.GetStates(networkID, stateIDs, serdes.State)
+	res, err := state.GetStates(ctx, networkID, stateIDs, serdes.State)
 	if err != nil {
 		return map[string]*models.GatewayStatus{}, err
 	}

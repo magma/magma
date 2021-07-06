@@ -145,7 +145,7 @@ func getGateway(c echo.Context) error {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
+	magmadModel, nerr := handlers.LoadMagmadGateway(c.Request().Context(), nid, gid)
 	if nerr != nil {
 		return nerr
 	}
@@ -196,6 +196,7 @@ func deleteGateway(c echo.Context) error {
 		return obsidian.HttpError(err)
 	}
 
+	reqCtx := c.Request().Context()
 	err = configurator.DeleteEntities(
 		nid,
 		[]storage.TypeAndKey{
@@ -208,7 +209,7 @@ func deleteGateway(c echo.Context) error {
 	}
 
 	if gwEnt.PhysicalID != "" {
-		err = device.DeleteDevice(nid, orc8r.AccessGatewayRecordType, gwEnt.PhysicalID)
+		err = device.DeleteDevice(reqCtx, nid, orc8r.AccessGatewayRecordType, gwEnt.PhysicalID)
 		if err != nil {
 			return obsidian.HttpError(errors.Wrap(err, "failed to delete device for gateway"))
 		}

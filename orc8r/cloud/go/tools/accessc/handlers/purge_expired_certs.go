@@ -16,6 +16,7 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -37,7 +38,7 @@ func init() {
 }
 
 func collectGarbage(cmd *commands.Command, args []string) int {
-	err := certifier.CollectGarbage()
+	err := certifier.CollectGarbage(context.Background())
 	if err != nil {
 		log.Fatalf("Garbage Collection Error: %s", err)
 	}

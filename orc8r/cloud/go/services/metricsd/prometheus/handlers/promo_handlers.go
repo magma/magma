@@ -75,8 +75,8 @@ func networkQueryRestrictorProvider(networkID string) restrictor.QueryRestrictor
 	return *restrictor.NewQueryRestrictor(restrictor.DefaultOpts).AddMatcher(metrics.NetworkLabelName, networkID)
 }
 
-func tenantQueryRestrictorProvider(tenantID int64) (restrictor.QueryRestrictor, error) {
-	tenant, err := tenants.GetTenant(tenantID)
+func tenantQueryRestrictorProvider(ctx context.Context, tenantID int64) (restrictor.QueryRestrictor, error) {
+	tenant, err := tenants.GetTenant(ctx, tenantID)
 	if err != nil {
 		return restrictor.QueryRestrictor{}, err
 	}
@@ -85,10 +85,12 @@ func tenantQueryRestrictorProvider(tenantID int64) (restrictor.QueryRestrictor, 
 
 func GetPrometheusTargetsMetadata(api PrometheusAPI) func(c echo.Context) error {
 	return func(c echo.Context) error {
-		res, err := api.TargetsMetadata(context.Background(),
+		res, err := api.TargetsMetadata(
+			c.Request().Context(),
 			c.QueryParam(utils.ParamMatchTarget),
 			c.QueryParam(utils.ParamMetric),
-			c.QueryParam(utils.ParamLimit))
+			c.QueryParam(utils.ParamLimit),
+		)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -118,7 +120,7 @@ func prometheusQuery(c echo.Context, query string, apiClient PrometheusAPI) erro
 	}
 
 	// TODO: catch the warnings replacing _
-	res, _, err := apiClient.Query(context.Background(), query, queryTime)
+	res, _, err := apiClient.Query(c.Request().Context(), query, queryTime)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -158,7 +160,7 @@ func prometheusQueryRange(c echo.Context, query string, apiClient PrometheusAPI)
 	timeRange := v1.Range{Start: startTime, End: endTime, Step: step}
 
 	// TODO: catch the warnings replacing _
-	res, _, err := apiClient.QueryRange(context.Background(), query, timeRange)
+	res, _, err := apiClient.QueryRange(c.Request().Context(), query, timeRange)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -171,7 +173,7 @@ func GetTenantQueryHandler(api PrometheusAPI) func(c echo.Context) error {
 		if terr != nil {
 			return terr
 		}
-		tenantRestrictor, err := tenantQueryRestrictorProvider(tID)
+		tenantRestrictor, err := tenantQueryRestrictorProvider(c.Request().Context(), tID)
 		if err != nil {
 			return err
 		}
@@ -193,7 +195,7 @@ func GetTenantQueryRangeHandler(api PrometheusAPI) func(c echo.Context) error {
 		if terr != nil {
 			return terr
 		}
-		orgRestrictor, err := tenantQueryRestrictorProvider(tID)
+		orgRestrictor, err := tenantQueryRestrictorProvider(c.Request().Context(), tID)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -270,7 +272,7 @@ func TenantSeriesHandlerProvider(api PrometheusAPI) func(c echo.Context) error {
 		if oerr != nil {
 			return obsidian.HttpError(oerr, http.StatusBadRequest)
 		}
-		queryRestrictor, err := tenantQueryRestrictorProvider(oID)
+		queryRestrictor, err := tenantQueryRestrictorProvider(c.Request().Context(), oID)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -315,7 +317,9 @@ func GetTenantPromSeriesHandler(api PrometheusAPI, useCache bool) func(c echo.Co
 		if oerr != nil {
 			return obsidian.HttpError(oerr, http.StatusBadRequest)
 		}
-		queryRestrictor, err := tenantQueryRestrictorProvider(oID)
+
+		reqCtx := c.Request().Context()
+		queryRestrictor, err := tenantQueryRestrictorProvider(reqCtx, oID)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -345,7 +349,7 @@ func GetTenantPromSeriesHandler(api PrometheusAPI, useCache bool) func(c echo.Co
 			return obsidian.HttpError(errors.Wrapf(err, "parse end time: %s", endStr), http.StatusBadRequest)
 		}
 
-		res, _, err := api.Series(context.Background(), seriesMatches, startTime, endTime)
+		res, _, err := api.Series(reqCtx, seriesMatches, startTime, endTime)
 		if err != nil {
 			return obsidian.HttpError(err)
 		}
@@ -368,7 +372,7 @@ func prometheusSeries(c echo.Context, seriesMatches []string, apiClient Promethe
 	}
 
 	// TODO: catch the warnings replacing _
-	res, _, err := apiClient.Series(context.Background(), seriesMatches, startTime, endTime)
+	res, _, err := apiClient.Series(c.Request().Context(), seriesMatches, startTime, endTime)
 	if err != nil {
 		return []model.LabelSet{}, obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -410,7 +414,9 @@ func GetTenantPromValuesHandler(api PrometheusAPI) func(c echo.Context) error {
 		if labelName == "" {
 			return obsidian.HttpError(fmt.Errorf("label_name is required"), http.StatusBadRequest)
 		}
-		queryRestrictor, err := tenantQueryRestrictorProvider(oID)
+
+		reqCtx := c.Request().Context()
+		queryRestrictor, err := tenantQueryRestrictorProvider(reqCtx, oID)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -437,7 +443,7 @@ func GetTenantPromValuesHandler(api PrometheusAPI) func(c echo.Context) error {
 			return obsidian.HttpError(errors.Wrapf(err, "parse end time: %s", endStr), http.StatusBadRequest)
 		}
 
-		res, _, err := api.Series(context.Background(), seriesMatchers, startTime, endTime)
+		res, _, err := api.Series(reqCtx, seriesMatchers, startTime, endTime)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}

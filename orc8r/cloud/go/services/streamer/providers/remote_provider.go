@@ -44,7 +44,7 @@ func (r *remoteProvider) GetStreamName() string {
 	return r.stream
 }
 
-func (r *remoteProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (r *remoteProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	c, err := r.getProviderClient()
 	if err != nil {
 		return nil, err
