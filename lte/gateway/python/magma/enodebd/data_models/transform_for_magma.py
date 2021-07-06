@@ -54,7 +54,7 @@ def gps_tr181(value: str) -> str:
     """
     try:
         return str(float(value) / 1e6)
-    except ValueError:
+    except Exception:  # pylint: disable=broad-except
         return value
 
 

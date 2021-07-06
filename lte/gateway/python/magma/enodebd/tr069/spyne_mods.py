@@ -140,6 +140,15 @@ class Tr069Soap11(Soap11):
         return super(Tr069Soap11, self).get_call_handles(ctx)
 
     def serialize(self, ctx, message):
+        # Workaround for issue https://github.com/magma/magma/issues/7869
+        # Updates to ctx.descriptor.out_message.Attributes.sub_name are taking
+        # effect on the descriptor. But when puled from _attrcache dictionary,
+        # it still has a stale value.
+        # Force repopulation of dictionary by deleting entry
+        # TODO Remove this code once we have a better fix
+        if (ctx.descriptor.out_message in self._attrcache):
+            del self._attrcache[ctx.descriptor.out_message]  # noqa: WPS529
+
         super(Tr069Soap11, self).serialize(ctx, message)
 
         # Keep XSD namespace
