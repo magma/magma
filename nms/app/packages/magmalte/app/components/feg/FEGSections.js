@@ -23,6 +23,8 @@ import FEGConfigure from './FEGConfigure';
 import FEGDashboard from '../../views/dashboard/feg/FEGDashboard';
 import FEGGateways from './FEGGateways';
 import FEGMetrics from './FEGMetrics';
+import FEGNetworkDashboard from '../../views/network/FEGNetworkDashboard';
+import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import React from 'react';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
@@ -34,6 +36,12 @@ export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
       label: 'Gateways',
       icon: <CellWifiIcon />,
       component: FEGGateways,
+    },
+    {
+      path: 'network',
+      label: 'Network',
+      icon: <NetworkCheckIcon />,
+      component: FEGNetworkDashboard,
     },
     {
       path: 'configure',
