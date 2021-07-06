@@ -164,6 +164,8 @@ struct SessionStateUpdateCriteria {
   std::unordered_map<std::string, SessionCreditUpdateCriteria>
       monitor_credit_map;
   TgppContext updated_tgpp_context;
+  // The value should be set only when there is an update
+  optional<CreateSessionResponse> create_session_response;
   magma::lte::SubscriberQuotaUpdate_Type updated_subscriber_quota_state;
 
   bool is_bearer_mapping_updated;

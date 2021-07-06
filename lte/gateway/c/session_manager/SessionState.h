@@ -139,6 +139,10 @@ class SessionState {
       const CreateSessionResponse& csr);
 
   SessionState(
+      const std::string& session_id, const SessionConfig& cfg,
+      StaticRuleStore& rule_store, uint64_t pdp_start_time);
+
+  SessionState(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
 
   static std::unique_ptr<SessionState> unmarshal(
@@ -321,6 +325,10 @@ class SessionState {
   void increment_request_number(uint32_t incr);
 
   SessionTerminateRequest make_termination_request(
+      SessionStateUpdateCriteria* session_uc);
+
+  void set_create_session_response(
+      const CreateSessionResponse response,
       SessionStateUpdateCriteria* session_uc);
 
   CreateSessionResponse get_create_session_response();

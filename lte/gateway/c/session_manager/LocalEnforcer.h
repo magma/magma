@@ -201,6 +201,27 @@ class LocalEnforcer {
       const CreateSessionResponse& response);
 
   /**
+   * @brief
+   *
+   * @param session
+   * @param response
+   * @param session_uc
+   */
+  void init_session_with_policy_response(
+      std::unique_ptr<SessionState>& session,
+      const CreateSessionResponse& response,
+      SessionStateUpdateCriteria* session_uc);
+
+  /**
+   * @brief Create a initializing session object
+   *
+   * @param session_id
+   * @param cfg
+   */
+  std::unique_ptr<SessionState> create_initializing_session(
+      const std::string& session_id, const SessionConfig& cfg);
+
+  /**
    * Process the update response from the reporter and update the
    * monitoring/charging credits and attached rules.
    * @param credit_response - message from cloud containing new credits
