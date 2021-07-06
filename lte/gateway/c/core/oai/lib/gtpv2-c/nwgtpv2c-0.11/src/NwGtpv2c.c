@@ -767,7 +767,7 @@ static nw_rc_t nwGtpv2cHandleUlpInitialReq(
     }
 
     memcpy(
-        &pTrxn->proc_context, &pUlpReq->proc_context.ebi,
+        &pTrxn->proc_context, &pUlpReq->proc_context,
         sizeof(pTrxn->proc_context));
 
     char peer_ip[INET_ADDRSTRLEN];
@@ -1199,9 +1199,9 @@ static nw_rc_t nwGtpv2cSendTriggeredRspIndToUlp(
   ulpApi.u_api_info.triggeredRspIndInfo.error      = *pError;
   ulpApi.u_api_info.triggeredRspIndInfo.trx_flags  = *trxFlags_p;
   ulpApi.u_api_info.triggeredRspIndInfo.noDelete   = noDelete;
+  memcpy(&ulpApi.proc_context, proc_context, sizeof(ulpApi.proc_context));
   rc          = thiz->ulp.ulpReqCallback(thiz->ulp.hUlp, &ulpApi);
   *trxFlags_p = ulpApi.u_api_info.triggeredRspIndInfo.trx_flags;
-  memcpy(&ulpApi.proc_context, proc_context, sizeof(ulpApi.proc_context));
   OAILOG_FUNC_RETURN(LOG_GTPV2C, rc);
 }
 
