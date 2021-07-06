@@ -62,7 +62,7 @@ func TestLTEStreamProviderServicer_GetUpdates(t *testing.T) {
 			ExtraArgs:  nil,
 		})
 		assert.NoError(t, err)
-		want, err := subscriberStreamer.GetUpdates(hwID, nil)
+		want, err := subscriberStreamer.GetUpdates(context.Background(), hwID, nil)
 		assert.NoError(t, err)
 		assert.Equal(t, &protos.DataUpdateBatch{Updates: want}, got)
 	})

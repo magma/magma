@@ -13,11 +13,9 @@
 package tests
 
 import (
+	"context"
 	"sync"
 	"testing"
-
-	"github.com/go-openapi/swag"
-	"github.com/stretchr/testify/assert"
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
@@ -31,6 +29,9 @@ import (
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
+
+	"github.com/go-openapi/swag"
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -146,11 +147,7 @@ func SetupNetworks(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		FederatedLteNetworkID, orc8r.AccessGatewayRecordType, AgwHwId,
-		&models.GatewayDevice{HardwareID: AgwHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), FederatedLteNetworkID, orc8r.AccessGatewayRecordType, AgwHwId, &models.GatewayDevice{HardwareID: AgwHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -181,11 +178,7 @@ func SetupNetworks(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice(
-		ServingFegNetworkID, orc8r.AccessGatewayRecordType, FegHwId,
-		&models.GatewayDevice{HardwareID: FegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}},
-		serdes.Device,
-	)
+	err = device.RegisterDevice(context.Background(), ServingFegNetworkID, orc8r.AccessGatewayRecordType, FegHwId, &models.GatewayDevice{HardwareID: FegHwId, Key: &models.ChallengeKey{KeyType: "ECHO"}}, serdes.Device)
 	assert.NoError(t, err)
 
 	actualNHNet, err := configurator.LoadNetwork(NhNetworkID, true, true, serdes.Network)

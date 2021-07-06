@@ -14,6 +14,7 @@ limitations under the License.
 package policydb_test
 
 import (
+	"context"
 	"fmt"
 	"sync"
 	"testing"
@@ -45,7 +46,7 @@ var (
 	onceTestsInit   sync.Once
 )
 
-func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*orcprotos.DataUpdate, error) {
+func (m *mockStreamProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*orcprotos.DataUpdate, error) {
 	// Data for stream name "base_names"
 	rs1, _ := proto.Marshal(&protos.ChargingRuleNameSet{RuleNames: []string{"rule11", "rule12"}})
 	rs2, _ := proto.Marshal(&protos.ChargingRuleNameSet{RuleNames: []string{"rule21", "rule22"}})

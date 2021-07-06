@@ -14,6 +14,7 @@
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"regexp"
@@ -152,12 +153,13 @@ func listSubscribersHandler(c echo.Context) error {
 	}
 
 	// First check for query params to filter by
+	reqCtx := c.Request().Context()
 	if msisdn := c.QueryParam(ParamMSISDN); msisdn != "" {
 		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(networkID, msisdn)
 		if err != nil {
 			return makeErr(err)
 		}
-		subs, err := loadSubscribers(networkID, acceptAll, queryIMSI)
+		subs, err := loadSubscribers(reqCtx, networkID, acceptAll, queryIMSI)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -169,7 +171,7 @@ func listSubscribersHandler(c echo.Context) error {
 			return makeErr(err)
 		}
 		filter := func(sub *subscribermodels.Subscriber) bool { return sub.IsAssignedIP(ip) }
-		subs, err := loadSubscribers(networkID, filter, queryIMSIs...)
+		subs, err := loadSubscribers(reqCtx, networkID, filter, queryIMSIs...)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -177,7 +179,7 @@ func listSubscribersHandler(c echo.Context) error {
 	}
 
 	// No pagination is used for the v1 endpoint, so load the max page size
-	subs, _, err := loadSubscriberPage(networkID, 0, "")
+	subs, _, err := loadSubscriberPage(reqCtx, networkID, 0, "")
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -224,6 +226,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 		}
 	}
 	pageToken := c.QueryParam(ParamPageToken)
+	reqCtx := c.Request().Context()
 
 	// First check for query params to filter by
 	if msisdn := c.QueryParam(ParamMSISDN); msisdn != "" {
@@ -231,7 +234,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 		if err != nil {
 			return makeErr(err)
 		}
-		subs, err := loadSubscribers(networkID, acceptAll, queryIMSI)
+		subs, err := loadSubscribers(reqCtx, networkID, acceptAll, queryIMSI)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -243,7 +246,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 			return makeErr(err)
 		}
 		filter := func(sub *subscribermodels.Subscriber) bool { return sub.IsAssignedIP(ip) }
-		subs, err := loadSubscribers(networkID, filter, queryIMSIs...)
+		subs, err := loadSubscribers(reqCtx, networkID, filter, queryIMSIs...)
 		if err != nil {
 			return makeErr(err)
 		}
@@ -252,7 +255,7 @@ func listSubscribersV2Handler(c echo.Context) error {
 
 	// List subscribers for a given page. If no page is specified, the max
 	// size will be returned.
-	subs, nextPageToken, err := loadSubscriberPage(networkID, uint32(pageSize), pageToken)
+	subs, nextPageToken, err := loadSubscriberPage(reqCtx, networkID, uint32(pageSize), pageToken)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -330,7 +333,7 @@ func getSubscriberHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	subs, err := loadSubscriber(networkID, subscriberID)
+	subs, err := loadSubscriber(c.Request().Context(), networkID, subscriberID)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -388,7 +391,7 @@ func listSubscriberStateHandler(c echo.Context) error {
 		return nerr
 	}
 
-	statesBySID, err := loadAllStatesForIMSIs(networkID, []string{})
+	statesBySID, err := loadAllStatesForIMSIs(c.Request().Context(), networkID, []string{})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -407,7 +410,7 @@ func getSubscriberStateHandler(c echo.Context) error {
 		return nerr
 	}
 
-	states, err := getStatesForIMSIs(networkID, allSubscriberStateTypes, subscriberID, serdes.State)
+	states, err := getStatesForIMSIs(c.Request().Context(), networkID, allSubscriberStateTypes, subscriberID, serdes.State)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -540,8 +543,8 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 	}
 }
 
-func getStatesForIMSIs(networkID string, typeFilter []string, keyPrefix string, serdes serde.Registry) (state_types.StatesByID, error) {
-	states, err := state.SearchStates(networkID, typeFilter, nil, &keyPrefix, serdes)
+func getStatesForIMSIs(ctx context.Context, networkID string, typeFilter []string, keyPrefix string, serdes serde.Registry) (state_types.StatesByID, error) {
+	states, err := state.SearchStates(ctx, networkID, typeFilter, nil, &keyPrefix, serdes)
 	if err != nil {
 		return nil, err
 	}
@@ -619,7 +622,7 @@ func validateSubscriberProfiles(networkID string, profiles ...string) *echo.HTTP
 	return nil
 }
 
-func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error) {
+func loadSubscriber(ctx context.Context, networkID, key string) (*subscribermodels.Subscriber, error) {
 	loadCriteria := getSubscriberLoadCriteria(0, "")
 	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, loadCriteria, serdes.Entity)
 	if err != nil {
@@ -647,7 +650,7 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 		return nil, err
 	}
 
-	states, err := getStatesForIMSIs(networkID, allSubscriberStateTypes, key, serdes.State)
+	states, err := getStatesForIMSIs(ctx, networkID, allSubscriberStateTypes, key, serdes.State)
 	if err != nil {
 		return nil, err
 	}
@@ -657,10 +660,10 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 	return sub, nil
 }
 
-func loadSubscribers(networkID string, includeSub subscriberFilter, keys ...string) (map[string]*subscribermodels.Subscriber, error) {
+func loadSubscribers(ctx context.Context, networkID string, includeSub subscriberFilter, keys ...string) (map[string]*subscribermodels.Subscriber, error) {
 	subs := map[string]*subscribermodels.Subscriber{}
 	for _, key := range keys {
-		sub, err := loadSubscriber(networkID, key)
+		sub, err := loadSubscriber(ctx, networkID, key)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error loading subscriber %s", key)
 		}
@@ -671,7 +674,7 @@ func loadSubscribers(networkID string, includeSub subscriberFilter, keys ...stri
 	return subs, nil
 }
 
-func loadSubscriberPage(networkID string, pageSize uint32, pageToken string) (map[string]*subscribermodels.Subscriber, string, error) {
+func loadSubscriberPage(ctx context.Context, networkID string, pageSize uint32, pageToken string) (map[string]*subscribermodels.Subscriber, string, error) {
 	mutableSubs, nextPageToken, err := loadMutableSubscriberPage(networkID, pageSize, pageToken)
 	if err != nil {
 		return nil, "", err
@@ -680,7 +683,7 @@ func loadSubscriberPage(networkID string, pageSize uint32, pageToken string) (ma
 	for imsi := range mutableSubs {
 		imsis = append(imsis, imsi)
 	}
-	states, err := loadAllStatesForIMSIs(networkID, imsis)
+	states, err := loadAllStatesForIMSIs(ctx, networkID, imsis)
 	if err != nil {
 		return nil, "", err
 	}
@@ -869,7 +872,7 @@ func deleteSubscriber(networkID, key string) error {
 // loadAllStatesForIMSIs loads all states whose IMSI prefix is contained in the
 // IMSI array passed in as argument. If passed IMSIs is nil,
 // loads states for all IMSIs in the network.
-func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_types.StatesByID, error) {
+func loadAllStatesForIMSIs(ctx context.Context, networkID string, imsis []string) (map[string]state_types.StatesByID, error) {
 	requestedIMSIs := map[string]struct{}{}
 	for _, v := range imsis {
 		requestedIMSIs[v] = struct{}{}
@@ -884,11 +887,11 @@ func loadAllStatesForIMSIs(networkID string, imsis []string) (map[string]state_t
 		return ok
 	}
 
-	imsiKeyStates, err := state.SearchStates(networkID, subscriberStateTypesKeyedByIMSI, imsis, nil, serdes.State)
+	imsiKeyStates, err := state.SearchStates(ctx, networkID, subscriberStateTypesKeyedByIMSI, imsis, nil, serdes.State)
 	if err != nil {
 		return nil, err
 	}
-	imsiCompositeKeyStates, err := state.SearchStates(networkID, subscriberStateTypesKeyedByCompositeKey, nil, nil, serdes.State)
+	imsiCompositeKeyStates, err := state.SearchStates(ctx, networkID, subscriberStateTypesKeyedByCompositeKey, nil, nil, serdes.State)
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,7 @@ limitations under the License.
 package streamer
 
 import (
+	"context"
 	"fmt"
 	"sort"
 
@@ -35,7 +36,7 @@ import (
 
 type RatingGroupsProvider struct{}
 
-func (p *RatingGroupsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *RatingGroupsProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return nil, err
@@ -85,7 +86,7 @@ func ratingGroupsToUpdates(ratingGroups []*lte_protos.RatingGroup) ([]*protos.Da
 
 type PoliciesProvider struct{}
 
-func (p *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *PoliciesProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gw, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return nil, err
@@ -162,7 +163,7 @@ func rulesToUpdates(rules []*lte_protos.PolicyRule) ([]*protos.DataUpdate, error
 
 type BaseNamesProvider struct{}
 
-func (p *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *BaseNamesProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return nil, err
@@ -206,7 +207,7 @@ func bnsToUpdates(bns []*lte_protos.ChargingRuleBaseNameRecord) ([]*protos.DataU
 type ApnRuleMappingsProvider struct{}
 
 // GetUpdates implements GetUpdates for the rule mappings stream provider
-func (p *ApnRuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *ApnRuleMappingsProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return nil, err
@@ -317,7 +318,7 @@ func sortUpdates(updates []*protos.DataUpdate) {
 
 type NetworkWideRulesProvider struct{}
 
-func (p *NetworkWideRulesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *NetworkWideRulesProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return nil, err

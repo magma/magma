@@ -14,6 +14,7 @@ limitations under the License.
 package providers
 
 import (
+	"context"
 	"encoding/json"
 	"time"
 
@@ -29,7 +30,7 @@ import (
 // MconfigProvider provides streamer mconfigs (magma configs).
 type MconfigProvider struct{}
 
-func (p *MconfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *MconfigProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	res, err := configurator.GetMconfigFor(gatewayId)
 	if err != nil {
 		return nil, errors.Wrap(err, "get mconfig from configurator")
