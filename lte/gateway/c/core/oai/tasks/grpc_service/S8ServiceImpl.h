@@ -27,10 +27,9 @@ class CreateBearerRequestPgw;
 }  // namespace feg
 }  // namespace magma
 
-using grpc::ServerContext;
-
 namespace magma {
 using namespace feg;
+using namespace orc8r;
 
 class S8ServiceImpl final : public S8ProxyResponder::Service {
  public:
@@ -40,8 +39,8 @@ class S8ServiceImpl final : public S8ProxyResponder::Service {
    * dedicated bearer establishment
    */
   grpc::Status CreateBearer(
-      ServerContext* context, const CreateBearerRequestPgw* request,
-      CreateBearerResponsePgw* response) override;
+      grpc::ServerContext* context, const CreateBearerRequestPgw* request,
+      Void* response) override;
 };
 
 }  // namespace magma

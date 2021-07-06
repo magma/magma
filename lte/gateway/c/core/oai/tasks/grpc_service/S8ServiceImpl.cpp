@@ -27,11 +27,13 @@ namespace grpc {
 class ServerContext;
 }  // namespace grpc
 
-
 namespace magma {
 namespace feg {
 class CreateBearerRequestPgw;
 }  // namespace feg
+namespace orc8r {
+class Void;
+}  // namespace orc8r
 }  // namespace magma
 using grpc::ServerContext;
 
@@ -62,9 +64,9 @@ static void convert_proto_msg_to_itti_create_bearer_req(
   return;
 }
 
-grpc::Status CreateBearer(
+grpc::Status S8ServiceImpl::CreateBearer(
     ServerContext* context, const CreateBearerRequestPgw* request,
-    CreateBearerResponsePgw* response) {
+    Void* response) {
   s8_create_bearer_request_t* cb_req = NULL;
   OAILOG_INFO(
       LOG_SGW_S8,
@@ -80,7 +82,7 @@ grpc::Status CreateBearer(
         "Failed to allocate memory for S8_CREATE_BEARER_REQ for "
         "context_teid" TEID_FMT "\n",
         request->c_agw_teid());
-    return grpc::Status::OK;
+    return grpc::Status::CANCELLED;
   }
 
   cb_req = &message_p->ittiMsg.s8_create_bearer_req;
@@ -93,7 +95,6 @@ grpc::Status CreateBearer(
         "context_teid " TEID_FMT "\n",
         request->c_agw_teid());
   }
-
   return grpc::Status::OK;
 }
 

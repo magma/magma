@@ -332,6 +332,21 @@ static void convert_qos_to_proto_msg(
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
+static void cbresp_convert_bearer_context_to_proto(
+    const bearer_context_within_create_bearer_response_t* msg_bc,
+    magma::feg::BearerContext* bc) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  bc->set_id(msg_bc->eps_bearer_id);
+  char sgw_s8_up_ip[INET_ADDRSTRLEN];
+  inet_ntop(
+      AF_INET, &msg_bc->s5_s8_u_sgw_fteid.ipv4_address.s_addr, sgw_s8_up_ip,
+      INET_ADDRSTRLEN);
+  bc->mutable_user_plane_fteid()->set_ipv4_address(sgw_s8_up_ip);
+  bc->mutable_user_plane_fteid()->set_teid(msg_bc->s5_s8_u_sgw_fteid.teid);
+  convert_qos_to_proto_msg(&msg_bc->bearer_level_qos, bc->mutable_qos());
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
 static void convert_bearer_context_to_proto(
     const bearer_context_to_be_created_t* msg_bc,
     magma::feg::BearerContext* bc) {
@@ -360,18 +375,16 @@ static void convert_imeisv_to_string(char* imeisv) {
 
 static void convert_pco_to_proto_msg(
     protocol_configuration_options_t pco,
-    magma::feg::CreateSessionRequestPgw* csr) {
+    magma::feg::ProtocolConfigurationOptions* proto_pco) {
   OAILOG_FUNC_IN(LOG_SGW_S8);
-  magma::feg::PcoProtocolOrContainerId* proto_pco = NULL;
+  magma::feg::PcoProtocolOrContainerId* proto_pci = NULL;
   pco_protocol_or_container_id_t csr_pco          = {0};
-  csr->mutable_protocol_configuration_options()->set_config_protocol(
-      pco.configuration_protocol);
+  proto_pco->set_config_protocol(pco.configuration_protocol);
   for (uint8_t idx = 0; idx < pco.num_protocol_or_container_id; idx++) {
-    proto_pco = csr->mutable_protocol_configuration_options()
-                    ->add_proto_or_container_id();
+    proto_pci = proto_pco->add_proto_or_container_id();
     csr_pco = pco.protocol_or_container_ids[idx];
-    proto_pco->set_id(csr_pco.id);
-    proto_pco->set_contents(
+    proto_pci->set_id(csr_pco.id);
+    proto_pci->set_contents(
         std::string(bdata(csr_pco.contents), blength(csr_pco.contents)));
   }
   OAILOG_FUNC_OUT(LOG_SGW_S8);
@@ -411,7 +424,8 @@ static void fill_s8_create_session_req(
 
   convert_indication_flag_to_proto_msg(msg, csr);
   convert_time_zone_to_proto_msg(&msg->ue_time_zone, csr->mutable_time_zone());
-  convert_pco_to_proto_msg(msg->pco, csr);
+  convert_pco_to_proto_msg(
+      msg->pco, csr->mutable_protocol_configuration_options());
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
@@ -530,3 +544,46 @@ void send_s8_delete_session_request(
 
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
+
+static void fill_s8_create_bearer_response(
+    const itti_s11_nw_init_actv_bearer_rsp_t* itti_msg,
+    magma::feg::CreateBearerResponsePgw* proto_cb_rsp, teid_t sgw_s8_teid) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  proto_cb_rsp->Clear();
+  proto_cb_rsp->set_c_pgw_teid(sgw_s8_teid);
+  convert_serving_network_to_proto_msg(
+      proto_cb_rsp->mutable_serving_network(), itti_msg->serving_network);
+  proto_cb_rsp->set_cause(itti_msg->cause.cause_value);
+  convert_uli_to_proto_msg(proto_cb_rsp->mutable_uli(), itti_msg->uli);
+
+  if (itti_msg->bearer_contexts.num_bearer_context) {
+    magma::feg::BearerContext* bc = proto_cb_rsp->mutable_bearer_context();
+    cbresp_convert_bearer_context_to_proto(
+        &itti_msg->bearer_contexts.bearer_contexts[0], bc);
+  }
+
+  convert_time_zone_to_proto_msg(
+      &itti_msg->ue_time_zone, proto_cb_rsp->mutable_time_zone());
+  convert_pco_to_proto_msg(
+      itti_msg->pco, proto_cb_rsp->mutable_protocol_configuration_options());
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+
+void send_s8_create_bearer_response(
+    const itti_s11_nw_init_actv_bearer_rsp_t* itti_msg, teid_t sgw_s8_teid) {
+  OAILOG_FUNC_IN(LOG_SGW_S8);
+  magma::feg::CreateBearerResponsePgw proto_cb_rsp;
+
+  OAILOG_INFO(
+      LOG_SGW_S8,
+      "Sending create bearer response for context_tied " TEID_FMT "\n",
+      sgw_s8_teid);
+
+  fill_s8_create_bearer_response(itti_msg, &proto_cb_rsp, sgw_s8_teid);
+
+  magma::S8Client::s8_create_bearer_response(
+      proto_cb_rsp,
+      [&](grpc::Status status, magma::orc8r::Void void_response) { return; });
+  OAILOG_FUNC_OUT(LOG_SGW_S8);
+}
+

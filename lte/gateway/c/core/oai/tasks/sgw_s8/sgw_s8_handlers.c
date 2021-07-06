@@ -1191,7 +1191,8 @@ imsi64_t sgw_s8_handle_create_bearer_request(
   }
   OAILOG_INFO(
       LOG_SGW_S8,
-      "Rx S8_CREATE_BEARER_REQ from s8_proxy for context_teid " TEID_FMT "\n",
+      "Received S8_CREATE_BEARER_REQ from s8_proxy for context_teid " TEID_FMT
+      "\n",
       cb_req->context_teid);
 
   sgw_eps_bearer_context_information_t* sgw_context_p =
@@ -1271,7 +1272,7 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
   OAILOG_FUNC_IN(LOG_SGW_S8);
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p                      = NULL;
-  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = NULL;
+  pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
   pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(sgw_context_p);
 
   if (!pgw_ni_cbr_proc) {
@@ -1335,6 +1336,8 @@ static void sgw_s8_proc_s11_create_bearer_rsp(
     free_wrapper((void**) &pgw_ni_cbr_proc->pending_eps_bearers);
     pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**) &pgw_ni_cbr_proc);
   }
+  send_s8_create_bearer_response(
+      s11_actv_bearer_rsp, s11_actv_bearer_rsp->sgw_s11_teid);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
 
@@ -1388,4 +1391,3 @@ void sgw_s8_handle_s11_create_bearer_response(
       sgw_context_p, &bc_cbrsp, s11_actv_bearer_rsp, imsi64);
   OAILOG_FUNC_OUT(LOG_SGW_S8);
 }
-

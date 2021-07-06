@@ -250,7 +250,14 @@ status_code_e send_pcrf_bearer_actv_rsp(
 
   // Fill SGW S11 CP TEID
   s11_nw_init_actv_bearer_rsp->sgw_s11_teid = pdn_context->s_gw_teid_s11_s4;
-  int msg_bearer_index                      = 0;
+
+  // Fill User Location Information
+  mme_app_get_user_location_information(
+      &s11_nw_init_actv_bearer_rsp->uli, ue_context_p);
+  COPY_PLMN_IN_ARRAY_FMT(
+      (s11_nw_init_actv_bearer_rsp->serving_network),
+      (ue_context_p->emm_context.originating_tai.plmn));
+  int msg_bearer_index = 0;
 
   bearer_context_t* bc = mme_app_get_bearer_context(ue_context_p, ebi);
   s11_nw_init_actv_bearer_rsp->cause.cause_value = cause;

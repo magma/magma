@@ -568,9 +568,8 @@ int sgw_build_and_send_s11_create_bearer_request(
   message_p->ittiMsgHeader.imsi = sgw_eps_bearer_context_information->imsi64;
   OAILOG_INFO_UE(
       module, sgw_eps_bearer_context_information->imsi64,
-      "Sending S11 Create Bearer Request to MME_APP for LBI %d "
-      "IMSI " IMSI_64_FMT,
-      bearer_req_p->lbi, message_p->ittiMsgHeader.imsi);
+      "Sending S11 Create Bearer Request to MME_APP for LBI %d \n",
+      bearer_req_p->lbi);
   rc = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(module, rc);
 }
