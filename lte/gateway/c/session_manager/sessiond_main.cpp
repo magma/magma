@@ -343,7 +343,7 @@ int main(int argc, char* argv[]) {
       interval = config["poll_stats_interval"].as<uint32_t>();
     }
     periodic_stats_requester->start_loop(
-          local_enforcer, config["poll_stats_interval"].as<uint32_t>());
+          local_enforcer, interval);
     periodic_stats_requester->stop();
   });
 
