@@ -124,6 +124,16 @@ class SessionManagerHandlerTest : public ::testing::Test {
     evb->loopOnce();
   }
 
+  void initialize_session(
+      SessionMap& session_map, const std::string& session_id,
+      const SessionConfig& cfg, const CreateSessionResponse& response) {
+    const std::string imsi = cfg.get_imsi();
+    auto session = local_enforcer->create_initializing_session(session_id, cfg);
+    local_enforcer->init_session_with_policy_response(
+        session, response, nullptr);
+    session_map[imsi].push_back(std::move(session));
+  }
+
  protected:
   std::string monitoring_key;
 
@@ -166,7 +176,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
       IMSI1, SESSION_ID_1, 1, 1536, response.mutable_credits()->Add());
 
   auto session_map = session_store->read_sessions({IMSI1});
-  local_enforcer->init_session(session_map, IMSI1, SESSION_ID_1, cfg, response);
+  initialize_session(session_map, SESSION_ID_1, cfg, response);
   local_enforcer->update_tunnel_ids(
       session_map,
       create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids0));
@@ -237,7 +247,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
 
   auto session_map = session_store->read_sessions({IMSI1});
 
-  local_enforcer->init_session(session_map, IMSI1, sid, cfg, response);
+  initialize_session(session_map, SESSION_ID_1, cfg, response);
   local_enforcer->update_tunnel_ids(
       session_map,
       create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids1));
@@ -412,7 +422,7 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
       session_created(IMSI1, SESSION_ID_1, testing::_, testing::_))
       .Times(1);
 
-  local_enforcer->init_session(session_map, IMSI1, SESSION_ID_1, cfg, response);
+  initialize_session(session_map, SESSION_ID_1, cfg, response);
   local_enforcer->update_tunnel_ids(
       session_map,
       create_update_tunnel_ids_request(IMSI1, BEARER_ID_1, teids0));
@@ -463,7 +473,7 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
 
   auto session_map = session_store->read_sessions({IMSI1});
 
-  local_enforcer->init_session(session_map, IMSI1, SESSION_ID_1, cfg, response);
+  initialize_session(session_map, SESSION_ID_1, cfg, response);
   local_enforcer->update_tunnel_ids(
       session_map, create_update_tunnel_ids_request(IMSI1, 0, teids0));
 
