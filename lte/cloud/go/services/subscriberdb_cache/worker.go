@@ -98,6 +98,7 @@ func RenewDigests(
 			continue
 		}
 		flatDigestsByNetwork[network] = digest
+		perSubDigestsByNetwork[network] = perSubDigests
 	}
 	return flatDigestsByNetwork, perSubDigestsByNetwork, errs.ErrorOrNil()
 }
