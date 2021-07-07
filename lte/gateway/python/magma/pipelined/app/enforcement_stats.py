@@ -335,6 +335,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         try:
             flows.send_stats_request(datapath, self.tbl_num,
                                      cookie, cookie_mask)
+            self.delete_all_flows(datapath)
         except MagmaOFError as e:
             self.logger.warning("Couldn't poll datapath stats: %s", e)
         except Exception as e: # pylint: disable=broad-except
