@@ -328,15 +328,13 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
     def _poll_stats(self, datapath, cookie: int = 0, cookie_mask: int = 0):
         """
-        Send a FlowStatsRequest message to the datapath and
-        remove old enforcement rules
+        Send a FlowStatsRequest message to the datapath
         Raises:
         MagmaOFError: if we can't poll datapath stats
         """
         try:
             flows.send_stats_request(datapath, self.tbl_num,
                                      cookie, cookie_mask)
-            self.delete_all_flows(datapath)
         except MagmaOFError as e:
             self.logger.warning("Couldn't poll datapath stats: %s", e)
         except Exception as e: # pylint: disable=broad-except
@@ -577,7 +575,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
     def get_stats(self, cookie: int = 0, cookie_mask: int = 0):
         """
         Use Ryu API to send a stats request containing cookie and cookie mask, retrieve a response and 
-        convert to a Rule Record Table
+        convert to a Rule Record Table and remove old flows
         """
         if not self._datapath:
             self.logger.error("Could not initialize datapath for stats retrieval")
@@ -592,6 +590,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 return RuleRecordTable()
             else:
                 usage = self._get_usage_from_flow_stat(response.body)
+                self._delete_old_flows(usage.values())
                 record_table = RuleRecordTable(
                     records=usage.values(),
                     epoch=global_epoch)
