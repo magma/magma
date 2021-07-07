@@ -14,6 +14,8 @@
 package calculations
 
 import (
+	"context"
+
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -51,6 +53,8 @@ func (x *UserMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 		return results, err
 	}
 
+	// TODO: maybe attach tracing params to this ctx
+	outgoingCtx := context.TODO()
 	for _, networkID := range networks {
 		subscriberEnts, _, err := configurator.LoadAllEntitiesOfType(
 			networkID,
@@ -63,7 +67,7 @@ func (x *UserMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 
 		// get all subscribers state across (configured and federated subscribers)
 		subscriberStateTypes := []string{lte.SubscriberStateType}
-		states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil, serdes.State)
+		states, err := state.SearchStates(outgoingCtx, networkID, subscriberStateTypes, nil, nil, serdes.State)
 		if err != nil {
 			continue
 		}
@@ -129,6 +133,8 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 	gatewayVersionCfg, gatewayVersionCfgOk := x.AnalyticsConfig.Metrics[metrics.GatewayMagmaVersionMetric]
 	enbConnectedCfg, enbConnectedOk := x.AnalyticsConfig.Metrics[metrics.EnodebConnectedMetric]
 
+	// TODO: you'll want to set some tracing params on this ctx
+	outgoingContext := context.TODO()
 	for _, networkID := range networks {
 		if gatewayVersionCfgOk {
 			gatewayEnts, _, err := configurator.LoadAllEntitiesOfType(
@@ -141,7 +147,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 				continue
 			}
 			for _, ent := range gatewayEnts {
-				status, err := wrappers.GetGatewayStatus(networkID, ent.PhysicalID)
+				status, err := wrappers.GetGatewayStatus(outgoingContext, networkID, ent.PhysicalID)
 				if err != nil || status == nil || status.PlatformInfo == nil || len(status.PlatformInfo.Packages) == 0 {
 					glog.V(2).Infof("gateway %s, err %v or version not available", ent.PhysicalID, err)
 					continue
@@ -187,7 +193,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 					continue
 				}
 
-				st, err := state.GetState(networkID, lte.EnodebStateType, ent.Key, serdes.State)
+				st, err := state.GetState(outgoingContext, networkID, lte.EnodebStateType, ent.Key, serdes.State)
 				if err != nil {
 					continue
 				}

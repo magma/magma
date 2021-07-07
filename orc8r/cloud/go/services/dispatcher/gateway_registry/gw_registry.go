@@ -85,8 +85,8 @@ func SetPort(port int) error {
 // SyncRPCHTTPServer instance, which is in the same process
 // of the Dispatcher grpc server who has an open bidirectional
 // stream with the gateway with hwId.
-func GetServiceAddressForGateway(hwId string) (string, error) {
-	hostName, err := directoryd.GetHostnameForHWID(hwId)
+func GetServiceAddressForGateway(ctx context.Context, hwId string) (string, error) {
+	hostName, err := directoryd.GetHostnameForHWID(ctx, hwId)
 	if err != nil {
 		fmt.Printf("err getting hostName in GetServiceAddressForGateway for hwId %v: %v\n", hwId, err)
 		return "", err
@@ -106,7 +106,7 @@ func GetServiceAddressForGateway(hwId string) (string, error) {
 func GetGatewayConnection(service GwServiceType, hwId string) (*grpc.ClientConn, context.Context, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
-	addr, err := GetServiceAddressForGateway(hwId)
+	addr, err := GetServiceAddressForGateway(ctx, hwId)
 	if err != nil {
 		return nil, nil, err
 	}

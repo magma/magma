@@ -39,9 +39,9 @@ func NewVPNServicer(taKeyPath string) (srv *VPNServicer) {
 }
 
 // Return the signing certificate
-func (srv *VPNServicer) GetCA(context.Context, *protos.Void) (*protos.CACert, error) {
+func (srv *VPNServicer) GetCA(ctx context.Context, _ *protos.Void) (*protos.CACert, error) {
 	getCAReq := &certprotos.GetCARequest{CertType: protos.CertType_VPN}
-	caFromCertifier, err := certifier.GetCACert(getCAReq)
+	caFromCertifier, err := certifier.GetCACert(ctx, getCAReq)
 	if err != nil {
 		return nil, fmt.Errorf("unable to retrieve VPN CA: %s", err)
 	}
@@ -134,7 +134,7 @@ func (srv *VPNServicer) RequestCert(
 		CsrDer:    req.Request,
 	}
 
-	signedCert, err := certifier.SignCSR(csr)
+	signedCert, err := certifier.SignCSR(ctx, csr)
 	if err != nil {
 		return nil, fmt.Errorf("error signing vpn cert request: %s", err)
 	}

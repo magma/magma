@@ -15,6 +15,7 @@ package statemachines
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -150,7 +151,7 @@ func (m *MagmadClient) RebootEnodeb(networkId string, gatewayId string, enodebSe
 }
 
 func getEnodebStatus(networkID string, enodebSN string) (*ltemodels.EnodebState, error) {
-	st, err := state.GetState(networkID, lte.EnodebStateType, enodebSN, serdes.State)
+	st, err := state.GetState(context.Background(), networkID, lte.EnodebStateType, enodebSN, serdes.State)
 	if err != nil {
 		return nil, err
 	}
@@ -721,7 +722,7 @@ func getCurrentAGWPackageVersion(config *models.EnodebdTestConfig) (string, erro
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to load hwID for target gateway %s", targetGWID)
 	}
-	agwState, err := wrappers.GetGatewayStatus(*config.NetworkID, hwID)
+	agwState, err := wrappers.GetGatewayStatus(context.Background(), *config.NetworkID, hwID)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to load gateway status for %s", targetGWID)
 	}

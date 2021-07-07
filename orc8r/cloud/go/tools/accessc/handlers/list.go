@@ -16,6 +16,7 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -37,17 +38,18 @@ func init() {
 }
 
 func list(cmd *commands.Command, args []string) int {
-	operators, err := accessd.ListOperators()
+	ctx := context.Background()
+	operators, err := accessd.ListOperators(ctx)
 	if err != nil {
 		log.Fatalf("List Operators Error: %s", err)
 	}
-	acls, err := accessd.GetOperatorsACLs(operators)
+	acls, err := accessd.GetOperatorsACLs(ctx, operators)
 	if err != nil {
 		log.Fatalf("Get Operators Error: %s", err)
 	}
 	// Retrieve all certificate records
 	// It can be memory intensive, but Cert Info record is relatively small ~ 90 bytes on average
-	certMap, err := certifier.GetAll()
+	certMap, err := certifier.GetAll(ctx)
 	if err != nil {
 		log.Fatalf("Get Certificates Error: %s", err)
 	}
