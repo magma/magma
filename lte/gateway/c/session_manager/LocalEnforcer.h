@@ -297,7 +297,7 @@ class LocalEnforcer {
   void report_session_update_event(
       SessionMap& session_map, const UpdateRequestsBySession& updates);
 
-  void report_session_update_event_failure(
+  void report_session_update_failure_event(
       SessionMap& session_map, const UpdateRequestsBySession& failed_updates,
       const std::string& failure_reason);
 
@@ -309,8 +309,8 @@ class LocalEnforcer {
 
   void handle_pipelined_response(Status status, RuleRecordTable resp);
 
-  void report_updates_callback(
-      UpdateSessionRequest& request,
+  void handle_session_update_response(
+      const UpdateSessionRequest& request,
       std::shared_ptr<SessionMap> session_map_ptr,
       SessionUpdate& session_update, grpc::Status status,
       UpdateSessionResponse response);

@@ -123,7 +123,7 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
       [this, request, session_uc,
        session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, UpdateSessionResponse response) mutable {
-        enforcer_->report_updates_callback(
+        enforcer_->handle_session_update_response(
             request, session_map_ptr, session_uc, status, response);
       });
 }
@@ -496,44 +496,6 @@ void LocalSessionManagerHandlerImpl::end_session(
   }
   // Success
   response_callback(Status::OK, LocalEndSessionResponse());
-}
-
-void LocalSessionManagerHandlerImpl::report_session_update_event(
-    SessionMap& session_map, const UpdateRequestsBySession& updates) {
-  for (auto& it : updates.requests_by_id) {
-    const std::string &imsi = it.first.first, &session_id = it.first.second;
-    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
-    auto session_it = session_store_.find_session(session_map, criteria);
-    if (!session_it) {
-      MLOG(MWARNING) << "Not reporting session update event for " << session_id
-                     << " because it couldn't be found";
-      continue;
-    }
-    events_reporter_->session_updated(
-        session_id, (**session_it)->get_config(), it.second);
-  }
-}
-
-void LocalSessionManagerHandlerImpl::report_session_update_event_failure(
-    SessionMap& session_map, const UpdateRequestsBySession& failed_updates,
-    const std::string& failure_reason) {
-  for (auto& it : failed_updates.requests_by_id) {
-    const std::string &imsi = it.first.first, &session_id = it.first.second;
-    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
-    auto session_it = session_store_.find_session(session_map, criteria);
-    if (!session_it) {
-      MLOG(MWARNING) << "Not reporting session update failure event for "
-                     << session_id << " because it couldn't be found";
-      continue;
-    }
-    std::ostringstream failure_stream;
-    failure_stream << "UpdateSession request to FeG/PolicyDB failed: "
-                   << failure_reason;
-    std::string failure_msg = failure_stream.str();
-    MLOG(MERROR) << failure_msg;
-    events_reporter_->session_update_failure(
-        session_id, (**session_it)->get_config(), it.second, failure_msg);
-  }
 }
 
 void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
