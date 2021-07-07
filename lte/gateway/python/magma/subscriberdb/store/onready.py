@@ -20,7 +20,9 @@ class OnDataReady:
     when subscribers are added to the data store. Routines can wait on
     the _ready_ event to block until a condition is met:
         1. a subscriber is added
-        2. a datastore resync is triggered
+        2. a subscriber is deleted
+        3. a subscriber is upserted
+        4. a datastore resync is triggered
     """
 
     def __init__(self, loop=None):
@@ -30,7 +32,32 @@ class OnDataReady:
     def add_subscriber(self, _):
         self.loop.call_soon_threadsafe(self.trigger_ready)
 
+    def delete_subscriber(self, _):
+        self.loop.call_soon_threadsafe(self.trigger_ready)
+
+    def upsert_subscriber(self, _):
+        self.loop.call_soon_threadsafe(self.trigger_ready)
+
     def resync(self, _):
+        self.loop.call_soon_threadsafe(self.trigger_ready)
+
+    def trigger_ready(self):
+        if not self.event.is_set():
+            self.event.set()
+
+
+class OnDigestsReady:
+    """
+    A thread-safe Event mixin interface for triggering a ready event
+    when per-subscriber digests are resynced in the store. Routines can wait on
+    the _ready_ event to block until a per-subscriber datastore update is
+    triggered.
+    """
+    def __init__(self, loop=None):
+        self.loop = loop if loop else asyncio.new_event_loop()
+        self.event = asyncio.Event(loop=self.loop)
+
+    def update_per_sub_digests(self, _):
         self.loop.call_soon_threadsafe(self.trigger_ready)
 
     def trigger_ready(self):

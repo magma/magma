@@ -25,7 +25,9 @@ from lte.protos.subscriberdb_pb2 import (
     Digest,
     ListSubscribersResponse,
     SubscriberData,
+    SubscriberDigestByID,
     SubscriberID,
+    SyncSubscribersResponse,
 )
 from lte.protos.subscriberdb_pb2_grpc import (
     SubscriberDBCloudServicer,
@@ -35,6 +37,7 @@ from lte.protos.subscriberdb_pb2_grpc import (
 from magma.common.grpc_client_manager import GRPCClientManager
 from magma.common.service_registry import ServiceRegistry
 from magma.subscriberdb.client import SubscriberDBCloudClient
+from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.sqlite import SqliteStore
 
 
@@ -70,6 +73,55 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
         in_sync = request.flat_digest.md5_base64_digest == "digest_pear"
         return CheckSubscribersInSyncResponse(in_sync=in_sync)
 
+    def SyncSubscribers(self, request, context):
+        """
+        Mock to trigger SyncSubscribers-related test cases
+
+        Args:
+            request: SyncSubscribersRequest
+            context: request context
+
+        Returns:
+            SyncSubscribersResponse
+        """
+        per_sub_digests = [
+            SubscriberDigestByID(
+                sid=SIDUtils.to_pb('IMSI11111'),
+                digest=Digest(md5_base64_digest="digest_banana"),
+            ),
+            SubscriberDigestByID(
+                sid=SIDUtils.to_pb('IMSI22222'),
+                digest=Digest(md5_base64_digest="digest_orange"),
+            ),
+            SubscriberDigestByID(
+                sid=SIDUtils.to_pb('IMSI33333'),
+                digest=Digest(md5_base64_digest="digest_tree"),
+            ),
+        ]
+
+        client_per_sub_digest_ids = [
+            SIDUtils.to_str(digest.sid) for digest in request.per_sub_digests
+        ]
+        to_renew = {}
+        deleted = []
+        if 'IMSI11111' not in client_per_sub_digest_ids:
+            to_renew['IMSI11111'] = subscriber_data_by_id('IMSI11111')
+        if 'IMSI22222' not in client_per_sub_digest_ids:
+            to_renew['IMSI22222'] = subscriber_data_by_id('IMSI22222')
+        if 'IMSI33333' not in client_per_sub_digest_ids:
+            to_renew['IMSI33333'] = subscriber_data_by_id('IMSI33333')
+        if 'IMSI00000' in client_per_sub_digest_ids:
+            deleted.append('IMSI00000')
+        resync = len(to_renew) >= 3
+
+        return SyncSubscribersResponse(
+            resync=resync,
+            flat_digest=Digest(md5_base64_digest="digest_cherry"),
+            per_sub_digests=per_sub_digests,
+            to_renew=to_renew,
+            deleted=deleted,
+        )
+
     def ListSubscribers(self, request, context):  # noqa: N802
         """
         List subscribers is a mock to trigger various test cases
@@ -86,6 +138,7 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
         """
         # Add in logic to allow error handling testing
         flat_digest = Digest(md5_base64_digest="")
+        per_sub_digests = []
         if request.page_size == 1:
             raise grpc.RpcError("Test Exception")
         if request.page_token == "":
@@ -95,6 +148,12 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
                 SubscriberData(sid=SubscriberID(id="IMSI222")),
             ]
             flat_digest = Digest(md5_base64_digest="digest_pear")
+            per_sub_digests = [
+                SubscriberDigestByID(
+                    sid=SIDUtils.to_pb("IMSI11111"),
+                    digest=Digest(md5_base64_digest="digest_birch"),
+                ),
+            ]
         elif request.page_token == "aaa":
             next_page_token = "bbb"  # noqa: S105
             subscribers = [
@@ -111,6 +170,7 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
             subscribers=subscribers,
             next_page_token=next_page_token,
             flat_digest=flat_digest,
+            per_sub_digests=per_sub_digests,
         )
 
 
@@ -230,8 +290,17 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
                 await self.subscriberdb_cloud_client._get_all_subscribers()
             )
             self.assertTrue(ret is not None)
-            self.assertEqual(self.get_all_subscribers(), ret[0])
-            self.assertEqual("digest_pear", ret[1].md5_base64_digest)
+            self.assertEqual(self.get_all_subscribers(), ret.subscribers)
+            self.assertEqual("digest_pear", ret.flat_digest.md5_base64_digest)
+            self.assertTrue(len(ret.per_sub_digests) == 1)
+            self.assertEqual(
+                ret.per_sub_digests[0].digest.md5_base64_digest,
+                "digest_birch",
+            )
+            self.assertEqual(
+                SIDUtils.to_str(ret.per_sub_digests[0].sid),
+                "IMSI11111",
+            )
 
         # Cancel the client's loop so there are no other activities
         self.subscriberdb_cloud_client._periodic_task.cancel()
@@ -255,7 +324,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             ret = (
                 await self.subscriberdb_cloud_client._get_all_subscribers()
             )
-            self.assertEqual((None, None), ret)
+            self.assertTrue(ret is None)
 
         # Cancel the client's loop so there are no other activities
         self.subscriberdb_cloud_client._periodic_task.cancel()
@@ -301,7 +370,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
     )
     def test_check_subscribers_in_sync(self, get_grpc_mock):
         """
-        Test QueryFlatDigest RPC success
+        Test CheckSubscribersInSync RPC success
 
         Args:
             get_grpc_mock: mock for service registry
@@ -322,3 +391,80 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
         # Cancel the client's loop so there are no other activities
         self.subscriberdb_cloud_client._periodic_task.cancel()
         self.loop.run_until_complete(test())
+
+    @ unittest.mock.patch(
+        'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
+    )
+    def test_sync_subscribers(self, get_grpc_mock):
+        """
+        Test SyncSubscribers RPC success
+
+        Args:
+            get_grpc_mock: mock for service registry
+        """
+        async def test():  # noqa: WPS430
+            get_grpc_mock.return_value = self.channel
+            # resync is True if the changeset is too big
+            resync = (
+                await self.subscriberdb_cloud_client._sync_subscribers()
+            )
+            self.assertEqual(True, resync)
+
+            self.subscriberdb_cloud_client._store.update_per_sub_digests([
+                SubscriberDigestByID(
+                    sid=SIDUtils.to_pb('IMSI11111'),
+                    digest=Digest(md5_base64_digest="digest_banana"),
+                ),
+                SubscriberDigestByID(
+                    sid=SIDUtils.to_pb('IMSI00000'),
+                    digest=Digest(md5_base64_digest="digest_peach"),
+                ),
+            ])
+            self.subscriberdb_cloud_client._store.add_subscriber(
+                subscriber_data_by_id('IMSI00000'),
+            )
+            self.subscriberdb_cloud_client._store.add_subscriber(
+                subscriber_data_by_id('IMSI11111'),
+            )
+
+            # the client subscriber db and per-subscriber digest db are updated
+            # when resync is False
+            resync = (
+                await self.subscriberdb_cloud_client._sync_subscribers()
+            )
+            self.assertEqual(False, resync)
+            self.assertEqual(
+                "digest_cherry",
+                self.subscriberdb_cloud_client._store.get_current_digest(),
+            )
+            self.assertEqual(
+                ['IMSI11111', 'IMSI22222', 'IMSI33333'],
+                self.subscriberdb_cloud_client._store.list_subscribers(),
+            )
+            self.assertEqual(
+                [
+                    SubscriberDigestByID(
+                        sid=SIDUtils.to_pb('IMSI11111'),
+                        digest=Digest(md5_base64_digest="digest_banana"),
+                    ),
+                    SubscriberDigestByID(
+                        sid=SIDUtils.to_pb('IMSI22222'),
+                        digest=Digest(md5_base64_digest="digest_orange"),
+                    ),
+                    SubscriberDigestByID(
+                        sid=SIDUtils.to_pb('IMSI33333'),
+                        digest=Digest(md5_base64_digest="digest_tree"),
+                    ),
+                ],
+                self.subscriberdb_cloud_client._store.get_current_per_sub_digests(),
+            )
+
+        # Cancel the client's loop so there are no other activities
+        self.subscriberdb_cloud_client._periodic_task.cancel()
+        self.loop.run_until_complete(test())
+
+
+def subscriber_data_by_id(sid_str):
+    sid = SIDUtils.to_pb(sid_str)
+    data = SubscriberData(sid=sid)
+    return data

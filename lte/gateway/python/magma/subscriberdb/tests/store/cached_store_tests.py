@@ -44,6 +44,11 @@ class StoreTests(unittest.TestCase):
         self._store.add_subscriber(sub)
         return (sid, sub)
 
+    def _upsert_subscriber(self, sid):
+        sub = SubscriberData(sid=SIDUtils.to_pb(sid))
+        self._store.upsert_subscriber(sub)
+        return (sid, sub)
+
     def test_subscriber_addition(self):
         """
         Test if subscriber addition works as expected
@@ -137,6 +142,29 @@ class StoreTests(unittest.TestCase):
         with self.assertRaises(SubscriberNotFoundError):
             with self._store.edit_subscriber('IMSI3000') as subs:
                 pass
+
+    def test_subscriber_upsert(self):
+        """
+        Test if subscriber upsertion works as expected
+        """
+        self.assertEqual(self._store.list_subscribers(), [])
+        (sid1, _) = self._upsert_subscriber('IMSI11111')
+        self.assertEqual(self._store.list_subscribers(), [sid1])
+        self.assertEqual(self._store._cache_list(), [sid1])
+        (sid2, _) = self._upsert_subscriber('IMSI22222')
+        self.assertEqual(self._store.list_subscribers(), [sid1, sid2])
+        self.assertEqual(self._store._cache_list(), [sid1, sid2])
+
+        self._upsert_subscriber('IMSI11111')
+        self.assertEqual(self._store.list_subscribers(), [sid1, sid2])
+        self.assertEqual(self._store._cache_list(), [sid2, sid1])
+        self._upsert_subscriber('IMSI22222')
+        self.assertEqual(self._store.list_subscribers(), [sid1, sid2])
+        self.assertEqual(self._store._cache_list(), [sid1, sid2])
+
+        self._store.delete_all_subscribers()
+        self.assertEqual(self._store.list_subscribers(), [])
+        self.assertEqual(self._store._cache_list(), [])
 
     def test_resync(self):
         """
