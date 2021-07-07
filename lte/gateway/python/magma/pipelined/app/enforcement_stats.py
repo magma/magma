@@ -328,7 +328,8 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
 
     def _poll_stats(self, datapath, cookie: int = 0, cookie_mask: int = 0):
         """
-        Send a FlowStatsRequest message to the datapath
+        Send a FlowStatsRequest message to the datapath and
+        remove old enforcement rules
         Raises:
         MagmaOFError: if we can't poll datapath stats
         """
