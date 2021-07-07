@@ -2687,6 +2687,7 @@ void proc_new_attach_req(
       }
     }
   }
+
   // Proceed with new attach request
   ue_mm_context_t* ue_mm_context =
       mme_ue_context_exists_mme_ue_s1ap_id(attach_info.mme_ue_s1ap_id);

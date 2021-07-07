@@ -298,6 +298,7 @@ status_code_e emm_proc_identification_complete(
           rc = emm_proc_attach_reject(ue_id, emm_cause);
           OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
         }
+
         /*
          * Update the IMSI
          */
