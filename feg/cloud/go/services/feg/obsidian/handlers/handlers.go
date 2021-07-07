@@ -245,11 +245,7 @@ func getHealthStatusHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	ret := &fegModels.FederationGatewayHealthStatus{
-		Status:      res.GetHealth().GetHealth().String(),
-		Description: res.GetHealth().GetHealthMessage(),
-	}
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, fegModels.ToFederationGatewayHealthStatusModel(res))
 }
 
 func makeErr(err error) *echo.HTTPError {
