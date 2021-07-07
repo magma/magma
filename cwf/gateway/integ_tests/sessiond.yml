@@ -53,5 +53,5 @@ enable_ipfix: true
 # for relevant stats
 poll_stats_interval: 5
 
-#set to true to enable pull model for stats(polling pipelined from sessiond)
+# set to true to enable pull model for stats(polling pipelined from sessiond)
 enable_pull_stats: false
