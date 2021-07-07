@@ -590,7 +590,7 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
                 return RuleRecordTable()
             else:
                 usage = self._get_usage_from_flow_stat(response.body)
-                self.loop.call_soon_threadsafe(self._delete_old_flows(usage.values()))
+                self.loop.call_soon_threadsafe(self._delete_old_flows, usage.values())
                 record_table = RuleRecordTable(
                     records=usage.values(),
                     epoch=global_epoch)
