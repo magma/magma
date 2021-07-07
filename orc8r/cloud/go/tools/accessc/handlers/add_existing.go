@@ -16,6 +16,7 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"crypto/x509"
 	"encoding/pem"
 	"fmt"
@@ -81,6 +82,8 @@ func addExisting(cmd *commands.Command, args []string) int {
 	if err != nil {
 		log.Fatalf("Cannot read certificate file '%s': %s", certFName, err)
 	}
+
+	ctx := context.Background()
 	// Find first valid certificate
 	for certDERBlock, _ := pem.Decode(certPEMBlock); certDERBlock != nil; certDERBlock, _ = pem.Decode(certPEMBlock) {
 
@@ -90,7 +93,7 @@ func addExisting(cmd *commands.Command, args []string) int {
 				log.Fatalf(
 					"Cannot parse certificate from '%s': %s\n", certFName, err)
 			}
-			err = certifier.AddCertificate(operator, certDERBlock.Bytes)
+			err = certifier.AddCertificate(ctx, operator, certDERBlock.Bytes)
 			if err != nil {
 				log.Fatalf(
 					"Error '%s' Adding Certificate From %s", err, certFName)
@@ -104,9 +107,9 @@ func addExisting(cmd *commands.Command, args []string) int {
 				acl = BuildACLForEntities(networks, operators, gateways)
 			}
 
-			err = accessd.SetOperator(operator, acl)
+			err = accessd.SetOperator(ctx, operator, acl)
 			if err != nil {
-				certifier.RevokeCertificateSN(cert.SerialToString(x509Cert.SerialNumber))
+				certifier.RevokeCertificateSN(ctx, cert.SerialToString(x509Cert.SerialNumber))
 				log.Fatalf("Set Operator %s ACL Error: %s", operator.HashString(), err)
 			}
 			return 0

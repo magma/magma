@@ -233,8 +233,8 @@ int mme_app_handle_sgsap_reset_indication(
 
 int sgs_fsm_associated_reset_indication(const sgs_fsm_t* fsm_evt);
 
-status_code_e mme_app_handle_reset_indication(
-    hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
+bool mme_app_handle_reset_indication(
+    const hash_key_t keyP, void* const ue_context_pP, void* unused_param_pP,
     void** unused_result_pP);
 
 int mme_app_handle_sgsap_alert_request(

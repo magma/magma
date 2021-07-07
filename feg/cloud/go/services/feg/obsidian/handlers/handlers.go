@@ -116,7 +116,7 @@ func getGateway(c echo.Context) error {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
+	magmadModel, nerr := handlers.LoadMagmadGateway(c.Request().Context(), nid, gid)
 	if nerr != nil {
 		return nerr
 	}
@@ -159,7 +159,7 @@ func deleteGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	err := handlers.DeleteMagmadGateway(nid, gid, storage.TKs{{Type: feg.FegGatewayType, Key: gid}})
+	err := handlers.DeleteMagmadGateway(c.Request().Context(), nid, gid, storage.TKs{{Type: feg.FegGatewayType, Key: gid}})
 	if err != nil {
 		return makeErr(err)
 	}

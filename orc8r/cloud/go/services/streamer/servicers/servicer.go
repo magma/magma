@@ -69,7 +69,7 @@ func GetUpdatesUnverified(request *protos.StreamRequest, stream protos.Streamer_
 	}
 	var updates []*protos.DataUpdate
 	for err = streamer.EAGAIN; err == streamer.EAGAIN; {
-		updates, err = provider.GetUpdates(request.GetGatewayId(), request.ExtraArgs)
+		updates, err = provider.GetUpdates(stream.Context(), request.GetGatewayId(), request.ExtraArgs)
 		err = normalizeError(err)
 		if err != nil && err != streamer.EAGAIN {
 			return status.Errorf(codes.Aborted, "error while streaming updates: %s", err)

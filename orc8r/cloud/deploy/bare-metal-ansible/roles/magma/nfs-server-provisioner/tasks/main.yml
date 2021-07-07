@@ -19,14 +19,17 @@
     path: "{{ nfs_pv_path }}"
     state: directory
     recurse: yes
+  when: setup_pv
 
 - name: nfs-server-provisioner | Template out PV 
   template:
     src: nfs-pv.yaml.j2
     dest: "{{ charts_dir }}/nfs-pv.yaml"
+  when: setup_pv
 
 - name: nfs-server-provisioner | Apply NFS PV
   command: kubectl apply -f {{ charts_dir}}/nfs-pv.yaml
+  when: setup_pv
 
 - name: nfs-server-provisioner | Template out helm chart values
   template:

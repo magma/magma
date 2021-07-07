@@ -24,12 +24,12 @@ import (
 )
 
 // PushMetrics pushes a set of metrics to the metricsd service.
-func PushMetrics(metrics protos.PushedMetricsContainer) error {
+func PushMetrics(ctx context.Context, metrics protos.PushedMetricsContainer) error {
 	client, err := getMetricsdClient()
 	if err != nil {
 		return err
 	}
-	_, err = client.Push(context.Background(), &metrics)
+	_, err = client.Push(ctx, &metrics)
 	return err
 }
 

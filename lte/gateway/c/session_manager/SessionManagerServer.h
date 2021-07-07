@@ -310,6 +310,35 @@ class SetUPFNodeStateCallData
   UpfMsgManageHandler& handler_;
 };
 
+/*
+ *  Class to handle SetUPFSessionConfig
+ */
+class SetUPFSessionsConfigCallData : public AsyncGRPCRequest<
+                                         SetInterfaceForUserPlane::AsyncService,
+                                         UPFSessionConfigState, SmContextVoid> {
+ public:
+  SetUPFSessionsConfigCallData(
+      ServerCompletionQueue* cq,
+      SetInterfaceForUserPlane::AsyncService& service,
+      UpfMsgManageHandler& handler)
+      : AsyncGRPCRequest(cq, service), handler_(handler) {
+    service_.RequestSetUPFSessionsConfig(
+        &ctx_, &request_, &responder_, cq_, cq_, (void*) this);
+  }
+
+ protected:
+  void clone() override {
+    new SetUPFSessionsConfigCallData(cq_, service_, handler_);
+  }
+
+  void process() override {
+    handler_.SetUPFSessionsConfig(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  UpfMsgManageHandler& handler_;
+};
+
 /**
  * Class to handle CreateSession requests
  */

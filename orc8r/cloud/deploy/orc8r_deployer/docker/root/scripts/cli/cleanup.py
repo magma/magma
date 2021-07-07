@@ -52,7 +52,7 @@ def tf_backup_fn(tf_dir):
 
 
 def tf_destroy(constants: dict, warn: bool = True,
-               max_retries: int = 3) -> int:
+               max_retries: int = 2) -> int:
     """Run through terraform cleanup
 
     Args:
@@ -120,7 +120,7 @@ def raw_cleanup(
         constants: dict,
         override_dict: dict = None,
         dryrun: bool = False,
-        max_retries: int = 3):
+        max_retries: int = 2):
     """Perform raw cleanup of resources using internal commands
 
     Args:

@@ -14,7 +14,7 @@
 package subscriberdb
 
 import (
-	"magma/orc8r/cloud/go/orc8r"
+	"magma/lte/cloud/go/lte"
 	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
@@ -27,9 +27,9 @@ type Config struct {
 
 func MustGetServiceConfig() Config {
 	var serviceConfig Config
-	_, _, err := config.GetStructuredServiceConfig(orc8r.ModuleName, ServiceName, &serviceConfig)
+	_, _, err := config.GetStructuredServiceConfig(lte.ModuleName, ServiceName, &serviceConfig)
 	if err != nil {
-		glog.Fatalf("Failed parsing the analytics config file: %v ", err)
+		glog.Fatalf("Failed parsing the subscriberdb config file: %+v", err)
 	}
 
 	return serviceConfig

@@ -119,6 +119,16 @@ class StoreTests(unittest.TestCase):
             with self._store.edit_subscriber('IMSI3000') as subs:
                 pass
 
+    def test_digest(self):
+        """
+        Test if digest gets & updates work as expected
+        """
+        self.assertEqual(self._store.get_current_digest(), "")
+        self._store.update_digest("digest_apple")
+        self.assertEqual(self._store.get_current_digest(), "digest_apple")
+        self._store.update_digest("digest_banana")
+        self.assertEqual(self._store.get_current_digest(), "digest_banana")
+
 
 if __name__ == "__main__":
     unittest.main()

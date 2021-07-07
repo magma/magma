@@ -14,6 +14,7 @@ limitations under the License.
 package streamer_test
 
 import (
+	"context"
 	"testing"
 
 	"magma/lte/cloud/go/lte"
@@ -107,7 +108,7 @@ func TestRatingGroupStreamers(t *testing.T) {
 			return &protos.DataUpdate{Key: swag.FormatUint32(r.Id), Value: data}
 		},
 	)
-	actual, err := provider.GetUpdates("hw1", nil)
+	actual, err := provider.GetUpdates(context.Background(), "hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -301,7 +302,7 @@ func TestPolicyStreamers(t *testing.T) {
 		},
 	).([]*protos.DataUpdate)
 
-	actual, err := provider.GetUpdates("hw1", nil)
+	actual, err := provider.GetUpdates(context.Background(), "hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -319,7 +320,7 @@ func TestPolicyStreamers(t *testing.T) {
 		},
 	).([]*protos.DataUpdate)
 
-	actual, err = bnPro.GetUpdates("hw1", nil)
+	actual, err = bnPro.GetUpdates(context.Background(), "hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -462,7 +463,7 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 	).([]*protos.DataUpdate)
 	expected[0].Key, expected[1].Key, expected[2].Key = "s1", "s2", "s3"
 
-	actual, err := provider.GetUpdates("hw1", nil)
+	actual, err := provider.GetUpdates(context.Background(), "hw1", nil)
 	assert.NoError(t, err)
 	for i, update := range actual {
 		subPolicySet := &lte_protos.SubscriberPolicySet{}
@@ -522,7 +523,7 @@ func TestNetworkWideRulesProvider(t *testing.T) {
 		},
 	).([]*protos.DataUpdate)
 
-	actual, err := provider.GetUpdates("hw1", nil)
+	actual, err := provider.GetUpdates(context.Background(), "hw1", nil)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }

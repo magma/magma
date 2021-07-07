@@ -14,7 +14,7 @@
 package subscriberdb
 
 const (
-	ServiceName = "SUBSCRIBERDB"
+	ServiceName = "subscriberdb"
 
 	EntityType = "subscriber"
 

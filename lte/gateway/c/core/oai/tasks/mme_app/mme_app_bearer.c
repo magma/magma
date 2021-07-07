@@ -895,12 +895,7 @@ void mme_app_handle_delete_session_rsp(
    */
   update_mme_app_stats_s1u_bearer_sub();
   update_mme_app_stats_default_bearer_sub();
-  /* In case of pdn disconnect, secondary pdn session gets deleted after
-   * receiving deactivate bearer accept message, do not decrement
-   * nb_active_pdn_contexts here
-   */
-  if ((ue_context_p->nb_active_pdn_contexts > 0) &&
-      (!ue_context_p->emm_context.esm_ctx.is_pdn_disconnect)) {
+  if (ue_context_p->nb_active_pdn_contexts > 0) {
     ue_context_p->nb_active_pdn_contexts -= 1;
   }
 
@@ -919,7 +914,7 @@ void mme_app_handle_delete_session_rsp(
     if (ue_context_p->nb_active_pdn_contexts == 0) {
       nas_delete_all_emm_procedures(&ue_context_p->emm_context);
       free_esm_context_content(&ue_context_p->emm_context.esm_ctx);
-      proc_new_attach_req(ue_context_p);
+      proc_new_attach_req(&mme_app_desc_p->mme_ue_contexts, ue_context_p);
     }
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -1664,7 +1659,7 @@ void mme_app_handle_release_access_bearers_resp(
 
   if (ue_context_p == NULL) {
     OAILOG_DEBUG(
-        LOG_MME_APP, "We didn't find this teid in list of UE: %" PRIX32 "\n",
+        LOG_MME_APP, "We didn't find this teid in list of UE: " TEID_FMT "\n",
         rel_access_bearers_rsp_pP->teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -1699,7 +1694,7 @@ void mme_app_handle_s11_create_bearer_req(
 
   if (ue_context_p == NULL) {
     OAILOG_DEBUG(
-        LOG_MME_APP, "We didn't find this teid in list of UE: %" PRIX32 "\n",
+        LOG_MME_APP, "We didn't find this teid in list of UE: " TEID_FMT "\n",
         create_bearer_request_pP->teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -2208,7 +2203,7 @@ void mme_app_send_paging_request(
 
 imsi64_t mme_app_handle_initial_paging_request(
     mme_app_desc_t* mme_app_desc_p,
-    const itti_s11_paging_request_t const* paging_req) {
+    const itti_s11_paging_request_t* paging_req) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   imsi64_t imsi64 = INVALID_IMSI64;
 
@@ -2476,20 +2471,20 @@ void mme_app_handle_suspend_acknowledge(
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   OAILOG_INFO(
-      LOG_MME_APP, "Rx Suspend Acknowledge with MME_S11_TEID :%d \n",
+      LOG_MME_APP, "Rx Suspend Acknowledge with MME_S11_TEID: " TEID_FMT "\n",
       suspend_acknowledge_pP->teid);
 
   ue_context_p = mme_ue_context_exists_s11_teid(
       &mme_app_desc_p->mme_ue_contexts, suspend_acknowledge_pP->teid);
   if (ue_context_p == NULL) {
     OAILOG_ERROR(
-        LOG_MME_APP, "We didn't find this teid in list of UE: %" PRIX32 "\n",
+        LOG_MME_APP, "We didn't find this teid in list of UE: " TEID_FMT "\n",
         suspend_acknowledge_pP->teid);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   OAILOG_DEBUG_UE(
       LOG_MME_APP, ue_context_p->emm_context._imsi64,
-      " Rx Suspend Acknowledge with MME_S11_TEID " TEID_FMT "\n",
+      " Rx Suspend Acknowledge with MME_S11_TEID: " TEID_FMT "\n",
       suspend_acknowledge_pP->teid);
   /*
    * Updating statistics
@@ -3604,7 +3599,7 @@ void mme_app_handle_path_switch_request(
     OAILOG_ERROR(
         LOG_MME_APP,
         "PATH_SWITCH_REQUEST RECEIVED, Failed to find UE context for "
-        "mme_ue_s1ap_id 0x%06" PRIX32 " \n",
+        "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT " \n",
         path_switch_req_p->mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
@@ -3877,7 +3872,7 @@ void mme_app_handle_erab_rel_cmd(
     s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].e_rab_id =
         bearer_context->ebi;
   }
-  /* TODO Pruthvi, To fill cause for all bearers that are to be released
+  /* TODO Fill cause for all bearers that are to be released
    * s1ap_e_rab_rel_cmd->e_rab_to_be_rel_list.item[0].cause = 0;
    */
   s1ap_e_rab_rel_cmd->nas_pdu = nas_msg;

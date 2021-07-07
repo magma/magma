@@ -1188,8 +1188,8 @@ static int emm_attach_run_procedure(emm_context_t* emm_context) {
           emm_attach_success_identification_cb,
           emm_attach_failure_identification_cb);
     } else if (attach_proc->ies->imei) {
-      // emergency allowed if go here, but have to be implemented...
-      Fatal("TODO emergency");
+      // Emergency attach is not supported
+      OAILOG_ERROR(LOG_NAS_EMM, "Emergency attach is not supported");
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);
@@ -2595,62 +2595,100 @@ static int emm_attach_update(
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
 }
 
-void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
+void proc_new_attach_req(
+    mme_ue_context_t* const mme_ue_context_p,
+    struct ue_mm_context_s* ue_context_p) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
 
+  hashtable_rc_t hash_rc = HASH_TABLE_OK;
   OAILOG_INFO(
       LOG_NAS_EMM,
       "Process new Attach Request for ue_id " MME_UE_S1AP_ID_FMT "\n",
       ue_context_p->mme_ue_s1ap_id);
-  new_attach_info_t* attach_info = ue_context_p->emm_context.new_attach_info;
-  if (!attach_info) {
-    OAILOG_ERROR_UE(
-        LOG_NAS_EMM, ue_context_p->emm_context._imsi64,
-        "New attach request within EMM context is null \n");
-    OAILOG_FUNC_OUT(LOG_NAS_EMM);
-  }
-
+  new_attach_info_t attach_info = {0};
+  memcpy(
+      &attach_info, ue_context_p->emm_context.new_attach_info,
+      sizeof(new_attach_info_t));
+  free_wrapper((void**) &ue_context_p->emm_context.new_attach_info);
   /* The new Attach Request is received in s1ap initial ue message,
-   * So release previous Attach Request's contexts */
-  if (attach_info->is_mm_ctx_new) {
-    ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
-    /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach
-       Do not send UE Context Release Command to eNB before receiving SGs IMSI
-       Detach Ack from MSC/VLR */
-    if (ue_context_p->sgs_context != NULL) {
-      if ((ue_context_p->sgs_detach_type ==
-           SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
-          (ue_context_p->sgs_detach_type ==
-           SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) {
-        OAILOG_FUNC_OUT(LOG_NAS_EMM);
-      } else if (
-          ue_context_p->sgs_context->ts9_timer.id ==
-          MME_APP_TIMER_INACTIVE_ID) {
-        /* Notify S1AP to send UE Context Release Command to eNB or free
-         * s1 context locally.
-         */
+   * So release previous Attach Request's contexts
+   */
+  if (attach_info.is_mm_ctx_new) {
+    if (ue_context_p->ecm_state == ECM_IDLE) {
+      OAILOG_INFO_UE(
+          LOG_NAS_EMM, ue_context_p->emm_context._imsi64,
+          "Remove UE context for ue_id " MME_UE_S1AP_ID_FMT
+          " as ue is in idle mode \n",
+          ue_context_p->mme_ue_s1ap_id);
+      mme_remove_ue_context(mme_ue_context_p, ue_context_p);
+    } else {
+      ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
+      /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI
+       *  detach Do not send UE Context Release Command to eNB before receiving
+       *  SGs IMSI Detach Ack from MSC/VLR
+       */
+      if (ue_context_p->sgs_context != NULL) {
+        if ((ue_context_p->sgs_detach_type ==
+             SGS_EXPLICIT_UE_INITIATED_IMSI_DETACH_FROM_NONEPS) ||
+            (ue_context_p->sgs_detach_type ==
+             SGS_COMBINED_UE_INITIATED_IMSI_DETACH_FROM_EPS_N_NONEPS)) {
+          OAILOG_FUNC_OUT(LOG_NAS_EMM);
+        } else if (
+            ue_context_p->sgs_context->ts9_timer.id ==
+            MME_APP_TIMER_INACTIVE_ID) {
+          /* Notify S1AP to send UE Context Release Command to eNB or free
+           * s1 context locally.
+           */
+          mme_app_itti_ue_context_release(
+              ue_context_p, ue_context_p->ue_context_rel_cause);
+        }
+      } else {
+        // Notify S1AP to send UE Context Release Command to eNB or free s1
+        // context locally.
         mme_app_itti_ue_context_release(
             ue_context_p, ue_context_p->ue_context_rel_cause);
       }
-    } else {
-      // Notify S1AP to send UE Context Release Command to eNB or free s1
-      // context locally.
-      mme_app_itti_ue_context_release(
-          ue_context_p, ue_context_p->ue_context_rel_cause);
+      ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
     }
-    ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
+  } else {
+    uint64_t mme_ue_s1ap_id64 = 0;
+
+    hash_rc = obj_hashtable_uint64_ts_get(
+        mme_ue_context_p->guti_ue_context_htbl,
+        (const void*) &ue_context_p->emm_context._guti, sizeof(guti_t),
+        &mme_ue_s1ap_id64);
+
+    if (HASH_TABLE_OK == hash_rc) {
+      // While processing new attach req, remove GUTI from hashtable
+      if ((ue_context_p->emm_context._guti.gummei.mme_code) ||
+          (ue_context_p->emm_context._guti.gummei.mme_gid) ||
+          (ue_context_p->emm_context._guti.m_tmsi) ||
+          (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit1) ||
+          (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit2) ||
+          (ue_context_p->emm_context._guti.gummei.plmn.mcc_digit3)) {
+        hash_rc = obj_hashtable_uint64_ts_remove(
+            mme_ue_context_p->guti_ue_context_htbl,
+            (const void* const) & ue_context_p->emm_context._guti,
+            sizeof(ue_context_p->emm_context._guti));
+        if (HASH_TABLE_OK != hash_rc)
+          OAILOG_ERROR_UE(
+              LOG_MME_APP, ue_context_p->emm_context._imsi64,
+              "UE Context not found for GUTI " GUTI_FMT " \n",
+              GUTI_ARG(&(ue_context_p->emm_context._guti)));
+      }
+    }
   }
+
   /* Proceed with new attach request */
   ue_mm_context_t* ue_mm_context =
-      mme_ue_context_exists_mme_ue_s1ap_id(attach_info->mme_ue_s1ap_id);
+      mme_ue_context_exists_mme_ue_s1ap_id(attach_info.mme_ue_s1ap_id);
   emm_context_t* new_emm_ctx = &ue_mm_context->emm_context;
   bdestroy(new_emm_ctx->esm_msg);
   emm_init_context(new_emm_ctx, true);
 
   new_emm_ctx->num_attach_request++;
-  new_emm_ctx->attach_type = attach_info->ies->type;
-  new_emm_ctx->additional_update_type =
-      attach_info->ies->additional_update_type;
+  new_emm_ctx->attach_type            = attach_info.ies->type;
+  new_emm_ctx->additional_update_type = attach_info.ies->additional_update_type;
   OAILOG_NOTICE(
       LOG_NAS_EMM,
       "EMM-PROC  - Create EMM context ue_id = " MME_UE_S1AP_ID_FMT "\n",
@@ -2658,19 +2696,18 @@ void proc_new_attach_req(struct ue_mm_context_s* ue_context_p) {
   new_emm_ctx->is_dynamic = true;
   new_emm_ctx->emm_cause  = EMM_CAUSE_SUCCESS;
   // Store Voice Domain pref IE to be sent to MME APP
-  if (attach_info->ies->voicedomainpreferenceandueusagesetting) {
+  if (attach_info.ies->voicedomainpreferenceandueusagesetting) {
     memcpy(
         &new_emm_ctx->volte_params.voice_domain_preference_and_ue_usage_setting,
-        attach_info->ies->voicedomainpreferenceandueusagesetting,
+        attach_info.ies->voicedomainpreferenceandueusagesetting,
         sizeof(voice_domain_preference_and_ue_usage_setting_t));
     new_emm_ctx->volte_params.presencemask |=
         VOICE_DOMAIN_PREF_UE_USAGE_SETTING;
   }
   if (!is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {
-    emm_proc_create_procedure_attach_request(ue_mm_context, attach_info->ies);
+    emm_proc_create_procedure_attach_request(ue_mm_context, attach_info.ies);
   }
   emm_attach_run_procedure(&ue_mm_context->emm_context);
-  free_wrapper((void**) &ue_context_p->emm_context.new_attach_info);
   OAILOG_FUNC_OUT(LOG_NAS_EMM);
 }
 

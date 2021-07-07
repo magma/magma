@@ -136,7 +136,7 @@ func pushHandler(c echo.Context) error {
 		NetworkId: nID,
 		Metrics:   pushedMetrics,
 	}
-	err = metricsd.PushMetrics(metrics)
+	err = metricsd.PushMetrics(c.Request().Context(), metrics)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

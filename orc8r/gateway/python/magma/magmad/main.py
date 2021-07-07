@@ -61,7 +61,7 @@ def main():
     logging.info('Starting magmad for UUID: %s', snowflake.make_snowflake())
 
     # Create service manager
-    services = service.config['magma_services']
+    services = service.config.get('magma_services')
     init_system = service.config.get('init_system', 'systemd')
     registered_dynamic_services = service.config.get(
         'registered_dynamic_services', [],
@@ -84,7 +84,7 @@ def main():
     )
 
     # Get metrics service config
-    metrics_config = service.config['metricsd']
+    metrics_config = service.config.get('metricsd')
     metrics_services = metrics_config['services']
     collect_interval = metrics_config['collect_interval']
     sync_interval = metrics_config['sync_interval']

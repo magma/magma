@@ -1,4 +1,0 @@
----
-
-- name: run magma deploy
-  command: "ansible-playbook -e '@{{ usrHome }}/ansible-env.yaml' -i {{ usrHome }}/inventory {{ deployPath }}/magma_deploy.yml"

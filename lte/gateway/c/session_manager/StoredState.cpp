@@ -201,7 +201,8 @@ std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
   marshaled["time_of_first_usage"] = std::to_string(stored.time_of_first_usage);
   marshaled["time_of_last_usage"]  = std::to_string(stored.time_of_last_usage);
 
-  for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
+  for (int bucket_int = USED_TX; bucket_int != BUCKET_ENUM_MAX_VALUE;
+       bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     marshaled["buckets"][std::to_string(bucket_int)] =
         std::to_string(stored.buckets[bucket]);
@@ -233,7 +234,8 @@ StoredSessionCredit deserialize_stored_session_credit(
   stored.time_of_last_usage = static_cast<uint64_t>(
       std::stoul(marshaled["time_of_last_usage"].getString()));
 
-  for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
+  for (int bucket_int = USED_TX; bucket_int != BUCKET_ENUM_MAX_VALUE;
+       bucket_int++) {
     Bucket bucket          = static_cast<Bucket>(bucket_int);
     stored.buckets[bucket] = static_cast<uint64_t>(std::stoul(
         marshaled["buckets"][std::to_string(bucket_int)].getString()));
@@ -504,7 +506,6 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   marshaled["session_level_key"] = stored.session_level_key;
   marshaled["imsi"]              = stored.imsi;
   marshaled["session_id"]        = stored.session_id;
-  marshaled["local_teid"]        = std::to_string(stored.local_teid);
   marshaled["subscriber_quota_state"] =
       static_cast<int>(stored.subscriber_quota_state);
   marshaled["create_session_response"] =
@@ -548,6 +549,14 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   }
   marshaled["gy_dynamic_rules"] = gy_dynamic_rules;
 
+  folly::dynamic pdr_list = folly::dynamic::array;
+  for (const auto& rule : stored.pdr_list) {
+    std::string pdr_rule;
+    rule.SerializeToString(&pdr_rule);
+    pdr_list.push_back(pdr_rule);
+  }
+  marshaled["pdr_list"] = pdr_list;
+
   marshaled["request_number"] = std::to_string(stored.request_number);
 
   std::string serialized = folly::toJson(marshaled);
@@ -569,8 +578,6 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
   stored.session_level_key = marshaled["session_level_key"].getString();
   stored.imsi              = marshaled["imsi"].getString();
   stored.session_id        = marshaled["session_id"].getString();
-  stored.local_teid =
-      static_cast<uint32_t>(std::stoul(marshaled["local_teid"].getString()));
   stored.subscriber_quota_state =
       static_cast<magma::lte::SubscriberQuotaUpdate_Type>(
           marshaled["subscriber_quota_state"].getInt());
@@ -609,6 +616,12 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
     PolicyRule policy_rule;
     policy_rule.ParseFromString(policy.getString());
     stored.gy_dynamic_rules.push_back(policy_rule);
+  }
+
+  for (auto& rule : marshaled["pdr_list"]) {
+    SetGroupPDR pdr_rule;
+    pdr_rule.ParseFromString(rule.getString());
+    stored.pdr_list.push_back(pdr_rule);
   }
 
   stored.request_number = static_cast<uint32_t>(

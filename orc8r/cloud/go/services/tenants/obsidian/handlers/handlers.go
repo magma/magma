@@ -63,7 +63,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 }
 
 func GetTenantsHandler(c echo.Context) error {
-	tenants, err := tenants.GetAllTenants()
+	tenants, err := tenants.GetAllTenants(c.Request().Context())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -87,7 +87,7 @@ func CreateTenantHandler(c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("Must provide tenant ID"), http.StatusBadRequest)
 	}
 
-	_, err = tenants.CreateTenant(*tenantInfo.ID, &protos.Tenant{
+	_, err = tenants.CreateTenant(c.Request().Context(), *tenantInfo.ID, &protos.Tenant{
 		Name:     tenantInfo.Name,
 		Networks: tenantInfo.Networks,
 	})
@@ -102,7 +102,7 @@ func GetTenantHandler(c echo.Context) error {
 	if terr != nil {
 		return terr
 	}
-	tenantInfo, err := tenants.GetTenant(tenantID)
+	tenantInfo, err := tenants.GetTenant(c.Request().Context(), tenantID)
 	switch {
 	case err == errors.ErrNotFound:
 		return obsidian.HttpError(fmt.Errorf("Tenant %d does not exist", tenantID), http.StatusNotFound)
@@ -124,7 +124,7 @@ func SetTenantHandler(c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("error decoding request: %v", err), http.StatusBadRequest)
 	}
 
-	err = tenants.SetTenant(tenantID, tenantInfo)
+	err = tenants.SetTenant(c.Request().Context(), tenantID, tenantInfo)
 	switch {
 	case err == errors.ErrNotFound:
 		return obsidian.HttpError(fmt.Errorf("Tenant %d does not exist", tenantID), http.StatusNotFound)
@@ -139,7 +139,7 @@ func DeleteTenantHandler(c echo.Context) error {
 	if terr != nil {
 		return terr
 	}
-	err := tenants.DeleteTenant(tenantID)
+	err := tenants.DeleteTenant(c.Request().Context(), tenantID)
 	switch {
 	case err == errors.ErrNotFound:
 		return obsidian.HttpError(fmt.Errorf("Tenant %d does not exist", tenantID), http.StatusNotFound)

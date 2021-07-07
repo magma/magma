@@ -3,9 +3,10 @@ name: "\U0001F680 Feature request"
 about: Suggest a new idea or functionality for the project
 title: ''
 labels: 'type: feature'
-assignees: ekowtaylor, talkhasib, amarpad
+assignees: amarpad, ekowtaylor, talkhasib
 
 ---
+
 ### Your Environment (If applicable)
 
 - **Version:**

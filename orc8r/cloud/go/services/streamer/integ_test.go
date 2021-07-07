@@ -14,6 +14,7 @@ limitations under the License.
 package streamer_test
 
 import (
+	"context"
 	"fmt"
 	"testing"
 	"time"
@@ -43,7 +44,7 @@ type mockStreamProvider struct {
 	retErr error
 }
 
-func (m *mockStreamProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (m *mockStreamProvider) GetUpdates(ctx context.Context, gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	m.extra = extraArgs
 	return m.retVal, m.retErr
 }

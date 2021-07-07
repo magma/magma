@@ -21,6 +21,8 @@ from unittest.mock import MagicMock
 import grpc
 from lte.protos.s6a_service_pb2 import DeleteSubscriberRequest
 from lte.protos.subscriberdb_pb2 import (
+    CheckSubscribersInSyncResponse,
+    Digest,
     ListSubscribersResponse,
     SubscriberData,
     SubscriberID,
@@ -54,6 +56,20 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
             self, server,
         )
 
+    def CheckSubscribersInSync(self, request, context):
+        """
+        Mock to trigger CheckSubscribersInSync-related test cases
+
+        Args:
+            request: CheckSubscribersInSyncRequest
+            context: request context
+
+        Returns:
+            CheckSubscribersInSyncResponse
+        """
+        in_sync = request.flat_digest.md5_base64_digest == "digest_pear"
+        return CheckSubscribersInSyncResponse(in_sync=in_sync)
+
     def ListSubscribers(self, request, context):  # noqa: N802
         """
         List subscribers is a mock to trigger various test cases
@@ -69,6 +85,7 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
             ListSubscribersResponse
         """
         # Add in logic to allow error handling testing
+        flat_digest = Digest(md5_base64_digest="digest_pear")
         if request.page_size == 1:
             raise grpc.RpcError("Test Exception")
         if request.page_token == "":
@@ -92,6 +109,7 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
         return ListSubscribersResponse(
             subscribers=subscribers,
             next_page_token=next_page_token,
+            flat_digest=flat_digest,
         )
 
 
@@ -165,12 +183,41 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
         self._rpc_server.stop(None)
         self.subscriberdb_cloud_client.stop()
 
+    def get_all_subscribers(self):
+        return [
+            SubscriberData(
+                sid=SubscriberID(
+                    id="IMSI111",
+                ),
+            ), SubscriberData(
+                sid=SubscriberID(
+                    id="IMSI222",
+                ),
+            ), SubscriberData(
+                sid=SubscriberID(
+                    id="IMSI333",
+                ),
+            ), SubscriberData(
+                sid=SubscriberID(
+                    id="IMSI444",
+                ),
+            ), SubscriberData(
+                sid=SubscriberID(
+                    id="IMSI555",
+                ),
+            ), SubscriberData(
+                sid=SubscriberID(
+                    id="IMSI666",
+                ),
+            ),
+        ]
+
     @ unittest.mock.patch(
         'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
     )
-    def test_get_subscribers_success(self, get_grpc_mock):
+    def test_get_all_subscribers_success(self, get_grpc_mock):
         """
-        Test happy path
+        Test ListSubscribers RPC happy path
 
         Args:
             get_grpc_mock: mock for service registry
@@ -178,37 +225,12 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
         """
         async def test():  # noqa: WPS430
             get_grpc_mock.return_value = self.channel
-            subscribers = (
-                await self.subscriberdb_cloud_client._get_subscribers()
+            ret = (
+                await self.subscriberdb_cloud_client._get_all_subscribers()
             )
-            expected_subscribers = [
-                SubscriberData(
-                    sid=SubscriberID(
-                        id="IMSI111",
-                    ),
-                ), SubscriberData(
-                    sid=SubscriberID(
-                        id="IMSI222",
-                    ),
-                ), SubscriberData(
-                    sid=SubscriberID(
-                        id="IMSI333",
-                    ),
-                ), SubscriberData(
-                    sid=SubscriberID(
-                        id="IMSI444",
-                    ),
-                ), SubscriberData(
-                    sid=SubscriberID(
-                        id="IMSI555",
-                    ),
-                ), SubscriberData(
-                    sid=SubscriberID(
-                        id="IMSI666",
-                    ),
-                ),
-            ]
-            self.assertEqual(expected_subscribers, subscribers)
+            self.assertTrue(ret is not None)
+            self.assertEqual(self.get_all_subscribers(), ret[0])
+            self.assertEqual("digest_pear", ret[1].md5_base64_digest)
 
         # Cancel the client's loop so there are no other activities
         self.subscriberdb_cloud_client._periodic_task.cancel()
@@ -217,9 +239,9 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
     @ unittest.mock.patch(
         'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
     )
-    def test_get_subscribers_failure(self, get_grpc_mock):
+    def test_get_all_subscribers_failure(self, get_grpc_mock):
         """
-        Test RPC failures
+        Test ListSubscribers RPC failures
 
         Args:
             get_grpc_mock: mock for service registry
@@ -229,10 +251,10 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             get_grpc_mock.return_value = self.channel
             # update page size to special value to trigger gRPC error
             self.subscriberdb_cloud_client._subscriber_page_size = 1
-            subscribers = (
-                await self.subscriberdb_cloud_client._get_subscribers()
+            ret = (
+                await self.subscriberdb_cloud_client._get_all_subscribers()
             )
-            self.assertEqual(None, subscribers)
+            self.assertEqual((None, None), ret)
 
         # Cancel the client's loop so there are no other activities
         self.subscriberdb_cloud_client._periodic_task.cancel()
@@ -272,3 +294,30 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
         mock.DeleteSubscriber.future.assert_called_once_with(
             DeleteSubscriberRequest(imsi_list=["101", "303"]),
         )
+
+    @ unittest.mock.patch(
+        'magma.common.service_registry.ServiceRegistry.get_rpc_channel',
+    )
+    def test_check_subscribers_in_sync(self, get_grpc_mock):
+        """
+        Test QueryFlatDigest RPC success
+
+        Args:
+            get_grpc_mock: mock for service registry
+        """
+        async def test():  # noqa: WPS430
+            get_grpc_mock.return_value = self.channel
+            in_sync = (
+                await self.subscriberdb_cloud_client._check_subscribers_in_sync()
+            )
+            self.assertEqual(False, in_sync)
+
+            self.subscriberdb_cloud_client._store.update_digest("digest_pear")
+            in_sync = (
+                await self.subscriberdb_cloud_client._check_subscribers_in_sync()
+            )
+            self.assertEqual(True, in_sync)
+
+        # Cancel the client's loop so there are no other activities
+        self.subscriberdb_cloud_client._periodic_task.cancel()
+        self.loop.run_until_complete(test())

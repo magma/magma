@@ -86,8 +86,8 @@ static inline void mme_app_itti_ue_context_mod_for_csfb(
   }
   OAILOG_INFO(
       LOG_MME_APP,
-      "Sent S1AP_UE_CONTEXT_MODIFICATION_REQUEST mme_ue_s1ap_id %06" PRIX32
-      " \n",
+      "Sent S1AP_UE_CONTEXT_MODIFICATION_REQUEST "
+      "mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
       S1AP_UE_CONTEXT_MODIFICATION_REQUEST(message_p).mme_ue_s1ap_id);
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S1AP, message_p);
 

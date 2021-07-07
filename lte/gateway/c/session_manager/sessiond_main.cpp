@@ -32,6 +32,7 @@
 #include "SessionManagerServer.h"
 #include "SessionReporter.h"
 #include "SessionStore.h"
+#include "StatsPoller.h"
 
 #define SESSIOND_SERVICE "sessiond"
 #define SESSION_PROXY_SERVICE "session_proxy"
@@ -41,6 +42,8 @@
 #define MAX_USAGE_REPORTING_THRESHOLD 1.0
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
 #define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000  // 30sec
+#define DEFAULT_SESSION_MAX_RTX_COUNT 3
+#define DEFAULT_POLL_INTERVAL_TIME 5
 
 #ifdef DEBUG
 extern "C" void __gcov_flush(void);
@@ -205,13 +208,21 @@ int main(int argc, char* argv[]) {
     set_grpc_logging_level(config["print_grpc_payload"].as<bool>());
   }
 
-  initialize_sentry();
+  initialize_sentry(mconfig.sentry_config());
 
-  bool converged_access = false;
+  bool converged_access          = false;
+  uint32_t session_max_rtx_count = 0;
   // Check converged sessiond is enabled or not
   if ((config["converged_access"].IsDefined()) &&
       (config["converged_access"].as<bool>())) {
     converged_access = true;
+  }
+  if (config["session_rtx_count"].IsDefined()) {
+    session_max_rtx_count = config["session_rtx_count"].as<long>();
+  } else {
+    MLOG(MWARNING)
+        << "session_rtx_count is not defined in conf,set default value";
+    session_max_rtx_count = DEFAULT_SESSION_MAX_RTX_COUNT;
   }
   MLOG(MINFO) << "Starting Session Manager";
   folly::EventBase* evb = folly::EventBaseManager::get()->getEventBase();
@@ -321,6 +332,21 @@ int main(int argc, char* argv[]) {
     }
   });
 
+  // Start off a thread to periodically poll stats from Pipelined
+  // every fixed interval of time
+  auto periodic_stats_requester = std::make_shared<magma::StatsPoller>();
+  std::thread periodic_stats_requester_thread([&]() {
+    // random value assigned for interval period, the value will be loaded
+    // from a config field later
+    uint32_t interval = DEFAULT_POLL_INTERVAL_TIME;
+    if (config["poll_stats_interval"].IsDefined()) {
+      interval = config["poll_stats_interval"].as<uint32_t>();
+    }
+    periodic_stats_requester->start_loop(
+          local_enforcer, interval);
+    periodic_stats_requester->stop();
+  });
+
   // Setup threads to serve as GRPC servers for the LocalSessionManagerHandler
   // and the SessionProxyHandler (RARs)
   auto local_handler = std::make_unique<magma::LocalSessionManagerHandlerImpl>(
@@ -357,9 +383,11 @@ int main(int argc, char* argv[]) {
     // Initialize the main thread of session management by folly event to handle
     // logical component of 5G of SessionD
     extern std::shared_ptr<magma::SessionStateEnforcer> conv_session_enforcer;
+    std::unordered_multimap<std::string, uint32_t> pdr_map;
     conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
-        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig,
-        config["session_force_termination_timeout_ms"].as<long>());
+        rule_store, *session_store, pdr_map, pipelined_client, amf_srv_client,
+        mconfig, config["session_force_termination_timeout_ms"].as<long>(),
+        session_max_rtx_count);
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(

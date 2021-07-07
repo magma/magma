@@ -41,7 +41,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating service: %s", err)
 	}
-	db, err := sqorc.Open(storage2.SQLDriver, storage2.DatabaseSource)
+	db, err := sqorc.Open(storage2.GetSQLDriver(), storage2.GetDatabaseSource())
 	if err != nil {
 		glog.Fatalf("Failed to connect to database: %s", err)
 	}

@@ -18,9 +18,13 @@ import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Secti
 import AlarmIcon from '@material-ui/icons/Alarm';
 import AlarmsDashboard from '../../views/alarms/AlarmsDashboard';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+import DashboardIcon from '@material-ui/icons/Dashboard';
 import FEGConfigure from './FEGConfigure';
+import FEGDashboard from '../../views/dashboard/feg/FEGDashboard';
 import FEGGateways from './FEGGateways';
 import FEGMetrics from './FEGMetrics';
+import FEGNetworkDashboard from '../../views/network/FEGNetworkDashboard';
+import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import React from 'react';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
@@ -32,6 +36,12 @@ export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
       label: 'Gateways',
       icon: <CellWifiIcon />,
       component: FEGGateways,
+    },
+    {
+      path: 'network',
+      label: 'Network',
+      icon: <NetworkCheckIcon />,
+      component: FEGNetworkDashboard,
     },
     {
       path: 'configure',
@@ -55,6 +65,16 @@ export function getFEGSections(dashboardV2Enabled: boolean): SectionsConfigs {
 
   if (dashboardV2Enabled) {
     // TODO add equipment, policy and subscriber section
+    sections.splice(0, 0, {
+      path: 'dashboard',
+      label: 'Dashboard',
+      icon: <DashboardIcon />,
+      component: FEGDashboard,
+    });
+    return [
+      'dashboard', //landing path
+      sections,
+    ];
   }
 
   return [
