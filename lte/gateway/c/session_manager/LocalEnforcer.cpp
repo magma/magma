@@ -211,7 +211,7 @@ void LocalEnforcer::handle_session_update_response(
 }
 
 void LocalEnforcer::check_usage_for_reporting(
-    SessionMap session_map, SessionUpdate& session_uc) {
+    SessionMap& session_map, SessionUpdate& session_uc) {
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto request = collect_updates(session_map, actions, session_uc);
   execute_actions(session_map, actions, session_uc);
@@ -258,7 +258,7 @@ void LocalEnforcer::handle_pipelined_response(
     MLOG(MDEBUG) << "Aggregating " << resp.records_size() << " records";
     aggregate_records(session_map, resp, update);
 
-    check_usage_for_reporting(std::move(session_map), update);
+    check_usage_for_reporting(session_map, update);
   }
 }
 
