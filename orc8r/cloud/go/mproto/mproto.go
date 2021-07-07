@@ -78,8 +78,8 @@ func MarshalDeterministic(pb proto.Message) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-// UnmarshalDeterministic decodes the proto message serialized by MarshalDeterministic.
-func UnmarshalDeterministic(buf []byte, pb proto.Message) error {
+// Unmarshal decodes the proto message serialized by MarshalDeterministic.
+func Unmarshal(buf []byte, pb proto.Message) error {
 	err := proto.Unmarshal(buf, pb)
 	return err
 }

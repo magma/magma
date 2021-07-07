@@ -34,10 +34,10 @@ import (
 
 type subscriberdbServicer struct {
 	flatDigestEnabled bool
-	digestStore       storage.DigestLookup
+	digestStore       storage.DigestStore
 }
 
-func NewSubscriberdbServicer(config subscriberdb.Config, digestStore storage.DigestLookup) lte_protos.SubscriberDBCloudServer {
+func NewSubscriberdbServicer(config subscriberdb.Config, digestStore storage.DigestStore) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
 		flatDigestEnabled: config.FlatDigestEnabled,
 		digestStore:       digestStore,

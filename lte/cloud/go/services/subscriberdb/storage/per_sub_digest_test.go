@@ -25,32 +25,32 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestPerSubDigestLookup(t *testing.T) {
+func TestPerSubDigestStore(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	fact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
-	s := storage.NewPerSubDigestLookup(fact)
+	s := storage.NewPerSubDigestStore(fact)
 
 	t.Run("empty initially", func(t *testing.T) {
 		digest, err := s.GetDigest("n0")
 		assert.NoError(t, err)
-		checkPerSubDigests(t, []*lte_protos.SubscriberDigestByID{}, digest)
+		checkPerSubDigests(t, []*lte_protos.SubscriberDigestWithID{}, digest)
 	})
 
 	t.Run("basic insert", func(t *testing.T) {
-		expected := []*lte_protos.SubscriberDigestByID{
+		expected := []*lte_protos.SubscriberDigestWithID{
 			{
-				Sid:    &lte_protos.SubscriberID{Id: "00000", Type: lte_protos.SubscriberID_IMSI},
+				Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
 				Digest: &lte_protos.Digest{Md5Base64Digest: "apple"},
 			},
 			{
-				Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
-				Digest: &lte_protos.Digest{Md5Base64Digest: "lemon"},
+				Sid:    &lte_protos.SubscriberID{Id: "00002", Type: lte_protos.SubscriberID_IMSI},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "banana"},
 			},
 			{
-				Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
-				Digest: &lte_protos.Digest{Md5Base64Digest: "peach"},
+				Sid:    &lte_protos.SubscriberID{Id: "00003", Type: lte_protos.SubscriberID_IMSI},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"},
 			},
 		}
 		err = s.SetDigest("n0", expected)
@@ -62,18 +62,18 @@ func TestPerSubDigestLookup(t *testing.T) {
 	})
 
 	t.Run("upsert", func(t *testing.T) {
-		expected := []*lte_protos.SubscriberDigestByID{
+		expected := []*lte_protos.SubscriberDigestWithID{
 			{
 				Sid:    &lte_protos.SubscriberID{Id: "00001", Type: lte_protos.SubscriberID_IMSI},
-				Digest: &lte_protos.Digest{Md5Base64Digest: "turtle"},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "apple2"},
 			},
 			{
 				Sid:    &lte_protos.SubscriberID{Id: "00003", Type: lte_protos.SubscriberID_IMSI},
-				Digest: &lte_protos.Digest{Md5Base64Digest: "donkey"},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "cherry2"},
 			},
 			{
 				Sid:    &lte_protos.SubscriberID{Id: "00004", Type: lte_protos.SubscriberID_IMSI},
-				Digest: &lte_protos.Digest{Md5Base64Digest: "monkey"},
+				Digest: &lte_protos.Digest{Md5Base64Digest: "dragonfruit"},
 			},
 		}
 		// The upserted set should completely replace the original set
@@ -96,11 +96,11 @@ func TestPerSubDigestLookup(t *testing.T) {
 
 		got, err := s.GetDigest("n0")
 		assert.NoError(t, err)
-		checkPerSubDigests(t, []*lte_protos.SubscriberDigestByID{}, got)
+		checkPerSubDigests(t, []*lte_protos.SubscriberDigestWithID{}, got)
 
 		got, err = s.GetDigest("n1")
 		assert.NoError(t, err)
-		checkPerSubDigests(t, []*lte_protos.SubscriberDigestByID{}, got)
+		checkPerSubDigests(t, []*lte_protos.SubscriberDigestWithID{}, got)
 
 		// Deleting digests of a non-existent network shouldn't cause an error
 		err = s.DeleteDigests([]string{"n2"})
@@ -108,7 +108,7 @@ func TestPerSubDigestLookup(t *testing.T) {
 	})
 }
 
-func checkPerSubDigests(t *testing.T, expected []*lte_protos.SubscriberDigestByID, got []*lte_protos.SubscriberDigestByID) {
+func checkPerSubDigests(t *testing.T, expected []*lte_protos.SubscriberDigestWithID, got []*lte_protos.SubscriberDigestWithID) {
 	assert.Equal(t, len(expected), len(got))
 	for ind := range expected {
 		assert.Equal(t, expected[ind].Digest.GetMd5Base64Digest(), got[ind].Digest.GetMd5Base64Digest())

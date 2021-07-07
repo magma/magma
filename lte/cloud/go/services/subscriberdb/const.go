@@ -18,7 +18,6 @@ const (
 
 	EntityType = "subscriber"
 
-	LookupTableBlobstore = "subscriber_lookup_blobstore"
-
+	LookupTableBlobstore       = "subscriber_lookup_blobstore"
 	PerSubDigestTableBlobstore = "per_sub_digest_blobstore"
 )

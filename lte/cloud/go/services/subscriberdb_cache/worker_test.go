@@ -18,7 +18,6 @@ import (
 	"time"
 
 	"magma/lte/cloud/go/lte"
-	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
@@ -39,11 +38,11 @@ import (
 func TestSubscriberdbCacheWorker(t *testing.T) {
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	digestStore := storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	digestStore := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, digestStore.Initialize())
-	fact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
 	assert.NoError(t, fact.InitializeFactory())
-	perSubDigestStore := storage.NewPerSubDigestLookup(fact)
+	perSubDigestStore := storage.NewPerSubDigestStore(fact)
 	serviceConfig := subscriberdb_cache.Config{
 		SleepIntervalSecs:  5,
 		UpdateIntervalSecs: 300,
@@ -54,24 +53,25 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 
 	allNetworks, err := storage.GetAllNetworks(digestStore)
 	assert.NoError(t, err)
-	assert.Equal(t, []string{}, allNetworks)
+	assert.Empty(t, allNetworks)
 	digest, err := storage.GetDigest(digestStore, "n1")
 	assert.NoError(t, err)
-	assert.Equal(t, "", digest)
+	assert.Empty(t, digest)
 	perSubDigests, err := perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(perSubDigests))
+	assert.Empty(t, perSubDigests)
 
 	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
-	subscriberdb_cache.RenewDigests(digestStore, perSubDigestStore, serviceConfig)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore)
+	assert.NoError(t, err)
 	digest, err = storage.GetDigest(digestStore, "n1")
 	assert.NoError(t, err)
-	assert.NotEqual(t, "", digest)
+	assert.NotEmpty(t, digest)
 	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, 0, len(perSubDigests))
+	assert.Empty(t, perSubDigests)
 	digestExpected := digest
 
 	// Detect outdated digests and update
@@ -100,7 +100,8 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.NoError(t, err)
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(10*time.Minute))
-	subscriberdb_cache.RenewDigests(digestStore, perSubDigestStore, serviceConfig)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore)
+	assert.NoError(t, err)
 	digest, err = storage.GetDigest(digestStore, "n1")
 	assert.NoError(t, err)
 	assert.NotEqual(t, digestExpected, digest)
@@ -109,9 +110,9 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	assert.NoError(t, err)
 	// The individual subscriber digests are ordered by subscriber ID
 	assert.Equal(t, "11111", perSubDigests[0].Sid.Id)
-	assert.NotEqual(t, "", perSubDigests[0].Digest.GetMd5Base64Digest())
+	assert.NotEmpty(t, perSubDigests[0].Digest.GetMd5Base64Digest())
 	assert.Equal(t, "99999", perSubDigests[1].Sid.Id)
-	assert.NotEqual(t, "", perSubDigests[1].Digest.GetMd5Base64Digest())
+	assert.NotEmpty(t, perSubDigests[1].Digest.GetMd5Base64Digest())
 	clock.UnfreezeClock(t)
 
 	// Detect newly added and removed networks
@@ -120,20 +121,21 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 	configurator.DeleteNetwork("n1")
 
 	clock.SetAndFreezeClock(t, clock.Now().Add(20*time.Minute))
-	subscriberdb_cache.RenewDigests(digestStore, perSubDigestStore, serviceConfig)
+	_, _, err = subscriberdb_cache.RenewDigests(serviceConfig, digestStore, perSubDigestStore)
+	assert.NoError(t, err)
 	digest, err = storage.GetDigest(digestStore, "n1")
 	assert.NoError(t, err)
-	assert.Equal(t, "", digest)
+	assert.Empty(t, digest)
 	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, []*lte_protos.SubscriberDigestByID{}, perSubDigests)
+	assert.Empty(t, perSubDigests)
 
 	digest, err = storage.GetDigest(digestStore, "n2")
 	assert.NoError(t, err)
-	assert.NotEqual(t, "", digest)
+	assert.NotEmpty(t, digest)
 	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, []*lte_protos.SubscriberDigestByID{}, perSubDigests)
+	assert.Empty(t, perSubDigests)
 
 	allNetworks, err = storage.GetAllNetworks(digestStore)
 	assert.NoError(t, err)

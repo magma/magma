@@ -23,13 +23,13 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDigestLookup(t *testing.T) {
+func TestDigestStore(t *testing.T) {
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
-	s := storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	s := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, s.Initialize())
 
-	t.Run("empty initially", func(t *testing.T) {
+	t.Run("return default value when empty", func(t *testing.T) {
 		digest, err := storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
 		assert.Equal(t, "", digest)
@@ -42,9 +42,9 @@ func TestDigestLookup(t *testing.T) {
 	t.Run("basic insert", func(t *testing.T) {
 		err = s.SetDigest("n0", "apple")
 		assert.NoError(t, err)
-		err = s.SetDigest("n1", "lemon")
+		err = s.SetDigest("n1", "banana")
 		assert.NoError(t, err)
-		err = s.SetDigest("n2", "peach")
+		err = s.SetDigest("n2", "cherry")
 		assert.NoError(t, err)
 
 		networkIDs, err := storage.GetAllNetworks(s)
@@ -56,24 +56,24 @@ func TestDigestLookup(t *testing.T) {
 		assert.Equal(t, "apple", digest)
 		digest, err = storage.GetDigest(s, "n1")
 		assert.NoError(t, err)
-		assert.Equal(t, "lemon", digest)
+		assert.Equal(t, "banana", digest)
 		digest, err = storage.GetDigest(s, "n2")
 		assert.NoError(t, err)
-		assert.Equal(t, "peach", digest)
+		assert.Equal(t, "cherry", digest)
 	})
 
 	t.Run("upsert", func(t *testing.T) {
-		err = s.SetDigest("n0", "banana")
+		err = s.SetDigest("n0", "apple2")
 		assert.NoError(t, err)
 		digest, err := storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
-		assert.Equal(t, "banana", digest)
+		assert.Equal(t, "apple2", digest)
 
-		err = s.SetDigest("n0", "watermelon")
+		err = s.SetDigest("n0", "apple3")
 		assert.NoError(t, err)
 		digest, err = storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
-		assert.Equal(t, "watermelon", digest)
+		assert.Equal(t, "apple3", digest)
 	})
 
 	t.Run("get outdated", func(t *testing.T) {
@@ -96,9 +96,9 @@ func TestDigestLookup(t *testing.T) {
 
 		digest, err := storage.GetDigest(s, "n1")
 		assert.NoError(t, err)
-		assert.Equal(t, "", digest)
+		assert.Empty(t, digest)
 		digest, err = storage.GetDigest(s, "n0")
 		assert.NoError(t, err)
-		assert.Equal(t, "watermelon", digest)
+		assert.Equal(t, "apple3", digest)
 	})
 }

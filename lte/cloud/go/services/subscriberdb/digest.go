@@ -25,6 +25,7 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
+	"github.com/pkg/errors"
 )
 
 const defaultSubProfile = "default"
@@ -53,8 +54,8 @@ func GetDigest(network string) (string, error) {
 	return digest, nil
 }
 
-// GetPerSubDigests generates a set of individual subscriber digests ordered by their IDs.
-func GetPerSubDigests(network string) ([]*lte_protos.SubscriberDigestByID, error) {
+// GetPerSubscriberDigests generates a set of individual subscriber digests ordered by their IDs.
+func GetPerSubscriberDigests(network string) ([]*lte_protos.SubscriberDigestWithID, error) {
 	// HACK: apn resources digest is concatenated to every individual subscriber digest
 	// so that the entire set of per-sub digests would capture changes in apn resources
 	apnDigest, err := getApnResourcesDigest(network)
@@ -67,11 +68,11 @@ func GetPerSubDigests(network string) ([]*lte_protos.SubscriberDigestByID, error
 	if err != nil {
 		return nil, err
 	}
-	perSubDigests := []*lte_protos.SubscriberDigestByID{}
+	perSubDigests := []*lte_protos.SubscriberDigestWithID{}
 	token := ""
 	foundEmptyToken := false
 	for !foundEmptyToken {
-		// the resultant subProtos lists are already ordered by subscriber id due to the nature
+		// The resultant subProtos lists are already ordered by subscriber id due to the nature
 		// of LoadSubProtosPage
 		subProtos, nextToken, err := LoadSubProtosPage(0, token, network, apnsByName, lte_models.ApnResources{})
 		if err != nil {
@@ -80,12 +81,10 @@ func GetPerSubDigests(network string) ([]*lte_protos.SubscriberDigestByID, error
 		for _, subProto := range subProtos {
 			digest, err := mproto.HashDeterministic(subProto)
 			if err != nil {
-				// Swallow errors related to a single subscriber digest to avoid affecting the rest
-				glog.Errorf("Failed to generate digest for subscriber %+v of network %+v: %+v", subProto.Sid.Id, network, err)
-				digest = ""
+				return nil, errors.Wrapf(err, "Failed to generate digest for subscriber %+v of network %+v", subProto.Sid.Id, network)
 			}
 			fullDigest := digest + apnDigest
-			perSubDigest := &lte_protos.SubscriberDigestByID{
+			perSubDigest := &lte_protos.SubscriberDigestWithID{
 				Digest: &lte_protos.Digest{Md5Base64Digest: fullDigest},
 				Sid:    subProto.Sid,
 			}
@@ -98,30 +97,28 @@ func GetPerSubDigests(network string) ([]*lte_protos.SubscriberDigestByID, error
 	return perSubDigests, nil
 }
 
-// GetPerSubDigestsDiff computes the changeset between two lists of per-subscriber digests,
+// GetPerSubscriberDigestsDiff computes the changeset between two lists of per-subscriber digests,
 // ordered by their subscriber IDs (unique within a network). It returns
 // 1. A set of subscribers that have been added/modified, with the new digests.
-// 2. A list of subscribers that have been removed.
-func GetPerSubDigestsDiff(
-	all []*lte_protos.SubscriberDigestByID,
-	tracked []*lte_protos.SubscriberDigestByID,
-) (map[string]string, []string) {
+// 2. An ordered list of subscribers that have been removed.
+func GetPerSubscriberDigestsDiff(all []*lte_protos.SubscriberDigestWithID, tracked []*lte_protos.SubscriberDigestWithID) (map[string]string, []string) {
 	n, m, i, j := len(all), len(tracked), 0, 0
 	toRenew := map[string]string{}
 	deleted := []string{}
 
 	for i < n && j < m {
-		if all[i].Sid.Id == tracked[j].Sid.Id {
+		iSid, jSid := all[i].Sid.Id, tracked[j].Sid.Id
+		if iSid == jSid {
 			if all[i].Digest.Md5Base64Digest != tracked[j].Digest.Md5Base64Digest {
-				toRenew[all[i].Sid.Id] = all[i].Digest.Md5Base64Digest
+				toRenew[iSid] = all[i].Digest.Md5Base64Digest
 			}
 			i++
 			j++
-		} else if all[i].Sid.Id > tracked[j].Sid.Id {
-			deleted = append(deleted, tracked[j].Sid.Id)
+		} else if iSid > jSid {
+			deleted = append(deleted, jSid)
 			j++
 		} else {
-			toRenew[all[i].Sid.Id] = all[i].Digest.Md5Base64Digest
+			toRenew[iSid] = all[i].Digest.Md5Base64Digest
 			i++
 		}
 	}

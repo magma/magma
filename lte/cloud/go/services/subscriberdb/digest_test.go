@@ -133,7 +133,8 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 	gw3, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g3"}, serdes.Entity)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities("n1",
+	_, err = configurator.CreateEntities(
+		"n1",
 		[]configurator.NetworkEntity{
 			{
 				Type: lte.APNEntityType, Key: "apn1",
@@ -143,7 +144,8 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 				Type: lte.APNEntityType, Key: "apn2",
 				Config: &lte_models.ApnConfiguration{},
 			},
-		}, serdes.Entity,
+		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -253,85 +255,92 @@ func TestGetDigestApnResourceAssocs(t *testing.T) {
 	assert.NotEqual(t, expected, digest)
 }
 
-func TestGetPerSubDigests(t *testing.T) {
+func TestGetPerSubscriberDigests(t *testing.T) {
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
-	assert.NoError(t, err)
 	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
-	// Initially there should only be the placeholder apn digest in the generated digest map
-	perSubDigests, err := subscriberdb.GetPerSubDigests("n1")
+	// Initially the per-sub digest list should be empty (but not nil)
+	perSubDigests, err := subscriberdb.GetPerSubscriberDigests("n1")
 	assert.NoError(t, err)
-	assert.Equal(t, []*lte_protos.SubscriberDigestByID{}, perSubDigests)
+	assert.Empty(t, []*lte_protos.SubscriberDigestWithID{}, perSubDigests)
 
 	// Generate individual digests for each newly detected subscriber in the network
-	_, err = configurator.CreateEntities("n1", configurator.NetworkEntities{
-		configurator.NetworkEntity{
-			Type: lte.SubscriberEntityType, Key: "IMSI0001",
-			Config: &models.SubscriberConfig{
-				Lte: &models.LteSubscription{State: "ACTIVE"},
+	_, err = configurator.CreateEntities(
+		"n1",
+		configurator.NetworkEntities{
+			configurator.NetworkEntity{
+				Type: lte.SubscriberEntityType, Key: "IMSI0001",
+				Config: &models.SubscriberConfig{
+					Lte: &models.LteSubscription{State: "ACTIVE"},
+				},
+			},
+			configurator.NetworkEntity{
+				Type: lte.SubscriberEntityType, Key: "IMSI0002",
+				Config: &models.SubscriberConfig{
+					Lte: &models.LteSubscription{State: "ACTIVE"},
+				},
+			},
+			configurator.NetworkEntity{
+				Type: lte.APNEntityType, Key: "apn",
+				Config: &lte_models.ApnConfiguration{},
 			},
 		},
-		configurator.NetworkEntity{
-			Type: lte.SubscriberEntityType, Key: "IMSI0002",
-			Config: &models.SubscriberConfig{
-				Lte: &models.LteSubscription{State: "ACTIVE"},
-			},
-		},
-		configurator.NetworkEntity{
-			Type: lte.APNEntityType, Key: "apn",
-			Config: &lte_models.ApnConfiguration{},
-		},
-	}, serdes.Entity)
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
-	perSubDigests, err = subscriberdb.GetPerSubDigests("n1")
+	perSubDigests, err = subscriberdb.GetPerSubscriberDigests("n1")
 	assert.NoError(t, err)
+	assert.Len(t, perSubDigests, 2)
 	assert.Equal(t, "0001", perSubDigests[0].Sid.Id)
-	assert.NotEqual(t, "", perSubDigests[0].Digest.Md5Base64Digest)
+	assert.NotEmpty(t, perSubDigests[0].Digest.Md5Base64Digest)
 	assert.Equal(t, "0002", perSubDigests[1].Sid.Id)
-	assert.NotEqual(t, "", perSubDigests[1].Digest.Md5Base64Digest)
+	assert.NotEmpty(t, perSubDigests[1].Digest.Md5Base64Digest)
 	digestSub1 := perSubDigests[0].Digest.Md5Base64Digest
 
-	// Detect changes in subscriber data and reflect them in the generated digests
-	_, err = configurator.CreateEntity("n1",
+	_, err = configurator.CreateEntity(
+		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI0003",
 			Config: &models.SubscriberConfig{
 				Lte: &models.LteSubscription{State: "ACTIVE"},
 			},
-		}, serdes.Entity,
+		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	err = configurator.DeleteEntity("n1", lte.SubscriberEntityType, "IMSI0001")
 	assert.NoError(t, err)
 	err = configurator.DeleteEntity("n1", lte.SubscriberEntityType, "IMSI0002")
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1",
+	_, err = configurator.CreateEntity(
+		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI0001",
 			Config: &models.SubscriberConfig{
 				Lte: &models.LteSubscription{State: "INACTIVE"},
 			},
-		}, serdes.Entity,
+		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
-	perSubDigests, err = subscriberdb.GetPerSubDigests("n1")
+	// Detect changes in subscriber data and reflect them in the generated digests
+	perSubDigests, err = subscriberdb.GetPerSubscriberDigests("n1")
 	assert.NoError(t, err)
+	assert.Len(t, perSubDigests, 2)
 	assert.Equal(t, "0001", perSubDigests[0].Sid.Id)
 	assert.NotEqual(t, digestSub1, perSubDigests[0].Digest.Md5Base64Digest)
 	assert.Equal(t, "0003", perSubDigests[1].Sid.Id)
-	assert.NotEqual(t, "", perSubDigests[1].Digest.Md5Base64Digest)
+	assert.NotEmpty(t, perSubDigests[1].Digest.Md5Base64Digest)
 	digestSub1 = perSubDigests[0].Digest.Md5Base64Digest
 	digestSub3 := perSubDigests[1].Digest.Md5Base64Digest
 
-	// Detect changes in apn resources data and reflect them in the ENTIRE set of generated digests
 	var writes []configurator.EntityWriteOperation
 	writes = append(writes, configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -355,90 +364,92 @@ func TestGetPerSubDigests(t *testing.T) {
 	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
-	perSubDigests, err = subscriberdb.GetPerSubDigests("n1")
+	// Detect changes in apn resources data and reflect them in the ENTIRE set of generated digests
+	perSubDigests, err = subscriberdb.GetPerSubscriberDigests("n1")
 	assert.NoError(t, err)
+	assert.Len(t, perSubDigests, 2)
 	assert.Equal(t, "0001", perSubDigests[0].Sid.Id)
 	assert.NotEqual(t, digestSub1, perSubDigests[0].Digest.Md5Base64Digest)
 	assert.Equal(t, "0003", perSubDigests[1].Sid.Id)
 	assert.NotEqual(t, digestSub3, perSubDigests[1].Digest.Md5Base64Digest)
 }
 
-func TestGetPerSubDigestsDiff(t *testing.T) {
+func TestGetPerSubscriberDigestsDiff(t *testing.T) {
 	t.Run("both empty", func(t *testing.T) {
-		all, tracked := []*lte_protos.SubscriberDigestByID{}, []*lte_protos.SubscriberDigestByID{}
-		toRenew, deleted := subscriberdb.GetPerSubDigestsDiff(all, tracked)
-		assert.Equal(t, map[string]string{}, toRenew)
-		assert.Equal(t, []string{}, deleted)
+		next, prev := []*lte_protos.SubscriberDigestWithID{}, []*lte_protos.SubscriberDigestWithID{}
+		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(next, prev)
+		assert.Empty(t, toRenew)
+		assert.Empty(t, deleted)
 	})
 	t.Run("all empty", func(t *testing.T) {
-		all := []*lte_protos.SubscriberDigestByID{}
-		tracked := []*lte_protos.SubscriberDigestByID{
+		next := []*lte_protos.SubscriberDigestWithID{}
+		prev := []*lte_protos.SubscriberDigestWithID{
 			{Sid: &lte_protos.SubscriberID{Id: "00000"}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
 		}
-		toRenew, deleted := subscriberdb.GetPerSubDigestsDiff(all, tracked)
+		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(next, prev)
 
-		assert.Equal(t, map[string]string{}, toRenew)
+		assert.Empty(t, toRenew)
 		assert.Equal(t, []string{"00000", "00001", "00002"}, deleted)
 	})
 	t.Run("tracked empty", func(t *testing.T) {
-		all := []*lte_protos.SubscriberDigestByID{
+		next := []*lte_protos.SubscriberDigestWithID{
 			{Sid: &lte_protos.SubscriberID{Id: "00000"}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
 		}
-		tracked := []*lte_protos.SubscriberDigestByID{}
-		toRenew, deleted := subscriberdb.GetPerSubDigestsDiff(all, tracked)
+		prev := []*lte_protos.SubscriberDigestWithID{}
+		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(next, prev)
 
 		assert.Equal(t, map[string]string{
 			"00000": "apple",
 			"00001": "banana",
 			"00002": "cherry",
 		}, toRenew)
-		assert.Equal(t, []string{}, deleted)
+		assert.Empty(t, deleted)
 	})
-	t.Run("both not empty, case 1", func(t *testing.T) {
-		all := []*lte_protos.SubscriberDigestByID{
+	t.Run("both not empty, basic", func(t *testing.T) {
+		next := []*lte_protos.SubscriberDigestWithID{
 			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana2"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00003"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
 		}
-		tracked := []*lte_protos.SubscriberDigestByID{
-			{Sid: &lte_protos.SubscriberID{Id: "00000"}, Digest: &lte_protos.Digest{Md5Base64Digest: "citrus"}},
+		prev := []*lte_protos.SubscriberDigestWithID{
 			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "apple"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00004"}, Digest: &lte_protos.Digest{Md5Base64Digest: "dragonfruit"}},
 		}
-		toRenew, deleted := subscriberdb.GetPerSubDigestsDiff(all, tracked)
+		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(next, prev)
 		assert.Equal(t, map[string]string{
-			"00002": "banana",
+			"00002": "banana2",
 			"00003": "cherry",
 		}, toRenew)
-		assert.Equal(t, []string{"00000"}, deleted)
+		assert.Equal(t, []string{"00004"}, deleted)
 	})
-	t.Run("both not empty, case 2", func(t *testing.T) {
-		all := []*lte_protos.SubscriberDigestByID{
+	t.Run("both not empty, involved", func(t *testing.T) {
+		next := []*lte_protos.SubscriberDigestWithID{
 			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "orange"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00003"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00005"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cactus"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00006"}, Digest: &lte_protos.Digest{Md5Base64Digest: "sand"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00008"}, Digest: &lte_protos.Digest{Md5Base64Digest: "dirt"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00005"}, Digest: &lte_protos.Digest{Md5Base64Digest: "eggplant"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00006"}, Digest: &lte_protos.Digest{Md5Base64Digest: "fig2"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00008"}, Digest: &lte_protos.Digest{Md5Base64Digest: "honeydew"}},
 		}
-		tracked := []*lte_protos.SubscriberDigestByID{
-			{Sid: &lte_protos.SubscriberID{Id: "00000"}, Digest: &lte_protos.Digest{Md5Base64Digest: "citrus"}},
+		prev := []*lte_protos.SubscriberDigestWithID{
 			{Sid: &lte_protos.SubscriberID{Id: "00001"}, Digest: &lte_protos.Digest{Md5Base64Digest: "orange"}},
 			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "banana"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00004"}, Digest: &lte_protos.Digest{Md5Base64Digest: "sky"}},
-			{Sid: &lte_protos.SubscriberID{Id: "00006"}, Digest: &lte_protos.Digest{Md5Base64Digest: "bird"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00004"}, Digest: &lte_protos.Digest{Md5Base64Digest: "dragonfruit"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00006"}, Digest: &lte_protos.Digest{Md5Base64Digest: "fig"}},
+			{Sid: &lte_protos.SubscriberID{Id: "00007"}, Digest: &lte_protos.Digest{Md5Base64Digest: "grape"}},
 		}
-		toRenew, deleted := subscriberdb.GetPerSubDigestsDiff(all, tracked)
+		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(next, prev)
 		assert.Equal(t, map[string]string{
 			"00003": "cherry",
-			"00005": "cactus",
-			"00006": "sand",
-			"00008": "dirt",
+			"00005": "eggplant",
+			"00006": "fig2",
+			"00008": "honeydew",
 		}, toRenew)
-		assert.Equal(t, []string{"00000", "00004"}, deleted)
+		assert.Equal(t, []string{"00004", "00007"}, deleted)
 	})
 }

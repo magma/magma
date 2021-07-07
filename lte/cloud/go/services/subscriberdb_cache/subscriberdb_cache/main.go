@@ -36,7 +36,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error opening db connection: %+v", err)
 	}
-	digestStore := subscriberdb_storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	digestStore := subscriberdb_storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	if err := digestStore.Initialize(); err != nil {
 		glog.Fatalf("Error initializing digest storage: %+v", err)
 	}
@@ -45,12 +45,12 @@ func main() {
 	if err := fact.InitializeFactory(); err != nil {
 		glog.Fatalf("Error initializing per-sub digest storage: %+v", err)
 	}
-	perSubDigestStore := subscriberdb_storage.NewPerSubDigestLookup(fact)
+	perSubDigestStore := subscriberdb_storage.NewPerSubDigestStore(fact)
 
 	serviceConfig := subscriberdb_cache.MustGetServiceConfig()
 	glog.Infof("Subscriberdb_cache service config %+v", serviceConfig)
 
-	go subscriberdb_cache.MonitorDigests(digestStore, perSubDigestStore, serviceConfig)
+	go subscriberdb_cache.MonitorDigests(serviceConfig, digestStore, perSubDigestStore)
 
 	err = srv.Run()
 	if err != nil {

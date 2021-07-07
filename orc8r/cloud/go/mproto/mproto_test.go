@@ -140,24 +140,16 @@ func getTestDataCompound() []*test.TestDataCompound {
 	}
 }
 
-func TestUnmarshalDeterministic(t *testing.T) {
-	basicProto1 := &test.TestDataBasic{Key: "12345", Value: 10}
-	serialized, err := mproto.MarshalDeterministic(basicProto1)
+func TestUnmarshal(t *testing.T) {
+	basicProto := &test.TestDataBasic{Key: "12345", Value: 10}
+	serialized, err := mproto.MarshalDeterministic(basicProto)
 	assert.NoError(t, err)
 	basicBuf := &test.TestDataBasic{}
-	err = mproto.UnmarshalDeterministic(serialized, basicBuf)
+	err = mproto.Unmarshal(serialized, basicBuf)
 	assert.NoError(t, err)
-	assertEqualTestDataBasic(t, basicProto1, basicBuf)
+	assertEqualTestDataBasic(t, basicProto, basicBuf)
 
-	basicProto2 := &test.TestDataBasic{}
-	serialized, err = mproto.MarshalDeterministic(basicProto2)
-	assert.NoError(t, err)
-	basicBuf = &test.TestDataBasic{}
-	err = mproto.UnmarshalDeterministic(serialized, basicBuf)
-	assert.NoError(t, err)
-	assertEqualTestDataBasic(t, basicProto2, basicBuf)
-
-	compoundProto1 := &test.TestDataCompound{
+	compoundProto := &test.TestDataCompound{
 		Id:         "c2",
 		SingleData: &test.TestDataBasic{Key: "23456", Value: 15},
 		DataMap: map[string]*test.TestDataBasic{
@@ -171,20 +163,21 @@ func TestUnmarshalDeterministic(t *testing.T) {
 			{Key: "23456", Value: 15},
 		},
 	}
-	serialized, err = mproto.MarshalDeterministic(compoundProto1)
+	serialized, err = mproto.MarshalDeterministic(compoundProto)
 	assert.NoError(t, err)
 	compoundBuf := &test.TestDataCompound{}
-	err = mproto.UnmarshalDeterministic(serialized, compoundBuf)
+	err = mproto.Unmarshal(serialized, compoundBuf)
 	assert.NoError(t, err)
-	assertEqualTestDataCompound(t, compoundProto1, compoundBuf)
-
-	compoundProto2 := &test.TestDataCompound{}
-	serialized, err = mproto.MarshalDeterministic(compoundProto2)
-	assert.NoError(t, err)
-	compoundBuf = &test.TestDataCompound{}
-	err = mproto.UnmarshalDeterministic(serialized, compoundBuf)
-	assert.NoError(t, err)
-	assertEqualTestDataCompound(t, compoundProto2, compoundBuf)
+	assert.Equal(t, compoundProto.Id, compoundBuf.Id)
+	assertEqualTestDataBasic(t, compoundProto.SingleData, compoundBuf.SingleData)
+	assert.Equal(t, len(compoundProto.DataMap), len(compoundBuf.DataMap))
+	for k := range compoundProto.DataMap {
+		assertEqualTestDataBasic(t, compoundProto.DataMap[k], compoundBuf.DataMap[k])
+	}
+	assert.Equal(t, len(compoundProto.DataSlice), len(compoundBuf.DataSlice))
+	for i := range compoundProto.DataSlice {
+		assertEqualTestDataBasic(t, compoundProto.DataSlice[i], compoundBuf.DataSlice[i])
+	}
 }
 
 func assertEqualTestDataBasic(t *testing.T, expected *test.TestDataBasic, got *test.TestDataBasic) {
@@ -194,24 +187,4 @@ func assertEqualTestDataBasic(t *testing.T, expected *test.TestDataBasic, got *t
 	}
 	assert.Equal(t, expected.Key, got.Key)
 	assert.Equal(t, expected.Value, got.Value)
-}
-
-func assertEqualTestDataCompound(t *testing.T, expected *test.TestDataCompound, got *test.TestDataCompound) {
-	if expected == nil {
-		assert.Nil(t, got)
-		return
-	}
-	assert.Equal(t, expected.Id, got.Id)
-	assertEqualTestDataBasic(t, expected.SingleData, got.SingleData)
-
-	assert.Equal(t, len(expected.DataMap), len(got.DataMap))
-	for key, expectedValue := range expected.DataMap {
-		gotValue, ok := got.DataMap[key]
-		assert.True(t, ok)
-		assertEqualTestDataBasic(t, expectedValue, gotValue)
-	}
-	assert.Equal(t, len(expected.DataSlice), len(got.DataSlice))
-	for i := range expected.DataSlice {
-		assertEqualTestDataBasic(t, expected.DataSlice[i], got.DataSlice[i])
-	}
 }
