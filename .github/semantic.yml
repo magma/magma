@@ -1,5 +1,4 @@
-# This config is for https://github.com/zeke/semantic-pull-requests
-#
+# Ref: https://github.com/zeke/semantic-pull-requests#configuration
 
 # Always validate the PR title, and ignore the commits
 titleOnly: true
@@ -13,7 +12,7 @@ titleAndCommits: false
 # Require at least one commit to be valid
 # this is only relevant when using commitsOnly: true or titleAndCommits: true,
 # which validate all commits by default
-anyCommit: true
+anyCommit: false
 
 scopes:
   - orc8r
@@ -45,21 +44,6 @@ scopes:
   - upf
   - smf
   - amf
-
-# By default types specified in commitizen/conventional-commit-types is used.
-# See: https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json
-# You can override the valid types
-types:
-  - feat
-  - fix
-  - docs
-  - style
-  - refactor
-  - perf
-  - test
-  - build
-  - chore
-  - revert
 
 # Allow use of Merge commits (eg on github: "Merge branch 'master' into feature/ride-unicorns")
 # this is only relevant when using commitsOnly: true (or titleAndCommits: true)
