@@ -70,7 +70,7 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
         Returns:
             CheckSubscribersInSyncResponse
         """
-        in_sync = request.flat_digest.md5_base64_digest == "digest_pear"
+        in_sync = request.flat_digest.md5_base64_digest == "flat_digest_apple"
         return CheckSubscribersInSyncResponse(in_sync=in_sync)
 
     def SyncSubscribers(self, request, context):
@@ -87,15 +87,15 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
         per_sub_digests = [
             SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI11111'),
-                digest=Digest(md5_base64_digest="digest_banana"),
+                digest=Digest(md5_base64_digest="digest_apple"),
             ),
             SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI22222'),
-                digest=Digest(md5_base64_digest="digest_orange"),
+                digest=Digest(md5_base64_digest="digest_banana"),
             ),
             SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI33333'),
-                digest=Digest(md5_base64_digest="digest_tree"),
+                digest=Digest(md5_base64_digest="digest_cherry"),
             ),
         ]
 
@@ -116,7 +116,7 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
 
         return SyncSubscribersResponse(
             resync=resync,
-            flat_digest=Digest(md5_base64_digest="digest_cherry"),
+            flat_digest=Digest(md5_base64_digest="flat_digest_apple"),
             per_sub_digests=per_sub_digests,
             to_renew=to_renew,
             deleted=deleted,
@@ -147,11 +147,11 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
                 SubscriberData(sid=SubscriberID(id="IMSI111")),
                 SubscriberData(sid=SubscriberID(id="IMSI222")),
             ]
-            flat_digest = Digest(md5_base64_digest="digest_pear")
+            flat_digest = Digest(md5_base64_digest="flat_digest_apple")
             per_sub_digests = [
                 SubscriberDigestWithID(
                     sid=SIDUtils.to_pb("IMSI11111"),
-                    digest=Digest(md5_base64_digest="digest_birch"),
+                    digest=Digest(md5_base64_digest="per_sub_digests_apple"),
                 ),
             ]
         elif request.page_token == "aaa":
@@ -291,11 +291,11 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             )
             self.assertTrue(ret is not None)
             self.assertEqual(self.get_all_subscribers(), ret.subscribers)
-            self.assertEqual("digest_pear", ret.flat_digest.md5_base64_digest)
-            self.assertTrue(len(ret.per_sub_digests) == 1)
+            self.assertEqual("flat_digest_apple", ret.flat_digest.md5_base64_digest)
+            self.assertEqual(1, len(ret.per_sub_digests))
             self.assertEqual(
                 ret.per_sub_digests[0].digest.md5_base64_digest,
-                "digest_birch",
+                "per_sub_digests_apple",
             )
             self.assertEqual(
                 SIDUtils.to_str(ret.per_sub_digests[0].sid),
@@ -382,7 +382,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             )
             self.assertEqual(False, in_sync)
 
-            self.subscriberdb_cloud_client._store.update_digest("digest_pear")
+            self.subscriberdb_cloud_client._store.update_digest("flat_digest_apple")
             in_sync = (
                 await self.subscriberdb_cloud_client._check_subscribers_in_sync()
             )
@@ -413,11 +413,11 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             self.subscriberdb_cloud_client._store.update_per_sub_digests([
                 SubscriberDigestWithID(
                     sid=SIDUtils.to_pb('IMSI11111'),
-                    digest=Digest(md5_base64_digest="digest_banana"),
+                    digest=Digest(md5_base64_digest="digest_apple"),
                 ),
                 SubscriberDigestWithID(
                     sid=SIDUtils.to_pb('IMSI00000'),
-                    digest=Digest(md5_base64_digest="digest_peach"),
+                    digest=Digest(md5_base64_digest="digest_zebra"),
                 ),
             ])
             self.subscriberdb_cloud_client._store.add_subscriber(
@@ -429,12 +429,26 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
 
             # the client subscriber db and per-subscriber digest db are updated
             # when resync is False
+            expected_per_sub_digests = [
+                SubscriberDigestWithID(
+                    sid=SIDUtils.to_pb('IMSI11111'),
+                    digest=Digest(md5_base64_digest="digest_apple"),
+                ),
+                SubscriberDigestWithID(
+                    sid=SIDUtils.to_pb('IMSI22222'),
+                    digest=Digest(md5_base64_digest="digest_banana"),
+                ),
+                SubscriberDigestWithID(
+                    sid=SIDUtils.to_pb('IMSI33333'),
+                    digest=Digest(md5_base64_digest="digest_cherry"),
+                ),
+            ]
             resync = (
                 await self.subscriberdb_cloud_client._sync_subscribers()
             )
             self.assertEqual(False, resync)
             self.assertEqual(
-                "digest_cherry",
+                "flat_digest_apple",
                 self.subscriberdb_cloud_client._store.get_current_digest(),
             )
             self.assertEqual(
@@ -442,20 +456,7 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
                 self.subscriberdb_cloud_client._store.list_subscribers(),
             )
             self.assertEqual(
-                [
-                    SubscriberDigestWithID(
-                        sid=SIDUtils.to_pb('IMSI11111'),
-                        digest=Digest(md5_base64_digest="digest_banana"),
-                    ),
-                    SubscriberDigestWithID(
-                        sid=SIDUtils.to_pb('IMSI22222'),
-                        digest=Digest(md5_base64_digest="digest_orange"),
-                    ),
-                    SubscriberDigestWithID(
-                        sid=SIDUtils.to_pb('IMSI33333'),
-                        digest=Digest(md5_base64_digest="digest_tree"),
-                    ),
-                ],
+                expected_per_sub_digests,
                 self.subscriberdb_cloud_client._store.get_current_per_sub_digests(),
             )
 
