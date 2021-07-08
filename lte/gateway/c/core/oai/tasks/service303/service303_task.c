@@ -145,6 +145,7 @@ static void service303_server_exit(void) {
 }
 
 static void service303_message_exit(void) {
+  stop_timer(&service303_message_task_zmq_ctx, display_stats_timer_id);
   destroy_task_context(&service303_message_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_SERVICE303 terminated\n");
   pthread_exit(NULL);
