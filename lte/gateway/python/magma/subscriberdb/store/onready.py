@@ -53,6 +53,7 @@ class OnDigestsReady:
     the _ready_ event to block until a per-subscriber datastore update is
     triggered.
     """
+
     def __init__(self, loop=None):
         self.loop = loop if loop else asyncio.new_event_loop()
         self.event = asyncio.Event(loop=self.loop)

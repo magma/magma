@@ -15,9 +15,9 @@ import tempfile
 import unittest
 
 from lte.protos.subscriberdb_pb2 import (
-    SubscriberData,
-    SubscriberDigestByID,
     Digest,
+    SubscriberData,
+    SubscriberDigestWithID,
 )
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.base import (
@@ -162,30 +162,30 @@ class StoreTests(unittest.TestCase):
         """
         self.assertEqual(self._store.get_current_per_sub_digests(), [])
         digests1 = [
-            SubscriberDigestByID(
+            SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI11111'),
-                digest=Digest(md5_base64_digest='digest_apple')
+                digest=Digest(md5_base64_digest='digest_apple'),
             ),
-            SubscriberDigestByID(
+            SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI22222'),
-                digest=Digest(md5_base64_digest='digest_cherry')
+                digest=Digest(md5_base64_digest='digest_cherry'),
             ),
         ]
         self._store.update_per_sub_digests(digests1)
         self.assertEqual(self._store.get_current_per_sub_digests(), digests1)
 
         digests2 = [
-            SubscriberDigestByID(
+            SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI11111'),
-                digest=Digest(md5_base64_digest='digest_apple')
+                digest=Digest(md5_base64_digest='digest_apple'),
             ),
-            SubscriberDigestByID(
+            SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI33333'),
-                digest=Digest(md5_base64_digest='digest_banana')
+                digest=Digest(md5_base64_digest='digest_banana'),
             ),
-            SubscriberDigestByID(
+            SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI44444'),
-                digest=Digest(md5_base64_digest='digest_orange')
+                digest=Digest(md5_base64_digest='digest_orange'),
             ),
         ]
         self._store.update_per_sub_digests(digests2)

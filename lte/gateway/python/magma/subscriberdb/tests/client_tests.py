@@ -25,7 +25,7 @@ from lte.protos.subscriberdb_pb2 import (
     Digest,
     ListSubscribersResponse,
     SubscriberData,
-    SubscriberDigestByID,
+    SubscriberDigestWithID,
     SubscriberID,
     SyncSubscribersResponse,
 )
@@ -85,15 +85,15 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
             SyncSubscribersResponse
         """
         per_sub_digests = [
-            SubscriberDigestByID(
+            SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI11111'),
                 digest=Digest(md5_base64_digest="digest_banana"),
             ),
-            SubscriberDigestByID(
+            SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI22222'),
                 digest=Digest(md5_base64_digest="digest_orange"),
             ),
-            SubscriberDigestByID(
+            SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI33333'),
                 digest=Digest(md5_base64_digest="digest_tree"),
             ),
@@ -149,7 +149,7 @@ class MockSubscriberDBServer(SubscriberDBCloudServicer):
             ]
             flat_digest = Digest(md5_base64_digest="digest_pear")
             per_sub_digests = [
-                SubscriberDigestByID(
+                SubscriberDigestWithID(
                     sid=SIDUtils.to_pb("IMSI11111"),
                     digest=Digest(md5_base64_digest="digest_birch"),
                 ),
@@ -411,11 +411,11 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             self.assertEqual(True, resync)
 
             self.subscriberdb_cloud_client._store.update_per_sub_digests([
-                SubscriberDigestByID(
+                SubscriberDigestWithID(
                     sid=SIDUtils.to_pb('IMSI11111'),
                     digest=Digest(md5_base64_digest="digest_banana"),
                 ),
-                SubscriberDigestByID(
+                SubscriberDigestWithID(
                     sid=SIDUtils.to_pb('IMSI00000'),
                     digest=Digest(md5_base64_digest="digest_peach"),
                 ),
@@ -443,15 +443,15 @@ class SubscriberDBCloudClientTests(unittest.TestCase):
             )
             self.assertEqual(
                 [
-                    SubscriberDigestByID(
+                    SubscriberDigestWithID(
                         sid=SIDUtils.to_pb('IMSI11111'),
                         digest=Digest(md5_base64_digest="digest_banana"),
                     ),
-                    SubscriberDigestByID(
+                    SubscriberDigestWithID(
                         sid=SIDUtils.to_pb('IMSI22222'),
                         digest=Digest(md5_base64_digest="digest_orange"),
                     ),
-                    SubscriberDigestByID(
+                    SubscriberDigestWithID(
                         sid=SIDUtils.to_pb('IMSI33333'),
                         digest=Digest(md5_base64_digest="digest_tree"),
                     ),

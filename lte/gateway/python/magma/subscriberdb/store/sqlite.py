@@ -17,8 +17,11 @@ from collections import defaultdict
 from contextlib import contextmanager
 from datetime import datetime
 
-from lte.protos.subscriberdb_pb2 import SubscriberData, \
-    SubscriberDigestByID, Digest
+from lte.protos.subscriberdb_pb2 import (
+    Digest,
+    SubscriberData,
+    SubscriberDigestWithID,
+)
 from magma.subscriberdb.sid import SIDUtils
 
 from .base import BaseStore, DuplicateSubscriberError, SubscriberNotFoundError
@@ -74,7 +77,7 @@ class SqliteStore(BaseStore):
                                      'per-subscriber-digest.db?cache=shared'
         logging.info(
             "per-sub digest db location: %s",
-            per_sub_digest_db_location
+            per_sub_digest_db_location,
         )
 
         return digest_db_location, per_sub_digest_db_location
@@ -383,11 +386,11 @@ class SqliteStore(BaseStore):
             with conn:
                 res = conn.execute(
                     "SELECT sid, digest FROM per_subscriber_digest "
-                    "ORDER BY sid"
+                    "ORDER BY sid",
                 )
 
                 for row in res:
-                    digest = SubscriberDigestByID(
+                    digest = SubscriberDigestWithID(
                         sid=SIDUtils.to_pb(row[0]),
                         digest=Digest(md5_base64_digest=row[1]),
                     )
@@ -402,7 +405,7 @@ class SqliteStore(BaseStore):
         try:
             with conn:
                 conn.execute(
-                    "DELETE FROM per_subscriber_digest"
+                    "DELETE FROM per_subscriber_digest",
                 )
                 for digest_by_id in new_digests:
                     sid = SIDUtils.to_str(digest_by_id.sid)

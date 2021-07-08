@@ -18,9 +18,9 @@ import tempfile
 import unittest
 
 from lte.protos.subscriberdb_pb2 import (
-    SubscriberData,
-    SubscriberDigestByID,
     Digest,
+    SubscriberData,
+    SubscriberDigestWithID,
 )
 from magma.subscriberdb.sid import SIDUtils
 from magma.subscriberdb.store.cached_store import CachedStore
@@ -113,7 +113,7 @@ class OnReadyMixinTests(unittest.TestCase):
             self._store._persistent_store._on_ready.event.is_set(), False,
         )
         self._store.upsert_subscriber(
-            SubscriberData(sid=SIDUtils.to_pb('IMSI1111'))
+            SubscriberData(sid=SIDUtils.to_pb('IMSI1111')),
         )
 
         async def defer():
@@ -124,6 +124,7 @@ class OnReadyMixinTests(unittest.TestCase):
         self.assertEqual(
             self._store._persistent_store._on_ready.event.is_set(), True,
         )
+
 
 class OnDigestsReadyMixinTests(unittest.TestCase):
     """
@@ -144,10 +145,10 @@ class OnDigestsReadyMixinTests(unittest.TestCase):
         """
         self.assertEqual(self._store._on_digests_ready.event.is_set(), False)
         self._store.update_per_sub_digests([
-            SubscriberDigestByID(
+            SubscriberDigestWithID(
                 sid=SIDUtils.to_pb('IMSI11111'),
-                digest=Digest(md5_base64_digest='digest_cherry')
-            )
+                digest=Digest(md5_base64_digest='digest_cherry'),
+            ),
         ])
 
         async def defer():
