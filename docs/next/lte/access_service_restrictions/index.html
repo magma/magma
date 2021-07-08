@@ -64,10 +64,9 @@ LTE network can be retrieved including the list of restricted PLMNs if they are 
 PUT method on the same API end point, the EPC level configurations will be overwritten including the list of
 restricted PLMNs. The list of restricted PLMNs is declared under the key &quot;restricted_plmns&quot; as in the following
 example.</p>
-<pre><code class="hljs">{
-  :
-  :
-  <span class="hljs-string">"restricted_plmns"</span>: [
+<pre><code class="hljs css language-json">{
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-attr">"restricted_plmns"</span>: [
     {
       <span class="hljs-attr">"mcc"</span>: <span class="hljs-string">"001"</span>,
       <span class="hljs-attr">"mnc"</span>: <span class="hljs-string">"01"</span>
@@ -81,8 +80,7 @@ example.</p>
       <span class="hljs-attr">"mnc"</span>: <span class="hljs-string">"76"</span>
     }
   ],
-  :
-  :
+  <span class="hljs-comment">// ...</span>
 }
 </code></pre>
 <p>MNC values can be 2 or 3 digits. The maximum number of PLMNs that can be restricted at the AGW is currently hardcoded as 10 and
@@ -90,42 +88,37 @@ the list will be truncated accordingly by the MME process during config initiali
 or the key is not defined, PUT operation would effectively remove any PLMN restrictions. MME process at AGW checks the PLMN portion of
 IMSI during the attach procedure and if it matches to any PLMN in this restricted list, the attach request will be rejected and UE should
 not attempt to reattach until it switches off and turn back on.</p>
-<p>PLMN restrictions can be added, updated, or removed via NMS using the JSON editor and adding, editing, or removing <code>restricted_plmns</code> key according to the key hierarchy as below:</p>
-<pre><code class="hljs"><span class="hljs-string">"root"</span>:{
-    <span class="hljs-string">"cellular"</span>:{
-        <span class="hljs-string">"epc"</span>:{
-            :
-            :
-            <span class="hljs-string">"restricted_plmns"</span>:[
-                <span class="hljs-number">0</span>:{
-                    <span class="hljs-string">"mcc"</span>:<span class="hljs-string">"001"</span>
-                    <span class="hljs-string">"mnc"</span>:<span class="hljs-string">"01"</span>
+<p>PLMN restrictions can be added, updated, or removed via NMS using the JSON editor and adding, editing, or removing <code>restricted_plmns</code> key according to the key hierarchy as below.</p>
+<pre><code class="hljs css language-json">"root":{
+    "cellular":{
+        "epc":{
+            // ...
+            "restricted_plmns":[
+                0:{
+                    "mcc":"001"
+                    "mnc":"01"
                 }
-                <span class="hljs-number">1</span>:{
-                    <span class="hljs-string">"mcc"</span>:<span class="hljs-string">"112"</span>
-                    <span class="hljs-string">"mnc"</span>:<span class="hljs-string">"796"</span>
+                1:{
+                    "mcc":"112"
+                    "mnc":"796"
                 }
-                <span class="hljs-number">2</span>:{
-                    <span class="hljs-string">"mcc"</span>:<span class="hljs-string">"112"</span>
-                    <span class="hljs-string">"mnc"</span>:<span class="hljs-string">"76"</span>
+                2:{
+                    "mcc":"112"
+                    "mnc":"76"
                 }
             ]
-            :
-            :
+            // ...
         }
-        :
-        :
+        // ...
     }
-    :
-    :
+    // ...
 }
 </code></pre>
 <h2><a class="anchor" aria-hidden="true" id="imei-restriction"></a><a href="#imei-restriction" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>IMEI Restriction</h2>
-<p>IMEI restriction is configured in a similar vein as PLMN restrictions utilizing API end point <code>/lte/{network_id}/cellular/epc</code>. IMEI is represented as 14 digits with 8-digit Type Allocation Code (TAC) followed by 6-digit serial number (SNR). The check digit is omitted as it is derived from the other 14 digits. The restricted IMEIs are represented as a list of two key-value pairs (with keys <code>snr</code> and <code>tac</code>) or one key-value pair (with the key <code>tac</code>) under the key <code>restricted_imeis</code> as in the example below:</p>
-<pre><code class="hljs">{
-  :
-  :
-  <span class="hljs-string">"restricted_imeis"</span>: [
+<p>IMEI restriction is configured in a similar vein as PLMN restrictions utilizing API end point <code>/lte/{network_id}/cellular/epc</code>. IMEI is represented as 14 digits with 8-digit Type Allocation Code (TAC) followed by 6-digit serial number (SNR). The check digit is omitted as it is derived from the other 14 digits. The restricted IMEIs are represented as a list of two key-value pairs (with keys <code>snr</code> and <code>tac</code>) or one key-value pair (with the key <code>tac</code>) under the key <code>restricted_imeis</code> as in the example below.</p>
+<pre><code class="hljs css language-json">{
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-attr">"restricted_imeis"</span>: [
     {
       <span class="hljs-attr">"snr"</span>: <span class="hljs-string">"176148"</span>,
       <span class="hljs-attr">"tac"</span>: <span class="hljs-string">"01300600"</span>
@@ -134,37 +127,80 @@ not attempt to reattach until it switches off and turn back on.</p>
       <span class="hljs-attr">"tac"</span>: <span class="hljs-string">"01300601"</span>
     }
   ],
-  :
-  :
+  <span class="hljs-comment">// ...</span>
 }
 </code></pre>
 <p>If both TAC and SNR fields are defined, a specific hardware is blocked from accessing the network. If only the TAC field is defined, then all the devices with the same TAC (i.e., model and origin) are blocked. Unlike PLMN restriction there is no hard limitation on the length of the IMEI restriction list, but it is not advised to create a long list of restricted IMEIs and EPC configurations should not be treated as dynamic configurations as each time this list is modified, AGW services restart.</p>
-<p>IMEI restrictions can be added, updated, or removed via NMS using the JSON editor and adding, editing, or removing <code>restricted_imeis</code> key according to the key hierarchy as below:</p>
-<pre><code class="hljs"><span class="hljs-string">"root"</span>:{
-    <span class="hljs-string">"cellular"</span>:{
-        <span class="hljs-string">"epc"</span>:{
-            :
-            :
-            <span class="hljs-string">"restricted_imeis"</span>:[
-                <span class="hljs-number">0</span>:{
-                    <span class="hljs-string">"snr"</span>:<span class="hljs-string">"176148"</span>
-                    <span class="hljs-string">"tac"</span>:<span class="hljs-string">"01300600"</span>
+<p>IMEI restrictions can be added, updated, or removed via NMS using the JSON editor and adding, editing, or removing <code>restricted_imeis</code> key according to the key hierarchy as below.</p>
+<pre><code class="hljs css language-json">"root":{
+    "cellular":{
+        "epc":{
+            // ...
+            "restricted_imeis":[
+                0:{
+                    "snr":"176148",
+                    "tac":"01300600"
                 }
-                <span class="hljs-number">1</span>:{
-                    <span class="hljs-string">"tac"</span>:<span class="hljs-string">"01300601"</span>
+                1:{
+                    "tac":"01300601"
                 }
             ]
-            :
-            :
+            // ...
         }
-        :
-        :
+        // ...
     }
-    :
-    :
+    // ...
 }
 </code></pre>
-</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/lte/eventd"><span class="arrow-prev">← </span><span>Event Reporting</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/dev_testing"><span>Testing Tips</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#plmn-restriction">PLMN Restriction</a></li><li><a href="#imei-restriction">IMEI Restriction</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
+<h2><a class="anchor" aria-hidden="true" id="service-areatracking-area-restriction"></a><a href="#service-areatracking-area-restriction" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Service Area/Tracking Area Restriction</h2>
+<p>Magma also supports a zone code based service area restriction in federated LTE deployments. To utilize this service restriction, network operators need to configure the following:</p>
+<ul>
+<li>HSS side: Up to 10 Regional Restriction Zone Codes for each subscriber.</li>
+<li>Magma side: Mapping between zone codes and lists of tracking area codes (TACs).</li>
+</ul>
+<p>If the HSS does not provide any zone code in Update Location Answer for a subscriber, then no tracking area restriction is applied for the subscriber as the default behavior. On the other hand, if HSS provides a list of zone codes in Update Location Answer, then a subscriber can attain service only when it is currently located in a cell with TAC included in one of the HSS provided zone codes for the subscriber.</p>
+<p>Zone codes in Magma are configured at the network level utilizing the API endpoint <code>/lte/{network_id}/cellular/epc</code>. An example configuration is shown below.</p>
+<pre><code class="hljs css language-json">{
+  <span class="hljs-comment">// ...</span>
+  <span class="hljs-attr">"service_area_maps"</span>: {
+    <span class="hljs-attr">"1234"</span>: [<span class="hljs-number">10</span>, <span class="hljs-number">20</span>],
+    <span class="hljs-attr">"1235"</span>: [<span class="hljs-number">10</span>, <span class="hljs-number">30</span>, <span class="hljs-number">40</span>],
+    <span class="hljs-attr">"1236"</span>: [<span class="hljs-number">20</span>, <span class="hljs-number">40</span>, <span class="hljs-number">50</span>, <span class="hljs-number">60</span>]
+  },
+  <span class="hljs-comment">// ...</span>
+}
+</code></pre>
+<p>An important thing to note here is that the zone code used as the key (e.g., <code>1234</code>) is a string that corresponds to the decimal representation of the 2-octet zone code that is provided in the Regional-Restriction-Zone-Code AVP (e.g., <code>\x04D2</code>).</p>
+<p>Service area restrictions can be added, updated, or removed via NMS using the JSON editor and adding, editing, or removing <code>service_area_maps</code> key according to the key hierarchy as below.</p>
+<pre><code class="hljs css language-json">"root":{
+    "cellular":{
+        "epc":{
+            // ...
+            "service_area_maps":{
+              "1234":[
+                0:10
+                1:20
+              ]
+              "1235":[
+                0:10
+                1:30
+                2:40
+              ]
+              "1236":[
+                0:20
+                1:40
+                2:50
+                3:60
+              ]
+            }
+            // ...
+        }
+        // ...
+    }
+    // ...
+}
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/lte/eventd"><span class="arrow-prev">← </span><span>Event Reporting</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/dev_testing"><span>Testing Tips</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#plmn-restriction">PLMN Restriction</a></li><li><a href="#imei-restriction">IMEI Restriction</a></li><li><a href="#service-areatracking-area-restriction">Service Area/Tracking Area Restriction</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
                   if (e.target !== document.body) {
                     return;
