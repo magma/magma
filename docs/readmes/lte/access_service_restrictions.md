@@ -19,8 +19,7 @@ example.
 
 ```json
 {
-  :
-  :
+  // ...
   "restricted_plmns": [
     {
       "mcc": "001",
@@ -35,8 +34,7 @@ example.
       "mnc": "76"
     }
   ],
-  :
-  :
+  // ...
 }
 ```
 
@@ -52,8 +50,7 @@ PLMN restrictions can be added, updated, or removed via NMS using the JSON edito
 "root":{
     "cellular":{
         "epc":{
-            :
-            :
+            // ...
             "restricted_plmns":[
                 0:{
                     "mcc":"001"
@@ -68,14 +65,11 @@ PLMN restrictions can be added, updated, or removed via NMS using the JSON edito
                     "mnc":"76"
                 }
             ]
-            :
-            :
+            // ...
         }
-        :
-        :
+        // ...
     }
-    :
-    :
+    // ...
 }
 ```
 
@@ -84,8 +78,7 @@ IMEI restriction is configured in a similar vein as PLMN restrictions utilizing 
 
 ```json
 {
-  :
-  :
+  // ...
   "restricted_imeis": [
     {
       "snr": "176148",
@@ -95,8 +88,7 @@ IMEI restriction is configured in a similar vein as PLMN restrictions utilizing 
       "tac": "01300601"
     }
   ],
-  :
-  :
+  // ...
 }
 ```
 
@@ -108,8 +100,7 @@ IMEI restrictions can be added, updated, or removed via NMS using the JSON edito
 "root":{
     "cellular":{
         "epc":{
-            :
-            :
+            // ...
             "restricted_imeis":[
                 0:{
                     "snr":"176148",
@@ -119,14 +110,11 @@ IMEI restrictions can be added, updated, or removed via NMS using the JSON edito
                     "tac":"01300601"
                 }
             ]
-            :
-            :
+            // ...
         }
-        :
-        :
+        // ...
     }
-    :
-    :
+    // ...
 }
 ```
 
@@ -143,15 +131,13 @@ Zone codes in Magma are configured at the network level utilizing the API endpoi
 
 ```json
 {
-  :
-  :
+  // ...
   "service_area_maps": {
     "1234": [10, 20],
     "1235": [10, 30, 40],
     "1236": [20, 40, 50, 60]
   },
-  :
-  :
+  // ...
 }
 ```
 
@@ -163,8 +149,7 @@ Service area restrictions can be added, updated, or removed via NMS using the JS
 "root":{
     "cellular":{
         "epc":{
-            :
-            :
+            // ...
             "service_area_maps":{
               "1234":[
                 0:10
@@ -182,13 +167,10 @@ Service area restrictions can be added, updated, or removed via NMS using the JS
                 3:60
               ]
             }
-            :
-            :
+            // ...
         }
-        :
-        :
+        // ...
     }
-    :
-    :
+    // ...
 }
 ```
