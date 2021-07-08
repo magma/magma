@@ -22,7 +22,7 @@ import (
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
-	storage2 "magma/orc8r/cloud/go/storage"
+	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/go-openapi/swag"
@@ -76,7 +76,7 @@ func LoadSubProtosByID(
 
 	subEnts, _, err := configurator.LoadEntities(networkID,
 		swag.String(lte.SubscriberEntityType), nil, nil,
-		storage2.MakeTKs(lte.SubscriberEntityType, sids),
+		storage.MakeTKs(lte.SubscriberEntityType, sids),
 		lc, serdes.Entity,
 	)
 	if err != nil {

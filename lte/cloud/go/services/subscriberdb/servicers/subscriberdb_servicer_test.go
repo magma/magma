@@ -375,7 +375,7 @@ func TestSyncSubscribers(t *testing.T) {
 	perSubDigestStore := initializePerSubDigestStore(t)
 
 	// Create servicer with flat digest feature flag turned on
-	configs := subscriberdb.Config{FlatDigestEnabled: true, MaxNoResyncChangesetSize: 100}
+	configs := subscriberdb.Config{FlatDigestEnabled: true, ChangesetSizeTheshold: 100}
 	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
@@ -505,10 +505,10 @@ func TestSyncSubscribersResync(t *testing.T) {
 	digestStore := initializeDigestStore(t)
 	perSubDigestStore := initializePerSubDigestStore(t)
 
-	// Create servicer with a small MaxNoResyncChangesetSize
+	// Create servicer with a small ChangesetSizeTheshold
 	configs := subscriberdb.Config{
-		FlatDigestEnabled:        true,
-		MaxNoResyncChangesetSize: 2,
+		FlatDigestEnabled:     true,
+		ChangesetSizeTheshold: 2,
 	}
 	servicer := servicers.NewSubscriberdbServicer(configs, digestStore, perSubDigestStore)
 
@@ -519,7 +519,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())
 
-	// When changeset is no larger than MaxNoResyncChangesetSize, the servicer should return the full changeset
+	// When changeset is no larger than ChangesetSizeTheshold, the servicer should return the full changeset
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
@@ -568,7 +568,7 @@ func TestSyncSubscribersResync(t *testing.T) {
 	assert.Equal(t, expectedToRenewData, res.ToRenew)
 	assert.Empty(t, res.Deleted)
 
-	// When the changeset is larger than MaxNoResyncChangesetSize, the servicer should return resync and nothing else
+	// When the changeset is larger than ChangesetSizeTheshold, the servicer should return resync and nothing else
 	curPerSubDigests := expectedPerSubDigests
 	err = perSubDigestStore.SetDigest("n1", []*lte_protos.SubscriberDigestWithID{
 		{

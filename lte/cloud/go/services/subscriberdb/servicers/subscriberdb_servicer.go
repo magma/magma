@@ -34,10 +34,10 @@ import (
 )
 
 type subscriberdbServicer struct {
-	flatDigestEnabled        bool
-	maxNoResyncChangesetSize int
-	digestStore              storage.DigestStore
-	perSubDigestStore        *storage.PerSubDigestStore
+	flatDigestEnabled     bool
+	changesetSizeTheshold int
+	digestStore           storage.DigestStore
+	perSubDigestStore     *storage.PerSubDigestStore
 }
 
 func NewSubscriberdbServicer(
@@ -46,10 +46,10 @@ func NewSubscriberdbServicer(
 	perSubDigestStore *storage.PerSubDigestStore,
 ) lte_protos.SubscriberDBCloudServer {
 	servicer := &subscriberdbServicer{
-		flatDigestEnabled:        config.FlatDigestEnabled,
-		maxNoResyncChangesetSize: config.MaxNoResyncChangesetSize,
-		digestStore:              digestStore,
-		perSubDigestStore:        perSubDigestStore,
+		flatDigestEnabled:     config.FlatDigestEnabled,
+		changesetSizeTheshold: config.ChangesetSizeTheshold,
+		digestStore:           digestStore,
+		perSubDigestStore:     perSubDigestStore,
 	}
 	return servicer
 }
@@ -100,7 +100,7 @@ func (s *subscriberdbServicer) SyncSubscribers(
 		return nil, err
 	}
 	toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(clientPerSubDigests, cloudPerSubDigests)
-	if len(toRenew) > s.maxNoResyncChangesetSize {
+	if len(toRenew) > s.changesetSizeTheshold {
 		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
 	}
 	sids := funk.Keys(toRenew).([]string)
@@ -144,9 +144,10 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		return nil, err
 	}
 
-	flatDigest, perSubDigests := &lte_protos.Digest{Md5Base64Digest: ""}, []*lte_protos.SubscriberDigestWithID{}
+	flatDigest := &lte_protos.Digest{Md5Base64Digest: ""}
+	perSubDigests := []*lte_protos.SubscriberDigestWithID{}
+	// The digests are sent back during the request for the first page of subscriber data
 	if req.PageToken == "" {
-		// the digests are sent back during the request for the first page of subscriber data
 		flatDigest, _ = s.getDigestInfo(&lte_protos.Digest{Md5Base64Digest: ""}, networkID)
 		perSubDigests, err = s.perSubDigestStore.GetDigest(networkID)
 		if err != nil {
