@@ -93,3 +93,74 @@ module "orc8r" {
 ```
 
 At this point, you can run `terraform init`, `terraform plan`, and `terraform apply` to proceed with the deployment.
+
+## Managing Scaled Orc8r Deployments
+
+In our default deployments, the current recommendation is to bring up orc8r instances(eks_worker_groups) as “t3.large” and DB instance(orc8r_db_instance_class) as “db.m4.large” instance. These default recommendations works well for small to medium deployments (< 50 gateways) and (< 10k subscribers). 
+
+For medium large to high scale deployments i.e > 50 gateways and > 10k subscribers we recommend the following.
+
+### RDS
+
+Setting ‘orc8r_db_instance_class’ to db.m4.xlarge
+
+### Prometheus
+
+Prometheus also requires an instance with larger memory footprint when number of metrics scraped increases. We would recommend using t3.xlarge instance and pinning prometheus service with a larger node instance.
+
+```
+--- a/orc8r/cloud/deploy/terraform/orc8r-aws/variables.tf
++++ b/orc8r/cloud/deploy/terraform/orc8r-aws/variables.tf
+@@ -102,12 +102,21 @@ variable "eks_worker_groups" {
+ {
+ name = "wg-1"
+ instance_type = "t3.large"
+- asg_desired_capacity = 3
++ asg_desired_capacity = 2
+ asg_min_size = 1
+- asg_max_size = 3
++ asg_max_size = 2
+ autoscaling_enabled = false
+ kubelet_extra_args = "" // object types must be identical (see thanos_worker_groups)
+ },
++ {
++ name = "wg-2"
++ instance_type = "t3.xlarge"
++ asg_desired_capacity = 1
++ asg_min_size = 1
++ asg_max_size = 1
++ autoscaling_enabled = false
++ kubelet_extra_args = "" // object types must be identical (see thanos_worker_groups)
++ },
+ ]
+ }
+ diff --git a/orc8r/cloud/deploy/terraform/orc8r-helm-aws/templates/orc8r-values.tpl b/orc8r/cloud/deploy/terraform/orc8r-helm-aws/templates/orc8r-values.tpl
+index d3b2e3837..f6a07c9e8 100644
+--- a/orc8r/cloud/deploy/terraform/orc8r-helm-aws/templates/orc8r-values.tpl
++++ b/orc8r/cloud/deploy/terraform/orc8r-helm-aws/templates/orc8r-values.tpl
+@@ -83,6 +83,8 @@ metrics:
+     includeOrc8rAlerts: true
+     prometheusCacheHostname: ${prometheus_cache_hostname}
+     alertmanagerHostname: ${alertmanager_hostname}
++    nodeSelector:
++      node.kubernetes.io/instance-type: t3.xlarge
+
+   alertmanager:
+     create: true
+ 
+```
+
+**Snapshotting**
+curl -XPOST http://localhost:9090/api/v1/admin/tsdb/snapshot
+
+**Delete Series**
+https://prometheus.io/docs/prometheus/latest/querying/api/
+
+### Elasticsearch Instance
+
+Recommend tuning “elasticsearch_ebs_volume_size” and “elasticsearch_disk_threshold” to ensure that elasticsearch can deal with volume of events and logs. Currently elasticsearch curator cleans up indices based on age and space consumed. We would highly recommend customizing elasticsearch_curator for your own deployment and ensuring that important logs are backed up. 
+
+**Snapshotting**
+https://www.elastic.co/guide/en/elasticsearch/reference/current/snapshot-restore.html#snapshot-restore
+
+

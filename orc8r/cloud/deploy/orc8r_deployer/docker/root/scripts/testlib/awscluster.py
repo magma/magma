@@ -197,7 +197,7 @@ class AWSClusterFactory():
         test_inst_configure = AnsiblePlay(
             inventory=f"{project_dir}/common_instance_aws_ec2.yaml",
             playbook=f"{playbook_dir}/cluster-configure.yaml",
-            tags=['exporter', 'clusterConfigure'],
+            tags=['clusterConfigure'],
             extra_vars=agws_config_dict)
 
         max_retries = 3
@@ -222,13 +222,14 @@ class AWSClusterFactory():
                 break
 
         # get the newly instantiated gateways
+        hw_id_map = get_json(f"{project_dir}/gw_hwid.json")
         gateways = []
         for gw_info in get_gateways(template.gateway.prefix):
             (gateway_id, hostname) = gw_info
             gateways.append(GatewayConfig(
                 gateway_id=gateway_id,
                 hostname=hostname,
-                hardware_id="",
+                hardware_id=hw_id_map.get(hostname) or "",
             ))
         internal_config = ClusterInternalConfig(
             bastion_ip=get_bastion_ip()
@@ -271,6 +272,7 @@ class AWSClusterFactory():
         mgr = ConfigManager(constants)
         template_dict = template.orc8r.to_dict()
         for component, configs in template_dict.items():
+            mgr.initialize_defaults(component, override_defaults=True)
             for k, v in configs.items():
                 mgr.set(component, k, v)
             mgr.commit(component)

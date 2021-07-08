@@ -16,11 +16,88 @@ Orcl is the Orchestrator CLI. It is used for managing an Orc8r deployment. It pr
 - Cleanup
 - Debug (perhaps in the future)
 
+## Steps to install Orc8r 1.6 through Orcl
+
+### 1. Build the orc8r_deployer image
+
+```
+git checkout v1.6
+cd magma/orc8r/cloud/deploy/orc8r_deployer/docker
+
+./run_deployer.bash --deploy-dir <deploy_dir> --build
+
+For e.g:
+./run_deployer.bash --deploy-dir ~/workspace/orc8r_16_deploy_dir --build
+```
+
+### 2. Run Orcl configure and add infra, platform and service level configs
+
+```
+root@ff1b8da0308c:~/project# orcl configure
+Configuring infra deployment variables
+aws_access_key_id(AWS access key id): <aws_access_key_id>
+aws_secret_access_key(AWS access secret): <aws_secret_access_key>
+orc8r_domain_name(Base domain name for AWS Route 53 hosted zone): <orc8r_domain> 
+region(AWS region to deploy Orchestrator components into. The chosen region must provide EKS): us-west-2
+secretsmanager_orc8r_secret(AWS Secret Manager secret to store Orchestrator secrets): <secrets_name>
+
+Configuring platform deployment variables
+orc8r_db_password(Password for the Orchestrator DB):<db_password>
+
+Configuring service deployment variables
+orc8r_deployment_type(Deployment Type of Orchestrator (fwa, federated fwa(ffwa), all)): fwa
+orc8r_tag(Image tag for Orchestrator components) [1.5.0]: 1.6.0
+```
+
+### 3. Add application certs and self signed certs if necessary
+
+```
+root@ff1b8da0308c:~/project# orcl certs add --self-signed
+```
+
+### 4. Install Orc8r with prechecks 
+
+```
+root@ff1b8da0308c:~/project# orcl install
+Do you want to run installation prechecks? [y/N]: y
+
+...
+Apply complete! Resources: 23 added, 1 changed, 0 destroyed.
+
+Outputs:
+
+nameservers = tolist([
+  "ns-1121.awsdns-12.org",
+  "ns-1606.awsdns-08.co.uk",
+  "ns-218.awsdns-27.com",
+  "ns-822.awsdns-38.net",
+])
+```
+
+Follow steps in deploy_install#dns-resolution
+
+
+### 5. Check sanity of Orc8r installation
+
+```
+root@efcb65fb4d48:~/project# orcl verify sanity
+....
+
+TASK [services/orc8r : Get all configured networks from NMS pod] ****************************************************************************************************************************************************************************
+changed: [localhost] => (item=magma/v1/networks)
+changed: [localhost] => (item=magma/v1/lte)
+
+PLAY RECAP **********************************************************************************************************************************************************************************************************************************
+localhost                  : ok=12   changed=7    unreachable=0    failed=0    skipped=2    rescued=0    ignored=0
+
+Post deployment verification ran successfully
+```
+
+
+## Usage
 ![Orcl Big Picture](assets/orc8r/orcl.png)
 
 Orcl is packaged within orc8r_deployer. Orc8r deployer is a docker image which contains all the necessary prerequisites to deploy orc8r. The only requirements for running orc8r_deployer is that the the host machine must have [docker engine installed](https://docs.docker.com/get-docker/).
-
-## Usage
 
 ```
 ./run_deployer runs the orc8r deployer container

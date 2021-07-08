@@ -36,6 +36,9 @@ def get_input(text, default_val):
 
 def input_to_type(input_str: str, input_type: str):
     ''' convert input string to its appropriate type '''
+    if isinstance(input_str, str):
+        return input_str
+
     if input_type == 'map':
         return json.loads(input_str)
     elif input_type == 'bool':
@@ -79,8 +82,10 @@ class ConfigManager(object):
         return f"{config_dir}/{component}.tfvars.json"
 
     def set(self, component: str, key: str, value: str):
-        click.echo(f"Setting key {key} value {value} "
-                   f"for component {component}")
+        click.echo(
+            f"Setting key {key} value {value} "
+            f"for component {component}",
+        )
         config_vars = self.config_vars[component]
         config_info = config_vars.get(key)
         if not config_info:
@@ -114,8 +119,10 @@ class ConfigManager(object):
                 inp = get_input(f"{config_key}({config_desc})", v)
 
             if not inp and v is None:
-                if not click.confirm("press 'y' to set empty string and "
-                                     "'n' to skip", prompt_suffix=': '):
+                if not click.confirm(
+                    "press 'y' to set empty string and "
+                    "'n' to skip", prompt_suffix=': ',
+                ):
                     continue
                 inp = ""
 
@@ -141,11 +148,13 @@ class ConfigManager(object):
         render_j2_template(
             self.constants['tf_dir'],
             self.constants['main_tf'],
-            tf_cfgs)
+            tf_cfgs,
+        )
         render_j2_template(
             self.constants['tf_dir'],
             self.constants['vars_tf'],
-            self.tf_vars)
+            self.tf_vars,
+        )
 
     def check(self, component: str) -> bool:
         ''' check if all mandatory options of a specific component is set '''
@@ -159,10 +168,12 @@ class ConfigManager(object):
 
         if missing_cfgs:
             print_error_msg(
-                f"Missing {missing_cfgs!r} configs for {component} component")
+                f"Missing {missing_cfgs!r} configs for {component} component",
+            )
         else:
             print_success_msg(
-                f"All mandatory configs for {component} has been configured")
+                f"All mandatory configs for {component} has been configured",
+            )
         return valid
 
     def info(self, component: str):
@@ -176,7 +187,7 @@ class ConfigManager(object):
                 v["Description"],
                 v["Type"],
                 v["Required"],
-                v["ConfigApps"]
+                v["ConfigApps"],
             ])
         click.echo(add_pretty_table(fields, items))
 
@@ -217,7 +228,14 @@ class ConfigManager(object):
                 if 'awscli' in config_info["ConfigApps"]:
                     self.aws_vars.add(config_key)
 
-    def initialize_defaults(self, component):
+    def initialize_defaults(self, component, override_defaults=False):
+        """Initialize configs with default values
+
+        Args:
+            component: component to initialize defaults(infra/platform/service).
+            override_defaults (bool): if configs already exist for configs
+            with default values, then override defaults.
+        """
         cfgs = self.configs[component]
         for config_key, config_info in self.config_vars[component].items():
             # add defaults to configs inorder to run prechecks
@@ -228,7 +246,15 @@ class ConfigManager(object):
 
                 # if defaults are overriden already, explicitly confirm
                 # to reset defaults
-                if (not curr_val or (curr_val and default != curr_val and
-                    click.confirm(f"Override {config_key} "
-                    f"current val {curr_val} with default {default}"))):
+                if not curr_val:
                     cfgs[config_key] = default
+
+                if override_defaults:
+                    continue
+
+                if curr_val and default != curr_val:
+                    if click.confirm(
+                        f"Override {config_key} "
+                        f"current val {curr_val} with default {default}",
+                    ):
+                        cfgs[config_key] = default
