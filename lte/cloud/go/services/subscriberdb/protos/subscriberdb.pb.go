@@ -574,11 +574,7 @@ func (m *ApnResourceInternal) GetApnResource() *protos.APNConfiguration_APNResou
 	return nil
 }
 
-<<<<<<< HEAD
 // SubscriberDigestWithIDs is used in per-subscriber store to serialize and deserialize
-=======
-// SubscriberDigestWithIDs is used internally in per-subscriber store to serialize and deserialize
->>>>>>> aa0251db1 (address comments)
 // a list of per-sub digests.
 type SubscriberDigestWithIDs struct {
 	// digests is the list of per-sub digests to be (de)serialized.

@@ -56,14 +56,14 @@ func main() {
 
 	digestStore := subscriberdb_storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	if err := digestStore.Initialize(); err != nil {
-		glog.Fatalf("Error initializing flat digest lookup storage: %+v", err)
+		glog.Fatalf("Error initializing flat digest storage: %+v", err)
 	}
 
 	perSubDigestFact := blobstore.NewEntStorage(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
 	if err := perSubDigestFact.InitializeFactory(); err != nil {
 		glog.Fatalf("Error initializing per-sub digest storage: %+v", err)
 	}
-	perSubDigestStore := subscriberdb_storage.NewPerSubDigestLookup(perSubDigestFact)
+	perSubDigestStore := subscriberdb_storage.NewPerSubDigestStore(perSubDigestFact)
 
 	serviceConfig := subscriberdb.MustGetServiceConfig()
 	glog.Infof("Subscriberdb service config %+v", serviceConfig)

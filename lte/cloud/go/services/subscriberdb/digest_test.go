@@ -275,13 +275,13 @@ func TestGetPerSubscriberDigests(t *testing.T) {
 		"n1",
 		configurator.NetworkEntities{
 			configurator.NetworkEntity{
-				Type: lte.SubscriberEntityType, Key: "IMSI0001",
+				Type: lte.SubscriberEntityType, Key: "IMSI00001",
 				Config: &models.SubscriberConfig{
 					Lte: &models.LteSubscription{State: "ACTIVE"},
 				},
 			},
 			configurator.NetworkEntity{
-				Type: lte.SubscriberEntityType, Key: "IMSI0002",
+				Type: lte.SubscriberEntityType, Key: "IMSI00002",
 				Config: &models.SubscriberConfig{
 					Lte: &models.LteSubscription{State: "ACTIVE"},
 				},
@@ -298,16 +298,16 @@ func TestGetPerSubscriberDigests(t *testing.T) {
 	perSubDigests, err = subscriberdb.GetPerSubscriberDigests("n1")
 	assert.NoError(t, err)
 	assert.Len(t, perSubDigests, 2)
-	assert.Equal(t, "0001", perSubDigests[0].Sid.Id)
+	assert.Equal(t, "00001", perSubDigests[0].Sid.Id)
 	assert.NotEmpty(t, perSubDigests[0].Digest.Md5Base64Digest)
-	assert.Equal(t, "0002", perSubDigests[1].Sid.Id)
+	assert.Equal(t, "00002", perSubDigests[1].Sid.Id)
 	assert.NotEmpty(t, perSubDigests[1].Digest.Md5Base64Digest)
 	digestSub1 := perSubDigests[0].Digest.Md5Base64Digest
 
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{
-			Type: lte.SubscriberEntityType, Key: "IMSI0003",
+			Type: lte.SubscriberEntityType, Key: "IMSI00003",
 			Config: &models.SubscriberConfig{
 				Lte: &models.LteSubscription{State: "ACTIVE"},
 			},
@@ -315,14 +315,14 @@ func TestGetPerSubscriberDigests(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = configurator.DeleteEntity("n1", lte.SubscriberEntityType, "IMSI0001")
+	err = configurator.DeleteEntity("n1", lte.SubscriberEntityType, "IMSI00001")
 	assert.NoError(t, err)
-	err = configurator.DeleteEntity("n1", lte.SubscriberEntityType, "IMSI0002")
+	err = configurator.DeleteEntity("n1", lte.SubscriberEntityType, "IMSI00002")
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{
-			Type: lte.SubscriberEntityType, Key: "IMSI0001",
+			Type: lte.SubscriberEntityType, Key: "IMSI00001",
 			Config: &models.SubscriberConfig{
 				Lte: &models.LteSubscription{State: "INACTIVE"},
 			},
@@ -335,9 +335,9 @@ func TestGetPerSubscriberDigests(t *testing.T) {
 	perSubDigests, err = subscriberdb.GetPerSubscriberDigests("n1")
 	assert.NoError(t, err)
 	assert.Len(t, perSubDigests, 2)
-	assert.Equal(t, "0001", perSubDigests[0].Sid.Id)
+	assert.Equal(t, "00001", perSubDigests[0].Sid.Id)
 	assert.NotEqual(t, digestSub1, perSubDigests[0].Digest.Md5Base64Digest)
-	assert.Equal(t, "0003", perSubDigests[1].Sid.Id)
+	assert.Equal(t, "00003", perSubDigests[1].Sid.Id)
 	assert.NotEmpty(t, perSubDigests[1].Digest.Md5Base64Digest)
 	digestSub1 = perSubDigests[0].Digest.Md5Base64Digest
 	digestSub3 := perSubDigests[1].Digest.Md5Base64Digest
@@ -369,9 +369,9 @@ func TestGetPerSubscriberDigests(t *testing.T) {
 	perSubDigests, err = subscriberdb.GetPerSubscriberDigests("n1")
 	assert.NoError(t, err)
 	assert.Len(t, perSubDigests, 2)
-	assert.Equal(t, "0001", perSubDigests[0].Sid.Id)
+	assert.Equal(t, "00001", perSubDigests[0].Sid.Id)
 	assert.NotEqual(t, digestSub1, perSubDigests[0].Digest.Md5Base64Digest)
-	assert.Equal(t, "0003", perSubDigests[1].Sid.Id)
+	assert.Equal(t, "00003", perSubDigests[1].Sid.Id)
 	assert.NotEqual(t, digestSub3, perSubDigests[1].Digest.Md5Base64Digest)
 }
 

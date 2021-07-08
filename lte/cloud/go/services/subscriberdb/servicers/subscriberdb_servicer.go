@@ -36,7 +36,7 @@ import (
 type subscriberdbServicer struct {
 	flatDigestEnabled        bool
 	maxNoResyncChangesetSize int
-	digestStore          storage.DigestStore
+	digestStore              storage.DigestStore
 	perSubDigestStore        *storage.PerSubDigestStore
 }
 
@@ -99,7 +99,7 @@ func (s *subscriberdbServicer) SyncSubscribers(
 	if err != nil {
 		return nil, err
 	}
-	toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(cloudPerSubDigests, clientPerSubDigests)
+	toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(clientPerSubDigests, cloudPerSubDigests)
 	if len(toRenew) > s.maxNoResyncChangesetSize {
 		return &lte_protos.SyncSubscribersResponse{Resync: true}, nil
 	}
@@ -144,7 +144,7 @@ func (s *subscriberdbServicer) ListSubscribers(ctx context.Context, req *lte_pro
 		return nil, err
 	}
 
-	flatDigest, perSubDigests := &lte_protos.Digest{Md5Base64Digest: ""}, []*lte_protos.SubscriberDigestByID{}
+	flatDigest, perSubDigests := &lte_protos.Digest{Md5Base64Digest: ""}, []*lte_protos.SubscriberDigestWithID{}
 	if req.PageToken == "" {
 		// the digests are sent back during the request for the first page of subscriber data
 		flatDigest, _ = s.getDigestInfo(&lte_protos.Digest{Md5Base64Digest: ""}, networkID)
