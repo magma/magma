@@ -54,9 +54,9 @@ func main() {
 		glog.Fatalf("Error initializing IP lookup storage: %+v", err)
 	}
 
-	digestStore := subscriberdb_storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	digestStore := subscriberdb_storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	if err := digestStore.Initialize(); err != nil {
-		glog.Fatalf("Error initializing digest lookup storage: %+v", err)
+		glog.Fatalf("Error initializing digest storage: %+v", err)
 	}
 
 	serviceConfig := subscriberdb.MustGetServiceConfig()
