@@ -1084,8 +1084,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if rule_ids:
             self._enforcer_app.deactivate_rules(subscriber_id, ipv4,
                                                 rule_ids)
-            self._enforcement_stats.deactivate_rules(subscriber_id, ipv4,
-                                                     rule_ids)
 
     def _ng_update_version(self, imsi: str, request: ActivateFlowsRequest,
                            ipv4: IPAddress, session_version: int):
