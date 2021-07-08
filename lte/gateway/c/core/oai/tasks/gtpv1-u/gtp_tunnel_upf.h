@@ -21,23 +21,23 @@
 
 const struct gtp_tunnel_ops* upf_gtp_tunnel_ops_init_openflow(void);
 
-void upf_add_tunnel(
+int upf_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
     uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
     uint32_t flow_precedence_dl, char* apn);
 
-void upf_del_tunnel(
+int upf_del_tunnel(
     struct in_addr enb, struct in_addr ue, struct in6_addr* ue_ipv6,
     uint32_t i_tei, uint32_t o_tei, struct ip_flow_dl* flow_dl);
 
-void upf_discard_data_on_tunnel(
+int upf_discard_data_on_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
     struct ip_flow_dl* flow_dl);
 
-void upf_forward_data_on_tunnel(
+int upf_forward_data_on_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
     struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl);
 
-void upf_add_paging_rule(struct in_addr ue);
+int upf_add_paging_rule(struct in_addr ue);
 
-void upf_delete_paging_rule(struct in_addr ue);
+int upf_delete_paging_rule(struct in_addr ue);

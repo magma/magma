@@ -97,8 +97,10 @@ int pgw_handle_allocate_ipv6_address(
  *
  * @param subscriber_id: subscriber id string, i.e. IMSI
  * @param addr: IP address to release
+ * @return 0 on success
+ * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
-void release_ipv4_address(
+int release_ipv4_address(
     const char* subscriber_id, const char* apn, const struct in_addr* addr);
 
 /*
@@ -110,8 +112,10 @@ void release_ipv4_address(
  * @param subscriber_id: subscriber id string, i.e. IMSI
  * @param apn: access point name string, e.g., "ims", "internet", etc.
  * @param addr: IPv6 address to release in "host byte order
+ * @return 0 on success
+ * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
-void release_ipv6_address(
+int release_ipv6_address(
     const char* subscriber_id, const char* apn, const struct in6_addr* addr);
 
 /*
@@ -124,8 +128,10 @@ void release_ipv6_address(
  * @param apn: access point name string, e.g., "ims", "internet", etc.
  * @param ipv4_addr: IPv4 address to release in "host byte order
  * @param ipv6_addr: IPv6 address to release in "host byte order
+ * @return 0 on success
+ * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
-void release_ipv4v6_address(
+int release_ipv4v6_address(
     const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr,
     const struct in6_addr* ipv6_addr);
 
