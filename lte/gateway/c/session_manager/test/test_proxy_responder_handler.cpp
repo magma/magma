@@ -85,9 +85,12 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
     auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
-    return std::make_unique<SessionState>(
-        IMSI1, SESSION_ID_1, cfg, *rule_store, tgpp_context, pdp_start_time,
-        CreateSessionResponse{});
+    auto session        = std::make_unique<SessionState>(
+        SESSION_ID_1, cfg, *rule_store, pdp_start_time);
+    session->set_tgpp_context(tgpp_context, nullptr);
+    session->set_fsm_state(SESSION_ACTIVE, nullptr);
+    session->set_create_session_response(CreateSessionResponse(), nullptr);
+    return session;
   }
 
   UsageMonitoringUpdateResponse get_monitoring_update() {

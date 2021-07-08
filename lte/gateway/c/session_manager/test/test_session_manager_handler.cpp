@@ -129,7 +129,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
       const SessionConfig& cfg, const CreateSessionResponse& response) {
     const std::string imsi = cfg.get_imsi();
     auto session = local_enforcer->create_initializing_session(session_id, cfg);
-    local_enforcer->init_session_with_policy_response(
+    local_enforcer->update_session_with_policy_response(
         session, response, nullptr);
     session_map[imsi].push_back(std::move(session));
   }
@@ -341,9 +341,9 @@ TEST_F(SessionManagerHandlerTest, test_create_session) {
   create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
       "rule3");
   create_credit_update_response(
-      IMSI1, "1234", 1, 1536, create_response.mutable_credits()->Add());
+      IMSI1, SESSION_ID_1, 1, 1536, create_response.mutable_credits()->Add());
   create_credit_update_response(
-      IMSI1, "1234", 2, 1024, create_response.mutable_credits()->Add());
+      IMSI1, SESSION_ID_1, 2, 1024, create_response.mutable_credits()->Add());
 
   // create expected request for report_create_session call
   RequestedUnits expected_requestedUnits;

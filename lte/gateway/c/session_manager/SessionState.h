@@ -133,12 +133,6 @@ class SessionState {
 
  public:
   SessionState(
-      const std::string& imsi, const std::string& session_id,
-      const SessionConfig& cfg, StaticRuleStore& rule_store,
-      const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time,
-      const CreateSessionResponse& csr);
-
-  SessionState(
       const std::string& session_id, const SessionConfig& cfg,
       StaticRuleStore& rule_store, uint64_t pdp_start_time);
 

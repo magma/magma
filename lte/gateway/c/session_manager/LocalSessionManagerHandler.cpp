@@ -364,7 +364,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         SessionStateUpdateCriteria* session_uc = &update[imsi][session_id];
 
         if (status.ok()) {
-          enforcer_->init_session_with_policy_response(
+          enforcer_->update_session_with_policy_response(
               session, response, session_uc);
         } else {
           std::ostringstream failure_stream;

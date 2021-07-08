@@ -191,13 +191,14 @@ class LocalEnforcer {
       std::unordered_set<uint32_t>& charging_credits_received);
 
   /**
-   * @brief
-   *
+   * @brief Update the session with CreateSessionResponse
+   * This function should be called after we receive a CreateSessionResponse
+   * from PolicyDB / SessionProxy
    * @param session
    * @param response
    * @param session_uc
    */
-  void init_session_with_policy_response(
+  void update_session_with_policy_response(
       std::unique_ptr<SessionState>& session,
       const CreateSessionResponse& response,
       SessionStateUpdateCriteria* session_uc);

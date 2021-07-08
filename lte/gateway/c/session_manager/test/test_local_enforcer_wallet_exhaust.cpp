@@ -95,7 +95,7 @@ class LocalEnforcerTest : public ::testing::Test {
       const SessionConfig& cfg, const CreateSessionResponse& response) {
     const std::string imsi = cfg.get_imsi();
     auto session = local_enforcer->create_initializing_session(session_id, cfg);
-    local_enforcer->init_session_with_policy_response(
+    local_enforcer->update_session_with_policy_response(
         session, response, nullptr);
     session_map[imsi].push_back(std::move(session));
   }

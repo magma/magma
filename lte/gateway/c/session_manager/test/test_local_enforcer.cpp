@@ -181,7 +181,7 @@ class LocalEnforcerTest : public ::testing::Test {
       const SessionConfig& cfg, const CreateSessionResponse& response) {
     const std::string imsi = cfg.get_imsi();
     auto session = local_enforcer->create_initializing_session(session_id, cfg);
-    local_enforcer->init_session_with_policy_response(
+    local_enforcer->update_session_with_policy_response(
         session, response, nullptr);
     session_map[imsi].push_back(std::move(session));
   }
@@ -1117,8 +1117,10 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
   create_credit_update_response(
       IMSI1, SESSION_ID_1, 1, 1024, true, response.mutable_credits()->Add());
   auto session_state = std::make_unique<SessionState>(
-      IMSI1, SESSION_ID_1, default_cfg_1, *rule_store, tgpp_ctx, pdp_start_time,
-      response);
+      SESSION_ID_1, default_cfg_1, *rule_store, pdp_start_time);
+  session_state->set_tgpp_context(tgpp_ctx, nullptr);
+  session_state->set_fsm_state(SESSION_ACTIVE, nullptr);
+  session_state->set_create_session_response(CreateSessionResponse(), nullptr);
 
   // manually place revalidation timer
   SessionStateUpdateCriteria uc;

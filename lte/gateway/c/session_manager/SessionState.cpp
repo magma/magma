@@ -187,28 +187,22 @@ SessionState::SessionState(
 }
 
 SessionState::SessionState(
-    const std::string& imsi, const std::string& session_id,
-    const SessionConfig& cfg, StaticRuleStore& rule_store,
-    const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time,
-    const CreateSessionResponse& csr)
-    : imsi_(imsi),
+    const std::string& session_id, const SessionConfig& cfg,
+    StaticRuleStore& rule_store, uint64_t pdp_start_time)
+    : imsi_(cfg.get_imsi()),
       session_id_(session_id),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
-      curr_state_(SESSION_ACTIVE),
+      curr_state_(CREATING),
       config_(cfg),
       pdp_start_time_(pdp_start_time),
       pdp_end_time_(0),
+      current_version_(0),
       rtx_counter_(0),
-      tgpp_context_(tgpp_context),
-      create_session_response_(csr),
+      subscriber_quota_state_(SubscriberQuotaUpdate_Type_VALID_QUOTA),
       static_rules_(rule_store),
-      credit_map_(4, &ccHash, &ccEqual) {
-  // other default initializations
-  current_version_        = 0;
-  session_level_key_      = "";
-  subscriber_quota_state_ = SubscriberQuotaUpdate_Type_VALID_QUOTA;
-}
+      credit_map_(4, &ccHash, &ccEqual),
+      session_level_key_("") {}
 
 /*For 5G which doesn't have response context*/
 SessionState::SessionState(
@@ -228,26 +222,6 @@ SessionState::SessionState(
 /* get-set methods of new messages  for 5G*/
 uint32_t SessionState::get_current_version() {
   return current_version_;
-}
-
-SessionState::SessionState(
-    const std::string& session_id, const SessionConfig& cfg,
-    StaticRuleStore& rule_store, uint64_t pdp_start_time)
-    : imsi_(cfg.get_imsi()),
-      session_id_(session_id),
-      // Request number set to 1, because request 0 is INIT call
-      request_number_(1),
-      curr_state_(CREATING),
-      config_(cfg),
-      pdp_start_time_(pdp_start_time),
-      pdp_end_time_(0),
-      rtx_counter_(0),
-      static_rules_(rule_store),
-      credit_map_(4, &ccHash, &ccEqual) {
-  // other default initializations
-  current_version_        = 0;
-  session_level_key_      = "";
-  subscriber_quota_state_ = SubscriberQuotaUpdate_Type_VALID_QUOTA;
 }
 
 void SessionState::set_current_version(

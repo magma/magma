@@ -1039,7 +1039,7 @@ std::unique_ptr<SessionState> LocalEnforcer::create_initializing_session(
       session_id, cfg, *rule_store_, magma::get_time_in_sec_since_epoch());
 }
 
-void LocalEnforcer::init_session_with_policy_response(
+void LocalEnforcer::update_session_with_policy_response(
     std::unique_ptr<SessionState>& session,
     const CreateSessionResponse& response,
     SessionStateUpdateCriteria* session_uc) {
