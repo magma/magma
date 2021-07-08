@@ -118,6 +118,11 @@ typedef struct emm_security_context_s {
 struct emm_common_data_s;
 
 typedef enum { SUCCESS, FAILURE } sgs_loc_updt_status_t;
+typedef enum {
+  NEW_EMM_CONTEXT_NOT_CREATED,
+  NEW_EMM_CONTEXT_CREATED,
+  UNKOWN_GUTI
+} emm_context_state_t;
 
 typedef struct csfb_params_s {
 #define MOBILE_IDENTITY (1 << 0)
@@ -376,7 +381,7 @@ typedef struct emm_context_s {
   bool nw_init_bearer_deactv;
   new_attach_info_t* new_attach_info;
   bool initiate_identity_after_smc;
-  bool is_unknown_guti;
+  emm_context_state_t emm_context_state;
 } emm_context_t;
 
 /*

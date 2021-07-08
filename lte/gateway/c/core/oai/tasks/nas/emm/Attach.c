@@ -620,8 +620,8 @@ int emm_proc_attach_request(
     }
   }
   if (is_unknown_guti) {
-    is_unknown_guti              = false;
-    new_emm_ctx->is_unknown_guti = true;
+    is_unknown_guti                = false;
+    new_emm_ctx->emm_context_state = UNKOWN_GUTI;
   }
   if (!is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {
     emm_proc_create_procedure_attach_request(ue_mm_context, ies);
@@ -2692,7 +2692,8 @@ void proc_new_attach_req(
      created and identification procedure is also completed.
      So invoke authentication procedure
   */
-  if (new_emm_ctx && new_emm_ctx->is_unknown_guti) {
+  if (new_emm_ctx &&
+      (new_emm_ctx->emm_context_state == NEW_EMM_CONTEXT_CREATED)) {
     nas_emm_attach_proc_t* attach_proc =
         get_nas_specific_procedure_attach(new_emm_ctx);
     if (attach_proc) {
@@ -2720,7 +2721,7 @@ void proc_new_attach_req(
           "= " MME_UE_S1AP_ID_FMT "\n",
           ue_mm_context->mme_ue_s1ap_id);
     }
-    new_emm_ctx->is_unknown_guti = false;
+    new_emm_ctx->emm_context_state = NEW_EMM_CONTEXT_NOT_CREATED;
     OAILOG_FUNC_OUT(LOG_NAS_EMM);
   }
 
