@@ -84,12 +84,7 @@ aws configure
 Orchestrator deployment depends on the following components
 
 1. AWS account
-2. Docker image repository (e.g. Docker Hub, JFrog)
-3. Helm chart repository (e.g. JFrog, Github)*
 4. Registered domain for Orchestrator endpoints
-
-\* We describe setting up a private GitHub repository as a Helm repository in
-the [building Orchestrator](../orc8r/deploy_build.md) section.
 
 We recommend deploying the Orchestrator cloud component of Magma into AWS.
 Our open-source Terraform scripts target an AWS deployment environment, but if
