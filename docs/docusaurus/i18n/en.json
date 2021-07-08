@@ -223,6 +223,9 @@
       "lte/upgrade_1_6": {
         "title": "Upgrade to v1.6"
       },
+      "lte/upgrade_debian_to_ubuntu": {
+        "title": "Migrate AGWs to Ubuntu"
+      },
       "nms/admin": {
         "title": "Admin"
       },
@@ -239,7 +242,7 @@
         "title": "Dashboard"
       },
       "nms/deploy_config": {
-        "title": "Configure NMS"
+        "title": "Set Up NMS"
       },
       "nms/dev_components": {
         "title": "Components"
