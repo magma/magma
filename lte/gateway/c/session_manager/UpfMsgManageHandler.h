@@ -22,6 +22,7 @@
 #include "SessionID.h"
 #include "SessionReporter.h"
 #include "SessionStore.h"
+#include "MobilitydClient.h"
 
 using grpc::Server;
 using grpc::ServerContext;
@@ -52,6 +53,11 @@ class UpfMsgHandler {
   virtual void SetUPFSessionsConfig(
       ServerContext* context, const UPFSessionConfigState* sess_config,
       std::function<void(Status, SmContextVoid)> response_callback) = 0;
+
+  // Paging Notification handling
+  virtual void SendPagingRequest(
+      ServerContext* context, const UPFPagingInfo* paging_req,
+      std::function<void(Status, SmContextVoid)> response_callback) = 0;
 };
 
 /**
@@ -63,7 +69,9 @@ class UpfMsgHandler {
 class UpfMsgManageHandler : public UpfMsgHandler {
  public:
   UpfMsgManageHandler(
-      std::shared_ptr<SessionStateEnforcer> enf, SessionStore& session_store);
+      std::shared_ptr<SessionStateEnforcer> enf,
+      std::shared_ptr<MobilitydClient> mobilityd_client,
+      SessionStore& session_store);
 
   ~UpfMsgManageHandler() {}
   /**
@@ -83,9 +91,18 @@ class UpfMsgManageHandler : public UpfMsgHandler {
       ServerContext* context, const UPFSessionConfigState* sess_config,
       std::function<void(Status, SmContextVoid)> response_callback);
 
+  virtual void SendPagingRequest(
+      ServerContext* context, const UPFPagingInfo* paging_req,
+      std::function<void(Status, SmContextVoid)> response_callback);
+
  private:
   SessionStore& session_store_;
   std::shared_ptr<SessionStateEnforcer> conv_enforcer_;
+  std::shared_ptr<MobilitydClient> mobilityd_client_;
+
+  void get_session_from_imsi(
+      const std::string& imsi, uint32_t te_id,
+      std::function<void(Status, SmContextVoid)> response_callback);
 };
 
 }  // namespace magma
