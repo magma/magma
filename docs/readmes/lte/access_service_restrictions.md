@@ -129,3 +129,57 @@ IMEI restrictions can be added, updated, or removed via NMS using the JSON edito
     :
 }
 ```
+
+## Service Area/Tracking Area Restriction
+
+Magma also supports a zone code based service area restriction in federated LTE deployments. To utilize this service restriction, network operators need to configure (1) HSS with up to 10 Regional Restriction Zone Codes for each subscriber and (2) Magma with zone code to a list of tracking area codes (TACs). If HSS does not provide any zone codes in Update Location Answer for a subscriber, then no tracking area restriction is applied for the subscriber. If HSS provides a list of zone codes in Update Location Answer, then a subscriber can attain service only when it is currently located in a cell with TAC included in one of the HSS provided zone codes for the subscriber. Zone codes in Magma are configured at network level utilizing API end point `/lte/{network_id}/cellular/epc`. An example configuration is shown below:
+
+```
+{
+  :
+  :
+  "service_area_maps": {
+    "1234": [10, 20],
+    "1235": [10, 30, 40],
+    "1236": [20, 40, 50, 60]
+  },
+  :
+  :
+}
+```
+Important thing to note here is that the zone code used as the key (e.g., "1234") is a string that corresponds to the decimal representation of the 2-octet zone code that is provided in the Regional-Restriction-Zone-Code AVP (e.g., `\x04D2`).
+
+Service area restrictions can be added, updated, or removed via NMS using the JSON editor and adding, editing, or removing `service_area_maps` key according to the key hierarchy as below:
+```
+"root":{
+    "cellular":{
+        "epc":{
+            :
+            :
+            "service_area_maps":{
+              "1234":[
+                0:10
+                1:20
+              ]
+              "1235":[
+                0:10
+                1:30
+                2:40
+              ]
+              "1236":[
+                0:20
+                1:40
+                2:50
+                3:60
+              ]
+            }
+            :
+            :
+        }
+        :
+        :
+    }
+    :
+    :
+}
+```
