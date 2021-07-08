@@ -260,6 +260,12 @@ int main(int argc, char* argv[]) {
     eventd_client.rpc_response_loop();
   });
 
+  auto mobilityd_client = std::make_shared<magma::AsyncMobilitydClient>();
+  std::thread mobilityd_response_handling_thread([&]() {
+    MLOG(MINFO) << "Started MobilityD response thread";
+    mobilityd_client->rpc_response_loop();
+  });
+
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
   std::shared_ptr<magma::AsyncAmfServiceClient> amf_srv_client;
@@ -404,7 +410,7 @@ int main(int argc, char* argv[]) {
     // 5G related upf  async service framework creation
     auto conv_upf_message_handler =
         std::make_unique<magma::UpfMsgManageHandler>(
-            conv_session_enforcer, *session_store);
+            conv_session_enforcer, mobilityd_client, *session_store);
     // 5G  upf converged service to handler set message from UPF
     conv_upf_message_service = new magma::SetInterfaceForUserPlaneAsyncService(
         server.GetNewCompletionQueue(), std::move(conv_upf_message_handler));
@@ -498,6 +504,7 @@ int main(int argc, char* argv[]) {
     free(conv_set_message_service);
     free(conv_upf_message_service);
   }
+  mobilityd_response_handling_thread.join();
   delete session_store;
 
   shutdown_sentry();

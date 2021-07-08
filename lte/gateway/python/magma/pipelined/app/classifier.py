@@ -214,7 +214,7 @@ class Classifier(MagmaController):
         lacal_f_teid and ue_ip_addr value for corresponding UE address.
         """
         paging_message=UPFPagingInfo(local_f_teid=local_f_teid, ue_ip_addr=ue_ip_add)
-        future = self._sessiond_setinterface.SendPagingReuest.future(
+        future = self._sessiond_setinterface.SendPagingRequest.future(
                             paging_message, self.SESSIOND_RPC_TIMEOUT)
         future.add_done_callback(
                               lambda future: self.loop.call_soon_threadsafe(

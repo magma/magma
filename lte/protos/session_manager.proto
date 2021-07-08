@@ -1083,7 +1083,7 @@ message UPFPagingInfo {
 service SetInterfaceForUserPlane {
     rpc SetUPFNodeState(UPFNodeState) returns (SmContextVoid) {}
     rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (SmContextVoid) {}
-    rpc SendPagingReuest(UPFPagingInfo) returns (magma.orc8r.Void) {}
+    rpc SendPagingRequest(UPFPagingInfo) returns (SmContextVoid) {}
 }
 
 // RPC service and method
