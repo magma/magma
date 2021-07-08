@@ -45,7 +45,6 @@ require (
 	golang.org/x/sys v0.0.0-20210426080607-c94f62235c83 // indirect
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.26.0
-	gotest.tools/gotestsum v1.6.4 // indirect
 	layeh.com/radius v0.0.0-20200615152116-663b41c3bf86
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
