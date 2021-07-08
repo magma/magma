@@ -172,7 +172,7 @@ void UpfMsgManageHandler::get_session_from_imsi(
       return;
     }
 
-    // retreive session_map entry
+    // retrieve session_map entry
     auto session_map = session_store_.read_sessions({imsi});
     /* Search with session search criteria of IMSI and session_id and
      * find  respective session to operate
@@ -196,7 +196,7 @@ void UpfMsgManageHandler::get_session_from_imsi(
     // Generate Paging trigget to AMF.
     conv_enforcer_->handle_state_update_to_amf(
         *session, magma::lte::M5GSMCause::OPERATION_SUCCESS, UE_PAGING_NOTIFY);
-    MLOG(MINFO) << "UPF Paging notificaiton forwarded to AMF of imsi:" << imsi;
+    MLOG(MINFO) << "UPF Paging notification forwarded to AMF of imsi:" << imsi;
     response_callback(Status::OK, SmContextVoid());
   });
   return;

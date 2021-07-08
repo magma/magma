@@ -11,6 +11,8 @@
  * limitations under the License.
  */
 
+#include <memory>
+#include <utility>
 #include "MobilitydClient.h"
 #include "includes/ServiceRegistrySingleton.h"
 #include "magma_logging.h"

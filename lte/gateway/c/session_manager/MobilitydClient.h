@@ -14,7 +14,7 @@
 
 #include <mutex>
 #include <unordered_map>
-
+#include <memory>
 #include <lte/protos/mobilityd.grpc.pb.h>
 #include "Types.h"
 #include "includes/GRPCReceiver.h"
@@ -49,7 +49,8 @@ class AsyncMobilitydClient : public GRPCReceiver, public MobilitydClient {
  public:
   AsyncMobilitydClient();
 
-  AsyncMobilitydClient(std::shared_ptr<grpc::Channel> mobilityd_channel);
+  explicit AsyncMobilitydClient(
+      std::shared_ptr<grpc::Channel> mobilityd_channel);
 
   /**
    * Get SubscriberID for correspoding of UE_IP
