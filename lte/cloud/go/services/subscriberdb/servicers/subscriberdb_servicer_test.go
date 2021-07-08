@@ -296,7 +296,7 @@ func TestListSubscribers(t *testing.T) {
 	}
 	expectedToken = serializeToken(t, token)
 	assert.NoError(t, err)
-	assert.Equal(t, 10, len(res.Subscribers))
+	assert.Len(t, res.Subscribers, 10)
 	assert.Equal(t, expectedToken, res.NextPageToken)
 }
 
@@ -314,7 +314,7 @@ func TestCheckSubscribersInSync(t *testing.T) {
 
 	id := protos.NewGatewayIdentity("hw1", "n1", "g1")
 	ctx := id.NewContextWithIdentity(context.Background())
-	err = digestStore.SetDigest("n1", "digest_cherry")
+	err = digestStore.SetDigest("n1", "digest_apple")
 	assert.NoError(t, err)
 
 	// Requests with blank digests should get an update signal in return
@@ -327,17 +327,17 @@ func TestCheckSubscribersInSync(t *testing.T) {
 
 	// Requests with up-to-date digests should get a no-update signal in return
 	req = &lte_protos.CheckSubscribersInSyncRequest{
-		FlatDigest: &lte_protos.Digest{Md5Base64Digest: "digest_cherry"},
+		FlatDigest: &lte_protos.Digest{Md5Base64Digest: "digest_apple"},
 	}
 	res, err = servicer.CheckSubscribersInSync(ctx, req)
 	assert.NoError(t, err)
 	assert.True(t, res.InSync)
 
 	// Requests with outdated digests should get an update signal in return
-	err = digestStore.SetDigest("n1", "digest_banana")
+	err = digestStore.SetDigest("n1", "digest_apple2")
 	assert.NoError(t, err)
 	req = &lte_protos.CheckSubscribersInSyncRequest{
-		FlatDigest: &lte_protos.Digest{Md5Base64Digest: "digest_cherry"},
+		FlatDigest: &lte_protos.Digest{Md5Base64Digest: "digest_apple"},
 	}
 	res, err = servicer.CheckSubscribersInSync(ctx, req)
 	assert.NoError(t, err)
@@ -357,10 +357,10 @@ func assertEqualSubscriberData(t *testing.T, expectedProtos []*lte_protos.Subscr
 	}
 }
 
-func initializeDigestStore(t *testing.T) subscriberdb_storage.DigestLookup {
+func initializeDigestStore(t *testing.T) subscriberdb_storage.DigestStore {
 	db, err := test_utils.GetSharedMemoryDB()
 	assert.NoError(t, err)
-	digestStore := subscriberdb_storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	digestStore := subscriberdb_storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, digestStore.Initialize())
 	return digestStore
 }

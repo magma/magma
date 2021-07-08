@@ -16,6 +16,7 @@ package subscriberdb_cache
 import (
 	"time"
 
+	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/clock"
@@ -27,14 +28,15 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-func MonitorDigests(store storage.DigestLookup, config Config) {
+func MonitorDigests(config Config, digestStore storage.DigestStore, perSubDigestStore *storage.PerSubDigestStore) {
 	for {
-		generatedDigestsByNetworks, err := RenewDigests(store, config)
+		flatDigestsByNetworks, perSubDigestsByNetworks, err := RenewDigests(config, digestStore, perSubDigestStore)
 		if err != nil {
 			glog.Errorf("Error monitoring digests: %+v", err)
 		}
-		if len(generatedDigestsByNetworks) > 0 {
-			glog.Infof("Generated digests per network: %+v", generatedDigestsByNetworks)
+		if len(flatDigestsByNetworks) > 0 {
+			glog.Infof("Generated digests per network: %+v", flatDigestsByNetworks)
+			glog.V(2).Infof("Generated per-sub digests per network: %+v", perSubDigestsByNetworks)
 		}
 
 		time.Sleep(time.Duration(config.SleepIntervalSecs) * time.Second)
@@ -47,37 +49,61 @@ func MonitorDigests(store storage.DigestLookup, config Config) {
 //
 // Note: RenewDigests renews digests only a single time. Prefer MonitorDigests
 // for continuously updating the digests.
-func RenewDigests(store storage.DigestLookup, config Config) (map[string]string, error) {
-	networksToRenew, networksToRemove, err := getNetworksToUpdate(store, config.UpdateIntervalSecs)
+func RenewDigests(
+	config Config,
+	digestStore storage.DigestStore,
+	perSubDigestStore *storage.PerSubDigestStore,
+) (map[string]string, map[string][]*lte_protos.SubscriberDigestWithID, error) {
+	networksToRenew, networksToRemove, err := getNetworksToUpdate(digestStore, config.UpdateIntervalSecs)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get networks to update")
+		return nil, nil, errors.Wrapf(err, "get networks to update")
 	}
-	err = store.DeleteDigests(networksToRemove)
+	err = digestStore.DeleteDigests(networksToRemove)
 	if err != nil {
-		return nil, errors.Wrapf(err, "remove invalid networks")
+		return nil, nil, errors.Wrapf(err, "remove flat digests of invalid networks")
+	}
+	err = perSubDigestStore.DeleteDigests(networksToRemove)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "remove per sub digests of invalid networks")
 	}
 
 	errs := &multierror.Error{}
-	digestsByNetwork := map[string]string{}
+	flatDigestsByNetwork := map[string]string{}
+	perSubDigestsByNetwork := map[string][]*lte_protos.SubscriberDigestWithID{}
 	for _, network := range networksToRenew {
+		// The per-sub digests in store are updated en masse (collectively serialized into one blob per network);
+		// this update takes place along with every flat digest update for consistency.
+		// If an error occurs during this step, the overall last_updated_at timestamp for the network will
+		// not update, and will indicate outdated-ness instead, forcing a redo in the next loop.
+		perSubDigests, err := subscriberdb.GetPerSubscriberDigests(network)
+		if err != nil {
+			multierror.Append(errors.Wrapf(err, "get per sub dgests to update"))
+			continue
+		}
+		err = perSubDigestStore.SetDigest(network, perSubDigests)
+		if err != nil {
+			multierror.Append(errors.Wrapf(err, "set per sub digest"))
+			continue
+		}
+		perSubDigestsByNetwork[network] = perSubDigests
+
 		digest, err := subscriberdb.GetDigest(network)
 		if err != nil {
-			multierror.Append(errors.Wrapf(err, "generate digest"))
+			multierror.Append(errors.Wrapf(err, "generate flat digest"))
 			continue
 		}
-
-		err = store.SetDigest(network, digest)
+		err = digestStore.SetDigest(network, digest)
 		if err != nil {
-			multierror.Append(errors.Wrapf(err, "set digest"))
+			multierror.Append(errors.Wrapf(err, "set flat digest"))
 			continue
 		}
-		digestsByNetwork[network] = digest
+		flatDigestsByNetwork[network] = digest
 	}
-	return digestsByNetwork, errs.ErrorOrNil()
+	return flatDigestsByNetwork, perSubDigestsByNetwork, errs.ErrorOrNil()
 }
 
 // getNetworksToUpdate returns networks to renew or delete in the store.
-func getNetworksToUpdate(store storage.DigestLookup, updateIntervalSecs int) ([]string, []string, error) {
+func getNetworksToUpdate(store storage.DigestStore, updateIntervalSecs int) ([]string, []string, error) {
 	all, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "Load current networks for subscriberdb cache")

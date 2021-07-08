@@ -50,7 +50,7 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, fact.InitializeFactory())
 	ipStore := storage.NewIPLookup(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, ipStore.Initialize())
-	digestStore := storage.NewDigestLookup(db, sqorc.GetSqlBuilder())
+	digestStore := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, digestStore.Initialize())
 
 	// Load service configs
