@@ -24,9 +24,9 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/serdes"
+	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	nprobe_models "magma/lte/cloud/go/services/nprobe/obsidian/models"
-	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
@@ -44,10 +44,14 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-type builderServicer struct{}
+type builderServicer struct {
+	defaultSubscriberdbSyncInterval uint32
+}
 
-func NewBuilderServicer() builder_protos.MconfigBuilderServer {
-	return &builderServicer{}
+func NewBuilderServicer(config lte_service.Config) builder_protos.MconfigBuilderServer {
+	return &builderServicer{
+		defaultSubscriberdbSyncInterval: config.DefaultSubscriberdbSyncInterval,
+	}
 }
 
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
@@ -192,7 +196,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			LteAuthAmf:      nwEpc.LteAuthAmf,
 			SubProfiles:     getSubProfiles(nwEpc),
 			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
-			SyncInterval:    getSyncInterval(nwEpc, gwEpc),
+			SyncInterval:    getSyncInterval(nwEpc, gwEpc, s.defaultSubscriberdbSyncInterval),
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -632,11 +636,12 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 
 // getSyncInterval takes network-wide subscriberdb sync interval and overrides it if also set for gateway.
 // If sync interval is unset for both network and gateway, a default is read from lte/cloud/configs/subscriberdb.yml
-func getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
-	minSyncInterval := uint32(subscriberdb.MinimumSyncInterval)
+func getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs, defaultSyncInterval uint32) uint32 {
+	// minSyncInterval enforces a minimum sync interval to prevent too many
+	// sync requests if operators set the default lte.yml lower than 60
+	const minSyncInterval = 60
 	gwSyncInterval := uint32(gwEpc.SubscriberdbSyncInterval)
 	nwSyncInterval := uint32(nwEpc.SubscriberdbSyncInterval)
-	defaultSyncInterval := subscriberdb.MustGetServiceConfig().DefaultSyncInterval
 
 	if gwSyncInterval >= minSyncInterval {
 		return gwSyncInterval

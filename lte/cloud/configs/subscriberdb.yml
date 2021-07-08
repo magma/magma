@@ -15,9 +15,3 @@ flatDigestEnabled: true
 # changesetSizeTheshold specifies the max size of the cloud-agw changeset
 # past which a resync signal will be sent back to the agw.
 changesetSizeTheshold: 500
-
-# defaultSyncInterval is the default interval in seconds between gateway
-# requests to sync its subscriberdb with the cloud. This default is used in the
-# subscriberdb mconfig when subscriberdb_sync_interval is not set in the orc8r
-# (neither network-wide nor gateway-specific)
-defaultSyncInterval: 300

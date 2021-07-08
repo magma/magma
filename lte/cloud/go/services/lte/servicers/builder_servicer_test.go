@@ -725,7 +725,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 		},
 	}
 
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
 
@@ -733,7 +733,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 	// override. gw-specific 90 expected
 	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 90
 
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
 
@@ -743,7 +743,7 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 	// nw-wide and gw-specific not set. Service-level default expected
 	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 300
 
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
 }

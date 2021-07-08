@@ -150,3 +150,9 @@ analytics:
       labels:
         class: engagement
 
+
+# defaultSubscriberdbSyncInterval is the default interval in seconds between
+# gateway requests to sync its subscriberdb with the cloud. This default is used
+# in the subscriberdb mconfig when subscriberdb_sync_interval is not set in the
+# orc8r (neither network-wide nor gateway-specific)
+defaultSubscriberdbSyncInterval: 300
