@@ -15,6 +15,7 @@ package models
 
 import (
 	"magma/feg/cloud/go/feg"
+	feg_protos "magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
@@ -349,4 +350,22 @@ func ToFederatedMode(mode string) lte_mconfig.ModeMapItem_FederatedMode {
 	}
 	// default case
 	return lte_mconfig.ModeMapItem_SPGW_SUBSCRIBER
+}
+
+func ToFederationGatewayHealthStatusModel(res *feg_protos.HealthStats) *FederationGatewayHealthStatus {
+	serviceHealths := make(map[string]ServiceStatusHealth)
+	for serviceName, val := range res.GetServiceStatus() {
+		serviceHealths[serviceName] = ServiceStatusHealth{
+			HealthStatus: val.GetServiceHealthStatus().GetHealth().String(),
+			ServiceState: val.GetServiceState().String(),
+		}
+	}
+
+	ret := &FederationGatewayHealthStatus{
+		Status:        res.GetHealth().GetHealth().String(),
+		Description:   res.GetHealth().GetHealthMessage(),
+		ServiceStatus: serviceHealths,
+	}
+	return ret
+
 }

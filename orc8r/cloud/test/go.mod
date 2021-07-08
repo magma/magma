@@ -14,7 +14,7 @@ replace (
 
 require (
 	github.com/go-openapi/runtime v0.19.28
-	github.com/go-openapi/swag v0.19.9
+	github.com/go-openapi/swag v0.19.15
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/stretchr/testify v1.6.1
 	golang.org/x/crypto v0.0.0-20210513164829-c07d793c2f9a

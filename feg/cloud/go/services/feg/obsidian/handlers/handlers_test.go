@@ -434,6 +434,11 @@ func TestFederationGateways(t *testing.T) {
 	expectedRes := &models2.FederationGatewayHealthStatus{
 		Status:      models2.FederationGatewayHealthStatusStatusHEALTHY,
 		Description: "OK",
+		ServiceStatus: map[string]models2.ServiceStatusHealth{
+			"S6A_PROXY":     {HealthStatus: "HEALTHY", ServiceState: "AVAILABLE"},
+			"SESSION_PROXY": {HealthStatus: "HEALTHY", ServiceState: "AVAILABLE"},
+			"SWX_PROXY":     {HealthStatus: "HEALTHY", ServiceState: "AVAILABLE"},
+		},
 	}
 
 	// Test Health Gateway
