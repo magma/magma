@@ -91,7 +91,7 @@ func GetStructuredServiceConfig(moduleName string, serviceName string, out inter
 func MustGetStructuredServiceConfig(moduleName string, serviceName string, out interface{}) {
 	_, _, err := GetStructuredServiceConfig(moduleName, serviceName, &out)
 	if err != nil {
-		glog.Fatal(err)
+		glog.Fatalf("Failed to read %s::%s configs: %v", moduleName, serviceName, err)
 	}
 }
 

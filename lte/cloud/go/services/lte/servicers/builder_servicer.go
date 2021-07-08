@@ -196,7 +196,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			LteAuthAmf:      nwEpc.LteAuthAmf,
 			SubProfiles:     getSubProfiles(nwEpc),
 			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
-			SyncInterval:    getSyncInterval(nwEpc, gwEpc, s.defaultSubscriberdbSyncInterval),
+			SyncInterval:    s.getSyncInterval(nwEpc, gwEpc),
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
@@ -635,10 +635,10 @@ func getNetworkSentryConfig(network *configurator.Network) *lte_mconfig.SentryCo
 }
 
 // getSyncInterval takes network-wide subscriberdb sync interval and overrides it if also set for gateway.
-// If sync interval is unset for both network and gateway, a default is read from lte/cloud/configs/subscriberdb.yml
-func getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs, defaultSyncInterval uint32) uint32 {
+// If sync interval is unset for both network and gateway, a default is read from lte/cloud/configs/lte.yml
+func (s *builderServicer) getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.GatewayEpcConfigs) uint32 {
 	// minSyncInterval enforces a minimum sync interval to prevent too many
-	// sync requests if operators set the default lte.yml lower than 60
+	// sync requests if operator sets the default in lte.yml to lower than 60
 	const minSyncInterval = 60
 	gwSyncInterval := uint32(gwEpc.SubscriberdbSyncInterval)
 	nwSyncInterval := uint32(nwEpc.SubscriberdbSyncInterval)
@@ -649,8 +649,8 @@ func getSyncInterval(nwEpc *lte_models.NetworkEpcConfigs, gwEpc *lte_models.Gate
 	if nwSyncInterval >= minSyncInterval {
 		return nwSyncInterval
 	}
-	if defaultSyncInterval >= minSyncInterval {
-		return defaultSyncInterval
+	if s.defaultSubscriberdbSyncInterval >= minSyncInterval {
+		return s.defaultSubscriberdbSyncInterval
 	}
 	return minSyncInterval
 }
