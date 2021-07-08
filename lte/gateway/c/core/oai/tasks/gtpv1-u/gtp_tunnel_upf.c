@@ -48,49 +48,38 @@ const struct gtp_tunnel_ops* upf_gtp_tunnel_ops_init_openflow(void) {
   return (&upf_openflow_ops);
 }
 
-int upf_add_tunnel(
+void upf_add_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
     uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
     uint32_t flow_precedence_dl, char* apn) {
   upf_classifier_add_tunnel(
       ue, ue_ipv6, vlan, enb, i_tei, o_tei, (const char*) imsi.digit, flow_dl,
       flow_precedence_dl, apn);
-  return 0;
 }
 
-int upf_del_tunnel(
+void upf_del_tunnel(
     struct in_addr enb, struct in_addr ue, struct in6_addr* ue_ipv6,
     uint32_t i_tei, uint32_t o_tei, struct ip_flow_dl* flow_dl) {
   upf_classifier_del_tunnel(enb, ue, ue_ipv6, i_tei, o_tei, flow_dl);
-
-  return 0;
 }
 
-int upf_discard_data_on_tunnel(
+void upf_discard_data_on_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
     struct ip_flow_dl* flow_dl) {
   upf_classifier_discard_data_on_tunnel(ue, ue_ipv6, i_tei, flow_dl);
-
-  return 0;
 }
 
-int upf_forward_data_on_tunnel(
+void upf_forward_data_on_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
     struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl) {
   upf_classifier_forward_data_on_tunnel(
       ue, ue_ipv6, i_tei, flow_dl, flow_precedence_dl);
-
-  return 0;
 }
 
-int upf_add_paging_rule(struct in_addr ue) {
+void upf_add_paging_rule(struct in_addr ue) {
   upf_classifier_add_paging_rule(ue);
-
-  return 0;
 }
 
-int upf_delete_paging_rule(struct in_addr ue) {
+void upf_delete_paging_rule(struct in_addr ue) {
   upf_classifier_delete_paging_rule(ue);
-
-  return 0;
 }
