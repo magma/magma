@@ -19,18 +19,20 @@
 #include <stdlib.h>
 #include <stdint.h>
 
+#include "3gpp_24.007.h"
+#include "3gpp_24.301.h"
 #include "TLVEncoder.h"
 #include "TLVDecoder.h"
-#include "ProtocolDiscriminator.h"
+#include "EpsBearerIdentity.h"
 
-int decode_protocol_discriminator(
-    ProtocolDiscriminator* protocoldiscriminator, uint8_t iei, uint8_t* buffer,
+int decode_eps_bearer_identity(
+    EpsBearerIdentity* epsbeareridentity, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
   return 0;
 }
 
-int encode_protocol_discriminator(
-    ProtocolDiscriminator* protocoldiscriminator, uint8_t iei, uint8_t* buffer,
+int encode_eps_bearer_identity(
+    EpsBearerIdentity* epsbeareridentity, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
   return 0;
 }

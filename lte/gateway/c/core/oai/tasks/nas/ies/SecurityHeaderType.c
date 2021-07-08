@@ -23,14 +23,12 @@
 int decode_security_header_type(
     security_header_type_t* securityheadertype, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  Fatal("TODO Implement decode_security_header_type");
-  return -1;
+  return 0;
 }
 
 //------------------------------------------------------------------------------
 int encode_security_header_type(
     security_header_type_t* securityheadertype, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
-  Fatal("TODO Implement encode_security_header_type");
-  return -1;
+  return 0;
 }

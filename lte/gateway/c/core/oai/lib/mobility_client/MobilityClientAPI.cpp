@@ -147,10 +147,11 @@ static void handle_allocate_ipv4_address_status(
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
-void release_ipv4_address(
+int release_ipv4_address(
     const char* subscriber_id, const char* apn, const struct in_addr* addr) {
-  MobilityServiceClient::getInstance().ReleaseIPv4Address(
+  int status = MobilityServiceClient::getInstance().ReleaseIPv4Address(
       subscriber_id, apn, *addr);
+  return status;
 }
 
 int get_ipv4_address_for_subscriber(
@@ -361,15 +362,17 @@ static void handle_allocate_ipv4v6_address_status(
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_SPGW_APP, message_p);
 }
 
-void release_ipv6_address(
+int release_ipv6_address(
     const char* subscriber_id, const char* apn, const struct in6_addr* addr) {
-  MobilityServiceClient::getInstance().ReleaseIPv6Address(
+  int status = MobilityServiceClient::getInstance().ReleaseIPv6Address(
       subscriber_id, apn, *addr);
+  return status;
 }
 
-void release_ipv4v6_address(
+int release_ipv4v6_address(
     const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr,
     const struct in6_addr* ipv6_addr) {
-  MobilityServiceClient::getInstance().ReleaseIPv4v6Address(
+  int status = MobilityServiceClient::getInstance().ReleaseIPv4v6Address(
       subscriber_id, apn, *ipv4_addr, *ipv6_addr);
+  return status;
 }

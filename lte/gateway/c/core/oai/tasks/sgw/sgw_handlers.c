@@ -783,28 +783,49 @@ status_code_e sgw_handle_sgi_endpoint_deleted(
       switch (resp_pP->paa.pdn_type) {
         case IPv4:
           inaddr = resp_pP->paa.ipv4_address;
-          release_ue_ipv4_address(imsi, apn, &inaddr);
-          OAILOG_DEBUG_UE(
-              LOG_SPGW_APP, imsi64, "Released IPv4 PAA for PDN type IPv4\n");
+          if (!release_ue_ipv4_address(imsi, apn, &inaddr)) {
+            OAILOG_DEBUG_UE(
+                LOG_SPGW_APP, imsi64, "Released IPv4 PAA for PDN type IPv4\n");
+          } else {
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "Failed to release IPv4 PAA for PDN type IPv4\n");
+          }
           break;
 
         case IPv6:
           in6addr = resp_pP->paa.ipv6_address;
-          release_ue_ipv6_address(imsi, apn, &in6addr);
-          OAILOG_DEBUG_UE(
-              LOG_SPGW_APP, imsi64, "Released IPv6 PAA for PDN type IPv6\n");
+          if (!release_ue_ipv6_address(imsi, apn, &in6addr)) {
+            OAILOG_DEBUG_UE(
+                LOG_SPGW_APP, imsi64, "Released IPv6 PAA for PDN type IPv6\n");
+          } else {
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "Failed to release IPv6 PAA for PDN type IPv6\n");
+          }
           break;
 
         case IPv4_AND_v6:
           inaddr = resp_pP->paa.ipv4_address;
-          release_ue_ipv4_address(imsi, apn, &inaddr);
-          OAILOG_DEBUG_UE(
-              LOG_SPGW_APP, imsi64,
-              "Released IPv4 PAA for PDN type IPv4_AND_v6\n");
+          if (!release_ue_ipv4_address(imsi, apn, &inaddr)) {
+            OAILOG_DEBUG_UE(
+                LOG_SPGW_APP, imsi64,
+                "Released IPv4 PAA for PDN type IPv4_AND_v6\n");
+          } else {
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "Failed to release IPv4 PAA for PDN type IPv4_AND_v6\n");
+          }
           in6addr = resp_pP->paa.ipv6_address;
-          release_ue_ipv6_address(imsi, apn, &in6addr);
-          OAILOG_DEBUG_UE(
-              LOG_SPGW_APP, imsi64, "Released IPv6 PAA for PDN type IPv4v6\n");
+          if (!release_ue_ipv6_address(imsi, apn, &in6addr)) {
+            OAILOG_DEBUG_UE(
+                LOG_SPGW_APP, imsi64,
+                "Released IPv6 PAA for PDN type IPv4v6\n");
+          } else {
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "Failed to release IPv6 PAA for PDN type IPv4v6\n");
+          }
           break;
 
         default:
