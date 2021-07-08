@@ -340,21 +340,17 @@ int main(int argc, char* argv[]) {
 
   // Start off a thread to periodically poll stats from Pipelined
   // every fixed interval of time
-
-  if (config["enable_pull_stats"].IsDefined() &&
-      config["enable_pull_stats"].as<bool>()) {
-    auto periodic_stats_requester = std::make_shared<magma::StatsPoller>();
-    std::thread periodic_stats_requester_thread([&]() {
-      // random value assigned for interval period, the value will be loaded
-      // from a config field later
-      uint32_t interval = DEFAULT_POLL_INTERVAL_TIME;
-      if (config["poll_stats_interval"].IsDefined()) {
-        interval = config["poll_stats_interval"].as<uint32_t>();
-      }
-      periodic_stats_requester->start_loop(local_enforcer, interval);
-      periodic_stats_requester->stop();
-    });
-  }
+  auto periodic_stats_requester = std::make_shared<magma::StatsPoller>();
+  std::thread periodic_stats_requester_thread([&]() {
+    // random value assigned for interval period, the value will be loaded
+    // from a config field later
+    uint32_t interval = DEFAULT_POLL_INTERVAL_TIME;
+    if (config["poll_stats_interval"].IsDefined()) {
+      interval = config["poll_stats_interval"].as<uint32_t>();
+    }
+    periodic_stats_requester->start_loop(local_enforcer, interval);
+    periodic_stats_requester->stop();
+  });
 
   // Setup threads to serve as GRPC servers for the LocalSessionManagerHandler
   // and the SessionProxyHandler (RARs)

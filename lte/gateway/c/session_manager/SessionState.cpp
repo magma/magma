@@ -1003,8 +1003,13 @@ void SessionState::set_upf_teid_endpoint(
   return;
 }
 
-void SessionState::set_config(const SessionConfig& config) {
+void SessionState::set_config(
+    const SessionConfig& config, SessionStateUpdateCriteria* session_uc) {
   config_ = config;
+  if (session_uc) {
+    session_uc->is_config_updated = true;
+    session_uc->updated_config    = config;
+  }
 }
 
 bool SessionState::is_radius_cwf_session() const {
