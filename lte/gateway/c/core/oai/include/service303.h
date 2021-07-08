@@ -27,8 +27,8 @@
 
 #define NO_BOUNDARIES 0
 #define NO_LABELS 0
-#define EPC_STATS_TIMER_MSEC 60000          // In milliseconds
-#define EPC_STATS_DISPLAY_TIMER_MSEC 60000  // In milliseconds
+#define EPC_STATS_TIMER_MSEC 60000  // In milliseconds
+#define EPC_STATS_DISPLAY_TIMER_MSEC 60000 // In milliseconds
 
 void service303_mme_app_statistics_read(
     application_mme_app_stats_msg_t* stats_msg_p);

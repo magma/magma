@@ -27,13 +27,11 @@
 int decode_procedure_transaction_identity(
     ProcedureTransactionIdentity* proceduretransactionidentity, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
-  Fatal("TODO Implement decode_procedure_transaction_identity");
-  return -1;
+  return 0;
 }
 
 int encode_procedure_transaction_identity(
     ProcedureTransactionIdentity* proceduretransactionidentity, uint8_t iei,
     uint8_t* buffer, uint32_t len) {
-  Fatal("TODO Implement encode_procedure_transaction_identity");
-  return -1;
+  return 0;
 }
