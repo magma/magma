@@ -54,9 +54,6 @@ extern mme_congestion_params_t mme_congestion_params;
 
 extern int check_plmn_restriction(imsi_t imsi);
 extern int validate_imei(imeisv_t* imeisv);
-extern void create_new_attach_info(
-    emm_context_t* emm_context_p, mme_ue_s1ap_id_t mme_ue_s1ap_id,
-    struct emm_attach_request_ies_s* ies, bool is_mm_ctx_new);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
@@ -269,7 +266,7 @@ int emm_proc_identification_complete(
         if (emm_ctx->is_unknown_guti && old_imsi_ue_mm_ctx) {
           OAILOG_INFO_UE(
               LOG_NAS_EMM, imsi64,
-              "EMMAS-SAP - Old ue context already exists for for ue_id "
+              "EMMAS-SAP - UE context already exists for for ue_id "
               "=." MME_UE_S1AP_ID_FMT " Triggering implicit detach\n",
               ue_id);
           nas_emm_attach_proc_t* attach_proc =
