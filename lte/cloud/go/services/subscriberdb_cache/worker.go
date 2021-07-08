@@ -36,7 +36,7 @@ func MonitorDigests(config Config, digestStore storage.DigestStore, perSubDigest
 		}
 		if len(flatDigestsByNetworks) > 0 {
 			glog.Infof("Generated digests per network: %+v", flatDigestsByNetworks)
-			glog.Infof("Generated per-sub digests per network: %+v", perSubDigestsByNetworks)
+			glog.V(2).Infof("Generated per-sub digests per network: %+v", perSubDigestsByNetworks)
 		}
 
 		time.Sleep(time.Duration(config.SleepIntervalSecs) * time.Second)
@@ -71,20 +71,10 @@ func RenewDigests(
 	flatDigestsByNetwork := map[string]string{}
 	perSubDigestsByNetwork := map[string][]*lte_protos.SubscriberDigestWithID{}
 	for _, network := range networksToRenew {
-		digest, err := subscriberdb.GetDigest(network)
-		if err != nil {
-			multierror.Append(errors.Wrapf(err, "generate flat digest"))
-			continue
-		}
-		err = digestStore.SetDigest(network, digest)
-		if err != nil {
-			multierror.Append(errors.Wrapf(err, "set flat digest"))
-			continue
-		}
-		flatDigestsByNetwork[network] = digest
-
-		// The per-sub digests in store are updated en masse (collectively serialized into one blob per network)
-		// This update takes place along with every flat digest update for consistency
+		// The per-sub digests in store are updated en masse (collectively serialized into one blob per network);
+		// this update takes place along with every flat digest update for consistency.
+		// If an error occurs during this step, the overall last_updated_at timestamp for the network will
+		// not update, and will indicate outdated-ness instead, forcing a redo in the next loop.
 		perSubDigests, err := subscriberdb.GetPerSubscriberDigests(network)
 		if err != nil {
 			multierror.Append(errors.Wrapf(err, "get per sub dgests to update"))
@@ -96,6 +86,18 @@ func RenewDigests(
 			continue
 		}
 		perSubDigestsByNetwork[network] = perSubDigests
+
+		digest, err := subscriberdb.GetDigest(network)
+		if err != nil {
+			multierror.Append(errors.Wrapf(err, "generate flat digest"))
+			continue
+		}
+		err = digestStore.SetDigest(network, digest)
+		if err != nil {
+			multierror.Append(errors.Wrapf(err, "set flat digest"))
+			continue
+		}
+		flatDigestsByNetwork[network] = digest
 	}
 	return flatDigestsByNetwork, perSubDigestsByNetwork, errs.ErrorOrNil()
 }

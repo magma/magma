@@ -14,10 +14,12 @@ limitations under the License.
 package subscriberdb_cache_test
 
 import (
+	"strings"
 	"testing"
 	"time"
 
 	"magma/lte/cloud/go/lte"
+	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
@@ -27,10 +29,12 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb_cache"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/mproto"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
+	"magma/orc8r/lib/go/protos"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -108,11 +112,33 @@ func TestSubscriberdbCacheWorker(t *testing.T) {
 
 	perSubDigests, err = perSubDigestStore.GetDigest("n1")
 	assert.NoError(t, err)
-	// The individual subscriber digests are ordered by subscriber ID
+	// The individual subscriber digests are ordered by subscriber ID, and are prefixed
+	// by a hash of the subscriber data proto
+	sub1 := &lte_protos.SubscriberData{
+		Sid:        &lte_protos.SubscriberID{Id: "11111", Type: lte_protos.SubscriberID_IMSI},
+		Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_ACTIVE, AuthKey: []byte{}},
+		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
+		NetworkId:  &protos.NetworkID{Id: "n1"},
+		SubProfile: "default",
+	}
+	expectedDigestPrefix1, err := mproto.HashDeterministic(sub1)
+	assert.NoError(t, err)
 	assert.Equal(t, "11111", perSubDigests[0].Sid.Id)
 	assert.NotEmpty(t, perSubDigests[0].Digest.GetMd5Base64Digest())
+	assert.True(t, strings.HasPrefix(perSubDigests[0].Digest.GetMd5Base64Digest(), expectedDigestPrefix1))
+
+	sub2 := &lte_protos.SubscriberData{
+		Sid:        &lte_protos.SubscriberID{Id: "99999", Type: lte_protos.SubscriberID_IMSI},
+		Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_ACTIVE, AuthKey: []byte{}},
+		Non_3Gpp:   &lte_protos.Non3GPPUserProfile{ApnConfig: []*lte_protos.APNConfiguration{}},
+		NetworkId:  &protos.NetworkID{Id: "n1"},
+		SubProfile: "default",
+	}
+	expectedDigestPrefix2, err := mproto.HashDeterministic(sub2)
+	assert.NoError(t, err)
 	assert.Equal(t, "99999", perSubDigests[1].Sid.Id)
 	assert.NotEmpty(t, perSubDigests[1].Digest.GetMd5Base64Digest())
+	assert.True(t, strings.HasPrefix(perSubDigests[1].Digest.GetMd5Base64Digest(), expectedDigestPrefix2))
 	clock.UnfreezeClock(t)
 
 	// Detect newly added and removed networks

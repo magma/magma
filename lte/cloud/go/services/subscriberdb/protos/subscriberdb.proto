@@ -128,7 +128,7 @@ message ApnResourceInternal {
   APNConfiguration.APNResource apn_resource = 3;
 }
 
-// SubscriberDigestWithIDs is used internally in per-subscriber store to serialize and deserialize
+// SubscriberDigestWithIDs is used in per-subscriber store to serialize and deserialize
 // a list of per-sub digests.
 message SubscriberDigestWithIDs {
   // digests is the list of per-sub digests to be (de)serialized.

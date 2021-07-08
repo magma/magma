@@ -19,16 +19,13 @@ import (
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/storage"
-	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/test_utils"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestPerSubDigestStore(t *testing.T) {
-	db, err := sqorc.Open("sqlite3", ":memory:")
-	assert.NoError(t, err)
-	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	fact := test_utils.NewSQLBlobstore(t, subscriberdb.PerSubDigestTableBlobstore)
 	assert.NoError(t, fact.InitializeFactory())
 	s := storage.NewPerSubDigestStore(fact)
 
@@ -53,7 +50,7 @@ func TestPerSubDigestStore(t *testing.T) {
 				Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"},
 			},
 		}
-		err = s.SetDigest("n0", expected)
+		err := s.SetDigest("n0", expected)
 		assert.NoError(t, err)
 
 		got, err := s.GetDigest("n0")
@@ -77,7 +74,7 @@ func TestPerSubDigestStore(t *testing.T) {
 			},
 		}
 		// The upserted set should completely replace the original set
-		err = s.SetDigest("n1", expected)
+		err := s.SetDigest("n1", expected)
 		assert.NoError(t, err)
 		got, err := s.GetDigest("n1")
 		assert.NoError(t, err)
@@ -91,7 +88,7 @@ func TestPerSubDigestStore(t *testing.T) {
 	})
 
 	t.Run("delete many", func(t *testing.T) {
-		err = s.DeleteDigests([]string{"n0", "n1"})
+		err := s.DeleteDigests([]string{"n0", "n1"})
 		assert.NoError(t, err)
 
 		got, err := s.GetDigest("n0")

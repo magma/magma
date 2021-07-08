@@ -17,17 +17,18 @@ import (
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/orc8r/cloud/go/blobstore"
-	"magma/orc8r/cloud/go/mproto"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/hashicorp/go-multierror"
 	"github.com/pkg/errors"
 )
 
 const (
-	PerSubDigestBlobstoreType = "per_sub_digest"
-	// NOTE: perSubDigestBlobstoreNetworkKey is the placeholder network for the
+	// perSubDigestBlobstoreType is the blob type stored in per-sub digest blobstores.
+	perSubDigestBlobstoreType = "per_sub_digest"
+	// perSubDigestBlobstoreNetworkKey is the placeholder network for the
 	// per-sub digest blobstore, since the actual network of each blob of per-sub
 	// digests is used as the key of the blob.
 	perSubDigestBlobstoreNetworkKey = "per_sub_digest_network_internal"
@@ -49,7 +50,7 @@ func (l *PerSubDigestStore) GetDigest(network string) ([]*lte_protos.SubscriberD
 	}
 	defer store.Rollback()
 
-	blob, err := store.Get(perSubDigestBlobstoreNetworkKey, storage.TypeAndKey{Type: PerSubDigestBlobstoreType, Key: network})
+	blob, err := store.Get(perSubDigestBlobstoreNetworkKey, storage.TypeAndKey{Type: perSubDigestBlobstoreType, Key: network})
 	if err == merrors.ErrNotFound {
 		// If per-sub digests for this network is not set yet, return empty list
 		return []*lte_protos.SubscriberDigestWithID{}, nil
@@ -59,7 +60,7 @@ func (l *PerSubDigestStore) GetDigest(network string) ([]*lte_protos.SubscriberD
 	}
 
 	perSubDigests := &protos.SubscriberDigestWithIDs{}
-	err = mproto.Unmarshal(blob.Value, perSubDigests)
+	err = proto.Unmarshal(blob.Value, perSubDigests)
 	if err != nil {
 		return nil, errors.Wrapf(err, "deserialize per-sub digests")
 	}
@@ -78,13 +79,12 @@ func (l *PerSubDigestStore) SetDigest(network string, digests []*lte_protos.Subs
 	// The sorted list of per-sub digests are serialized to be stored as a single blob.
 	// This is to preserve the sorted order of the digests, and to decrease the frequency
 	// of writes to the store.
-	blobValue := &protos.SubscriberDigestWithIDs{Digests: digests}
-	blobValueSerialized, err := mproto.MarshalDeterministic(blobValue)
+	blobValueSerialized, err := proto.Marshal(&protos.SubscriberDigestWithIDs{Digests: digests})
 	if err != nil {
 		return errors.Wrapf(err, "serialize per-sub digests")
 	}
 	err = store.CreateOrUpdate(perSubDigestBlobstoreNetworkKey, blobstore.Blobs{{
-		Type:  PerSubDigestBlobstoreType,
+		Type:  perSubDigestBlobstoreType,
 		Key:   network,
 		Value: blobValueSerialized,
 	}})
@@ -106,7 +106,7 @@ func (l *PerSubDigestStore) DeleteDigests(networks []string) error {
 	errs := &multierror.Error{}
 	for _, network := range networks {
 		err = store.Delete(perSubDigestBlobstoreNetworkKey, []storage.TypeAndKey{{
-			Type: PerSubDigestBlobstoreType,
+			Type: perSubDigestBlobstoreType,
 			Key:  network,
 		}})
 		if err != nil {
@@ -115,7 +115,7 @@ func (l *PerSubDigestStore) DeleteDigests(networks []string) error {
 	}
 
 	if errs.ErrorOrNil() != nil {
-		return errors.Wrapf(errs, "Delete per-sub digests from blobstore")
+		return errors.Wrapf(errs, "delete per-sub digests from blobstore")
 	}
 	return store.Commit()
 }
