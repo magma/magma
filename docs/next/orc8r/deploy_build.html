@@ -89,12 +89,12 @@ as a starting point, as individual needs may vary.</p>
 <p>First define some necessary variables</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">export</span> PUBLISH=<span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/tools/docker/publish.sh  <span class="hljs-comment"># or add to path</span>
 <span class="hljs-built_in">export</span> REGISTRY=registry.hub.docker.com/REGISTRY  <span class="hljs-comment"># or desired registry</span>
-<span class="hljs-built_in">export</span> MAGMA_TAG=1.4.0-master  <span class="hljs-comment"># or desired tag</span>
+<span class="hljs-built_in">export</span> MAGMA_TAG=1.6.0-master  <span class="hljs-comment"># or desired tag</span>
 </code></pre>
-<p>Checkout the v1.4 release branch</p>
+<p>Checkout the v1.6 release branch</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">${MAGMA_ROOT}</span>
 git fetch origin
-git checkout -b v1.4 origin/v1.4
+git checkout -b v1.6 origin/v1.6
 </code></pre>
 <p>Build and publish Orchestrator images</p>
 <pre><code class="hljs css language-bash"><span class="hljs-built_in">cd</span> <span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/cloud/docker
@@ -148,7 +148,7 @@ type to be provided, which will determine which orc8r modules are deployed.</p>
 Uploaded orc8r charts successfully.
 </code></pre>
 <p>You can add <code>-v</code> option to overwrite the versions of the chart.</p>
-<pre><code class="hljs css language-bash"><span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/tools/helm/package.sh -d fwa  -v 1.5
+<pre><code class="hljs css language-bash"><span class="hljs-variable">${MAGMA_ROOT}</span>/orc8r/tools/helm/package.sh -d fwa  -v 1.6
 </code></pre>
 </span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/magma/docs/next/orc8r/deploy_intro"><span class="arrow-prev">← </span><span>Introduction</span></a><a class="docs-next button" href="/magma/docs/next/orc8r/deploy_install"><span>Install Orchestrator</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#prerequisites">Prerequisites</a></li><li><a href="#build-and-publish-container-images">Build and publish container images</a></li><li><a href="#build-and-publish-helm-charts">Build and publish Helm charts</a><ul class="toc-headings"><li><a href="#option-1-publish-to-artifactory">Option 1: Publish to artifactory</a></li><li><a href="#option-2-publish-to-a-private-github-repo">Option 2: Publish to a private Github repo</a></li><li><a href="#run-the-package-script">Run the package script</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/magma/" class="nav-home"><img src="/magma/img/magma_icon.png" alt="Magma Documentation" width="66"/></a><div><h5>Docs</h5><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Product_Overview.pdf">Magma Product Overview</a><a href="https://github.com/facebookincubator/magma/blob/master/docs/Magma_Specs_V1.1.pdf">Magma Spec</a></div><div><h5>Community</h5><a href="https://discord.gg/4YxZbft">Discord</a><a href="https://fb.me/magmadevsummit" target="_blank" rel="noreferrer noopener">Magma Dev Summit</a></div><div><h5>More</h5><a href="https://code.fb.com/open-source/magma/">Blog</a><a href="https://github.com/facebookincubator/magma">GitHub</a></div></section><section class="copyright">Copyright © 2021 The Magma Authors</section></footer></div><script type="text/javascript" src="https://cdn.jsdelivr.net/docsearch.js/1/docsearch.min.js"></script><script>
                 document.addEventListener('keyup', function(e) {
