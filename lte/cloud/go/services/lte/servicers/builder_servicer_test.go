@@ -746,6 +746,15 @@ func TestBuilder_Build_ConfigOverride(t *testing.T) {
 	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
+
+	lte_test_init.StartTestServiceWithConfig(t, lte_service.Config{DefaultSubscriberdbSyncInterval: 30})
+
+	// nw-wide and gw-specific not set. Service-level default (30) too low. Enforced minimum (60) expected
+	expected["subscriberdb"].(*lte_mconfig.SubscriberDB).SyncInterval = 60
+
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected["subscriberdb"], actual["subscriberdb"])
 }
 
 func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
