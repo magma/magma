@@ -306,12 +306,6 @@ class LocalEnforcer {
    * Report flow stats from pipelined and track the usage per rule
    */
   void check_usage_for_reporting(
-      SessionMap session_map, SessionUpdate& session_uc);
-
-  void handle_pipelined_response(Status status, RuleRecordTable resp);
-
-  void report_updates_callback(
-      UpdateSessionRequest& request,
       SessionMap& session_map, SessionUpdate& session_uc);
 
   void handle_pipelined_response(Status status, RuleRecordTable resp);
