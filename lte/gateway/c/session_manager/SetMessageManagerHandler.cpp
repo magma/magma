@@ -204,7 +204,7 @@ void SetMessageManagerHandler::send_create_session(
                          .teid());
       MLOG(MDEBUG) << "2nd Request of session from UE with IMSI: " << imsi
                    << " PDU id " << pdu_id;
-      session->set_config(cfg);
+      session->set_config(cfg, nullptr);
       SessionUpdate update =
           SessionStore::get_default_session_update(session_map);
       bool success = m5g_enforcer_->m5g_update_session_context(
