@@ -1,5 +1,5 @@
 ---
-id: thanos
+id: configure_thanos
 title: Thanos
 hide_title: true
 ---

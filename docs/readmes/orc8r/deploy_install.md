@@ -138,7 +138,7 @@ Make sure that the `source` variables for the module definitions point to
 `github.com/magma/magma//orc8r/cloud/deploy/terraform/MODULE?ref=v1.6`.
 Adjust any other parameters as you see fit. Check the READMEs for the
 relevant Terraform modules to see additional variables that can be set.
-You can [override values](./override_values_of_terraform_files.md)
+You can [override values](./deploy_terraform_options.md#override-terraform-module-values)
 that are part of the Terraform files that are used in the GitHub repository.
 
 Finally, initialize Terraform
@@ -155,7 +155,7 @@ Initializing provider plugins...
 Terraform has been successfully initialized!
 ```
 
-By default, Terraform state file will be stored locally. However, you can [hold the state file remotely](./hold_terraform_state_on_s3.md) using an AWS S3 bucket.
+By default, Terraform state file will be stored locally. However, you can [store the state file remotely](./deploy_terraform_options.md#store-terraform-state-in-aws) using an AWS S3 bucket.
 
 ### Terraform Infrastructure
 
