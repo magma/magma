@@ -39,7 +39,7 @@ SyslogIdentifier=pipelined
 User=root
 Restart=always
 RestartSec=5
-MemoryLimit=300M
+MemoryLimit=13%
 
 [Install]
 WantedBy=multi-user.target
