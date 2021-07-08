@@ -264,9 +264,10 @@ func TestGetPerSubscriberDigests(t *testing.T) {
 	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
-	// Initially the per-sub digest list should be empty (but not nil)
 	perSubDigests, err := subscriberdb.GetPerSubscriberDigests("n1")
 	assert.NoError(t, err)
+	// The generated per-sub digests list should be empty but not nil, to avoid unexpected errors
+	// when the agw client iterates over this list returned from cloud
 	assert.Equal(t, []*lte_protos.SubscriberDigestWithID{}, perSubDigests)
 
 	// Generate individual digests for each newly detected subscriber in the network
@@ -377,7 +378,7 @@ func TestGetPerSubscriberDigests(t *testing.T) {
 func TestGetPerSubscriberDigestsDiff(t *testing.T) {
 	t.Run("both empty", func(t *testing.T) {
 		prev, next := []*lte_protos.SubscriberDigestWithID{}, []*lte_protos.SubscriberDigestWithID{}
-		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(next, prev)
+		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(prev, next)
 		assert.Empty(t, toRenew)
 		assert.Empty(t, deleted)
 	})
@@ -388,7 +389,7 @@ func TestGetPerSubscriberDigestsDiff(t *testing.T) {
 			{Sid: &lte_protos.SubscriberID{Id: "00002"}, Digest: &lte_protos.Digest{Md5Base64Digest: "cherry"}},
 		}
 		next := []*lte_protos.SubscriberDigestWithID{}
-		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(next, prev)
+		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(prev, next)
 
 		assert.Empty(t, toRenew)
 		assert.Equal(t, []string{"00000", "00001", "00002"}, deleted)
@@ -405,7 +406,7 @@ func TestGetPerSubscriberDigestsDiff(t *testing.T) {
 			"00001": "banana",
 			"00002": "cherry",
 		}
-		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(next, prev)
+		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(prev, next)
 		assert.Equal(t, expectedToRenew, toRenew)
 		assert.Empty(t, deleted)
 	})
@@ -424,7 +425,7 @@ func TestGetPerSubscriberDigestsDiff(t *testing.T) {
 			"00002": "banana2",
 			"00003": "cherry",
 		}
-		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(next, prev)
+		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(prev, next)
 		assert.Equal(t, expectedToRenew, toRenew)
 		assert.Equal(t, []string{"00004"}, deleted)
 	})
@@ -450,7 +451,7 @@ func TestGetPerSubscriberDigestsDiff(t *testing.T) {
 			"00006": "fig2",
 			"00008": "honeydew",
 		}
-		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(next, prev)
+		toRenew, deleted := subscriberdb.GetPerSubscriberDigestsDiff(prev, next)
 		assert.Equal(t, expectedToRenew, toRenew)
 		assert.Equal(t, []string{"00004", "00007"}, deleted)
 	})

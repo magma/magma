@@ -78,12 +78,6 @@ func MarshalDeterministic(pb proto.Message) ([]byte, error) {
 	return buf.Bytes(), err
 }
 
-// Unmarshal decodes the proto message serialized by MarshalDeterministic.
-func Unmarshal(buf []byte, pb proto.Message) error {
-	err := proto.Unmarshal(buf, pb)
-	return err
-}
-
 // getMd5Base64Digest generates a base64-encoded MD5 digest of the input data.
 func getMd5Base64Digest(bytes []byte) (string, error) {
 	sum := md5.Sum(bytes)

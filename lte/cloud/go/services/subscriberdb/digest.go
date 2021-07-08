@@ -101,33 +101,33 @@ func GetPerSubscriberDigests(network string) ([]*lte_protos.SubscriberDigestWith
 // ordered by their subscriber IDs (unique within a network). It returns
 // 1. A set of subscribers that have been added/modified, with the new digests.
 // 2. An ordered list of subscribers that have been removed.
-func GetPerSubscriberDigestsDiff(next []*lte_protos.SubscriberDigestWithID, prev []*lte_protos.SubscriberDigestWithID) (map[string]string, []string) {
-	n, m, i, j := len(next), len(prev), 0, 0
+func GetPerSubscriberDigestsDiff(prev []*lte_protos.SubscriberDigestWithID, next []*lte_protos.SubscriberDigestWithID) (map[string]string, []string) {
+	n, m, i, j := len(prev), len(next), 0, 0
 	toRenew := map[string]string{}
 	deleted := []string{}
 
 	for i < n && j < m {
-		iSid, jSid := next[i].Sid.Id, prev[j].Sid.Id
+		iSid, jSid := prev[i].Sid.Id, next[j].Sid.Id
 		if iSid == jSid {
-			if next[i].Digest.Md5Base64Digest != prev[j].Digest.Md5Base64Digest {
-				toRenew[iSid] = next[i].Digest.Md5Base64Digest
+			if prev[i].Digest.Md5Base64Digest != next[j].Digest.Md5Base64Digest {
+				toRenew[jSid] = next[j].Digest.Md5Base64Digest
 			}
 			i++
 			j++
 		} else if iSid > jSid {
-			deleted = append(deleted, jSid)
+			toRenew[jSid] = next[j].Digest.Md5Base64Digest
 			j++
 		} else {
-			toRenew[iSid] = next[i].Digest.Md5Base64Digest
+			deleted = append(deleted, iSid)
 			i++
 		}
 	}
 
 	for ; i < n; i++ {
-		toRenew[next[i].Sid.Id] = next[i].Digest.Md5Base64Digest
+		deleted = append(deleted, prev[i].Sid.Id)
 	}
 	for ; j < m; j++ {
-		deleted = append(deleted, prev[j].Sid.Id)
+		toRenew[next[j].Sid.Id] = next[j].Digest.Md5Base64Digest
 	}
 
 	return toRenew, deleted
