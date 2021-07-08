@@ -55,12 +55,12 @@
         "title": "Frequently Asked Questions"
       },
       "feg/debug_cli": {
-        "title": "Feg Cli"
+        "title": "FeG CLI"
       },
       "feg/deploy_build": {
         "title": "Build FeG"
       },
-      "feg/deploy_configure": {
+      "feg/configure_federation": {
         "title": "Configure FeG"
       },
       "feg/deploy_install": {
@@ -103,9 +103,6 @@
       "howtos/readme_package": {
         "title": "Packaging"
       },
-      "howtos/thanos": {
-        "title": "Thanos"
-      },
       "howtos/troubleshooting/agw_unable_to_checkin": {
         "title": "Access Gateway Unable to Check-in to Orchestrator"
       },
@@ -139,6 +136,9 @@
       "lte/build_install_magma_pkg_in_agw": {
         "title": "Build and install a magma package in AGW"
       },
+      "lte/configure_sentry": {
+        "title": "Sentry Integration"
+      },
       "lte/openvswitch": {
         "title": "Magma Datapath"
       },
@@ -169,11 +169,8 @@
       "lte/eventd": {
         "title": "Event Reporting"
       },
-      "lte/deploy_config_agw_ha": {
+      "lte/configure_agw_ha": {
         "title": "Configure AGW for HA"
-      },
-      "lte/integrate_sentry": {
-        "title": "Sentry Integration"
       },
       "lte/pipelined_tests": {
         "title": "Pipelined testing framework"
@@ -289,11 +286,11 @@
       "orc8r/architecture_security": {
         "title": "Security"
       },
+      "orc8r/configure_thanos": {
+        "title": "Thanos"
+      },
       "orc8r/debug_logs": {
         "title": "View Logs"
-      },
-      "orc8r/deploy_build": {
-        "title": "Build Orchestrator"
       },
       "orc8r/deploy_faq": {
         "title": "FAQs"
@@ -305,10 +302,16 @@
         "title": "Introduction"
       },
       "orc8r/deploy_orcl": {
-        "title": "Experimental Orc8r Deployer"
+        "title": "Install Orchestrator (Managed)"
+      },
+      "orc8r/deploy_terraform_options": {
+        "title": "Terraform Options"
       },
       "orc8r/dev_aws_stack": {
         "title": "AWS Stack"
+      },
+      "orc8r/dev_build": {
+        "title": "Build Orchestrator"
       },
       "orc8r/dev_dependencies": {
         "title": "Module Dependencies"
@@ -324,9 +327,6 @@
       },
       "orc8r/dev_testing": {
         "title": "Testing Tips"
-      },
-      "orc8r/hold_terraform_state_on_s3": {
-        "title": "Hold Terraform state outside my local machine"
       },
       "orc8r/legacy/docker_setup": {
         "title": "Docker Setup"
@@ -351,9 +351,6 @@
       "orc8r/legacy/testing": {
         "title": "Testing in Orchestrator",
         "sidebar_label": "Testing"
-      },
-      "orc8r/override_values_of_terraform_files": {
-        "title": "Override values of Terraform files"
       },
       "orc8r/upgrade_1_1": {
         "title": "Upgrade to v1.1"
@@ -1328,6 +1325,7 @@
       "Usage": "Usage",
       "Architecture": "Architecture",
       "Deploy": "Deploy",
+      "Configure": "Configure",
       "Upgrade": "Upgrade",
       "Debug": "Debug",
       "Contribute": "Contribute",

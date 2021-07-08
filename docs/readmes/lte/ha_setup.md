@@ -1,5 +1,5 @@
 ---
-id: deploy_config_agw_ha
+id: configure_agw_ha
 title: Configure AGW for HA
 hide_title: true
 ---
