@@ -52,6 +52,9 @@ func StartTestService(t *testing.T) {
 	assert.NoError(t, ipStore.Initialize())
 	digestStore := storage.NewDigestStore(db, sqorc.GetSqlBuilder())
 	assert.NoError(t, digestStore.Initialize())
+	perSubDigestFact := blobstore.NewSQLBlobStorageFactory(subscriberdb.PerSubDigestTableBlobstore, db, sqorc.GetSqlBuilder())
+	assert.NoError(t, perSubDigestFact.InitializeFactory())
+	perSubDigestStore := storage.NewPerSubDigestStore(perSubDigestFact)
 
 	// Load service configs
 	serviceConfig := subscriberdb.MustGetServiceConfig()
@@ -60,7 +63,7 @@ func StartTestService(t *testing.T) {
 	// Add servicers
 	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
 	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
-	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore))
+	lte_protos.RegisterSubscriberDBCloudServer(srv.GrpcServer, servicers.NewSubscriberdbServicer(serviceConfig, digestStore, perSubDigestStore))
 
 	// Run service
 	go srv.RunTest(lis)

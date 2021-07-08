@@ -23,6 +23,9 @@ import (
 type Config struct {
 	// FlatDigestEnabled is a feature flag for the flat digest functionality.
 	FlatDigestEnabled bool `yaml:"flatDigestEnabled"`
+	// ChangesetSizeTheshold specifies the max size of the cloud-agw changeset
+	// past which a resync signal will be sent back to the agw.
+	ChangesetSizeTheshold int `yaml:"changesetSizeTheshold"`
 }
 
 func MustGetServiceConfig() Config {

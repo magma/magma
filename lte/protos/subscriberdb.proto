@@ -240,11 +240,11 @@ message SyncSubscribersResponse {
   // per_sub_digests is a list of digests for each server-side subscriber, ordered
   // by their IDs (IMSI).
   repeated SubscriberDigestWithID per_sub_digests = 3;
-  // added_modified is the set of all subscriber data modified/added on the server
-  // side, indexed by their IDs (IMSI).
-  map<string, SubscriberData> added_modified = 4;
-  // removed is a list of IDs for subscribers removed on the server side.
-  repeated string removed = 5;
+  // to_renew is the set of all subscriber data modified/added on the server side,
+  // indexed by their IDs (IMSI).
+  map<string, SubscriberData> to_renew = 4;
+  // deleted is a list of IDs for subscribers removed on the server side.
+  repeated string deleted = 5;
 }
 
 message ListSubscribersRequest {
@@ -262,9 +262,9 @@ message ListSubscribersResponse {
   // flat_digest is the server-defined, deterministic digest of the full set of
   // returned subscriber objects.
   Digest flat_digest = 3;
-  // per_sub_digests is a set of per-subscriber digests, indexed by the
-  // subscriber IDs (IMSI).
-  map<string, Digest> per_sub_digests = 4;
+  // per_sub_digests is a set of per-subscriber digests, ordered by their
+  // subscriber IDs.
+  repeated SubscriberDigestWithID per_sub_digests = 4;
 }
 
 message SubscriberDigestWithID {
