@@ -141,7 +141,9 @@ class StateMachineManager:
                     'eNodeB change on IP <%s>, from %s to %s',
                     client_ip, prev_serial, enb_serial,
                 )
-                self._ip_serial_mapping.set_ip_and_serial(client_ip, enb_serial)
+                self._ip_serial_mapping.set_ip_and_serial(
+                    client_ip, enb_serial,
+                )
                 self._state_machine_by_ip[client_ip] = None
         elif self._ip_serial_mapping.has_serial(enb_serial):
             # Same eNB, different IP
@@ -151,7 +153,9 @@ class StateMachineManager:
                     'eNodeB <%s> changed IP from %s to %s',
                     enb_serial, prev_ip, client_ip,
                 )
-                self._ip_serial_mapping.set_ip_and_serial(client_ip, enb_serial)
+                self._ip_serial_mapping.set_ip_and_serial(
+                    client_ip, enb_serial,
+                )
                 handler = self._state_machine_by_ip[prev_ip]
                 self._state_machine_by_ip[client_ip] = handler
                 del self._state_machine_by_ip[prev_ip]

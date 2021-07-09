@@ -179,25 +179,25 @@ class S6AApplicationTests(unittest.TestCase):
         msg.append_avp(
             avp.AVP(
                 'Authentication-Info', [
-                avp.AVP(
-                    'E-UTRAN-Vector', [
                     avp.AVP(
-                        'RAND', b'\x00\x01\x02\x03\x04\x05'
-                        b'\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f',
+                        'E-UTRAN-Vector', [
+                            avp.AVP(
+                                'RAND', b'\x00\x01\x02\x03\x04\x05'
+                                b'\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f',
+                            ),
+                            avp.AVP('XRES', b'\x2d\xaf\x87\x3d\x73\xf3\x10\xc6'),
+                            avp.AVP(
+                                'AUTN', b'\x6f\xbf\xa3\x80\x1f\x57\x80'
+                                b'\x00\x7b\xde\x59\x88\x6e\x96\xe4\xfe',
+                            ),
+                            avp.AVP(
+                                'KASME', b'\x87\x48\xc1\xc0\xa2\x82'
+                                b'\x6f\xa4\x05\xb1\xe2\x7e\xa1\x04\x43\x4a'
+                                b'\xe5\x56\xc7\x65\xe8\xf0\x61\xeb\xdb\x8a'
+                                b'\xe2\x86\xc4\x46\x16\xc2',
+                            ),
+                        ],
                     ),
-                    avp.AVP('XRES', b'\x2d\xaf\x87\x3d\x73\xf3\x10\xc6'),
-                    avp.AVP(
-                        'AUTN', b'\x6f\xbf\xa3\x80\x1f\x57\x80'
-                        b'\x00\x7b\xde\x59\x88\x6e\x96\xe4\xfe',
-                    ),
-                    avp.AVP(
-                        'KASME', b'\x87\x48\xc1\xc0\xa2\x82'
-                        b'\x6f\xa4\x05\xb1\xe2\x7e\xa1\x04\x43\x4a'
-                        b'\xe5\x56\xc7\x65\xe8\xf0\x61\xeb\xdb\x8a'
-                        b'\xe2\x86\xc4\x46\x16\xc2',
-                    ),
-                    ],
-                ),
                 ],
             ),
         )
@@ -424,7 +424,9 @@ class S6AApplicationTests(unittest.TestCase):
                     avp.AVP(
                         'APN-Configuration-Profile', [
                             avp.AVP('Context-Identifier', 0),
-                            avp.AVP('All-APN-Configurations-Included-Indicator', 0),
+                            avp.AVP(
+                                'All-APN-Configurations-Included-Indicator', 0,
+                            ),
                             avp.AVP(
                                 'APN-Configuration', [
                                     avp.AVP('Context-Identifier', 0),
@@ -435,17 +437,27 @@ class S6AApplicationTests(unittest.TestCase):
                                             avp.AVP('QoS-Class-Identifier', 9),
                                             avp.AVP(
                                                 'Allocation-Retention-Priority', [
-                                                    avp.AVP('Priority-Level', 15),
-                                                    avp.AVP('Pre-emption-Capability', 1),
-                                                    avp.AVP('Pre-emption-Vulnerability', 0),
+                                                    avp.AVP(
+                                                        'Priority-Level', 15,
+                                                    ),
+                                                    avp.AVP(
+                                                        'Pre-emption-Capability', 1,
+                                                    ),
+                                                    avp.AVP(
+                                                        'Pre-emption-Vulnerability', 0,
+                                                    ),
                                                 ],
                                             ),
                                         ],
                                     ),
                                     avp.AVP(
                                         'AMBR', [
-                                            avp.AVP('Max-Requested-Bandwidth-UL', 10000),
-                                            avp.AVP('Max-Requested-Bandwidth-DL', 50000),
+                                            avp.AVP(
+                                                'Max-Requested-Bandwidth-UL', 10000,
+                                            ),
+                                            avp.AVP(
+                                                'Max-Requested-Bandwidth-DL', 50000,
+                                            ),
                                         ],
                                     ),
                                 ],

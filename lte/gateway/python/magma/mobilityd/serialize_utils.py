@@ -114,7 +114,7 @@ def _ip_desc_from_proto(proto):
     ip_block_addr = ip_address(proto.ip_block.net_address).exploded
     ip_block = ip_network(
         '{}/{}'.format(
-        ip_block_addr, proto.ip_block.prefix_len,
+            ip_block_addr, proto.ip_block.prefix_len,
         ),
     )
     state = _desc_state_proto_to_str(proto.state)

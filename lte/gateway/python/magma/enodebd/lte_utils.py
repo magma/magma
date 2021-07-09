@@ -73,8 +73,8 @@ class LTEBandInfo:
             # Array of UL frequencies in MHz, one per EARFCNUL
             self.freq_mhz_ul = [
                 start_freq_ul_mhz + 0.1 * (
-                    earfcn -
-                    self.earfcnul[0]
+                    earfcn
+                    - self.earfcnul[0]
                 ) for earfcn in self.earfcnul
             ]
         else:

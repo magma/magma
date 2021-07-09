@@ -153,13 +153,17 @@ class ParameterInfoStruct(Tr069ComplexModel):
 
 class ParameterInfoList(Tr069ComplexModel):
     _type_info = odict()
-    _type_info["ParameterInfoStruct"] = ParameterInfoStruct.customize(max_occurs='unbounded')
+    _type_info["ParameterInfoStruct"] = ParameterInfoStruct.customize(
+        max_occurs='unbounded',
+    )
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
 class ParameterNames(Tr069ComplexModel):
     _type_info = odict()
-    _type_info["string"] = String.customize(max_occurs='unbounded', max_length=256)
+    _type_info["string"] = String.customize(
+        max_occurs='unbounded', max_length=256,
+    )
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
@@ -169,7 +173,9 @@ class ParameterKeyType(String.customize(max_length=32)):
 
 class AccessList(Tr069ComplexModel):
     _type_info = odict()
-    _type_info["string"] = String.customize(max_occurs='unbounded', max_length=64)
+    _type_info["string"] = String.customize(
+        max_occurs='unbounded', max_length=64,
+    )
     _type_info["arrayType"] = XmlAttribute(String, ns=SOAP_ENC)
 
 
@@ -397,7 +403,8 @@ class AcsToCpeRequests(Tr069ComplexModel):
     _type_info = odict()
 
     # Fields for SetParameterValues
-    _type_info["ParameterList"] = ParameterListUnion  # See ParameterListUnion for explanation
+    # See ParameterListUnion for explanation
+    _type_info["ParameterList"] = ParameterListUnion
     _type_info["ParameterKey"] = ParameterKeyType
 
     # Fields for GetParameterValues

@@ -72,7 +72,9 @@ class tr069_WSGIRequestHandler(WSGIRequestHandler):
         try:
             handler.run(self.server.get_app())
         except BrokenPipeError:
-            self.log_error("eNodeB has unexpectedly closed the TCP connection.")
+            self.log_error(
+                "eNodeB has unexpectedly closed the TCP connection.",
+            )
 
     def handle(self):
         self.protocol_version = "HTTP/1.1"

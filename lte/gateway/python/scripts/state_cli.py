@@ -22,7 +22,7 @@ import fire
 import jsonpickle
 from lte.protos.keyval_pb2 import IPDesc
 from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
-from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription, S1apImsiMap
+from lte.protos.oai.s1ap_state_pb2 import S1apImsiMap, S1apState, UeDescription
 from lte.protos.oai.spgw_state_pb2 import SpgwState, SpgwUeContext
 from lte.protos.policydb_pb2 import InstalledPolicies, PolicyRule
 from magma.common.redis.client import get_default_client
@@ -44,13 +44,16 @@ def _deserialize_session_json(serialized_json_str: bytes) -> str:
     Helper function to deserialize sessiond:sessions hash list values
     :param serialized_json_str
     """
-    res = _deserialize_generic_json(str(serialized_json_str, 'utf-8', 'ignore'))
+    res = _deserialize_generic_json(
+        str(serialized_json_str, 'utf-8', 'ignore'),
+    )
     dumped = json.dumps(res, indent=2, sort_keys=True)
     return dumped
 
 
 def _deserialize_generic_json(
-        element: Union[str, dict, list])-> Union[str, dict, list]:
+        element: Union[str, dict, list],
+) -> Union[str, dict, list]:
     """
     Helper function to deserialize dictionaries or list with nested
     json strings

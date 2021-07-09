@@ -213,7 +213,7 @@ class IPAddressManager:
             if ipv4_blocks:
                 ipv4_blocks_deleted.extend(
                     self.ip_allocator.remove_ip_blocks(
-                    ipv4_blocks, force=force,
+                        ipv4_blocks, force=force,
                     ),
                 )
             if ipv6_blocks:

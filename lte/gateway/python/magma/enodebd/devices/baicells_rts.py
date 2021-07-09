@@ -139,7 +139,10 @@ class BaicellsRTSTrDataModel(DataModel):
         ParameterName.MME_STATUS: TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_MME_Status', True, TrParameterType.BOOLEAN, False),
         ParameterName.REM_STATUS: TrParam(FAPSERVICE_PATH + 'REM.X_BAICELLS_COM_REM_Status', True, TrParameterType.BOOLEAN, False),
         ParameterName.LOCAL_GATEWAY_ENABLE:
-            TrParam(DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_LTE_LGW_Switch', False, TrParameterType.BOOLEAN, False),
+            TrParam(
+                DEVICE_PATH + 'DeviceInfo.X_BAICELLS_COM_LTE_LGW_Switch',
+                False, TrParameterType.BOOLEAN, False,
+            ),
         # Tested Baicells devices were missing this parameter
         ParameterName.GPS_ENABLE: TrParam(DEVICE_PATH + 'X_BAICELLS_COM_GpsSyncEnable', False, TrParameterType.BOOLEAN, True),
         ParameterName.GPS_LAT: TrParam(DEVICE_PATH + 'FAP.GPS.LockedLatitude', True, TrParameterType.INT, True),
@@ -187,11 +190,13 @@ class BaicellsRTSTrDataModel(DataModel):
 
         # Core network parameters
         ParameterName.MME_IP: TrParam(
-            FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkServerList', True, TrParameterType.STRING, False,
+            FAPSERVICE_PATH + \
+                'FAPControl.LTE.Gateway.S1SigLinkServerList', True, TrParameterType.STRING, False,
         ),
         ParameterName.MME_PORT: TrParam(FAPSERVICE_PATH + 'FAPControl.LTE.Gateway.S1SigLinkPort', True, TrParameterType.INT, False),
         ParameterName.NUM_PLMNS: TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNListNumberOfEntries', True, TrParameterType.INT, False,
+            FAPSERVICE_PATH + \
+                'CellConfig.LTE.EPC.PLMNListNumberOfEntries', True, TrParameterType.INT, False,
         ),
         ParameterName.PLMN: TrParam(FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.', True, TrParameterType.STRING, False),
         # PLMN arrays are added below
@@ -206,9 +211,15 @@ class BaicellsRTSTrDataModel(DataModel):
 
         # Management server parameters
         ParameterName.PERIODIC_INFORM_ENABLE:
-            TrParam(DEVICE_PATH + 'ManagementServer.PeriodicInformEnable', False, TrParameterType.BOOLEAN, False),
+            TrParam(
+                DEVICE_PATH + 'ManagementServer.PeriodicInformEnable',
+                False, TrParameterType.BOOLEAN, False,
+            ),
         ParameterName.PERIODIC_INFORM_INTERVAL:
-            TrParam(DEVICE_PATH + 'ManagementServer.PeriodicInformInterval', False, TrParameterType.INT, False),
+            TrParam(
+                DEVICE_PATH + 'ManagementServer.PeriodicInformInterval',
+                False, TrParameterType.INT, False,
+            ),
 
         # Performance management parameters
         ParameterName.PERF_MGMT_ENABLE: TrParam(
@@ -233,13 +244,15 @@ class BaicellsRTSTrDataModel(DataModel):
             + 'CellConfig.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True, TrParameterType.BOOLEAN, False,
         )
         PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False,
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False,
         )
         PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(
             FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False,
         )
         PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False,
+            FAPSERVICE_PATH
+            + 'CellConfig.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False,
         )
 
     TRANSFORMS_FOR_ENB = {
@@ -285,7 +298,7 @@ class BaicellsRTSTrDataModel(DataModel):
         names = list(
             filter(
                 lambda x: (not str(x).startswith('PLMN'))
-                          and (str(x) not in excluded_params),
+                and (str(x) not in excluded_params),
                 cls.PARAMETERS.keys(),
             ),
         )

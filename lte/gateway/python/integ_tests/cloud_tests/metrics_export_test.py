@@ -29,7 +29,9 @@ class TestHTTPServerRequestHandler(BaseHTTPRequestHandler):
         request_headers = self.headers
         length = int(request_headers.get_all('content-length')[0])
         post_body = self.rfile.read(length)
-        post_body_dict = parse.parse_qs(parse.unquote(post_body.decode('utf-8')))
+        post_body_dict = parse.parse_qs(
+            parse.unquote(post_body.decode('utf-8')),
+        )
 
         # Sanity check request, make sure it has the key 'datapoints'
         assert(len(post_body_dict['datapoints'][0]) > 0)

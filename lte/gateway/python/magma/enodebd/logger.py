@@ -38,7 +38,9 @@ class EnodebdLogger:
             maxBytes=MAX_BYTES,
             backupCount=BACKUP_COUNT,
         )
-        formatter = logging.Formatter(fmt='%(asctime)s %(levelname)s %(message)s')
+        formatter = logging.Formatter(
+            fmt='%(asctime)s %(levelname)s %(message)s',
+        )
         handler.setFormatter(formatter)
         EnodebdLogger._LOGGER.addHandler(handler)
         EnodebdLogger._LOGGER.setLevel(logging.DEBUG)

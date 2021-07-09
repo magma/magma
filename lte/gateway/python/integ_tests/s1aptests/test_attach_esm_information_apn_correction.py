@@ -23,7 +23,7 @@ from s1ap_utils import MagmadUtil
 class TestEsmInformationWithApnCorrection(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-                apn_correction=MagmadUtil.apn_correction_cmds.ENABLE,
+            apn_correction=MagmadUtil.apn_correction_cmds.ENABLE,
         )
 
     def tearDown(self):
@@ -153,7 +153,7 @@ class TestEsmInformationWithApnCorrection(unittest.TestCase):
 
         # Disable APN Correction
         self._s1ap_wrapper.magmad_util.config_apn_correction(
-                MagmadUtil.apn_correction_cmds.DISABLE,
+            MagmadUtil.apn_correction_cmds.DISABLE,
         )
         self._s1ap_wrapper.magmad_util.restart_services(['mme'])
         for j in range(10):

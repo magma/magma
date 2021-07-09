@@ -128,5 +128,7 @@ STAT_PDCP_USER_PLANE_BYTES_UL = Gauge(
     'pdcp_user_plane_bytes_ul', 'User plane uplink bytes at PDCP', ['enodeb'],
 )
 STAT_PDCP_USER_PLANE_BYTES_DL = Gauge(
-    'pdcp_user_plane_bytes_dl', 'User plane downlink bytes at PDCP', ['enodeb'],
+    'pdcp_user_plane_bytes_dl', 'User plane downlink bytes at PDCP', [
+        'enodeb',
+    ],
 )
