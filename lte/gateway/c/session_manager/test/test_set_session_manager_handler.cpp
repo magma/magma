@@ -456,11 +456,11 @@ TEST_F(SessionManagerHandlerTest, test_SessionCompleteTerminationContext) {
       session_map, IMSI2, session_id, session_update);
 
   EXPECT_EQ(session_map[IMSI2].size(), 0);
+
 }
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
-
 }  // namespace magma
