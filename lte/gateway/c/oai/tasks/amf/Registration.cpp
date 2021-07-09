@@ -625,8 +625,9 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
           registration_accept_t3550_handler, registration_proc->ue_id);
       OAILOG_INFO(
           LOG_AMF_APP,
-          "Timer: Registration_accept timer T3550 with id  %d Started\n",
-          registration_proc->T3550.id);
+          "Timer: Registration_accept timer T3550 with id  %d Started for ue "
+          "id: %d\n",
+          registration_proc->T3550.id, registration_proc->ue_id);
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
@@ -635,11 +636,11 @@ int amf_send_registration_accept(amf_context_t* amf_context) {
 static int registration_accept_t3550_handler(
     zloop_t* loop, int timer_id, void* arg) {
   OAILOG_INFO(LOG_AMF_APP, "Timer: In registration_accept_t3550 handler\n");
-#if 0  // To Check
   amf_context_t* amf_ctx                         = NULL;
   ue_m5gmm_context_s* ue_amf_context             = NULL;
   nas_amf_registration_proc_t* registration_proc = NULL;
   amf_ue_ngap_id_t ue_id                         = 0;
+
   if (!amf_app_get_timer_arg(timer_id, &ue_id)) {
     OAILOG_WARNING(
         LOG_AMF_APP, "T3550: Invalid Timer Id expiration, Timer Id: %u\n",
@@ -665,9 +666,8 @@ static int registration_accept_t3550_handler(
 
   if (registration_proc) {
     OAILOG_WARNING(
-        LOG_AMF_APP, "T3550: timer   timer id: %d expired for ue id: %d\n",
+        LOG_AMF_APP, "T3550: timer id: %d expired for ue id: %d\n",
         registration_proc->T3550.id, registration_proc->ue_id);
-    registration_proc->T3550.id = -1;
 
     registration_proc->retransmission_count += 1;
     OAILOG_ERROR(
@@ -690,9 +690,10 @@ static int registration_accept_t3550_handler(
           registration_proc->retransmission_count);
       // To abort the registration procedure
       amf_proc_registration_abort(amf_ctx, ue_amf_context);
+      // Clean up all the sessions.
+      amf_smf_context_cleanup_pdu_session(ue_amf_context);
     }
   }
-#endif
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, RETURNok);
 }
 

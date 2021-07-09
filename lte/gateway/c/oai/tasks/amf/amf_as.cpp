@@ -46,6 +46,8 @@ typedef uint32_t amf_ue_ngap_id_t;
   LENGTH += QUADLET - (LENGTH % QUADLET)
 #define AMF_CAUSE_SUCCESS (1)
 namespace magma5g {
+amf_as_establish_t amf_data_accept_send;
+
 /*forward declaration*/
 extern task_zmq_ctx_t amf_app_task_zmq_ctx;
 static int amf_as_establish_req(amf_as_establish_t* msg, int* amf_cause);
@@ -379,6 +381,8 @@ static int amf_reg_acceptmsg(
   OAILOG_FUNC_IN(LOG_NAS_AMF);
   int size = REGISTRATION_ACCEPT_MINIMUM_LENGTH;
   nas_msg->security_protected.plain.amf.header.message_type = REG_ACCEPT;
+  nas_msg->plain.amf.header.message_type                    = REG_ACCEPT;
+
   nas_msg->security_protected.plain.amf.header.extended_protocol_discriminator =
       M5G_MOBILITY_MANAGEMENT_MESSAGES;
   nas_msg->security_protected.plain.amf.msg.registrationacceptmsg
@@ -1322,6 +1326,11 @@ uint16_t amf_as_establish_cnf(
         PARENT_STRUCT(amf_ctx, ue_m5gmm_context_s, amf_context)->mm_state;
     nas_amf_registration_proc_t* registration_proc =
         get_nas_specific_procedure_registration(amf_ctx);
+    OAILOG_DEBUG(
+        LOG_AMF_APP,
+        "registration_proc->T3550.id: %d and "
+        "registration_proc->retransmission_count: %d\n",
+        registration_proc->T3550.id, registration_proc->retransmission_count);
 
     if ((state != REGISTERED_CONNECTED) &&
         !(registration_proc->registration_accept_sent)) {
@@ -1334,7 +1343,59 @@ uint16_t amf_as_establish_cnf(
       initial_context_setup_request(as_msg->ue_id, amf_ctx, as_msg->nas_msg);
       registration_proc->registration_accept_sent++;
       OAILOG_FUNC_RETURN(LOG_NAS_AMF, ret_val);
+    } else if (registration_proc->retransmission_count) {
+      /* if (registration_proc->ies->imsi) {
+imsi64_t new_imsi64 = amf_imsi_to_imsi64(registration_proc->ies->imsi);
+if (new_imsi64 != amf_ctx->imsi64) {
+amf_ctx_set_valid_imsi(
+    amf_ctx, registration_proc->ies->imsi, new_imsi64);
+      }
+}
+      amf_sap_t amf_sap;
+      amf_as_data_t* amf_as = &amf_sap.u.amf_as.u.establish;
+
+      amf_sap.primitive = AMFAS_DATA_REQ;
+
+      amf_as->ue_id    = msg->ue_id;
+      amf_as->nas_info = AMF_AS_NAS_DATA_REGISTRATION_ACCEPT;
+      amf_as->nas_msg  = {0};*/
+
+      /* GUTI have already updated in amf_context during Identification
+       * response complete, now assign to amf_sap
+       */
+      /*amf_as->guti = amf_ctx->m5_guti;
+      amf_as->guti.m_tmsi =
+        htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
+
+      amf_as->guti.guamfi.plmn.mcc_digit1 =
+              amf_sap.u.amf_as.u.establish.guti.guamfi.plmn.mcc_digit1;
+
+      amf_as->guti.guamfi.plmn.mcc_digit2 =
+              amf_sap.u.amf_as.u.establish.guti.guamfi.plmn.mcc_digit2;
+
+      amf_as->guti.guamfi.plmn.mcc_digit3 =
+              amf_sap.u.amf_as.u.establish.guti.guamfi.plmn.mcc_digit3;
+
+      amf_as->guti.guamfi.plmn.mnc_digit1 =
+              amf_sap.u.amf_as.u.establish.guti.guamfi.plmn.mnc_digit1;
+
+      amf_as->guti.guamfi.plmn.mnc_digit2 =
+        amf_sap.u.amf_as.u.establish.guti.guamfi.plmn.mnc_digit2;
+
+         amf_as->guti.guamfi.plmn.mnc_digit3 =
+               amf_sap.u.amf_as.u.establish.guti.guamfi.plmn.mnc_digit3;
+
+      amf_as->guti.m_tmsi =
+        htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);*/
+
+      /*amf_data_accept_send.amf_as_set_security_data(
+                      &amf_as->sctx, &amf_ctx->_security, false, true);
+
+      rc = amf_sap_send(&amf_sap);*/
+      OAILOG_DEBUG(LOG_AMF_APP, "Retransmitting Registration accept msg \n");
+      amf_app_handle_nas_dl_req(as_msg->ue_id, as_msg->nas_msg, M5G_AS_SUCCESS);
     }
+
     registration_proc->registration_accept_sent++;
 
     OAILOG_INFO(
