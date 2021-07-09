@@ -578,12 +578,15 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
         convert to a Rule Record Table and remove old flows
         """
 <<<<<<< HEAD
+<<<<<<< HEAD
         if (self._datapath == None):
 =======
         if not self._datapath:
             self.logger.error("Could not initialize datapath for stats retrieval")
 >>>>>>> 7d0339e8162a1c9f187b794e1d7bda9d95177979
             return RuleRecordTable()
+=======
+>>>>>>> parent of 429004510 (Change callback and Aggregate Pipelined Records)
         parser = self._datapath.ofproto_parser
         message = parser.OFPFlowStatsRequest(datapath=self._datapath, cookie = cookie, cookie_mask = cookie_mask)
         try:

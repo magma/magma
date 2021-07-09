@@ -30,7 +30,6 @@
 #include "magma_logging.h"
 #include "includes/ServiceRegistrySingleton.h"
 #include "Utilities.h"
-#include "GrpcMagmaUtils.h"
 
 namespace magma {
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE   = false;
@@ -148,6 +147,7 @@ void LocalEnforcer::setup(
   }
 }
 
+<<<<<<< HEAD
 <<<<<<< HEAD
 <<<<<<< HEAD
 void LocalEnforcer::HandlePipelinedResponse(
@@ -307,6 +307,8 @@ void LocalEnforcer::poll_stats_enforcer() {
 >>>>>>> 7d0339e8162a1c9f187b794e1d7bda9d95177979
 }
 
+=======
+>>>>>>> parent of 429004510 (Change callback and Aggregate Pipelined Records)
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
   auto session_map    = session_store_.read_all_sessions();
   auto session_update = SessionStore::get_default_session_update(session_map);
