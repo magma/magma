@@ -1188,8 +1188,8 @@ static int emm_attach_run_procedure(emm_context_t* emm_context) {
           emm_attach_success_identification_cb,
           emm_attach_failure_identification_cb);
     } else if (attach_proc->ies->imei) {
-      // emergency allowed if go here, but have to be implemented...
-      Fatal("TODO emergency");
+      // Emergency attach is not supported
+      OAILOG_ERROR(LOG_NAS_EMM, "Emergency attach is not supported");
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

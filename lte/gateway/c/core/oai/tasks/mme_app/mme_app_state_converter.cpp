@@ -519,7 +519,7 @@ void MmeNasStateConverter::regional_subscription_to_proto(
 
 void MmeNasStateConverter::proto_to_regional_subscription(
     const oai::UeContext& ue_context_proto, ue_mm_context_t* state_ue_context) {
-  for (int itr = 0; itr < ue_context_proto.num_reg_sub(); itr++) {
+  for (unsigned int itr = 0; itr < ue_context_proto.num_reg_sub(); itr++) {
     memcpy(
         state_ue_context->reg_sub[itr].zone_code,
         ue_context_proto.reg_sub(itr).zone_code().c_str(),
@@ -762,10 +762,6 @@ void MmeNasStateConverter::state_to_proto(
   state_proto->set_nb_ue_managed(mme_nas_state_p->nb_ue_managed);
   state_proto->set_nb_ue_idle(mme_nas_state_p->nb_ue_idle);
   state_proto->set_nb_bearers_managed(mme_nas_state_p->nb_bearers_managed);
-  state_proto->set_nb_ue_since_last_stat(
-      mme_nas_state_p->nb_ue_since_last_stat);
-  state_proto->set_nb_bearers_since_last_stat(
-      mme_nas_state_p->nb_bearers_since_last_stat);
   state_proto->set_mme_app_ue_s1ap_id_generator(
       mme_nas_state_p->mme_app_ue_s1ap_id_generator);
 
@@ -797,13 +793,10 @@ void MmeNasStateConverter::proto_to_state(
   mme_nas_state_p->nb_ue_connected = state_proto.nb_ue_connected();
   mme_nas_state_p->nb_default_eps_bearers =
       state_proto.nb_default_eps_bearers();
-  mme_nas_state_p->nb_s1u_bearers        = state_proto.nb_s1u_bearers();
-  mme_nas_state_p->nb_ue_managed         = state_proto.nb_ue_managed();
-  mme_nas_state_p->nb_ue_idle            = state_proto.nb_ue_idle();
-  mme_nas_state_p->nb_bearers_managed    = state_proto.nb_bearers_managed();
-  mme_nas_state_p->nb_ue_since_last_stat = state_proto.nb_ue_since_last_stat();
-  mme_nas_state_p->nb_bearers_since_last_stat =
-      state_proto.nb_bearers_since_last_stat();
+  mme_nas_state_p->nb_s1u_bearers     = state_proto.nb_s1u_bearers();
+  mme_nas_state_p->nb_ue_managed      = state_proto.nb_ue_managed();
+  mme_nas_state_p->nb_ue_idle         = state_proto.nb_ue_idle();
+  mme_nas_state_p->nb_bearers_managed = state_proto.nb_bearers_managed();
   mme_nas_state_p->mme_app_ue_s1ap_id_generator =
       state_proto.mme_app_ue_s1ap_id_generator();
   if (mme_nas_state_p->mme_app_ue_s1ap_id_generator == 0) {  // uninitialized

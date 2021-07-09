@@ -8298,6 +8298,10 @@ definitions:
       description:
         type: string
         x-nullable: false
+      service_status:
+        additionalProperties:
+          $ref: '#/definitions/service_status_health'
+        type: object
       status:
         enum:
         - HEALTHY
@@ -9919,6 +9923,11 @@ definitions:
       cloud_subscriberdb_enabled:
         example: false
         type: boolean
+      congestion_control_enabled:
+        default: true
+        description: Network configuration flag for congestion control on EPC
+        example: true
+        type: boolean
       default_rule_id:
         example: default_rule_1
         type: string
@@ -11223,6 +11232,20 @@ definitions:
     items:
       type: string
     type: array
+  service_status_health:
+    description: health status of a specific
+    properties:
+      health_status:
+        enum:
+        - HEALTHY
+        - UNHEALTHY
+        type: string
+      service_state:
+        enum:
+        - AVAILABLE
+        - UNAVAILABLE
+        type: string
+    type: object
   slack_action:
     properties:
       confirm:

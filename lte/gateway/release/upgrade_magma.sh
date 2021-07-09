@@ -1,7 +1,7 @@
 #!/bin/bash
 
 WHOAMI=$(whoami)
-MAGMA_VERSION="1.5.2"
+MAGMA_VERSION="1.6.0"
 # Default is focal
 OS_VERSION="focal"
 
@@ -22,6 +22,10 @@ done
 
 if grep -q 'Debian' /etc/issue; then
   OS_VERSION="stretch"
+  # We don't support 1.6.0 for debian so bumping down to 1.5.2
+  if [ "$MAGMA_VERSION" == "1.6.0" ]; then
+    MAGMA_VERSION="1.5.2"
+  fi
 fi
 
 apt update
@@ -37,3 +41,6 @@ echo "deb https://artifactory.magmacore.org/artifactory/debian $OS_VERSION-$MAGM
 
 apt update
 apt install -y magma -o Dpkg::Options::="--force-overwrite"
+
+#Upgrade OVS
+ovs-kmod-upgrade.sh -y

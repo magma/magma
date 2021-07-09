@@ -168,7 +168,7 @@ class SessionCredit {
   static uint64_t DEFAULT_REQUESTED_UNITS;
 
  private:
-  uint64_t buckets_[MAX_VALUES];
+  uint64_t buckets_[BUCKET_ENUM_MAX_VALUE];
   bool reporting_;
   CreditLimitType credit_limit_type_;
   GrantTrackingType grant_tracking_type_;

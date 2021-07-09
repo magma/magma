@@ -26,7 +26,7 @@ require (
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/envoyproxy/go-control-plane v0.9.4
 	github.com/fiorix/go-diameter/v4 v4.0.4
-	github.com/go-openapi/swag v0.19.5
+	github.com/go-openapi/swag v0.19.15
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.5.2
@@ -45,7 +45,6 @@ require (
 	golang.org/x/sys v0.0.0-20210426080607-c94f62235c83 // indirect
 	google.golang.org/grpc v1.33.2
 	google.golang.org/protobuf v1.26.0
-	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 	layeh.com/radius v0.0.0-20200615152116-663b41c3bf86
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0

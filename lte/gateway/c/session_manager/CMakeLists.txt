@@ -96,7 +96,7 @@ set(SMGR_ORC8R_GRPC_PROTOS directoryd)
 generate_grpc_protos("${SMGR_ORC8R_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_CPP_OUT_DIR})
 
-set(SMGR_GRPC_PROTOS abort_session session_manager pipelined spgw_service)
+set(SMGR_GRPC_PROTOS abort_session session_manager pipelined spgw_service mobilityd)
 generate_grpc_protos("${SMGR_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
 
@@ -150,6 +150,8 @@ add_library(SESSION_MANAGER
     DiameterCodes.cpp
     DiameterCodes.h
     CreditKey.h
+    StatsPoller.cpp
+    StatsPoller.h
     SessionProxyResponderHandler.cpp
     SessionProxyResponderHandler.h
     StoredState.cpp
@@ -181,6 +183,8 @@ add_library(SESSION_MANAGER
     Types.h
     SentryWrappers.cpp
     SentryWrappers.h
+    MobilitydClient.cpp
+    MobilitydClient.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 

@@ -52,7 +52,8 @@ SessionCredit::SessionCredit(const StoredSessionCredit& marshaled) {
   time_of_first_usage_    = marshaled.time_of_first_usage;
   time_of_last_usage_     = marshaled.time_of_last_usage;
 
-  for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
+  for (int bucket_int = USED_TX; bucket_int != BUCKET_ENUM_MAX_VALUE;
+       bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     if (marshaled.buckets.find(bucket) != marshaled.buckets.end()) {
       buckets_[bucket] = marshaled.buckets.find(bucket)->second;
@@ -70,7 +71,8 @@ StoredSessionCredit SessionCredit::marshal() const {
   marshaled.time_of_first_usage    = time_of_first_usage_;
   marshaled.time_of_last_usage     = time_of_last_usage_;
 
-  for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
+  for (int bucket_int = USED_TX; bucket_int != BUCKET_ENUM_MAX_VALUE;
+       bucket_int++) {
     Bucket bucket             = static_cast<Bucket>(bucket_int);
     marshaled.buckets[bucket] = buckets_[bucket];
   }
@@ -86,7 +88,8 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() const {
   credit_uc.time_of_first_usage    = time_of_first_usage_;
   credit_uc.time_of_last_usage     = time_of_last_usage_;
 
-  for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
+  for (int bucket_int = USED_TX; bucket_int != BUCKET_ENUM_MAX_VALUE;
+       bucket_int++) {
     Bucket bucket                   = static_cast<Bucket>(bucket_int);
     credit_uc.bucket_deltas[bucket] = 0;
   }
@@ -491,7 +494,7 @@ void SessionCredit::apply_update_criteria(
   // DO NOT UPDATE reporting_. (done by LocalSessionManagerHandler)
 
   // add credit
-  for (int i = USED_TX; i != MAX_VALUES; i++) {
+  for (int i = USED_TX; i != BUCKET_ENUM_MAX_VALUE; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     auto credit   = credit_uc.bucket_deltas.find(bucket)->second;
     buckets_[bucket] += credit;

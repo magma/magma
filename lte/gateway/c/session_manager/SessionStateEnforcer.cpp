@@ -24,6 +24,7 @@
 #include <time.h>
 #include <utility>
 #include <vector>
+#include <memory>
 
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/timestamp.pb.h>
@@ -250,16 +251,17 @@ bool SessionStateEnforcer::handle_session_init_rule_updates(
  * start terminating session process
  */
 bool SessionStateEnforcer::m5g_release_session(
-    SessionMap& session_map, const std::string& imsi, const std::string& dnn,
+    SessionMap& session_map, const std::string& imsi, const uint32_t& pdu_id,
     SessionUpdate& session_update) {
   /* Search with session search criteria of IMSI and apn/dnn and
    * find  respective sesion to release operation
+   * Note: DNN is optiona field, so find session from PDU_session_id
    */
-  SessionSearchCriteria criteria(imsi, IMSI_AND_APN, dnn);
+  SessionSearchCriteria criteria(imsi, IMSI_AND_PDUID, pdu_id);
   auto session_it = session_store_.find_session(session_map, criteria);
   if (!session_it) {
     MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
-                 << " with DNN " << dnn << " to release";
+                 << " with pdu-id " << pdu_id << " to release";
     return false;
   }
   // Found the respective session to be updated
@@ -267,18 +269,19 @@ bool SessionStateEnforcer::m5g_release_session(
   auto session_id = session->get_session_id();
   /*Irrespective of any State of Session, release and terminate*/
   SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
-  MLOG(MINFO) << "Trying to release session with id " << session_id
-              << " from state "
-              << session_fsm_state_to_str(session->get_state());
-  m5g_start_session_termination(imsi, session, dnn, &session_uc);
+  MLOG(MDEBUG) << "Trying to release session with id " << session_id
+               << " from state "
+               << session_fsm_state_to_str(session->get_state());
+  m5g_start_session_termination(session_map, session, pdu_id, &session_uc);
   return true;
 }
 
 /*Start processing to terminate respective session requested from AMF*/
 void SessionStateEnforcer::m5g_start_session_termination(
-    const std::string& imsi, const std::unique_ptr<SessionState>& session,
-    const std::string& dnn, SessionStateUpdateCriteria* session_uc) {
-  const auto session_id = session->get_session_id();
+    SessionMap& session_map, const std::unique_ptr<SessionState>& session,
+    const uint32_t& pdu_id, SessionStateUpdateCriteria* session_uc) {
+  const auto session_id   = session->get_session_id();
+  const std::string& imsi = session->get_imsi();
 
   /* update respective session's state and return from here before timeout
    * to update session store with state and version
@@ -295,14 +298,19 @@ void SessionStateEnforcer::m5g_start_session_termination(
   /* Call for all rules to be de-associated from session
    * and inform to UPF
    */
-  m5g_remove_rules_and_update_upf(imsi, session, dnn, session_uc);
-
+  MLOG(MDEBUG) << "Will be removing all associated rules of session id "
+               << session->get_session_id();
+  m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::REMOVE);
+  if (session_map[imsi].size() == 0) {
+    // delete the rules
+    pdr_map_.erase(imsi);
+  }
   /* Forcefully terminate session context on time out
    * time out = 5000ms from sessiond.yml config file
    */
-  MLOG(MINFO) << "Scheduling a force termination timeout for session_id "
-              << session_id << " in " << session_force_termination_timeout_ms_
-              << "ms";
+  MLOG(MDEBUG) << "Scheduling a force termination timeout for session_id "
+               << session_id << " in " << session_force_termination_timeout_ms_
+               << "ms";
 
   evb_->runAfterDelay(
       [this, imsi, session_id] {
@@ -388,26 +396,46 @@ void SessionStateEnforcer::m5g_complete_termination(
   return;
 }
 
-/*Removing all associated rules to session*/
-void SessionStateEnforcer::m5g_remove_rules_and_update_upf(
+void SessionStateEnforcer::m5g_move_to_inactive_state(
+    const std::string& imsi, std::unique_ptr<SessionState>& session,
+    SetSmNotificationContext notif, SessionStateUpdateCriteria* session_uc) {
+  set_new_fsm_state_and_increment_version(session, INACTIVE, session_uc);
+  /* Call for all rules to be de-associated from session
+   * and inform to UPF
+   */
+  m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::IDLE);
+  return;
+}
+
+void SessionStateEnforcer::set_new_fsm_state_and_increment_version(
+    std::unique_ptr<SessionState>& session, SessionFsmState target_state,
+    SessionStateUpdateCriteria* session_uc) {
+  auto stateStr = session_fsm_state_to_str(session->get_state());
+  session->set_fsm_state(target_state, session_uc);
+  uint32_t cur_version = session->get_current_version();
+  session->set_current_version(++cur_version, session_uc);
+  MLOG(MDEBUG) << "During " << stateStr << " state of session"
+               << "of imsi: " << session->get_imsi()
+               << "/teid:" << session->get_upf_local_teid() << "changed to "
+               << session_fsm_state_to_str(session->get_state());
+  return;
+}
+
+void SessionStateEnforcer::m5g_pdr_rules_change_and_update_upf(
     const std::string& imsi, const std::unique_ptr<SessionState>& session,
-    const std::string& dnn, SessionStateUpdateCriteria* uc) {
-  // remove all rules;
-  MLOG(MINFO) << "Will be removing all associated rules of session id "
-              << session->get_session_id();
-  auto ip_addr = session->get_config()
-                     .rat_specific_context.m5gsm_session_context()
-                     .pdu_address()
-                     .redirect_server_address();
+    PdrState pdrstate) {
+  // update criteria status not needed
+  session->set_all_pdrs(pdrstate);
+  session->reset_rtx_counter();
+  m5g_send_session_request_to_upf(imsi, session);
+  return;
+}
+
+void SessionStateEnforcer::m5g_send_session_request_to_upf(
+    const std::string& imsi, const std::unique_ptr<SessionState>& session) {
   // Update to UPF
   SessionState::SessionInfo sess_info;
-  sess_info.imsi    = imsi;
-  sess_info.ip_addr = ip_addr;
-  // sess_info.local_f_teid = session->get_local_teid();
   session->sess_infocopy(&sess_info);
-  // Set PDR state as  REMOVE for all PDRs
-  session->set_remove_all_pdrs();
-  sess_info.pdr_rules = session->get_all_pdr_rules();
   // Set the node Id
   sess_info.nodeId.node_id = get_upf_node_id();
   pipelined_client_->set_upf_session(sess_info, call_back_upf);
@@ -797,30 +825,6 @@ uint32_t SessionStateEnforcer::get_next_teid() {
 
 uint32_t SessionStateEnforcer::get_current_teid() {
   return teid_counter_;
-}
-
-void SessionStateEnforcer::m5g_execute_state_change_action(
-    std::unique_ptr<SessionState>& session, SessionFsmState targetState,
-    SessionStateUpdateCriteria* session_uc) {
-  auto stateStr = session_fsm_state_to_str(session->get_state());
-  session->set_fsm_state(targetState, session_uc);
-  uint32_t cur_version = session->get_current_version();
-  session->set_current_version(++cur_version, session_uc);
-  MLOG(MDEBUG) << "During " << stateStr << " state of session"
-               << "of imsi: " << session->get_imsi()
-               << "/teid:" << session->get_upf_local_teid() << "changed to "
-               << session_fsm_state_to_str(session->get_state());
-  return;
-}
-
-void SessionStateEnforcer::m5g_pdr_rules_change_and_update_upf(
-    const std::string& imsi, const std::unique_ptr<SessionState>& session,
-    enum PdrState pdrstate) {
-  // update crieria status not needed
-  session->set_all_pdrs(pdrstate);
-  session->reset_rtx_counter();
-  m5g_send_session_request_to_upf(session);
-  return;
 }
 
 bool SessionStateEnforcer::inc_rtx_counter(

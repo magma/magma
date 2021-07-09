@@ -260,8 +260,8 @@ class LocalEnforcer {
    * IMSI
    */
   void handle_cwf_roaming(
-      SessionMap& session_map, const std::string& imsi,
-      const magma::SessionConfig& config, SessionUpdate& session_update);
+      std::unique_ptr<SessionState>& session, const SessionConfig& new_config,
+      SessionStateUpdateCriteria* session_uc);
 
   /**
    * Execute actions on subscriber's service, eg. terminate, redirect data, or
@@ -296,7 +296,6 @@ class LocalEnforcer {
 
   void report_session_update_event(
       SessionMap& session_map, const UpdateRequestsBySession& updates);
-
 
   void report_session_update_failure_event(
       SessionMap& session_map, const UpdateRequestsBySession& failed_updates,
@@ -373,8 +372,8 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   void filter_rule_installs(
-      std::vector<StaticRuleInstall>& static_rule_installs,
-      std::vector<DynamicRuleInstall>& dynamic_rule_installs,
+      bool online, std::vector<StaticRuleInstall>& static_installs,
+      std::vector<DynamicRuleInstall>& dynamic_installs,
       const std::unordered_set<uint32_t>& successful_credits);
 
   std::vector<StaticRuleInstall> to_vec(

@@ -16,15 +16,16 @@ limitations under the License.
 package handlers
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
 
-	"github.com/golang/protobuf/ptypes"
-
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/tools/commands"
+
+	"github.com/golang/protobuf/ptypes"
 )
 
 // List-certs command - prints out all registered certificates & associated with
@@ -40,14 +41,15 @@ func init() {
 }
 
 func listCerts(cmd *commands.Command, args []string) int {
-	certs, err := certifier.ListCertificates()
+	ctx := context.Background()
+	certs, err := certifier.ListCertificates(ctx)
 	if err != nil {
 		log.Fatalf("List Certificates Error: %s", err)
 	}
 	fmt.Println()
 	for _, csn := range certs {
 		fmt.Printf("Serial Number: %s", csn)
-		info, err := certifier.GetCertificateIdentity(csn)
+		info, err := certifier.GetCertificateIdentity(ctx, csn)
 		if err != nil || info == nil {
 			log.Printf("\nError %s gettting certificate %s info\n", err, csn)
 			continue

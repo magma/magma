@@ -1,5 +1,5 @@
 ---
-id: deploy_configure
+id: configure_federation
 title: Configure FeG
 hide_title: true
 ---

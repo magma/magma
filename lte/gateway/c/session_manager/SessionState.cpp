@@ -260,7 +260,7 @@ void SessionState::insert_pdr(
 }
 
 /* method to change the PDR state */
-void SessionState::set_all_pdrs(enum PdrState pdr_state) {
+void SessionState::set_all_pdrs(PdrState pdr_state) {
   for (auto& rule : pdr_list_) {
     rule.set_pdr_state(pdr_state);
   }
@@ -1003,8 +1003,13 @@ void SessionState::set_upf_teid_endpoint(
   return;
 }
 
-void SessionState::set_config(const SessionConfig& config) {
+void SessionState::set_config(
+    const SessionConfig& config, SessionStateUpdateCriteria* session_uc) {
   config_ = config;
+  if (session_uc) {
+    session_uc->is_config_updated = true;
+    session_uc->updated_config    = config;
+  }
 }
 
 bool SessionState::is_radius_cwf_session() const {
@@ -1707,6 +1712,7 @@ bool SessionState::receive_charging_credit(
     // new credit
     return init_charging_credit(update, session_uc);
   }
+
   auto& grant                            = it->second;
   SessionCreditUpdateCriteria* credit_uc = get_credit_uc(key, session_uc);
   auto credit_validity = ChargingGrant::is_valid_credit_response(update);

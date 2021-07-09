@@ -134,6 +134,7 @@ func TestBuilder_Build(t *testing.T) {
 			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{15000},
 			NatEnabled:               true,
+			CongestionControlEnabled: true,
 			SentryConfig: &lte_mconfig.SentryConfig{
 				SampleRate:   0.75,
 				UploadMmeLog: true,
@@ -186,13 +187,13 @@ func TestBuilder_Build(t *testing.T) {
 	}
 
 	// Happy path
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
 	// Break with non-allowed network service
 	setEPCNetworkServices([]string{"0xdeadbeef"}, &nw)
-	_, err = build_non_federated(&nw, &graph, "gw1")
+	_, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "unknown network service name 0xdeadbeef")
 
@@ -209,7 +210,7 @@ func TestBuilder_Build(t *testing.T) {
 		HeConfig: &lte_mconfig.PipelineD_HEConfig{},
 		LiUes:    &lte_mconfig.PipelineD_LiUes{},
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -236,7 +237,7 @@ func TestBuilder_Build(t *testing.T) {
 		},
 	}
 
-	actual, err = build_lte_federated(&nw, &graph, "gw1")
+	actual, err = buildLTEFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -262,7 +263,7 @@ func TestBuilder_Build(t *testing.T) {
 		},
 	}
 
-	actual, err = build_lte_federated(&nw, &graph, "gw1")
+	actual, err = buildLTEFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -279,7 +280,7 @@ func TestBuilder_Build(t *testing.T) {
 			Tac: []uint32{211, 122},
 		},
 	}
-	actual, err = build_lte_federated(&nw, &graph, "gw1")
+	actual, err = buildLTEFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -352,6 +353,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               false,
+			CongestionControlEnabled: true,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -390,7 +392,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			LogLevel: protos.LogLevel_INFO,
 		},
 	}
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -401,7 +403,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		IpAllocatorType: lte_mconfig.MobilityD_DHCP,
 		StaticIpEnabled: false,
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -412,7 +414,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		IpAllocatorType: lte_mconfig.MobilityD_IP_POOL,
 		StaticIpEnabled: false,
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -423,7 +425,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		IpAllocatorType: lte_mconfig.MobilityD_IP_POOL,
 		StaticIpEnabled: true,
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -434,7 +436,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		IpAllocatorType: lte_mconfig.MobilityD_DHCP,
 		StaticIpEnabled: true,
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -447,7 +449,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		StaticIpEnabled: true,
 		MultiApnIpAlloc: true,
 	}
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -476,7 +478,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		LiUes:                  &lte_mconfig.PipelineD_LiUes{},
 	}
 
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -507,7 +509,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
 	}
 
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -539,7 +541,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		LiUes:                    &lte_mconfig.PipelineD_LiUes{},
 	}
 
-	actual, err = build_non_federated(&nw, &graph, "gw1")
+	actual, err = buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -622,6 +624,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               true,
+			CongestionControlEnabled: true,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -668,7 +671,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		},
 	}
 
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -758,6 +761,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               true,
+			CongestionControlEnabled: true,
 			FederatedModeMap: &lte_mconfig.FederatedModeMap{
 				Enabled: true,
 				Mapping: []*lte_mconfig.ModeMapItem{
@@ -816,7 +820,7 @@ func TestBuilder_Build_FederatedBaseCase(t *testing.T) {
 	}
 
 	// Use LTE FEG NETWORK parser for this case
-	actual, err := build_lte_federated(&nw, &graph, "gw1")
+	actual, err := buildLTEFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -918,6 +922,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
+			CongestionControlEnabled: true,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -957,7 +962,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 		},
 	}
 
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -1045,6 +1050,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
+			CongestionControlEnabled: true,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -1084,7 +1090,141 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 		},
 	}
 
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestBuilder_BuildCongestionControlConfig(t *testing.T) {
+	lte_test_init.StartTestService(t)
+
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
+			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
+				EnableCaching: swag.Bool(true),
+			},
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
+		},
+	}
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config: newDefaultGatewayConfig(),
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+		},
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	enb := configurator.NetworkEntity{
+		Type: lte.CellularEnodebEntityType, Key: "enb1",
+		Config:             newDefaultUnmanagedEnodebConfig(),
+		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+	}
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
+		},
+	}
+
+	// Gateway specific config overrides network level
+	gwConfig := lteGW.Config
+	cellularGwConfig := gwConfig.(*lte_models.GatewayCellularConfigs)
+	cellularGwConfig.Epc.CongestionControlEnabled = swag.Bool(false)
+
+	expected := map[string]proto.Message{
+		"enodebd": &lte_mconfig.EnodebD{
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
+			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
+				Earfcndl:               44590,
+				SubframeAssignment:     2,
+				SpecialSubframePattern: 7,
+			},
+			BandwidthMhz:        20,
+			AllowEnodebTransmit: true,
+			Tac:                 1,
+			PlmnidList:          "00101",
+			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
+			Arfcn_2G:            nil,
+			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
+				"enb1": {
+					CellId:    138777000,
+					Tac:       1,
+					IpAddress: "192.168.0.124",
+				},
+			},
+		},
+		"mobilityd": &lte_mconfig.MobilityD{
+			LogLevel: protos.LogLevel_INFO,
+			IpBlock:  "192.168.128.0/24",
+		},
+		"mme": &lte_mconfig.MME{
+			LogLevel:                 protos.LogLevel_INFO,
+			Mcc:                      "001",
+			Mnc:                      "01",
+			Tac:                      1,
+			MmeCode:                  1,
+			MmeGid:                   1,
+			MmeRelativeCapacity:      10,
+			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			CsfbMcc:                  "001",
+			CsfbMnc:                  "01",
+			Lac:                      1,
+			HssRelayEnabled:          false,
+			CloudSubscriberdbEnabled: false,
+			EnableDnsCaching:         false,
+			// Gateway congestion control enabled should be false
+			CongestionControlEnabled: false,
+			AttachedEnodebTacs:       []int32{1},
+			NatEnabled:               true,
+		},
+		"pipelined": &lte_mconfig.PipelineD{
+			LogLevel:      protos.LogLevel_INFO,
+			UeIpBlock:     "192.168.128.0/24",
+			NatEnabled:    true,
+			DefaultRuleId: "",
+			Services: []lte_mconfig.PipelineD_NetworkServices{
+				lte_mconfig.PipelineD_ENFORCEMENT,
+			},
+			SgiManagementIfaceVlan: "",
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
+			LiUes:                  &lte_mconfig.PipelineD_LiUes{},
+		},
+		"subscriberdb": &lte_mconfig.SubscriberDB{
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
+		},
+		"policydb": &lte_mconfig.PolicyDB{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sessiond": &lte_mconfig.SessionD{
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: false,
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
+		},
+		"liagentd": &lte_mconfig.LIAgentD{
+			LogLevel: protos.LogLevel_INFO,
+		},
+	}
+
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
@@ -1174,6 +1314,7 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               true,
+			CongestionControlEnabled: true,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
@@ -1212,32 +1353,32 @@ func TestBuilder_Build_MMEPool(t *testing.T) {
 		},
 	}
 
-	actual, err := build_non_federated(&nw, &graph, "gw1")
+	actual, err := buildNonFederated(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
-// build_lte_federated builds a Federated_LTE network that comes from swagger feg_lte_network model
-func build_lte_federated(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+// buildLTEFederated builds a Federated_LTE network that comes from swagger feg_lte_network model
+func buildLTEFederated(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
 	// use federated serded (this is still an LTE network)
 	networkProto, err := network.ToProto(feg_serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	return build_impl(networkProto, graph, gatewayID)
+	return buildImpl(networkProto, graph, gatewayID)
 }
 
-// build_lte_federated builds an non federated LTE network that comes from swagger lte_networl
-func build_non_federated(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+// buildNonFederated builds an non federated LTE network that comes from swagger lte_networl
+func buildNonFederated(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
 	// use NON federated serded
 	networkProto, err := network.ToProto(serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	return build_impl(networkProto, graph, gatewayID)
+	return buildImpl(networkProto, graph, gatewayID)
 }
 
-func build_impl(networkProto *storage_configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+func buildImpl(networkProto *storage_configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
 	graphProto, err := graph.ToProto(serdes.Entity)
 	if err != nil {
 		return nil, err
@@ -1263,8 +1404,9 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 			TransmitEnabled: swag.Bool(true),
 		},
 		Epc: &lte_models.GatewayEpcConfigs{
-			NatEnabled: swag.Bool(true),
-			IPBlock:    "192.168.128.0/24",
+			NatEnabled:               swag.Bool(true),
+			IPBlock:                  "192.168.128.0/24",
+			CongestionControlEnabled: swag.Bool(true),
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",

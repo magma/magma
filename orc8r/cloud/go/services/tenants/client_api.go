@@ -37,40 +37,43 @@ func getTenantsClient() (protos.TenantsServiceClient, error) {
 	return protos.NewTenantsServiceClient(conn), nil
 }
 
-func GetAllTenants() (*protos.TenantList, error) {
+func GetAllTenants(ctx context.Context) (*protos.TenantList, error) {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return nil, err
 	}
-	tenants, err := oc.GetAllTenants(context.Background(), &protos.Void{})
+	tenants, err := oc.GetAllTenants(ctx, &protos.Void{})
 	if err != nil {
 		return nil, err
 	}
 	return tenants, nil
 }
 
-func CreateTenant(tenantID int64, tenant *protos.Tenant) (*protos.Tenant, error) {
+func CreateTenant(ctx context.Context, tenantID int64, tenant *protos.Tenant) (*protos.Tenant, error) {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return nil, err
 	}
-	_, err = oc.CreateTenant(context.Background(), &protos.IDAndTenant{
-		Id:     tenantID,
-		Tenant: tenant,
-	})
+	_, err = oc.CreateTenant(
+		ctx,
+		&protos.IDAndTenant{
+			Id:     tenantID,
+			Tenant: tenant,
+		},
+	)
 	if err != nil {
 		return nil, err
 	}
 	return tenant, err
 }
 
-func GetTenant(tenantID int64) (*protos.Tenant, error) {
+func GetTenant(ctx context.Context, tenantID int64) (*protos.Tenant, error) {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return nil, err
 	}
 
-	tenant, err := oc.GetTenant(context.Background(), &protos.GetTenantRequest{Id: tenantID})
+	tenant, err := oc.GetTenant(ctx, &protos.GetTenantRequest{Id: tenantID})
 	if err != nil {
 		switch {
 		case status.Convert(err).Code() == codes.NotFound:
@@ -82,16 +85,19 @@ func GetTenant(tenantID int64) (*protos.Tenant, error) {
 	return tenant, nil
 }
 
-func SetTenant(tenantID int64, tenant protos.Tenant) error {
+func SetTenant(ctx context.Context, tenantID int64, tenant protos.Tenant) error {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return err
 	}
 
-	_, err = oc.SetTenant(context.Background(), &protos.IDAndTenant{
-		Id:     tenantID,
-		Tenant: &tenant,
-	})
+	_, err = oc.SetTenant(
+		ctx,
+		&protos.IDAndTenant{
+			Id:     tenantID,
+			Tenant: &tenant,
+		},
+	)
 	if err != nil {
 		switch {
 		case status.Convert(err).Code() == codes.NotFound:
@@ -103,13 +109,13 @@ func SetTenant(tenantID int64, tenant protos.Tenant) error {
 	return err
 }
 
-func DeleteTenant(tenantID int64) error {
+func DeleteTenant(ctx context.Context, tenantID int64) error {
 	oc, err := getTenantsClient()
 	if err != nil {
 		return err
 	}
 
-	_, err = oc.DeleteTenant(context.Background(), &protos.GetTenantRequest{Id: tenantID})
+	_, err = oc.DeleteTenant(ctx, &protos.GetTenantRequest{Id: tenantID})
 	if err != nil {
 		switch {
 		case status.Convert(err).Code() == codes.NotFound:

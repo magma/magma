@@ -12,6 +12,7 @@
  */
 
 #pragma once
+#include <lte/protos/mconfig/mconfigs.pb.h>
 
 #include <string>
 
@@ -21,7 +22,7 @@
  * @brief Initialize sentry if SENTRY_ENABLED flag is set and project slug is
  * configured in control_proxy.yml
  */
-void initialize_sentry();
+void initialize_sentry(const magma::mconfig::SentryConfig&);
 
 /**
  * @brief Shutdown sentry if SENTRY_ENABLED flag is set

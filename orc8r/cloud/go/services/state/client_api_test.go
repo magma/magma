@@ -68,7 +68,7 @@ func TestStateService(t *testing.T) {
 	bundle2 := makeVersionedStateBundle("test-serde", "key2", value2, 12)
 
 	// Check contract for empty network
-	states, err := state.GetStates(networkID, state_types.IDs{bundle0.ID}, stateSerdes)
+	states, err := state.GetStates(context.Background(), networkID, state_types.IDs{bundle0.ID}, stateSerdes)
 	assert.NoError(t, err)
 	assert.Empty(t, states)
 
@@ -76,7 +76,7 @@ func TestStateService(t *testing.T) {
 	repRes, err := reportStates(ctx, bundle0, bundle1)
 	assert.NoError(t, err)
 	assert.Empty(t, repRes.UnreportedStates)
-	states, err = state.GetStates(networkID, state_types.IDs{bundle0.ID, bundle1.ID}, stateSerdes)
+	states, err = state.GetStates(context.Background(), networkID, state_types.IDs{bundle0.ID, bundle1.ID}, stateSerdes)
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle0, bundle1)
 	assert.Equal(t, uint64(0), states[bundle0.ID].Version)
@@ -87,7 +87,7 @@ func TestStateService(t *testing.T) {
 	repRes, err = reportStates(ctx, bundle0, bundle1)
 	assert.NoError(t, err)
 	assert.Empty(t, repRes.UnreportedStates)
-	states, err = state.GetStates(networkID, state_types.IDs{bundle0.ID, bundle1.ID}, stateSerdes)
+	states, err = state.GetStates(context.Background(), networkID, state_types.IDs{bundle0.ID, bundle1.ID}, stateSerdes)
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle0, bundle1)
 	assert.Equal(t, uint64(1), states[bundle0.ID].Version)
@@ -107,15 +107,15 @@ func TestStateService(t *testing.T) {
 	repRes, err = reportStates(ctx, bundle2)
 	assert.NoError(t, err)
 	assert.Empty(t, repRes.UnreportedStates)
-	states, err = state.GetStates(networkID, state_types.IDs{bundle2.ID}, stateSerdes)
+	states, err = state.GetStates(context.Background(), networkID, state_types.IDs{bundle2.ID}, stateSerdes)
 	assert.NoError(t, err)
 	testGetStatesResponse(t, states, bundle2)
 	assert.Equal(t, uint64(12), states[bundle2.ID].Version)
 
 	// Delete and read back
-	err = state.DeleteStates(networkID, state_types.IDs{bundle0.ID, bundle2.ID})
+	err = state.DeleteStates(context.Background(), networkID, state_types.IDs{bundle0.ID, bundle2.ID})
 	assert.NoError(t, err)
-	states, err = state.GetStates(networkID, state_types.IDs{bundle0.ID, bundle1.ID, bundle2.ID}, stateSerdes)
+	states, err = state.GetStates(context.Background(), networkID, state_types.IDs{bundle0.ID, bundle1.ID, bundle2.ID}, stateSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(states))
 	testGetStatesResponse(t, states, bundle1)
@@ -131,7 +131,7 @@ func TestStateService(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Empty(t, repRes.UnreportedStates) // validity is checked by the consumer
 	// Only valid state should be accessible
-	states, err = state.GetStates(networkID, state_types.IDs{bundle0.ID, bundle1.ID, bundle2.ID, unserializableBundle.ID}, stateSerdes)
+	states, err = state.GetStates(context.Background(), networkID, state_types.IDs{bundle0.ID, bundle1.ID, bundle2.ID, unserializableBundle.ID}, stateSerdes)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(states))
 	testGetStatesResponse(t, states, bundle0)

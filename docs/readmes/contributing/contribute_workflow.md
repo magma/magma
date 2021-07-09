@@ -21,7 +21,9 @@ Once your PR has been approved and passed all CI checks, use the [`ready2merge`]
 
 ## Guidelines
 
-**Required: commits must be signed off.** You must sign-off all commits on the originating branch for a PR, using [the `--signoff` flag in Git](https://stackoverflow.com/questions/1962094). There is a CI check that will fail if any commit in your branch has an unsigned commit. If you've forgotten to sign-off a commit, you can `git commit --amend --signoff`, or `git rebase --signoff` to sign-off an entire branch at once.
+**Required: commits must be signed off.** You must sign-off all commits on the originating branch for a PR, using [the `--signoff` flag in Git](https://stackoverflow.com/questions/1962094). There is a CI check that will fail if any commit in your branch has an unsigned commit.
+
+**Required: PR title must follow [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/#summary) format.** For example, `fix(agw): Fix pyroute2 dependency`. See [semantic.yml](https://github.com/magma/magma/blob/master/.github/semantic.yml) for the set of supported scopes.
 
 **Required: label backward-breaking pull requests.** Use the [`breaking change` label](https://github.com/magma/magma/issues?q=label%3A%22breaking+change%22+). All breaking changes and their mitigation steps will be aggregated in the subsequent release notes. A breaking change fits one or more of the following criteria
 
