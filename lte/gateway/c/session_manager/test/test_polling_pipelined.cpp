@@ -16,14 +16,11 @@
 #include <string.h>
 #include <time.h>
 
-#include <chrono>
-#include <future>
 #include <memory>
 
 #include "Consts.h"
 #include "DiameterCodes.h"
 #include "LocalEnforcer.h"
-#include "magma_logging.h"
 #include "includes/MagmaService.h"
 #include "Matchers.h"
 #include "ProtobufCreators.h"

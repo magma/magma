@@ -173,8 +173,13 @@ void LocalEnforcer::poll_stats_enforcer(int cookie, int cookie_mask) {
   // so we bind to the object and the two arguments the function needs
   // which are the status and RuleRecordTable response
   pipelined_client_->poll_stats(
+<<<<<<< HEAD
       cookie, cookie_mask, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
 >>>>>>> 3a0bc6fb2 (Current Testing)
+=======
+      cookie, cookie_mask, 
+      std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
+>>>>>>> 24df26c81 (Some linter adjustments)
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
