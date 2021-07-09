@@ -51,3 +51,14 @@ jobs:
         run: |
           echo "::error Use the formatter script 'lte/gateway/python/precommit.py' to run the formatters locally."
           echo "::error Run './precommit.py --build' to build the setup, and then run './precommit.py --format --diff'"
+      # Need to save PR number as Github action does not propagate it with workflow_run event
+      - name: Save PR number
+        if: failure()
+        run: |
+          mkdir -p ./pr
+          echo ${{ github.event.number }} > ./pr/NR
+      - uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: pr
+          path: pr/
