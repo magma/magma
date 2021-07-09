@@ -269,20 +269,18 @@ bool SessionStateEnforcer::m5g_release_session(
   auto session_id = session->get_session_id();
   /*Irrespective of any State of Session, release and terminate*/
   SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
-  MLOG(MDEBUG) << "Trying to release session with id " << session_id
-               << " from state "
+  MLOG(MDEBUG) << "Trying to release " << session_id << " from state "
                << session_fsm_state_to_str(session->get_state());
-  m5g_start_session_termination(
-      session_map, imsi, session, pdu_id, &session_uc);
+  m5g_start_session_termination(session_map, session, pdu_id, &session_uc);
   return true;
 }
 
 /*Start processing to terminate respective session requested from AMF*/
 void SessionStateEnforcer::m5g_start_session_termination(
-    SessionMap& session_map, const std::string& imsi,
-    const std::unique_ptr<SessionState>& session, const uint32_t& pdu_id,
-    SessionStateUpdateCriteria* session_uc) {
-  const auto session_id = session->get_session_id();
+    SessionMap& session_map, const std::unique_ptr<SessionState>& session,
+    const uint32_t& pdu_id, SessionStateUpdateCriteria* session_uc) {
+  const auto session_id   = session->get_session_id();
+  const std::string& imsi = session->get_imsi();
 
   /* update respective session's state and return from here before timeout
    * to update session store with state and version
@@ -299,7 +297,7 @@ void SessionStateEnforcer::m5g_start_session_termination(
   /* Call for all rules to be de-associated from session
    * and inform to UPF
    */
-  m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::REMOVE);
+  m5g_pdr_rules_change_and_update_upf(session, PdrState::REMOVE);
   if (session_map[imsi].size() == 0) {
     // delete the rules
     pdr_map_.erase(imsi);
@@ -402,7 +400,7 @@ void SessionStateEnforcer::m5g_move_to_inactive_state(
   /* Call for all rules to be de-associated from session
    * and inform to UPF
    */
-  m5g_pdr_rules_change_and_update_upf(imsi, session, PdrState::IDLE);
+  m5g_pdr_rules_change_and_update_upf(session, PdrState::IDLE);
   return;
 }
 
@@ -421,12 +419,11 @@ void SessionStateEnforcer::set_new_fsm_state_and_increment_version(
 }
 
 void SessionStateEnforcer::m5g_pdr_rules_change_and_update_upf(
-    const std::string& imsi, const std::unique_ptr<SessionState>& session,
-    PdrState pdrstate) {
+    const std::unique_ptr<SessionState>& session, PdrState pdrstate) {
   // update criteria status not needed
   session->set_all_pdrs(pdrstate);
   session->reset_rtx_counter();
-  m5g_send_session_request_to_upf(imsi, session);
+  m5g_send_session_request_to_upf(session);
   return;
 }
 

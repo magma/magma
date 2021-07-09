@@ -146,8 +146,7 @@ class SessionStateEnforcer {
 
   /* Pdr State change routine */
   void m5g_pdr_rules_change_and_update_upf(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      enum PdrState pdrstate);
+      const std::unique_ptr<SessionState>& session, enum PdrState pdrstate);
 
   /* Set new fsm state and increment version*/
   void set_new_fsm_state_and_increment_version(
@@ -156,9 +155,8 @@ class SessionStateEnforcer {
 
   /*Start processing to terminate respective session requested from AMF*/
   void m5g_start_session_termination(
-      SessionMap& session_map, const std::string& imsi,
-      const std::unique_ptr<SessionState>& session, const uint32_t& pdu_id,
-      SessionStateUpdateCriteria* session_uc);
+      SessionMap& session_map, const std::unique_ptr<SessionState>& session,
+      const uint32_t& pdu_id, SessionStateUpdateCriteria* session_uc);
 
   /*Function will clean up all resources related to requested session*/
   void m5g_complete_termination(
