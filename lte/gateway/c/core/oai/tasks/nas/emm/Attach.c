@@ -621,7 +621,7 @@ status_code_e emm_proc_attach_request(
   }
   if (is_unknown_guti) {
     is_unknown_guti                = false;
-    new_emm_ctx->emm_context_state = UNKOWN_GUTI;
+    new_emm_ctx->emm_context_state = UNKNOWN_GUTI;
   }
   if (!is_nas_specific_procedure_attach_running(&ue_mm_context->emm_context)) {
     emm_proc_create_procedure_attach_request(ue_mm_context, ies);

@@ -263,7 +263,8 @@ status_code_e emm_proc_identification_complete(
         mme_app_desc_t* mme_app_desc_p      = get_mme_nas_state(false);
         ue_mm_context_t* old_imsi_ue_mm_ctx = mme_ue_context_exists_imsi(
             &mme_app_desc_p->mme_ue_contexts, imsi64);
-        if ((emm_ctx->emm_context_state == UNKOWN_GUTI) && old_imsi_ue_mm_ctx) {
+        if ((emm_ctx->emm_context_state == UNKNOWN_GUTI) &&
+            old_imsi_ue_mm_ctx) {
           OAILOG_INFO_UE(
               LOG_NAS_EMM, imsi64,
               "EMMAS-SAP - UE context already exists for for ue_id "
