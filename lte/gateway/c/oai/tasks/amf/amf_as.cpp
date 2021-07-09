@@ -519,6 +519,26 @@ static int amf_service_acceptmsg(
   nas_msg->header.security_header_type =
       SECURITY_HEADER_TYPE_INTEGRITY_PROTECTED_CYPHERED;  // sit_change
 
+  if (msg->pdu_sesion_status_ie & AMF_AS_PDU_SESSION_STATUS) {
+    nas_msg->security_protected.plain.amf.msg.service_accept.pdu_session_status
+        .iei = PDU_SESSION_STATUS;
+    nas_msg->security_protected.plain.amf.msg.service_accept.pdu_session_status
+        .len = 0x02;
+    nas_msg->security_protected.plain.amf.msg.service_accept.pdu_session_status
+        .pduSessionStatus = msg->pdu_session_status;
+  }
+
+  if (msg->pdu_sesion_status_ie & AMF_AS_PDU_SESSION_REACTIVATION_STATUS) {
+    nas_msg->security_protected.plain.amf.msg.service_accept
+        .pdu_re_activation_status.iei = PDU_SESSION_REACTIVATION_RESULT;
+    nas_msg->security_protected.plain.amf.msg.service_accept
+        .pdu_re_activation_status.len = 0x02;
+
+    nas_msg->security_protected.plain.amf.msg.service_accept
+        .pdu_re_activation_status.pduSessionReActivationResult =
+        msg->pdu_session_reactivation_status;
+  }
+
   nas_msg->security_protected.header.message_type = M5G_SERVICE_ACCEPT;
   size += NAS5G_MESSAGE_CONTAINER_MAXIMUM_LENGTH;
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, size);
@@ -1486,8 +1506,11 @@ int initial_context_setup_request(
   /*This message is sent by the AMF to NG-RAN node to request the setup of a UE
    * context before Registration Accept is sent to UE*/
 
+  ue_m5gmm_context_s* ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
   Ngap_initial_context_setup_request_t* req = nullptr;
-  MessageDef* message_p                     = nullptr;
+  Ngap_PDUSession_Resource_Setup_Request_List_t* pdu_resource_transfer_ie =
+      nullptr;
+  MessageDef* message_p = nullptr;
   message_p =
       itti_alloc_new_message(TASK_AMF_APP, NGAP_INITIAL_CONTEXT_SETUP_REQ);
   if (message_p == NULL) {
@@ -1520,6 +1543,57 @@ int initial_context_setup_request(
       htons(req->ue_security_capabilities.m5g_integrity_protection_algo);
   req->Security_Key = (unsigned char*) &amf_ctx->_security.kgnb;
   memcpy(&req->Ngap_guami, &amf_ctx->m5_guti.guamfi, sizeof(guamfi_t));
+
+  if (ue_context->mm_state == REGISTERED_IDLE) {
+    pdusession_setup_item_t* item = nullptr;
+    pdu_resource_transfer_ie = &req->PDU_Session_Resource_Setup_Transfer_List;
+
+    for (auto it = ue_context->amf_context.smf_ctxt_vector.begin();
+         it != ue_context->amf_context.smf_ctxt_vector.end(); it++) {
+      smf_context_t smf_context = *it;
+      if (smf_context.pdu_session_state == ACTIVE) {
+        uint8_t item_num     = 0;
+        uint64_t ul_pdu_ambr = 0;
+        uint64_t dl_pdu_ambr = 0;
+        pdu_resource_transfer_ie->no_of_items += 1;
+        item_num = pdu_resource_transfer_ie->no_of_items - 1;
+        item     = &pdu_resource_transfer_ie->item[item_num];
+        ambr_calculation_pdu_session(&smf_context, &dl_pdu_ambr, &ul_pdu_ambr);
+
+        // pdu session id
+        item->Pdu_Session_ID =
+            smf_context.smf_proc_data.pdu_session_identity.pdu_session_id;
+
+        // pdu ambr
+        item->PDU_Session_Resource_Setup_Request_Transfer
+            .pdu_aggregate_max_bit_rate.dl = dl_pdu_ambr;
+        item->PDU_Session_Resource_Setup_Request_Transfer
+            .pdu_aggregate_max_bit_rate.ul = ul_pdu_ambr;
+
+        // pdu session type
+        item->PDU_Session_Resource_Setup_Request_Transfer.pdu_ip_type.pdn_type =
+            smf_context.pdu_address.pdn_type;
+
+        // up transport info
+        memcpy(
+            &item->PDU_Session_Resource_Setup_Request_Transfer
+                 .up_transport_layer_info.gtp_tnl.gtp_tied,
+            smf_context.gtp_tunnel_id.upf_gtp_teid, GNB_TEID_LEN);
+        item->PDU_Session_Resource_Setup_Request_Transfer
+            .up_transport_layer_info.gtp_tnl.endpoint_ip_address = blk2bstr(
+            &smf_context.gtp_tunnel_id.upf_gtp_teid_ip_addr, GNB_IPV4_ADDR_LEN);
+
+        // qos flow list
+        memcpy(
+            &item->PDU_Session_Resource_Setup_Request_Transfer
+                 .qos_flow_setup_request_list.qos_flow_req_item,
+            &smf_context.pdu_resource_setup_req
+                 .pdu_session_resource_setup_request_transfer
+                 .qos_flow_setup_request_list.qos_flow_req_item,
+            sizeof(qos_flow_setup_request_item));
+      }
+    }
+  }
 
   if (nas_msg) {
     req->nas_pdu = nas_msg;

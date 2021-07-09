@@ -306,8 +306,8 @@ int amf_smf_send(
       if (smf_ctx->n_active_pdus) {
         /* Execute PDU Session Release and notify to SMF */
         rc = pdu_state_handle_message(
-            ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE,
-            smf_ctx->pdu_session_state, ue_context, amf_smf_msg, imsi, NULL, 0);
+            ue_context->mm_state, STATE_PDU_SESSION_RELEASE_COMPLETE, ACTIVE,
+            ue_context, amf_smf_msg, imsi, NULL, 0);
       }
 
       if (smf_ctx->pdu_address.pdn_type == IPv4) {

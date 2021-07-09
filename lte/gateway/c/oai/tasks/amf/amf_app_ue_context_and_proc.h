@@ -839,4 +839,6 @@ void amf_ue_context_on_new_guti(
     ue_m5gmm_context_t* ue_context_p, const guti_m5_t* const guti_p);
 ue_m5gmm_context_s* amf_ue_context_exists_guti(
     amf_ue_context_t* const amf_ue_context_p, const guti_m5_t* const guti_p);
+void ambr_calculation_pdu_session(
+    smf_context_t* smf_context, uint64_t* dl_pdu_ambr, uint64_t* ul_pdu_ambr);
 }  // namespace magma5g

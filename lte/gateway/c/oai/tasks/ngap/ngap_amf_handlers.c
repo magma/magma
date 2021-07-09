@@ -689,6 +689,7 @@ int ngap_amf_handle_initial_context_setup_response(
   Ngap_InitialContextSetupResponse_t* container;
   Ngap_InitialContextSetupResponseIEs_t* ie                          = NULL;
   Ngap_PDUSessionResourceSetupItemSURes_t* pduSessionSetupListCtxRes = NULL;
+  QosFlowPerTNLInformation_t response_transfer                       = {0};
   m5g_ue_description_t* ue_ref_p                                     = NULL;
   MessageDef* message_p                                              = NULL;
   int rc                                                             = RETURNok;
@@ -760,29 +761,61 @@ int ngap_amf_handle_initial_context_setup_response(
 
   if (ie) {
     AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-        .pdusesssion_setup_list.no_of_items =
+        .PDU_Session_Resource_Setup_Response_Transfer.no_of_items =
         ie->value.choice.PDUSessionResourceSetupListCxtRes.list.count;
 
     for (int item = 0;
          item < ie->value.choice.PDUSessionResourceSetupListCxtRes.list.count;
          item++) {
-      /*
-       * Bad, very bad cast...
-       */
-      // Info: need to update 38413 for this
-
       pduSessionSetupListCtxRes =
           (Ngap_PDUSessionResourceSetupItemSURes_t*) ie->value.choice
               .PDUSessionResourceSetupListCxtRes.list.array[item];
       AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-          .pdusesssion_setup_list.item[item]
+          .PDU_Session_Resource_Setup_Response_Transfer.item[item]
           .Pdu_Session_ID = pduSessionSetupListCtxRes->pDUSessionID;
-    }
-  } /*if(ie)*/
 
-  NGAP_FIND_PROTOCOLIE_BY_ID(
-      Ngap_InitialContextSetupResponseIEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_PDUSessionResourceFailedToSetupListSURes, false);
+      Ngap_PDUSessionResourceSetupResponseTransfer_t*
+          pDUSessionResourceSetupResponseTransfer = NULL;
+      asn_dec_rval_t decode_result;
+
+      decode_result = aper_decode_complete(
+          NULL, &asn_DEF_Ngap_PDUSessionResourceSetupResponseTransfer,
+          (void**) &pDUSessionResourceSetupResponseTransfer,
+          pduSessionSetupListCtxRes->pDUSessionResourceSetupResponseTransfer
+              .buf,
+          pduSessionSetupListCtxRes->pDUSessionResourceSetupResponseTransfer
+              .size);
+
+      if (decode_result.code == RC_OK) {
+        OAILOG_DEBUG(LOG_NGAP, " Decode Successful ");
+      } else {
+        OAILOG_ERROR(LOG_NGAP, " Decode Failed ");
+      }
+
+      memcpy(
+          response_transfer.tunnel.gTP_TEID,
+          pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+              .uPTransportLayerInformation.choice.gTPTunnel.gTP_TEID.buf,
+          4);
+
+      memcpy(
+          response_transfer.tunnel.transportLayerAddress,
+          pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+              .uPTransportLayerInformation.choice.gTPTunnel
+              .transportLayerAddress.buf,
+          4);
+
+      response_transfer.associatedQosFlowList.items = 1;
+      response_transfer.associatedQosFlowList.QosFlowIdentifier[0] =
+          pDUSessionResourceSetupResponseTransfer->dLQosFlowPerTNLInformation
+              .associatedQosFlowList.list.array[0]
+              ->qosFlowIdentifier;
+
+      AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+          .PDU_Session_Resource_Setup_Response_Transfer.item[item]
+          .PDU_Session_Resource_Setup_Response_Transfer = response_transfer;
+    }
+  }
 
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = send_msg_to_task(&ngap_task_zmq_ctx, TASK_AMF_APP, message_p);

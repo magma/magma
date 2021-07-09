@@ -82,6 +82,8 @@ typedef uint32_t teid_t;
 #define NGAP_NAS_DL_DATA_REQ(mSGpTR) (mSGpTR)->ittiMsg.ngap_nas_dl_data_req
 #define NGAP_INITIAL_CONTEXT_SETUP_REQ(mSGpTR)                                 \
   (mSGpTR)->ittiMsg.ngap_initial_context_setup_req
+#define NGAP_INITIAL_CONTEXT_SETUP_RSP(mSGpTR)                                 \
+  (mSGpTR)->ittiMsg.ngap_initial_context_setup_rsp
 #define NGAP_PAGING_REQUEST(mSGpTR) (mSGpTR)->ittiMsg.ngap_paging_request
 #define NGAP_PATH_SWITCH_REQUEST(mSGpTR)                                       \
   (mSGpTR)->ittiMsg.ngap_path_switch_request

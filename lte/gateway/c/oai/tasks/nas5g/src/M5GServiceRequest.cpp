@@ -13,6 +13,7 @@
 #include <sstream>
 #include "M5GServiceRequest.h"
 #include "M5GCommonDefs.h"
+#include "M5gNasMessage.h"
 
 using namespace std;
 namespace magma5g {
@@ -71,6 +72,31 @@ int ServiceRequestMsg::DecodeServiceRequestMsg(
     return decoded_result;
   else
     decoded += decoded_result;
+
+  while (decoded < len) {
+    uint8_t type = *(buffer + decoded);
+    switch (type) {
+      case UP_LINK_DATA_STATUS: {
+        if ((decoded_result =
+                 svc_req->uplink_data_status.DecodeUplinkDataStatus(
+                     &svc_req->uplink_data_status, UP_LINK_DATA_STATUS,
+                     buffer + decoded, len - decoded)) < 0)
+          return decoded_result;
+        else
+          decoded += decoded_result;
+      } break;
+      case PDU_SESSION_STATUS: {
+        if ((decoded_result =
+                 svc_req->pdu_session_status.DecodePDUSessionStatus(
+                     &svc_req->pdu_session_status, PDU_SESSION_STATUS,
+                     buffer + decoded, len - decoded)) < 0)
+          return decoded_result;
+        else
+          decoded += decoded_result;
+      } break;
+      default: {}
+    }
+  }
 
   return decoded;
 };

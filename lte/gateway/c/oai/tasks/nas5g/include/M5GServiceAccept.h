@@ -15,6 +15,8 @@
 #include "M5GSecurityHeaderType.h"
 #include "M5GSpareHalfOctet.h"
 #include "M5GMessageType.h"
+#include "M5GPDUSessionStatus.h"
+#include "M5GPDUSessionReActivationResult.h"
 
 using namespace std;
 namespace magma5g {
@@ -26,6 +28,8 @@ class ServiceAcceptMsg {
   SecurityHeaderTypeMsg sec_header_type;
   SpareHalfOctetMsg spare_half_octet;
   MessageTypeMsg message_type;
+  M5GPDUSessionStatus pdu_session_status;
+  M5GPDUSessionReActivationResult pdu_re_activation_status;
 
   ServiceAcceptMsg();
   ~ServiceAcceptMsg();

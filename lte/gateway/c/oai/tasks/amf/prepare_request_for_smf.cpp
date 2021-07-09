@@ -167,6 +167,77 @@ int amf_smf_create_ipv4_session_grpc_req(
 }
 
 /***************************************************************************
+**                                                                        **
+** Name:    amf_smf_create_ipv4_session_grpc_req()                        **
+**                                                                        **
+** Description: Fill session establishment gRPC request to SMF            **
+**                                                                        **
+**                                                                        **
+***************************************************************************/
+int amf_smf_create_session_on_service_req(
+    char* imsi, uint8_t* apn, uint32_t pdu_session_id,
+    uint32_t pdu_session_type, uint8_t* gnb_gtp_teid, uint8_t pti,
+    uint8_t* gnb_gtp_teid_ip_addr, char* ipv4_addr) {
+  // Creating the request
+  magma::lte::SetSMSessionContext req;
+
+  auto* req_common = req.mutable_common_context();
+
+  // Encode IMSI
+  req_common->mutable_sid()->mutable_id()->assign(imsi);
+
+  // Encode TYPE IMSI
+  req_common->mutable_sid()->set_type(
+      magma::lte::SubscriberID_IDType::SubscriberID_IDType_IMSI);
+
+  // Encode APU
+  req_common->set_apn((char*) apn);
+
+  // Encode RAT TYPE
+  req_common->set_rat_type(magma::lte::RATType::TGPP_NR);
+
+  // Put in CREATING STATE
+  req_common->set_sm_session_state(magma::lte::SMSessionFSMState::CREATING_0);
+
+  // Create with Default Version
+  req_common->set_sm_session_version(VERSION_0);
+
+  auto* req_rat_specific =
+      req.mutable_rat_specific_context()->mutable_m5gsm_session_context();
+
+  // Set the Session ID
+  req_rat_specific->set_pdu_session_id(pdu_session_id);
+
+  // Set the Type of Request
+  req_rat_specific->set_rquest_type(magma::lte::RequestType::INITIAL_REQUEST);
+
+  // Set the Address type
+  req_rat_specific->mutable_pdu_address()->set_redirect_address_type(
+      magma::lte::RedirectServer::IPV4);
+
+  // Type is IPv4
+  req_rat_specific->set_pdu_session_type(magma::lte::PduSessionType::IPV4);
+
+  // TEID of GNB
+  req_rat_specific->mutable_gnode_endpoint()->mutable_teid()->assign(
+      (char*) gnb_gtp_teid);
+
+  // IP Address of GNB
+  req_rat_specific->mutable_gnode_endpoint()->mutable_end_ipv4_addr()->assign(
+      (char*) gnb_gtp_teid_ip_addr);
+
+  // Set the PTI
+  req_rat_specific->set_procedure_trans_identity((const char*) (&(pti)));
+
+  // Set the PDU Address
+  req_rat_specific->mutable_pdu_address()->set_redirect_server_address(
+      (char*) ipv4_addr);
+
+  AsyncSmfServiceClient::getInstance().set_smf_session(req);
+
+  return RETURNok;
+}
+/***************************************************************************
  * **                                                                        **
  * ** Name:    amf_smf_create_pdu_session()                                  **
  * **                                                                        **

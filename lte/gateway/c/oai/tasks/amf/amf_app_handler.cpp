@@ -318,6 +318,8 @@ ue_m5gmm_context_s* amf_ue_context_exists_guti(
  **      initial_pP:      ngap initial ue message structure                **
  **                                                                        **
  **      Return:    imsi value                                             **
+
+
  **                                                                        **
  ***************************************************************************/
 imsi64_t amf_app_handle_initial_ue_message(
@@ -506,6 +508,7 @@ void amf_app_handle_pdu_session_response(
   amf_smf_t amf_smf_msg;
   // TODO: hardcoded for now, addressed in the upcoming multi-UE PR
   uint32_t ue_id = 0;
+  int rc         = 0;
 
   imsi64_t imsi64;
   IMSI_STRING_TO_IMSI64(pdu_session_resp->imsi, &imsi64);
@@ -548,27 +551,43 @@ void amf_app_handle_pdu_session_response(
 
   smf_ctx->n_active_pdus += 1;
 
-  OAILOG_INFO(
-      LOG_AMF_APP,
-      "Sending message to gNB for PDUSessionResourceSetupRequest "
-      "**n_active_pdus=%d **\n",
-      smf_ctx->n_active_pdus);
-  amf_rc = pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx);
-  if (amf_rc != RETURNok) {
-    OAILOG_DEBUG(
+  if (REGISTERED_IDLE == ue_context->mm_state) {
+    // pdu session state
+    smf_ctx->pdu_session_state = ACTIVE;
+    amf_sap_t amf_sap;
+    amf_sap.u.amf_as.u.establish.ue_id    = ue_id;
+    amf_sap.u.amf_as.u.establish.nas_info = AMF_AS_NAS_INFO_SR;
+
+    amf_sap.u.amf_as.u.establish.guti = ue_context->amf_context.m5_guti;
+    amf_sap.u.amf_as.u.establish.guti.m_tmsi =
+        htonl(amf_sap.u.amf_as.u.establish.guti.m_tmsi);
+    rc = amf_sap_send(&amf_sap);
+    if (RETURNok == rc) {
+      ue_context->mm_state == REGISTERED_CONNECTED;
+    }
+  } else {
+    OAILOG_INFO(
         LOG_AMF_APP,
-        "Failure in sending message to gNB for "
-        "PDUSessionResourceSetupRequest\n");
-    /* TODO: in future add negative case handling, send pdu reject
-     * command to UE and release message to SMF
-     */
+        "Sending message to gNB for PDUSessionResourceSetupRequest "
+        "**n_active_pdus=%d **\n",
+        smf_ctx->n_active_pdus);
+    amf_rc = pdu_session_resource_setup_request(ue_context, ue_id, smf_ctx);
+    if (amf_rc != RETURNok) {
+      OAILOG_DEBUG(
+          LOG_AMF_APP,
+          "Failure in sending message to gNB for "
+          "PDUSessionResourceSetupRequest\n");
+      /* TODO: in future add negative case handling, send pdu reject
+       * command to UE and release message to SMF
+       */
+    }
+    /*Execute PDU establishement accept from AMF to gnodeb */
+    pdu_state_handle_message(
+        // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
+        REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
+        // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
+        CREATING, ue_context, amf_smf_msg, NULL, pdu_session_resp, ue_id);
   }
-  /*Execute PDU establishement accept from AMF to gnodeb */
-  pdu_state_handle_message(
-      // ue_context->mm_state, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
-      REGISTERED_CONNECTED, STATE_PDU_SESSION_ESTABLISHMENT_ACCEPT,
-      // smf_ctx->pdu_session_state, ue_context, amf_smf_msg, NULL,
-      CREATING, ue_context, amf_smf_msg, NULL, pdu_session_resp, ue_id);
 }
 
 /****************************************************************************
@@ -603,6 +622,9 @@ int amf_app_handle_pdu_session_accept(
   } else {
     OAILOG_INFO(LOG_AMF_APP, "UE Context not found for UE ID: %d", ue_id);
   }
+
+  // updating session state
+  smf_ctx->pdu_session_state = ACTIVE;
 
   // Message construction for PDU Establishment Accept
   msg.security_protected.plain.amf.header.extended_protocol_discriminator =
@@ -928,8 +950,8 @@ void amf_app_handle_cm_idle_on_ue_context_release(
    */
   amf_ue_ngap_id_t ue_id;
   ue_m5gmm_context_s* ue_context = nullptr;
-  smf_context_t* smf_ctx         = nullptr;
-  ue_id                          = cm_idle_req.amf_ue_ngap_id;
+  smf_context_t smf_ctx;
+  ue_id = cm_idle_req.amf_ue_ngap_id;
   notify_ue_event notify_ue_event_type;
 
   ue_context = amf_ue_context_exists_amf_ue_ngap_id(ue_id);
@@ -946,8 +968,11 @@ void amf_app_handle_cm_idle_on_ue_context_release(
       // Handling of smf_context as vector
       // TODO: This has been taken care in new PR
       // with multi UE feature
-      smf_ctx                    = &ue_context->amf_context.smf_context;
-      smf_ctx->pdu_session_state = INACTIVE;
+      for (auto it = ue_context->amf_context.smf_ctxt_vector.begin();
+           it != ue_context->amf_context.smf_ctxt_vector.end(); it++) {
+        smf_ctx                   = *it;
+        smf_ctx.pdu_session_state = INACTIVE;
+      }
 
       // construct the proto structure and send message to SMF
       amf_smf_notification_send(ue_id, ue_context, notify_ue_event_type);
@@ -1190,4 +1215,92 @@ int amf_app_handle_notification_received(
   OAILOG_FUNC_RETURN(LOG_NAS_AMF, rc);
 }
 
+void amf_app_handle_initial_context_setup_rsp(
+    amf_app_desc_t* amf_app_desc_p,
+    itti_amf_app_initial_context_setup_rsp_t* initial_context_rsp) {
+  ue_m5gmm_context_s* ue_context = NULL;
+  smf_context_t* smf_context     = NULL;
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  Ngap_PDUSession_Resource_Setup_Response_List_t* pdu_list =
+      &initial_context_rsp->PDU_Session_Resource_Setup_Response_Transfer;
+
+  // Handle smf_context
+  ue_context = amf_ue_context_exists_amf_ue_ngap_id(initial_context_rsp->ue_id);
+
+  if (!ue_context) {
+    OAILOG_ERROR(
+        LOG_AMF_APP, " Ue context not found for the id %u\n",
+        initial_context_rsp->ue_id);
+    return;
+  }
+
+  /* activating pdu sessions when UE is in IDLE state  */
+  if (pdu_list->no_of_items) {
+    for (uint32_t index = 0; index < pdu_list->no_of_items; index++) {
+      smf_context = amf_smf_context_exists_pdu_session_id(
+          ue_context, pdu_list->item[index].Pdu_Session_ID);
+      if (smf_context == NULL) {
+        OAILOG_ERROR(
+            LOG_AMF_APP, "pdu session  not found for session_id = %u\n",
+            pdu_list->item[index].Pdu_Session_ID);
+      } else {
+        amf_smf_establish_t amf_smf_grpc_ies;
+
+        // gnb tunnel info
+        memcpy(
+            smf_context->gtp_tunnel_id.gnb_gtp_teid,
+            pdu_list->item[index]
+                .PDU_Session_Resource_Setup_Response_Transfer.tunnel.gTP_TEID,
+            4);
+
+        memcpy(
+            smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr,
+            pdu_list->item[index]
+                .PDU_Session_Resource_Setup_Response_Transfer.tunnel
+                .transportLayerAddress,
+            4);
+
+        OAILOG_DEBUG(
+            LOG_AMF_APP,
+            "IP address %02x %02x %02x %02x  and TEID %02x "
+            "%02x %02x %02x \n",
+            smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[0],
+            smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[1],
+            smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[2],
+            smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr[3],
+            smf_context->gtp_tunnel_id.gnb_gtp_teid[0],
+            smf_context->gtp_tunnel_id.gnb_gtp_teid[1],
+            smf_context->gtp_tunnel_id.gnb_gtp_teid[0],
+            smf_context->gtp_tunnel_id.gnb_gtp_teid[3]);
+
+        smf_context->pdu_session_version++;
+        /*Copy respective gNB fields to amf_smf_establish_t compartible to gRPC
+         * message*/
+        memset(
+            &amf_smf_grpc_ies.gnb_gtp_teid_ip_addr, '\0',
+            sizeof(amf_smf_grpc_ies.gnb_gtp_teid_ip_addr));
+        memset(
+            &amf_smf_grpc_ies.gnb_gtp_teid, '\0',
+            sizeof(amf_smf_grpc_ies.gnb_gtp_teid));
+        memcpy(
+            &amf_smf_grpc_ies.gnb_gtp_teid_ip_addr,
+            &smf_context->gtp_tunnel_id.gnb_gtp_teid_ip_addr, 4);
+        memcpy(
+            &amf_smf_grpc_ies.gnb_gtp_teid,
+            &smf_context->gtp_tunnel_id.gnb_gtp_teid, 4);
+        amf_smf_grpc_ies.pdu_session_id = pdu_list->item[index].Pdu_Session_ID;
+
+        IMSI64_TO_STRING(ue_context->amf_context.imsi64, imsi, 15);
+        /* Prepare and send gNB setup response message to SMF through gRPC
+         * 2nd time PDU session establish message
+         */
+        create_session_grpc_req_on_gnb_setup_rsp(
+            &amf_smf_grpc_ies, imsi, smf_context->pdu_session_version);
+      }
+    }
+  }
+
+  // update UE state
+  ue_context->mm_state = REGISTERED_CONNECTED;
+}
 }  // namespace magma5g
