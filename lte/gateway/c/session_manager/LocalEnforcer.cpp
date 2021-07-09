@@ -30,6 +30,7 @@
 #include "magma_logging.h"
 #include "includes/ServiceRegistrySingleton.h"
 #include "Utilities.h"
+#include "GrpcMagmaUtils.h"
 
 namespace magma {
 bool LocalEnforcer::SEND_ACCESS_TIMEZONE   = false;
@@ -147,14 +148,6 @@ void LocalEnforcer::setup(
   }
 }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-void LocalEnforcer::HandlePipelinedResponse(
-=======
-=======
->>>>>>> 7d0339e8162a1c9f187b794e1d7bda9d95177979
 void LocalEnforcer::report_session_update_event(
     SessionMap& session_map, const UpdateRequestsBySession& updates) {
   for (auto& it : updates.requests_by_id) {
@@ -254,10 +247,6 @@ void LocalEnforcer::check_usage_for_reporting(
 }
 
 void LocalEnforcer::handle_pipelined_response(
-<<<<<<< HEAD
->>>>>>> dfc7a1b2f (Merge fix)
-=======
->>>>>>> 7d0339e8162a1c9f187b794e1d7bda9d95177979
     Status status, RuleRecordTable resp) {
   if (!status.ok()) {
     MLOG(MERROR) << "Could not successfully poll stats: "
@@ -268,50 +257,20 @@ void LocalEnforcer::handle_pipelined_response(
         SessionStore::get_default_session_update(session_map);
     MLOG(MDEBUG) << "Aggregating " << resp.records_size() << " records";
     aggregate_records(session_map, resp, update);
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-
->>>>>>> dfc7a1b2f (Merge fix)
-  }
-}
-
-<<<<<<< HEAD
-void LocalEnforcer::poll_stats_enforcer() {
-  pipelined_client_->poll_stats(
-      0, 0, std::bind(&LocalEnforcer::HandlePipelinedResponse, this, _1, _2));
-=======
-void LocalEnforcer::poll_stats_enforcer(int cookie, int cookie_mask) {
-=======
 
     check_usage_for_reporting(session_map, update);
   }
 }
 
-void LocalEnforcer::poll_stats_enforcer() {
->>>>>>> 7d0339e8162a1c9f187b794e1d7bda9d95177979
+void LocalEnforcer::poll_stats_enforcer(int cookie, int cookie_mask) {
   // we need to pass in a function pointer. Binding is required because
   // the function is part of the LocalEnforcer class and has arguments
   // so we bind to the object and the two arguments the function needs
   // which are the status and RuleRecordTable response
   pipelined_client_->poll_stats(
-<<<<<<< HEAD
-<<<<<<< HEAD
-      cookie, cookie_mask, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
->>>>>>> 3a0bc6fb2 (Current Testing)
-=======
-      cookie, cookie_mask, 
-      std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
->>>>>>> 24df26c81 (Some linter adjustments)
-=======
-      0, 0, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
->>>>>>> 7d0339e8162a1c9f187b794e1d7bda9d95177979
+      cookie, cookie_maks, std::bind(&LocalEnforcer::handle_pipelined_response, this, _1, _2));
 }
 
-=======
->>>>>>> parent of 429004510 (Change callback and Aggregate Pipelined Records)
-=======
->>>>>>> parent of 429004510 (Change callback and Aggregate Pipelined Records)
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
   auto session_map    = session_store_.read_all_sessions();
   auto session_update = SessionStore::get_default_session_update(session_map);
@@ -2047,11 +2006,19 @@ void LocalEnforcer::propagate_bearer_updates_to_mme(
 }
 
 void LocalEnforcer::handle_cwf_roaming(
-    std::unique_ptr<SessionState>& session, const SessionConfig& new_config,
-    SessionStateUpdateCriteria* session_uc) {
-  session->set_config(new_config, session_uc);
-  update_ipfix_flow(
-      new_config.get_imsi(), new_config, session->get_pdp_start_time());
+    SessionMap& session_map, const std::string& imsi,
+    const SessionConfig& config, SessionUpdate& session_update) {
+  auto it = session_map.find(imsi);
+  if (it != session_map.end()) {
+    for (const auto& session : it->second) {
+      auto& uc = session_update[imsi][session->get_session_id()];
+      session->set_config(config);
+      uc.is_config_updated = true;
+      uc.updated_config    = session->get_config();
+      // TODO Check for event triggers and send updates to the core if needed
+      update_ipfix_flow(imsi, config, session->get_pdp_start_time());
+    }
+  }
 }
 
 bool LocalEnforcer::bind_policy_to_bearer(
