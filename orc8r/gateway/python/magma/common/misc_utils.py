@@ -251,8 +251,8 @@ def call_process(cmd, callback, loop):
     loop = loop or asyncio.get_event_loop()
     loop.create_task(
         loop.subprocess_shell(
-        lambda: SubprocessProtocol(callback), "nohup " + cmd,
-        preexec_fn=os.setsid,
+            lambda: SubprocessProtocol(callback), "nohup " + cmd,
+            preexec_fn=os.setsid,
         ),
     )
 

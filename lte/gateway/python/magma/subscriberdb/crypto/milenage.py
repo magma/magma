@@ -348,7 +348,7 @@ def rotate(input_s, bytes_):
     return bytes(
         input_s[(i + bytes_) % len(input_s)] for i in range(
             len(
-            input_s,
+                input_s,
             ),
         )
     )

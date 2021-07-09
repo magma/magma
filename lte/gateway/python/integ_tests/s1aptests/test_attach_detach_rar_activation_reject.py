@@ -67,7 +67,7 @@ class TestAttachDetachRarActivationReject(unittest.TestCase):
             ulFlow1,
             dlFlow1,
         ]
-                    # QoS
+        # QoS
         qos = {
             "qci": 5,  # qci value [1 to 9]
             "priority": 15,  # Range [0-255]

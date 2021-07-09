@@ -70,8 +70,8 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
         try:
             with closing(
                 socket.create_connection(
-                ('localhost', self._fluent_bit_port),
-                timeout=self._tcp_timeout,
+                    ('localhost', self._fluent_bit_port),
+                    timeout=self._tcp_timeout,
                 ),
             ) as sock:
                 logging.debug('Sending log to FluentBit')

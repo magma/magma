@@ -16,7 +16,6 @@ from typing import Any, Dict
 import jsonpickle
 import requests
 from fabric.api import hide, run
-
 from tools.fab import types, vagrant
 
 
@@ -39,7 +38,7 @@ def register_generic_gateway(
     if not does_network_exist(network_id, admin_cert=admin_cert):
         network_payload = types.GenericNetwork(
             id=network_id, name='Test Network', description='Test Network',
-            dns=types.NetworkDNSConfig(enable_caching=True, local_ttl=60)
+            dns=types.NetworkDNSConfig(enable_caching=True, local_ttl=60),
         )
         cloud_post('networks', network_payload, admin_cert=admin_cert)
 
@@ -57,8 +56,10 @@ def register_generic_gateway(
     print(f'Gateway {gw_id} successfully provisioned')
 
 
-def construct_magmad_gateway_payload(gateway_id: str,
-                                     hardware_id: str) -> types.Gateway:
+def construct_magmad_gateway_payload(
+    gateway_id: str,
+    hardware_id: str,
+) -> types.Gateway:
     """
     Returns a default development magmad gateway entity given a desired gateway
     ID and a hardware ID pulled from the hardware secrets.
@@ -112,8 +113,10 @@ def get_next_available_gateway_id(
         Next available gateway ID in the form gwN
     """
     # gateways is a dict mapping gw ID to full resource
-    gateways = cloud_get(f'networks/{network_id}/gateways',
-                         admin_cert=admin_cert)
+    gateways = cloud_get(
+        f'networks/{network_id}/gateways',
+        admin_cert=admin_cert,
+    )
 
     n = len(gateways) + 1
     candidate = f'gw{n}'
@@ -163,10 +166,14 @@ def create_tier_if_not_exists(
     if tier_id in tiers:
         return
 
-    tier_payload = types.Tier(id=tier_id, version='0.0.0-0', images=[],
-                              gateways=[])
-    cloud_post(f'networks/{network_id}/tiers', tier_payload,
-               admin_cert=admin_cert)
+    tier_payload = types.Tier(
+        id=tier_id, version='0.0.0-0', images=[],
+        gateways=[],
+    )
+    cloud_post(
+        f'networks/{network_id}/tiers', tier_payload,
+        admin_cert=admin_cert,
+    )
 
 
 def get_hardware_id_from_vagrant(vm_name: str) -> str:
@@ -206,8 +213,10 @@ def is_hw_id_registered(
         (True, gw_id) if the HWID is already registered, (False, '') otherwise
     """
     # gateways is a dict mapping gw ID to full resource
-    gateways = cloud_get(f'networks/{network_id}/gateways',
-                         admin_cert=admin_cert)
+    gateways = cloud_get(
+        f'networks/{network_id}/gateways',
+        admin_cert=admin_cert,
+    )
     for gw in gateways.values():
         if gw['device']['hardware_id'] == hw_id:
             return True, gw['id']
@@ -224,8 +233,10 @@ def connect_gateway_to_cloud(control_proxy_setting_path, cert_path):
     run("sudo rm -rf /var/opt/magma/configs")
     run("sudo mkdir /var/opt/magma/configs")
     if control_proxy_setting_path is not None:
-        run("sudo cp " + control_proxy_setting_path
-            + " /var/opt/magma/configs/control_proxy.yml")
+        run(
+            "sudo cp " + control_proxy_setting_path
+            + " /var/opt/magma/configs/control_proxy.yml",
+        )
 
     # Copy certs which will be used by the bootstrapper
     run("sudo rm -rf /var/opt/magma/certs")
@@ -257,8 +268,10 @@ def cloud_get(
         resource = resource[1:]
     resp = requests.get(PORTAL_URL + resource, verify=False, cert=admin_cert)
     if resp.status_code != 200:
-        raise Exception('Received a %d response: %s' %
-                        (resp.status_code, resp.text))
+        raise Exception(
+            'Received a %d response: %s' %
+            (resp.status_code, resp.text),
+        )
     return resp.json()
 
 
@@ -280,12 +293,16 @@ def cloud_post(
         params: Params to include with the request
         admin_cert: API client certificate
     """
-    resp = requests.post(PORTAL_URL + resource,
-                         data=jsonpickle.pickler.encode(data),
-                         params=params,
-                         headers={'content-type': 'application/json'},
-                         verify=False,
-                         cert=admin_cert)
+    resp = requests.post(
+        PORTAL_URL + resource,
+        data=jsonpickle.pickler.encode(data),
+        params=params,
+        headers={'content-type': 'application/json'},
+        verify=False,
+        cert=admin_cert,
+    )
     if resp.status_code not in [200, 201, 204]:
-        raise Exception('Received a %d response: %s' %
-                        (resp.status_code, resp.text))
+        raise Exception(
+            'Received a %d response: %s' %
+            (resp.status_code, resp.text),
+        )

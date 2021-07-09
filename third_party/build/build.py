@@ -23,7 +23,7 @@ import sys
 
 log = logging.getLogger(__name__)
 
-SUDO='sudo'
+SUDO = 'sudo'
 
 
 """
@@ -51,7 +51,7 @@ def os_release():
     with open('/etc/os-release', 'r') as f:
         for line in f:
             try:
-                k,v = line.rstrip().split('=')
+                k, v = line.rstrip().split('=')
                 release_info[k] = v.strip('"')
             except Exception:
                 pass
@@ -82,28 +82,40 @@ def buildscript(package_name):
 
 def buildafter(package_name, env=None):
     script = buildscript(package_name)
-    pre = strsplitbytes(subprocess.check_output([script, '-A'],
-                                             env=env))
+    pre = strsplitbytes(
+        subprocess.check_output(
+            [script, '-A'],
+            env=env,
+        ),
+    )
     return pre
 
 
 def buildrequires(package_name, env=None):
     script = buildscript(package_name)
-    req = strsplitbytes(subprocess.check_output([script, '-B'],
-                                             env=env))
+    req = strsplitbytes(
+        subprocess.check_output(
+            [script, '-B'],
+            env=env,
+        ),
+    )
     return req
 
 
 def build(package_name, env=None, install=True):
     script = buildscript(package_name)
-    outputfilename = subprocess.check_output([script, '-F'], env=env).decode('utf-8').strip()
+    outputfilename = subprocess.check_output(
+        [script, '-F'], env=env,
+    ).decode('utf-8').strip()
     if not os.path.exists('./' + outputfilename):
         subprocess.run([script], check=True, env=env)
     else:
         log.info('found {}; skipping'.format(outputfilename))
     if install:
-        subprocess.run([SUDO, packagemanager(), 'install', '-y', './' + outputfilename],
-                       check=True)
+        subprocess.run(
+            [SUDO, packagemanager(), 'install', '-y', './' + outputfilename],
+            check=True,
+        )
 
 
 def main(args):
@@ -165,7 +177,9 @@ def main(args):
 
     for package in ordered_packages:
         to_install.update(buildrequires(package))
-    subprocess.run([SUDO, packagemanager(), 'install', '-y'] + list(to_install))
+    subprocess.run(
+        [SUDO, packagemanager(), 'install', '-y'] + list(to_install),
+    )
 
     for package in ordered_packages:
         build(package, env=env, install=not args.no_install)
@@ -174,8 +188,10 @@ def main(args):
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('package', nargs='*')
-    parser.add_argument('-N', '--no-install', action='store_true',
-                        help='Skip install of resulting packages to build system')
+    parser.add_argument(
+        '-N', '--no-install', action='store_true',
+        help='Skip install of resulting packages to build system',
+    )
 
     args = parser.parse_args()
     main(args)

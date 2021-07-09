@@ -294,8 +294,14 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             },
         )
         print(uplink_flow_a)
-        tcp_bytes = (uplink_flow_a[0]['byte_count'] - uplink_flow_b[0]['byte_count'])
-        tcp_time = (uplink_flow_a[0]['duration_sec'] - uplink_flow_b[0]['duration_sec'])
+        tcp_bytes = (
+            uplink_flow_a[0]['byte_count']
+            - uplink_flow_b[0]['byte_count']
+        )
+        tcp_time = (
+            uplink_flow_a[0]['duration_sec']
+            - uplink_flow_b[0]['duration_sec']
+        )
         tcp_rate = 8 * tcp_bytes / tcp_time
         print("TCP UL Rate from OVS: %.2fbps" % tcp_rate)
         # Allow for a 10% error margin
@@ -337,8 +343,14 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             },
         )
         print(downlink_flow_a)
-        tcp_bytes = (downlink_flow_a[0]['byte_count'] - downlink_flow_b[0]['byte_count'])
-        tcp_time = (downlink_flow_a[0]['duration_sec'] - downlink_flow_b[0]['duration_sec'])
+        tcp_bytes = (
+            downlink_flow_a[0]['byte_count']
+            - downlink_flow_b[0]['byte_count']
+        )
+        tcp_time = (
+            downlink_flow_a[0]['duration_sec']
+            - downlink_flow_b[0]['duration_sec']
+        )
         tcp_rate = 8 * tcp_bytes / tcp_time
         print("TCP DL Rate from OVS: %.2fbps" % tcp_rate)
         # Allow for a 10% error margin

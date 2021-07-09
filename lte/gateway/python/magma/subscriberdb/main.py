@@ -118,7 +118,9 @@ def main():
                     service.config.get('mme_host_name'),
                     loop=service.loop,
                 ),
-                service.config.get('host_address'), service.config.get('mme_port'),
+                service.config.get(
+                    'host_address',
+                ), service.config.get('mme_port'),
             )
             asyncio.ensure_future(s6a_server, loop=service.loop)
     asyncio.ensure_future(serve(), loop=service.loop)

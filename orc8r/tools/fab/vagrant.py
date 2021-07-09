@@ -11,8 +11,8 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import os.path
-from fabric.api import local
-from fabric.api import env
+
+from fabric.api import env, local
 
 
 def __ensure_in_vagrant_dir():
@@ -38,21 +38,25 @@ def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False)
 
     # Ensure that VM is running
     isUp = local('vagrant status %s' % machine, capture=True) \
-               .find('running') < 0
+        .find('running') < 0
     if isUp:
         # The machine isn't running. Most likely it's just not up. Let's
         # first try the simple thing of bringing it up, and if that doesn't
         # work then we ask the user to fix it.
-        print("VM %s is not running... Attempting to bring it up."
-              % machine)
+        print(
+            "VM %s is not running... Attempting to bring it up."
+            % machine,
+        )
         local('vagrant up %s' % machine)
         isUp = local('vagrant status %s' % machine, capture=True) \
             .find('running')
 
         if isUp < 0:
-            print("Error: VM: %s is still not running...\n"
-                  " Failed to bring up %s'"
-                  % (machine, machine))
+            print(
+                "Error: VM: %s is still not running...\n"
+                " Failed to bring up %s'"
+                % (machine, machine),
+            )
             exit(1)
     elif force_provision:
         local('vagrant provision %s' % machine)
@@ -60,8 +64,10 @@ def setup_env_vagrant(machine='magma', apply_to_env=True, force_provision=False)
     ssh_config = local('vagrant ssh-config %s' % machine, capture=True)
 
     ssh_lines = [line.strip() for line in ssh_config.split("\n")]
-    ssh_params = {key: val for key, val
-                  in [line.split(" ", 1) for line in ssh_lines]}
+    ssh_params = {
+        key: val for key, val
+        in [line.split(" ", 1) for line in ssh_lines]
+    }
 
     host = ssh_params.get("HostName", "").strip()
     port = ssh_params.get("Port", "").strip()
@@ -92,7 +98,7 @@ def teardown_vagrant(machine):
 
     # Destroy if vm if it exists
     created = local('vagrant status %s' % machine, capture=True) \
-                  .find('not created') < 0
+        .find('not created') < 0
 
     if created:
         local('vagrant destroy -f %s' % machine)

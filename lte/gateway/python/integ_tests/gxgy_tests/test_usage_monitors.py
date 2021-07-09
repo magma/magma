@@ -58,7 +58,10 @@ class UsageMonitorTest(unittest.TestCase):
         traffic to match the policy, verify monitoring update is sent, terminate
         subscriber
         """
-        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
+        sub1 = SubContextConfig(
+            'IMSI001010000088888',
+            '192.168.128.74', default_ambr_config, 4,
+        )
         quota = 1024  # bytes
 
         self.test_util.controller.mock_create_session = Mock(
@@ -72,7 +75,7 @@ class UsageMonitorTest(unittest.TestCase):
                 dynamic_rules=[],
                 usage_monitors=[
                     create_monitor_response(
-                    sub1.imsi, "mkey1", quota, session_manager_pb2.PCC_RULE_LEVEL,
+                        sub1.imsi, "mkey1", quota, session_manager_pb2.PCC_RULE_LEVEL,
                     ),
                 ],
             ),
@@ -96,7 +99,9 @@ class UsageMonitorTest(unittest.TestCase):
             ),
         )
 
-        self.assertEqual(self.test_util.controller.mock_create_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_create_session.call_count, 1,
+        )
 
         packets = get_packets_for_flows(
             sub1, self.test_util.static_rules["monitor_rule"].flow_list,
@@ -107,17 +112,24 @@ class UsageMonitorTest(unittest.TestCase):
             self.test_util.get_packet_sender([sub1], packets, packet_count),
         )
         self.assertIsNotNone(get_from_queue(monitor_complete))
-        self.assertEqual(self.test_util.controller.mock_update_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_update_session.call_count, 1,
+        )
 
         self.test_util.sessiond.EndSession(SubscriberID(id=sub1.imsi))
-        self.assertEqual(self.test_util.controller.mock_terminate_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_terminate_session.call_count, 1,
+        )
 
     def test_mixed_monitors_and_updates(self):
         """
         Test a mix of usage monitors, session monitors, and charging credits to
         PCRF and OCS.
         """
-        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
+        sub1 = SubContextConfig(
+            'IMSI001010000088888',
+            '192.168.128.74', default_ambr_config, 4,
+        )
         quota = 1024  # bytes
 
         pcrf_rule = create_uplink_rule(
@@ -194,8 +206,13 @@ class UsageMonitorTest(unittest.TestCase):
             ),
         )
 
-        self.assertEqual(self.test_util.controller.mock_create_session.call_count, 1)
-        flows = [rule.flow_list[0] for rule in [pcrf_rule, ocs_rule, both_rule]]
+        self.assertEqual(
+            self.test_util.controller.mock_create_session.call_count, 1,
+        )
+        flows = [
+            rule.flow_list[0]
+            for rule in [pcrf_rule, ocs_rule, both_rule]
+        ]
         packets = get_packets_for_flows(sub1, flows)
         packet_count = int(quota / len(packets[0])) + 1
         self.test_util.thread.run_in_greenthread(
@@ -218,7 +235,9 @@ class UsageMonitorTest(unittest.TestCase):
             monitoring_keys.remove(monitor.update.monitoring_key)
 
         self.test_util.sessiond.EndSession(SubscriberID(id=sub1.imsi))
-        self.assertEqual(self.test_util.controller.mock_terminate_session.call_count, 1)
+        self.assertEqual(
+            self.test_util.controller.mock_terminate_session.call_count, 1,
+        )
 
 
 if __name__ == "__main__":

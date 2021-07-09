@@ -64,7 +64,9 @@ class TestStandAlonePdnConnReq(unittest.TestCase):
         req.pdnAPN_pr.pres = 1
         s = 'internet.mnc012.mcc345.gprs'
         req.pdnAPN_pr.len = len(s)
-        req.pdnAPN_pr.pdn_apn = (ctypes.c_ubyte * 100)(*[ctypes.c_ubyte(ord(c)) for c in s[:100]])
+        req.pdnAPN_pr.pdn_apn = (
+            ctypes.c_ubyte * 100
+        )(*[ctypes.c_ubyte(ord(c)) for c in s[:100]])
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req,
         )

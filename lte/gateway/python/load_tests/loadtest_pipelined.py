@@ -21,6 +21,7 @@ import subprocess
 from collections import namedtuple
 
 from google.protobuf import json_format
+from lte.protos.apn_pb2 import AggregatedMaximumBitrate
 from lte.protos.pipelined_pb2 import (
     ActivateFlowsRequest,
     DeactivateFlowsRequest,
@@ -29,7 +30,6 @@ from lte.protos.pipelined_pb2 import (
     VersionedPolicyID,
 )
 from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
-from lte.protos.apn_pb2 import AggregatedMaximumBitrate
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.qos.common import QosManager
 from magma.subscriberdb.sid import SIDUtils
@@ -58,25 +58,29 @@ def _build_activate_flows_data(ue_dict, disable_qos):
             ip_addr=ue.ipv4_src,
             policies=[
                 VersionedPolicy(
-                rule=PolicyRule(
-                    id=ue.rule_id,
-                    priority=10,
-                    flow_list=[
-                        FlowDescription(
-                            match=FlowMatch(
-                            ip_dst=convert_ipv4_str_to_ip_proto(ue.ipv4_src),
-                            direction=FlowMatch.UPLINK,
+                    rule=PolicyRule(
+                        id=ue.rule_id,
+                        priority=10,
+                        flow_list=[
+                            FlowDescription(
+                                match=FlowMatch(
+                                    ip_dst=convert_ipv4_str_to_ip_proto(
+                                        ue.ipv4_src,
+                                    ),
+                                    direction=FlowMatch.UPLINK,
+                                ),
                             ),
-                        ),
-                        FlowDescription(
-                            match=FlowMatch(
-                            ip_src=convert_ipv4_str_to_ip_proto(ue.ipv4_dst),
-                            direction=FlowMatch.DOWNLINK,
+                            FlowDescription(
+                                match=FlowMatch(
+                                    ip_src=convert_ipv4_str_to_ip_proto(
+                                        ue.ipv4_dst,
+                                    ),
+                                    direction=FlowMatch.DOWNLINK,
+                                ),
                             ),
-                        ),
-                    ],
-                ),
-                version=1,
+                        ],
+                    ),
+                    version=1,
                 ),
             ],
             request_origin=RequestOriginType(type=RequestOriginType.GX),

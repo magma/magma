@@ -175,7 +175,9 @@ class TestAttachDetachRarTcpDataWithHE(unittest.TestCase):
                 "********************** Sending RAR for ", imsi,
             )
             he_domain1 = "192.168.128.1"
-            assert utils.he_count_record_of_imsi_to_domain(imsi, he_domain1) == 0
+            assert utils.he_count_record_of_imsi_to_domain(
+                imsi, he_domain1,
+            ) == 0
 
             self._sessionManager_util.send_ReAuthRequest(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
@@ -269,7 +271,9 @@ class TestAttachDetachRarTcpDataWithHE(unittest.TestCase):
             time.sleep(5)
             with self._s1ap_wrapper.configUplinkTest(req, duration=1) as test:
                 test.verify()
-            assert utils.he_count_record_of_imsi_to_domain(imsi, he_domain1) == 1
+            assert utils.he_count_record_of_imsi_to_domain(
+                imsi, he_domain1,
+            ) == 1
 
             print(
                 "********************** Deleting dedicated bearer for IMSI",
@@ -305,7 +309,9 @@ class TestAttachDetachRarTcpDataWithHE(unittest.TestCase):
             )
 
             time.sleep(20)
-            assert utils.he_count_record_of_imsi_to_domain(imsi, he_domain1) == 0
+            assert utils.he_count_record_of_imsi_to_domain(
+                imsi, he_domain1,
+            ) == 0
 
         # Verify that all UL/DL flows are deleted
         self._s1ap_wrapper.s1_util.verify_flow_rules_deletion()
