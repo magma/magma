@@ -256,7 +256,7 @@ TEST_F(SessionManagerHandlerTest, test_SetPduSessionReleaseContext) {
       request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   auto* reqcmn = request.mutable_common_context();
   req->set_pdu_session_id({0x5});
-  req->set_rquest_type(magma::RequestType::INITIAL_REQUEST);
+  req->set_request_type(magma::RequestType::INITIAL_REQUEST);
   req->mutable_pdu_address()->set_redirect_address_type(
       magma::RedirectServer::IPV4);
   req->mutable_pdu_address()->set_redirect_server_address("10.20.30.40");
@@ -286,7 +286,7 @@ TEST_F(SessionManagerHandlerTest, test_SetPduSessionReleaseContext) {
   auto& session_temp = session_map[IMSI1][0];
   EXPECT_EQ(session_temp->get_config().common_context.sid().id(), IMSI1);
 
-  req->set_rquest_type(magma::RequestType::EXISTING_PDU_SESSION);
+  req->set_request_type(magma::RequestType::EXISTING_PDU_SESSION);
   reqcmn->set_sm_session_state(magma::SMSessionFSMState::RELEASED_4);
   reqcmn->set_sm_session_version(2);
 
@@ -304,7 +304,7 @@ TEST_F(SessionManagerHandlerTest, test_LocalReleaseSessionContext) {
       request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   auto* reqcmn = request.mutable_common_context();
   req->set_pdu_session_id({0x5});
-  req->set_rquest_type(magma::RequestType::INITIAL_REQUEST);
+  req->set_request_type(magma::RequestType::INITIAL_REQUEST);
   req->mutable_pdu_address()->set_redirect_address_type(
       magma::RedirectServer::IPV4);
   req->mutable_pdu_address()->set_redirect_server_address("10.20.30.40");
@@ -355,7 +355,7 @@ TEST_F(SessionManagerHandlerTest, test_LocalSessionTerminationContext) {
       request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   auto* reqcmn = request.mutable_common_context();
   req->set_pdu_session_id({0x5});
-  req->set_rquest_type(magma::RequestType::INITIAL_REQUEST);
+  req->set_request_type(magma::RequestType::INITIAL_REQUEST);
   req->mutable_pdu_address()->set_redirect_address_type(
       magma::RedirectServer::IPV4);
   req->mutable_pdu_address()->set_redirect_server_address("10.20.30.40");
@@ -398,7 +398,7 @@ TEST_F(SessionManagerHandlerTest, test_LocalSessionTerminationContext) {
   SessionStateUpdateCriteria& session_uc = session_update[IMSI2][session_id];
 
   session_enforcer->m5g_start_session_termination(
-      session_map, IMSI2, session, pdu_id, &session_uc);
+      session_map, session, pdu_id, &session_uc);
 
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI2].size(), 1);
@@ -412,7 +412,7 @@ TEST_F(SessionManagerHandlerTest, test_SessionCompleteTerminationContext) {
       request.mutable_rat_specific_context()->mutable_m5gsm_session_context();
   auto* reqcmn = request.mutable_common_context();
   req->set_pdu_session_id({0x5});
-  req->set_rquest_type(magma::RequestType::INITIAL_REQUEST);
+  req->set_request_type(magma::RequestType::INITIAL_REQUEST);
   req->mutable_pdu_address()->set_redirect_address_type(
       magma::RedirectServer::IPV4);
   req->mutable_pdu_address()->set_redirect_server_address("10.20.30.40");
