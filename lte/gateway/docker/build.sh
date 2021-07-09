@@ -11,25 +11,25 @@
 # limitations under the License.
 
 set -x
-# build container
-
-# echo ${DOCKER_PASSWORD} > /tmp/passfile
+# build container for python services
+docker build . -f services/build/Dockerfile.python -t pythonbuilder:latest
 
 build (){
   docker build . -f services/$1/Dockerfile -t $1
-  #cp built-python > mobilityd
-  #../../../orc8r/tools/docker/publish.sh -r ${DOCKER_REGISTRY} -i $1 -u ${DOCKER_USERNAME} -p /tmp/passfile
 }
 
-build build
-# build mobilityd
-# build enodedb
-# build health
+build mobilityd
+build enodebd
+build health
+build policydb
+build smsd
+build subscriberdb
+build ctraced
+build magmad
+build state
+build directoryd
+
+# build redirectd
 # build monitord
 # build pipelined
 # build pkt_tester
-# build policydb
-# build redirectd
-# build smsd
-# build subscriberd
-# build tests
