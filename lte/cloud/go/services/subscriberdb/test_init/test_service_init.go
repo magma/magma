@@ -28,6 +28,8 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 
+	"magma/orc8r/lib/go/service/config"
+
 	"github.com/golang/glog"
 	"github.com/stretchr/testify/assert"
 )
@@ -57,7 +59,8 @@ func StartTestService(t *testing.T) {
 	perSubDigestStore := storage.NewPerSubDigestStore(perSubDigestFact)
 
 	// Load service configs
-	serviceConfig := subscriberdb.MustGetServiceConfig()
+	var serviceConfig subscriberdb.Config
+	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb.ServiceName, &serviceConfig)
 	glog.Infof("Subscriberdb service config %+v", serviceConfig)
 
 	// Add servicers

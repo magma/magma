@@ -29,6 +29,7 @@ import (
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -65,7 +66,8 @@ func main() {
 	}
 	perSubDigestStore := subscriberdb_storage.NewPerSubDigestStore(perSubDigestFact)
 
-	serviceConfig := subscriberdb.MustGetServiceConfig()
+	var serviceConfig subscriberdb.Config
+	config.MustGetStructuredServiceConfig(lte.ModuleName, subscriberdb.ServiceName, &serviceConfig)
 	glog.Infof("Subscriberdb service config %+v", serviceConfig)
 
 	// Attach handlers

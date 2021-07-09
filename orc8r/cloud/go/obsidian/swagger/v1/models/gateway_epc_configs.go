@@ -80,6 +80,9 @@ type GatewayEpcConfigs struct {
 	// Max Length: 4
 	// Min Length: 1
 	SgiManagementIfaceVlan string `json:"sgi_management_iface_vlan,omitempty"`
+
+	// subscriberdb sync interval
+	SubscriberdbSyncInterval SubscriberdbSyncInterval `json:"subscriberdb_sync_interval,omitempty"`
 }
 
 // Validate validates this gateway epc configs
@@ -131,6 +134,10 @@ func (m *GatewayEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateSgiManagementIfaceVlan(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSubscriberdbSyncInterval(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -344,6 +351,22 @@ func (m *GatewayEpcConfigs) validateSgiManagementIfaceVlan(formats strfmt.Regist
 	}
 
 	if err := validate.MaxLength("sgi_management_iface_vlan", "body", string(m.SgiManagementIfaceVlan), 4); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateSubscriberdbSyncInterval(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.SubscriberdbSyncInterval) { // not required
+		return nil
+	}
+
+	if err := m.SubscriberdbSyncInterval.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("subscriberdb_sync_interval")
+		}
 		return err
 	}
 
