@@ -55,6 +55,7 @@ services:
     image: mobilityd:latest
     container_name: mobilityd
     volumes:
+<<<<<<< HEAD
       - ${PWD}/example/magmad.yml:/etc/magma/magmad.yml
       - ${PWD}/example/service_registry.yml:/etc/magma/service_registry.yml
       - ${PWD}/example/gateway.mconfig:/etc/magma/gateway.mconfig
@@ -110,6 +111,50 @@ services:
     container_name: mme
     networks:
       - agw
+=======
+      control_proxy:/etc/magma/control_proxy.yml
+      gateway.mconfig:/etc/magma/gateway.mconfig
+      magmad:/etc/magma/magmad.yml
+      control_proxy:/etc/magma/control_proxy.yml
+      control_proxy:/etc/magma/control_proxy.yml
+    # environment:
+    #   DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+    #   DOCKER_USERNAME: ${DOCKER_USERNAME}
+    #   DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+    command: python3.8 -m mobilityd.main
+  # directoryd:
+  #   <<: *pyservice
+  #   container_name: directoryd
+  #   environment:
+  #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+  #     DOCKER_USERNAME: ${DOCKER_USERNAME}
+  #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+  #   command: python3.8 -m magma.directoryd.main
+  # subscriberd:
+  #   <<: *pyservice
+  #   container_name: subscriberd
+  #   environment:
+  #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+  #     DOCKER_USERNAME: ${DOCKER_USERNAME}
+  #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+  #   command: python3.8 -m magma.subscriberd.main
+  # policydb:
+  #   <<: *pyservice
+  #   container_name: mobilityd
+  #   environment:
+  #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+  #     DOCKER_USERNAME: ${DOCKER_USERNAME}
+  #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+  #   command: python3.8 -m magma.policydb.main
+  # policydb:
+  #   <<: *pyservice
+  #   container_name: mobilityd
+  #   environment:
+  #     DOCKER_REGISTRY: ${DOCKER_REGISTRY}
+  #     DOCKER_USERNAME: ${DOCKER_USERNAME}
+  #     DOCKER_PASSWORD: ${DOCKER_PASSWORD}
+  #   command: python3.8 -m magma.policydb.main
+>>>>>>> 4e25f1b6e (WIP AGW containerization, mobilityd service)
   # pipelined:
   #   <<: *pyservice
   #   container_name: mobilityd
@@ -121,11 +166,17 @@ services:
 
   redis:
     image: 'bitnami/redis:latest'
+<<<<<<< HEAD
     container_name: redis
     networks:
       - agw
     environment:
       - ALLOW_EMPTY_PASSWORD=yes
+=======
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+
+>>>>>>> 4e25f1b6e (WIP AGW containerization, mobilityd service)
   # connectiond:
   #   <<: *pyservice
   #   container_name: connectiond
@@ -326,5 +377,8 @@ services:
   #   command: >
   #       /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
   #       /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
+<<<<<<< HEAD
 networks:
   agw:
+=======
+>>>>>>> 4e25f1b6e (WIP AGW containerization, mobilityd service)
