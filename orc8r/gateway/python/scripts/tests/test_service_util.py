@@ -59,58 +59,40 @@ class CertUtilsTest(TestCase):
         wrapper = ServiceStateWrapper()
         status = wrapper.get_service_status(self.serviceName)
         self.assertEqual(status.latest_rc, 0, "service exit status check")
-        self.assertEqual(
-            status.latest_service_result,
-            ServiceExitStatus.ServiceResult.Value("SUCCESS"),
-            "Service result check",
-        )
-        self.assertEqual(
-            status.latest_exit_code,
-            ServiceExitStatus.ExitCode.Value("EXITED"),
-            "Service exit check",
-        )
-        self.assertEqual(
-            status.num_clean_exits, 1,
-            "Clean exit check",
-        )
+        self.assertEqual(status.latest_service_result,
+                         ServiceExitStatus.ServiceResult.Value("SUCCESS"),
+                         "Service result check")
+        self.assertEqual(status.latest_exit_code,
+                         ServiceExitStatus.ExitCode.Value("EXITED"),
+                         "Service exit check")
+        self.assertEqual(status.num_clean_exits, 1,
+                         "Clean exit check")
 
         # Multiple restarts
         update_stats(self.serviceName)
         status = wrapper.get_service_status(self.serviceName)
         self.assertEqual(status.latest_rc, 0, "service exit status check")
-        self.assertEqual(
-            status.latest_service_result,
-            ServiceExitStatus.ServiceResult.Value("SUCCESS"),
-            "Service result check",
-        )
-        self.assertEqual(
-            status.latest_exit_code,
-            ServiceExitStatus.ExitCode.Value("EXITED"),
-            "Service exit check",
-        )
-        self.assertEqual(
-            status.num_clean_exits, 2,
-            "Clean exit check",
-        )
+        self.assertEqual(status.latest_service_result,
+                         ServiceExitStatus.ServiceResult.Value("SUCCESS"),
+                         "Service result check")
+        self.assertEqual(status.latest_exit_code,
+                         ServiceExitStatus.ExitCode.Value("EXITED"),
+                         "Service exit check")
+        self.assertEqual(status.num_clean_exits, 2,
+                         "Clean exit check")
 
         # Multiple service restarts
         update_stats(self.serviceName2)
         status = wrapper.get_service_status(self.serviceName2)
         self.assertEqual(status.latest_rc, 0, "service exit status check")
-        self.assertEqual(
-            status.latest_service_result,
-            ServiceExitStatus.ServiceResult.Value("SUCCESS"),
-            "Service result check",
-        )
-        self.assertEqual(
-            status.latest_exit_code,
-            ServiceExitStatus.ExitCode.Value("EXITED"),
-            "Service exit code check",
-        )
-        self.assertEqual(
-            status.num_clean_exits, 1,
-            "Clean exit check",
-        )
+        self.assertEqual(status.latest_service_result,
+                         ServiceExitStatus.ServiceResult.Value("SUCCESS"),
+                         "Service result check")
+        self.assertEqual(status.latest_exit_code,
+                         ServiceExitStatus.ExitCode.Value("EXITED"),
+                         "Service exit code check")
+        self.assertEqual(status.num_clean_exits, 1,
+                         "Clean exit check")
         self.assertEqual(status.num_fail_exits, 0, "Failure exit status")
 
     def test_coredump_exit(self) -> None:
@@ -122,14 +104,10 @@ class CertUtilsTest(TestCase):
         wrapper = ServiceStateWrapper()
         status = wrapper.get_service_status(self.serviceName)
         self.assertEqual(status.latest_rc, 0, "service exit status check")
-        self.assertEqual(
-            status.latest_service_result,
-            ServiceExitStatus.ServiceResult.Value("CORE_DUMP"),
-        )
-        self.assertEqual(
-            status.latest_exit_code,
-            ServiceExitStatus.ExitCode.Value("DUMPED"),
-        )
+        self.assertEqual(status.latest_service_result,
+                         ServiceExitStatus.ServiceResult.Value("CORE_DUMP"))
+        self.assertEqual(status.latest_exit_code,
+                         ServiceExitStatus.ExitCode.Value("DUMPED"))
         self.assertEqual(status.num_fail_exits, 1)
         self.assertEqual(status.num_clean_exits, 0)
 
@@ -144,16 +122,12 @@ class CertUtilsTest(TestCase):
         wrapper = ServiceStateWrapper()
         status = wrapper.get_service_status(self.serviceName)
         self.assertEqual(status.latest_rc, 0, "service exit status check")
-        self.assertEqual(
-            status.latest_service_result,
-            ServiceExitStatus.ServiceResult.Value("SUCCESS"),
-            "Service result check",
-        )
-        self.assertEqual(
-            status.latest_exit_code,
-            ServiceExitStatus.ExitCode.Value("EXITED"),
-            "Service exit check",
-        )
+        self.assertEqual(status.latest_service_result,
+                         ServiceExitStatus.ServiceResult.Value("SUCCESS"),
+                         "Service result check")
+        self.assertEqual(status.latest_exit_code,
+                         ServiceExitStatus.ExitCode.Value("EXITED"),
+                         "Service exit check")
         self.assertEqual(status.num_clean_exits, 1, "Clean exit check")
         self.assertEqual(status.num_fail_exits, 2)
 
@@ -166,14 +140,10 @@ class CertUtilsTest(TestCase):
         wrapper = ServiceStateWrapper()
         status = wrapper.get_service_status(self.serviceName)
         self.assertEqual(status.latest_rc, 2, "service exit status check")
-        self.assertEqual(
-            status.latest_service_result,
-            ServiceExitStatus.ServiceResult.Value("EXIT_CODE"),
-        )
-        self.assertEqual(
-            status.latest_exit_code,
-            ServiceExitStatus.ExitCode.Value("EXITED"),
-        )
+        self.assertEqual(status.latest_service_result,
+                         ServiceExitStatus.ServiceResult.Value("EXIT_CODE"))
+        self.assertEqual(status.latest_exit_code,
+                         ServiceExitStatus.ExitCode.Value("EXITED"))
         self.assertEqual(status.num_fail_exits, 1)
         self.assertEqual(status.num_clean_exits, 0)
 
@@ -182,13 +152,9 @@ class CertUtilsTest(TestCase):
         update_stats(self.serviceName)
         status = wrapper.get_service_status(self.serviceName)
         self.assertEqual(status.latest_rc, 3, "service exit status check")
-        self.assertEqual(
-            status.latest_service_result,
-            ServiceExitStatus.ServiceResult.Value("EXIT_CODE"),
-        )
-        self.assertEqual(
-            status.latest_exit_code,
-            ServiceExitStatus.ExitCode.Value("EXITED"),
-        )
+        self.assertEqual(status.latest_service_result,
+                         ServiceExitStatus.ServiceResult.Value("EXIT_CODE"))
+        self.assertEqual(status.latest_exit_code,
+                         ServiceExitStatus.ExitCode.Value("EXITED"))
         self.assertEqual(status.num_fail_exits, 2)
         self.assertEqual(status.num_clean_exits, 0)

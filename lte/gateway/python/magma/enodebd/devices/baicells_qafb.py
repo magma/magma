@@ -188,9 +188,7 @@ class BaicellsQafbWaitGetTransientParametersState(EnodebAcsState):
         # Update device configuration
         for name in name_to_val:
             magma_value = \
-                self.acs.data_model.transform_for_magma(
-                    name, name_to_val[name],
-                )
+                self.acs.data_model.transform_for_magma(name, name_to_val[name])
             self.acs.device_cfg.set_parameter(name, magma_value)
 
         return AcsReadMsgResult(True, self.get_next_state())
@@ -437,27 +435,12 @@ class BaicellsQAFBTrDataModel(DataModel):
         ParameterName.CELL_BARRED: transform_for_enb.invert_cell_barred,
     }
     for i in range(1, NUM_PLMNS_IN_CONFIG + 1):
-        TRANSFORMS_FOR_ENB[
-            ParameterName.PLMN_N_CELL_RESERVED %
-            i
-        ] = transform_for_enb.cell_reserved
-        PARAMETERS[ParameterName.PLMN_N % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.' % i, True, TrParameterType.STRING, False,
-        )
-        PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True, TrParameterType.STRING, False,
-        )
-        PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(
-            FAPSERVICE_PATH
-            + 'CellConfig.1.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False,
-        )
-        PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(
-            FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False,
-        )
-        PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(
-            FAPSERVICE_PATH
-            + 'CellConfig.1.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False,
-        )
+        TRANSFORMS_FOR_ENB[ParameterName.PLMN_N_CELL_RESERVED % i] = transform_for_enb.cell_reserved
+        PARAMETERS[ParameterName.PLMN_N % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.' % i, True, TrParameterType.STRING, False)
+        PARAMETERS[ParameterName.PLMN_N_CELL_RESERVED % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.CellReservedForOperatorUse' % i, True, TrParameterType.STRING, False)
+        PARAMETERS[ParameterName.PLMN_N_ENABLE % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.Enable' % i, True, TrParameterType.BOOLEAN, False)
+        PARAMETERS[ParameterName.PLMN_N_PRIMARY % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.IsPrimary' % i, True, TrParameterType.BOOLEAN, False)
+        PARAMETERS[ParameterName.PLMN_N_PLMNID % i] = TrParam(FAPSERVICE_PATH + 'CellConfig.1.LTE.EPC.PLMNList.%d.PLMNID' % i, True, TrParameterType.STRING, False)
 
     TRANSFORMS_FOR_ENB[ParameterName.ADMIN_STATE] = transform_for_enb.admin_state
     TRANSFORMS_FOR_MAGMA = {
@@ -500,7 +483,7 @@ class BaicellsQAFBTrDataModel(DataModel):
         names = list(
             filter(
                 lambda x: (not str(x).startswith('PLMN'))
-                and (str(x) not in excluded_params),
+                          and (str(x) not in excluded_params),
                 cls.PARAMETERS.keys(),
             ),
         )

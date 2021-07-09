@@ -183,7 +183,7 @@ class GetRPCMethodsState(EnodebAcsState):
         resp.MethodList = models.MethodList()
         RPC_METHODS = ['Inform', 'GetRPCMethods', 'TransferComplete']
         resp.MethodList.arrayType = 'xsd:string[%d]' \
-            % len(RPC_METHODS)
+                                          % len(RPC_METHODS)
         resp.MethodList.string = RPC_METHODS
         return AcsMsgAndTransition(resp, self.done_transition)
 
@@ -619,9 +619,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
                 )
                 break
             param_name_list = obj_to_params[obj_name]
-            obj_path = self.acs.data_model.get_parameter(
-                param_name_list[0],
-            ).path
+            obj_path = self.acs.data_model.get_parameter(param_name_list[0]).path
             if obj_path not in path_to_val:
                 break
             if not self.acs.device_cfg.has_object(obj_name):
@@ -637,7 +635,7 @@ class WaitGetObjectParametersState(EnodebAcsState):
                     obj_name,
                 )
         num_plmns_reported = \
-            int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
+                int(self.acs.device_cfg.get_parameter(ParameterName.NUM_PLMNS))
         if num_plmns != num_plmns_reported:
             logger.warning(
                 "eNB reported %d PLMNs but found %d",

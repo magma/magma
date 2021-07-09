@@ -37,7 +37,7 @@ class TestConfigManager(TestCase):
             'auto_tf': self.root_dir + '/terraform.tfvars.json',
             'tf_dir': self.root_dir,
             'main_tf': self.root_dir + '/main.tf',
-            'vars_tf': self.root_dir + '/vars.tf',
+            'vars_tf': self.root_dir + '/vars.tf'
         }
         # add config directory
         os.makedirs(self.constants["config_dir"])
@@ -45,38 +45,38 @@ class TestConfigManager(TestCase):
             "infra": {
                 "aws_access_key_id": {
                     "Required": True,
-                    "ConfigApps": ["awscli"],
+                    "ConfigApps": ["awscli"]
                 },
                 "aws_secret_access_key": {
                     "Required": True,
-                    "ConfigApps": ["awscli"],
+                    "ConfigApps": ["awscli"]
                 },
                 "cluster_name": {
                     "Required": False,
-                    "ConfigApps": ["tf"],
+                    "ConfigApps": ["tf"]
                 },
                 "secretsmanager_orc8r_secret": {
                     "Required": True,
-                    "ConfigApps": ["tf"],
-                },
+                    "ConfigApps": ["tf"]
+                }
             },
             "platform": {
                 "deploy_elastic": {
                     "Required": False,
-                    "ConfigApps": ["tf"],
+                    "ConfigApps": ["tf"]
                 },
                 "nms_db_password": {
                     "Required": True,
-                    "ConfigApps": ["tf"],
-                },
+                    "ConfigApps": ["tf"]
+                }
             },
             "service": {
                 "lte_orc8r_chart_version": {
                     "Required": False,
                     "Default": "0.2.4",
-                    "ConfigApps": ["tf"],
+                    "ConfigApps": ["tf"]
                 },
-            },
+            }
         }
         with open(self.constants['vars_definition'], 'w') as f:
             yaml.dump(test_vars, f)
@@ -86,8 +86,7 @@ class TestConfigManager(TestCase):
             '''
 {% for k in cfg['infra'] %}
 {{k}}=var.{{k}}{% endfor %}
-'''
-        )
+''')
         with open(self.constants['tf_dir'] + '/main.tf.j2', 'w') as f:
             f.write(jinja_template)
 
@@ -95,8 +94,7 @@ class TestConfigManager(TestCase):
             '''
 {% for k in cfg %}
 variable "{{k}}" {}{% endfor %}
-'''
-        )
+''')
         with open(self.constants['tf_dir'] + '/vars.tf.j2', 'w') as f:
             f.write(jinja_template)
 
@@ -117,8 +115,7 @@ variable "{{k}}" {}{% endfor %}
             mock_vals['secretsmanager_orc8r_secret'],
         ]
         mock_run_command.return_value = subprocess.CompletedProcess(
-            args=[], returncode=0,
-        )
+            args=[], returncode=0)
 
         # verify if components tfvars json is created
         mgr = configlib.ConfigManager(self.constants)
@@ -136,11 +133,9 @@ variable "{{k}}" {}{% endfor %}
         # check if aws configs are set
         aws_config_cmd = ['aws', 'configure', 'set']
         mock_run_command.assert_any_call(
-            aws_config_cmd + ['aws_access_key_id', 'foo'],
-        )
+            aws_config_cmd + ['aws_access_key_id', 'foo'])
         mock_run_command.assert_any_call(
-            aws_config_cmd + ['aws_secret_access_key', 'bar'],
-        )
+            aws_config_cmd + ['aws_secret_access_key', 'bar'])
 
         # verify that platform tfvars json file isn't present
         fn = "%s/platform.tfvars.json" % self.constants['config_dir']
@@ -203,24 +198,19 @@ variable "{{k}}" {}{% endfor %}
 
         # verify if jinja template has been rendered accordingly
         with open(self.constants['main_tf']) as f:
-            jinja_cfg = dict(
-                ln.split('=')
-                for ln in f.readlines() if ln.strip()
-            )
+            jinja_cfg = dict(ln.split('=')
+                             for ln in f.readlines() if ln.strip())
 
         # all infra terraform keys should be present in the jinja template
         self.assertEqual(
             set(jinja_cfg.keys()),
-            set(['secretsmanager_orc8r_secret']),
-        )
+            set(['secretsmanager_orc8r_secret']))
 
         # variable tf is of the form variable "var_name" {}
         # get the middle element and remove the quotes
         with open(self.constants['vars_tf']) as f:
-            jinja_cfg = [
-                ln.split()[1][1:-1]
-                for ln in f.readlines() if ln.strip()
-            ]
+            jinja_cfg = [ln.split()[1][1:-1]
+                         for ln in f.readlines() if ln.strip()]
 
         # all infra terraform keys should be present in the jinja template
         self.assertEqual(set(jinja_cfg), set(mgr.tf_vars))

@@ -63,11 +63,9 @@ def create_orc8r_secrets(certs_dir: str) -> Dict[str, str]:
     return ret
 
 
-def set_orc8r_secretsmanager(
-    secret_name: str,
-    region: str,
-    secret_contents: Dict[str, str],
-):
+def set_orc8r_secretsmanager(secret_name: str,
+                             region: str,
+                             secret_contents: Dict[str, str]):
     """Set secret_contents in AWS Secrets Manager."""
     secret_string = json.dumps(secret_contents)
 
@@ -78,10 +76,8 @@ def set_orc8r_secretsmanager(
         SecretString=secret_string,
     )
     if resp['ResponseMetadata']['HTTPStatusCode'] != 200:
-        raise Exception(
-            f'Secretsmanager request failed. '
-            f'AWS Response: \n{json.dumps(resp, indent=2)}',
-        )
+        raise Exception(f'Secretsmanager request failed. '
+                        f'AWS Response: \n{json.dumps(resp, indent=2)}')
 
 
 if __name__ == '__main__':
@@ -90,9 +86,7 @@ if __name__ == '__main__':
     # 2: AWS region
     # 3: certs dir
     if len(sys.argv) < 4:
-        print(
-            f'Expected 3 CLI arguments, got {len(sys.argv) - 1}',
-            file=sys.stderr,
-        )
+        print(f'Expected 3 CLI arguments, got {len(sys.argv) - 1}',
+              file=sys.stderr)
         sys.exit(1)
     main(*sys.argv[1:])

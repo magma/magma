@@ -63,21 +63,19 @@ def lte():
     env.stack = LTE_STACK
 
 
-def integ_test(
-    repo: str = 'git@github.com:magma/magma.git',
-    branch: str = '', sha1: str = '', tag: str = '',
-    pr_num: str = '',
-    magma_root: str = '',
-    node_ssh_key: str = 'ci_node.pem',
-    api_url: str = 'https://api-staging.magma.etagecom.io',
-    cert_file: str = 'ci_operator.pem',
-    cert_key_file: str = 'ci_operator.key.pem',
-    run_integ_test: str = 'True',
-    build_package: str = 'False',
-    deploy_artifacts: str = 'False',
-    package_cert: str = 'rootCA.pem',
-    package_control_proxy: str = 'control_proxy.yml',
-):
+def integ_test(repo: str = 'git@github.com:magma/magma.git',
+               branch: str = '', sha1: str = '', tag: str = '',
+               pr_num: str = '',
+               magma_root: str = '',
+               node_ssh_key: str = 'ci_node.pem',
+               api_url: str = 'https://api-staging.magma.etagecom.io',
+               cert_file: str = 'ci_operator.pem',
+               cert_key_file: str = 'ci_operator.key.pem',
+               run_integ_test: str = 'True',
+               build_package: str = 'False',
+               deploy_artifacts: str = 'False',
+               package_cert: str = 'rootCA.pem',
+               package_control_proxy: str = 'control_proxy.yml'):
     if env.stack not in STACKS:
         raise ValueError(f'Stack {env.stack} is not a valid stack.')
     should_test = run_integ_test == 'True'
@@ -99,11 +97,9 @@ def integ_test(
         # tests on more than one repo, Vagrant will complain about colliding
         # VM names.
         # Pipe stderr to /dev/null to silence annoying vagrant update prompts
-        run(
-            "vagrant global-status 2>/dev/null | "
+        run("vagrant global-status 2>/dev/null | "
             "awk '/virtualbox/{print $1}' | "
-            "xargs -I {} vagrant destroy -f {}",
-        )
+            "xargs -I {} vagrant destroy -f {}")
 
         if should_test:
             if env.stack == LTE_STACK:
@@ -115,11 +111,9 @@ def integ_test(
             # Destroy the VM if we didn't use it to run the integ tests in
             # this same job
             should_destroy_vm = not should_test
-            _run_remote_lte_package(
-                repo, magma_root,
-                package_cert, package_control_proxy,
-                should_destroy_vm,
-            )
+            _run_remote_lte_package(repo, magma_root,
+                                    package_cert, package_control_proxy,
+                                    should_destroy_vm)
 
         if should_deploy:
             if env.stack == LTE_STACK:
@@ -127,16 +121,12 @@ def integ_test(
             elif env.stack == CWF_STACK:
                 raise Exception('CWAG artifacts should be built on Circle')
     except CommandTimeout as e:
-        print(
-            'Remote run timed out, this probably indicates a problem '
-            'with the job',
-        )
+        print('Remote run timed out, this probably indicates a problem '
+              'with the job')
         raise e
     finally:
-        _release_node_lease(
-            api_url, lease.node_id, lease.lease_id,
-            cert_file, cert_key_file,
-        )
+        _release_node_lease(api_url, lease.node_id, lease.lease_id,
+                            cert_file, cert_key_file)
 
 
 def _write_lease_to_disk(lease: NodeLease):
@@ -159,19 +149,15 @@ def _set_host_for_lease(lease: NodeLease, node_ssh_key: str):
     env.disable_known_hosts = True
 
 
-def _acquire_lease_with_retry(
-    api_url: str,
-    cert_file: str,
-    cert_key_file: str,
-) -> Optional[NodeLease]:
+def _acquire_lease_with_retry(api_url: str,
+                              cert_file: str,
+                              cert_key_file: str) -> Optional[NodeLease]:
     lease_retries = 0
     while lease_retries < LEASE_MAX_RETRIES:
         lease = _acquire_node_lease(api_url, cert_file, cert_key_file)
         if lease is not None:
-            print(
-                f'Acquired lease for {lease.node_id}, '
-                f'lease ID {lease.lease_id}',
-            )
+            print(f'Acquired lease for {lease.node_id}, '
+                  f'lease ID {lease.lease_id}')
             return lease
         lease_retries += 1
         print('No nodes found, trying again after 5 minutes...')
@@ -179,27 +165,21 @@ def _acquire_lease_with_retry(
     return None
 
 
-def _acquire_node_lease(
-    api_url: str,
-    cert_file: str,
-    cert_key_file: str,
-) -> Optional[NodeLease]:
+def _acquire_node_lease(api_url: str,
+                        cert_file: str,
+                        cert_key_file: str) -> Optional[NodeLease]:
     resource = f'{api_url}/magma/v1/ci/reserve'
     resp = requests.post(resource, cert=(cert_file, cert_key_file))
     if resp.status_code != 200:
-        print(
-            f'Received status code {resp.status_code} from node lease '
-            f'request',
-        )
+        print(f'Received status code {resp.status_code} from node lease '
+              f'request')
         return None
     resp_obj = resp.json()
     return NodeLease(resp_obj['id'], resp_obj['lease_id'], resp_obj['vpn_ip'])
 
 
-def _checkout_code(
-    repo: str, branch: str, sha1: str, tag: str, pr_num: str,
-    magma_root: str,
-):
+def _checkout_code(repo: str, branch: str, sha1: str, tag: str, pr_num: str,
+                   magma_root: str):
     repo_name = _get_repo_name(repo)
     if not exists(repo_name):
         _run_git(f'git clone {repo}')
@@ -218,10 +198,8 @@ def _checkout_code(
             _run_git(f'git reset --hard {sha1}')
             _run_git(f'git checkout -q {tag}')
         else:
-            _run_git(
-                f'git fetch --force origin '
-                f'"{branch}:remotes/origin/{branch}"',
-            )
+            _run_git(f'git fetch --force origin '
+                     f'"{branch}:remotes/origin/{branch}"')
             _run_git(f'git reset --hard {sha1}')
             _run_git(f'git checkout -q -B {branch}')
 
@@ -275,24 +253,20 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
         with cd('docker'):
             # Note: it seems like the --parallel flag makes the fabric output
             # unreadable, with all build outputs interleaved
-            run(
-                'docker-compose '
+            run('docker-compose '
                 '-f docker-compose.yml '
                 '-f docker-compose.override.yml '
                 '-f docker-compose.nginx.yml '
                 '-f docker-compose.integ-test.yml '
-                'build --parallel',
-            )
+                'build --parallel')
         test_xml = "tests.xml"
         with settings(abort_exception=FabricException):
             try:
-                result = run(
-                    'fab integ_test:'
-                    'destroy_vm=True,'
-                    'transfer_images=True,'
-                    'test_result_xml=' + test_xml,
-                    timeout=110 * 60, warn_only=True,
-                )
+                result = run('fab integ_test:'
+                             'destroy_vm=True,'
+                             'transfer_images=True,'
+                             'test_result_xml=' + test_xml,
+                             timeout=110 * 60, warn_only=True)
             except Exception as e:
                 _transfer_all_artifacts()
                 print(f'Exception while running cwf integ_test\n {e}')
@@ -313,10 +287,8 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
 
 def _transfer_all_artifacts():
     services = "sessiond session_proxy pcrf ocs pipelined ingress"
-    run(
-        f'fab transfer_artifacts:services="{services}",'
-        'get_core_dump=True',
-    )
+    run(f'fab transfer_artifacts:services="{services}",'
+        'get_core_dump=True')
     # Copy log files out from the node
     local('mkdir cwf-artifacts')
     get('*.log', 'cwf-artifacts')
@@ -326,11 +298,9 @@ def _transfer_all_artifacts():
     local('sudo mv cwf-artifacts/* /tmp/logs/')
 
 
-def _run_remote_lte_package(
-    repo: str, magma_root: str,
-    package_cert: str, package_control_proxy: str,
-    destroy_vm: bool,
-):
+def _run_remote_lte_package(repo: str, magma_root: str,
+                            package_cert: str, package_control_proxy: str,
+                            destroy_vm: bool):
     repo_name = _get_repo_name(repo)
 
     remote_secrets_dir = f'/home/magma/{repo_name}/{magma_root}/fb'
@@ -364,48 +334,34 @@ def _deploy_lte_packages(repo: str, magma_root: str):
     get('/tmp/packages.tar.gz', 'packages.tar.gz')
     get('/tmp/packages.txt', 'packages.txt')
     get('/tmp/magma_version', 'magma_version')
-    get(
-        f'{repo_name}/{magma_root}/lte/gateway/release/magma.lockfile.debian',
-        'magma.lockfile.debian',
-    )
+    get(f'{repo_name}/{magma_root}/lte/gateway/release/magma.lockfile.debian',
+        'magma.lockfile.debian')
 
     with open('magma_version') as f:
         magma_version = f.readlines()[0].strip()
     s3_path = f's3://magma-images/gateway/{magma_version}'
-    local(
-        f'aws s3 cp packages.txt {s3_path}.deplist '
-        f'--acl bucket-owner-full-control',
-    )
-    local(
-        f'aws s3 cp magma.lockfile.debian {s3_path}.lockfile.debian '
-        f'--acl bucket-owner-full-control',
-    )
-    local(
-        f'aws s3 cp packages.tar.gz {s3_path}.deps.tar.gz '
-        f'--acl bucket-owner-full-control',
-    )
+    local(f'aws s3 cp packages.txt {s3_path}.deplist '
+          f'--acl bucket-owner-full-control')
+    local(f'aws s3 cp magma.lockfile.debian {s3_path}.lockfile.debian '
+          f'--acl bucket-owner-full-control')
+    local(f'aws s3 cp packages.tar.gz {s3_path}.deps.tar.gz '
+          f'--acl bucket-owner-full-control')
 
 
-def _destroy_vms(
-    repo: str, magma_root: str,
-    path: str, vms: List[str],
-) -> None:
+def _destroy_vms(repo: str, magma_root: str,
+                 path: str, vms: List[str]) -> None:
     repo_name = _get_repo_name(repo)
     with cd(f'{repo_name}/{magma_root}/{path}'), settings(warn_only=True):
         run(f'vagrant destroy -f {" ".join(vms)}')
 
 
-def _release_node_lease(
-    api_url: str, node_id: str, lease_id: str,
-    cert_file: str, cert_key_file: str,
-) -> None:
+def _release_node_lease(api_url: str, node_id: str, lease_id: str,
+                        cert_file: str, cert_key_file: str) -> None:
     resource = f'{api_url}/magma/v1/ci/nodes/{node_id}/release/{lease_id}'
     resp = requests.post(resource, cert=(cert_file, cert_key_file))
     if resp.status_code != 204:
-        raise Exception(
-            f'Got response code {resp.status_code} when releasing '
-            f'worker node, it may not have been released.',
-        )
+        raise Exception(f'Got response code {resp.status_code} when releasing '
+                        f'worker node, it may not have been released.')
     print(f'Released node {node_id}')
 
 

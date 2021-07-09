@@ -15,19 +15,8 @@ limitations under the License.
 
 import collections
 import os
-
-from pyparsing import (
-    Group,
-    Optional,
-    Suppress,
-    Word,
-    ZeroOrMore,
-    alphanums,
-    alphas,
-    cppStyleComment,
-    empty,
-    nums,
-)
+from pyparsing import alphas, alphanums, cppStyleComment, empty, nums
+from pyparsing import Group, Optional, Suppress, Word, ZeroOrMore
 
 """
 Helper script to parse C header files and generate the corresponding python
@@ -45,7 +34,7 @@ in the s1aptester headers).
 HEADER_FILES = [
     'fw_api_int.h',
     'fw_api_int.x',
-    'trfgen.x',
+    'trfgen.x'
 ]
 
 OUT_FILE = 's1ap_types.py'
@@ -72,7 +61,7 @@ py_type_map = {
     'U16': 'c_ushort',
     'S32': 'c_int',
     'U32': 'c_uint',
-    'int': 'c_int',
+    'int': 'c_int'
 }
 
 defines = {}
@@ -199,11 +188,10 @@ def extract_enums(in_fname, out_fname):
     integer = Word("0x" + nums)
 
     enum_value = Group(
-        identifier('name') + Optional(_equal + integer('value')),
-    )
+        identifier('name') + Optional(_equal + integer('value')))
     enum_list = Group(enum_value + ZeroOrMore(_comma + enum_value))
     enum = _enum + Optional(identifier('enum_prefix')) + _lcurl + \
-        enum_list('list') + _rcurl + Optional(identifier('enum_postfix'))
+           enum_list('list') + _rcurl + Optional(identifier('enum_postfix'))
     enum.ignore(cppStyleComment)
 
     for item, _, _ in enum.scanString(sample):  # item, start, stop
@@ -246,11 +234,9 @@ def _extract_inner_params(parsed_struct):
     """
     params = collections.OrderedDict()
     for param in parsed_struct.inner_param_list:
-        param_name, param_type = normalize_param(
-            param[0].param_type,
-            param[0].param_name, None,
-            param[0].length,
-        )
+        param_name, param_type = normalize_param(param[0].param_type,
+                                                 param[0].param_name, None,
+                                                 param[0].length)
 
         params[param_name] = param_type
     return params
@@ -269,7 +255,7 @@ def extract_inner_struct(parsed_struct, out_fname):
     params = _extract_inner_params(parsed_struct)
     _write_class(out_fname, parsed_struct.inner_struct, params, "Structure")
     return parsed_struct.inner_struct, parsed_struct.inner_param_name, None, \
-        parsed_struct.length
+           parsed_struct.length
 
 
 def extract_inner_union(parsed_union, out_fname):
@@ -287,12 +273,12 @@ def extract_inner_union(parsed_union, out_fname):
     union_type_name = parsed_union.inner_param_name.title()
     _write_class(out_fname, union_type_name, params, "Union")
     return union_type_name, parsed_union.inner_param_name, None, \
-        parsed_union.length
+           parsed_union.length
 
 
 def extract_simple_param(parsed_struct):
     return parsed_struct[0].param_type, parsed_struct[0].param_name, \
-        parsed_struct[0].ptr, parsed_struct[0].length
+           parsed_struct[0].ptr, parsed_struct[0].length
 
 
 def normalize_param(param_type, param_name, ptr, length):
@@ -318,11 +304,9 @@ def normalize_param(param_type, param_name, ptr, length):
     else:
         # Assert we know about this struct or const
         assert p_type in c_struct or p_type in defines or \
-            p_type in anon_types or p_type in enums, \
-            "{} not in {} or {} or {} or {}".format(
-                p_type, c_struct, defines,
-                anon_types, enums,
-            )
+               p_type in anon_types or p_type in enums, \
+            "{} not in {} or {} or {} or {}".format(p_type, c_struct, defines,
+                                                    anon_types, enums)
     if ptr:
         p_type = 'POINTER(%s)' % p_type
     if length:
@@ -348,50 +332,40 @@ def extract_structs(in_fname, out_fname):
     integer = Word(alphanums + '_')
     struct_array = _lsq_bracket + integer('length') + _rsq_bracket
     pointer = Word('*', max=1)
-    struct_param = Group(
-        identifier('param_type') + Optional(pointer('ptr'))
-        + identifier('param_name') + Optional(struct_array),
-    )
+    struct_param = Group(identifier('param_type') + Optional(pointer('ptr')) +
+                         identifier('param_name') + Optional(struct_array))
 
     simple_param = Group(struct_param + _semi_colon)
 
     # Anonymous structs (nested)
     inner_param_list = Group(ZeroOrMore(simple_param('inner_list')))
-    anonymous_struct_param = Group(
-        _struct
-        + Optional(identifier('inner_struct'))
-        + _lcurl
-        + inner_param_list('inner_param_list')
-        + _rcurl + identifier('inner_param_name')
-        + Optional(struct_array) + _semi_colon,
-    )
+    anonymous_struct_param = Group(_struct +
+                                   Optional(identifier('inner_struct')) +
+                                   _lcurl +
+                                   inner_param_list('inner_param_list') +
+                                   _rcurl + identifier('inner_param_name') +
+                                   Optional(struct_array) + _semi_colon)
     anonymous_struct_param.ignore(cppStyleComment)
 
     # Anonymous unions (nested)
-    anonymous_union_param = Group(
-        _union
-        + Optional(identifier('inner_union'))
-        + _lcurl
-        + inner_param_list('inner_param_list')
-        + _rcurl + identifier('inner_param_name')
-        + Optional(struct_array) + _semi_colon,
-    )
+    anonymous_union_param = Group(_union +
+                                  Optional(identifier('inner_union')) +
+                                  _lcurl +
+                                  inner_param_list('inner_param_list') +
+                                  _rcurl + identifier('inner_param_name') +
+                                  Optional(struct_array) + _semi_colon)
 
     # A struct can contain a list of
     # 1. simple param types params name;
     # 2. Anonymous nested structs.
     # 3. Anonymous nested unions.
-    struct_list = Group(
-        ZeroOrMore(
-            simple_param('simple_param')
-            | anonymous_struct_param('anon_struct')
-            | anonymous_union_param('anon_union'),
-        ),
-    )
+    struct_list = Group(ZeroOrMore(simple_param('simple_param') |
+                                   anonymous_struct_param('anon_struct') |
+                                   anonymous_union_param('anon_union')))
 
     struct = _struct + Optional(identifier('struct_prefix')) + _lcurl + \
-        struct_list('list') + _rcurl + \
-        Optional(identifier('struct_postfix')) + _semi_colon
+             struct_list('list') + _rcurl + \
+             Optional(identifier('struct_postfix')) + _semi_colon
     struct.ignore(cppStyleComment)
 
     for item, _, _ in struct.scanString(sample):  # item, start, stop
@@ -415,10 +389,8 @@ def extract_structs(in_fname, out_fname):
                 assert False, "Invalid parse"
 
             # Normalize the parameter type
-            param_name, p_type = normalize_param(
-                param_type, param_name,
-                ptr, length,
-            )
+            param_name, p_type = normalize_param(param_type, param_name,
+                                                 ptr, length)
             params[param_name] = p_type
             c_struct[struct_name] = params
 

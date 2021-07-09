@@ -63,7 +63,7 @@ class EnodebStatusTests(TestCase):
     def test_get_enb_status(self):
         acs_state_machine = \
             EnodebAcsStateMachineBuilder\
-            .build_acs_state_machine(EnodebDeviceName.BAICELLS)
+                .build_acs_state_machine(EnodebDeviceName.BAICELLS)
         try:
             get_enb_status(acs_state_machine)
         except KeyError:
